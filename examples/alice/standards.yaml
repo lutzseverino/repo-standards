@@ -1,0 +1,60 @@
+format: repo-standards/v1
+name: alice-standards
+description: Alice's repository standards
+requires:
+  repo-standards: ">=1.0.0 <2.0.0"
+
+defaults:
+  declarations:
+    agent-guidance:
+      kind: file
+      target: AGENTS.md
+      exact: defaults/files/AGENTS.md
+
+    contribution-guidance:
+      kind: file
+      target: CONTRIBUTING.md
+      exact: defaults/files/CONTRIBUTING.md
+
+    readme:
+      kind: file
+      target: README.md
+      guidance: defaults/guidance/readme.md
+      checks:
+        - id: headings
+          run:
+            executable: python3
+            script: defaults/checks/readme.py
+            resources: []
+            arguments: []
+          prerequisite:
+            version-arguments: ["--version"]
+            version: ">=3.12.0 <4.0.0"
+          timeout-seconds: 60
+
+    review-skill:
+      kind: skill
+      name: review
+      source: defaults/skills/review
+
+    source-layout:
+      kind: repository
+      guidance: defaults/guidance/source-layout.md
+      targets:
+        paths: []
+        directories: [src]
+
+profiles:
+  personal:
+    description: Standards for personal projects
+    declarations: {}
+
+  work:
+    description: Standards for work projects
+    declarations:
+      agent-guidance:
+        kind: file
+        target: AGENTS.md
+        exact: profiles/work/files/AGENTS.md
+      contribution-guidance:
+        exclude: true
