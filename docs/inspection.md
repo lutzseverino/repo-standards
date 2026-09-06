@@ -1,0 +1,132 @@
+# Bootstrap and public inspection
+
+Issue #3 delivers an installable CLI package and a standalone bootstrap. Public
+npm publication and published-installation verification belong to issue #11;
+the package is not yet published. Adoption, project runtime pins, and retained
+inputs follow in later tickets. This command implements initial inspection.
+
+## Obtain the CLI outside the adopting project
+
+Use macOS or Linux with Node.js 24, npm, and Git on `PATH`. Node.js 24 installers
+at <https://nodejs.org/en/download> include npm. Missing prerequisites produce
+actionable setup instructions. Git is needed to observe the adopting project.
+
+The executable `bootstrap/repo-standards` is a standalone POSIX shell file with
+an embedded Node.js program. It needs no product checkout, pnpm, or installed
+JavaScript dependencies. Distribute that file as-is and install it outside your
+project:
+
+```sh
+mkdir -p "$HOME/.local/bin"
+install -m 755 /path/to/distributed/repo-standards "$HOME/.local/bin/repo-standards-bootstrap"
+cd /path/to/adopting-project
+"$HOME/.local/bin/repo-standards-bootstrap" --cli-version 1.0.0 inspect \
+  --source https://github.com/OWNER/STANDARDS \
+  --standards-version v1.2.3 --profile work --json
+```
+
+Replace the source, tag, and profile with a published standards source. The
+bootstrap needs the requested CLI package in the configured npm registry.
+The packed CLI also exposes `repo-standards-bootstrap`; installing the product
+package globally installs both executable names.
+
+An explicit `--cli-version` must be an exact stable package version. When it is
+omitted, the bootstrap reads published versions once and selects the greatest
+stable SemVer, excluding prereleases. It discloses that exact version on stderr
+before installation, installs only that version, verifies its installed identity,
+and invokes it. It never falls back to a different version. Each new invocation
+is a new selection; reuse the disclosed `--cli-version` to repeat it. Inspection
+records the invoked package and version.
+
+Installation uses an external temporary directory and npm cache, with lifecycle
+scripts disabled and the project's `.npmrc` out of scope. Normal completion or
+failure removes the temporary installation. The project's language, package
+manager, dependency manifests, and content are unchanged. Do not redirect the
+report into the project if the entire invocation must leave it unchanged.
+
+## Inspect with an already installed exact CLI
+
+```sh
+repo-standards inspect \
+  --source https://github.com/OWNER/STANDARDS \
+  --standards-version v1.2.3 --profile work \
+  --project /path/to/adopting-project --json
+```
+
+`--project` defaults to the current directory; subdirectories resolve to the Git
+working-tree root. Inspection works with staged, unstaged, untracked, and ignored
+content, and an unborn HEAD. Non-Git and bare repositories are rejected. Default
+output and `--json` provide the complete indented JSON report; `--json` also makes
+failures structured JSON on stdout.
+
+Git observation disables fsmonitor and clean/process filters and prevents index
+refresh writes. Because author-defined normalization cannot run during inspection,
+filtered working content may be reported as differing from the index even when
+ordinary Git status considers it clean. Nested submodule state remains a start
+blocker in this initial journey; inspection does not execute nested Git behavior.
+
+Only public HTTPS GitHub repository URLs are accepted. A trailing `.git` or `/`
+is normalized through GitHub's canonical metadata. The version must name an
+existing stable SemVer tag (`1.2.3` or `v1.2.3`, optionally with build metadata).
+Branches, commit-only inputs, ranges, prereleases, local directories, SSH, private
+sources, and other hosts are unsupported. Direct inspection needs no discovery.
+
+Acquisition uses unauthenticated GitHub REST repository and Git-object endpoints.
+It resolves lightweight or annotated tags to a commit and downloads that commit's
+tree and blobs outside the project. Blob bytes are verified against Git object
+identities; executable bits are preserved. No checkout hooks, filters, author
+scripts, or prerequisite probes run. Symlinks, submodules, special files, unsafe
+paths, incomplete trees, and corrupt blobs are rejected. GitHub rate limits and
+API size limits can prevent acquisition; failures never select another revision.
+
+Observed tag-to-commit identities persist outside the project under
+`$XDG_CACHE_HOME/repo-standards/tags`, or `~/.cache/repo-standards/tags` by default.
+A previously observed tag that moves is rejected across separate CLI invocations.
+Preserve this cache to preserve observation history. It is not retained input
+storage and cannot detect movement before the first observation. `TMPDIR` and
+the tag-cache location must resolve outside the project, including via symlinks.
+
+## Report and inspection identity
+
+The report has format `repo-standards/inspection/v1`:
+
+| Field | Meaning |
+| --- | --- |
+| `selection` | Exact CLI package/version, canonical standards URL, version tag, commit SHA, and profile. |
+| `source`, `resolved` | Validated metadata and the resolver's complete active profile. |
+| `exact` | Declaration and target; `create`, `replace`, or `match`; before/after inventories with full bytes, SHA-256 hashes, and executable state. |
+| `guidance` | Guidance content and its explicit project paths or directory trees. |
+| `operations` | Ordered fixes and checks, literal arguments, script bytes, resource inventories, timeout, and declared prerequisite probe/range. |
+| `project` | Canonical project root, HEAD or null, Git status and index, affected content, and reserved product paths. |
+| `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. This ticket does not implement `start`. |
+| `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
+
+File bytes use `encoding: utf8` when losslessly representable, otherwise
+`encoding: base64`. Whole-skill inventories include existing and supplied files.
+Matching exact files can be claimed without rewriting when adoption is available.
+Contextual content stays project-owned. All author prerequisites remain
+`not-checked`: inspection cannot establish them without running probes.
+
+Identity has no timestamp or random acquisition path. It binds the exact
+selection, resolved declarations and materials, project root, HEAD, index,
+Git status, affected bytes and executable state, and safety observations.
+Repeated unchanged inspection has the same identity; changes to bound inputs
+change it. It is evidence for a future freshness check, not mutation authorization.
+
+Known blockers include missing commits, dirty Git state, symlink or non-directory
+ancestors, special files, case-folded existing-path conflicts, file/directory type
+conflicts, ignored or untracked replacement content, and unrelated skill names.
+Git assume-unchanged or skip-worktree flags also block eligibility because they
+can hide working-tree changes; clear those flags and reconcile content first.
+An existing skill conflicts even if its bytes match: this initial journey has
+no installed baseline establishing ownership. Existing product state or reserved
+system-skill content also blocks initial adoption. Established-project inspection
+and updates will use their own pins and baselines in later tickets. The resolver
+rejects targets overlapping `.git`, `.repo-standards`, or `adopt-standards`.
+
+Exit status 0 means a report was produced, including reports with start blockers.
+Status 1 means acquisition, compatibility, prerequisites, or inspection failed.
+Status 2 means invalid CLI usage. JSON failures contain `valid: false` and
+`errors` with stable `code` and `message` fields. Source-validation failures
+include precise resolver diagnostics in `details`. Bootstrap failures go to
+stderr and exit 1; otherwise it forwards the invoked CLI's exit status.
