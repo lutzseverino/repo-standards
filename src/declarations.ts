@@ -6,6 +6,14 @@ import type { Paths, Target } from './paths.js';
 
 const identity = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+function validExecutable(executable: string): boolean {
+  if (/[^A-Za-z0-9_./+-]/u.test(executable) || executable.startsWith('-')) return false;
+  const components = executable.split('/');
+  const basename = components.pop();
+  return Boolean(basename && basename !== '.' && basename !== '..' &&
+    components.every((component, index) => component !== '' || index === 0));
+}
+
 export class Declarations {
   readonly locations = new WeakMap<Declaration, Target[]>();
   constructor(private readonly fields: Fields, private readonly paths: Paths) {}
@@ -29,8 +37,8 @@ export class Declarations {
       f.map(run, ['executable', 'script', 'resources', 'arguments']);
       const executableValue = f.get(run, 'executable');
       const executable = f.string(executableValue) ?? '';
-      if (executable && (/[\s\u0000-\u001f|;&<>`$]/u.test(executable) || executable.startsWith('-'))) {
-        f.error('INVALID_EXECUTABLE', 'Expected one executable, with arguments declared separately.', executableValue);
+      if (executable && !validExecutable(executable)) {
+        f.error('INVALID_EXECUTABLE', 'Expected an executable name or path using ASCII letters, digits, dot, underscore, plus, hyphen, and slash.', executableValue);
       }
       const script = this.paths.reference(f.get(run, 'script'), 'file');
       const resources = f.list(f.get(run, 'resources')).map(resource => this.paths.reference(resource, 'resource'));

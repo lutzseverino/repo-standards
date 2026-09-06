@@ -106,9 +106,25 @@ checks:
 ```
 
 `run` and `prerequisite` are mappings with exactly the fields shown.
-`executable` identifies one executable; shell commands, embedded arguments,
-whitespace, and shell control syntax are rejected. It is not looked up or run
-during source validation. `script` must reference a regular source file.
+`executable` identifies one command name or executable path with this syntax:
+
+- Allowed characters are ASCII letters, digits, `.`, `_`, `+`, `-`, and `/`.
+- The value cannot begin with `-`. Use an explicit path such as `./-wrapper`
+  for an executable whose basename starts with a hyphen.
+- `/` separates path components; a leading `/` denotes an absolute path.
+  Empty components elsewhere, a trailing `/`, and basenames `.` or `..`
+  are rejected. Directory components `.` and `..` are allowed.
+
+Examples: `python3`, `clang++`, `/usr/bin/python3`, `./tools/checker`, and
+`../tools/checker`. This explicit character set rejects shell expressions,
+quoting, whitespace, controls, and non-ASCII executable spellings. Executable
+paths refer to installed tools on the adopting machine; they are not retained
+source paths. Relative executable paths resolve from the adopting-project root.
+The value is preserved literally and is not looked up or run during source
+validation. A syntactically valid executable may be unavailable; adoption's
+prerequisite checking reports that separately.
+
+`script` must reference a regular source file.
 `resources` explicitly lists any additional source files or whole directory
 trees; an empty list is valid. `arguments` and `version-arguments` are literal
 string lists; empty lists and empty string arguments are valid. NUL bytes
@@ -162,7 +178,7 @@ structurally invalid YAML may limit what can be determined.
 | `INVALID_ID` | Declaration, skill, or operation identity is malformed |
 | `INVALID_DECLARATION` | Unknown kind or file without exactly one content mode |
 | `INVALID_EXCLUSION` | Invalid exclusion value, level, or default identity |
-| `INVALID_EXECUTABLE` | Executable contains command or argument syntax |
+| `INVALID_EXECUTABLE` | Executable violates the documented name/path syntax |
 | `INVALID_TIMEOUT` | Timeout is not a positive safe integer |
 | `EMPTY_TARGETS` | Repository guidance has no targets |
 | `UNSAFE_PATH` | Path can escape its root or uses unsupported path syntax |
