@@ -1,0 +1,80 @@
+#!/bin/sh
+# Standalone bootstrap: copy this file outside the project and invoke it directly.
+set -eu
+if ! command -v node >/dev/null 2>&1; then
+  echo 'Node.js 24 and npm are required. Install Node.js 24 from https://nodejs.org/en/download, reopen your shell, and retry.' >&2
+  exit 1
+fi
+if [ "$(node -p 'process.versions.node.split(".")[0]')" != '24' ]; then
+  echo 'Node.js 24 is required. Select Node.js 24 with your version manager or install it from https://nodejs.org/en/download, then retry.' >&2
+  exit 1
+fi
+if ! command -v npm >/dev/null 2>&1; then
+  echo 'npm is required. Install the npm bundled with Node.js 24 from https://nodejs.org/en/download, ensure npm is on PATH, and retry.' >&2
+  exit 1
+fi
+exec node --input-type=module - "$@" <<'REPO_STANDARDS_BOOTSTRAP'
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { isAbsolute, join, relative, resolve } from 'node:path';
+
+const packageName = '@lutzseverino/repo-standards';
+const stable = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+let temporary;
+try {
+  const args = process.argv.slice(2);
+  let version;
+  if (args[0] === '--cli-version') {
+    version = args[1];
+    args.splice(0, 2);
+    if (!version || !stable.test(version)) throw new Error('--cli-version requires an exact stable package version, such as 1.2.3.');
+  }
+  if (args.length === 0 || args[0] === '--help') {
+    console.log('Usage: repo-standards-bootstrap [--cli-version <1.2.3>] inspect --source <GitHub URL> --standards-version <tag> --profile <name> [--project <directory>] [--json]');
+    process.exit(0);
+  }
+  if (args[0] !== 'inspect' || args.includes('--cli-version')) throw new Error('The bootstrap supports initial inspection. Put --cli-version before inspect. Use --help.');
+  const projectFlag = args.indexOf('--project');
+  const project = realpathSync(resolve(projectFlag === -1 ? '.' : args[projectFlag + 1] ?? '.'));
+  const git = spawnSync('git', ['--no-optional-locks', '-c', 'core.fsmonitor=false', '-C', project, 'rev-parse', '--show-toplevel'], { encoding: 'utf8' });
+  if (git.status !== 0) throw new Error('Inspection requires Git and a Git working tree. Install Git and run git init in your project first.');
+  const root = realpathSync(git.stdout.trim());
+  const tempRoot = realpathSync(tmpdir());
+  const within = relative(root, tempRoot);
+  if (within === '' || (within !== '..' && !within.startsWith('../') && !isAbsolute(within))) throw new Error('TMPDIR must point outside the adopting project.');
+  temporary = mkdtempSync(join(tempRoot, 'repo-standards-bootstrap-'));
+  const cache = join(temporary, 'npm-cache');
+  function npm(args) {
+    const result = spawnSync('npm', [...args, '--cache', cache], { cwd: temporary, encoding: 'utf8', timeout: 120_000, maxBuffer: 16 * 1024 * 1024 });
+    if (result.error || result.status !== 0) throw new Error(`npm ${args[0]} failed. Check npm, registry access, and the requested package version. ${result.stderr || result.error?.message || ''}`);
+    return result.stdout.trim();
+  }
+  if (!/^\d+\.\d+\.\d+/.test(npm(['--version']))) throw new Error('npm is unavailable. Reinstall the npm bundled with Node.js 24.');
+  if (!version) {
+    const published = JSON.parse(npm(['view', packageName, 'versions', '--json']));
+    const versions = (Array.isArray(published) ? published : [published]).filter(value => typeof value === 'string' && stable.test(value));
+    versions.sort((left, right) => {
+      const a = left.split('.').map(BigInt);
+      const b = right.split('.').map(BigInt);
+      for (let index = 0; index < 3; index++) if (a[index] !== b[index]) return a[index] < b[index] ? -1 : 1;
+      return 0;
+    });
+    version = versions.at(-1);
+    if (!version) throw new Error('No stable CLI version is published. Supply an available exact --cli-version or retry after publication.');
+  }
+  console.error(`Repository Standards CLI ${version} (${packageName}@${version}); selected once for this inspection.`);
+  npm(['install', '--prefix', temporary, '--ignore-scripts', '--no-audit', '--no-fund', '--save-exact', `${packageName}@${version}`]);
+  const installed = join(temporary, 'node_modules', packageName);
+  const manifest = JSON.parse(readFileSync(join(installed, 'package.json'), 'utf8'));
+  if (manifest.name !== packageName || manifest.version !== version) throw new Error('The installed CLI does not match the disclosed exact package selection.');
+  const result = spawnSync(process.execPath, [join(installed, 'dist/cli.js'), ...args], { cwd: process.cwd(), stdio: 'inherit' });
+  if (result.error) throw result.error;
+  process.exitCode = result.status ?? 1;
+} catch (error) {
+  console.error(`Bootstrap: ${error.message}`);
+  process.exitCode = 1;
+} finally {
+  if (temporary) rmSync(temporary, { recursive: true, force: true });
+}
+REPO_STANDARDS_BOOTSTRAP

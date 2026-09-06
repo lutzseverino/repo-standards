@@ -5,11 +5,14 @@
   "license": "MIT",
   "type": "module",
   "bin": {
-    "repo-standards": "dist/cli.js"
+    "repo-standards": "dist/cli.js",
+    "repo-standards-bootstrap": "bootstrap/repo-standards"
   },
   "files": [
     "dist",
-    "docs/author-format.md"
+    "bootstrap",
+    "docs/author-format.md",
+    "docs/inspection.md"
   ],
   "engines": {
     "node": ">=24 <25"
