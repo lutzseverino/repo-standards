@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
-import { readFileSync, lstatSync, writeFileSync, mkdirSync, symlinkSync, chmodSync, utimesSync, unlinkSync } from 'node:fs';
+import { readFileSync, readdirSync, lstatSync, writeFileSync, mkdirSync, symlinkSync, chmodSync, utimesSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
@@ -270,4 +270,41 @@ test('exact replacements preserve both root observations when files and director
   assert.equal(skill.after.type, 'directory');
   assert.equal(skill.after.entries['SKILL.md'].content, 'Desired skill');
   assert.deepEqual(snapshot(project.root), before);
+});
+
+
+test('case conflicts retain the exact target bytes and bind them into inspection identity', (t) => {
+  for (const nested of [false, true]) {
+    const target = nested ? 'foo/AGENTS.md' : 'foo';
+    const alias = nested ? 'FOO/AGENTS.md' : 'FOO';
+    const project = sourceFixture('', { [target]: 'Tracked exact bytes', [alias]: 'Alias bytes' });
+    t.after(() => project.close());
+    if (!readdirSync(project.root).includes('foo') || !readdirSync(project.root).includes('FOO')) {
+      t.skip('Requires a case-sensitive filesystem where both foo and FOO can exist');
+      return;
+    }
+    const remote = remoteFixture(simpleSource(target), { 'content.md': 'Desired file' });
+    t.after(() => remote.close());
+    commit(project.root);
+    writeFileSync(join(project.root, target), 'Dirty exact bytes one');
+    const before = snapshot(project.root);
+    const inspect = () => {
+      const result = cli.run(inspectionArgs, project.root, remote.env);
+      assert.equal(result.status, 0, result.stdout + result.stderr);
+      return JSON.parse(result.stdout);
+    };
+    const first = inspect();
+    assert.deepEqual(snapshot(project.root), before);
+    assert.equal(first.start.eligible, false);
+    assert.ok(first.start.blockers.some((blocker: {code: string}) => blocker.code === 'CASE_CONFLICT'));
+    const obstacles = first.project.affected[target].obstacles;
+    assert.ok(obstacles.foo, 'The exact component must be observed alongside its aliases');
+    assert.equal(nested ? obstacles.foo.entries['AGENTS.md'].content : obstacles.foo.content, 'Dirty exact bytes one');
+    assert.equal(nested ? obstacles.FOO.entries['AGENTS.md'].content : obstacles.FOO.content, 'Alias bytes');
+    writeFileSync(join(project.root, target), 'Dirty exact bytes two');
+    const second = inspect();
+    assert.equal(second.project.status, first.project.status);
+    assert.equal(second.project.index, first.project.index);
+    assert.notEqual(second.identity, first.identity);
+  }
 });
