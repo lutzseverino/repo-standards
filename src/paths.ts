@@ -5,7 +5,7 @@ import type { Fields, Value } from './yaml.js';
 
 export interface Target { path: string; location: Value }
 
-function folded(path: string) { return caseFold(path.normalize('NFC')).normalize('NFC'); }
+export function foldPath(path: string) { return caseFold(path.normalize('NFC')).normalize('NFC'); }
 function overlaps(left: string, right: string) {
   return left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`);
 }
@@ -42,7 +42,7 @@ export class Paths {
       this.fields.error('UNSAFE_PATH', 'Targets must be explicit paths, without glob patterns.', value);
       return undefined;
     }
-    if (['.repo-standards', '.agents/skills/adopt-standards', '.git'].some(reserved => overlaps(folded(path), reserved))) {
+    if (['.repo-standards', '.agents/skills/adopt-standards', '.git'].some(reserved => overlaps(foldPath(path), reserved))) {
       this.fields.error('RESERVED_TARGET', 'Target overlaps product-owned state, the system skill, or Git metadata.', value);
     }
     return { path, location: value };
@@ -92,7 +92,7 @@ export class Paths {
     for (let index = 0; index < targets.length; index++) {
       const target = targets[index]!;
       for (const previous of targets.slice(0, index)) {
-        if (overlaps(folded(target.path), folded(previous.path))) {
+        if (overlaps(foldPath(target.path), foldPath(previous.path))) {
           this.fields.error('TARGET_OVERLAP', `Profile ${profile}: target ${target.path} overlaps ${previous.path} (${previous.location.path}).`, target.location, profile);
         }
       }

@@ -3,7 +3,7 @@ import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, 
 import { homedir, tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { valid, prerelease } from 'semver';
-import { caseFold } from 'unicode-case-folding';
+import { foldPath } from './paths.js';
 import { ProductError } from './errors.js';
 
 export interface StandardsIdentity { repository: string; version: string; commit: string }
@@ -92,7 +92,7 @@ export async function acquireSource(repository: string, version: string, project
       const parts = entry.path.split('/');
       for (let length = 1; length <= parts.length; length++) {
         const path = parts.slice(0, length).join('/');
-        const key = caseFold(path.normalize('NFC')).normalize('NFC');
+        const key = foldPath(path);
         const previous = spellings.get(key);
         if (previous !== undefined && previous !== path) throw new ProductError('UNSAFE_SOURCE', `Source paths alias on supported filesystems: ${previous} and ${path}.`);
         spellings.set(key, path);
