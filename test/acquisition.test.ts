@@ -87,3 +87,69 @@ test('private, missing, truncated, linked and corrupt remote snapshots are rejec
   }
   assert.equal(readFileSync(`${project.root}/standards.yaml`, 'utf8'), '');
 });
+
+test('remote source references require exact Git path spelling for every material kind', (t) => {
+  const operation = (field: string, path: string) => `kind: file
+      target: README.md
+      exact: README.md
+      checks:
+        - id: check
+          run: {executable: node, script: check.js, resources: [], arguments: []}
+          prerequisite: {version-arguments: [--version], version: ">=24.0.0"}
+          timeout-seconds: 10`.replace(field, path);
+  const cases = [
+    { declaration: 'kind: file\n      target: README.md\n      exact: readme.md', files: { 'README.md': 'Exact' }, location: '/exact' },
+    { declaration: 'kind: file\n      target: README.md\n      guidance: readme.md', files: { 'README.md': 'Guidance' }, location: '/guidance' },
+    { declaration: 'kind: repository\n      guidance: readme.md\n      targets: {paths: [README.md], directories: []}', files: { 'README.md': 'Guidance' }, location: '/guidance' },
+    { declaration: 'kind: file\n      target: README.md\n      exact: docs/readme.md', files: { 'Docs/readme.md': 'Exact' }, location: '/exact' },
+    { declaration: 'kind: skill\n      name: review\n      source: skill', files: { 'Skill/SKILL.md': 'Skill' }, location: '/source' },
+    { declaration: 'kind: skill\n      name: review\n      source: skill', files: { 'skill/skill.md': 'Skill' }, location: '/source' },
+    { declaration: operation('script: check.js', 'script: CHECK.js'), files: { 'README.md': 'Exact', 'check.js': 'throw new Error("Do not run")' }, location: '/checks/0/run/script' },
+    { declaration: operation('resources: []', 'resources: [resource.json]'), files: { 'README.md': 'Exact', 'check.js': '', 'Resource.json': '{}' }, location: '/checks/0/run/resources/0' },
+    { declaration: operation('resources: []', 'resources: [resources]'), files: { 'README.md': 'Exact', 'check.js': '', 'Resources/data.json': '{}' }, location: '/checks/0/run/resources/0' },
+  ];
+  const project = sourceFixture('');
+  t.after(() => project.close());
+  commit(project.root);
+  for (const scenario of cases) {
+    const source = yaml.replace('kind: file\n      target: README.md\n      exact: readme.md', scenario.declaration);
+    const remote = remoteFixture(source, scenario.files as Record<string, string>);
+    t.after(() => remote.close());
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 1, `${scenario.location}: ${result.stdout}${result.stderr}`);
+    const error = JSON.parse(result.stdout).errors[0];
+    assert.equal(error.code, 'INVALID_STANDARDS');
+    assert.ok(error.details.some((detail: {code: string; path: string; line: number}) =>
+      detail.code === 'MISSING_REFERENCE' && detail.path === `/defaults/declarations/readme${scenario.location}` && detail.line > 0), result.stdout);
+  }
+});
+
+test('remote snapshots reject path aliases before host extraction can conflate distinct Git entries', (t) => {
+  const project = sourceFixture('');
+  t.after(() => project.close());
+  for (const [left, right] of [['Docs/a.md', 'docs/b.md'], ['README.md', 'readme.md'], ['Caf\u00e9/a.md', 'Cafe\u0301/b.md']]) {
+    const remote = remoteFixture(yaml.replace('exact: readme.md', 'exact: seed.md'), { 'seed.md': 'README', 'first.txt': 'First', 'second.txt': 'Second' });
+    t.after(() => remote.close());
+    const tree = (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as {tree: {path: string}[]}).tree;
+    tree.find(entry => entry.path === 'first.txt')!.path = left!;
+    tree.find(entry => entry.path === 'second.txt')!.path = right!;
+    remote.save();
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(JSON.parse(result.stdout).errors[0].code, 'UNSAFE_SOURCE', result.stdout);
+  }
+});
+
+test('the remote root entry point must be spelled standards.yaml in Git', (t) => {
+  const remote = remoteFixture(yaml, { 'readme.md': 'README' });
+  const project = sourceFixture('');
+  t.after(() => { remote.close(); project.close(); });
+  const tree = (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as {tree: {path: string}[]}).tree;
+  tree.find(entry => entry.path === 'standards.yaml')!.path = 'Standards.yaml';
+  remote.save();
+  const result = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const error = JSON.parse(result.stdout).errors[0];
+  assert.equal(error.code, 'INVALID_STANDARDS');
+  assert.equal(error.details[0].code, 'SOURCE_READ');
+});

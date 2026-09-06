@@ -102,7 +102,7 @@ export async function inspect(options: { source: string; standardsVersion: strin
   if (systemSkill.type !== 'missing') blockers.push({ code: 'SYSTEM_SKILL_CONFLICT', path: '.agents/skills/adopt-standards', message: 'Existing reserved system-skill content requires established product ownership.' });
   const source = await acquireSource(options.source, options.standardsVersion, root);
   try {
-    const validation = validateSource(source.root, cliVersion);
+    const validation = validateSource(source.root, cliVersion, source.paths);
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
     const resolved = validation.profiles[options.profile];
     if (!resolved) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
@@ -142,7 +142,9 @@ export async function inspect(options: { source: string; standardsVersion: strin
         changes(target, current, desired);
         exact.push({ id: declaration.id, target, action, files });
       } else guidance.push({ id: declaration.id, targets, source: declaration.guidance, ...content(join(source.root, declaration.guidance)) });
-      for (const phase of ['fixes', 'checks'] as const) for (const operation of declaration[phase]) {
+    }
+    for (const phase of ['fixes', 'checks'] as const) for (const declaration of resolved.declarations) {
+      for (const operation of declaration[phase]) {
         operations.push({ declaration: declaration.id, phase, ...operation,
           prerequisite: { ...operation.prerequisite, status: 'not-checked' },
           script: content(join(source.root, operation.run.script)),
