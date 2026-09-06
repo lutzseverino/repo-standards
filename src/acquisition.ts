@@ -3,6 +3,7 @@ import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, 
 import { homedir, tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { valid, prerelease } from 'semver';
+import { caseFold } from 'unicode-case-folding';
 import { ProductError } from './errors.js';
 
 export interface StandardsIdentity { repository: string; version: string; commit: string }
@@ -81,11 +82,24 @@ export async function acquireSource(repository: string, version: string, project
   if (tree.sha !== commit.tree.sha || tree.truncated !== false || !Array.isArray(tree.tree)) throw new ProductError('INVALID_SOURCE', 'GitHub must provide a complete source tree.');
   const root = mkdtempSync(join(externalPath(tmpdir(), project), 'repo-standards-snapshot-'));
   try {
+    const paths = new Set<string>();
+    const spellings = new Map<string, string>();
     for (const entry of tree.tree) {
       if (typeof entry.path !== 'string' || /[\\\p{Cc}]/u.test(entry.path) || /^[A-Za-z]:/.test(entry.path) ||
           entry.path.split('/').some((part: string) => !part || part === '.' || part === '..' || part.toLowerCase() === '.git')) {
         throw new ProductError('UNSAFE_SOURCE', 'The source tree contains an unsafe path.');
       }
+      const parts = entry.path.split('/');
+      for (let length = 1; length <= parts.length; length++) {
+        const path = parts.slice(0, length).join('/');
+        const key = caseFold(path.normalize('NFC')).normalize('NFC');
+        const previous = spellings.get(key);
+        if (previous !== undefined && previous !== path) throw new ProductError('UNSAFE_SOURCE', `Source paths alias on supported filesystems: ${previous} and ${path}.`);
+        spellings.set(key, path);
+        paths.add(path);
+      }
+    }
+    for (const entry of tree.tree) {
       if (entry.type === 'tree' && entry.mode === '040000') continue;
       if (entry.mode === '120000') throw new ProductError('SOURCE_SYMLINK', `The selected source contains a symbolic link: ${entry.path}.`);
       if (entry.type !== 'blob' || !['100644', '100755'].includes(entry.mode) || !shaPattern.test(entry.sha)) throw new ProductError('UNSAFE_SOURCE', `Unsupported source entry: ${entry.path}. Submodules and special files are unsupported.`);
@@ -99,6 +113,6 @@ export async function acquireSource(repository: string, version: string, project
       writeFileSync(target, bytes, { flag: 'wx' });
       chmodSync(target, entry.mode === '100755' ? 0o755 : 0o644);
     }
-    return { root, identity, close() { rmSync(root, { recursive: true, force: true }); } };
+    return { root, identity, paths, close() { rmSync(root, { recursive: true, force: true }); } };
   } catch (error) { rmSync(root, { recursive: true, force: true }); throw error; }
 }

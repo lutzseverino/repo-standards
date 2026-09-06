@@ -7,11 +7,12 @@ import { Declarations } from './declarations.js';
 import type { ResolvedProfile } from './model.js';
 import { Paths } from './paths.js';
 
-export function validateSource(directory: string, cliVersion: string) {
+export function validateSource(directory: string, cliVersion: string, sourcePaths?: ReadonlySet<string>) {
   const errors: Diagnostic[] = [];
   const file = resolve(directory, 'standards.yaml');
   let text: string;
   try {
+    if (sourcePaths && !sourcePaths.has('standards.yaml')) throw new Error('Missing exact Git path');
     if (lstatSync(resolve(directory)).isSymbolicLink() || lstatSync(file).isSymbolicLink()) {
       return { valid: false, errors: [{ code: 'SOURCE_SYMLINK', message: 'The source root and standards.yaml cannot be symbolic links.', file, line: 1, column: 1, path: '' }], profiles: {} };
     }
@@ -23,7 +24,7 @@ export function validateSource(directory: string, cliVersion: string) {
   }
   const { roots, error } = readYaml(text, file, errors);
   const fields = new Fields(error);
-  const paths = new Paths(resolve(directory), fields);
+  const paths = new Paths(resolve(directory), fields, sourcePaths);
   let result: ReturnType<typeof resolveDocument> | undefined;
   for (const root of roots) result = resolveDocument(root, fields, paths, cliVersion);
   return { valid: errors.length === 0, errors, ...(errors.length ? {} : { source: result?.source }), profiles: errors.length ? {} : result?.profiles ?? {} };

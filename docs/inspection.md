@@ -76,7 +76,11 @@ It resolves lightweight or annotated tags to a commit and downloads that commit'
 tree and blobs outside the project. Blob bytes are verified against Git object
 identities; executable bits are preserved. No checkout hooks, filters, author
 scripts, or prerequisite probes run. Symlinks, submodules, special files, unsafe
-paths, incomplete trees, and corrupt blobs are rejected. GitHub rate limits and
+paths, incomplete trees, and corrupt blobs are rejected. Before extraction,
+source paths that collide after Unicode normalization and case folding are
+rejected. Source
+references and the root `standards.yaml` must use their exact Git path spelling,
+including on case-insensitive filesystems. GitHub rate limits and
 API size limits can prevent acquisition; failures never select another revision.
 
 Observed tag-to-commit identities persist outside the project under
@@ -104,6 +108,8 @@ The report has format `repo-standards/inspection/v1`:
 File bytes use `encoding: utf8` when losslessly representable, otherwise
 `encoding: base64`. Whole-skill inventories include existing and supplied files.
 Matching exact files can be claimed without rewriting when adoption is available.
+Operations list all fixes before all checks; within each phase, declarations
+appear by ID and operations retain their declared list order.
 Contextual content stays project-owned. All author prerequisites remain
 `not-checked`: inspection cannot establish them without running probes.
 

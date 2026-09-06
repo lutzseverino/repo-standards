@@ -22,7 +22,7 @@ function verifyReadableFile(path: string) {
 }
 
 export class Paths {
-  constructor(private readonly root: string, private readonly fields: Fields) {}
+  constructor(private readonly root: string, private readonly fields: Fields, private readonly sourcePaths?: ReadonlySet<string>) {}
 
   private relative(value: Value): string | undefined {
     const path = this.fields.string(value);
@@ -62,6 +62,10 @@ export class Paths {
 
   private inspect(path: string, kind: 'file' | 'directory' | 'resource', value: Value, recurse: boolean): boolean {
     if (this.relative({ ...value, data: path }) === undefined) return false;
+    if (this.sourcePaths && !this.sourcePaths.has(path)) {
+      this.fields.error('MISSING_REFERENCE', `Cannot read source reference with this exact Git path: ${path}.`, value);
+      return false;
+    }
     try {
       const stat = lstatSync(join(this.root, path));
       if (stat.isSymbolicLink()) {

@@ -208,3 +208,35 @@ test('contextual files and repository directory trees reject incompatible existi
     assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'TARGET_TYPE'));
   }
 });
+
+test('inspection orders all fixes before checks, declarations by ID and operations by their declared order', (t) => {
+  const operation = (id: string) => `        - id: ${id}
+          run: {executable: ./probe, script: operation.sh, resources: [], arguments: []}
+          prerequisite: {version-arguments: [--version], version: ">=1.0.0"}
+          timeout-seconds: 10`;
+  const declaration = (id: string) => `    ${id}:
+      kind: file
+      target: ${id}.md
+      exact: content.md
+      fixes:
+${operation('z-fix')}
+${operation('a-fix')}
+      checks:
+${operation('z-check')}
+${operation('a-check')}`;
+  const yaml = simpleSource().replace('    instructions:\n      kind: file\n      target: AGENTS.md\n      exact: content.md', `${declaration('beta')}\n${declaration('alpha')}`);
+  const remote = remoteFixture(yaml, { 'content.md': 'Expected', 'operation.sh': 'touch AUTHOR_RAN' });
+  const project = sourceFixture('', { probe: '#!/bin/sh\ntouch PROBE_RAN\necho 1.0.0\n' });
+  t.after(() => { remote.close(); project.close(); });
+  chmodSync(join(project.root, 'probe'), 0o755);
+  commit(project.root);
+  const before = snapshot(project.root);
+  const result = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.operations.map((op: {phase: string; declaration: string; id: string}) => `${op.phase}:${op.declaration}:${op.id}`), [
+    'fixes:alpha:z-fix', 'fixes:alpha:a-fix', 'fixes:beta:z-fix', 'fixes:beta:a-fix',
+    'checks:alpha:z-check', 'checks:alpha:a-check', 'checks:beta:z-check', 'checks:beta:a-check',
+  ]);
+  assert.deepEqual(snapshot(project.root), before);
+});
