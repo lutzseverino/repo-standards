@@ -51,10 +51,11 @@ function targetObservation(root: string, target: string, blockers: Blocker[]): O
   const parts = target.split('/');
   for (const [index, part] of parts.entries()) {
     try {
-      const aliases = readdirSync(parent).filter(name => foldPath(name) === foldPath(part) && name !== part);
+      const matches = readdirSync(parent).filter(name => foldPath(name) === foldPath(part)).sort();
+      const aliases = matches.filter(name => name !== part);
       if (aliases.length) {
         blockers.push({ code: 'CASE_CONFLICT', path: target, message: `Target spelling conflicts with existing ${aliases.join(', ')}.` });
-        return { type: 'unsafe', obstacles: Object.fromEntries(aliases.map(name => [name, observe(join(parent, name))])) };
+        return { type: 'unsafe', obstacles: Object.fromEntries(matches.map(name => [name, observe(join(parent, name))])) };
       }
       parent = join(parent, part);
       const stat = lstatSync(parent);

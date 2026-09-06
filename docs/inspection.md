@@ -125,6 +125,8 @@ change it. It is evidence for a future freshness check, not mutation authorizati
 Known blockers include missing commits, dirty Git state, symlink or non-directory
 ancestors, special files, case-folded existing-path conflicts, file/directory type
 conflicts, ignored or untracked replacement content, and unrelated skill names.
+Case conflicts retain every alias and the exact component when present, so
+changes to either remain visible and change the inspection identity.
 Git assume-unchanged or skip-worktree flags also block eligibility because they
 can hide working-tree changes; clear those flags and reconcile content first.
 An existing skill conflicts even if its bytes match: this initial journey has
