@@ -34,6 +34,9 @@ export function installCli() {
 export function sourceFixture(yaml: string, files: Record<string, string> = {}) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-source-')));
   execFileSync('git', ['init', '--quiet', root]);
+  // Fixture commits must finish all writes before preservation snapshots begin.
+  // Recent Git versions otherwise launch detached automatic maintenance.
+  execFileSync('git', ['-C', root, 'config', 'maintenance.auto', 'false']);
   for (const [path, content] of Object.entries({ ...files, 'standards.yaml': yaml })) {
     const target = resolve(root, path);
     mkdirSync(join(target, '..'), { recursive: true });
