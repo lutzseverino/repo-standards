@@ -13,11 +13,18 @@ Create a focused branch from `main` for each implementation ticket. Include
 observable acceptance tests with the behavior they validate. Link the applicable
 issue in the pull request and report validation results and remaining limits.
 
-The product uses TypeScript, ESM, Node.js 24, and pnpm. The first implementation
-ticket establishes the package manifest, pinned build tooling, and aggregate
-validation command. Until that ticket lands, this is a documentation baseline
-with no executable product validation. Afterwards, use the declared pnpm
-validation command before considering implementation complete.
+The product uses TypeScript, ESM, Node.js 24, and pnpm. Use the versions in
+`.node-version` and `package.json`, then run `pnpm install --frozen-lockfile`.
+Run `pnpm validate` before considering implementation complete: it typechecks,
+builds, packs and installs the npm package into a temporary directory, and tests
+the installed public CLI against temporary Git repositories. Package installation
+requires npm registry access or cached dependencies. CI runs the same command
+on macOS and Linux.
+
+During development, run `pnpm typecheck` and `pnpm build`, then a focused test
+with `node --test --test-name-pattern='description' test/source-validation.test.ts`.
+Tests install the current `dist/` output; rebuild after changing product code.
+The public author contract is documented in `docs/author-format.md`.
 
 The release is complete only when every acceptance criterion in the parent
 specification passes, including the published installation and real-agent

@@ -10,10 +10,13 @@ install exact content, apply contextual guidance, and collect check evidence.
 
 ## Project status
 
-The version-one architecture is agreed. This repository contains the product
-design and implementation specification; the CLI is not implemented or released.
+Local source validation is implemented through the installable CLI package.
+It validates every profile without running author code or changing the source.
+Publication, discovery, inspection, and adoption remain future implementation
+tickets. The package has not been published to npm.
 
 - [Architecture and acceptance criteria](docs/architecture.md)
+- [Author format and CLI diagnostics](docs/author-format.md)
 - [Domain language](CONTEXT.md)
 - [Implementation work](https://github.com/lutzseverino/repo-standards/issues)
 - [Contributing](CONTRIBUTING.md)
@@ -26,6 +29,23 @@ design and implementation specification; the CLI is not implemented or released.
 - Product implementation: TypeScript, ESM, and pnpm
 
 The maintainer's personal standards are a separate future standards repository.
+
+## Try source validation
+
+With Node.js 24 and the pnpm version in `package.json`:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm validate
+pnpm pack
+npm install --global ./lutzseverino-repo-standards-1.0.0.tgz --ignore-scripts
+repo-standards source validate ./examples/alice
+repo-standards source validate ./examples/alice --json
+```
+
+An omitted directory uses the current directory. Validation needs neither a
+clean working tree nor installed author prerequisites. The JSON result includes
+the normalized resolved selection for every profile, or structured errors.
 
 ## License
 
