@@ -1,7 +1,15 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { lstatSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+
+export function snapshot(root: string): unknown {
+  return readdirSync(root).sort().map(name => {
+    const path = join(root, name);
+    const stat = lstatSync(path);
+    return [name, stat.mode, stat.isSymbolicLink() ? readlinkSync(path) : stat.isDirectory() ? snapshot(path) : readFileSync(path).toString('base64')];
+  });
+}
 
 // Every test invokes the packed, independently installed executable, never src/.
 export function installCli() {
@@ -11,8 +19,9 @@ export function installCli() {
     execFileSync('npm', ['install', '--prefix', root, '--ignore-scripts', '--no-audit', '--no-fund',
       join(root, 'lutzseverino-repo-standards-1.0.0.tgz')], { stdio: 'pipe' });
     return {
-      run(args: string[], cwd: string) {
-        return spawnSync(join(root, 'node_modules/.bin/repo-standards'), args, { cwd, encoding: 'utf8' });
+      root,
+      run(args: string[], cwd: string, env: NodeJS.ProcessEnv = process.env) {
+        return spawnSync(join(root, 'node_modules/.bin/repo-standards'), args, { cwd, env, encoding: 'utf8' });
       },
       close() { rmSync(root, { recursive: true, force: true }); },
     };
