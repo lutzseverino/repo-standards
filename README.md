@@ -10,16 +10,13 @@ install exact content, apply contextual guidance, and collect check evidence.
 
 ## Project status
 
-Local source validation, pinned public GitHub inspection, and a standalone
-bootstrap are implemented through distributable artifacts. Inspection reports
-content, guidance, operations, prerequisites, conflicts, and an inspection
-identity without changing the project or running author code. Publication,
-discovery, and adoption remain future implementation tickets. The package has
-not been published to npm.
+Local source validation is implemented through the installable CLI package.
+It validates every profile without running author code or changing the source.
+Publication, discovery, inspection, and adoption remain future implementation
+tickets. The package has not been published to npm.
 
 - [Architecture and acceptance criteria](docs/architecture.md)
 - [Author format and CLI diagnostics](docs/author-format.md)
-- [Bootstrap and public inspection](docs/inspection.md)
 - [Domain language](CONTEXT.md)
 - [Implementation work](https://github.com/lutzseverino/repo-standards/issues)
 - [Contributing](CONTRIBUTING.md)
