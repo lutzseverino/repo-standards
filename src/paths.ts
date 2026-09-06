@@ -1,4 +1,4 @@
-import { lstatSync, readdirSync } from 'node:fs';
+import { closeSync, lstatSync, openSync, readdirSync, readSync } from 'node:fs';
 import { join } from 'node:path';
 import { caseFold } from 'unicode-case-folding';
 import type { Fields, Value } from './yaml.js';
@@ -10,13 +10,24 @@ function overlaps(left: string, right: string) {
   return left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`);
 }
 
+function verifyReadableFile(path: string) {
+  const descriptor = openSync(path, 'r');
+  try {
+    // Resources may be large; verify all bytes without retaining them in memory.
+    const buffer = Buffer.alloc(64 * 1024);
+    while (readSync(descriptor, buffer, 0, buffer.length, null) !== 0) { /* Read to EOF. */ }
+  } finally {
+    closeSync(descriptor);
+  }
+}
+
 export class Paths {
   constructor(private readonly root: string, private readonly fields: Fields) {}
 
   private relative(value: Value): string | undefined {
     const path = this.fields.string(value);
     if (path === undefined) return undefined;
-    if (/^[A-Za-z]:/.test(path) || /[\\\u0000-\u001f\u007f]/u.test(path) ||
+    if (/^[A-Za-z]:/.test(path) || /[\\\p{Cc}]/u.test(path) ||
         path.split('/').some(part => part === '' || part === '.' || part === '..')) {
       this.fields.error('UNSAFE_PATH', 'Expected a repository-relative path without empty, dot, parent, or backslash components.', value);
       return undefined;
@@ -50,6 +61,7 @@ export class Paths {
   }
 
   private inspect(path: string, kind: 'file' | 'directory' | 'resource', value: Value, recurse: boolean): boolean {
+    if (this.relative({ ...value, data: path }) === undefined) return false;
     try {
       const stat = lstatSync(join(this.root, path));
       if (stat.isSymbolicLink()) {
@@ -60,6 +72,7 @@ export class Paths {
         this.fields.error('REFERENCE_TYPE', `Expected ${kind} at ${path}.`, value);
         return false;
       }
+      if (stat.isFile()) verifyReadableFile(join(this.root, path));
       if (recurse && stat.isDirectory()) {
         for (const entry of readdirSync(join(this.root, path)).sort()) this.inspect(`${path}/${entry}`, 'resource', value, true);
       }
