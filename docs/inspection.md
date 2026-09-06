@@ -108,6 +108,9 @@ The report has format `repo-standards/inspection/v1`:
 File bytes use `encoding: utf8` when losslessly representable, otherwise
 `encoding: base64`. Whole-skill inventories include existing and supplied files.
 Matching exact files can be claimed without rewriting when adoption is available.
+When an existing exact target conflicts with the supplied file/directory type,
+the replacement entry retains both complete root observations, including any
+directory inventory. The type conflict remains a start blocker.
 Operations list all fixes before all checks; within each phase, declarations
 appear by ID and operations retain their declared list order.
 Contextual content stays project-owned. All author prerequisites remain

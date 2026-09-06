@@ -133,7 +133,9 @@ export async function inspect(options: { source: string; standardsVersion: strin
         const action = JSON.stringify(current) === JSON.stringify(desired) ? 'match' : current.type === 'missing' ? 'create' : 'replace';
         const files: { path: string; before: Observation; after: Observation }[] = [];
         function changes(path: string, before: Observation, after: Observation) {
-          if (before.type === 'directory' || after.type === 'directory') {
+          if (before.type !== after.type && before.type !== 'missing' && after.type !== 'missing') {
+            files.push({ path, before, after });
+          } else if (before.type === 'directory' || after.type === 'directory') {
             const oldEntries = before.type === 'directory' ? before.entries : {};
             const newEntries = after.type === 'directory' ? after.entries : {};
             for (const name of [...new Set([...Object.keys(oldEntries), ...Object.keys(newEntries)])].sort()) changes(`${path}/${name}`, oldEntries[name] ?? { type: 'missing' }, newEntries[name] ?? { type: 'missing' });

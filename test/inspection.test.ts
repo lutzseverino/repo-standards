@@ -240,3 +240,34 @@ ${operation('a-check')}`;
   ]);
   assert.deepEqual(snapshot(project.root), before);
 });
+
+test('exact replacements preserve both root observations when files and directories conflict', (t) => {
+  const project = sourceFixture('', { 'AGENTS.md/child.txt': 'Existing directory child', '.agents/skills/review': 'Existing file' });
+  const fileRemote = remoteFixture(simpleSource(), { 'content.md': 'Desired file' });
+  const skillRemote = remoteFixture(simpleSource().replace('kind: file\n      target: AGENTS.md\n      exact: content.md', 'kind: skill\n      name: review\n      source: skill'), { 'skill/SKILL.md': 'Desired skill' });
+  t.after(() => { project.close(); fileRemote.close(); skillRemote.close(); });
+  commit(project.root);
+  const before = snapshot(project.root);
+  const inspect = (remote: ReturnType<typeof remoteFixture>) => {
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.start.eligible, false);
+    assert.ok(report.start.blockers.some((blocker: {code: string}) => blocker.code === 'TARGET_TYPE'));
+    assert.equal(report.exact[0].action, 'replace');
+    return report.exact[0].files;
+  };
+  const file = inspect(fileRemote).find((entry: {path: string}) => entry.path === 'AGENTS.md');
+  assert.ok(file, 'The exact replacement must retain the root directory and desired file');
+  assert.equal(file.before.type, 'directory');
+  assert.equal(file.before.entries['child.txt'].content, 'Existing directory child');
+  assert.equal(file.after.type, 'file');
+  assert.equal(file.after.content, 'Desired file');
+  const skill = inspect(skillRemote).find((entry: {path: string}) => entry.path === '.agents/skills/review');
+  assert.ok(skill, 'The exact replacement must retain the existing file and desired skill directory');
+  assert.equal(skill.before.type, 'file');
+  assert.equal(skill.before.content, 'Existing file');
+  assert.equal(skill.after.type, 'directory');
+  assert.equal(skill.after.entries['SKILL.md'].content, 'Desired skill');
+  assert.deepEqual(snapshot(project.root), before);
+});
