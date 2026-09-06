@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { lstatSync, readdirSync, readFileSync, readlinkSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { homedir } from 'node:os';
-import { caseFold } from 'unicode-case-folding';
+import { foldPath } from './paths.js';
 import { acquireSource, hash } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { validateSource } from './resolver.js';
@@ -51,7 +51,7 @@ function targetObservation(root: string, target: string, blockers: Blocker[]): O
   const parts = target.split('/');
   for (const [index, part] of parts.entries()) {
     try {
-      const aliases = readdirSync(parent).filter(name => caseFold(name.normalize('NFC')).normalize('NFC') === caseFold(part.normalize('NFC')).normalize('NFC') && name !== part);
+      const aliases = readdirSync(parent).filter(name => foldPath(name) === foldPath(part) && name !== part);
       if (aliases.length) {
         blockers.push({ code: 'CASE_CONFLICT', path: target, message: `Target spelling conflicts with existing ${aliases.join(', ')}.` });
         return { type: 'unsafe', obstacles: Object.fromEntries(aliases.map(name => [name, observe(join(parent, name))])) };
