@@ -103,8 +103,11 @@ are incomplete; diagnostic rejections may instead contain `valid: false` and
 For incomplete work, explain phase, reason, actual changes, completed work,
 failed or uncertain operations, and the returned safe next action. Preserve
 partial work; retry and abandonment require the instructions described above.
-For completion, report script outcomes and agent evidence separately, inspect
-`git diff` and `git status --short`, and verify HEAD and index remain unchanged
-from the inspected state. Leave all adoption changes uncommitted for the
-maintainer's normal review workflow. `status` evidence describes that run, not
-continuing compliance after subsequent project edits.
+For completion, report script outcomes and agent evidence separately, then read
+`adoption.md#review-completed-outputs`. Review tracked changes and the contents
+and executable state of every non-ignored untracked file, including exact
+content, whole skills, retained inputs and durable runtime/state files.
+`git diff` omits untracked files; status names and hashes alone are not a content
+review. Keep HEAD and index unchanged while exposing new-file content; leave all
+adoption changes uncommitted for the maintainer's normal workflow. `status`
+evidence describes that run, not continuing compliance after subsequent edits.

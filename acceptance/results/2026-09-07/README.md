@@ -9,12 +9,12 @@ authored the synthetic fixtures. The Linux runs used a container, with separate
 projects, local processes, edits and assessments; they did not replay macOS
 assessment files or patch outputs.
 
-| Environment | Source / profile | Result and evidence | Contextual changes |
+| Environment | Source / profile | Result and evidence | Full adoption diff |
 | --- | --- | --- | --- |
-| macOS 26.3 arm64 | Alice / work | [Complete](macos-alice.json) | [README and source guide](macos-alice.patch) |
-| macOS 26.3 arm64 | Mira / service | [Complete](macos-mira.json) | [Harbor runbook](macos-mira.patch) |
-| Debian trixie Linux arm64 | Alice / work | [Complete](linux-alice.json) | [README and source guide](linux-alice.patch) |
-| Debian trixie Linux arm64 | Mira / service | [Complete](linux-mira.json) | [Harbor runbook](linux-mira.patch) |
+| macOS 26.3 arm64 | Alice / work | [Complete](macos-alice.json) | [All adoption outputs](macos-alice.patch) |
+| macOS 26.3 arm64 | Mira / service | [Complete](macos-mira.json) | [All adoption outputs](macos-mira.patch) |
+| Debian trixie Linux arm64 | Alice / work | [Complete](linux-alice.json) | [All adoption outputs](linux-alice.patch) |
+| Debian trixie Linux arm64 | Mira / service | [Complete](linux-mira.json) | [All adoption outputs](linux-mira.patch) |
 
 Node was 24.11.1 throughout. Python was 3.14.6 on macOS and 3.13.5 on Linux.
 The Linux image was `node:24.11.1-trixie`, digest
@@ -36,12 +36,36 @@ inspections”** before any real-agent start. Each JSON record contains its exac
 confirmed inspection identity. Start then completed prerequisite checks and
 returned expected incomplete contextual work; no handoff was called complete.
 
-Every installed system skill matched both its installed package and the reviewed
-product skill, SHA-256
+The original journeys used repository-local system skills matching their exact
+installed packages, SHA-256
 `e841860e8271226814ef4ca25bf9aa7b891739da044991b00b39db0d3704fa38`.
 Package tarball hashes and exact source/CLI pins are recorded per run. Assessments
 were written outside the projects, with refreshed snapshot identities, and
 submitted using each project's `.repo-standards/runtime/node_modules/.bin/repo-standards`.
+
+## Completion-review correction
+
+PR #21 identified that the original contextual patches omitted the contents of
+new exact and product-owned outputs. After correcting the completion instructions,
+the agent returned to all four original completed projects and captured tracked
+diffs plus every path from `git ls-files --others --exclude-standard -z` using
+binary-capable, no-index diffs against `/dev/null`. The table's patches now cover
+**all** adoption outputs: 18 new files per Alice project and 17 per Mira project,
+as well as their tracked contextual changes. Runtime dependencies, local logs
+and caches remain ignored; the committed runtime manifests/locks are included.
+
+Each record's `completionReview` binds the full patch hash to every observed
+new file's content hash and executable state, with before/after HEAD, raw index
+hash and observed-content hash. Coverage matches the originally recorded
+untracked inventory. Applying each patch in a disposable copy reconstructed
+every new output with the observed bytes and executable state. No original
+project content, index or HEAD changed during this review.
+
+The original immutable installations and their recorded skill hashes above were
+preserved. `instructionSkillSha256` identifies the amended product skill used
+for this later read-only completion review; it is not presented as the artifact
+installed in the earlier adoption. No adoption was replayed and no new selection
+was applied. The original assessments and script results remain historical.
 
 ## Contextual usefulness and script evidence
 

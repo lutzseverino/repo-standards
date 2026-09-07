@@ -175,5 +175,130 @@
       "status": "ok",
       "accepted": 0
     }
+  },
+  "completionReview": {
+    "procedure": "docs/adoption.md#review-completed-outputs",
+    "note": "Applied the corrected read-only review procedure to the original completed project; historical installed artifacts were not rewritten.",
+    "instructionSkillSha256": "2e431b764e59b4a0032353900b8f0e66bcc41a555043cf71c2779b2345c8485f",
+    "trackedPaths": [
+      "docs/operations.md"
+    ],
+    "untrackedFiles": [
+      {
+        "path": ".agents/skills/adopt-standards/SKILL.md",
+        "type": "file",
+        "sha256": "e841860e8271226814ef4ca25bf9aa7b891739da044991b00b39db0d3704fa38",
+        "executable": false
+      },
+      {
+        "path": ".editorconfig",
+        "type": "file",
+        "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/.gitignore",
+        "type": "file",
+        "sha256": "c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/metadata.json",
+        "type": "file",
+        "sha256": "e5fd51a764e8ae36ccbd46e3b9f2b631a8a23d381e8979f7aa862c550d501c59",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/resolved.json",
+        "type": "file",
+        "sha256": "9c8212bfcd75d7891c4ea66fe3d73bd59aef46240505dee9d3a685849e8fe9b8",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/files/editorconfig",
+        "type": "file",
+        "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/guidance/operations.md",
+        "type": "file",
+        "sha256": "14ed095ccb26556265776894ef32d2e0c0a1b171e2547a09b12d122a1b9c397c",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/operations/check-operations.mjs",
+        "type": "file",
+        "sha256": "5c6378a3dc077e981cc80be7e30db408d5dafae4c84295bba95aeb6cde1ead53",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/operations/initialize-status.mjs",
+        "type": "file",
+        "sha256": "53c0cacb1fbef5eb302885da5672ca3384c5e45819ccc6edce2451b24fad052c",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/operations/required-sections.json",
+        "type": "file",
+        "sha256": "fc1bde1264915f81b0c7458c82953f8ff456e08fdaaf18347b991261b0a402cd",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/standards.yaml",
+        "type": "file",
+        "sha256": "e336021950e0c506b78105b6b89d8bce90f40512a7c51b28a2fad2b4c91392a7",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/lock.json",
+        "type": "file",
+        "sha256": "47ee5174720a4b8e7fc3cd32058e14b576b52991d6be7169dd673d3a62526f93",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/runtime/package-lock.json",
+        "type": "file",
+        "sha256": "a2ef70fcfd5143f0409a72cfd39410b22d14ebe16359ab12372aa9a704939cb3",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/runtime/package.json",
+        "type": "file",
+        "sha256": "db9535b5dd5e33d65282cf41cbafdd5af6d74f381adc9701b747559fa67f33f5",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/selection.yaml",
+        "type": "file",
+        "sha256": "2d5244ca9344d16d33c8d1bc86fd6a7db9f6f4feb1241d123485a6dbff3dce2a",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/state.json",
+        "type": "file",
+        "sha256": "8fd3aec49777e7f77129f4c40b1515b46125b688447545d97e47f1be387304a4",
+        "executable": false
+      },
+      {
+        "path": "docs/operating-status.json",
+        "type": "file",
+        "sha256": "51266d4f886ceae0256eab9d0e901dde7fa0e019ec2649ebe6e6e97b737f6a87",
+        "executable": false
+      }
+    ],
+    "patchSha256": "a224aacbe284ea98389af59608965928276c827103634fad426da76e9572fa99",
+    "before": {
+      "head": "cf1dfd917f0da9cc411283fa8b75573e9e9a1012",
+      "indexSha256": "1c03830fbd1bc196616b73e32276a8d0dd058f94557a33a408871012cac098b3",
+      "contentSnapshotSha256": "4fbf5fc100aec78dee41aa88b94b7d8f50cf46f873f2efc67d9bec71fa8a7f5c"
+    },
+    "after": {
+      "head": "cf1dfd917f0da9cc411283fa8b75573e9e9a1012",
+      "indexSha256": "1c03830fbd1bc196616b73e32276a8d0dd058f94557a33a408871012cac098b3",
+      "contentSnapshotSha256": "4fbf5fc100aec78dee41aa88b94b7d8f50cf46f873f2efc67d9bec71fa8a7f5c"
+    },
+    "matchesOriginalUntrackedInventory": true,
+    "patchReconstructionVerified": true
   }
 }

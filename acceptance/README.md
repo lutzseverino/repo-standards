@@ -74,6 +74,12 @@ inspection/confirmation identities, run IDs, initial handoff, submitted
 assessment, final report, status evidence, project diff (including new files),
 and command outputs supporting contextual claims. Compare employer contribution
 bytes, initial/final HEAD and index; capture the uncommitted Git status.
+Follow [Review completed outputs](../docs/adoption.md#review-completed-outputs):
+include tracked changes and every non-ignored untracked file in content diffs
+or explicit content inspection, preserving binary bytes and executable state.
+Verify coverage against `git ls-files --others --exclude-standard -z`; contextual
+patches and status/hash inventories alone are insufficient. Keep the index
+unchanged rather than staging files to make them appear in a diff.
 Record what the agent improved and why it helps a maintainer separately from
 structural check results. Record blockers or missing acceptance honestly.
 

@@ -169,5 +169,136 @@
         "action": "dispatch"
       }
     }
-  ]
+  ],
+  "completionReview": {
+    "procedure": "docs/adoption.md#review-completed-outputs",
+    "note": "Applied the corrected read-only review procedure to the original completed project; historical installed artifacts were not rewritten.",
+    "instructionSkillSha256": "2e431b764e59b4a0032353900b8f0e66bcc41a555043cf71c2779b2345c8485f",
+    "trackedPaths": [
+      "README.md"
+    ],
+    "untrackedFiles": [
+      {
+        "path": ".agents/skills/adopt-standards/SKILL.md",
+        "type": "file",
+        "sha256": "e841860e8271226814ef4ca25bf9aa7b891739da044991b00b39db0d3704fa38",
+        "executable": false
+      },
+      {
+        "path": ".agents/skills/review/SKILL.md",
+        "type": "file",
+        "sha256": "9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/.gitignore",
+        "type": "file",
+        "sha256": "c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/metadata.json",
+        "type": "file",
+        "sha256": "9ded19e44996dd93db5291525ac9429244c9bb3f16406983cad8c18a97629e21",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/resolved.json",
+        "type": "file",
+        "sha256": "a712e6c0de8799cbb52ae1cbfdd7e7f3123dad7b75ade807667114048ce5da86",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/defaults/checks/readme.py",
+        "type": "file",
+        "sha256": "096be53f4341c075024c2b682f030b10cf6d5450082c34b6efccd99893a7ae3e",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/defaults/guidance/readme.md",
+        "type": "file",
+        "sha256": "7b88bfd808553868df8a9d28dc011d22f8a822dc7a80ad755827e95612de1f7c",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/defaults/guidance/source-layout.md",
+        "type": "file",
+        "sha256": "06ebb1450fc3f4de4f88c2f3ec5083f2e0f37b10305645c73efcab2515fe4b33",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+        "type": "file",
+        "sha256": "9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+        "type": "file",
+        "sha256": "59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/standards.yaml",
+        "type": "file",
+        "sha256": "b56761863be2fa1bcf3dd16052e0445973fa646b88a5f890b53ad71d07ec059c",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/lock.json",
+        "type": "file",
+        "sha256": "0d9849a10bdd9fe79da95367ba7f8b3669c98155e5995462170fac32446e9091",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/runtime/package-lock.json",
+        "type": "file",
+        "sha256": "a7018510ec5aea76ca6631fe7030ed35132ae713bf1ac6ee9670077f935df0d8",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/runtime/package.json",
+        "type": "file",
+        "sha256": "db9535b5dd5e33d65282cf41cbafdd5af6d74f381adc9701b747559fa67f33f5",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/selection.yaml",
+        "type": "file",
+        "sha256": "1f8b31eed0e2a34ceb19d80c8dc2cd6a928e96ac8dcb66b2dd00b7e0a038d233",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/state.json",
+        "type": "file",
+        "sha256": "56d8cccec0452e6ba632f5eca0e958fc99e5dc9e072095ed22b1db7bd165aa88",
+        "executable": false
+      },
+      {
+        "path": "AGENTS.md",
+        "type": "file",
+        "sha256": "59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf",
+        "executable": false
+      },
+      {
+        "path": "src/README.md",
+        "type": "file",
+        "sha256": "2d172a0d076fcbdfef62f5de0c3ebbd520c4d7084317838df90ce786c1edd744",
+        "executable": false
+      }
+    ],
+    "patchSha256": "70538332e36a9de6fa3390cba9d4f5016be6d452393bf3bfde0de8176cd03d2a",
+    "before": {
+      "head": "eb22cf736c066d7dd15552392b591d4afef4e9c3",
+      "indexSha256": "b97c1a30d3064bec2a93078198af8e5ddba9afa823c70e325ea893c3e1b1fcba",
+      "contentSnapshotSha256": "6e4fe5a5452e7755c78ded1d4542186087f3aab273c9c9a6c92ca205cd3bc358"
+    },
+    "after": {
+      "head": "eb22cf736c066d7dd15552392b591d4afef4e9c3",
+      "indexSha256": "b97c1a30d3064bec2a93078198af8e5ddba9afa823c70e325ea893c3e1b1fcba",
+      "contentSnapshotSha256": "6e4fe5a5452e7755c78ded1d4542186087f3aab273c9c9a6c92ca205cd3bc358"
+    },
+    "matchesOriginalUntrackedInventory": true,
+    "patchReconstructionVerified": true
+  }
 }
