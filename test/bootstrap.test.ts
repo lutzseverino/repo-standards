@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+import { registryFixture } from './registry-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -108,4 +109,48 @@ test('the installed inspection command checks npm without executing author prere
   const report = JSON.parse(result.stdout);
   assert.equal(report.errors[0].code, 'NPM_REQUIRED');
   assert.match(report.errors[0].message, /Node\.js 24.*PATH/);
+});
+
+test('exact-version bootstrap can inspect using the configured npm cache with the registry unavailable', async t => {
+  const registry = await registryFixture(cli.root);
+  const remote = remoteFixture(`format: repo-standards/v1
+name: cached-standards
+description: Cached bootstrap fixture
+requires: {repo-standards: ">=1.0.0 <2.0.0"}
+defaults: {declarations: {}}
+profiles: {work: {description: Work, declarations: {}}}
+`);
+  const project = sourceFixture('');
+  const support = sourceFixture('');
+  t.after(() => { registry.close(); remote.close(); project.close(); support.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env, npm_config_cache: join(support.root, 'npm-cache') };
+  execFileSync('npm', ['install', '--prefix', support.root, '--ignore-scripts', '--no-audit', '--no-fund', '@lutzseverino/repo-standards@1.0.0'], { cwd: support.root, env, stdio: 'pipe' });
+  registry.close();
+  const bootstrap = join(cli.root, 'node_modules/@lutzseverino/repo-standards/bootstrap/repo-standards');
+  const before = snapshot(project.root);
+  const result = spawnSync(bootstrap, ['--cli-version', '1.0.0', ...inspectionArgs], { cwd: project.root, env: { ...env, npm_config_offline: 'true' }, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).selection.cli.version, '1.0.0');
+  assert.deepEqual(snapshot(project.root), before);
+  rmSync(join(env.npm_config_cache, '_logs'), { recursive: true, force: true });
+  symlinkSync(project.root, join(env.npm_config_cache, '_logs'));
+  const linkedLogs = spawnSync(bootstrap, ['--cli-version', '1.0.0', ...inspectionArgs], { cwd: project.root, env: { ...env, npm_config_offline: 'true' }, encoding: 'utf8' });
+  assert.equal(linkedLogs.status, 0, linkedLogs.stderr);
+  assert.deepEqual(snapshot(project.root), before);
+  const alias = join(support.root, 'project-alias');
+  symlinkSync(project.root, alias);
+  for (const cache of [join(project.root, 'npm-cache'), join(alias, 'npm-cache')]) {
+    const blocked = spawnSync(bootstrap, ['--cli-version', '1.0.0', ...inspectionArgs], { cwd: project.root, env: { ...env, npm_config_cache: cache }, encoding: 'utf8' });
+    assert.equal(blocked.status, 1);
+    assert.match(blocked.stderr, /cache must be outside/);
+    assert.deepEqual(snapshot(project.root), before);
+  }
+  const unsafeCache = join(support.root, 'unsafe-cache');
+  mkdirSync(unsafeCache);
+  symlinkSync(project.root, join(unsafeCache, '_cacache'));
+  const linkedContent = spawnSync(bootstrap, ['--cli-version', '1.0.0', ...inspectionArgs], { cwd: project.root, env: { ...env, npm_config_cache: unsafeCache }, encoding: 'utf8' });
+  assert.equal(linkedContent.status, 1);
+  assert.match(linkedContent.stderr, /content-cache paths cannot be symbolic links/);
+  assert.deepEqual(snapshot(project.root), before);
 });

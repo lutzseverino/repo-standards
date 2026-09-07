@@ -38,9 +38,15 @@ and invokes it. It never falls back to a different version. Each new invocation
 is a new selection; reuse the disclosed `--cli-version` to repeat it. Inspection
 records the invoked package and version.
 
-Installation uses an external temporary directory and npm cache, with lifecycle
-scripts disabled and the project's `.npmrc` out of scope. Normal completion or
-failure removes the temporary installation. The project's language, package
+Installation uses an external temporary directory and npm's configured cache,
+with lifecycle scripts disabled and the project's `.npmrc` out of scope. The
+cache is reused so an exact CLI version and its dependencies can be acquired
+when already cached, including with npm offline mode. The configured cache must
+resolve outside the project, and its `_cacache` content tree cannot contain
+symbolic links or the adopting project. Acquisition logs stay in temporary
+storage, even if the configured cache has a linked `_logs` directory. Normal
+completion or failure removes the temporary installation and logs while
+preserving the reusable cache. The project's language, package
 manager, dependency manifests, and content are unchanged. Do not redirect the
 report into the project if the entire invocation must leave it unchanged.
 

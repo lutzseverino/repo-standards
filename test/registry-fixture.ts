@@ -13,6 +13,7 @@ export async function registryFixture(cliRoot: string) {
   const integrity = `sha512-${createHash('sha512').update(readFileSync(tarball)).digest('base64')}`;
   const script = join(support.root, 'registry.mjs');
   writeFileSync(script, `import { createServer } from 'node:http';
+import { get } from 'node:https';
 import { readFileSync } from 'node:fs';
 const server = createServer((req, res) => {
   if (req.url === '/package.tgz') { res.end(readFileSync(${JSON.stringify(tarball)})); return; }
@@ -20,7 +21,12 @@ const server = createServer((req, res) => {
     const version = {...${JSON.stringify(manifest)}, dist: {tarball: 'http://127.0.0.1:' + server.address().port + '/package.tgz', integrity: ${JSON.stringify(integrity)}}};
     res.setHeader('content-type', 'application/json');
     res.end(JSON.stringify({name: version.name, 'dist-tags': {latest: version.version}, versions: {[version.version]: version}}));
-  } else { res.writeHead(302, {location: 'https://registry.npmjs.org' + req.url}); res.end(); }
+  } else {
+    get('https://registry.npmjs.org' + req.url, {headers: {accept: req.headers.accept ?? 'application/json'}}, upstream => {
+      res.writeHead(upstream.statusCode, upstream.headers);
+      upstream.pipe(res);
+    }).on('error', () => { res.writeHead(502); res.end(); });
+  }
 });
 server.listen(0, '127.0.0.1', () => console.log(server.address().port));
 `);
