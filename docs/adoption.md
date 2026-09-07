@@ -1,9 +1,9 @@
-# Confirmed exact-content adoption
+# Confirmed adoption
 
-Issue #4 supports initial adoption of a profile containing exact files and whole
-author skills, with no contextual declarations, fixes, or checks. Such additional
-requirements are rejected before project mutation. Script execution, contextual
-work, updates, and interrupted-run retry belong to later implementation slices.
+Initial adoption installs exact files and whole author skills and executes
+trusted fixes and checks. Profiles with contextual guidance stop incomplete
+after fixes; contextual work requests and assessment/resume belong to issue #6.
+Updates and interrupted-run retry belong to later implementation slices.
 Public npm delivery remains issue #11.
 
 ## Inspect, confirm, and start
@@ -17,7 +17,7 @@ repo-standards inspect --source https://github.com/OWNER/STANDARDS \
 ```
 
 Review the pins, proposed replacements, matching-file claims, whole-skill
-inventories, and blockers. After explicit maintainer confirmation, use the same
+inventories, guidance, declared fixes and checks, prerequisites, and blockers. After explicit maintainer confirmation, use the same
 CLI version and selection, passing the report's `identity` verbatim:
 
 ```sh
@@ -38,6 +38,12 @@ unrelated skill conflicts even when its bytes match. Existing matching exact
 files are claimed without rewriting; unrelated and excluded content remains
 outside the selection.
 
+Before installation, start probes every declared prerequisite using its literal
+version arguments from the project root. It reports all missing executables,
+failed probes, unreadable versions, and incompatible versions without installing
+prerequisites. Inspection itself never probes them. The trusted script contract
+and detailed failure behavior are documented in [Script protocol](script-protocol.md).
+
 The CLI prepares the exact runtime outside the project with npm lifecycle
 scripts disabled. The project's dependency manifest, package manager, and
 `.npmrc` do not govern this installation. The configured external npm cache is
@@ -57,7 +63,7 @@ Review and commit these files through the adopting project's normal workflow:
 | --- | --- |
 | `.repo-standards/selection.yaml` | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile. |
 | `.repo-standards/lock.json` | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state. |
-| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, and separate empty check/assessment evidence for this exact-only journey. |
+| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, and historical check evidence and separate assessment evidence (empty until contextual assessment is implemented). |
 | `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
 | `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
@@ -81,7 +87,7 @@ Neither dependencies nor run records belong in commits.
 
 `start` prints a `repo-standards/run/v1` JSON report. Its fields include `id`,
 `inspection`, `selection`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
-`uncertain`, and `nextAction`. Exit status is 0 for complete adoption, 1 for an
+`uncertain`, `nextAction`, `prerequisites`, and `operations`. Exit status is 0 for complete adoption, 1 for an
 incomplete run or rejection, and 2 for invalid usage. Preflight rejections use
 the common `valid: false` / `errors` diagnostic format.
 
@@ -93,7 +99,14 @@ run incomplete. Verification uses the original expected installation
 values; unexpected changes cannot become new baselines. Completion leaves all
 changes uncommitted and releases the lock.
 
-An incomplete installation preserves changes and its lock. Its change report
+Fixes run serially before contextual work. Checks run after fixes for profiles
+without contextual declarations; otherwise they wait for the later assessment
+interface. Ordinary failed checks allow subsequent checks to collect evidence.
+Blocked results, execution errors, check mutation, and integrity failures stop
+the phase and preserve incomplete work. A contextual handoff is incomplete,
+with no last-complete state, and is not yet resumable by this CLI slice.
+
+An incomplete adoption preserves changes and its lock. Its change report
 observes actual Git changes and ignored product storage, including unexpected
 additions; runtime dependencies are listed as one directory. The persisted
 `affected` observations include author targets and the reserved system skill,

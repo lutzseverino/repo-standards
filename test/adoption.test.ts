@@ -177,31 +177,6 @@ test('start rejects stale identities, HEAD, project content and profile selectio
   });
 });
 
-test('contextual declarations and author operations are rejected before mutation or prerequisite execution', async t => {
-  for (const kind of ['contextual-file', 'repository', 'fixes', 'checks']) await t.test(kind, st => {
-    let source = yaml;
-    if (kind === 'contextual-file') source = source.replace('exact: content.md', 'guidance: content.md');
-    else if (kind === 'repository') source = source.replace('kind: file\n      target: AGENTS.md\n      exact: content.md', 'kind: repository\n      guidance: content.md\n      targets: {paths: [AGENTS.md], directories: []}');
-    else source = source.replace('      exact: content.md', `      exact: content.md
-      ${kind}:
-        - id: operation
-          run: {executable: ./probe, script: operation.sh, resources: [], arguments: []}
-          prerequisite: {version-arguments: [--version], version: ">=1.0.0"}
-          timeout-seconds: 10`);
-    const remote = remoteFixture(source, { 'content.md': 'Expected', 'operation.sh': 'touch AUTHOR_RAN' });
-    const project = sourceFixture('', { 'probe': '#!/bin/sh\ntouch PROBE_RAN\necho 1.0.0\n' });
-    st.after(() => { remote.close(); project.close(); });
-    chmodSync(join(project.root, 'probe'), 0o755);
-    commit(project.root);
-    const inspection = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
-    const before = snapshot(project.root);
-    const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, remote.env);
-    assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, 'UNSUPPORTED_ADOPTION');
-    assert.deepEqual(snapshot(project.root), before);
-  });
-});
-
 test('final integrity failures preserve work and report an incomplete locked run with no complete adoption', async t => {
   const registry = await registryFixture(cli.root);
   t.after(() => registry.close());

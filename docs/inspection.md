@@ -109,7 +109,7 @@ The report has format `repo-standards/inspection/v1`:
 | `operations` | Ordered fixes and checks, literal arguments, script bytes, resource inventories, timeout, and declared prerequisite probe/range. |
 | `project` | Canonical project root, HEAD or null, Git status and index, affected content, and reserved product paths. |
 | `inputs`, `manifest` | Selected source material and normalized single-profile metadata retained by adoption. |
-| `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Exact-only adoption also rejects contextual declarations and operations before mutation. |
+| `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available. |
 | `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
 
 File bytes use `encoding: utf8` when losslessly representable, otherwise
