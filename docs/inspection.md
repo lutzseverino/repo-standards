@@ -50,6 +50,28 @@ preserving the reusable cache. The project's language, package
 manager, dependency manifests, and content are unchanged. Do not redirect the
 report into the project if the entire invocation must leave it unchanged.
 
+## Keep the disclosed CLI for start and recovery
+
+The bootstrap removes its temporary runtime after inspection. To continue,
+install the disclosed exact version in a persistent directory outside the
+adopting project (replace `1.0.0` with that version):
+
+```sh
+adoption_cli="$HOME/.local/share/repo-standards/cli-1.0.0"
+mkdir -p "$adoption_cli"
+(cd "$adoption_cli" && npm install --prefix "$adoption_cli" \
+  --ignore-scripts --save-exact --no-audit --no-fund \
+  @lutzseverino/repo-standards@1.0.0)
+"$adoption_cli/node_modules/.bin/repo-standards" --version
+```
+
+Use that executable from the project root for inspection and confirmed start.
+Before initial adoption, ask the agent to read the packaged skill at
+`$adoption_cli/node_modules/@lutzseverino/repo-standards/skills/adopt-standards/SKILL.md`.
+After installation, invoke the matching repository-local `adopt-standards` skill.
+Keep the external runtime available until completion for interrupted-installation
+recovery. The [adoption workflow](adoption.md) documents start and continuation.
+
 ## Inspect with an already installed exact CLI
 
 ```sh

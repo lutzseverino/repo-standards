@@ -44,3 +44,13 @@ export function sourceFixture(yaml: string, files: Record<string, string | Buffe
   }
   return { root, close() { rmSync(root, { recursive: true, force: true }); } };
 }
+
+// Read ordinary source/project fixtures without coupling tests to their layout.
+export function fixtureFiles(root: string): Record<string, string> {
+  return Object.fromEntries(readdirSync(root, { recursive: true, withFileTypes: true })
+    .filter(entry => entry.isFile())
+    .map(entry => {
+      const path = join(entry.parentPath, entry.name);
+      return [path.slice(root.length + 1), readFileSync(path, 'utf8')];
+    }));
+}

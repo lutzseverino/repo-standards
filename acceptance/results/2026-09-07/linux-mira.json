@@ -1,0 +1,304 @@
+{
+  "recordedDate": "2026-09-07",
+  "agent": "Codex interactive implementation agent; same agent on both OSes; synthetic fixtures authored in this task, non-blind evaluation",
+  "confirmation": {
+    "maintainerResponse": "Confirm all four inspections",
+    "channel": "Implementation conversation, after full linked inspections and trusted-operation disclosure",
+    "identity": "sha256:85688f954e766ef0914f402e80836dd3c9be2468c2f9c4929eb3a0d7a4308435"
+  },
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.0.0"
+    },
+    "standards": {
+      "repository": "https://github.com/mira/standards",
+      "version": "v1.0.0",
+      "commit": "4e7458623d2157b094cf0710f6f3dac4b34d7aef"
+    },
+    "profile": "service"
+  },
+  "handoff": {
+    "id": "713a8a73-3972-4f32-a6d2-2223b6d43d95",
+    "outcome": "incomplete",
+    "phase": "contextual",
+    "reason": "CONTEXTUAL_REQUIRED: Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run."
+  },
+  "initialSnapshot": "sha256:8526d5ac6b9bb4d1537597ccc7cc5d1013b8e641433277141c9f01c758df8ec2",
+  "assessment": {
+    "format": "repo-standards/assessment/v1",
+    "run": "713a8a73-3972-4f32-a6d2-2223b6d43d95",
+    "selection": "sha256:74e93b65453204698f11f51590e0075d70bbc4342a3fd05629e5fbe47043b0e6",
+    "snapshot": "sha256:b44902dbea29540f5f63c1462a0f2fe5e3550d802db389d3029d9716813f596b",
+    "declarations": [
+      {
+        "id": "operations-guide",
+        "status": "satisfied",
+        "explanation": "The Harbor runbook now contains actionable startup, health and recovery instructions grounded in the actual Python server and a local process probe; deployment status and employer ownership remain unchanged.",
+        "changedPaths": [
+          "docs/operations.md"
+        ],
+        "evidence": [
+          "Read service/server.py: HTTPServer binds to 127.0.0.1, uses PORT or 8765, implements GET /health and POST /accept, and stores accepted only in a class variable.",
+          "On linux ran python3 service/server.py with PORT=59391: initial GET /health returned status ok and accepted 0; POST /accept returned 204; next health returned accepted 1.",
+          "Stopped and restarted that local service: GET /health returned accepted 0. Recovery states there is no durable log, backup or replay and does not claim restart recovers data.",
+          "Retained the pre-existing loopback/no-authentication warning and platform on-call escalation. docs/operating-status.json remains unverified from the declared fix; it was not a contextual edit. CONTRIBUTING.md bytes were preserved."
+        ]
+      }
+    ]
+  },
+  "completion": {
+    "outcome": "complete",
+    "phase": "complete",
+    "reason": "Exact installation, fixes, contextual assessment where required, checks, runtime, retained inputs and durable state verified.",
+    "operations": [
+      {
+        "operation": {
+          "declaration": "operations-guide",
+          "phase": "fixes",
+          "id": "initialize-status"
+        },
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        },
+        "result": {
+          "format": "repo-standards/result/v1",
+          "status": "changed",
+          "message": "Initialized operating status without claiming deployment verification."
+        },
+        "error": null,
+        "stdout": ".repo-standards/local/operations/0.stdout",
+        "stderr": ".repo-standards/local/operations/0.stderr"
+      },
+      {
+        "operation": {
+          "declaration": "operations-guide",
+          "phase": "checks",
+          "id": "operational-evidence"
+        },
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        },
+        "result": {
+          "format": "repo-standards/result/v1",
+          "status": "passed",
+          "message": "Runbook sections are present; deployment remains unverified."
+        },
+        "error": null,
+        "stdout": ".repo-standards/local/operations/1.stdout",
+        "stderr": ".repo-standards/local/operations/1.stderr"
+      }
+    ],
+    "uncertain": [],
+    "nextAction": "Review and commit the uncommitted adoption changes through the project\u2019s normal workflow."
+  },
+  "status": {
+    "lastComplete": {
+      "run": "713a8a73-3972-4f32-a6d2-2223b6d43d95",
+      "inspection": "sha256:85688f954e766ef0914f402e80836dd3c9be2468c2f9c4929eb3a0d7a4308435",
+      "completedAt": "2026-09-07T18:46:09.237Z",
+      "head": "447e61c965275bc39f9de8fdafd1debedc6ac955"
+    },
+    "skills": {
+      ".agents/skills/adopt-standards": [
+        "SKILL.md"
+      ]
+    },
+    "active": null,
+    "evidence": "historical"
+  },
+  "statusAssessmentMatchesSubmission": true,
+  "statusChecksMatchFinalOperations": true,
+  "preservation": {
+    "platform": "linux",
+    "architecture": "arm64",
+    "node": "v24.11.1",
+    "npm": "11.6.2",
+    "python": "Python 3.13.5",
+    "initialHead": "447e61c965275bc39f9de8fdafd1debedc6ac955",
+    "finalHead": "447e61c965275bc39f9de8fdafd1debedc6ac955",
+    "indexDiff": "",
+    "uncommittedChanges": [
+      "M docs/operations.md",
+      "?? .agents/skills/adopt-standards/SKILL.md",
+      "?? .editorconfig",
+      "?? .repo-standards/.gitignore",
+      "?? .repo-standards/inputs/metadata.json",
+      "?? .repo-standards/inputs/resolved.json",
+      "?? .repo-standards/inputs/source/files/editorconfig",
+      "?? .repo-standards/inputs/source/guidance/operations.md",
+      "?? .repo-standards/inputs/source/operations/check-operations.mjs",
+      "?? .repo-standards/inputs/source/operations/initialize-status.mjs",
+      "?? .repo-standards/inputs/source/operations/required-sections.json",
+      "?? .repo-standards/inputs/standards.yaml",
+      "?? .repo-standards/lock.json",
+      "?? .repo-standards/runtime/package-lock.json",
+      "?? .repo-standards/runtime/package.json",
+      "?? .repo-standards/selection.yaml",
+      "?? .repo-standards/state.json",
+      "?? docs/operating-status.json"
+    ],
+    "employerContribution": {
+      "before": "e25901df8bed9248d2e45179bdf3e99d29120dff97752d040b43b403a4247431",
+      "after": "e25901df8bed9248d2e45179bdf3e99d29120dff97752d040b43b403a4247431"
+    },
+    "systemSkill": {
+      "installed": "e841860e8271226814ef4ca25bf9aa7b891739da044991b00b39db0d3704fa38",
+      "packaged": "e841860e8271226814ef4ca25bf9aa7b891739da044991b00b39db0d3704fa38"
+    },
+    "packageTarballSha256": "8fc1c84871015c6082c977a0bbef8adc8828cb7458ed45c8441e9e7d801b3e7d",
+    "installedExact": {
+      ".editorconfig": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+      "docs/operating-status.json": "{\n  \"status\": \"unverified\"\n}\n"
+    },
+    "indexMatchesInspection": true
+  },
+  "localProbe": {
+    "command": "python3 service/server.py",
+    "PORT": 59391,
+    "initialHealth": {
+      "status": "ok",
+      "accepted": 0
+    },
+    "acceptHttpStatus": 204,
+    "afterAccept": {
+      "status": "ok",
+      "accepted": 1
+    },
+    "afterRestart": {
+      "status": "ok",
+      "accepted": 0
+    }
+  },
+  "completionReview": {
+    "procedure": "docs/adoption.md#review-completed-outputs",
+    "note": "Applied the corrected read-only review procedure to the original completed project; historical installed artifacts were not rewritten.",
+    "instructionSkillSha256": "2e431b764e59b4a0032353900b8f0e66bcc41a555043cf71c2779b2345c8485f",
+    "trackedPaths": [
+      "docs/operations.md"
+    ],
+    "untrackedFiles": [
+      {
+        "path": ".agents/skills/adopt-standards/SKILL.md",
+        "type": "file",
+        "sha256": "e841860e8271226814ef4ca25bf9aa7b891739da044991b00b39db0d3704fa38",
+        "executable": false
+      },
+      {
+        "path": ".editorconfig",
+        "type": "file",
+        "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/.gitignore",
+        "type": "file",
+        "sha256": "c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/metadata.json",
+        "type": "file",
+        "sha256": "e5fd51a764e8ae36ccbd46e3b9f2b631a8a23d381e8979f7aa862c550d501c59",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/resolved.json",
+        "type": "file",
+        "sha256": "9c8212bfcd75d7891c4ea66fe3d73bd59aef46240505dee9d3a685849e8fe9b8",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/files/editorconfig",
+        "type": "file",
+        "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/guidance/operations.md",
+        "type": "file",
+        "sha256": "14ed095ccb26556265776894ef32d2e0c0a1b171e2547a09b12d122a1b9c397c",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/operations/check-operations.mjs",
+        "type": "file",
+        "sha256": "5c6378a3dc077e981cc80be7e30db408d5dafae4c84295bba95aeb6cde1ead53",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/operations/initialize-status.mjs",
+        "type": "file",
+        "sha256": "53c0cacb1fbef5eb302885da5672ca3384c5e45819ccc6edce2451b24fad052c",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/operations/required-sections.json",
+        "type": "file",
+        "sha256": "fc1bde1264915f81b0c7458c82953f8ff456e08fdaaf18347b991261b0a402cd",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/standards.yaml",
+        "type": "file",
+        "sha256": "e336021950e0c506b78105b6b89d8bce90f40512a7c51b28a2fad2b4c91392a7",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/lock.json",
+        "type": "file",
+        "sha256": "75def56422d61e58af3b8ed718909cf738989e464c2fc6f3017cf5771c521919",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/runtime/package-lock.json",
+        "type": "file",
+        "sha256": "a6a2d72a093089b27e8ab555fdf07bd2820595ba4053a6194ab083096e49947d",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/runtime/package.json",
+        "type": "file",
+        "sha256": "db9535b5dd5e33d65282cf41cbafdd5af6d74f381adc9701b747559fa67f33f5",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/selection.yaml",
+        "type": "file",
+        "sha256": "68f74ccc19b03ef1661e1e60a32e92ad1d7beb17d14f52af569bf3008a13dd09",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/state.json",
+        "type": "file",
+        "sha256": "a7eef10e12f34c39168d1d388386d925dd188b0f99307805f9aaf76b0e241b8c",
+        "executable": false
+      },
+      {
+        "path": "docs/operating-status.json",
+        "type": "file",
+        "sha256": "51266d4f886ceae0256eab9d0e901dde7fa0e019ec2649ebe6e6e97b737f6a87",
+        "executable": false
+      }
+    ],
+    "patchSha256": "a734609ed9f38d217b4e3f6b93f1e26ed8a440de4873cd04dade31d3dbe783e9",
+    "before": {
+      "head": "447e61c965275bc39f9de8fdafd1debedc6ac955",
+      "indexSha256": "6814f99cc94891339d68546cca94c3f9296c4fc01d1b16d569a19d7acda7fe23",
+      "contentSnapshotSha256": "ccfbabc66a45648681c6a2fbdd7b8772061607b91cfc08e6975a50121f05a6f3"
+    },
+    "after": {
+      "head": "447e61c965275bc39f9de8fdafd1debedc6ac955",
+      "indexSha256": "6814f99cc94891339d68546cca94c3f9296c4fc01d1b16d569a19d7acda7fe23",
+      "contentSnapshotSha256": "ccfbabc66a45648681c6a2fbdd7b8772061607b91cfc08e6975a50121f05a6f3"
+    },
+    "matchesOriginalUntrackedInventory": true,
+    "patchReconstructionVerified": true
+  }
+}

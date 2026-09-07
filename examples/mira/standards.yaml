@@ -1,0 +1,43 @@
+format: repo-standards/v1
+name: mira-service-standards
+description: Operational readiness for small services
+requires:
+  repo-standards: ">=1.0.0 <2.0.0"
+defaults:
+  declarations:
+    editor-settings:
+      kind: file
+      target: .editorconfig
+      exact: files/editorconfig
+    operations-guide:
+      kind: repository
+      guidance: guidance/operations.md
+      targets:
+        paths: [docs/operations.md, docs/operating-status.json]
+        directories: []
+      fixes:
+        - id: initialize-status
+          run:
+            executable: node
+            script: operations/initialize-status.mjs
+            resources: []
+            arguments: []
+          prerequisite:
+            version-arguments: ["--version"]
+            version: ">=24.0.0 <25.0.0"
+          timeout-seconds: 10
+      checks:
+        - id: operational-evidence
+          run:
+            executable: node
+            script: operations/check-operations.mjs
+            resources: [operations/required-sections.json]
+            arguments: []
+          prerequisite:
+            version-arguments: ["--version"]
+            version: ">=24.0.0 <25.0.0"
+          timeout-seconds: 10
+profiles:
+  service:
+    description: Operated service with a project-specific runbook
+    declarations: {}

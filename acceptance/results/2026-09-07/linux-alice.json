@@ -1,0 +1,304 @@
+{
+  "recordedDate": "2026-09-07",
+  "agent": "Codex interactive implementation agent; same agent on both OSes; synthetic fixtures authored in this task, non-blind evaluation",
+  "confirmation": {
+    "maintainerResponse": "Confirm all four inspections",
+    "channel": "Implementation conversation, after full linked inspections and trusted-operation disclosure",
+    "identity": "sha256:4b67344855bbf7983d34cbbb3f783cf213290723a95314feb567f8f864e3b51a"
+  },
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.0.0"
+    },
+    "standards": {
+      "repository": "https://github.com/alice/standards",
+      "version": "v1.0.0",
+      "commit": "58f5dbf7e441f7d5f0f32f70f6834858dedd88de"
+    },
+    "profile": "work"
+  },
+  "handoff": {
+    "id": "ef99bf8a-de27-40d6-b81b-bc1d2bb7e573",
+    "outcome": "incomplete",
+    "phase": "contextual",
+    "reason": "CONTEXTUAL_REQUIRED: Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run."
+  },
+  "initialSnapshot": "sha256:7a9f2cc2f851e6ee1a35d063ef8f3703513ffe01715673869aa2760637df8ca1",
+  "assessment": {
+    "format": "repo-standards/assessment/v1",
+    "run": "ef99bf8a-de27-40d6-b81b-bc1d2bb7e573",
+    "selection": "sha256:98a450f4b0de3b191fa10c3ec2563c2807610246e9daabb19b1b137f1316630b",
+    "snapshot": "sha256:7e6e879a6125d2580e2485528fdf6ed14b7c35bdfe6711e6af1b9056f6e2e129",
+    "declarations": [
+      {
+        "id": "readme",
+        "status": "satisfied",
+        "explanation": "The README now documents Parcel Queue using its actual entry point, package scripts, data rules and synthetic input; employer review obligations remain intact.",
+        "changedPaths": [
+          "README.md"
+        ],
+        "evidence": [
+          "Read package.json, src/cli.mjs, src/dispatch.mjs and test/parcels.ndjson in this linux checkout; Setup identifies Node.js 24 and no package dependencies.",
+          "Ran npm run preview -- test/parcels.ndjson: stdout contained the single dispatch record for demo-101, matching the documented example; demo-102 was skipped.",
+          "Ran npm test: both ready-only selection and missing-identifier tests passed. Development names this command and the source guide.",
+          "Usage explains nonblank NDJSON input, required ready IDs, missing-filename exit 2 and preview-only persistence limits. CONTRIBUTING.md bytes were left untouched."
+        ]
+      },
+      {
+        "id": "source-layout",
+        "status": "satisfied",
+        "explanation": "Added a source-responsibility guide for the existing separation of CLI I/O and parcel transformation; runtime code did not need reorganization.",
+        "changedPaths": [
+          "src/README.md"
+        ],
+        "evidence": [
+          "src/README.md identifies cli.mjs as argument/file/JSON/stdout boundary and dispatch.mjs as the ready-parcel transformation.",
+          "The guide traces file input through pendingDispatches to stdout, identifies the existing tests and synthetic fixture, and explains that neither module contacts carriers or persists state."
+        ]
+      }
+    ]
+  },
+  "completion": {
+    "outcome": "complete",
+    "phase": "complete",
+    "reason": "Exact installation, fixes, contextual assessment where required, checks, runtime, retained inputs and durable state verified.",
+    "operations": [
+      {
+        "operation": {
+          "declaration": "readme",
+          "phase": "checks",
+          "id": "headings"
+        },
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        },
+        "result": {
+          "format": "repo-standards/result/v1",
+          "status": "passed",
+          "message": "Setup, Usage and Development headings are present; usefulness requires agent assessment."
+        },
+        "error": null,
+        "stdout": ".repo-standards/local/operations/0.stdout",
+        "stderr": ".repo-standards/local/operations/0.stderr"
+      }
+    ],
+    "uncertain": [],
+    "nextAction": "Review and commit the uncommitted adoption changes through the project\u2019s normal workflow."
+  },
+  "status": {
+    "lastComplete": {
+      "run": "ef99bf8a-de27-40d6-b81b-bc1d2bb7e573",
+      "inspection": "sha256:4b67344855bbf7983d34cbbb3f783cf213290723a95314feb567f8f864e3b51a",
+      "completedAt": "2026-09-07T18:46:08.859Z",
+      "head": "06dabd54b75dfff7ab173a33417f132211c575fe"
+    },
+    "skills": {
+      ".agents/skills/review": [
+        "SKILL.md"
+      ],
+      ".agents/skills/adopt-standards": [
+        "SKILL.md"
+      ]
+    },
+    "active": null,
+    "evidence": "historical"
+  },
+  "statusAssessmentMatchesSubmission": true,
+  "statusChecksMatchFinalOperations": true,
+  "preservation": {
+    "platform": "linux",
+    "architecture": "arm64",
+    "node": "v24.11.1",
+    "npm": "11.6.2",
+    "python": "Python 3.13.5",
+    "initialHead": "06dabd54b75dfff7ab173a33417f132211c575fe",
+    "finalHead": "06dabd54b75dfff7ab173a33417f132211c575fe",
+    "indexDiff": "",
+    "uncommittedChanges": [
+      "M README.md",
+      "?? .agents/skills/adopt-standards/SKILL.md",
+      "?? .agents/skills/review/SKILL.md",
+      "?? .repo-standards/.gitignore",
+      "?? .repo-standards/inputs/metadata.json",
+      "?? .repo-standards/inputs/resolved.json",
+      "?? .repo-standards/inputs/source/defaults/checks/readme.py",
+      "?? .repo-standards/inputs/source/defaults/guidance/readme.md",
+      "?? .repo-standards/inputs/source/defaults/guidance/source-layout.md",
+      "?? .repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+      "?? .repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+      "?? .repo-standards/inputs/standards.yaml",
+      "?? .repo-standards/lock.json",
+      "?? .repo-standards/runtime/package-lock.json",
+      "?? .repo-standards/runtime/package.json",
+      "?? .repo-standards/selection.yaml",
+      "?? .repo-standards/state.json",
+      "?? AGENTS.md",
+      "?? src/README.md"
+    ],
+    "employerContribution": {
+      "before": "05595c4914d0f8caf83b1616e0182bb2b3301d8249bdcf23c36b245133f8b7b6",
+      "after": "05595c4914d0f8caf83b1616e0182bb2b3301d8249bdcf23c36b245133f8b7b6"
+    },
+    "systemSkill": {
+      "installed": "e841860e8271226814ef4ca25bf9aa7b891739da044991b00b39db0d3704fa38",
+      "packaged": "e841860e8271226814ef4ca25bf9aa7b891739da044991b00b39db0d3704fa38"
+    },
+    "packageTarballSha256": "8fc1c84871015c6082c977a0bbef8adc8828cb7458ed45c8441e9e7d801b3e7d",
+    "installedExact": {
+      "AGENTS.md": "59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf",
+      ".agents/skills/review/SKILL.md": "9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3"
+    },
+    "indexMatchesInspection": true
+  },
+  "projectCommands": [
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "command": "npm run preview -- test/parcels.ndjson",
+      "exitCode": 0,
+      "preview": {
+        "parcelId": "demo-101",
+        "action": "dispatch"
+      }
+    }
+  ],
+  "completionReview": {
+    "procedure": "docs/adoption.md#review-completed-outputs",
+    "note": "Applied the corrected read-only review procedure to the original completed project; historical installed artifacts were not rewritten.",
+    "instructionSkillSha256": "2e431b764e59b4a0032353900b8f0e66bcc41a555043cf71c2779b2345c8485f",
+    "trackedPaths": [
+      "README.md"
+    ],
+    "untrackedFiles": [
+      {
+        "path": ".agents/skills/adopt-standards/SKILL.md",
+        "type": "file",
+        "sha256": "e841860e8271226814ef4ca25bf9aa7b891739da044991b00b39db0d3704fa38",
+        "executable": false
+      },
+      {
+        "path": ".agents/skills/review/SKILL.md",
+        "type": "file",
+        "sha256": "9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/.gitignore",
+        "type": "file",
+        "sha256": "c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/metadata.json",
+        "type": "file",
+        "sha256": "9ded19e44996dd93db5291525ac9429244c9bb3f16406983cad8c18a97629e21",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/resolved.json",
+        "type": "file",
+        "sha256": "a712e6c0de8799cbb52ae1cbfdd7e7f3123dad7b75ade807667114048ce5da86",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/defaults/checks/readme.py",
+        "type": "file",
+        "sha256": "096be53f4341c075024c2b682f030b10cf6d5450082c34b6efccd99893a7ae3e",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/defaults/guidance/readme.md",
+        "type": "file",
+        "sha256": "7b88bfd808553868df8a9d28dc011d22f8a822dc7a80ad755827e95612de1f7c",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/defaults/guidance/source-layout.md",
+        "type": "file",
+        "sha256": "06ebb1450fc3f4de4f88c2f3ec5083f2e0f37b10305645c73efcab2515fe4b33",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+        "type": "file",
+        "sha256": "9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+        "type": "file",
+        "sha256": "59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/inputs/standards.yaml",
+        "type": "file",
+        "sha256": "b56761863be2fa1bcf3dd16052e0445973fa646b88a5f890b53ad71d07ec059c",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/lock.json",
+        "type": "file",
+        "sha256": "35c46e6782cca77ca50a3c278c78472de6e3faf563437d0fdff9e7f759a902c5",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/runtime/package-lock.json",
+        "type": "file",
+        "sha256": "cace4b5de9984cbf1ac6b662abc54f96b90626a1addff747fabc93cf63c470a4",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/runtime/package.json",
+        "type": "file",
+        "sha256": "db9535b5dd5e33d65282cf41cbafdd5af6d74f381adc9701b747559fa67f33f5",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/selection.yaml",
+        "type": "file",
+        "sha256": "25c90fa10a15e59e692413cba46c3b619cfe8e248d164ffdb87e50b89d900c8c",
+        "executable": false
+      },
+      {
+        "path": ".repo-standards/state.json",
+        "type": "file",
+        "sha256": "837bcab0997f3b6453a74570a44a0f855b1628ea29069ed9bf43e0a2764c39f1",
+        "executable": false
+      },
+      {
+        "path": "AGENTS.md",
+        "type": "file",
+        "sha256": "59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf",
+        "executable": false
+      },
+      {
+        "path": "src/README.md",
+        "type": "file",
+        "sha256": "7fb19cff13db3f57fa46a1dfbcb0c4ebf699a19932385df0cd3432a5ae5f2e71",
+        "executable": false
+      }
+    ],
+    "patchSha256": "9bf5847306af88469339e599242b57f80a4770ea01fbe9642139779d07861442",
+    "before": {
+      "head": "06dabd54b75dfff7ab173a33417f132211c575fe",
+      "indexSha256": "639a2c09552cfcd33f87bb75bab8706af7f1b32f5926dc3288db66d951fd5b59",
+      "contentSnapshotSha256": "47b144deaf28356163ae997fcd4354cb289287e77722cc56b8bbfd01e98e01f9"
+    },
+    "after": {
+      "head": "06dabd54b75dfff7ab173a33417f132211c575fe",
+      "indexSha256": "639a2c09552cfcd33f87bb75bab8706af7f1b32f5926dc3288db66d951fd5b59",
+      "contentSnapshotSha256": "47b144deaf28356163ae997fcd4354cb289287e77722cc56b8bbfd01e98e01f9"
+    },
+    "matchesOriginalUntrackedInventory": true,
+    "patchReconstructionVerified": true
+  }
+}

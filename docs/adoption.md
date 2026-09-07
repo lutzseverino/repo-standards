@@ -9,8 +9,11 @@ Public npm delivery remains issue #11.
 
 ## Inspect, confirm, and start
 
-Use Node.js 24, npm, Git, and the exact CLI obtained by the
-[bootstrap](inspection.md). First inspect the public GitHub selection:
+Use Node.js 24, npm, Git, and an [externally installed exact CLI](inspection.md#keep-the-disclosed-cli-for-start-and-recovery).
+Before first adoption, have the agent read that package's
+`skills/adopt-standards/SKILL.md`. After installation, use the matching
+repository-local `.agents/skills/adopt-standards/SKILL.md`. First inspect the
+public GitHub selection:
 
 ```sh
 repo-standards inspect --source https://github.com/OWNER/STANDARDS \
@@ -192,6 +195,45 @@ phase with explicit uncertainty and recovery guidance. Candidate state is
 preserved as ignored `.repo-standards/local/incomplete-state.json` when possible,
 instead of asserting a last-complete adoption. If preserving that candidate also
 fails, the report identifies the uncertainty for manual recovery.
+
+## Review completed outputs
+
+Complete adoption leaves changes uncommitted. Review their contents before the
+maintainer's normal commit workflow; a list of filenames or hashes is not a
+content review. This applies to initial adoption and updates, including newly
+added files alongside modified, deleted and mode-changed tracked files.
+
+From the project root, obtain a tracked diff and a complete new-file inventory:
+
+```sh
+git --no-optional-locks diff --no-ext-diff --no-textconv --binary --
+git --no-optional-locks ls-files --others --exclude-standard -z
+```
+
+Consume the second command's NUL-delimited paths without shell word splitting;
+paths may contain spaces, newlines or leading dashes. For each path, read its
+complete content and executable state, or invoke this argument vector directly
+with the literal path substituted for `<path>`:
+
+```text
+["git", "--no-optional-locks", "diff", "--no-index", "--no-ext-diff",
+ "--no-textconv", "--binary", "--", "/dev/null", "<path>"]
+```
+
+For `--no-index`, exit 1 means differences were found; treat other failures as
+an incomplete review. Binary patches retain bytes and mode changes, but still
+use a suitable viewer or explicit binary-aware inspection when evaluating
+non-text content. Account for every enumerated path, including hidden files:
+exact targets, every installed skill file, retained inputs, selection/lock/state,
+`.repo-standards/.gitignore`, and runtime package manifest and lockfile. The
+ordinary ignore rules exclude dependencies, caches and local execution logs;
+review script outcomes from the run report separately.
+
+Save review artifacts outside the adopting project, so they do not become new
+outputs themselves. Do not stage files (including intent-to-add) to expose their
+contents. Confirm HEAD, index entries and the working files remain unchanged
+across review, and report any unreadable or unreviewed output explicitly. Only
+the maintainer's normal workflow stages or commits the completed adoption.
 
 ## Recover or abandon an interrupted run
 

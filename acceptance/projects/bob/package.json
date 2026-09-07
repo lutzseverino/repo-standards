@@ -1,0 +1,7 @@
+{
+  "name": "parcel-queue",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "scripts": { "test": "node --test test/dispatch.test.mjs", "preview": "node src/cli.mjs" }
+}
