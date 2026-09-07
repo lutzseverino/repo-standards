@@ -10,7 +10,7 @@ const args = process.argv.slice(2);
 if (args.length === 1 && args[0] === '--version') {
   console.log(version);
 } else if (args.length === 0 || (args.length === 1 && args[0] === '--help')) {
-  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards inspect [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json]\n       repo-standards start --source <GitHub URL> --standards-version <tag> --profile <name> --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json]\n\nInspection without source flags uses the current retained selection. Start supports initial exact-only adoption.');
+  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards inspect [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json]\n       repo-standards start --source <GitHub URL> --standards-version <tag> --profile <name> --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json]\n\nInspection without source flags uses the current retained selection. Start supports initial adoption with trusted fixes and checks; contextual assessment requires a later slice.');
 } else if (args[0] === 'inspect' || args[0] === 'start' || args[0] === 'status') {
   try {
     const flags = new Map<string, string>();

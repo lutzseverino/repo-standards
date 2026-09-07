@@ -13,13 +13,18 @@ install exact content, apply contextual guidance, and collect check evidence.
 Local source validation, pinned public GitHub inspection, and a standalone
 bootstrap are implemented through distributable artifacts. Inspection reports
 content, guidance, operations, prerequisites, conflicts, and an inspection
-identity without changing the project or running author code. Publication,
-discovery, and adoption remain future implementation tickets. The package has
-not been published to npm.
+identity without changing the project or running author code. Confirmed initial
+adoption installs exact content and a pinned runtime, preflights prerequisites,
+and runs trusted fixes and checks with durable evidence. Contextual profiles
+stop incomplete after fixes until assessment is implemented. Publication,
+discovery, contextual assessment, updates, and recovery remain future tickets.
+The package has not been published to npm.
 
 - [Architecture and acceptance criteria](docs/architecture.md)
 - [Author format and CLI diagnostics](docs/author-format.md)
 - [Bootstrap and public inspection](docs/inspection.md)
+- [Confirmed adoption and durable state](docs/adoption.md)
+- [Trusted script protocol](docs/script-protocol.md)
 - [Domain language](CONTEXT.md)
 - [Implementation work](https://github.com/lutzseverino/repo-standards/issues)
 - [Contributing](CONTRIBUTING.md)

@@ -131,12 +131,12 @@ string lists; empty lists and empty string arguments are valid. NUL bytes
 cannot occur in strings. The prerequisite `version` is a nonempty npm SemVer
 range. `timeout-seconds` is a positive safe integer.
 
-Later adoption invokes the executable directly with the retained script path
+Confirmed adoption invokes the executable directly with the retained script path
 followed by literal arguments, from the adopting-project root. No shell
 expansion is applied to arguments. Scripts are trusted code; resources describe
 retention and do not restrict host or network access. Fixes must be safe to
 repeat; checks must not mutate project content. See the
-[script execution contract](architecture.md#script-execution-contract) for the
+[public script protocol](script-protocol.md) for the
 versioned input/result protocol and execution rules. Execution is outside the
 source-validation ticket.
 

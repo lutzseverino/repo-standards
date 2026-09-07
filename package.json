@@ -14,7 +14,8 @@
     "skills",
     "docs/adoption.md",
     "docs/author-format.md",
-    "docs/inspection.md"
+    "docs/inspection.md",
+    "docs/script-protocol.md"
   ],
   "engines": {
     "node": ">=24 <25"
