@@ -21,12 +21,14 @@ assessments before checks and completion. Interrupted runs support explicit retr
 or abandonment with preserved work and reports. Standards revisions and exact CLI
 versions update independently through the same inspected, confirmed adoption
 procedure. The packaged system skill guides confirmation, project-specific
-contextual work and public assessment submission. Publication and discovery
-remain future tickets.
+contextual work and public assessment submission. Topic-based source search
+validates stable release candidates without selecting or adopting them; the
+author workflow covers ordinary GitHub publication.
 The package has not been published to npm.
 
 - [Architecture and acceptance criteria](docs/architecture.md)
-- [Author workflow](docs/authoring.md)
+- [Author workflow and publication](docs/authoring.md)
+- [Source discovery](docs/discovery.md)
 - [Author format and CLI diagnostics](docs/author-format.md)
 - [Bootstrap and public inspection](docs/inspection.md)
 - [Confirmed adoption and durable state](docs/adoption.md)

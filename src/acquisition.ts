@@ -7,6 +7,10 @@ import { foldPath } from './paths.js';
 import { ProductError } from './errors.js';
 
 export interface StandardsIdentity { repository: string; version: string; commit: string }
+export function isStableVersion(version: unknown): version is string {
+  return typeof version === 'string' && /^v?\d+\.\d+\.\d+(?:\+[0-9A-Za-z.-]+)?$/.test(version) && valid(version) !== null && prerelease(version) === null;
+}
+
 const shaPattern = /^[a-f0-9]{40}$/;
 
 export function hash(bytes: string | Buffer) { return createHash('sha256').update(bytes).digest('hex'); }
@@ -34,7 +38,7 @@ export function externalPath(path: string, project: string): string {
   return path;
 }
 
-async function github(path: string): Promise<any> {
+export async function github(path: string): Promise<any> {
   let response: Response;
   try {
     response = await fetch(`https://api.github.com${path}`, {
@@ -49,7 +53,7 @@ async function github(path: string): Promise<any> {
 export async function acquireSource(repository: string, version: string, project: string) {
   const match = /^https:\/\/github\.com\/([A-Za-z0-9-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/.exec(repository);
   if (!match || match[2] === '.' || match[2] === '..') throw new ProductError('UNSUPPORTED_SOURCE', 'Use a public https://github.com/owner/repository URL. Local paths, SSH, other hosts, and URL references are unsupported.');
-  if (!/^v?\d+\.\d+\.\d+(?:\+[0-9A-Za-z.-]+)?$/.test(version) || !valid(version) || prerelease(version)) {
+  if (!isStableVersion(version)) {
     throw new ProductError('INVALID_STANDARDS_VERSION', 'Choose an exact stable SemVer tag, such as v1.2.3. Branches, ranges, and prereleases are unsupported.');
   }
   const metadata = await github(`/repos/${match[1]}/${match[2]}`);

@@ -10,6 +10,8 @@ profile guides Harbor's Python HTTP service. These are synthetic publishers and
 projects, not claims about third-party production adoption.
 
 Recorded runs: [2026-09-07 macOS and Linux acceptance](results/2026-09-07/README.md).
+The separate [live publication and discovery journey](results/2026-09-07/source-publication.md)
+uses the public synthetic `repo-standards-example` source.
 
 ## Prepare each supported operating system
 

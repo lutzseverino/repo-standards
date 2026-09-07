@@ -7,6 +7,10 @@ shows defaults, a complete work replacement and an employer-content exclusion.
 The [Mira example](../examples/mira/standards.yaml) uses operational guidance,
 a repeat-safe fix and a different check.
 
+A published working source is [repo-standards-example](https://github.com/lutzseverino/repo-standards-example),
+based on synthetic Mira material. Its [recorded publication journey](../acceptance/results/2026-09-07/source-publication.md)
+uses the same validation and discovery commands below.
+
 ## Choose ownership and write guidance
 
 Use exact files or whole author-skill directories for material you intend to
@@ -48,13 +52,58 @@ Record scripted checks separately from the agent's contextual evidence.
 
 ## Publish and evolve
 
-Publish the source as a public GitHub repository containing the root
-`standards.yaml`, referenced content and a license suitable for retained copies.
-Tag the intended commit with a stable SemVer such as `v1.0.0`. Share the canonical
-GitHub URL, exact stable tag and profile for direct inspection. Add the
-`repo-standards` GitHub topic if you want discovery. Publication/discovery release
-verification is tracked separately from these authoring steps; public npm
-installation remains issue #11.
+Choose a public GitHub repository for this standards source, independently of
+the product repository. Commit the root `standards.yaml`, all referenced files
+and a root `LICENSE` or `LICENCE` file (recognized suffixes include `.md` and
+`.txt`). Choose licensing that permits the intended copying and use. Adoption
+retains root license files alongside selected source material and records their
+hashes and Git provenance. It does not infer permission from a public repository
+or copy unrelated files and other profiles into retained inputs.
+
+Set `requires.repo-standards` to the CLI SemVer range you have tested. Validation
+checks compatibility with the running CLI and resolves **all** profiles. A stable
+standards version and the adopter's exact CLI package version are independent;
+use a new standards version when you change material or compatibility.
+
+After validating the committed contents with a compatible installed CLI, publish
+the same commit. The following commands run in your standards repository; replace
+`OWNER/SOURCE` and choose an unused version. They require GitHub CLI access with
+permission to push and publish releases in that repository:
+
+```sh
+repo-standards source validate . --json
+git status --short
+# Commit any intended changes and validate that commit before publication.
+git tag -a v1.0.0 -m 'Standards v1.0.0'
+git push origin HEAD
+git push origin refs/tags/v1.0.0
+gh release create v1.0.0 --repo OWNER/SOURCE --verify-tag \
+  --title 'Standards v1.0.0' --notes 'Initial stable standards release.'
+gh repo edit OWNER/SOURCE --add-topic repo-standards
+repo-standards source search --json
+```
+
+The release must be published, not a draft or prerelease, and its tag must be
+stable SemVer, such as `1.0.0` or `v1.0.0`. Direct inspection needs only the stable
+Git tag; discovery additionally requires a GitHub release and the
+`repo-standards` topic. A release's tagged snapshot must contain the exact root
+`standards.yaml` path and pass validation; merely adding the file to the default
+branch does not repair an older release. Publication uses ordinary GitHub
+features and does not add workflows or create a marketplace entry.
+
+Confirm your repository, tag and commit in the [search report](discovery.md).
+GitHub indexing can lag behind publication; check the topic and release, then
+retry later. Share the canonical URL, exact stable tag and one profile for
+[direct inspection](inspection.md), which does not depend on discovery:
+
+```sh
+repo-standards inspect --source https://github.com/OWNER/SOURCE \
+  --standards-version v1.0.0 --profile work --project /path/to/project --json
+```
+
+Public npm delivery of the product remains issue #11; until that release, the
+[README](../README.md#try-source-validation) describes installing its packed
+artifact. The standards source itself is an ordinary public GitHub repository.
 
 Keep published tags immutable: an observed moved tag is rejected. For an update,
 publish another stable tag and describe replacements, retired declarations,
