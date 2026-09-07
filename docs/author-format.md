@@ -137,8 +137,7 @@ expansion is applied to arguments. Scripts are trusted code; resources describe
 retention and do not restrict host or network access. Fixes must be safe to
 repeat; checks must not mutate project content. See the
 [public script protocol](script-protocol.md) for the
-versioned input/result protocol and execution rules. Execution is outside the
-source-validation ticket.
+versioned input/result protocol and execution rules. Source validation does not execute these operations.
 
 ## Results and diagnostics
 
@@ -197,6 +196,7 @@ guidance, inherits README guidance, the review skill, and source-layout
 guidance, and excludes contribution guidance. Exclusion leaves the future
 adopting project's employer-owned `CONTRIBUTING.md` outside governance.
 
-The fixture's Python file deliberately raises if run: source validation must
-only validate it. It is not a publishable adoption check. Authors must provide
-real protocol-conforming operations before publishing a source for adoption.
+The example's Python check reads the public operation input and checks README
+headings. It reports structural evidence; the agent separately assesses whether
+commands and explanations are useful for the actual project. See
+[Author workflow](authoring.md) for validation, publication and evolution.

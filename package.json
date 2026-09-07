@@ -12,8 +12,10 @@
     "dist",
     "bootstrap",
     "skills",
+    "examples",
     "docs/adoption.md",
     "docs/author-format.md",
+    "docs/authoring.md",
     "docs/inspection.md",
     "docs/script-protocol.md",
     "docs/assessment-protocol.md"

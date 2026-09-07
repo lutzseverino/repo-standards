@@ -9,8 +9,11 @@ Public npm delivery remains issue #11.
 
 ## Inspect, confirm, and start
 
-Use Node.js 24, npm, Git, and the exact CLI obtained by the
-[bootstrap](inspection.md). First inspect the public GitHub selection:
+Use Node.js 24, npm, Git, and an [externally installed exact CLI](inspection.md#keep-the-disclosed-cli-for-start-and-recovery).
+Before first adoption, have the agent read that package's
+`skills/adopt-standards/SKILL.md`. After installation, use the matching
+repository-local `.agents/skills/adopt-standards/SKILL.md`. First inspect the
+public GitHub selection:
 
 ```sh
 repo-standards inspect --source https://github.com/OWNER/STANDARDS \

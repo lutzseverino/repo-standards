@@ -20,15 +20,19 @@ return explicit agent work after fixes and resume through snapshot-bound
 assessments before checks and completion. Interrupted runs support explicit retry
 or abandonment with preserved work and reports. Standards revisions and exact CLI
 versions update independently through the same inspected, confirmed adoption
-procedure. Publication and discovery remain future tickets.
+procedure. The packaged system skill guides confirmation, project-specific
+contextual work and public assessment submission. Publication and discovery
+remain future tickets.
 The package has not been published to npm.
 
 - [Architecture and acceptance criteria](docs/architecture.md)
+- [Author workflow](docs/authoring.md)
 - [Author format and CLI diagnostics](docs/author-format.md)
 - [Bootstrap and public inspection](docs/inspection.md)
 - [Confirmed adoption and durable state](docs/adoption.md)
 - [Trusted script protocol](docs/script-protocol.md)
 - [Contextual work and assessment protocol](docs/assessment-protocol.md)
+- [Real-agent acceptance](acceptance/README.md)
 - [Domain language](CONTEXT.md)
 - [Implementation work](https://github.com/lutzseverino/repo-standards/issues)
 - [Contributing](CONTRIBUTING.md)

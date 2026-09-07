@@ -128,5 +128,5 @@ assessment authorizes repeating these operations. Use explicit `resume --retry`
 to recover interrupted work and repeat fixes, or `abandon` to preserve its work
 and report; see [Recovery commands](adoption.md#recover-or-abandon-an-interrupted-run).
 Retry requires new assessment even when project bytes are unchanged, and retains
-the original contextual comparison baseline. Updates use this same assessment interface. Real-agent usefulness is evaluated separately in
-issue #9; scripted agents exercise this deterministic protocol.
+the original contextual comparison baseline. Updates use this same assessment interface. The [real-agent acceptance journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) evaluates contextual
+usefulness separately; scripted agents exercise this deterministic protocol.
