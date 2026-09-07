@@ -100,7 +100,13 @@ Fixes must be safe to repeat, including after interruption at any point. Observe
 the current project and make only the missing changes; do not assume a previous
 invocation finished or never started. Return `unchanged` when no work is needed.
 The CLI records an uncertain operation before invocation and records its result
-afterward. Automatic retries and interrupted-run resume are later slices.
+afterward. Recovery requires explicit `resume --retry`: it verifies installed
+progress, repeats fixes, requests renewed contextual assessment, and reruns
+checks before completion. It never implicitly retries an uncertain operation.
+Use `abandon` to preserve incomplete work and its report without asserting
+completion. A surviving author process group blocks retry and abandonment even
+after its direct fix or prerequisite probe returns. See the
+[recovery commands](adoption.md#recover-or-abandon-an-interrupted-run).
 
 Checks must leave project content unchanged. The CLI compares tracked and
 non-ignored untracked content before and after each check, independently of

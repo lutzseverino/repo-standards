@@ -17,8 +17,9 @@ identity without changing the project or running author code. Confirmed initial
 adoption installs exact content and a pinned runtime, preflights prerequisites,
 and runs trusted fixes and checks with durable evidence. Contextual profiles
 return explicit agent work after fixes and resume through snapshot-bound
-assessments before checks and completion. Publication, discovery, updates, and
-interrupted-run recovery remain future tickets.
+assessments before checks and completion. Interrupted runs support explicit retry
+or abandonment with preserved work and reports. Publication, discovery, and
+updates remain future tickets.
 The package has not been published to npm.
 
 - [Architecture and acceptance criteria](docs/architecture.md)
