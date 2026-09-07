@@ -26,8 +26,16 @@ from the project root. If dependencies are absent, restore them with
    replacements, matching-file claims, skill inventories, exclusions, guidance,
    declared fixes and checks, literal invocations, prerequisite probes, and blockers.
    Explain that these operations are trusted code with host access.
+   For a standards update, use the project-pinned CLI with the same source and
+   profile and a new stable tag. For a CLI update, obtain the candidate exact
+   CLI externally and run `inspect --json` without source flags so it uses the
+   retained current standards. Present the previous and candidate pins, retired
+   declarations, ownership changes, and any baseline-edit blockers. Never combine
+   a standards and CLI update or switch source/profile.
 3. Obtain explicit maintainer confirmation of that inspection. Only then run
    the same exact CLI and selection with `start` and `--confirm <identity>`.
+   Preserve the source flags for initial adoption and standards updates; omit
+   them for a CLI update.
    A stale inspection requires a new inspection and new confirmation.
 4. When the run returns `workRequest`, read the assessment protocol at
    `.repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/assessment-protocol.md`.
@@ -46,5 +54,6 @@ from the project root. If dependencies are absent, restore them with
    normal workflow. `status` records historical evidence for that run; it does
    not certify ongoing compliance after edits.
 
-Existing selections remain inspectable from retained inputs. Updates require a
-later slice. Abandonment preserves incomplete work and never asserts completion.
+Existing selections remain inspectable from retained inputs. An unchanged
+retained inspection is read-only. Abandonment preserves incomplete work and
+never asserts completion.

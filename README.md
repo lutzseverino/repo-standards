@@ -18,8 +18,9 @@ adoption installs exact content and a pinned runtime, preflights prerequisites,
 and runs trusted fixes and checks with durable evidence. Contextual profiles
 return explicit agent work after fixes and resume through snapshot-bound
 assessments before checks and completion. Interrupted runs support explicit retry
-or abandonment with preserved work and reports. Publication, discovery, and
-updates remain future tickets.
+or abandonment with preserved work and reports. Standards revisions and exact CLI
+versions update independently through the same inspected, confirmed adoption
+procedure. Publication and discovery remain future tickets.
 The package has not been published to npm.
 
 - [Architecture and acceptance criteria](docs/architecture.md)

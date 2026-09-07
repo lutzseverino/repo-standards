@@ -112,6 +112,10 @@ The report has format `repo-standards/inspection/v1`:
 | `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available. |
 | `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
 
+For an established selection, `update` is `standards` or `cli`,
+`previousSelection` records the current pins, and `retired` lists declarations
+that will leave governance while their installed content remains in place.
+
 File bytes use `encoding: utf8` when losslessly representable, otherwise
 `encoding: base64`. Whole-skill inventories include existing and supplied files.
 Matching exact files can be claimed without rewriting during adoption.
@@ -136,12 +140,39 @@ Case conflicts retain every alias and the exact component when present, so
 changes to either remain visible and change the inspection identity.
 Git assume-unchanged or skip-worktree flags also block eligibility because they
 can hide working-tree changes; clear those flags and reconcile content first.
-An existing skill conflicts even if its bytes match: this initial journey has
-no installed baseline establishing ownership. Existing product state or reserved
-system-skill content also blocks initial adoption. Established projects can use
-`inspect --json` with their pinned CLI to inspect retained material; updates
-follow in a later ticket. The resolver
+An existing skill conflicts even if its bytes match when no installed baseline
+establishes ownership. Existing product state or reserved system-skill content
+also blocks initial adoption. Established projects can use `inspect --json` with
+their pinned CLI to inspect retained material. That unchanged inspection is
+read-only and cannot be started. The resolver
 rejects targets overlapping `.git`, `.repo-standards`, or `adopt-standards`.
+
+## Inspect updates
+
+Run a standards update with the project's pinned CLI and the current source and
+profile, changing only the stable tag:
+
+```sh
+.repo-standards/runtime/node_modules/.bin/repo-standards inspect \
+  --source https://github.com/OWNER/STANDARDS \
+  --standards-version v1.3.0 --profile work --json
+```
+
+Run a CLI update using the candidate exact CLI outside the project, omitting all
+source flags so it validates the current retained standards:
+
+```sh
+repo-standards-bootstrap --cli-version 1.1.0 inspect --json
+```
+
+Source and profile switching and changing both pins in one inspection are
+blocked. A standards update requires its public source. A CLI update works from
+retained inputs if that source is unavailable, but its exact npm package and
+dependencies must be public or cached. Every update inspection compares bytes,
+executable state, and complete skill inventories with the last-complete
+baselines. Any committed or uncommitted local edit blocks the whole update.
+Known moved tags, incompatible CLI/format combinations, and changed retained
+product state are also blockers or structured failures before mutation.
 
 Exit status 0 means a report was produced, including reports with start blockers.
 Status 1 means acquisition, compatibility, prerequisites, or inspection failed.
