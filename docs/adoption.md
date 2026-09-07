@@ -51,16 +51,32 @@ For a CLI update, obtain the candidate exact CLI outside the project. Omit the
 source flags so inspection and start use the retained current standards:
 
 ```sh
-repo-standards-bootstrap --cli-version 1.1.0 inspect --json
-repo-standards-bootstrap --cli-version 1.1.0 start \
+candidate_dir="$HOME/.local/share/repo-standards/cli-1.1.0"
+mkdir -p "$candidate_dir"
+(cd "$candidate_dir" && npm install --prefix "$candidate_dir" \
+  --ignore-scripts --save-exact --no-audit --no-fund \
+  @lutzseverino/repo-standards@1.1.0)
+"$candidate_dir/node_modules/.bin/repo-standards" inspect --json
+```
+
+Keep that directory outside the adopting project. Review the inspection and
+obtain explicit confirmation before running the same candidate executable:
+
+```sh
+"$candidate_dir/node_modules/.bin/repo-standards" start \
   --confirm 'sha256:INSPECTION_HASH' --json
 ```
+
+The bootstrap provides temporary inspection only. Keep the external candidate
+available for retry if installation interrupts before the project runtime is
+usable. Once adoption completes, use the new project-pinned CLI normally.
 
 Both paths apply confirmation freshness, Git-state, prerequisite,
 compatibility, and ownership checks before mutation, then use the normal fixes,
 contextual assessment, checks, integrity verification, recovery, and
 abandonment behavior. A standards update replaces still-declared exact content
-and whole skills, including removal of obsolete skill resources. Retired and
+and whole skills, including removal of obsolete skill resources, while retaining
+the existing runtime, npm lockfile, and system skill. Retired and
 excluded declarations keep their installed content but leave the new baselines
 and no longer contribute operations. A CLI update replaces only the isolated
 runtime manifests, npm lock, dependencies, and matching product-owned system
@@ -264,11 +280,15 @@ The npm package must remain available from its locked location or an npm cache.
 No standards-source connection is needed for these commands. `inspect` without
 source flags verifies retained input integrity and resolves the current profile
 from retained material. Local edits to exact project content remain visible in
-the report. This read-only report has `retained: true`; it does not authorize an
-update or re-adoption in this slice. A mismatched CLI version is rejected with
-instructions to use the project's pin.
+the report. With the pinned CLI, this unchanged report has `retained: true` and
+is read-only. With a different exact CLI version, it discloses a CLI update that
+can be confirmed and started as described above.
 
 `status` reports pins, active progress, and historical last-complete evidence.
+After an abandoned update, it still returns the archived report. If the
+preserved product files do not represent complete adoption, `stateError`
+describes that condition; historical evidence comes from the matching archived
+run and does not certify the candidate selection as complete.
 It does not claim ongoing compliance after subsequent project edits. While an
 initial run is incomplete, no last-complete adoption is reported. The installed
 `adopt-standards` skill guides these same commands and confirmation requirements.

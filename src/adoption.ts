@@ -14,10 +14,12 @@ import { acquireWorker, executing, processGroupAlive, processIdentity } from './
 import { ProductError } from './errors.js';
 import { git, hiddenIndexPaths, inspect, observe, targetBoundaryObservation, targetObservation } from './inspection.js';
 import type { Blocker, Content, InspectOptions, Observation } from './inspection.js';
+import { decodeRecordedState } from './recorded-state.js';
 
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 type Baseline = Pick<Content, 'sha256' | 'executable'>;
 type Files = Record<string, Content>;
+type StartInput = { kind: 'public'; options: InspectOptions } | { kind: 'retained'; project: string };
 interface Run {
   format: 'repo-standards/run/v1'; id: string; inspection: string;
   selection: Inspection['selection'];
@@ -25,11 +27,11 @@ interface Run {
   prerequisites: PrerequisiteEvidence[]; operations: OperationEvidence[];
   outcome: 'complete' | 'incomplete'; phase: string; reason: string;
   workRequest?: WorkRequest; continuation?: string; assessments: Assessment[];
-  installation?: { files: string[]; runtime: boolean; trees?: string[] };
+  installation?: { files: string[]; runtime: boolean; complete?: boolean; trees?: Record<string, 'removing' | 'installing'> };
   retryHistory?: { phase: string; reason: string; uncertain: string[]; assessments: Assessment[]; report?: string; archivedFiles?: Record<string, string> }[];
   completion?: { state: Content; lock: Content };
   previousComplete?: { selection: Inspection['selection']; lastComplete: { run: string; inspection: string; completedAt: string; head: string } };
-  processGroup?: number; processGroupIdentity?: string; archivedFiles?: Record<string, string>; options?: InspectOptions; retained?: boolean; abandoned?: boolean;
+  processGroup?: number; processGroupIdentity?: string; archivedFiles?: Record<string, string>; startInput?: StartInput; abandoned?: boolean;
   changes: string[]; completed: string[]; uncertain: string[]; nextAction: string;
 }
 
@@ -271,7 +273,11 @@ function preserveIncompleteState(root: string, run: Run) {
     const state = safe(root, '.repo-standards/state.json');
     if (state.type === 'file' && JSON.parse(Buffer.from(state.content, state.encoding).toString('utf8')).lastComplete?.run === run.id) {
       safe(root, '.repo-standards/local/incomplete-state.json');
-      renameSync(join(root, '.repo-standards/state.json'), join(root, '.repo-standards/local/incomplete-state.json'));
+      const previous = readInstallation(root, run).transitional?.['.repo-standards/state.json'];
+      if (previous) {
+        write(root, '.repo-standards/local/incomplete-state.json', state);
+        write(root, '.repo-standards/state.json', previous, run.id);
+      } else renameSync(join(root, '.repo-standards/state.json'), join(root, '.repo-standards/local/incomplete-state.json'));
     }
   } catch {
     run.uncertain.push('Candidate completion state could not be moved to local/incomplete-state.json; preserve it during manual recovery.');
@@ -294,25 +300,26 @@ function clearStoppedProcess(run: Run) {
 
 export async function start(options: InspectOptions, cliVersion: string, confirmation: string) {
   const release = acquireWorker(lockPath(projectRoot(options.project)));
-  try { return await startRun(options, cliVersion, confirmation); } finally { release(); }
+  try { return await startRun({ kind: 'public', options }, cliVersion, confirmation); } finally { release(); }
 }
 
 export async function startRetained(project: string, cliVersion: string, confirmation: string) {
-  const options = { source: '', standardsVersion: '', profile: '', project };
   const release = acquireWorker(lockPath(projectRoot(project)));
-  try { return await startRun(options, cliVersion, confirmation, undefined, true); } finally { release(); }
+  try { return await startRun({ kind: 'retained', project }, cliVersion, confirmation); } finally { release(); }
 }
 
-async function startRun(options: InspectOptions, cliVersion: string, confirmation: string, recovering?: Run, retained = recovering?.retained ?? false) {
-  if (!recovering && existsSync(lockPath(projectRoot(options.project)))) throw new ProductError('ACTIVE_RUN', 'An adoption run is active or incomplete. Read status and preserve its work before recovery.');
-  const inspectSelection = () => retained ? inspectRetained(options.project, cliVersion) : inspect(options, cliVersion);
+async function startRun(input: StartInput, cliVersion: string, confirmation: string, recovering?: Run) {
+  const project = input.kind === 'public' ? input.options.project : input.project;
+  if (!recovering && existsSync(lockPath(projectRoot(project)))) throw new ProductError('ACTIVE_RUN', 'An adoption run is active or incomplete. Read status and preserve its work before recovery.');
+  const inspectSelection = () => input.kind === 'retained' ? inspectRetained(input.project, cliVersion) : inspect(input.options, cliVersion);
   const initial = await inspectSelection();
   const root = initial.project.root;
   const previousComplete = initial.update ? recordedState(root) : undefined;
   const lock = lockPath(root);
   if (!recovering && existsSync(lock)) throw new ProductError('ACTIVE_RUN', 'An adoption run is active or incomplete. Read status and preserve its work before recovery.');
   verifyConfirmation(initial, confirmation);
-  const run: Run = recovering ?? { format: 'repo-standards/run/v1', id: randomUUID(), inspection: confirmation, selection: initial.selection, options: { ...options, project: root }, ...(retained ? { retained: true } : {}),
+  const startInput: StartInput = input.kind === 'retained' ? { kind: 'retained', project: root } : { kind: 'public', options: { ...input.options, project: root } };
+  const run: Run = recovering ?? { format: 'repo-standards/run/v1', id: randomUUID(), inspection: confirmation, selection: initial.selection, startInput,
     ...(previousComplete ? { previousComplete: { selection: previousComplete.pinned.selection, lastComplete: previousComplete.state.lastComplete } } : {}),
     affected: { ...initial.project.affected, [systemTarget]: initial.project.systemSkill }, outcome: 'incomplete',
     prerequisites: [], operations: [], assessments: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],
@@ -333,14 +340,19 @@ async function startRun(options: InspectOptions, cliVersion: string, confirmatio
     run.prerequisites = await preflight(root, initial.resolved, group => recordProcessGroup(root, run, group));
     clearStoppedProcess(run);
     if (run.prerequisites.some(probe => probe.code)) throw new ProductError('PREREQUISITES_BLOCKED', 'Resolve the reported executable and version problems; prerequisites are never installed automatically.');
-    run.phase = 'runtime'; run.uncertain = ['runtime acquisition']; save();
-    temporary = mkdtempSync(join(externalPath(tmpdir(), root), 'repo-standards-runtime-'));
-    const systemSkill = prepareRuntime(temporary, cliVersion, root);
-    const runtime = observe(join(temporary, 'node_modules'));
+    const replaceRuntime = initial.update !== 'standards';
+    let preparedSystemSkill: Observation | undefined;
+    if (replaceRuntime) {
+      run.phase = 'runtime'; run.uncertain = ['runtime acquisition']; save();
+      temporary = mkdtempSync(join(externalPath(tmpdir(), root), 'repo-standards-runtime-'));
+      preparedSystemSkill = prepareRuntime(temporary, cliVersion, root);
+    }
     // Network/package acquisition can take time. Repeat all Git, source and
     // target checks under the lock before creating any project material.
     const report = await inspectSelection();
     verifyConfirmation(report, confirmation);
+    const systemSkill = preparedSystemSkill ?? report.project.systemSkill;
+    const runtime = replaceRuntime ? observe(join(temporary!, 'node_modules')) : safeDirectory(root, '.repo-standards/runtime/node_modules');
     for (const exact of report.exact) for (const change of exact.files) if (change.after.type !== 'missing') flatten(change.path, change.after, files);
     flatten(systemTarget, systemSkill, files);
     for (const declaration of report.resolved.declarations) if (declaration.kind === 'skill') {
@@ -358,12 +370,12 @@ async function startRun(options: InspectOptions, cliVersion: string, confirmatio
     files['.repo-standards/selection.yaml'] = file(stringify(report.selection));
     files['.repo-standards/.gitignore'] = file(ignore);
     for (const name of ['package.json', 'package-lock.json']) {
-      const value = observe(join(temporary, name));
+      const value = observe(join(replaceRuntime ? temporary! : root, replaceRuntime ? name : `.repo-standards/runtime/${name}`));
       flatten(`.repo-standards/runtime/${name}`, value, files);
     }
     const durable = baselines(files);
     files['.repo-standards/lock.json'] = file(json({ format: 'repo-standards/lock/v1', selection: report.selection, inspection: confirmation, files: durable }));
-    const replaceTrees = report.update === 'standards' ? [systemTarget, '.repo-standards/inputs', ...report.resolved.declarations
+    const replaceTrees = report.update === 'standards' ? ['.repo-standards/inputs', ...report.resolved.declarations
       .filter(declaration => declaration.kind === 'skill').map(declaration => `.agents/skills/${declaration.name}`)] : report.update === 'cli' ? [systemTarget] : [];
     const transitional: Files = Object.create(null);
     if (report.update) {
@@ -371,9 +383,9 @@ async function startRun(options: InspectOptions, cliVersion: string, confirmatio
       if (oldState.type === 'file') transitional['.repo-standards/state.json'] = oldState;
     }
     const installation: Installation = { report, files, skills, exactBaselines, durable, runtimeHash: hash(json(runtime)), replaceTrees, transitional,
-      before: Object.fromEntries([...new Set([...Object.keys(files), ...replaceTrees])].map(path => [path, safe(root, path)])) };
-    cpSync(join(temporary, 'node_modules'), `${lock}.runtime`, { recursive: true, verbatimSymlinks: true });
-    run.installation = { files: [], runtime: false };
+      before: Object.fromEntries([...Object.keys(files).filter(path => !replaceTrees.some(tree => path.startsWith(tree + '/'))), ...replaceTrees].map(path => [path, safe(root, path)])) };
+    if (replaceRuntime) cpSync(join(temporary!, 'node_modules'), `${lock}.runtime`, { recursive: true, verbatimSymlinks: true });
+    run.installation = { files: [], runtime: !replaceRuntime };
     persistInstallation(root, run, installation);
     run.phase = 'installation'; run.uncertain = ['exact content and durable product state installation'];
     save();
@@ -458,29 +470,34 @@ function install(root: string, run: Run, installation: Installation, localReady:
   const progress = run.installation!;
   const { files, before, report } = installation;
   const replaceTrees = installation.replaceTrees ?? [];
-  const progressedTrees = progress.trees ??= [];
+  const treeProgress = progress.trees ??= {};
   verifyGit(root, report);
+  const observedTrees = Object.fromEntries(replaceTrees.map(tree => [tree, safe(root, tree)]));
+  const unchangedTrees = replaceTrees.filter(tree => json(observedTrees[tree]) === json(before[tree]));
+  const temporaries = stagedFiles(root, Object.fromEntries(Object.entries(files).filter(([path]) => !replaceTrees.some(tree => path.startsWith(tree + '/') && treeProgress[tree] !== 'installing'))), run.id);
   for (const tree of replaceTrees) {
-    const actual = safe(root, tree);
-    if (json(actual) === json(before[tree])) continue;
-    if (!progressedTrees.includes(tree)) throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed before replacement: ${tree}. Reconcile it before retry.`);
+    const actual = observedTrees[tree]!;
+    if (unchangedTrees.includes(tree)) continue;
+    if (!treeProgress[tree]) throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed before replacement: ${tree}. Reconcile it before retry.`);
     if (actual.type === 'missing') continue;
     const observed: Files = Object.create(null);
     flatten(tree, actual, observed);
-    if (Object.entries(observed).some(([path, value]) => files[path]?.sha256 !== value.sha256 || files[path]?.executable !== value.executable)) {
+    const expected: Files = treeProgress[tree] === 'removing' ? Object.create(null) : files;
+    if (treeProgress[tree] === 'removing' && before[tree]?.type !== 'missing') flatten(tree, before[tree]!, expected);
+    if (Object.entries(observed).some(([path, value]) => !temporaries.includes(path) && (expected[path]?.sha256 !== value.sha256 || expected[path]?.executable !== value.executable))) {
       throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed during replacement: ${tree}. Preserve and reconcile added or modified resources before retry.`);
     }
   }
   // Validate the entire remaining plan before writing any part of it. An
   // unrecorded atomic write may contain either the inspected or expected bytes.
   for (const [path, expected] of Object.entries(files)) {
+    // Whole-tree verification covers descendants, including old file ancestors
+    // that will become directories only after the tree has been removed.
+    if (replaceTrees.some(tree => path.startsWith(tree + '/')) && !progress.files.includes(path)) continue;
     const actual = safe(root, path);
     const matches = actual.type === 'file' && actual.sha256 === expected.sha256 && actual.executable === expected.executable;
-    const replacing = replaceTrees.find(tree => path.startsWith(tree + '/'));
-    const recoverableTreeState = replacing && progressedTrees.includes(replacing) && (actual.type === 'missing' || matches);
-    if (!matches && !recoverableTreeState && (progress.files.includes(path) || json(actual) !== json(before[path]))) throw new ProductError('INSTALLATION_CHANGED', `Installed or pending content changed: ${path}. Reconcile it before retry; recovery will not overwrite edits.`);
+    if (!matches && (progress.files.includes(path) || json(actual) !== json(before[path]))) throw new ProductError('INSTALLATION_CHANGED', `Installed or pending content changed: ${path}. Reconcile it before retry; recovery will not overwrite edits.`);
   }
-  const temporaries = stagedFiles(root, files, run.id);
   for (const skill of Object.keys(installation.skills).filter(skill => !replaceTrees.includes(skill))) {
     const current = safe(root, skill);
     if (current.type === 'missing') continue;
@@ -490,8 +507,6 @@ function install(root: string, run: Run, installation: Installation, localReady:
   }
   const transitional = installation.transitional ?? {};
   if (safeDirectory(root, '.repo-standards').type !== 'missing' && productInventory(root).some(path => !Object.hasOwn(files, path) && !Object.hasOwn(transitional, path) && !replaceTrees.some(tree => path.startsWith(tree + '/')) && !temporaries.includes(path))) throw new ProductError('INSTALLATION_CHANGED', 'Product state inventory changed. Reconcile additions before retry.');
-  const staged = observe(`${lockPath(root)}.runtime`);
-  if (hash(json(staged)) !== installation.runtimeHash) throw new ProductError('STATE_INTEGRITY', 'The saved runtime installation changed. Preserve the run and restore its recorded runtime.');
   const runtimePath = '.repo-standards/runtime/node_modules';
   const runtime = safeDirectory(root, runtimePath);
   function partial(actual: Observation, expected: Observation): boolean {
@@ -499,7 +514,13 @@ function install(root: string, run: Run, installation: Installation, localReady:
     if (actual.type === 'directory' && expected.type === 'directory') return Object.entries(actual.entries).every(([name, child]) => expected.entries[name] !== undefined && partial(child, expected.entries[name]!));
     return json(actual) === json(expected);
   }
-  if (progress.runtime ? hash(json(runtime)) !== installation.runtimeHash : !report.update && !partial(runtime, staged)) throw new ProductError('INSTALLATION_CHANGED', 'Runtime content changed. Reconcile it before retry.');
+  if (progress.runtime) {
+    if (hash(json(runtime)) !== installation.runtimeHash) throw new ProductError('INSTALLATION_CHANGED', 'Runtime content changed. Reconcile it before retry.');
+  } else {
+    const staged = observe(`${lockPath(root)}.runtime`);
+    if (hash(json(staged)) !== installation.runtimeHash) throw new ProductError('STATE_INTEGRITY', 'The saved runtime installation changed. Preserve the run and restore its recorded runtime.');
+    if (!report.update && !partial(runtime, staged)) throw new ProductError('INSTALLATION_CHANGED', 'Runtime content changed. Reconcile it before retry.');
+  }
   for (const path of temporaries) { safe(root, path); rmSync(join(root, path)); }
   run.phase = 'installation'; run.uncertain = ['exact content and durable product state installation']; save();
   const ignorePath = '.repo-standards/.gitignore';
@@ -507,10 +528,12 @@ function install(root: string, run: Run, installation: Installation, localReady:
   if (!progress.files.includes(ignorePath)) progress.files.push(ignorePath);
   save();
   for (const tree of replaceTrees) {
-    if (!progressedTrees.includes(tree)) { progressedTrees.push(tree); save(); }
+    if (treeProgress[tree] === 'installing') continue;
     progress.files = progress.files.filter(path => !path.startsWith(tree + '/'));
+    treeProgress[tree] = 'removing'; save();
     safeDirectory(root, tree);
     rmSync(join(root, tree), { recursive: true, force: true });
+    treeProgress[tree] = 'installing'; save();
   }
   for (const [path, value] of Object.entries(files)) {
     if (progress.files.includes(path)) continue;
@@ -529,6 +552,7 @@ function install(root: string, run: Run, installation: Installation, localReady:
     renameSync(join(root, runtimeStage), join(root, runtimePath));
     progress.runtime = true; run.completed.push('isolated runtime');
   }
+  progress.complete = true;
   run.phase = 'verification'; run.uncertain = ['final integrity verification']; save();
 }
 
@@ -637,7 +661,7 @@ export async function resume(project: string, cliVersion: string, assessmentPath
     if (run.selection.cli.version !== cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
     if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before retry or abandonment.`);
     if (!retry && !canResumeAssessment(run)) throw new ProductError('RESUME_UNAVAILABLE', 'Explicit recovery is required. Review status and use resume --retry, or abandon to preserve the incomplete work and report.');
-    if (retry && !run.continuation && run.options) return await startRun(run.options, cliVersion, run.inspection, run, run.retained);
+    if (retry && !run.continuation && run.startInput) return await startRun(run.startInput, cliVersion, run.inspection, run);
     const installation = readInstallation(root, run);
     let completing = false;
     const ignoreFile = safe(root, '.repo-standards/.gitignore');
@@ -652,11 +676,12 @@ export async function resume(project: string, cliVersion: string, assessmentPath
       if (retry) {
         if (run.completion) {
           const extra: Files = {};
-          const temporaries = stagedFiles(root, { '.repo-standards/lock.json': run.completion.lock, '.repo-standards/state.json': run.completion.state }, run.id, installation.files);
+          const temporaries = stagedFiles(root, { '.repo-standards/lock.json': run.completion.lock, '.repo-standards/state.json': run.completion.state }, run.id, { ...installation.files, ...installation.transitional });
           for (const path of temporaries) flatten(path, safe(root, path), extra);
           const lockFile = safe(root, '.repo-standards/lock.json');
           if (lockFile.type === 'file' && lockFile.sha256 === run.completion.lock.sha256) extra['.repo-standards/lock.json'] = run.completion.lock;
-          if (safe(root, '.repo-standards/state.json').type !== 'missing') extra['.repo-standards/state.json'] = run.completion.state;
+          const stateFile = safe(root, '.repo-standards/state.json');
+          if (stateFile.type === 'file' && stateFile.sha256 === run.completion.state.sha256) extra['.repo-standards/state.json'] = run.completion.state;
           verifyInstallation(root, installation, extra);
           for (const path of temporaries) { safe(root, path); rmSync(join(root, path)); }
           if (run.outcome === 'complete') return run;
@@ -676,7 +701,7 @@ export async function resume(project: string, cliVersion: string, assessmentPath
         clearStoppedProcess(run);
         if (run.prerequisites.some(probe => probe.code)) throw new ProductError('PREREQUISITES_BLOCKED', 'Resolve the reported prerequisite problems before retry.');
         run.phase = 'verification'; run.uncertain = ['installed progress verification']; save();
-        if (run.installation && !run.installation.runtime) install(root, run, installation, () => { localReady = true; }, save);
+        if (run.installation && !run.installation.complete) install(root, run, installation, () => { localReady = true; }, save);
         return await advance(root, run, installation, save, () => { completing = true; });
       }
       verifyFiles(root, { '.repo-standards/local/run.json': file(json(run)) });
@@ -756,22 +781,24 @@ export function status(project: string) {
       execution: executing(lock) || (active.processGroup && processGroupAlive(active.processGroup, active.processGroupIdentity)) ? 'active' : 'interrupted', abandoned, evidence: 'historical' };
   }
   if (!existsSync(join(root, '.repo-standards/state.json'))) return { format: 'repo-standards/status/v1', selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
-  const { state, pinned } = recordedState(root);
-  return { format: 'repo-standards/status/v1', selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills, checks: state.checks, assessments: state.assessments, active, abandoned, evidence: 'historical' };
+  try {
+    const { state, pinned } = recordedState(root);
+    return { format: 'repo-standards/status/v1', selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills, checks: state.checks, assessments: state.assessments, active, abandoned, evidence: 'historical' };
+  } catch (error) {
+    if (!(error instanceof ProductError) || error.code !== 'STATE_INTEGRITY' || !abandoned.length) throw error;
+    const lockFile = safe(root, '.repo-standards/lock.json');
+    let inspection: unknown;
+    try { if (lockFile.type === 'file') inspection = JSON.parse(Buffer.from(lockFile.content, lockFile.encoding).toString('utf8'))?.inspection; }
+    catch { /* Archived reports remain available even if current state cannot be decoded. */ }
+    const incomplete = abandoned.find(run => run.inspection === inspection);
+    return { format: 'repo-standards/status/v1', selection: incomplete?.selection ?? null,
+      lastComplete: incomplete?.previousComplete?.lastComplete ?? null, active, abandoned, evidence: 'historical',
+      stateError: { code: error.code, message: error.message } };
+  }
 }
 
 function recordedState(root: string) {
-  const lock = safe(root, '.repo-standards/lock.json');
-  const observed = safe(root, '.repo-standards/state.json');
-  if (lock.type !== 'file' || observed.type !== 'file') throw new ProductError('STATE_INTEGRITY', 'Complete adoption state or integrity lock is missing.');
-  const pinned = JSON.parse(Buffer.from(lock.content, lock.encoding).toString('utf8')) as {
-    format: string; selection: Inspection['selection']; inspection: string; files: Record<string, Baseline>; state: Baseline;
-  };
-  if (pinned.format !== 'repo-standards/lock/v1' || pinned.state?.sha256 !== observed.sha256 || pinned.state.executable !== observed.executable) throw new ProductError('STATE_INTEGRITY', 'Last-complete state changed. Restore the committed product state before using its evidence.');
-  const state = JSON.parse(Buffer.from(observed.content, observed.encoding).toString('utf8')) as {
-    lastComplete: { run: string; inspection: string; completedAt: string; head: string }; baselines: Record<string, Baseline>; skills: Record<string, string[]>; checks: unknown[]; assessments: unknown[];
-  };
-  return { state, pinned };
+  return decodeRecordedState(safe(root, '.repo-standards/lock.json'), safe(root, '.repo-standards/state.json'));
 }
 
 export async function inspectRetained(project: string, cliVersion: string) {

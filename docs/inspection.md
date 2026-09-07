@@ -112,9 +112,11 @@ The report has format `repo-standards/inspection/v1`:
 | `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available. |
 | `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
 
-For an established selection, `update` is `standards` or `cli`,
-`previousSelection` records the current pins, and `retired` lists declarations
-that will leave governance while their installed content remains in place.
+For an established candidate that changes one pin, `update` is `standards` or
+`cli`, `previousSelection` records the current pins, and `retired` lists
+declarations that will leave governance while their installed content remains
+in place. An unchanged retained inspection omits these update fields and is
+read-only.
 
 File bytes use `encoding: utf8` when losslessly representable, otherwise
 `encoding: base64`. Whole-skill inventories include existing and supplied files.

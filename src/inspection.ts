@@ -7,6 +7,8 @@ import { acquireSource, hash } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
+import { decodeRecordedState } from './recorded-state.js';
+import type { RecordedSelection } from './recorded-state.js';
 
 export interface Blocker { code: string; message: string; path?: string }
 export interface Content { sha256: string; executable: boolean; encoding: 'utf8' | 'base64'; content: string }
@@ -93,12 +95,6 @@ export function targetObservation(root: string, target: string, blockers: Blocke
 
 export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string }
 
-interface RecordedSelection {
-  cli: { package: string; version: string };
-  standards: { repository: string; version: string; commit: string };
-  profile: string;
-}
-
 interface RecordedAdoption {
   selection: RecordedSelection;
   baselines: Record<string, Pick<Content, 'sha256' | 'executable'>>;
@@ -111,16 +107,12 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
   const lockValue = targetObservation(root, '.repo-standards/lock.json', []);
   const stateValue = targetObservation(root, '.repo-standards/state.json', []);
   if (lockValue.type === 'missing' && stateValue.type === 'missing') return undefined;
-  if (lockValue.type !== 'file' || stateValue.type !== 'file') throw new ProductError('STATE_INTEGRITY', 'Complete adoption state or integrity lock is missing.');
-  let lock: { format: string; selection: RecordedSelection; files: RecordedAdoption['files']; state: Pick<Content, 'sha256' | 'executable'> };
-  let state: { format: string; baselines: RecordedAdoption['baselines']; skills: Record<string, string[]> };
+  const { pinned: lock, state } = decodeRecordedState(lockValue, stateValue);
   let resolved: RecordedAdoption['resolved'];
   try {
-    lock = JSON.parse(Buffer.from(lockValue.content, lockValue.encoding).toString('utf8'));
-    state = JSON.parse(Buffer.from(stateValue.content, stateValue.encoding).toString('utf8'));
     resolved = JSON.parse(readFileSync(join(root, '.repo-standards/inputs/resolved.json'), 'utf8'));
   } catch { throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state cannot be read. Restore the committed product state.'); }
-  if (lock.format !== 'repo-standards/lock/v1' || state.format !== 'repo-standards/state/v1' || lock.state?.sha256 !== stateValue.sha256 || lock.state.executable !== stateValue.executable || !lock.selection || !state.baselines || !state.skills || !Array.isArray(resolved?.declarations)) {
+  if (!Array.isArray(resolved?.declarations)) {
     throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state failed integrity validation. Restore the committed product state.');
   }
   return { selection: lock.selection, baselines: state.baselines, skills: state.skills, resolved, files: lock.files };
@@ -171,6 +163,9 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     let update: 'standards' | 'cli' | undefined;
     if (previous) {
       const sameSource = source.identity.repository.toLowerCase() === previous.selection.standards.repository.toLowerCase();
+      if (sameSource && source.identity.version === previous.selection.standards.version && source.identity.commit !== previous.selection.standards.commit) {
+        throw new ProductError('MOVED_TAG', `The recorded ${source.identity.version} tag previously resolved to ${previous.selection.standards.commit}; it now resolves to ${source.identity.commit}. Choose a new immutable version.`);
+      }
       const standardsChanged = source.identity.version !== previous.selection.standards.version || source.identity.commit !== previous.selection.standards.commit;
       const cliChanged = cliVersion !== previous.selection.cli.version;
       if (!sameSource || options.profile !== previous.selection.profile) blockers.push({ code: 'SELECTION_SWITCH', message: 'Updates must preserve the current standards source and profile. Source and profile switching are unsupported.' });
@@ -191,6 +186,11 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       for (const [path, expected] of Object.entries(previous.files).filter(([path]) => path.startsWith('.repo-standards/'))) {
         const actual = targetObservation(root, path, blockers);
         if (actual.type !== 'file' || actual.sha256 !== expected.sha256 || actual.executable !== expected.executable) blockers.push({ code: 'STATE_INTEGRITY', path, message: 'Retained product material differs from its recorded baseline. Restore it before updating.' });
+      }
+      const inputRoot = '.repo-standards/inputs';
+      const expectedInputs = Object.keys(previous.files).filter(path => path.startsWith(inputRoot + '/')).map(path => path.slice(inputRoot.length + 1)).sort();
+      if (JSON.stringify(fileInventory(targetObservation(root, inputRoot, blockers))) !== JSON.stringify(expectedInputs)) {
+        blockers.push({ code: 'STATE_INTEGRITY', path: inputRoot, message: 'The retained input inventory changed. Reconcile added or removed material before updating.' });
       }
     }
     const exact = [];
