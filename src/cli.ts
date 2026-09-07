@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
+import { searchSources } from './discovery.js';
 import { validateSource } from './resolver.js';
 import { inspect } from './inspection.js';
 import { ProductError } from './errors.js';
@@ -10,7 +11,7 @@ const args = process.argv.slice(2);
 if (args.length === 1 && args[0] === '--version') {
   console.log(version);
 } else if (args.length === 0 || (args.length === 1 && args[0] === '--help')) {
-  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards inspect [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json]\n       repo-standards start [--source <GitHub URL> --standards-version <tag> --profile <name>] --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json]\n\nUse the pinned CLI with source flags for a standards update. Use a candidate exact CLI without source flags for a CLI update from retained standards. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report.');
+  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json]\n       repo-standards start [--source <GitHub URL> --standards-version <tag> --profile <name>] --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json]\n\nUse the pinned CLI with source flags for a standards update. Use a candidate exact CLI without source flags for a CLI update from retained standards. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report.');
 } else if (args[0] === 'inspect' || args[0] === 'start' || args[0] === 'status' || args[0] === 'resume' || args[0] === 'abandon') {
   try {
     const flags = new Map<string, string>();
@@ -32,6 +33,27 @@ if (args.length === 1 && args[0] === '--version') {
     if ('outcome' in report && report.outcome === 'incomplete') process.exitCode = 1;
   } catch (error) {
     const diagnostic = error instanceof ProductError ? { code: error.code, message: error.message, ...(error.details === undefined ? {} : { details: error.details }) } : { code: 'INSPECTION_FAILED', message: (error as Error).message };
+    if (args.includes('--json')) console.log(JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2));
+    else console.error(`[${diagnostic.code}] ${diagnostic.message}`);
+    process.exitCode = diagnostic.code === 'USAGE' ? 2 : 1;
+  }
+} else if (args[0] === 'source' && args[1] === 'search') {
+  try {
+    let page = 1;
+    const seen = new Set<string>();
+    for (let index = 2; index < args.length; index++) {
+      const key = args[index]!;
+      if (seen.has(key) || !['--json', '--page'].includes(key)) throw new ProductError('USAGE', 'Use repo-standards source search [--page <1-34>] [--json].');
+      seen.add(key);
+      if (key === '--page') {
+        const value = args[++index] ?? '';
+        page = Number(value);
+        if (!/^[1-9][0-9]?$/.test(value) || page > 34) throw new ProductError('USAGE', 'Search page must be an integer from 1 to 34.');
+      }
+    }
+    console.log(JSON.stringify(await searchSources(version, page), null, 2));
+  } catch (error) {
+    const diagnostic = error instanceof ProductError ? { code: error.code, message: error.message } : { code: 'SEARCH_FAILED', message: (error as Error).message };
     if (args.includes('--json')) console.log(JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2));
     else console.error(`[${diagnostic.code}] ${diagnostic.message}`);
     process.exitCode = diagnostic.code === 'USAGE' ? 2 : 1;
