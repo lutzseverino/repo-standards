@@ -15,7 +15,7 @@ export function commit(root: string) {
 
 // Replace HTTPS responses at the process boundary; the installed CLI still
 // resolves tags, acquires Git objects, validates, and inspects real repositories.
-export function remoteFixture(yaml: string, files: Record<string, string | Buffer> = {}, executables: string[] = []) {
+export function remoteFixture(yaml: string, files: Record<string, string | Buffer> = {}, executables: string[] = [], repository = 'alice/standards') {
   const source = sourceFixture(yaml, files);
   for (const path of executables) chmodSync(join(source.root, path), 0o755);
   commit(source.root);
@@ -29,7 +29,7 @@ globalThis.fetch = async (url) => {
   if (!entry) throw new Error('Unexpected remote request: ' + url);
   return new Response(JSON.stringify(entry.body), {status: entry.status ?? 200});
 };\n`);
-  const prefix = 'https://api.github.com/repos/alice/standards';
+  const prefix = `https://api.github.com/repos/${repository}`;
   const sha = git(source.root, 'rev-parse', 'HEAD');
   const treeSha = git(source.root, 'rev-parse', 'HEAD^{tree}');
   const tree = git(source.root, 'ls-tree', '-r', 'HEAD').split('\n').filter(Boolean).map(line => {
@@ -38,7 +38,7 @@ globalThis.fetch = async (url) => {
     return { mode, type, sha, path: JSON.parse(path!.startsWith('"') ? path! : JSON.stringify(path)) as string };
   });
   const responses: Record<string, { body: unknown; status?: number }> = {
-    [prefix]: { body: { private: false, full_name: 'alice/standards', html_url: 'https://github.com/alice/standards' } },
+    [prefix]: { body: { private: false, full_name: repository, html_url: `https://github.com/${repository}` } },
     [`${prefix}/git/ref/tags/v1.0.0`]: { body: { ref: 'refs/tags/v1.0.0', object: { type: 'commit', sha } } },
     [`${prefix}/git/commits/${sha}`]: { body: { sha, tree: { sha: treeSha } } },
     [`${prefix}/git/trees/${treeSha}?recursive=1`]: { body: { sha: treeSha, truncated: false, tree } },

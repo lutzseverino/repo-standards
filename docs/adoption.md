@@ -1,8 +1,8 @@
 # Confirmed adoption
 
 Initial adoption installs exact files and whole author skills and executes
-trusted fixes and checks. Profiles with contextual guidance stop incomplete
-after fixes; contextual work requests and assessment/resume belong to issue #6.
+trusted fixes and checks. Profiles with contextual guidance return a work request
+after fixes and continue through the public [assessment protocol](assessment-protocol.md).
 Updates and interrupted-run retry belong to later implementation slices.
 Public npm delivery remains issue #11.
 
@@ -63,7 +63,7 @@ Review and commit these files through the adopting project's normal workflow:
 | --- | --- |
 | `.repo-standards/selection.yaml` | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile. |
 | `.repo-standards/lock.json` | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state. |
-| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, and historical check evidence and separate assessment evidence (empty until contextual assessment is implemented). |
+| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, and historical check evidence and separate assessment evidence bound to the selection and project snapshot. |
 | `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
 | `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
@@ -87,7 +87,8 @@ Neither dependencies nor run records belong in commits.
 
 `start` prints a `repo-standards/run/v1` JSON report. Its fields include `id`,
 `inspection`, `selection`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
-`uncertain`, `nextAction`, `prerequisites`, and `operations`. Exit status is 0 for complete adoption, 1 for an
+`uncertain`, `nextAction`, `prerequisites`, `operations`, `assessments`, and contextual
+`workRequest` when required. Exit status is 0 for complete adoption, 1 for an
 incomplete run or rejection, and 2 for invalid usage. Preflight rejections use
 the common `valid: false` / `errors` diagnostic format.
 
@@ -100,11 +101,11 @@ values; unexpected changes cannot become new baselines. Completion leaves all
 changes uncommitted and releases the lock.
 
 Fixes run serially before contextual work. Checks run after fixes for profiles
-without contextual declarations; otherwise they wait for the later assessment
-interface. Ordinary failed checks allow subsequent checks to collect evidence.
+without contextual declarations; otherwise they wait for a satisfied, current agent assessment. Ordinary failed checks allow subsequent checks to collect evidence.
 Blocked results, execution errors, check mutation, and integrity failures stop
 the phase and preserve incomplete work. A contextual handoff is incomplete,
-with no last-complete state, and is not yet resumable by this CLI slice.
+with no last-complete state. Apply its guidance, refresh the snapshot with
+`resume --json`, and submit `resume --assessment <file> --json` to continue.
 
 An incomplete adoption preserves changes and its lock. Its change report
 observes actual Git changes and ignored product storage, including unexpected
@@ -123,7 +124,8 @@ fails, the report identifies the uncertainty for manual recovery.
 
 Read `status --json`
 and the run report before intervening. Stop any still-running process first.
-This slice cannot resume or abandon a run automatically. Preserve the report
+Contextual handoffs and reported check failures use the assessment interface.
+Interrupted installation, uncertain fix retry, and abandonment remain later slices. Preserve the report
 outside the project, review and reconcile the reported changes against the
 pre-adoption commit, and remove the Git run lock only after that reconciliation.
 A new initial adoption requires a clean project without leftover product state

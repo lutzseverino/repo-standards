@@ -1,3 +1,5 @@
+import { projectSnapshot, validateAssessment } from './assessment.js';
+import type { Assessment } from './assessment.js';
 import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { chmodSync, cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
@@ -6,7 +8,7 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stringify } from 'yaml';
 import { externalPath, hash } from './acquisition.js';
-import { execute, operations, preflight } from './execution.js';
+import { allowedTargets, execute, operations, preflight } from './execution.js';
 import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { ProductError } from './errors.js';
 import { git, hiddenIndexPaths, inspect, observe, targetObservation } from './inspection.js';
@@ -21,7 +23,21 @@ interface Run {
   affected: Record<string, Observation>;
   prerequisites: PrerequisiteEvidence[]; operations: OperationEvidence[];
   outcome: 'complete' | 'incomplete'; phase: string; reason: string;
+  workRequest?: WorkRequest; continuation?: string; assessments: Assessment[];
   changes: string[]; completed: string[]; uncertain: string[]; nextAction: string;
+}
+
+interface WorkRequest {
+  format: 'repo-standards/work-request/v1'; run: string; selection: string; snapshot: string;
+  declarations: { id: string; guidance: Inspection['guidance'][number]; allowedTargets: { paths: string[]; directories: string[] } }[];
+  requiredEvidence: string[];
+}
+function workRequest(root: string, run: Run, report: Pick<Inspection, 'guidance' | 'resolved'>): WorkRequest {
+  return { format: 'repo-standards/work-request/v1', run: run.id, selection: `sha256:${hash(json(run.selection))}`,
+    snapshot: `sha256:${hash(projectSnapshot(root))}`,
+    declarations: report.guidance.map(guidance => ({ id: guidance.id, guidance,
+      allowedTargets: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === guidance.id)!) })),
+    requiredEvidence: ['status', 'explanation', 'changedPaths', 'evidence'] };
 }
 
 const packageName = '@lutzseverino/repo-standards';
@@ -177,17 +193,27 @@ function actualChanges(root: string, affected: Record<string, Observation>) {
   return [...paths].sort();
 }
 
-function projectSnapshot(root: string) {
-  const result = git(root, ['ls-files', '--cached', '--others', '--exclude-standard', '-z']);
-  if (result.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot observe project content for check mutation.');
-  const paths = [...new Set(result.stdout.split('\0').filter(path => path && path !== '.repo-standards' && !path.startsWith('.repo-standards/')))].sort();
-  return json(paths.map(path => [path, targetObservation(root, path, [])]));
-}
-
 function verifyCommittable(root: string, paths: string[]) {
   const result = git(root, ['check-ignore', '-z', '--stdin'], paths.join('\0') + '\0');
   if (result.status !== 0 && result.status !== 1) throw new ProductError('PROJECT_READ', 'Cannot establish whether adoption outputs can be committed.');
   if (result.stdout) throw new ProductError('IGNORED_OUTPUT', `Adoption outputs are ignored by Git: ${result.stdout.split('\0').filter(Boolean).join(', ')}. Reconcile ignore rules before completing adoption.`);
+}
+
+function saveRun(root: string, run: Run, localReportReady: boolean) {
+  const lock = lockPath(root);
+  const temporary = `${lock}.${run.id}.tmp`;
+  try { writeFileSync(temporary, json(run), { flag: 'wx' }); renameSync(temporary, lock); }
+  finally { rmSync(temporary, { force: true }); }
+  if (localReportReady) write(root, '.repo-standards/local/run.json', file(json(run)));
+}
+
+function preserveIncompleteState(root: string, run: Run) {
+  try {
+    if (safe(root, '.repo-standards/state.json').type !== 'missing') {
+      safe(root, '.repo-standards/local/incomplete-state.json');
+      renameSync(join(root, '.repo-standards/state.json'), join(root, '.repo-standards/local/incomplete-state.json'));
+    }
+  } catch { run.uncertain.push('Candidate completion state could not be moved to local/incomplete-state.json; preserve it during manual recovery.'); }
 }
 
 export async function start(options: InspectOptions, cliVersion: string, confirmation: string) {
@@ -199,7 +225,7 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
   verifyConfirmation(initial, confirmation);
   const run: Run = { format: 'repo-standards/run/v1', id: randomUUID(), inspection: confirmation, selection: initial.selection,
     affected: { ...initial.project.affected, [systemTarget]: initial.project.systemSkill }, outcome: 'incomplete',
-    prerequisites: [], operations: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],
+    prerequisites: [], operations: [], assessments: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],
     nextAction: 'Read status, review actual changes, and preserve the run report before reconciling an interrupted run.' };
   try { writeFileSync(lock, json(run), { flag: 'wx' }); }
   catch (error) {
@@ -212,12 +238,7 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
   let completing = false;
   const files: Files = Object.create(null);
   const skills: Record<string, string[]> = Object.create(null);
-  function save() {
-    const temporaryLock = `${lock}.${run.id}.tmp`;
-    try { writeFileSync(temporaryLock, json(run), { flag: 'wx' }); renameSync(temporaryLock, lock); }
-    finally { rmSync(temporaryLock, { force: true }); }
-    if (localReportReady) write(root, '.repo-standards/local/run.json', file(json(run)));
-  }
+  const save = () => saveRun(root, run, localReportReady);
   try {
     run.prerequisites = await preflight(root, initial.resolved);
     if (run.prerequisites.some(probe => probe.code)) throw new ProductError('PREREQUISITES_BLOCKED', 'Resolve the reported executable and version problems; prerequisites are never installed automatically.');
@@ -266,62 +287,7 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
     safe(root, '.repo-standards/runtime/node_modules');
     cpSync(join(temporary, 'node_modules'), join(root, '.repo-standards/runtime/node_modules'), { recursive: true, verbatimSymlinks: true });
     run.completed.push('isolated runtime'); run.phase = 'verification'; run.uncertain = ['final integrity verification']; save();
-    function verifyInstalled() {
-      verifyFiles(root, files);
-      if (json(observe(join(root, '.repo-standards/runtime/node_modules'))) !== json(runtime)) throw new ProductError('FINAL_INTEGRITY', 'The installed runtime dependencies changed.');
-      if (json(productInventory(root).sort()) !== json(Object.keys(files).filter(path => path.startsWith('.repo-standards/')).sort())) throw new ProductError('FINAL_INTEGRITY', 'The product state inventory changed.');
-      for (const [path, expected] of Object.entries(skills)) if (json(inventory(root, path)) !== json(expected)) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
-      if (json(inventory(root, '.repo-standards/inputs')) !== json(Object.keys(inputs).map(path => path.slice('.repo-standards/inputs/'.length)).sort())) throw new ProductError('FINAL_INTEGRITY', 'Retained input inventory changed.');
-      if (git(root, ['rev-parse', 'HEAD']).stdout.trim() !== report.project.head || git(root, ['ls-files', '--stage', '-z']).stdout !== report.project.index) throw new ProductError('FINAL_INTEGRITY', 'HEAD or the index changed during adoption.');
-      const hidden = hiddenIndexPaths(root);
-      if (json(hidden) !== json(report.project.hidden)) throw new ProductError('FINAL_INTEGRITY', `The hidden index flags changed during adoption: ${hidden.join(', ')}. Reconcile skip-worktree and assume-unchanged flags before recovery.`);
-      verifyCommittable(root, [...Object.keys(files), '.repo-standards/state.json']);
-    }
-    verifyInstalled();
-    for (const phase of ['fixes', 'checks'] as const) {
-      for (const selected of operations(report.resolved, phase)) {
-        run.phase = phase; run.uncertain = [`${selected.declaration}/${selected.operation.id}: process outcome uncertain until recorded`]; save();
-        const persistedRun = file(json(run));
-        const before = phase === 'checks' ? projectSnapshot(root) : null;
-        const evidence = await execute(root, selected, report.selection, report.resolved);
-        const log = `.repo-standards/local/operations/${run.operations.length}`;
-        write(root, `${log}.stdout`, file(evidence.stdout));
-        write(root, `${log}.stderr`, file(evidence.stderr));
-        evidence.stdout = `${log}.stdout`; evidence.stderr = `${log}.stderr`;
-        run.operations.push(evidence);
-        run.uncertain = ['Post-operation integrity verification has not succeeded.'];
-        const currentRun = safe(root, '.repo-standards/local/run.json');
-        if (currentRun.type === 'file' && currentRun.sha256 !== persistedRun.sha256) write(root, `${log}.altered-run.json`, currentRun);
-        verifyFiles(root, { '.repo-standards/local/run.json': persistedRun });
-        const currentLock = observe(lock);
-        if (currentLock.type !== 'file' || currentLock.sha256 !== persistedRun.sha256) throw new ProductError('FINAL_INTEGRITY', 'The active adoption run lock changed during author execution.');
-        verifyInstalled();
-        if (before !== null && projectSnapshot(root) !== before) throw new ProductError('CHECK_MUTATION', `Check ${selected.declaration}/${selected.operation.id} changed observed project content. Changes are preserved; checks must be read-only.`);
-        run.uncertain = [];
-        if (evidence.error) throw new ProductError(evidence.error, `Operation ${selected.declaration}/${selected.operation.id} did not return a successful process and protocol result. Read its logs and preserve changes.`);
-        if (evidence.result?.status === 'blocked') throw new ProductError('OPERATION_BLOCKED', `Operation ${selected.declaration}/${selected.operation.id} is blocked: ${evidence.result.message}`);
-        run.completed.push(`${phase}: ${selected.declaration}/${selected.operation.id} (${evidence.result!.status})`); save();
-      }
-      if (phase === 'fixes' && report.guidance.length) {
-        run.phase = 'contextual'; run.uncertain = ['Contextual work and assessment are required before checks.'];
-        run.nextAction = 'Preserve this run and its changes. Contextual assessment and resume require the later contextual-adoption slice.';
-        throw new ProductError('CONTEXTUAL_REQUIRED', 'Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run.');
-      }
-    }
-    if (run.operations.some(evidence => evidence.result?.status === 'failed')) throw new ProductError('CHECKS_FAILED', 'One or more standards checks failed. All remaining ordinary check evidence was collected.');
-    run.phase = 'verification'; run.uncertain = ['final integrity verification']; save();
-    verifyInstalled();
-    completing = true;
-    const completedAt = new Date().toISOString();
-    const state = file(json({ format: 'repo-standards/state/v1', lastComplete: { run: run.id, inspection: confirmation, completedAt, head: report.project.head }, baselines: exactBaselines, skills, checks: run.operations.filter(evidence => evidence.operation.phase === 'checks'), assessments: [] }));
-    files['.repo-standards/lock.json'] = file(json({ format: 'repo-standards/lock/v1', selection: report.selection, inspection: confirmation, files: durable, state: { sha256: state.sha256, executable: state.executable } }));
-    write(root, '.repo-standards/lock.json', files['.repo-standards/lock.json']!);
-    write(root, '.repo-standards/state.json', state);
-    verifyFiles(root, { ...files, '.repo-standards/state.json': state });
-    run.changes = actualChanges(root, run.affected);
-    run.outcome = 'complete'; run.phase = 'complete'; run.reason = 'Exact installation, fixes, checks, runtime, retained inputs and durable state verified.';
-    run.uncertain = []; run.nextAction = 'Review and commit the uncommitted adoption changes through the project’s normal workflow.'; save();
-    return run;
+    return await advance(root, run, { report, files, skills, exactBaselines, durable, runtimeHash: hash(json(runtime)) }, save, () => { completing = true; });
   } catch (error) {
     run.outcome = 'incomplete';
     run.reason = error instanceof ProductError ? `${error.code}: ${error.message}` : (error as Error).message;
@@ -329,12 +295,7 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
       run.phase = 'completion';
       run.uncertain = ['Durable completion and final run-report persistence did not both succeed.'];
       run.nextAction = 'Read status, review actual changes, and preserve the run report before reconciling this incomplete adoption. Do not commit it as a complete adoption.';
-      try {
-        if (safe(root, '.repo-standards/state.json').type !== 'missing') {
-          safe(root, '.repo-standards/local/incomplete-state.json');
-          renameSync(join(root, '.repo-standards/state.json'), join(root, '.repo-standards/local/incomplete-state.json'));
-        }
-      } catch { run.uncertain.push('Candidate completion state could not be moved to local/incomplete-state.json; preserve it during manual recovery.'); }
+      preserveIncompleteState(root, run);
     }
     if (mutated) {
       try { run.changes = actualChanges(root, run.affected); }
@@ -345,8 +306,138 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
     return run;
   } finally {
     if (temporary) rmSync(temporary, { recursive: true, force: true });
-    if (!mutated || run.outcome === 'complete') rmSync(lock, { force: true });
+    if (!mutated || run.outcome === 'complete') { rmSync(lock, { force: true }); rmSync(`${lock}.context`, { force: true }); }
   }
+}
+
+interface Installation {
+  report: Inspection; files: Files; skills: Record<string, string[]>;
+  exactBaselines: Record<string, Baseline>; durable: Record<string, Baseline>;
+  runtimeHash: string; contextualBaseline?: string;
+}
+async function advance(root: string, run: Run, installation: Installation, save: () => void, onCompleting: () => void, resumed = false, assessment?: unknown) {
+  const { report, files, skills, exactBaselines, durable, runtimeHash } = installation;
+  const lock = lockPath(root);
+  function verifyInstalled() {
+    verifyFiles(root, files);
+    if (hash(json(observe(join(root, '.repo-standards/runtime/node_modules')))) !== runtimeHash) throw new ProductError('FINAL_INTEGRITY', 'The installed runtime dependencies changed.');
+    if (json(productInventory(root).sort()) !== json(Object.keys(files).filter(path => path.startsWith('.repo-standards/')).sort())) throw new ProductError('FINAL_INTEGRITY', 'The product state inventory changed.');
+    for (const [path, expected] of Object.entries(skills)) if (json(inventory(root, path)) !== json(expected)) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
+    if (json(inventory(root, '.repo-standards/inputs')) !== json(Object.keys(files).filter(path => path.startsWith('.repo-standards/inputs/')).map(path => path.slice('.repo-standards/inputs/'.length)).sort())) throw new ProductError('FINAL_INTEGRITY', 'Retained input inventory changed.');
+    if (git(root, ['rev-parse', 'HEAD']).stdout.trim() !== report.project.head || git(root, ['ls-files', '--stage', '-z']).stdout !== report.project.index) throw new ProductError('FINAL_INTEGRITY', 'HEAD or the index changed during adoption.');
+    const hidden = hiddenIndexPaths(root);
+    if (json(hidden) !== json(report.project.hidden)) throw new ProductError('FINAL_INTEGRITY', `The hidden index flags changed during adoption: ${hidden.join(', ')}. Reconcile skip-worktree and assume-unchanged flags before recovery.`);
+    verifyCommittable(root, [...Object.keys(files), '.repo-standards/state.json']);
+  }
+  verifyInstalled();
+  if (resumed) {
+    run.phase = 'assessment'; run.uncertain = ['Agent assessment has not been accepted.'];
+    if (assessment === undefined) {
+      run.workRequest = workRequest(root, run, report);
+      run.phase = 'contextual';
+      throw new ProductError('CONTEXTUAL_REQUIRED', 'Review the refreshed work request and submit an assessment for its snapshot.');
+    }
+    run.assessments = [validateAssessment(root, run, installation.contextualBaseline!, assessment)];
+    save();
+    if (run.assessments[0]!.declarations.some(entry => entry.status === 'blocked')) throw new ProductError('ASSESSMENT_BLOCKED', 'Agent reports blocked contextual work. Resolve the explanation and submit renewed evidence before checks.');
+    run.completed.push('agent assessment'); save();
+  }
+  const operationStart = run.operations.length;
+  for (const phase of (resumed ? ['checks'] : ['fixes', 'checks']) as ('fixes' | 'checks')[]) {
+    for (const selected of operations(report.resolved, phase)) {
+      run.phase = phase; run.uncertain = [`${selected.declaration}/${selected.operation.id}: process outcome uncertain until recorded`]; save();
+      const persistedRun = file(json(run));
+      const before = phase === 'checks' ? projectSnapshot(root) : null;
+      const evidence = await execute(root, selected, report.selection, report.resolved);
+      const log = `.repo-standards/local/operations/${run.operations.length}`;
+      write(root, `${log}.stdout`, file(evidence.stdout));
+      write(root, `${log}.stderr`, file(evidence.stderr));
+      evidence.stdout = `${log}.stdout`; evidence.stderr = `${log}.stderr`;
+      run.operations.push(evidence);
+      run.uncertain = ['Post-operation integrity verification has not succeeded.'];
+      const currentRun = safe(root, '.repo-standards/local/run.json');
+      if (currentRun.type === 'file' && currentRun.sha256 !== persistedRun.sha256) write(root, `${log}.altered-run.json`, currentRun);
+      verifyFiles(root, { '.repo-standards/local/run.json': persistedRun });
+      const currentLock = observe(lock);
+      if (currentLock.type !== 'file' || currentLock.sha256 !== persistedRun.sha256) throw new ProductError('FINAL_INTEGRITY', 'The active adoption run lock changed during author execution.');
+      verifyInstalled();
+      if (before !== null && projectSnapshot(root) !== before) throw new ProductError('CHECK_MUTATION', `Check ${selected.declaration}/${selected.operation.id} changed observed project content. Changes are preserved; checks must be read-only.`);
+      run.uncertain = [];
+      if (evidence.error) throw new ProductError(evidence.error, `Operation ${selected.declaration}/${selected.operation.id} did not return a successful process and protocol result. Read its logs and preserve changes.`);
+      if (evidence.result?.status === 'blocked') throw new ProductError('OPERATION_BLOCKED', `Operation ${selected.declaration}/${selected.operation.id} is blocked: ${evidence.result.message}`);
+      run.completed.push(`${phase}: ${selected.declaration}/${selected.operation.id} (${evidence.result!.status})`); save();
+    }
+    if (phase === 'fixes' && report.guidance.length) {
+      installation.contextualBaseline = projectSnapshot(root);
+      const content = json(installation);
+      run.continuation = hash(content);
+      writeFileSync(`${lock}.context`, content, { flag: 'wx' });
+      run.phase = 'contextual'; run.uncertain = ['Contextual work and assessment are required before checks.'];
+      run.workRequest = workRequest(root, run, report);
+      run.nextAction = 'Apply the selected guidance, refresh the work request with resume, and submit evidence using resume --assessment <file>.';
+      throw new ProductError('CONTEXTUAL_REQUIRED', 'Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run.');
+    }
+  }
+  if (run.operations.slice(operationStart).some(evidence => evidence.result?.status === 'failed')) throw new ProductError('CHECKS_FAILED', 'One or more standards checks failed. All remaining ordinary check evidence was collected.');
+  run.phase = 'verification'; run.uncertain = ['final integrity verification']; save();
+  verifyInstalled();
+  if (run.assessments.length && run.assessments[0]!.snapshot !== `sha256:${hash(projectSnapshot(root))}`) throw new ProductError('STALE_ASSESSMENT', 'Project content changed after assessment. Refresh the work request, reassess, and rerun checks.');
+  onCompleting();
+  const completedAt = new Date().toISOString();
+  const state = file(json({ format: 'repo-standards/state/v1', lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: report.project.head }, baselines: exactBaselines, skills, checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));
+  files['.repo-standards/lock.json'] = file(json({ format: 'repo-standards/lock/v1', selection: report.selection, inspection: run.inspection, files: durable, state: { sha256: state.sha256, executable: state.executable } }));
+  write(root, '.repo-standards/lock.json', files['.repo-standards/lock.json']!);
+  write(root, '.repo-standards/state.json', state);
+  verifyFiles(root, { ...files, '.repo-standards/state.json': state });
+  run.changes = actualChanges(root, run.affected);
+  run.outcome = 'complete'; run.phase = 'complete'; run.reason = 'Exact installation, fixes, contextual assessment where required, checks, runtime, retained inputs and durable state verified.';
+  run.uncertain = []; run.nextAction = 'Review and commit the uncommitted adoption changes through the project’s normal workflow.'; save();
+  return run;
+}
+
+export async function resume(project: string, cliVersion: string, assessmentPath?: string) {
+  const root = projectRoot(project);
+  const lock = lockPath(root);
+  const worker = `${lock}.worker`;
+  try { writeFileSync(worker, '', { flag: 'wx' }); }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new ProductError('ACTIVE_RUN', 'Another resume is running or interrupted. Preserve its report and stop that process before recovery.');
+    throw error;
+  }
+  try {
+    if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to resume.');
+    const run = JSON.parse(readFileSync(lock, 'utf8')) as Run;
+    if (run.selection.cli.version !== cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
+    if (!run.continuation || !['contextual', 'assessment', 'checks', 'verification'].includes(run.phase)) throw new ProductError('RESUME_UNAVAILABLE', 'This run is not at a contextual handoff. Interrupted installation and operation retry require explicit recovery support. Preserve the report and changes.');
+    const content = readFileSync(`${lock}.context`, 'utf8');
+    if (hash(content) !== run.continuation) throw new ProductError('STATE_INTEGRITY', 'Contextual continuation changed. Preserve the run and restore its recorded state.');
+    const installation = JSON.parse(content) as Installation;
+    let completing = false;
+    const save = () => saveRun(root, run, true);
+    try {
+      verifyFiles(root, { '.repo-standards/local/run.json': file(json(run)) });
+      let assessment: unknown;
+      if (assessmentPath !== undefined) {
+        try { assessment = JSON.parse(readFileSync(resolve(project, assessmentPath), 'utf8')); }
+        catch { throw new ProductError('ASSESSMENT_FORMAT', 'Cannot read the assessment file as JSON. Correct the file and resubmit.'); }
+      }
+      return await advance(root, run, installation, save, () => { completing = true; }, true, assessment);
+    } catch (error) {
+      run.outcome = 'incomplete';
+      run.reason = error instanceof ProductError ? `${error.code}: ${error.message}` : (error as Error).message;
+      if (completing) {
+        run.phase = 'completion'; run.uncertain = ['Durable completion and final run-report persistence did not both succeed.'];
+        preserveIncompleteState(root, run);
+      }
+      try { run.changes = actualChanges(root, run.affected); }
+      catch { run.uncertain.push('Current project changes could not be fully read.'); }
+      run.nextAction = completing ? 'Preserve the incomplete report and reconcile durable state before recovery.' : 'Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.';
+      try { save(); } catch { /* Preserve the original interruption record. */ }
+      return run;
+    } finally {
+      if (run.outcome === 'complete') { rmSync(lock, { force: true }); rmSync(`${lock}.context`, { force: true }); }
+    }
+  } finally { rmSync(worker, { force: true }); }
 }
 
 export function status(project: string) {

@@ -90,8 +90,8 @@ check evidence; detailed logs remain local and are absent from fresh checkouts.
 ## Ordering, integrity and incomplete work
 
 Declarations execute by ID; operations execute in their listed order. All fixes
-run before contextual work. Checks run after assessment when that interface
-becomes available; profiles without contextual declarations can run checks now.
+run before contextual work. Checks run after a satisfied, current [agent assessment](assessment-protocol.md);
+profiles without contextual declarations run checks immediately after fixes.
 Excluded declarations and their operations never run. Fixes stop at the first
 block or execution error. Ordinary failed checks allow remaining checks to
 collect evidence. A blocked check or execution error stops further execution.
