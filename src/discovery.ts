@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
 import { acquireSource, github, isStableVersion } from './acquisition.js';
 import { ProductError } from './errors.js';
@@ -23,6 +24,8 @@ export async function searchSources(cliVersion: string, page: number) {
   if (!result || !Array.isArray(result.items) || !Number.isSafeInteger(result.total_count) || result.total_count < 0 || typeof result.incomplete_results !== 'boolean') {
     throw new ProductError('INVALID_SEARCH_RESPONSE', 'GitHub did not return a complete search response. Retry discovery or inspect a known source directly.');
   }
+  const location = spawnSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' });
+  const project = location.status === 0 ? realpathSync(location.stdout.trim()) : undefined;
   const candidates = [];
   const rejected = [];
   for (const item of result.items) {
@@ -34,7 +37,7 @@ export async function searchSources(cliVersion: string, page: number) {
       }
       if (item.description !== null && typeof item.description !== 'string') throw new ProductError('INVALID_SOURCE', 'GitHub returned an invalid repository description.');
       release = await stableRelease(item.full_name);
-      const source = await acquireSource(repository!, release.version, realpathSync('.'));
+      const source = await acquireSource(repository!, release.version, project);
       try {
         const validation = validateSource(source.root, cliVersion, source.paths);
         if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The released source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));

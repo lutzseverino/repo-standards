@@ -8,7 +8,7 @@ The [Mira example](../examples/mira/standards.yaml) uses operational guidance,
 a repeat-safe fix and a different check.
 
 A published working source is [repo-standards-example](https://github.com/lutzseverino/repo-standards-example),
-based on synthetic Mira material. Its [recorded publication journey](../acceptance/results/2026-09-07/source-publication.md)
+based on synthetic Mira material. Its [recorded publication journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/results/2026-09-07/source-publication.md)
 uses the same validation and discovery commands below.
 
 ## Choose ownership and write guidance

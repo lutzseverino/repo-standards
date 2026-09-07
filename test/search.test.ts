@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
+import { rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
 import { remoteFixture } from './remote-fixture.ts';
 
@@ -191,4 +193,19 @@ test('candidate failures remain explicit without falling back from an invalid ne
     assert.deepEqual(report.candidates, []);
     assert.equal(report.rejected[0].code, code);
   }
+});
+
+test('search works outside a Git project with a cache beneath its current directory', (t) => {
+  const remote = discoverable();
+  t.after(() => remote.close());
+  const before = snapshot(remote.support.root);
+  const protectedProject = JSON.parse(cli.run(['source', 'search', '--json'], remote.support.root, remote.env).stdout);
+  assert.equal(protectedProject.rejected[0].code, 'UNSAFE_CACHE');
+  assert.deepEqual(snapshot(remote.support.root), before);
+  rmSync(join(remote.support.root, '.git'), { recursive: true });
+  const result = cli.run(['source', 'search', '--json'], remote.support.root, remote.env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.candidates.length, 1, result.stdout);
+  assert.deepEqual(report.rejected, []);
 });

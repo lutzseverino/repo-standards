@@ -38,4 +38,27 @@ Deterministic installed-CLI coverage in `test/search.test.ts` uses remote GitHub
 fixtures and covers stable release pagination, candidate validation/rejections,
 search pagination and incomplete results, failure diagnostics, no author code
 or probe execution, project preservation, and direct inspection despite a
-discovery outage. Full validation results are recorded after final review.
+discovery outage.
+
+## Final validation and reviews
+
+`pnpm validate` on macOS completed with **323 passed, 1 skipped, 0 failed**
+(324 tests including subtests). The skip requires a case-sensitive filesystem.
+The final Standards review then found that a non-Git current directory such as
+home could be mistaken for an adopting project, incorrectly rejecting its
+normal descendant cache. An installed-CLI regression reproduced the failure.
+Search now protects the actual Git project root when one exists and permits
+cache use without a project boundary otherwise. The same regression verifies
+both project preservation and non-project success.
+
+After that correction, typechecking, build, all seven search tests and all six
+acquisition tests passed; the Standards reviewer independently repeated those
+checks. The full suite was run once, before this final correction; the focused
+post-review runs cover the changed acquisition boundary. The live journey above
+used the original recorded package hash and is not relabeled as a run of the
+later correction.
+
+Final reviewers all used GPT 5.6 Terra with high reasoning. Standards: the cache
+finding was resolved, with no remaining findings. Spec: no findings.
+Simplification: no worthwhile safe net reduction identified. All three reviewed
+the correction. Public npm delivery remains issue #11.

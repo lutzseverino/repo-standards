@@ -17,7 +17,7 @@ export function hash(bytes: string | Buffer) { return createHash('sha256').updat
 
 // Resolve existing ancestors so an environment override cannot redirect writes
 // into the adopting project through a symlink.
-export function externalPath(path: string, project: string): string {
+export function externalPath(path: string, project?: string): string {
   path = resolve(path);
   let ancestor = path;
   const missing: string[] = [];
@@ -31,6 +31,7 @@ export function externalPath(path: string, project: string): string {
       ancestor = parent;
     }
   }
+  if (project === undefined) return path;
   const within = relative(project, path);
   if (within === '' || (within !== '..' && !within.startsWith('../') && !isAbsolute(within))) {
     throw new ProductError('UNSAFE_CACHE', 'Temporary storage, XDG_CACHE_HOME, and the npm cache must be outside the adopting project. Configure external directories and retry.');
@@ -50,7 +51,7 @@ export async function github(path: string): Promise<any> {
   return response.json();
 }
 
-export async function acquireSource(repository: string, version: string, project: string) {
+export async function acquireSource(repository: string, version: string, project?: string) {
   const match = /^https:\/\/github\.com\/([A-Za-z0-9-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/.exec(repository);
   if (!match || match[2] === '.' || match[2] === '..') throw new ProductError('UNSUPPORTED_SOURCE', 'Use a public https://github.com/owner/repository URL. Local paths, SSH, other hosts, and URL references are unsupported.');
   if (!isStableVersion(version)) {
