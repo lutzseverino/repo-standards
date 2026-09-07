@@ -14,7 +14,8 @@ The request contains:
 - `selection`: a content-derived identity for the exact CLI, standards source,
   version, commit, and profile selection.
 - `snapshot`: a content-derived identity for current tracked and non-ignored
-  untracked project content, excluding `.repo-standards/` generated state.
+  untracked project content, excluding `.repo-standards/` generated state, and
+  the current retry attempt. Copy this opaque identity from the current request.
 - `declarations`: every active contextual declaration, sorted by ID. Each entry
   contains `id`, `guidance` (source-relative `source`, `content`, `encoding`,
   SHA-256 and executable state), and `allowedTargets` with explicit `paths` and
@@ -123,7 +124,9 @@ renewed assessment after ordinary `CHECKS_FAILED` results. A timeout, signal,
 nonzero exit, malformed protocol result, blocked check, detected check mutation,
 or post-check integrity failure is preserved and rejected with
 `RESUME_UNAVAILABLE`. Neither refreshing a request nor submitting another
-assessment authorizes repeating these operations. Interrupted installation, uncertain fix retry,
-abandonment, and updates remain later tickets. Preserve the run and its changes
-when recovery is unavailable. Real-agent usefulness is evaluated separately in
+assessment authorizes repeating these operations. Use explicit `resume --retry`
+to recover interrupted work and repeat fixes, or `abandon` to preserve its work
+and report; see [Recovery commands](adoption.md#recover-or-abandon-an-interrupted-run).
+Retry requires new assessment even when project bytes are unchanged, and retains
+the original contextual comparison baseline. Updates remain a later ticket. Real-agent usefulness is evaluated separately in
 issue #9; scripted agents exercise this deterministic protocol.

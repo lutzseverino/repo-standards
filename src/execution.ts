@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import semver from 'semver';
+import { processGroupAlive } from './run-lock.js';
 import type { Declaration, ResolvedProfile } from './model.js';
 
 export function operations(resolved: ResolvedProfile, phase: 'fixes' | 'checks') {
@@ -11,10 +12,10 @@ export interface PrerequisiteEvidence {
   declaration: string; phase: 'fixes' | 'checks'; operation: string; executable: string;
   version: string | null; code: string | null; process: OperationEvidence['process'];
 }
-export async function preflight(root: string, resolved: ResolvedProfile): Promise<PrerequisiteEvidence[]> {
+export async function preflight(root: string, resolved: ResolvedProfile, onSpawn?: (group: number) => void): Promise<PrerequisiteEvidence[]> {
   const evidence: PrerequisiteEvidence[] = [];
   for (const { declaration, phase, operation } of [...operations(resolved, 'fixes'), ...operations(resolved, 'checks')]) {
-    const result = await invoke(operation.run.executable, operation.prerequisite['version-arguments'], root, operation['timeout-seconds'], '');
+    const result = await invoke(operation.run.executable, operation.prerequisite['version-arguments'], root, operation['timeout-seconds'], '', onSpawn);
     const candidates = (['stdout', 'stderr'] as const).flatMap(stream => {
       const token = result[stream].match(/(?<![\w.])v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)(?![\w.])/);
       if (!token) return [];
@@ -29,6 +30,7 @@ export async function preflight(root: string, resolved: ResolvedProfile): Promis
       : !version ? 'VERSION_UNREADABLE'
       : !semver.satisfies(version, operation.prerequisite.version) ? 'VERSION_INCOMPATIBLE' : null;
     evidence.push({ declaration, phase, operation: operation.id, executable: operation.run.executable, version, code, process: result.outcome });
+    if (result.outcome.error === 'AUTHOR_PROCESS_ACTIVE' || result.outcome.error === 'PROCESS_STATE') break;
   }
   return evidence;
 }
@@ -44,13 +46,13 @@ export interface OperationEvidence {
   result: { format: 'repo-standards/result/v1'; status: string; message: string } | null;
   error: string | null; stdout: string; stderr: string;
 }
-export async function execute(root: string, selected: SelectedOperation, selection: { standards: unknown; profile: string }, resolved: ResolvedProfile) {
+export async function execute(root: string, selected: SelectedOperation, selection: { standards: unknown; profile: string }, resolved: ResolvedProfile, onSpawn?: (group: number) => void) {
   const { declaration, phase, operation } = selected;
   const identity = { declaration, phase, id: operation.id };
   const input = { format: 'repo-standards/operation/v1', operation: identity, projectRoot: root,
     standards: selection.standards, profile: selection.profile, declarations: resolved.declarations,
     allowedTargets: allowedTargets(resolved.declarations.find(item => item.id === declaration)!) };
-  const process = await invoke(operation.run.executable, [join(root, '.repo-standards/inputs/source', operation.run.script), ...operation.run.arguments], root, operation['timeout-seconds'], JSON.stringify(input) + '\n');
+  const process = await invoke(operation.run.executable, [join(root, '.repo-standards/inputs/source', operation.run.script), ...operation.run.arguments], root, operation['timeout-seconds'], JSON.stringify(input) + '\n', onSpawn);
   const evidence: OperationEvidence = { operation: identity, process: process.outcome, result: null,
     error: process.outcome.timedOut ? 'TIMEOUT' : process.outcome.error ? 'PROCESS_ERROR' : process.outcome.signal ? 'SIGNAL' : process.outcome.exitCode !== 0 ? 'NONZERO_EXIT' : null,
     stdout: process.stdout, stderr: process.stderr };
@@ -69,7 +71,7 @@ export async function execute(root: string, selected: SelectedOperation, selecti
 
 // Use a process group so a timed-out interpreter and its children cannot keep
 // adoption waiting on inherited pipes. Author processes still have host access.
-function invoke(executable: string, args: string[], cwd: string, seconds: number, input: string) {
+function invoke(executable: string, args: string[], cwd: string, seconds: number, input: string, onSpawn?: (group: number) => void) {
   return new Promise<{ outcome: OperationEvidence['process']; stdout: string; stderr: string; output: { stream: 'stdout' | 'stderr'; bytes: number }[] }>(resolve => {
     const child = spawn(executable, args, { cwd, detached: true, stdio: ['pipe', 'pipe', 'pipe'] });
     const outcome: OperationEvidence['process'] = { exitCode: null, signal: null, error: null, timedOut: false };
@@ -98,8 +100,13 @@ function invoke(executable: string, args: string[], cwd: string, seconds: number
     child.stdin.on('error', error => { if ((error as NodeJS.ErrnoException).code !== 'EPIPE') { outcome.error = error.message; kill(); } });
     child.on('close', (code, signal) => {
       clearTimeout(timer); outcome.exitCode = code; outcome.signal = signal;
+      try { if (child.pid && processGroupAlive(child.pid)) outcome.error = 'AUTHOR_PROCESS_ACTIVE'; }
+      catch { outcome.error = 'PROCESS_STATE'; }
       resolve({ outcome, stdout: Buffer.concat(chunks.stdout).toString('utf8'), stderr: Buffer.concat(chunks.stderr).toString('utf8'), output });
     });
-    child.stdin.end(input);
+    try {
+      if (child.pid) onSpawn?.(child.pid);
+      child.stdin.end(input);
+    } catch { outcome.error = 'PROGRESS_WRITE'; kill(); }
   });
 }

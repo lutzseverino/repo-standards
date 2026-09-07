@@ -3,7 +3,8 @@
 Initial adoption installs exact files and whole author skills and executes
 trusted fixes and checks. Profiles with contextual guidance return a work request
 after fixes and continue through the public [assessment protocol](assessment-protocol.md).
-Updates and interrupted-run retry belong to later implementation slices.
+Updates belong to a later implementation slice. Interrupted adoption supports
+explicit retry and abandonment as described below.
 Public npm delivery remains issue #11.
 
 ## Inspect, confirm, and start
@@ -77,9 +78,13 @@ interprets the retained manifest; inspection does not introduce a second format
 interpreter.
 
 Runtime `node_modules`, `.repo-standards/local/`, and caches remain ignored.
-The exclusive lock lives at Git's `repo-standards-run.lock` path, outside tracked
+Durable progress lives at Git's `repo-standards-run.lock` path, outside tracked
 content and separate for each working tree. It records the current run even if
-installation is interrupted before local product reports can be created.
+installation is interrupted before local product reports can be created. Separate
+process registrations under `repo-standards-run.lock.workers/` prevent concurrent
+start, resume, retry, and abandon commands. Dead registrations do not hold an
+execution lock. Saved installation material and runtime staging remain in Git's
+working-tree metadata until completion or abandonment.
 `.repo-standards/local/run.json` records progress once installation begins.
 Neither dependencies nor run records belong in commits.
 
@@ -88,7 +93,16 @@ Neither dependencies nor run records belong in commits.
 `start` prints a `repo-standards/run/v1` JSON report. Its fields include `id`,
 `inspection`, `selection`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
 `uncertain`, `nextAction`, `prerequisites`, `operations`, `assessments`, and contextual
-`workRequest` when required. Exit status is 0 for complete adoption, 1 for an
+`workRequest` when required. `installation.files` and `installation.runtime` record
+confirmed installation progress; `uncertain` describes work whose result has not
+been verified and recorded. `retryHistory` preserves prior failure reasons,
+uncertainty, and assessment evidence. Its `report` path points to the local report
+bytes archived before retry, including any changes made by an interrupted author
+process. Archival failure blocks retry before the existing report is overwritten.
+Each retry's `archivedFiles` also retains operation logs, including unrecorded
+results. Archive names include content hashes so reusing an operation index
+cannot replace earlier evidence.
+`operations` retains recorded process results. Exit status is 0 for complete adoption, 1 for an
 incomplete run or rejection, and 2 for invalid usage. Preflight rejections use
 the common `valid: false` / `errors` diagnostic format.
 
@@ -122,17 +136,78 @@ preserved as ignored `.repo-standards/local/incomplete-state.json` when possible
 instead of asserting a last-complete adoption. If preserving that candidate also
 fails, the report identifies the uncertainty for manual recovery.
 
-Read `status --json`
-and the run report before intervening. Stop any still-running process first.
-Contextual handoffs and ordinary `CHECKS_FAILED` results use the assessment
-interface. Check execution errors and post-check integrity or mutation failures
-require explicit recovery; neither form of `resume` retries them.
-Interrupted installation, uncertain fix retry, and abandonment remain later slices. Preserve the report
-outside the project, review and reconcile the reported changes against the
-pre-adoption commit, and remove the Git run lock only after that reconciliation.
-A new initial adoption requires a clean project without leftover product state
-or reserved system skills and a newly confirmed inspection. Do not treat this
-manual recovery as a rollback promise or delete unrelated project work.
+## Recover or abandon an interrupted run
+
+Use the run's exact CLI version. If installation stopped before the project-local
+CLI became usable, use the externally installed CLI that started the run.
+
+```sh
+repo-standards status --json
+repo-standards resume --retry --json
+```
+
+Review `active.phase`, `reason`, `changes`, `completed`, `uncertain`, and
+`nextAction` first. `execution: active` means a command or recorded author
+process group is still running; wait for it to finish or deliberately stop it
+before recovery. Background members keep the group active even after a fix or
+prerequisite probe returns. Recorded leader start identities distinguish an
+unrelated live leader that reuses a process-group number; a leaderless group is
+still treated conservatively as active while it has surviving members.
+`execution: interrupted` means durable incomplete progress
+remains without live execution. A normal contextual handoff also has no live
+execution. A second start is blocked until the run is resumed or abandoned.
+The CLI uses the system `ps` utility to inspect process-group membership. Worker
+and group-leader identities use kernel start values: boot identity and start
+ticks from Linux procfs, and microsecond start times from macOS libproc through
+the packaged Koffi binding. The macOS binding ships prebuilt for arm64 and x64;
+installation does not require a compiler or enabled install scripts. Recovery
+is rejected if process identity or liveness cannot be determined safely.
+
+`resume --retry` explicitly authorizes repeating trusted operations. It checks
+prerequisites again, verifies confirmed installed bytes, executable state,
+inventories, HEAD and index, and finishes pending installation from saved
+material. A write interrupted before its progress was recorded may contain the
+original inspected bytes or the expected installed bytes. Other edits block
+retry for reconciliation; there is no force-overwrite. Once installation was
+prepared, recovery needs neither the standards source nor fresh npm acquisition.
+An interruption before preparation repeats inspection and acquisition and still
+requires the original confirmation to be fresh.
+
+Retry reruns repeat-safe fixes in declaration order, requests renewed contextual
+assessment where applicable, reruns checks, and verifies final integrity before
+recording completion. It retains earlier operation evidence and uncertainty as
+history. Old assessments cannot satisfy a retry, even if project bytes match.
+An existing contextual comparison baseline remains in effect so retry cannot
+hide earlier contextual edits. Submit a new assessment separately after retry;
+`--retry` and `--assessment` cannot be combined. Plain `resume` and
+`resume --assessment` remain the contextual interface and never implicitly retry
+uncertain process outcomes. A failed completion write remains incomplete until
+its candidate state is verified and recovery finishes.
+
+To end an incomplete run while keeping its work:
+
+```sh
+repo-standards abandon --json
+repo-standards status --json
+```
+
+Abandon leaves project content and HEAD in place and retains incomplete evidence.
+It archives the report under Git's `repo-standards-reports/<run-id>.json`; `status`
+returns these reports in `abandoned`. Operation logs and local report snapshots
+are copied alongside the archived report in a directory named for the run ID.
+Archived operations point to those copies, so later adoption and removal of the
+incomplete installation cannot overwrite their evidence. Paths are relative to
+the project root, including when Git metadata lives outside the working tree.
+`archivedFiles` maps original report and operation-log paths to their archived
+copies, including logs written before their operation result reached the journal.
+Abandonment reports `outcome: incomplete` with `abandoned: true` and exit status 1;
+it does not assert successful adoption or replace last-complete evidence. The
+CLI releases the run only after preserving any candidate completion state and
+archiving its report. Failed preservation blocks abandonment and keeps the run
+active for reconciliation. Reconcile preserved changes
+through the project's normal workflow. A new initial adoption still requires a
+clean project without conflicting product state and a fresh confirmed inspection.
+Never remove durable run records to bypass recovery checks.
 
 ## Fresh checkout and source disappearance
 

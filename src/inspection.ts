@@ -53,7 +53,10 @@ export function hiddenIndexPaths(root: string) {
   return flags.stdout.split('\0').filter(entry => /^[a-zS] /.test(entry)).map(entry => entry.slice(2));
 }
 
-export function targetObservation(root: string, target: string, blockers: Blocker[]): Observation {
+// Validate the target and its ancestors while observing descendants without
+// following their links. Owned runtime trees validate those descendants against
+// npm's recorded inventory instead of the author-target no-symlink contract.
+export function targetBoundaryObservation(root: string, target: string, blockers: Blocker[]): Observation {
   let parent = root;
   const parts = target.split('/');
   for (const [index, part] of parts.entries()) {
@@ -75,7 +78,12 @@ export function targetObservation(root: string, target: string, blockers: Blocke
       throw new ProductError('PROJECT_READ', `Cannot inspect target ${target}.`);
     }
   }
-  const observed = observe(parent);
+  return observe(parent);
+}
+
+export function targetObservation(root: string, target: string, blockers: Blocker[]): Observation {
+  const observed = targetBoundaryObservation(root, target, blockers);
+  if (observed.type === 'unsafe' || observed.type === 'missing') return observed;
   function unsafe(value: Observation): boolean {
     return value.type === 'symlink' || value.type === 'unsafe' || (value.type === 'directory' && Object.entries(value.entries).some(([name, child]) => name.toLowerCase() === '.git' || unsafe(child)));
   }

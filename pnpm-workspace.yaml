@@ -1,0 +1,3 @@
+# Supported platforms use the packaged binary; no native compilation is needed.
+allowBuilds:
+  koffi: false

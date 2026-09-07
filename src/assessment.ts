@@ -16,6 +16,9 @@ export function projectSnapshot(root: string) {
   const paths = [...new Set(result.stdout.split('\0').filter(path => path && path !== '.repo-standards' && !path.startsWith('.repo-standards/')))].sort();
   return JSON.stringify(paths.map(path => [path, targetObservation(root, path, [])]), null, 2) + '\n';
 }
+export function assessmentSnapshot(root: string, attempt = 0) {
+  return `sha256:${hash(projectSnapshot(root) + (attempt ? `retry:${attempt}` : ''))}`;
+}
 function object(value: unknown): value is Record<string, unknown> { return !!value && typeof value === 'object' && !Array.isArray(value); }
 function keys(value: Record<string, unknown>, expected: string[]) { return Object.keys(value).length === expected.length && expected.every(key => Object.hasOwn(value, key)); }
 function text(value: unknown): value is string { return typeof value === 'string' && value.trim().length > 0; }
@@ -26,7 +29,7 @@ function allows(targets: WorkRequest['declarations'][number]['allowedTargets'], 
   return targets.paths.includes(path) || targets.directories.some(directory => path === directory || path.startsWith(directory + '/'));
 }
 
-export function validateAssessment(root: string, run: { workRequest?: WorkRequest }, baseline: string, input: unknown): Assessment {
+export function validateAssessment(root: string, run: { workRequest?: WorkRequest; retryHistory?: unknown[] }, baseline: string, input: unknown): Assessment {
   if (!object(input) || !keys(input, ['format', 'run', 'selection', 'snapshot', 'declarations']) || input.format !== 'repo-standards/assessment/v1'
     || !text(input.run) || !text(input.selection) || !text(input.snapshot) || !Array.isArray(input.declarations)) {
     throw new ProductError('ASSESSMENT_FORMAT', 'Expected a repo-standards/assessment/v1 submission with run, selection, snapshot and declarations.');
@@ -34,7 +37,7 @@ export function validateAssessment(root: string, run: { workRequest?: WorkReques
   const request = run.workRequest!;
   if (input.run !== request.run || input.selection !== request.selection) throw new ProductError('ASSESSMENT_MISMATCH', 'Assessment identifies another adoption run or selection. Use the current work request.');
   const current = projectSnapshot(root);
-  if (input.snapshot !== request.snapshot || input.snapshot !== `sha256:${hash(current)}`) throw new ProductError('STALE_ASSESSMENT', 'Project content changed. Refresh the work request with resume, reassess, and submit its snapshot.');
+  if (input.snapshot !== request.snapshot || input.snapshot !== assessmentSnapshot(root, run.retryHistory?.length)) throw new ProductError('STALE_ASSESSMENT', 'Project content changed. Refresh the work request with resume, reassess, and submit its snapshot.');
   const ids = new Set<string>();
   const reported = new Set<string>();
   const before = new Map<string, unknown>(JSON.parse(baseline));
