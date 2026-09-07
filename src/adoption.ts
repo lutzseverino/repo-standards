@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { chmodSync, cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stringify } from 'yaml';
 import { externalPath, hash } from './acquisition.js';
@@ -16,6 +16,7 @@ type Files = Record<string, Content>;
 interface Run {
   format: 'repo-standards/run/v1'; id: string; inspection: string;
   selection: Inspection['selection'];
+  affected: Record<string, Observation>;
   outcome: 'complete' | 'incomplete'; phase: string; reason: string;
   changes: string[]; completed: string[]; uncertain: string[]; nextAction: string;
 }
@@ -35,8 +36,12 @@ function flatten(path: string, value: Observation, files: Files) {
   else throw new ProductError('UNSAFE_CONTENT', `Expected regular source material at ${path}.`);
 }
 
-function safe(root: string, path: string) {
+function relativePath(path: string) {
   if (path.split('/').some(part => !part || part === '.' || part === '..') || /[\\\p{Cc}]/u.test(path)) throw new ProductError('STATE_INTEGRITY', `Invalid repository-relative product path: ${path}.`);
+}
+
+function safe(root: string, path: string) {
+  relativePath(path);
   const blockers: Blocker[] = [];
   const value = targetObservation(root, path, blockers);
   if (blockers.length) throw new ProductError('UNSAFE_TARGET', `Target is no longer safe: ${path}.`, blockers);
@@ -78,9 +83,30 @@ function verifyConfirmation(report: Inspection, confirmation: string) {
   if (report.guidance.length || report.operations.length) throw new ProductError('UNSUPPORTED_ADOPTION', 'This CLI slice supports exact content without contextual guidance, fixes, or checks. No author requirements were executed or skipped.');
 }
 
-function prepareRuntime(directory: string, version: string) {
+function prepareRuntime(directory: string, version: string, project: string) {
+  // npm creates its cache even for `config get`. Override it while reading
+  // config, then recover the last (highest-precedence) overridden cache value.
+  // Never print the configuration listing: only the cache path is needed.
+  const configured = spawnSync('npm', ['config', 'list', '--long', '--json=false', '--prefix', directory, '--cache', join(directory, 'config-cache'), '--logs-max=0', '--update-notifier=false'], { cwd: directory, encoding: 'utf8', timeout: 10_000 });
+  const cacheValue = [...configured.stdout?.matchAll(/^; cache = (.+) ; overridden by cli\s*$/gm) ?? []].at(-1)?.[1];
+  if (configured.error || configured.status !== 0 || !cacheValue) throw new ProductError('NPM_CACHE', 'Cannot determine the configured npm cache. Check npm configuration and retry.');
+  const cachePath: unknown = JSON.parse(cacheValue);
+  if (typeof cachePath !== 'string' || !cachePath) throw new ProductError('NPM_CACHE', 'npm did not report a valid cache path.');
+  const cache = externalPath(resolve(directory, cachePath), project);
+  const contentCache = join(cache, '_cacache');
+  const projectWithinCache = relative(contentCache, project);
+  if (projectWithinCache === '' || (!projectWithinCache.startsWith('../') && projectWithinCache !== '..' && !isAbsolute(projectWithinCache))) throw new ProductError('UNSAFE_CACHE', 'The adopting project cannot be inside npm’s content cache. Configure an external cache.');
+  function verifyCacheTree(path: string) {
+    const stat = lstatSync(path, { throwIfNoEntry: false });
+    if (!stat) return;
+    if (stat.isSymbolicLink()) throw new ProductError('UNSAFE_CACHE', `npm content-cache paths cannot be symbolic links: ${path}. Configure an external cache without content-cache links.`);
+    if (stat.isDirectory()) for (const entry of readdirSync(path, { withFileTypes: true })) {
+      if (entry.isDirectory() || entry.isSymbolicLink()) verifyCacheTree(join(path, entry.name));
+    }
+  }
+  verifyCacheTree(contentCache);
   writeFileSync(join(directory, 'package.json'), json({ private: true, dependencies: { [packageName]: version } }));
-  const result = spawnSync('npm', ['install', '--prefix', directory, '--ignore-scripts', '--no-audit', '--no-fund', '--cache', join(directory, 'cache')],
+  const result = spawnSync('npm', ['install', '--prefix', directory, '--ignore-scripts', '--no-audit', '--no-fund', '--cache', cache, '--logs-dir', join(directory, 'npm-logs'), '--update-notifier=false'],
     { cwd: directory, encoding: 'utf8', timeout: 120_000, maxBuffer: 8 * 1024 * 1024 });
   if (result.error || result.status !== 0) throw new ProductError('RUNTIME_INSTALL', 'Cannot install the exact CLI runtime. Check npm registry or cache availability and retry after a new inspection.', result.stderr);
   const installed = JSON.parse(readFileSync(join(directory, 'node_modules', packageName, 'package.json'), 'utf8'));
@@ -114,7 +140,7 @@ function productInventory(root: string, path = '.repo-standards'): string[] {
   });
 }
 
-function actualChanges(root: string, affected: Record<string, Observation> = {}) {
+function actualChanges(root: string, affected: Record<string, Observation>) {
   const status = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignore-submodules=all']);
   if (status.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot report actual Git changes.');
   const records = status.stdout.split('\0').filter(Boolean);
@@ -130,11 +156,16 @@ function actualChanges(root: string, affected: Record<string, Observation> = {})
     const stat = lstatSync(join(root, path), { throwIfNoEntry: false });
     if (!stat) return;
     if (path === '.repo-standards/runtime/node_modules') { paths.add(path); return; }
-    if (stat.isDirectory()) for (const name of readdirSync(join(root, path))) collect(`${path}/${name}`);
+    if (stat.isDirectory()) {
+      const names = readdirSync(join(root, path));
+      if (names.length === 0) paths.add(path);
+      for (const name of names) collect(`${path}/${name}`);
+    }
     else paths.add(path);
   }
   collect('.repo-standards');
   for (const [path, before] of Object.entries(affected)) {
+    relativePath(path);
     const blockers: Blocker[] = [];
     if (json(targetObservation(root, path, blockers)) !== json(before)) {
       paths.add(path);
@@ -157,7 +188,8 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
   const lock = lockPath(root);
   if (existsSync(lock)) throw new ProductError('ACTIVE_RUN', 'An adoption run is active or incomplete. Read status and preserve its work before recovery.');
   verifyConfirmation(initial, confirmation);
-  const run: Run = { format: 'repo-standards/run/v1', id: randomUUID(), inspection: confirmation, selection: initial.selection, outcome: 'incomplete',
+  const run: Run = { format: 'repo-standards/run/v1', id: randomUUID(), inspection: confirmation, selection: initial.selection,
+    affected: { ...initial.project.affected, [systemTarget]: initial.project.systemSkill }, outcome: 'incomplete',
     phase: 'runtime', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['runtime acquisition'],
     nextAction: 'Read status, review actual changes, and preserve the run report before reconciling an interrupted run.' };
   try { writeFileSync(lock, json(run), { flag: 'wx' }); }
@@ -167,17 +199,19 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
   }
   let temporary: string | undefined;
   let mutated = false;
+  let localReportReady = false;
+  let completing = false;
   const files: Files = Object.create(null);
   const skills: Record<string, string[]> = Object.create(null);
   function save() {
     const temporaryLock = `${lock}.${run.id}.tmp`;
     try { writeFileSync(temporaryLock, json(run), { flag: 'wx' }); renameSync(temporaryLock, lock); }
     finally { rmSync(temporaryLock, { force: true }); }
-    if (mutated) write(root, '.repo-standards/local/run.json', file(json(run)));
+    if (localReportReady) write(root, '.repo-standards/local/run.json', file(json(run)));
   }
   try {
     temporary = mkdtempSync(join(externalPath(tmpdir(), root), 'repo-standards-runtime-'));
-    const systemSkill = prepareRuntime(temporary, cliVersion);
+    const systemSkill = prepareRuntime(temporary, cliVersion, root);
     const runtime = observe(join(temporary, 'node_modules'));
     // Network/package acquisition can take time. Repeat all Git, source and
     // target checks under the lock before creating any project material.
@@ -209,7 +243,8 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
     // Persist progress before writing exact targets. The Git-directory lock is
     // also an interruption report if local state cannot be written.
     save();
-    write(root, '.repo-standards/.gitignore', file(ignore)); mutated = true; run.changes.push('.repo-standards/.gitignore'); save();
+    mutated = true;
+    write(root, '.repo-standards/.gitignore', file(ignore)); localReportReady = true; run.changes.push('.repo-standards/.gitignore'); save();
     for (const [path, value] of Object.entries(files)) {
       const before = safe(root, path);
       write(root, path, value);
@@ -226,21 +261,33 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
     if (json(inventory(root, '.repo-standards/inputs')) !== json(Object.keys(inputs).map(path => path.slice('.repo-standards/inputs/'.length)).sort())) throw new ProductError('FINAL_INTEGRITY', 'Retained input inventory changed.');
     if (git(root, ['rev-parse', 'HEAD']).stdout.trim() !== report.project.head || git(root, ['ls-files', '--stage', '-z']).stdout !== report.project.index) throw new ProductError('FINAL_INTEGRITY', 'HEAD or the index changed during adoption.');
     verifyCommittable(root, [...Object.keys(files), '.repo-standards/state.json']);
+    completing = true;
     const completedAt = new Date().toISOString();
     const state = file(json({ format: 'repo-standards/state/v1', lastComplete: { run: run.id, inspection: confirmation, completedAt, head: report.project.head }, baselines: exactBaselines, skills, checks: [], assessments: [] }));
     files['.repo-standards/lock.json'] = file(json({ format: 'repo-standards/lock/v1', selection: report.selection, inspection: confirmation, files: durable, state: { sha256: state.sha256, executable: state.executable } }));
     write(root, '.repo-standards/lock.json', files['.repo-standards/lock.json']!);
     write(root, '.repo-standards/state.json', state);
     verifyFiles(root, { ...files, '.repo-standards/state.json': state });
-    run.changes = actualChanges(root, initial.project.affected);
+    run.changes = actualChanges(root, run.affected);
     run.outcome = 'complete'; run.phase = 'complete'; run.reason = 'Exact installation, runtime, retained inputs and durable state verified.';
     run.uncertain = []; run.nextAction = 'Review and commit the uncommitted adoption changes through the project’s normal workflow.'; save();
     return run;
   } catch (error) {
     run.outcome = 'incomplete';
     run.reason = error instanceof ProductError ? `${error.code}: ${error.message}` : (error as Error).message;
+    if (completing) {
+      run.phase = 'completion';
+      run.uncertain = ['Durable completion and final run-report persistence did not both succeed.'];
+      run.nextAction = 'Read status, review actual changes, and preserve the run report before reconciling this incomplete adoption. Do not commit it as a complete adoption.';
+      try {
+        if (safe(root, '.repo-standards/state.json').type !== 'missing') {
+          safe(root, '.repo-standards/local/incomplete-state.json');
+          renameSync(join(root, '.repo-standards/state.json'), join(root, '.repo-standards/local/incomplete-state.json'));
+        }
+      } catch { run.uncertain.push('Candidate completion state could not be moved to local/incomplete-state.json; preserve it during manual recovery.'); }
+    }
     if (mutated) {
-      try { run.changes = actualChanges(root, initial.project.affected); }
+      try { run.changes = actualChanges(root, run.affected); }
       catch { run.uncertain.push('The full set of actual changes could not be read; review the working tree manually.'); }
     }
     if (!mutated) { run.uncertain = []; run.nextAction = 'Resolve the reported problem, inspect again, and confirm the new inspection before retrying.'; }
@@ -257,7 +304,7 @@ export function status(project: string) {
   const lock = lockPath(root);
   const active = existsSync(lock) ? JSON.parse(readFileSync(lock, 'utf8')) as Run : null;
   if (active) {
-    try { active.changes = actualChanges(root); } catch { active.uncertain.push('Current project changes could not be fully read.'); }
+    try { active.changes = actualChanges(root, active.affected); } catch { active.uncertain.push('Current project changes could not be fully read.'); }
     return { format: 'repo-standards/status/v1', selection: active.selection, lastComplete: null, active, evidence: 'historical' };
   }
   if (!existsSync(join(root, '.repo-standards/state.json'))) return { format: 'repo-standards/status/v1', selection: null, lastComplete: null, active, evidence: 'historical' };

@@ -15,9 +15,9 @@ if ! command -v npm >/dev/null 2>&1; then
 fi
 exec node --input-type=module - "$@" <<'REPO_STANDARDS_BOOTSTRAP'
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
+import { lstatSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { isAbsolute, join, relative, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 
 const packageName = '@lutzseverino/repo-standards';
 const stable = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
@@ -44,13 +44,49 @@ try {
   const within = relative(root, tempRoot);
   if (within === '' || (within !== '..' && !within.startsWith('../') && !isAbsolute(within))) throw new Error('TMPDIR must point outside the adopting project.');
   temporary = mkdtempSync(join(tempRoot, 'repo-standards-bootstrap-'));
-  const cache = join(temporary, 'npm-cache');
+  let cache;
   function npm(args) {
-    const result = spawnSync('npm', [...args, '--cache', cache], { cwd: temporary, encoding: 'utf8', timeout: 120_000, maxBuffer: 16 * 1024 * 1024 });
+    const cacheOptions = cache ? ['--cache', cache, '--logs-dir', join(temporary, 'npm-logs'), '--update-notifier=false'] : ['--cache', join(temporary, 'config-cache'), '--logs-max=0', '--update-notifier=false'];
+    const result = spawnSync('npm', [...args, ...cacheOptions], { cwd: temporary, encoding: 'utf8', timeout: 120_000, maxBuffer: 16 * 1024 * 1024 });
     if (result.error || result.status !== 0) throw new Error(`npm ${args[0]} failed. Check npm, registry access, and the requested package version. ${result.stderr || result.error?.message || ''}`);
     return result.stdout.trim();
   }
   if (!/^\d+\.\d+\.\d+/.test(npm(['--version']))) throw new Error('npm is unavailable. Reinstall the npm bundled with Node.js 24.');
+  // npm creates a cache even for a config query. Read the original resolved
+  // cache from the overridden settings, with query writes confined to temporary.
+  const configuration = npm(['config', 'list', '--long', '--json=false', '--prefix', temporary]);
+  const cacheValue = [...configuration.matchAll(/^; cache = (.+) ; overridden by cli\s*$/gm)].at(-1)?.[1];
+  if (!cacheValue) throw new Error('Cannot determine the configured npm cache. Check npm configuration and retry.');
+  const configuredCache = JSON.parse(cacheValue);
+  if (typeof configuredCache !== 'string' || !configuredCache) throw new Error('npm did not report a valid cache path.');
+  // Resolve existing ancestors before npm writes logs or acquires a package;
+  // an environment override or symlink must not redirect writes into the project.
+  let ancestor = resolve(temporary, configuredCache);
+  const missing = [];
+  while (true) {
+    try { cache = join(realpathSync(ancestor), ...missing); break; }
+    catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+      const parent = dirname(ancestor);
+      if (parent === ancestor) throw error;
+      missing.unshift(relative(parent, ancestor));
+      ancestor = parent;
+    }
+  }
+  const cacheWithin = relative(root, cache);
+  if (cacheWithin === '' || (cacheWithin !== '..' && !cacheWithin.startsWith('../') && !isAbsolute(cacheWithin))) throw new Error('The configured npm cache must be outside the adopting project. Configure an external cache and retry.');
+  const contentCache = join(cache, '_cacache');
+  const projectWithinCache = relative(contentCache, root);
+  if (projectWithinCache === '' || (projectWithinCache !== '..' && !projectWithinCache.startsWith('../') && !isAbsolute(projectWithinCache))) throw new Error('The adopting project cannot be inside npm’s content cache. Configure an external cache.');
+  function verifyCacheTree(path) {
+    const stat = lstatSync(path, {throwIfNoEntry: false});
+    if (!stat) return;
+    if (stat.isSymbolicLink()) throw new Error('npm content-cache paths cannot be symbolic links. Configure an external cache without content-cache links.');
+    if (stat.isDirectory()) for (const entry of readdirSync(path, {withFileTypes: true})) {
+      if (entry.isDirectory() || entry.isSymbolicLink()) verifyCacheTree(join(path, entry.name));
+    }
+  }
+  verifyCacheTree(contentCache);
   if (!version) {
     const published = JSON.parse(npm(['view', packageName, 'versions', '--json']));
     const versions = (Array.isArray(published) ? published : [published]).filter(value => typeof value === 'string' && stable.test(value));

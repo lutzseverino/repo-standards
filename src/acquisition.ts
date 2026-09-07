@@ -29,7 +29,7 @@ export function externalPath(path: string, project: string): string {
   }
   const within = relative(project, path);
   if (within === '' || (within !== '..' && !within.startsWith('../') && !isAbsolute(within))) {
-    throw new ProductError('UNSAFE_CACHE', 'Temporary storage and XDG_CACHE_HOME must be outside the adopting project. Set TMPDIR and XDG_CACHE_HOME to external directories.');
+    throw new ProductError('UNSAFE_CACHE', 'Temporary storage, XDG_CACHE_HOME, and the npm cache must be outside the adopting project. Configure external directories and retry.');
   }
   return path;
 }

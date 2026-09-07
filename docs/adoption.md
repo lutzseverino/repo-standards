@@ -40,7 +40,11 @@ outside the selection.
 
 The CLI prepares the exact runtime outside the project with npm lifecycle
 scripts disabled. The project's dependency manifest, package manager, and
-`.npmrc` do not govern this installation. After acquisition, start reacquires
+`.npmrc` do not govern this installation. The configured external npm cache is
+reused, including for offline acquisition of cached packages. As with the
+bootstrap, content-cache symlinks are rejected and logs stay in temporary
+storage so cache settings cannot redirect acquisition into the project.
+After acquisition, start reacquires
 the immutable source and repeats all freshness and safety checks under an
 exclusive run lock. Each write checks target ancestors again. Failed preflight
 or acquisition leaves project content untouched.
@@ -76,7 +80,7 @@ Neither dependencies nor run records belong in commits.
 ## Completion and incomplete results
 
 `start` prints a `repo-standards/run/v1` JSON report. Its fields include `id`,
-`inspection`, `selection`, `outcome`, `phase`, `reason`, `changes`, `completed`,
+`inspection`, `selection`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
 `uncertain`, and `nextAction`. Exit status is 0 for complete adoption, 1 for an
 incomplete run or rejection, and 2 for invalid usage. Preflight rejections use
 the common `valid: false` / `errors` diagnostic format.
@@ -91,7 +95,20 @@ changes uncommitted and releases the lock.
 
 An incomplete installation preserves changes and its lock. Its change report
 observes actual Git changes and ignored product storage, including unexpected
-additions; runtime dependencies are listed as one directory. Read `status --json`
+additions; runtime dependencies are listed as one directory. The persisted
+`affected` observations include author targets and the reserved system skill,
+so subsequent `status` calls also find ignored files and skill resources added
+after interruption, and reflect paths reconciled since the run stopped.
+Until the initial ignore-file write succeeds, the Git-directory lock remains
+the report and no potentially visible local run record is created.
+
+Failure to persist final completion is reported as an incomplete `completion`
+phase with explicit uncertainty and recovery guidance. Candidate state is
+preserved as ignored `.repo-standards/local/incomplete-state.json` when possible,
+instead of asserting a last-complete adoption. If preserving that candidate also
+fails, the report identifies the uncertainty for manual recovery.
+
+Read `status --json`
 and the run report before intervening. Stop any still-running process first.
 This slice cannot resume or abandon a run automatically. Preserve the report
 outside the project, review and reconcile the reported changes against the

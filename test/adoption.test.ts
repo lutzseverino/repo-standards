@@ -316,7 +316,13 @@ test('missing npm and unavailable exact runtime packages leave project content u
   mkdirSync(bin);
   const env = { ...remote.env, PATH: `${bin}:${process.env.PATH}` };
   for (const unavailable of ['npm', 'package']) await t.test(unavailable, () => {
-    writeFileSync(join(bin, 'npm'), unavailable === 'npm' ? '#!/bin/sh\nexit 1\n' : '#!/bin/sh\nif [ "$1" = "--version" ]; then echo 11.0.0; else exit 1; fi\n');
+    writeFileSync(join(bin, 'npm'), unavailable === 'npm' ? '#!/bin/sh\nexit 1\n' : `#!/bin/sh
+case "$1" in
+  --version) echo 11.0.0 ;;
+  config) echo '; cache = "${join(remote.support.root, 'npm-cache')}" ; overridden by cli' ;;
+  *) exit 1 ;;
+esac
+`);
     chmodSync(join(bin, 'npm'), 0o755);
     const before = snapshot(project.root);
     const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
@@ -444,4 +450,173 @@ globalThis.fetch = async (url, options) => {
   assert.match(JSON.parse(result.stdout).reason, /STALE_INSPECTION/);
   assert.equal(existsSync(join(project.root, '.repo-standards')), false);
   assert.equal(existsSync(join(project.root, 'AGENTS.md')), false);
+});
+
+test('incomplete status retains ignored exact files and complete author and system skill changes', async t => {
+  const registry = await registryFixture(cli.root);
+  const remote = remoteFixture(yaml.replace('profiles:', `    review:
+      kind: skill
+      name: review
+      source: skill
+profiles:`), { 'content.md': 'Expected', 'skill/SKILL.md': '# Review', 'skill/resources/check.txt': 'Resource' });
+  const project = sourceFixture('', { '.gitignore': 'AGENTS.md\n.agents/\n' });
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+  assert.equal(result.status, 1);
+  const report = JSON.parse(result.stdout);
+  assert.match(report.reason, /IGNORED_OUTPUT/);
+  const expected = ['AGENTS.md', '.agents/skills/review/SKILL.md', '.agents/skills/review/resources/check.txt', '.agents/skills/adopt-standards/SKILL.md'];
+  for (const path of expected) assert.ok(report.changes.includes(path), `start must report ${path}`);
+  writeFileSync(join(project.root, '.agents/skills/review/resources/added.txt'), 'Added after interruption');
+  const before = snapshot(project.root);
+  const status = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  for (const path of [...expected, '.agents/skills/review/resources/added.txt']) assert.ok(status.active.changes.includes(path), `status must report ${path}`);
+  assert.deepEqual(snapshot(project.root), before);
+  rmSync(join(project.root, 'AGENTS.md'));
+  const reconciled = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  assert.ok(!reconciled.active.changes.includes('AGENTS.md'), 'status must observe reconciliation rather than repeat stale path names');
+});
+
+test('runtime acquisition reuses a populated external npm cache with the registry unavailable', async t => {
+  const registry = await registryFixture(cli.root);
+  const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
+  const project = sourceFixture('');
+  const support = sourceFixture('');
+  t.after(() => { registry.close(); remote.close(); project.close(); support.close(); });
+  commit(project.root);
+  const cache = join(support.root, 'npm-cache');
+  const env = { ...remote.env, ...registry.env, npm_config_cache: cache };
+  execFileSync('npm', ['install', '--prefix', support.root, '--ignore-scripts', '--no-audit', '--no-fund', '@lutzseverino/repo-standards@1.0.0'], { cwd: support.root, env, stdio: 'pipe' });
+  registry.close();
+  const offline = { ...env, npm_config_offline: 'true' };
+  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, offline).stdout);
+  const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, offline);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+});
+
+test('runtime cache configuration cannot write inside the adopting project through direct or linked paths', async t => {
+  const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
+  const project = sourceFixture('', { '.gitignore': 'npm-cache/\n' });
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+  const alias = join(remote.support.root, 'project-alias');
+  symlinkSync(project.root, alias);
+  for (const cache of [join(project.root, 'npm-cache'), join(alias, 'npm-cache')]) {
+    const before = snapshot(project.root);
+    const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, { ...remote.env, npm_config_cache: cache });
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.match(JSON.parse(result.stdout).reason, /UNSAFE_CACHE/);
+    assert.deepEqual(snapshot(project.root), before);
+  }
+});
+
+test('a final report persistence failure retains incomplete evidence and recovery guidance', async t => {
+  const registry = await registryFixture(cli.root);
+  const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
+  const project = sourceFixture('');
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const loader = join(remote.support.root, 'report-failure.mjs');
+  writeFileSync(loader, `import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+const write = fs.writeFileSync;
+let failed = false;
+fs.writeFileSync = function(path, data, ...args) {
+  let report;
+  try { report = JSON.parse(String(data)); } catch {}
+  if (!failed && String(path).includes('/.repo-standards/local/') && report?.format === 'repo-standards/run/v1' && report.outcome === 'complete') {
+    failed = true;
+    throw Object.assign(new Error('No space for final run report'), {code: 'ENOSPC'});
+  }
+  return write.call(this, path, data, ...args);
+};
+syncBuiltinESMExports();
+`);
+  const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, { ...env, NODE_OPTIONS: `${env.NODE_OPTIONS} --import=${pathToFileURL(loader).href}` });
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.outcome, 'incomplete');
+  assert.equal(report.phase, 'completion');
+  assert.ok(report.uncertain.length > 0);
+  assert.match(report.nextAction, /incomplete adoption/);
+  assert.equal(existsSync(join(project.root, '.repo-standards/state.json')), false);
+  assert.equal(existsSync(join(project.root, '.repo-standards/local/incomplete-state.json')), true);
+  assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Expected');
+  const status = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  assert.equal(status.lastComplete, null);
+  assert.equal(status.active.outcome, 'incomplete');
+});
+
+test('npm cache child symlinks cannot redirect acquisition content or logs into the project', async t => {
+  const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
+  const project = sourceFixture('');
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+  for (const child of ['_logs', '_cacache', '_cacache/index-v5/aa']) await t.test(child, () => {
+    const cache = join(remote.support.root, child.replaceAll('/', '-') + '-cache');
+    mkdirSync(join(cache, child, '..'), { recursive: true });
+    symlinkSync(project.root, join(cache, child));
+    const before = snapshot(project.root);
+    const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, { ...remote.env, npm_config_cache: cache, npm_config_offline: 'true' });
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.match(JSON.parse(result.stdout).reason, child === '_logs' ? /RUNTIME_INSTALL/ : /UNSAFE_CACHE/);
+    assert.deepEqual(snapshot(project.root), before);
+  });
+});
+
+test('a failed initial ignore-file write preserves the run without exposing local reports to Git', async t => {
+  const registry = await registryFixture(cli.root);
+  const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
+  const project = sourceFixture('');
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const loader = join(remote.support.root, 'ignore-failure.mjs');
+  writeFileSync(loader, `import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+const write = fs.writeFileSync;
+let failed = false;
+fs.writeFileSync = function(path, data, ...args) {
+  if (!failed && String(path).includes('/.repo-standards/') && String(data).startsWith('/runtime/node_modules/')) {
+    failed = true;
+    throw Object.assign(new Error('No space for ignore rules'), {code: 'ENOSPC'});
+  }
+  return write.call(this, path, data, ...args);
+};
+syncBuiltinESMExports();
+`);
+  const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, { ...env, NODE_OPTIONS: `${env.NODE_OPTIONS} --import=${pathToFileURL(loader).href}` });
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.outcome, 'incomplete');
+  assert.equal(existsSync(join(project.root, '.repo-standards/local/run.json')), false);
+  assert.equal(JSON.parse(cli.run(['status', '--json'], project.root, env).stdout).active.id, report.id);
+});
+
+test('status recovers ignored installed targets after the adoption process is interrupted', async t => {
+  const registry = await registryFixture(cli.root);
+  const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
+  const project = sourceFixture('', { '.gitignore': 'AGENTS.md\n.agents/\n' });
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const fault = filesystemFault(remote.support.root, { ...env, TMPDIR: remote.support.root }, 'verification', 'process.kill(process.pid, "SIGKILL");');
+  const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, fault);
+  assert.equal(result.signal, 'SIGKILL');
+  const before = snapshot(project.root);
+  const status = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  assert.equal(status.lastComplete, null);
+  assert.equal(status.active.outcome, 'incomplete');
+  for (const path of ['AGENTS.md', '.agents/skills/adopt-standards/SKILL.md']) assert.ok(status.active.changes.includes(path));
+  assert.deepEqual(snapshot(project.root), before);
 });
