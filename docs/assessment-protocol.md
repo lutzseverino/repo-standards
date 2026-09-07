@@ -118,8 +118,12 @@ historical `checks` and separate `assessments` containing the submitted run,
 selection, snapshot, and per-declaration evidence. Exit status is 0 only for
 complete adoption, 1 for expected handoff or rejection, and 2 for usage errors.
 
-This resume interface handles contextual work and renewed assessment after
-reported check failures. Interrupted installation, uncertain fix retry,
+This resume interface handles contextual work, stale final assessment, and
+renewed assessment after ordinary `CHECKS_FAILED` results. A timeout, signal,
+nonzero exit, malformed protocol result, blocked check, detected check mutation,
+or post-check integrity failure is preserved and rejected with
+`RESUME_UNAVAILABLE`. Neither refreshing a request nor submitting another
+assessment authorizes repeating these operations. Interrupted installation, uncertain fix retry,
 abandonment, and updates remain later tickets. Preserve the run and its changes
 when recovery is unavailable. Real-agent usefulness is evaluated separately in
 issue #9; scripted agents exercise this deterministic protocol.

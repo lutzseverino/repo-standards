@@ -177,6 +177,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:readFileSyn
   const failed = f.resume(initial);
   assert.match(failed.report.reason, /CHECKS_FAILED/);
   assert.equal(failed.report.assessments.length, 1);
+  assert.match(f.resume('{').report.reason, /ASSESSMENT_FORMAT/);
   writeFileSync(join(f.project.root, 'README.md'), readFileSync(join(f.project.root, 'README.md'), 'utf8') + '\nReady');
   const stale = f.resume(initial);
   assert.match(stale.report.reason, /STALE_ASSESSMENT/);
@@ -316,4 +317,33 @@ setTimeout(()=>console.log(JSON.stringify({format:'repo-standards/result/v1',sta
   assert.equal(JSON.parse(concurrent.stdout).errors[0].code, 'ACTIVE_RUN');
   assert.equal(await finished, 0, output);
   assert.equal(JSON.parse(output).operations.length, 1);
+});
+
+test('uncertain check outcomes cannot be retried through contextual resume', async t => {
+  for (const [code, script] of [
+    ['NONZERO_EXIT', 'process.exit(7);'],
+    ['SIGNAL', "process.kill(process.pid, 'SIGTERM');"],
+    ['TIMEOUT', 'setInterval(() => {}, 1000);'],
+    ['PROTOCOL_ERROR', "console.log('not a result');"],
+  ]) await t.test(code!, async st => {
+    const f = await fixture(st, `import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+const path = '.repo-standards/local/check-attempts';
+writeFileSync(path, String((existsSync(path) ? Number(readFileSync(path,'utf8')) : 0) + 1));
+${script}`);
+    contextualWork(f.project.root);
+    const assessment = submission(f.resume().report.workRequest);
+    const failed = f.resume(assessment);
+    assert.ok(failed.report.reason.startsWith(code + ':'), failed.report.reason);
+    assert.match(failed.report.nextAction, /Explicit recovery is required/);
+    for (const input of [undefined, assessment]) {
+      const retry = f.resume(input);
+      assert.equal(retry.result.status, 1, retry.result.stdout);
+      assert.equal(retry.report.errors?.[0].code, 'RESUME_UNAVAILABLE', retry.result.stdout);
+    }
+    const status = JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout);
+    assert.equal(status.active.reason, failed.report.reason);
+    assert.equal(status.active.operations.length, 1);
+    assert.equal(readFileSync(join(f.project.root, '.repo-standards/local/check-attempts'), 'utf8'), '1');
+    assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
+  });
 });

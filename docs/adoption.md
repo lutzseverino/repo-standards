@@ -124,7 +124,9 @@ fails, the report identifies the uncertainty for manual recovery.
 
 Read `status --json`
 and the run report before intervening. Stop any still-running process first.
-Contextual handoffs and reported check failures use the assessment interface.
+Contextual handoffs and ordinary `CHECKS_FAILED` results use the assessment
+interface. Check execution errors and post-check integrity or mutation failures
+require explicit recovery; neither form of `resume` retries them.
 Interrupted installation, uncertain fix retry, and abandonment remain later slices. Preserve the report
 outside the project, review and reconcile the reported changes against the
 pre-adoption commit, and remove the Git run lock only after that reconciliation.

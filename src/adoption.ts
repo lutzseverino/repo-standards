@@ -345,7 +345,8 @@ async function advance(root: string, run: Run, installation: Installation, save:
   const operationStart = run.operations.length;
   for (const phase of (resumed ? ['checks'] : ['fixes', 'checks']) as ('fixes' | 'checks')[]) {
     for (const selected of operations(report.resolved, phase)) {
-      run.phase = phase; run.uncertain = [`${selected.declaration}/${selected.operation.id}: process outcome uncertain until recorded`]; save();
+      run.phase = phase; run.reason = 'Run in progress or interrupted.';
+      run.uncertain = [`${selected.declaration}/${selected.operation.id}: process outcome uncertain until recorded`]; save();
       const persistedRun = file(json(run));
       const before = phase === 'checks' ? projectSnapshot(root) : null;
       const evidence = await execute(root, selected, report.selection, report.resolved);
@@ -395,6 +396,14 @@ async function advance(root: string, run: Run, installation: Installation, save:
   return run;
 }
 
+function canResumeAssessment(run: Run) {
+  return !!run.continuation && (
+    run.phase === 'contextual' || run.phase === 'assessment'
+    || (run.phase === 'checks' && run.reason.startsWith('CHECKS_FAILED:') && run.uncertain.length === 0)
+    || (run.phase === 'verification' && run.reason.startsWith('STALE_ASSESSMENT:'))
+  );
+}
+
 export async function resume(project: string, cliVersion: string, assessmentPath?: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
@@ -408,7 +417,7 @@ export async function resume(project: string, cliVersion: string, assessmentPath
     if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to resume.');
     const run = JSON.parse(readFileSync(lock, 'utf8')) as Run;
     if (run.selection.cli.version !== cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
-    if (!run.continuation || !['contextual', 'assessment', 'checks', 'verification'].includes(run.phase)) throw new ProductError('RESUME_UNAVAILABLE', 'This run is not at a contextual handoff. Interrupted installation and operation retry require explicit recovery support. Preserve the report and changes.');
+    if (!canResumeAssessment(run)) throw new ProductError('RESUME_UNAVAILABLE', 'This run is not at a retryable contextual outcome. Interrupted installation and uncertain or unsuccessful operation recovery require explicit support. Preserve the report and changes; this assessment interface cannot retry them.');
     const content = readFileSync(`${lock}.context`, 'utf8');
     if (hash(content) !== run.continuation) throw new ProductError('STATE_INTEGRITY', 'Contextual continuation changed. Preserve the run and restore its recorded state.');
     const installation = JSON.parse(content) as Installation;
@@ -416,6 +425,7 @@ export async function resume(project: string, cliVersion: string, assessmentPath
     const save = () => saveRun(root, run, true);
     try {
       verifyFiles(root, { '.repo-standards/local/run.json': file(json(run)) });
+      run.phase = 'assessment';
       let assessment: unknown;
       if (assessmentPath !== undefined) {
         try { assessment = JSON.parse(readFileSync(resolve(project, assessmentPath), 'utf8')); }
@@ -431,7 +441,9 @@ export async function resume(project: string, cliVersion: string, assessmentPath
       }
       try { run.changes = actualChanges(root, run.affected); }
       catch { run.uncertain.push('Current project changes could not be fully read.'); }
-      run.nextAction = completing ? 'Preserve the incomplete report and reconcile durable state before recovery.' : 'Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.';
+      run.nextAction = canResumeAssessment(run)
+        ? 'Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.'
+        : 'Preserve the incomplete report, logs, and changes. Explicit recovery is required; this assessment interface cannot retry the run.';
       try { save(); } catch { /* Preserve the original interruption record. */ }
       return run;
     } finally {
