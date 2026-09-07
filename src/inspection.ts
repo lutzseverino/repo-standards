@@ -26,8 +26,11 @@ export function observe(path: string, excluded: ReadonlySet<string> = new Set())
     const stat = lstatSync(path);
     if (stat.isSymbolicLink()) return { type: 'symlink', target: readlinkSync(path) };
     if (stat.isFile()) return { type: 'file', ...content(path) };
-    if (stat.isDirectory()) return { type: 'directory', entries: Object.fromEntries(readdirSync(path).sort()
-      .filter(name => !excluded.has(join(path, name))).map(name => [name, observe(join(path, name), excluded)])) };
+    if (stat.isDirectory()) return { type: 'directory', entries: excluded.has(path) ? {} : Object.fromEntries(readdirSync(path).sort()
+      .flatMap(name => {
+        const child = observe(join(path, name), excluded);
+        return excluded.has(join(path, name)) && child.type === 'directory' ? [] : [[name, child]];
+      })) };
     return { type: 'unsafe' };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { type: 'missing' };
@@ -130,7 +133,14 @@ function fileInventory(value: Observation): string[] {
 }
 
 function productStateObservation(root: string, blockers: Blocker[]) {
-  const excluded = new Set(['local', 'cache', 'runtime/node_modules'].map(path => join(root, '.repo-standards', path)));
+  const directories = ['local', 'cache', 'runtime/node_modules'].map(path => `.repo-standards/${path}`);
+  const excluded = new Set(directories.map(path => join(root, path)));
+  // Generated descendants do not bind confirmation, but each root must still
+  // be a safe directory boundary. Missing ignored directories are allowed.
+  for (const path of directories) {
+    const value = targetBoundaryObservation(root, path, blockers, excluded);
+    if (value.type === 'file') blockers.push({ code: 'TARGET_TYPE', path, message: 'Generated product state requires a directory at this path.' });
+  }
   return targetObservation(root, '.repo-standards', blockers, excluded);
 }
 

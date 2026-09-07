@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
@@ -464,7 +464,7 @@ test('both update inspections reject unexpected durable product files before cre
   for (const kind of ['standards', 'cli'] as const) await t.test(kind, async t => {
     const f = await pendingUpdate(t, kind);
     const args = ['inspect', ...f.startArgs.slice(1, -2)];
-    for (const path of ['.repo-standards/extra.txt', '.repo-standards/runtime/extra.txt', '.repo-standards/other/cache/extra.txt']) {
+    for (const path of ['.repo-standards/extra.txt', '.repo-standards/runtime/extra.txt', '.repo-standards/other/cache/extra.txt', '.repo-standards/other/local/extra.txt', '.repo-standards/other/runtime/node_modules/extra.txt']) {
       mkdirSync(dirname(join(f.project.root, path)), { recursive: true });
       writeFileSync(join(f.project.root, path), 'Preserve this unexpected file');
       commit(f.project.root);
@@ -484,6 +484,138 @@ test('both update inspections reject unexpected durable product files before cre
       commit(f.project.root);
     }
   });
+});
+
+test('an update rejects a committed file at the excluded local directory before creating a run', async t => {
+  const f = await pendingUpdate(t);
+  const local = join(f.project.root, '.repo-standards/local');
+  rmSync(local, { recursive: true, force: true });
+  writeFileSync(local, 'Preserve this file');
+  commit(f.project.root);
+  const args = ['inspect', ...f.startArgs.slice(1, -2)];
+  const inspection = JSON.parse(f.run(args).stdout);
+  const rejected = f.run(['start', ...args.slice(1), '--confirm', inspection.identity]);
+  const status = JSON.parse(f.run(['status', '--json']).stdout);
+  assert.equal(inspection.start.eligible, false);
+  assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'START_BLOCKED');
+  assert.equal(status.active, null);
+  assert.equal(status.lastComplete.run, f.previous.lastComplete.run);
+  assert.equal(readFileSync(local, 'utf8'), 'Preserve this file');
+  assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
+});
+
+test('both updates validate excluded directory roots and reject changed boundaries before creating a run', async t => {
+  for (const kind of ['standards', 'cli'] as const) await t.test(kind, async t => {
+    const f = await pendingUpdate(t, kind);
+    const args = ['inspect', ...f.startArgs.slice(1, -2)];
+    const paths = ['.repo-standards/local', '.repo-standards/cache', '.repo-standards/runtime/node_modules'];
+    // Ignore the entries themselves, including files and links, so Git status
+    // cannot supply the freshness or safety signal under test.
+    writeFileSync(join(f.project.root, '.git/info/exclude'), paths.join('\n') + '\n');
+    for (const path of paths) {
+      const target = join(f.project.root, path);
+      const saved = join(f.remote.support.root, 'saved-directory');
+      const hadDirectory = existsSync(target);
+      if (hadDirectory) renameSync(target, saved);
+      const before = JSON.parse(f.run(args).stdout);
+      assert.equal(before.start.eligible, true, path);
+      for (const type of ['file', 'directory-link', 'dangling-link', 'fifo']) await t.test(`${path}: ${type}`, () => {
+        if (type === 'file') writeFileSync(target, 'Preserve this file');
+        else if (type === 'fifo') execFileSync('mkfifo', [target]);
+        else symlinkSync(type === 'directory-link' ? f.remote.support.root : join(f.remote.support.root, 'missing'), target);
+        try {
+          const result = f.run(args);
+          assert.equal(result.status, 0, result.stdout + result.stderr);
+          const inspection = JSON.parse(result.stdout);
+          assert.equal(inspection.start.eligible, false);
+          assert.ok(inspection.start.blockers.some((blocker: { code: string }) => blocker.code === (type === 'file' ? 'TARGET_TYPE' : 'UNSAFE_TARGET')));
+          assert.notEqual(inspection.identity, before.identity);
+          const stale = f.run(['start', ...args.slice(1), '--confirm', before.identity]);
+          assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_INSPECTION');
+          const rejected = f.run(['start', ...args.slice(1), '--confirm', inspection.identity]);
+          assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'START_BLOCKED');
+          if (type === 'file') {
+            assert.equal(readFileSync(target, 'utf8'), 'Preserve this file');
+            writeFileSync(target, 'Changed file bytes');
+            assert.notEqual(JSON.parse(f.run(args).stdout).identity, inspection.identity);
+          } else if (type === 'fifo') assert.equal(lstatSync(target).isFIFO(), true);
+          else assert.equal(readlinkSync(target), type === 'directory-link' ? f.remote.support.root : join(f.remote.support.root, 'missing'));
+          const status = JSON.parse(f.run(['status', '--json']).stdout);
+          assert.equal(status.active, null);
+          assert.equal(status.lastComplete.run, f.previous.lastComplete.run);
+          assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
+          assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
+        } finally { unlinkSync(target); }
+      });
+      if (hadDirectory) renameSync(saved, target);
+    }
+  });
+});
+
+test('both updates allow absent excluded directories and ignore safe generated descendants', async t => {
+  for (const kind of ['standards', 'cli'] as const) await t.test(kind, async t => {
+    const f = await pendingUpdate(t, kind);
+    const args = ['inspect', ...f.startArgs.slice(1, -2)];
+    const before = JSON.parse(f.run(args).stdout);
+    const paths = ['.repo-standards/local', '.repo-standards/cache', '.repo-standards/runtime/node_modules'];
+    for (const path of paths) rmSync(join(f.project.root, path), { recursive: true, force: true });
+    const absent = JSON.parse(f.run(args).stdout);
+    assert.equal(absent.start.eligible, true);
+    assert.equal(absent.identity, before.identity);
+    for (const path of paths) {
+      const target = join(f.project.root, path);
+      mkdirSync(target);
+      writeFileSync(join(target, 'noise'), 'Generated bytes');
+      symlinkSync('missing-generated-target', join(target, 'generated-link'));
+    }
+    const generated = JSON.parse(f.run(args).stdout);
+    assert.equal(generated.start.eligible, true);
+    assert.equal(generated.identity, before.identity);
+    for (const path of paths) rmSync(join(f.project.root, path), { recursive: true });
+    const result = f.run(f.startArgs);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+    assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
+  });
+});
+
+test('updates preserve incomplete work when excluded roots become invalid during installation or verification', async t => {
+  for (const kind of ['standards', 'cli'] as const) for (const phase of ['installation', 'verification']) {
+    for (const path of ['.repo-standards/local', '.repo-standards/cache', '.repo-standards/runtime/node_modules']) await t.test(`${kind}: ${phase}: ${path}`, async t => {
+      const f = await pendingUpdate(t, kind);
+      const target = join(f.project.root, path);
+      const saved = join(f.remote.support.root, 'saved-directory');
+      const env = filesystemFault(f.remote.support.root, f.env, phase, `
+const rename = fs.renameSync;
+fs.renameSync = function(from, to) {
+  const result = rename.call(this, from, to);
+  fs.renameSync = rename;
+  const target = ${JSON.stringify(target)};
+  if (fs.existsSync(target)) rename(target, ${JSON.stringify(saved)});
+  write(target, 'Preserve invalid root');
+  process.kill(process.pid, 'SIGKILL');
+  return result;
+};
+syncBuiltinESMExports();`);
+      assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
+      assert.equal(JSON.parse(f.run(['status', '--json']).stdout).active.phase, phase);
+      const tracked = git(f.project.root, 'diff', '--binary');
+      const rejected = f.run(['resume', '--retry', '--json']);
+      assert.equal(rejected.status, 1, rejected.stdout + rejected.stderr);
+      assert.match(rejected.stdout, /UNSAFE_TARGET|FINAL_INTEGRITY/);
+      assert.equal(readFileSync(target, 'utf8'), 'Preserve invalid root');
+      assert.equal(git(f.project.root, 'diff', '--binary'), tracked);
+      const status = JSON.parse(f.run(['status', '--json']).stdout);
+      assert.ok(status.active);
+      assert.equal(status.lastComplete.run, f.previous.lastComplete.run);
+      unlinkSync(target);
+      if (existsSync(saved)) renameSync(saved, target);
+      const resumed = f.run(['resume', '--retry', '--json']);
+      assert.equal(resumed.status, 0, resumed.stdout + resumed.stderr);
+      assert.equal(JSON.parse(resumed.stdout).outcome, 'complete');
+      assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
+    });
+  }
 });
 
 test('update identities bind unexpected durable bytes while excluding local state, caches, and dependencies', async t => {
