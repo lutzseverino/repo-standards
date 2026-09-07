@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
@@ -458,6 +458,62 @@ test('a standards update rejects added retained inputs before discarding any mat
   assert.equal(JSON.parse(result.stdout).errors[0].code, 'START_BLOCKED');
   assert.equal(readFileSync(added, 'utf8'), 'Preserve this added material');
   assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
+});
+
+test('both update inspections reject unexpected durable product files before creating a run', async t => {
+  for (const kind of ['standards', 'cli'] as const) await t.test(kind, async t => {
+    const f = await pendingUpdate(t, kind);
+    const args = ['inspect', ...f.startArgs.slice(1, -2)];
+    for (const path of ['.repo-standards/extra.txt', '.repo-standards/runtime/extra.txt', '.repo-standards/other/cache/extra.txt']) {
+      mkdirSync(dirname(join(f.project.root, path)), { recursive: true });
+      writeFileSync(join(f.project.root, path), 'Preserve this unexpected file');
+      commit(f.project.root);
+      const result = f.run(args);
+      assert.equal(result.status, 0, result.stdout + result.stderr);
+      const inspection = JSON.parse(result.stdout);
+      assert.equal(inspection.start.eligible, false, path);
+      assert.ok(inspection.start.blockers.some((blocker: { code: string }) => blocker.code === 'STATE_INTEGRITY'));
+      const rejected = f.run(['start', ...args.slice(1), '--confirm', inspection.identity]);
+      assert.equal(rejected.status, 1);
+      assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'START_BLOCKED');
+      const status = JSON.parse(f.run(['status', '--json']).stdout);
+      assert.equal(status.active, null);
+      assert.equal(status.lastComplete.run, f.previous.lastComplete.run);
+      assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
+      rmSync(join(f.project.root, path));
+      commit(f.project.root);
+    }
+  });
+});
+
+test('update identities bind unexpected durable bytes while excluding local state, caches, and dependencies', async t => {
+  for (const kind of ['standards', 'cli'] as const) await t.test(kind, async t => {
+    const f = await pendingUpdate(t, kind);
+    const args = ['inspect', ...f.startArgs.slice(1, -2)];
+    const before = JSON.parse(f.run(args).stdout);
+    for (const path of ['.repo-standards/local/noise.txt', '.repo-standards/cache/noise.txt', '.repo-standards/runtime/node_modules/noise.txt']) {
+      mkdirSync(dirname(join(f.project.root, path)), { recursive: true });
+      writeFileSync(join(f.project.root, path), 'Generated local material');
+    }
+    const ignored = JSON.parse(f.run(args).stdout);
+    assert.equal(ignored.start.eligible, true);
+    assert.equal(ignored.identity, before.identity);
+
+    // Keep Git status identical while changing an ignored durable file, so
+    // freshness must come from the product-state observation itself.
+    writeFileSync(join(f.project.root, '.git/info/exclude'), '.repo-standards/runtime/extra.txt\n');
+    const extra = join(f.project.root, '.repo-standards/runtime/extra.txt');
+    writeFileSync(extra, 'First unexpected bytes');
+    const first = JSON.parse(f.run(args).stdout);
+    assert.equal(first.start.eligible, false);
+    writeFileSync(extra, 'Changed unexpected bytes');
+    const changed = JSON.parse(f.run(args).stdout);
+    assert.notEqual(changed.identity, first.identity);
+    const stale = f.run(['start', ...args.slice(1), '--confirm', first.identity]);
+    assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_INSPECTION');
+    assert.equal(JSON.parse(f.run(['status', '--json']).stdout).active, null);
+    assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
+  });
 });
 
 test('both update paths run fixes, contextual assessment, and checks with only active declarations', async t => {

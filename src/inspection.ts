@@ -21,12 +21,13 @@ function content(path: string): Content {
   return { sha256: hash(bytes), executable: (lstatSync(path).mode & 0o111) !== 0, encoding, content: encoding === 'utf8' ? utf8 : bytes.toString('base64') };
 }
 
-export function observe(path: string): Observation {
+export function observe(path: string, excluded: ReadonlySet<string> = new Set()): Observation {
   try {
     const stat = lstatSync(path);
     if (stat.isSymbolicLink()) return { type: 'symlink', target: readlinkSync(path) };
     if (stat.isFile()) return { type: 'file', ...content(path) };
-    if (stat.isDirectory()) return { type: 'directory', entries: Object.fromEntries(readdirSync(path).sort().map(name => [name, observe(join(path, name))])) };
+    if (stat.isDirectory()) return { type: 'directory', entries: Object.fromEntries(readdirSync(path).sort()
+      .filter(name => !excluded.has(join(path, name))).map(name => [name, observe(join(path, name), excluded)])) };
     return { type: 'unsafe' };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { type: 'missing' };
@@ -58,7 +59,7 @@ export function hiddenIndexPaths(root: string) {
 // Validate the target and its ancestors while observing descendants without
 // following their links. Owned runtime trees validate those descendants against
 // npm's recorded inventory instead of the author-target no-symlink contract.
-export function targetBoundaryObservation(root: string, target: string, blockers: Blocker[]): Observation {
+export function targetBoundaryObservation(root: string, target: string, blockers: Blocker[], excluded?: ReadonlySet<string>): Observation {
   let parent = root;
   const parts = target.split('/');
   for (const [index, part] of parts.entries()) {
@@ -80,11 +81,11 @@ export function targetBoundaryObservation(root: string, target: string, blockers
       throw new ProductError('PROJECT_READ', `Cannot inspect target ${target}.`);
     }
   }
-  return observe(parent);
+  return observe(parent, excluded);
 }
 
-export function targetObservation(root: string, target: string, blockers: Blocker[]): Observation {
-  const observed = targetBoundaryObservation(root, target, blockers);
+export function targetObservation(root: string, target: string, blockers: Blocker[], excluded?: ReadonlySet<string>): Observation {
+  const observed = targetBoundaryObservation(root, target, blockers, excluded);
   if (observed.type === 'unsafe' || observed.type === 'missing') return observed;
   function unsafe(value: Observation): boolean {
     return value.type === 'symlink' || value.type === 'unsafe' || (value.type === 'directory' && Object.entries(value.entries).some(([name, child]) => name.toLowerCase() === '.git' || unsafe(child)));
@@ -128,6 +129,18 @@ function fileInventory(value: Observation): string[] {
   return result.sort();
 }
 
+function productStateObservation(root: string, blockers: Blocker[]) {
+  const excluded = new Set(['local', 'cache', 'runtime/node_modules'].map(path => join(root, '.repo-standards', path)));
+  return targetObservation(root, '.repo-standards', blockers, excluded);
+}
+
+export function productInventory(root: string): string[] {
+  const blockers: Blocker[] = [];
+  const observed = productStateObservation(root, blockers);
+  if (blockers.length) throw new ProductError('FINAL_INTEGRITY', 'Unsafe product state.', blockers);
+  return fileInventory(observed).map(path => `.repo-standards/${path}`);
+}
+
 export async function inspect(options: InspectOptions, cliVersion: string, retained?: Awaited<ReturnType<typeof acquireSource>> & { manifest: string; ownedSkills: ReadonlySet<string> }) {
   if (process.versions.node.split('.')[0] !== '24') throw new ProductError('NODE_REQUIRED', 'Node.js 24 is required. Select Node.js 24 with your version manager or install it from https://nodejs.org/en/download, then retry.');
   const npm = spawnSync('npm', ['--version'], { cwd: homedir(), encoding: 'utf8', timeout: 10_000 });
@@ -150,9 +163,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     for (const path of hidden) blockers.push({ code: 'HIDDEN_INDEX_STATE', path, message: 'Clear assume-unchanged or skip-worktree flags and reconcile local content before adoption; Git status may hide changes.' });
     const tracked = new Set(index.stdout.split('\0').filter(Boolean).map(entry => entry.slice(entry.indexOf('\t') + 1)));
     for (const entry of index.stdout.split('\0').filter(entry => entry.startsWith('160000 '))) blockers.push({ code: 'SUBMODULE_STATE', path: entry.slice(entry.indexOf('\t') + 1), message: 'Initial inspection cannot establish clean nested submodule state without running nested Git behavior.' });
-    const productState: Observation = previous ? { type: 'directory', entries: Object.fromEntries(
-      ['selection.yaml', 'lock.json', 'state.json', '.gitignore', 'inputs', 'runtime/package.json', 'runtime/package-lock.json']
-        .map(path => [path, targetObservation(root, `.repo-standards/${path}`, blockers)])) } : targetObservation(root, '.repo-standards', blockers);
+    const productState = previous ? productStateObservation(root, blockers) : targetObservation(root, '.repo-standards', blockers);
     const systemSkill = targetObservation(root, '.agents/skills/adopt-standards', blockers);
     if (!previous && productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
     if (systemSkill.type !== 'missing' && !previous) blockers.push({ code: 'SYSTEM_SKILL_CONFLICT', path: '.agents/skills/adopt-standards', message: 'Existing reserved system-skill content requires established product ownership.' });
@@ -187,10 +198,10 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
         const actual = targetObservation(root, path, blockers);
         if (actual.type !== 'file' || actual.sha256 !== expected.sha256 || actual.executable !== expected.executable) blockers.push({ code: 'STATE_INTEGRITY', path, message: 'Retained product material differs from its recorded baseline. Restore it before updating.' });
       }
-      const inputRoot = '.repo-standards/inputs';
-      const expectedInputs = Object.keys(previous.files).filter(path => path.startsWith(inputRoot + '/')).map(path => path.slice(inputRoot.length + 1)).sort();
-      if (JSON.stringify(fileInventory(targetObservation(root, inputRoot, blockers))) !== JSON.stringify(expectedInputs)) {
-        blockers.push({ code: 'STATE_INTEGRITY', path: inputRoot, message: 'The retained input inventory changed. Reconcile added or removed material before updating.' });
+      const expectedProductFiles = [...Object.keys(previous.files).filter(path => path.startsWith('.repo-standards/')), '.repo-standards/lock.json', '.repo-standards/state.json'].sort();
+      const actualProductFiles = fileInventory(productState).map(path => `.repo-standards/${path}`);
+      if (JSON.stringify(actualProductFiles) !== JSON.stringify(expectedProductFiles)) {
+        blockers.push({ code: 'STATE_INTEGRITY', path: '.repo-standards', message: 'The durable product-state inventory changed. Reconcile added or removed material before updating.' });
       }
     }
     const exact = [];

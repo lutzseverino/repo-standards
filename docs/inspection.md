@@ -118,6 +118,14 @@ declarations that will leave governance while their installed content remains
 in place. An unchanged retained inspection omits these update fields and is
 read-only.
 
+For an established selection, `project.productState` observes the full durable
+`.repo-standards/` tree, including unexpected files and their bytes. Inspection
+rejects additions or removals from its recorded file inventory before creating
+an adoption run. Only `.repo-standards/local/`, `.repo-standards/cache/`, and
+`.repo-standards/runtime/node_modules/` are excluded from this observation;
+equally named directories elsewhere remain part of durable state. Installation
+and final verification use the same inventory rules.
+
 File bytes use `encoding: utf8` when losslessly representable, otherwise
 `encoding: base64`. Whole-skill inventories include existing and supplied files.
 Matching exact files can be claimed without rewriting during adoption.

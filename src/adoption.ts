@@ -12,7 +12,7 @@ import { allowedTargets, execute, operations, preflight } from './execution.js';
 import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
 import { ProductError } from './errors.js';
-import { git, hiddenIndexPaths, inspect, observe, targetBoundaryObservation, targetObservation } from './inspection.js';
+import { git, hiddenIndexPaths, inspect, observe, productInventory, targetBoundaryObservation, targetObservation } from './inspection.js';
 import type { Blocker, Content, InspectOptions, Observation } from './inspection.js';
 import { decodeRecordedState } from './recorded-state.js';
 
@@ -166,16 +166,6 @@ function inventory(root: string, path: string) {
   const files: Files = Object.create(null);
   flatten(path, safe(root, path), files);
   return Object.keys(files).map(name => name.slice(path.length + 1)).sort();
-}
-
-function productInventory(root: string, path = '.repo-standards'): string[] {
-  return readdirSync(join(root, path)).sort().flatMap(name => {
-    const child = `${path}/${name}`;
-    if (['.repo-standards/local', '.repo-standards/cache', '.repo-standards/runtime/node_modules'].includes(child)) return [];
-    const stat = lstatSync(join(root, child));
-    if (stat.isSymbolicLink() || (!stat.isFile() && !stat.isDirectory())) throw new ProductError('FINAL_INTEGRITY', `Unsafe product state: ${child}.`);
-    return stat.isDirectory() ? productInventory(root, child) : [child];
-  });
 }
 
 function actualChanges(root: string, affected: Record<string, Observation>) {
