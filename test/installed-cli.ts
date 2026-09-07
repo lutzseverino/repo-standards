@@ -31,7 +31,7 @@ export function installCli() {
   }
 }
 
-export function sourceFixture(yaml: string, files: Record<string, string> = {}) {
+export function sourceFixture(yaml: string, files: Record<string, string | Buffer> = {}) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-source-')));
   execFileSync('git', ['init', '--quiet', root]);
   // Fixture commits must finish all writes before preservation snapshots begin.

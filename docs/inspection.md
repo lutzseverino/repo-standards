@@ -2,8 +2,8 @@
 
 Issue #3 delivers an installable CLI package and a standalone bootstrap. Public
 npm publication and published-installation verification belong to issue #11;
-the package is not yet published. Adoption, project runtime pins, and retained
-inputs follow in later tickets. This command implements initial inspection.
+the package is not yet published. Issue #4 adds
+[confirmed exact adoption, project runtime pins, and retained inspection](adoption.md).
 
 ## Obtain the CLI outside the adopting project
 
@@ -38,9 +38,15 @@ and invokes it. It never falls back to a different version. Each new invocation
 is a new selection; reuse the disclosed `--cli-version` to repeat it. Inspection
 records the invoked package and version.
 
-Installation uses an external temporary directory and npm cache, with lifecycle
-scripts disabled and the project's `.npmrc` out of scope. Normal completion or
-failure removes the temporary installation. The project's language, package
+Installation uses an external temporary directory and npm's configured cache,
+with lifecycle scripts disabled and the project's `.npmrc` out of scope. The
+cache is reused so an exact CLI version and its dependencies can be acquired
+when already cached, including with npm offline mode. The configured cache must
+resolve outside the project, and its `_cacache` content tree cannot contain
+symbolic links or the adopting project. Acquisition logs stay in temporary
+storage, even if the configured cache has a linked `_logs` directory. Normal
+completion or failure removes the temporary installation and logs while
+preserving the reusable cache. The project's language, package
 manager, dependency manifests, and content are unchanged. Do not redirect the
 report into the project if the entire invocation must leave it unchanged.
 
@@ -102,12 +108,13 @@ The report has format `repo-standards/inspection/v1`:
 | `guidance` | Guidance content and its explicit project paths or directory trees. |
 | `operations` | Ordered fixes and checks, literal arguments, script bytes, resource inventories, timeout, and declared prerequisite probe/range. |
 | `project` | Canonical project root, HEAD or null, Git status and index, affected content, and reserved product paths. |
-| `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. This ticket does not implement `start`. |
+| `inputs`, `manifest` | Selected source material and normalized single-profile metadata retained by adoption. |
+| `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Exact-only adoption also rejects contextual declarations and operations before mutation. |
 | `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
 
 File bytes use `encoding: utf8` when losslessly representable, otherwise
 `encoding: base64`. Whole-skill inventories include existing and supplied files.
-Matching exact files can be claimed without rewriting when adoption is available.
+Matching exact files can be claimed without rewriting during adoption.
 When an existing exact target conflicts with the supplied file/directory type,
 the replacement entry retains both complete root observations, including any
 directory inventory. The type conflict remains a start blocker.
@@ -120,7 +127,7 @@ Identity has no timestamp or random acquisition path. It binds the exact
 selection, resolved declarations and materials, project root, HEAD, index,
 Git status, affected bytes and executable state, and safety observations.
 Repeated unchanged inspection has the same identity; changes to bound inputs
-change it. It is evidence for a future freshness check, not mutation authorization.
+change it. `start --confirm` checks this identity after explicit maintainer confirmation.
 
 Known blockers include missing commits, dirty Git state, symlink or non-directory
 ancestors, special files, case-folded existing-path conflicts, file/directory type
@@ -131,8 +138,9 @@ Git assume-unchanged or skip-worktree flags also block eligibility because they
 can hide working-tree changes; clear those flags and reconcile content first.
 An existing skill conflicts even if its bytes match: this initial journey has
 no installed baseline establishing ownership. Existing product state or reserved
-system-skill content also blocks initial adoption. Established-project inspection
-and updates will use their own pins and baselines in later tickets. The resolver
+system-skill content also blocks initial adoption. Established projects can use
+`inspect --json` with their pinned CLI to inspect retained material; updates
+follow in a later ticket. The resolver
 rejects targets overlapping `.git`, `.repo-standards`, or `adopt-standards`.
 
 Exit status 0 means a report was produced, including reports with start blockers.
