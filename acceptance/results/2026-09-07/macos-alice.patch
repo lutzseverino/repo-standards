@@ -1,0 +1,76 @@
+diff --git a/README.md b/README.md
+index 8cec1fb..480bbb3 100644
+--- a/README.md
++++ b/README.md
+@@ -3,4 +3,4 @@
+-Bob's batch tool previews parcel dispatches for the warehouse shift.
+-It reads newline-delimited JSON from a file, skips already dispatched parcels
+-and prints dispatch records to stdout. It does not contact a carrier or persist
+-new dispatch state. Employer review rules are in CONTRIBUTING.md.
++Bob's batch tool previews parcel dispatches for the warehouse shift. It reads
++newline-delimited JSON from a file and prints one dispatch record per ready
++parcel to stdout. It does not contact a carrier or persist dispatch state.
++Employer review rules remain in [CONTRIBUTING.md](CONTRIBUTING.md).
+@@ -8 +8,40 @@ new dispatch state. Employer review rules are in CONTRIBUTING.md.
+-Run it with Node. Input examples live under test/.
++## Setup
++
++Install Node.js 24 (the version range declared in package.json). The tool has no
++package dependencies, so no dependency installation is needed for these commands.
++Run commands from the repository root.
++
++## Usage
++
++Preview the synthetic records shipped with the project:
++
++```sh
++npm run preview -- test/parcels.ndjson
++# Or, without npm's script banner:
++node src/cli.mjs test/parcels.ndjson
++```
++
++The sample contains `demo-101` with status `ready` and `demo-102` with status
++`dispatched`. The command emits this one JSON record:
++
++```json
++{"parcelId":"demo-101","action":"dispatch"}
++```
++
++Provide one JSON object per nonblank input line. Only status `ready` is selected;
++each ready parcel needs a nonempty string `id`. Other statuses are skipped.
++A missing filename prints usage and exits 2; unreadable files, malformed JSON
++and invalid ready IDs raise errors. This is a preview, not a durable queue:
++repeating the same input repeats the same output. Use synthetic examples;
++customer addresses must stay private under the employer policy.
++
++## Development
++
++```sh
++npm test
++```
++
++The two tests cover filtering ready parcels and rejecting a missing identifier.
++See [source responsibilities](src/README.md) for the CLI/data transformation
++boundary. Review production changes with the warehouse-platform owner; the
++release manager schedules carrier integration changes.
+diff --git a/src/README.md b/src/README.md
+new file mode 100644
+index 0000000..349d146
+--- /dev/null
++++ b/src/README.md
+@@ -0,0 +1,15 @@
++# Source responsibilities
++
++`cli.mjs` owns the file/terminal boundary: it reads the filename argument, reports
++missing-argument usage, loads newline-delimited JSON while ignoring blank lines,
++and serializes each preview to stdout.
++
++`dispatch.mjs` owns the transformation in `pendingDispatches`: select status
++`ready`, require a nonempty string identifier, then produce `{parcelId, action}`
++records. It performs no file, network or persistence work. Input order is retained.
++
++Data flows from the input file through CLI parsing into the transformation and
++back to stdout. `test/dispatch.test.mjs` exercises the transformation's selection
++and invalid-ID behavior; `test/parcels.ndjson` is the synthetic CLI example.
++Keep I/O in the entry point and selection rules in the transformation. Neither
++module marks parcels dispatched, so rerunning a file repeats its previews.

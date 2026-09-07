@@ -9,6 +9,8 @@ Alice's work profile guides Bob's parcel-preview tool, while Mira's service
 profile guides Harbor's Python HTTP service. These are synthetic publishers and
 projects, not claims about third-party production adoption.
 
+Recorded runs: [2026-09-07 macOS and Linux acceptance](results/2026-09-07/README.md).
+
 ## Prepare each supported operating system
 
 Use macOS and Linux with Node.js 24, npm, Git and Python >=3.12,<4. From a product

@@ -1,0 +1,45 @@
+diff --git a/docs/operations.md b/docs/operations.md
+index 57bd961..f0f25fe 100644
+--- a/docs/operations.md
++++ b/docs/operations.md
+@@ -4,0 +5,40 @@ has no authentication and must stay on loopback until a separate security review
++
++## Startup
++
++From the repository root, run `python3 service/server.py`. It uses only Python's
++standard library and listens on `127.0.0.1:8765`. Override the port explicitly
++when needed: `PORT=8876 python3 service/server.py`. Keep the process in a terminal
++and use Ctrl-C to stop it. A non-integer PORT or an occupied port prevents startup;
++check stderr and the intended port before retrying.
++
++## Health
++
++In another terminal, probe the same port:
++
++```sh
++curl --fail http://127.0.0.1:8765/health
++curl --fail -X POST http://127.0.0.1:8765/accept
++curl --fail http://127.0.0.1:8765/health
++```
++
++A fresh process returns `{"status": "ok", "accepted": 0}` from GET /health.
++POST /accept returns HTTP 204 and increments the in-memory counter; the next
++health response contains `accepted: 1`. These transitions were observed in a
++local probe with a temporary PORT. Unknown endpoint paths return 404 according
++to the handler. Connection refusal indicates no reachable listener at that
++address; an HTTP error means a response was received but the request failed.
++This health endpoint checks this process, not a downstream dependency or a
++production deployment.
++
++## Recovery
++
++Stop the process, inspect its stderr/configuration, and restart with the same
++startup command and intended PORT. Restart resets `accepted` to zero: this was
++verified by posting once and restarting a local process. There is no database,
++durable request log or replay mechanism here, so accepted counts cannot be
++recovered from the service after process loss. Escalate unexpected loss to the
++platform on-call engineer; do not describe restart as data recovery.
++
++`docs/operating-status.json` remains `{"status":"unverified"}`. These local
++checks and standards adoption do not authorize deployment; service owners must
++approve operational changes under CONTRIBUTING.md.

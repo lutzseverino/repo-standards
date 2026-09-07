@@ -1,0 +1,44 @@
+diff --git a/docs/operations.md b/docs/operations.md
+index 57bd961..3f657a4 100644
+--- a/docs/operations.md
++++ b/docs/operations.md
+@@ -4,0 +5,39 @@ has no authentication and must stay on loopback until a separate security review
++
++## Startup
++
++Run `python3 service/server.py` at the project root. The server uses Python's
++standard library and binds to 127.0.0.1, port 8765 by default. To choose another
++port, use `PORT=8876 python3 service/server.py` and adjust all probes accordingly.
++A nonnumeric PORT or a port already in use causes startup to fail; inspect the
++terminal's error output and resolve the configuration before starting again.
++
++## Health
++
++For the default port:
++
++```sh
++curl --fail http://127.0.0.1:8765/health
++curl --fail -X POST http://127.0.0.1:8765/accept
++curl --fail http://127.0.0.1:8765/health
++```
++
++A fresh GET /health responds with `{"status": "ok", "accepted": 0}`. One
++POST /accept returns 204 without a response body, and the next health response
++has `accepted: 1`. A Linux local probe observed that sequence using an available
++temporary port. The source returns 404 for unrecognized endpoint paths.
++Connection refusal means the expected listener is unavailable; HTTP errors
++require checking the requested endpoint and server logs. A successful health
++response only establishes that this process responds, not production readiness.
++
++## Recovery
++
++Use Ctrl-C to stop a foreground server. Inspect stderr, confirm the intended
++PORT and restart via the Startup command. The counter is a class variable in
++service/server.py, with no persistence layer. A local stop/restart after one
++POST reset `accepted` from 1 to 0. Restart therefore loses the count and cannot
++restore previously accepted requests; no backup or replay protocol exists here.
++Escalate unexpected data loss to the platform on-call engineer.
++
++Keep docs/operating-status.json at status `unverified`. Local probes do not
++verify a deployment. Service owners must approve operational changes, and
++adoption is not approval to deploy, as stated in CONTRIBUTING.md.

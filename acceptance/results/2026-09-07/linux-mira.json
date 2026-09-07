@@ -1,0 +1,179 @@
+{
+  "recordedDate": "2026-09-07",
+  "agent": "Codex interactive implementation agent; same agent on both OSes; synthetic fixtures authored in this task, non-blind evaluation",
+  "confirmation": {
+    "maintainerResponse": "Confirm all four inspections",
+    "channel": "Implementation conversation, after full linked inspections and trusted-operation disclosure",
+    "identity": "sha256:85688f954e766ef0914f402e80836dd3c9be2468c2f9c4929eb3a0d7a4308435"
+  },
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.0.0"
+    },
+    "standards": {
+      "repository": "https://github.com/mira/standards",
+      "version": "v1.0.0",
+      "commit": "4e7458623d2157b094cf0710f6f3dac4b34d7aef"
+    },
+    "profile": "service"
+  },
+  "handoff": {
+    "id": "713a8a73-3972-4f32-a6d2-2223b6d43d95",
+    "outcome": "incomplete",
+    "phase": "contextual",
+    "reason": "CONTEXTUAL_REQUIRED: Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run."
+  },
+  "initialSnapshot": "sha256:8526d5ac6b9bb4d1537597ccc7cc5d1013b8e641433277141c9f01c758df8ec2",
+  "assessment": {
+    "format": "repo-standards/assessment/v1",
+    "run": "713a8a73-3972-4f32-a6d2-2223b6d43d95",
+    "selection": "sha256:74e93b65453204698f11f51590e0075d70bbc4342a3fd05629e5fbe47043b0e6",
+    "snapshot": "sha256:b44902dbea29540f5f63c1462a0f2fe5e3550d802db389d3029d9716813f596b",
+    "declarations": [
+      {
+        "id": "operations-guide",
+        "status": "satisfied",
+        "explanation": "The Harbor runbook now contains actionable startup, health and recovery instructions grounded in the actual Python server and a local process probe; deployment status and employer ownership remain unchanged.",
+        "changedPaths": [
+          "docs/operations.md"
+        ],
+        "evidence": [
+          "Read service/server.py: HTTPServer binds to 127.0.0.1, uses PORT or 8765, implements GET /health and POST /accept, and stores accepted only in a class variable.",
+          "On linux ran python3 service/server.py with PORT=59391: initial GET /health returned status ok and accepted 0; POST /accept returned 204; next health returned accepted 1.",
+          "Stopped and restarted that local service: GET /health returned accepted 0. Recovery states there is no durable log, backup or replay and does not claim restart recovers data.",
+          "Retained the pre-existing loopback/no-authentication warning and platform on-call escalation. docs/operating-status.json remains unverified from the declared fix; it was not a contextual edit. CONTRIBUTING.md bytes were preserved."
+        ]
+      }
+    ]
+  },
+  "completion": {
+    "outcome": "complete",
+    "phase": "complete",
+    "reason": "Exact installation, fixes, contextual assessment where required, checks, runtime, retained inputs and durable state verified.",
+    "operations": [
+      {
+        "operation": {
+          "declaration": "operations-guide",
+          "phase": "fixes",
+          "id": "initialize-status"
+        },
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        },
+        "result": {
+          "format": "repo-standards/result/v1",
+          "status": "changed",
+          "message": "Initialized operating status without claiming deployment verification."
+        },
+        "error": null,
+        "stdout": ".repo-standards/local/operations/0.stdout",
+        "stderr": ".repo-standards/local/operations/0.stderr"
+      },
+      {
+        "operation": {
+          "declaration": "operations-guide",
+          "phase": "checks",
+          "id": "operational-evidence"
+        },
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        },
+        "result": {
+          "format": "repo-standards/result/v1",
+          "status": "passed",
+          "message": "Runbook sections are present; deployment remains unverified."
+        },
+        "error": null,
+        "stdout": ".repo-standards/local/operations/1.stdout",
+        "stderr": ".repo-standards/local/operations/1.stderr"
+      }
+    ],
+    "uncertain": [],
+    "nextAction": "Review and commit the uncommitted adoption changes through the project\u2019s normal workflow."
+  },
+  "status": {
+    "lastComplete": {
+      "run": "713a8a73-3972-4f32-a6d2-2223b6d43d95",
+      "inspection": "sha256:85688f954e766ef0914f402e80836dd3c9be2468c2f9c4929eb3a0d7a4308435",
+      "completedAt": "2026-09-07T18:46:09.237Z",
+      "head": "447e61c965275bc39f9de8fdafd1debedc6ac955"
+    },
+    "skills": {
+      ".agents/skills/adopt-standards": [
+        "SKILL.md"
+      ]
+    },
+    "active": null,
+    "evidence": "historical"
+  },
+  "statusAssessmentMatchesSubmission": true,
+  "statusChecksMatchFinalOperations": true,
+  "preservation": {
+    "platform": "linux",
+    "architecture": "arm64",
+    "node": "v24.11.1",
+    "npm": "11.6.2",
+    "python": "Python 3.13.5",
+    "initialHead": "447e61c965275bc39f9de8fdafd1debedc6ac955",
+    "finalHead": "447e61c965275bc39f9de8fdafd1debedc6ac955",
+    "indexDiff": "",
+    "uncommittedChanges": [
+      "M docs/operations.md",
+      "?? .agents/skills/adopt-standards/SKILL.md",
+      "?? .editorconfig",
+      "?? .repo-standards/.gitignore",
+      "?? .repo-standards/inputs/metadata.json",
+      "?? .repo-standards/inputs/resolved.json",
+      "?? .repo-standards/inputs/source/files/editorconfig",
+      "?? .repo-standards/inputs/source/guidance/operations.md",
+      "?? .repo-standards/inputs/source/operations/check-operations.mjs",
+      "?? .repo-standards/inputs/source/operations/initialize-status.mjs",
+      "?? .repo-standards/inputs/source/operations/required-sections.json",
+      "?? .repo-standards/inputs/standards.yaml",
+      "?? .repo-standards/lock.json",
+      "?? .repo-standards/runtime/package-lock.json",
+      "?? .repo-standards/runtime/package.json",
+      "?? .repo-standards/selection.yaml",
+      "?? .repo-standards/state.json",
+      "?? docs/operating-status.json"
+    ],
+    "employerContribution": {
+      "before": "e25901df8bed9248d2e45179bdf3e99d29120dff97752d040b43b403a4247431",
+      "after": "e25901df8bed9248d2e45179bdf3e99d29120dff97752d040b43b403a4247431"
+    },
+    "systemSkill": {
+      "installed": "e841860e8271226814ef4ca25bf9aa7b891739da044991b00b39db0d3704fa38",
+      "packaged": "e841860e8271226814ef4ca25bf9aa7b891739da044991b00b39db0d3704fa38"
+    },
+    "packageTarballSha256": "8fc1c84871015c6082c977a0bbef8adc8828cb7458ed45c8441e9e7d801b3e7d",
+    "installedExact": {
+      ".editorconfig": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+      "docs/operating-status.json": "{\n  \"status\": \"unverified\"\n}\n"
+    },
+    "indexMatchesInspection": true
+  },
+  "localProbe": {
+    "command": "python3 service/server.py",
+    "PORT": 59391,
+    "initialHealth": {
+      "status": "ok",
+      "accepted": 0
+    },
+    "acceptHttpStatus": 204,
+    "afterAccept": {
+      "status": "ok",
+      "accepted": 1
+    },
+    "afterRestart": {
+      "status": "ok",
+      "accepted": 0
+    }
+  }
+}
