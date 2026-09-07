@@ -3,14 +3,14 @@ import { readFileSync } from 'node:fs';
 import { validateSource } from './resolver.js';
 import { inspect } from './inspection.js';
 import { ProductError } from './errors.js';
-import { abandon, inspectRetained, resume, start, status } from './adoption.js';
+import { abandon, inspectRetained, resume, start, startRetained, status } from './adoption.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
 const args = process.argv.slice(2);
 if (args.length === 1 && args[0] === '--version') {
   console.log(version);
 } else if (args.length === 0 || (args.length === 1 && args[0] === '--help')) {
-  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards inspect [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json]\n       repo-standards start --source <GitHub URL> --standards-version <tag> --profile <name> --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json]\n\nInspection without source flags uses the current retained selection. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report.');
+  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards inspect [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json]\n       repo-standards start [--source <GitHub URL> --standards-version <tag> --profile <name>] --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json]\n\nUse the pinned CLI with source flags for a standards update. Use a candidate exact CLI without source flags for a CLI update from retained standards. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report.');
 } else if (args[0] === 'inspect' || args[0] === 'start' || args[0] === 'status' || args[0] === 'resume' || args[0] === 'abandon') {
   try {
     const flags = new Map<string, string>();
@@ -21,11 +21,13 @@ if (args.length === 1 && args[0] === '--version') {
       flags.set(key, args[++index]!);
     }
     if (flags.has('--retry') && flags.has('--assessment')) throw new ProductError('USAGE', 'Retry requests renewed contextual work; submit assessment separately after retry.');
-    const retained = args[0] === 'inspect' && !['--source', '--standards-version', '--profile'].some(key => flags.has(key));
-    if (!['status', 'resume', 'abandon'].includes(args[0]!) && !retained) for (const key of ['--source', '--standards-version', '--profile']) if (!flags.has(key)) throw new ProductError('USAGE', `Missing ${key}. Use --help.`);
+    const selectionKeys = ['--source', '--standards-version', '--profile'];
+    const selectionCount = selectionKeys.filter(key => flags.has(key)).length;
+    const retained = ['inspect', 'start'].includes(args[0]!) && selectionCount === 0;
+    if (['inspect', 'start'].includes(args[0]!) && selectionCount !== 0 && selectionCount !== selectionKeys.length) throw new ProductError('USAGE', 'Provide --source, --standards-version and --profile together, or omit all three to use retained standards.');
     if (args[0] === 'start' && !flags.has('--confirm')) throw new ProductError('CONFIRMATION_REQUIRED', 'Inspect the selection, review its changes, and pass its identity with --confirm <identity> after explicit maintainer confirmation.');
     const options = { source: flags.get('--source')!, standardsVersion: flags.get('--standards-version')!, profile: flags.get('--profile')!, project: flags.get('--project') ?? '.' };
-    const report = args[0] === 'abandon' ? abandon(options.project, version) : args[0] === 'resume' ? await resume(options.project, version, flags.get('--assessment'), flags.has('--retry')) : args[0] === 'status' ? status(options.project) : args[0] === 'start' ? await start(options, version, flags.get('--confirm')!) : retained ? await inspectRetained(options.project, version) : await inspect(options, version);
+    const report = args[0] === 'abandon' ? abandon(options.project, version) : args[0] === 'resume' ? await resume(options.project, version, flags.get('--assessment'), flags.has('--retry')) : args[0] === 'status' ? status(options.project) : args[0] === 'start' ? retained ? await startRetained(options.project, version, flags.get('--confirm')!) : await start(options, version, flags.get('--confirm')!) : retained ? await inspectRetained(options.project, version) : await inspect(options, version);
     console.log(JSON.stringify(report, null, 2));
     if ('outcome' in report && report.outcome === 'incomplete') process.exitCode = 1;
   } catch (error) {
