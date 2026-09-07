@@ -9,7 +9,7 @@ import { externalPath, hash } from './acquisition.js';
 import { execute, operations, preflight } from './execution.js';
 import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { ProductError } from './errors.js';
-import { git, inspect, observe, targetObservation } from './inspection.js';
+import { git, hiddenIndexPaths, inspect, observe, targetObservation } from './inspection.js';
 import type { Blocker, Content, InspectOptions, Observation } from './inspection.js';
 
 type Inspection = Awaited<ReturnType<typeof inspect>>;
@@ -273,6 +273,8 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
       for (const [path, expected] of Object.entries(skills)) if (json(inventory(root, path)) !== json(expected)) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
       if (json(inventory(root, '.repo-standards/inputs')) !== json(Object.keys(inputs).map(path => path.slice('.repo-standards/inputs/'.length)).sort())) throw new ProductError('FINAL_INTEGRITY', 'Retained input inventory changed.');
       if (git(root, ['rev-parse', 'HEAD']).stdout.trim() !== report.project.head || git(root, ['ls-files', '--stage', '-z']).stdout !== report.project.index) throw new ProductError('FINAL_INTEGRITY', 'HEAD or the index changed during adoption.');
+      const hidden = hiddenIndexPaths(root);
+      if (json(hidden) !== json(report.project.hidden)) throw new ProductError('FINAL_INTEGRITY', `The hidden index flags changed during adoption: ${hidden.join(', ')}. Reconcile skip-worktree and assume-unchanged flags before recovery.`);
       verifyCommittable(root, [...Object.keys(files), '.repo-standards/state.json']);
     }
     verifyInstalled();

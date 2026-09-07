@@ -47,6 +47,12 @@ export function git(project: string, args: string[], input?: string) {
   return result;
 }
 
+export function hiddenIndexPaths(root: string) {
+  const flags = git(root, ['ls-files', '-v', '-z']);
+  if (flags.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot inspect Git index flags.');
+  return flags.stdout.split('\0').filter(entry => /^[a-zS] /.test(entry)).map(entry => entry.slice(2));
+}
+
 export function targetObservation(root: string, target: string, blockers: Blocker[]): Observation {
   let parent = root;
   const parts = target.split('/');
@@ -96,9 +102,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     if (status.stdout) blockers.push({ code: 'DIRTY_PROJECT', message: 'Commit or reconcile all index, working tree, and untracked changes before starting adoption.' });
     const index = git(root, ['ls-files', '--stage', '-z']);
     if (index.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot inspect the Git index.');
-    const flags = git(root, ['ls-files', '-v', '-z']);
-    if (flags.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot inspect Git index flags.');
-    const hidden = flags.stdout.split('\0').filter(entry => /^[a-zS] /.test(entry)).map(entry => entry.slice(2));
+    const hidden = hiddenIndexPaths(root);
     for (const path of hidden) blockers.push({ code: 'HIDDEN_INDEX_STATE', path, message: 'Clear assume-unchanged or skip-worktree flags and reconcile local content before adoption; Git status may hide changes.' });
     const tracked = new Set(index.stdout.split('\0').filter(Boolean).map(entry => entry.slice(entry.indexOf('\t') + 1)));
     for (const entry of index.stdout.split('\0').filter(entry => entry.startsWith('160000 '))) blockers.push({ code: 'SUBMODULE_STATE', path: entry.slice(entry.indexOf('\t') + 1), message: 'Initial inspection cannot establish clean nested submodule state without running nested Git behavior.' });

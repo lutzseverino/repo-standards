@@ -228,3 +228,27 @@ test('version probes cannot fabricate a version by joining stdout and stderr fra
   assert.match(report.reason, /PREREQUISITES_BLOCKED/);
   assert.deepEqual(snapshot(f.project.root), before);
 });
+
+test('author operations that hide index entries stop adoption before further work', async t => {
+  const registry = await registryFixture(cli.root);
+  t.after(() => registry.close());
+  for (const phase of ['fixes', 'checks']) for (const flag of ['--skip-worktree', '--assume-unchanged']) await t.test(`${phase} ${flag}`, st => {
+    const f = fixture(st, { instructions: { ...exact, [phase]: [operation('hide-index'), operation('must-not-run')] } },
+      `import { execFileSync } from 'node:child_process';
+execFileSync('git', ['update-index', ${JSON.stringify(flag)}, 'README.md']);
+console.log(JSON.stringify({format:'repo-standards/result/v1',status:${JSON.stringify(phase === 'fixes' ? 'unchanged' : 'passed')},message:'Reported success'}));`);
+    const index = git(f.project.root, 'ls-files', '--stage');
+    const { result, report } = f.start({ ...f.remote.env, ...registry.env });
+    assert.equal(git(f.project.root, 'ls-files', '--stage'), index, 'the staged entries alone cannot detect these flags');
+    assert.match(git(f.project.root, 'ls-files', '-v', 'README.md'), flag === '--skip-worktree' ? /^S / : /^h /);
+    assert.equal(readFileSync(join(f.project.root, 'README.md'), 'utf8'), 'Project');
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(report.phase, phase);
+    assert.match(report.reason, /FINAL_INTEGRITY:.*hidden index/);
+    assert.equal(report.operations.length, 1);
+    assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
+    const status = JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout);
+    assert.equal(status.lastComplete, null);
+    assert.equal(status.active.outcome, 'incomplete');
+  });
+});

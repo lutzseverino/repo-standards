@@ -107,7 +107,8 @@ non-ignored untracked content before and after each check, independently of
 whether adoption already dirtied the working tree. It also verifies exact bytes
 and executable state, whole skill inventories, retained inputs, runtime files,
 product state, HEAD and the index against installation expectations after each
-operation. Unexpected changes are preserved and adoption remains incomplete;
+operation. Index verification includes skip-worktree and assume-unchanged flags
+that can conceal later edits from Git status. Unexpected changes are preserved and adoption remains incomplete;
 they cannot redefine the installed baseline. Altered local run-report bytes are
 preserved beside the operation logs before the incomplete report is saved.
 
