@@ -3,25 +3,30 @@ import { readFileSync } from 'node:fs';
 import { validateSource } from './resolver.js';
 import { inspect } from './inspection.js';
 import { ProductError } from './errors.js';
+import { inspectRetained, start, status } from './adoption.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
 const args = process.argv.slice(2);
 if (args.length === 1 && args[0] === '--version') {
   console.log(version);
 } else if (args.length === 0 || (args.length === 1 && args[0] === '--help')) {
-  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards inspect --source <GitHub URL> --standards-version <tag> --profile <name> [--project <directory>] [--json]');
-} else if (args[0] === 'inspect') {
+  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards inspect [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json]\n       repo-standards start --source <GitHub URL> --standards-version <tag> --profile <name> --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json]\n\nInspection without source flags uses the current retained selection. Start supports initial exact-only adoption.');
+} else if (args[0] === 'inspect' || args[0] === 'start' || args[0] === 'status') {
   try {
     const flags = new Map<string, string>();
     for (let index = 1; index < args.length; index++) {
       const key = args[index]!;
       if (key === '--json' && !flags.has(key)) { flags.set(key, 'true'); continue; }
-      if (!['--source', '--standards-version', '--profile', '--project'].includes(key) || flags.has(key) || !args[index + 1] || args[index + 1]!.startsWith('--')) throw new ProductError('USAGE', `Unknown, duplicate, or incomplete option: ${key}. Use --help.`);
+      if (!['--project', ...(args[0] === 'status' ? [] : ['--source', '--standards-version', '--profile']), ...(args[0] === 'start' ? ['--confirm'] : [])].includes(key) || flags.has(key) || !args[index + 1] || args[index + 1]!.startsWith('--')) throw new ProductError('USAGE', `Unknown, duplicate, or incomplete option: ${key}. Use --help.`);
       flags.set(key, args[++index]!);
     }
-    for (const key of ['--source', '--standards-version', '--profile']) if (!flags.has(key)) throw new ProductError('USAGE', `Missing ${key}. Use --help.`);
-    const report = await inspect({ source: flags.get('--source')!, standardsVersion: flags.get('--standards-version')!, profile: flags.get('--profile')!, project: flags.get('--project') ?? '.' }, version);
+    const retained = args[0] === 'inspect' && !['--source', '--standards-version', '--profile'].some(key => flags.has(key));
+    if (args[0] !== 'status' && !retained) for (const key of ['--source', '--standards-version', '--profile']) if (!flags.has(key)) throw new ProductError('USAGE', `Missing ${key}. Use --help.`);
+    if (args[0] === 'start' && !flags.has('--confirm')) throw new ProductError('CONFIRMATION_REQUIRED', 'Inspect the selection, review its changes, and pass its identity with --confirm <identity> after explicit maintainer confirmation.');
+    const options = { source: flags.get('--source')!, standardsVersion: flags.get('--standards-version')!, profile: flags.get('--profile')!, project: flags.get('--project') ?? '.' };
+    const report = args[0] === 'status' ? status(options.project) : args[0] === 'start' ? await start(options, version, flags.get('--confirm')!) : retained ? await inspectRetained(options.project, version) : await inspect(options, version);
     console.log(JSON.stringify(report, null, 2));
+    if ('outcome' in report && report.outcome === 'incomplete') process.exitCode = 1;
   } catch (error) {
     const diagnostic = error instanceof ProductError ? { code: error.code, message: error.message, ...(error.details === undefined ? {} : { details: error.details }) } : { code: 'INSPECTION_FAILED', message: (error as Error).message };
     if (args.includes('--json')) console.log(JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2));

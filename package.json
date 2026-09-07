@@ -11,6 +11,8 @@
   "files": [
     "dist",
     "bootstrap",
+    "skills",
+    "docs/adoption.md",
     "docs/author-format.md",
     "docs/inspection.md"
   ],

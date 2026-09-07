@@ -6,10 +6,11 @@ import { foldPath } from './paths.js';
 import { acquireSource, hash } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { validateSource } from './resolver.js';
+import { stringify } from 'yaml';
 
-interface Blocker { code: string; message: string; path?: string }
-interface Content { sha256: string; executable: boolean; encoding: 'utf8' | 'base64'; content: string }
-type Observation = { type: 'missing' } | ({ type: 'file' } & Content) | { type: 'directory'; entries: Record<string, Observation> } | { type: 'symlink'; target: string } | { type: 'unsafe'; obstacles?: Record<string, Observation> };
+export interface Blocker { code: string; message: string; path?: string }
+export interface Content { sha256: string; executable: boolean; encoding: 'utf8' | 'base64'; content: string }
+export type Observation = { type: 'missing' } | ({ type: 'file' } & Content) | { type: 'directory'; entries: Record<string, Observation> } | { type: 'symlink'; target: string } | { type: 'unsafe'; obstacles?: Record<string, Observation> };
 
 function content(path: string): Content {
   const bytes = readFileSync(path);
@@ -18,7 +19,7 @@ function content(path: string): Content {
   return { sha256: hash(bytes), executable: (lstatSync(path).mode & 0o111) !== 0, encoding, content: encoding === 'utf8' ? utf8 : bytes.toString('base64') };
 }
 
-function observe(path: string): Observation {
+export function observe(path: string): Observation {
   try {
     const stat = lstatSync(path);
     if (stat.isSymbolicLink()) return { type: 'symlink', target: readlinkSync(path) };
@@ -31,9 +32,9 @@ function observe(path: string): Observation {
   }
 }
 
-function git(project: string, args: string[]) {
+export function git(project: string, args: string[], input?: string) {
   const base = ['--no-optional-locks', '-c', 'core.fsmonitor=false', '-C', project];
-  const options = { encoding: 'utf8' as const, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' }, maxBuffer: 32 * 1024 * 1024 };
+  const options = { encoding: 'utf8' as const, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' }, maxBuffer: 32 * 1024 * 1024, ...(input === undefined ? {} : { input }) };
   if (args[0] === 'status') {
     // Status can run clean/process filters while refreshing tracked-file hashes.
     // Ask only for configuration names; never execute repository filter commands.
@@ -46,7 +47,7 @@ function git(project: string, args: string[]) {
   return result;
 }
 
-function targetObservation(root: string, target: string, blockers: Blocker[]): Observation {
+export function targetObservation(root: string, target: string, blockers: Blocker[]): Observation {
   let parent = root;
   const parts = target.split('/');
   for (const [index, part] of parts.entries()) {
@@ -76,34 +77,38 @@ function targetObservation(root: string, target: string, blockers: Blocker[]): O
   return observed;
 }
 
-export async function inspect(options: { source: string; standardsVersion: string; profile: string; project: string }, cliVersion: string) {
+export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string }
+
+export async function inspect(options: InspectOptions, cliVersion: string, retained?: Awaited<ReturnType<typeof acquireSource>> & { manifest: string; ownedSkills: ReadonlySet<string> }) {
   if (process.versions.node.split('.')[0] !== '24') throw new ProductError('NODE_REQUIRED', 'Node.js 24 is required. Select Node.js 24 with your version manager or install it from https://nodejs.org/en/download, then retry.');
   const npm = spawnSync('npm', ['--version'], { cwd: homedir(), encoding: 'utf8', timeout: 10_000 });
   if (npm.error || npm.status !== 0 || !/^\d+\.\d+\.\d+/.test(npm.stdout.trim())) throw new ProductError('NPM_REQUIRED', 'npm is required. Reinstall the npm bundled with Node.js 24 from https://nodejs.org/en/download and ensure npm is on PATH.');
   const location = git(resolve(options.project), ['rev-parse', '--show-toplevel']);
   if (location.status !== 0) throw new ProductError('GIT_REQUIRED', 'Inspection requires a Git working tree. Run git init in your project first.');
   const root = realpathSync(location.stdout.trim());
-  const head = git(root, ['rev-parse', '--verify', 'HEAD']);
-  const status = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignore-submodules=all']);
-  if (status.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot inspect Git status.');
-  const blockers: Blocker[] = [];
-  if (head.status !== 0) blockers.push({ code: 'NO_COMMIT', message: 'Create an initial commit before starting adoption.' });
-  if (status.stdout) blockers.push({ code: 'DIRTY_PROJECT', message: 'Commit or reconcile all index, working tree, and untracked changes before starting adoption.' });
-  const index = git(root, ['ls-files', '--stage', '-z']);
-  if (index.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot inspect the Git index.');
-  const flags = git(root, ['ls-files', '-v', '-z']);
-  if (flags.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot inspect Git index flags.');
-  const hidden = flags.stdout.split('\0').filter(entry => /^[a-zS] /.test(entry)).map(entry => entry.slice(2));
-  for (const path of hidden) blockers.push({ code: 'HIDDEN_INDEX_STATE', path, message: 'Clear assume-unchanged or skip-worktree flags and reconcile local content before adoption; Git status may hide changes.' });
-  const tracked = new Set(index.stdout.split('\0').filter(Boolean).map(entry => entry.slice(entry.indexOf('\t') + 1)));
-  for (const entry of index.stdout.split('\0').filter(entry => entry.startsWith('160000 '))) blockers.push({ code: 'SUBMODULE_STATE', path: entry.slice(entry.indexOf('\t') + 1), message: 'Initial inspection cannot establish clean nested submodule state without running nested Git behavior.' });
-  const productState = targetObservation(root, '.repo-standards', blockers);
-  const systemSkill = targetObservation(root, '.agents/skills/adopt-standards', blockers);
-  if (productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'This first-inspection command cannot establish ownership for existing product state. Use the project-pinned CLI when adoption support is available.' });
-  if (systemSkill.type !== 'missing') blockers.push({ code: 'SYSTEM_SKILL_CONFLICT', path: '.agents/skills/adopt-standards', message: 'Existing reserved system-skill content requires established product ownership.' });
-  const source = await acquireSource(options.source, options.standardsVersion, root);
+  const source = retained ?? await acquireSource(options.source, options.standardsVersion, root);
   try {
-    const validation = validateSource(source.root, cliVersion, source.paths);
+    const head = git(root, ['rev-parse', '--verify', 'HEAD']);
+    const status = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignore-submodules=all']);
+    if (status.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot inspect Git status.');
+    const blockers: Blocker[] = [];
+    if (head.status !== 0) blockers.push({ code: 'NO_COMMIT', message: 'Create an initial commit before starting adoption.' });
+    if (status.stdout) blockers.push({ code: 'DIRTY_PROJECT', message: 'Commit or reconcile all index, working tree, and untracked changes before starting adoption.' });
+    const index = git(root, ['ls-files', '--stage', '-z']);
+    if (index.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot inspect the Git index.');
+    const flags = git(root, ['ls-files', '-v', '-z']);
+    if (flags.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot inspect Git index flags.');
+    const hidden = flags.stdout.split('\0').filter(entry => /^[a-zS] /.test(entry)).map(entry => entry.slice(2));
+    for (const path of hidden) blockers.push({ code: 'HIDDEN_INDEX_STATE', path, message: 'Clear assume-unchanged or skip-worktree flags and reconcile local content before adoption; Git status may hide changes.' });
+    const tracked = new Set(index.stdout.split('\0').filter(Boolean).map(entry => entry.slice(entry.indexOf('\t') + 1)));
+    for (const entry of index.stdout.split('\0').filter(entry => entry.startsWith('160000 '))) blockers.push({ code: 'SUBMODULE_STATE', path: entry.slice(entry.indexOf('\t') + 1), message: 'Initial inspection cannot establish clean nested submodule state without running nested Git behavior.' });
+    const productState: Observation = retained ? { type: 'directory', entries: Object.fromEntries(
+      ['selection.yaml', 'lock.json', 'state.json', '.gitignore', 'inputs', 'runtime/package.json', 'runtime/package-lock.json']
+        .map(path => [path, targetObservation(root, `.repo-standards/${path}`, blockers)])) } : targetObservation(root, '.repo-standards', blockers);
+    const systemSkill = targetObservation(root, '.agents/skills/adopt-standards', blockers);
+    if (productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: retained ? 'The current retained selection is inspectable. This CLI slice supports initial adoption only; updates require a later slice.' : 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
+    if (systemSkill.type !== 'missing' && !retained) blockers.push({ code: 'SYSTEM_SKILL_CONFLICT', path: '.agents/skills/adopt-standards', message: 'Existing reserved system-skill content requires established product ownership.' });
+    const validation = validateSource(source.root, cliVersion, source.paths, retained?.manifest);
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
     const resolved = validation.profiles[options.profile];
     if (!resolved) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
@@ -123,7 +128,7 @@ export async function inspect(options: { source: string; standardsVersion: strin
         const target = targets[0]!;
         const desired = observe(join(source.root, declaration.kind === 'skill' ? declaration.source : declaration.exact));
         const current = affected[target]!;
-        if (declaration.kind === 'skill' && current.type !== 'missing') blockers.push({ code: 'SKILL_CONFLICT', path: target, message: 'An existing skill has no established installed baseline for this selection. Reconcile the unrelated skill before adoption.' });
+        if (declaration.kind === 'skill' && current.type !== 'missing' && !retained?.ownedSkills.has(target)) blockers.push({ code: 'SKILL_CONFLICT', path: target, message: 'An existing skill has no established installed baseline for this selection. Reconcile the unrelated skill before adoption.' });
         function checkTracked(path: string, value: Observation) {
           if (value.type === 'directory') {
             if (Object.keys(value.entries).length === 0) blockers.push({ code: 'UNTRACKED_REPLACEMENT', path, message: 'An existing empty directory has no recoverable Git baseline.' });
@@ -155,10 +160,22 @@ export async function inspect(options: { source: string; standardsVersion: strin
         });
       }
     }
+    // Retain a normalized source with only the selected profile. The resolver
+    // remains the sole interpreter when this source is used in a fresh checkout.
+    const inputs: Record<string, Observation> = Object.create(null);
+    const normalized = stringify({ ...validation.source, defaults: { declarations: {} }, profiles: {
+      [options.profile]: { description: resolved.description, declarations: Object.fromEntries(resolved.declarations.map(({ id, ...declaration }) => [id, declaration])) },
+    } });
+    for (const declaration of resolved.declarations) {
+      const paths = [declaration.kind === 'skill' ? declaration.source : 'exact' in declaration ? declaration.exact : declaration.guidance,
+        ...[...declaration.fixes, ...declaration.checks].flatMap(operation => [operation.run.script, ...operation.run.resources])];
+      for (const path of paths) inputs[path] = observe(join(source.root, path));
+    }
+    for (const name of readdirSync(source.root).sort()) if (/^licen[sc]e(?:[.-].*)?$/i.test(name)) inputs[name] = observe(join(source.root, name));
     const report = {
       format: 'repo-standards/inspection/v1',
       selection: { cli: { package: '@lutzseverino/repo-standards', version: cliVersion }, standards: source.identity, profile: options.profile },
-      source: validation.source, resolved, exact, guidance, operations,
+      source: validation.source, resolved, exact, guidance, operations, inputs, manifest: normalized,
       project: { root, head: head.status === 0 ? head.stdout.trim() : null, status: status.stdout, index: index.stdout, hidden, affected, productState, systemSkill },
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
     };
