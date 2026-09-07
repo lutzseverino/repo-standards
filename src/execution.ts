@@ -15,8 +15,15 @@ export async function preflight(root: string, resolved: ResolvedProfile): Promis
   const evidence: PrerequisiteEvidence[] = [];
   for (const { declaration, phase, operation } of [...operations(resolved, 'fixes'), ...operations(resolved, 'checks')]) {
     const result = await invoke(operation.run.executable, operation.prerequisite['version-arguments'], root, operation['timeout-seconds'], '');
-    const token = result.output.match(/(?<![\w.])v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)(?![\w.])/);
-    const version = token ? semver.valid(token[1]) : null;
+    const candidates = (['stdout', 'stderr'] as const).flatMap(stream => {
+      const token = result[stream].match(/(?<![\w.])v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)(?![\w.])/);
+      if (!token) return [];
+      const end = Buffer.byteLength(result[stream].slice(0, token.index! + token[0].length));
+      let bytes = 0;
+      const event = result.output.findIndex(chunk => chunk.stream === stream && (bytes += chunk.bytes) >= end);
+      return [{ version: semver.valid(token[1]), event }];
+    });
+    const version = candidates.sort((a, b) => a.event - b.event)[0]?.version ?? null;
     const code = result.outcome.error === 'ENOENT' ? 'EXECUTABLE_MISSING'
       : result.outcome.error || result.outcome.timedOut || result.outcome.signal || result.outcome.exitCode !== 0 ? 'PROBE_FAILED'
       : !version ? 'VERSION_UNREADABLE'
@@ -63,12 +70,12 @@ export async function execute(root: string, selected: SelectedOperation, selecti
 // Use a process group so a timed-out interpreter and its children cannot keep
 // adoption waiting on inherited pipes. Author processes still have host access.
 function invoke(executable: string, args: string[], cwd: string, seconds: number, input: string) {
-  return new Promise<{ outcome: OperationEvidence['process']; stdout: string; stderr: string; output: string }>(resolve => {
+  return new Promise<{ outcome: OperationEvidence['process']; stdout: string; stderr: string; output: { stream: 'stdout' | 'stderr'; bytes: number }[] }>(resolve => {
     const child = spawn(executable, args, { cwd, detached: true, stdio: ['pipe', 'pipe', 'pipe'] });
     const outcome: OperationEvidence['process'] = { exitCode: null, signal: null, error: null, timedOut: false };
     const chunks: { stdout: Buffer[]; stderr: Buffer[] } = { stdout: [], stderr: [] };
     const sizes = { stdout: 0, stderr: 0 };
-    const output: Buffer[] = [];
+    const output: { stream: 'stdout' | 'stderr'; bytes: number }[] = [];
     function kill() {
       if (child.pid) try { process.kill(-child.pid, 'SIGKILL'); } catch { child.kill('SIGKILL'); }
     }
@@ -83,7 +90,7 @@ function invoke(executable: string, args: string[], cwd: string, seconds: number
     for (const stream of ['stdout', 'stderr'] as const) child[stream].on('data', (data: Buffer) => {
       const remaining = 1024 * 1024 - sizes[stream];
       const captured = data.subarray(0, Math.max(0, remaining));
-      if (captured.length) { chunks[stream].push(captured); output.push(captured); }
+      if (captured.length) { chunks[stream].push(captured); output.push({ stream, bytes: captured.length }); }
       sizes[stream] += data.length;
       if (sizes[stream] > 1024 * 1024) { outcome.error = 'OUTPUT_LIMIT'; kill(); }
     });
@@ -91,7 +98,7 @@ function invoke(executable: string, args: string[], cwd: string, seconds: number
     child.stdin.on('error', error => { if ((error as NodeJS.ErrnoException).code !== 'EPIPE') { outcome.error = error.message; kill(); } });
     child.on('close', (code, signal) => {
       clearTimeout(timer); outcome.exitCode = code; outcome.signal = signal;
-      resolve({ outcome, stdout: Buffer.concat(chunks.stdout).toString('utf8'), stderr: Buffer.concat(chunks.stderr).toString('utf8'), output: Buffer.concat(output).toString('utf8') });
+      resolve({ outcome, stdout: Buffer.concat(chunks.stdout).toString('utf8'), stderr: Buffer.concat(chunks.stderr).toString('utf8'), output });
     });
     child.stdin.end(input);
   });

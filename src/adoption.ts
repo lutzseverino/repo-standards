@@ -287,6 +287,7 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
         write(root, `${log}.stderr`, file(evidence.stderr));
         evidence.stdout = `${log}.stdout`; evidence.stderr = `${log}.stderr`;
         run.operations.push(evidence);
+        run.uncertain = ['Post-operation integrity verification has not succeeded.'];
         const currentRun = safe(root, '.repo-standards/local/run.json');
         if (currentRun.type === 'file' && currentRun.sha256 !== persistedRun.sha256) write(root, `${log}.altered-run.json`, currentRun);
         verifyFiles(root, { '.repo-standards/local/run.json': persistedRun });

@@ -11,8 +11,9 @@ resources control retention, not sandbox access.
 
 Before changing project content, start invokes every operation's executable
 with its literal `prerequisite.version-arguments`, from the project root.
-It compares the first SemVer-like version in captured stdout/stderr event order with the
-declared npm SemVer range. A leading `v`, prerelease and build suffixes are
+It compares the first complete SemVer-like version observed in either output
+stream with the declared npm SemVer range. Version fragments from different
+streams are never combined. A leading `v`, prerelease and build suffixes are
 supported. Missing executables, unsuccessful or timed-out probes, unreadable
 versions and incompatible versions are reported for all operations and block
 installation. The CLI never installs prerequisites. The operation's timeout

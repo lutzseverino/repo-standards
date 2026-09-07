@@ -216,3 +216,15 @@ test('the first observed version wins across probe streams and long valid timeou
   const { result } = long.start({ ...long.remote.env, ...registry.env });
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
+
+test('version probes cannot fabricate a version by joining stdout and stderr fragments', t => {
+  const f = fixture(t, { instructions: { ...exact, checks: [operation('split-streams', {
+    prerequisite: { 'version-arguments': ['-e', 'process.stdout.write("1.2"); setTimeout(()=>process.stderr.write(".3"),30)'], version: '1.2.3' },
+  })] } });
+  const before = snapshot(f.project.root);
+  const { report } = f.start();
+  assert.equal(report.prerequisites[0].version, null);
+  assert.equal(report.prerequisites[0].code, 'VERSION_UNREADABLE');
+  assert.match(report.reason, /PREREQUISITES_BLOCKED/);
+  assert.deepEqual(snapshot(f.project.root), before);
+});
