@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { sourceFixture } from './installed-cli.ts';
@@ -15,8 +15,9 @@ export function commit(root: string) {
 
 // Replace HTTPS responses at the process boundary; the installed CLI still
 // resolves tags, acquires Git objects, validates, and inspects real repositories.
-export function remoteFixture(yaml: string, files: Record<string, string> = {}) {
+export function remoteFixture(yaml: string, files: Record<string, string | Buffer> = {}, executables: string[] = []) {
   const source = sourceFixture(yaml, files);
+  for (const path of executables) chmodSync(join(source.root, path), 0o755);
   commit(source.root);
   const support = sourceFixture('');
   const dataFile = join(support.root, 'responses.json');

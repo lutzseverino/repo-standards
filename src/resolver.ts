@@ -7,17 +7,17 @@ import { Declarations } from './declarations.js';
 import type { ResolvedProfile } from './model.js';
 import { Paths } from './paths.js';
 
-export function validateSource(directory: string, cliVersion: string, sourcePaths?: ReadonlySet<string>) {
+export function validateSource(directory: string, cliVersion: string, sourcePaths?: ReadonlySet<string>, retainedManifest?: string) {
   const errors: Diagnostic[] = [];
   const file = resolve(directory, 'standards.yaml');
   let text: string;
   try {
-    if (sourcePaths && !sourcePaths.has('standards.yaml')) throw new Error('Missing exact Git path');
-    if (lstatSync(resolve(directory)).isSymbolicLink() || lstatSync(file).isSymbolicLink()) {
+    if (retainedManifest === undefined && sourcePaths && !sourcePaths.has('standards.yaml')) throw new Error('Missing exact Git path');
+    if (lstatSync(resolve(directory)).isSymbolicLink() || (retainedManifest === undefined && lstatSync(file).isSymbolicLink())) {
       return { valid: false, errors: [{ code: 'SOURCE_SYMLINK', message: 'The source root and standards.yaml cannot be symbolic links.', file, line: 1, column: 1, path: '' }], profiles: {} };
     }
-    if (!lstatSync(file).isFile()) throw new Error('Not a regular file');
-    text = readFileSync(file, 'utf8');
+    if (retainedManifest === undefined && !lstatSync(file).isFile()) throw new Error('Not a regular file');
+    text = retainedManifest ?? readFileSync(file, 'utf8');
   }
   catch {
     return { valid: false, errors: [{ code: 'SOURCE_READ', message: 'Cannot read standards.yaml.', file, line: 1, column: 1, path: '' }], profiles: {} };
