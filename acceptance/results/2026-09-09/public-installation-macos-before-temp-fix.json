@@ -1,0 +1,61 @@
+{
+  "date": "2026-09-09T17:58:09.473Z",
+  "os": {
+    "platform": "darwin",
+    "release": "25.3.0",
+    "arch": "arm64"
+  },
+  "node": "v24.11.1",
+  "version": "1.0.0",
+  "passed": false,
+  "commands": [
+    {
+      "executable": "npm",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "11.6.2\n",
+      "stderr": ""
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "view",
+        "@lutzseverino/repo-standards@1.0.0",
+        "dist",
+        "--json"
+      ],
+      "status": 0,
+      "stdout": "{\n  \"integrity\": \"sha512-WInIH5Nz0+zRTfz1iYPlUHAd5VgTYYTer5EbWxSr9enHjQBgEhY7psn7AgU1T5/Zh7G+o7LCturCDpEepojg7w==\",\n  \"shasum\": \"1f864afb325737132d2c3c9cffacb3996731fdd5\",\n  \"tarball\": \"https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.0.0.tgz\",\n  \"fileCount\": 64,\n  \"unpackedSize\": 405482,\n  \"signatures\": [\n    {\n      \"keyid\": \"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U\",\n      \"sig\": \"MEUCICVcoTuCQ8NBb0WY3ckbwPvRqJa4kReEB9VGeOSNpdrzAiEAs+JJKljOU/E9ck+C4CAY515jPbYxz7qJzHX1D3FHY/g=\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "install",
+        "--prefix",
+        "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-public-NSSgRA/cli",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--save-exact",
+        "@lutzseverino/repo-standards@1.0.0"
+      ],
+      "status": 0,
+      "stdout": "\nadded 6 packages in 2s\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-public-NSSgRA/cli/node_modules/.bin/repo-standards",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "1.0.0\n",
+      "stderr": ""
+    }
+  ],
+  "downloads": [],
+  "scope": "Public installation, author validation, discovery and read-only bootstrap. No adoption or real-agent assessment."
+}

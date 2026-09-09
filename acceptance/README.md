@@ -17,20 +17,35 @@ uses the public synthetic `repo-standards-example` source.
 
 For issue #11's public release, use the published package and a designated public
 standards source. On each OS, prepare a disposable project using actual public
-npm acquisition (replace the CLI version with the candidate release):
+npm acquisition (set `PUBLISHED_CLI_VERSION` to the exact published release being
+evaluated; an unpublished local candidate cannot supply this evidence):
 
 ```sh
-node acceptance/prepare-public.ts 1.0.0 \
+node acceptance/prepare-public.ts "$PUBLISHED_CLI_VERSION" \
   https://github.com/lutzseverino/repo-standards-example v1.0.0 service harbor
 ```
 
-For Alice/Bob, use the separately designated public Alice source, its stable tag,
-`work` and `bob`. Do not invent a published source or use the fixture URL below.
+For Alice/Bob, use the same learning repository at `v1.1.0`, profile `work`, and
+project `bob`. The maintainer chose to keep public acceptance in one repository:
+`service` and `work` are two profiles of one source, not two independent public
+publishers. Separate-source behavior and agent acceptance remain covered by the
+independently authored fixture sources. For fresh real-agent evidence using the
+public npm package with independent temporary Git sources, prepare explicitly:
+
+```sh
+node acceptance/prepare-public.ts "$PUBLISHED_CLI_VERSION" fixture:alice v1.0.0 work bob
+```
+
+This substitutes only GitHub responses with the independent fixture's real Git
+objects; npm installation still uses the public registry. Record it as
+public-package/fixture-source acceptance, never as live public-source evidence.
+The earlier local-tarball journeys below are historical and cannot establish
+public-package behavior for the current release.
 Preparation prints a session JSON path and exits; no local registry is involved.
 Read the externally installed skill, then follow the same agent journey below,
-using the session's actual public source, standards version and profile.
+using the session's recorded source, standards version and profile.
 Record published bootstrap/discovery separately with
-`node acceptance/public-installation.ts 1.0.0 /outside/evidence.json`.
+`node acceptance/public-installation.ts "$PUBLISHED_CLI_VERSION" /outside/evidence.json`.
 Public release evidence must also cover the normal project commit, fresh-checkout
 restoration, retained-source use and independent updates described in
 [the release procedure](../docs/release.md#published-acceptance).
@@ -62,13 +77,17 @@ installation. Public-registry installation evidence belongs to issue #11.
 ## Run the agent journey
 
 Read the external package's `skills/adopt-standards/SKILL.md` before first
-inspection. Use the printed session path to invoke the installed public CLI:
+inspection. Use the printed session path to invoke the installed CLI:
 
 ```sh
-node acceptance/cli.ts SESSION inspect --source https://github.com/alice/standards \
-  --standards-version v1.0.0 --profile work --json
-# Mira uses https://github.com/mira/standards and profile service.
+node acceptance/cli.ts SESSION inspect --source SOURCE \
+  --standards-version TAG --profile PROFILE --json
 ```
+
+Replace `SESSION`, `SOURCE`, `TAG` and `PROFILE` with the prepared session path
+and its recorded selection. Earlier fixture sessions use tag `v1.0.0`; public
+sessions record `standardsVersion` explicitly. Do not substitute fixture URLs
+into a public-source session.
 
 Save the full report outside the adopting project, disclose the pins, exact
 content, contextual scope and trusted operations, and obtain maintainer

@@ -8,7 +8,9 @@ Record outstanding criteria explicitly in `acceptance/results/`.
 
 The publisher needs an npm account allowed to publish
 `@lutzseverino/repo-standards` under the agreed `@lutzseverino` scope. A GitHub
-login does not grant npm access. Before the first release, authenticate outside
+login does not grant npm access. Enable account two-factor authentication using
+[npm's setup instructions](https://docs.npmjs.com/configuring-two-factor-authentication/)
+before the first interactive publication; login alone is insufficient. Then authenticate outside
 the repository with `npm login --registry=https://registry.npmjs.org`, then run:
 
 ```sh
@@ -86,7 +88,12 @@ npm and GitHub, with no acquisition fixtures. Keep these automated checks
 separate from real-agent evidence.
 
 Then perform the [real-agent journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) with public npm
-installations and designated public sources. Record useful contextual work
+installations. Use the public learning source for live publication, discovery
+and direct-source evidence. Independent temporary Git-source fixtures may cover
+materially different authors through the same CLI and real installed skill;
+label those runs public-package/fixture-source evidence, not live public-source
+evidence. A second maintained public example repository is unnecessary.
+Record useful contextual work
 through the matching installed skill, separate script and agent evidence, full
 adoption output, unchanged HEAD/index, normal project commits, fresh-checkout
 restoration with scripts disabled, and retained inspection without source access.

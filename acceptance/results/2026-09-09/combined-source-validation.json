@@ -1,0 +1,145 @@
+{
+  "cliVersion": "1.0.0",
+  "installation": "Prepared local release tarball; not public npm",
+  "source": "https://github.com/lutzseverino/repo-standards-example",
+  "standardsVersion": "v1.1.0",
+  "commit": "fa6e4bc16640e320e6d06496a910cdccb23d9223",
+  "serviceMatchesMira": true,
+  "workMatchesAliceAfterReferencePrefix": true,
+  "validation": {
+    "valid": true,
+    "errors": [],
+    "source": {
+      "format": "repo-standards/v1",
+      "name": "repository-standards-examples",
+      "description": "Synthetic service and project-documentation profiles for release acceptance",
+      "requires": {
+        "repo-standards": ">=1.0.0 <2.0.0"
+      }
+    },
+    "profiles": {
+      "service": {
+        "description": "Operated service with a project-specific runbook",
+        "declarations": [
+          {
+            "id": "editor-settings",
+            "checks": [],
+            "fixes": [],
+            "kind": "file",
+            "target": ".editorconfig",
+            "exact": "files/editorconfig"
+          },
+          {
+            "id": "operations-guide",
+            "checks": [
+              {
+                "id": "operational-evidence",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/check-operations.mjs",
+                  "resources": [
+                    "operations/required-sections.json"
+                  ],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 10
+              }
+            ],
+            "fixes": [
+              {
+                "id": "initialize-status",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/initialize-status.mjs",
+                  "resources": [],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 10
+              }
+            ],
+            "kind": "repository",
+            "guidance": "guidance/operations.md",
+            "targets": {
+              "paths": [
+                "docs/operations.md",
+                "docs/operating-status.json"
+              ],
+              "directories": []
+            }
+          }
+        ]
+      },
+      "work": {
+        "description": "Standards for work projects",
+        "declarations": [
+          {
+            "id": "agent-guidance",
+            "checks": [],
+            "fixes": [],
+            "kind": "file",
+            "target": "AGENTS.md",
+            "exact": "alice/profiles/work/files/AGENTS.md"
+          },
+          {
+            "id": "readme",
+            "checks": [
+              {
+                "id": "headings",
+                "run": {
+                  "executable": "python3",
+                  "script": "alice/defaults/checks/readme.py",
+                  "resources": [],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=3.12.0 <4.0.0"
+                },
+                "timeout-seconds": 60
+              }
+            ],
+            "fixes": [],
+            "kind": "file",
+            "target": "README.md",
+            "guidance": "alice/defaults/guidance/readme.md"
+          },
+          {
+            "id": "review-skill",
+            "checks": [],
+            "fixes": [],
+            "kind": "skill",
+            "name": "review",
+            "source": "alice/defaults/skills/review"
+          },
+          {
+            "id": "source-layout",
+            "checks": [],
+            "fixes": [],
+            "kind": "repository",
+            "guidance": "alice/defaults/guidance/source-layout.md",
+            "targets": {
+              "paths": [],
+              "directories": [
+                "src"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

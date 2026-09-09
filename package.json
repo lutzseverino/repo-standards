@@ -1,6 +1,6 @@
 {
   "name": "@lutzseverino/repo-standards",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Validate and apply versioned repository standards",
   "license": "MIT",
   "type": "module",

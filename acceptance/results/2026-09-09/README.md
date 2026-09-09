@@ -1,6 +1,22 @@
 # Issue #11 — release preparation and remaining acceptance
 
-**Status: incomplete; no npm publication or public adoption is claimed.**
+**Current status: 1.0.0 is published; release acceptance remains incomplete.**
+See the [publication continuation](continuation.md) for the current operational
+record. Public Linux installation passed; the corrected macOS attempt reached
+GitHub's unauthenticated rate limit. No completed public-package real-agent
+adoption is claimed yet. The current local candidate is `1.0.1`, not yet published.
+Its [full macOS validation](validate-1.0.1-macos.log) passed 327 tests with one
+skip and no failures. [CI for the published 1.0.0 commit](https://github.com/lutzseverino/repo-standards/actions/runs/34385655778)
+also passed on macOS and Linux.
+
+No additional public repository will be created. The existing example now has
+`service` and `work` profiles at `v1.1.0`; independent temporary sources provide
+separate author coverage. Four public-package/fixture-source inspections are
+prepared and await their specific maintainer confirmation.
+
+The sections below retain the **earlier preparation snapshot**. Authentication
+and publication blockers in that snapshot have been resolved as described in
+the continuation; they are not current blockers.
 Parent #1 remains open and unchanged. The release implementation is committed on
 the requested current branch, `main`, beginning at `ed101d4`.
 
@@ -75,7 +91,7 @@ Public release and real-agent acceptance remain outstanding operational work.
 Final code findings: Standards 0; Spec 0. Outstanding release acceptance: public
 publication and the resulting both-OS real-agent/update journeys.
 
-## Operational blockers and next actions
+## Historical operational blockers and next actions
 
 - `npm whoami --registry=https://registry.npmjs.org` returned `ENEEDAUTH`.
   The maintainer was asked to authenticate locally; no credentials were sent

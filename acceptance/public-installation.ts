@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { arch, platform, release, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { snapshot } from '../test/installed-cli.ts';
@@ -13,7 +13,7 @@ if (!version || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) || !
 }
 if (process.env.NODE_OPTIONS) throw new Error('Run public acceptance without NODE_OPTIONS or acquisition fixtures.');
 const evidence = resolve(evidencePath);
-const root = mkdtempSync(join(tmpdir(), 'repo-standards-public-'));
+const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-public-')));
 const project = join(root, 'project');
 mkdirSync(project);
 const configuration = join(root, 'empty.npmrc');
