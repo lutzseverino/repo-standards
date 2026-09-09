@@ -1,0 +1,272 @@
+{
+  "format": "repo-standards/inspection/v1",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.0.0"
+    },
+    "standards": {
+      "repository": "https://github.com/alice/standards",
+      "version": "v1.0.0",
+      "commit": "1ed2952cdbb3ff68f7f4fa4f63f4eb440a2d079c"
+    },
+    "profile": "work"
+  },
+  "source": {
+    "format": "repo-standards/v1",
+    "name": "alice-standards",
+    "description": "Alice's repository standards",
+    "requires": {
+      "repo-standards": ">=1.0.0 <2.0.0"
+    }
+  },
+  "resolved": {
+    "description": "Standards for work projects",
+    "declarations": [
+      {
+        "id": "agent-guidance",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "AGENTS.md",
+        "exact": "profiles/work/files/AGENTS.md"
+      },
+      {
+        "id": "readme",
+        "checks": [
+          {
+            "id": "headings",
+            "run": {
+              "executable": "python3",
+              "script": "defaults/checks/readme.py",
+              "resources": [],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=3.12.0 <4.0.0"
+            },
+            "timeout-seconds": 60
+          }
+        ],
+        "fixes": [],
+        "kind": "file",
+        "target": "README.md",
+        "guidance": "defaults/guidance/readme.md"
+      },
+      {
+        "id": "review-skill",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "review",
+        "source": "defaults/skills/review"
+      },
+      {
+        "id": "source-layout",
+        "checks": [],
+        "fixes": [],
+        "kind": "repository",
+        "guidance": "defaults/guidance/source-layout.md",
+        "targets": {
+          "paths": [],
+          "directories": [
+            "src"
+          ]
+        }
+      }
+    ]
+  },
+  "exact": [
+    {
+      "id": "agent-guidance",
+      "target": "AGENTS.md",
+      "action": "create",
+      "files": [
+        {
+          "path": "AGENTS.md",
+          "before": {
+            "type": "missing"
+          },
+          "after": {
+            "type": "file",
+            "sha256": "59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "Follow employer policies and read the project documentation.\n"
+          }
+        }
+      ]
+    },
+    {
+      "id": "review-skill",
+      "target": ".agents/skills/review",
+      "action": "create",
+      "files": [
+        {
+          "path": ".agents/skills/review/SKILL.md",
+          "before": {
+            "type": "missing"
+          },
+          "after": {
+            "type": "file",
+            "sha256": "9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "---\nname: review\ndescription: Review project changes against its documented conventions.\n---\nRead the diff and report actionable correctness and convention findings.\n"
+          }
+        }
+      ]
+    }
+  ],
+  "guidance": [
+    {
+      "id": "readme",
+      "targets": [
+        "README.md"
+      ],
+      "source": "defaults/guidance/readme.md",
+      "sha256": "7b88bfd808553868df8a9d28dc011d22f8a822dc7a80ad755827e95612de1f7c",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "Describe the actual project purpose. Include Setup, Usage and Development\nsections with commands checked against the project files. Explain required\ninputs and observable output with one concrete example. Preserve project facts\nand employer links; distinguish current behavior from limitations.\n"
+    },
+    {
+      "id": "source-layout",
+      "targets": [
+        "src"
+      ],
+      "source": "defaults/guidance/source-layout.md",
+      "sha256": "06ebb1450fc3f4de4f88c2f3ec5083f2e0f37b10305645c73efcab2515fe4b33",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "Keep source modules grouped by responsibility and use descriptive names.\nRead the existing source before changing it. Where responsibilities are unclear,\nadd a concise src/README.md explaining the real entry point, data flow, module\nownership and boundaries. Preserve runtime behavior; avoid reorganizing working\ncode solely to match a template. If the existing layout and documentation already\nsatisfy this guidance, report the specific evidence without unnecessary edits.\n"
+    }
+  ],
+  "operations": [
+    {
+      "declaration": "readme",
+      "phase": "checks",
+      "id": "headings",
+      "run": {
+        "executable": "python3",
+        "script": "defaults/checks/readme.py",
+        "resources": [],
+        "arguments": []
+      },
+      "prerequisite": {
+        "version-arguments": [
+          "--version"
+        ],
+        "version": ">=3.12.0 <4.0.0",
+        "status": "not-checked"
+      },
+      "timeout-seconds": 60,
+      "script": {
+        "sha256": "096be53f4341c075024c2b682f030b10cf6d5450082c34b6efccd99893a7ae3e",
+        "executable": false,
+        "encoding": "utf8",
+        "content": "\"\"\"Check documentation structure; contextual usefulness remains agent evidence.\"\"\"\nimport json\nfrom pathlib import Path\nimport re\nimport sys\n\nrequest = json.load(sys.stdin)\nif request.get(\"format\") != \"repo-standards/operation/v1\":\n    raise ValueError(\"Unsupported operation input\")\ntargets = request[\"allowedTargets\"][\"paths\"]\nif len(targets) != 1 or request[\"allowedTargets\"][\"directories\"]:\n    raise ValueError(\"Expected one contextual file target\")\npath = Path(request[\"projectRoot\"]) / targets[0]\ntext = path.read_text() if path.is_file() else \"\"\nheadings = {match.casefold() for match in re.findall(r\"^##[ \\t]+(.+?)[ \\t]*$\", text, re.MULTILINE)}\nmissing = [heading for heading in (\"Setup\", \"Usage\", \"Development\") if heading.casefold() not in headings]\nprint(json.dumps({\n    \"format\": \"repo-standards/result/v1\",\n    \"status\": \"failed\" if missing else \"passed\",\n    \"message\": \"Missing README headings: \" + \", \".join(missing) if missing else \"Setup, Usage and Development headings are present; usefulness requires agent assessment.\",\n}))\n"
+      },
+      "resources": []
+    }
+  ],
+  "inputs": {
+    "profiles/work/files/AGENTS.md": {
+      "type": "file",
+      "sha256": "59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "Follow employer policies and read the project documentation.\n"
+    },
+    "defaults/guidance/readme.md": {
+      "type": "file",
+      "sha256": "7b88bfd808553868df8a9d28dc011d22f8a822dc7a80ad755827e95612de1f7c",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "Describe the actual project purpose. Include Setup, Usage and Development\nsections with commands checked against the project files. Explain required\ninputs and observable output with one concrete example. Preserve project facts\nand employer links; distinguish current behavior from limitations.\n"
+    },
+    "defaults/checks/readme.py": {
+      "type": "file",
+      "sha256": "096be53f4341c075024c2b682f030b10cf6d5450082c34b6efccd99893a7ae3e",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "\"\"\"Check documentation structure; contextual usefulness remains agent evidence.\"\"\"\nimport json\nfrom pathlib import Path\nimport re\nimport sys\n\nrequest = json.load(sys.stdin)\nif request.get(\"format\") != \"repo-standards/operation/v1\":\n    raise ValueError(\"Unsupported operation input\")\ntargets = request[\"allowedTargets\"][\"paths\"]\nif len(targets) != 1 or request[\"allowedTargets\"][\"directories\"]:\n    raise ValueError(\"Expected one contextual file target\")\npath = Path(request[\"projectRoot\"]) / targets[0]\ntext = path.read_text() if path.is_file() else \"\"\nheadings = {match.casefold() for match in re.findall(r\"^##[ \\t]+(.+?)[ \\t]*$\", text, re.MULTILINE)}\nmissing = [heading for heading in (\"Setup\", \"Usage\", \"Development\") if heading.casefold() not in headings]\nprint(json.dumps({\n    \"format\": \"repo-standards/result/v1\",\n    \"status\": \"failed\" if missing else \"passed\",\n    \"message\": \"Missing README headings: \" + \", \".join(missing) if missing else \"Setup, Usage and Development headings are present; usefulness requires agent assessment.\",\n}))\n"
+    },
+    "defaults/skills/review": {
+      "type": "directory",
+      "entries": {
+        "SKILL.md": {
+          "type": "file",
+          "sha256": "9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "---\nname: review\ndescription: Review project changes against its documented conventions.\n---\nRead the diff and report actionable correctness and convention findings.\n"
+        }
+      }
+    },
+    "defaults/guidance/source-layout.md": {
+      "type": "file",
+      "sha256": "06ebb1450fc3f4de4f88c2f3ec5083f2e0f37b10305645c73efcab2515fe4b33",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "Keep source modules grouped by responsibility and use descriptive names.\nRead the existing source before changing it. Where responsibilities are unclear,\nadd a concise src/README.md explaining the real entry point, data flow, module\nownership and boundaries. Preserve runtime behavior; avoid reorganizing working\ncode solely to match a template. If the existing layout and documentation already\nsatisfy this guidance, report the specific evidence without unnecessary edits.\n"
+    }
+  },
+  "manifest": "format: repo-standards/v1\nname: alice-standards\ndescription: Alice's repository standards\nrequires:\n  repo-standards: \">=1.0.0 <2.0.0\"\ndefaults:\n  declarations: {}\nprofiles:\n  work:\n    description: Standards for work projects\n    declarations:\n      agent-guidance:\n        checks: []\n        fixes: []\n        kind: file\n        target: AGENTS.md\n        exact: profiles/work/files/AGENTS.md\n      readme:\n        checks:\n          - id: headings\n            run:\n              executable: python3\n              script: defaults/checks/readme.py\n              resources: []\n              arguments: []\n            prerequisite:\n              version-arguments:\n                - --version\n              version: \">=3.12.0 <4.0.0\"\n            timeout-seconds: 60\n        fixes: []\n        kind: file\n        target: README.md\n        guidance: defaults/guidance/readme.md\n      review-skill:\n        checks: []\n        fixes: []\n        kind: skill\n        name: review\n        source: defaults/skills/review\n      source-layout:\n        checks: []\n        fixes: []\n        kind: repository\n        guidance: defaults/guidance/source-layout.md\n        targets:\n          paths: []\n          directories:\n            - src\n",
+  "project": {
+    "root": "/private/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-source-FfHf38",
+    "head": "cd1e231b1372be5899dc39c75faef3ede8278bd3",
+    "status": "",
+    "index": "100644 463803a952af4fe86001fb61dfb18f16cee4a1e1 0\tCONTRIBUTING.md\u0000100644 8cec1fb20360f5b6050b3a60d5ccea1e7fcd8d1b 0\tREADME.md\u0000100644 db16a2f8fec058fa9f6f39899ff72ef6a88c1014 0\tpackage.json\u0000100644 81d0a4250f6bd446d5c9e8e4fa7a75ee04376adf 0\tsrc/cli.mjs\u0000100644 d9b2e28067d6069ab985fba709f0251c1ff7a428 0\tsrc/dispatch.mjs\u0000100644 f959db4e9fea293dba21783fcbf09007d091c0b1 0\ttest/dispatch.test.mjs\u0000100644 70cf058a8adc498136554fca3f8d744f72da8593 0\ttest/parcels.ndjson\u0000",
+    "hidden": [],
+    "affected": {
+      "AGENTS.md": {
+        "type": "missing"
+      },
+      "README.md": {
+        "type": "file",
+        "sha256": "90eb8896deea383a432508e26d8dbdd31fad0edc0213a7beaa3efe1addc25aae",
+        "executable": false,
+        "encoding": "utf8",
+        "content": "# Parcel Queue\n\nBob's batch tool previews parcel dispatches for the warehouse shift.\nIt reads newline-delimited JSON from a file, skips already dispatched parcels\nand prints dispatch records to stdout. It does not contact a carrier or persist\nnew dispatch state. Employer review rules are in CONTRIBUTING.md.\n\nRun it with Node. Input examples live under test/.\n"
+      },
+      ".agents/skills/review": {
+        "type": "missing"
+      },
+      "src": {
+        "type": "directory",
+        "entries": {
+          "cli.mjs": {
+            "type": "file",
+            "sha256": "4484a9cd1a0184c2dc6bdbf1406ecc66571b20b64e3f49b1a5f1f1864ea4077f",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "import { readFileSync } from 'node:fs';\nimport { pendingDispatches } from './dispatch.mjs';\n\nconst path = process.argv[2];\nif (!path) {\n  console.error('Usage: node src/cli.mjs <parcels.ndjson>');\n  process.exitCode = 2;\n} else {\n  const parcels = readFileSync(path, 'utf8').split('\\n').filter(line => line.trim()).map(line => JSON.parse(line));\n  for (const dispatch of pendingDispatches(parcels)) console.log(JSON.stringify(dispatch));\n}\n"
+          },
+          "dispatch.mjs": {
+            "type": "file",
+            "sha256": "d729b0062faa56bff1523e97172d086e682050e1d26d8f9dade1bc536f7d3e59",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "export function pendingDispatches(parcels) {\n  return parcels.filter(parcel => parcel.status === 'ready').map(parcel => {\n    if (typeof parcel.id !== 'string' || !parcel.id) throw new Error('Ready parcels require an id');\n    return { parcelId: parcel.id, action: 'dispatch' };\n  });\n}\n"
+          }
+        }
+      }
+    },
+    "productState": {
+      "type": "missing"
+    },
+    "systemSkill": {
+      "type": "missing"
+    }
+  },
+  "start": {
+    "eligible": null,
+    "blockers": [],
+    "prerequisites": "not-checked"
+  },
+  "identity": "sha256:37bbdb931e74a9606f2dadaccedae900389a4ba91a811e864ef0c5c68f565896"
+}

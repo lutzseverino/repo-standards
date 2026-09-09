@@ -1,0 +1,284 @@
+{
+  "format": "repo-standards/run/v1",
+  "id": "ca5c6ef9-389a-4b14-9436-9e4169cf9c02",
+  "inspection": "sha256:37bbdb931e74a9606f2dadaccedae900389a4ba91a811e864ef0c5c68f565896",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.0.0"
+    },
+    "standards": {
+      "repository": "https://github.com/alice/standards",
+      "version": "v1.0.0",
+      "commit": "1ed2952cdbb3ff68f7f4fa4f63f4eb440a2d079c"
+    },
+    "profile": "work"
+  },
+  "startInput": {
+    "kind": "public",
+    "options": {
+      "source": "https://github.com/alice/standards",
+      "standardsVersion": "v1.0.0",
+      "profile": "work",
+      "project": "/private/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-source-FfHf38"
+    }
+  },
+  "affected": {
+    "AGENTS.md": {
+      "type": "missing"
+    },
+    "README.md": {
+      "type": "file",
+      "sha256": "90eb8896deea383a432508e26d8dbdd31fad0edc0213a7beaa3efe1addc25aae",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Parcel Queue\n\nBob's batch tool previews parcel dispatches for the warehouse shift.\nIt reads newline-delimited JSON from a file, skips already dispatched parcels\nand prints dispatch records to stdout. It does not contact a carrier or persist\nnew dispatch state. Employer review rules are in CONTRIBUTING.md.\n\nRun it with Node. Input examples live under test/.\n"
+    },
+    ".agents/skills/review": {
+      "type": "missing"
+    },
+    "src": {
+      "type": "directory",
+      "entries": {
+        "cli.mjs": {
+          "type": "file",
+          "sha256": "4484a9cd1a0184c2dc6bdbf1406ecc66571b20b64e3f49b1a5f1f1864ea4077f",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "import { readFileSync } from 'node:fs';\nimport { pendingDispatches } from './dispatch.mjs';\n\nconst path = process.argv[2];\nif (!path) {\n  console.error('Usage: node src/cli.mjs <parcels.ndjson>');\n  process.exitCode = 2;\n} else {\n  const parcels = readFileSync(path, 'utf8').split('\\n').filter(line => line.trim()).map(line => JSON.parse(line));\n  for (const dispatch of pendingDispatches(parcels)) console.log(JSON.stringify(dispatch));\n}\n"
+        },
+        "dispatch.mjs": {
+          "type": "file",
+          "sha256": "d729b0062faa56bff1523e97172d086e682050e1d26d8f9dade1bc536f7d3e59",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "export function pendingDispatches(parcels) {\n  return parcels.filter(parcel => parcel.status === 'ready').map(parcel => {\n    if (typeof parcel.id !== 'string' || !parcel.id) throw new Error('Ready parcels require an id');\n    return { parcelId: parcel.id, action: 'dispatch' };\n  });\n}\n"
+        }
+      }
+    },
+    ".agents/skills/adopt-standards": {
+      "type": "missing"
+    }
+  },
+  "outcome": "complete",
+  "prerequisites": [
+    {
+      "declaration": "readme",
+      "phase": "checks",
+      "operation": "headings",
+      "executable": "python3",
+      "version": "3.14.6",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    }
+  ],
+  "operations": [
+    {
+      "operation": {
+        "declaration": "readme",
+        "phase": "checks",
+        "id": "headings"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v1",
+        "status": "passed",
+        "message": "Setup, Usage and Development headings are present; usefulness requires agent assessment."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/0.stdout",
+      "stderr": ".repo-standards/local/operations/0.stderr"
+    }
+  ],
+  "assessments": [
+    {
+      "format": "repo-standards/assessment/v1",
+      "run": "ca5c6ef9-389a-4b14-9436-9e4169cf9c02",
+      "selection": "sha256:7d48cae4f9362a536ffa046880820a6a26ca73a10141d96058536ce8fd44c7f7",
+      "snapshot": "sha256:345df251919de2f3b04046b4b1d90301c9b6275d9485420e2650527619ddd35f",
+      "declarations": [
+        {
+          "id": "readme",
+          "status": "satisfied",
+          "explanation": "The README now provides a usable setup and preview path tied to this project, with synthetic input/output, error cases and the existing employer policy link. It distinguishes dispatch previews from carrier execution and persistence.",
+          "changedPaths": [
+            "README.md"
+          ],
+          "evidence": [
+            "package.json requires Node >=24 <25 and supplies the documented npm test and preview commands; no dependencies are declared.",
+            "The actual npm test run passed both dispatch tests on this OS; npm run preview -- test/parcels.ndjson printed only {\"parcelId\":\"demo-101\",\"action\":\"dispatch\"}.",
+            "src/cli.mjs reads nonblank JSON lines from the supplied file and emits records; src/dispatch.mjs selects exact ready status and requires a nonempty string id. README usage and limitations match those implementations."
+          ]
+        },
+        {
+          "id": "source-layout",
+          "status": "satisfied",
+          "explanation": "The existing two-module separation is suitable. Added source notes explain the entry point, whole-file parsing, transformation boundary and tests without reorganizing code or changing behavior.",
+          "changedPaths": [
+            "src/README.md"
+          ],
+          "evidence": [
+            "src/README.md assigns argument/file/stdout handling to cli.mjs and ready-record filtering/id validation to dispatch.mjs.",
+            "The unchanged source modules contain no network, persistence or carrier integration; source notes make those boundaries explicit and retain employer ownership."
+          ]
+        }
+      ]
+    }
+  ],
+  "phase": "complete",
+  "reason": "Exact installation, fixes, contextual assessment where required, checks, runtime, retained inputs and durable state verified.",
+  "changes": [
+    ".agents/skills/adopt-standards",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".agents/skills/review",
+    ".agents/skills/review/SKILL.md",
+    ".repo-standards/.gitignore",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/source/defaults/checks/readme.py",
+    ".repo-standards/inputs/source/defaults/guidance/readme.md",
+    ".repo-standards/inputs/source/defaults/guidance/source-layout.md",
+    ".repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+    ".repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/local/operations/0.stderr",
+    ".repo-standards/local/operations/0.stdout",
+    ".repo-standards/local/run.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/node_modules",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/state.json",
+    "AGENTS.md",
+    "README.md",
+    "src",
+    "src/README.md",
+    "src/cli.mjs",
+    "src/dispatch.mjs"
+  ],
+  "completed": [
+    "AGENTS.md",
+    ".agents/skills/review/SKILL.md",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+    ".repo-standards/inputs/source/defaults/guidance/readme.md",
+    ".repo-standards/inputs/source/defaults/checks/readme.py",
+    ".repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+    ".repo-standards/inputs/source/defaults/guidance/source-layout.md",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/lock.json",
+    "isolated runtime",
+    "agent assessment",
+    "checks: readme/headings (passed)"
+  ],
+  "uncertain": [],
+  "nextAction": "Review and commit the uncommitted adoption changes through the project’s normal workflow.",
+  "installation": {
+    "files": [
+      ".repo-standards/.gitignore",
+      "AGENTS.md",
+      ".agents/skills/review/SKILL.md",
+      ".agents/skills/adopt-standards/SKILL.md",
+      ".repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+      ".repo-standards/inputs/source/defaults/guidance/readme.md",
+      ".repo-standards/inputs/source/defaults/checks/readme.py",
+      ".repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+      ".repo-standards/inputs/source/defaults/guidance/source-layout.md",
+      ".repo-standards/inputs/standards.yaml",
+      ".repo-standards/inputs/metadata.json",
+      ".repo-standards/inputs/resolved.json",
+      ".repo-standards/selection.yaml",
+      ".repo-standards/runtime/package.json",
+      ".repo-standards/runtime/package-lock.json",
+      ".repo-standards/lock.json"
+    ],
+    "runtime": true,
+    "trees": {},
+    "complete": true
+  },
+  "continuation": "52c0964dcbbb4611ccd989c4e1c33729f6977d5a9543c3d71ef2c56906e6d1a9",
+  "workRequest": {
+    "format": "repo-standards/work-request/v1",
+    "run": "ca5c6ef9-389a-4b14-9436-9e4169cf9c02",
+    "selection": "sha256:7d48cae4f9362a536ffa046880820a6a26ca73a10141d96058536ce8fd44c7f7",
+    "snapshot": "sha256:345df251919de2f3b04046b4b1d90301c9b6275d9485420e2650527619ddd35f",
+    "declarations": [
+      {
+        "id": "readme",
+        "guidance": {
+          "id": "readme",
+          "targets": [
+            "README.md"
+          ],
+          "source": "defaults/guidance/readme.md",
+          "sha256": "7b88bfd808553868df8a9d28dc011d22f8a822dc7a80ad755827e95612de1f7c",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "Describe the actual project purpose. Include Setup, Usage and Development\nsections with commands checked against the project files. Explain required\ninputs and observable output with one concrete example. Preserve project facts\nand employer links; distinguish current behavior from limitations.\n"
+        },
+        "allowedTargets": {
+          "paths": [
+            "README.md"
+          ],
+          "directories": []
+        }
+      },
+      {
+        "id": "source-layout",
+        "guidance": {
+          "id": "source-layout",
+          "targets": [
+            "src"
+          ],
+          "source": "defaults/guidance/source-layout.md",
+          "sha256": "06ebb1450fc3f4de4f88c2f3ec5083f2e0f37b10305645c73efcab2515fe4b33",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "Keep source modules grouped by responsibility and use descriptive names.\nRead the existing source before changing it. Where responsibilities are unclear,\nadd a concise src/README.md explaining the real entry point, data flow, module\nownership and boundaries. Preserve runtime behavior; avoid reorganizing working\ncode solely to match a template. If the existing layout and documentation already\nsatisfy this guidance, report the specific evidence without unnecessary edits.\n"
+        },
+        "allowedTargets": {
+          "paths": [],
+          "directories": [
+            "src"
+          ]
+        }
+      }
+    ],
+    "requiredEvidence": [
+      "status",
+      "explanation",
+      "changedPaths",
+      "evidence"
+    ]
+  },
+  "completion": {
+    "state": {
+      "sha256": "65aa28394842878b0cec61bb0895de23217e8047f1f91bae034970a4e1c78d9c",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "{\n  \"format\": \"repo-standards/state/v1\",\n  \"lastComplete\": {\n    \"run\": \"ca5c6ef9-389a-4b14-9436-9e4169cf9c02\",\n    \"inspection\": \"sha256:37bbdb931e74a9606f2dadaccedae900389a4ba91a811e864ef0c5c68f565896\",\n    \"completedAt\": \"2026-09-09T20:18:29.618Z\",\n    \"head\": \"cd1e231b1372be5899dc39c75faef3ede8278bd3\"\n  },\n  \"baselines\": {\n    \"AGENTS.md\": {\n      \"sha256\": \"59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf\",\n      \"executable\": false\n    },\n    \".agents/skills/review/SKILL.md\": {\n      \"sha256\": \"9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3\",\n      \"executable\": false\n    },\n    \".agents/skills/adopt-standards/SKILL.md\": {\n      \"sha256\": \"2e431b764e59b4a0032353900b8f0e66bcc41a555043cf71c2779b2345c8485f\",\n      \"executable\": false\n    }\n  },\n  \"skills\": {\n    \".agents/skills/review\": [\n      \"SKILL.md\"\n    ],\n    \".agents/skills/adopt-standards\": [\n      \"SKILL.md\"\n    ]\n  },\n  \"checks\": [\n    {\n      \"operation\": {\n        \"declaration\": \"readme\",\n        \"phase\": \"checks\",\n        \"id\": \"headings\"\n      },\n      \"process\": {\n        \"exitCode\": 0,\n        \"signal\": null,\n        \"error\": null,\n        \"timedOut\": false\n      },\n      \"result\": {\n        \"format\": \"repo-standards/result/v1\",\n        \"status\": \"passed\",\n        \"message\": \"Setup, Usage and Development headings are present; usefulness requires agent assessment.\"\n      },\n      \"error\": null,\n      \"stdout\": \".repo-standards/local/operations/0.stdout\",\n      \"stderr\": \".repo-standards/local/operations/0.stderr\"\n    }\n  ],\n  \"assessments\": [\n    {\n      \"format\": \"repo-standards/assessment/v1\",\n      \"run\": \"ca5c6ef9-389a-4b14-9436-9e4169cf9c02\",\n      \"selection\": \"sha256:7d48cae4f9362a536ffa046880820a6a26ca73a10141d96058536ce8fd44c7f7\",\n      \"snapshot\": \"sha256:345df251919de2f3b04046b4b1d90301c9b6275d9485420e2650527619ddd35f\",\n      \"declarations\": [\n        {\n          \"id\": \"readme\",\n          \"status\": \"satisfied\",\n          \"explanation\": \"The README now provides a usable setup and preview path tied to this project, with synthetic input/output, error cases and the existing employer policy link. It distinguishes dispatch previews from carrier execution and persistence.\",\n          \"changedPaths\": [\n            \"README.md\"\n          ],\n          \"evidence\": [\n            \"package.json requires Node >=24 <25 and supplies the documented npm test and preview commands; no dependencies are declared.\",\n            \"The actual npm test run passed both dispatch tests on this OS; npm run preview -- test/parcels.ndjson printed only {\\\"parcelId\\\":\\\"demo-101\\\",\\\"action\\\":\\\"dispatch\\\"}.\",\n            \"src/cli.mjs reads nonblank JSON lines from the supplied file and emits records; src/dispatch.mjs selects exact ready status and requires a nonempty string id. README usage and limitations match those implementations.\"\n          ]\n        },\n        {\n          \"id\": \"source-layout\",\n          \"status\": \"satisfied\",\n          \"explanation\": \"The existing two-module separation is suitable. Added source notes explain the entry point, whole-file parsing, transformation boundary and tests without reorganizing code or changing behavior.\",\n          \"changedPaths\": [\n            \"src/README.md\"\n          ],\n          \"evidence\": [\n            \"src/README.md assigns argument/file/stdout handling to cli.mjs and ready-record filtering/id validation to dispatch.mjs.\",\n            \"The unchanged source modules contain no network, persistence or carrier integration; source notes make those boundaries explicit and retain employer ownership.\"\n          ]\n        }\n      ]\n    }\n  ]\n}\n"
+    },
+    "lock": {
+      "sha256": "37af4b58210d047c439b8d40bd2ee964a30dbbbd79a48f9ce36e5f433723dfe8",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "{\n  \"format\": \"repo-standards/lock/v1\",\n  \"selection\": {\n    \"cli\": {\n      \"package\": \"@lutzseverino/repo-standards\",\n      \"version\": \"1.0.0\"\n    },\n    \"standards\": {\n      \"repository\": \"https://github.com/alice/standards\",\n      \"version\": \"v1.0.0\",\n      \"commit\": \"1ed2952cdbb3ff68f7f4fa4f63f4eb440a2d079c\"\n    },\n    \"profile\": \"work\"\n  },\n  \"inspection\": \"sha256:37bbdb931e74a9606f2dadaccedae900389a4ba91a811e864ef0c5c68f565896\",\n  \"files\": {\n    \"AGENTS.md\": {\n      \"sha256\": \"59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf\",\n      \"executable\": false\n    },\n    \".agents/skills/review/SKILL.md\": {\n      \"sha256\": \"9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3\",\n      \"executable\": false\n    },\n    \".agents/skills/adopt-standards/SKILL.md\": {\n      \"sha256\": \"2e431b764e59b4a0032353900b8f0e66bcc41a555043cf71c2779b2345c8485f\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/profiles/work/files/AGENTS.md\": {\n      \"sha256\": \"59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/defaults/guidance/readme.md\": {\n      \"sha256\": \"7b88bfd808553868df8a9d28dc011d22f8a822dc7a80ad755827e95612de1f7c\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/defaults/checks/readme.py\": {\n      \"sha256\": \"096be53f4341c075024c2b682f030b10cf6d5450082c34b6efccd99893a7ae3e\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/defaults/skills/review/SKILL.md\": {\n      \"sha256\": \"9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/defaults/guidance/source-layout.md\": {\n      \"sha256\": \"06ebb1450fc3f4de4f88c2f3ec5083f2e0f37b10305645c73efcab2515fe4b33\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/standards.yaml\": {\n      \"sha256\": \"b56761863be2fa1bcf3dd16052e0445973fa646b88a5f890b53ad71d07ec059c\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/metadata.json\": {\n      \"sha256\": \"9ded19e44996dd93db5291525ac9429244c9bb3f16406983cad8c18a97629e21\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/resolved.json\": {\n      \"sha256\": \"a712e6c0de8799cbb52ae1cbfdd7e7f3123dad7b75ade807667114048ce5da86\",\n      \"executable\": false\n    },\n    \".repo-standards/selection.yaml\": {\n      \"sha256\": \"985d2511a5616416e2ee83308540c56845c1a7de329b43b7dddaa606f3f85bce\",\n      \"executable\": false\n    },\n    \".repo-standards/.gitignore\": {\n      \"sha256\": \"c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d\",\n      \"executable\": false\n    },\n    \".repo-standards/runtime/package.json\": {\n      \"sha256\": \"db9535b5dd5e33d65282cf41cbafdd5af6d74f381adc9701b747559fa67f33f5\",\n      \"executable\": false\n    },\n    \".repo-standards/runtime/package-lock.json\": {\n      \"sha256\": \"34cba1e1c87b407276571c9dde6d3c237a5c0607b9f70a27c857ea0ce3c27da7\",\n      \"executable\": false\n    }\n  },\n  \"state\": {\n    \"sha256\": \"65aa28394842878b0cec61bb0895de23217e8047f1f91bae034970a4e1c78d9c\",\n    \"executable\": false\n  }\n}\n"
+    }
+  }
+}

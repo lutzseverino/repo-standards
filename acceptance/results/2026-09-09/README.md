@@ -1,18 +1,19 @@
 # Issue #11 — release preparation and remaining acceptance
 
-**Current status: 1.0.0 is published; release acceptance remains incomplete.**
-See the [publication continuation](continuation.md) for the current operational
-record. Public Linux installation passed; the corrected macOS attempt reached
-GitHub's unauthenticated rate limit. No completed public-package real-agent
-adoption is claimed yet. The current local candidate is `1.0.1`, not yet published.
-Its [full macOS validation](validate-1.0.1-macos.log) passed 327 tests with one
-skip and no failures. [CI for the published 1.0.0 commit](https://github.com/lutzseverino/repo-standards/actions/runs/34385655778)
-also passed on macOS and Linux.
+**Current status: 1.0.0 and 1.0.1 are published; release acceptance remains incomplete.**
+See the [publication continuation](continuation.md) for current operational
+results. Public Linux installation passed for 1.0.0; public macOS installation
+passed for 1.0.1. The repeated Linux 1.0.1 smoke reached GitHub's rate limit.
+All [four public-package/fixture-source agent adoptions](public-agent/README.md)
+completed, with unchanged HEAD/index and employer content. Their subsequent
+normal commits, fresh-clone restoration with scripts disabled, and retained
+inspection with source acquisition unavailable passed. Candidate CLI updates
+await their separate confirmations; live direct adoption and the actual
+published standards update remain outstanding.
 
-No additional public repository will be created. The existing example now has
-`service` and `work` profiles at `v1.1.0`; independent temporary sources provide
-separate author coverage. Four public-package/fixture-source inspections are
-prepared and await their specific maintainer confirmation.
+The [full local 1.0.1 validation](validate-1.0.1-macos.log) passed 327 tests with
+one skip and no failures. [CI at the 1.0.1 release commit](https://github.com/lutzseverino/repo-standards/actions/runs/34387780185)
+also passed on macOS and Linux. No additional public repository will be created.
 
 The sections below retain the **earlier preparation snapshot**. Authentication
 and publication blockers in that snapshot have been resolved as described in

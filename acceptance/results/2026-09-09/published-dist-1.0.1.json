@@ -1,0 +1,13 @@
+{
+  "integrity": "sha512-1Wzuz5ttDghmc/wPVHEL6E8QVoapwMsd4BeIsTOj8ep3Vb/LCB2q5tO7XSP0CLxDVDw66jHGVitycykEue3xqA==",
+  "shasum": "251d4aa13a9dca0059a2993c6e541f6388f5ac8b",
+  "tarball": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.0.1.tgz",
+  "fileCount": 64,
+  "unpackedSize": 406010,
+  "signatures": [
+    {
+      "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+      "sig": "MEUCIQCgC/zRuTRHesOF56YOwOJ6S0PjUvxcEPtGQj10HlWZVAIgdRJ+NjeiRMjjnCb6f10bK94z0F9WNk33Jh9BjJHAo6Q="
+    }
+  ]
+}

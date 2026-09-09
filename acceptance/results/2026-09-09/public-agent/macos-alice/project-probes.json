@@ -1,0 +1,39 @@
+{
+  "project": "/private/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-source-FfHf38",
+  "author": "alice",
+  "files": {
+    "README.md": "# Parcel Queue\n\nBob's batch tool previews parcel dispatches for the warehouse shift.\nIt reads newline-delimited JSON from a file, skips already dispatched parcels\nand prints dispatch records to stdout. It does not contact a carrier or persist\nnew dispatch state. Employer review rules are in CONTRIBUTING.md.\n\nRun it with Node. Input examples live under test/.\n",
+    "CONTRIBUTING.md": "# Employer contribution policy\n\nAll production changes require warehouse-platform owner review.\nUse synthetic parcel records in examples; customer addresses must stay private.\nThe release manager schedules carrier integration changes.\n",
+    "package.json": "{\n  \"name\": \"parcel-queue\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"engines\": { \"node\": \">=24 <25\" },\n  \"scripts\": { \"test\": \"node --test test/dispatch.test.mjs\", \"preview\": \"node src/cli.mjs\" }\n}\n",
+    "src/cli.mjs": "import { readFileSync } from 'node:fs';\nimport { pendingDispatches } from './dispatch.mjs';\n\nconst path = process.argv[2];\nif (!path) {\n  console.error('Usage: node src/cli.mjs <parcels.ndjson>');\n  process.exitCode = 2;\n} else {\n  const parcels = readFileSync(path, 'utf8').split('\\n').filter(line => line.trim()).map(line => JSON.parse(line));\n  for (const dispatch of pendingDispatches(parcels)) console.log(JSON.stringify(dispatch));\n}\n",
+    "src/dispatch.mjs": "export function pendingDispatches(parcels) {\n  return parcels.filter(parcel => parcel.status === 'ready').map(parcel => {\n    if (typeof parcel.id !== 'string' || !parcel.id) throw new Error('Ready parcels require an id');\n    return { parcelId: parcel.id, action: 'dispatch' };\n  });\n}\n",
+    "test/dispatch.test.mjs": "import assert from 'node:assert/strict';\nimport { test } from 'node:test';\nimport { pendingDispatches } from '../src/dispatch.mjs';\n\ntest('only ready parcels produce dispatch previews', () => {\n  assert.deepEqual(pendingDispatches([{ id: 'a', status: 'ready' }, { id: 'b', status: 'dispatched' }]), [{ parcelId: 'a', action: 'dispatch' }]);\n});\ntest('a ready parcel needs an identifier', () => {\n  assert.throws(() => pendingDispatches([{ status: 'ready' }]), /require an id/);\n});\n",
+    "test/parcels.ndjson": "{\"id\":\"demo-101\",\"status\":\"ready\"}\n{\"id\":\"demo-102\",\"status\":\"dispatched\"}\n"
+  },
+  "commands": [
+    {
+      "executable": "node",
+      "args": [
+        "--version"
+      ],
+      "stdout": "v24.11.1\n"
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "test"
+      ],
+      "stdout": "\n> test\n> node --test test/dispatch.test.mjs\n\n✔ only ready parcels produce dispatch previews (0.52625ms)\n✔ a ready parcel needs an identifier (0.162041ms)\nℹ tests 2\nℹ suites 0\nℹ pass 2\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 35.651916\n"
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "run",
+        "preview",
+        "--",
+        "test/parcels.ndjson"
+      ],
+      "stdout": "\n> preview\n> node src/cli.mjs test/parcels.ndjson\n\n{\"parcelId\":\"demo-101\",\"action\":\"dispatch\"}\n"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "format": "repo-standards/assessment/v1",
+  "run": "d15484d6-121b-4e24-964b-721f64a41986",
+  "selection": "sha256:fe3d489b73e3b4cf53942e266efafd1ca85586f323410e446066fdbf63d3770e",
+  "snapshot": "sha256:55a4dfd0e92b5bb015326c24264de808d6e0d9b865723530da9e6031ac8ad4e2",
+  "declarations": [
+    {
+      "id": "operations-guide",
+      "status": "satisfied",
+      "explanation": "Expanded the real service runbook with runnable startup/probe commands, loopback and port configuration, failure signals and restart data loss. Preserved the original warning and escalation ownership, and retained unverified status because local probes do not certify deployment.",
+      "changedPaths": [
+        "docs/operations.md"
+      ],
+      "evidence": [
+        "service/server.py binds 127.0.0.1, defaults PORT to 8765, implements GET /health and POST /accept, and stores accepted solely in Handler.accepted process memory.",
+        "The actual local Python 3.13.5 probe at 127.0.0.1:45583 observed health accepted 0, POST status 204, health accepted 1, and accepted 0 in a restarted process; the runbook reports this limited observation.",
+        "docs/operations.md preserves the existing no-authentication/loopback security warning and platform on-call contact; Recovery explicitly rules out backup or replay claims and points to employer service-owner approval.",
+        "docs/operating-status.json was created by the declared fix and remains unverified; it was not edited or claimed as contextual work."
+      ]
+    }
+  ]
+}

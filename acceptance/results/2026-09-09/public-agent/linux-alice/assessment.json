@@ -1,0 +1,33 @@
+{
+  "format": "repo-standards/assessment/v1",
+  "run": "9c057fd1-3383-48f4-a2d0-43cbc3a4f216",
+  "selection": "sha256:7f167ca617df94abd821f9e6b2d1f22a4c614db21267a36f43f8006ced2d60c1",
+  "snapshot": "sha256:c74a5ad364bfd85e0c2dadd789e6487173b250b7c3242bf1d5e3243cb5df3514",
+  "declarations": [
+    {
+      "id": "readme",
+      "status": "satisfied",
+      "explanation": "The README now provides a usable setup and preview path tied to this project, with synthetic input/output, error cases and the existing employer policy link. It distinguishes dispatch previews from carrier execution and persistence.",
+      "changedPaths": [
+        "README.md"
+      ],
+      "evidence": [
+        "package.json requires Node >=24 <25 and supplies the documented npm test and preview commands; no dependencies are declared.",
+        "The actual npm test run passed both dispatch tests on this OS; npm run preview -- test/parcels.ndjson printed only {\"parcelId\":\"demo-101\",\"action\":\"dispatch\"}.",
+        "src/cli.mjs reads nonblank JSON lines from the supplied file and emits records; src/dispatch.mjs selects exact ready status and requires a nonempty string id. README usage and limitations match those implementations."
+      ]
+    },
+    {
+      "id": "source-layout",
+      "status": "satisfied",
+      "explanation": "The existing two-module separation is suitable. Added source notes explain the entry point, whole-file parsing, transformation boundary and tests without reorganizing code or changing behavior.",
+      "changedPaths": [
+        "src/README.md"
+      ],
+      "evidence": [
+        "src/README.md assigns argument/file/stdout handling to cli.mjs and ready-record filtering/id validation to dispatch.mjs.",
+        "The unchanged source modules contain no network, persistence or carrier integration; source notes make those boundaries explicit and retain employer ownership."
+      ]
+    }
+  ]
+}

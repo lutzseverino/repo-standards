@@ -1,0 +1,211 @@
+{
+  "format": "repo-standards/run/v1",
+  "id": "9c057fd1-3383-48f4-a2d0-43cbc3a4f216",
+  "inspection": "sha256:b7d20acca1adb254848ab4814b30f7fe2915137e646077376d566207a95c8f9e",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.0.0"
+    },
+    "standards": {
+      "repository": "https://github.com/alice/standards",
+      "version": "v1.0.0",
+      "commit": "38b64456155254faaeb18e01ec3cdfa6992f464f"
+    },
+    "profile": "work"
+  },
+  "startInput": {
+    "kind": "public",
+    "options": {
+      "source": "https://github.com/alice/standards",
+      "standardsVersion": "v1.0.0",
+      "profile": "work",
+      "project": "/tmp/repo-standards-source-gF6uO6"
+    }
+  },
+  "affected": {
+    "AGENTS.md": {
+      "type": "missing"
+    },
+    "README.md": {
+      "type": "file",
+      "sha256": "90eb8896deea383a432508e26d8dbdd31fad0edc0213a7beaa3efe1addc25aae",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Parcel Queue\n\nBob's batch tool previews parcel dispatches for the warehouse shift.\nIt reads newline-delimited JSON from a file, skips already dispatched parcels\nand prints dispatch records to stdout. It does not contact a carrier or persist\nnew dispatch state. Employer review rules are in CONTRIBUTING.md.\n\nRun it with Node. Input examples live under test/.\n"
+    },
+    ".agents/skills/review": {
+      "type": "missing"
+    },
+    "src": {
+      "type": "directory",
+      "entries": {
+        "cli.mjs": {
+          "type": "file",
+          "sha256": "4484a9cd1a0184c2dc6bdbf1406ecc66571b20b64e3f49b1a5f1f1864ea4077f",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "import { readFileSync } from 'node:fs';\nimport { pendingDispatches } from './dispatch.mjs';\n\nconst path = process.argv[2];\nif (!path) {\n  console.error('Usage: node src/cli.mjs <parcels.ndjson>');\n  process.exitCode = 2;\n} else {\n  const parcels = readFileSync(path, 'utf8').split('\\n').filter(line => line.trim()).map(line => JSON.parse(line));\n  for (const dispatch of pendingDispatches(parcels)) console.log(JSON.stringify(dispatch));\n}\n"
+        },
+        "dispatch.mjs": {
+          "type": "file",
+          "sha256": "d729b0062faa56bff1523e97172d086e682050e1d26d8f9dade1bc536f7d3e59",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "export function pendingDispatches(parcels) {\n  return parcels.filter(parcel => parcel.status === 'ready').map(parcel => {\n    if (typeof parcel.id !== 'string' || !parcel.id) throw new Error('Ready parcels require an id');\n    return { parcelId: parcel.id, action: 'dispatch' };\n  });\n}\n"
+        }
+      }
+    },
+    ".agents/skills/adopt-standards": {
+      "type": "missing"
+    }
+  },
+  "outcome": "incomplete",
+  "prerequisites": [
+    {
+      "declaration": "readme",
+      "phase": "checks",
+      "operation": "headings",
+      "executable": "python3",
+      "version": "3.13.5",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    }
+  ],
+  "operations": [],
+  "assessments": [],
+  "phase": "contextual",
+  "reason": "CONTEXTUAL_REQUIRED: Review the refreshed work request and submit an assessment for its snapshot.",
+  "changes": [
+    ".agents/skills/adopt-standards",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".agents/skills/review",
+    ".agents/skills/review/SKILL.md",
+    ".repo-standards/.gitignore",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/source/defaults/checks/readme.py",
+    ".repo-standards/inputs/source/defaults/guidance/readme.md",
+    ".repo-standards/inputs/source/defaults/guidance/source-layout.md",
+    ".repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+    ".repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/local/run.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/node_modules",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/selection.yaml",
+    "AGENTS.md",
+    "README.md",
+    "src",
+    "src/README.md",
+    "src/cli.mjs",
+    "src/dispatch.mjs"
+  ],
+  "completed": [
+    "AGENTS.md",
+    ".agents/skills/review/SKILL.md",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+    ".repo-standards/inputs/source/defaults/guidance/readme.md",
+    ".repo-standards/inputs/source/defaults/checks/readme.py",
+    ".repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+    ".repo-standards/inputs/source/defaults/guidance/source-layout.md",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/lock.json",
+    "isolated runtime"
+  ],
+  "uncertain": [
+    "Agent assessment has not been accepted."
+  ],
+  "nextAction": "Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.",
+  "installation": {
+    "files": [
+      ".repo-standards/.gitignore",
+      "AGENTS.md",
+      ".agents/skills/review/SKILL.md",
+      ".agents/skills/adopt-standards/SKILL.md",
+      ".repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+      ".repo-standards/inputs/source/defaults/guidance/readme.md",
+      ".repo-standards/inputs/source/defaults/checks/readme.py",
+      ".repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+      ".repo-standards/inputs/source/defaults/guidance/source-layout.md",
+      ".repo-standards/inputs/standards.yaml",
+      ".repo-standards/inputs/metadata.json",
+      ".repo-standards/inputs/resolved.json",
+      ".repo-standards/selection.yaml",
+      ".repo-standards/runtime/package.json",
+      ".repo-standards/runtime/package-lock.json",
+      ".repo-standards/lock.json"
+    ],
+    "runtime": true,
+    "trees": {},
+    "complete": true
+  },
+  "continuation": "02c2c3f05f10e7f6f8418f243cd2cd916cc3b521c24b173ea39063d5364f1052",
+  "workRequest": {
+    "format": "repo-standards/work-request/v1",
+    "run": "9c057fd1-3383-48f4-a2d0-43cbc3a4f216",
+    "selection": "sha256:7f167ca617df94abd821f9e6b2d1f22a4c614db21267a36f43f8006ced2d60c1",
+    "snapshot": "sha256:c74a5ad364bfd85e0c2dadd789e6487173b250b7c3242bf1d5e3243cb5df3514",
+    "declarations": [
+      {
+        "id": "readme",
+        "guidance": {
+          "id": "readme",
+          "targets": [
+            "README.md"
+          ],
+          "source": "defaults/guidance/readme.md",
+          "sha256": "7b88bfd808553868df8a9d28dc011d22f8a822dc7a80ad755827e95612de1f7c",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "Describe the actual project purpose. Include Setup, Usage and Development\nsections with commands checked against the project files. Explain required\ninputs and observable output with one concrete example. Preserve project facts\nand employer links; distinguish current behavior from limitations.\n"
+        },
+        "allowedTargets": {
+          "paths": [
+            "README.md"
+          ],
+          "directories": []
+        }
+      },
+      {
+        "id": "source-layout",
+        "guidance": {
+          "id": "source-layout",
+          "targets": [
+            "src"
+          ],
+          "source": "defaults/guidance/source-layout.md",
+          "sha256": "06ebb1450fc3f4de4f88c2f3ec5083f2e0f37b10305645c73efcab2515fe4b33",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "Keep source modules grouped by responsibility and use descriptive names.\nRead the existing source before changing it. Where responsibilities are unclear,\nadd a concise src/README.md explaining the real entry point, data flow, module\nownership and boundaries. Preserve runtime behavior; avoid reorganizing working\ncode solely to match a template. If the existing layout and documentation already\nsatisfy this guidance, report the specific evidence without unnecessary edits.\n"
+        },
+        "allowedTargets": {
+          "paths": [],
+          "directories": [
+            "src"
+          ]
+        }
+      }
+    ],
+    "requiredEvidence": [
+      "status",
+      "explanation",
+      "changedPaths",
+      "evidence"
+    ]
+  }
+}

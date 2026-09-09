@@ -75,11 +75,29 @@ corrections; the acceptance helpers now canonicalize temporary paths on macOS
 and offer an explicitly labeled source-only fixture mode. The full local
 `pnpm validate` passed: 327 passed, one skipped, zero failed; see
 [the log](validate-1.0.1-macos.log). [Bundle identity](release-bundle-1.0.1.json)
-records the exact prepared artifact. Publication is still pending.
+records the exact prepared artifact. Publication succeeded; [public npm metadata](published-dist-1.0.1.json) matches
+the prepared integrity. The [GitHub release](https://github.com/lutzseverino/repo-standards/releases/tag/v1.0.1)
+contains its matching assets at commit `f8c6160`.
 
 The requested GPT 5.6 Terra/high reviewers found no code defects in this follow-up.
 Their documentation findings were corrected: the results index now separates
 current status from historical blockers; acceptance commands require the exact
 published version; fixture sessions refer to their recorded source without
-claiming it is live public acquisition. Real-agent completion and independent
+claiming it is live public acquisition. Live public-source real-agent adoption and independent
 published updates remain outstanding acceptance work.
+
+## Confirmed initial journeys and remaining updates
+
+All [four public-package/fixture-source initial journeys](public-agent/README.md)
+completed after maintainer confirmation. Subsequent normal commits, fresh-clone
+runtime restoration with scripts disabled and retained inspection while source
+acquisition was unavailable passed on both systems. The actual public CLI
+1.0.1 update inspections are prepared and await their distinct confirmations.
+Live direct adoption and an actual published standards update remain outstanding.
+
+[macOS public installation 1.0.1](public-installation-macos-1.0.1.json) passed
+with no acquisition fixtures. [Linux 1.0.0](public-installation-linux-success.json)
+already passed. The [additional Linux 1.0.1 attempt](public-installation-linux-1.0.1.json)
+verified npm and assets, then failed discovery because GitHub returned HTTP 403
+while resolving the example's annotated tag. This retained failure does not
+invalidate the earlier Linux pass and is not relabeled as a successful run.
