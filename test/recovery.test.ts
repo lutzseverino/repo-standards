@@ -563,3 +563,34 @@ fs.renameSync = function(from, to) {
   assert.equal(f.report(['abandon', '--json']).report.abandoned, true);
   assert.equal(readFileSync(join(f.project.root, archived), 'utf8'), original);
 });
+
+test('failed abandonment archives leave the actual report, journal and logs available for recovery', async t => {
+  const f = await fixture(t, { readme: { kind: 'file', target: 'README.md', guidance: 'guide.md', fixes: [operation('prepare')] } },
+    `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Preserve this evidence'}));`);
+  const started = f.report(f.startArgs);
+  assert.equal(started.report.phase, 'contextual');
+  const journal = join(f.project.root, '.git/repo-standards-run.lock');
+  const mirror = join(f.project.root, '.repo-standards/local/run.json');
+  const log = join(f.project.root, started.report.operations[0].stdout);
+  writeFileSync(mirror, 'Actual local report after interruption');
+  const beforeJournal = readFileSync(journal, 'utf8');
+  const beforeLog = readFileSync(log, 'utf8');
+  const archive = join(f.project.root, '.git/repo-standards-reports');
+  writeFileSync(archive, 'Storage unavailable');
+  const abandoned = f.report(['abandon', '--json']);
+  assert.equal(abandoned.result.status, 1);
+  assert.equal(readFileSync(journal, 'utf8'), beforeJournal);
+  assert.equal(readFileSync(mirror, 'utf8'), 'Actual local report after interruption');
+  assert.equal(readFileSync(log, 'utf8'), beforeLog);
+  assert.equal(existsSync(`${journal}.workers`), false);
+  rmSync(archive);
+  const retried = f.report(['resume', '--retry', '--json']);
+  assert.equal(retried.report.phase, 'contextual', retried.result.stdout);
+  assert.equal(retried.report.id, started.report.id);
+  assert.equal(readFileSync(join(f.project.root, retried.report.retryHistory[0].report), 'utf8'), 'Actual local report after interruption');
+  assert.equal(existsSync(`${journal}.workers`), false);
+  assert.equal(f.report(['abandon', '--json']).report.abandoned, true);
+  assert.equal(existsSync(journal), false);
+  assert.equal(existsSync(`${journal}.workers`), false);
+  assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
+});
