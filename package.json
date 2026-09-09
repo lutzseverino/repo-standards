@@ -13,6 +13,8 @@
     "bootstrap",
     "skills",
     "examples",
+    "docs/installation.md",
+    "docs/release.md",
     "docs/adoption.md",
     "docs/author-format.md",
     "docs/authoring.md",
@@ -24,6 +26,10 @@
   "engines": {
     "node": ">=24 <25"
   },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "packageManager": "pnpm@11.20.0",
   "repository": {
     "type": "git",
@@ -34,7 +40,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test test/*.test.ts",
     "validate": "pnpm typecheck && pnpm build && pnpm test",
-    "prepack": "pnpm build"
+    "prepack": "pnpm build",
+    "release:pack": "pnpm build && node scripts/pack-release.ts"
   },
   "dependencies": {
     "koffi": "3.2.1",

@@ -24,9 +24,13 @@ procedure. The packaged system skill guides confirmation, project-specific
 contextual work and public assessment submission. Topic-based source search
 validates stable release candidates without selecting or adopting them; the
 author workflow covers ordinary GitHub publication.
-The package has not been published to npm.
+Public publication and release completion are tracked separately in
+[release evidence](acceptance/results/). Publication alone does not establish
+that every release acceptance criterion has passed.
 
 - [Architecture and acceptance criteria](docs/architecture.md)
+- [Public installation and restoration](docs/installation.md)
+- [Release procedure](docs/release.md)
 - [Author workflow and publication](docs/authoring.md)
 - [Source discovery](docs/discovery.md)
 - [Author format and CLI diagnostics](docs/author-format.md)
@@ -39,7 +43,7 @@ The package has not been published to npm.
 - [Implementation work](https://github.com/lutzseverino/repo-standards/issues)
 - [Contributing](CONTRIBUTING.md)
 
-## Planned distribution
+## Distribution
 
 - npm package: `@lutzseverino/repo-standards`
 - CLI executable: `repo-standards`
@@ -48,22 +52,23 @@ The package has not been published to npm.
 
 The maintainer's personal standards are a separate future standards repository.
 
-## Try source validation
+## Install the published CLI
 
-With Node.js 24 and the pnpm version in `package.json`:
+Once the release version is available on public npm, use Node.js 24 and npm;
+no product checkout or pnpm is needed:
 
 ```sh
-pnpm install --frozen-lockfile
-pnpm validate
-pnpm pack
-npm install --global ./lutzseverino-repo-standards-1.0.0.tgz --ignore-scripts
-repo-standards source validate ./examples/alice
-repo-standards source validate ./examples/alice --json
+npm install --global --ignore-scripts @lutzseverino/repo-standards@1.0.0
+repo-standards --version
+repo-standards source validate /path/to/standards-repository --json
 ```
 
 An omitted directory uses the current directory. Validation needs neither a
 clean working tree nor installed author prerequisites. The JSON result includes
 the normalized resolved selection for every profile, or structured errors.
+See [public installation](docs/installation.md) for the standalone bootstrap,
+initial adoption and fresh-checkout restoration, or [contributing](CONTRIBUTING.md)
+for product development.
 
 ## License
 

@@ -1,9 +1,8 @@
 # Bootstrap and public inspection
 
-Issue #3 delivers an installable CLI package and a standalone bootstrap. Public
-npm publication and published-installation verification belong to issue #11;
-the package is not yet published. Issue #4 adds
-[confirmed exact adoption, project runtime pins, and retained inspection](adoption.md).
+See [public installation](installation.md) for npm and standalone-bootstrap
+acquisition and [adoption](adoption.md) for confirmed adoption, runtime pins and
+retained inspection. Public release status is recorded in the product repository.
 
 ## Obtain the CLI outside the adopting project
 
@@ -18,7 +17,10 @@ project:
 
 ```sh
 mkdir -p "$HOME/.local/bin"
-install -m 755 /path/to/distributed/repo-standards "$HOME/.local/bin/repo-standards-bootstrap"
+curl --fail --location \
+  https://github.com/lutzseverino/repo-standards/releases/download/v1.0.0/repo-standards-bootstrap \
+  --output "$HOME/.local/bin/repo-standards-bootstrap"
+chmod 755 "$HOME/.local/bin/repo-standards-bootstrap"
 cd /path/to/adopting-project
 "$HOME/.local/bin/repo-standards-bootstrap" --cli-version 1.0.0 inspect \
   --source https://github.com/OWNER/STANDARDS \

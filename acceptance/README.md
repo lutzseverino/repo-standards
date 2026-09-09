@@ -15,6 +15,28 @@ uses the public synthetic `repo-standards-example` source.
 
 ## Prepare each supported operating system
 
+For issue #11's public release, use the published package and a designated public
+standards source. On each OS, prepare a disposable project using actual public
+npm acquisition (replace the CLI version with the candidate release):
+
+```sh
+node acceptance/prepare-public.ts 1.0.0 \
+  https://github.com/lutzseverino/repo-standards-example v1.0.0 service harbor
+```
+
+For Alice/Bob, use the separately designated public Alice source, its stable tag,
+`work` and `bob`. Do not invent a published source or use the fixture URL below.
+Preparation prints a session JSON path and exits; no local registry is involved.
+Read the externally installed skill, then follow the same agent journey below,
+using the session's actual public source, standards version and profile.
+Record published bootstrap/discovery separately with
+`node acceptance/public-installation.ts 1.0.0 /outside/evidence.json`.
+Public release evidence must also cover the normal project commit, fresh-checkout
+restoration, retained-source use and independent updates described in
+[the release procedure](../docs/release.md#published-acceptance).
+
+### Earlier fixture-based acceptance
+
 Use macOS and Linux with Node.js 24, npm, Git and Python >=3.12,<4. From a product
 checkout, install dependencies with `pnpm install --frozen-lockfile` and build
 with `pnpm build`. Keep this setup process running:

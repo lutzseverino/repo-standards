@@ -1,4 +1,4 @@
-// Execute the installed public CLI with test-only acquisition boundaries.
+// Execute a prepared session's installed CLI with its recorded acquisition environment.
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
