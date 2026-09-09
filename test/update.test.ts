@@ -5,7 +5,7 @@ import type { TestContext } from 'node:test';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { stringify } from 'yaml';
+import { parse, stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
@@ -96,9 +96,9 @@ test('a confirmed standards update advances only the standards pin, replaces who
   assert.equal(existsSync(join(project.root, '.agents/skills/review/obsolete.txt')), false);
   assert.equal(readFileSync(join(project.root, 'RETIRED.md'), 'utf8'), 'Keep retired content');
   assert.equal(readFileSync(join(project.root, 'EXCLUDED.md'), 'utf8'), 'Keep excluded content');
-  const selection = readFileSync(join(project.root, '.repo-standards/selection.yaml'), 'utf8');
-  assert.match(selection, /version: v1\.1\.0/);
-  assert.match(selection, /version: 1\.0\.0/);
+  const selection = parse(readFileSync(join(project.root, '.repo-standards/selection.yaml'), 'utf8'));
+  assert.equal(selection.standards.version, 'v1.1.0');
+  assert.equal(selection.cli.version, cli.version);
   const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
   assert.equal(state.baselines['RETIRED.md'], undefined);
   assert.equal(state.baselines['EXCLUDED.md'], undefined);
@@ -186,8 +186,8 @@ test('a candidate CLI updates only the exact runtime pin from retained standards
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(JSON.parse(result.stdout).outcome, 'complete');
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Pinned standards');
-  assert.match(readFileSync(join(project.root, '.repo-standards/runtime/package.json'), 'utf8'), /"1\.1\.0"/);
-  assert.match(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8'), /Fixture CLI 1\.1\.0/);
+  assert.equal(JSON.parse(readFileSync(join(project.root, '.repo-standards/runtime/package.json'), 'utf8')).dependencies['@lutzseverino/repo-standards'], candidateVersion);
+  assert.ok(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8').includes(`Fixture CLI ${candidateVersion}.`));
   assert.equal(git(project.root, 'rev-parse', 'HEAD'), oldHead);
   commit(project.root);
 
