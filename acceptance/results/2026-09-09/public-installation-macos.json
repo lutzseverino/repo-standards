@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-09T04:30:44.169Z",
+  "os": {
+    "platform": "darwin",
+    "release": "25.3.0",
+    "arch": "arm64"
+  },
+  "node": "v24.11.1",
+  "version": "1.0.0",
+  "passed": false,
+  "commands": [
+    {
+      "executable": "npm",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "11.6.2\n",
+      "stderr": ""
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "view",
+        "@lutzseverino/repo-standards@1.0.0",
+        "dist",
+        "--json"
+      ],
+      "status": 1,
+      "stdout": "{\n  \"error\": {\n    \"code\": \"E404\",\n    \"summary\": \"Not Found - GET https://registry.npmjs.org/@lutzseverino%2frepo-standards - Not found\",\n    \"detail\": \"The requested resource '@lutzseverino/repo-standards@1.0.0' could not be found or you do not have permission to access it.\\n\\nNote that you can also install from a\\ntarball, folder, http url, or git url.\"\n  }\n}\n",
+      "stderr": "npm error code E404\nnpm error 404 Not Found - GET https://registry.npmjs.org/@lutzseverino%2frepo-standards - Not found\nnpm error 404\nnpm error 404  The requested resource '@lutzseverino/repo-standards@1.0.0' could not be found or you do not have permission to access it.\nnpm error 404\nnpm error 404 Note that you can also install from a\nnpm error 404 tarball, folder, http url, or git url.\nnpm notice\nnpm notice New minor version of npm available! 11.6.2 -> 11.19.1\nnpm notice Changelog: https://github.com/npm/cli/releases/tag/v11.19.1\nnpm notice To update run: npm install -g npm@11.19.1\nnpm notice\nnpm error A complete log of this run can be found in: /var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-public-LoNN7w/npm-cache/_logs/2026-09-09T04_30_43_682Z-debug-0.log\n"
+    }
+  ],
+  "downloads": [],
+  "scope": "Public installation, author validation, discovery and read-only bootstrap. No adoption or real-agent assessment."
+}

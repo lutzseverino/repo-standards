@@ -1,0 +1,16 @@
+{
+  "package": "@lutzseverino/repo-standards",
+  "version": "1.0.0",
+  "tarball": "lutzseverino-repo-standards-1.0.0.tgz",
+  "integrity": "sha512-WInIH5Nz0+zRTfz1iYPlUHAd5VgTYYTer5EbWxSr9enHjQBgEhY7psn7AgU1T5/Zh7G+o7LCturCDpEepojg7w==",
+  "artifacts": [
+    {
+      "file": "lutzseverino-repo-standards-1.0.0.tgz",
+      "sha256": "d378c3557b009d7421e0c02687d015567092afeb7aab27920d1896945b874f49"
+    },
+    {
+      "file": "repo-standards-bootstrap",
+      "sha256": "8f593d792119f9e9a623b20c1e2d680f7a0e641c54819367c7ebe2fca575c46a"
+    }
+  ]
+}

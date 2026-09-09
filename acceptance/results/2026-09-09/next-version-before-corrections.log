@@ -1,0 +1,424 @@
+Already up to date
+Done in 153ms using pnpm v11.20.0
+$ pnpm typecheck && pnpm build && pnpm test
+$ tsc --noEmit
+$ tsc -p tsconfig.build.json
+$ node --test test/*.test.ts
+✔ direct inspection resolves annotated tags and canonical repository identity, and rejects moved observations (1711.482958ms)
+✔ inspection rejects unsupported sources, floating references and incompatible selections with structured diagnostics (3238.926958ms)
+✔ private, missing, truncated, linked and corrupt remote snapshots are rejected (2271.473333ms)
+✔ remote source references require exact Git path spelling for every material kind (4161.332208ms)
+✔ remote snapshots reject path aliases before host extraction can conflate distinct Git entries (1229.446833ms)
+✔ the remote root entry point must be spelled standards.yaml in Git (533.979209ms)
+✔ start requires explicit confirmation of an inspection before any project mutation (1094.126333ms)
+✔ a fresh checkout restores the exact runtime and inspects retained standards after the source disappears (7247.044875ms)
+✔ confirmed exact adoption installs whole skills, claims matching files and leaves durable pins uncommitted (5283.673333ms)
+▶ start rejects every invalid initial project state without mutation
+  ✔ no commit (846.231625ms)
+  ✔ dirty working tree (906.663167ms)
+  ✔ dirty index (949.33275ms)
+  ✔ untracked content (692.280417ms)
+  ✔ ignored replacement (633.174333ms)
+  ✔ unsafe target (553.480541ms)
+  ✔ unsafe ancestor (621.56925ms)
+  ✔ wrong target type (600.489583ms)
+  ✔ case conflict (613.129916ms)
+  ✔ unrelated matching skill (614.319917ms)
+  ✔ reserved system skill (551.40375ms)
+  ✔ existing product state (600.844625ms)
+  ✔ hidden index flags (593.807334ms)
+  ✔ skip-worktree flags (528.740291ms)
+✔ start rejects every invalid initial project state without mutation (9307.789084ms)
+▶ start rejects stale identities, HEAD, project content and profile selection
+  ✔ identity (597.148292ms)
+  ✔ head (620.680292ms)
+  ✔ content (595.792458ms)
+  ✔ profile (582.608375ms)
+✔ start rejects stale identities, HEAD, project content and profile selection (2396.868583ms)
+▶ final integrity failures preserve work and report an incomplete locked run with no complete adoption
+  ✔ exact bytes (3717.548834ms)
+  ✔ executable bit (3476.679417ms)
+  ✔ skill addition (3593.447333ms)
+  ✔ retained input addition (3783.037208ms)
+  ✔ retained input bytes (3505.766833ms)
+  ✔ runtime manifest (3265.4415ms)
+  ✔ runtime dependency (3790.182208ms)
+  ✔ product addition (3797.696041ms)
+✔ final integrity failures preserve work and report an incomplete locked run with no complete adoption (28994.716167ms)
+✔ only one process can hold an active adoption run (4043.407791ms)
+▶ start rechecks freshness and unsafe or ignored targets after runtime acquisition before mutation
+  ✔ content (3276.083417ms)
+  ✔ symlink (2653.734417ms)
+  ✔ ignored (2638.530792ms)
+✔ start rechecks freshness and unsafe or ignored targets after runtime acquisition before mutation (8639.928125ms)
+✔ unsafe targets introduced during installation are rechecked before each write (3893.744208ms)
+▶ missing npm and unavailable exact runtime packages leave project content untouched
+  ✔ npm (301.685667ms)
+  ✔ package (223.741667ms)
+✔ missing npm and unavailable exact runtime packages leave project content untouched (935.353541ms)
+✔ exact installation preserves binary bytes and executable state and retains only the selected profile (3722.175667ms)
+✔ an empty exact profile remains inspectable from retained metadata (3833.411708ms)
+✔ retained inspection preserves selected source manifests and rejects altered retained or last-complete evidence (4446.490209ms)
+▶ ignored adoption outputs cannot produce a complete adoption that disappears from a fresh checkout
+  ✔ .repo-standards/ (3797.917958ms)
+  ✔ .agents/ (3555.217292ms)
+  ✔ AGENTS.md (2238.645459ms)
+✔ ignored adoption outputs cannot produce a complete adoption that disappears from a fresh checkout (9665.076333ms)
+✔ changes to unrelated tracked content during the final source acquisition invalidate confirmation before mutation (2666.887125ms)
+✔ incomplete status retains ignored exact files and complete author and system skill changes (3606.695375ms)
+✔ runtime acquisition reuses a populated external npm cache with the registry unavailable (3242.357416ms)
+✔ runtime cache configuration cannot write inside the adopting project through direct or linked paths (1213.0975ms)
+✔ a final report persistence failure retains incomplete evidence and recovery guidance (4041.1745ms)
+▶ npm cache child symlinks cannot redirect acquisition content or logs into the project
+  ✔ _logs (563.45475ms)
+  ✔ _cacache (330.680667ms)
+  ✔ _cacache/index-v5/aa (354.694041ms)
+✔ npm cache child symlinks cannot redirect acquisition content or logs into the project (1607.965333ms)
+✔ a failed initial ignore-file write preserves the run without exposing local reports to Git (3955.752917ms)
+✔ status recovers ignored installed targets after the adoption process is interrupted (4187.459334ms)
+✔ contextual handoff identifies the run, retained guidance, allowed targets and required evidence (6776.6765ms)
+✔ scripted agent completes Alice work with separate assessment and check evidence and unchanged HEAD (6462.743458ms)
+✔ blocked agent evidence is retained separately and prevents checks until renewed assessment (5530.351791ms)
+▶ malformed and mismatched assessments, missing declarations and inaccurate paths stay incomplete
+  ✔ invalid JSON (120.002833ms)
+  ✔ null (193.872625ms)
+  ✔ unknown field (199.40225ms)
+  ✔ another run (234.459667ms)
+  ✔ another selection (240.881333ms)
+  ✔ wrong snapshot (225.157083ms)
+  ✔ missing declaration (253.203291ms)
+  ✔ duplicate declaration (261.383708ms)
+  ✔ unknown declaration (266.633542ms)
+  ✔ no explanation (239.03ms)
+  ✔ no evidence (240.985167ms)
+  ✔ array status (248.331791ms)
+  ✔ invalid status (233.91875ms)
+  ✔ missing changed path (224.572333ms)
+  ✔ extra unchanged path (225.096667ms)
+  ✔ path in wrong declaration (254.139583ms)
+  ✔ parent escape (245.480958ms)
+  ✔ duplicate path (254.318625ms)
+✔ malformed and mismatched assessments, missing declarations and inaccurate paths stay incomplete (8490.393792ms)
+▶ unreported out-of-scope tracked and untracked changes block completion while ignored content is excluded
+  ✔ CONTRIBUTING.md (617.24725ms)
+  ✔ unrelated.txt (467.965833ms)
+  ✔ src-other.txt (487.723042ms)
+✔ unreported out-of-scope tracked and untracked changes block completion while ignored content is excluded (6032.752125ms)
+✔ changed content invalidates prior assessment and every check runs again after renewed evidence (6891.086084ms)
+▶ contextual work cannot corrupt installed exact content, full skills, inputs or product state
+  ✔ AGENTS.md (144.781292ms)
+  ✔ .agents/skills/review/SKILL.md (126.887042ms)
+  ✔ .agents/skills/review/added.txt (212.089083ms)
+  ✔ .repo-standards/inputs/source/readme.md (121.474459ms)
+  ✔ .repo-standards/inputs/added.txt (192.364125ms)
+  ✔ .repo-standards/selection.yaml (163.101417ms)
+  ✔ .repo-standards/runtime/package.json (143.849083ms)
+  ✔ .repo-standards/unexpected.txt (248.736083ms)
+✔ contextual work cannot corrupt installed exact content, full skills, inputs or product state (6149.347625ms)
+▶ checks after assessment still reject mutation and exact-content corruption
+  ✔ README.md (5085.665ms)
+  ✔ .agents/skills/review/added.txt (4894.232375ms)
+✔ checks after assessment still reject mutation and exact-content corruption (9980.2235ms)
+✔ content changing between assessment and final verification requires reassessment and fresh checks (5575.22375ms)
+✔ a second independent author uses fixes, repository configuration and runbook evidence through the same handoff (4831.094334ms)
+✔ assessment accounts for deleted tracked files and executable changes (6249.292083ms)
+✔ only one resume can execute checks for an active contextual adoption (5571.651167ms)
+▶ uncertain check outcomes cannot be retried through contextual resume
+  ✔ NONZERO_EXIT (4904.031875ms)
+  ✔ SIGNAL (4886.520792ms)
+  ✔ TIMEOUT (12234.143208ms)
+  ✔ PROTOCOL_ERROR (5351.946375ms)
+✔ uncertain check outcomes cannot be retried through contextual resume (27377.208709ms)
+✔ Alice author example checks actual README headings through installed adoption (8719.189542ms)
+✔ Mira service source retains check resources and preserves fix output on explicit retry (7666.878833ms)
+✔ the standalone bootstrap invokes the explicit CLI and resolves omitted latest stable only once outside the project (9135.9915ms)
+✔ bootstrap prerequisite failures give setup instructions before package acquisition (302.523834ms)
+✔ the installed inspection command checks npm without executing author prerequisite probes (381.308167ms)
+✔ exact-version bootstrap can inspect using the configured npm cache with the registry unavailable (6220.442833ms)
+✔ every prerequisite is probed before mutation and all failures are reported (2277.040709ms)
+✔ trusted operations receive literal arguments, retained resources and resolved identities in declared order (7070.959125ms)
+▶ checks cannot mutate tracked or new project content even while adoption already has uncommitted changes
+  ✔ README.md (5278.123042ms)
+  ✔ NEW.txt (3806.496958ms)
+✔ checks cannot mutate tracked or new project content even while adoption already has uncommitted changes (9187.499791ms)
+▶ standards results and process errors remain distinct and stop only the required work
+  ✔ changed (3822.167417ms)
+  ✔ blocked fix (3126.581333ms)
+  ✔ failed check (3587.908667ms)
+  ✔ blocked check (3526.802958ms)
+  ✔ nonzero (3479.708542ms)
+  ✔ signal (3795.657375ms)
+  ✔ timeout (4553.862583ms)
+  ✔ malformed (3427.216ms)
+  ✔ multiple results (3752.522209ms)
+  ✔ wrong version (3546.950792ms)
+  ✔ wrong status (3442.865333ms)
+✔ standards results and process errors remain distinct and stop only the required work (40128.264584ms)
+✔ fixes finish before the contextual handoff and checks wait for the later assessment interface (4208.141875ms)
+▶ author phases cannot redefine exact, skill, retained-input or product-state baselines
+  ✔ AGENTS.md (4026.669917ms)
+  ✔ .agents/skills/review/added.txt (3412.273625ms)
+  ✔ .agents/skills/review/SKILL.md (3657.97325ms)
+  ✔ .repo-standards/inputs/source/content.md (3437.36025ms)
+  ✔ .repo-standards/inputs/added.txt (3455.315ms)
+  ✔ .repo-standards/selection.yaml (3492.988125ms)
+  ✔ .repo-standards/runtime/package.json (3602.520458ms)
+  ✔ .repo-standards/unexpected.txt (3704.457667ms)
+  ✔ .repo-standards/local/run.json (2657.819084ms)
+✔ author phases cannot redefine exact, skill, retained-input or product-state baselines (31516.465917ms)
+✔ prerequisite arguments stay literal and failed or hung probes block installation (1817.766667ms)
+✔ the first observed version wins across probe streams and long valid timeouts do not overflow (4597.690625ms)
+✔ version probes cannot fabricate a version by joining stdout and stderr fragments (753.582583ms)
+▶ author operations that hide index entries stop adoption before further work
+  ✔ fixes --skip-worktree (4362.435959ms)
+  ✔ fixes --assume-unchanged (3458.597041ms)
+  ✔ checks --skip-worktree (3533.416459ms)
+  ✔ checks --assume-unchanged (3596.509667ms)
+✔ author operations that hide index entries stop adoption before further work (15015.712333ms)
+✔ inspection reports the pinned complete profile without changing a dirty project or executing author code (1749.772458ms)
+✔ unsafe ancestors, skill ownership and ignored replacement content block start without following links (1549.648875ms)
+✔ inspection identity is stable and changes with affected bytes, executable state, index content, HEAD and profile (3452.612917ms)
+✔ inspection reports unborn Git state and type, case, reserved-state and untracked conflicts (929.121334ms)
+✔ Git flags that hide local changes cannot make an unsafe replacement start-eligible (571.9035ms)
+✔ contextual path names cannot disappear from the inspection identity (852.394625ms)
+✔ inspection never executes Git clean filters while observing dirty tracked content (497.147ms)
+✔ contextual files and repository directory trees reject incompatible existing target types (935.844709ms)
+✔ inspection orders all fixes before checks, declarations by ID and operations by their declared order (535.529ms)
+✔ exact replacements preserve both root observations when files and directories conflict (1025.408916ms)
+﹣ case conflicts retain the exact target bytes and bind them into inspection identity (31.952709ms) # Requires a case-sensitive filesystem where both foo and FOO can exist
+✔ executable syntax accepts command names and paths without resolving or rewriting them (288.337334ms)
+✔ executable syntax rejects shell expressions, controls and malformed executable paths consistently (88.015333ms)
+✔ executable character restrictions do not apply to literal arguments (73.734417ms)
+✔ unreadable selected files are reported for every reference kind (267.585542ms)
+✔ source and target paths reject escaped control U+0001 (77.960083ms)
+✔ source and target paths reject escaped control U+007f (69.588958ms)
+✔ source and target paths reject escaped control U+0080 (71.751542ms)
+✔ source and target paths reject escaped control U+0085 (69.968125ms)
+✔ source and target paths reject escaped control U+009f (71.002417ms)
+✔ whole skill and resource trees reject control characters in nested source paths (73.08625ms)
+✔ empty profile names are rejected (68.759041ms)
+✔ target path "/absolute" is rejected (67.708541ms)
+✔ target path "C:/outside" is rejected (67.98475ms)
+✔ target path "../outside" is rejected (69.552208ms)
+✔ target path "a/../../outside" is rejected (76.121875ms)
+✔ target path "./file" is rejected (92.059166ms)
+✔ target path "a//file" is rejected (89.587125ms)
+✔ target path "a\\file" is rejected (80.847667ms)
+✔ target path "src/*.ts" is rejected (117.63725ms)
+✔ source symlinks are rejected at the document and source ancestor boundaries (154.036375ms)
+✔ source directories must not be symlinks even with a trailing slash (85.645958ms)
+✔ references must have the declared filesystem type and skills require SKILL.md (77.26975ms)
+✔ whole skills collide with files and other skill declarations after case folding (71.864083ms)
+✔ replaced and excluded targets are absent from overlap validation (73.393ms)
+✔ Unicode case-folded target collisions include capital and small sharp S (80.432417ms)
+✔ distinct Unicode targets are not conflated by uppercasing (96.806042ms)
+✔ explicit retry recovers installation after process death and verifies confirmed files before writing (7036.094125ms)
+✔ uncertain fixes require explicit retry, rerun fixes, renew contextual evidence and rerun checks (7486.409541ms)
+✔ surviving author processes block retry and abandonment after the CLI dies (4165.368541ms)
+✔ abandon preserves actual work, historical evidence and an accessible report without moving HEAD (3661.278917ms)
+✔ retry rejects installed edits and renews assessment even when project bytes stay the same (5718.900667ms)
+✔ retry recovers an interrupted completion without trusting its candidate state (4981.783416ms)
+▶ retry recovers before installation and from partial runtime copying without source reacquisition
+  ✔ runtime (4063.288542ms)
+  ✔ runtime-copy (4142.523625ms)
+✔ retry recovers before installation and from partial runtime copying without source reacquisition (8206.231334ms)
+▶ retry recovers a file staged before rename and blocks added skill resources before further installation
+  ✔ staged exact file (4083.952583ms)
+  ✔ added skill file (3683.052125ms)
+✔ retry recovers a file staged before rename and blocks added skill resources before further installation (7767.379042ms)
+✔ active start blocks retry and abandonment, and completed state cannot be abandoned (4542.979458ms)
+✔ abandoning an interrupted completion preserves its candidate without claiming last-complete evidence (4446.414917ms)
+▶ background descendants of returned fixes and prerequisite probes retain active execution
+  ✔ fixes (4529.853417ms)
+  ✔ prerequisites (1426.692584ms)
+✔ background descendants of returned fixes and prerequisite probes retain active execution (5956.905125ms)
+✔ retry recovers completion files interrupted between staging and rename (4508.496416ms)
+✔ live process ownership is authoritative before any mirror of a running operation (4043.701375ms)
+▶ retry accepts expected npm symlinks in runtime staging and unrecorded runtime installation
+  ✔ staged runtime (4450.820375ms)
+  ✔ installed runtime (4442.98175ms)
+  ✔ linked stage root (3762.022375ms)
+✔ retry accepts expected npm symlinks in runtime staging and unrecorded runtime installation (12656.257ms)
+✔ a fast author operation cannot have its local report corruption overwritten by spawn journaling (8210.324542ms)
+✔ retry preserves a report altered by an author after killing the CLI (4043.371375ms)
+✔ abandoned operation logs remain readable after reconciliation and another adoption (8282.114625ms)
+✔ same-second process identities distinguish reused worker and author process numbers (4279.3245ms)
+✔ abandon archives operation output written before its result reached the journal (4000.533334ms)
+✔ retry retains unrecorded operation output before reusing its log index (4013.679292ms)
+✔ failed abandonment archives leave the actual report, journal and logs available for recovery (3386.250042ms)
+✔ release artifacts install without build tools and expose the matching CLI, bootstrap, skill and author documentation (2484.004167ms)
+✔ an independently installed later CLI package reports its exact release version (3093.835708ms)
+✔ source search returns validated public release candidates without selecting or changing a project (466.536125ms)
+✔ search rejects unsupported and invalid candidates explicitly while keeping valid candidates (882.79525ms)
+✔ search finds stable published releases across pages and reports sources without one (436.162708ms)
+✔ search paginates candidates and discloses incomplete GitHub results and the search cap (1263.103375ms)
+✔ discovery outages and malformed responses are explicit and do not prevent known-source inspection (1023.741917ms)
+✔ candidate failures remain explicit without falling back from an invalid newer stable release (824.828875ms)
+✔ search works outside a Git project with a cache beneath its current directory (446.245458ms)
+✔ validation preserves literal operations, never runs scripts or version probes, and leaves a dirty source unchanged (383.192375ms)
+✔ the accepted Alice example validates unchanged and provides human output (152.442834ms)
+✔ authors receive structured errors for unsupported format (122.177083ms)
+✔ authors receive structured errors for invalid CLI range (138.058167ms)
+✔ authors receive structured errors for incompatible CLI (154.422209ms)
+✔ authors receive structured errors for missing metadata (142.748083ms)
+✔ authors receive structured errors for non-string metadata (125.951917ms)
+✔ authors receive diagnostics without crashing for no profiles (151.985625ms)
+✔ authors receive diagnostics without crashing for recursive alias (150.943625ms)
+✔ authors receive diagnostics without crashing for invalid YAML (155.136166ms)
+✔ authors receive diagnostics without crashing for multiple documents (143.153666ms)
+✔ authors receive diagnostics without crashing for unknown YAML tag (149.859459ms)
+✔ the installed CLI exposes version and help and rejects unsupported commands (501.30775ms)
+✔ duplicate YAML identities do not hide independent errors in either declaration (116.960125ms)
+✔ duplicate singleton fields still validate every determinable value (106.144833ms)
+✔ an unknown declaration kind does not hide unrelated unknown fields (111.530917ms)
+✔ unsafe references and conflicting targets are rejected even in an unselected profile (112.457917ms)
+✔ validation collects schema and operation errors across every profile with precise locations (117.892792ms)
+✔ all four forms resolve through inheritance, replacement, addition and exclusion as complete declarations (113.613709ms)
+✔ an author validates a local standards source through the installed CLI (107.706709ms)
+✖ a confirmed standards update advances only the standards pin, replaces whole owned skills, and preserves retired content (5760.322166ms)
+▶ every committed edit to installed exact baselines blocks the entire standards update before mutation
+  ✔ changed bytes (3950.8165ms)
+  ✔ changed executable state (3547.578ms)
+  ✔ added skill resource (3726.901792ms)
+  ✔ removed skill resource (4083.720417ms)
+  ✔ changed skill resource (4401.318125ms)
+✔ every committed edit to installed exact baselines blocks the entire standards update before mutation (20031.719084ms)
+✖ a candidate CLI updates only the exact runtime pin from retained standards and restores without the source (8928.307542ms)
+✔ a CLI update rejects an incompatible retained standards selection without mutation (5462.186916ms)
+✔ an update failure preserves actual work and the previous last-complete evidence (5621.969625ms)
+✔ update inspection rejects source or profile switching and changing both pins together (6204.284833ms)
+✔ an established selection rejects its moved current tag even without the external observation cache (4193.362625ms)
+✔ whole-skill updates allow resources to change between files and directories (5400.887667ms)
+✔ a standards update resumes interrupted whole-skill installation while retaining its runtime (5430.006917ms)
+▶ an update retries interrupted completion while preserving previous last-complete evidence
+  ✔ standards: lock.json (5911.221583ms)
+  ✔ standards: state.json (8614.338667ms)
+  ✔ cli: lock.json (9540.87575ms)
+  ✔ cli: state.json (8965.814458ms)
+✔ an update retries interrupted completion while preserving previous last-complete evidence (33032.924875ms)
+✔ a standards update rejects added retained inputs before discarding any material (4551.623959ms)
+▶ both update inspections reject unexpected durable product files before creating a run
+  ✔ standards (4785.630041ms)
+  ✔ cli (5161.598333ms)
+✔ both update inspections reject unexpected durable product files before creating a run (9947.512875ms)
+✔ an update rejects a committed file at the excluded local directory before creating a run (2899.200166ms)
+▶ both updates validate excluded directory roots and reject changed boundaries before creating a run
+  ▶ standards
+    ✔ .repo-standards/local: file (733.275958ms)
+    ✔ .repo-standards/local: directory-link (539.304042ms)
+    ✔ .repo-standards/local: dangling-link (518.567291ms)
+    ✔ .repo-standards/local: fifo (518.298333ms)
+    ✔ .repo-standards/cache: file (661.95875ms)
+    ✔ .repo-standards/cache: directory-link (516.845ms)
+    ✔ .repo-standards/cache: dangling-link (516.618084ms)
+    ✔ .repo-standards/cache: fifo (513.7245ms)
+    ✔ .repo-standards/runtime/node_modules: file (659.4835ms)
+    ✔ .repo-standards/runtime/node_modules: directory-link (515.425541ms)
+    ✔ .repo-standards/runtime/node_modules: dangling-link (513.97475ms)
+    ✔ .repo-standards/runtime/node_modules: fifo (516.255834ms)
+  ✔ standards (9718.005042ms)
+  ▶ cli
+    ✔ .repo-standards/local: file (801.561041ms)
+    ✔ .repo-standards/local: directory-link (493.407791ms)
+    ✔ .repo-standards/local: dangling-link (498.4855ms)
+    ✔ .repo-standards/local: fifo (500.660833ms)
+    ✔ .repo-standards/cache: file (634.495042ms)
+    ✔ .repo-standards/cache: directory-link (494.066625ms)
+    ✔ .repo-standards/cache: dangling-link (500.079333ms)
+    ✔ .repo-standards/cache: fifo (501.148375ms)
+    ✔ .repo-standards/runtime/node_modules: file (634.255083ms)
+    ✔ .repo-standards/runtime/node_modules: directory-link (498.847542ms)
+    ✔ .repo-standards/runtime/node_modules: dangling-link (499.964458ms)
+    ✔ .repo-standards/runtime/node_modules: fifo (497.314083ms)
+  ✔ cli (10410.672166ms)
+✔ both updates validate excluded directory roots and reject changed boundaries before creating a run (20128.972ms)
+▶ both updates allow absent excluded directories and ignore safe generated descendants
+  ✔ standards (3662.0665ms)
+  ✔ cli (5486.295084ms)
+✔ both updates allow absent excluded directories and ignore safe generated descendants (9148.669958ms)
+▶ updates preserve incomplete work when excluded roots become invalid during installation or verification
+  ✔ standards: installation: .repo-standards/local (3589.366917ms)
+  ✔ standards: installation: .repo-standards/cache (3908.002042ms)
+  ✔ standards: installation: .repo-standards/runtime/node_modules (3957.268083ms)
+  ✔ standards: verification: .repo-standards/local (3523.923667ms)
+  ✔ standards: verification: .repo-standards/cache (3565.767583ms)
+  ✔ standards: verification: .repo-standards/runtime/node_modules (3552.697792ms)
+  ✔ cli: installation: .repo-standards/local (5337.541125ms)
+  ✔ cli: installation: .repo-standards/cache (5359.249375ms)
+  ✔ cli: installation: .repo-standards/runtime/node_modules (6414.068417ms)
+  ✔ cli: verification: .repo-standards/local (5949.177417ms)
+  ✔ cli: verification: .repo-standards/cache (5544.257209ms)
+  ✔ cli: verification: .repo-standards/runtime/node_modules (5572.406166ms)
+✔ updates preserve incomplete work when excluded roots become invalid during installation or verification (56274.886833ms)
+▶ update identities bind unexpected durable bytes while excluding local state, caches, and dependencies
+  ✔ standards (3690.539125ms)
+  ✔ cli (3971.819708ms)
+✔ update identities bind unexpected durable bytes while excluding local state, caches, and dependencies (7662.64175ms)
+▶ both update paths run fixes, contextual assessment, and checks with only active declarations
+  ✔ standards (4947.648916ms)
+  ✔ cli (6980.363125ms)
+✔ both update paths run fixes, contextual assessment, and checks with only active declarations (11928.349417ms)
+✔ a whole-skill update resumes a partially written resource without keeping its temporary file (3303.9765ms)
+✔ retry preserves a maintainer deletion of a confirmed installed skill resource (3461.623042ms)
+✔ a whole-skill update resumes interrupted removal of obsolete resources (3283.273708ms)
+✔ retry continues installed skill progress without deleting the candidate resources again (3243.556458ms)
+ℹ tests 328
+ℹ suites 0
+ℹ pass 325
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 252636.11675
+
+✖ failing tests:
+
+test at test/update.test.ts:31:1
+✖ a confirmed standards update advances only the standards pin, replaces whole owned skills, and preserves retired content (5760.322166ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /version: 1\.0\.0/. Input:
+
+  'cli:\n' +
+    '  package: "@lutzseverino/repo-standards"\n' +
+    '  version: 1.99.42\n' +
+    'standards:\n' +
+    '  repository: https://github.com/alice/standards\n' +
+    '  version: v1.1.0\n' +
+    '  commit: 8e8c9b4d14f4abcd3679677c9de3bb977be7dbf0\n' +
+    'profile: work\n'
+
+      at TestContext.<anonymous> (file:///private/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-issue11-next-version-khvs4cxk/test/update.test.ts:101:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:358:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'cli:\n  package: "@lutzseverino/repo-standards"\n  version: 1.99.42\nstandards:\n  repository: https://github.com/alice/standards\n  version: v1.1.0\n  commit: 8e8c9b4d14f4abcd3679677c9de3bb977be7dbf0\nprofile: work\n',
+    expected: /version: 1\.0\.0/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at test/update.test.ts:154:1
+✖ a candidate CLI updates only the exact runtime pin from retained standards and restores without the source (8928.307542ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /"1\.1\.0"/. Input:
+
+  '{\n' +
+    '  "private": true,\n' +
+    '  "dependencies": {\n' +
+    '    "@lutzseverino/repo-standards": "1.100.0"\n' +
+    '  }\n' +
+    '}\n'
+
+      at TestContext.<anonymous> (file:///private/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-issue11-next-version-khvs4cxk/test/update.test.ts:189:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async Test.run (node:internal/test_runner/test:1113:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '{\n  "private": true,\n  "dependencies": {\n    "@lutzseverino/repo-standards": "1.100.0"\n  }\n}\n',
+    expected: /"1\.1\.0"/,
+    operator: 'match',
+    diff: 'simple'
+  }
+[ELIFECYCLE] Test failed. See above for more details.
+[ELIFECYCLE] Command failed with exit code 1.

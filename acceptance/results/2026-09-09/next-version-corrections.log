@@ -1,0 +1,10 @@
+✔ a confirmed standards update advances only the standards pin, replaces whole owned skills, and preserves retired content (4351.048084ms)
+✔ a candidate CLI updates only the exact runtime pin from retained standards and restores without the source (6347.770292ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11535.722625

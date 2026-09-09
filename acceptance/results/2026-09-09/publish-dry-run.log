@@ -1,0 +1,80 @@
+npm notice
+npm notice 📦  @lutzseverino/repo-standards@1.0.0
+npm notice Tarball Contents
+npm notice 1.1kB LICENSE
+npm notice 3.5kB README.md
+npm notice 7.5kB bootstrap/repo-standards
+npm notice 8.6kB dist/acquisition.js
+npm notice 8.2kB dist/acquisition.js.map
+npm notice 6.9kB dist/adoption-files.js
+npm notice 7.4kB dist/adoption-files.js.map
+npm notice 30.7kB dist/adoption-run.js
+npm notice 27.0kB dist/adoption-run.js.map
+npm notice 27.1kB dist/adoption.js
+npm notice 26.5kB dist/adoption.js.map
+npm notice 5.3kB dist/assessment.js
+npm notice 5.5kB dist/assessment.js.map
+npm notice 7.1kB dist/cli.js
+npm notice 7.5kB dist/cli.js.map
+npm notice 7.4kB dist/declarations.js
+npm notice 7.8kB dist/declarations.js.map
+npm notice 4.6kB dist/discovery.js
+npm notice 4.3kB dist/discovery.js.map
+npm notice 231B dist/errors.js
+npm notice 264B dist/errors.js.map
+npm notice 7.1kB dist/execution.js
+npm notice 7.9kB dist/execution.js.map
+npm notice 23.0kB dist/inspection.js
+npm notice 21.9kB dist/inspection.js.map
+npm notice 44B dist/model.js
+npm notice 102B dist/model.js.map
+npm notice 4.7kB dist/paths.js
+npm notice 4.8kB dist/paths.js.map
+npm notice 2.7kB dist/process-identity.js
+npm notice 2.3kB dist/process-identity.js.map
+npm notice 1.3kB dist/recorded-state.js
+npm notice 1.3kB dist/recorded-state.js.map
+npm notice 4.2kB dist/resolver.js
+npm notice 5.0kB dist/resolver.js.map
+npm notice 3.6kB dist/run-lock.js
+npm notice 3.3kB dist/run-lock.js.map
+npm notice 7.2kB dist/yaml.js
+npm notice 7.9kB dist/yaml.js.map
+npm notice 19.4kB docs/adoption.md
+npm notice 6.9kB docs/assessment-protocol.md
+npm notice 11.2kB docs/author-format.md
+npm notice 6.4kB docs/authoring.md
+npm notice 3.9kB docs/discovery.md
+npm notice 12.4kB docs/inspection.md
+npm notice 4.2kB docs/installation.md
+npm notice 5.1kB docs/release.md
+npm notice 6.7kB docs/script-protocol.md
+npm notice 1.0kB examples/alice/defaults/checks/readme.py
+npm notice 50B examples/alice/defaults/files/AGENTS.md
+npm notice 47B examples/alice/defaults/files/CONTRIBUTING.md
+npm notice 295B examples/alice/defaults/guidance/readme.md
+npm notice 474B examples/alice/defaults/guidance/source-layout.md
+npm notice 166B examples/alice/defaults/skills/review/SKILL.md
+npm notice 61B examples/alice/profiles/work/files/AGENTS.md
+npm notice 1.4kB examples/alice/standards.yaml
+npm notice 115B examples/mira/files/editorconfig
+npm notice 687B examples/mira/guidance/operations.md
+npm notice 1.3kB examples/mira/operations/check-operations.mjs
+npm notice 877B examples/mira/operations/initialize-status.mjs
+npm notice 34B examples/mira/operations/required-sections.json
+npm notice 1.3kB examples/mira/standards.yaml
+npm notice 1.4kB package.json
+npm notice 7.1kB skills/adopt-standards/SKILL.md
+npm notice Tarball Details
+npm notice name: @lutzseverino/repo-standards
+npm notice version: 1.0.0
+npm notice filename: lutzseverino-repo-standards-1.0.0.tgz
+npm notice package size: 98.1 kB
+npm notice unpacked size: 405.5 kB
+npm notice shasum: 1f864afb325737132d2c3c9cffacb3996731fdd5
+npm notice integrity: sha512-WInIH5Nz0+zRT[...]urCDpEepojg7w==
+npm notice total files: 64
+npm notice
+npm warn This command requires you to be logged in to https://registry.npmjs.org/ (dry-run)
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and public access (dry-run)
++ @lutzseverino/repo-standards@1.0.0
