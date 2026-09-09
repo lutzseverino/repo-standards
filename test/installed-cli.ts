@@ -15,11 +15,12 @@ export function snapshot(root: string): unknown {
 export function installCli() {
   const root = mkdtempSync(join(tmpdir(), 'repo-standards-cli-'));
   try {
-    execFileSync('npm', ['pack', '--ignore-scripts', '--pack-destination', root], { stdio: 'pipe' });
+    const [packed] = JSON.parse(execFileSync('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', root], { encoding: 'utf8' }));
     execFileSync('npm', ['install', '--prefix', root, '--ignore-scripts', '--no-audit', '--no-fund',
-      join(root, 'lutzseverino-repo-standards-1.0.0.tgz')], { stdio: 'pipe' });
+      join(root, packed.filename)], { stdio: 'pipe' });
     return {
       root,
+      version: packed.version as string,
       run(args: string[], cwd: string, env: NodeJS.ProcessEnv = process.env) {
         return spawnSync(join(root, 'node_modules/.bin/repo-standards'), args, { cwd, env, encoding: 'utf8' });
       },

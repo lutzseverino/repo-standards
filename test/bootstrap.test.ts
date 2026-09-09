@@ -112,7 +112,7 @@ test('the installed inspection command checks npm without executing author prere
 });
 
 test('exact-version bootstrap can inspect using the configured npm cache with the registry unavailable', async t => {
-  const registry = await registryFixture(cli.root);
+  const registry = await registryFixture(cli.root, ['1.0.0']);
   const remote = remoteFixture(`format: repo-standards/v1
 name: cached-standards
 description: Cached bootstrap fixture

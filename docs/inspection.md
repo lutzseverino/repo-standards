@@ -12,15 +12,11 @@ actionable setup instructions. Git is needed to observe the adopting project.
 
 The executable `bootstrap/repo-standards` is a standalone POSIX shell file with
 an embedded Node.js program. It needs no product checkout, pnpm, or installed
-JavaScript dependencies. Distribute that file as-is and install it outside your
-project:
+JavaScript dependencies. Follow [public installation](installation.md#install-outside-your-project)
+to obtain it from the matching release and install it outside your project.
+Then inspect a selection:
 
 ```sh
-mkdir -p "$HOME/.local/bin"
-curl --fail --location \
-  https://github.com/lutzseverino/repo-standards/releases/download/v1.0.0/repo-standards-bootstrap \
-  --output "$HOME/.local/bin/repo-standards-bootstrap"
-chmod 755 "$HOME/.local/bin/repo-standards-bootstrap"
 cd /path/to/adopting-project
 "$HOME/.local/bin/repo-standards-bootstrap" --cli-version 1.0.0 inspect \
   --source https://github.com/OWNER/STANDARDS \

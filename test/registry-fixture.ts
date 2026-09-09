@@ -6,12 +6,12 @@ import { sourceFixture } from './installed-cli.ts';
 
 // A real npm registry boundary: npm resolves an exact package, installs its
 // dependencies, and writes a portable lock using an HTTP tarball and integrity.
-export async function registryFixture(cliRoot: string, versions = ['1.0.0']) {
+export async function registryFixture(cliRoot: string, versions?: string[]) {
   const support = sourceFixture('');
   const installedPackage = join(cliRoot, 'node_modules/@lutzseverino/repo-standards');
   const baseManifest = JSON.parse(readFileSync(join(installedPackage, 'package.json'), 'utf8'));
   const packages: Record<string, { manifest: unknown; tarball: string; integrity: string }> = {};
-  for (const version of versions) {
+  for (const version of versions ?? [baseManifest.version]) {
     let tarball = join(cliRoot, `lutzseverino-repo-standards-${version}.tgz`);
     let manifest = { ...baseManifest, version };
     if (version !== baseManifest.version) {

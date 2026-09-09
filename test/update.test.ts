@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { inc } from 'semver';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -11,6 +12,7 @@ import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
 
 const cli = installCli();
+const candidateVersion = inc(cli.version, 'minor')!;
 after(() => cli.close());
 
 const source = (version: string, declarations: string) => `format: repo-standards/v1
@@ -82,7 +84,7 @@ test('a confirmed standards update advances only the standards pin, replaces who
   assert.equal(inspectionResult.status, 0, inspectionResult.stdout + inspectionResult.stderr);
   const inspection = JSON.parse(inspectionResult.stdout);
   assert.equal(inspection.update, 'standards');
-  assert.equal(inspection.selection.cli.version, '1.0.0');
+  assert.equal(inspection.selection.cli.version, cli.version);
   assert.equal(inspection.selection.standards.commit, published.sha);
   assert.deepEqual(inspection.retired.map((entry: { id: string }) => entry.id), ['excluded', 'retired']);
 
@@ -157,7 +159,7 @@ test('a candidate CLI updates only the exact runtime pin from retained standards
   const project = sourceFixture('');
   const checkout = sourceFixture('');
   const candidate = sourceFixture('');
-  const registry = await registryFixture(cli.root, ['1.0.0', '1.1.0']);
+  const registry = await registryFixture(cli.root, [cli.version, candidateVersion]);
   t.after(() => { registry.close(); remote.close(); project.close(); checkout.close(); candidate.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -165,7 +167,7 @@ test('a candidate CLI updates only the exact runtime pin from retained standards
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).status, 0);
   commit(project.root);
   const originalSelection = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout).selection;
-  execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', '@lutzseverino/repo-standards@1.1.0'], { cwd: candidate.root, env, stdio: 'pipe' });
+  execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
   const candidateBin = join(candidate.root, 'node_modules/.bin/repo-standards');
   const runCandidate = (args: string[], cwd = project.root) => spawnSync(candidateBin, args, { cwd, env, encoding: 'utf8' });
   for (const key of Object.keys(remote.responses)) delete remote.responses[key];
@@ -176,7 +178,7 @@ test('a candidate CLI updates only the exact runtime pin from retained standards
   const inspection = JSON.parse(inspectionResult.stdout);
   assert.equal(inspection.update, 'cli');
   assert.equal(inspection.retained, true);
-  assert.equal(inspection.selection.cli.version, '1.1.0');
+  assert.equal(inspection.selection.cli.version, candidateVersion);
   assert.deepEqual(inspection.selection.standards, originalSelection.standards);
   assert.equal(inspection.selection.profile, originalSelection.profile);
   const oldHead = git(project.root, 'rev-parse', 'HEAD');
@@ -193,10 +195,10 @@ test('a candidate CLI updates only the exact runtime pin from retained standards
   execFileSync('git', ['clone', '--quiet', project.root, checkout.root]);
   execFileSync('npm', ['ci', '--ignore-scripts', '--no-audit', '--no-fund', '--prefix', '.repo-standards/runtime'], { cwd: checkout.root, env, stdio: 'pipe' });
   const restored = join(checkout.root, '.repo-standards/runtime/node_modules/.bin/repo-standards');
-  assert.equal(execFileSync(restored, ['--version'], { cwd: checkout.root, encoding: 'utf8' }).trim(), '1.1.0');
-  assert.match(readFileSync(join(checkout.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8'), /Fixture CLI 1\.1\.0/);
+  assert.equal(execFileSync(restored, ['--version'], { cwd: checkout.root, encoding: 'utf8' }).trim(), candidateVersion);
+  assert.ok(readFileSync(join(checkout.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8').includes(`Fixture CLI ${candidateVersion}.`));
   const status = JSON.parse(spawnSync(restored, ['status', '--json'], { cwd: checkout.root, env, encoding: 'utf8' }).stdout);
-  assert.equal(status.selection.cli.version, '1.1.0');
+  assert.equal(status.selection.cli.version, candidateVersion);
   assert.deepEqual(status.selection.standards, originalSelection.standards);
 });
 
@@ -204,18 +206,18 @@ test('a CLI update rejects an incompatible retained standards selection without 
   const yaml = source('v1', `    instructions:
       kind: file
       target: AGENTS.md
-      exact: agents.md`).replace('>=1.0.0 <2.0.0', '>=1.0.0 <1.1.0');
+      exact: agents.md`).replace('>=1.0.0 <2.0.0', `>=1.0.0 <${candidateVersion}`);
   const remote = remoteFixture(yaml, { 'agents.md': 'Pinned standards' });
   const project = sourceFixture('');
   const candidate = sourceFixture('');
-  const registry = await registryFixture(cli.root, ['1.0.0', '1.1.0']);
+  const registry = await registryFixture(cli.root, [cli.version, candidateVersion]);
   t.after(() => { registry.close(); remote.close(); project.close(); candidate.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
   const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env).status, 0);
   commit(project.root);
-  execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', '@lutzseverino/repo-standards@1.1.0'], { cwd: candidate.root, env, stdio: 'pipe' });
+  execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
   for (const key of Object.keys(remote.responses)) delete remote.responses[key];
   remote.save();
   const before = git(project.root, 'status', '--porcelain=v1');
@@ -287,7 +289,7 @@ test('update inspection rejects source or profile switching and changing both pi
   const other = remoteFixture(v1, { 'agents.md': 'Other source' }, [], 'bob/standards');
   const project = sourceFixture('');
   const candidate = sourceFixture('');
-  const registry = await registryFixture(cli.root, ['1.0.0', '1.1.0']);
+  const registry = await registryFixture(cli.root, [cli.version, candidateVersion]);
   t.after(() => { registry.close(); remote.close(); other.close(); project.close(); candidate.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -302,7 +304,7 @@ test('update inspection rejects source or profile switching and changing both pi
   const switchedSource = JSON.parse(cli.run(inspectionArgs.map(argument => argument === 'https://github.com/alice/standards' ? 'https://github.com/bob/standards' : argument), project.root, { ...other.env, ...registry.env }).stdout);
   assert.ok(switchedSource.start.blockers.some((blocker: { code: string }) => blocker.code === 'SELECTION_SWITCH'));
 
-  execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', '@lutzseverino/repo-standards@1.1.0'], { cwd: candidate.root, env, stdio: 'pipe' });
+  execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
   const combined = JSON.parse(spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), updateArgs, { cwd: project.root, env, encoding: 'utf8' }).stdout);
   assert.ok(combined.start.blockers.some((blocker: { code: string }) => blocker.code === 'INDEPENDENT_UPDATE_REQUIRED'));
   assert.equal(git(project.root, 'status', '--porcelain=v1'), '');
@@ -370,7 +372,7 @@ async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standa
       source: review`);
   const remote = remoteFixture(yaml, { 'review/SKILL.md': '# Review v1', 'review/obsolete.txt': 'Old resource' });
   const project = sourceFixture('');
-  const registry = await registryFixture(cli.root, kind === 'cli' ? ['1.0.0', '1.1.0'] : ['1.0.0']);
+  const registry = await registryFixture(cli.root, kind === 'cli' ? [cli.version, candidateVersion] : [cli.version]);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -388,7 +390,7 @@ async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standa
   } else {
     const candidate = sourceFixture('');
     t.after(() => candidate.close());
-    execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', '@lutzseverino/repo-standards@1.1.0'], { cwd: candidate.root, env, stdio: 'pipe' });
+    execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
     run = (args, environment = env) => spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env: environment, encoding: 'utf8' });
     for (const key of Object.keys(remote.responses)) delete remote.responses[key];
     remote.save();
@@ -669,7 +671,7 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status, message:
     });
     const project = sourceFixture('', { 'README.md': '# Project', 'package.json': '{"private":true}\n', 'yarn.lock': '# Project dependencies\n' });
     const candidate = sourceFixture('');
-    const registry = await registryFixture(cli.root, ['1.0.0', '1.1.0']);
+    const registry = await registryFixture(cli.root, [cli.version, candidateVersion]);
     t.after(() => { registry.close(); remote.close(); project.close(); candidate.close(); });
     commit(project.root);
     const env = { ...remote.env, ...registry.env };
@@ -694,7 +696,7 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status, message:
       remote.addVersion('v1.1.0', manifest({ readme: declarations.readme }), {});
       args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
     } else {
-      execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', '@lutzseverino/repo-standards@1.1.0'], { cwd: candidate.root, env, stdio: 'pipe' });
+      execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
       run = args => spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env, encoding: 'utf8' });
       for (const key of Object.keys(remote.responses)) delete remote.responses[key];
       remote.save();

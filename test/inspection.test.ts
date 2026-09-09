@@ -41,7 +41,7 @@ test('inspection reports the pinned complete profile without changing a dirty pr
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const report = JSON.parse(result.stdout);
-  assert.equal(report.selection.cli.version, '1.0.0');
+  assert.equal(report.selection.cli.version, cli.version);
   assert.deepEqual(report.selection.standards, { repository: 'https://github.com/alice/standards', version: 'v1.0.0', commit: remote.sha });
   assert.equal(report.selection.profile, 'work');
   assert.deepEqual(report.resolved.declarations.map((d: { id: string }) => d.id), ['agent-guidance', 'readme', 'review-skill', 'source-layout']);

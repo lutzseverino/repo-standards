@@ -18,8 +18,10 @@ const project = join(root, 'project');
 mkdirSync(project);
 const configuration = join(root, 'empty.npmrc');
 writeFileSync(configuration, '');
+const globalConfiguration = join(root, 'global.npmrc');
+writeFileSync(globalConfiguration, '');
 const env = { ...process.env, npm_config_registry: 'https://registry.npmjs.org/',
-  npm_config_userconfig: configuration, npm_config_cache: join(root, 'npm-cache'),
+  npm_config_userconfig: configuration, npm_config_globalconfig: globalConfiguration, npm_config_cache: join(root, 'npm-cache'),
   XDG_CACHE_HOME: join(root, 'cache') };
 const commands: { executable: string; args: string[]; status: number | null; stdout: string; stderr: string }[] = [];
 const downloads: { url: string; status: number; sha256: string }[] = [];

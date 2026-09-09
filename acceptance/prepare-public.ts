@@ -8,12 +8,18 @@ import { fixtureFiles, sourceFixture } from '../test/installed-cli.ts';
 import { commit, git } from '../test/remote-fixture.ts';
 
 const [version, source, standardsVersion, profile, projectName] = process.argv.slice(2);
-if (!version || !/^\d+\.\d+\.\d+$/.test(version) || !source?.startsWith('https://github.com/') || !standardsVersion || !profile || !['bob', 'harbor'].includes(projectName!)) {
+if (!version || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) || !source?.startsWith('https://github.com/') || !standardsVersion || !profile || !['bob', 'harbor'].includes(projectName!)) {
   throw new Error('Usage: node acceptance/prepare-public.ts <CLI-version> <public-source-URL> <standards-tag> <profile> <bob|harbor>');
 }
 if (process.env.NODE_OPTIONS) throw new Error('Run public acceptance without NODE_OPTIONS or acquisition fixtures.');
 const root = mkdtempSync(join(tmpdir(), 'repo-standards-public-agent-'));
+const configuration = join(root, 'empty.npmrc');
+writeFileSync(configuration, '');
+const globalConfiguration = join(root, 'global.npmrc');
+writeFileSync(globalConfiguration, '');
 const env = { ...process.env, npm_config_registry: 'https://registry.npmjs.org/',
+  npm_config_userconfig: configuration,
+  npm_config_globalconfig: globalConfiguration,
   npm_config_cache: join(root, 'npm-cache'), XDG_CACHE_HOME: join(root, 'cache') };
 execFileSync('npm', ['install', '--prefix', root, '--ignore-scripts', '--no-audit', '--no-fund', '--save-exact', `@lutzseverino/repo-standards@${version}`], { cwd: root, env, stdio: 'pipe' });
 const project = sourceFixture('', fixtureFiles(`acceptance/projects/${projectName}`));
@@ -26,6 +32,6 @@ writeFileSync(session, JSON.stringify({
   source, standardsVersion, profile, head: git(project.root, 'rev-parse', 'HEAD'),
   acquisition: 'Public npm and GitHub; no remote fixtures',
   runtimeLock: JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8')),
-  env: { npm_config_registry: env.npm_config_registry, npm_config_cache: env.npm_config_cache, XDG_CACHE_HOME: env.XDG_CACHE_HOME },
+  env: { npm_config_registry: env.npm_config_registry, npm_config_userconfig: configuration, npm_config_globalconfig: globalConfiguration, npm_config_cache: env.npm_config_cache, XDG_CACHE_HOME: env.XDG_CACHE_HOME },
 }, null, 2) + '\n');
 console.log(session);

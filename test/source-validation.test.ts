@@ -116,7 +116,7 @@ for (const [label, yaml, code] of [
 test('the installed CLI exposes version and help and rejects unsupported commands', (t) => {
   const source = sourceFixture('');
   t.after(() => source.close());
-  assert.equal(cli.run(['--version'], source.root).stdout.trim(), '1.0.0');
+  assert.equal(cli.run(['--version'], source.root).stdout.trim(), cli.version);
   assert.match(cli.run(['--help'], source.root).stdout, /source validate/);
   assert.equal(cli.run(['adopt', source.root], source.root).status, 2);
   assert.equal(cli.run(['source', 'validate', '--profile', 'personal'], source.root).status, 2);

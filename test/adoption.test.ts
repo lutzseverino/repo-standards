@@ -63,7 +63,7 @@ test('a fresh checkout restores the exact runtime and inspects retained standard
   for (const key of Object.keys(remote.responses)) delete remote.responses[key];
   remote.save();
   const pinned = join(checkout.root, '.repo-standards/runtime/node_modules/.bin/repo-standards');
-  assert.equal(execFileSync(pinned, ['--version'], { cwd: checkout.root, encoding: 'utf8' }).trim(), '1.0.0');
+  assert.equal(execFileSync(pinned, ['--version'], { cwd: checkout.root, encoding: 'utf8' }).trim(), cli.version);
   const before = snapshot(checkout.root);
   const retained = spawnSync(pinned, ['inspect', '--json'], { cwd: checkout.root, env, encoding: 'utf8' });
   assert.equal(retained.status, 0, retained.stdout + retained.stderr);
@@ -109,7 +109,7 @@ profiles:`).replace('    declarations: {}', '    declarations: {employer: {exclu
   assert.equal(readFileSync(join(project.root, '.agents/skills/review/resources/check.txt'), 'utf8'), 'Skill resource');
   assert.match(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8'), /name: adopt-standards/);
   const manifest = JSON.parse(readFileSync(join(project.root, '.repo-standards/runtime/package.json'), 'utf8'));
-  assert.deepEqual(manifest.dependencies, { '@lutzseverino/repo-standards': '1.0.0' });
+  assert.deepEqual(manifest.dependencies, { '@lutzseverino/repo-standards': cli.version });
   assert.equal(readFileSync(join(project.root, 'package.json'), 'utf8'), '{"private":true,"packageManager":"yarn@4.0.0"}\n');
   const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
   assert.equal(state.lastComplete.inspection, inspection.identity);
@@ -119,7 +119,7 @@ profiles:`).replace('    declarations: {}', '    declarations: {employer: {exclu
   assert.equal(existsSync(join(project.root, '.repo-standards/inputs/source/unrelated.txt')), false);
   assert.equal(existsSync(join(project.root, '.repo-standards/inputs/source/excluded.md')), false);
   const status = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
-  assert.equal(status.selection.cli.version, '1.0.0');
+  assert.equal(status.selection.cli.version, cli.version);
   assert.equal(status.lastComplete.inspection, inspection.identity);
   assert.equal(status.evidence, 'historical');
 });
@@ -464,7 +464,7 @@ test('runtime acquisition reuses a populated external npm cache with the registr
   commit(project.root);
   const cache = join(support.root, 'npm-cache');
   const env = { ...remote.env, ...registry.env, npm_config_cache: cache };
-  execFileSync('npm', ['install', '--prefix', support.root, '--ignore-scripts', '--no-audit', '--no-fund', '@lutzseverino/repo-standards@1.0.0'], { cwd: support.root, env, stdio: 'pipe' });
+  execFileSync('npm', ['install', '--prefix', support.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${cli.version}`], { cwd: support.root, env, stdio: 'pipe' });
   registry.close();
   const offline = { ...env, npm_config_offline: 'true' };
   const inspection = JSON.parse(cli.run(inspectionArgs, project.root, offline).stdout);
