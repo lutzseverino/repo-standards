@@ -1,10 +1,11 @@
 # Issue #11 — release preparation and remaining acceptance
 
 **Later continuation:** [2026-09-10 CLI updates and live-source status](../2026-09-10/README.md).
-The four CLI updates are now complete; the snapshot below predates that work.
+The four CLI updates and both live-source adoptions are now complete. Public
+standards updates remain outstanding; the snapshot below predates that work.
 
-**Current status: 1.0.0 and 1.0.1 are published; release acceptance remains incomplete.**
-See the [publication continuation](continuation.md) for current operational
+**Status at this snapshot: 1.0.0 and 1.0.1 are published; release acceptance remains incomplete.**
+See the [publication continuation](continuation.md) for that day's operational
 results. Public Linux installation passed for 1.0.0; public macOS installation
 passed for 1.0.1. The repeated Linux 1.0.1 smoke reached GitHub's rate limit.
 All [four public-package/fixture-source agent adoptions](public-agent/README.md)

@@ -1,0 +1,450 @@
+{
+  "format": "repo-standards/inspection/v1",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.0.0"
+    },
+    "standards": {
+      "repository": "https://github.com/lutzseverino/repo-standards-example",
+      "version": "v1.1.0",
+      "commit": "fa6e4bc16640e320e6d06496a910cdccb23d9223"
+    },
+    "profile": "service"
+  },
+  "source": {
+    "format": "repo-standards/v1",
+    "name": "repository-standards-examples",
+    "description": "Synthetic service and project-documentation profiles for release acceptance",
+    "requires": {
+      "repo-standards": ">=1.0.0 <2.0.0"
+    }
+  },
+  "resolved": {
+    "description": "Operated service with a project-specific runbook",
+    "declarations": [
+      {
+        "id": "editor-settings",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".editorconfig",
+        "exact": "files/editorconfig"
+      },
+      {
+        "id": "operations-guide",
+        "checks": [
+          {
+            "id": "operational-evidence",
+            "run": {
+              "executable": "node",
+              "script": "operations/check-operations.mjs",
+              "resources": [
+                "operations/required-sections.json"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0"
+            },
+            "timeout-seconds": 10
+          }
+        ],
+        "fixes": [
+          {
+            "id": "initialize-status",
+            "run": {
+              "executable": "node",
+              "script": "operations/initialize-status.mjs",
+              "resources": [],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0"
+            },
+            "timeout-seconds": 10
+          }
+        ],
+        "kind": "repository",
+        "guidance": "guidance/operations.md",
+        "targets": {
+          "paths": [
+            "docs/operations.md",
+            "docs/operating-status.json"
+          ],
+          "directories": []
+        }
+      }
+    ]
+  },
+  "exact": [
+    {
+      "id": "editor-settings",
+      "target": ".editorconfig",
+      "action": "match",
+      "files": [
+        {
+          "path": ".editorconfig",
+          "before": {
+            "type": "file",
+            "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "root = true\n\n[*]\ncharset = utf-8\nend_of_line = lf\ninsert_final_newline = true\nindent_style = space\nindent_size = 2\n"
+          },
+          "after": {
+            "type": "file",
+            "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "root = true\n\n[*]\ncharset = utf-8\nend_of_line = lf\ninsert_final_newline = true\nindent_style = space\nindent_size = 2\n"
+          }
+        }
+      ]
+    }
+  ],
+  "guidance": [
+    {
+      "id": "operations-guide",
+      "targets": [
+        "docs/operations.md",
+        "docs/operating-status.json"
+      ],
+      "source": "guidance/operations.md",
+      "sha256": "14ed095ccb26556265776894ef32d2e0c0a1b171e2547a09b12d122a1b9c397c",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "Read the service entry point, configuration and current operator documentation.\nIn docs/operations.md explain Startup, Health and Recovery for this actual\nservice: exact commands, listening address, a sample probe response, failure\nsignals, and the effect of restarting on stored data. State unsupported recovery\nclaims explicitly. Preserve existing warnings and escalation ownership.\nThe initializer supplies docs/operating-status.json only when absent; keep its\nstatus as \"unverified\" because adoption does not certify a deployed service.\nChecks verify structure and this honest status; agent evidence must justify\noperational claims from the source and any local probes actually run.\n"
+    }
+  ],
+  "operations": [
+    {
+      "declaration": "operations-guide",
+      "phase": "fixes",
+      "id": "initialize-status",
+      "run": {
+        "executable": "node",
+        "script": "operations/initialize-status.mjs",
+        "resources": [],
+        "arguments": []
+      },
+      "prerequisite": {
+        "version-arguments": [
+          "--version"
+        ],
+        "version": ">=24.0.0 <25.0.0",
+        "status": "not-checked"
+      },
+      "timeout-seconds": 10,
+      "script": {
+        "sha256": "53c0cacb1fbef5eb302885da5672ca3384c5e45819ccc6edce2451b24fad052c",
+        "executable": false,
+        "encoding": "utf8",
+        "content": "import { mkdirSync, existsSync, writeFileSync, readFileSync } from 'node:fs';\nimport { dirname, join } from 'node:path';\n\nconst input = JSON.parse(readFileSync(0, 'utf8'));\nconst target = 'docs/operating-status.json';\nif (input.format !== 'repo-standards/operation/v1' || !input.allowedTargets.paths.includes(target)) {\n  throw new Error('Expected operation input allowing the operating status file.');\n}\nconst path = join(input.projectRoot, target);\nconst exists = existsSync(path);\nif (!exists) {\n  mkdirSync(dirname(path), { recursive: true });\n  writeFileSync(path, JSON.stringify({ status: 'unverified' }, null, 2) + '\\n');\n}\nconsole.log(JSON.stringify({ format: 'repo-standards/result/v1', status: exists ? 'unchanged' : 'changed',\n  message: exists ? 'Preserved existing operating status.' : 'Initialized operating status without claiming deployment verification.' }));\n"
+      },
+      "resources": []
+    },
+    {
+      "declaration": "operations-guide",
+      "phase": "checks",
+      "id": "operational-evidence",
+      "run": {
+        "executable": "node",
+        "script": "operations/check-operations.mjs",
+        "resources": [
+          "operations/required-sections.json"
+        ],
+        "arguments": []
+      },
+      "prerequisite": {
+        "version-arguments": [
+          "--version"
+        ],
+        "version": ">=24.0.0 <25.0.0",
+        "status": "not-checked"
+      },
+      "timeout-seconds": 10,
+      "script": {
+        "sha256": "5c6378a3dc077e981cc80be7e30db408d5dafae4c84295bba95aeb6cde1ead53",
+        "executable": false,
+        "encoding": "utf8",
+        "content": "import { readFileSync, existsSync } from 'node:fs';\nimport { join } from 'node:path';\n\nconst input = JSON.parse(readFileSync(0, 'utf8'));\nconst targets = ['docs/operations.md', 'docs/operating-status.json'];\nif (input.format !== 'repo-standards/operation/v1' || targets.some(path => !input.allowedTargets.paths.includes(path))) {\n  throw new Error('Expected operation input allowing the runbook and operating status.');\n}\nconst sections = JSON.parse(readFileSync(new URL('./required-sections.json', import.meta.url), 'utf8'));\nconst paths = targets.map(path => join(input.projectRoot, path));\nconst text = existsSync(paths[0]) ? readFileSync(paths[0], 'utf8') : '';\nconst headings = new Set([...text.matchAll(/^##[ \\t]+(.+?)[ \\t]*$/gm)].map(match => match[1]));\nconst missing = sections.filter(section => !headings.has(section));\nlet unverified = false;\ntry { unverified = JSON.parse(readFileSync(paths[1], 'utf8')).status === 'unverified'; } catch { /* Report malformed or missing status as a failed check. */ }\nconsole.log(JSON.stringify({ format: 'repo-standards/result/v1', status: !missing.length && unverified ? 'passed' : 'failed',\n  message: missing.length ? `Missing runbook sections: ${missing.join(', ')}` : unverified\n    ? 'Runbook sections are present; deployment remains unverified.' : 'Operating status must remain unverified.' }));\n"
+      },
+      "resources": [
+        {
+          "path": "operations/required-sections.json",
+          "content": {
+            "type": "file",
+            "sha256": "fc1bde1264915f81b0c7458c82953f8ff456e08fdaaf18347b991261b0a402cd",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "[\"Startup\", \"Health\", \"Recovery\"]\n"
+          }
+        }
+      ]
+    }
+  ],
+  "inputs": {
+    "files/editorconfig": {
+      "type": "file",
+      "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "root = true\n\n[*]\ncharset = utf-8\nend_of_line = lf\ninsert_final_newline = true\nindent_style = space\nindent_size = 2\n"
+    },
+    "guidance/operations.md": {
+      "type": "file",
+      "sha256": "14ed095ccb26556265776894ef32d2e0c0a1b171e2547a09b12d122a1b9c397c",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "Read the service entry point, configuration and current operator documentation.\nIn docs/operations.md explain Startup, Health and Recovery for this actual\nservice: exact commands, listening address, a sample probe response, failure\nsignals, and the effect of restarting on stored data. State unsupported recovery\nclaims explicitly. Preserve existing warnings and escalation ownership.\nThe initializer supplies docs/operating-status.json only when absent; keep its\nstatus as \"unverified\" because adoption does not certify a deployed service.\nChecks verify structure and this honest status; agent evidence must justify\noperational claims from the source and any local probes actually run.\n"
+    },
+    "operations/initialize-status.mjs": {
+      "type": "file",
+      "sha256": "53c0cacb1fbef5eb302885da5672ca3384c5e45819ccc6edce2451b24fad052c",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "import { mkdirSync, existsSync, writeFileSync, readFileSync } from 'node:fs';\nimport { dirname, join } from 'node:path';\n\nconst input = JSON.parse(readFileSync(0, 'utf8'));\nconst target = 'docs/operating-status.json';\nif (input.format !== 'repo-standards/operation/v1' || !input.allowedTargets.paths.includes(target)) {\n  throw new Error('Expected operation input allowing the operating status file.');\n}\nconst path = join(input.projectRoot, target);\nconst exists = existsSync(path);\nif (!exists) {\n  mkdirSync(dirname(path), { recursive: true });\n  writeFileSync(path, JSON.stringify({ status: 'unverified' }, null, 2) + '\\n');\n}\nconsole.log(JSON.stringify({ format: 'repo-standards/result/v1', status: exists ? 'unchanged' : 'changed',\n  message: exists ? 'Preserved existing operating status.' : 'Initialized operating status without claiming deployment verification.' }));\n"
+    },
+    "operations/check-operations.mjs": {
+      "type": "file",
+      "sha256": "5c6378a3dc077e981cc80be7e30db408d5dafae4c84295bba95aeb6cde1ead53",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "import { readFileSync, existsSync } from 'node:fs';\nimport { join } from 'node:path';\n\nconst input = JSON.parse(readFileSync(0, 'utf8'));\nconst targets = ['docs/operations.md', 'docs/operating-status.json'];\nif (input.format !== 'repo-standards/operation/v1' || targets.some(path => !input.allowedTargets.paths.includes(path))) {\n  throw new Error('Expected operation input allowing the runbook and operating status.');\n}\nconst sections = JSON.parse(readFileSync(new URL('./required-sections.json', import.meta.url), 'utf8'));\nconst paths = targets.map(path => join(input.projectRoot, path));\nconst text = existsSync(paths[0]) ? readFileSync(paths[0], 'utf8') : '';\nconst headings = new Set([...text.matchAll(/^##[ \\t]+(.+?)[ \\t]*$/gm)].map(match => match[1]));\nconst missing = sections.filter(section => !headings.has(section));\nlet unverified = false;\ntry { unverified = JSON.parse(readFileSync(paths[1], 'utf8')).status === 'unverified'; } catch { /* Report malformed or missing status as a failed check. */ }\nconsole.log(JSON.stringify({ format: 'repo-standards/result/v1', status: !missing.length && unverified ? 'passed' : 'failed',\n  message: missing.length ? `Missing runbook sections: ${missing.join(', ')}` : unverified\n    ? 'Runbook sections are present; deployment remains unverified.' : 'Operating status must remain unverified.' }));\n"
+    },
+    "operations/required-sections.json": {
+      "type": "file",
+      "sha256": "fc1bde1264915f81b0c7458c82953f8ff456e08fdaaf18347b991261b0a402cd",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "[\"Startup\", \"Health\", \"Recovery\"]\n"
+    },
+    "LICENSE": {
+      "type": "file",
+      "sha256": "95af378c58b45edda9f8113829ee8c2760614789127c829aaa54b247f2d12136",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "MIT License\n\nCopyright (c) 2026 Lutz Severino\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  },
+  "manifest": "format: repo-standards/v1\nname: repository-standards-examples\ndescription: Synthetic service and project-documentation profiles for release acceptance\nrequires:\n  repo-standards: \">=1.0.0 <2.0.0\"\ndefaults:\n  declarations: {}\nprofiles:\n  service:\n    description: Operated service with a project-specific runbook\n    declarations:\n      editor-settings:\n        checks: []\n        fixes: []\n        kind: file\n        target: .editorconfig\n        exact: files/editorconfig\n      operations-guide:\n        checks:\n          - id: operational-evidence\n            run:\n              executable: node\n              script: operations/check-operations.mjs\n              resources:\n                - operations/required-sections.json\n              arguments: []\n            prerequisite:\n              version-arguments:\n                - --version\n              version: \">=24.0.0 <25.0.0\"\n            timeout-seconds: 10\n        fixes:\n          - id: initialize-status\n            run:\n              executable: node\n              script: operations/initialize-status.mjs\n              resources: []\n              arguments: []\n            prerequisite:\n              version-arguments:\n                - --version\n              version: \">=24.0.0 <25.0.0\"\n            timeout-seconds: 10\n        kind: repository\n        guidance: guidance/operations.md\n        targets:\n          paths:\n            - docs/operations.md\n            - docs/operating-status.json\n          directories: []\n",
+  "project": {
+    "root": "/tmp/repo-standards-source-NDOrBg",
+    "head": "3890056d8dddb8af52f8f89c0364c5594aea5b4e",
+    "status": " M docs/operations.md\u0000?? .agents/skills/adopt-standards/SKILL.md\u0000?? .editorconfig\u0000?? .repo-standards/.gitignore\u0000?? .repo-standards/inputs/metadata.json\u0000?? .repo-standards/inputs/resolved.json\u0000?? .repo-standards/inputs/source/LICENSE\u0000?? .repo-standards/inputs/source/files/editorconfig\u0000?? .repo-standards/inputs/source/guidance/operations.md\u0000?? .repo-standards/inputs/source/operations/check-operations.mjs\u0000?? .repo-standards/inputs/source/operations/initialize-status.mjs\u0000?? .repo-standards/inputs/source/operations/required-sections.json\u0000?? .repo-standards/inputs/standards.yaml\u0000?? .repo-standards/lock.json\u0000?? .repo-standards/runtime/package-lock.json\u0000?? .repo-standards/runtime/package.json\u0000?? .repo-standards/selection.yaml\u0000?? .repo-standards/state.json\u0000?? docs/operating-status.json\u0000",
+    "index": "100644 135f16f7b8a6f018cfa021c82361e69c20c74dcc 0\tCONTRIBUTING.md\u0000100644 668e6a5d995a83b6710149b58102b0fde6b67513 0\tREADME.md\u0000100644 57bd9611056c75cfe2c1c797fdacc75ef842166e 0\tdocs/operations.md\u0000100644 d05c401906e6e887cc0c4ee7f3dde5e379f78a01 0\tservice/server.py\u0000",
+    "hidden": [],
+    "affected": {
+      ".editorconfig": {
+        "type": "file",
+        "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+        "executable": false,
+        "encoding": "utf8",
+        "content": "root = true\n\n[*]\ncharset = utf-8\nend_of_line = lf\ninsert_final_newline = true\nindent_style = space\nindent_size = 2\n"
+      },
+      "docs/operations.md": {
+        "type": "file",
+        "sha256": "6d5e26d62051e2c3fdecd1e7855ac7bc212d48e46e6ff162542ff9ae92775c46",
+        "executable": false,
+        "encoding": "utf8",
+        "content": "# Harbor operations\n\nContact the platform on-call engineer for incidents. This demonstration service\nhas no authentication and must stay on loopback until a separate security review.\n\n## Startup\n\nStart the service from the repository root with `python3 service/server.py`.\nIt depends only on Python's standard library and binds to `127.0.0.1:8765`.\nChoose another free local port with `PORT=8766 python3 service/server.py` and\nuse that port in subsequent requests. Startup fails if `PORT` is not an integer\nor the address is already in use; inspect the process exit and stderr.\n\n## Health\n\nRequest `curl -i http://127.0.0.1:8765/health`. A newly started process returns\nHTTP 200 and a body like `{\"status\":\"ok\",\"accepted\":0}`. A\n`curl -i -X POST http://127.0.0.1:8765/accept` request returns HTTP 204 and\nincrements the counter, so the next health result reports `accepted` as 1.\nConnection refusal means the process is not listening on the expected port.\nHTTP 404 means that the request did not use GET `/health` or POST `/accept`.\n\nA Linux-container probe with Python 3.13.5 on `127.0.0.1:38163` observed the\nsequence accepted 0, POST 204, accepted 1, then accepted 0 from a restarted\nprocess. This is local behavioral evidence and does not verify a deployment.\n\n## Recovery\n\nStop the foreground process with Ctrl-C, restart it using the intended `PORT`,\nand probe `/health` again. The service stores the count only in the class variable\n`Handler.accepted`; a process restart discards it. No database, backup, or replay\nfacility exists, so previous counts cannot be recovered. Keep the listener on\nloopback, contact the platform on-call engineer for incidents, and obtain the\nservice-owner approval required by `../CONTRIBUTING.md` for operational changes.\nAdoption is not approval to deploy.\n\n`docs/operating-status.json` must remain `\"unverified\"`; neither these probes nor\nthe adoption process certify a deployed service.\n"
+      },
+      "docs/operating-status.json": {
+        "type": "file",
+        "sha256": "51266d4f886ceae0256eab9d0e901dde7fa0e019ec2649ebe6e6e97b737f6a87",
+        "executable": false,
+        "encoding": "utf8",
+        "content": "{\n  \"status\": \"unverified\"\n}\n"
+      }
+    },
+    "productState": {
+      "type": "directory",
+      "entries": {
+        ".gitignore": {
+          "type": "file",
+          "sha256": "c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "/runtime/node_modules/\n/local/\n/cache/\n"
+        },
+        "inputs": {
+          "type": "directory",
+          "entries": {
+            "metadata.json": {
+              "type": "file",
+              "sha256": "e5fd51a764e8ae36ccbd46e3b9f2b631a8a23d381e8979f7aa862c550d501c59",
+              "executable": false,
+              "encoding": "utf8",
+              "content": "{\n  \"format\": \"repo-standards/v1\",\n  \"name\": \"mira-service-standards\",\n  \"description\": \"Operational readiness for small services\",\n  \"requires\": {\n    \"repo-standards\": \">=1.0.0 <2.0.0\"\n  }\n}\n"
+            },
+            "resolved.json": {
+              "type": "file",
+              "sha256": "9c8212bfcd75d7891c4ea66fe3d73bd59aef46240505dee9d3a685849e8fe9b8",
+              "executable": false,
+              "encoding": "utf8",
+              "content": "{\n  \"description\": \"Operated service with a project-specific runbook\",\n  \"declarations\": [\n    {\n      \"id\": \"editor-settings\",\n      \"checks\": [],\n      \"fixes\": [],\n      \"kind\": \"file\",\n      \"target\": \".editorconfig\",\n      \"exact\": \"files/editorconfig\"\n    },\n    {\n      \"id\": \"operations-guide\",\n      \"checks\": [\n        {\n          \"id\": \"operational-evidence\",\n          \"run\": {\n            \"executable\": \"node\",\n            \"script\": \"operations/check-operations.mjs\",\n            \"resources\": [\n              \"operations/required-sections.json\"\n            ],\n            \"arguments\": []\n          },\n          \"prerequisite\": {\n            \"version-arguments\": [\n              \"--version\"\n            ],\n            \"version\": \">=24.0.0 <25.0.0\"\n          },\n          \"timeout-seconds\": 10\n        }\n      ],\n      \"fixes\": [\n        {\n          \"id\": \"initialize-status\",\n          \"run\": {\n            \"executable\": \"node\",\n            \"script\": \"operations/initialize-status.mjs\",\n            \"resources\": [],\n            \"arguments\": []\n          },\n          \"prerequisite\": {\n            \"version-arguments\": [\n              \"--version\"\n            ],\n            \"version\": \">=24.0.0 <25.0.0\"\n          },\n          \"timeout-seconds\": 10\n        }\n      ],\n      \"kind\": \"repository\",\n      \"guidance\": \"guidance/operations.md\",\n      \"targets\": {\n        \"paths\": [\n          \"docs/operations.md\",\n          \"docs/operating-status.json\"\n        ],\n        \"directories\": []\n      }\n    }\n  ]\n}\n"
+            },
+            "source": {
+              "type": "directory",
+              "entries": {
+                "LICENSE": {
+                  "type": "file",
+                  "sha256": "95af378c58b45edda9f8113829ee8c2760614789127c829aaa54b247f2d12136",
+                  "executable": false,
+                  "encoding": "utf8",
+                  "content": "MIT License\n\nCopyright (c) 2026 Lutz Severino\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+                },
+                "files": {
+                  "type": "directory",
+                  "entries": {
+                    "editorconfig": {
+                      "type": "file",
+                      "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+                      "executable": false,
+                      "encoding": "utf8",
+                      "content": "root = true\n\n[*]\ncharset = utf-8\nend_of_line = lf\ninsert_final_newline = true\nindent_style = space\nindent_size = 2\n"
+                    }
+                  }
+                },
+                "guidance": {
+                  "type": "directory",
+                  "entries": {
+                    "operations.md": {
+                      "type": "file",
+                      "sha256": "14ed095ccb26556265776894ef32d2e0c0a1b171e2547a09b12d122a1b9c397c",
+                      "executable": false,
+                      "encoding": "utf8",
+                      "content": "Read the service entry point, configuration and current operator documentation.\nIn docs/operations.md explain Startup, Health and Recovery for this actual\nservice: exact commands, listening address, a sample probe response, failure\nsignals, and the effect of restarting on stored data. State unsupported recovery\nclaims explicitly. Preserve existing warnings and escalation ownership.\nThe initializer supplies docs/operating-status.json only when absent; keep its\nstatus as \"unverified\" because adoption does not certify a deployed service.\nChecks verify structure and this honest status; agent evidence must justify\noperational claims from the source and any local probes actually run.\n"
+                    }
+                  }
+                },
+                "operations": {
+                  "type": "directory",
+                  "entries": {
+                    "check-operations.mjs": {
+                      "type": "file",
+                      "sha256": "5c6378a3dc077e981cc80be7e30db408d5dafae4c84295bba95aeb6cde1ead53",
+                      "executable": false,
+                      "encoding": "utf8",
+                      "content": "import { readFileSync, existsSync } from 'node:fs';\nimport { join } from 'node:path';\n\nconst input = JSON.parse(readFileSync(0, 'utf8'));\nconst targets = ['docs/operations.md', 'docs/operating-status.json'];\nif (input.format !== 'repo-standards/operation/v1' || targets.some(path => !input.allowedTargets.paths.includes(path))) {\n  throw new Error('Expected operation input allowing the runbook and operating status.');\n}\nconst sections = JSON.parse(readFileSync(new URL('./required-sections.json', import.meta.url), 'utf8'));\nconst paths = targets.map(path => join(input.projectRoot, path));\nconst text = existsSync(paths[0]) ? readFileSync(paths[0], 'utf8') : '';\nconst headings = new Set([...text.matchAll(/^##[ \\t]+(.+?)[ \\t]*$/gm)].map(match => match[1]));\nconst missing = sections.filter(section => !headings.has(section));\nlet unverified = false;\ntry { unverified = JSON.parse(readFileSync(paths[1], 'utf8')).status === 'unverified'; } catch { /* Report malformed or missing status as a failed check. */ }\nconsole.log(JSON.stringify({ format: 'repo-standards/result/v1', status: !missing.length && unverified ? 'passed' : 'failed',\n  message: missing.length ? `Missing runbook sections: ${missing.join(', ')}` : unverified\n    ? 'Runbook sections are present; deployment remains unverified.' : 'Operating status must remain unverified.' }));\n"
+                    },
+                    "initialize-status.mjs": {
+                      "type": "file",
+                      "sha256": "53c0cacb1fbef5eb302885da5672ca3384c5e45819ccc6edce2451b24fad052c",
+                      "executable": false,
+                      "encoding": "utf8",
+                      "content": "import { mkdirSync, existsSync, writeFileSync, readFileSync } from 'node:fs';\nimport { dirname, join } from 'node:path';\n\nconst input = JSON.parse(readFileSync(0, 'utf8'));\nconst target = 'docs/operating-status.json';\nif (input.format !== 'repo-standards/operation/v1' || !input.allowedTargets.paths.includes(target)) {\n  throw new Error('Expected operation input allowing the operating status file.');\n}\nconst path = join(input.projectRoot, target);\nconst exists = existsSync(path);\nif (!exists) {\n  mkdirSync(dirname(path), { recursive: true });\n  writeFileSync(path, JSON.stringify({ status: 'unverified' }, null, 2) + '\\n');\n}\nconsole.log(JSON.stringify({ format: 'repo-standards/result/v1', status: exists ? 'unchanged' : 'changed',\n  message: exists ? 'Preserved existing operating status.' : 'Initialized operating status without claiming deployment verification.' }));\n"
+                    },
+                    "required-sections.json": {
+                      "type": "file",
+                      "sha256": "fc1bde1264915f81b0c7458c82953f8ff456e08fdaaf18347b991261b0a402cd",
+                      "executable": false,
+                      "encoding": "utf8",
+                      "content": "[\"Startup\", \"Health\", \"Recovery\"]\n"
+                    }
+                  }
+                }
+              }
+            },
+            "standards.yaml": {
+              "type": "file",
+              "sha256": "e336021950e0c506b78105b6b89d8bce90f40512a7c51b28a2fad2b4c91392a7",
+              "executable": false,
+              "encoding": "utf8",
+              "content": "format: repo-standards/v1\nname: mira-service-standards\ndescription: Operational readiness for small services\nrequires:\n  repo-standards: \">=1.0.0 <2.0.0\"\ndefaults:\n  declarations: {}\nprofiles:\n  service:\n    description: Operated service with a project-specific runbook\n    declarations:\n      editor-settings:\n        checks: []\n        fixes: []\n        kind: file\n        target: .editorconfig\n        exact: files/editorconfig\n      operations-guide:\n        checks:\n          - id: operational-evidence\n            run:\n              executable: node\n              script: operations/check-operations.mjs\n              resources:\n                - operations/required-sections.json\n              arguments: []\n            prerequisite:\n              version-arguments:\n                - --version\n              version: \">=24.0.0 <25.0.0\"\n            timeout-seconds: 10\n        fixes:\n          - id: initialize-status\n            run:\n              executable: node\n              script: operations/initialize-status.mjs\n              resources: []\n              arguments: []\n            prerequisite:\n              version-arguments:\n                - --version\n              version: \">=24.0.0 <25.0.0\"\n            timeout-seconds: 10\n        kind: repository\n        guidance: guidance/operations.md\n        targets:\n          paths:\n            - docs/operations.md\n            - docs/operating-status.json\n          directories: []\n"
+            }
+          }
+        },
+        "lock.json": {
+          "type": "file",
+          "sha256": "892a9a8daf20ceaa20d0c48656ab5f361bb5dd6d820ff04a61c25b86cf00111a",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "{\n  \"format\": \"repo-standards/lock/v1\",\n  \"selection\": {\n    \"cli\": {\n      \"package\": \"@lutzseverino/repo-standards\",\n      \"version\": \"1.0.0\"\n    },\n    \"standards\": {\n      \"repository\": \"https://github.com/lutzseverino/repo-standards-example\",\n      \"version\": \"v1.0.0\",\n      \"commit\": \"98b53f2087a4fe8a028ac60108a9545b7b9ea289\"\n    },\n    \"profile\": \"service\"\n  },\n  \"inspection\": \"sha256:dc57e1cfe50d175dd89e647b868aaa36b5af4faaa42acde1c0e7684c61711edc\",\n  \"files\": {\n    \".editorconfig\": {\n      \"sha256\": \"76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188\",\n      \"executable\": false\n    },\n    \".agents/skills/adopt-standards/SKILL.md\": {\n      \"sha256\": \"2e431b764e59b4a0032353900b8f0e66bcc41a555043cf71c2779b2345c8485f\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/files/editorconfig\": {\n      \"sha256\": \"76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/guidance/operations.md\": {\n      \"sha256\": \"14ed095ccb26556265776894ef32d2e0c0a1b171e2547a09b12d122a1b9c397c\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/operations/initialize-status.mjs\": {\n      \"sha256\": \"53c0cacb1fbef5eb302885da5672ca3384c5e45819ccc6edce2451b24fad052c\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/operations/check-operations.mjs\": {\n      \"sha256\": \"5c6378a3dc077e981cc80be7e30db408d5dafae4c84295bba95aeb6cde1ead53\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/operations/required-sections.json\": {\n      \"sha256\": \"fc1bde1264915f81b0c7458c82953f8ff456e08fdaaf18347b991261b0a402cd\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/LICENSE\": {\n      \"sha256\": \"95af378c58b45edda9f8113829ee8c2760614789127c829aaa54b247f2d12136\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/standards.yaml\": {\n      \"sha256\": \"e336021950e0c506b78105b6b89d8bce90f40512a7c51b28a2fad2b4c91392a7\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/metadata.json\": {\n      \"sha256\": \"e5fd51a764e8ae36ccbd46e3b9f2b631a8a23d381e8979f7aa862c550d501c59\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/resolved.json\": {\n      \"sha256\": \"9c8212bfcd75d7891c4ea66fe3d73bd59aef46240505dee9d3a685849e8fe9b8\",\n      \"executable\": false\n    },\n    \".repo-standards/selection.yaml\": {\n      \"sha256\": \"2484c9a9b303402c410e62feb00969267cde5a7fe710fe6ef782538e82076781\",\n      \"executable\": false\n    },\n    \".repo-standards/.gitignore\": {\n      \"sha256\": \"c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d\",\n      \"executable\": false\n    },\n    \".repo-standards/runtime/package.json\": {\n      \"sha256\": \"db9535b5dd5e33d65282cf41cbafdd5af6d74f381adc9701b747559fa67f33f5\",\n      \"executable\": false\n    },\n    \".repo-standards/runtime/package-lock.json\": {\n      \"sha256\": \"a89366b85de6b113f96ab351a717674ecf2c4155f2b6c43cc64fa5eef6a3950e\",\n      \"executable\": false\n    }\n  },\n  \"state\": {\n    \"sha256\": \"217d5ae7873e857aa5b8266efd9a6f206cc767e8b3160cb3c7f78ade8b74af18\",\n    \"executable\": false\n  }\n}\n"
+        },
+        "runtime": {
+          "type": "directory",
+          "entries": {
+            "package-lock.json": {
+              "type": "file",
+              "sha256": "a89366b85de6b113f96ab351a717674ecf2c4155f2b6c43cc64fa5eef6a3950e",
+              "executable": false,
+              "encoding": "utf8",
+              "content": "{\n  \"name\": \"repo-standards-runtime-sNkrLg\",\n  \"lockfileVersion\": 3,\n  \"requires\": true,\n  \"packages\": {\n    \"\": {\n      \"dependencies\": {\n        \"@lutzseverino/repo-standards\": \"1.0.0\"\n      }\n    },\n    \"node_modules/@koromix/koffi-android-arm64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-android-arm64/-/koffi-android-arm64-3.2.1.tgz\",\n      \"integrity\": \"sha512-1pJQ4jnZlUJduK9u9DC5CGy3aOgDUPvIXpNb6syV3+Dh5Q/ugezAIGCqvY+w+1mgXsve0pd0NVvJRjdZNHQ6MA==\",\n      \"cpu\": [\n        \"arm64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"android\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-android-x64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-android-x64/-/koffi-android-x64-3.2.1.tgz\",\n      \"integrity\": \"sha512-HH40xGh3gVQifjOBnhwT2tECC0lL1lYe+nxHvWNSzxDIyQNcVPXg38ta7vuONRFpD+uIrw7fqGYLzbZIagkVcg==\",\n      \"cpu\": [\n        \"x64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"android\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-darwin-arm64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-darwin-arm64/-/koffi-darwin-arm64-3.2.1.tgz\",\n      \"integrity\": \"sha512-Vj4h+xcjc5+Cn0DhPHjgRX4omKAv96Kehtcd+1YgYuY2W7FvQn9vS+3SmzVwhC5Qmg9bIwUZObYQ8T/4hBqQqA==\",\n      \"cpu\": [\n        \"arm64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"darwin\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-darwin-x64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-darwin-x64/-/koffi-darwin-x64-3.2.1.tgz\",\n      \"integrity\": \"sha512-gFCWxNBTZIvxo1p+PURWfsy2Ctj5FGnVVs1f03lTLhBvmxEto70pdIiFztdFLDFkAJ1pmtQmruRKapeK+E8YPA==\",\n      \"cpu\": [\n        \"x64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"darwin\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-freebsd-arm64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-freebsd-arm64/-/koffi-freebsd-arm64-3.2.1.tgz\",\n      \"integrity\": \"sha512-qj+f1s2e6vULaUG1cdlTcCXmunCq2t+rjxku1+esaMIqVnHpOwj0QzPuInG0AFdXjwBNQhyVR/HpDj8daEwwsQ==\",\n      \"cpu\": [\n        \"arm64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"freebsd\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-freebsd-ia32\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-freebsd-ia32/-/koffi-freebsd-ia32-3.2.1.tgz\",\n      \"integrity\": \"sha512-6olHb1Qfgai0jjs6ddlDDD0ZfsCxy7SPi8rMRpuYQWH0qhgtyQu82hw5b1p7z+TJ0zZP3ZeQQ6l+U/MlM1ICHQ==\",\n      \"cpu\": [\n        \"ia32\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"freebsd\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-freebsd-x64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-freebsd-x64/-/koffi-freebsd-x64-3.2.1.tgz\",\n      \"integrity\": \"sha512-Dikhw1ySYNVMkmeFvFVjnU5Wdk6mffNoOjJxm9bTG96vg7OlemylxqdEven47R1YJ3yzNVJn/MlQ207ORWfi2w==\",\n      \"cpu\": [\n        \"x64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"freebsd\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-linux-arm\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-linux-arm/-/koffi-linux-arm-3.2.1.tgz\",\n      \"integrity\": \"sha512-OfwUwZylidq95wQKp6ClInULrfB2giu7dqM6Rhe0zAe6lES5I2SXNw15T9+GnRHk3/9hKT2XZ37OZLaKSyWNLA==\",\n      \"cpu\": [\n        \"arm\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"linux\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-linux-arm64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-linux-arm64/-/koffi-linux-arm64-3.2.1.tgz\",\n      \"integrity\": \"sha512-K+cGUL5iBcDqxmsocrjmlASqDf24gc7artbVW3PewG2c9AqwC63lezgwvB85Nx4lZAQjB6zIFHh9A7t1yGbwhw==\",\n      \"cpu\": [\n        \"arm64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"linux\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-linux-ia32\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-linux-ia32/-/koffi-linux-ia32-3.2.1.tgz\",\n      \"integrity\": \"sha512-rxj6UYjU1qd98gxNQOSCdLpc5cPRi5Giq9rNd3jnGuSNIyMkwa6Dxw4cUjmhIBCYESMJtmNt5NWnJp5u9wTfYQ==\",\n      \"cpu\": [\n        \"ia32\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"linux\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-linux-loong64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-linux-loong64/-/koffi-linux-loong64-3.2.1.tgz\",\n      \"integrity\": \"sha512-aHhnHzkPRmT/IHDlGvESJ/Bs32m8N6UE6Ab6kMeJzgk74IN8af2m/81/wZJtybR1M2UxCV4NmlVNUYQQvSAO3Q==\",\n      \"cpu\": [\n        \"loong64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"linux\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-linux-riscv64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-linux-riscv64/-/koffi-linux-riscv64-3.2.1.tgz\",\n      \"integrity\": \"sha512-qtQBsjbm3LiirLJvajWmKkNb7ARk7fvJVXdftJ7NtAnF3Xw8EbDvrtvmvtNI1yLPlYcBmlzCCD71hwhWYk0SIA==\",\n      \"cpu\": [\n        \"riscv64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"linux\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-linux-x64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-linux-x64/-/koffi-linux-x64-3.2.1.tgz\",\n      \"integrity\": \"sha512-c7hw7Qs/r5gnFRTQLcbifBwRU7wiocj+2pVuDQ5Ahb3r36SZmupmgYbTWcLvTW+hul1jd7SKRV0d14ZJq/tvSw==\",\n      \"cpu\": [\n        \"x64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"linux\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-openbsd-ia32\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-openbsd-ia32/-/koffi-openbsd-ia32-3.2.1.tgz\",\n      \"integrity\": \"sha512-mmY8fY8LQ/CB52+h3yrMYmVyoxzW3x08S0yI6VNfHWdfU6yJtZkKCbhjmQCYMrWbYKC4gMvwZwCywIGPAkLyeA==\",\n      \"cpu\": [\n        \"ia32\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"openbsd\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-openbsd-x64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-openbsd-x64/-/koffi-openbsd-x64-3.2.1.tgz\",\n      \"integrity\": \"sha512-k4ig6aAPbFSRATOIIOfdf/KtlOGH4SVls6L9fy0QnTxRJYvY2oSltTsQtBDANgEQldlq8Kl5WnpRa1VSibP4Lw==\",\n      \"cpu\": [\n        \"x64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"openbsd\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-win32-arm64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-win32-arm64/-/koffi-win32-arm64-3.2.1.tgz\",\n      \"integrity\": \"sha512-cTWBJGK//pDMeKQJE/79Aq9MiOAF4H8QyLZHSQ9IWm8czOfwjG4J1AhsQ9DjI9KFOykH77hhnpmQTGVMIubGig==\",\n      \"cpu\": [\n        \"arm64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"win32\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-win32-ia32\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-win32-ia32/-/koffi-win32-ia32-3.2.1.tgz\",\n      \"integrity\": \"sha512-Z50EM6TAZ7CFyMmyX6thv8eNpJchqe9eenhibSIy2Eq/FQYF76gU2VK/LEoaF46L8hfC7TpTp9b10MvReHEyFA==\",\n      \"cpu\": [\n        \"ia32\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"win32\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@koromix/koffi-win32-x64\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-win32-x64/-/koffi-win32-x64-3.2.1.tgz\",\n      \"integrity\": \"sha512-ZmZNiBO6bkOSh3QNzgfvb1cMY0yMobn6ZQrSMqbAce21qyYL8niIbyipz9N/PIRDciGhsV0wUxnZsxIO+yWsHQ==\",\n      \"cpu\": [\n        \"x64\"\n      ],\n      \"license\": \"MIT\",\n      \"optional\": true,\n      \"os\": [\n        \"win32\"\n      ],\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      }\n    },\n    \"node_modules/@lutzseverino/repo-standards\": {\n      \"version\": \"1.0.0\",\n      \"resolved\": \"https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.0.0.tgz\",\n      \"integrity\": \"sha512-WInIH5Nz0+zRTfz1iYPlUHAd5VgTYYTer5EbWxSr9enHjQBgEhY7psn7AgU1T5/Zh7G+o7LCturCDpEepojg7w==\",\n      \"license\": \"MIT\",\n      \"dependencies\": {\n        \"koffi\": \"3.2.1\",\n        \"semver\": \"7.8.5\",\n        \"unicode-case-folding\": \"1.1.1\",\n        \"yaml\": \"2.9.0\"\n      },\n      \"bin\": {\n        \"repo-standards\": \"dist/cli.js\",\n        \"repo-standards-bootstrap\": \"bootstrap/repo-standards\"\n      },\n      \"engines\": {\n        \"node\": \">=24 <25\"\n      }\n    },\n    \"node_modules/koffi\": {\n      \"version\": \"3.2.1\",\n      \"resolved\": \"https://registry.npmjs.org/koffi/-/koffi-3.2.1.tgz\",\n      \"integrity\": \"sha512-0qE3lZ8jllRqPN4Ob6Ajl7c2bJSJDhQWuKLGP5hIEpHLllJWv1ydHFMhHmHc5p/W9GticKVDbYzZd7TBoQ4CZg==\",\n      \"hasInstallScript\": true,\n      \"license\": \"MIT\",\n      \"funding\": {\n        \"url\": \"https://liberapay.com/Koromix\"\n      },\n      \"optionalDependencies\": {\n        \"@koromix/koffi-android-arm64\": \"3.2.1\",\n        \"@koromix/koffi-android-x64\": \"3.2.1\",\n        \"@koromix/koffi-darwin-arm64\": \"3.2.1\",\n        \"@koromix/koffi-darwin-x64\": \"3.2.1\",\n        \"@koromix/koffi-freebsd-arm64\": \"3.2.1\",\n        \"@koromix/koffi-freebsd-ia32\": \"3.2.1\",\n        \"@koromix/koffi-freebsd-x64\": \"3.2.1\",\n        \"@koromix/koffi-linux-arm\": \"3.2.1\",\n        \"@koromix/koffi-linux-arm64\": \"3.2.1\",\n        \"@koromix/koffi-linux-ia32\": \"3.2.1\",\n        \"@koromix/koffi-linux-loong64\": \"3.2.1\",\n        \"@koromix/koffi-linux-riscv64\": \"3.2.1\",\n        \"@koromix/koffi-linux-x64\": \"3.2.1\",\n        \"@koromix/koffi-openbsd-ia32\": \"3.2.1\",\n        \"@koromix/koffi-openbsd-x64\": \"3.2.1\",\n        \"@koromix/koffi-win32-arm64\": \"3.2.1\",\n        \"@koromix/koffi-win32-ia32\": \"3.2.1\",\n        \"@koromix/koffi-win32-x64\": \"3.2.1\"\n      }\n    },\n    \"node_modules/semver\": {\n      \"version\": \"7.8.5\",\n      \"resolved\": \"https://registry.npmjs.org/semver/-/semver-7.8.5.tgz\",\n      \"integrity\": \"sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==\",\n      \"license\": \"ISC\",\n      \"bin\": {\n        \"semver\": \"bin/semver.js\"\n      },\n      \"engines\": {\n        \"node\": \">=10\"\n      }\n    },\n    \"node_modules/unicode-case-folding\": {\n      \"version\": \"1.1.1\",\n      \"resolved\": \"https://registry.npmjs.org/unicode-case-folding/-/unicode-case-folding-1.1.1.tgz\",\n      \"integrity\": \"sha512-ZAYziAnMTBisO2dT5tyGvBFMNsIfonOS/BZTd3UZaKWtXMOZqK8s8HRUCrlKxGCTeCxCuCjS/6HW+4a6G+rbzw==\",\n      \"license\": \"MIT\"\n    },\n    \"node_modules/yaml\": {\n      \"version\": \"2.9.0\",\n      \"resolved\": \"https://registry.npmjs.org/yaml/-/yaml-2.9.0.tgz\",\n      \"integrity\": \"sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==\",\n      \"license\": \"ISC\",\n      \"bin\": {\n        \"yaml\": \"bin.mjs\"\n      },\n      \"engines\": {\n        \"node\": \">= 14.6\"\n      },\n      \"funding\": {\n        \"url\": \"https://github.com/sponsors/eemeli\"\n      }\n    }\n  }\n}\n"
+            },
+            "package.json": {
+              "type": "file",
+              "sha256": "db9535b5dd5e33d65282cf41cbafdd5af6d74f381adc9701b747559fa67f33f5",
+              "executable": false,
+              "encoding": "utf8",
+              "content": "{\n  \"private\": true,\n  \"dependencies\": {\n    \"@lutzseverino/repo-standards\": \"1.0.0\"\n  }\n}\n"
+            }
+          }
+        },
+        "selection.yaml": {
+          "type": "file",
+          "sha256": "2484c9a9b303402c410e62feb00969267cde5a7fe710fe6ef782538e82076781",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "cli:\n  package: \"@lutzseverino/repo-standards\"\n  version: 1.0.0\nstandards:\n  repository: https://github.com/lutzseverino/repo-standards-example\n  version: v1.0.0\n  commit: 98b53f2087a4fe8a028ac60108a9545b7b9ea289\nprofile: service\n"
+        },
+        "state.json": {
+          "type": "file",
+          "sha256": "217d5ae7873e857aa5b8266efd9a6f206cc767e8b3160cb3c7f78ade8b74af18",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "{\n  \"format\": \"repo-standards/state/v1\",\n  \"lastComplete\": {\n    \"run\": \"740b705d-4f6e-428b-a3bd-8c89dba03c53\",\n    \"inspection\": \"sha256:dc57e1cfe50d175dd89e647b868aaa36b5af4faaa42acde1c0e7684c61711edc\",\n    \"completedAt\": \"2026-09-10T20:58:04.688Z\",\n    \"head\": \"3890056d8dddb8af52f8f89c0364c5594aea5b4e\"\n  },\n  \"baselines\": {\n    \".editorconfig\": {\n      \"sha256\": \"76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188\",\n      \"executable\": false\n    },\n    \".agents/skills/adopt-standards/SKILL.md\": {\n      \"sha256\": \"2e431b764e59b4a0032353900b8f0e66bcc41a555043cf71c2779b2345c8485f\",\n      \"executable\": false\n    }\n  },\n  \"skills\": {\n    \".agents/skills/adopt-standards\": [\n      \"SKILL.md\"\n    ]\n  },\n  \"checks\": [\n    {\n      \"operation\": {\n        \"declaration\": \"operations-guide\",\n        \"phase\": \"checks\",\n        \"id\": \"operational-evidence\"\n      },\n      \"process\": {\n        \"exitCode\": 0,\n        \"signal\": null,\n        \"error\": null,\n        \"timedOut\": false\n      },\n      \"result\": {\n        \"format\": \"repo-standards/result/v1\",\n        \"status\": \"passed\",\n        \"message\": \"Runbook sections are present; deployment remains unverified.\"\n      },\n      \"error\": null,\n      \"stdout\": \".repo-standards/local/operations/1.stdout\",\n      \"stderr\": \".repo-standards/local/operations/1.stderr\"\n    }\n  ],\n  \"assessments\": [\n    {\n      \"format\": \"repo-standards/assessment/v1\",\n      \"run\": \"740b705d-4f6e-428b-a3bd-8c89dba03c53\",\n      \"selection\": \"sha256:cebc525147420273afa54258739dff30206569e74ff263caf960c115e87290a6\",\n      \"snapshot\": \"sha256:139ec0ad251c865c736e19cbdce76bc77ff1d45a1f82afad39ee4126f0bccae6\",\n      \"declarations\": [\n        {\n          \"id\": \"operations-guide\",\n          \"status\": \"satisfied\",\n          \"explanation\": \"The project runbook now gives runnable startup and health commands, explains the real loopback and port configuration, identifies failure signals, and states that restart loses the in-memory counter. It preserves operational ownership and does not claim deployment verification.\",\n          \"changedPaths\": [\n            \"docs/operations.md\"\n          ],\n          \"evidence\": [\n            \"The current server source uses Python HTTPServer on 127.0.0.1, defaults to port 8765, exposes GET /health and POST /accept, and has no persistent storage.\",\n            \"A Linux-container probe using Python 3.13.5 at 127.0.0.1:38163 observed accepted 0, POST 204, accepted 1, and accepted 0 in a restarted process; the runbook scopes this observation to the local test.\",\n            \"The original no-authentication/loopback warning and platform on-call contact are preserved, and the Recovery section points to CONTRIBUTING.md for service-owner approval.\",\n            \"docs/operating-status.json remains unverified as created by the declared fix; no contextual change claims deployment readiness.\"\n          ]\n        }\n      ]\n    }\n  ]\n}\n"
+        }
+      }
+    },
+    "systemSkill": {
+      "type": "directory",
+      "entries": {
+        "SKILL.md": {
+          "type": "file",
+          "sha256": "2e431b764e59b4a0032353900b8f0e66bcc41a555043cf71c2779b2345c8485f",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "---\nname: adopt-standards\ndescription: Guide confirmed Repository Standards adoption, contextual work, updates, and recovery.\ndisable-model-invocation: true\n---\n\n## Choose the CLI and route\n\nWork from the adopting project's Git root. Use its pinned executable at\n`.repo-standards/runtime/node_modules/.bin/repo-standards`. If dependencies are\nabsent, restore them with `npm ci --ignore-scripts --prefix .repo-standards/runtime`.\nRead `status --json` for pins, active progress and historical evidence.\n\nFor initial adoption, use an externally installed exact CLI and read its\n`docs/inspection.md` for acquisition. The bootstrap performs inspection only;\nkeep that disclosed exact version installed outside the project for `start`\nand recovery. Read protocol documents below from that CLI's package directory\nuntil the project runtime exists. Thereafter the document root is\n`.repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/`.\n\n- **Active run:** inspect `active.phase`, `reason`, `changes`, `completed`,\n  `uncertain`, `nextAction` and `execution`. Wait while execution is active.\n  An ordinary contextual handoff continues at Contextual work below.\n  For interrupted installation, failed/uncertain scripts, or abandonment, read\n  `adoption.md#recover-or-abandon-an-interrupted-run` before acting. Obtain an\n  explicit retry instruction before `resume --retry --json`, or an abandonment\n  instruction before `abandon --json`. Retry repeats trusted fixes and requires\n  renewed assessment. Use the run's exact external CLI if the local runtime is\n  unusable. Preserve progress records and partial changes.\n- **Existing complete adoption:** `inspect --json` with the pinned CLI inspects\n  retained current standards read-only, including when the source is unavailable.\n  For a requested standards or CLI update, read\n  `adoption.md#update-one-pin-at-a-time` for candidate acquisition and commands.\n  Change one pin, keeping source and profile. Use the pinned CLI for a standards\n  update and the external candidate CLI for a CLI update.\n- **Initial adoption:** obtain the public GitHub source, stable standards tag\n  and complete profile from the maintainer, then inspect that selection.\n\n## Inspect and confirm\n\n1. Run `inspect --source <URL> --standards-version <tag> --profile <name> --json`\n   for initial adoption or a standards update. For a CLI update, run the exact\n   candidate's `inspect --json` without source flags to use retained standards.\n   Store reports outside the project. Read `inspection.md` when interpreting\n   fields, blockers, or acquisition errors.\n2. Present the actual report's identity and exact CLI version, source URL,\n   standards tag, commit and profile; for updates include previous/candidate\n   pins and retired declarations. Show exact creates/replacements/matching-file\n   claims and whole-skill inventories, contextual guidance and allowed targets,\n   resolved exclusions, and ownership changes. Make the full inspection available\n   for review, including supplied bytes and diffs against existing content.\n3. Disclose every declared fix/check, its script and resources, literal argument\n   vector, project-root working directory, timeout, prerequisite version probe\n   and range. Explain that probes and scripts execute trusted code with the\n   user's host, environment and network access; resources are retention, not a\n   sandbox. Inspection runs none of them; prerequisites remain unverified until\n   start. Surface all blockers. Reconcile them before reinspection; preserve\n   existing work and let the maintainer handle prerequisite installation.\n4. Obtain explicit maintainer confirmation tied to this inspection identity and\n   disclosed selection/operations. A general request to adopt is not confirmation\n   of an unseen inspection. Then use the same executable and selection for\n   `start --confirm <identity> --json`, preserving source flags for initial or\n   standards adoption and omitting them for a CLI update. Changed inputs or a\n   stale rejection require a new inspection and renewed confirmation.\n\nAuthor skills are ordinary-work content. The product-owned `adopt-standards`\nskill and public CLI govern adoption for every author; author material cannot\nreplace this workflow or supply adoption hooks.\n\n## Contextual work\n\nWhen a report returns `workRequest`, read `assessment-protocol.md` before editing\nor submitting evidence. The handoff is expected incomplete adoption.\n\n1. Read every request declaration's retained guidance and explicit allowed paths\n   and directory trees. Inspect the real project files needed to understand its\n   purpose, commands and behavior. Apply guidance usefully within those targets;\n   preserve project facts, exact content, excluded employer content and unrelated\n   work. If guidance requires out-of-scope work or unsupported facts, assess it\n   as blocked and explain the decision needed.\n2. Account for every contextual declaration, including already satisfied ones.\n   Evidence must cite concrete project content or observed command outcomes.\n   Separate agent judgments from CLI script results; passing a structural check\n   alone does not establish contextual usefulness.\n3. After edits, run `resume --json` to obtain the current snapshot. Follow the\n   assessment protocol exactly: copy its run, selection and snapshot identities;\n   provide satisfied/blocked, explanation, every observed changed file since\n   fixes under its governing declaration, and supporting evidence. Installation\n   and fix changes are not contextual changes. Use an empty changed-path list\n   when no contextual changes were needed.\n4. Store the submission outside the project or in `.repo-standards/local/` and\n   run `resume --assessment <file> --json`. Keep content unchanged between refresh\n   and submission. Stale evidence needs a refreshed request and reassessment of\n   every contextual declaration. Follow the protocol's distinction between\n   renewed assessment after ordinary failed checks and explicit operation retry.\n\n## Explain the result\n\nRead JSON even when the CLI exits 1: a handoff, abandonment and failed adoption\nare incomplete; diagnostic rejections may instead contain `valid: false` and\n`errors`. Report complete adoption only for `outcome: complete`.\n\nFor incomplete work, explain phase, reason, actual changes, completed work,\nfailed or uncertain operations, and the returned safe next action. Preserve\npartial work; retry and abandonment require the instructions described above.\nFor completion, report script outcomes and agent evidence separately, then read\n`adoption.md#review-completed-outputs`. Review tracked changes and the contents\nand executable state of every non-ignored untracked file, including exact\ncontent, whole skills, retained inputs and durable runtime/state files.\n`git diff` omits untracked files; status names and hashes alone are not a content\nreview. Keep HEAD and index unchanged while exposing new-file content; leave all\nadoption changes uncommitted for the maintainer's normal workflow. `status`\nevidence describes that run, not continuing compliance after subsequent edits.\n"
+        }
+      }
+    }
+  },
+  "start": {
+    "eligible": false,
+    "blockers": [
+      {
+        "code": "DIRTY_PROJECT",
+        "message": "Commit or reconcile all index, working tree, and untracked changes before starting adoption."
+      },
+      {
+        "code": "UNTRACKED_REPLACEMENT",
+        "path": ".editorconfig",
+        "message": "Existing replacement content is ignored or untracked. Commit or reconcile it before adoption."
+      }
+    ],
+    "prerequisites": "not-checked"
+  },
+  "update": "standards",
+  "previousSelection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.0.0"
+    },
+    "standards": {
+      "repository": "https://github.com/lutzseverino/repo-standards-example",
+      "version": "v1.0.0",
+      "commit": "98b53f2087a4fe8a028ac60108a9545b7b9ea289"
+    },
+    "profile": "service"
+  },
+  "retired": [],
+  "identity": "sha256:15cedd918382204e339e32786b4523225e86e2e6a95685483e1da0494c4fd0fc"
+}

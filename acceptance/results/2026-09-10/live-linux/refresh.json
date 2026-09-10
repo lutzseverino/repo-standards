@@ -1,0 +1,209 @@
+{
+  "format": "repo-standards/run/v1",
+  "id": "740b705d-4f6e-428b-a3bd-8c89dba03c53",
+  "inspection": "sha256:dc57e1cfe50d175dd89e647b868aaa36b5af4faaa42acde1c0e7684c61711edc",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.0.0"
+    },
+    "standards": {
+      "repository": "https://github.com/lutzseverino/repo-standards-example",
+      "version": "v1.0.0",
+      "commit": "98b53f2087a4fe8a028ac60108a9545b7b9ea289"
+    },
+    "profile": "service"
+  },
+  "startInput": {
+    "kind": "public",
+    "options": {
+      "source": "https://github.com/lutzseverino/repo-standards-example",
+      "standardsVersion": "v1.0.0",
+      "profile": "service",
+      "project": "/tmp/repo-standards-source-NDOrBg"
+    }
+  },
+  "affected": {
+    ".editorconfig": {
+      "type": "missing"
+    },
+    "docs/operations.md": {
+      "type": "file",
+      "sha256": "b4b5bbe5097e908b6659c0b24bc36bafc526add607e27d8cfa0ec695309b0c41",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Harbor operations\n\nContact the platform on-call engineer for incidents. This demonstration service\nhas no authentication and must stay on loopback until a separate security review.\n"
+    },
+    "docs/operating-status.json": {
+      "type": "missing"
+    },
+    ".agents/skills/adopt-standards": {
+      "type": "missing"
+    }
+  },
+  "outcome": "incomplete",
+  "prerequisites": [
+    {
+      "declaration": "operations-guide",
+      "phase": "fixes",
+      "operation": "initialize-status",
+      "executable": "node",
+      "version": "24.11.1",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    },
+    {
+      "declaration": "operations-guide",
+      "phase": "checks",
+      "operation": "operational-evidence",
+      "executable": "node",
+      "version": "24.11.1",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    }
+  ],
+  "operations": [
+    {
+      "operation": {
+        "declaration": "operations-guide",
+        "phase": "fixes",
+        "id": "initialize-status"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v1",
+        "status": "changed",
+        "message": "Initialized operating status without claiming deployment verification."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/0.stdout",
+      "stderr": ".repo-standards/local/operations/0.stderr"
+    }
+  ],
+  "assessments": [],
+  "phase": "contextual",
+  "reason": "CONTEXTUAL_REQUIRED: Review the refreshed work request and submit an assessment for its snapshot.",
+  "changes": [
+    ".agents/skills/adopt-standards",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".editorconfig",
+    ".repo-standards/.gitignore",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/source/LICENSE",
+    ".repo-standards/inputs/source/files/editorconfig",
+    ".repo-standards/inputs/source/guidance/operations.md",
+    ".repo-standards/inputs/source/operations/check-operations.mjs",
+    ".repo-standards/inputs/source/operations/initialize-status.mjs",
+    ".repo-standards/inputs/source/operations/required-sections.json",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/local/operations/0.stderr",
+    ".repo-standards/local/operations/0.stdout",
+    ".repo-standards/local/run.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/node_modules",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/selection.yaml",
+    "docs/operating-status.json",
+    "docs/operations.md"
+  ],
+  "completed": [
+    ".editorconfig",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/inputs/source/files/editorconfig",
+    ".repo-standards/inputs/source/guidance/operations.md",
+    ".repo-standards/inputs/source/operations/initialize-status.mjs",
+    ".repo-standards/inputs/source/operations/check-operations.mjs",
+    ".repo-standards/inputs/source/operations/required-sections.json",
+    ".repo-standards/inputs/source/LICENSE",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/lock.json",
+    "isolated runtime",
+    "fixes: operations-guide/initialize-status (changed)"
+  ],
+  "uncertain": [
+    "Agent assessment has not been accepted."
+  ],
+  "nextAction": "Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.",
+  "installation": {
+    "files": [
+      ".repo-standards/.gitignore",
+      ".editorconfig",
+      ".agents/skills/adopt-standards/SKILL.md",
+      ".repo-standards/inputs/source/files/editorconfig",
+      ".repo-standards/inputs/source/guidance/operations.md",
+      ".repo-standards/inputs/source/operations/initialize-status.mjs",
+      ".repo-standards/inputs/source/operations/check-operations.mjs",
+      ".repo-standards/inputs/source/operations/required-sections.json",
+      ".repo-standards/inputs/source/LICENSE",
+      ".repo-standards/inputs/standards.yaml",
+      ".repo-standards/inputs/metadata.json",
+      ".repo-standards/inputs/resolved.json",
+      ".repo-standards/selection.yaml",
+      ".repo-standards/runtime/package.json",
+      ".repo-standards/runtime/package-lock.json",
+      ".repo-standards/lock.json"
+    ],
+    "runtime": true,
+    "trees": {},
+    "complete": true
+  },
+  "continuation": "44fbb0e5ae7c44a5b68b8b15c979e42f53edd919a754d07d153d1cc87eb23182",
+  "workRequest": {
+    "format": "repo-standards/work-request/v1",
+    "run": "740b705d-4f6e-428b-a3bd-8c89dba03c53",
+    "selection": "sha256:cebc525147420273afa54258739dff30206569e74ff263caf960c115e87290a6",
+    "snapshot": "sha256:139ec0ad251c865c736e19cbdce76bc77ff1d45a1f82afad39ee4126f0bccae6",
+    "declarations": [
+      {
+        "id": "operations-guide",
+        "guidance": {
+          "id": "operations-guide",
+          "targets": [
+            "docs/operations.md",
+            "docs/operating-status.json"
+          ],
+          "source": "guidance/operations.md",
+          "sha256": "14ed095ccb26556265776894ef32d2e0c0a1b171e2547a09b12d122a1b9c397c",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "Read the service entry point, configuration and current operator documentation.\nIn docs/operations.md explain Startup, Health and Recovery for this actual\nservice: exact commands, listening address, a sample probe response, failure\nsignals, and the effect of restarting on stored data. State unsupported recovery\nclaims explicitly. Preserve existing warnings and escalation ownership.\nThe initializer supplies docs/operating-status.json only when absent; keep its\nstatus as \"unverified\" because adoption does not certify a deployed service.\nChecks verify structure and this honest status; agent evidence must justify\noperational claims from the source and any local probes actually run.\n"
+        },
+        "allowedTargets": {
+          "paths": [
+            "docs/operations.md",
+            "docs/operating-status.json"
+          ],
+          "directories": []
+        }
+      }
+    ],
+    "requiredEvidence": [
+      "status",
+      "explanation",
+      "changedPaths",
+      "evidence"
+    ]
+  }
+}

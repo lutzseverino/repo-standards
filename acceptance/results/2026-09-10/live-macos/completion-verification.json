@@ -1,0 +1,15 @@
+{
+  "reviewedAllFiles": 18,
+  "reviewedTrackedFiles": 1,
+  "adoptionHeadAndIndexEntriesUnchanged": true,
+  "indexBytesUnchangedDuringReview": true,
+  "employerUnchanged": true,
+  "normalCommit": {
+    "before": "c3f399dbddb0f559cf356d7c67773e1b2e8a2999",
+    "after": "a7143c0af0bdea08263e559cf50a0b3f75341477",
+    "subject": "docs: adopt live repository standards",
+    "parentMatchesInitialHead": true,
+    "allCommittedContentsMatchReview": true
+  },
+  "postCommitStatus": ""
+}

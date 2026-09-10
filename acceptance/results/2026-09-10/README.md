@@ -42,42 +42,84 @@ review. This is not claimed as an adoption staging change or a passing first
 capture. Linux Mira's name inventory also includes the unchanged system skill;
 its full bytes/mode were inspected, and the binary diff contains no skill change.
 
-## Live source: confirmed but not yet adopted
+## Live source: both adoptions complete
 
 The maintainer confirmed both [live-source inspections](live-confirmation.md),
 using unmodified public CLI 1.0.0 with unauthenticated GitHub acquisition from
 `lutzseverino/repo-standards-example`, published `v1.0.0`, commit
 `98b53f2087a4fe8a028ac60108a9545b7b9ea289`, profile `service`.
-Both inspections passed without blockers, but the subsequent starts exhausted
+Both inspections passed without blockers, but the first starts exhausted
 GitHub's shared unauthenticated API quota during source rechecks:
 
 - [macOS incomplete report](live-macos/start.json): HTTP 403 fetching a guidance blob.
 - [Linux incomplete report](live-linux/start.json): HTTP 403 fetching repository metadata.
 
-Both reports show zero project changes and no author operations. Node prerequisite
-probes passed. Their working trees remain clean; `status` reports no selection
-and no active run. The runs are not claimed as completed live adoptions.
-The API reported zero remaining requests and reset at `2026-09-10T15:42:43Z`.
-Further live attempts must be serialized across available quota, preserving the
-confirmed inspection identities and checking for changed inputs. No authenticated
-transport shim or source fixture will replace this live acceptance boundary.
+Those historical reports show zero project changes and no author operations.
+Node prerequisite probes passed, and the saved initial status reports show no
+selection or active run. After the quota reset, the [queued retries](live-retry-queue.log)
+used the same confirmed identities and reached contextual handoff on both
+platforms. These retries used ordinary public source acquisition without an
+authenticated transport shim or source fixture.
 
-The outstanding release work is successful live direct adoption and a standards
-update from actual public `v1.0.0` to `v1.1.0`, keeping CLI/source/profile fixed,
-on macOS and Linux. A standards-update inspection requires its own confirmation.
-No additional repository or npm version is needed. Parent #1 remains unchanged.
+The agent read each current work request and the actual Harbor implementation,
+then adapted each project's operations document. The documents preserve the
+existing security and escalation warning and describe the observed loopback
+server, startup command, health counter, acceptance endpoint, restart behavior,
+and recovery limits. Separate local probes observed accepted 0, POST 204,
+accepted 1, then accepted 0 after restart. Each fresh assessment was submitted
+through the installed public skill's assessment interface; all declared checks
+and final integrity verification passed.
 
-## Review and queued continuation
+| Journey | Completion and assessment | Output review and normal commit |
+| --- | --- | --- |
+| macOS Harbor/service | [Complete](live-macos/complete.json), [assessment](live-macos/assessment.json) | [Verification](live-macos/completion-verification.json), [full diff](live-macos/full-output.patch) |
+| Linux Harbor/service | [Complete](live-linux/complete.json), [assessment](live-linux/assessment.json) | [Verification](live-linux/completion-verification.json), [full diff](live-linux/full-output.patch) |
 
-Both requested GPT 5.6 Terra/high reviewers found no remaining standards or spec
-evidence findings. No production code changed in this continuation.
+Each review captured all 18 new files and the one changed tracked document,
+including full content and modes. Adoption preserved the inspected HEAD and
+staged entries; output review also preserved raw index bytes. Employer-owned
+contribution content remained unchanged. Only after completion and review did
+the project's normal workflow commit the output: `a7143c0` on macOS and `6c0486f`
+on Linux. The verification reports confirm that the commits match the reviewed
+contents and leave clean working trees. Fresh-checkout restoration and source
+unavailability are separately demonstrated by the initial independent-author
+journeys linked above.
 
-The already-confirmed live starts are queued locally in
-`/tmp/repo-standards-issue11-queued-live.mjs` for 2026-09-10T15:42:50Z, with log
-`/tmp/repo-standards-issue11-evidence/queued-live.log`. The process checks the
-available unauthenticated quota before each sequential OS attempt and calls
-ordinary `start` with the same explicitly confirmed identity. `start` performs
-its own fresh inspection and rejects changed inputs before mutation; no new
-selection is auto-approved. The queue stops on any unexpected outcome and does
-not automate contextual edits or assessments. It has not completed at the time
-of this evidence commit; its later reports must be reviewed separately.
+## Outstanding standards updates
+
+The remaining live release exercise is updating actual public standards from
+`v1.0.0` to `v1.1.0`, keeping CLI 1.0.0, source repository and `service` profile
+fixed, on macOS and Linux. No additional repository or npm version is needed.
+Parent #1 remains unchanged.
+
+The first update inspections were mistakenly attempted before the normal project
+commits and correctly reported `DIRTY_PROJECT` and `UNTRACKED_REPLACEMENT`:
+[macOS](live-macos/standards-update-inspection.json),
+[Linux](live-linux/standards-update-inspection.json). Those are historical blocked
+inspections, not confirmed candidates. After committing, fresh clean-project
+inspection attempts exhausted the public API quota:
+[macOS](live-macos/standards-update-clean-inspection.json),
+[Linux](live-linux/standards-update-clean-inspection.json). Neither update has
+started. The reported quota reset is `2026-09-10T21:56:09Z`.
+
+Read-only clean-project inspections are queued locally in
+`/tmp/repo-standards-issue11-queue-inspections.mjs` for `2026-09-10T21:56:20Z`, with
+log `/tmp/repo-standards-issue11-evidence/queued-standards-inspections.log`. The
+process checks public quota and clean Git state, inspects each candidate, and
+stops on failure. It does not confirm or start adoption. Successful reports
+still require agent review and explicit maintainer confirmation of their actual
+inspection identities before either standards update can start.
+
+## Review
+
+Both requested GPT 5.6 Terra/high reviewers found no actionable standards or
+spec findings in the live-adoption completion evidence. The spec review keeps
+the public standards updates explicitly outstanding. The preceding CLI-update
+evidence also passed both reviews.
+
+Validation parsed every live-report JSON file, checked confirmation and
+assessment bindings, resolved local documentation links, and compared all 19
+reviewed files on each OS with the actual normal commit's bytes and executable
+modes. Both projects remain clean. No production code changed in this
+continuation; the release validation and macOS/Linux CI results linked from the
+preceding evidence remain applicable.

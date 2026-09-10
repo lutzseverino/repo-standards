@@ -1,0 +1,20 @@
+{
+  "format": "repo-standards/assessment/v1",
+  "run": "a3cbb417-4c87-4c8f-8e43-033053f912bc",
+  "selection": "sha256:cebc525147420273afa54258739dff30206569e74ff263caf960c115e87290a6",
+  "snapshot": "sha256:e09728b914ec5410460cc07d7bc8d27640d6871071009a41ff0e8de814418acb",
+  "declarations": [
+    {
+      "id": "operations-guide",
+      "status": "satisfied",
+      "explanation": "The runbook now describes the actual service startup, loopback binding, health endpoints, failure signals, restart data loss, and unsupported recovery. It preserves the security warning and escalation ownership, while keeping deployment status unverified.",
+      "changedPaths": ["docs/operations.md"],
+      "evidence": [
+        "service/server.py binds 127.0.0.1, defaults PORT to 8765, implements GET /health and POST /accept, and keeps accepted only in Handler.accepted process memory.",
+        "A macOS probe using Python 3.14.6 at 127.0.0.1:56666 observed accepted 0, POST 204, accepted 1, and accepted 0 after restarting; the runbook labels this as local evidence only.",
+        "The original no-authentication and loopback warning remains intact, and Recovery preserves the platform on-call escalation and service-owner approval defined in CONTRIBUTING.md.",
+        "The declared initializer created docs/operating-status.json with status unverified; the contextual work did not alter or overstate that status."
+      ]
+    }
+  ]
+}

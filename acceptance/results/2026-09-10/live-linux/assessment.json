@@ -1,0 +1,20 @@
+{
+  "format": "repo-standards/assessment/v1",
+  "run": "740b705d-4f6e-428b-a3bd-8c89dba03c53",
+  "selection": "sha256:cebc525147420273afa54258739dff30206569e74ff263caf960c115e87290a6",
+  "snapshot": "sha256:139ec0ad251c865c736e19cbdce76bc77ff1d45a1f82afad39ee4126f0bccae6",
+  "declarations": [
+    {
+      "id": "operations-guide",
+      "status": "satisfied",
+      "explanation": "The project runbook now gives runnable startup and health commands, explains the real loopback and port configuration, identifies failure signals, and states that restart loses the in-memory counter. It preserves operational ownership and does not claim deployment verification.",
+      "changedPaths": ["docs/operations.md"],
+      "evidence": [
+        "The current server source uses Python HTTPServer on 127.0.0.1, defaults to port 8765, exposes GET /health and POST /accept, and has no persistent storage.",
+        "A Linux-container probe using Python 3.13.5 at 127.0.0.1:38163 observed accepted 0, POST 204, accepted 1, and accepted 0 in a restarted process; the runbook scopes this observation to the local test.",
+        "The original no-authentication/loopback warning and platform on-call contact are preserved, and the Recovery section points to CONTRIBUTING.md for service-owner approval.",
+        "docs/operating-status.json remains unverified as created by the declared fix; no contextual change claims deployment readiness."
+      ]
+    }
+  ]
+}

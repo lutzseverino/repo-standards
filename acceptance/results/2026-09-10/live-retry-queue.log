@@ -1,0 +1,5 @@
+{"os":"macos","status":1,"outcome":"incomplete","phase":"contextual","reason":"CONTEXTUAL_REQUIRED: Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run."}
+
+{"os":"linux","status":1,"outcome":"incomplete","phase":"contextual","reason":"CONTEXTUAL_REQUIRED: Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run."}
+
+Both live-source starts reached contextual handoff. Agent assessment remains required.
