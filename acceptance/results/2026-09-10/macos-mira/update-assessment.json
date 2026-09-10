@@ -1,0 +1,19 @@
+{
+  "format": "repo-standards/assessment/v1",
+  "run": "cf07022f-1ce3-46e4-8520-bd8eaf3e7b29",
+  "selection": "sha256:1dd2888335f95fd454b662bb634326b82a56272f7b4cc676c4f0cec38902d6c7",
+  "snapshot": "sha256:30ef5cbd196ee8868fb22146c3f1c714d38451c7cc45d4631cf4c86027c50134",
+  "declarations": [
+    {
+      "id": "operations-guide",
+      "status": "satisfied",
+      "explanation": "The restored runbook still explains this service correctly. Its historical local observations remain accurately scoped; new probes corroborate the behavior. The initializer preserved unverified status, and no contextual change is necessary for the CLI-only update.",
+      "changedPaths": [],
+      "evidence": [
+        "Current docs/operations.md retains Startup, Health and Recovery, loopback binding, default/overridden PORT commands, failure signals and the warning that accepted is lost on restart; employer escalation and no-authentication warnings remain intact.",
+        "A fresh probe at http://127.0.0.1:56599 observed accepted 0, POST 204, accepted 1, then accepted 0 after restarting. This supports the existing runbook's behavior claims without implying deployment certification.",
+        "service/server.py still keeps Handler.accepted only in memory, with GET /health and POST /accept routes. The status file stays unverified; no source code or operating documentation was edited."
+      ]
+    }
+  ]
+}

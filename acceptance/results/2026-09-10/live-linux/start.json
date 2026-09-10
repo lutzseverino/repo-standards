@@ -1,0 +1,83 @@
+{
+  "format": "repo-standards/run/v1",
+  "id": "e851a972-226c-4d12-a52e-cbf104934623",
+  "inspection": "sha256:dc57e1cfe50d175dd89e647b868aaa36b5af4faaa42acde1c0e7684c61711edc",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.0.0"
+    },
+    "standards": {
+      "repository": "https://github.com/lutzseverino/repo-standards-example",
+      "version": "v1.0.0",
+      "commit": "98b53f2087a4fe8a028ac60108a9545b7b9ea289"
+    },
+    "profile": "service"
+  },
+  "startInput": {
+    "kind": "public",
+    "options": {
+      "source": "https://github.com/lutzseverino/repo-standards-example",
+      "standardsVersion": "v1.0.0",
+      "profile": "service",
+      "project": "/tmp/repo-standards-source-NDOrBg"
+    }
+  },
+  "affected": {
+    ".editorconfig": {
+      "type": "missing"
+    },
+    "docs/operations.md": {
+      "type": "file",
+      "sha256": "b4b5bbe5097e908b6659c0b24bc36bafc526add607e27d8cfa0ec695309b0c41",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Harbor operations\n\nContact the platform on-call engineer for incidents. This demonstration service\nhas no authentication and must stay on loopback until a separate security review.\n"
+    },
+    "docs/operating-status.json": {
+      "type": "missing"
+    },
+    ".agents/skills/adopt-standards": {
+      "type": "missing"
+    }
+  },
+  "outcome": "incomplete",
+  "prerequisites": [
+    {
+      "declaration": "operations-guide",
+      "phase": "fixes",
+      "operation": "initialize-status",
+      "executable": "node",
+      "version": "24.11.1",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    },
+    {
+      "declaration": "operations-guide",
+      "phase": "checks",
+      "operation": "operational-evidence",
+      "executable": "node",
+      "version": "24.11.1",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    }
+  ],
+  "operations": [],
+  "assessments": [],
+  "phase": "runtime",
+  "reason": "SOURCE_UNAVAILABLE: Public GitHub returned HTTP 403 for /repos/lutzseverino/repo-standards-example. Check the public repository, version tag, and API rate limit.",
+  "changes": [],
+  "completed": [],
+  "uncertain": [],
+  "nextAction": "Resolve the reported problem, inspect again, and confirm the new inspection before retrying."
+}

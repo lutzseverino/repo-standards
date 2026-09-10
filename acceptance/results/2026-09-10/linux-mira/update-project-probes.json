@@ -1,0 +1,43 @@
+{
+  "project": "/tmp/repo-standards-restoration-kYgQvS/project",
+  "author": "mira",
+  "files": {
+    "README.md": "# Harbor status service\n\nA loopback HTTP service exposing an in-memory accepted-request counter.\nRun `python3 service/server.py`. Operations notes are in docs/operations.md.\n",
+    "CONTRIBUTING.md": "# Employer contribution policy\n\nService owners approve operational changes. Escalate outages to the platform\non-call engineer; adoption is not approval to deploy.\n",
+    "service/server.py": "import json\nimport os\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\n\n\nclass Handler(BaseHTTPRequestHandler):\n    accepted = 0\n\n    def do_GET(self):\n        if self.path != \"/health\":\n            self.send_error(404)\n            return\n        body = json.dumps({\"status\": \"ok\", \"accepted\": Handler.accepted}).encode()\n        self.send_response(200)\n        self.send_header(\"Content-Type\", \"application/json\")\n        self.end_headers()\n        self.wfile.write(body)\n\n    def do_POST(self):\n        if self.path != \"/accept\":\n            self.send_error(404)\n            return\n        Handler.accepted += 1\n        self.send_response(204)\n        self.end_headers()\n\n\nif __name__ == \"__main__\":\n    HTTPServer((\"127.0.0.1\", int(os.environ.get(\"PORT\", \"8765\"))), Handler).serve_forever()\n",
+    "docs/operations.md": "# Harbor operations\n\nContact the platform on-call engineer for incidents. This demonstration service\nhas no authentication and must stay on loopback until a separate security review.\n\n## Startup\n\nUse Python 3 from the repository root: `python3 service/server.py`. No third-party\nPython libraries are required. The standard-library HTTPServer binds 127.0.0.1\nand defaults to port 8765. For a different available local port use\n`PORT=8766 python3 service/server.py`, and adjust all probe URLs accordingly.\nAn invalid integer PORT or an occupied listening port prevents startup; check\nthe process's stderr if it exits or no listener appears.\n\n## Health\n\nRun `curl -i http://127.0.0.1:8765/health`. A new process responds with HTTP 200\nand `{\"status\":\"ok\",\"accepted\":0}`. Send\n`curl -i -X POST http://127.0.0.1:8765/accept` to increment the counter; its\nexpected response is HTTP 204 and the next health JSON has accepted 1. A refused\nconnection calls for checking the server process and selected port. A 404 calls\nfor checking the exact path: GET /health and POST /accept are the implemented\nroutes.\n\nIn the Linux container, a Python 3.13.5 probe on 127.0.0.1:45583 observed the\nsequence accepted 0, POST 204, accepted 1. A fresh process then returned 0.\nThose observations establish local behavior only, not deployment health.\n\n## Recovery\n\nStop the foreground server with Ctrl-C, launch it again with the intended PORT,\nand repeat the health probe. The accepted count lives in Handler.accepted in\nprocess memory; restarting discards it. No persistent store, backup restoration\nor request replay is implemented, so this runbook cannot recover previous counts.\nKeep the service on loopback and follow the platform on-call escalation above.\nService owners approve operational changes under ../CONTRIBUTING.md; adoption\nis not approval to deploy.\n\nThe initializer's docs/operating-status.json must stay \"unverified\". A local\nsuccessful probe does not change that status or certify a deployed service.\n"
+  },
+  "commands": [
+    {
+      "executable": "node",
+      "args": [
+        "--version"
+      ],
+      "stdout": "v24.11.1\n"
+    },
+    {
+      "executable": "python3",
+      "args": [
+        "--version"
+      ],
+      "stdout": "Python 3.13.5\n"
+    }
+  ],
+  "probes": {
+    "command": "PORT=33927 python3 service/server.py",
+    "url": "http://127.0.0.1:33927",
+    "initial": {
+      "status": "ok",
+      "accepted": 0
+    },
+    "postStatus": 204,
+    "incremented": {
+      "status": "ok",
+      "accepted": 1
+    },
+    "restarted": {
+      "status": "ok",
+      "accepted": 0
+    }
+  }
+}

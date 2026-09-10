@@ -1,0 +1,155 @@
+diff --git a/.repo-standards/lock.json b/.repo-standards/lock.json
+index 5aa7cb7..5c8f4cf 100644
+--- a/.repo-standards/lock.json
++++ b/.repo-standards/lock.json
+@@ -3,7 +3,7 @@
+   "selection": {
+     "cli": {
+       "package": "@lutzseverino/repo-standards",
+-      "version": "1.0.0"
++      "version": "1.0.1"
+     },
+     "standards": {
+       "repository": "https://github.com/mira/standards",
+@@ -12,7 +12,7 @@
+     },
+     "profile": "service"
+   },
+-  "inspection": "sha256:b9fa8b7c561e885fb8a777b132980aacb923ad11f257828e47607bbd2b57ecf2",
++  "inspection": "sha256:e0922d42826ec5de43a70e11ea3c8ebf4a231599886a6cdf27d04eccaf2f63aa",
+   "files": {
+     ".editorconfig": {
+       "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+@@ -55,7 +55,7 @@
+       "executable": false
+     },
+     ".repo-standards/selection.yaml": {
+-      "sha256": "74ac4c62494bedd9ccff0a3947791b5e243cb9eaee6dcf9ef3136b7ad873b541",
++      "sha256": "29cbcd6dcaacde137df37ea3569196dcd5ba653aceab308157a6d4bb77817bcc",
+       "executable": false
+     },
+     ".repo-standards/.gitignore": {
+@@ -63,16 +63,16 @@
+       "executable": false
+     },
+     ".repo-standards/runtime/package.json": {
+-      "sha256": "db9535b5dd5e33d65282cf41cbafdd5af6d74f381adc9701b747559fa67f33f5",
++      "sha256": "76961bea3dae0177eaa0306cc5cad976d7a67cf10534c8aa39afb9ae4a042af4",
+       "executable": false
+     },
+     ".repo-standards/runtime/package-lock.json": {
+-      "sha256": "7be7c66d2fe1c854010788fea6fc4991b058f9d930ecbfefec1085e0bff1b346",
++      "sha256": "af4ae0c0ae4b0f81868fc6c4d1676397f34084ed5b787cf584c38f4bcda4e6e9",
+       "executable": false
+     }
+   },
+   "state": {
+-    "sha256": "c561f126d3bb7845250d486a446be68cd5a30838e7bbc80d631b002905d2dd87",
++    "sha256": "a026199d515602b67e9c1afc315713606b3a5dd6ef0e691c99c2b0cf539b9de6",
+     "executable": false
+   }
+ }
+diff --git a/.repo-standards/runtime/package-lock.json b/.repo-standards/runtime/package-lock.json
+index 9bcc8bf..5cf4c21 100644
+--- a/.repo-standards/runtime/package-lock.json
++++ b/.repo-standards/runtime/package-lock.json
+@@ -1,11 +1,11 @@
+ {
+-  "name": "repo-standards-runtime-xf4pCz",
++  "name": "repo-standards-runtime-Co4jWk",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "dependencies": {
+-        "@lutzseverino/repo-standards": "1.0.0"
++        "@lutzseverino/repo-standards": "1.0.1"
+       }
+     },
+     "node_modules/@koromix/koffi-android-arm64": {
+@@ -297,9 +297,9 @@
+       }
+     },
+     "node_modules/@lutzseverino/repo-standards": {
+-      "version": "1.0.0",
+-      "resolved": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.0.0.tgz",
+-      "integrity": "sha512-WInIH5Nz0+zRTfz1iYPlUHAd5VgTYYTer5EbWxSr9enHjQBgEhY7psn7AgU1T5/Zh7G+o7LCturCDpEepojg7w==",
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.0.1.tgz",
++      "integrity": "sha512-1Wzuz5ttDghmc/wPVHEL6E8QVoapwMsd4BeIsTOj8ep3Vb/LCB2q5tO7XSP0CLxDVDw66jHGVitycykEue3xqA==",
+       "license": "MIT",
+       "dependencies": {
+         "koffi": "3.2.1",
+diff --git a/.repo-standards/runtime/package.json b/.repo-standards/runtime/package.json
+index 0fb0434..2cc2171 100644
+--- a/.repo-standards/runtime/package.json
++++ b/.repo-standards/runtime/package.json
+@@ -1,6 +1,6 @@
+ {
+   "private": true,
+   "dependencies": {
+-    "@lutzseverino/repo-standards": "1.0.0"
++    "@lutzseverino/repo-standards": "1.0.1"
+   }
+ }
+diff --git a/.repo-standards/selection.yaml b/.repo-standards/selection.yaml
+index 4f97a33..bf1518a 100644
+--- a/.repo-standards/selection.yaml
++++ b/.repo-standards/selection.yaml
+@@ -1,6 +1,6 @@
+ cli:
+   package: "@lutzseverino/repo-standards"
+-  version: 1.0.0
++  version: 1.0.1
+ standards:
+   repository: https://github.com/mira/standards
+   version: v1.0.0
+diff --git a/.repo-standards/state.json b/.repo-standards/state.json
+index 4601d50..63fac16 100644
+--- a/.repo-standards/state.json
++++ b/.repo-standards/state.json
+@@ -1,10 +1,10 @@
+ {
+   "format": "repo-standards/state/v1",
+   "lastComplete": {
+-    "run": "d15484d6-121b-4e24-964b-721f64a41986",
+-    "inspection": "sha256:b9fa8b7c561e885fb8a777b132980aacb923ad11f257828e47607bbd2b57ecf2",
+-    "completedAt": "2026-09-09T20:18:30.747Z",
+-    "head": "ac2c916e8ea84f7d41a90d3715b05dacd2b0f6fc"
++    "run": "dbb2bb10-b17e-4077-bba0-949e884ea4c6",
++    "inspection": "sha256:e0922d42826ec5de43a70e11ea3c8ebf4a231599886a6cdf27d04eccaf2f63aa",
++    "completedAt": "2026-09-10T14:43:50.240Z",
++    "head": "82eef973934facb2415a828c0d1d598f360a1338"
+   },
+   "baselines": {
+     ".editorconfig": {
+@@ -47,22 +47,19 @@
+   "assessments": [
+     {
+       "format": "repo-standards/assessment/v1",
+-      "run": "d15484d6-121b-4e24-964b-721f64a41986",
+-      "selection": "sha256:fe3d489b73e3b4cf53942e266efafd1ca85586f323410e446066fdbf63d3770e",
++      "run": "dbb2bb10-b17e-4077-bba0-949e884ea4c6",
++      "selection": "sha256:40c5eced208586868e9e43f837ade205776c03245e93f8e749c0e8a419075bfb",
+       "snapshot": "sha256:55a4dfd0e92b5bb015326c24264de808d6e0d9b865723530da9e6031ac8ad4e2",
+       "declarations": [
+         {
+           "id": "operations-guide",
+           "status": "satisfied",
+-          "explanation": "Expanded the real service runbook with runnable startup/probe commands, loopback and port configuration, failure signals and restart data loss. Preserved the original warning and escalation ownership, and retained unverified status because local probes do not certify deployment.",
+-          "changedPaths": [
+-            "docs/operations.md"
+-          ],
++          "explanation": "The restored runbook still explains this service correctly. Its historical local observations remain accurately scoped; new probes corroborate the behavior. The initializer preserved unverified status, and no contextual change is necessary for the CLI-only update.",
++          "changedPaths": [],
+           "evidence": [
+-            "service/server.py binds 127.0.0.1, defaults PORT to 8765, implements GET /health and POST /accept, and stores accepted solely in Handler.accepted process memory.",
+-            "The actual local Python 3.13.5 probe at 127.0.0.1:45583 observed health accepted 0, POST status 204, health accepted 1, and accepted 0 in a restarted process; the runbook reports this limited observation.",
+-            "docs/operations.md preserves the existing no-authentication/loopback security warning and platform on-call contact; Recovery explicitly rules out backup or replay claims and points to employer service-owner approval.",
+-            "docs/operating-status.json was created by the declared fix and remains unverified; it was not edited or claimed as contextual work."
++            "Current docs/operations.md retains Startup, Health and Recovery, loopback binding, default/overridden PORT commands, failure signals and the warning that accepted is lost on restart; employer escalation and no-authentication warnings remain intact.",
++            "A fresh probe at http://127.0.0.1:33927 observed accepted 0, POST 204, accepted 1, then accepted 0 after restarting. This supports the existing runbook's behavior claims without implying deployment certification.",
++            "service/server.py still keeps Handler.accepted only in memory, with GET /health and POST /accept routes. The status file stays unverified; no source code or operating documentation was edited."
+           ]
+         }
+       ]

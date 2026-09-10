@@ -1,0 +1,28 @@
+{
+  "format": "repo-standards/assessment/v1",
+  "run": "cf317c90-f006-4069-8a4a-5ddfa581c977",
+  "selection": "sha256:684f669905920aa5f24f24ee0fcd3646fb8e5eb3649b93a79e25270ad709e9a7",
+  "snapshot": "sha256:345df251919de2f3b04046b4b1d90301c9b6275d9485420e2650527619ddd35f",
+  "declarations": [
+    {
+      "id": "readme",
+      "status": "satisfied",
+      "explanation": "Reassessed the restored project for the unchanged README guidance. Its existing setup, usage example, limitations and development instructions remain accurate after the CLI-only update; no contextual edits are needed.",
+      "changedPaths": [],
+      "evidence": [
+        "The restored README still documents Node 24, the dependency-free implementation, npm run preview -- test/parcels.ndjson, its demo-101 dispatch JSON, and npm test, with the employer CONTRIBUTING.md link preserved.",
+        "Fresh execution on this OS passed both dispatch tests and printed only the demo-101 dispatch record. The current cli.mjs and dispatch.mjs still parse nonblank JSON lines, select ready records and reject missing ids without carrier I/O or persistence."
+      ]
+    },
+    {
+      "id": "source-layout",
+      "status": "satisfied",
+      "explanation": "The current source notes and two-module responsibility split already satisfy the retained guidance. Moving or rewriting them for a CLI package update would add no useful information.",
+      "changedPaths": [],
+      "evidence": [
+        "Read the current src/README.md and verified it still matches the previously reviewed content: cli.mjs owns arguments/file parsing/stdout; dispatch.mjs owns ready filtering and id validation.",
+        "The fresh dispatch tests and preview pass; the source implementation remains unchanged and the notes describe its boundaries and employer ownership accurately."
+      ]
+    }
+  ]
+}

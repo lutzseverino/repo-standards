@@ -1,0 +1,7 @@
+{
+  "identity": "sha256:dc57e1cfe50d175dd89e647b868aaa36b5af4faaa42acde1c0e7684c61711edc",
+  "authorization": "Maintainer selected Confirm both live-source adoptions before start.",
+  "result": "Source recheck failed with HTTP403 before project mutation or author operations.",
+  "workingTreeStatusAfterAttempt": "",
+  "activeRunAfterAttempt": null
+}

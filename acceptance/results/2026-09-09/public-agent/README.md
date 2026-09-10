@@ -1,5 +1,8 @@
 # Public-package real-agent acceptance
 
+**Later continuation:** [2026-09-10 CLI updates and live-source status](../../2026-09-10/README.md).
+The four CLI updates are now complete; the snapshot below predates that work.
+
 All four initial adoptions completed after the maintainer confirmed the exact
 [inspection bundle](confirmation.md). Each used actual public npm package
 `@lutzseverino/repo-standards@1.0.0`, its matching installed system skill and an

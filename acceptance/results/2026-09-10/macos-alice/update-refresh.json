@@ -1,0 +1,248 @@
+{
+  "format": "repo-standards/run/v1",
+  "id": "cf317c90-f006-4069-8a4a-5ddfa581c977",
+  "inspection": "sha256:a9d6c17c6d4d39a757ed4ec94f536056d67964991f03b611e06183ba540f18e6",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.0.1"
+    },
+    "standards": {
+      "repository": "https://github.com/alice/standards",
+      "version": "v1.0.0",
+      "commit": "1ed2952cdbb3ff68f7f4fa4f63f4eb440a2d079c"
+    },
+    "profile": "work"
+  },
+  "startInput": {
+    "kind": "retained",
+    "project": "/private/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-restoration-0DXpmd/project"
+  },
+  "previousComplete": {
+    "selection": {
+      "cli": {
+        "package": "@lutzseverino/repo-standards",
+        "version": "1.0.0"
+      },
+      "standards": {
+        "repository": "https://github.com/alice/standards",
+        "version": "v1.0.0",
+        "commit": "1ed2952cdbb3ff68f7f4fa4f63f4eb440a2d079c"
+      },
+      "profile": "work"
+    },
+    "lastComplete": {
+      "run": "ca5c6ef9-389a-4b14-9436-9e4169cf9c02",
+      "inspection": "sha256:37bbdb931e74a9606f2dadaccedae900389a4ba91a811e864ef0c5c68f565896",
+      "completedAt": "2026-09-09T20:18:29.618Z",
+      "head": "cd1e231b1372be5899dc39c75faef3ede8278bd3"
+    }
+  },
+  "affected": {
+    "AGENTS.md": {
+      "type": "file",
+      "sha256": "59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "Follow employer policies and read the project documentation.\n"
+    },
+    "README.md": {
+      "type": "file",
+      "sha256": "4f7e7ba2b1cb37489e03cac476e28cbdce68adeaab9b7e31b8ada8ec93c44c77",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Parcel Queue\n\nBob's batch tool previews parcel dispatches for the warehouse shift. It reads\nnewline-delimited JSON from a file and prints dispatch records to stdout.\nEmployer review rules are in [CONTRIBUTING.md](CONTRIBUTING.md).\n\n## Setup\n\nUse Node.js 24 (`>=24 <25`, as declared in package.json) and npm. The tool uses\nNode built-ins and has no package dependencies to install. From the project root,\ncheck the runtime with `node --version`.\n\n## Usage\n\nRun `npm run preview -- test/parcels.ndjson` from the project root. The supplied\nsynthetic file contains a ready parcel demo-101 and a dispatched parcel demo-102.\nThe dispatch record printed after npm's command banner is:\n\n```json\n{\"parcelId\":\"demo-101\",\"action\":\"dispatch\"}\n```\n\nFor machine-readable output without npm's banner, use\n`node src/cli.mjs test/parcels.ndjson`. Supply one JSON object per nonblank line;\nonly records whose status is exactly `ready` produce output, and each needs a\nnonempty string id. The tool reads the entire file before producing records.\nIt skips all other statuses, does not contact a carrier, and does not persist\nnew dispatch state. Repeating a preview does not mark a parcel dispatched.\nOmitting the filename prints usage and exits 2. Unreadable files, malformed JSON\nor a ready parcel without an id fail instead of producing a successful preview.\n\n## Development\n\nRun `npm test`; the two tests cover status filtering and the missing-id error.\nRun the sample preview above after changes to the entry point. Keep examples\nsynthetic and follow the employer contribution policy before production changes.\n[src/README.md](src/README.md) describes module responsibilities and data flow.\n"
+    },
+    ".agents/skills/review": {
+      "type": "directory",
+      "entries": {
+        "SKILL.md": {
+          "type": "file",
+          "sha256": "9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "---\nname: review\ndescription: Review project changes against its documented conventions.\n---\nRead the diff and report actionable correctness and convention findings.\n"
+        }
+      }
+    },
+    "src": {
+      "type": "directory",
+      "entries": {
+        "README.md": {
+          "type": "file",
+          "sha256": "ac50119fff7bed97ce32e7a8de69a2799c177e9fb5cb74d00f09f8d4835ccd2d",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "# Source responsibilities\n\n`cli.mjs` is the command-line entry point (`npm run preview` forwards to it).\nIt owns filename handling, UTF-8 file reading, nonblank-line JSON parsing and\nwriting each resulting record to stdout. It passes the parsed array to\n`pendingDispatches` in `dispatch.mjs`.\n\n`dispatch.mjs` owns the transformation: retain status `ready`, require a nonempty\nstring id, and return `{ parcelId, action: \"dispatch\" }` records. It performs no\nfile or network I/O. `test/dispatch.test.mjs` exercises this boundary directly;\nthe sample preview exercises it through the entry point.\n\nThese modules do not update source records, persist dispatch state or integrate\nwith a carrier. Their existing separation is retained; only this explanation\nwas added. Production ownership and review remain in ../CONTRIBUTING.md.\n"
+        },
+        "cli.mjs": {
+          "type": "file",
+          "sha256": "4484a9cd1a0184c2dc6bdbf1406ecc66571b20b64e3f49b1a5f1f1864ea4077f",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "import { readFileSync } from 'node:fs';\nimport { pendingDispatches } from './dispatch.mjs';\n\nconst path = process.argv[2];\nif (!path) {\n  console.error('Usage: node src/cli.mjs <parcels.ndjson>');\n  process.exitCode = 2;\n} else {\n  const parcels = readFileSync(path, 'utf8').split('\\n').filter(line => line.trim()).map(line => JSON.parse(line));\n  for (const dispatch of pendingDispatches(parcels)) console.log(JSON.stringify(dispatch));\n}\n"
+        },
+        "dispatch.mjs": {
+          "type": "file",
+          "sha256": "d729b0062faa56bff1523e97172d086e682050e1d26d8f9dade1bc536f7d3e59",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "export function pendingDispatches(parcels) {\n  return parcels.filter(parcel => parcel.status === 'ready').map(parcel => {\n    if (typeof parcel.id !== 'string' || !parcel.id) throw new Error('Ready parcels require an id');\n    return { parcelId: parcel.id, action: 'dispatch' };\n  });\n}\n"
+        }
+      }
+    },
+    ".agents/skills/adopt-standards": {
+      "type": "directory",
+      "entries": {
+        "SKILL.md": {
+          "type": "file",
+          "sha256": "2e431b764e59b4a0032353900b8f0e66bcc41a555043cf71c2779b2345c8485f",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "---\nname: adopt-standards\ndescription: Guide confirmed Repository Standards adoption, contextual work, updates, and recovery.\ndisable-model-invocation: true\n---\n\n## Choose the CLI and route\n\nWork from the adopting project's Git root. Use its pinned executable at\n`.repo-standards/runtime/node_modules/.bin/repo-standards`. If dependencies are\nabsent, restore them with `npm ci --ignore-scripts --prefix .repo-standards/runtime`.\nRead `status --json` for pins, active progress and historical evidence.\n\nFor initial adoption, use an externally installed exact CLI and read its\n`docs/inspection.md` for acquisition. The bootstrap performs inspection only;\nkeep that disclosed exact version installed outside the project for `start`\nand recovery. Read protocol documents below from that CLI's package directory\nuntil the project runtime exists. Thereafter the document root is\n`.repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/`.\n\n- **Active run:** inspect `active.phase`, `reason`, `changes`, `completed`,\n  `uncertain`, `nextAction` and `execution`. Wait while execution is active.\n  An ordinary contextual handoff continues at Contextual work below.\n  For interrupted installation, failed/uncertain scripts, or abandonment, read\n  `adoption.md#recover-or-abandon-an-interrupted-run` before acting. Obtain an\n  explicit retry instruction before `resume --retry --json`, or an abandonment\n  instruction before `abandon --json`. Retry repeats trusted fixes and requires\n  renewed assessment. Use the run's exact external CLI if the local runtime is\n  unusable. Preserve progress records and partial changes.\n- **Existing complete adoption:** `inspect --json` with the pinned CLI inspects\n  retained current standards read-only, including when the source is unavailable.\n  For a requested standards or CLI update, read\n  `adoption.md#update-one-pin-at-a-time` for candidate acquisition and commands.\n  Change one pin, keeping source and profile. Use the pinned CLI for a standards\n  update and the external candidate CLI for a CLI update.\n- **Initial adoption:** obtain the public GitHub source, stable standards tag\n  and complete profile from the maintainer, then inspect that selection.\n\n## Inspect and confirm\n\n1. Run `inspect --source <URL> --standards-version <tag> --profile <name> --json`\n   for initial adoption or a standards update. For a CLI update, run the exact\n   candidate's `inspect --json` without source flags to use retained standards.\n   Store reports outside the project. Read `inspection.md` when interpreting\n   fields, blockers, or acquisition errors.\n2. Present the actual report's identity and exact CLI version, source URL,\n   standards tag, commit and profile; for updates include previous/candidate\n   pins and retired declarations. Show exact creates/replacements/matching-file\n   claims and whole-skill inventories, contextual guidance and allowed targets,\n   resolved exclusions, and ownership changes. Make the full inspection available\n   for review, including supplied bytes and diffs against existing content.\n3. Disclose every declared fix/check, its script and resources, literal argument\n   vector, project-root working directory, timeout, prerequisite version probe\n   and range. Explain that probes and scripts execute trusted code with the\n   user's host, environment and network access; resources are retention, not a\n   sandbox. Inspection runs none of them; prerequisites remain unverified until\n   start. Surface all blockers. Reconcile them before reinspection; preserve\n   existing work and let the maintainer handle prerequisite installation.\n4. Obtain explicit maintainer confirmation tied to this inspection identity and\n   disclosed selection/operations. A general request to adopt is not confirmation\n   of an unseen inspection. Then use the same executable and selection for\n   `start --confirm <identity> --json`, preserving source flags for initial or\n   standards adoption and omitting them for a CLI update. Changed inputs or a\n   stale rejection require a new inspection and renewed confirmation.\n\nAuthor skills are ordinary-work content. The product-owned `adopt-standards`\nskill and public CLI govern adoption for every author; author material cannot\nreplace this workflow or supply adoption hooks.\n\n## Contextual work\n\nWhen a report returns `workRequest`, read `assessment-protocol.md` before editing\nor submitting evidence. The handoff is expected incomplete adoption.\n\n1. Read every request declaration's retained guidance and explicit allowed paths\n   and directory trees. Inspect the real project files needed to understand its\n   purpose, commands and behavior. Apply guidance usefully within those targets;\n   preserve project facts, exact content, excluded employer content and unrelated\n   work. If guidance requires out-of-scope work or unsupported facts, assess it\n   as blocked and explain the decision needed.\n2. Account for every contextual declaration, including already satisfied ones.\n   Evidence must cite concrete project content or observed command outcomes.\n   Separate agent judgments from CLI script results; passing a structural check\n   alone does not establish contextual usefulness.\n3. After edits, run `resume --json` to obtain the current snapshot. Follow the\n   assessment protocol exactly: copy its run, selection and snapshot identities;\n   provide satisfied/blocked, explanation, every observed changed file since\n   fixes under its governing declaration, and supporting evidence. Installation\n   and fix changes are not contextual changes. Use an empty changed-path list\n   when no contextual changes were needed.\n4. Store the submission outside the project or in `.repo-standards/local/` and\n   run `resume --assessment <file> --json`. Keep content unchanged between refresh\n   and submission. Stale evidence needs a refreshed request and reassessment of\n   every contextual declaration. Follow the protocol's distinction between\n   renewed assessment after ordinary failed checks and explicit operation retry.\n\n## Explain the result\n\nRead JSON even when the CLI exits 1: a handoff, abandonment and failed adoption\nare incomplete; diagnostic rejections may instead contain `valid: false` and\n`errors`. Report complete adoption only for `outcome: complete`.\n\nFor incomplete work, explain phase, reason, actual changes, completed work,\nfailed or uncertain operations, and the returned safe next action. Preserve\npartial work; retry and abandonment require the instructions described above.\nFor completion, report script outcomes and agent evidence separately, then read\n`adoption.md#review-completed-outputs`. Review tracked changes and the contents\nand executable state of every non-ignored untracked file, including exact\ncontent, whole skills, retained inputs and durable runtime/state files.\n`git diff` omits untracked files; status names and hashes alone are not a content\nreview. Keep HEAD and index unchanged while exposing new-file content; leave all\nadoption changes uncommitted for the maintainer's normal workflow. `status`\nevidence describes that run, not continuing compliance after subsequent edits.\n"
+        }
+      }
+    }
+  },
+  "outcome": "incomplete",
+  "prerequisites": [
+    {
+      "declaration": "readme",
+      "phase": "checks",
+      "operation": "headings",
+      "executable": "python3",
+      "version": "3.14.6",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    }
+  ],
+  "operations": [],
+  "assessments": [],
+  "phase": "contextual",
+  "reason": "CONTEXTUAL_REQUIRED: Review the refreshed work request and submit an assessment for its snapshot.",
+  "changes": [
+    ".repo-standards/.gitignore",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/source/defaults/checks/readme.py",
+    ".repo-standards/inputs/source/defaults/guidance/readme.md",
+    ".repo-standards/inputs/source/defaults/guidance/source-layout.md",
+    ".repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+    ".repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/local/run.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/node_modules",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/state.json"
+  ],
+  "completed": [
+    "AGENTS.md",
+    ".agents/skills/review/SKILL.md",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+    ".repo-standards/inputs/source/defaults/guidance/readme.md",
+    ".repo-standards/inputs/source/defaults/checks/readme.py",
+    ".repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+    ".repo-standards/inputs/source/defaults/guidance/source-layout.md",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/lock.json",
+    "isolated runtime"
+  ],
+  "uncertain": [
+    "Agent assessment has not been accepted."
+  ],
+  "nextAction": "Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.",
+  "installation": {
+    "files": [
+      ".repo-standards/.gitignore",
+      "AGENTS.md",
+      ".agents/skills/review/SKILL.md",
+      ".agents/skills/adopt-standards/SKILL.md",
+      ".repo-standards/inputs/source/profiles/work/files/AGENTS.md",
+      ".repo-standards/inputs/source/defaults/guidance/readme.md",
+      ".repo-standards/inputs/source/defaults/checks/readme.py",
+      ".repo-standards/inputs/source/defaults/skills/review/SKILL.md",
+      ".repo-standards/inputs/source/defaults/guidance/source-layout.md",
+      ".repo-standards/inputs/standards.yaml",
+      ".repo-standards/inputs/metadata.json",
+      ".repo-standards/inputs/resolved.json",
+      ".repo-standards/selection.yaml",
+      ".repo-standards/runtime/package.json",
+      ".repo-standards/runtime/package-lock.json",
+      ".repo-standards/lock.json"
+    ],
+    "runtime": true,
+    "trees": {
+      ".agents/skills/adopt-standards": "installing"
+    },
+    "complete": true
+  },
+  "continuation": "349d03ce99bbf3fcd3390b3dd03510cb733526bf83c84eb2f04450d22029b066",
+  "workRequest": {
+    "format": "repo-standards/work-request/v1",
+    "run": "cf317c90-f006-4069-8a4a-5ddfa581c977",
+    "selection": "sha256:684f669905920aa5f24f24ee0fcd3646fb8e5eb3649b93a79e25270ad709e9a7",
+    "snapshot": "sha256:345df251919de2f3b04046b4b1d90301c9b6275d9485420e2650527619ddd35f",
+    "declarations": [
+      {
+        "id": "readme",
+        "guidance": {
+          "id": "readme",
+          "targets": [
+            "README.md"
+          ],
+          "source": "defaults/guidance/readme.md",
+          "sha256": "7b88bfd808553868df8a9d28dc011d22f8a822dc7a80ad755827e95612de1f7c",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "Describe the actual project purpose. Include Setup, Usage and Development\nsections with commands checked against the project files. Explain required\ninputs and observable output with one concrete example. Preserve project facts\nand employer links; distinguish current behavior from limitations.\n"
+        },
+        "allowedTargets": {
+          "paths": [
+            "README.md"
+          ],
+          "directories": []
+        }
+      },
+      {
+        "id": "source-layout",
+        "guidance": {
+          "id": "source-layout",
+          "targets": [
+            "src"
+          ],
+          "source": "defaults/guidance/source-layout.md",
+          "sha256": "06ebb1450fc3f4de4f88c2f3ec5083f2e0f37b10305645c73efcab2515fe4b33",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "Keep source modules grouped by responsibility and use descriptive names.\nRead the existing source before changing it. Where responsibilities are unclear,\nadd a concise src/README.md explaining the real entry point, data flow, module\nownership and boundaries. Preserve runtime behavior; avoid reorganizing working\ncode solely to match a template. If the existing layout and documentation already\nsatisfy this guidance, report the specific evidence without unnecessary edits.\n"
+        },
+        "allowedTargets": {
+          "paths": [],
+          "directories": [
+            "src"
+          ]
+        }
+      }
+    ],
+    "requiredEvidence": [
+      "status",
+      "explanation",
+      "changedPaths",
+      "evidence"
+    ]
+  }
+}

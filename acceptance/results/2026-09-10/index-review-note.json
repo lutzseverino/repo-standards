@@ -1,0 +1,6 @@
+{
+  "observation": "Initial capture rejected raw index-byte changes while HEAD and stage entries remained equal on macOS. A per-command Linux probe reproduced the raw-byte change in git diff even with --no-optional-locks.",
+  "resolution": "Setting diff.autoRefreshIndex=false prevented that index metadata refresh. Full captures on all four projects then passed identical before/after HEAD, stage entries and raw index hashes.",
+  "scope": "Review-helper metadata refresh, not an adoption staging or commit. Initial failed capture is not claimed as unchanged raw index bytes.",
+  "allNewFileInventoriesEmpty": true
+}

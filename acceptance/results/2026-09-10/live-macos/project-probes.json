@@ -1,0 +1,43 @@
+{
+  "project": "/private/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-source-x4wVGy",
+  "author": "mira",
+  "files": {
+    "README.md": "# Harbor status service\n\nA loopback HTTP service exposing an in-memory accepted-request counter.\nRun `python3 service/server.py`. Operations notes are in docs/operations.md.\n",
+    "CONTRIBUTING.md": "# Employer contribution policy\n\nService owners approve operational changes. Escalate outages to the platform\non-call engineer; adoption is not approval to deploy.\n",
+    "service/server.py": "import json\nimport os\nfrom http.server import BaseHTTPRequestHandler, HTTPServer\n\n\nclass Handler(BaseHTTPRequestHandler):\n    accepted = 0\n\n    def do_GET(self):\n        if self.path != \"/health\":\n            self.send_error(404)\n            return\n        body = json.dumps({\"status\": \"ok\", \"accepted\": Handler.accepted}).encode()\n        self.send_response(200)\n        self.send_header(\"Content-Type\", \"application/json\")\n        self.end_headers()\n        self.wfile.write(body)\n\n    def do_POST(self):\n        if self.path != \"/accept\":\n            self.send_error(404)\n            return\n        Handler.accepted += 1\n        self.send_response(204)\n        self.end_headers()\n\n\nif __name__ == \"__main__\":\n    HTTPServer((\"127.0.0.1\", int(os.environ.get(\"PORT\", \"8765\"))), Handler).serve_forever()\n",
+    "docs/operations.md": "# Harbor operations\n\nContact the platform on-call engineer for incidents. This demonstration service\nhas no authentication and must stay on loopback until a separate security review.\n"
+  },
+  "commands": [
+    {
+      "executable": "node",
+      "args": [
+        "--version"
+      ],
+      "stdout": "v24.11.1\n"
+    },
+    {
+      "executable": "python3",
+      "args": [
+        "--version"
+      ],
+      "stdout": "Python 3.14.6\n"
+    }
+  ],
+  "probes": {
+    "command": "PORT=56666 python3 service/server.py",
+    "url": "http://127.0.0.1:56666",
+    "initial": {
+      "status": "ok",
+      "accepted": 0
+    },
+    "postStatus": 204,
+    "incremented": {
+      "status": "ok",
+      "accepted": 1
+    },
+    "restarted": {
+      "status": "ok",
+      "accepted": 0
+    }
+  }
+}

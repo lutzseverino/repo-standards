@@ -1,5 +1,8 @@
 # Issue #11 — release preparation and remaining acceptance
 
+**Later continuation:** [2026-09-10 CLI updates and live-source status](../2026-09-10/README.md).
+The four CLI updates are now complete; the snapshot below predates that work.
+
 **Current status: 1.0.0 and 1.0.1 are published; release acceptance remains incomplete.**
 See the [publication continuation](continuation.md) for current operational
 results. Public Linux installation passed for 1.0.0; public macOS installation

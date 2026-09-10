@@ -1,0 +1,39 @@
+{
+  "project": "/private/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-restoration-0DXpmd/project",
+  "author": "alice",
+  "files": {
+    "README.md": "# Parcel Queue\n\nBob's batch tool previews parcel dispatches for the warehouse shift. It reads\nnewline-delimited JSON from a file and prints dispatch records to stdout.\nEmployer review rules are in [CONTRIBUTING.md](CONTRIBUTING.md).\n\n## Setup\n\nUse Node.js 24 (`>=24 <25`, as declared in package.json) and npm. The tool uses\nNode built-ins and has no package dependencies to install. From the project root,\ncheck the runtime with `node --version`.\n\n## Usage\n\nRun `npm run preview -- test/parcels.ndjson` from the project root. The supplied\nsynthetic file contains a ready parcel demo-101 and a dispatched parcel demo-102.\nThe dispatch record printed after npm's command banner is:\n\n```json\n{\"parcelId\":\"demo-101\",\"action\":\"dispatch\"}\n```\n\nFor machine-readable output without npm's banner, use\n`node src/cli.mjs test/parcels.ndjson`. Supply one JSON object per nonblank line;\nonly records whose status is exactly `ready` produce output, and each needs a\nnonempty string id. The tool reads the entire file before producing records.\nIt skips all other statuses, does not contact a carrier, and does not persist\nnew dispatch state. Repeating a preview does not mark a parcel dispatched.\nOmitting the filename prints usage and exits 2. Unreadable files, malformed JSON\nor a ready parcel without an id fail instead of producing a successful preview.\n\n## Development\n\nRun `npm test`; the two tests cover status filtering and the missing-id error.\nRun the sample preview above after changes to the entry point. Keep examples\nsynthetic and follow the employer contribution policy before production changes.\n[src/README.md](src/README.md) describes module responsibilities and data flow.\n",
+    "CONTRIBUTING.md": "# Employer contribution policy\n\nAll production changes require warehouse-platform owner review.\nUse synthetic parcel records in examples; customer addresses must stay private.\nThe release manager schedules carrier integration changes.\n",
+    "package.json": "{\n  \"name\": \"parcel-queue\",\n  \"private\": true,\n  \"type\": \"module\",\n  \"engines\": { \"node\": \">=24 <25\" },\n  \"scripts\": { \"test\": \"node --test test/dispatch.test.mjs\", \"preview\": \"node src/cli.mjs\" }\n}\n",
+    "src/cli.mjs": "import { readFileSync } from 'node:fs';\nimport { pendingDispatches } from './dispatch.mjs';\n\nconst path = process.argv[2];\nif (!path) {\n  console.error('Usage: node src/cli.mjs <parcels.ndjson>');\n  process.exitCode = 2;\n} else {\n  const parcels = readFileSync(path, 'utf8').split('\\n').filter(line => line.trim()).map(line => JSON.parse(line));\n  for (const dispatch of pendingDispatches(parcels)) console.log(JSON.stringify(dispatch));\n}\n",
+    "src/dispatch.mjs": "export function pendingDispatches(parcels) {\n  return parcels.filter(parcel => parcel.status === 'ready').map(parcel => {\n    if (typeof parcel.id !== 'string' || !parcel.id) throw new Error('Ready parcels require an id');\n    return { parcelId: parcel.id, action: 'dispatch' };\n  });\n}\n",
+    "test/dispatch.test.mjs": "import assert from 'node:assert/strict';\nimport { test } from 'node:test';\nimport { pendingDispatches } from '../src/dispatch.mjs';\n\ntest('only ready parcels produce dispatch previews', () => {\n  assert.deepEqual(pendingDispatches([{ id: 'a', status: 'ready' }, { id: 'b', status: 'dispatched' }]), [{ parcelId: 'a', action: 'dispatch' }]);\n});\ntest('a ready parcel needs an identifier', () => {\n  assert.throws(() => pendingDispatches([{ status: 'ready' }]), /require an id/);\n});\n",
+    "test/parcels.ndjson": "{\"id\":\"demo-101\",\"status\":\"ready\"}\n{\"id\":\"demo-102\",\"status\":\"dispatched\"}\n"
+  },
+  "commands": [
+    {
+      "executable": "node",
+      "args": [
+        "--version"
+      ],
+      "stdout": "v24.11.1\n"
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "test"
+      ],
+      "stdout": "\n> test\n> node --test test/dispatch.test.mjs\n\n✔ only ready parcels produce dispatch previews (0.453333ms)\n✔ a ready parcel needs an identifier (0.14125ms)\nℹ tests 2\nℹ suites 0\nℹ pass 2\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 29.887083\n"
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "run",
+        "preview",
+        "--",
+        "test/parcels.ndjson"
+      ],
+      "stdout": "\n> preview\n> node src/cli.mjs test/parcels.ndjson\n\n{\"parcelId\":\"demo-101\",\"action\":\"dispatch\"}\n"
+    }
+  ]
+}

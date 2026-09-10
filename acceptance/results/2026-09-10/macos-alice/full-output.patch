@@ -1,0 +1,169 @@
+diff --git a/.repo-standards/lock.json b/.repo-standards/lock.json
+index 9b548bf..a175b81 100644
+--- a/.repo-standards/lock.json
++++ b/.repo-standards/lock.json
+@@ -3,7 +3,7 @@
+   "selection": {
+     "cli": {
+       "package": "@lutzseverino/repo-standards",
+-      "version": "1.0.0"
++      "version": "1.0.1"
+     },
+     "standards": {
+       "repository": "https://github.com/alice/standards",
+@@ -12,7 +12,7 @@
+     },
+     "profile": "work"
+   },
+-  "inspection": "sha256:37bbdb931e74a9606f2dadaccedae900389a4ba91a811e864ef0c5c68f565896",
++  "inspection": "sha256:a9d6c17c6d4d39a757ed4ec94f536056d67964991f03b611e06183ba540f18e6",
+   "files": {
+     "AGENTS.md": {
+       "sha256": "59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf",
+@@ -59,7 +59,7 @@
+       "executable": false
+     },
+     ".repo-standards/selection.yaml": {
+-      "sha256": "985d2511a5616416e2ee83308540c56845c1a7de329b43b7dddaa606f3f85bce",
++      "sha256": "437d130657dd24a54900a308a7f6184a6661ec2c05932e3a18de7bf256736a71",
+       "executable": false
+     },
+     ".repo-standards/.gitignore": {
+@@ -67,16 +67,16 @@
+       "executable": false
+     },
+     ".repo-standards/runtime/package.json": {
+-      "sha256": "db9535b5dd5e33d65282cf41cbafdd5af6d74f381adc9701b747559fa67f33f5",
++      "sha256": "76961bea3dae0177eaa0306cc5cad976d7a67cf10534c8aa39afb9ae4a042af4",
+       "executable": false
+     },
+     ".repo-standards/runtime/package-lock.json": {
+-      "sha256": "34cba1e1c87b407276571c9dde6d3c237a5c0607b9f70a27c857ea0ce3c27da7",
++      "sha256": "3f1501bdabe0247017e6c5f61dd8e9f6d79efcef2036edc4dd6fad82f513ad6c",
+       "executable": false
+     }
+   },
+   "state": {
+-    "sha256": "65aa28394842878b0cec61bb0895de23217e8047f1f91bae034970a4e1c78d9c",
++    "sha256": "6d27cd5244b30c2914754302da029d2d94347585926608e77cb3f9a1e5495226",
+     "executable": false
+   }
+ }
+diff --git a/.repo-standards/runtime/package-lock.json b/.repo-standards/runtime/package-lock.json
+index 54abf83..9708e33 100644
+--- a/.repo-standards/runtime/package-lock.json
++++ b/.repo-standards/runtime/package-lock.json
+@@ -1,11 +1,11 @@
+ {
+-  "name": "repo-standards-runtime-xGVHK4",
++  "name": "repo-standards-runtime-97Av8E",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "dependencies": {
+-        "@lutzseverino/repo-standards": "1.0.0"
++        "@lutzseverino/repo-standards": "1.0.1"
+       }
+     },
+     "node_modules/@koromix/koffi-android-arm64": {
+@@ -297,9 +297,9 @@
+       }
+     },
+     "node_modules/@lutzseverino/repo-standards": {
+-      "version": "1.0.0",
+-      "resolved": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.0.0.tgz",
+-      "integrity": "sha512-WInIH5Nz0+zRTfz1iYPlUHAd5VgTYYTer5EbWxSr9enHjQBgEhY7psn7AgU1T5/Zh7G+o7LCturCDpEepojg7w==",
++      "version": "1.0.1",
++      "resolved": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.0.1.tgz",
++      "integrity": "sha512-1Wzuz5ttDghmc/wPVHEL6E8QVoapwMsd4BeIsTOj8ep3Vb/LCB2q5tO7XSP0CLxDVDw66jHGVitycykEue3xqA==",
+       "license": "MIT",
+       "dependencies": {
+         "koffi": "3.2.1",
+diff --git a/.repo-standards/runtime/package.json b/.repo-standards/runtime/package.json
+index 0fb0434..2cc2171 100644
+--- a/.repo-standards/runtime/package.json
++++ b/.repo-standards/runtime/package.json
+@@ -1,6 +1,6 @@
+ {
+   "private": true,
+   "dependencies": {
+-    "@lutzseverino/repo-standards": "1.0.0"
++    "@lutzseverino/repo-standards": "1.0.1"
+   }
+ }
+diff --git a/.repo-standards/selection.yaml b/.repo-standards/selection.yaml
+index 3545c78..5788952 100644
+--- a/.repo-standards/selection.yaml
++++ b/.repo-standards/selection.yaml
+@@ -1,6 +1,6 @@
+ cli:
+   package: "@lutzseverino/repo-standards"
+-  version: 1.0.0
++  version: 1.0.1
+ standards:
+   repository: https://github.com/alice/standards
+   version: v1.0.0
+diff --git a/.repo-standards/state.json b/.repo-standards/state.json
+index cdc76fe..8557505 100644
+--- a/.repo-standards/state.json
++++ b/.repo-standards/state.json
+@@ -1,10 +1,10 @@
+ {
+   "format": "repo-standards/state/v1",
+   "lastComplete": {
+-    "run": "ca5c6ef9-389a-4b14-9436-9e4169cf9c02",
+-    "inspection": "sha256:37bbdb931e74a9606f2dadaccedae900389a4ba91a811e864ef0c5c68f565896",
+-    "completedAt": "2026-09-09T20:18:29.618Z",
+-    "head": "cd1e231b1372be5899dc39c75faef3ede8278bd3"
++    "run": "cf317c90-f006-4069-8a4a-5ddfa581c977",
++    "inspection": "sha256:a9d6c17c6d4d39a757ed4ec94f536056d67964991f03b611e06183ba540f18e6",
++    "completedAt": "2026-09-10T14:43:49.144Z",
++    "head": "0fecdece35e86ce1838c1ff81fac179c7989ff0b"
+   },
+   "baselines": {
+     "AGENTS.md": {
+@@ -54,33 +54,28 @@
+   "assessments": [
+     {
+       "format": "repo-standards/assessment/v1",
+-      "run": "ca5c6ef9-389a-4b14-9436-9e4169cf9c02",
+-      "selection": "sha256:7d48cae4f9362a536ffa046880820a6a26ca73a10141d96058536ce8fd44c7f7",
++      "run": "cf317c90-f006-4069-8a4a-5ddfa581c977",
++      "selection": "sha256:684f669905920aa5f24f24ee0fcd3646fb8e5eb3649b93a79e25270ad709e9a7",
+       "snapshot": "sha256:345df251919de2f3b04046b4b1d90301c9b6275d9485420e2650527619ddd35f",
+       "declarations": [
+         {
+           "id": "readme",
+           "status": "satisfied",
+-          "explanation": "The README now provides a usable setup and preview path tied to this project, with synthetic input/output, error cases and the existing employer policy link. It distinguishes dispatch previews from carrier execution and persistence.",
+-          "changedPaths": [
+-            "README.md"
+-          ],
++          "explanation": "Reassessed the restored project for the unchanged README guidance. Its existing setup, usage example, limitations and development instructions remain accurate after the CLI-only update; no contextual edits are needed.",
++          "changedPaths": [],
+           "evidence": [
+-            "package.json requires Node >=24 <25 and supplies the documented npm test and preview commands; no dependencies are declared.",
+-            "The actual npm test run passed both dispatch tests on this OS; npm run preview -- test/parcels.ndjson printed only {\"parcelId\":\"demo-101\",\"action\":\"dispatch\"}.",
+-            "src/cli.mjs reads nonblank JSON lines from the supplied file and emits records; src/dispatch.mjs selects exact ready status and requires a nonempty string id. README usage and limitations match those implementations."
++            "The restored README still documents Node 24, the dependency-free implementation, npm run preview -- test/parcels.ndjson, its demo-101 dispatch JSON, and npm test, with the employer CONTRIBUTING.md link preserved.",
++            "Fresh execution on this OS passed both dispatch tests and printed only the demo-101 dispatch record. The current cli.mjs and dispatch.mjs still parse nonblank JSON lines, select ready records and reject missing ids without carrier I/O or persistence."
+           ]
+         },
+         {
+           "id": "source-layout",
+           "status": "satisfied",
+-          "explanation": "The existing two-module separation is suitable. Added source notes explain the entry point, whole-file parsing, transformation boundary and tests without reorganizing code or changing behavior.",
+-          "changedPaths": [
+-            "src/README.md"
+-          ],
++          "explanation": "The current source notes and two-module responsibility split already satisfy the retained guidance. Moving or rewriting them for a CLI package update would add no useful information.",
++          "changedPaths": [],
+           "evidence": [
+-            "src/README.md assigns argument/file/stdout handling to cli.mjs and ready-record filtering/id validation to dispatch.mjs.",
+-            "The unchanged source modules contain no network, persistence or carrier integration; source notes make those boundaries explicit and retain employer ownership."
++            "Read the current src/README.md and verified it still matches the previously reviewed content: cli.mjs owns arguments/file parsing/stdout; dispatch.mjs owns ready filtering and id validation.",
++            "The fresh dispatch tests and preview pass; the source implementation remains unchanged and the notes describe its boundaries and employer ownership accurately."
+           ]
+         }
+       ]
