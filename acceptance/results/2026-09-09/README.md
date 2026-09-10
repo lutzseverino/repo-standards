@@ -2,7 +2,8 @@
 
 **Later continuation:** [2026-09-10 CLI updates and live-source status](../2026-09-10/README.md).
 The four CLI updates and both live-source adoptions are now complete. Public
-standards updates remain outstanding; the snapshot below predates that work.
+standards-update live exercises remain unverified and have been waived by the
+maintainer as release blockers; the snapshot below predates that decision.
 
 **Status at this snapshot: 1.0.0 and 1.0.1 are published; release acceptance remains incomplete.**
 See the [publication continuation](continuation.md) for that day's operational

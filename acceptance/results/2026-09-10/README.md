@@ -1,5 +1,11 @@
 # Published CLI updates and live-source continuation
 
+**Delivery decision:** The maintainer has waived the two remaining live public
+standards-update exercises as release blockers. Delivery proceeds on the
+recorded passing evidence, with that live integration gap disclosed below.
+This is an explicit acceptance exception, not a claim that every original
+release criterion passed. No further GitHub acceptance retries are scheduled.
+
 All four confirmed **CLI 1.0.0 → 1.0.1 updates completed** on the restored
 projects. Each used the actual public npm package and matching installed system
 skill, retaining the original source repository, standards tag, commit and
@@ -85,12 +91,25 @@ contents and leave clean working trees. Fresh-checkout restoration and source
 unavailability are separately demonstrated by the initial independent-author
 journeys linked above.
 
-## Outstanding standards updates
+## Standards updates: live exercises waived for this release
 
-The remaining live release exercise is updating actual public standards from
+The unverified live exercise is updating actual public standards from
 `v1.0.0` to `v1.1.0`, keeping CLI 1.0.0, source repository and `service` profile
-fixed, on macOS and Linux. No additional repository or npm version is needed.
-Parent #1 remains unchanged.
+fixed, on macOS and Linux. The maintainer explicitly chose not to make delivery
+depend on further GitHub availability and accepted handling later failures when
+encountered. These two exercises are therefore waived as blockers for this
+release. They remain unverified, not passed.
+
+This decision narrows the release gate in issue #11 and the completion rules in
+`CONTRIBUTING.md` and `docs/release.md` for this delivery only. The original
+criteria required independent updates through actual public versions on both
+platforms. Passing deterministic standards-update coverage is recorded in the
+release validation and CI results, while actual public CLI updates and live
+initial adoption have completed on both platforms. That evidence supports the
+delivery decision without substituting for the missing live update exercise.
+No product behavior, source-acquisition contract, or general release procedure
+has changed. No additional repository or npm version is needed. Parent #1
+remains open and unchanged.
 
 The first update inspections were mistakenly attempted before the normal project
 commits and correctly reported `DIRTY_PROJECT` and `UNTRACKED_REPLACEMENT`:
@@ -102,20 +121,23 @@ inspection attempts exhausted the public API quota:
 [Linux](live-linux/standards-update-clean-inspection.json). Neither update has
 started. The reported quota reset is `2026-09-10T21:56:09Z`.
 
-Read-only clean-project inspections are queued locally in
-`/tmp/repo-standards-issue11-queue-inspections.mjs` for `2026-09-10T21:56:20Z`, with
-log `/tmp/repo-standards-issue11-evidence/queued-standards-inspections.log`. The
-process checks public quota and clean Git state, inspects each candidate, and
-stops on failure. It does not confirm or start adoption. Successful reports
-still require agent review and explicit maintainer confirmation of their actual
-inspection identities before either standards update can start.
+The read-only inspection queue in
+`/tmp/repo-standards-issue11-queue-inspections.mjs` was canceled before its
+scheduled `2026-09-10T21:56:20Z` attempt; its log was still empty. Neither queued
+inspection nor standards adoption started. No further live acceptance retry is
+required for this delivery. If these exercises are revisited, fresh inspections
+and their explicit confirmation are still required before starting adoption.
 
 ## Review
 
 Both requested GPT 5.6 Terra/high reviewers found no actionable standards or
-spec findings in the live-adoption completion evidence. The spec review keeps
-the public standards updates explicitly outstanding. The preceding CLI-update
+spec findings in the live-adoption completion evidence. That review identified
+the public standards updates as outstanding before the maintainer's release
+exception above. The preceding CLI-update
 evidence also passed both reviews.
+
+Both reviewers subsequently checked the maintainer's release exception and
+found no standards, spec, or truthfulness issue with its scope or disclosure.
 
 Validation parsed every live-report JSON file, checked confirmation and
 assessment bindings, resolved local documentation links, and compared all 19
