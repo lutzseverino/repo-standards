@@ -1,7 +1,7 @@
 // With no arguments, prepare a local candidate. With a version and evidence
 // path, acquire the public release. Neither mode creates author decisions.
 import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { release, tmpdir } from 'node:os';
@@ -66,8 +66,9 @@ let skillRevision: string | undefined;
 let cli: string | undefined;
 let distribution: unknown;
 let documents: ReturnType<typeof inventory> = [];
+let npmVersion: string | undefined;
 try {
-  run('npm', ['--version']);
+  npmVersion = run('npm', ['--version']);
   run('git', ['--version']);
   if (version) {
     // Resolve both lightweight and annotated public release tags without a checkout.
@@ -132,7 +133,7 @@ try {
     passed, failure, root, workspace, skill, resources: existsSync(skill) ? inventory(skill) : [],
     installer: 'skills@1.5.25', command: ['npm', ...installArgs], skillRevision, version, cli, distribution, documents,
     platform: process.platform, arch: process.arch, osRelease: release(), node: process.version,
-    npm: execFileSync('npm', ['--version'], { encoding: 'utf8' }).trim(), installedAt: new Date().toISOString(),
+    npm: npmVersion, installedAt: new Date().toISOString(),
     commands, downloads,
     scope: 'Installation, resources, matching CLI/docs and example validation only. No real-agent or skills.sh listing claim. Telemetry disabled.',
   };
