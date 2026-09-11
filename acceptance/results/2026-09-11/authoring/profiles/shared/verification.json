@@ -1,0 +1,20 @@
+{
+  "sourceCopyMatchesFinalHashesAndModes": true,
+  "candidateInstallationInputRemoved": true,
+  "completeResolvedSelectionsMatchAcceptedChoices": true,
+  "profiles": [
+    "shared"
+  ],
+  "generatedOperations": 0,
+  "gitOrAdoptionStateCreated": false,
+  "workspaceInventory": [
+    "shared-tool-standards",
+    "shared-tool-standards/authoring-notes.md",
+    "shared-tool-standards/files",
+    "shared-tool-standards/files/editorconfig",
+    "shared-tool-standards/standards.yaml"
+  ],
+  "everySourceFileShownInAcceptedTranscript": true,
+  "installedSkillMatchedCandidateAtJourneyTime": true,
+  "postJourneyClarification": "references/profiles.md now says If no meaningful differences remain accepted instead of If the remaining differences are declined or deferred; observed behavior and accepted output are unchanged."
+}

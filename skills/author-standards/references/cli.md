@@ -2,7 +2,8 @@
 
 The skill is independently installable. It does not assume a product checkout,
 an adopting project, or `node_modules` beside this directory. Its only bundled
-resource is this acquisition guide; obtain the format documentation from the
+resources are this acquisition guide and the complete-profile review guide;
+obtain the format documentation from the
 same npm installation as the executable.
 
 Use macOS or Linux with Node.js 24 and npm. This creation candidate supports
@@ -44,5 +45,8 @@ Validate using that exact executable:
 The command validates all profiles, references, and compatibility without
 executing author code or needing a Git repository. Exit 0 and `valid: true`
 establish structural validity; exit 1 carries diagnostics; exit 2 is unsupported
-usage. Preserve the actual result. If an installed document disagrees with this
+usage. The JSON `profiles` object contains each complete resolved selection;
+inspect its `declarations`, not just `valid`, to compare inherited IDs, full
+replacements, absent exclusions, and additions with the reviewed source.
+Preserve the actual result. If an installed document disagrees with this
 candidate's contract, surface the mismatch instead of guessing at a format.

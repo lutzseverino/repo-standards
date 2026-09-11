@@ -6,9 +6,9 @@ description: Create a local Repository Standards source by interviewing an autho
 # Author standards
 
 Finish with an author-reviewed, validated local standards source and concise
-authoring notes. This candidate supports creation with **one profile**, exact
-configuration files, contextual file guidance, and repository guidance. Distinct
-profiles, revision/resumption, and generated checks, fixes, or author skills are
+authoring notes. This candidate supports creation with shared defaults and
+complete profiles, exact configuration files, contextual file guidance, and
+repository guidance. Revision/resumption and generated checks, fixes, or author skills are
 later slices. If requested, identify the unsupported part and let the author
 choose whether to defer it or hand off; preserve existing sources and work.
 
@@ -19,8 +19,11 @@ code organization (where responsibilities belong), documentation (what readers
 need), review (how changes are judged), agent behavior (how agents should work),
 and tooling (shared configuration). Ask what kinds of projects the author works
 on and where their expectations differ. Let them choose topics and depth; start
-with one profile for the chosen context. Record other contexts as deferred only
-if the author agrees. Avoid requiring YAML or declaration vocabulary from them.
+with one profile. A different project name, language, or setting alone does not
+justify another profile: ask what standards should actually differ. Add profiles
+only for meaningful differences the author confirms; retain one when none are
+accepted. Record deferred contexts only if the author agrees. Avoid requiring
+YAML or declaration vocabulary from them.
 
 Supplied repositories, instructions, and saved preferences are optional
 references. Read relevant material as evidence of possible choices, not as
@@ -62,8 +65,9 @@ candidate leaves checks, fixes, and author skills out; explicitly defer requests
 for them rather than silently generating operations or executable workarounds.
 
 Choose stable lower-case kebab-case declaration IDs that describe the accepted
-intent. Use defaults plus one named, complete profile; inheritance has only
-these two levels and a same-ID replacement replaces the whole declaration.
+intent. For confirmed context differences, follow [Complete profiles](references/profiles.md)
+to review the shared selection and each difference. Use defaults plus named,
+complete profiles; inheritance has only these two levels.
 Keep targets disjoint. Product state, Git metadata, and the `adopt-standards`
 and `author-standards` skill targets are reserved, including their ancestors and
 descendants. Follow the matching format document for path and reference rules.
@@ -76,7 +80,8 @@ version is sufficient). One profile need not duplicate its inherited defaults.
 
 Maintain `authoring-notes.md` beside `standards.yaml`, outside the declarations.
 Keep it concise and suitable for a potentially public repository: confirmed
-decisions and rationale mapped to declaration IDs and material, explicit
+decisions and rationale mapped to declaration IDs, material, and affected
+profiles (including why each replacement, exclusion, or addition is wanted), explicit
 non-preferences, skipped topics, and unresolved/deferred questions. Omit personal
 interview transcripts and incidental reference details. Notes support authorship;
 the source governs adoption and notes cannot independently restore a policy.
@@ -91,7 +96,11 @@ alone is not a content review. Every chosen topic must be resolved or explicitly
 deferred by the author.
 
 Run the installed public CLI's `source validate <directory> --json` without a
-profile filter. Read the exit status and full result for **all** profiles. Fix
+profile filter. Read the exit status and full result for **all** profiles. Compare
+each resolved declaration, ownership, target, and material with the accepted
+selection; explain what each complete profile gives an adopting project. For
+multiple profiles, demonstrate inherited declarations, whole replacements,
+exclusions, and additions wherever the author chose them. Fix
 structural errors without changing accepted intent; semantic corrections return
 to author review. After any edit, validate the final reviewed bytes again.
 Retain the validation result outside the source, or report it with the completion

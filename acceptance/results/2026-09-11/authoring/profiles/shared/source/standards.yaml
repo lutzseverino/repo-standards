@@ -1,0 +1,15 @@
+format: repo-standards/v1
+name: shared-tool-standards
+description: Shared tooling standards for all projects.
+requires:
+  repo-standards: "1.0.1"
+defaults:
+  declarations:
+    final-newline-editorconfig:
+      kind: file
+      target: .editorconfig
+      exact: files/editorconfig
+profiles:
+  shared:
+    description: The same tooling standard for every project context.
+    declarations: {}

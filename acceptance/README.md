@@ -138,10 +138,11 @@ as real-agent journeys.
 
 ## Authoring candidate
 
-Issue #27 uses the parent #25's agreed seams: an installed skill with a real
-agent for conversation and the installed public CLI for validation. It covers
-one profile and configuration/guidance; revision, distinct profiles, operations,
-and public skill installation/discovery are separate tickets.
+Issues #27 and #28 use parent #25's agreed seams: an installed skill with a real
+agent for conversation and the installed public CLI for validation. Creation
+covers configuration/guidance, starting with one profile and expressing accepted
+context differences as complete profiles. Revision, generated operations, and
+public skill installation/discovery are separate tickets.
 
 From the product checkout with Node.js 24 and npm, run:
 
@@ -173,6 +174,15 @@ deferred. Review actual new-file contents and the whole source before accepting
 completion. A separate fresh journey must confirm no standards and observe that
 no filler `standards.yaml` is created and validation is not claimed.
 
+For #28, run a fresh journey with meaningful differences between working contexts.
+Have the author accept shared content and differences requiring a full replacement,
+exclusion, and addition. Include an ambiguous identical-content/shared-intent choice
+and review concrete drafts before settling ownership. Also offer a context whose
+differences the author declines; it must not produce another profile. Inspect the
+installed CLI's full resolved output against the accepted selections, including
+absence of fields from replaced declarations. Every profile must be complete and
+every difference must trace to acceptance; examples alone do not prove elicitation.
+
 Retain the live author/agent turns outside the generated source, reviewed
 choices mapped to each declaration, every resulting source file, concise notes,
 exact CLI version/acquisition output, full all-profile validation JSON and exit
@@ -187,3 +197,6 @@ parent stories 1–12, 14–15, 19–21, 25–26, 28–31 and Testing Decisions 
 8 plus the single-profile part of 3. Story 29 here is local conventional
 installation only: public installation and observed discovery belong to #31.
 Keep supported-OS results and any missing evidence explicit.
+The #28 journey additionally owns story 13 and multi-profile/ownership coverage
+of Testing Decisions 3, extending the single-profile and ownership work in stories
+12 and 14. Keep earlier evidence dated; do not present it as a new run.

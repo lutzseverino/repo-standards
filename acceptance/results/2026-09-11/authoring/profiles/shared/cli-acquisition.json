@@ -1,0 +1,19 @@
+{
+  "kind": "public npm registry acquisition",
+  "command": [
+    "npm",
+    "install",
+    "--prefix",
+    "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/author-standards-cli.kdx_2y0l",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    "--registry=https://registry.npmjs.org",
+    "@lutzseverino/repo-standards@1.0.1"
+  ],
+  "directory": "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/author-standards-cli.kdx_2y0l",
+  "stdout": "\nadded 6 packages in 318ms\n",
+  "stderr": "",
+  "exit": 0,
+  "nodeVersion": "v24.11.1"
+}
