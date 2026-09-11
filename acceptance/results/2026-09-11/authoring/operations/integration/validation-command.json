@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/tmp/repo-standards-author-aj4hqi/cli/node_modules/.bin/repo-standards",
+    "source",
+    "validate",
+    "/tmp/repo-standards-author-T7NZmR/workspace/node-cli-standards",
+    "--json"
+  ],
+  "cwd": "/tmp/repo-standards-author-T7NZmR/workspace",
+  "exitCode": 0,
+  "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"Small Node CLI support standards\",\n    \"description\": \"Project-owned support destinations and evidence-based bug report drafts.\",\n    \"requires\": {\n      \"repo-standards\": \"1.0.1\"\n    }\n  },\n  \"profiles\": {\n    \"node-cli\": {\n      \"description\": \"Small Node command-line tools.\",\n      \"declarations\": [\n        {\n          \"id\": \"bug-report-routine\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"draft-bug-report\",\n          \"source\": \"skills/draft-bug-report\"\n        },\n        {\n          \"id\": \"support-file\",\n          \"checks\": [\n            {\n              \"id\": \"support-shape\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/check-support.mjs\",\n                \"resources\": [],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"create-support-placeholder\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/create-support.mjs\",\n                \"resources\": [\n                  \"resources/support-placeholder.json\"\n                ],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"file\",\n          \"target\": \"docs/support.json\",\n          \"guidance\": \"guidance/support.md\"\n        }\n      ]\n    }\n  }\n}\n",
+  "stderr": ""
+}

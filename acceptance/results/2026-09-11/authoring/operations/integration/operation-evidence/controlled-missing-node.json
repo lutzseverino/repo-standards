@@ -1,0 +1,106 @@
+{
+  "synthetic": true,
+  "PATH": "/tmp/repo-standards-author-T7NZmR/operation-evidence/empty-path",
+  "records": [
+    {
+      "operation": "support-shape",
+      "vector": [
+        "node",
+        "--version"
+      ],
+      "cwd": "/tmp/repo-standards-author-T7NZmR/operation-evidence/fixtures/missing-node",
+      "range": ">=24.0.0 <25.0.0",
+      "observed": null,
+      "compatible": false,
+      "process": {
+        "exitCode": null,
+        "signal": null,
+        "error": {
+          "code": "ENOENT",
+          "message": "spawnSync node ENOENT"
+        },
+        "stdout": "",
+        "stderr": ""
+      },
+      "operationInvoked": false
+    },
+    {
+      "operation": "create-support-placeholder",
+      "vector": [
+        "node",
+        "--version"
+      ],
+      "cwd": "/tmp/repo-standards-author-T7NZmR/operation-evidence/fixtures/missing-node",
+      "range": ">=24.0.0 <25.0.0",
+      "observed": null,
+      "compatible": false,
+      "process": {
+        "exitCode": null,
+        "signal": null,
+        "error": {
+          "code": "ENOENT",
+          "message": "spawnSync node ENOENT"
+        },
+        "stdout": "",
+        "stderr": ""
+      },
+      "operationInvoked": false
+    }
+  ],
+  "before": {
+    "": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills/local": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills/local/SKILL.md": {
+      "mode": 448,
+      "type": "file",
+      "bytes": "VW5yZWxhdGVkIGxvY2FsIHNraWxsCg=="
+    },
+    "sentinel.txt": {
+      "mode": 384,
+      "type": "file",
+      "bytes": "VW5yZWxhdGVkIGNvbnRlbnQgc3RheXMgZXhhY3RseSB0aGUgc2FtZS4K"
+    }
+  },
+  "after": {
+    "": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills/local": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills/local/SKILL.md": {
+      "mode": 448,
+      "type": "file",
+      "bytes": "VW5yZWxhdGVkIGxvY2FsIHNraWxsCg=="
+    },
+    "sentinel.txt": {
+      "mode": 384,
+      "type": "file",
+      "bytes": "VW5yZWxhdGVkIGNvbnRlbnQgc3RheXMgZXhhY3RseSB0aGUgc2FtZS4K"
+    }
+  }
+}

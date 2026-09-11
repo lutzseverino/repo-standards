@@ -1,0 +1,41 @@
+{
+  "reviewedSourceFiles": [
+    "authoring-notes.md",
+    "guidance/support.md",
+    "operations/check-support.mjs",
+    "operations/create-support.mjs",
+    "resources/support-placeholder.json",
+    "skills/draft-bug-report/SKILL.md",
+    "standards.yaml"
+  ],
+  "reviewMatchesSourceAndArchivedBytes": true,
+  "sourceHashesAndModesMatchCompletion": true,
+  "executedRetainedMaterialMatchesFinalSource": [
+    {
+      "operation": "support-shape",
+      "path": "operations/check-support.mjs",
+      "sha256": "2d95d3aa66d0ada5adc38e004586d76d6e3d6d60fc78cde7a8530eddff7197ed"
+    },
+    {
+      "operation": "create-support-placeholder",
+      "path": "operations/create-support.mjs",
+      "sha256": "6594a92689137ee8bee3607f45803eb12d26652a99dd958246c470ba8533b5a8"
+    },
+    {
+      "operation": "create-support-placeholder",
+      "path": "resources/support-placeholder.json",
+      "sha256": "74cb42e4e27458d9e6ef3d404dd314486ba75a9205c04c140db5418a4621d291"
+    }
+  ],
+  "workspaceHasGitOrAdoptionState": false,
+  "scope": "Independent evaluator verification of this Linux run; no operation re-execution.",
+  "archivedOperationRecordsVerified": {
+    "count": 25,
+    "readOnlyChecks": 13,
+    "zeroExitProtocolResults": true,
+    "fixesPreserveOutsideScope": true,
+    "missingPrerequisiteLeavesFixtureUnchangedAndInvokesNoOperation": true
+  },
+  "installedSkillMatchesTestedCandidateAndInstallationHashes": true,
+  "testedCandidateSnapshot": "tested-skill"
+}

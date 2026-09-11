@@ -1,0 +1,37 @@
+Already up to date
+Done in 3s using pnpm v11.20.0
+$ pnpm typecheck && pnpm build && pnpm test
+$ tsc --noEmit
+$ tsc -p tsconfig.build.json
+$ node --test test/*.test.ts
+✔ direct inspection resolves annotated tags and canonical repository identity, and rejects moved observations (3355.700052ms)
+✔ inspection rejects unsupported sources, floating references and incompatible selections with structured diagnostics (15157.445771ms)
+✔ private, missing, truncated, linked and corrupt remote snapshots are rejected (8485.91168ms)
+✔ remote source references require exact Git path spelling for every material kind (14321.673498ms)
+✔ remote snapshots reject path aliases before host extraction can conflate distinct Git entries (7323.472651ms)
+✔ the remote root entry point must be spelled standards.yaml in Git (1739.928874ms)
+✔ start requires explicit confirmation of an inspection before any project mutation (860.937548ms)
+✔ a fresh checkout restores the exact runtime and inspects retained standards after the source disappears (23020.161985ms)
+✔ confirmed exact adoption installs whole skills, claims matching files and leaves durable pins uncommitted (14409.112173ms)
+▶ start rejects every invalid initial project state without mutation
+  ✔ no commit (2913.166038ms)
+  ✔ dirty working tree (3193.266418ms)
+  ✔ dirty index (3028.454515ms)
+  ✔ untracked content (2990.246343ms)
+  ✔ ignored replacement (2927.976489ms)
+  ✔ unsafe target (2910.770297ms)
+  ✔ unsafe ancestor (2935.257154ms)
+  ✔ wrong target type (2905.47478ms)
+  ✔ case conflict (3287.367532ms)
+  ✔ unrelated matching skill (3230.864866ms)
+  ✔ reserved system skill (3086.719213ms)
+  ✔ existing product state (3132.668655ms)
+  ✔ hidden index flags (3149.702351ms)
+  ✔ skip-worktree flags (2763.280382ms)
+✔ start rejects every invalid initial project state without mutation (42466.463729ms)
+▶ start rejects stale identities, HEAD, project content and profile selection
+  ✔ identity (2410.36332ms)
+  ✔ head (2915.153173ms)
+  ✔ content (2876.102349ms)
+  ✔ profile (2899.369623ms)
+✔ start rejects stale identities, HEAD, project content and profile selection (11103.990178ms)

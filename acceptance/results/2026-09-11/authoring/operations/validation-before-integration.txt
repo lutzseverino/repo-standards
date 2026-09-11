@@ -1,0 +1,199 @@
+Already up to date
+Done in 1.6s using pnpm v11.20.0
+$ pnpm typecheck && pnpm build && pnpm test
+$ tsc --noEmit
+$ tsc -p tsconfig.build.json
+$ node --test test/*.test.ts
+✔ direct inspection resolves annotated tags and canonical repository identity, and rejects moved observations (1864.651105ms)
+✔ inspection rejects unsupported sources, floating references and incompatible selections with structured diagnostics (9141.950245ms)
+✔ private, missing, truncated, linked and corrupt remote snapshots are rejected (5196.729329ms)
+✔ remote source references require exact Git path spelling for every material kind (8478.575918ms)
+✔ remote snapshots reject path aliases before host extraction can conflate distinct Git entries (2531.052458ms)
+✔ the remote root entry point must be spelled standards.yaml in Git (881.491061ms)
+✔ start requires explicit confirmation of an inspection before any project mutation (513.822145ms)
+✔ a fresh checkout restores the exact runtime and inspects retained standards after the source disappears (15956.533315ms)
+✔ confirmed exact adoption installs whole skills, claims matching files and leaves durable pins uncommitted (10421.40197ms)
+▶ start rejects every invalid initial project state without mutation
+  ✔ no commit (1808.486729ms)
+  ✔ dirty working tree (1884.171132ms)
+  ✔ dirty index (1872.933121ms)
+  ✔ untracked content (1853.768999ms)
+  ✔ ignored replacement (1952.926826ms)
+  ✔ unsafe target (1972.112096ms)
+  ✔ unsafe ancestor (1988.22174ms)
+  ✔ wrong target type (1857.35142ms)
+  ✔ case conflict (2066.226959ms)
+  ✔ unrelated matching skill (3191.760315ms)
+  ✔ reserved system skill (2896.385694ms)
+  ✔ existing product state (2611.330035ms)
+  ✔ hidden index flags (2070.137028ms)
+  ✔ skip-worktree flags (1860.636882ms)
+✔ start rejects every invalid initial project state without mutation (29896.140091ms)
+▶ start rejects stale identities, HEAD, project content and profile selection
+  ✔ identity (1836.169336ms)
+  ✔ head (1925.591788ms)
+  ✔ content (2057.918025ms)
+  ✔ profile (5344.024914ms)
+✔ start rejects stale identities, HEAD, project content and profile selection (11166.777744ms)
+▶ final integrity failures preserve work and report an incomplete locked run with no complete adoption
+  ✔ exact bytes (11915.621285ms)
+  ✔ executable bit (8100.256567ms)
+  ✔ skill addition (8815.117103ms)
+  ✔ retained input addition (8360.189798ms)
+  ✔ retained input bytes (10626.679704ms)
+  ✔ runtime manifest (8038.096976ms)
+  ✔ runtime dependency (8428.660467ms)
+  ✔ product addition (9192.968744ms)
+✔ final integrity failures preserve work and report an incomplete locked run with no complete adoption (74174.558594ms)
+✔ only one process can hold an active adoption run (17669.260816ms)
+▶ start rechecks freshness and unsafe or ignored targets after runtime acquisition before mutation
+  ✔ content (8672.287222ms)
+  ✔ symlink (6995.858224ms)
+  ✔ ignored (8492.151545ms)
+✔ start rechecks freshness and unsafe or ignored targets after runtime acquisition before mutation (24511.627903ms)
+✔ unsafe targets introduced during installation are rechecked before each write (12794.972501ms)
+▶ missing npm and unavailable exact runtime packages leave project content untouched
+  ✔ npm (784.591574ms)
+  ✔ package (1465.860868ms)
+✔ missing npm and unavailable exact runtime packages leave project content untouched (3854.771191ms)
+✔ exact installation preserves binary bytes and executable state and retains only the selected profile (15474.522013ms)
+✔ an empty exact profile remains inspectable from retained metadata (10240.785026ms)
+✔ retained inspection preserves selected source manifests and rejects altered retained or last-complete evidence (13597.846765ms)
+▶ ignored adoption outputs cannot produce a complete adoption that disappears from a fresh checkout
+  ✔ .repo-standards/ (8784.784975ms)
+  ✔ .agents/ (7549.431662ms)
+  ✔ AGENTS.md (7345.904715ms)
+✔ ignored adoption outputs cannot produce a complete adoption that disappears from a fresh checkout (24335.247873ms)
+✔ changes to unrelated tracked content during the final source acquisition invalidate confirmation before mutation (8296.784316ms)
+✔ incomplete status retains ignored exact files and complete author and system skill changes (10415.287041ms)
+✔ runtime acquisition reuses a populated external npm cache with the registry unavailable (12745.395982ms)
+✔ runtime cache configuration cannot write inside the adopting project through direct or linked paths (3735.186991ms)
+✔ a final report persistence failure retains incomplete evidence and recovery guidance (18949.93731ms)
+▶ npm cache child symlinks cannot redirect acquisition content or logs into the project
+  ✔ _logs (3573.203266ms)
+  ✔ _cacache (2716.463124ms)
+  ✔ _cacache/index-v5/aa (2302.781097ms)
+✔ npm cache child symlinks cannot redirect acquisition content or logs into the project (10218.731227ms)
+✔ a failed initial ignore-file write preserves the run without exposing local reports to Git (12399.112172ms)
+✔ status recovers ignored installed targets after the adoption process is interrupted (15837.609532ms)
+✔ contextual handoff identifies the run, retained guidance, allowed targets and required evidence (14989.326969ms)
+✔ scripted agent completes Alice work with separate assessment and check evidence and unchanged HEAD (13620.587584ms)
+✔ blocked agent evidence is retained separately and prevents checks until renewed assessment (14878.616161ms)
+▶ malformed and mismatched assessments, missing declarations and inaccurate paths stay incomplete
+  ✔ invalid JSON (429.587807ms)
+  ✔ null (961.175367ms)
+  ✔ unknown field (929.741536ms)
+  ✔ another run (929.019245ms)
+  ✔ another selection (928.926616ms)
+  ✔ wrong snapshot (975.747078ms)
+  ✔ missing declaration (1011.078826ms)
+  ✔ duplicate declaration (973.920499ms)
+  ✔ unknown declaration (1294.705619ms)
+  ✔ no explanation (1159.688471ms)
+  ✔ no evidence (954.388953ms)
+  ✔ array status (958.306555ms)
+  ✔ invalid status (962.16662ms)
+  ✔ missing changed path (954.057252ms)
+  ✔ extra unchanged path (961.05111ms)
+  ✔ path in wrong declaration (962.756782ms)
+  ✔ parent escape (984.777293ms)
+  ✔ duplicate path (959.520417ms)
+✔ malformed and mismatched assessments, missing declarations and inaccurate paths stay incomplete (32110.034111ms)
+▶ unreported out-of-scope tracked and untracked changes block completion while ignored content is excluded
+  ✔ CONTRIBUTING.md (3100.670024ms)
+  ✔ unrelated.txt (5191.459155ms)
+  ✔ src-other.txt (5204.805618ms)
+✔ unreported out-of-scope tracked and untracked changes block completion while ignored content is excluded (34666.407291ms)
+✔ changed content invalidates prior assessment and every check runs again after renewed evidence (30575.299503ms)
+▶ contextual work cannot corrupt installed exact content, full skills, inputs or product state
+  ✔ AGENTS.md (666.780619ms)
+  ✔ .agents/skills/review/SKILL.md (701.858092ms)
+  ✔ .agents/skills/review/added.txt (1666.698439ms)
+  ✔ .repo-standards/inputs/source/readme.md (672.19334ms)
+  ✔ .repo-standards/inputs/added.txt (1355.874228ms)
+  ✔ .repo-standards/selection.yaml (661.741007ms)
+  ✔ .repo-standards/runtime/package.json (682.729598ms)
+  ✔ .repo-standards/unexpected.txt (1563.966949ms)
+✔ contextual work cannot corrupt installed exact content, full skills, inputs or product state (28148.368129ms)
+▶ checks after assessment still reject mutation and exact-content corruption
+  ✔ README.md (18242.639941ms)
+  ✔ .agents/skills/review/added.txt (20405.727256ms)
+✔ checks after assessment still reject mutation and exact-content corruption (38652.675425ms)
+✔ content changing between assessment and final verification requires reassessment and fresh checks (23914.959638ms)
+✔ a second independent author uses fixes, repository configuration and runbook evidence through the same handoff (20875.414142ms)
+✔ assessment accounts for deleted tracked files and executable changes (23823.908172ms)
+✔ only one resume can execute checks for an active contextual adoption (20227.34543ms)
+▶ uncertain check outcomes cannot be retried through contextual resume
+  ✔ NONZERO_EXIT (21756.628692ms)
+  ✔ SIGNAL (19514.248429ms)
+  ✔ TIMEOUT (25787.310585ms)
+  ✔ PROTOCOL_ERROR (21036.907094ms)
+✔ uncertain check outcomes cannot be retried through contextual resume (88098.886977ms)
+✔ Alice author example checks actual README headings through installed adoption (22080.797531ms)
+✖ test/author-workflow.test.ts (48157.902087ms)
+✖ test/bootstrap.test.ts
+✖ test/execution.test.ts
+✖ test/inspection.test.ts
+✖ test/operation-validation.test.ts
+✖ test/path-validation.test.ts
+✖ test/recovery.test.ts
+✖ test/release.test.ts
+✖ test/search.test.ts
+✖ test/source-validation.test.ts
+✖ test/update.test.ts
+ℹ tests 125
+ℹ suites 0
+ℹ pass 114
+ℹ fail 0
+ℹ cancelled 11
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 839528.796165
+
+✖ failing tests:
+
+test at test/author-workflow.test.ts:1:1
+✖ test/author-workflow.test.ts (48157.902087ms)
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/bootstrap.test.ts:1:1
+✖ test/bootstrap.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/execution.test.ts:1:1
+✖ test/execution.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/inspection.test.ts:1:1
+✖ test/inspection.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/operation-validation.test.ts:1:1
+✖ test/operation-validation.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/path-validation.test.ts:1:1
+✖ test/path-validation.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/recovery.test.ts:1:1
+✖ test/recovery.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/release.test.ts:1:1
+✖ test/release.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/search.test.ts:1:1
+✖ test/search.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/source-validation.test.ts:1:1
+✖ test/source-validation.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/update.test.ts:1:1
+✖ test/update.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+[ELIFECYCLE] Test failed. See above for more details.
+[ELIFECYCLE] Command failed.

@@ -138,10 +138,11 @@ as real-agent journeys.
 
 ## Authoring candidate
 
-Issues #27 and #28 use parent #25's agreed seams: an installed skill with a real
+Issues #27–29 use parent #25's agreed seams: an installed skill with a real
 agent for conversation and the installed public CLI for validation. Creation
 covers configuration/guidance, starting with one profile and expressing accepted
-context differences as complete profiles. Revision, generated operations, and
+context differences as complete profiles. Accepted generated operations and
+ordinary-work author skills extend that journey below. Revision and
 public skill installation/discovery are separate tickets.
 
 From the product checkout with Node.js 24 and npm, run:
@@ -200,3 +201,40 @@ Keep supported-OS results and any missing evidence explicit.
 The #28 journey additionally owns story 13 and multi-profile/ownership coverage
 of Testing Decisions 3, extending the single-profile and ownership work in stories
 12 and 14. Keep earlier evidence dated; do not present it as a new run.
+
+### Accepted checks, fixes, and ordinary-work skills
+
+Issue #29 extends the one-profile journey above. Prepare another isolated
+candidate installation and start a fresh agent with only the installed skill,
+empty workspace, and an author's opening request. The evaluator may act as a
+synthetic author; label that role and retain the live turns outside the source.
+The agent must propose concrete behavior and prerequisites before inclusion;
+give live acceptance or corrections after seeing the proposal. Include an
+ordinary-work author skill and review its whole-directory ownership and tools.
+
+Follow the bundled `references/operations.md` using the separately acquired
+CLI's matching format/protocol docs. Keep the generated source and operation
+fixtures outside the product checkout. Capture a failing read-only check,
+repair, repeated unchanged fix, passing read-only check, applicable blocked
+behavior, prerequisite results, scope preservation, declared resources, literal
+arguments, and the actual requests/process/results and content comparisons.
+Exercise unavailable prerequisites explicitly and report affected behavior as
+unverified. Keep author-skill content review and actual agent execution distinct;
+capture author acceptance of any deferred verification.
+
+These are direct public-protocol exercises, not adoption: no repository
+provisioning, commits, publication, or `inspect`/`start`/`resume` in the authoring
+workspace. Reuse `test/source-validation.test.ts`, `test/execution.test.ts`, and
+`test/author-workflow.test.ts` separately for installed-CLI read-only validation,
+resource/literal/scope/exclusion enforcement, and author-operation integration.
+Do not create a local-directory adoption interface for acceptance convenience.
+
+Retain the complete generated source, authoring notes, all-profile validation
+and final whole-source review, exact installed resource hashes/tool versions,
+fixture evidence, and a final inventory showing the workflow boundary. Record
+fresh real-agent outputs separately from deterministic replays and `pnpm validate`.
+This slice owns parent #25 stories 16–18 and Testing Decisions criterion 7;
+do not imply coverage of revision, multiple-profile generation, public skill
+discovery, or untested operating systems.
+
+Recorded run: [accepted operations and author skill on Linux](results/2026-09-11/authoring/operations/README.md).

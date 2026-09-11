@@ -1,0 +1,48 @@
+{
+  "kind": "local author-standards candidate installation",
+  "root": "/tmp/repo-standards-author-T7NZmR",
+  "workspace": "/tmp/repo-standards-author-T7NZmR/workspace",
+  "skill": "/tmp/repo-standards-author-T7NZmR/home/.agents/skills/author-standards",
+  "resources": [
+    {
+      "path": "SKILL.md",
+      "sha256": "7a4b0f592afb31a7662f63062e9681f6a361391b3970dc67dbb821ba76519ab9"
+    },
+    {
+      "path": "references/cli.md",
+      "sha256": "5854c0d660eec69e635e214c0f5c9b16ed41b21d5258acb6ecb5a248019aa363"
+    },
+    {
+      "path": "references/operations.md",
+      "sha256": "58c8f81329cb0270b0e954fe935e0a1a68316f8d9a087b42de9ca6955e5b8ab2"
+    },
+    {
+      "path": "references/profiles.md",
+      "sha256": "784a8b5a60d3c67f61361f829797b7bc0f005e739dbe1ed1943ef31593977851"
+    }
+  ],
+  "installer": "skills@1.5.25",
+  "command": [
+    "npm",
+    "exec",
+    "--yes",
+    "--registry=https://registry.npmjs.org",
+    "--package=skills@1.5.25",
+    "--",
+    "skills",
+    "add",
+    "/tmp/repo-standards-author-T7NZmR/candidate",
+    "--skill",
+    "author-standards",
+    "--global",
+    "--agent",
+    "codex",
+    "--copy",
+    "--yes"
+  ],
+  "platform": "linux",
+  "arch": "arm64",
+  "node": "v24.11.1",
+  "npm": "11.19.0",
+  "installedAt": "2026-09-11T19:30:18.431Z"
+}

@@ -1,0 +1,15 @@
+--- original-external-harness
++++ integration-external-harness
+@@ -3,10 +3,10 @@
+ import assert from 'node:assert/strict';
+ import { spawnSync } from 'node:child_process';
+ import { createRequire } from 'node:module';
+-const base = '/tmp/repo-standards-author-aj4hqi';
++const base = '/tmp/repo-standards-author-T7NZmR';
+ const source = path.join(base, 'workspace/node-cli-standards');
+ const evidence = path.join(base, 'operation-evidence');
+-const semver = createRequire(path.join(base, 'cli/package.json'))('semver');
++const semver = createRequire('/tmp/repo-standards-author-aj4hqi/cli/package.json')('semver');
+ fs.mkdirSync(evidence, {recursive:true});
+ const validation = JSON.parse(fs.readFileSync(path.join(base,'validation-current.json')));
+ assert.equal(validation.valid, true);

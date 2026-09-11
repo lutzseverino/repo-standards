@@ -1,0 +1,37 @@
+{
+  "authoring-notes.md": {
+    "sha256": "e5fb7f0622df4c001f1324966be7ba760835c01cabcfb7b8207f09cc6a1b21c1",
+    "bytes": 2111,
+    "mode": "0o600"
+  },
+  "guidance/support.md": {
+    "sha256": "77ba9ee2ed5b7a24c0e0fb1c5201c3fa22defe769c736c45541b41996002c935",
+    "bytes": 1263,
+    "mode": "0o600"
+  },
+  "operations/check-support.mjs": {
+    "sha256": "2d95d3aa66d0ada5adc38e004586d76d6e3d6d60fc78cde7a8530eddff7197ed",
+    "bytes": 2912,
+    "mode": "0o600"
+  },
+  "operations/create-support.mjs": {
+    "sha256": "6594a92689137ee8bee3607f45803eb12d26652a99dd958246c470ba8533b5a8",
+    "bytes": 3119,
+    "mode": "0o600"
+  },
+  "resources/support-placeholder.json": {
+    "sha256": "74cb42e4e27458d9e6ef3d404dd314486ba75a9205c04c140db5418a4621d291",
+    "bytes": 55,
+    "mode": "0o600"
+  },
+  "skills/draft-bug-report/SKILL.md": {
+    "sha256": "432661c009146911c9265856194ccc8d001269bb0cd0e67f1a804d4969194a9b",
+    "bytes": 3059,
+    "mode": "0o600"
+  },
+  "standards.yaml": {
+    "sha256": "355af9e9a5e2470fa643511db10d512a7d84b1945abab848465fc57f48c44a27",
+    "bytes": 1215,
+    "mode": "0o600"
+  }
+}

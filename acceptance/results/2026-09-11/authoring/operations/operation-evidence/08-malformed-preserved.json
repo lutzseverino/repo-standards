@@ -1,0 +1,188 @@
+{
+  "name": "08-malformed-preserved",
+  "prerequisite": {
+    "vector": [
+      "node",
+      "--version"
+    ],
+    "cwd": "/tmp/repo-standards-author-aj4hqi/operation-evidence/fixtures/malformed",
+    "range": ">=24.0.0 <25.0.0",
+    "observed": "24.11.1",
+    "compatible": true,
+    "process": {
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "v24.11.1\n",
+      "stderr": ""
+    }
+  },
+  "vector": [
+    "node",
+    "/tmp/repo-standards-author-aj4hqi/operation-evidence/retained/create-support-placeholder/operations/create-support.mjs"
+  ],
+  "cwd": "/tmp/repo-standards-author-aj4hqi/operation-evidence/fixtures/malformed",
+  "request": {
+    "format": "repo-standards/operation/v1",
+    "operation": {
+      "declaration": "support-file",
+      "phase": "fixes",
+      "id": "create-support-placeholder"
+    },
+    "projectRoot": "/tmp/repo-standards-author-aj4hqi/operation-evidence/fixtures/malformed",
+    "standards": {
+      "repository": "https://github.com/synthetic-fixture/node-cli-standards",
+      "version": "v0.0.0",
+      "commit": "0000000000000000000000000000000000000000"
+    },
+    "profile": "node-cli",
+    "declarations": [
+      {
+        "id": "bug-report-routine",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "draft-bug-report",
+        "source": "skills/draft-bug-report"
+      },
+      {
+        "id": "support-file",
+        "checks": [
+          {
+            "id": "support-shape",
+            "run": {
+              "executable": "node",
+              "script": "operations/check-support.mjs",
+              "resources": [],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0"
+            },
+            "timeout-seconds": 10
+          }
+        ],
+        "fixes": [
+          {
+            "id": "create-support-placeholder",
+            "run": {
+              "executable": "node",
+              "script": "operations/create-support.mjs",
+              "resources": [
+                "resources/support-placeholder.json"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0"
+            },
+            "timeout-seconds": 10
+          }
+        ],
+        "kind": "file",
+        "target": "docs/support.json",
+        "guidance": "guidance/support.md"
+      }
+    ],
+    "allowedTargets": {
+      "paths": [
+        "docs/support.json"
+      ],
+      "directories": []
+    }
+  },
+  "process": {
+    "exitCode": 0,
+    "signal": null,
+    "error": null,
+    "stdout": "{\"format\":\"repo-standards/result/v1\",\"status\":\"unchanged\",\"message\":\"Existing support file preserved byte-for-byte; use the check for shape assessment.\"}\n",
+    "stderr": ""
+  },
+  "result": {
+    "format": "repo-standards/result/v1",
+    "status": "unchanged",
+    "message": "Existing support file preserved byte-for-byte; use the check for shape assessment."
+  },
+  "before": {
+    "": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills/local": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills/local/SKILL.md": {
+      "mode": 448,
+      "type": "file",
+      "bytes": "VW5yZWxhdGVkIGxvY2FsIHNraWxsCg=="
+    },
+    "docs": {
+      "mode": 448,
+      "type": "directory"
+    },
+    "docs/support.json": {
+      "mode": 384,
+      "type": "file",
+      "bytes": "eyBub3QganNvbiEgZGVzdGluYXRpb246IHByZXNlcnZlLW1lDQo="
+    },
+    "sentinel.txt": {
+      "mode": 384,
+      "type": "file",
+      "bytes": "VW5yZWxhdGVkIGNvbnRlbnQgc3RheXMgZXhhY3RseSB0aGUgc2FtZS4K"
+    }
+  },
+  "after": {
+    "": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills/local": {
+      "mode": 448,
+      "type": "directory"
+    },
+    ".agents/skills/local/SKILL.md": {
+      "mode": 448,
+      "type": "file",
+      "bytes": "VW5yZWxhdGVkIGxvY2FsIHNraWxsCg=="
+    },
+    "docs": {
+      "mode": 448,
+      "type": "directory"
+    },
+    "docs/support.json": {
+      "mode": 384,
+      "type": "file",
+      "bytes": "eyBub3QganNvbiEgZGVzdGluYXRpb246IHByZXNlcnZlLW1lDQo="
+    },
+    "sentinel.txt": {
+      "mode": 384,
+      "type": "file",
+      "bytes": "VW5yZWxhdGVkIGNvbnRlbnQgc3RheXMgZXhhY3RseSB0aGUgc2FtZS4K"
+    }
+  },
+  "changes": [],
+  "assertionsPassed": true
+}

@@ -1,0 +1,44 @@
+{
+  "kind": "local author-standards candidate installation",
+  "root": "/tmp/repo-standards-author-aj4hqi",
+  "workspace": "/tmp/repo-standards-author-aj4hqi/workspace",
+  "skill": "/tmp/repo-standards-author-aj4hqi/home/.agents/skills/author-standards",
+  "resources": [
+    {
+      "path": "SKILL.md",
+      "sha256": "874ba4dab24ebc950bc00e31fc0a9615d856be015d9ce93102102c80370c1e45"
+    },
+    {
+      "path": "references/cli.md",
+      "sha256": "35d37e407c5e706602eb65a6e0674917089bba6f854d864f0d57f349c54d0c05"
+    },
+    {
+      "path": "references/operations.md",
+      "sha256": "58c8f81329cb0270b0e954fe935e0a1a68316f8d9a087b42de9ca6955e5b8ab2"
+    }
+  ],
+  "installer": "skills@1.5.25",
+  "command": [
+    "npm",
+    "exec",
+    "--yes",
+    "--registry=https://registry.npmjs.org",
+    "--package=skills@1.5.25",
+    "--",
+    "skills",
+    "add",
+    "/tmp/repo-standards-author-aj4hqi/candidate",
+    "--skill",
+    "author-standards",
+    "--global",
+    "--agent",
+    "codex",
+    "--copy",
+    "--yes"
+  ],
+  "platform": "linux",
+  "arch": "arm64",
+  "node": "v24.11.1",
+  "npm": "11.19.0",
+  "installedAt": "2026-09-11T19:08:37.808Z"
+}
