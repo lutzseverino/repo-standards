@@ -112,3 +112,14 @@ starting commit `5d5ecdee5fdd62e74d56b837ca9d013fd572a8c7` before delivery.
 The Standards axis reported no documented-standard violations or actionable
 baseline smells. The Spec axis reported no missing requirements, incorrect
 behavior, or scope creep within #27. **Standards: 0 findings. Spec: 0 findings.**
+
+The subsequent GitHub review found that the installation guide linked to an
+acceptance page omitted from npm. A package-wide Markdown link audit also found
+six existing README links to omitted repository material. All seven links now
+use repository URLs; the authoring procedure is pinned to its candidate commit
+so it is available before merge. All 43 remaining relative Markdown file links
+resolve within a freshly packed npm tarball, and the focused installed release
+artifact test passed. No runtime or skill behavior changed. A rereview was not
+requested for this documentation-only correction; the broader file-target audit
+and existing package test cover the failure mode. The earlier full-suite and
+real-agent results remain applicable to the unchanged implementation.

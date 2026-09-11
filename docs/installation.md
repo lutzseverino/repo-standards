@@ -94,7 +94,7 @@ This is **local candidate installation** evidence. Public installation and
 skills.sh discovery evidence belong to
 [issue #31](https://github.com/lutzseverino/repo-standards/issues/31); no public
 listing or ranking is claimed. See the
-[authoring acceptance procedure](../acceptance/README.md#authoring-candidate)
+[authoring acceptance procedure](https://github.com/lutzseverino/repo-standards/blob/a77f2b7f946a70ac6efb5adf3e2f15970140423f/acceptance/README.md#authoring-candidate)
 for an isolated run that leaves your actual global skills untouched.
 
 ## Restore and update
