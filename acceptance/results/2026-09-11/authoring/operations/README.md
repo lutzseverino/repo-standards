@@ -128,7 +128,7 @@ the [macOS log](validation-macos.txt) reports **379 passed, 0 failed, 1 skipped*
 out of 380 tests. The skip requires a case-sensitive filesystem holding both
 `foo` and `FOO`. Both jobs used Node 24.11.1, pnpm 11.20.0, frozen-lockfile
 installation, typechecking, build, and installed-package tests. Logs preserve
-the actual job output with terminal color escapes removed.
+the actual job output with terminal color escapes and trailing whitespace removed.
 
 The [earlier partial run](validation-before-integration.txt) was deliberately
 stopped with SIGTERM when #28 landed on `main`, so final validation could run

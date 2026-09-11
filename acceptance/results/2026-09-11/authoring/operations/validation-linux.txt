@@ -108,22 +108,22 @@
 2026-09-11T19:35:58.9134009Z ##[group]Checking out the ref
 2026-09-11T19:35:58.9134722Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/35/merge
 2026-09-11T19:35:58.9374256Z Note: switching to 'refs/remotes/pull/35/merge'.
-2026-09-11T19:35:58.9374952Z 
+2026-09-11T19:35:58.9374952Z
 2026-09-11T19:35:58.9375356Z You are in 'detached HEAD' state. You can look around, make experimental
 2026-09-11T19:35:58.9376379Z changes and commit them, and you can discard any commits you make in this
 2026-09-11T19:35:58.9377389Z state without impacting any branches by switching back to a branch.
-2026-09-11T19:35:58.9377879Z 
+2026-09-11T19:35:58.9377879Z
 2026-09-11T19:35:58.9378402Z If you want to create a new branch to retain commits you create, you may
 2026-09-11T19:35:58.9379435Z do so (now or later) by using -c with the switch command. Example:
-2026-09-11T19:35:58.9379985Z 
+2026-09-11T19:35:58.9379985Z
 2026-09-11T19:35:58.9380322Z   git switch -c <new-branch-name>
-2026-09-11T19:35:58.9380665Z 
+2026-09-11T19:35:58.9380665Z
 2026-09-11T19:35:58.9381014Z Or undo this operation with:
-2026-09-11T19:35:58.9381374Z 
+2026-09-11T19:35:58.9381374Z
 2026-09-11T19:35:58.9381661Z   git switch -
-2026-09-11T19:35:58.9382202Z 
+2026-09-11T19:35:58.9382202Z
 2026-09-11T19:35:58.9382613Z Turn off this advice by setting config variable advice.detachedHead to false
-2026-09-11T19:35:58.9383113Z 
+2026-09-11T19:35:58.9383113Z
 2026-09-11T19:35:58.9383588Z HEAD is now at 9cd4dab Merge 9a14d3ceb6d798b611254bf91155ef2a6c90089c into ed24778db3d102cf1cbb20c30b52ea010c83ec94
 2026-09-11T19:35:58.9385647Z ##[endgroup]
 2026-09-11T19:35:58.9422666Z [command]/usr/bin/git log -1 --format=%H
@@ -151,9 +151,9 @@
 2026-09-11T19:36:03.5331452Z npm install --global pnpm@11.20.0
 2026-09-11T19:36:03.5357052Z shell: /usr/bin/bash -e {0}
 2026-09-11T19:36:03.5357364Z ##[endgroup]
-2026-09-11T19:36:04.7640024Z 
+2026-09-11T19:36:04.7640024Z
 2026-09-11T19:36:04.7645266Z added 1 package in 1s
-2026-09-11T19:36:04.7645680Z 
+2026-09-11T19:36:04.7645680Z
 2026-09-11T19:36:04.7646016Z 1 package is looking for funding
 2026-09-11T19:36:04.7646534Z   run `npm fund` for details
 2026-09-11T19:36:04.7833244Z ##[group]Run pnpm install --frozen-lockfile
@@ -170,18 +170,18 @@
 2026-09-11T19:36:05.5689622Z   Virtual store is at:             node_modules/.pnpm
 2026-09-11T19:36:05.8773681Z Progress: resolved 10, reused 0, downloaded 10, added 10, done
 2026-09-11T19:36:06.3596952Z ✓ Lockfile passes supply-chain policies (46 entries in 1s)
-2026-09-11T19:36:06.5258090Z 
+2026-09-11T19:36:06.5258090Z
 2026-09-11T19:36:06.5259048Z dependencies:
 2026-09-11T19:36:06.5259672Z + koffi 3.2.1
 2026-09-11T19:36:06.5259902Z + semver 7.8.5
 2026-09-11T19:36:06.5260297Z + unicode-case-folding 1.1.1
 2026-09-11T19:36:06.5260662Z + yaml 2.9.0
-2026-09-11T19:36:06.5260846Z 
+2026-09-11T19:36:06.5260846Z
 2026-09-11T19:36:06.5260963Z devDependencies:
 2026-09-11T19:36:06.5261262Z + @types/node 24.13.3
 2026-09-11T19:36:06.5261625Z + @types/semver 7.8.0
 2026-09-11T19:36:06.5261906Z + typescript 7.0.2
-2026-09-11T19:36:06.5262061Z 
+2026-09-11T19:36:06.5262061Z
 2026-09-11T19:36:06.5409116Z Done in 1.7s using pnpm v11.20.0
 2026-09-11T19:36:06.5686325Z ##[group]Run pnpm validate
 2026-09-11T19:36:06.5686617Z pnpm validate
