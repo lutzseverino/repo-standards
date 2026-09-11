@@ -1,0 +1,67 @@
+[
+  {
+    "path": "LICENSE",
+    "sha256": "4bc9ac360999dff7bb9f4d9555113c354d5c261fb0ee8b356b7244733491da36",
+    "mode": "0o600"
+  },
+  {
+    "path": "WORK-IN-PROGRESS.txt",
+    "sha256": "54baea4d0304585e58c1da929e5908889cedd075b30e90b24c8a1b5ca70ad24e",
+    "mode": "0o600"
+  },
+  {
+    "path": "authoring-notes.md",
+    "sha256": "845b0e0e26f218288d04abfd681d379d8e1f9557944db93459f7ca7f4ea48eab",
+    "mode": "0o600"
+  },
+  {
+    "path": "files/contributing.md",
+    "sha256": "e1c3cb816573ce63409864167215b723316c5d11e0e31e5abd2d472105530235",
+    "mode": "0o600"
+  },
+  {
+    "path": "files/editorconfig",
+    "sha256": "cc228cbb52ef0af691d909dcdd01fdcab3d637c42c4131b7ed180061f7ebe63c",
+    "mode": "0o600"
+  },
+  {
+    "path": "files/personal-contributing.md",
+    "sha256": "45664541f18ab7f74a48bf40f035992d9c097be1f6e64fb8e7b3d1019e3b3848",
+    "mode": "0o600"
+  },
+  {
+    "path": "guidance/employer-readme.md",
+    "sha256": "69525f0aac0abc2e188b57673d5926752b2d687ad144c8c26383c675fc7c0959",
+    "mode": "0o600"
+  },
+  {
+    "path": "guidance/personal-readme.md",
+    "sha256": "356d4181c7d6d605c8638de595c1a298477e2fc7c90830c8f323532836dfacdc",
+    "mode": "0o600"
+  },
+  {
+    "path": "guidance/readme.md",
+    "sha256": "a95ef35e9f08fff6636dafcecdfec19a2c7225c59860a476267e45768fe27087",
+    "mode": "0o600"
+  },
+  {
+    "path": "guidance/releases.md",
+    "sha256": "b247e0ca7a23039d3960b5d1ceba8f985a4c38600f5d52fd4874b9e2f50ec074",
+    "mode": "0o600"
+  },
+  {
+    "path": "scratch.bin",
+    "sha256": "896a425d1fade64e368ccca61003182138e59b7050bca9a7ec8f4ca99646f9fb",
+    "mode": "0o600"
+  },
+  {
+    "path": "scratch.sh",
+    "sha256": "b32ea43dbe80a464764d376f6d7a2c31ff367789b9b6b7bb154315607fbfbbc4",
+    "mode": "0o755"
+  },
+  {
+    "path": "standards.yaml",
+    "sha256": "31ce69fe6f47d19ccfb0b7d0a5658cc7f7f696d981eceb4f32d1fed4a773a66e",
+    "mode": "0o600"
+  }
+]

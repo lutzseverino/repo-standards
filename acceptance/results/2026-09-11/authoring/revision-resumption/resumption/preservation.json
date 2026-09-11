@@ -1,0 +1,69 @@
+{
+  "changed_files": [
+    "authoring-notes.md",
+    "guidance/personal-readme.md"
+  ],
+  "all_modes_preserved": true,
+  "all_other_file_bytes_preserved": true,
+  "resolved_profile_declarations_unchanged": true,
+  "referenced_personal_guidance_changed_as_reviewed": true,
+  "git": {
+    "head": {
+      "command": [
+        "git",
+        "-C",
+        "/tmp/repo-standards-author-BydzfE/workspace/standards",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exit_status": 0,
+      "unchanged": true
+    },
+    "index": {
+      "command": [
+        "git",
+        "-C",
+        "/tmp/repo-standards-author-BydzfE/workspace/standards",
+        "ls-files",
+        "--stage"
+      ],
+      "exit_status": 0,
+      "unchanged": true
+    },
+    "status": {
+      "command": [
+        "git",
+        "-C",
+        "/tmp/repo-standards-author-BydzfE/workspace/standards",
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all"
+      ],
+      "exit_status": 0,
+      "unchanged": true
+    },
+    "staged": {
+      "command": [
+        "git",
+        "-C",
+        "/tmp/repo-standards-author-BydzfE/workspace/standards",
+        "diff",
+        "--cached",
+        "--binary"
+      ],
+      "exit_status": 0,
+      "unchanged": true
+    },
+    "unstaged": {
+      "command": [
+        "git",
+        "-C",
+        "/tmp/repo-standards-author-BydzfE/workspace/standards",
+        "diff",
+        "--binary"
+      ],
+      "exit_status": 0,
+      "unchanged": false
+    }
+  }
+}

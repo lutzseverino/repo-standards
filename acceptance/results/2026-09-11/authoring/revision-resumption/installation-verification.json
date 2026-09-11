@@ -1,0 +1,25 @@
+{
+  "inputRemoved": true,
+  "resources": {
+    "SKILL.md": {
+      "sha256": "0d19785adbe6b096e860a104a90ae94575b66b5776c726f2d56a72d6c9c6c132",
+      "installedMatches": true,
+      "finalCandidateMatches": true
+    },
+    "references/cli.md": {
+      "sha256": "fcd86f9833ae578faa3fb255f7b61ca9b207f979cfdd77a10bfa0542f9e6646d",
+      "installedMatches": true,
+      "finalCandidateMatches": true
+    },
+    "references/profiles.md": {
+      "sha256": "784a8b5a60d3c67f61361f829797b7bc0f005e739dbe1ed1943ef31593977851",
+      "installedMatches": true,
+      "finalCandidateMatches": true
+    },
+    "references/revision.md": {
+      "sha256": "212a85d506397cdb82a598c13f9360ab26ec143316933305fc1ec7aa3b966e4f",
+      "installedMatches": true,
+      "finalCandidateMatches": true
+    }
+  }
+}

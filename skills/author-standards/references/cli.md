@@ -2,11 +2,12 @@
 
 The skill is independently installable. It does not assume a product checkout,
 an adopting project, or `node_modules` beside this directory. Its only bundled
-resources are this acquisition guide and the complete-profile review guide;
+resources are this acquisition guide, the complete-profile review guide, and
+the revision/resumption guide;
 obtain the format documentation from the
 same npm installation as the executable.
 
-Use macOS or Linux with Node.js 24 and npm. This creation candidate supports
+Use macOS or Linux with Node.js 24 and npm. This authoring candidate supports
 `@lutzseverino/repo-standards@1.0.1` and `repo-standards/v1`. Check `node --version`
 first. When prerequisites or registry access are unavailable, explain the blocker
 and continue preference review if useful; leave validation explicitly pending.

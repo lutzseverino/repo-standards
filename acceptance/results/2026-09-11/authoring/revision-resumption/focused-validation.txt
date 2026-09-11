@@ -1,0 +1,30 @@
+✔ release artifacts install without build tools and expose the matching CLI, bootstrap, skill and author documentation (12978.764646ms)
+✔ an independently installed later CLI package reports its exact release version (14383.786039ms)
+✔ validation preserves literal operations, never runs scripts or version probes, and leaves a dirty source unchanged (950.658086ms)
+✔ the accepted Alice example validates unchanged and provides human output (644.942435ms)
+✔ authors receive structured errors for unsupported format (762.91313ms)
+✔ authors receive structured errors for invalid CLI range (997.74151ms)
+✔ authors receive structured errors for incompatible CLI (719.115479ms)
+✔ authors receive structured errors for missing metadata (629.225029ms)
+✔ authors receive structured errors for non-string metadata (651.776515ms)
+✔ authors receive diagnostics without crashing for no profiles (621.303288ms)
+✔ authors receive diagnostics without crashing for recursive alias (610.635532ms)
+✔ authors receive diagnostics without crashing for invalid YAML (623.712253ms)
+✔ authors receive diagnostics without crashing for multiple documents (594.376555ms)
+✔ authors receive diagnostics without crashing for unknown YAML tag (452.937712ms)
+✔ the installed CLI exposes version and help and rejects unsupported commands (2197.1501ms)
+✔ duplicate YAML identities do not hide independent errors in either declaration (785.505525ms)
+✔ duplicate singleton fields still validate every determinable value (1252.380601ms)
+✔ an unknown declaration kind does not hide unrelated unknown fields (748.818823ms)
+✔ unsafe references and conflicting targets are rejected even in an unselected profile (642.317435ms)
+✔ validation collects schema and operation errors across every profile with precise locations (624.482285ms)
+✔ all four forms resolve through inheritance, replacement, addition and exclusion as complete declarations (655.192677ms)
+✔ an author validates a local standards source through the installed CLI (639.851619ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 52961.346513

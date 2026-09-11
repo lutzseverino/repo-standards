@@ -61,11 +61,12 @@ skill and runtime and leaves changes uncommitted with HEAD unchanged.
 
 ## Install the authoring skill candidate
 
-`author-standards` guides creation of local standards from confirmed preferences,
+`author-standards` guides creation and revision of local standards from confirmed preferences,
 starting with one profile and adding complete profiles for accepted working-context
 differences. It uses shared defaults, configuration, and guidance and finishes at
 reviewed, validated local material; repository setup and publication are separate
-work. Revision and generated operations belong to later authoring slices.
+work. Returning authors can resume from current source content and reconciled
+authoring notes. Generated operations belong to a later authoring slice.
 
 For the local candidate, use the conventional
 [skills CLI](https://github.com/vercel-labs/skills) with a directory containing

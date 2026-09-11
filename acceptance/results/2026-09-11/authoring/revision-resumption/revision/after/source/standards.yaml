@@ -1,0 +1,47 @@
+format: repo-standards/v1
+name: harbor-working-standards
+description: Synthetic returning author's personal, library, and employer standards
+requires:
+  repo-standards: '1.0.1'
+defaults:
+  declarations:
+    final-newline:
+      kind: file
+      target: .editorconfig
+      exact: files/editorconfig
+    readme-usage:
+      kind: file
+      target: README.md
+      guidance: guidance/readme.md
+    contribution-route:
+      kind: file
+      target: CONTRIBUTING.md
+      exact: files/contributing.md
+profiles:
+  personal:
+    description: Personal command-line tools
+    declarations:
+      readme-usage:
+        kind: file
+        target: README.md
+        guidance: guidance/personal-readme.md
+      contribution-route:
+        kind: file
+        target: CONTRIBUTING.md
+        exact: files/personal-contributing.md
+  library:
+    description: Published libraries
+    declarations:
+      release-notes:
+        kind: file
+        target: CHANGELOG.md
+        guidance: guidance/releases.md
+  employer:
+    description: Employer-managed projects
+    declarations:
+      readme-usage:
+        kind: file
+        target: README.md
+        guidance: guidance/employer-readme.md
+      contribution-route:
+        exclude: true

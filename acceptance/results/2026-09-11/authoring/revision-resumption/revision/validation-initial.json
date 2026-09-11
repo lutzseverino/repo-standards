@@ -1,0 +1,101 @@
+{
+  "valid": true,
+  "errors": [],
+  "source": {
+    "format": "repo-standards/v1",
+    "name": "harbor-working-standards",
+    "description": "Synthetic returning author's personal, library, and employer standards",
+    "requires": {
+      "repo-standards": "1.0.1"
+    }
+  },
+  "profiles": {
+    "personal": {
+      "description": "Personal command-line tools",
+      "declarations": [
+        {
+          "id": "contribution-route",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": "CONTRIBUTING.md",
+          "exact": "files/contributing.md"
+        },
+        {
+          "id": "final-newline",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": ".editorconfig",
+          "exact": "files/editorconfig"
+        },
+        {
+          "id": "readme-usage",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": "README.md",
+          "guidance": "guidance/readme.md"
+        }
+      ]
+    },
+    "library": {
+      "description": "Published libraries",
+      "declarations": [
+        {
+          "id": "contribution-route",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": "CONTRIBUTING.md",
+          "exact": "files/contributing.md"
+        },
+        {
+          "id": "final-newline",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": ".editorconfig",
+          "exact": "files/editorconfig"
+        },
+        {
+          "id": "readme-usage",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": "README.md",
+          "guidance": "guidance/readme.md"
+        },
+        {
+          "id": "release-notes",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": "CHANGELOG.md",
+          "guidance": "guidance/releases.md"
+        }
+      ]
+    },
+    "employer": {
+      "description": "Employer-managed projects",
+      "declarations": [
+        {
+          "id": "final-newline",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": ".editorconfig",
+          "exact": "files/editorconfig"
+        },
+        {
+          "id": "readme-usage",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": "README.md",
+          "guidance": "guidance/employer-readme.md"
+        }
+      ]
+    }
+  }
+}

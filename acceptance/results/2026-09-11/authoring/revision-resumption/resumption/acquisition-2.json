@@ -1,0 +1,10 @@
+{
+  "command": [
+    "/tmp/author-standards-cli.uzk237qf/node_modules/.bin/repo-standards",
+    "--version"
+  ],
+  "PATH-prefix": "/tmp/repo-standards-30-tools/node_modules/.bin",
+  "exit_status": 0,
+  "stdout": "1.0.1\n",
+  "stderr": ""
+}

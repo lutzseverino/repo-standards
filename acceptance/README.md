@@ -138,11 +138,12 @@ as real-agent journeys.
 
 ## Authoring candidate
 
-Issues #27 and #28 use parent #25's agreed seams: an installed skill with a real
+Issues #27, #28, and #30 use parent #25's agreed seams: an installed skill with a real
 agent for conversation and the installed public CLI for validation. Creation
 covers configuration/guidance, starting with one profile and expressing accepted
-context differences as complete profiles. Revision, generated operations, and
-public skill installation/discovery are separate tickets.
+context differences as complete profiles. Revision and resumption extend this
+journey below; generated operations and public skill installation/discovery are
+separate tickets.
 
 From the product checkout with Node.js 24 and npm, run:
 
@@ -200,3 +201,42 @@ Keep supported-OS results and any missing evidence explicit.
 The #28 journey additionally owns story 13 and multi-profile/ownership coverage
 of Testing Decisions 3, extending the single-profile and ownership work in stories
 12 and 14. Keep earlier evidence dated; do not present it as a new run.
+
+### Scoped revision and reconciled resumption
+
+For #30, install a fresh candidate with `acceptance/prepare-author.ts`. The
+evaluator supplies an existing multi-profile source and concise notes in the
+isolated workspace, including shared referenced material, unrelated declarations,
+staged and unstaged tracked work, and untracked work. Fixture setup may create
+the starting Git repository; the authoring agent must leave HEAD and index alone.
+Retain complete before-source contents, file modes, HEAD, index, and Git status
+outside the source before the agent receives it.
+
+Have a fresh agent revise an explicitly scoped preference and respond live to an
+additional request whose profile scope is ambiguous. Capture inspection before
+edits, the conflicting rules and affected profiles, concrete drafts/corrections,
+and the author's scope clarification. Check that explicit intent is not asked
+for again and that shared files do not leak changes into unrelated profiles.
+
+After the reviewed revision, make a manual source edit that contradicts its notes
+and retain that edit separately. Start a fresh agent with the installed skill,
+current source, notes, and an opening resumption request, without the previous
+conversation. Let it surface the disagreement and obtain intent before changing
+the affected policy. Resume unfinished questions and reconcile concise notes,
+retaining rationale, non-preferences, skipped topics, and explicit deferrals.
+
+Record live turns separately from the source; identify any synthetic evaluator
+author. Retain complete before/after sources and notes for each session, the manual
+edit, whole-source review, final all-profile CLI results and exit status, exact
+CLI/installed-skill identities, and publication handoff. Independently compare
+unrelated resolved selections, referenced bytes and executable state, staged and
+unstaged work, untracked files, HEAD, and index. Preserve new-file contents as well
+as diffs. Report these preservation checks separately from conversational
+usefulness; a green structural check establishes neither.
+
+This slice owns parent #25 stories 22–24 and 27, extends 25–26, and covers Testing
+Decisions 5 and 6. Record fresh real-agent evidence separately from `pnpm validate`,
+and identify platform and installation limits. Generated operations do not gate
+this guidance-based journey.
+
+Recorded run: [2026-09-11 scoped revision and reconciled resumption](results/2026-09-11/authoring/revision-resumption/README.md).
