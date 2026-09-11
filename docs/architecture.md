@@ -33,7 +33,8 @@ a later date. Creating or migrating those standards is outside this release.
 
 The product does not implement an author's adoption procedure. All authors use
 the same resolution and adoption interfaces. Authors cannot replace system
-skills or provide adoption hooks.
+skills or provide adoption hooks. Both `adopt-standards` and `author-standards`
+are product-owned system skill names reserved within the standards format.
 
 ## Deep modules
 
@@ -154,8 +155,14 @@ with stable codes and precise YAML locations.
 Source and target paths are repository-relative and cannot escape their roots.
 Selected sources cannot contain symbolic links. Targets and their ancestors
 cannot be symbolic links during adoption. Resolved targets cannot overlap,
-including case-folded collisions. Product-owned state and system-skill paths
-are reserved.
+including case-folded collisions. Product-owned state and both system-skill
+paths (`.agents/skills/adopt-standards` and `.agents/skills/author-standards`)
+are reserved, including equal paths, ancestors, descendants, and collisions
+under the same case-folded and Unicode-normalized comparison. This applies to
+exact files, contextual files, and repository guidance as well as author skills,
+across defaults and all profiles, including those not selected for inspection.
+Reserving `author-standards` does not change the schema or the two-level
+resolution semantics.
 
 ## Publication and compatibility
 
@@ -189,6 +196,10 @@ The thin user-installed bootstrap obtains one exact CLI version outside the
 project for first inspection. An omitted version selects the latest stable
 once and discloses it. Confirmed adoption installs that version and the matching
 repository-local `adopt-standards` skill. Existing projects use their own pin.
+Adoption does not automatically install `author-standards`; reserving that
+identity does not manage unrelated global skill installations or change
+adoption runtime pins, system-skill installation, integrity baselines, or
+independent standards and CLI updates.
 
 The CLI is published as `@lutzseverino/repo-standards` with executable
 `repo-standards`. Publishing access to the npm scope is a release prerequisite.

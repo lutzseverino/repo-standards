@@ -13,6 +13,29 @@ requires: {repo-standards: ">=1.0.0 <2.0.0"}
 `;
 const profile = 'profiles:\n  personal:\n    description: Personal\n    declarations: {}\n';
 
+for (const name of ['adopt-standards', 'author-standards']) {
+  test(`authors cannot supply the product-owned ${name} skill`, (t) => {
+    const source = sourceFixture(header + `defaults:
+  declarations:
+    competing:
+      kind: skill
+      name: ${name}
+      source: skill
+` + profile, { 'skill/SKILL.md': '# Competing skill' });
+    t.after(() => source.close());
+    const result = cli.run(['source', 'validate', '--json'], source.root);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.deepEqual(report.profiles, {});
+    const diagnostic = report.errors.find((error: { code: string }) => error.code === 'RESERVED_NAME');
+    assert.deepEqual(diagnostic, {
+      code: 'RESERVED_NAME', message: `${name} is a product-owned system skill.`,
+      file: join(source.root, 'standards.yaml'), line: 9, column: 13,
+      path: '/defaults/declarations/competing/name',
+    });
+  });
+}
+
 test('unreadable selected files are reported for every reference kind', (t) => {
   if (process.getuid?.() === 0) {
     t.skip('Root can read files without read permission; this fixture needs an unprivileged user.');
@@ -63,6 +86,41 @@ test('unreadable selected files are reported for every reference kind', (t) => {
   for (const path of files) {
     assert.ok(report.errors.some((error: { code: string; message: string }) =>
       error.code === 'SOURCE_READ' && error.message === `Cannot read source reference: ${path}.`), `Missing unreadable ${path}: ${result.stdout}`);
+  }
+});
+
+test('all file and repository guidance forms reject system-skill targets and overlapping paths', async t => {
+  for (const name of ['adopt-standards', 'author-standards']) {
+    for (const target of [
+      `.agents/skills/${name}`, '.agents', '.agents/skills',
+      `.agents/skills/${name}/SKILL.md`,
+      `.AGENTS/SKILLS/${name.toUpperCase()}/SKILL.md`,
+      `.agents/ſkills/${name}/cafe\u0301.md`,
+    ]) {
+      for (const form of ['exact', 'contextual', 'paths', 'directories']) {
+        await t.test(`${form}: ${target}`, st => {
+          const file = form === 'exact' || form === 'contextual';
+          const declaration = file
+            ? `      kind: file\n      target: ${JSON.stringify(target)}\n      ${form === 'exact' ? 'exact' : 'guidance'}: content.md\n`
+            : `      kind: repository\n      guidance: content.md\n      targets:\n        paths: ${form === 'paths' ? `[${JSON.stringify(target)}]` : '[]'}\n        directories: ${form === 'directories' ? `[${JSON.stringify(target)}]` : '[]'}\n`;
+          const source = sourceFixture(header + 'defaults:\n  declarations:\n    competing:\n' + declaration + profile,
+            { 'content.md': 'Standards material' });
+          st.after(() => source.close());
+          const result = cli.run(['source', 'validate', '--json'], source.root);
+          assert.equal(result.status, 1, result.stdout + result.stderr);
+          const report = JSON.parse(result.stdout);
+          assert.deepEqual(report.profiles, {});
+          assert.deepEqual(report.errors, [{
+            code: 'RESERVED_TARGET',
+            message: 'Target overlaps product-owned state, a system skill, or Git metadata.',
+            file: join(source.root, 'standards.yaml'),
+            line: file ? 9 : form === 'paths' ? 11 : 12,
+            column: file ? 15 : form === 'paths' ? 17 : 23,
+            path: `/defaults/declarations/competing/${file ? 'target' : `targets/${form}/0`}`,
+          }]);
+        });
+      }
+    }
   }
 });
 

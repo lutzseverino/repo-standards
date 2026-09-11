@@ -42,8 +42,8 @@ export class Paths {
       this.fields.error('UNSAFE_PATH', 'Targets must be explicit paths, without glob patterns.', value);
       return undefined;
     }
-    if (['.repo-standards', '.agents/skills/adopt-standards', '.git'].some(reserved => overlaps(foldPath(path), reserved))) {
-      this.fields.error('RESERVED_TARGET', 'Target overlaps product-owned state, the system skill, or Git metadata.', value);
+    if (['.repo-standards', '.agents/skills/adopt-standards', '.agents/skills/author-standards', '.git'].some(reserved => overlaps(foldPath(path), reserved))) {
+      this.fields.error('RESERVED_TARGET', 'Target overlaps product-owned state, a system skill, or Git metadata.', value);
     }
     return { path, location: value };
   }

@@ -62,8 +62,9 @@ resolve to empty lists. Their remaining fields are:
 
 A file must have exactly one of `exact` or `guidance`. Repository guidance
 needs at least one explicit path or directory. Exact skills target
-`.agents/skills/<name>` as a whole. `adopt-standards` is the reserved system
-skill name. Author skill content remains ordinary Agent Skill material; source
+`.agents/skills/<name>` as a whole. `adopt-standards` and `author-standards` are
+product-owned system skill names reserved against author skills. Author skill
+content remains ordinary Agent Skill material; source
 validation verifies its directory and `SKILL.md` references, not prose quality
 or skill behavior.
 
@@ -83,9 +84,19 @@ ownership checks belong to inspection and adoption.
 Within each resolved profile, no target can equal, contain, or be contained
 by another target, including two entries of one repository declaration.
 Comparison also catches case-insensitive and Unicode-normalized collisions.
-Product state (`.repo-standards`), the system skill
-(`.agents/skills/adopt-standards`), Git metadata (`.git`), and their ancestors
-and descendants are reserved targets.
+Product state (`.repo-standards`), both system skill targets
+(`.agents/skills/adopt-standards` and `.agents/skills/author-standards`), Git
+metadata (`.git`), and their ancestors and descendants are reserved targets.
+These restrictions apply to exact files, contextual files, and repository
+guidance as well as skills, using the same case-folded and Unicode-normalized
+comparison. Validation checks defaults and every profile, including profiles
+other than the one selected for inspection.
+
+Reservation applies within the standards format; it does not manage unrelated
+global skill installations. Adoption installs only the `adopt-standards` system
+skill matched to the project's exact CLI pin. It does not automatically install
+`author-standards` or change runtime ownership, integrity baselines, or the
+independent standards and CLI update behavior.
 
 ## Checks and fixes
 
@@ -184,7 +195,7 @@ structurally invalid YAML may limit what can be determined.
 | `MISSING_REFERENCE` | Referenced file or directory does not exist |
 | `REFERENCE_TYPE` | Referenced entry has the wrong filesystem type |
 | `SOURCE_SYMLINK` | Source document or selected material contains a symlink |
-| `RESERVED_NAME` | An author tries to supply the system skill |
+| `RESERVED_NAME` | An author tries to supply a product-owned system skill |
 | `RESERVED_TARGET` | Target overlaps reserved storage |
 | `TARGET_OVERLAP` | Two resolved targets overlap, including folded collisions |
 

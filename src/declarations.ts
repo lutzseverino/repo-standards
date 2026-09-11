@@ -97,7 +97,9 @@ export class Declarations {
         f.map(declaration, ['kind', 'name', 'source', 'checks', 'fixes']);
         const nameValue = f.get(declaration, 'name');
         const name = this.id(nameValue) ?? '';
-        if (name.toLowerCase() === 'adopt-standards') f.error('RESERVED_NAME', 'adopt-standards is a product-owned system skill.', nameValue);
+        if (['adopt-standards', 'author-standards'].includes(name.toLowerCase())) {
+          f.error('RESERVED_NAME', `${name.toLowerCase()} is a product-owned system skill.`, nameValue);
+        }
         targetPath({ ...nameValue, data: `.agents/skills/${name}` });
         const sourceValue = f.get(declaration, 'source');
         const source = this.paths.reference(sourceValue, 'directory');
