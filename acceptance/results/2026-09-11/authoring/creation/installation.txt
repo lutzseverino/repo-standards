@@ -1,0 +1,32 @@
+
+│
+●   codex  Agent detected — installing non-interactively
+│
+◇  Source: /var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-author-7lu3WQ/candidate
+│
+◇  Local path validated
+│
+◇  Found 1 skill
+│
+●  Selected 1 skill: author-standards
+
+│
+◇  Installation Summary ──────────────╮
+│                                     │
+│  ~/.agents/skills/author-standards  │
+│    copy → Codex                     │
+│                                     │
+├─────────────────────────────────────╯
+│
+◇  Installation complete
+
+│
+◇  Installed 1 skill ─────────────────────╮
+│                                         │
+│  ✓ author-standards (copied)            │
+│    → ~/.agents/skills/author-standards  │
+│                                         │
+├─────────────────────────────────────────╯
+
+│
+└  Done!  Review skills before use; they run with full agent permissions.

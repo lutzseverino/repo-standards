@@ -1,0 +1,1 @@
+Keep argument parsing separate from reusable logic when that logic can be exercised independently. Let the parsing layer translate command-line input and pass it to the reusable logic. Choose boundaries that fit the tool; no particular folder layout or single entry-file arrangement is required.

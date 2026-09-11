@@ -26,6 +26,10 @@ test('release artifacts install without build tools and expose the matching CLI,
   assert.match(execFileSync(join(output, 'repo-standards-bootstrap'), ['--help'], { encoding: 'utf8' }), /Usage: repo-standards-bootstrap/);
   const installed = join(installation, 'node_modules/@lutzseverino/repo-standards');
   assert.deepEqual(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md')), readFileSync(resolve('skills/adopt-standards/SKILL.md')));
+  for (const resource of ['SKILL.md', 'references/cli.md']) {
+    assert.deepEqual(readFileSync(join(installed, 'skills/author-standards', resource)),
+      readFileSync(resolve('skills/author-standards', resource)));
+  }
   for (const doc of ['installation', 'release', 'inspection', 'adoption', 'assessment-protocol', 'authoring', 'author-format', 'discovery', 'script-protocol']) {
     assert.ok(readFileSync(join(installed, `docs/${doc}.md`)).length > 0);
   }

@@ -25,23 +25,24 @@ contextual work and public assessment submission. Topic-based source search
 validates stable release candidates without selecting or adopting them; the
 author workflow covers ordinary GitHub publication.
 Public publication and release completion are tracked separately in
-[release evidence](acceptance/results/). Publication alone does not establish
+[release evidence](https://github.com/lutzseverino/repo-standards/tree/main/acceptance/results). Publication alone does not establish
 that every release acceptance criterion has passed.
 
-- [Architecture and acceptance criteria](docs/architecture.md)
+- [Architecture and acceptance criteria](https://github.com/lutzseverino/repo-standards/blob/main/docs/architecture.md)
 - [Public installation and restoration](docs/installation.md)
 - [Release procedure](docs/release.md)
 - [Author workflow and publication](docs/authoring.md)
+- [Standalone authoring skill candidate](docs/installation.md#install-the-authoring-skill-candidate)
 - [Source discovery](docs/discovery.md)
 - [Author format and CLI diagnostics](docs/author-format.md)
 - [Bootstrap and public inspection](docs/inspection.md)
 - [Confirmed adoption and durable state](docs/adoption.md)
 - [Trusted script protocol](docs/script-protocol.md)
 - [Contextual work and assessment protocol](docs/assessment-protocol.md)
-- [Real-agent acceptance](acceptance/README.md)
-- [Domain language](CONTEXT.md)
+- [Real-agent acceptance](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md)
+- [Domain language](https://github.com/lutzseverino/repo-standards/blob/main/CONTEXT.md)
 - [Implementation work](https://github.com/lutzseverino/repo-standards/issues)
-- [Contributing](CONTRIBUTING.md)
+- [Contributing](https://github.com/lutzseverino/repo-standards/blob/main/CONTRIBUTING.md)
 
 ## Distribution
 
@@ -67,7 +68,7 @@ An omitted directory uses the current directory. Validation needs neither a
 clean working tree nor installed author prerequisites. The JSON result includes
 the normalized resolved selection for every profile, or structured errors.
 See [public installation](docs/installation.md) for the standalone bootstrap,
-initial adoption and fresh-checkout restoration, or [contributing](CONTRIBUTING.md)
+initial adoption and fresh-checkout restoration, or [contributing](https://github.com/lutzseverino/repo-standards/blob/main/CONTRIBUTING.md)
 for product development.
 
 ## License
