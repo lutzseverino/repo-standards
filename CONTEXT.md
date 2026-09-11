@@ -24,6 +24,18 @@ The versioned contents published by one standards repository through its root
 `standards.yaml` and referenced material.
 _Avoid_: Marketplace package, registry package
 
+**Author preference**:
+An author's confirmed choice about what their standards should express.
+An observed practice or an agent recommendation is only a candidate until the
+author confirms it.
+_Avoid_: Inferred requirement, agent default
+
+**Authoring notes**:
+An author's record of confirmed decisions and their rationale, explicit
+non-preferences, skipped topics, and unresolved questions about their standards.
+The notes support continued authorship; they do not govern adoption.
+_Avoid_: Adoption policy, resolved selection
+
 **Defaults**:
 The shared declarations in a standards source that form the first and only
 inherited level of profile resolution.
