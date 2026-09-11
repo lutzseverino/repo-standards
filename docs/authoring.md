@@ -1,5 +1,18 @@
 # Author a standards source
 
+For guided creation, install the standalone
+[`author-standards` candidate](installation.md#install-the-authoring-skill-candidate).
+Describe preferences in ordinary language, refine small drafts, then review the
+whole source. The candidate creates one profile with configuration and guidance,
+all referenced material, and concise `authoring-notes.md` covering accepted
+decisions and rationale, non-preferences, skipped topics, and open questions.
+Notes support authorship and do not govern adoption. No confirmed standards is a
+valid outcome: it produces no invented source and no claim of validation.
+
+The guided journey ends at author-reviewed, validated local material. The
+publication steps below are a separate workflow; the skill does not provision,
+commit, tag, release, or adopt, and a local directory is not yet adoptable.
+
 A standards repository supplies ordinary content, complete profiles and trusted
 operations. The product owns adoption. Start with the four declaration forms in
 [Author format](author-format.md); the [Alice example](../examples/alice/standards.yaml)

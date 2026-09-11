@@ -1,0 +1,26 @@
+format: repo-standards/v1
+name: small-tool-standards
+description: Shared configuration and guidance for small internal Node command-line tools.
+requires:
+  repo-standards: "1.0.1"
+defaults:
+  declarations:
+    editor-formatting:
+      kind: file
+      target: .editorconfig
+      exact: files/editorconfig
+    newcomer-run-guide:
+      kind: file
+      target: README.md
+      guidance: guidance/readme.md
+    reusable-cli-logic:
+      kind: repository
+      guidance: guidance/code-organization.md
+      targets:
+        paths: []
+        directories:
+          - src
+profiles:
+  tools:
+    description: Small internal Node command-line tools.
+    declarations: {}

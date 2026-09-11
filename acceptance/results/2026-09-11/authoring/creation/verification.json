@@ -1,0 +1,26 @@
+{
+  "reviewedBytesPreserved": true,
+  "candidateInputRemoved": true,
+  "workspacePaths": [
+    "small-tool-standards",
+    "small-tool-standards/authoring-notes.md",
+    "small-tool-standards/files",
+    "small-tool-standards/files/editorconfig",
+    "small-tool-standards/guidance",
+    "small-tool-standards/guidance/code-organization.md",
+    "small-tool-standards/guidance/readme.md",
+    "small-tool-standards/standards.yaml"
+  ],
+  "gitDirectoryCreated": false,
+  "adoptionStateCreated": false,
+  "policyIds": [
+    "editor-formatting",
+    "newcomer-run-guide",
+    "reusable-cli-logic"
+  ],
+  "profiles": [
+    "tools"
+  ],
+  "generatedOperations": 0,
+  "currentSkillMatchesInstalledResourceHashes": true
+}

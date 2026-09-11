@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/author-standards-cli.oHb3bE/node_modules/.bin/repo-standards",
+    "source",
+    "validate",
+    "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-author-7lu3WQ/workspace/small-tool-standards",
+    "--json"
+  ],
+  "exit_status": 0,
+  "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"small-tool-standards\",\n    \"description\": \"Shared configuration and guidance for small internal Node command-line tools.\",\n    \"requires\": {\n      \"repo-standards\": \"1.0.1\"\n    }\n  },\n  \"profiles\": {\n    \"tools\": {\n      \"description\": \"Small internal Node command-line tools.\",\n      \"declarations\": [\n        {\n          \"id\": \"editor-formatting\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"newcomer-run-guide\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"guidance/readme.md\"\n        },\n        {\n          \"id\": \"reusable-cli-logic\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"repository\",\n          \"guidance\": \"guidance/code-organization.md\",\n          \"targets\": {\n            \"paths\": [],\n            \"directories\": [\n              \"src\"\n            ]\n          }\n        }\n      ]\n    }\n  }\n}\n",
+  "stderr": ""
+}

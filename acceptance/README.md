@@ -1,6 +1,8 @@
 # Real-agent acceptance
 
-This manual journey evaluates the packaged `adopt-standards` skill against
+The [authoring candidate journey](#authoring-candidate) evaluates preference
+elicitation and local source creation. The adoption journey below evaluates
+the packaged `adopt-standards` skill against
 substantive projects. It is separate from `pnpm validate`: deterministic tests
 submit scripted assessments and cannot establish contextual usefulness.
 
@@ -133,3 +135,55 @@ integration. Updates, interrupted retry, abandonment, stale assessments and
 ownership rejection have deterministic coverage in `test/update.test.ts`,
 `test/recovery.test.ts` and `test/assessment.test.ts`; do not relabel those tests
 as real-agent journeys.
+
+## Authoring candidate
+
+Issue #27 uses the parent #25's agreed seams: an installed skill with a real
+agent for conversation and the installed public CLI for validation. It covers
+one profile and configuration/guidance; revision, distinct profiles, operations,
+and public skill installation/discovery are separate tickets.
+
+From the product checkout with Node.js 24 and npm, run:
+
+```sh
+node acceptance/prepare-author.ts
+```
+
+Setup copies only the candidate skill directory to a temporary installation
+input, installs it using `skills@1.5.25 add ... --global --agent codex --copy`,
+and removes that input. The installer receives isolated child-process home
+directories and telemetry is disabled. Your actual global skills are untouched.
+The printed session JSON records the installed skill, an empty workspace,
+resource hashes, environment versions, and the conventional command. Setup
+creates no source, preference decisions, npm product installation, or Git repo.
+
+Start a fresh agent with only that installed skill, workspace, and the author's
+opening request. Keep the product checkout and prior examples out of its context.
+Have it acquire the compatible npm CLI and matching documentation using the
+bundled guide. Record whether the CLI was a public package or packed candidate;
+neither turns the local skill installation into public skill evidence.
+
+Conduct live turns as an author unfamiliar with the format. Choose a working
+context and depth after the overview. Supply an optional reference containing an
+incidental practice. Request a recommendation, refine a concrete draft, and
+review ownership and explicit target scope. Exercise exact configuration,
+contextual file guidance, and repository guidance where accepted. Include an
+explicit non-preference, a skipped topic, and an unresolved question explicitly
+deferred. Review actual new-file contents and the whole source before accepting
+completion. A separate fresh journey must confirm no standards and observe that
+no filler `standards.yaml` is created and validation is not claimed.
+
+Retain the live author/agent turns outside the generated source, reviewed
+choices mapped to each declaration, every resulting source file, concise notes,
+exact CLI version/acquisition output, full all-profile validation JSON and exit
+status, and completion/handoff evidence. Record final filesystem inventory to
+check no repository provisioning, adoption, or publication occurred. If a
+synthetic author is played by an evaluator, label that and who accepted the
+result; do not present it as a human usability study. Scripted assessments,
+prewritten sources, or prose-matching tests cannot establish interview quality.
+
+Record `pnpm validate` separately from this agent evidence. Report coverage of
+parent stories 1–12, 14–15, 19–21, 25–26, 28–31 and Testing Decisions 1, 2, 4,
+8 plus the single-profile part of 3. Story 29 here is local conventional
+installation only: public installation and observed discovery belong to #31.
+Keep supported-OS results and any missing evidence explicit.

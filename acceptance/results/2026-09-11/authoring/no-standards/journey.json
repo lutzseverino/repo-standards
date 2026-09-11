@@ -1,0 +1,40 @@
+{
+  "kind": "local author-standards candidate installation",
+  "root": "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-author-zoFgSn",
+  "workspace": "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-author-zoFgSn/workspace",
+  "skill": "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-author-zoFgSn/home/.agents/skills/author-standards",
+  "resources": [
+    {
+      "path": "SKILL.md",
+      "sha256": "a35907961288dacffdbbfa77906f25c8406fefc361b2b962475fb9c1f553d7df"
+    },
+    {
+      "path": "references/cli.md",
+      "sha256": "c96aabe5f8256ab48c240caa788fc8862211abe09e10bb0ac6d68530d10b81ea"
+    }
+  ],
+  "installer": "skills@1.5.25",
+  "command": [
+    "npm",
+    "exec",
+    "--yes",
+    "--registry=https://registry.npmjs.org",
+    "--package=skills@1.5.25",
+    "--",
+    "skills",
+    "add",
+    "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-author-zoFgSn/candidate",
+    "--skill",
+    "author-standards",
+    "--global",
+    "--agent",
+    "codex",
+    "--copy",
+    "--yes"
+  ],
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.11.1",
+  "npm": "11.6.2",
+  "installedAt": "2026-09-11T17:24:24.800Z"
+}

@@ -1,0 +1,48 @@
+# Acquire the authoring CLI
+
+The skill is independently installable. It does not assume a product checkout,
+an adopting project, or `node_modules` beside this directory. Its only bundled
+resource is this acquisition guide; obtain the format documentation from the
+same npm installation as the executable.
+
+Use macOS or Linux with Node.js 24 and npm. This creation candidate supports
+`@lutzseverino/repo-standards@1.0.1` and `repo-standards/v1`. Check `node --version`
+first. When prerequisites or registry access are unavailable, explain the blocker
+and continue preference review if useful; leave validation explicitly pending.
+
+Install the exact CLI in an external directory, separate from the source and
+any adopting project:
+
+```sh
+author_cli_dir="$(mktemp -d "${TMPDIR:-/tmp}/author-standards-cli.XXXXXX")"
+npm install --prefix "$author_cli_dir" --ignore-scripts --no-audit --no-fund \
+  --registry=https://registry.npmjs.org @lutzseverino/repo-standards@1.0.1
+"$author_cli_dir/node_modules/.bin/repo-standards" --version
+```
+
+Keep the printed/selected absolute directory for subsequent commands; shell
+variables may not survive between agent tool calls. Read
+`<author_cli_dir>/node_modules/@lutzseverino/repo-standards/docs/author-format.md`
+before writing YAML. That installation also carries `docs/authoring.md` for the
+publication handoff and examples for reference; examples supply syntax, not
+author preferences. Use these matching documents rather than a moving website
+or paths relative to the installed skill. No additional skill is required.
+
+An existing external installation may be reused after verifying `--version`
+reports `1.0.1` and the matching documents are present. For product acceptance,
+an explicitly supplied packed candidate of that CLI version may be installed
+with the same npm flags in place of the registry package argument. Record that
+as candidate acquisition, never as public release evidence.
+
+Validate using that exact executable:
+
+```sh
+"$author_cli_dir/node_modules/.bin/repo-standards" source validate \
+  /absolute/path/to/local-standards --json
+```
+
+The command validates all profiles, references, and compatibility without
+executing author code or needing a Git repository. Exit 0 and `valid: true`
+establish structural validity; exit 1 carries diagnostics; exit 2 is unsupported
+usage. Preserve the actual result. If an installed document disagrees with this
+candidate's contract, surface the mismatch instead of guessing at a format.

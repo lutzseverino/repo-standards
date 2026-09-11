@@ -32,6 +32,7 @@ that every release acceptance criterion has passed.
 - [Public installation and restoration](docs/installation.md)
 - [Release procedure](docs/release.md)
 - [Author workflow and publication](docs/authoring.md)
+- [Standalone authoring skill candidate](docs/installation.md#install-the-authoring-skill-candidate)
 - [Source discovery](docs/discovery.md)
 - [Author format and CLI diagnostics](docs/author-format.md)
 - [Bootstrap and public inspection](docs/inspection.md)

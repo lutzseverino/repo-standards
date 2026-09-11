@@ -1,0 +1,41 @@
+{
+  "command": [
+    "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/author-standards-cli.oHb3bE/node_modules/.bin/repo-standards",
+    "source",
+    "validate",
+    "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-author-7lu3WQ/workspace/small-tool-standards",
+    "--json"
+  ],
+  "exit_status": 0,
+  "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"small-tool-standards\",\n    \"description\": \"Shared configuration and guidance for small internal Node command-line tools.\",\n    \"requires\": {\n      \"repo-standards\": \"1.0.1\"\n    }\n  },\n  \"profiles\": {\n    \"tools\": {\n      \"description\": \"Small internal Node command-line tools.\",\n      \"declarations\": [\n        {\n          \"id\": \"editor-formatting\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"newcomer-run-guide\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"guidance/readme.md\"\n        },\n        {\n          \"id\": \"reusable-cli-logic\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"repository\",\n          \"guidance\": \"guidance/code-organization.md\",\n          \"targets\": {\n            \"paths\": [],\n            \"directories\": [\n              \"src\"\n            ]\n          }\n        }\n      ]\n    }\n  }\n}\n",
+  "stderr": "",
+  "version_command": [
+    "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/author-standards-cli.oHb3bE/node_modules/.bin/repo-standards",
+    "--version"
+  ],
+  "version_exit_status": 0,
+  "version_stdout": "1.0.1\n",
+  "version_stderr": "",
+  "reviewed_files": {
+    "authoring-notes.md": {
+      "sha256": "e1ef86898b2e0dd3cf62ad8fa644fb3d699c53638de04f75749949db64a4c9aa",
+      "mode": "0o644"
+    },
+    "files/editorconfig": {
+      "sha256": "7ec11136e0ac9c57e3cce6466b23af41bfdac2f7656c9096840a6c6b07e66118",
+      "mode": "0o644"
+    },
+    "guidance/code-organization.md": {
+      "sha256": "6222c71cce034e897355949d41233c622f725865671712c9e869b8e70ea421f5",
+      "mode": "0o644"
+    },
+    "guidance/readme.md": {
+      "sha256": "e375b4482b2119e386bb817740d79252a305ae9fc3122905024d4821386d69f7",
+      "mode": "0o644"
+    },
+    "standards.yaml": {
+      "sha256": "86a0d6b7438f3ba1e2075090b0e6f6f81c8065a079bc2cc151a464f947e4292e",
+      "mode": "0o644"
+    }
+  }
+}

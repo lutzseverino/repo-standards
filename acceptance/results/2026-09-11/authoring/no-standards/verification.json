@@ -1,0 +1,13 @@
+{
+  "files": [
+    {
+      "path": "authoring-notes.md",
+      "mode": "0o644",
+      "sha256": "b33ed977a82e6665255c7317df07ce3d0de0a61436a93b5ef4047c232213872f"
+    }
+  ],
+  "sourceCreated": false,
+  "gitDirectoryCreated": false,
+  "adoptionStateCreated": false,
+  "validation": "not applicable; no confirmed standards"
+}

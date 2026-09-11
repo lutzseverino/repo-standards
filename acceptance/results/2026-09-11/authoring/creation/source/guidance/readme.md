@@ -1,0 +1,1 @@
+Explain how a newcomer can run this tool. Include required setup and one concrete invocation example, with enough context to understand what it does. Describe what a successful run of the example looks like. Keep commands and prerequisites accurate for the project. Use whatever headings and structure suit the README.
