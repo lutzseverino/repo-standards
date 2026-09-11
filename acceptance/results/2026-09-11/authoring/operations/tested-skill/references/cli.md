@@ -2,12 +2,11 @@
 
 The skill is independently installable. It does not assume a product checkout,
 an adopting project, or `node_modules` beside this directory. Its only bundled
-resources are this acquisition guide, the [complete-profile review guide](profiles.md),
-the [behavior exercise guide](operations.md), and the [revision/resumption guide](revision.md);
+resources are this acquisition guide and the [behavior exercise guide](operations.md);
 obtain the format and script-protocol documentation from the
 same npm installation as the executable.
 
-Use macOS or Linux with Node.js 24 and npm. This authoring candidate supports
+Use macOS or Linux with Node.js 24 and npm. This creation candidate supports
 `@lutzseverino/repo-standards@1.0.1` and `repo-standards/v1`. Check `node --version`
 first. When prerequisites or registry access are unavailable, explain the blocker
 and continue preference review if useful; leave validation explicitly pending.
@@ -47,8 +46,5 @@ Validate using that exact executable:
 The command validates all profiles, references, and compatibility without
 executing author code or needing a Git repository. Exit 0 and `valid: true`
 establish structural validity; exit 1 carries diagnostics; exit 2 is unsupported
-usage. The JSON `profiles` object contains each complete resolved selection;
-inspect its `declarations`, not just `valid`, to compare inherited IDs, full
-replacements, absent exclusions, and additions with the reviewed source.
-Preserve the actual result. If an installed document disagrees with this
+usage. Preserve the actual result. If an installed document disagrees with this
 candidate's contract, surface the mismatch instead of guessing at a format.

@@ -1,21 +1,16 @@
 ---
 name: author-standards
-description: Create or revise local Repository Standards from confirmed preferences, including accepted checks, fixes, or ordinary-work author skills, or resume unfinished decisions from authoring notes and the current source.
+description: Create a local Repository Standards source from confirmed preferences, reviewing configuration, guidance, and accepted checks, fixes, or ordinary-work author skills.
 ---
 
 # Author standards
 
 Finish with an author-reviewed, validated local standards source and concise
-authoring notes. This candidate supports creation, revision, and resumption with
-shared defaults and complete profiles, exact configuration files, contextual file
-guidance, repository guidance, and accepted checks, fixes, or ordinary-work author
-skills. Preserve existing sources and work.
-
-For an existing source or a request to resume notes, first follow
-[Revision and resumption](references/revision.md). Start from the current material
-and requested decisions, then use the shared draft, translation, and completion
-steps below. Reserve the opening topic overview for new authors or newly chosen
-topics; returning authors need not repeat settled choices.
+authoring notes. This candidate supports creation with **one profile**, exact
+configuration files, contextual file guidance, repository guidance, and accepted
+checks, fixes, or ordinary-work author skills. Distinct profiles and
+revision/resumption are later slices. If requested, identify the unsupported part and let the author
+choose whether to defer it or hand off; preserve existing sources and work.
 
 ## Discover preferences
 
@@ -24,11 +19,8 @@ code organization (where responsibilities belong), documentation (what readers
 need), review (how changes are judged), agent behavior (how agents should work),
 and tooling (shared configuration). Ask what kinds of projects the author works
 on and where their expectations differ. Let them choose topics and depth; start
-with one profile. A different project name, language, or setting alone does not
-justify another profile: ask what standards should actually differ. Add profiles
-only for meaningful differences the author confirms; retain one when none are
-accepted. Record deferred contexts only if the author agrees. Avoid requiring
-YAML or declaration vocabulary from them.
+with one profile for the chosen context. Record other contexts as deferred only
+if the author agrees. Avoid requiring YAML or declaration vocabulary from them.
 
 Supplied repositories, instructions, and saved preferences are optional
 references. Read relevant material as evidence of possible choices, not as
@@ -75,24 +67,21 @@ including it. Obtain acceptance of the concrete behavior and prerequisites,
 generate complete material, and report actual exercises and verification limits.
 
 Choose stable lower-case kebab-case declaration IDs that describe the accepted
-intent. For confirmed context differences, follow [Complete profiles](references/profiles.md)
-to review the shared selection and each difference. Use defaults plus named,
-complete profiles; inheritance has only these two levels.
+intent. Use defaults plus one named, complete profile; inheritance has only
+these two levels and a same-ID replacement replaces the whole declaration.
 Keep targets disjoint. Product state, Git metadata, and the `adopt-standards`
 and `author-standards` skill targets are reserved, including their ancestors and
 descendants. Follow the matching format document for path and reference rules.
 
 Create the chosen local directory and every referenced file, script, resource,
-and whole author-skill directory. Preserve unrelated existing files; clarify a
-destination collision before
+and whole author-skill directory. Preserve unrelated existing files; clarify a destination collision before
 overwriting it. Give the source a descriptive name and description and set
 `requires.repo-standards` to the compatibility actually validated (an exact
 version is sufficient). One profile need not duplicate its inherited defaults.
 
 Maintain `authoring-notes.md` beside `standards.yaml`, outside the declarations.
 Keep it concise and suitable for a potentially public repository: confirmed
-decisions and rationale mapped to declaration IDs, material, and affected
-profiles (including why each replacement, exclusion, or addition is wanted), explicit
+decisions and rationale mapped to declaration IDs and material, explicit
 non-preferences, skipped topics, and unresolved/deferred questions. Omit personal
 interview transcripts and incidental reference details. Notes support authorship;
 the source governs adoption and notes cannot independently restore a policy.
@@ -107,11 +96,7 @@ alone is not a content review. Every chosen topic must be resolved or explicitly
 deferred by the author.
 
 Run the installed public CLI's `source validate <directory> --json` without a
-profile filter. Read the exit status and full result for **all** profiles. Compare
-each resolved declaration, ownership, target, and material with the accepted
-selection; explain what each complete profile gives an adopting project. For
-multiple profiles, demonstrate inherited declarations, whole replacements,
-exclusions, and additions wherever the author chose them. Fix
+profile filter. Read the exit status and full result for **all** profiles. Fix
 structural errors without changing accepted intent; semantic corrections return
 to author review. After any edit, validate the final reviewed bytes again.
 Retain the validation result outside the source, or report it with the completion

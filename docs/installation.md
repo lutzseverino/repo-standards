@@ -63,10 +63,12 @@ skill and runtime and leaves changes uncommitted with HEAD unchanged.
 
 `author-standards` guides creation and revision of local standards from confirmed preferences,
 starting with one profile and adding complete profiles for accepted working-context
-differences. It uses shared defaults, configuration, and guidance and finishes at
-reviewed, validated local material; repository setup and publication are separate
-work. Returning authors can resume from current source content and reconciled
-authoring notes. Generated operations belong to a later authoring slice.
+differences. It uses shared defaults, configuration, guidance, and accepted checks,
+fixes, or ordinary-work author skills. Generated operations are exercised in disposable fixtures after
+behavior/prerequisite acceptance, with verification limits reported separately
+from source validity. It finishes at reviewed, validated local material;
+repository setup and publication are separate work. Returning authors can resume
+from current source content and reconciled authoring notes.
 
 For the local candidate, use the conventional
 [skills CLI](https://github.com/vercel-labs/skills) with a directory containing
@@ -85,7 +87,9 @@ without a product checkout, adopting project, or surrounding npm package. Invoke
 `author-standards` in your agent and describe how you work; optional references
 are candidates for discussion, not automatically accepted policy.
 
-The skill carries its CLI-acquisition guide at `references/cli.md`. It explains
+The skill carries its CLI-acquisition guide at `references/cli.md`, its complete-profile
+review guide at `references/profiles.md`, and its behavior/protocol exercise guide
+at `references/operations.md`. The acquisition guide explains
 installing the compatible exact npm CLI `@lutzseverino/repo-standards@1.0.1` in an
 external directory and reading that installation's matching `docs/author-format.md`.
 Node.js 24, npm, and npm registry access are needed for that acquisition; the

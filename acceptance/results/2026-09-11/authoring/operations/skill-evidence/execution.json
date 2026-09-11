@@ -1,0 +1,58 @@
+{
+  "exerciseAgent": "author_journey (same agent applying the generated ordinary-work skill)",
+  "platform": "linux",
+  "arch": "arm64",
+  "records": [
+    {
+      "vector": [
+        "node",
+        "--version"
+      ],
+      "cwd": "/tmp/repo-standards-author-aj4hqi/skill-evidence/fixture",
+      "timeoutSeconds": 10,
+      "maxBytesPerStream": 1048576,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "v24.11.1\n",
+      "stderr": ""
+    },
+    {
+      "vector": [
+        "node",
+        "add.mjs",
+        "2",
+        "3"
+      ],
+      "cwd": "/tmp/repo-standards-author-aj4hqi/skill-evidence/fixture",
+      "timeoutSeconds": 10,
+      "maxBytesPerStream": 1048576,
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "23\n",
+      "stderr": ""
+    }
+  ],
+  "before": {
+    "README.md": {
+      "bytes": "IyBUaW55IGFkZGl0aW9uIENMSQoKYG5vZGUgYWRkLm1qcyAyIDNgIHNob3VsZCBwcmludCB0aGUgbnVtZXJpYyBzdW0gYDVgLgo=",
+      "mode": 33152
+    },
+    "add.mjs": {
+      "bytes": "Y29uc3QgW2xlZnQsIHJpZ2h0XSA9IHByb2Nlc3MuYXJndi5zbGljZSgyKTsKY29uc29sZS5sb2cobGVmdCArIHJpZ2h0KTsK",
+      "mode": 33152
+    }
+  },
+  "after": {
+    "README.md": {
+      "bytes": "IyBUaW55IGFkZGl0aW9uIENMSQoKYG5vZGUgYWRkLm1qcyAyIDNgIHNob3VsZCBwcmludCB0aGUgbnVtZXJpYyBzdW0gYDVgLgo=",
+      "mode": 33152
+    },
+    "add.mjs": {
+      "bytes": "Y29uc3QgW2xlZnQsIHJpZ2h0XSA9IHByb2Nlc3MuYXJndi5zbGljZSgyKTsKY29uc29sZS5sb2cobGVmdCArIHJpZ2h0KTsK",
+      "mode": 33152
+    }
+  },
+  "fixtureUnchanged": true
+}

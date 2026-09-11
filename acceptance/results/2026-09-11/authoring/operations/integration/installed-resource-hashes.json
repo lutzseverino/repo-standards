@@ -1,0 +1,30 @@
+{
+  "SKILL.md": {
+    "type": "file",
+    "sha256": "7a4b0f592afb31a7662f63062e9681f6a361391b3970dc67dbb821ba76519ab9",
+    "bytes": 8077,
+    "mode": "0o600"
+  },
+  "references": {
+    "type": "directory",
+    "mode": "0o700"
+  },
+  "references/cli.md": {
+    "type": "file",
+    "sha256": "5854c0d660eec69e635e214c0f5c9b16ed41b21d5258acb6ecb5a248019aa363",
+    "bytes": 2898,
+    "mode": "0o600"
+  },
+  "references/operations.md": {
+    "type": "file",
+    "sha256": "58c8f81329cb0270b0e954fe935e0a1a68316f8d9a087b42de9ca6955e5b8ab2",
+    "bytes": 7748,
+    "mode": "0o600"
+  },
+  "references/profiles.md": {
+    "type": "file",
+    "sha256": "784a8b5a60d3c67f61361f829797b7bc0f005e739dbe1ed1943ef31593977851",
+    "bytes": 2776,
+    "mode": "0o600"
+  }
+}

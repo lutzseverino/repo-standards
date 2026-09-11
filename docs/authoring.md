@@ -7,7 +7,9 @@ whole source. The candidate starts with one profile and adds complete profiles
 only for meaningful context differences you confirm. It puts shared declarations
 in defaults and reviews each replacement, exclusion, addition, and ownership
 choice with you. Each profile is a complete selection an adopting project will
-receive. It creates configuration and guidance, all referenced material, and
+receive. It creates configuration, guidance, and checks, fixes, or ordinary-work
+author skills whose behavior and prerequisites you accept before inclusion.
+It supplies all referenced material and
 concise `authoring-notes.md` covering accepted
 decisions and rationale, non-preferences, skipped topics, and open questions.
 Notes support authorship and do not govern adoption. No confirmed standards is a
@@ -75,10 +77,22 @@ repo-standards source validate /path/to/standards --json
 ```
 
 Validation checks declarations and references; it executes neither operations
-nor probes and does not assess guidance quality. Exercise scripts and real
-contextual work in disposable committed adopting projects using the
-[confirmed adoption workflow](adoption.md). Check blocked and repeat outcomes,
-exclusions, retained resources, unchanged HEAD and uncommitted outputs.
+nor probes and does not assess guidance or author-skill quality. During authoring,
+exercise generated operations directly through the versioned script protocol in
+disposable directories, with only selected scripts and declared resources copied
+to a separate source layout. The standalone skill's
+[exercise guide](../skills/author-standards/references/operations.md) describes
+resolved requests, separate prerequisite probes, read-only failing/passing checks,
+repeat-safe fixes, literal arguments, scope and exclusion preservation, and
+recorded process/results evidence. These exercises require no Git repository or
+adoption. Missing tools leave affected behavior unverified; review that limitation
+with the author. Review or exercise author skills separately as ordinary agent
+work, accurately distinguishing content review from demonstrated usefulness.
+
+The separate [confirmed adoption workflow](adoption.md) exercises integration
+against published sources and disposable committed adopting projects. Product
+acceptance reuses the installed-CLI fixtures for this integration; it does not
+make provisioning, publication, or adoption part of the authoring skill.
 Record scripted checks separately from the agent's contextual evidence.
 
 ## Publish and evolve

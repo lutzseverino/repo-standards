@@ -1,0 +1,184 @@
+{
+  "sourceValidation": "validation-current.json",
+  "profile": "node-cli",
+  "operationRuns": 25,
+  "availableNodeVersions": [
+    "24.11.1"
+  ],
+  "results": [
+    {
+      "name": "01-missing-check",
+      "exitCode": 0,
+      "status": "failed",
+      "changes": []
+    },
+    {
+      "name": "02-create",
+      "exitCode": 0,
+      "status": "changed",
+      "changes": [
+        "docs",
+        "docs/support.json"
+      ]
+    },
+    {
+      "name": "03-repeat-fix",
+      "exitCode": 0,
+      "status": "unchanged",
+      "changes": []
+    },
+    {
+      "name": "04-repaired-check",
+      "exitCode": 0,
+      "status": "passed",
+      "changes": []
+    },
+    {
+      "name": "05-configured-preserved",
+      "exitCode": 0,
+      "status": "unchanged",
+      "changes": []
+    },
+    {
+      "name": "06-configured-check",
+      "exitCode": 0,
+      "status": "passed",
+      "changes": []
+    },
+    {
+      "name": "07-malformed-check",
+      "exitCode": 0,
+      "status": "failed",
+      "changes": []
+    },
+    {
+      "name": "08-malformed-preserved",
+      "exitCode": 0,
+      "status": "unchanged",
+      "changes": []
+    },
+    {
+      "name": "09-partial-retry",
+      "exitCode": 0,
+      "status": "unchanged",
+      "changes": []
+    },
+    {
+      "name": "10-partial-check",
+      "exitCode": 0,
+      "status": "failed",
+      "changes": []
+    },
+    {
+      "name": "11-directory-only-retry",
+      "exitCode": 0,
+      "status": "changed",
+      "changes": [
+        "docs/support.json"
+      ]
+    },
+    {
+      "name": "12-directory-only-check",
+      "exitCode": 0,
+      "status": "passed",
+      "changes": []
+    },
+    {
+      "name": "13-invalid-shape",
+      "exitCode": 0,
+      "status": "failed",
+      "changes": []
+    },
+    {
+      "name": "14-directory-check",
+      "exitCode": 0,
+      "status": "blocked",
+      "changes": []
+    },
+    {
+      "name": "15-directory-fix",
+      "exitCode": 0,
+      "status": "blocked",
+      "changes": []
+    },
+    {
+      "name": "16-docs-file-check",
+      "exitCode": 0,
+      "status": "blocked",
+      "changes": []
+    },
+    {
+      "name": "17-docs-file-fix",
+      "exitCode": 0,
+      "status": "blocked",
+      "changes": []
+    },
+    {
+      "name": "18-docs-symlink-check",
+      "exitCode": 0,
+      "status": "blocked",
+      "changes": []
+    },
+    {
+      "name": "19-docs-symlink-fix",
+      "exitCode": 0,
+      "status": "blocked",
+      "changes": []
+    },
+    {
+      "name": "20-file-symlink-check",
+      "exitCode": 0,
+      "status": "blocked",
+      "changes": []
+    },
+    {
+      "name": "21-file-symlink-fix",
+      "exitCode": 0,
+      "status": "blocked",
+      "changes": []
+    },
+    {
+      "name": "22-scope-check",
+      "exitCode": 0,
+      "status": "blocked",
+      "changes": []
+    },
+    {
+      "name": "23-scope-fix",
+      "exitCode": 0,
+      "status": "blocked",
+      "changes": []
+    },
+    {
+      "name": "24-reordered-scope-check",
+      "exitCode": 0,
+      "status": "passed",
+      "changes": []
+    },
+    {
+      "name": "25-reordered-scope-fix",
+      "exitCode": 0,
+      "status": "unchanged",
+      "changes": []
+    }
+  ],
+  "controlledMissingNode": [
+    {
+      "operation": "support-shape",
+      "error": "ENOENT",
+      "operationInvoked": false
+    },
+    {
+      "operation": "create-support-placeholder",
+      "error": "ENOENT",
+      "operationInvoked": false
+    }
+  ],
+  "limits": [
+    "Direct protocol exercise, not adoption lifecycle or CLI orchestration.",
+    "Linux only; permission-denied filesystem branch not exercised.",
+    "No concurrent hostile filesystem mutation or process-kill injection.",
+    "Partial retry exercised through directory-only and partial-file states.",
+    "No excluded declaration in the accepted single profile."
+  ]
+}

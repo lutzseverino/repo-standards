@@ -1,0 +1,392 @@
+{
+  "kind": "Bounded integration continuation using deterministic previously accepted input; not a fresh interview",
+  "originalJourney": "/tmp/repo-standards-author-aj4hqi",
+  "integrationSession": "/tmp/repo-standards-author-T7NZmR",
+  "source": "/tmp/repo-standards-author-T7NZmR/workspace/node-cli-standards",
+  "newPolicyOrAuthorAnswers": false,
+  "originalSessionUnchanged": true,
+  "sourceHashAndModeEquivalentToAcceptedFinal": true,
+  "sourceInventory": {
+    "authoring-notes.md": {
+      "type": "file",
+      "sha256": "e5fb7f0622df4c001f1324966be7ba760835c01cabcfb7b8207f09cc6a1b21c1",
+      "bytes": 2111,
+      "mode": "0o600"
+    },
+    "guidance": {
+      "type": "directory",
+      "mode": "0o700"
+    },
+    "guidance/support.md": {
+      "type": "file",
+      "sha256": "77ba9ee2ed5b7a24c0e0fb1c5201c3fa22defe769c736c45541b41996002c935",
+      "bytes": 1263,
+      "mode": "0o600"
+    },
+    "operations": {
+      "type": "directory",
+      "mode": "0o700"
+    },
+    "operations/check-support.mjs": {
+      "type": "file",
+      "sha256": "2d95d3aa66d0ada5adc38e004586d76d6e3d6d60fc78cde7a8530eddff7197ed",
+      "bytes": 2912,
+      "mode": "0o600"
+    },
+    "operations/create-support.mjs": {
+      "type": "file",
+      "sha256": "6594a92689137ee8bee3607f45803eb12d26652a99dd958246c470ba8533b5a8",
+      "bytes": 3119,
+      "mode": "0o600"
+    },
+    "resources": {
+      "type": "directory",
+      "mode": "0o700"
+    },
+    "resources/support-placeholder.json": {
+      "type": "file",
+      "sha256": "74cb42e4e27458d9e6ef3d404dd314486ba75a9205c04c140db5418a4621d291",
+      "bytes": 55,
+      "mode": "0o600"
+    },
+    "skills": {
+      "type": "directory",
+      "mode": "0o700"
+    },
+    "skills/draft-bug-report": {
+      "type": "directory",
+      "mode": "0o700"
+    },
+    "skills/draft-bug-report/SKILL.md": {
+      "type": "file",
+      "sha256": "432661c009146911c9265856194ccc8d001269bb0cd0e67f1a804d4969194a9b",
+      "bytes": 3059,
+      "mode": "0o600"
+    },
+    "standards.yaml": {
+      "type": "file",
+      "sha256": "355af9e9a5e2470fa643511db10d512a7d84b1945abab848465fc57f48c44a27",
+      "bytes": 1215,
+      "mode": "0o600"
+    }
+  },
+  "installedResourceInventory": {
+    "SKILL.md": {
+      "type": "file",
+      "sha256": "7a4b0f592afb31a7662f63062e9681f6a361391b3970dc67dbb821ba76519ab9",
+      "bytes": 8077,
+      "mode": "0o600"
+    },
+    "references": {
+      "type": "directory",
+      "mode": "0o700"
+    },
+    "references/cli.md": {
+      "type": "file",
+      "sha256": "5854c0d660eec69e635e214c0f5c9b16ed41b21d5258acb6ecb5a248019aa363",
+      "bytes": 2898,
+      "mode": "0o600"
+    },
+    "references/operations.md": {
+      "type": "file",
+      "sha256": "58c8f81329cb0270b0e954fe935e0a1a68316f8d9a087b42de9ca6955e5b8ab2",
+      "bytes": 7748,
+      "mode": "0o600"
+    },
+    "references/profiles.md": {
+      "type": "file",
+      "sha256": "784a8b5a60d3c67f61361f829797b7bc0f005e739dbe1ed1943ef31593977851",
+      "bytes": 2776,
+      "mode": "0o600"
+    }
+  },
+  "matchingPublicDocs": {
+    "author-format.md": {
+      "path": "/tmp/repo-standards-author-aj4hqi/cli/node_modules/@lutzseverino/repo-standards/docs/author-format.md",
+      "sha256": "71d4d26d177eff7edd2e37bcc678cd8a84b74ac23ea0700c32c0aa365988a13a",
+      "bytes": 11165
+    },
+    "script-protocol.md": {
+      "path": "/tmp/repo-standards-author-aj4hqi/cli/node_modules/@lutzseverino/repo-standards/docs/script-protocol.md",
+      "sha256": "cd05369655cef450b7a1ccef5df2ef474dba3b5866a46ca285b6149ca255b597",
+      "bytes": 6686
+    },
+    "authoring.md": {
+      "path": "/tmp/repo-standards-author-aj4hqi/cli/node_modules/@lutzseverino/repo-standards/docs/authoring.md",
+      "sha256": "97f24233260fabf3ef6fd62ccd57189a3a9357eead2354f0bbcbce7268d04f24",
+      "bytes": 6389
+    }
+  },
+  "cli": {
+    "path": "/tmp/repo-standards-author-aj4hqi/cli/node_modules/.bin/repo-standards",
+    "version": "1.0.1",
+    "acquisition": "Reused original independently acquired public npm installation; --version and matching docs checked"
+  },
+  "nodeVersion": "24.11.1",
+  "validation": {
+    "command": [
+      "/tmp/repo-standards-author-aj4hqi/cli/node_modules/.bin/repo-standards",
+      "source",
+      "validate",
+      "/tmp/repo-standards-author-T7NZmR/workspace/node-cli-standards",
+      "--json"
+    ],
+    "cwd": "/tmp/repo-standards-author-T7NZmR/workspace",
+    "exitCode": 0,
+    "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"Small Node CLI support standards\",\n    \"description\": \"Project-owned support destinations and evidence-based bug report drafts.\",\n    \"requires\": {\n      \"repo-standards\": \"1.0.1\"\n    }\n  },\n  \"profiles\": {\n    \"node-cli\": {\n      \"description\": \"Small Node command-line tools.\",\n      \"declarations\": [\n        {\n          \"id\": \"bug-report-routine\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"draft-bug-report\",\n          \"source\": \"skills/draft-bug-report\"\n        },\n        {\n          \"id\": \"support-file\",\n          \"checks\": [\n            {\n              \"id\": \"support-shape\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/check-support.mjs\",\n                \"resources\": [],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"create-support-placeholder\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/create-support.mjs\",\n                \"resources\": [\n                  \"resources/support-placeholder.json\"\n                ],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"file\",\n          \"target\": \"docs/support.json\",\n          \"guidance\": \"guidance/support.md\"\n        }\n      ]\n    }\n  }\n}\n",
+    "stderr": ""
+  },
+  "resolvedResultEquivalentToAcceptedFinal": true,
+  "profileComparison": {
+    "node-cli": {
+      "completeResolvedDeclarations": [
+        "bug-report-routine",
+        "support-file"
+      ],
+      "inheritance": "Both complete defaults inherited; no overrides/exclusions/additions",
+      "ownership": {
+        "bug-report-routine": "Whole exact .agents/skills/draft-bug-report directory",
+        "support-file": "Project-owned docs/support.json, contextual guidance, accepted check and create-only repair"
+      }
+    }
+  },
+  "contractReview": [
+    {
+      "requirement": "One profile unless meaningful differences are confirmed",
+      "source": "SKILL.md: Discover preferences; references/profiles.md",
+      "finding": "New instructions start with one profile, require confirmed meaningful differences for additions, and expressly retain one when none are accepted. The copied source resolves only node-cli; defaults supply both complete declarations."
+    },
+    {
+      "requirement": "Explicit acceptance of operations and ordinary-work skill",
+      "source": "SKILL.md: Translate accepted drafts; references/operations.md: Propose and obtain acceptance",
+      "finding": "Policy acceptance alone remains insufficient. Concrete behaviors and prerequisites must be accepted. Original author message 3 explicitly accepted both operations and the skill; message 4 accepted complete final bytes and example-only usefulness. Integration introduced no new behavior or prerequisites."
+    },
+    {
+      "requirement": "Public versioned operation protocol",
+      "source": "references/operations.md: Generate the whole material and Exercise operations without adoption; references/cli.md",
+      "finding": "Operations remain attached to their owner, use the acquired matching docs, resolved declarations and exact allowedTargets, direct literal argument vectors, versioned stdin/result JSON, separate prerequisite evidence, and phase-specific statuses. The actual replay verified all 25 cases with only declared resources."
+    },
+    {
+      "requirement": "Final whole-source review and validation boundary",
+      "source": "SKILL.md: Review and finish; references/operations.md: Review evidence and limits",
+      "finding": "Complete material and notes still require whole-source acceptance; semantic changes return to review and final reviewed bytes must be validated. Integration source is byte/mode-identical to the previously accepted final source; no new acceptance is invented. All-profile public validation returned the identical complete resolved result."
+    },
+    {
+      "requirement": "Profile resolution does not silently extend operations",
+      "source": "references/profiles.md",
+      "finding": "Replacement restates complete declarations and accepted operations; exclusions remove owning operations; two resolution levels and no field merges. The accepted scenario needs inheritance only, so no replacement, exclusion, addition, or second profile was invented."
+    }
+  ],
+  "operationReplay": {
+    "command": [
+      "node",
+      "/tmp/repo-standards-author-T7NZmR/exercise-operations.mjs"
+    ],
+    "exitCode": 0,
+    "harnessChanges": "Only two external path substitutions; diff retained in harness-path-only.diff",
+    "summary": {
+      "sourceValidation": "validation-current.json",
+      "profile": "node-cli",
+      "operationRuns": 25,
+      "availableNodeVersions": [
+        "24.11.1"
+      ],
+      "results": [
+        {
+          "name": "01-missing-check",
+          "exitCode": 0,
+          "status": "failed",
+          "changes": []
+        },
+        {
+          "name": "02-create",
+          "exitCode": 0,
+          "status": "changed",
+          "changes": [
+            "docs",
+            "docs/support.json"
+          ]
+        },
+        {
+          "name": "03-repeat-fix",
+          "exitCode": 0,
+          "status": "unchanged",
+          "changes": []
+        },
+        {
+          "name": "04-repaired-check",
+          "exitCode": 0,
+          "status": "passed",
+          "changes": []
+        },
+        {
+          "name": "05-configured-preserved",
+          "exitCode": 0,
+          "status": "unchanged",
+          "changes": []
+        },
+        {
+          "name": "06-configured-check",
+          "exitCode": 0,
+          "status": "passed",
+          "changes": []
+        },
+        {
+          "name": "07-malformed-check",
+          "exitCode": 0,
+          "status": "failed",
+          "changes": []
+        },
+        {
+          "name": "08-malformed-preserved",
+          "exitCode": 0,
+          "status": "unchanged",
+          "changes": []
+        },
+        {
+          "name": "09-partial-retry",
+          "exitCode": 0,
+          "status": "unchanged",
+          "changes": []
+        },
+        {
+          "name": "10-partial-check",
+          "exitCode": 0,
+          "status": "failed",
+          "changes": []
+        },
+        {
+          "name": "11-directory-only-retry",
+          "exitCode": 0,
+          "status": "changed",
+          "changes": [
+            "docs/support.json"
+          ]
+        },
+        {
+          "name": "12-directory-only-check",
+          "exitCode": 0,
+          "status": "passed",
+          "changes": []
+        },
+        {
+          "name": "13-invalid-shape",
+          "exitCode": 0,
+          "status": "failed",
+          "changes": []
+        },
+        {
+          "name": "14-directory-check",
+          "exitCode": 0,
+          "status": "blocked",
+          "changes": []
+        },
+        {
+          "name": "15-directory-fix",
+          "exitCode": 0,
+          "status": "blocked",
+          "changes": []
+        },
+        {
+          "name": "16-docs-file-check",
+          "exitCode": 0,
+          "status": "blocked",
+          "changes": []
+        },
+        {
+          "name": "17-docs-file-fix",
+          "exitCode": 0,
+          "status": "blocked",
+          "changes": []
+        },
+        {
+          "name": "18-docs-symlink-check",
+          "exitCode": 0,
+          "status": "blocked",
+          "changes": []
+        },
+        {
+          "name": "19-docs-symlink-fix",
+          "exitCode": 0,
+          "status": "blocked",
+          "changes": []
+        },
+        {
+          "name": "20-file-symlink-check",
+          "exitCode": 0,
+          "status": "blocked",
+          "changes": []
+        },
+        {
+          "name": "21-file-symlink-fix",
+          "exitCode": 0,
+          "status": "blocked",
+          "changes": []
+        },
+        {
+          "name": "22-scope-check",
+          "exitCode": 0,
+          "status": "blocked",
+          "changes": []
+        },
+        {
+          "name": "23-scope-fix",
+          "exitCode": 0,
+          "status": "blocked",
+          "changes": []
+        },
+        {
+          "name": "24-reordered-scope-check",
+          "exitCode": 0,
+          "status": "passed",
+          "changes": []
+        },
+        {
+          "name": "25-reordered-scope-fix",
+          "exitCode": 0,
+          "status": "unchanged",
+          "changes": []
+        }
+      ],
+      "controlledMissingNode": [
+        {
+          "operation": "support-shape",
+          "error": "ENOENT",
+          "operationInvoked": false
+        },
+        {
+          "operation": "create-support-placeholder",
+          "error": "ENOENT",
+          "operationInvoked": false
+        }
+      ],
+      "limits": [
+        "Direct protocol exercise, not adoption lifecycle or CLI orchestration.",
+        "Linux only; permission-denied filesystem branch not exercised.",
+        "No concurrent hostile filesystem mutation or process-kill injection.",
+        "Partial retry exercised through directory-only and partial-file states.",
+        "No excluded declaration in the accepted single profile."
+      ]
+    },
+    "fullCases": "operation-evidence/*.json",
+    "retainedInputs": "operation-evidence/retained; only declared scripts/resources",
+    "equivalentOutcomeSummaryToOriginal": true
+  },
+  "authorSkillEvidence": {
+    "newExercisePerformed": false,
+    "priorActualExercise": "/tmp/repo-standards-author-aj4hqi/skill-evidence/execution.json",
+    "priorDraft": "/tmp/repo-standards-author-aj4hqi/skill-evidence/report.md",
+    "acceptance": "Synthetic author accepted usefulness for that example only in original transcript message 4; carried forward without new elicitation"
+  },
+  "integrationContradictions": [],
+  "limitations": [
+    "Single-profile integration scenario only; multiple-profile branches reviewed as instructions but not newly elicited or behaviorally exercised.",
+    "This is a deterministic replay supplementing the fresh original journey.",
+    "Direct script protocol exercise does not establish adoption lifecycle or CLI orchestration.",
+    "Original permission-denied, concurrent mutation, process-kill timing, platform, and skill-generalization limits remain."
+  ],
+  "repositoryProvisioningOccurred": false,
+  "publicationOccurred": false,
+  "adoptionOccurred": false,
+  "originalSourceOrEvidenceModified": false
+}

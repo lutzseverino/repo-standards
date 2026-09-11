@@ -1,0 +1,17 @@
+{
+  "author-format.md": {
+    "path": "/tmp/repo-standards-author-aj4hqi/cli/node_modules/@lutzseverino/repo-standards/docs/author-format.md",
+    "sha256": "71d4d26d177eff7edd2e37bcc678cd8a84b74ac23ea0700c32c0aa365988a13a",
+    "bytes": 11165
+  },
+  "script-protocol.md": {
+    "path": "/tmp/repo-standards-author-aj4hqi/cli/node_modules/@lutzseverino/repo-standards/docs/script-protocol.md",
+    "sha256": "cd05369655cef450b7a1ccef5df2ef474dba3b5866a46ca285b6149ca255b597",
+    "bytes": 6686
+  },
+  "authoring.md": {
+    "path": "/tmp/repo-standards-author-aj4hqi/cli/node_modules/@lutzseverino/repo-standards/docs/authoring.md",
+    "sha256": "97f24233260fabf3ef6fd62ccd57189a3a9357eead2354f0bbcbce7268d04f24",
+    "bytes": 6389
+  }
+}

@@ -1,0 +1,145 @@
+{
+  "source": "/tmp/repo-standards-author-aj4hqi/workspace/node-cli-standards",
+  "authorAcceptedCompleteSource": true,
+  "authorAcceptedExampleUsefulnessOnly": true,
+  "otherTopicsDeferred": true,
+  "cliVersion": "1.0.1",
+  "nodeVersion": "v24.11.1",
+  "command": [
+    "/tmp/repo-standards-author-aj4hqi/cli/node_modules/.bin/repo-standards",
+    "source",
+    "validate",
+    "/tmp/repo-standards-author-aj4hqi/workspace/node-cli-standards",
+    "--json"
+  ],
+  "cwd": "/tmp/repo-standards-author-aj4hqi/workspace",
+  "PATHPrefix": "/tmp/repo-standards-29-tools/node_modules/.bin",
+  "exitCode": 0,
+  "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"Small Node CLI support standards\",\n    \"description\": \"Project-owned support destinations and evidence-based bug report drafts.\",\n    \"requires\": {\n      \"repo-standards\": \"1.0.1\"\n    }\n  },\n  \"profiles\": {\n    \"node-cli\": {\n      \"description\": \"Small Node command-line tools.\",\n      \"declarations\": [\n        {\n          \"id\": \"bug-report-routine\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"draft-bug-report\",\n          \"source\": \"skills/draft-bug-report\"\n        },\n        {\n          \"id\": \"support-file\",\n          \"checks\": [\n            {\n              \"id\": \"support-shape\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/check-support.mjs\",\n                \"resources\": [],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"create-support-placeholder\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/create-support.mjs\",\n                \"resources\": [\n                  \"resources/support-placeholder.json\"\n                ],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"file\",\n          \"target\": \"docs/support.json\",\n          \"guidance\": \"guidance/support.md\"\n        }\n      ]\n    }\n  }\n}\n",
+  "stderr": "",
+  "result": {
+    "valid": true,
+    "errors": [],
+    "source": {
+      "format": "repo-standards/v1",
+      "name": "Small Node CLI support standards",
+      "description": "Project-owned support destinations and evidence-based bug report drafts.",
+      "requires": {
+        "repo-standards": "1.0.1"
+      }
+    },
+    "profiles": {
+      "node-cli": {
+        "description": "Small Node command-line tools.",
+        "declarations": [
+          {
+            "id": "bug-report-routine",
+            "checks": [],
+            "fixes": [],
+            "kind": "skill",
+            "name": "draft-bug-report",
+            "source": "skills/draft-bug-report"
+          },
+          {
+            "id": "support-file",
+            "checks": [
+              {
+                "id": "support-shape",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/check-support.mjs",
+                  "resources": [],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 10
+              }
+            ],
+            "fixes": [
+              {
+                "id": "create-support-placeholder",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/create-support.mjs",
+                  "resources": [
+                    "resources/support-placeholder.json"
+                  ],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 10
+              }
+            ],
+            "kind": "file",
+            "target": "docs/support.json",
+            "guidance": "guidance/support.md"
+          }
+        ]
+      }
+    }
+  },
+  "inventory": {
+    "authoring-notes.md": {
+      "sha256": "e5fb7f0622df4c001f1324966be7ba760835c01cabcfb7b8207f09cc6a1b21c1",
+      "bytes": 2111,
+      "mode": "0o600"
+    },
+    "guidance/support.md": {
+      "sha256": "77ba9ee2ed5b7a24c0e0fb1c5201c3fa22defe769c736c45541b41996002c935",
+      "bytes": 1263,
+      "mode": "0o600"
+    },
+    "operations/check-support.mjs": {
+      "sha256": "2d95d3aa66d0ada5adc38e004586d76d6e3d6d60fc78cde7a8530eddff7197ed",
+      "bytes": 2912,
+      "mode": "0o600"
+    },
+    "operations/create-support.mjs": {
+      "sha256": "6594a92689137ee8bee3607f45803eb12d26652a99dd958246c470ba8533b5a8",
+      "bytes": 3119,
+      "mode": "0o600"
+    },
+    "resources/support-placeholder.json": {
+      "sha256": "74cb42e4e27458d9e6ef3d404dd314486ba75a9205c04c140db5418a4621d291",
+      "bytes": 55,
+      "mode": "0o600"
+    },
+    "skills/draft-bug-report/SKILL.md": {
+      "sha256": "432661c009146911c9265856194ccc8d001269bb0cd0e67f1a804d4969194a9b",
+      "bytes": 3059,
+      "mode": "0o600"
+    },
+    "standards.yaml": {
+      "sha256": "355af9e9a5e2470fa643511db10d512a7d84b1945abab848465fc57f48c44a27",
+      "bytes": 1215,
+      "mode": "0o600"
+    }
+  },
+  "matchesReviewedInventory": true,
+  "operationEvidence": "operation-evidence/summary.json",
+  "skillEvidence": [
+    "skill-evidence/execution.json",
+    "skill-evidence/report.md"
+  ],
+  "repositoryProvisioningOccurred": false,
+  "gitInitCommitTagOrReleaseOccurred": false,
+  "publicationOccurred": false,
+  "adoptionOccurred": false,
+  "limits": [
+    "Structural validation does not execute operations or prerequisite probes.",
+    "25 direct operation exercises on Linux arm64 with Node 24.11.1; no adoption-lifecycle claim.",
+    "Controlled missing-Node probes yielded ENOENT and no operation invocation.",
+    "Skill usefulness accepted by synthetic author for the one exercised example only.",
+    "Permission-denied errors, hostile concurrent filesystem changes, and actual process-kill timing were not exercised."
+  ]
+}
