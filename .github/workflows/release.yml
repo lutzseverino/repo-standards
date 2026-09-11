@@ -99,9 +99,15 @@ jobs:
       - env:
           RELEASE_VERSION: ${{ inputs.version }}
         run: node acceptance/public-installation.ts "$RELEASE_VERSION" public-installation.json
+      - name: Acquire the standalone authoring skill and matching public CLI
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: node acceptance/prepare-author.ts "$RELEASE_VERSION" public-author-installation.json
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: public-installation-${{ matrix.os }}
-          path: public-installation.json
+          path: |
+            public-installation.json
+            public-author-installation.json
           if-no-files-found: error

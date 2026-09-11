@@ -1,9 +1,9 @@
 # Author a standards source
 
 For guided creation, revision, or resumption, install the standalone
-[`author-standards` candidate](installation.md#install-the-authoring-skill-candidate).
+[`author-standards` skill](installation.md#install-the-authoring-skill).
 Describe preferences in ordinary language, refine small drafts, then review the
-whole source. The candidate starts with one profile and adds complete profiles
+whole source. The skill starts with one profile and adds complete profiles
 only for meaningful context differences you confirm. It puts shared declarations
 in defaults and reviews each replacement, exclusion, addition, and ownership
 choice with you. Each profile is a complete selection an adopting project will
@@ -15,7 +15,7 @@ decisions and rationale, non-preferences, skipped topics, and open questions.
 Notes support authorship and do not govern adoption. No confirmed standards is a
 valid outcome: it produces no invented source and no claim of validation.
 
-For an existing source, the candidate first reads current declarations,
+For an existing source, the skill first reads current declarations,
 referenced material, relevant notes, and existing work. An explicit changed
 preference applies to its stated scope; it shows conflicting rules and asks
 when affected profiles or paths are unclear. Shared references are traced before
@@ -146,9 +146,8 @@ repo-standards inspect --source https://github.com/OWNER/SOURCE \
   --standards-version v1.0.0 --profile work --project /path/to/project --json
 ```
 
-Public npm delivery of the product remains issue #11; until that release, the
-[README](../README.md#try-source-validation) describes installing its packed
-artifact. The standards source itself is an ordinary public GitHub repository.
+Acquire the executable and its matching documentation through
+[public npm installation](installation.md). The standards source itself is an ordinary public GitHub repository.
 
 Keep published tags immutable: an observed moved tag is rejected. For an update,
 publish another stable tag and describe replacements, retired declarations,

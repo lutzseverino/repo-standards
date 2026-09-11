@@ -104,3 +104,25 @@ each source independently. The coverage map in
 
 Do not label the release complete while publication, either OS, real-agent work,
 or any parent criterion remains unverified. The parent remains open and unchanged.
+
+## Authoring feature delivery
+
+Issue #31 adds `author-standards` and the reserved-identity CLI changes to the
+same npm/release process. Version 1.1.0 carries both system skills, standalone
+authoring references, and matching author/protocol documentation. Before
+packaging another version, update the authoring acquisition guide and public
+installation commands to its exact version; the release test checks the bundled
+guide against the installed executable's package version.
+
+After publication, the workflow also runs
+`node acceptance/prepare-author.ts <version> <evidence.json>` on macOS and Linux.
+It acquires the skill through the public release-tag URL documented in
+[installation](installation.md#install-the-authoring-skill), independently of the
+npm package; then obtains the compatible public CLI/docs in an external directory.
+Retain those JSON artifacts alongside existing public CLI smoke evidence.
+
+Fresh real-agent creation, revision, and resumption remain separate acceptance
+work. Record direct installation independently of dated skills.sh observations.
+The [authoring coverage map](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/authoring-release-coverage.md)
+maps all twelve criteria and identifies missing release evidence. A ready PR,
+candidate test run, or public Git branch alone does not complete issue #31.
