@@ -1,0 +1,177 @@
+{
+  "conclusion": "success",
+  "databaseId": 34639694017,
+  "event": "pull_request",
+  "headBranch": "feat/author-operations-and-skills",
+  "headSha": "9a14d3ceb6d798b611254bf91155ef2a6c90089c",
+  "jobs": [
+    {
+      "completedAt": "2026-09-11T19:41:30Z",
+      "conclusion": "success",
+      "databaseId": 103396079432,
+      "name": "validate (macos-latest)",
+      "startedAt": "2026-09-11T19:35:59Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T19:35:59Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T19:35:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:36:01Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-09-11T19:35:59Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:36:06Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 3,
+          "startedAt": "2026-09-11T19:36:01Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:36:07Z",
+          "conclusion": "success",
+          "name": "Run npm install --global pnpm@11.20.0",
+          "number": 4,
+          "startedAt": "2026-09-11T19:36:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:36:08Z",
+          "conclusion": "success",
+          "name": "Run pnpm install --frozen-lockfile",
+          "number": 5,
+          "startedAt": "2026-09-11T19:36:07Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:41:26Z",
+          "conclusion": "success",
+          "name": "Run pnpm validate",
+          "number": 6,
+          "startedAt": "2026-09-11T19:36:08Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:41:27Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 11,
+          "startedAt": "2026-09-11T19:41:26Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:41:27Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 12,
+          "startedAt": "2026-09-11T19:41:27Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:41:28Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 13,
+          "startedAt": "2026-09-11T19:41:27Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/lutzseverino/repo-standards/actions/runs/34639694017/job/103396079432"
+    },
+    {
+      "completedAt": "2026-09-11T19:40:49Z",
+      "conclusion": "success",
+      "databaseId": 103396079633,
+      "name": "validate (ubuntu-latest)",
+      "startedAt": "2026-09-11T19:35:56Z",
+      "status": "completed",
+      "steps": [
+        {
+          "completedAt": "2026-09-11T19:35:57Z",
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "startedAt": "2026-09-11T19:35:56Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:35:58Z",
+          "conclusion": "success",
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "startedAt": "2026-09-11T19:35:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:36:03Z",
+          "conclusion": "success",
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 3,
+          "startedAt": "2026-09-11T19:35:58Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:36:04Z",
+          "conclusion": "success",
+          "name": "Run npm install --global pnpm@11.20.0",
+          "number": 4,
+          "startedAt": "2026-09-11T19:36:03Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:36:06Z",
+          "conclusion": "success",
+          "name": "Run pnpm install --frozen-lockfile",
+          "number": 5,
+          "startedAt": "2026-09-11T19:36:04Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:40:46Z",
+          "conclusion": "success",
+          "name": "Run pnpm validate",
+          "number": 6,
+          "startedAt": "2026-09-11T19:36:06Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:40:46Z",
+          "conclusion": "success",
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 11,
+          "startedAt": "2026-09-11T19:40:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:40:47Z",
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 12,
+          "startedAt": "2026-09-11T19:40:46Z",
+          "status": "completed"
+        },
+        {
+          "completedAt": "2026-09-11T19:40:47Z",
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 13,
+          "startedAt": "2026-09-11T19:40:47Z",
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/lutzseverino/repo-standards/actions/runs/34639694017/job/103396079633"
+    }
+  ],
+  "status": "completed",
+  "url": "https://github.com/lutzseverino/repo-standards/actions/runs/34639694017"
+}

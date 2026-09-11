@@ -1,0 +1,648 @@
+﻿2026-09-11T19:35:56.8869128Z Current runner version: '2.337.0'
+2026-09-11T19:35:56.8889310Z ##[group]Runner Image Provisioner
+2026-09-11T19:35:56.8890096Z Hosted Compute Agent
+2026-09-11T19:35:56.8890587Z Version: 20260828.587
+2026-09-11T19:35:56.8891126Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-11T19:35:56.8891712Z Build Date: 2026-08-28T16:44:25Z
+2026-09-11T19:35:56.8892260Z Worker ID: {a760e7cf-6155-41bb-bb90-e01e05e2b47a}
+2026-09-11T19:35:56.8892838Z Azure Region: centralus
+2026-09-11T19:35:56.8893307Z ##[endgroup]
+2026-09-11T19:35:56.8894382Z ##[group]Operating System
+2026-09-11T19:35:56.8894903Z Ubuntu
+2026-09-11T19:35:56.8895312Z 24.04.5
+2026-09-11T19:35:56.8895717Z LTS
+2026-09-11T19:35:56.8896151Z ##[endgroup]
+2026-09-11T19:35:56.8896577Z ##[group]Runner Image
+2026-09-11T19:35:56.8897070Z Image: ubuntu-24.04
+2026-09-11T19:35:56.8897516Z Version: 20260907.300.1
+2026-09-11T19:35:56.8898812Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260907.300/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-11T19:35:56.8900082Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260907.300
+2026-09-11T19:35:56.8900860Z ##[endgroup]
+2026-09-11T19:35:56.8901704Z ##[group]GITHUB_TOKEN Permissions
+2026-09-11T19:35:56.8903803Z Contents: read
+2026-09-11T19:35:56.8904264Z Metadata: read
+2026-09-11T19:35:56.8904713Z ##[endgroup]
+2026-09-11T19:35:56.8906465Z Secret source: Actions
+2026-09-11T19:35:56.8907206Z Cache mode: write
+2026-09-11T19:35:56.8907787Z Prepare workflow directory
+2026-09-11T19:35:56.9183112Z Prepare all required actions
+2026-09-11T19:35:56.9224047Z Getting action download info
+2026-09-11T19:35:57.1961074Z Download action repository 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-09-11T19:35:57.8011683Z Download action repository 'actions/setup-node@820762786026740c76f36085b0efc47a31fe5020' (SHA:820762786026740c76f36085b0efc47a31fe5020)
+2026-09-11T19:35:57.9765722Z Complete job name: validate (ubuntu-latest)
+2026-09-11T19:35:58.0286008Z ##[group]Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+2026-09-11T19:35:58.0286725Z with:
+2026-09-11T19:35:58.0287126Z   repository: lutzseverino/repo-standards
+2026-09-11T19:35:58.0290202Z   token: ***
+2026-09-11T19:35:58.0290590Z   ssh-strict: true
+2026-09-11T19:35:58.0290967Z   ssh-user: git
+2026-09-11T19:35:58.0291344Z   persist-credentials: true
+2026-09-11T19:35:58.0291740Z   clean: true
+2026-09-11T19:35:58.0292148Z   sparse-checkout-cone-mode: true
+2026-09-11T19:35:58.0292573Z   fetch-depth: 1
+2026-09-11T19:35:58.0292921Z   fetch-tags: false
+2026-09-11T19:35:58.0293291Z   show-progress: true
+2026-09-11T19:35:58.0293648Z   lfs: false
+2026-09-11T19:35:58.0294001Z   submodules: false
+2026-09-11T19:35:58.0294381Z   set-safe-directory: true
+2026-09-11T19:35:58.0294777Z   allow-unsafe-pr-checkout: false
+2026-09-11T19:35:58.0295330Z ##[endgroup]
+2026-09-11T19:35:58.1069737Z Syncing repository: lutzseverino/repo-standards
+2026-09-11T19:35:58.1072074Z ##[group]Getting Git version info
+2026-09-11T19:35:58.1072948Z Working directory is '/home/runner/work/repo-standards/repo-standards'
+2026-09-11T19:35:58.1074163Z [command]/usr/bin/git version
+2026-09-11T19:35:58.1093803Z git version 2.55.0
+2026-09-11T19:35:58.1109816Z ##[endgroup]
+2026-09-11T19:35:58.1114988Z Temporarily overriding HOME='/home/runner/work/_temp/b87e261a-c50b-4705-b9e3-6f4a84910656' before making global git config changes
+2026-09-11T19:35:58.1116381Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-11T19:35:58.1117682Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/repo-standards/repo-standards
+2026-09-11T19:35:58.1160456Z Deleting the contents of '/home/runner/work/repo-standards/repo-standards'
+2026-09-11T19:35:58.1163808Z ##[group]Determining repository object format
+2026-09-11T19:35:58.1165047Z ##[endgroup]
+2026-09-11T19:35:58.1165857Z ##[group]Initializing the repository
+2026-09-11T19:35:58.1169594Z [command]/usr/bin/git init /home/runner/work/repo-standards/repo-standards
+2026-09-11T19:35:58.1255224Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-11T19:35:58.1256364Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-11T19:35:58.1257405Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-11T19:35:58.1258214Z hint: call:
+2026-09-11T19:35:58.1258804Z hint:
+2026-09-11T19:35:58.1259285Z hint: 	git config --global init.defaultBranch <name>
+2026-09-11T19:35:58.1259747Z hint:
+2026-09-11T19:35:58.1260209Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-11T19:35:58.1260989Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-11T19:35:58.1261625Z hint:
+2026-09-11T19:35:58.1262103Z hint: 	git branch -m <name>
+2026-09-11T19:35:58.1262710Z hint:
+2026-09-11T19:35:58.1263458Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-11T19:35:58.1264346Z Initialized empty Git repository in /home/runner/work/repo-standards/repo-standards/.git/
+2026-09-11T19:35:58.1265805Z [command]/usr/bin/git remote add origin https://github.com/lutzseverino/repo-standards
+2026-09-11T19:35:58.1300625Z ##[endgroup]
+2026-09-11T19:35:58.1301352Z ##[group]Disabling automatic garbage collection
+2026-09-11T19:35:58.1304066Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-11T19:35:58.1337725Z ##[endgroup]
+2026-09-11T19:35:58.1339098Z ##[group]Setting up auth
+2026-09-11T19:35:58.1339948Z Removing SSH command configuration
+2026-09-11T19:35:58.1340974Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-11T19:35:58.1362076Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-11T19:35:58.2468329Z Removing HTTP extra header
+2026-09-11T19:35:58.2475008Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-11T19:35:58.2503343Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-11T19:35:58.2674147Z Removing includeIf entries pointing to credentials config files
+2026-09-11T19:35:58.2677141Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-11T19:35:58.2703870Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-11T19:35:58.2866998Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-8e1f6a14-bad6-4219-ad0c-f42baed2cf1c.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-11T19:35:58.2895378Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/repo-standards/repo-standards/.git.path /home/runner/work/_temp/git-credentials-8e1f6a14-bad6-4219-ad0c-f42baed2cf1c.config
+2026-09-11T19:35:58.2918921Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/repo-standards/repo-standards/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-8e1f6a14-bad6-4219-ad0c-f42baed2cf1c.config
+2026-09-11T19:35:58.2943124Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-8e1f6a14-bad6-4219-ad0c-f42baed2cf1c.config
+2026-09-11T19:35:58.2967507Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-8e1f6a14-bad6-4219-ad0c-f42baed2cf1c.config
+2026-09-11T19:35:58.2987309Z ##[endgroup]
+2026-09-11T19:35:58.2988862Z ##[group]Fetching the repository
+2026-09-11T19:35:58.2993398Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +9cd4dab4376c17dabf458efdb5d45acc2957495c:refs/remotes/pull/35/merge
+2026-09-11T19:35:58.9050048Z From https://github.com/lutzseverino/repo-standards
+2026-09-11T19:35:58.9050882Z  * [new ref]         9cd4dab4376c17dabf458efdb5d45acc2957495c -> pull/35/merge
+2026-09-11T19:35:58.9054935Z ##[endgroup]
+2026-09-11T19:35:58.9055629Z ##[group]Determining the checkout info
+2026-09-11T19:35:58.9056617Z ##[endgroup]
+2026-09-11T19:35:58.9062255Z [command]/usr/bin/git sparse-checkout disable
+2026-09-11T19:35:58.9104138Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-11T19:35:58.9134009Z ##[group]Checking out the ref
+2026-09-11T19:35:58.9134722Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/35/merge
+2026-09-11T19:35:58.9374256Z Note: switching to 'refs/remotes/pull/35/merge'.
+2026-09-11T19:35:58.9374952Z 
+2026-09-11T19:35:58.9375356Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-11T19:35:58.9376379Z changes and commit them, and you can discard any commits you make in this
+2026-09-11T19:35:58.9377389Z state without impacting any branches by switching back to a branch.
+2026-09-11T19:35:58.9377879Z 
+2026-09-11T19:35:58.9378402Z If you want to create a new branch to retain commits you create, you may
+2026-09-11T19:35:58.9379435Z do so (now or later) by using -c with the switch command. Example:
+2026-09-11T19:35:58.9379985Z 
+2026-09-11T19:35:58.9380322Z   git switch -c <new-branch-name>
+2026-09-11T19:35:58.9380665Z 
+2026-09-11T19:35:58.9381014Z Or undo this operation with:
+2026-09-11T19:35:58.9381374Z 
+2026-09-11T19:35:58.9381661Z   git switch -
+2026-09-11T19:35:58.9382202Z 
+2026-09-11T19:35:58.9382613Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-11T19:35:58.9383113Z 
+2026-09-11T19:35:58.9383588Z HEAD is now at 9cd4dab Merge 9a14d3ceb6d798b611254bf91155ef2a6c90089c into ed24778db3d102cf1cbb20c30b52ea010c83ec94
+2026-09-11T19:35:58.9385647Z ##[endgroup]
+2026-09-11T19:35:58.9422666Z [command]/usr/bin/git log -1 --format=%H
+2026-09-11T19:35:58.9442827Z 9cd4dab4376c17dabf458efdb5d45acc2957495c
+2026-09-11T19:35:58.9687772Z ##[group]Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+2026-09-11T19:35:58.9688230Z with:
+2026-09-11T19:35:58.9688736Z   node-version-file: .node-version
+2026-09-11T19:35:58.9689125Z   check-latest: false
+2026-09-11T19:35:58.9691516Z   token: ***
+2026-09-11T19:35:58.9691862Z   package-manager-cache: true
+2026-09-11T19:35:58.9692199Z ##[endgroup]
+2026-09-11T19:35:59.0713938Z Node version file is not JSON file
+2026-09-11T19:35:59.0715285Z Resolved .node-version as 24.11.1
+2026-09-11T19:35:59.0727165Z Attempting to download 24.11.1...
+2026-09-11T19:35:59.8176083Z Acquiring 24.11.1 - x64 from https://github.com/actions/node-versions/releases/download/24.11.1-19282993875/node-24.11.1-linux-x64.tar.gz
+2026-09-11T19:36:00.3641637Z Extracting ...
+2026-09-11T19:36:00.3740038Z [command]/usr/bin/tar xz --strip 1 --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/fc51dc3d-6cad-4165-8b48-bf02adf66f9e -f /home/runner/work/_temp/8b62a8a2-240d-4bb1-9aea-142bf36ce800
+2026-09-11T19:36:01.3454868Z Adding to the cache ...
+2026-09-11T19:36:03.2938471Z ##[group]Environment details
+2026-09-11T19:36:03.5190840Z node: v24.11.1
+2026-09-11T19:36:03.5191521Z npm: 11.6.2
+2026-09-11T19:36:03.5191817Z yarn: 1.22.22
+2026-09-11T19:36:03.5192522Z ##[endgroup]
+2026-09-11T19:36:03.5331017Z ##[group]Run npm install --global pnpm@11.20.0
+2026-09-11T19:36:03.5331452Z npm install --global pnpm@11.20.0
+2026-09-11T19:36:03.5357052Z shell: /usr/bin/bash -e {0}
+2026-09-11T19:36:03.5357364Z ##[endgroup]
+2026-09-11T19:36:04.7640024Z 
+2026-09-11T19:36:04.7645266Z added 1 package in 1s
+2026-09-11T19:36:04.7645680Z 
+2026-09-11T19:36:04.7646016Z 1 package is looking for funding
+2026-09-11T19:36:04.7646534Z   run `npm fund` for details
+2026-09-11T19:36:04.7833244Z ##[group]Run pnpm install --frozen-lockfile
+2026-09-11T19:36:04.7833661Z pnpm install --frozen-lockfile
+2026-09-11T19:36:04.7854426Z shell: /usr/bin/bash -e {0}
+2026-09-11T19:36:04.7854703Z ##[endgroup]
+2026-09-11T19:36:05.2840497Z ? Verifying lockfile against supply-chain policies (46 entries)...
+2026-09-11T19:36:05.2883419Z Lockfile is up to date, resolution step is skipped
+2026-09-11T19:36:05.3469555Z Progress: resolved 1, reused 0, downloaded 0, added 0
+2026-09-11T19:36:05.3522354Z Packages: +10
+2026-09-11T19:36:05.3546886Z ++++++++++
+2026-09-11T19:36:05.5687674Z Packages are hard linked from the content-addressable store to the virtual store.
+2026-09-11T19:36:05.5688941Z   Content-addressable store is at: /home/runner/.local/share/pnpm/store/v11
+2026-09-11T19:36:05.5689622Z   Virtual store is at:             node_modules/.pnpm
+2026-09-11T19:36:05.8773681Z Progress: resolved 10, reused 0, downloaded 10, added 10, done
+2026-09-11T19:36:06.3596952Z ✓ Lockfile passes supply-chain policies (46 entries in 1s)
+2026-09-11T19:36:06.5258090Z 
+2026-09-11T19:36:06.5259048Z dependencies:
+2026-09-11T19:36:06.5259672Z + koffi 3.2.1
+2026-09-11T19:36:06.5259902Z + semver 7.8.5
+2026-09-11T19:36:06.5260297Z + unicode-case-folding 1.1.1
+2026-09-11T19:36:06.5260662Z + yaml 2.9.0
+2026-09-11T19:36:06.5260846Z 
+2026-09-11T19:36:06.5260963Z devDependencies:
+2026-09-11T19:36:06.5261262Z + @types/node 24.13.3
+2026-09-11T19:36:06.5261625Z + @types/semver 7.8.0
+2026-09-11T19:36:06.5261906Z + typescript 7.0.2
+2026-09-11T19:36:06.5262061Z 
+2026-09-11T19:36:06.5409116Z Done in 1.7s using pnpm v11.20.0
+2026-09-11T19:36:06.5686325Z ##[group]Run pnpm validate
+2026-09-11T19:36:06.5686617Z pnpm validate
+2026-09-11T19:36:06.5705883Z shell: /usr/bin/bash -e {0}
+2026-09-11T19:36:06.5706145Z ##[endgroup]
+2026-09-11T19:36:07.1674963Z Already up to date
+2026-09-11T19:36:07.1679766Z Done in 282ms using pnpm v11.20.0
+2026-09-11T19:36:07.1767018Z $ pnpm typecheck && pnpm build && pnpm test
+2026-09-11T19:36:07.4651741Z $ tsc --noEmit
+2026-09-11T19:36:08.1439842Z $ tsc -p tsconfig.build.json
+2026-09-11T19:36:08.8025784Z $ node --test test/*.test.ts
+2026-09-11T19:36:17.5959558Z ✔ direct inspection resolves annotated tags and canonical repository identity, and rejects moved observations (550.048453ms)
+2026-09-11T19:36:17.5990932Z ✔ inspection rejects unsupported sources, floating references and incompatible selections with structured diagnostics (2052.579639ms)
+2026-09-11T19:36:17.6006757Z ✔ private, missing, truncated, linked and corrupt remote snapshots are rejected (1332.590113ms)
+2026-09-11T19:36:17.6015676Z ✔ remote source references require exact Git path spelling for every material kind (2034.721799ms)
+2026-09-11T19:36:17.6017045Z ✔ remote snapshots reject path aliases before host extraction can conflate distinct Git entries (617.144918ms)
+2026-09-11T19:36:17.6022813Z ✔ the remote root entry point must be spelled standards.yaml in Git (380.432144ms)
+2026-09-11T19:36:25.4559116Z ✔ start requires explicit confirmation of an inspection before any project mutation (288.539716ms)
+2026-09-11T19:36:25.4571183Z ✔ a fresh checkout restores the exact runtime and inspects retained standards after the source disappears (3166.364802ms)
+2026-09-11T19:36:25.4572936Z ✔ confirmed exact adoption installs whole skills, claims matching files and leaves durable pins uncommitted (2399.24524ms)
+2026-09-11T19:36:25.4574436Z ▶ start rejects every invalid initial project state without mutation
+2026-09-11T19:36:25.4575158Z   ✔ no commit (464.588035ms)
+2026-09-11T19:36:25.4576056Z   ✔ dirty working tree (447.797774ms)
+2026-09-11T19:36:25.4576725Z   ✔ dirty index (493.148485ms)
+2026-09-11T19:36:25.4577374Z   ✔ untracked content (434.81066ms)
+2026-09-11T19:36:25.4583157Z   ✔ ignored replacement (441.822492ms)
+2026-09-11T19:36:25.4583931Z   ✔ unsafe target (465.323408ms)
+2026-09-11T19:36:25.4584668Z   ✔ unsafe ancestor (476.163768ms)
+2026-09-11T19:36:25.4585295Z   ✔ wrong target type (391.110583ms)
+2026-09-11T19:36:25.4599041Z   ✔ case conflict (451.182971ms)
+2026-09-11T19:36:25.4607992Z   ✔ unrelated matching skill (590.265994ms)
+2026-09-11T19:36:25.4609329Z   ✔ reserved system skill (390.585176ms)
+2026-09-11T19:36:25.4610065Z   ✔ existing product state (561.714568ms)
+2026-09-11T19:36:25.4667281Z   ✔ hidden index flags (729.301256ms)
+2026-09-11T19:36:25.4680078Z   ✔ skip-worktree flags (553.768151ms)
+2026-09-11T19:36:25.4681139Z ✔ start rejects every invalid initial project state without mutation (6894.885463ms)
+2026-09-11T19:36:25.4682239Z ▶ start rejects stale identities, HEAD, project content and profile selection
+2026-09-11T19:36:25.4683044Z   ✔ identity (405.127826ms)
+2026-09-11T19:36:25.4683782Z   ✔ head (481.625612ms)
+2026-09-11T19:36:25.4705653Z   ✔ content (477.863288ms)
+2026-09-11T19:36:25.4706369Z   ✔ profile (724.317505ms)
+2026-09-11T19:36:25.4707373Z ✔ start rejects stale identities, HEAD, project content and profile selection (2089.689078ms)
+2026-09-11T19:36:42.5008801Z ▶ final integrity failures preserve work and report an incomplete locked run with no complete adoption
+2026-09-11T19:36:42.5020376Z   ✔ exact bytes (2619.9818ms)
+2026-09-11T19:36:42.5021022Z   ✔ executable bit (1880.411442ms)
+2026-09-11T19:36:42.5021730Z   ✔ skill addition (2742.348205ms)
+2026-09-11T19:36:42.5026793Z   ✔ retained input addition (1957.751181ms)
+2026-09-11T19:36:42.5027519Z   ✔ retained input bytes (1887.000268ms)
+2026-09-11T19:36:42.5028000Z   ✔ runtime manifest (2011.717204ms)
+2026-09-11T19:36:42.5028398Z   ✔ runtime dependency (2075.410466ms)
+2026-09-11T19:36:42.5029033Z   ✔ product addition (1793.516794ms)
+2026-09-11T19:36:42.5030116Z ✔ final integrity failures preserve work and report an incomplete locked run with no complete adoption (17042.112983ms)
+2026-09-11T19:36:45.2172355Z ✔ only one process can hold an active adoption run (2718.654598ms)
+2026-09-11T19:36:49.7821856Z ▶ start rechecks freshness and unsafe or ignored targets after runtime acquisition before mutation
+2026-09-11T19:36:49.7835235Z   ✔ content (1757.185447ms)
+2026-09-11T19:36:49.7836002Z   ✔ symlink (1274.754609ms)
+2026-09-11T19:36:49.7836719Z   ✔ ignored (1466.582667ms)
+2026-09-11T19:36:49.7837604Z ✔ start rechecks freshness and unsafe or ignored targets after runtime acquisition before mutation (4563.839231ms)
+2026-09-11T19:36:52.3513939Z ✔ unsafe targets introduced during installation are rechecked before each write (1942.554554ms)
+2026-09-11T19:36:52.3517981Z ▶ missing npm and unavailable exact runtime packages leave project content untouched
+2026-09-11T19:36:52.3520520Z   ✔ npm (88.607912ms)
+2026-09-11T19:36:52.3521220Z   ✔ package (131.810875ms)
+2026-09-11T19:36:52.3522401Z ✔ missing npm and unavailable exact runtime packages leave project content untouched (629.88577ms)
+2026-09-11T19:36:54.9051267Z ✔ exact installation preserves binary bytes and executable state and retains only the selected profile (2547.463208ms)
+2026-09-11T19:36:57.6089105Z ✔ an empty exact profile remains inspectable from retained metadata (2387.269189ms)
+2026-09-11T19:37:00.8565282Z ✔ retained inspection preserves selected source manifests and rejects altered retained or last-complete evidence (3559.808631ms)
+2026-09-11T19:37:07.0691686Z ▶ ignored adoption outputs cannot produce a complete adoption that disappears from a fresh checkout
+2026-09-11T19:37:07.0692853Z   ✔ .repo-standards/ (2546.526116ms)
+2026-09-11T19:37:07.0693578Z   ✔ .agents/ (1931.876162ms)
+2026-09-11T19:37:07.0694051Z   ✔ AGENTS.md (1665.264557ms)
+2026-09-11T19:37:07.0698361Z ✔ ignored adoption outputs cannot produce a complete adoption that disappears from a fresh checkout (6207.81217ms)
+2026-09-11T19:37:08.7877072Z ✔ changes to unrelated tracked content during the final source acquisition invalidate confirmation before mutation (1694.292633ms)
+2026-09-11T19:37:11.3871017Z ✔ incomplete status retains ignored exact files and complete author and system skill changes (2635.776942ms)
+2026-09-11T19:37:14.8097122Z ✔ runtime acquisition reuses a populated external npm cache with the registry unavailable (2695.053669ms)
+2026-09-11T19:37:14.8107210Z ✔ runtime cache configuration cannot write inside the adopting project through direct or linked paths (730.477931ms)
+2026-09-11T19:37:18.5607864Z ✔ a final report persistence failure retains incomplete evidence and recovery guidance (2203.548255ms)
+2026-09-11T19:37:18.5617946Z ▶ npm cache child symlinks cannot redirect acquisition content or logs into the project
+2026-09-11T19:37:18.5618967Z   ✔ _logs (583.189178ms)
+2026-09-11T19:37:18.5619486Z   ✔ _cacache (358.678109ms)
+2026-09-11T19:37:18.5619971Z   ✔ _cacache/index-v5/aa (307.964211ms)
+2026-09-11T19:37:18.5620919Z ✔ npm cache child symlinks cannot redirect acquisition content or logs into the project (1513.284826ms)
+2026-09-11T19:37:20.9531131Z ✔ a failed initial ignore-file write preserves the run without exposing local reports to Git (2421.441077ms)
+2026-09-11T19:37:23.5172423Z ✔ status recovers ignored installed targets after the adoption process is interrupted (2568.325904ms)
+2026-09-11T19:37:23.5507535Z ✔ contextual handoff identifies the run, retained guidance, allowed targets and required evidence (2749.120021ms)
+2026-09-11T19:37:23.5516511Z ✔ scripted agent completes Alice work with separate assessment and check evidence and unchanged HEAD (3363.833093ms)
+2026-09-11T19:37:23.5518109Z ✔ blocked agent evidence is retained separately and prevents checks until renewed assessment (3263.306753ms)
+2026-09-11T19:37:23.5519704Z ▶ malformed and mismatched assessments, missing declarations and inaccurate paths stay incomplete
+2026-09-11T19:37:23.5520543Z   ✔ invalid JSON (94.486266ms)
+2026-09-11T19:37:23.5521206Z   ✔ null (223.221965ms)
+2026-09-11T19:37:23.5522058Z   ✔ unknown field (207.158365ms)
+2026-09-11T19:37:23.5522665Z   ✔ another run (189.883098ms)
+2026-09-11T19:37:23.5523227Z   ✔ another selection (186.6977ms)
+2026-09-11T19:37:23.5523780Z   ✔ wrong snapshot (220.052684ms)
+2026-09-11T19:37:23.5524467Z   ✔ missing declaration (225.727578ms)
+2026-09-11T19:37:23.5525058Z   ✔ duplicate declaration (218.719108ms)
+2026-09-11T19:37:23.5525664Z   ✔ unknown declaration (216.600303ms)
+2026-09-11T19:37:23.5526253Z   ✔ no explanation (199.288599ms)
+2026-09-11T19:37:23.5526795Z   ✔ no evidence (200.932823ms)
+2026-09-11T19:37:23.5527445Z   ✔ array status (258.070839ms)
+2026-09-11T19:37:23.5527993Z   ✔ invalid status (270.329086ms)
+2026-09-11T19:37:23.5529395Z   ✔ missing changed path (235.512622ms)
+2026-09-11T19:37:23.5530067Z   ✔ extra unchanged path (264.561446ms)
+2026-09-11T19:37:23.5530671Z   ✔ path in wrong declaration (278.949859ms)
+2026-09-11T19:37:23.5531260Z   ✔ parent escape (257.296327ms)
+2026-09-11T19:37:23.5531788Z   ✔ duplicate path (225.443155ms)
+2026-09-11T19:37:23.5532836Z ✔ malformed and mismatched assessments, missing declarations and inaccurate paths stay incomplete (7358.206539ms)
+2026-09-11T19:37:23.5534127Z ▶ unreported out-of-scope tracked and untracked changes block completion while ignored content is excluded
+2026-09-11T19:37:23.5534997Z   ✔ CONTRIBUTING.md (439.086494ms)
+2026-09-11T19:37:23.5535609Z   ✔ unrelated.txt (473.793641ms)
+2026-09-11T19:37:23.5536132Z   ✔ src-other.txt (497.215645ms)
+2026-09-11T19:37:23.5537224Z ✔ unreported out-of-scope tracked and untracked changes block completion while ignored content is excluded (5289.629508ms)
+2026-09-11T19:37:23.5538736Z ✔ changed content invalidates prior assessment and every check runs again after renewed evidence (3992.656675ms)
+2026-09-11T19:37:23.5540019Z ▶ contextual work cannot corrupt installed exact content, full skills, inputs or product state
+2026-09-11T19:37:23.5540849Z   ✔ AGENTS.md (104.772818ms)
+2026-09-11T19:37:23.5541521Z   ✔ .agents/skills/review/SKILL.md (90.865747ms)
+2026-09-11T19:37:23.5542247Z   ✔ .agents/skills/review/added.txt (207.700677ms)
+2026-09-11T19:37:23.5542960Z   ✔ .repo-standards/inputs/source/readme.md (105.035684ms)
+2026-09-11T19:37:23.5543687Z   ✔ .repo-standards/inputs/added.txt (212.292259ms)
+2026-09-11T19:37:23.5544380Z   ✔ .repo-standards/selection.yaml (90.197327ms)
+2026-09-11T19:37:23.5545021Z   ✔ .repo-standards/runtime/package.json (239.338056ms)
+2026-09-11T19:37:23.5545768Z   ✔ .repo-standards/unexpected.txt (192.210229ms)
+2026-09-11T19:37:23.5546796Z ✔ contextual work cannot corrupt installed exact content, full skills, inputs or product state (4328.185915ms)
+2026-09-11T19:37:23.5548261Z ▶ checks after assessment still reject mutation and exact-content corruption
+2026-09-11T19:37:23.5549229Z   ✔ README.md (3060.325657ms)
+2026-09-11T19:37:23.5549804Z   ✔ .agents/skills/review/added.txt (3010.251784ms)
+2026-09-11T19:37:23.5550773Z ✔ checks after assessment still reject mutation and exact-content corruption (6071.277009ms)
+2026-09-11T19:37:23.5554231Z ✔ content changing between assessment and final verification requires reassessment and fresh checks (4010.560191ms)
+2026-09-11T19:37:23.5555775Z ✔ a second independent author uses fixes, repository configuration and runbook evidence through the same handoff (3138.988744ms)
+2026-09-11T19:37:23.5556999Z ✔ assessment accounts for deleted tracked files and executable changes (3717.411608ms)
+2026-09-11T19:37:23.5557998Z ✔ only one resume can execute checks for an active contextual adoption (4049.442421ms)
+2026-09-11T19:37:23.5559385Z ▶ uncertain check outcomes cannot be retried through contextual resume
+2026-09-11T19:37:23.5560054Z   ✔ NONZERO_EXIT (3437.20872ms)
+2026-09-11T19:37:23.5560646Z   ✔ SIGNAL (3589.4065ms)
+2026-09-11T19:37:23.5561128Z   ✔ TIMEOUT (8183.135431ms)
+2026-09-11T19:37:23.5561641Z   ✔ PROTOCOL_ERROR (3401.298734ms)
+2026-09-11T19:37:23.5562630Z ✔ uncertain check outcomes cannot be retried through contextual resume (18612.0404ms)
+2026-09-11T19:37:23.5563890Z ✔ Alice author example checks actual README headings through installed adoption (3463.073526ms)
+2026-09-11T19:37:23.5565060Z ✔ Mira service source retains check resources and preserves fix output on explicit retry (3985.943493ms)
+2026-09-11T19:37:23.5566092Z ✔ the standalone bootstrap invokes the explicit CLI and resolves omitted latest stable only once outside the project (2864.589618ms)
+2026-09-11T19:37:23.5570700Z ✔ bootstrap prerequisite failures give setup instructions before package acquisition (13.82708ms)
+2026-09-11T19:37:23.5584480Z ✔ the installed inspection command checks npm without executing author prerequisite probes (102.069618ms)
+2026-09-11T19:37:23.5585873Z ✔ exact-version bootstrap can inspect using the configured npm cache with the registry unavailable (4064.713987ms)
+2026-09-11T19:37:30.8807887Z ✔ every prerequisite is probed before mutation and all failures are reported (706.470599ms)
+2026-09-11T19:37:30.8810949Z ✔ trusted operations receive literal arguments, retained resources and resolved identities in declared order (3712.666895ms)
+2026-09-11T19:37:30.8837107Z ▶ checks cannot mutate tracked or new project content even while adoption already has uncommitted changes
+2026-09-11T19:37:30.8850273Z   ✔ README.md (2502.468306ms)
+2026-09-11T19:37:30.8850999Z   ✔ NEW.txt (1866.606973ms)
+2026-09-11T19:37:30.8852504Z ✔ checks cannot mutate tracked or new project content even while adoption already has uncommitted changes (4419.668227ms)
+2026-09-11T19:37:30.8853459Z ▶ standards results and process errors remain distinct and stop only the required work
+2026-09-11T19:37:30.8854044Z   ✔ changed (2866.131232ms)
+2026-09-11T19:37:30.8854487Z   ✔ blocked fix (1925.588199ms)
+2026-09-11T19:37:30.8854878Z   ✔ failed check (2159.247611ms)
+2026-09-11T19:37:30.8855287Z   ✔ blocked check (1890.619842ms)
+2026-09-11T19:37:30.8855635Z   ✔ nonzero (1752.374695ms)
+2026-09-11T19:37:30.8855974Z   ✔ signal (2053.815221ms)
+2026-09-11T19:37:30.8856349Z   ✔ timeout (3327.191496ms)
+2026-09-11T19:37:30.8856704Z   ✔ malformed (2045.625964ms)
+2026-09-11T19:37:30.8857128Z   ✔ multiple results (2027.426506ms)
+2026-09-11T19:37:30.8857520Z   ✔ wrong version (2227.409591ms)
+2026-09-11T19:37:30.8857897Z   ✔ wrong status (1785.608399ms)
+2026-09-11T19:37:30.8858877Z ✔ standards results and process errors remain distinct and stop only the required work (24126.722267ms)
+2026-09-11T19:37:30.8859842Z ✔ fixes finish before the contextual handoff and checks wait for the later assessment interface (2378.675777ms)
+2026-09-11T19:37:30.8860743Z ▶ author phases cannot redefine exact, skill, retained-input or product-state baselines
+2026-09-11T19:37:30.8861276Z   ✔ AGENTS.md (2332.334063ms)
+2026-09-11T19:37:30.8861736Z   ✔ .agents/skills/review/added.txt (1687.786099ms)
+2026-09-11T19:37:30.8862488Z   ✔ .agents/skills/review/SKILL.md (1610.218377ms)
+2026-09-11T19:37:30.8863017Z   ✔ .repo-standards/inputs/source/content.md (1865.44905ms)
+2026-09-11T19:37:30.8863548Z   ✔ .repo-standards/inputs/added.txt (2196.070955ms)
+2026-09-11T19:37:30.8864032Z   ✔ .repo-standards/selection.yaml (2091.854862ms)
+2026-09-11T19:37:30.8864596Z   ✔ .repo-standards/runtime/package.json (2358.726694ms)
+2026-09-11T19:37:30.8865101Z   ✔ .repo-standards/unexpected.txt (2340.557919ms)
+2026-09-11T19:37:30.8865587Z   ✔ .repo-standards/local/run.json (2027.701179ms)
+2026-09-11T19:37:30.8866333Z ✔ author phases cannot redefine exact, skill, retained-input or product-state baselines (18563.397831ms)
+2026-09-11T19:37:30.8867208Z ✔ prerequisite arguments stay literal and failed or hung probes block installation (1554.507346ms)
+2026-09-11T19:37:34.6740413Z ✔ the first observed version wins across probe streams and long valid timeouts do not overflow (3202.039593ms)
+2026-09-11T19:37:34.6743964Z ✔ version probes cannot fabricate a version by joining stdout and stderr fragments (590.15552ms)
+2026-09-11T19:37:43.8885893Z ▶ author operations that hide index entries stop adoption before further work
+2026-09-11T19:37:43.8916622Z   ✔ fixes --skip-worktree (2974.023266ms)
+2026-09-11T19:37:43.8929101Z   ✔ fixes --assume-unchanged (2150.695651ms)
+2026-09-11T19:37:43.8930066Z   ✔ checks --skip-worktree (2025.431264ms)
+2026-09-11T19:37:43.8930478Z   ✔ checks --assume-unchanged (1995.901994ms)
+2026-09-11T19:37:43.8940798Z ✔ author operations that hide index entries stop adoption before further work (9215.073476ms)
+2026-09-11T19:37:43.9021015Z ✔ inspection reports the pinned complete profile without changing a dirty project or executing author code (491.993257ms)
+2026-09-11T19:37:43.9022506Z ✔ validation and inspection reject reserved skills and targets in an unselected profile with their original locations (309.217889ms)
+2026-09-11T19:37:43.9023864Z ✔ unsafe ancestors, skill ownership and ignored replacement content block start without following links (1443.225121ms)
+2026-09-11T19:37:43.9025156Z ✔ inspection identity is stable and changes with affected bytes, executable state, index content, HEAD and profile (2326.982641ms)
+2026-09-11T19:37:43.9026342Z ✔ inspection reports unborn Git state and type, case, reserved-state and untracked conflicts (554.496895ms)
+2026-09-11T19:37:43.9027527Z ✔ Git flags that hide local changes cannot make an unsafe replacement start-eligible (273.770149ms)
+2026-09-11T19:37:43.9028717Z ✔ contextual path names cannot disappear from the inspection identity (495.034684ms)
+2026-09-11T19:37:43.9029785Z ✔ inspection never executes Git clean filters while observing dirty tracked content (294.46051ms)
+2026-09-11T19:37:43.9030816Z ✔ contextual files and repository directory trees reject incompatible existing target types (513.405121ms)
+2026-09-11T19:37:43.9031932Z ✔ inspection orders all fixes before checks, declarations by ID and operations by their declared order (268.303933ms)
+2026-09-11T19:37:43.9033080Z ✔ exact replacements preserve both root observations when files and directories conflict (515.724947ms)
+2026-09-11T19:37:43.9034098Z ✔ case conflicts retain the exact target bytes and bind them into inspection identity (848.226205ms)
+2026-09-11T19:37:43.9035146Z ✔ executable syntax accepts command names and paths without resolving or rewriting them (134.912096ms)
+2026-09-11T19:37:43.9036382Z ✔ executable syntax rejects shell expressions, controls and malformed executable paths consistently (138.079576ms)
+2026-09-11T19:37:43.9037334Z ✔ executable character restrictions do not apply to literal arguments (99.913501ms)
+2026-09-11T19:37:43.9038311Z ✔ authors cannot supply the product-owned adopt-standards skill (98.454436ms)
+2026-09-11T19:37:43.9039356Z ✔ authors cannot supply the product-owned author-standards skill (99.349821ms)
+2026-09-11T19:37:43.9040946Z ✔ unreadable selected files are reported for every reference kind (114.203908ms)
+2026-09-11T19:37:43.9042138Z ▶ all file and repository guidance forms reject system-skill targets and overlapping paths
+2026-09-11T19:37:43.9043008Z   ✔ exact: .agents/skills/adopt-standards (108.773503ms)
+2026-09-11T19:37:43.9043684Z   ✔ contextual: .agents/skills/adopt-standards (103.895279ms)
+2026-09-11T19:37:43.9044313Z   ✔ paths: .agents/skills/adopt-standards (104.443416ms)
+2026-09-11T19:37:43.9045031Z   ✔ directories: .agents/skills/adopt-standards (86.104313ms)
+2026-09-11T19:37:43.9045624Z   ✔ exact: .agents (96.199014ms)
+2026-09-11T19:37:43.9046179Z   ✔ contextual: .agents (115.615123ms)
+2026-09-11T19:37:43.9046675Z   ✔ paths: .agents (102.514099ms)
+2026-09-11T19:37:43.9047167Z   ✔ directories: .agents (158.227358ms)
+2026-09-11T19:37:43.9048033Z   ✔ exact: .agents/skills (112.58043ms)
+2026-09-11T19:37:43.9048736Z   ✔ contextual: .agents/skills (115.298625ms)
+2026-09-11T19:37:43.9049363Z   ✔ paths: .agents/skills (136.198671ms)
+2026-09-11T19:37:43.9049898Z   ✔ directories: .agents/skills (109.458062ms)
+2026-09-11T19:37:43.9051073Z   ✔ exact: .agents/skills/adopt-standards/SKILL.md (103.421167ms)
+2026-09-11T19:37:43.9051913Z   ✔ contextual: .agents/skills/adopt-standards/SKILL.md (111.664582ms)
+2026-09-11T19:37:43.9052634Z   ✔ paths: .agents/skills/adopt-standards/SKILL.md (114.464174ms)
+2026-09-11T19:37:43.9053371Z   ✔ directories: .agents/skills/adopt-standards/SKILL.md (148.914813ms)
+2026-09-11T19:37:43.9054257Z   ✔ exact: .AGENTS/SKILLS/ADOPT-STANDARDS/SKILL.md (86.045156ms)
+2026-09-11T19:37:43.9054980Z   ✔ contextual: .AGENTS/SKILLS/ADOPT-STANDARDS/SKILL.md (89.530306ms)
+2026-09-11T19:37:43.9055628Z   ✔ paths: .AGENTS/SKILLS/ADOPT-STANDARDS/SKILL.md (98.498159ms)
+2026-09-11T19:37:43.9056272Z   ✔ directories: .AGENTS/SKILLS/ADOPT-STANDARDS/SKILL.md (95.791703ms)
+2026-09-11T19:37:43.9057997Z   ✔ exact: .agents/ſkills/adopt-standards/café.md (91.764906ms)
+2026-09-11T19:37:43.9059621Z   ✔ contextual: .agents/ſkills/adopt-standards/café.md (94.812801ms)
+2026-09-11T19:37:43.9060402Z   ✔ paths: .agents/ſkills/adopt-standards/café.md (102.938342ms)
+2026-09-11T19:37:43.9061255Z   ✔ directories: .agents/ſkills/adopt-standards/café.md (97.22033ms)
+2026-09-11T19:37:43.9061979Z   ✔ exact: .agents/skills/author-standards (99.377911ms)
+2026-09-11T19:37:43.9062713Z   ✔ contextual: .agents/skills/author-standards (97.485369ms)
+2026-09-11T19:37:43.9063378Z   ✔ paths: .agents/skills/author-standards (103.783742ms)
+2026-09-11T19:37:43.9064090Z   ✔ directories: .agents/skills/author-standards (105.277306ms)
+2026-09-11T19:37:43.9064734Z   ✔ exact: .agents (103.995434ms)
+2026-09-11T19:37:43.9065280Z   ✔ contextual: .agents (111.893043ms)
+2026-09-11T19:37:43.9065835Z   ✔ paths: .agents (99.640131ms)
+2026-09-11T19:37:43.9066365Z   ✔ directories: .agents (137.951099ms)
+2026-09-11T19:37:43.9066906Z   ✔ exact: .agents/skills (97.720781ms)
+2026-09-11T19:37:43.9067541Z   ✔ contextual: .agents/skills (75.950996ms)
+2026-09-11T19:37:43.9068062Z   ✔ paths: .agents/skills (140.477963ms)
+2026-09-11T19:37:43.9069617Z   ✔ directories: .agents/skills (97.732697ms)
+2026-09-11T19:37:43.9070368Z   ✔ exact: .agents/skills/author-standards/SKILL.md (89.582168ms)
+2026-09-11T19:37:43.9071360Z   ✔ contextual: .agents/skills/author-standards/SKILL.md (168.711338ms)
+2026-09-11T19:37:43.9072109Z   ✔ paths: .agents/skills/author-standards/SKILL.md (82.257435ms)
+2026-09-11T19:37:43.9072823Z   ✔ directories: .agents/skills/author-standards/SKILL.md (92.88664ms)
+2026-09-11T19:37:43.9073755Z   ✔ exact: .AGENTS/SKILLS/AUTHOR-STANDARDS/SKILL.md (87.674925ms)
+2026-09-11T19:37:43.9074974Z   ✔ contextual: .AGENTS/SKILLS/AUTHOR-STANDARDS/SKILL.md (113.027365ms)
+2026-09-11T19:37:43.9075607Z   ✔ paths: .AGENTS/SKILLS/AUTHOR-STANDARDS/SKILL.md (220.130929ms)
+2026-09-11T19:37:43.9076120Z   ✔ directories: .AGENTS/SKILLS/AUTHOR-STANDARDS/SKILL.md (91.407205ms)
+2026-09-11T19:37:43.9076721Z   ✔ exact: .agents/ſkills/author-standards/café.md (102.770236ms)
+2026-09-11T19:37:43.9077328Z   ✔ contextual: .agents/ſkills/author-standards/café.md (92.095275ms)
+2026-09-11T19:37:43.9077825Z   ✔ paths: .agents/ſkills/author-standards/café.md (103.369168ms)
+2026-09-11T19:37:43.9078831Z   ✔ directories: .agents/ſkills/author-standards/café.md (77.132844ms)
+2026-09-11T19:37:43.9079633Z ✔ all file and repository guidance forms reject system-skill targets and overlapping paths (5184.178971ms)
+2026-09-11T19:37:43.9080457Z ✔ source and target paths reject escaped control U+0001 (100.200813ms)
+2026-09-11T19:37:43.9081024Z ✔ source and target paths reject escaped control U+007f (96.776952ms)
+2026-09-11T19:37:43.9081556Z ✔ source and target paths reject escaped control U+0080 (85.05227ms)
+2026-09-11T19:37:43.9082093Z ✔ source and target paths reject escaped control U+0085 (84.580163ms)
+2026-09-11T19:37:43.9082616Z ✔ source and target paths reject escaped control U+009f (85.550041ms)
+2026-09-11T19:37:43.9083330Z ✔ whole skill and resource trees reject control characters in nested source paths (83.206984ms)
+2026-09-11T19:37:43.9083966Z ✔ empty profile names are rejected (86.878111ms)
+2026-09-11T19:37:43.9084426Z ✔ target path "/absolute" is rejected (84.018742ms)
+2026-09-11T19:37:43.9084899Z ✔ target path "C:/outside" is rejected (92.119574ms)
+2026-09-11T19:37:43.9085374Z ✔ target path "../outside" is rejected (142.409484ms)
+2026-09-11T19:37:43.9085869Z ✔ target path "a/../../outside" is rejected (93.55084ms)
+2026-09-11T19:37:43.9086313Z ✔ target path "./file" is rejected (86.507353ms)
+2026-09-11T19:37:43.9086831Z ✔ target path "a//file" is rejected (84.022392ms)
+2026-09-11T19:37:43.9087298Z ✔ target path "a\\file" is rejected (81.142384ms)
+2026-09-11T19:37:43.9087736Z ✔ target path "src/*.ts" is rejected (84.181473ms)
+2026-09-11T19:37:43.9088341Z ✔ source symlinks are rejected at the document and source ancestor boundaries (179.392734ms)
+2026-09-11T19:37:43.9089096Z ✔ source directories must not be symlinks even with a trailing slash (74.76347ms)
+2026-09-11T19:37:43.9089628Z ✔ references must have the declared filesystem type and skills require SKILL.md (96.691754ms)
+2026-09-11T19:37:43.9090295Z ✔ whole skills collide with files and other skill declarations after case folding (104.333366ms)
+2026-09-11T19:37:43.9090912Z ✔ replaced and excluded targets are absent from overlap validation (102.695329ms)
+2026-09-11T19:37:43.9091576Z ✔ Unicode case-folded target collisions include capital and small sharp S (94.190709ms)
+2026-09-11T19:37:43.9092215Z ✔ distinct Unicode targets are not conflated by uppercasing (104.12849ms)
+2026-09-11T19:37:47.6715050Z ✔ explicit retry recovers installation after process death and verifies confirmed files before writing (3148.913655ms)
+2026-09-11T19:37:47.6717583Z ✔ uncertain fixes require explicit retry, rerun fixes, renew contextual evidence and rerun checks (4129.150047ms)
+2026-09-11T19:37:47.6718832Z ✔ surviving author processes block retry and abandonment after the CLI dies (2711.778032ms)
+2026-09-11T19:37:47.6720113Z ✔ abandon preserves actual work, historical evidence and an accessible report without moving HEAD (2722.92333ms)
+2026-09-11T19:37:47.6721282Z ✔ retry rejects installed edits and renews assessment even when project bytes stay the same (4084.447233ms)
+2026-09-11T19:37:50.4437140Z ✔ retry recovers an interrupted completion without trusting its candidate state (2771.566144ms)
+2026-09-11T19:37:52.6517795Z ▶ retry recovers before installation and from partial runtime copying without source reacquisition
+2026-09-11T19:37:52.6519407Z   ✔ runtime (2175.534101ms)
+2026-09-11T19:37:54.8262863Z   ✔ runtime-copy (2205.79456ms)
+2026-09-11T19:37:54.8264369Z ✔ retry recovers before installation and from partial runtime copying without source reacquisition (4382.124093ms)
+2026-09-11T19:37:57.0285111Z ▶ retry recovers a file staged before rename and blocks added skill resources before further installation
+2026-09-11T19:37:57.0286801Z   ✔ staged exact file (2196.496542ms)
+2026-09-11T19:37:59.1554437Z   ✔ added skill file (2094.245027ms)
+2026-09-11T19:37:59.1566996Z ✔ retry recovers a file staged before rename and blocks added skill resources before further installation (4291.374541ms)
+2026-09-11T19:38:01.5949583Z ✔ active start blocks retry and abandonment, and completed state cannot be abandoned (2478.643069ms)
+2026-09-11T19:38:03.9544534Z ✔ abandoning an interrupted completion preserves its candidate without claiming last-complete evidence (2359.644289ms)
+2026-09-11T19:38:06.5023645Z ▶ background descendants of returned fixes and prerequisite probes retain active execution
+2026-09-11T19:38:06.5024649Z   ✔ fixes (2546.740656ms)
+2026-09-11T19:38:07.4408958Z   ✔ prerequisites (939.729797ms)
+2026-09-11T19:38:07.4410289Z ✔ background descendants of returned fixes and prerequisite probes retain active execution (3487.218376ms)
+2026-09-11T19:38:09.8748493Z ✔ retry recovers completion files interrupted between staging and rename (2395.342174ms)
+2026-09-11T19:38:12.5384870Z ✔ live process ownership is authoritative before any mirror of a running operation (2600.960445ms)
+2026-09-11T19:38:14.9138104Z ▶ retry accepts expected npm symlinks in runtime staging and unrecorded runtime installation
+2026-09-11T19:38:14.9139054Z   ✔ staged runtime (2473.504644ms)
+2026-09-11T19:38:17.6414395Z   ✔ installed runtime (2604.253724ms)
+2026-09-11T19:38:19.7397078Z   ✔ linked stage root (2222.838081ms)
+2026-09-11T19:38:19.7398421Z ✔ retry accepts expected npm symlinks in runtime staging and unrecorded runtime installation (7301.675605ms)
+2026-09-11T19:38:21.9064212Z ✔ a fast author operation cannot have its local report corruption overwritten by spawn journaling (2166.913206ms)
+2026-09-11T19:38:24.5763294Z ✔ retry preserves a report altered by an author after killing the CLI (2667.30142ms)
+2026-09-11T19:38:28.3396852Z ✔ abandoned operation logs remain readable after reconciliation and another adoption (3765.976223ms)
+2026-09-11T19:38:30.5170442Z ✔ same-second process identities distinguish reused worker and author process numbers (2176.299532ms)
+2026-09-11T19:38:32.7825396Z ✔ abandon archives operation output written before its result reached the journal (2263.222509ms)
+2026-09-11T19:38:35.6361397Z ✔ retry retains unrecorded operation output before reusing its log index (2856.404929ms)
+2026-09-11T19:38:38.4186708Z ✔ failed abandonment archives leave the actual report, journal and logs available for recovery (2783.333594ms)
+2026-09-11T19:38:38.4288828Z ✔ release artifacts install without build tools and expose the matching CLI, bootstrap, skill and author documentation (1905.902033ms)
+2026-09-11T19:38:38.4290071Z ✔ an independently installed later CLI package reports its exact release version (2178.391856ms)
+2026-09-11T19:38:38.4290962Z ✔ source search returns validated public release candidates without selecting or changing a project (294.112426ms)
+2026-09-11T19:38:38.4291670Z ✔ search rejects unsupported and invalid candidates explicitly while keeping valid candidates (493.985334ms)
+2026-09-11T19:38:38.4292394Z ✔ search finds stable published releases across pages and reports sources without one (267.138503ms)
+2026-09-11T19:38:38.4293030Z ✔ search paginates candidates and discloses incomplete GitHub results and the search cap (960.339478ms)
+2026-09-11T19:38:38.4293716Z ✔ discovery outages and malformed responses are explicit and do not prevent known-source inspection (668.740925ms)
+2026-09-11T19:38:38.4294416Z ✔ candidate failures remain explicit without falling back from an invalid newer stable release (443.303051ms)
+2026-09-11T19:38:38.4294999Z ✔ search works outside a Git project with a cache beneath its current directory (232.420902ms)
+2026-09-11T19:38:38.4295727Z ✔ validation preserves literal operations, never runs scripts or version probes, and leaves a dirty source unchanged (122.663107ms)
+2026-09-11T19:38:38.4296352Z ✔ the accepted Alice example validates unchanged and provides human output (106.691602ms)
+2026-09-11T19:38:38.4296899Z ✔ authors receive structured errors for unsupported format (94.653519ms)
+2026-09-11T19:38:38.4297405Z ✔ authors receive structured errors for invalid CLI range (93.662836ms)
+2026-09-11T19:38:38.4297848Z ✔ authors receive structured errors for incompatible CLI (105.194057ms)
+2026-09-11T19:38:38.4298337Z ✔ authors receive structured errors for missing metadata (120.102161ms)
+2026-09-11T19:38:38.4299565Z ✔ authors receive structured errors for non-string metadata (111.736923ms)
+2026-09-11T19:38:38.4300287Z ✔ authors receive diagnostics without crashing for no profiles (100.449656ms)
+2026-09-11T19:38:38.4301034Z ✔ authors receive diagnostics without crashing for recursive alias (105.397133ms)
+2026-09-11T19:38:38.4301683Z ✔ authors receive diagnostics without crashing for invalid YAML (84.241283ms)
+2026-09-11T19:38:38.4302488Z ✔ authors receive diagnostics without crashing for multiple documents (89.872331ms)
+2026-09-11T19:38:38.4303234Z ✔ authors receive diagnostics without crashing for unknown YAML tag (101.791045ms)
+2026-09-11T19:38:38.4304119Z ✔ the installed CLI exposes version and help and rejects unsupported commands (391.689015ms)
+2026-09-11T19:38:38.4304897Z ✔ duplicate YAML identities do not hide independent errors in either declaration (90.889148ms)
+2026-09-11T19:38:38.4305618Z ✔ duplicate singleton fields still validate every determinable value (84.461904ms)
+2026-09-11T19:38:38.4306441Z ✔ an unknown declaration kind does not hide unrelated unknown fields (89.495324ms)
+2026-09-11T19:38:38.4307259Z ✔ unsafe references and conflicting targets are rejected even in an unselected profile (100.424446ms)
+2026-09-11T19:38:38.4309029Z ✔ validation collects schema and operation errors across every profile with precise locations (89.301872ms)
+2026-09-11T19:38:38.4310128Z ✔ all four forms resolve through inheritance, replacement, addition and exclusion as complete declarations (107.028054ms)
+2026-09-11T19:38:38.4311010Z ✔ an author validates a local standards source through the installed CLI (110.185867ms)
+2026-09-11T19:38:40.6070482Z ✔ a confirmed standards update advances only the standards pin, replaces whole owned skills, and preserves retired content (3345.914549ms)
+2026-09-11T19:38:40.6071702Z ▶ every committed edit to installed exact baselines blocks the entire standards update before mutation
+2026-09-11T19:38:40.6072381Z   ✔ changed bytes (2646.121768ms)
+2026-09-11T19:38:40.6073305Z   ✔ changed executable state (2055.555818ms)
+2026-09-11T19:38:40.6073763Z   ✔ added skill resource (1881.762254ms)
+2026-09-11T19:38:40.6074230Z   ✔ removed skill resource (1963.891386ms)
+2026-09-11T19:38:40.6074655Z   ✔ changed skill resource (1882.958983ms)
+2026-09-11T19:38:40.6075437Z ✔ every committed edit to installed exact baselines blocks the entire standards update before mutation (10532.225351ms)
+2026-09-11T19:38:40.6076390Z ✔ a candidate CLI updates only the exact runtime pin from retained standards and restores without the source (4992.263302ms)
+2026-09-11T19:38:40.6077229Z ✔ a CLI update rejects an incompatible retained standards selection without mutation (2888.56734ms)
+2026-09-11T19:38:40.6078040Z ✔ an update failure preserves actual work and the previous last-complete evidence (3219.057746ms)
+2026-09-11T19:38:40.6079969Z ✔ update inspection rejects source or profile switching and changing both pins together (3737.522208ms)
+2026-09-11T19:38:40.6080913Z ✔ an established selection rejects its moved current tag even without the external observation cache (2405.828048ms)
+2026-09-11T19:38:40.6081832Z ✔ whole-skill updates allow resources to change between files and directories (3557.971151ms)
+2026-09-11T19:38:40.6082828Z ✔ a standards update resumes interrupted whole-skill installation while retaining its runtime (3401.698531ms)
+2026-09-11T19:38:40.6083642Z ▶ an update retries interrupted completion while preserving previous last-complete evidence
+2026-09-11T19:38:40.6084277Z   ✔ standards: lock.json (3758.034409ms)
+2026-09-11T19:38:40.6084665Z   ✔ standards: state.json (3405.223579ms)
+2026-09-11T19:38:40.6085063Z   ✔ cli: lock.json (5393.242353ms)
+2026-09-11T19:38:40.6085504Z   ✔ cli: state.json (4950.260644ms)
+2026-09-11T19:38:40.6086209Z ✔ an update retries interrupted completion while preserving previous last-complete evidence (17507.794323ms)
+2026-09-11T19:38:43.4063134Z ✔ a standards update rejects added retained inputs before discarding any material (2797.890989ms)
+2026-09-11T19:38:48.6153578Z ▶ both update inspections reject unexpected durable product files before creating a run
+2026-09-11T19:38:48.6154627Z   ✔ standards (4960.469554ms)
+2026-09-11T19:38:53.0199572Z   ✔ cli (4622.159289ms)
+2026-09-11T19:38:53.0200718Z ✔ both update inspections reject unexpected durable product files before creating a run (9583.153458ms)
+2026-09-11T19:38:55.4224867Z ✔ an update rejects a committed file at the excluded local directory before creating a run (2432.801796ms)
+2026-09-11T19:39:05.3730874Z ▶ both updates validate excluded directory roots and reject changed boundaries before creating a run
+2026-09-11T19:39:05.3731668Z   ▶ standards
+2026-09-11T19:39:05.3732514Z     ✔ .repo-standards/local: file (658.047875ms)
+2026-09-11T19:39:05.3733373Z     ✔ .repo-standards/local: directory-link (545.126929ms)
+2026-09-11T19:39:05.3735644Z     ✔ .repo-standards/local: dangling-link (545.983197ms)
+2026-09-11T19:39:05.3736839Z     ✔ .repo-standards/local: fifo (541.506141ms)
+2026-09-11T19:39:05.3751441Z     ✔ .repo-standards/cache: file (672.922185ms)
+2026-09-11T19:39:05.3752248Z     ✔ .repo-standards/cache: directory-link (525.292221ms)
+2026-09-11T19:39:05.3753430Z     ✔ .repo-standards/cache: dangling-link (537.113172ms)
+2026-09-11T19:39:05.3755448Z     ✔ .repo-standards/cache: fifo (534.150659ms)
+2026-09-11T19:39:05.3756244Z     ✔ .repo-standards/runtime/node_modules: file (689.209201ms)
+2026-09-11T19:39:05.3756859Z     ✔ .repo-standards/runtime/node_modules: directory-link (525.176039ms)
+2026-09-11T19:39:05.3766776Z     ✔ .repo-standards/runtime/node_modules: dangling-link (512.172642ms)
+2026-09-11T19:39:05.3767581Z     ✔ .repo-standards/runtime/node_modules: fifo (529.860741ms)
+2026-09-11T19:39:05.3768102Z   ✔ standards (9491.840564ms)
+2026-09-11T19:39:14.7981717Z   ▶ cli
+2026-09-11T19:39:14.7982496Z     ✔ .repo-standards/local: file (628.249877ms)
+2026-09-11T19:39:14.7983414Z     ✔ .repo-standards/local: directory-link (500.087383ms)
+2026-09-11T19:39:14.7984157Z     ✔ .repo-standards/local: dangling-link (483.21101ms)
+2026-09-11T19:39:14.7984713Z     ✔ .repo-standards/local: fifo (496.914897ms)
+2026-09-11T19:39:14.7985286Z     ✔ .repo-standards/cache: file (618.29071ms)
+2026-09-11T19:39:14.7990325Z     ✔ .repo-standards/cache: directory-link (470.068572ms)
+2026-09-11T19:39:14.7991108Z     ✔ .repo-standards/cache: dangling-link (486.449059ms)
+2026-09-11T19:39:14.7991755Z     ✔ .repo-standards/cache: fifo (501.233332ms)
+2026-09-11T19:39:14.8001718Z     ✔ .repo-standards/runtime/node_modules: file (637.908043ms)
+2026-09-11T19:39:14.8006136Z     ✔ .repo-standards/runtime/node_modules: directory-link (489.427181ms)
+2026-09-11T19:39:14.8006860Z     ✔ .repo-standards/runtime/node_modules: dangling-link (495.643716ms)
+2026-09-11T19:39:14.8007445Z     ✔ .repo-standards/runtime/node_modules: fifo (478.257015ms)
+2026-09-11T19:39:14.8007769Z   ✔ cli (9885.72907ms)
+2026-09-11T19:39:14.8008302Z ✔ both updates validate excluded directory roots and reject changed boundaries before creating a run (19377.982326ms)
+2026-09-11T19:39:18.1984439Z ▶ both updates allow absent excluded directories and ignore safe generated descendants
+2026-09-11T19:39:18.1985141Z   ✔ standards (3152.835236ms)
+2026-09-11T19:39:22.4995143Z   ✔ cli (4542.367527ms)
+2026-09-11T19:39:22.4996850Z ✔ both updates allow absent excluded directories and ignore safe generated descendants (7695.715358ms)
+2026-09-11T19:39:25.8537930Z ▶ updates preserve incomplete work when excluded roots become invalid during installation or verification
+2026-09-11T19:39:25.8539250Z   ✔ standards: installation: .repo-standards/local (3330.452082ms)
+2026-09-11T19:39:30.3353441Z   ✔ standards: installation: .repo-standards/cache (4315.918631ms)
+2026-09-11T19:39:34.3899244Z   ✔ standards: installation: .repo-standards/runtime/node_modules (4139.908774ms)
+2026-09-11T19:39:37.7615586Z   ✔ standards: verification: .repo-standards/local (3467.469144ms)
+2026-09-11T19:39:41.2570345Z   ✔ standards: verification: .repo-standards/cache (3506.072513ms)
+2026-09-11T19:39:45.2384505Z   ✔ standards: verification: .repo-standards/runtime/node_modules (3662.60856ms)
+2026-09-11T19:39:49.9028416Z   ✔ cli: installation: .repo-standards/local (4733.785873ms)
+2026-09-11T19:39:54.9152901Z   ✔ cli: installation: .repo-standards/cache (4972.623704ms)
+2026-09-11T19:39:59.9184234Z   ✔ cli: installation: .repo-standards/runtime/node_modules (4610.173418ms)
+2026-09-11T19:40:04.5030853Z   ✔ cli: verification: .repo-standards/local (5012.328173ms)
+2026-09-11T19:40:09.4957689Z   ✔ cli: verification: .repo-standards/cache (4992.965509ms)
+2026-09-11T19:40:13.9696943Z   ✔ cli: verification: .repo-standards/runtime/node_modules (4663.543107ms)
+2026-09-11T19:40:13.9698406Z ✔ updates preserve incomplete work when excluded roots become invalid during installation or verification (51410.466976ms)
+2026-09-11T19:40:17.1608037Z ▶ update identities bind unexpected durable bytes while excluding local state, caches, and dependencies
+2026-09-11T19:40:17.1609463Z   ✔ standards (2999.260535ms)
+2026-09-11T19:40:21.1118076Z   ✔ cli (3640.577232ms)
+2026-09-11T19:40:21.1119121Z ✔ update identities bind unexpected durable bytes while excluding local state, caches, and dependencies (6640.391937ms)
+2026-09-11T19:40:26.2096391Z ▶ both update paths run fixes, contextual assessment, and checks with only active declarations
+2026-09-11T19:40:26.2096920Z   ✔ standards (5357.104047ms)
+2026-09-11T19:40:32.0849104Z   ✔ cli (6182.215005ms)
+2026-09-11T19:40:32.0849830Z ✔ both update paths run fixes, contextual assessment, and checks with only active declarations (11540.289762ms)
+2026-09-11T19:40:35.9931316Z ✔ a whole-skill update resumes a partially written resource without keeping its temporary file (3899.359452ms)
+2026-09-11T19:40:39.7923285Z ✔ retry preserves a maintainer deletion of a confirmed installed skill resource (3762.829708ms)
+2026-09-11T19:40:43.5592080Z ✔ a whole-skill update resumes interrupted removal of obsolete resources (3640.788769ms)
+2026-09-11T19:40:46.7412379Z ✔ retry continues installed skill progress without deleting the candidate resources again (3381.929973ms)
+2026-09-11T19:40:46.7502592Z ℹ tests 380
+2026-09-11T19:40:46.7502975Z ℹ suites 0
+2026-09-11T19:40:46.7503200Z ℹ pass 380
+2026-09-11T19:40:46.7503456Z ℹ fail 0
+2026-09-11T19:40:46.7503709Z ℹ cancelled 0
+2026-09-11T19:40:46.7503946Z ℹ skipped 0
+2026-09-11T19:40:46.7504171Z ℹ todo 0
+2026-09-11T19:40:46.7504453Z ℹ duration_ms 277925.178536
+2026-09-11T19:40:46.7775468Z Post job cleanup.
+2026-09-11T19:40:46.8764577Z Post job cleanup.
+2026-09-11T19:40:46.9472695Z [command]/usr/bin/git version
+2026-09-11T19:40:46.9517304Z git version 2.55.0
+2026-09-11T19:40:46.9546010Z Temporarily overriding HOME='/home/runner/work/_temp/802609bb-0ceb-44be-8638-1d314679a9de' before making global git config changes
+2026-09-11T19:40:46.9547051Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-11T19:40:46.9550326Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/repo-standards/repo-standards
+2026-09-11T19:40:46.9576044Z Removing SSH command configuration
+2026-09-11T19:40:46.9582201Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-11T19:40:46.9612135Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-11T19:40:46.9776013Z Removing HTTP extra header
+2026-09-11T19:40:46.9780631Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-11T19:40:46.9805568Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-11T19:40:46.9979947Z Removing includeIf entries pointing to credentials config files
+2026-09-11T19:40:46.9991073Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-11T19:40:47.0003537Z includeif.gitdir:/home/runner/work/repo-standards/repo-standards/.git.path
+2026-09-11T19:40:47.0004088Z includeif.gitdir:/home/runner/work/repo-standards/repo-standards/.git/worktrees/*.path
+2026-09-11T19:40:47.0004509Z includeif.gitdir:/github/workspace/.git.path
+2026-09-11T19:40:47.0004954Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-11T19:40:47.0013892Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/repo-standards/repo-standards/.git.path
+2026-09-11T19:40:47.0046689Z /home/runner/work/_temp/git-credentials-8e1f6a14-bad6-4219-ad0c-f42baed2cf1c.config
+2026-09-11T19:40:47.0048492Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/repo-standards/repo-standards/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-8e1f6a14\-bad6\-4219\-ad0c\-f42baed2cf1c\.config
+2026-09-11T19:40:47.0067410Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/repo-standards/repo-standards/.git/worktrees/*.path
+2026-09-11T19:40:47.0086039Z /home/runner/work/_temp/git-credentials-8e1f6a14-bad6-4219-ad0c-f42baed2cf1c.config
+2026-09-11T19:40:47.0104236Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/repo-standards/repo-standards/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-8e1f6a14\-bad6\-4219\-ad0c\-f42baed2cf1c\.config
+2026-09-11T19:40:47.0129740Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-09-11T19:40:47.0146755Z /github/runner_temp/git-credentials-8e1f6a14-bad6-4219-ad0c-f42baed2cf1c.config
+2026-09-11T19:40:47.0153246Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-8e1f6a14\-bad6\-4219\-ad0c\-f42baed2cf1c\.config
+2026-09-11T19:40:47.0185212Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-09-11T19:40:47.0201473Z /github/runner_temp/git-credentials-8e1f6a14-bad6-4219-ad0c-f42baed2cf1c.config
+2026-09-11T19:40:47.0208093Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-8e1f6a14\-bad6\-4219\-ad0c\-f42baed2cf1c\.config
+2026-09-11T19:40:47.0232052Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-11T19:40:47.0371416Z Removing credentials config '/home/runner/work/_temp/git-credentials-8e1f6a14-bad6-4219-ad0c-f42baed2cf1c.config'
+2026-09-11T19:40:47.0492339Z Cleaning up orphan processes

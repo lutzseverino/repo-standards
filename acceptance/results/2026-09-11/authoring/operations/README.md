@@ -18,7 +18,8 @@ record the command and hashes of the skill and its two bundled guides. The
 the later integration with #28 is recorded separately below. The agent
 separately acquired public npm CLI **1.0.1** and its matching format/protocol
 documentation. This demonstrates local candidate skill installation with public
-CLI acquisition, not public skill installation or discovery. macOS was not run.
+CLI acquisition, not public skill installation or discovery. The real-agent
+journey did not run on macOS.
 
 The [live transcript](transcript.md) records the author's choices and acceptance
 before source creation, plus the actual commands, corrections, and final review.
@@ -119,10 +120,22 @@ Regular typechecking and build passed. Focused source/operation validation passe
 including resources, literal arguments, exclusions, failure semantics, read-only
 checks, repeat fixes, prerequisites, and unchanged runtime integrity behavior.
 
-The full [pnpm validate log](validation.txt) is recorded at completion.
+Full `pnpm validate` passed in the pinned [Linux/macOS PR matrix](https://github.com/lutzseverino/repo-standards/actions/runs/34639694017)
+for implementation commit `9a14d3ceb6d798b611254bf91155ef2a6c90089c`.
+[Run metadata](ci-validation.json) records the commit, jobs, and successful steps.
+The [Linux log](validation-linux.txt) reports **380 passed, 0 failed, 0 skipped**;
+the [macOS log](validation-macos.txt) reports **379 passed, 0 failed, 1 skipped**
+out of 380 tests. The skip requires a case-sensitive filesystem holding both
+`foo` and `FOO`. Both jobs used Node 24.11.1, pnpm 11.20.0, frozen-lockfile
+installation, typechecking, build, and installed-package tests. Logs preserve
+the actual job output with terminal color escapes removed.
+
 The [earlier partial run](validation-before-integration.txt) was deliberately
 stopped with SIGTERM when #28 landed on `main`, so final validation could run
 against the integrated branch. It is not a successful full-suite result.
+The [integrated local duplicate](validation-local-partial.txt) was also stopped
+after the pinned Linux/macOS CI matrix started. Neither partial local log is used
+as evidence of a complete validation; the successful full results are from CI.
 Two independent read-only reviewers examined the staged implementation and
 evidence against starting commit `9f47d6b3807a0747e9a5fb7584a017674a753faf`.
 **Standards: 0 findings** (no documented-standard violations or actionable
@@ -151,8 +164,9 @@ source hashes and the complete resolved result are included.
 
 Both independent reviewers also reviewed the integrated diff against `ed24778`:
 **Standards: 0 findings; Spec: 0 findings**. The combined installed-package release
-test passed after conflict resolution. Full `pnpm validate` is still pending;
-the running log must not be read as a completed validation result.
+test passed after conflict resolution, followed by the successful full CI
+validation recorded above. The subsequent delivery commit records evidence only;
+it changes no tested product, skill, or test behavior.
 
 Deterministic checks are separate from the real-agent
 interview and skill exercise. This slice covers parent #25 stories **16–18** and

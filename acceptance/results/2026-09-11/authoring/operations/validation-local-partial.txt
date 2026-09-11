@@ -1,0 +1,134 @@
+Already up to date
+Done in 3s using pnpm v11.20.0
+$ pnpm typecheck && pnpm build && pnpm test
+$ tsc --noEmit
+$ tsc -p tsconfig.build.json
+$ node --test test/*.test.ts
+✔ direct inspection resolves annotated tags and canonical repository identity, and rejects moved observations (3355.700052ms)
+✔ inspection rejects unsupported sources, floating references and incompatible selections with structured diagnostics (15157.445771ms)
+✔ private, missing, truncated, linked and corrupt remote snapshots are rejected (8485.91168ms)
+✔ remote source references require exact Git path spelling for every material kind (14321.673498ms)
+✔ remote snapshots reject path aliases before host extraction can conflate distinct Git entries (7323.472651ms)
+✔ the remote root entry point must be spelled standards.yaml in Git (1739.928874ms)
+✔ start requires explicit confirmation of an inspection before any project mutation (860.937548ms)
+✔ a fresh checkout restores the exact runtime and inspects retained standards after the source disappears (23020.161985ms)
+✔ confirmed exact adoption installs whole skills, claims matching files and leaves durable pins uncommitted (14409.112173ms)
+▶ start rejects every invalid initial project state without mutation
+  ✔ no commit (2913.166038ms)
+  ✔ dirty working tree (3193.266418ms)
+  ✔ dirty index (3028.454515ms)
+  ✔ untracked content (2990.246343ms)
+  ✔ ignored replacement (2927.976489ms)
+  ✔ unsafe target (2910.770297ms)
+  ✔ unsafe ancestor (2935.257154ms)
+  ✔ wrong target type (2905.47478ms)
+  ✔ case conflict (3287.367532ms)
+  ✔ unrelated matching skill (3230.864866ms)
+  ✔ reserved system skill (3086.719213ms)
+  ✔ existing product state (3132.668655ms)
+  ✔ hidden index flags (3149.702351ms)
+  ✔ skip-worktree flags (2763.280382ms)
+✔ start rejects every invalid initial project state without mutation (42466.463729ms)
+▶ start rejects stale identities, HEAD, project content and profile selection
+  ✔ identity (2410.36332ms)
+  ✔ head (2915.153173ms)
+  ✔ content (2876.102349ms)
+  ✔ profile (2899.369623ms)
+✔ start rejects stale identities, HEAD, project content and profile selection (11103.990178ms)
+▶ final integrity failures preserve work and report an incomplete locked run with no complete adoption
+  ✔ exact bytes (16202.475054ms)
+  ✔ executable bit (12951.88202ms)
+  ✔ skill addition (12182.235378ms)
+  ✔ retained input addition (11485.326186ms)
+  ✔ retained input bytes (14872.971385ms)
+  ✔ runtime manifest (11983.712688ms)
+  ✔ runtime dependency (15110.114618ms)
+  ✔ product addition (13525.898312ms)
+✔ final integrity failures preserve work and report an incomplete locked run with no complete adoption (108727.545393ms)
+✔ only one process can hold an active adoption run (16194.462944ms)
+▶ start rechecks freshness and unsafe or ignored targets after runtime acquisition before mutation
+  ✔ content (14880.481398ms)
+  ✔ symlink (13472.781789ms)
+  ✔ ignored (11848.015901ms)
+✔ start rechecks freshness and unsafe or ignored targets after runtime acquisition before mutation (40526.563356ms)
+✔ unsafe targets introduced during installation are rechecked before each write (13859.630222ms)
+▶ missing npm and unavailable exact runtime packages leave project content untouched
+  ✔ npm (704.123253ms)
+  ✔ package (1047.586138ms)
+✔ missing npm and unavailable exact runtime packages leave project content untouched (3760.161086ms)
+✖ test/adoption.test.ts (285147.129979ms)
+✖ test/assessment.test.ts
+✖ test/author-workflow.test.ts
+✖ test/bootstrap.test.ts
+✖ test/execution.test.ts
+✖ test/inspection.test.ts
+✖ test/operation-validation.test.ts
+✖ test/path-validation.test.ts
+✖ test/recovery.test.ts
+✖ test/release.test.ts
+✖ test/search.test.ts
+✖ test/source-validation.test.ts
+✖ test/update.test.ts
+ℹ tests 60
+ℹ suites 0
+ℹ pass 47
+ℹ fail 0
+ℹ cancelled 13
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 342241.538892
+
+✖ failing tests:
+
+test at test/adoption.test.ts:1:1
+✖ test/adoption.test.ts (285147.129979ms)
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/assessment.test.ts:1:1
+✖ test/assessment.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/author-workflow.test.ts:1:1
+✖ test/author-workflow.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/bootstrap.test.ts:1:1
+✖ test/bootstrap.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/execution.test.ts:1:1
+✖ test/execution.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/inspection.test.ts:1:1
+✖ test/inspection.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/operation-validation.test.ts:1:1
+✖ test/operation-validation.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/path-validation.test.ts:1:1
+✖ test/path-validation.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/recovery.test.ts:1:1
+✖ test/recovery.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/release.test.ts:1:1
+✖ test/release.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/search.test.ts:1:1
+✖ test/search.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/source-validation.test.ts:1:1
+✖ test/source-validation.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+
+test at test/update.test.ts:1:1
+✖ test/update.test.ts
+  'Promise resolution is still pending but the event loop has already resolved'
+[ELIFECYCLE] Command failed.
