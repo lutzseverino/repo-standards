@@ -1,0 +1,26 @@
+{
+  "sourceCopyMatchesFinalHashesAndModes": true,
+  "candidateInstallationInputRemoved": true,
+  "completeResolvedSelectionsMatchAcceptedChoices": true,
+  "profiles": [
+    "personal",
+    "employer"
+  ],
+  "generatedOperations": 0,
+  "gitOrAdoptionStateCreated": false,
+  "workspaceInventory": [
+    "context-tool-standards",
+    "context-tool-standards/authoring-notes.md",
+    "context-tool-standards/files",
+    "context-tool-standards/files/editorconfig",
+    "context-tool-standards/files/personal-contributing.md",
+    "context-tool-standards/guidance",
+    "context-tool-standards/guidance/employer-contribution-route.md",
+    "context-tool-standards/guidance/readme-usage.md",
+    "context-tool-standards/guidance/vulnerability-reporting.md",
+    "context-tool-standards/standards.yaml"
+  ],
+  "everySourceFileShownInAcceptedTranscript": true,
+  "installedSkillMatchedCandidateAtJourneyTime": true,
+  "postJourneyClarification": "references/profiles.md now says If no meaningful differences remain accepted instead of If the remaining differences are declined or deferred; observed behavior and accepted output are unchanged."
+}

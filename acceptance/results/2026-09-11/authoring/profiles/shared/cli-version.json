@@ -1,0 +1,9 @@
+{
+  "command": [
+    "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/author-standards-cli.kdx_2y0l/node_modules/.bin/repo-standards",
+    "--version"
+  ],
+  "stdout": "1.0.1\n",
+  "stderr": "",
+  "exit": 0
+}

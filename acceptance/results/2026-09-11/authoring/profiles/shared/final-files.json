@@ -1,0 +1,20 @@
+[
+  {
+    "path": "authoring-notes.md",
+    "sha256": "484f41ebc318fc3a1b4b365aeb81d895a81416acaa08da37a3c757dcbf434268",
+    "mode": "0o644",
+    "size": 847
+  },
+  {
+    "path": "files/editorconfig",
+    "sha256": "990552da18229149204a0df34f492c3ca09c61c5d0d65f1efa3de6ff0671ca37",
+    "mode": "0o644",
+    "size": 32
+  },
+  {
+    "path": "standards.yaml",
+    "sha256": "e0b54dcb5ac7c7e20622cff42f62ad378ad0d7489ea942f61b4c7a7841bc3133",
+    "mode": "0o644",
+    "size": 392
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "kind": "public npm registry acquisition",
+  "command": "npm install --prefix /var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-author-2reYhb/evidence/cli --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org @lutzseverino/repo-standards@1.0.1",
+  "exit_status": 0,
+  "observed_output": "\nadded 6 packages in 1s\n",
+  "capture_note": "The initial install tool returned combined output; this records that actual tool result. Validation stdout and stderr are captured separately in their own files.",
+  "matching_format_document": "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-author-2reYhb/evidence/cli/node_modules/@lutzseverino/repo-standards/docs/author-format.md"
+}

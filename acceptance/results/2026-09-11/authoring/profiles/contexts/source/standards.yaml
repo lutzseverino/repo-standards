@@ -1,0 +1,36 @@
+format: repo-standards/v1
+name: context-tool-standards
+description: Shared newline configuration and contextual contribution, usage, and security standards for personal and employer command-line tools.
+requires:
+  repo-standards: "1.0.1"
+defaults:
+  declarations:
+    final-newline:
+      kind: file
+      target: .editorconfig
+      exact: files/editorconfig
+    contribution-route:
+      kind: file
+      target: CONTRIBUTING.md
+      exact: files/personal-contributing.md
+    readme-usage:
+      kind: file
+      target: README.md
+      guidance: guidance/readme-usage.md
+profiles:
+  personal:
+    description: Personal command-line tools with identical contribution instructions and project-specific installation and usage guidance.
+    declarations: {}
+  employer:
+    description: Employer command-line tools with team-owned contribution and security guidance, leaving README content outside governance.
+    declarations:
+      contribution-route:
+        kind: file
+        target: CONTRIBUTING.md
+        guidance: guidance/employer-contribution-route.md
+      readme-usage:
+        exclude: true
+      vulnerability-reporting:
+        kind: file
+        target: SECURITY.md
+        guidance: guidance/vulnerability-reporting.md

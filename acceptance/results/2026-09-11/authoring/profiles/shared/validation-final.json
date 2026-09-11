@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/author-standards-cli.kdx_2y0l/node_modules/.bin/repo-standards",
+    "source",
+    "validate",
+    "/var/folders/8p/12p3f_8s5ssf7z3nck7dwwnh0000gn/T/repo-standards-author-yIf5rx/workspace/shared-tool-standards",
+    "--json"
+  ],
+  "version": "1.0.1",
+  "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"shared-tool-standards\",\n    \"description\": \"Shared tooling standards for all projects.\",\n    \"requires\": {\n      \"repo-standards\": \"1.0.1\"\n    }\n  },\n  \"profiles\": {\n    \"shared\": {\n      \"description\": \"The same tooling standard for every project context.\",\n      \"declarations\": [\n        {\n          \"id\": \"final-newline-editorconfig\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        }\n      ]\n    }\n  }\n}\n",
+  "stderr": "",
+  "exit": 0
+}

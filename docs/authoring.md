@@ -3,8 +3,12 @@
 For guided creation, install the standalone
 [`author-standards` candidate](installation.md#install-the-authoring-skill-candidate).
 Describe preferences in ordinary language, refine small drafts, then review the
-whole source. The candidate creates one profile with configuration and guidance,
-all referenced material, and concise `authoring-notes.md` covering accepted
+whole source. The candidate starts with one profile and adds complete profiles
+only for meaningful context differences you confirm. It puts shared declarations
+in defaults and reviews each replacement, exclusion, addition, and ownership
+choice with you. Each profile is a complete selection an adopting project will
+receive. It creates configuration and guidance, all referenced material, and
+concise `authoring-notes.md` covering accepted
 decisions and rationale, non-preferences, skipped topics, and open questions.
 Notes support authorship and do not govern adoption. No confirmed standards is a
 valid outcome: it produces no invented source and no claim of validation.
