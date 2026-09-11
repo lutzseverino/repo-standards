@@ -14,7 +14,7 @@ records installation arguments, exact resource hashes, platform, and tool versio
 `installation.txt` records the installer output. The authoring agents acquire the
 compatible public npm CLI separately. This demonstrates local candidate skill
 installation and public CLI acquisition; public skill distribution/discovery and
-macOS execution are not demonstrated by this run.
+macOS real-agent execution are not demonstrated by this run.
 
 The evaluator prepares an existing Git repository with complete `personal`,
 `library`, and `employer` profiles. Shared defaults include exact newline settings,
@@ -87,6 +87,8 @@ The checker also compares every final referenced file and notes with the full
 content actually shown in the accepted transcripts. Recheck the retained evidence
 with `python acceptance/results/2026-09-11/authoring/revision-resumption/verify.py`
 from the product checkout; this verifies artifacts, not a replay of agent behavior.
+The same checker also passed after exporting the committed evidence through
+`git archive`, including the binary fixture and executable-state comparisons.
 
 Both agents' final all-profile CLI results have exit 0 and `valid: true`. Separate
 independent CLI invocations validate all four archived source snapshots; their
@@ -116,5 +118,41 @@ passed, and [all 22 focused release/source-validation tests](focused-validation.
 passed. Skill frontmatter validation and all bundled reference links passed.
 The [installation verification](installation-verification.json) confirms the
 installed skill hashes still equal the final candidate; no skill edit followed
-these live sessions. Full `pnpm validate` is running separately and its final
-result will be retained before this ticket is considered complete.
+these live sessions. The full `pnpm validate` command then passed in CI on both supported operating
+systems for commit `fbef6e0`: [Ubuntu log](validation-ubuntu.txt) records **380 passed,
+0 failed, 0 skipped**; [macOS log](validation-macos.txt) records **379 passed,
+0 failed, 1 skipped**. The macOS skip requires a case-sensitive filesystem with
+both `foo` and `FOO`. Typechecking and build passed in both jobs. The
+[CI record](ci-validation.json) retains the exact commit, run/job URLs, completed
+steps, and counts.
+
+The redundant local ARM64 full-suite run was stopped with exit 130 after CI passed
+on both platforms; it is not claimed as a completed local full-suite result.
+Local ARM64 evidence consists of the 22 passing focused tests and both live agent
+journeys. The final documentation-only commit records validation and reviews;
+it does not change the product or the installed skill used in these runs.
+
+## Independent review
+
+### Standards
+
+No documented-standard violations or actionable baseline smells found. The
+revision guide follows `CONTEXT.md` terminology, complete replacement/exclusion
+contracts, and ADR 0002's validated-local-source endpoint. The evidence distinguishes
+structural validation, agent behavior, and installation/platform limits. Distinct
+historical snapshots and transcript repetition preserve evidence rather than
+representing duplicated executable logic.
+
+### Spec
+
+No spec findings. Instructions and fresh agent evidence cover explicit/ambiguous
+scope, conflicting rules, whole-source review, all-profile validation, unfinished
+decisions, and reconciliation of manual source edits with stale notes. The evidence
+verifier passed independently. No scope creep or incorrectly implemented requirement
+was found; generated operations remain outside #30.
+
+Both independent reviewers used fixed point `ed24778db3d102cf1cbb20c30b52ea010c83ec94`
+and reviewed commit `fbef6e0`. At review time the full validation run was pending;
+they made completion conditional on its final passing result. Findings: Standards 0,
+Spec 0; no product changes were requested. The passing CI results above satisfy
+their outstanding validation condition.
