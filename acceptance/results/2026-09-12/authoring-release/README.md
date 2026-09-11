@@ -138,3 +138,25 @@ The [coverage map](../../../authoring-release-coverage.md) maps all twelve paren
 Testing Decisions, distinguishing deterministic, candidate, published,
 real-agent, and third-party evidence. Issue #31 remains open while release gates
 are incomplete.
+
+## Replay the recorded operation exercises
+
+The original harness and its draft validation input are retained unchanged.
+With Node.js 24 on Linux, reconstruct their working layout in a disposable
+external directory. From the product checkout:
+
+```sh
+author_evidence_dir="$PWD/acceptance/results/2026-09-12/authoring-release/creation"
+author_replay_dir="$(mktemp -d)"
+mkdir "$author_replay_dir/evidence"
+cp -R "$author_evidence_dir/source" "$author_replay_dir/local-standards"
+cp "$author_evidence_dir/exercise.mjs" "$author_evidence_dir/validation-draft.json" \
+  "$author_replay_dir/evidence/"
+(cd "$author_replay_dir" && node evidence/exercise.mjs)
+```
+
+This exercises the already-generated operations and writes a new `operations.json`
+in the disposable evidence directory. It is deterministic replay, not a fresh
+agent journey. The original recorded outputs remain unchanged. Final evidence
+review identified the missing draft input; retaining it and replaying this layout
+resolved that finding.
