@@ -1,0 +1,8 @@
+CLI: explicitly supplied packed candidate 1.1.0; Node v24.11.1.
+All-profile validation: exit 0, valid true, errors empty.
+Both resolved declaration lists equal initial validation exactly.
+Only authoring-notes.md and standards.yaml content changed. All file modes, file inventory, other bytes, scratch.txt, and exact runbook guidance preserved.
+No Git checkout; Git HEAD/index preservation not applicable. No Git setup, staging, commits, publication, or adoption performed.
+No operations executed in this resumption. Earlier notes describe disposable exercises; their results were not independently inspected here.
+README-review skill content read in full; no ordinary-work agent exercise. Prior explicit content-review-only choice and remaining deferrals preserved.
+Validation proves structural validity, not operation behavior, skill usefulness, project compliance, or command correctness.

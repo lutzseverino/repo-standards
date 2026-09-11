@@ -1,0 +1,16 @@
+{
+  "wholeSourceAccepted": true,
+  "reviewedBytesAndModesUnchanged": true,
+  "validationExitCode": 0,
+  "cliVersion": "1.1.0",
+  "candidateOnly": true,
+  "profiles": [
+    "personal-tools",
+    "team-services"
+  ],
+  "validationResult": "validation-final.json",
+  "operationEvidence": "operations.json",
+  "readmeReviewAgentExercise": "explicitly deferred",
+  "published": false,
+  "adopted": false
+}

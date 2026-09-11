@@ -1,0 +1,18 @@
+{
+  "accepted": true,
+  "acceptance": "Author 3 in conversation.md",
+  "source": "/tmp/repo-standards-31-revision/source",
+  "reviewed_bytes_and_modes_unchanged": true,
+  "validation_exit": 0,
+  "valid": true,
+  "profiles": [
+    "personal-tools",
+    "team-services"
+  ],
+  "cli": "1.1.0 explicitly supplied packed candidate",
+  "node": "v24.11.1",
+  "operations": "Unchanged; not rerun in revision. Recorded verification limits accepted.",
+  "readme_review_skill": "Unchanged; not exercised in revision. Recorded verification limits accepted.",
+  "git": "No Git repository; no setup performed.",
+  "publication": "Not performed; source remains local."
+}

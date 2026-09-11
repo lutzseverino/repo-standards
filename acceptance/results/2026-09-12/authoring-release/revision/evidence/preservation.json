@@ -1,0 +1,59 @@
+{
+  "changed": [
+    "authoring-notes.md",
+    "guidance/readme-personal.md"
+  ],
+  "added": [],
+  "removed": [],
+  "mode_changes": [],
+  "all_other_files_byte_identical": true,
+  "resolved_declarations_unchanged": true,
+  "team_services_material_unchanged": true,
+  "git": "No Git repository; HEAD/index preservation not applicable",
+  "files": {
+    "authoring-notes.md": {
+      "mode": "0o600",
+      "sha256": "3cf77070dc8120685de878efd4a6a8ea8012504c251689425036f5196ab0ab55"
+    },
+    "files/editorconfig": {
+      "mode": "0o600",
+      "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669"
+    },
+    "guidance/contributing.md": {
+      "mode": "0o600",
+      "sha256": "6e1e3123b61e4613ea36a5ea5c335db82ec4794e3fc6f0b2afb885a2310ca418"
+    },
+    "guidance/notes-newline.md": {
+      "mode": "0o600",
+      "sha256": "7715e8c10fe715f954aafc984ec3e46a864a3241a783270d70e2af127f8fe43a"
+    },
+    "guidance/readme-personal.md": {
+      "mode": "0o600",
+      "sha256": "7490745bb436543e46f2f8ae26445fd38c343d6b9dfda75c2f33111f56b6c888"
+    },
+    "guidance/readme-service.md": {
+      "mode": "0o600",
+      "sha256": "8d92f06f1c03b443d94ab45c0b201d9c076d8d3165252f56d5cf3acbe7b40d88"
+    },
+    "guidance/service-runbook.md": {
+      "mode": "0o600",
+      "sha256": "4dd1d9f54512de6d7e1ab120affb2ee57aa465f0c9de36c39bc20875b99d5251"
+    },
+    "operations/notes-newline.mjs": {
+      "mode": "0o600",
+      "sha256": "2070945dedf9ed1d2d7829344fe4a2b9460776df4c5a57bb597c6b9798133631"
+    },
+    "scratch.txt": {
+      "mode": "0o600",
+      "sha256": "25114892e2b10069f8ca43ca0eab07013c3e157f267d73292f0a6eefa729b1f2"
+    },
+    "skills/readme-review/SKILL.md": {
+      "mode": "0o600",
+      "sha256": "15749f8074046ca721ff38b520907c11b17e79730837d1c677c3447e8cb951ac"
+    },
+    "standards.yaml": {
+      "mode": "0o600",
+      "sha256": "04e20dc7b98513c71e7f6ddae3f29ad27eeb900fd132a1438b68359934f610f9"
+    }
+  }
+}

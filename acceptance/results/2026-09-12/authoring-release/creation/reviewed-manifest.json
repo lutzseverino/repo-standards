@@ -1,0 +1,42 @@
+{
+  "authoring-notes.md": {
+    "sha256": "323caf4ac233134eae0ddcd78fed335983dc9a117b01619e2729a884bdf5169b",
+    "mode": "0o600"
+  },
+  "files/editorconfig": {
+    "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+    "mode": "0o600"
+  },
+  "guidance/contributing.md": {
+    "sha256": "6e1e3123b61e4613ea36a5ea5c335db82ec4794e3fc6f0b2afb885a2310ca418",
+    "mode": "0o600"
+  },
+  "guidance/notes-newline.md": {
+    "sha256": "7715e8c10fe715f954aafc984ec3e46a864a3241a783270d70e2af127f8fe43a",
+    "mode": "0o600"
+  },
+  "guidance/readme-personal.md": {
+    "sha256": "051accb0d9b0c22669be0904a748504bb5905ccf4def89027d311e6985fdc080",
+    "mode": "0o600"
+  },
+  "guidance/readme-service.md": {
+    "sha256": "8d92f06f1c03b443d94ab45c0b201d9c076d8d3165252f56d5cf3acbe7b40d88",
+    "mode": "0o600"
+  },
+  "guidance/service-runbook.md": {
+    "sha256": "4dd1d9f54512de6d7e1ab120affb2ee57aa465f0c9de36c39bc20875b99d5251",
+    "mode": "0o600"
+  },
+  "operations/notes-newline.mjs": {
+    "sha256": "2070945dedf9ed1d2d7829344fe4a2b9460776df4c5a57bb597c6b9798133631",
+    "mode": "0o600"
+  },
+  "skills/readme-review/SKILL.md": {
+    "sha256": "15749f8074046ca721ff38b520907c11b17e79730837d1c677c3447e8cb951ac",
+    "mode": "0o600"
+  },
+  "standards.yaml": {
+    "sha256": "04e20dc7b98513c71e7f6ddae3f29ad27eeb900fd132a1438b68359934f610f9",
+    "mode": "0o600"
+  }
+}

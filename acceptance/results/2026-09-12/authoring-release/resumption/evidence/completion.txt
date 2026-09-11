@@ -1,0 +1,8 @@
+Author accepted the complete source and notes, with stated verification limits, in the live conversation.
+Post-acceptance validation: exit 0; valid true; errors []; profiles personal-tools and team-services. Full report equals pre-acceptance final validation.
+Post-acceptance bytes, modes, and inventory equal the reviewed manifest exactly. Starting comparison: only authoring-notes.md and the standards.yaml profile description changed; all other bytes and all modes preserved.
+The exact on-call/escalation guidance is retained; the restart-limitations requirement remains retired.
+Supplied packed candidate CLI 1.1.0; Node v24.11.1. No public release claim.
+Operations were not executed in this session. Historical exercise notes were not independently verified. README skill content reviewed, no ordinary-work exercise; author accepted these limits.
+Deferred topics remain deferred and review remains skipped. Source remains local; no Git setup, commit, publication, or adoption.
+Source: /tmp/repo-standards-31-resumption/source

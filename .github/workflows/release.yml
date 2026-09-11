@@ -100,6 +100,7 @@ jobs:
           RELEASE_VERSION: ${{ inputs.version }}
         run: node acceptance/public-installation.ts "$RELEASE_VERSION" public-installation.json
       - name: Acquire the standalone authoring skill and matching public CLI
+        if: ${{ !cancelled() }}
         env:
           RELEASE_VERSION: ${{ inputs.version }}
         run: node acceptance/prepare-author.ts "$RELEASE_VERSION" public-author-installation.json
