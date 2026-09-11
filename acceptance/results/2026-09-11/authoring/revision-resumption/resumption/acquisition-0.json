@@ -1,0 +1,10 @@
+{
+  "command": [
+    "node",
+    "--version"
+  ],
+  "PATH-prefix": "/tmp/repo-standards-30-tools/node_modules/.bin",
+  "exit_status": 0,
+  "stdout": "v24.11.1\n",
+  "stderr": ""
+}

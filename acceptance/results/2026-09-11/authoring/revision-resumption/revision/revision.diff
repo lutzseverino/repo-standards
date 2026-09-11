@@ -1,0 +1,54 @@
+--- before/authoring-notes.md
++++ after/authoring-notes.md
+@@ -2,8 +2,8 @@
+ 
+ ## Confirmed decisions
+ - `final-newline`: exact `files/editorconfig` shared by all profiles so tools receive consistent final newlines.
+-- `readme-usage`: personal and library inherit contextual `guidance/readme.md`. Actual installation/commands, a successful-invocation screenshot, weekly review, and preserved working shell examples help readers reproduce usage. Employer replaces this with team-owned facts and its real support channel in `guidance/employer-readme.md`.
+-- `contribution-route`: personal and library share exact `files/contributing.md`; opening an issue before a pull request coordinates work, then documented tests support review. Employer excludes this because its own contribution process governs.
++- `readme-usage`: library retains contextual `guidance/readme.md`, including actual installation/commands, a successful-invocation screenshot, weekly review, and preserved working shell examples. Personal replaces the complete declaration with contextual `guidance/personal-readme.md`, substituting a short terminal command and expected text output for the screenshot; README content remains project-owned, and the other guidance is retained. Employer retains its replacement with team-owned facts and its real support channel in `guidance/employer-readme.md`.
++- `contribution-route`: library retains exact `files/contributing.md`; opening an issue before a pull request coordinates work, then documented tests support review. Personal replaces the complete declaration with exact `files/personal-contributing.md`, removing the issue-first requirement to simplify contributions while retaining the documented-test instruction as identical whole-file content. Employer retains its exclusion because its own contribution process governs.
+ - `release-notes`: library alone uses contextual `guidance/releases.md` to make changes and migration steps discoverable.
+ 
+ ## Non-preferences
+@@ -13,5 +13,5 @@
+ - Code organization and agent behavior were skipped to focus on documentation.
+ 
+ ## Unresolved / explicitly deferred
+-- Whether personal README guidance should include troubleshooting: deferred until returning to documentation.
++- Whether personal README guidance should include troubleshooting: explicitly deferred until the next documentation session.
+ - Review turnaround targets: no decision; explicitly deferred to a later session.
+--- before/standards.yaml
++++ after/standards.yaml
+@@ -20,7 +20,15 @@
+ profiles:
+   personal:
+     description: Personal command-line tools
+-    declarations: {}
++    declarations:
++      readme-usage:
++        kind: file
++        target: README.md
++        guidance: guidance/personal-readme.md
++      contribution-route:
++        kind: file
++        target: CONTRIBUTING.md
++        exact: files/personal-contributing.md
+   library:
+     description: Published libraries
+     declarations:
+--- before/guidance/personal-readme.md
++++ after/guidance/personal-readme.md
+@@ -0,0 +1,6 @@
++# README usage
++
++Describe the actual installation steps and supported commands.
++Include a short terminal command demonstrating a successful invocation and its expected text output.
++Review the README every week to keep instructions current.
++Preserve existing shell examples that still work.
+--- before/files/personal-contributing.md
++++ after/files/personal-contributing.md
+@@ -0,0 +1,3 @@
++# Contributing
++
++Run the documented tests before submitting a pull request.

@@ -1,0 +1,43 @@
+{
+  "revision": {
+    "wholeSourceContentMatchesAcceptedReview": true,
+    "changedExistingFiles": [
+      "authoring-notes.md",
+      "standards.yaml"
+    ],
+    "addedFiles": [
+      "files/personal-contributing.md",
+      "guidance/personal-readme.md"
+    ],
+    "removedFiles": [],
+    "headAndIndexBytesAndStagedDiffPreserved": true,
+    "existingModesPreserved": true,
+    "unrelatedFileBytesPreserved": true,
+    "archivedContentHashesAndExecutableStateMatch": true,
+    "libraryAndEmployerResolvedSelectionsPreserved": true,
+    "allThreeProfilesValidate": true,
+    "adoptionStateCreated": false
+  },
+  "resumption": {
+    "wholeSourceContentMatchesAcceptedReview": true,
+    "changedExistingFiles": [
+      "authoring-notes.md",
+      "guidance/personal-readme.md"
+    ],
+    "addedFiles": [],
+    "removedFiles": [],
+    "headAndIndexBytesAndStagedDiffPreserved": true,
+    "existingModesPreserved": true,
+    "unrelatedFileBytesPreserved": true,
+    "archivedContentHashesAndExecutableStateMatch": true,
+    "libraryAndEmployerResolvedSelectionsPreserved": true,
+    "allThreeProfilesValidate": true,
+    "adoptionStateCreated": false
+  },
+  "manualEdit": {
+    "personalWeeklyRuleRemovedOnly": true,
+    "notesInitiallyUnchanged": true,
+    "personalWeeklyRuleNotRestored": true,
+    "libraryWeeklyRulePreserved": true
+  }
+}

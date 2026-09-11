@@ -1,0 +1,17 @@
+{
+  "command": [
+    "npm",
+    "install",
+    "--prefix",
+    "/tmp/author-standards-cli.uzk237qf",
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    "--registry=https://registry.npmjs.org",
+    "@lutzseverino/repo-standards@1.0.1"
+  ],
+  "PATH-prefix": "/tmp/repo-standards-30-tools/node_modules/.bin",
+  "exit_status": 0,
+  "stdout": "\nadded 6 packages in 15s\n",
+  "stderr": ""
+}

@@ -1,0 +1,21 @@
+{
+  "final_reviewed_bytes_and_modes_identical": true,
+  "changed_existing_files": [
+    "authoring-notes.md",
+    "standards.yaml"
+  ],
+  "added_files": [
+    "guidance/personal-readme.md",
+    "files/personal-contributing.md"
+  ],
+  "missing_files": [],
+  "existing_modes_unchanged": true,
+  "unrelated_files_preserved": true,
+  "head_unchanged": true,
+  "index_unchanged": true,
+  "staged_unchanged": true,
+  "valid_all_profiles": true,
+  "library_resolved_selection_unchanged": true,
+  "employer_resolved_selection_unchanged": true,
+  "personal_selection_correct": true
+}

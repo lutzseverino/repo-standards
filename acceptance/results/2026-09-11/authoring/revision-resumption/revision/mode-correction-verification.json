@@ -1,0 +1,101 @@
+{
+  "standards.yaml": {
+    "expected": {
+      "sha256": "31ce69fe6f47d19ccfb0b7d0a5658cc7f7f696d981eceb4f32d1fed4a773a66e",
+      "mode": "0o600"
+    },
+    "archived": {
+      "sha256": "31ce69fe6f47d19ccfb0b7d0a5658cc7f7f696d981eceb4f32d1fed4a773a66e",
+      "mode": "0o600"
+    },
+    "matches": true
+  },
+  "files/editorconfig": {
+    "expected": {
+      "sha256": "cc228cbb52ef0af691d909dcdd01fdcab3d637c42c4131b7ed180061f7ebe63c",
+      "mode": "0o600"
+    },
+    "archived": {
+      "sha256": "cc228cbb52ef0af691d909dcdd01fdcab3d637c42c4131b7ed180061f7ebe63c",
+      "mode": "0o600"
+    },
+    "matches": true
+  },
+  "files/contributing.md": {
+    "expected": {
+      "sha256": "e1c3cb816573ce63409864167215b723316c5d11e0e31e5abd2d472105530235",
+      "mode": "0o600"
+    },
+    "archived": {
+      "sha256": "e1c3cb816573ce63409864167215b723316c5d11e0e31e5abd2d472105530235",
+      "mode": "0o600"
+    },
+    "matches": true
+  },
+  "files/personal-contributing.md": {
+    "expected": {
+      "sha256": "45664541f18ab7f74a48bf40f035992d9c097be1f6e64fb8e7b3d1019e3b3848",
+      "mode": "0o600"
+    },
+    "archived": {
+      "sha256": "45664541f18ab7f74a48bf40f035992d9c097be1f6e64fb8e7b3d1019e3b3848",
+      "mode": "0o600"
+    },
+    "matches": true
+  },
+  "guidance/readme.md": {
+    "expected": {
+      "sha256": "a95ef35e9f08fff6636dafcecdfec19a2c7225c59860a476267e45768fe27087",
+      "mode": "0o600"
+    },
+    "archived": {
+      "sha256": "a95ef35e9f08fff6636dafcecdfec19a2c7225c59860a476267e45768fe27087",
+      "mode": "0o600"
+    },
+    "matches": true
+  },
+  "guidance/personal-readme.md": {
+    "expected": {
+      "sha256": "04e37a9270ca5efb199fa7aa208faefce7262f723afe0114f22d477aa98bb6bf",
+      "mode": "0o600"
+    },
+    "archived": {
+      "sha256": "04e37a9270ca5efb199fa7aa208faefce7262f723afe0114f22d477aa98bb6bf",
+      "mode": "0o600"
+    },
+    "matches": true
+  },
+  "guidance/employer-readme.md": {
+    "expected": {
+      "sha256": "69525f0aac0abc2e188b57673d5926752b2d687ad144c8c26383c675fc7c0959",
+      "mode": "0o600"
+    },
+    "archived": {
+      "sha256": "69525f0aac0abc2e188b57673d5926752b2d687ad144c8c26383c675fc7c0959",
+      "mode": "0o600"
+    },
+    "matches": true
+  },
+  "guidance/releases.md": {
+    "expected": {
+      "sha256": "b247e0ca7a23039d3960b5d1ceba8f985a4c38600f5d52fd4874b9e2f50ec074",
+      "mode": "0o600"
+    },
+    "archived": {
+      "sha256": "b247e0ca7a23039d3960b5d1ceba8f985a4c38600f5d52fd4874b9e2f50ec074",
+      "mode": "0o600"
+    },
+    "matches": true
+  },
+  "authoring-notes.md": {
+    "expected": {
+      "sha256": "845b0e0e26f218288d04abfd681d379d8e1f9557944db93459f7ca7f4ea48eab",
+      "mode": "0o600"
+    },
+    "archived": {
+      "sha256": "845b0e0e26f218288d04abfd681d379d8e1f9557944db93459f7ca7f4ea48eab",
+      "mode": "0o600"
+    },
+    "matches": true
+  }
+}

@@ -1,6 +1,6 @@
 # Author a standards source
 
-For guided creation, install the standalone
+For guided creation, revision, or resumption, install the standalone
 [`author-standards` candidate](installation.md#install-the-authoring-skill-candidate).
 Describe preferences in ordinary language, refine small drafts, then review the
 whole source. The candidate starts with one profile and adds complete profiles
@@ -12,6 +12,20 @@ concise `authoring-notes.md` covering accepted
 decisions and rationale, non-preferences, skipped topics, and open questions.
 Notes support authorship and do not govern adoption. No confirmed standards is a
 valid outcome: it produces no invented source and no claim of validation.
+
+For an existing source, the candidate first reads current declarations,
+referenced material, relevant notes, and existing work. An explicit changed
+preference applies to its stated scope; it shows conflicting rules and asks
+when affected profiles or paths are unclear. Shared references are traced before
+editing so a profile-specific change preserves other complete selections and
+unrelated tracked and untracked work.
+
+To resume, point the agent at the source and its notes and choose which unfinished
+decisions to revisit. Current source content governs policy. If a manual edit
+contradicts an old note, the agent surfaces the disagreement and establishes
+intent before changing that policy, then reconciles the notes. Notes alone cannot
+restore a removed rule. Completion includes whole-source review, validation of
+every profile, and resolution or explicit deferral of chosen questions.
 
 The guided journey ends at author-reviewed, validated local material. The
 publication steps below are a separate workflow; the skill does not provision,
