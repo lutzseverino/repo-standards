@@ -64,6 +64,44 @@ test('inspection reports the pinned complete profile without changing a dirty pr
   assert.equal(pending.start.eligible, null, 'Author prerequisites remain unverified even in a clean project');
 });
 
+test('validation and inspection reject reserved skills and targets in an unselected profile with their original locations', (t) => {
+  const remote = remoteFixture(simpleSource() + `  other:
+    description: Other
+    declarations:
+      competing:
+        kind: skill
+        name: author-standards
+        source: skill
+      competing-file:
+        kind: file
+        target: .agents/skills/author-standards/SKILL.md
+        exact: content.md
+`, { 'content.md': 'Standards material', 'skill/SKILL.md': '# Competing skill' });
+  const project = sourceFixture('');
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const before = snapshot(project.root);
+  const validation = cli.run(['source', 'validate', '--json'], remote.source.root);
+  assert.equal(validation.status, 1, validation.stdout + validation.stderr);
+  const report = JSON.parse(validation.stdout);
+  assert.deepEqual(report.profiles, {});
+  const inspection = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(inspection.status, 1, inspection.stdout + inspection.stderr);
+  const error = JSON.parse(inspection.stdout).errors[0];
+  assert.equal(error.code, 'INVALID_STANDARDS');
+  for (const errors of [report.errors, error.details]) {
+    assert.deepEqual(errors.map(({ code, path, line, column, profile }: {
+      code: string; path: string; line: number; column: number; profile?: string;
+    }) => ({ code, path, line, column, profile })), [
+      { code: 'RESERVED_NAME', path: '/profiles/other/declarations/competing/name', line: 20, column: 15, profile: undefined },
+      { code: 'RESERVED_TARGET', path: '/profiles/other/declarations/competing/name', line: 20, column: 15, profile: undefined },
+      { code: 'RESERVED_TARGET', path: '/profiles/other/declarations/competing-file/target', line: 24, column: 17, profile: undefined },
+      { code: 'TARGET_OVERLAP', path: '/profiles/other/declarations/competing-file/target', line: 24, column: 17, profile: 'other' },
+    ]);
+  }
+  assert.deepEqual(snapshot(project.root), before);
+});
+
 test('unsafe ancestors, skill ownership and ignored replacement content block start without following links', (t) => {
   const remote = remoteFixture(simpleSource('linked/AGENTS.md') + '', { 'content.md': 'Expected' });
   const project = sourceFixture('', { '.gitignore': 'ignored.md\n', 'ignored.md': 'Ignored private content', '.agents/skills/review/SKILL.md': 'Unrelated skill' });

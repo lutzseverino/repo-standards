@@ -108,6 +108,7 @@ profiles:`).replace('    declarations: {}', '    declarations: {employer: {exclu
   assert.equal(readFileSync(join(project.root, 'CONTRIBUTING.md'), 'utf8'), 'Employer content');
   assert.equal(readFileSync(join(project.root, '.agents/skills/review/resources/check.txt'), 'utf8'), 'Skill resource');
   assert.match(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8'), /name: adopt-standards/);
+  assert.equal(existsSync(join(project.root, '.agents/skills/author-standards')), false);
   const manifest = JSON.parse(readFileSync(join(project.root, '.repo-standards/runtime/package.json'), 'utf8'));
   assert.deepEqual(manifest.dependencies, { '@lutzseverino/repo-standards': cli.version });
   assert.equal(readFileSync(join(project.root, 'package.json'), 'utf8'), '{"private":true,"packageManager":"yarn@4.0.0"}\n');
@@ -115,6 +116,7 @@ profiles:`).replace('    declarations: {}', '    declarations: {employer: {exclu
   assert.equal(state.lastComplete.inspection, inspection.identity);
   assert.equal(state.baselines['AGENTS.md'].sha256, 'ca99b7f1b14ee2c04f7aaefde89858fc947fa88de518c2e6d4b6132892175218');
   assert.deepEqual(state.skills['.agents/skills/review'], ['SKILL.md', 'resources/check.txt']);
+  assert.equal(state.skills['.agents/skills/author-standards'], undefined);
   assert.equal(readFileSync(join(project.root, '.repo-standards/inputs/source/LICENSE'), 'utf8'), 'Source license');
   assert.equal(existsSync(join(project.root, '.repo-standards/inputs/source/unrelated.txt')), false);
   assert.equal(existsSync(join(project.root, '.repo-standards/inputs/source/excluded.md')), false);

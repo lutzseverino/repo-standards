@@ -103,6 +103,7 @@ test('a confirmed standards update advances only the standards pin, replaces who
   assert.equal(state.baselines['RETIRED.md'], undefined);
   assert.equal(state.baselines['EXCLUDED.md'], undefined);
   assert.deepEqual(runtimePaths.map(path => readFileSync(join(project.root, path), 'utf8')), originalRuntime);
+  assert.equal(existsSync(join(project.root, '.agents/skills/author-standards')), false);
   assert.equal(git(project.root, 'rev-parse', 'HEAD'), oldHead);
   assert.notEqual(git(project.root, 'status', '--porcelain=v1'), '');
 });
@@ -188,6 +189,7 @@ test('a candidate CLI updates only the exact runtime pin from retained standards
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Pinned standards');
   assert.equal(JSON.parse(readFileSync(join(project.root, '.repo-standards/runtime/package.json'), 'utf8')).dependencies['@lutzseverino/repo-standards'], candidateVersion);
   assert.ok(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8').includes(`Fixture CLI ${candidateVersion}.`));
+  assert.equal(existsSync(join(project.root, '.agents/skills/author-standards')), false);
   assert.equal(git(project.root, 'rev-parse', 'HEAD'), oldHead);
   commit(project.root);
 
