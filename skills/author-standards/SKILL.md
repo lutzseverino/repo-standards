@@ -1,16 +1,21 @@
 ---
 name: author-standards
-description: Create a local Repository Standards source from confirmed preferences, reviewing configuration, guidance, and accepted checks, fixes, or ordinary-work author skills.
+description: Create or revise local Repository Standards from confirmed preferences, including accepted checks, fixes, or ordinary-work author skills, or resume unfinished decisions from authoring notes and the current source.
 ---
 
 # Author standards
 
 Finish with an author-reviewed, validated local standards source and concise
-authoring notes. This candidate supports creation with shared defaults and
-complete profiles, exact configuration files, contextual file guidance,
-repository guidance, and accepted checks, fixes, or ordinary-work author skills.
-Revision/resumption is a later slice. If requested, identify that limit and let the author
-choose whether to defer it or hand off; preserve existing sources and work.
+authoring notes. This candidate supports creation, revision, and resumption with
+shared defaults and complete profiles, exact configuration files, contextual file
+guidance, repository guidance, and accepted checks, fixes, or ordinary-work author
+skills. Preserve existing sources and work.
+
+For an existing source or a request to resume notes, first follow
+[Revision and resumption](references/revision.md). Start from the current material
+and requested decisions, then use the shared draft, translation, and completion
+steps below. Reserve the opening topic overview for new authors or newly chosen
+topics; returning authors need not repeat settled choices.
 
 ## Discover preferences
 

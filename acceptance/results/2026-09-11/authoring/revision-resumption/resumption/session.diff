@@ -1,0 +1,24 @@
+--- before/authoring-notes.md
++++ after/authoring-notes.md
+@@ -2,7 +2,7 @@
+ 
+ ## Confirmed decisions
+ - `final-newline`: exact `files/editorconfig` shared by all profiles so tools receive consistent final newlines.
+-- `readme-usage`: library retains contextual `guidance/readme.md`, including actual installation/commands, a successful-invocation screenshot, weekly review, and preserved working shell examples. Personal replaces the complete declaration with contextual `guidance/personal-readme.md`, substituting a short terminal command and expected text output for the screenshot; README content remains project-owned, and the other guidance is retained. Employer retains its replacement with team-owned facts and its real support channel in `guidance/employer-readme.md`.
++- `readme-usage`: library retains contextual `guidance/readme.md`, including actual installation/commands, a successful-invocation screenshot, weekly review, and preserved working shell examples. Personal replaces the complete declaration with contextual `guidance/personal-readme.md`, substituting a short terminal command and expected text output for the screenshot; README content remains project-owned, installation/command guidance and working shell examples are retained, and the weekly-review requirement is deliberately absent for personal tools. Personal troubleshooting describes a concrete recurring error and a verified corrective step only when project evidence supports that problem; otherwise it is omitted, avoiding invented errors or empty troubleshooting sections. Employer retains its replacement with team-owned facts and its real support channel in `guidance/employer-readme.md`.
+ - `contribution-route`: library retains exact `files/contributing.md`; opening an issue before a pull request coordinates work, then documented tests support review. Personal replaces the complete declaration with exact `files/personal-contributing.md`, removing the issue-first requirement to simplify contributions while retaining the documented-test instruction as identical whole-file content. Employer retains its exclusion because its own contribution process governs.
+ - `release-notes`: library alone uses contextual `guidance/releases.md` to make changes and migration steps discoverable.
+ 
+@@ -13,5 +13,4 @@
+ - Code organization and agent behavior were skipped to focus on documentation.
+ 
+ ## Unresolved / explicitly deferred
+-- Whether personal README guidance should include troubleshooting: explicitly deferred until the next documentation session.
+ - Review turnaround targets: no decision; explicitly deferred to a later session.
+--- before/guidance/personal-readme.md
++++ after/guidance/personal-readme.md
+@@ -3,3 +3,4 @@
+ Describe the actual installation steps and supported commands.
+ Include a short terminal command demonstrating a successful invocation and its expected text output.
+ Preserve existing shell examples that still work.
++Document a concrete recurring error and a verified corrective step only when the project has evidence of that problem; otherwise omit it rather than invent an error or a troubleshooting section.

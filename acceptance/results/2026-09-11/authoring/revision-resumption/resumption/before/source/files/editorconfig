@@ -1,0 +1,6 @@
+root = true
+
+[*]
+insert_final_newline = true
+
+# Maintainer annotation, not a policy change.

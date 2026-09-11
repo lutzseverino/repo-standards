@@ -1,0 +1,75 @@
+{
+  "head": "b44a5abfcbd0db62ed2fbaa4ba745b0c6608bf22",
+  "indexEntries": "100644 395d1642304fa4efb1bc350e3caddb79f11bd36e 0\tLICENSE\n100644 f63530fd3489b64f2a1525a12a66767212b76707 0\tWORK-IN-PROGRESS.txt\n100644 7d0abbd5c7aceab5d318de08e2c801bec9ded900 0\tauthoring-notes.md\n100644 95b6f3f482b714e9088a609448cf1c3a8a086dc0 0\tfiles/contributing.md\n100644 5b462cccdadf92874f22e8ef07043baace8eebf9 0\tfiles/editorconfig\n100644 d9823f2397022d236ff5c6cc581973b5cc64c80d 0\tguidance/readme.md\n100644 d56cc067b7ca793ac988aea482c10867395a926b 0\tguidance/releases.md\n100644 013a38a9b6bcfdaf56edf725303d944cb4237a2e 0\tstandards.yaml\n",
+  "indexSha256": "f0c77dbe8dff5aa16d9f69e2d8ec3ac2afe35c60d7411c12fc17620fcdc88a4a",
+  "status": "MM WORK-IN-PROGRESS.txt\n M authoring-notes.md\n M files/editorconfig\n M standards.yaml\n?? files/personal-contributing.md\n?? guidance/employer-readme.md\n?? guidance/personal-readme.md\n?? scratch.bin\n?? scratch.sh\n",
+  "unstagedDiff": "diff --git a/WORK-IN-PROGRESS.txt b/WORK-IN-PROGRESS.txt\nindex f63530f..003748f 100644\n--- a/WORK-IN-PROGRESS.txt\n+++ b/WORK-IN-PROGRESS.txt\n@@ -1,2 +1,3 @@\n Maintainer research: keep this draft.\n Staged decision draft.\n+Unstaged follow-up, still in progress.\ndiff --git a/authoring-notes.md b/authoring-notes.md\nindex 7d0abbd..6fe5bac 100644\n--- a/authoring-notes.md\n+++ b/authoring-notes.md\n@@ -2,8 +2,8 @@\n \n ## Confirmed decisions\n - `final-newline`: exact `files/editorconfig` shared by all profiles so tools receive consistent final newlines.\n-- `readme-usage`: personal and library inherit contextual `guidance/readme.md`. Actual installation/commands, a successful-invocation screenshot, weekly review, and preserved working shell examples help readers reproduce usage. Employer replaces this with team-owned facts and its real support channel in `guidance/employer-readme.md`.\n-- `contribution-route`: personal and library share exact `files/contributing.md`; opening an issue before a pull request coordinates work, then documented tests support review. Employer excludes this because its own contribution process governs.\n+- `readme-usage`: library retains contextual `guidance/readme.md`, including actual installation/commands, a successful-invocation screenshot, weekly review, and preserved working shell examples. Personal replaces the complete declaration with contextual `guidance/personal-readme.md`, substituting a short terminal command and expected text output for the screenshot; README content remains project-owned, and the other guidance is retained. Employer retains its replacement with team-owned facts and its real support channel in `guidance/employer-readme.md`.\n+- `contribution-route`: library retains exact `files/contributing.md`; opening an issue before a pull request coordinates work, then documented tests support review. Personal replaces the complete declaration with exact `files/personal-contributing.md`, removing the issue-first requirement to simplify contributions while retaining the documented-test instruction as identical whole-file content. Employer retains its exclusion because its own contribution process governs.\n - `release-notes`: library alone uses contextual `guidance/releases.md` to make changes and migration steps discoverable.\n \n ## Non-preferences\n@@ -13,5 +13,5 @@\n - Code organization and agent behavior were skipped to focus on documentation.\n \n ## Unresolved / explicitly deferred\n-- Whether personal README guidance should include troubleshooting: deferred until returning to documentation.\n+- Whether personal README guidance should include troubleshooting: explicitly deferred until the next documentation session.\n - Review turnaround targets: no decision; explicitly deferred to a later session.\ndiff --git a/files/editorconfig b/files/editorconfig\nindex 5b462cc..eca565c 100644\n--- a/files/editorconfig\n+++ b/files/editorconfig\n@@ -2,3 +2,5 @@ root = true\n \n [*]\n insert_final_newline = true\n+\n+# Maintainer annotation, not a policy change.\ndiff --git a/standards.yaml b/standards.yaml\nindex 013a38a..8311a2a 100644\n--- a/standards.yaml\n+++ b/standards.yaml\n@@ -20,7 +20,15 @@ defaults:\n profiles:\n   personal:\n     description: Personal command-line tools\n-    declarations: {}\n+    declarations:\n+      readme-usage:\n+        kind: file\n+        target: README.md\n+        guidance: guidance/personal-readme.md\n+      contribution-route:\n+        kind: file\n+        target: CONTRIBUTING.md\n+        exact: files/personal-contributing.md\n   library:\n     description: Published libraries\n     declarations:\n",
+  "stagedDiff": "diff --git a/WORK-IN-PROGRESS.txt b/WORK-IN-PROGRESS.txt\nindex 05041b1..f63530f 100644\n--- a/WORK-IN-PROGRESS.txt\n+++ b/WORK-IN-PROGRESS.txt\n@@ -1 +1,2 @@\n Maintainer research: keep this draft.\n+Staged decision draft.\n",
+  "files": {
+    "LICENSE": {
+      "sha256": "4bc9ac360999dff7bb9f4d9555113c354d5c261fb0ee8b356b7244733491da36",
+      "mode": "0o600",
+      "size": 62
+    },
+    "WORK-IN-PROGRESS.txt": {
+      "sha256": "54baea4d0304585e58c1da929e5908889cedd075b30e90b24c8a1b5ca70ad24e",
+      "mode": "0o600",
+      "size": 100
+    },
+    "authoring-notes.md": {
+      "sha256": "845b0e0e26f218288d04abfd681d379d8e1f9557944db93459f7ca7f4ea48eab",
+      "mode": "0o600",
+      "size": 1756
+    },
+    "files/contributing.md": {
+      "sha256": "e1c3cb816573ce63409864167215b723316c5d11e0e31e5abd2d472105530235",
+      "mode": "0o600",
+      "size": 123
+    },
+    "files/editorconfig": {
+      "sha256": "cc228cbb52ef0af691d909dcdd01fdcab3d637c42c4131b7ed180061f7ebe63c",
+      "mode": "0o600",
+      "size": 92
+    },
+    "files/personal-contributing.md": {
+      "sha256": "45664541f18ab7f74a48bf40f035992d9c097be1f6e64fb8e7b3d1019e3b3848",
+      "mode": "0o600",
+      "size": 75
+    },
+    "guidance/employer-readme.md": {
+      "sha256": "69525f0aac0abc2e188b57673d5926752b2d687ad144c8c26383c675fc7c0959",
+      "mode": "0o600",
+      "size": 91
+    },
+    "guidance/personal-readme.md": {
+      "sha256": "356d4181c7d6d605c8638de595c1a298477e2fc7c90830c8f323532836dfacdc",
+      "mode": "0o600",
+      "size": 230
+    },
+    "guidance/readme.md": {
+      "sha256": "a95ef35e9f08fff6636dafcecdfec19a2c7225c59860a476267e45768fe27087",
+      "mode": "0o600",
+      "size": 248
+    },
+    "guidance/releases.md": {
+      "sha256": "b247e0ca7a23039d3960b5d1ceba8f985a4c38600f5d52fd4874b9e2f50ec074",
+      "mode": "0o600",
+      "size": 94
+    },
+    "scratch.bin": {
+      "sha256": "896a425d1fade64e368ccca61003182138e59b7050bca9a7ec8f4ca99646f9fb",
+      "mode": "0o600",
+      "size": 5
+    },
+    "scratch.sh": {
+      "sha256": "b32ea43dbe80a464764d376f6d7a2c31ff367789b9b6b7bb154315607fbfbbc4",
+      "mode": "0o755",
+      "size": 49
+    },
+    "standards.yaml": {
+      "sha256": "31ce69fe6f47d19ccfb0b7d0a5658cc7f7f696d981eceb4f32d1fed4a773a66e",
+      "mode": "0o600",
+      "size": 1224
+    }
+  }
+}

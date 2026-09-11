@@ -1,0 +1,65 @@
+{
+  "head": "b44a5abfcbd0db62ed2fbaa4ba745b0c6608bf22",
+  "indexEntries": "100644 395d1642304fa4efb1bc350e3caddb79f11bd36e 0\tLICENSE\n100644 f63530fd3489b64f2a1525a12a66767212b76707 0\tWORK-IN-PROGRESS.txt\n100644 7d0abbd5c7aceab5d318de08e2c801bec9ded900 0\tauthoring-notes.md\n100644 95b6f3f482b714e9088a609448cf1c3a8a086dc0 0\tfiles/contributing.md\n100644 5b462cccdadf92874f22e8ef07043baace8eebf9 0\tfiles/editorconfig\n100644 d9823f2397022d236ff5c6cc581973b5cc64c80d 0\tguidance/readme.md\n100644 d56cc067b7ca793ac988aea482c10867395a926b 0\tguidance/releases.md\n100644 013a38a9b6bcfdaf56edf725303d944cb4237a2e 0\tstandards.yaml\n",
+  "indexSha256": "f0c77dbe8dff5aa16d9f69e2d8ec3ac2afe35c60d7411c12fc17620fcdc88a4a",
+  "status": "MM WORK-IN-PROGRESS.txt\n M files/editorconfig\n?? guidance/employer-readme.md\n?? scratch.bin\n?? scratch.sh\n",
+  "unstagedDiff": "diff --git a/WORK-IN-PROGRESS.txt b/WORK-IN-PROGRESS.txt\nindex f63530f..003748f 100644\n--- a/WORK-IN-PROGRESS.txt\n+++ b/WORK-IN-PROGRESS.txt\n@@ -1,2 +1,3 @@\n Maintainer research: keep this draft.\n Staged decision draft.\n+Unstaged follow-up, still in progress.\ndiff --git a/files/editorconfig b/files/editorconfig\nindex 5b462cc..eca565c 100644\n--- a/files/editorconfig\n+++ b/files/editorconfig\n@@ -2,3 +2,5 @@ root = true\n \n [*]\n insert_final_newline = true\n+\n+# Maintainer annotation, not a policy change.\n",
+  "stagedDiff": "diff --git a/WORK-IN-PROGRESS.txt b/WORK-IN-PROGRESS.txt\nindex 05041b1..f63530f 100644\n--- a/WORK-IN-PROGRESS.txt\n+++ b/WORK-IN-PROGRESS.txt\n@@ -1 +1,2 @@\n Maintainer research: keep this draft.\n+Staged decision draft.\n",
+  "files": {
+    "LICENSE": {
+      "sha256": "4bc9ac360999dff7bb9f4d9555113c354d5c261fb0ee8b356b7244733491da36",
+      "mode": "0o600",
+      "size": 62
+    },
+    "WORK-IN-PROGRESS.txt": {
+      "sha256": "54baea4d0304585e58c1da929e5908889cedd075b30e90b24c8a1b5ca70ad24e",
+      "mode": "0o600",
+      "size": 100
+    },
+    "authoring-notes.md": {
+      "sha256": "4d15577e22e5c8da16ecc09b0b6f0b67b18ed1eaa30c42a36cdae57d462ecee4",
+      "mode": "0o600",
+      "size": 1287
+    },
+    "files/contributing.md": {
+      "sha256": "e1c3cb816573ce63409864167215b723316c5d11e0e31e5abd2d472105530235",
+      "mode": "0o600",
+      "size": 123
+    },
+    "files/editorconfig": {
+      "sha256": "cc228cbb52ef0af691d909dcdd01fdcab3d637c42c4131b7ed180061f7ebe63c",
+      "mode": "0o600",
+      "size": 92
+    },
+    "guidance/employer-readme.md": {
+      "sha256": "69525f0aac0abc2e188b57673d5926752b2d687ad144c8c26383c675fc7c0959",
+      "mode": "0o600",
+      "size": 91
+    },
+    "guidance/readme.md": {
+      "sha256": "a95ef35e9f08fff6636dafcecdfec19a2c7225c59860a476267e45768fe27087",
+      "mode": "0o600",
+      "size": 248
+    },
+    "guidance/releases.md": {
+      "sha256": "b247e0ca7a23039d3960b5d1ceba8f985a4c38600f5d52fd4874b9e2f50ec074",
+      "mode": "0o600",
+      "size": 94
+    },
+    "scratch.bin": {
+      "sha256": "896a425d1fade64e368ccca61003182138e59b7050bca9a7ec8f4ca99646f9fb",
+      "mode": "0o600",
+      "size": 5
+    },
+    "scratch.sh": {
+      "sha256": "b32ea43dbe80a464764d376f6d7a2c31ff367789b9b6b7bb154315607fbfbbc4",
+      "mode": "0o755",
+      "size": 49
+    },
+    "standards.yaml": {
+      "sha256": "7ec8a284516d00d470f83f0867f93d9c37f59f5cc07afea648b5e7a0d4475de7",
+      "mode": "0o600",
+      "size": 993
+    }
+  }
+}

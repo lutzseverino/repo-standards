@@ -1,0 +1,1 @@
+PATH=/tmp/repo-standards-30-tools/node_modules/.bin:$PATH npm install --prefix /tmp/author-standards-cli.cuzmlA --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org @lutzseverino/repo-standards@1.0.1

@@ -1,0 +1,48 @@
+{
+  "kind": "local author-standards candidate installation",
+  "root": "/tmp/repo-standards-author-BydzfE",
+  "workspace": "/tmp/repo-standards-author-BydzfE/workspace",
+  "skill": "/tmp/repo-standards-author-BydzfE/home/.agents/skills/author-standards",
+  "resources": [
+    {
+      "path": "SKILL.md",
+      "sha256": "0d19785adbe6b096e860a104a90ae94575b66b5776c726f2d56a72d6c9c6c132"
+    },
+    {
+      "path": "references/cli.md",
+      "sha256": "fcd86f9833ae578faa3fb255f7b61ca9b207f979cfdd77a10bfa0542f9e6646d"
+    },
+    {
+      "path": "references/profiles.md",
+      "sha256": "784a8b5a60d3c67f61361f829797b7bc0f005e739dbe1ed1943ef31593977851"
+    },
+    {
+      "path": "references/revision.md",
+      "sha256": "212a85d506397cdb82a598c13f9360ab26ec143316933305fc1ec7aa3b966e4f"
+    }
+  ],
+  "installer": "skills@1.5.25",
+  "command": [
+    "npm",
+    "exec",
+    "--yes",
+    "--registry=https://registry.npmjs.org",
+    "--package=skills@1.5.25",
+    "--",
+    "skills",
+    "add",
+    "/tmp/repo-standards-author-BydzfE/candidate",
+    "--skill",
+    "author-standards",
+    "--global",
+    "--agent",
+    "codex",
+    "--copy",
+    "--yes"
+  ],
+  "platform": "linux",
+  "arch": "arm64",
+  "node": "v24.11.1",
+  "npm": "11.19.0",
+  "installedAt": "2026-09-11T19:20:50.463Z"
+}

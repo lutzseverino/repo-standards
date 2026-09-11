@@ -1,0 +1,8 @@
+--- revision/after/source/guidance/personal-readme.md
++++ resumption/before/source/guidance/personal-readme.md
+@@ -2,5 +2,4 @@
+ 
+ Describe the actual installation steps and supported commands.
+ Include a short terminal command demonstrating a successful invocation and its expected text output.
+-Review the README every week to keep instructions current.
+ Preserve existing shell examples that still work.

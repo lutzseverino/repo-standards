@@ -1,0 +1,1 @@
+PATH=/tmp/repo-standards-30-tools/node_modules/.bin:$PATH /tmp/author-standards-cli.cuzmlA/node_modules/.bin/repo-standards source validate /tmp/repo-standards-author-BydzfE/workspace/standards --json

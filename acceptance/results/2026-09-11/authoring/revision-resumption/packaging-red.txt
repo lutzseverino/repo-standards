@@ -1,0 +1,27 @@
+✖ release artifacts install without build tools and expose the matching CLI, bootstrap, skill and author documentation (10290.100513ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10852.773453
+
+✖ failing tests:
+
+test at test/release.test.ts:10:1
+✖ release artifacts install without build tools and expose the matching CLI, bootstrap, skill and author documentation (10290.100513ms)
+  Error: ENOENT: no such file or directory, open '/tmp/repo-standards-release-test-8xFTJD/installation/node_modules/@lutzseverino/repo-standards/skills/author-standards/references/revision.md'
+      at Object.openSync (node:fs:560:18)
+      at readFileSync (node:fs:444:35)
+      at TestContext.<anonymous> (file:///srv/dev/projects/repo-standards-30/test/release.test.ts:30:22)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.start (node:internal/test_runner/test:1003:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:358:17) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/tmp/repo-standards-release-test-8xFTJD/installation/node_modules/@lutzseverino/repo-standards/skills/author-standards/references/revision.md'
+  }
