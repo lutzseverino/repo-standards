@@ -25,7 +25,17 @@ publication followed by public retrieval is the final access evidence. Never
 commit tokens, npm configuration containing credentials, or authentication logs.
 Use interactive authentication/2FA for local publication. For the workflow,
 configure `NPM_TOKEN` as an environment secret in GitHub's `npm` environment,
-with publish access scoped to this package and compatible npm 2FA settings.
+using a granular token scoped only to this package. Select **Read and write
+(publish and stage)** and enable **Bypass two-factor authentication** when
+creating the token; bypass is disabled by default. See npm's
+[token creation instructions](https://docs.npmjs.com/creating-and-viewing-access-tokens/).
+The package must permit granular tokens with bypass enabled. If its policy
+[disallows tokens](https://docs.npmjs.com/requiring-2fa-for-package-publishing-and-settings-modification/),
+stop and agree on a supported publication route with the maintainer; do not
+disable account or package 2FA to unblock the workflow. Successful `npm whoami`
+establishes identity, not publish permission or compatibility with 2FA. An
+`EOTP` publication failure requires checking these settings outside CI; do not
+store a one-time password as a secret or pass it through repository files.
 Configure environment access according to the repository's release policy.
 
 The workflow uses token authentication and does not request attestations.

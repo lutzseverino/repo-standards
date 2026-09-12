@@ -1,0 +1,14 @@
+[
+  {
+    "observedAt": "2026-09-12T06:46:24.749817+00:00",
+    "url": "https://registry.npmjs.org/@lutzseverino%2frepo-standards/1.1.0",
+    "status": 404,
+    "body": "\"version not found: 1.1.0\""
+  },
+  {
+    "observedAt": "2026-09-12T06:46:25.070295+00:00",
+    "url": "https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v1.1.0",
+    "status": 404,
+    "body": "{\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/releases/releases#get-a-release-by-tag-name\",\"status\":\"404\"}"
+  }
+]

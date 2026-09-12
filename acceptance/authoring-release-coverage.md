@@ -2,7 +2,10 @@
 
 Parent: [#25](https://github.com/lutzseverino/repo-standards/issues/25).
 Implementation candidate: 1.1.0. Current observations are in
-[the 2026-09-12 evidence record](results/2026-09-12/authoring-release/README.md). Publication and fresh delivered-skill acceptance
+[the original candidate evidence record](results/2026-09-12/authoring-release/README.md).
+The [resumed release record](results/2026-09-12/authoring-public-release/README.md)
+retains the later attempt separately: both OS checks passed, but npm rejected
+publication with `EOTP` after successful authentication. Publication and fresh delivered-skill acceptance
 must succeed before this feature is called complete. The table distinguishes
 current release work from historical behavioral acceptance; scripted tests do
 not establish preference elicitation quality.
@@ -20,7 +23,7 @@ not establish preference elicitation quality.
 | 9. Reserved identity | `test/path-validation.test.ts`: both reserved names, normalized targets across declaration forms and all profiles. | Passed in the current Linux/macOS release validation matrix. |
 | 10. Adoption regression | `test/adoption.test.ts`, `test/update.test.ts`, `test/assessment.test.ts`, `test/recovery.test.ts`: exact runtime/skill pins, integrity ownership, updates, and explicit absence of automatically installed authoring. | Passed in the current Linux/macOS release validation matrix. |
 | 11. Discovery evidence | Public tagged command in `docs/installation.md`; independently dated skills.sh page/search observations. Installer telemetry is disabled in acceptance. | Public tag unavailable; skills.sh rendered unavailable content and search omitted the skill at 2026-09-11 22:21 UTC. |
-| 12. Release checks | `pnpm validate` and the existing macOS/Linux release matrix, plus separate installed-skill real-agent journeys. | Both OS validation jobs passed; publication failed with ENEEDAUTH. Fresh candidate agents are separate; delivered-skill journeys remain blocked. |
+| 12. Release checks | `pnpm validate` and the existing macOS/Linux release matrix, plus separate installed-skill real-agent journeys. | Both OS validation jobs passed again at `305025e`; the resumed publication failed with EOTP after successful authentication. Fresh candidate agents are separate; delivered-skill journeys remain blocked. |
 
 Stories 32–35 are covered jointly with #26: format reservation and adoption
 regressions stay at the installed public CLI seam; fresh agent usefulness and
