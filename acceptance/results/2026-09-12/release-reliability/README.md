@@ -146,4 +146,36 @@ bundles, evidence preservation, quota diagnostics, unexplained 403, transport
 failure and assertion failure. These simulations do not establish public
 installation, account permissions or actual publication.
 
-Full validation and review results will be added after completion.
+Both independent reviews inspected `37fa6de4...27121ec` using the code-review
+skill. The full validation result is recorded below.
+
+### Standards
+
+No documented-standard violations found. Changes stay within maintainer tooling
+and documentation, preserve the public CLI/author contracts, and test observable
+commands at the confirmed seam. The repeated quoting/hash operations do not
+justify shared infrastructure for this focused change. **0 findings.**
+
+### Spec
+
+No missing requirements, scope creep or incorrect implementation found. The
+review confirmed the history classification, identity-checked recovery, preserved
+anonymous acceptance and archival evidence, and explicit standards candidates
+and backlog limits. **0 findings.**
+
+Review summary: Standards 0 findings; Spec 0 findings. No blocking issue on
+either axis.
+
+### Full validation
+
+`pnpm install --frozen-lockfile` and `pnpm validate` passed on Linux arm64 with
+Node.js 24.11.1 and pnpm 11.20.0. The full suite ran once after implementation:
+393 tests passed, with zero failures, cancellations or skips; typechecking and
+build passed as part of the same command. Test duration was 2,275,997.530244 ms.
+The new 13 command tests also passed in focused development runs. Both workflow
+files passed YAML parsing and embedded shell syntax checks.
+
+The full suite repeatedly installs and exercises the package against temporary
+Git repositories. Its local cost is retained rather than weakening acceptance;
+focused files provide the development feedback loop. Hosted platform results
+belong to the follow-up PR checks.
