@@ -23,24 +23,28 @@ organization access. An empty package list does not prove permission to create
 it. `npm publish --dry-run` verifies packaging, not authorization; successful
 publication followed by public retrieval is the final access evidence. Never
 commit tokens, npm configuration containing credentials, or authentication logs.
-Use interactive authentication/2FA for local publication. For the workflow,
-configure `NPM_TOKEN` as an environment secret in GitHub's `npm` environment,
-using a granular token scoped only to this package. Select **Read and write
-(publish and stage)** and enable **Bypass two-factor authentication** when
-creating the token; bypass is disabled by default. See npm's
-[token creation instructions](https://docs.npmjs.com/creating-and-viewing-access-tokens/).
-The package must permit granular tokens with bypass enabled. If its policy
-[disallows tokens](https://docs.npmjs.com/requiring-2fa-for-package-publishing-and-settings-modification/),
-stop and agree on a supported publication route with the maintainer; do not
-disable account or package 2FA to unblock the workflow. Successful `npm whoami`
-establishes identity, not publish permission or compatibility with 2FA. An
-`EOTP` publication failure requires checking these settings outside CI; do not
-store a one-time password as a secret or pass it through repository files.
-Configure environment access according to the repository's release policy.
+Use interactive browser authentication/2FA for local publication. The workflow
+uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) through
+GitHub Actions OIDC. In this package's npm settings, add a GitHub Actions trusted
+publisher with user `lutzseverino`, repository `repo-standards`, workflow filename
+`release.yml`, environment `npm`, and permission for direct `npm publish`.
+The publisher label is descriptive only; `GitHub Actions — repo-standards releases`
+identifies its purpose. Package publishing access can require 2FA and disallow
+traditional tokens; that policy permits trusted publishing.
 
-The workflow uses token authentication and does not request attestations.
-See npm's [publish documentation](https://docs.npmjs.com/cli/commands/npm-publish/)
-for scoped public access and authentication requirements.
+The publish job runs on a GitHub-hosted runner, grants `id-token: write`, and
+uses npm 11.19.0 with Node 24.11.1. It does not consume `NPM_TOKEN` or run
+`npm whoami`: OIDC authentication occurs during `npm publish`, and `whoami`
+does not verify it. npm automatically enables provenance for this public
+package/repository when trusted publishing succeeds. Configure GitHub's `npm`
+environment access according to the repository's release policy.
+
+The `verify_published` workflow mode also exercises the public npm OIDC exchange
+without publishing, staging, or retaining credentials. This verifies the
+workflow/environment trust configuration; direct-publish permissions and the
+complete publish/provenance path are established only by a subsequent real
+release. An npm dry run is not authentication evidence. Retire the old automation
+token after migration; never store an OTP in CI or repository files.
 
 ## Build and inspect a bundle
 
@@ -66,7 +70,7 @@ executables and supplied author material alongside owning behavior tests.
 
 The `Release` workflow is manually dispatched at the reviewed commit with its
 exact package version. It validates on macOS and Linux, produces one bundle,
-checks npm access, publishes its tarball, and attaches that bundle to the
+authenticates through OIDC, publishes its tarball, and attaches that bundle to the
 matching GitHub `v<version>` release. The workflow then runs public npm smoke
 checks on both systems and retains JSON evidence as workflow artifacts.
 It refuses an existing Git tag; inspect any partial previous publication before
@@ -80,9 +84,9 @@ browser authentication, verify its registry integrity against `release.json`,
 then create the GitHub release at the original validated commit with the same
 four bundle files. Run the `Release` workflow with `verify_published: true` and
 the exact published version to collect both platforms' public installation
-evidence. This mode skips validation/packaging/publication and runs the existing
-public checks; retain the original validation run separately. Browser login on
-a local machine does not repair the GitHub environment's token authentication.
+evidence. This mode skips validation/packaging/publication, verifies OIDC trust,
+and runs the existing public checks; retain the original validation run separately.
+Browser login on a local machine does not configure GitHub Actions authentication.
 
 For an initial local release using an authenticated npm account:
 

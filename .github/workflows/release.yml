@@ -62,22 +62,21 @@ jobs:
     environment: npm
     permissions:
       contents: write
+      id-token: write
     steps:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.11.1
           registry-url: https://registry.npmjs.org
+      - run: npm install --global npm@11.19.0 --ignore-scripts
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: release-bundle
           path: release
       - name: Verify bundle and publish its exact tarball
         working-directory: release
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           sha256sum --check SHA256SUMS
-          npm whoami --registry=https://registry.npmjs.org
           npm publish ./*.tgz --ignore-scripts --access public --registry=https://registry.npmjs.org
       - name: Publish matching bootstrap and bundle
         env:
@@ -89,6 +88,21 @@ jobs:
           gh release create "v$RELEASE_VERSION" release/* --target "$RELEASE_COMMIT" \
             --title "Repository Standards $RELEASE_VERSION" \
             --notes 'Public CLI package and standalone bootstrap. See the release procedure and acceptance evidence; publication does not close the parent release specification.'
+
+  verify-publisher:
+    if: ${{ inputs.verify_published }}
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - name: Verify trusted publisher authentication without publishing
+        run: node scripts/verify-npm-publisher.ts
 
   public-installation:
     needs: publish
