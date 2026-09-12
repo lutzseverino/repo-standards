@@ -277,3 +277,42 @@ and identify platform and installation limits. Generated operations do not gate
 this guidance-based journey.
 
 Recorded run: [2026-09-11 scoped revision and reconciled resumption](results/2026-09-11/authoring/revision-resumption/README.md).
+
+## Published authoring installation
+
+Issue #31 verifies the delivered feature after issues #26–30. After the existing
+product release workflow publishes its exact stable version, run on macOS and Linux:
+
+```sh
+node acceptance/prepare-author.ts 1.1.0 /outside/public-author-installation.json
+```
+
+This extends the candidate preparation above. Public mode installs the tagged
+skill through `skills@1.5.25` into an isolated global home, checks its resources,
+then follows its CLI guide to acquire the exact public npm version in a separate
+directory. It checks matching documentation, package integrity against the
+release bundle, installed skill inventories, and read-only example validation.
+The authoring workspace stays empty. It records the public tag's commit, resource
+hashes, commands, versions, runtime OS, and actual outcomes, including failures.
+No product checkout or npm-package layout is used as installation input. Setup
+itself may run from this checkout; the resulting agent receives only the printed
+session's installed skill and workspace. Temporary directories remain for that
+agent journey; delete the recorded root after retaining the evidence.
+
+Use fresh real agents and live author turns for creation, revision, and resumption,
+following the scenarios above. Include multi-profile ownership, non-decisions,
+accepted operations and verification limits, stale-note reconciliation, final
+review, all-profile validation, and the local-authoring boundary. Retain the
+actual conversation and generated files, labeling a synthetic evaluator author.
+A new installation followed by replayed historical outputs is not fresh evidence.
+If publication is blocked, use the no-argument candidate setup and record candidate
+CLI acquisition explicitly; do not promote that run to delivered-release evidence.
+
+Observe the [skills.sh page](https://skills.sh/lutzseverino/repo-standards/author-standards)
+and `npx skills@1.5.25 find author-standards` separately, recording time, result,
+and any HTTP/error limitation. Installation success does not prove directory
+indexing, and directory absence does not prove installation failure. Acceptance
+setup disables telemetry, so it does not establish telemetry-driven discovery.
+Maintain all twelve parent Testing Decisions in
+[the release coverage map](authoring-release-coverage.md), with current evidence
+separate from historical behavior-ticket acceptance and explicit blockers.

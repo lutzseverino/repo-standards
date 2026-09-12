@@ -1,0 +1,48 @@
+{
+  "kind": "public author-standards release installation",
+  "passed": false,
+  "failure": "spawnSync npm ENOENT",
+  "root": "/tmp/repo-standards-author-d0PHt9",
+  "workspace": "/tmp/repo-standards-author-d0PHt9/workspace",
+  "skill": "/tmp/repo-standards-author-d0PHt9/home/.agents/skills/author-standards",
+  "resources": [],
+  "installer": "skills@1.5.25",
+  "command": [
+    "npm",
+    "exec",
+    "--yes",
+    "--registry=https://registry.npmjs.org",
+    "--package=skills@1.5.25",
+    "--",
+    "skills",
+    "add",
+    "https://github.com/lutzseverino/repo-standards/tree/v1.1.0/skills/author-standards",
+    "--skill",
+    "author-standards",
+    "--global",
+    "--agent",
+    "codex",
+    "--copy",
+    "--yes"
+  ],
+  "version": "1.1.0",
+  "documents": [],
+  "platform": "linux",
+  "arch": "arm64",
+  "osRelease": "6.18.34+rpt-rpi-v8",
+  "node": "v24.11.1",
+  "installedAt": "2026-09-11T22:22:07.515Z",
+  "commands": [
+    {
+      "executable": "npm",
+      "args": [
+        "--version"
+      ],
+      "status": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "downloads": [],
+  "scope": "Installation, resources, matching CLI/docs and example validation only. No real-agent or skills.sh listing claim. Telemetry disabled."
+}

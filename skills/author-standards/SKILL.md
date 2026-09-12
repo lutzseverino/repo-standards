@@ -6,7 +6,7 @@ description: Create or revise local Repository Standards from confirmed preferen
 # Author standards
 
 Finish with an author-reviewed, validated local standards source and concise
-authoring notes. This candidate supports creation, revision, and resumption with
+authoring notes. This skill supports creation, revision, and resumption with
 shared defaults and complete profiles, exact configuration files, contextual file
 guidance, repository guidance, and accepted checks, fixes, or ordinary-work author
 skills. Preserve existing sources and work.

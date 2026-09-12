@@ -1,0 +1,14 @@
+[
+  {
+    "fixture": "personal-complete",
+    "request": "Review documentation read-only using the documentation-review skill and personal-tools profile."
+  },
+  {
+    "fixture": "personal-missing-failures",
+    "request": "Review documentation read-only using the documentation-review skill and personal-tools profile."
+  },
+  {
+    "fixture": "team-complete",
+    "request": "Review documentation read-only using the documentation-review skill and team-services profile."
+  }
+]

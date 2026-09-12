@@ -1,0 +1,46 @@
+{
+  "authoring-notes.md": {
+    "sha256": "47c02dd554f630f17c2f91bdc0809000a704f609083564bb8c3f63d144b45650",
+    "mode": "0o644"
+  },
+  "files/editorconfig": {
+    "sha256": "12799d2c06823790390a6873c35db831ecd9e839ae9342cba6124ecfe9a0d7d0",
+    "mode": "0o644"
+  },
+  "guidance/contributing.md": {
+    "sha256": "c4d8c6714e03940fe2052c9c129fa261e6a83477cba5ef3599419827d6373b3c",
+    "mode": "0o644"
+  },
+  "guidance/notes.md": {
+    "sha256": "2aba06c22ab0a56f0c6e9d68c51a81182bc3b0c5bbdb067008511d4a41d753da",
+    "mode": "0o644"
+  },
+  "guidance/readme.md": {
+    "sha256": "8d16ea3c0003decf77a18a3fdd831d74dd84bfd478b85efd0652a450ae41d7e0",
+    "mode": "0o644"
+  },
+  "guidance/runbooks.md": {
+    "sha256": "d9521d60d2d1256c5552f0970bc643b540a43c0325a439548f549d4d48a0568d",
+    "mode": "0o644"
+  },
+  "guidance/team-readme.md": {
+    "sha256": "c3381bf577341d5394c3cfc0d54f58b393d32c59370f74b07d88b34d27cf4f65",
+    "mode": "0o644"
+  },
+  "operations/notes-final-newline.cjs": {
+    "sha256": "1ce8e6c6fe8c13b70abc089fa10020962694be4a87cf2b466a7c7e2fff295261",
+    "mode": "0o644"
+  },
+  "skills/documentation-review/SKILL.md": {
+    "sha256": "740eb99b8350f2848fa8914d6f3fb1d5751a8fbfdb1221984ba8c42173e2bfe3",
+    "mode": "0o644"
+  },
+  "skills/documentation-review/references/checklist.md": {
+    "sha256": "1e4de29dbee84afe90ea949ac688193560d4937330f9f49042fa507ce97e8c5e",
+    "mode": "0o644"
+  },
+  "standards.yaml": {
+    "sha256": "5c6a410d240a6be8974ffbeff4a083f5aa1a06624e916f2976ae1216b463075e",
+    "mode": "0o644"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "valid": true,
+  "errors": [],
+  "source": {
+    "format": "repo-standards/v1",
+    "name": "Utility standards",
+    "description": "Lightweight standards for small personal CSV and text command-line utilities.",
+    "requires": {
+      "repo-standards": "1.1.0"
+    }
+  },
+  "profiles": {
+    "personal-tools": {
+      "description": "Small personal CSV and text conversion utilities.",
+      "declarations": [
+        {
+          "id": "editor-line-endings",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": ".editorconfig",
+          "exact": "files/editorconfig"
+        },
+        {
+          "id": "readme-usage",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": "README.md",
+          "guidance": "guidance/readme.md"
+        },
+        {
+          "id": "reproducible-bug-reports",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": "CONTRIBUTING.md",
+          "guidance": "guidance/contributing.md"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "kind": "local author-standards candidate installation",
+  "passed": true,
+  "root": "/tmp/repo-standards-author-ok5diM",
+  "workspace": "/tmp/repo-standards-author-ok5diM/workspace",
+  "skill": "/tmp/repo-standards-author-ok5diM/home/.agents/skills/author-standards",
+  "resources": [
+    {
+      "path": "references/cli.md",
+      "sha256": "0aaadd05f3398d661f8a8fb227fcfd459aa058021d234309740ae692fd290255"
+    },
+    {
+      "path": "references/operations.md",
+      "sha256": "58c8f81329cb0270b0e954fe935e0a1a68316f8d9a087b42de9ca6955e5b8ab2"
+    },
+    {
+      "path": "references/profiles.md",
+      "sha256": "784a8b5a60d3c67f61361f829797b7bc0f005e739dbe1ed1943ef31593977851"
+    },
+    {
+      "path": "references/revision.md",
+      "sha256": "212a85d506397cdb82a598c13f9360ab26ec143316933305fc1ec7aa3b966e4f"
+    },
+    {
+      "path": "SKILL.md",
+      "sha256": "78d8616a09c9b2a1fd0baa072a567758815ee0754e209ced4c7540497d839b02"
+    }
+  ],
+  "installer": "skills@1.5.25",
+  "command": [
+    "npm",
+    "exec",
+    "--yes",
+    "--registry=https://registry.npmjs.org",
+    "--package=skills@1.5.25",
+    "--",
+    "skills",
+    "add",
+    "/tmp/repo-standards-author-ok5diM/candidate",
+    "--skill",
+    "author-standards",
+    "--global",
+    "--agent",
+    "codex",
+    "--copy",
+    "--yes"
+  ],
+  "documents": [],
+  "platform": "linux",
+  "arch": "arm64",
+  "osRelease": "6.18.34+rpt-rpi-v8",
+  "node": "v24.11.1",
+  "npm": "11.19.0",
+  "installedAt": "2026-09-11T22:18:52.725Z",
+  "commands": [
+    {
+      "executable": "npm",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "11.19.0\n",
+      "stderr": ""
+    },
+    {
+      "executable": "git",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "git version 2.47.3\n",
+      "stderr": ""
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "exec",
+        "--yes",
+        "--registry=https://registry.npmjs.org",
+        "--package=skills@1.5.25",
+        "--",
+        "skills",
+        "add",
+        "/tmp/repo-standards-author-ok5diM/candidate",
+        "--skill",
+        "author-standards",
+        "--global",
+        "--agent",
+        "codex",
+        "--copy",
+        "--yes"
+      ],
+      "status": 0,
+      "stdout": "\n│\n●   codex  Agent detected — installing non-interactively\n│\n◇  Source: /tmp/repo-standards-author-ok5diM/candidate\n│\n◇  Local path validated\n│\n◒  Discovering skills…◇  Found 1 skill\n│\n●  Selected 1 skill: author-standards\n\n│\n◇  Installation Summary ──────────────╮\n│                                     │\n│  ~/.agents/skills/author-standards  │\n│    copy → Codex                     │\n│                                     │\n├─────────────────────────────────────╯\n│\n◇  Installation complete\n\n│\n◇  Installed 1 skill ─────────────────────╮\n│                                         │\n│  ✓ author-standards (copied)            │\n│    → ~/.agents/skills/author-standards  │\n│                                         │\n├─────────────────────────────────────────╯\n\n│\n└  Done!  Review skills before use; they run with full agent permissions.\n\n",
+      "stderr": "npm notice\nnpm notice New patch version of npm available! 11.19.0 -> 11.19.1\nnpm notice Changelog: https://github.com/npm/cli/releases/tag/v11.19.1\nnpm notice To update run: npm install -g npm@11.19.1\nnpm notice\n"
+    }
+  ],
+  "downloads": [],
+  "scope": "Installation, resources, matching CLI/docs and example validation only. No real-agent or skills.sh listing claim. Telemetry disabled."
+}

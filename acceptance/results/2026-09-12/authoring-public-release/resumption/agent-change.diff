@@ -1,0 +1,42 @@
+--- before/authoring-notes.md
++++ after/authoring-notes.md
+@@ -44,8 +44,13 @@
+ - Excludes reproducible-bug-reports because CONTRIBUTING.md belongs to the
+   employer. Exclusion removes governance; it does not delete employer content.
+ - Adds runbook-recovery, with guidance/runbooks.md across the explicit
+-  docs/runbooks directory tree: a recovery procedure and an owner to contact.
+-  Maintain procedures and contacts for incident responders.
++  docs/runbooks directory tree: explain how to locate the current on-call
++  responder and when and how to escalate an incident. The intentional manual
++  edit to guidance/runbooks.md supersedes the earlier recovery-procedure and
++  named-owner requirements for team-services only. Keep its wording unchanged.
++  Align only the team-services section of the shared documentation-review
++  checklist and the team-services profile description; both profiles receive
++  the same skill bundle, with personal-tools criteria unchanged.
+ 
+ README.md, CONTRIBUTING.md when selected, NOTES.md, and runbooks remain
+ project-owned. Profiles are complete alternatives, not combined selections.
+--- before/skills/documentation-review/references/checklist.md
++++ after/skills/documentation-review/references/checklist.md
+@@ -19,6 +19,8 @@
+ endpoint using project facts. No tiny-tool invocation or sample output is
+ required beyond the startup command.
+ 
+-Runbooks under docs/runbooks/ should describe a recovery procedure and identify
+-an owner to contact. Use the actual procedures and ownership information.
++Runbooks under docs/runbooks/ should explain how to locate the current on-call
++responder and when and how to escalate an incident. Keep these details
++project-owned and factual. A recovery procedure and a named owner are not
++required.
+ CONTRIBUTING.md is outside this profile's governance and this review.
+--- before/standards.yaml
++++ after/standards.yaml
+@@ -52,7 +52,7 @@
+     description: Small personal CSV and text conversion utilities.
+     declarations: {}
+   team-services:
+-    description: Team services with service documentation and recovery runbooks.
++    description: Team services with service documentation and runbooks for on-call lookup and incident escalation.
+     declarations:
+       readme-usage:
+         kind: file

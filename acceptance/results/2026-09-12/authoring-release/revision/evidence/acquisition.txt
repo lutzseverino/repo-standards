@@ -1,0 +1,5 @@
+Explicitly supplied external packed CLI candidate installation: /tmp/repo-standards-author-ok5diM/cli
+CLI version: 1.1.0
+Node version: v24.11.1
+Matching docs read: node_modules/@lutzseverino/repo-standards/docs/author-format.md
+Not public release evidence.

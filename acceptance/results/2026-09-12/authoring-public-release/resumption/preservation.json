@@ -1,0 +1,21 @@
+{
+  "HEAD_unchanged": true,
+  "index_bytes_unchanged": true,
+  "index_entries_unchanged": true,
+  "staged_diff_unchanged": true,
+  "file_set_unchanged": true,
+  "all_modes_unchanged": true,
+  "manual_runbook_bytes_unchanged": true,
+  "staged_and_unstaged_scratch_preserved": true,
+  "untracked_draft_bytes_and_mode_preserved": true,
+  "personal_tools_resolved_selection_unchanged": true,
+  "personal_checklist_criteria_unchanged": true,
+  "all_resolved_declarations_unchanged": true,
+  "accepted_source_bytes_unchanged": true,
+  "other_source_material_unchanged": true,
+  "actual_changes": [
+    "authoring-notes.md",
+    "skills/documentation-review/references/checklist.md",
+    "standards.yaml"
+  ]
+}

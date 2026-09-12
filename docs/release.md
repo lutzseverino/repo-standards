@@ -23,14 +23,28 @@ organization access. An empty package list does not prove permission to create
 it. `npm publish --dry-run` verifies packaging, not authorization; successful
 publication followed by public retrieval is the final access evidence. Never
 commit tokens, npm configuration containing credentials, or authentication logs.
-Use interactive authentication/2FA for local publication. For the workflow,
-configure `NPM_TOKEN` as an environment secret in GitHub's `npm` environment,
-with publish access scoped to this package and compatible npm 2FA settings.
-Configure environment access according to the repository's release policy.
+Use interactive browser authentication/2FA for local publication. The workflow
+uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) through
+GitHub Actions OIDC. In this package's npm settings, add a GitHub Actions trusted
+publisher with user `lutzseverino`, repository `repo-standards`, workflow filename
+`release.yml`, environment `npm`, and permission for direct `npm publish`.
+The publisher label is descriptive only; `GitHub Actions — repo-standards releases`
+identifies its purpose. Package publishing access can require 2FA and disallow
+traditional tokens; that policy permits trusted publishing.
 
-The workflow uses token authentication and does not request attestations.
-See npm's [publish documentation](https://docs.npmjs.com/cli/commands/npm-publish/)
-for scoped public access and authentication requirements.
+The publish job runs on a GitHub-hosted runner, grants `id-token: write`, and
+uses npm 11.19.0 with Node 24.11.1. It does not consume `NPM_TOKEN` or run
+`npm whoami`: OIDC authentication occurs during `npm publish`, and `whoami`
+does not verify it. npm automatically enables provenance for this public
+package/repository when trusted publishing succeeds. Configure GitHub's `npm`
+environment access according to the repository's release policy.
+
+The `verify_published` workflow mode also exercises the public npm OIDC exchange
+without publishing, staging, or retaining credentials. This verifies the
+workflow/environment trust configuration; direct-publish permissions and the
+complete publish/provenance path are established only by a subsequent real
+release. An npm dry run is not authentication evidence. Retire the old automation
+token after migration; never store an OTP in CI or repository files.
 
 ## Build and inspect a bundle
 
@@ -56,12 +70,23 @@ executables and supplied author material alongside owning behavior tests.
 
 The `Release` workflow is manually dispatched at the reviewed commit with its
 exact package version. It validates on macOS and Linux, produces one bundle,
-checks npm access, publishes its tarball, and attaches that bundle to the
+authenticates through OIDC, publishes its tarball, and attaches that bundle to the
 matching GitHub `v<version>` release. The workflow then runs public npm smoke
 checks on both systems and retains JSON evidence as workflow artifacts.
 It refuses an existing Git tag; inspect any partial previous publication before
 retrying. An npm version cannot be overwritten, so a failed later step needs
 explicit recovery using the original artifacts, not another publish attempt.
+
+If interactive publication is needed after a failed workflow publish job,
+download that run's `release-bundle`, verify `SHA256SUMS`, and check the registry
+and GitHub for partial publication. Publish only the original tarball after
+browser authentication, verify its registry integrity against `release.json`,
+then create the GitHub release at the original validated commit with the same
+four bundle files. Run the `Release` workflow with `verify_published: true` and
+the exact published version to collect both platforms' public installation
+evidence. This mode skips validation/packaging/publication, verifies OIDC trust,
+and runs the existing public checks; retain the original validation run separately.
+Browser login on a local machine does not configure GitHub Actions authentication.
 
 For an initial local release using an authenticated npm account:
 
@@ -104,3 +129,25 @@ each source independently. The coverage map in
 
 Do not label the release complete while publication, either OS, real-agent work,
 or any parent criterion remains unverified. The parent remains open and unchanged.
+
+## Authoring feature delivery
+
+Issue #31 adds `author-standards` and the reserved-identity CLI changes to the
+same npm/release process. Version 1.1.0 carries both system skills, standalone
+authoring references, and matching author/protocol documentation. Before
+packaging another version, update the authoring acquisition guide and public
+installation commands to its exact version; the release test checks the bundled
+guide against the installed executable's package version.
+
+After publication, the workflow also runs
+`node acceptance/prepare-author.ts <version> <evidence.json>` on macOS and Linux.
+It acquires the skill through the public release-tag URL documented in
+[installation](installation.md#install-the-authoring-skill), independently of the
+npm package; then obtains the compatible public CLI/docs in an external directory.
+Retain those JSON artifacts alongside existing public CLI smoke evidence.
+
+Fresh real-agent creation, revision, and resumption remain separate acceptance
+work. Record direct installation independently of dated skills.sh observations.
+The [authoring coverage map](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/authoring-release-coverage.md)
+maps all twelve criteria and identifies missing release evidence. A ready PR,
+candidate test run, or public Git branch alone does not complete issue #31.

@@ -1,0 +1,354 @@
+{
+  "candidate": "/tmp/repo-standards-31-release/bundle/lutzseverino-repo-standards-1.1.0.tgz",
+  "ci": "/tmp/repo-standards-31-ci-bundle/lutzseverino-repo-standards-1.1.0.tgz",
+  "samePaths": true,
+  "byteDifferences": [],
+  "executableStateDifferences": [],
+  "permissionDifferences": [
+    {
+      "path": "package/LICENSE",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/README.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/bootstrap/repo-standards",
+      "candidate": "0o700",
+      "ci": "0o755"
+    },
+    {
+      "path": "package/dist/acquisition.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/acquisition.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/adoption-files.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/adoption-files.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/adoption-run.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/adoption-run.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/adoption.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/adoption.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/assessment.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/assessment.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/cli.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/cli.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/declarations.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/declarations.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/discovery.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/discovery.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/errors.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/errors.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/execution.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/execution.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/inspection.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/inspection.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/model.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/model.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/paths.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/paths.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/process-identity.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/process-identity.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/recorded-state.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/recorded-state.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/resolver.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/resolver.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/run-lock.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/run-lock.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/yaml.js",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/dist/yaml.js.map",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/docs/adoption.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/docs/assessment-protocol.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/docs/author-format.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/docs/authoring.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/docs/discovery.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/docs/inspection.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/docs/installation.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/docs/release.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/docs/script-protocol.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/alice/defaults/checks/readme.py",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/alice/defaults/files/AGENTS.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/alice/defaults/files/CONTRIBUTING.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/alice/defaults/guidance/readme.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/alice/defaults/guidance/source-layout.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/alice/defaults/skills/review/SKILL.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/alice/profiles/work/files/AGENTS.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/alice/standards.yaml",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/mira/files/editorconfig",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/mira/guidance/operations.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/mira/operations/check-operations.mjs",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/mira/operations/initialize-status.mjs",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/mira/operations/required-sections.json",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/examples/mira/standards.yaml",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/package.json",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/skills/adopt-standards/SKILL.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/skills/author-standards/SKILL.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/skills/author-standards/references/cli.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/skills/author-standards/references/operations.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/skills/author-standards/references/profiles.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    },
+    {
+      "path": "package/skills/author-standards/references/revision.md",
+      "candidate": "0o600",
+      "ci": "0o644"
+    }
+  ]
+}

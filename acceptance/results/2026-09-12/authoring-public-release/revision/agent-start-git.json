@@ -1,0 +1,38 @@
+[
+  {
+    "command": "git rev-parse HEAD",
+    "exit": 0,
+    "stdout": "ad96edb05d135f03e8c38397089766cd47da0eb7\n",
+    "stderr": ""
+  },
+  {
+    "command": "git status --porcelain=v1",
+    "exit": 0,
+    "stdout": "MM scratch.txt\n?? local-draft.txt\n",
+    "stderr": ""
+  },
+  {
+    "command": "git diff --binary",
+    "exit": 0,
+    "stdout": "diff --git a/scratch.txt b/scratch.txt\nindex b852ba9..a81e293 100644\n--- a/scratch.txt\n+++ b/scratch.txt\n@@ -1 +1,2 @@\n Existing staged author work.\n+Existing unstaged author work.\n",
+    "stderr": ""
+  },
+  {
+    "command": "git diff --cached --binary",
+    "exit": 0,
+    "stdout": "diff --git a/scratch.txt b/scratch.txt\nindex 4fe3da3..b852ba9 100644\n--- a/scratch.txt\n+++ b/scratch.txt\n@@ -1 +1 @@\n-Existing author scratch baseline.\n+Existing staged author work.\n",
+    "stderr": ""
+  },
+  {
+    "command": "git ls-files --stage",
+    "exit": 0,
+    "stdout": "100644 e17516890eab58d9fd31e0558c2b9cdd961a606b 0\tauthoring-notes.md\n100644 1c33738acd9402569824911534806c4e7de26c8b 0\tfiles/editorconfig\n100644 75ee85ea31fbc2497ebd0d9f84865d28c57d4944 0\tguidance/contributing.md\n100644 0d657a835a14aea59e054a2fa161df60e49ebe21 0\tguidance/notes.md\n100644 30d6b03ab9f2b69941ec7062091b6593f120959b 0\tguidance/readme.md\n100644 9b355acee3eaa78f518065d73a567fe5ac469f95 0\tguidance/runbooks.md\n100644 d3bd0d11fe55689f53b19a94f967e0ac72330345 0\tguidance/team-readme.md\n100644 d0a5008f3ddad41600bd752d24d74f649ce7bad4 0\toperations/notes-final-newline.cjs\n100644 b852ba9dbf4ce747bc277b1fd643bc5f3a722482 0\tscratch.txt\n100644 096c7e8094ba485d62d04980c6811282bffb16df 0\tskills/documentation-review/SKILL.md\n100644 9c4240cd2f80d3a7eaf5d16130f0372e83b37219 0\tskills/documentation-review/references/checklist.md\n100644 aaabdfb84a1518d65fbb0de688b648726db6e555 0\tstandards.yaml\n",
+    "stderr": ""
+  },
+  {
+    "command": "git ls-files --others --exclude-standard",
+    "exit": 0,
+    "stdout": "local-draft.txt\n",
+    "stderr": ""
+  }
+]

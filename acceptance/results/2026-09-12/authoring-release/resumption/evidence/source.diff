@@ -1,0 +1,25 @@
+--- starting/authoring-notes.md
++++ final/authoring-notes.md
+@@ -14,7 +14,10 @@
+   Team services exclude the entire declaration to leave employer contribution
+   documents untouched; exclusion does not delete them.
+ - `service-runbook`: only team services add `guidance/service-runbook.md` for
+-  project-owned docs/runbook.md, documenting known restart limitations.
++  project-owned docs/runbook.md, documenting the responsible on-call role and how
++  to find current team-owned escalation instructions, using role names instead of
++  personal contact details. This deliberate replacement supersedes the former
++  restart-limitations policy; preserve the current guidance wording.
+ - `notes-newline`: both profiles inherit `guidance/notes-newline.md` and the Node
+   check/fix in `operations/notes-newline.mjs` for project-owned docs/notes.md.
+   The check reads only and tests its last byte; the fix appends exactly one LF
+--- starting/standards.yaml
++++ final/standards.yaml
+@@ -52,7 +52,7 @@
+     description: Personal command-line tools with a runnable README example and project contribution guidance.
+     declarations: {}
+   team-services:
+-    description: Team services with operational README commands and restart limitations; employer contribution docs stay outside governance.
++    description: Team services with operational README commands and role-based on-call and escalation guidance; employer contribution docs stay outside governance.
+     declarations:
+       readme:
+         kind: file

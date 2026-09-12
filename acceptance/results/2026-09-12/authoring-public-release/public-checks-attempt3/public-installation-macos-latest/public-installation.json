@@ -1,0 +1,116 @@
+{
+  "date": "2026-09-12T16:50:44.901Z",
+  "os": {
+    "platform": "darwin",
+    "release": "25.6.0",
+    "arch": "arm64"
+  },
+  "node": "v24.11.1",
+  "version": "1.1.0",
+  "passed": false,
+  "commands": [
+    {
+      "executable": "npm",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "11.6.2\n",
+      "stderr": ""
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "view",
+        "@lutzseverino/repo-standards@1.1.0",
+        "dist",
+        "--json"
+      ],
+      "status": 0,
+      "stdout": "{\n  \"integrity\": \"sha512-V7lkekH+MedcY2iH/OmAOtusvth+MvJIHtXKky3T81sttWi2KKfPMzG0sNdNDXDDSOggZo4k51+U9L40nbaAZA==\",\n  \"shasum\": \"c6b815735162f30af93df8557ab3ce66b4bffe0f\",\n  \"tarball\": \"https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.1.0.tgz\",\n  \"fileCount\": 69,\n  \"unpackedSize\": 440738,\n  \"signatures\": [\n    {\n      \"keyid\": \"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U\",\n      \"sig\": \"MEUCIE/vdq6yunV9TFiqSNf/HoV8rPHawTaW7zRZHNYuCRJLAiEAvzEToNbeYfSIj+h8hB9OFdd8aYvXyqpHZhdfqTo3oDk=\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "install",
+        "--prefix",
+        "/private/var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/repo-standards-public-O1Oxp5/cli",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--save-exact",
+        "@lutzseverino/repo-standards@1.1.0"
+      ],
+      "status": 0,
+      "stdout": "\nadded 6 packages in 1s\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/private/var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/repo-standards-public-O1Oxp5/cli/node_modules/.bin/repo-standards",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "1.1.0\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/private/var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/repo-standards-public-O1Oxp5/cli/node_modules/.bin/repo-standards-bootstrap",
+      "args": [
+        "--help"
+      ],
+      "status": 0,
+      "stdout": "Usage: repo-standards-bootstrap [--cli-version <1.2.3>] inspect --source <GitHub URL> --standards-version <tag> --profile <name> [--project <directory>] [--json]\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/private/var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/repo-standards-public-O1Oxp5/cli/node_modules/.bin/repo-standards",
+      "args": [
+        "source",
+        "validate",
+        "/private/var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/repo-standards-public-O1Oxp5/cli/node_modules/@lutzseverino/repo-standards/examples/alice",
+        "--json"
+      ],
+      "status": 0,
+      "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"alice-standards\",\n    \"description\": \"Alice's repository standards\",\n    \"requires\": {\n      \"repo-standards\": \">=1.0.0 <2.0.0\"\n    }\n  },\n  \"profiles\": {\n    \"personal\": {\n      \"description\": \"Standards for personal projects\",\n      \"declarations\": [\n        {\n          \"id\": \"agent-guidance\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"AGENTS.md\",\n          \"exact\": \"defaults/files/AGENTS.md\"\n        },\n        {\n          \"id\": \"contribution-guidance\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"CONTRIBUTING.md\",\n          \"exact\": \"defaults/files/CONTRIBUTING.md\"\n        },\n        {\n          \"id\": \"readme\",\n          \"checks\": [\n            {\n              \"id\": \"headings\",\n              \"run\": {\n                \"executable\": \"python3\",\n                \"script\": \"defaults/checks/readme.py\",\n                \"resources\": [],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=3.12.0 <4.0.0\"\n              },\n              \"timeout-seconds\": 60\n            }\n          ],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"defaults/guidance/readme.md\"\n        },\n        {\n          \"id\": \"review-skill\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"review\",\n          \"source\": \"defaults/skills/review\"\n        },\n        {\n          \"id\": \"source-layout\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"repository\",\n          \"guidance\": \"defaults/guidance/source-layout.md\",\n          \"targets\": {\n            \"paths\": [],\n            \"directories\": [\n              \"src\"\n            ]\n          }\n        }\n      ]\n    },\n    \"work\": {\n      \"description\": \"Standards for work projects\",\n      \"declarations\": [\n        {\n          \"id\": \"agent-guidance\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"AGENTS.md\",\n          \"exact\": \"profiles/work/files/AGENTS.md\"\n        },\n        {\n          \"id\": \"readme\",\n          \"checks\": [\n            {\n              \"id\": \"headings\",\n              \"run\": {\n                \"executable\": \"python3\",\n                \"script\": \"defaults/checks/readme.py\",\n                \"resources\": [],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=3.12.0 <4.0.0\"\n              },\n              \"timeout-seconds\": 60\n            }\n          ],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"defaults/guidance/readme.md\"\n        },\n        {\n          \"id\": \"review-skill\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"review\",\n          \"source\": \"defaults/skills/review\"\n        },\n        {\n          \"id\": \"source-layout\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"repository\",\n          \"guidance\": \"defaults/guidance/source-layout.md\",\n          \"targets\": {\n            \"paths\": [],\n            \"directories\": [\n              \"src\"\n            ]\n          }\n        }\n      ]\n    }\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/private/var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/repo-standards-public-O1Oxp5/cli/node_modules/.bin/repo-standards",
+      "args": [
+        "source",
+        "validate",
+        "/private/var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/repo-standards-public-O1Oxp5/cli/node_modules/@lutzseverino/repo-standards/examples/mira",
+        "--json"
+      ],
+      "status": 0,
+      "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"mira-service-standards\",\n    \"description\": \"Operational readiness for small services\",\n    \"requires\": {\n      \"repo-standards\": \">=1.0.0 <2.0.0\"\n    }\n  },\n  \"profiles\": {\n    \"service\": {\n      \"description\": \"Operated service with a project-specific runbook\",\n      \"declarations\": [\n        {\n          \"id\": \"editor-settings\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"operations-guide\",\n          \"checks\": [\n            {\n              \"id\": \"operational-evidence\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/check-operations.mjs\",\n                \"resources\": [\n                  \"operations/required-sections.json\"\n                ],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"initialize-status\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/initialize-status.mjs\",\n                \"resources\": [],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"repository\",\n          \"guidance\": \"guidance/operations.md\",\n          \"targets\": {\n            \"paths\": [\n              \"docs/operations.md\",\n              \"docs/operating-status.json\"\n            ],\n            \"directories\": []\n          }\n        }\n      ]\n    }\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/private/var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/repo-standards-public-O1Oxp5/cli/node_modules/.bin/repo-standards",
+      "args": [
+        "source",
+        "search",
+        "--json"
+      ],
+      "status": 0,
+      "stdout": "{\n  \"cliVersion\": \"1.1.0\",\n  \"topic\": \"repo-standards\",\n  \"notice\": \"Discovery is not an endorsement. Choose a source, stable version and profile yourself, then inspect before confirming adoption.\",\n  \"page\": 1,\n  \"totalCount\": 6,\n  \"incompleteResults\": false,\n  \"searchLimitReached\": false,\n  \"candidates\": [],\n  \"rejected\": [\n    {\n      \"repository\": \"https://github.com/brandonhimpfen/repo-checklists\",\n      \"code\": \"SOURCE_UNAVAILABLE\",\n      \"message\": \"Public GitHub returned HTTP 403 for /repos/brandonhimpfen/repo-checklists/releases?per_page=100&page=1. Check the public repository, version tag, and API rate limit.\"\n    },\n    {\n      \"repository\": \"https://github.com/brandonhimpfen/repo-template-dataset\",\n      \"code\": \"SOURCE_UNAVAILABLE\",\n      \"message\": \"Public GitHub returned HTTP 403 for /repos/brandonhimpfen/repo-template-dataset/releases?per_page=100&page=1. Check the public repository, version tag, and API rate limit.\"\n    },\n    {\n      \"repository\": \"https://github.com/brandonhimpfen/repo-standards\",\n      \"code\": \"SOURCE_UNAVAILABLE\",\n      \"message\": \"Public GitHub returned HTTP 403 for /repos/brandonhimpfen/repo-standards/releases?per_page=100&page=1. Check the public repository, version tag, and API rate limit.\"\n    },\n    {\n      \"repository\": \"https://github.com/brandonhimpfen/repo-template-npm-package\",\n      \"code\": \"SOURCE_UNAVAILABLE\",\n      \"message\": \"Public GitHub returned HTTP 403 for /repos/brandonhimpfen/repo-template-npm-package/releases?per_page=100&page=1. Check the public repository, version tag, and API rate limit.\"\n    },\n    {\n      \"repository\": \"https://github.com/brandonhimpfen/repo-template-minimal\",\n      \"code\": \"SOURCE_UNAVAILABLE\",\n      \"message\": \"Public GitHub returned HTTP 403 for /repos/brandonhimpfen/repo-template-minimal/releases?per_page=100&page=1. Check the public repository, version tag, and API rate limit.\"\n    },\n    {\n      \"repository\": \"https://github.com/lutzseverino/repo-standards-example\",\n      \"code\": \"SOURCE_UNAVAILABLE\",\n      \"message\": \"Public GitHub returned HTTP 403 for /repos/lutzseverino/repo-standards-example/releases?per_page=100&page=1. Check the public repository, version tag, and API rate limit.\"\n    }\n  ],\n  \"nextPage\": null\n}\n",
+      "stderr": ""
+    }
+  ],
+  "downloads": [
+    {
+      "url": "https://github.com/lutzseverino/repo-standards/releases/download/v1.1.0/release.json",
+      "status": 200,
+      "sha256": "8415af16a878be256366d27c431c8f878638ac8f3664fb5b8cd18633fe560dbe"
+    },
+    {
+      "url": "https://github.com/lutzseverino/repo-standards/releases/download/v1.1.0/repo-standards-bootstrap",
+      "status": 200,
+      "sha256": "8f593d792119f9e9a623b20c1e2d680f7a0e641c54819367c7ebe2fca575c46a"
+    }
+  ],
+  "scope": "Public installation, author validation, discovery and read-only bootstrap. No adoption or real-agent assessment."
+}

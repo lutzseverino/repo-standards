@@ -1,0 +1,6 @@
+{
+  "role": "author",
+  "text": "I read and accept the entire complete-source-review.md contents and exact three-file reconciliation. The manual runbook wording remains correct, and the aligned team checklist is useful for that narrow review. I accept its same-agent and runtime limits. Explicitly defer rerunning the unchanged NOTES operations for this resumption; test policy stays deferred and CI stays skipped. Finish with final all-profile validation, preservation evidence and local-source handoff, without committing, provisioning, publishing or adopting.",
+  "review_path": "/tmp/repo-standards-31-public-release/resumption-evidence/complete-source-review.md",
+  "review_sha256": "f26f87e9119be6651c6f753927f8bbcff304b8eab116c987ba5c89b40aa502f6"
+}

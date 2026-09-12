@@ -30,6 +30,12 @@ test('release artifacts install without build tools and expose the matching CLI,
     assert.deepEqual(readFileSync(join(installed, 'skills/author-standards', resource)),
       readFileSync(resolve('skills/author-standards', resource)));
   }
+  const standaloneSkill = join(root, 'standalone-author-standards');
+  cpSync(join(installed, 'skills/author-standards'), standaloneSkill, { recursive: true });
+  const acquisition = readFileSync(join(standaloneSkill, 'references/cli.md'), 'utf8');
+  const documentedVersions = [...acquisition.matchAll(/@lutzseverino\/repo-standards@(\d+\.\d+\.\d+)/g)];
+  assert.ok(documentedVersions.length > 0, 'The standalone skill must document exact CLI acquisition');
+  for (const match of documentedVersions) assert.equal(match[1], bundle.version, 'Authoring must acquire the released CLI and its matching contracts');
   for (const doc of ['installation', 'release', 'inspection', 'adoption', 'assessment-protocol', 'authoring', 'author-format', 'discovery', 'script-protocol']) {
     assert.ok(readFileSync(join(installed, `docs/${doc}.md`)).length > 0);
   }

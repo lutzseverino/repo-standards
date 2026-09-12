@@ -1,0 +1,25 @@
+{
+  "kind": "Deterministic replay of archived generated operations; not a fresh agent journey",
+  "root": "/tmp/repo-standards-public-operation-replay-x5dy1eos",
+  "exitCode": 0,
+  "summary": {
+    "profiles": [
+      "personal-tools",
+      "team-services"
+    ],
+    "operationInvocations": 68,
+    "missingRuntimeProbes": 4,
+    "allAssertionsPassed": true,
+    "runtime": "v24.11.1",
+    "retainedFiles": [
+      "operations/notes-final-newline.cjs"
+    ],
+    "limits": [
+      "Linux only; macOS not exercised.",
+      "Concurrent writers, forced termination during append/chmod/fsync, disk-full and I/O failure injection were not exercised.",
+      "Missing runtime was exercised by an empty PATH; incompatible, timed-out and unreadable-version probes were not exercised.",
+      "Direct protocol exercises do not verify the CLI adoption lifecycle, integrity enforcement or prerequisite orchestration."
+    ]
+  },
+  "inputs": "Archived original harness with only E/S scratch paths relocated; archived final source and all-profile validation output. Original evidence unchanged."
+}

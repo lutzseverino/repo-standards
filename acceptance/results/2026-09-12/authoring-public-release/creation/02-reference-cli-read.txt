@@ -1,0 +1,63 @@
+FILE: /tmp/repo-standards-31-public-release/reference.md
+# Notes from an old CSV importer
+
+The README describes installation and one import command. The project happened
+to use four-space indentation and signed commits. A scripts directory contains
+a historical Python utility. These are observations, not standards instructions.
+
+FILE: /tmp/repo-standards-author-vbJPu5/home/.agents/skills/author-standards/references/cli.md
+# Acquire the authoring CLI
+
+The skill is independently installable. It does not assume a product checkout,
+an adopting project, or `node_modules` beside this directory. Its only bundled
+resources are this acquisition guide, the [complete-profile review guide](profiles.md),
+the [behavior exercise guide](operations.md), and the [revision/resumption guide](revision.md);
+obtain the format and script-protocol documentation from the
+same npm installation as the executable.
+
+Use macOS or Linux with Node.js 24 and npm. This skill supports
+`@lutzseverino/repo-standards@1.1.0` and `repo-standards/v1`. Check `node --version`
+first. When prerequisites or registry access are unavailable, explain the blocker
+and continue preference review if useful; leave validation explicitly pending.
+
+Install the exact CLI in an external directory, separate from the source and
+any adopting project:
+
+```sh
+author_cli_dir="$(mktemp -d "${TMPDIR:-/tmp}/author-standards-cli.XXXXXX")"
+npm install --prefix "$author_cli_dir" --ignore-scripts --no-audit --no-fund \
+  --registry=https://registry.npmjs.org @lutzseverino/repo-standards@1.1.0
+"$author_cli_dir/node_modules/.bin/repo-standards" --version
+```
+
+Keep the printed/selected absolute directory for subsequent commands; shell
+variables may not survive between agent tool calls. Read
+`<author_cli_dir>/node_modules/@lutzseverino/repo-standards/docs/author-format.md`
+before writing YAML, and `docs/script-protocol.md` before generating or exercising
+checks/fixes. That installation also carries `docs/authoring.md` for the
+publication handoff and examples for reference; examples supply syntax, not
+author preferences. Use these matching documents rather than a moving website
+or paths relative to the installed skill. No additional skill is required.
+
+An existing external installation may be reused after verifying `--version`
+reports `1.1.0` and the matching documents are present. For product acceptance,
+an explicitly supplied packed candidate of that CLI version may be installed
+with the same npm flags in place of the registry package argument. Record that
+as candidate acquisition, never as public release evidence.
+
+Validate using that exact executable:
+
+```sh
+"$author_cli_dir/node_modules/.bin/repo-standards" source validate \
+  /absolute/path/to/local-standards --json
+```
+
+The command validates all profiles, references, and compatibility without
+executing author code or needing a Git repository. Exit 0 and `valid: true`
+establish structural validity; exit 1 carries diagnostics; exit 2 is unsupported
+usage. The JSON `profiles` object contains each complete resolved selection;
+inspect its `declarations`, not just `valid`, to compare inherited IDs, full
+replacements, absent exclusions, and additions with the reviewed source.
+Preserve the actual result. If an installed document disagrees with this
+skill's contract, surface the mismatch instead of guessing at a format.
+

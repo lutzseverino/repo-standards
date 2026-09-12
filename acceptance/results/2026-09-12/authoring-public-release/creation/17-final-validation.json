@@ -1,0 +1,185 @@
+{
+  "valid": true,
+  "errors": [],
+  "source": {
+    "format": "repo-standards/v1",
+    "name": "Utility and service standards",
+    "description": "Lightweight personal utility standards and focused team service documentation standards.",
+    "requires": {
+      "repo-standards": "1.1.0"
+    }
+  },
+  "profiles": {
+    "personal-tools": {
+      "description": "Small personal CSV and text conversion utilities.",
+      "declarations": [
+        {
+          "id": "documentation-review",
+          "checks": [],
+          "fixes": [],
+          "kind": "skill",
+          "name": "documentation-review",
+          "source": "skills/documentation-review"
+        },
+        {
+          "id": "editor-line-endings",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": ".editorconfig",
+          "exact": "files/editorconfig"
+        },
+        {
+          "id": "notes-final-newline",
+          "checks": [
+            {
+              "id": "final-newline",
+              "run": {
+                "executable": "node",
+                "script": "operations/notes-final-newline.cjs",
+                "resources": [],
+                "arguments": [
+                  "check"
+                ]
+              },
+              "prerequisite": {
+                "version-arguments": [
+                  "--version"
+                ],
+                "version": ">=24.0.0 <25.0.0"
+              },
+              "timeout-seconds": 10
+            }
+          ],
+          "fixes": [
+            {
+              "id": "append-final-newline",
+              "run": {
+                "executable": "node",
+                "script": "operations/notes-final-newline.cjs",
+                "resources": [],
+                "arguments": [
+                  "fix"
+                ]
+              },
+              "prerequisite": {
+                "version-arguments": [
+                  "--version"
+                ],
+                "version": ">=24.0.0 <25.0.0"
+              },
+              "timeout-seconds": 10
+            }
+          ],
+          "kind": "file",
+          "target": "NOTES.md",
+          "guidance": "guidance/notes.md"
+        },
+        {
+          "id": "readme-usage",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": "README.md",
+          "guidance": "guidance/readme.md"
+        },
+        {
+          "id": "reproducible-bug-reports",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": "CONTRIBUTING.md",
+          "guidance": "guidance/contributing.md"
+        }
+      ]
+    },
+    "team-services": {
+      "description": "Team services with service documentation and recovery runbooks.",
+      "declarations": [
+        {
+          "id": "documentation-review",
+          "checks": [],
+          "fixes": [],
+          "kind": "skill",
+          "name": "documentation-review",
+          "source": "skills/documentation-review"
+        },
+        {
+          "id": "editor-line-endings",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": ".editorconfig",
+          "exact": "files/editorconfig"
+        },
+        {
+          "id": "notes-final-newline",
+          "checks": [
+            {
+              "id": "final-newline",
+              "run": {
+                "executable": "node",
+                "script": "operations/notes-final-newline.cjs",
+                "resources": [],
+                "arguments": [
+                  "check"
+                ]
+              },
+              "prerequisite": {
+                "version-arguments": [
+                  "--version"
+                ],
+                "version": ">=24.0.0 <25.0.0"
+              },
+              "timeout-seconds": 10
+            }
+          ],
+          "fixes": [
+            {
+              "id": "append-final-newline",
+              "run": {
+                "executable": "node",
+                "script": "operations/notes-final-newline.cjs",
+                "resources": [],
+                "arguments": [
+                  "fix"
+                ]
+              },
+              "prerequisite": {
+                "version-arguments": [
+                  "--version"
+                ],
+                "version": ">=24.0.0 <25.0.0"
+              },
+              "timeout-seconds": 10
+            }
+          ],
+          "kind": "file",
+          "target": "NOTES.md",
+          "guidance": "guidance/notes.md"
+        },
+        {
+          "id": "readme-usage",
+          "checks": [],
+          "fixes": [],
+          "kind": "file",
+          "target": "README.md",
+          "guidance": "guidance/team-readme.md"
+        },
+        {
+          "id": "runbook-recovery",
+          "checks": [],
+          "fixes": [],
+          "kind": "repository",
+          "guidance": "guidance/runbooks.md",
+          "targets": {
+            "paths": [],
+            "directories": [
+              "docs/runbooks"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

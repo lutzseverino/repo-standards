@@ -1,0 +1,71 @@
+{
+  "kind": "public author-standards release installation",
+  "passed": false,
+  "failure": "The published skill tag must resolve",
+  "root": "/tmp/repo-standards-author-G2RCi3",
+  "workspace": "/tmp/repo-standards-author-G2RCi3/workspace",
+  "skill": "/tmp/repo-standards-author-G2RCi3/home/.agents/skills/author-standards",
+  "resources": [],
+  "installer": "skills@1.5.25",
+  "command": [
+    "npm",
+    "exec",
+    "--yes",
+    "--registry=https://registry.npmjs.org",
+    "--package=skills@1.5.25",
+    "--",
+    "skills",
+    "add",
+    "https://github.com/lutzseverino/repo-standards/tree/v1.1.0/skills/author-standards",
+    "--skill",
+    "author-standards",
+    "--global",
+    "--agent",
+    "codex",
+    "--copy",
+    "--yes"
+  ],
+  "skillRevision": "",
+  "version": "1.1.0",
+  "documents": [],
+  "platform": "linux",
+  "arch": "arm64",
+  "osRelease": "6.18.34+rpt-rpi-v8",
+  "node": "v24.11.1",
+  "npm": "11.19.0",
+  "installedAt": "2026-09-11T22:20:42.527Z",
+  "commands": [
+    {
+      "executable": "npm",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "11.19.0\n",
+      "stderr": ""
+    },
+    {
+      "executable": "git",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "git version 2.47.3\n",
+      "stderr": ""
+    },
+    {
+      "executable": "git",
+      "args": [
+        "ls-remote",
+        "https://github.com/lutzseverino/repo-standards.git",
+        "refs/tags/v1.1.0",
+        "refs/tags/v1.1.0^{}"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "downloads": [],
+  "scope": "Installation, resources, matching CLI/docs and example validation only. No real-agent or skills.sh listing claim. Telemetry disabled."
+}

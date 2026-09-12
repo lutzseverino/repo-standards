@@ -1,0 +1,16 @@
+﻿2026-09-11T22:33:24.5126091Z ##[group]Run sha256sum --check SHA256SUMS
+2026-09-11T22:33:24.5126515Z ^[[36;1msha256sum --check SHA256SUMS^[[0m
+2026-09-11T22:33:24.5126914Z ^[[36;1mnpm whoami --registry=https://registry.npmjs.org^[[0m
+2026-09-11T22:33:24.5127484Z ^[[36;1mnpm publish ./*.tgz --ignore-scripts --access public --registry=https://registry.npmjs.org^[[0m
+2026-09-11T22:33:24.5168079Z shell: /usr/bin/bash -e {0}
+2026-09-11T22:33:24.5168397Z env:
+2026-09-11T22:33:24.5168662Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+2026-09-11T22:33:24.5168991Z   NODE_AUTH_TOKEN:
+2026-09-11T22:33:24.5169202Z ##[endgroup]
+2026-09-11T22:33:24.5327584Z lutzseverino-repo-standards-1.1.0.tgz: OK
+2026-09-11T22:33:24.5328375Z repo-standards-bootstrap: OK
+2026-09-11T22:33:24.6940092Z npm error code ENEEDAUTH
+2026-09-11T22:33:24.6944095Z npm error need auth This command requires you to be logged in.
+2026-09-11T22:33:24.6947304Z npm error need auth You need to authorize this machine using `npm adduser`
+2026-09-11T22:33:24.6960692Z npm error A complete log of this run can be found in: /home/runner/.npm/_logs/2026-09-11T22_33_24_578Z-debug-0.log
+2026-09-11T22:33:24.7108310Z ##[error]Process completed with exit code 1.

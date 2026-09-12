@@ -1,0 +1,50 @@
+diff --git a/authoring-notes.md b/authoring-notes.md
+index e175168..aef936f 100644
+--- a/authoring-notes.md
++++ b/authoring-notes.md
+@@ -5,9 +5,14 @@
+ - editor-line-endings: files/editorconfig owns the entire non-executable
+   .editorconfig in both profiles. Only LF endings and a final newline are set.
+ - readme-usage: guidance/readme.md governs project-owned README.md by default:
+-  brief purpose, one working invocation with concrete sample output, and its
+-  input/output. No headings or setup section are required; keep tiny-tool
+-  documentation proportionate to maintenance effort.
++  brief purpose, one working invocation, a brief explanation of relevant failure
++  cases and how the utility reports them, and the invocation’s input/output.
++  This personal-tools revision retires the sample-output requirement so readers
++  understand unsuccessful use; keep failure descriptions current. The matching
++  personal-tools checklist in skills/documentation-review/references/checklist.md
++  follows this rule. The whole skill bundle remains shared, while team-services
++  criteria remain unchanged. No headings or setup section are required; keep
++  tiny-tool documentation proportionate to maintenance effort.
+ - reproducible-bug-reports: guidance/contributing.md governs project-owned
+   CONTRIBUTING.md by default with a brief reproducible-bug reporting explanation.
+   No contribution workflow is prescribed.
+diff --git a/guidance/readme.md b/guidance/readme.md
+index 30d6b03..672747f 100644
+--- a/guidance/readme.md
++++ b/guidance/readme.md
+@@ -2,7 +2,8 @@
+ 
+ Keep README.md brief. Include:
+ - A brief explanation of the utility's purpose.
+-- One working invocation for this project, alongside concrete sample output.
++- One working invocation for this project.
++- A brief explanation of relevant failure cases and how the utility reports them.
+ - A short explanation of that invocation's input and output, including file paths or stdin/stdout where relevant.
+ 
+ Use the project's own facts and organization. No particular headings or setup section are required.
+diff --git a/skills/documentation-review/references/checklist.md b/skills/documentation-review/references/checklist.md
+index 9c4240c..fc76143 100644
+--- a/skills/documentation-review/references/checklist.md
++++ b/skills/documentation-review/references/checklist.md
+@@ -4,7 +4,8 @@
+ 
+ README.md should remain brief and contain:
+ - A brief explanation of the utility's purpose.
+-- One working invocation for the project, alongside concrete sample output.
++- One working invocation for the project.
++- A brief explanation of relevant failure cases and how the utility reports them.
+ - A short explanation of its input/output, including paths or stdin/stdout where relevant.
+ 
+ No particular headings or setup section are required. Review the documentation

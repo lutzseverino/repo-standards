@@ -1,0 +1,30 @@
+{
+  "observation": {
+    "at": "2026-09-12T16:45:51.231680+00:00",
+    "url": "https://skills.sh/lutzseverino/repo-standards/author-standards",
+    "status": 200,
+    "bodySha256": "a4df60be3c0ce4ea971216a49e20e8319e25952d741c1266155f1ca2869b22d9",
+    "visibleUnavailable": true,
+    "visibleMentionsAuthorStandards": true,
+    "interpretation": "HTTP 200, but visible page shows 404 and says author-standards is unavailable. CLI search did not return lutzseverino/repo-standards. Public release-tag installation succeeded independently.",
+    "excerpt": "404 author-standards isn\u2019t available in this repository."
+  },
+  "search": {
+    "at": "2026-09-12T16:46:04.377386+00:00",
+    "command": [
+      "npm",
+      "exec",
+      "--yes",
+      "--registry=https://registry.npmjs.org",
+      "--package=skills@1.5.25",
+      "--",
+      "skills",
+      "find",
+      "author-standards"
+    ],
+    "status": 0,
+    "stdout": "\n\u001b[38;5;102mInstall with\u001b[0m npx skills add <owner/repo@skill>\n\n\u001b[38;5;145mcaffeinelabs/skills@extension-authorization\u001b[0m \u001b[36m19.5K installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/caffeinelabs/skills/extension-authorization\u001b[0m\n\n\u001b[38;5;145mk-dense-ai/scientific-agent-skills@iso-standards-readiness\u001b[0m \u001b[36m467 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/k-dense-ai/scientific-agent-skills/iso-standards-readiness\u001b[0m\n\n\u001b[38;5;145mbeeltec/skills@code-review\u001b[0m \u001b[36m41 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/beeltec/skills/code-review\u001b[0m\n\n\u001b[38;5;145myuanyuanma03/academic-research-skills@ieee-advanced-search\u001b[0m \u001b[36m24 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/yuanyuanma03/academic-research-skills/ieee-advanced-search\u001b[0m\n\n\u001b[38;5;145mgreerviau/skills@standards\u001b[0m \u001b[36m13 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/greerviau/skills/standards\u001b[0m\n\n\u001b[38;5;145mbankrbot/skills@standards\u001b[0m \u001b[36m9 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/bankrbot/skills/standards\u001b[0m\n\n\u001b[38;5;145mfernandoartalf/al-copilot-skills-collection@bc-reports\u001b[0m \u001b[36m9 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/fernandoartalf/al-copilot-skills-collection/bc-reports\u001b[0m\n\n\u001b[38;5;145msoden46/syarif-laravel-ai-skills@policies-and-authorization\u001b[0m \u001b[36m9 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/soden46/syarif-laravel-ai-skills/policies-and-authorization\u001b[0m\n\n\u001b[38;5;145mnyelonong/galdr@authoring\u001b[0m \u001b[36m7 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/nyelonong/galdr/authoring\u001b[0m\n\n\u001b[38;5;145mnirabo/standards@standards\u001b[0m \u001b[36m7 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/nirabo/standards/standards\u001b[0m\n\n\u001b[38;5;145mhkarpinen/agent-skills@authorization\u001b[0m \u001b[36m5 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/hkarpinen/agent-skills/authorization\u001b[0m\n\n\u001b[38;5;145mtsholofelondawonde/engineering-skills@authorization\u001b[0m \u001b[36m4 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/tsholofelondawonde/engineering-skills/authorization\u001b[0m\n\n\u001b[38;5;145moutcomeeng/claude@authoring\u001b[0m \u001b[36m2 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/outcomeeng/claude/authoring\u001b[0m\n\n\u001b[38;5;145mbffless/skills@authorization\u001b[0m \u001b[36m2 installs\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/bffless/skills/authorization\u001b[0m\n\n\u001b[38;5;145mmarkuswondrak/wondrax.cloud@author\u001b[0m \u001b[36m1 install\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/markuswondrak/wondrax.cloud/author\u001b[0m\n\n\u001b[38;5;145moutcomeeng/spec-tree@author\u001b[0m \u001b[36m1 install\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/outcomeeng/spec-tree/author\u001b[0m\n\n\u001b[38;5;145mcaffeinelabs/skills@authorization\u001b[0m \u001b[36m1 install\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/caffeinelabs/skills/authorization\u001b[0m\n\n\u001b[38;5;145marowinski/dotfiles@author\u001b[0m \u001b[36m1 install\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/arowinski/dotfiles/author\u001b[0m\n\n\u001b[38;5;145moutcomeeng/spec-tree@authoring\u001b[0m \u001b[36m1 install\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/outcomeeng/spec-tree/authoring\u001b[0m\n\n\u001b[38;5;145mwitify/skills@authorization\u001b[0m \u001b[36m1 install\u001b[0m\n\u001b[38;5;102m\u2514 https://skills.sh/witify/skills/authorization\u001b[0m\n\n",
+    "stderr": ""
+  },
+  "scope": "Independent third-party observation after publication; no ranking or indexing promise. Telemetry disabled."
+}

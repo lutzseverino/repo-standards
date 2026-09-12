@@ -1,0 +1,77 @@
+{
+  "kind": "public author-standards release installation",
+  "passed": false,
+  "failure": "Cannot acquire public release metadata: https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v1.1.0\n\n403 !== 200\n",
+  "root": "/private/var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/repo-standards-author-R3SsSC",
+  "workspace": "/private/var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/repo-standards-author-R3SsSC/workspace",
+  "skill": "/private/var/folders/36/tjdph2t965j8snz9_vkdnw0r0000gn/T/repo-standards-author-R3SsSC/home/.agents/skills/author-standards",
+  "resources": [],
+  "installer": "skills@1.5.25",
+  "command": [
+    "npm",
+    "exec",
+    "--yes",
+    "--registry=https://registry.npmjs.org",
+    "--package=skills@1.5.25",
+    "--",
+    "skills",
+    "add",
+    "https://github.com/lutzseverino/repo-standards/tree/v1.1.0/skills/author-standards",
+    "--skill",
+    "author-standards",
+    "--global",
+    "--agent",
+    "codex",
+    "--copy",
+    "--yes"
+  ],
+  "skillRevision": "305025e36e9f9f503135eed3dce33a7b51d373f4",
+  "version": "1.1.0",
+  "documents": [],
+  "platform": "darwin",
+  "arch": "arm64",
+  "osRelease": "25.6.0",
+  "node": "v24.11.1",
+  "npm": "11.6.2",
+  "installedAt": "2026-09-12T17:13:33.397Z",
+  "commands": [
+    {
+      "executable": "npm",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "11.6.2\n",
+      "stderr": ""
+    },
+    {
+      "executable": "git",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "git version 2.55.0\n",
+      "stderr": ""
+    },
+    {
+      "executable": "git",
+      "args": [
+        "ls-remote",
+        "https://github.com/lutzseverino/repo-standards.git",
+        "refs/tags/v1.1.0",
+        "refs/tags/v1.1.0^{}"
+      ],
+      "status": 0,
+      "stdout": "305025e36e9f9f503135eed3dce33a7b51d373f4\trefs/tags/v1.1.0\n",
+      "stderr": ""
+    }
+  ],
+  "downloads": [
+    {
+      "url": "https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v1.1.0",
+      "status": 403,
+      "sha256": "a64c3be720fea63529bab7e03a48b59174d68f7300b294beb5ed8c925370fe47"
+    }
+  ],
+  "scope": "Installation, resources, matching CLI/docs and example validation only. No real-agent or skills.sh listing claim. Telemetry disabled."
+}

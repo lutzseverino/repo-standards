@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/tmp/repo-standards-author-vbJPu5/cli/node_modules/.bin/repo-standards",
+    "source",
+    "validate",
+    "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+    "--json"
+  ],
+  "exit": 0,
+  "stderr": ""
+}

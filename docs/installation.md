@@ -15,7 +15,7 @@ No product checkout, TypeScript compiler, or pnpm is needed:
 
 ```sh
 npm install --global --ignore-scripts --registry=https://registry.npmjs.org \
-  @lutzseverino/repo-standards@1.0.0
+  @lutzseverino/repo-standards@1.1.0
 repo-standards --version
 repo-standards source validate /path/to/your/standards-repository --json
 repo-standards source search --json
@@ -31,7 +31,7 @@ Alternatively download the standalone bootstrap from the matching GitHub release
 ```sh
 mkdir -p "$HOME/.local/bin"
 curl --fail --location \
-  https://github.com/lutzseverino/repo-standards/releases/download/v1.0.0/repo-standards-bootstrap \
+  https://github.com/lutzseverino/repo-standards/releases/download/v1.1.0/repo-standards-bootstrap \
   --output "$HOME/.local/bin/repo-standards-bootstrap"
 chmod 755 "$HOME/.local/bin/repo-standards-bootstrap"
 ```
@@ -41,13 +41,13 @@ and bootstrap bytes. The bootstrap requires only Node.js 24 and npm to obtain
 the CLI. From a committed adopting project, inspect the public learning source:
 
 ```sh
-repo-standards-bootstrap --cli-version 1.0.0 inspect \
+repo-standards-bootstrap --cli-version 1.1.0 inspect \
   --source https://github.com/lutzseverino/repo-standards-example \
   --standards-version v1.0.0 --profile service --json
 ```
 
 Use the full bootstrap path if `$HOME/.local/bin` is not on `PATH`. Omit
-`--cli-version 1.0.0` to select the greatest published stable version once;
+`--cli-version 1.1.0` to select the greatest published stable version once;
 stderr discloses the exact selection. Keep that version for confirmation and
 start. Inspection does not change project content or run author operations.
 Discovery is optional and is not an endorsement of any source.
@@ -59,49 +59,50 @@ bootstrap only inspects; retain an external installation of its selected exact
 CLI for start and recovery. Adoption installs the matching repository-local
 skill and runtime and leaves changes uncommitted with HEAD unchanged.
 
-## Install the authoring skill candidate
+## Install the authoring skill
 
-`author-standards` guides creation and revision of local standards from confirmed preferences,
-starting with one profile and adding complete profiles for accepted working-context
-differences. It uses shared defaults, configuration, guidance, and accepted checks,
-fixes, or ordinary-work author skills. Generated operations are exercised in disposable fixtures after
-behavior/prerequisite acceptance, with verification limits reported separately
-from source validity. It finishes at reviewed, validated local material;
-repository setup and publication are separate work. Returning authors can resume
-from current source content and reconciled authoring notes.
+`author-standards` guides creation, revision, and resumption from confirmed
+preferences. It finishes with reviewed, validated local material and authoring
+notes; repository provisioning and standards publication are separate work.
 
-For the local candidate, use the conventional
-[skills CLI](https://github.com/vercel-labs/skills) with a directory containing
-`author-standards/SKILL.md` and its `references/` directory (the product checkout's
-`skills/` directory can supply this installation input):
+Use the conventional [skills CLI](https://github.com/vercel-labs/skills) to
+install the skill from the product's public release tag:
 
 ```sh
-npx skills@1.5.25 add /absolute/path/to/candidate-skills \
+npx skills@1.5.25 add https://github.com/lutzseverino/repo-standards/tree/v1.1.0/skills/author-standards \
   --skill author-standards --global --agent codex --copy
 ```
 
-Global installation is recommended for authors working before or across
-repositories. Select your supported agent with `--agent`; `codex` is the tested
-candidate route. The copied skill works after removing the installation input,
-without a product checkout, adopting project, or surrounding npm package. Invoke
-`author-standards` in your agent and describe how you work; optional references
-are candidates for discussion, not automatically accepted policy.
+The named release must exist before running this command. Global installation is
+recommended for authors working before or across repositories. Select your
+supported agent with `--agent`; `codex` is the acceptance route. The installation
+contains `SKILL.md` and `references/cli.md`, `profiles.md`, `operations.md`, and
+`revision.md`. It works independently of a product checkout, adopting project,
+or surrounding npm package. Invoke `author-standards` in your agent and describe
+how you work. Optional references supply candidates for discussion, not policy.
 
-The skill carries its CLI-acquisition guide at `references/cli.md`, its complete-profile
-review guide at `references/profiles.md`, and its behavior/protocol exercise guide
-at `references/operations.md`. The acquisition guide explains
-installing the compatible exact npm CLI `@lutzseverino/repo-standards@1.0.1` in an
-external directory and reading that installation's matching `docs/author-format.md`.
-Node.js 24, npm, and npm registry access are needed for that acquisition; the
-skill installation itself does not install the executable. An existing compatible
-external CLI can be reused after checking its version and documentation.
+The bundled `references/cli.md` explains installing the exact compatible npm CLI
+`@lutzseverino/repo-standards@1.1.0` in an external directory, then reading that
+installation's matching `docs/author-format.md` and `docs/script-protocol.md`.
+Node.js 24, npm, and registry access are required. Installing the skill does not
+install its CLI, change an adopting project's runtime pin, or install authoring
+into adopting projects. Adoption continues to manage its matching local
+`adopt-standards` skill independently.
 
-This is **local candidate installation** evidence. Public installation and
-skills.sh discovery evidence belong to
-[issue #31](https://github.com/lutzseverino/repo-standards/issues/31); no public
-listing or ranking is claimed. See the
-[authoring acceptance procedure](https://github.com/lutzseverino/repo-standards/blob/a77f2b7f946a70ac6efb5adf3e2f15970140423f/acceptance/README.md#authoring-candidate)
-for an isolated run that leaves your actual global skills untouched.
+Direct installation is independent of the
+[skills.sh directory](https://skills.sh/lutzseverino/repo-standards/author-standards).
+The [directory FAQ](https://skills.sh/docs/faq) describes its discovery process;
+listing, indexing time, and ranking are third-party observations, not release
+guarantees. Record dated observations separately from installation results.
+The [authoring release evidence](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/authoring-release-coverage.md)
+distinguishes candidate runs, published acquisition, agent usefulness, and
+outstanding criteria.
+
+For unreleased development only, replace the public URL with a local directory
+containing the skill. That is candidate installation, even if its CLI comes
+from public npm. The
+[acceptance procedure](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md#published-authoring-installation)
+provides isolated installation without changing your real global skills.
 
 ## Restore and update
 

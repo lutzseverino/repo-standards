@@ -32,7 +32,7 @@ that every release acceptance criterion has passed.
 - [Public installation and restoration](docs/installation.md)
 - [Release procedure](docs/release.md)
 - [Author workflow and publication](docs/authoring.md)
-- [Standalone authoring skill candidate](docs/installation.md#install-the-authoring-skill-candidate)
+- [Standalone authoring skill](docs/installation.md#install-the-authoring-skill)
 - [Source discovery](docs/discovery.md)
 - [Author format and CLI diagnostics](docs/author-format.md)
 - [Bootstrap and public inspection](docs/inspection.md)
@@ -59,7 +59,7 @@ Once the release version is available on public npm, use Node.js 24 and npm;
 no product checkout or pnpm is needed:
 
 ```sh
-npm install --global --ignore-scripts @lutzseverino/repo-standards@1.0.0
+npm install --global --ignore-scripts @lutzseverino/repo-standards@1.1.0
 repo-standards --version
 repo-standards source validate /path/to/standards-repository --json
 ```

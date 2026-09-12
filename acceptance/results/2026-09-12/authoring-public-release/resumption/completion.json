@@ -1,0 +1,59 @@
+{
+  "status": "complete",
+  "source": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+  "cli": {
+    "executable": "/tmp/repo-standards-author-vbJPu5/cli/node_modules/.bin/repo-standards",
+    "version": "1.1.0",
+    "node": "v24.11.1",
+    "acquisition": "Reused evaluator-supplied external public npm installation, verified --version and matching installed documentation; no product checkout read."
+  },
+  "whole_source_accepted": true,
+  "acceptance": "I read and accept the entire complete-source-review.md contents and exact three-file reconciliation. The manual runbook wording remains correct, and the aligned team checklist is useful for that narrow review. I accept its same-agent and runtime limits. Explicitly defer rerunning the unchanged NOTES operations for this resumption; test policy stays deferred and CI stays skipped. Finish with final all-profile validation, preservation evidence and local-source handoff, without committing, provisioning, publishing or adopting.",
+  "validation": {
+    "exit": 0,
+    "valid": true,
+    "errors": [],
+    "profiles": [
+      "personal-tools",
+      "team-services"
+    ],
+    "full_result": "/tmp/repo-standards-31-public-release/resumption-evidence/final-validation.json"
+  },
+  "preservation": {
+    "HEAD_unchanged": true,
+    "index_bytes_unchanged": true,
+    "index_entries_unchanged": true,
+    "staged_diff_unchanged": true,
+    "file_set_unchanged": true,
+    "all_modes_unchanged": true,
+    "manual_runbook_bytes_unchanged": true,
+    "staged_and_unstaged_scratch_preserved": true,
+    "untracked_draft_bytes_and_mode_preserved": true,
+    "personal_tools_resolved_selection_unchanged": true,
+    "personal_checklist_criteria_unchanged": true,
+    "all_resolved_declarations_unchanged": true,
+    "accepted_source_bytes_unchanged": true,
+    "other_source_material_unchanged": true,
+    "actual_changes": [
+      "authoring-notes.md",
+      "skills/documentation-review/references/checklist.md",
+      "standards.yaml"
+    ]
+  },
+  "behavior": {
+    "documentation_review": "same-agent ordinary-work exercise; author found revised team criteria useful; runtime effectiveness unverified",
+    "notes_operations": "Unchanged; rerun explicitly deferred; no current claim of passing operation fixtures",
+    "test_policy": "explicitly deferred",
+    "CI": "skipped"
+  },
+  "handoff": {
+    "state": "author-reviewed validated local unpublished source",
+    "public_adoption_ready": false,
+    "publication": "separate workflow requiring public GitHub source and stable tag",
+    "committed": false,
+    "provisioned": false,
+    "published": false,
+    "adopted": false
+  },
+  "summary": "Reconciled and accepted the local source at /tmp/repo-standards-31-public-release/resumption-workspace/standards. Exactly three files changed: notes, the team checklist section, and the team profile description. The manual runbook wording and all unfinished work are preserved. Final public CLI 1.1.0 validation on Node v24.11.1 passes both complete profiles. The same-agent documentation-review exercise was accepted with its stated limits; rerunning the unchanged NOTES operations is explicitly deferred. Test policy remains deferred and CI skipped. Source remains local and unpublished; no commits, provisioning, publication, or adoption occurred. Evidence: /tmp/repo-standards-31-public-release/resumption-evidence."
+}

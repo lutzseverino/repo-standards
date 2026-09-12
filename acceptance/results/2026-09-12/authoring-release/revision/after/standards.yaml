@@ -1,0 +1,66 @@
+format: repo-standards/v1
+name: Practical tools and service standards
+description: Shared text tooling and project-owned documentation for personal tools and team services.
+requires:
+  repo-standards: "1.1.0"
+defaults:
+  declarations:
+    editorconfig:
+      kind: file
+      target: .editorconfig
+      exact: files/editorconfig
+    readme:
+      kind: file
+      target: README.md
+      guidance: guidance/readme-personal.md
+    contributing:
+      kind: file
+      target: CONTRIBUTING.md
+      guidance: guidance/contributing.md
+    notes-newline:
+      kind: file
+      target: docs/notes.md
+      guidance: guidance/notes-newline.md
+      checks:
+        - id: final-newline
+          run:
+            executable: node
+            script: operations/notes-newline.mjs
+            resources: []
+            arguments: [check]
+          prerequisite:
+            version-arguments: ["--version"]
+            version: ">=24.0.0 <25.0.0"
+          timeout-seconds: 10
+      fixes:
+        - id: append-newline
+          run:
+            executable: node
+            script: operations/notes-newline.mjs
+            resources: []
+            arguments: [fix]
+          prerequisite:
+            version-arguments: ["--version"]
+            version: ">=24.0.0 <25.0.0"
+          timeout-seconds: 10
+    readme-review:
+      kind: skill
+      name: readme-review
+      source: skills/readme-review
+profiles:
+  personal-tools:
+    description: Personal command-line tools with a runnable README example and project contribution guidance.
+    declarations: {}
+  team-services:
+    description: Team services with operational README commands and restart limitations; employer contribution docs stay outside governance.
+    declarations:
+      readme:
+        kind: file
+        target: README.md
+        guidance: guidance/readme-service.md
+      contributing:
+        exclude: true
+      service-runbook:
+        kind: file
+        target: docs/runbook.md
+        guidance: guidance/service-runbook.md

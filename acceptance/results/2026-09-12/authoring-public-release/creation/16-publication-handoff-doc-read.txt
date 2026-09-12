@@ -1,0 +1,160 @@
+FILE: /tmp/repo-standards-author-vbJPu5/cli/node_modules/@lutzseverino/repo-standards/docs/authoring.md
+# Author a standards source
+
+For guided creation, revision, or resumption, install the standalone
+[`author-standards` skill](installation.md#install-the-authoring-skill).
+Describe preferences in ordinary language, refine small drafts, then review the
+whole source. The skill starts with one profile and adds complete profiles
+only for meaningful context differences you confirm. It puts shared declarations
+in defaults and reviews each replacement, exclusion, addition, and ownership
+choice with you. Each profile is a complete selection an adopting project will
+receive. It creates configuration, guidance, and checks, fixes, or ordinary-work
+author skills whose behavior and prerequisites you accept before inclusion.
+It supplies all referenced material and
+concise `authoring-notes.md` covering accepted
+decisions and rationale, non-preferences, skipped topics, and open questions.
+Notes support authorship and do not govern adoption. No confirmed standards is a
+valid outcome: it produces no invented source and no claim of validation.
+
+For an existing source, the skill first reads current declarations,
+referenced material, relevant notes, and existing work. An explicit changed
+preference applies to its stated scope; it shows conflicting rules and asks
+when affected profiles or paths are unclear. Shared references are traced before
+editing so a profile-specific change preserves other complete selections and
+unrelated tracked and untracked work.
+
+To resume, point the agent at the source and its notes and choose which unfinished
+decisions to revisit. Current source content governs policy. If a manual edit
+contradicts an old note, the agent surfaces the disagreement and establishes
+intent before changing that policy, then reconciles the notes. Notes alone cannot
+restore a removed rule. Completion includes whole-source review, validation of
+every profile, and resolution or explicit deferral of chosen questions.
+
+The guided journey ends at author-reviewed, validated local material. The
+publication steps below are a separate workflow; the skill does not provision,
+commit, tag, release, or adopt, and a local directory is not yet adoptable.
+
+A standards repository supplies ordinary content, complete profiles and trusted
+operations. The product owns adoption. Start with the four declaration forms in
+[Author format](author-format.md); the [Alice example](../examples/alice/standards.yaml)
+shows defaults, a complete work replacement and an employer-content exclusion.
+The [Mira example](../examples/mira/standards.yaml) uses operational guidance,
+a repeat-safe fix and a different check.
+
+A published working source is [repo-standards-example](https://github.com/lutzseverino/repo-standards-example),
+based on synthetic Mira material. Its [recorded publication journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/results/2026-09-07/source-publication.md)
+uses the same validation and discovery commands below.
+
+## Choose ownership and write guidance
+
+Use exact files or whole author-skill directories for material you intend to
+own byte-for-byte. Use contextual file guidance for project-owned documentation
+and repository guidance for explicit paths or directory trees. Guidance should
+give an agent observable goals, useful evidence requirements and boundaries,
+while letting it describe the actual project. Avoid generic replacement prose
+that discards project facts. Authors cannot replace `adopt-standards` or add
+adoption hooks; author skills support ordinary work after installation.
+
+Give declarations stable lower-case kebab-case IDs. A profile inherits omitted
+IDs, replaces a same-ID declaration in full, excludes a default declaration
+with `exclude: true`, or adds a new ID. Replacement must restate its checks and
+fixes. Exclusion removes associated operations as well as guidance/content.
+Publish complete profiles: adopters select one profile without filtering it.
+
+## Implement and validate operations
+
+Read [Script protocol](script-protocol.md). Declare literal invocation arguments,
+all retained resources, executable version probes/ranges and timeouts. Read the
+resolved selection and allowed targets from versioned stdin JSON. Return one
+result on stdout and human logs on stderr. Respect scope and exclusions; make
+fixes safe to repeat and checks read-only. Resources are retention declarations,
+not restrictions on host or network access. Document required tools so adopters
+can install them deliberately before adoption.
+
+Validate all profiles with an installed compatible CLI:
+
+```sh
+repo-standards source validate /path/to/standards --json
+```
+
+Validation checks declarations and references; it executes neither operations
+nor probes and does not assess guidance or author-skill quality. During authoring,
+exercise generated operations directly through the versioned script protocol in
+disposable directories, with only selected scripts and declared resources copied
+to a separate source layout. The standalone skill's
+[exercise guide](../skills/author-standards/references/operations.md) describes
+resolved requests, separate prerequisite probes, read-only failing/passing checks,
+repeat-safe fixes, literal arguments, scope and exclusion preservation, and
+recorded process/results evidence. These exercises require no Git repository or
+adoption. Missing tools leave affected behavior unverified; review that limitation
+with the author. Review or exercise author skills separately as ordinary agent
+work, accurately distinguishing content review from demonstrated usefulness.
+
+The separate [confirmed adoption workflow](adoption.md) exercises integration
+against published sources and disposable committed adopting projects. Product
+acceptance reuses the installed-CLI fixtures for this integration; it does not
+make provisioning, publication, or adoption part of the authoring skill.
+Record scripted checks separately from the agent's contextual evidence.
+
+## Publish and evolve
+
+Choose a public GitHub repository for this standards source, independently of
+the product repository. Commit the root `standards.yaml`, all referenced files
+and a root `LICENSE` or `LICENCE` file (recognized suffixes include `.md` and
+`.txt`). Choose licensing that permits the intended copying and use. Adoption
+retains root license files alongside selected source material and records their
+hashes and Git provenance. It does not infer permission from a public repository
+or copy unrelated files and other profiles into retained inputs.
+
+Set `requires.repo-standards` to the CLI SemVer range you have tested. Validation
+checks compatibility with the running CLI and resolves **all** profiles. A stable
+standards version and the adopter's exact CLI package version are independent;
+use a new standards version when you change material or compatibility.
+
+After validating the committed contents with a compatible installed CLI, publish
+the same commit. The following commands run in your standards repository; replace
+`OWNER/SOURCE` and choose an unused version. They require GitHub CLI access with
+permission to push and publish releases in that repository:
+
+```sh
+repo-standards source validate . --json
+git status --short
+# Commit any intended changes and validate that commit before publication.
+git tag -a v1.0.0 -m 'Standards v1.0.0'
+git push origin HEAD
+git push origin refs/tags/v1.0.0
+gh release create v1.0.0 --repo OWNER/SOURCE --verify-tag \
+  --title 'Standards v1.0.0' --notes 'Initial stable standards release.'
+gh repo edit OWNER/SOURCE --add-topic repo-standards
+repo-standards source search --json
+```
+
+The release must be published, not a draft or prerelease, and its tag must be
+stable SemVer, such as `1.0.0` or `v1.0.0`. Direct inspection needs only the stable
+Git tag; discovery additionally requires a GitHub release and the
+`repo-standards` topic. A release's tagged snapshot must contain the exact root
+`standards.yaml` path and pass validation; merely adding the file to the default
+branch does not repair an older release. Publication uses ordinary GitHub
+features and does not add workflows or create a marketplace entry.
+
+Confirm your repository, tag and commit in the [search report](discovery.md).
+GitHub indexing can lag behind publication; check the topic and release, then
+retry later. Share the canonical URL, exact stable tag and one profile for
+[direct inspection](inspection.md), which does not depend on discovery:
+
+```sh
+repo-standards inspect --source https://github.com/OWNER/SOURCE \
+  --standards-version v1.0.0 --profile work --project /path/to/project --json
+```
+
+Acquire the executable and its matching documentation through
+[public npm installation](installation.md). The standards source itself is an ordinary public GitHub repository.
+
+Keep published tags immutable: an observed moved tag is rejected. For an update,
+publish another stable tag and describe replacements, retired declarations,
+changed scripts/prerequisites and CLI compatibility. Removing/excluding an ID
+preserves installed content and relinquishes governance. Renaming an ID retires
+one and adds another. A still-declared skill replaces its whole directory,
+removing obsolete resources. Adopters inspect and confirm each update; local
+exact-content edits block it before mutation. Their CLI pin can change
+independently within your declared compatible range.
