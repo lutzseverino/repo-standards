@@ -1,0 +1,21 @@
+{
+  "observedAt": "2026-09-12T16:39:26.486421+00:00",
+  "url": "https://registry.npmjs.org/@lutzseverino%2frepo-standards/1.1.0",
+  "version": "1.1.0",
+  "dist": {
+    "shasum": "c6b815735162f30af93df8557ab3ce66b4bffe0f",
+    "tarball": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.1.0.tgz",
+    "fileCount": 69,
+    "integrity": "sha512-V7lkekH+MedcY2iH/OmAOtusvth+MvJIHtXKky3T81sttWi2KKfPMzG0sNdNDXDDSOggZo4k51+U9L40nbaAZA==",
+    "signatures": [
+      {
+        "sig": "MEUCIE/vdq6yunV9TFiqSNf/HoV8rPHawTaW7zRZHNYuCRJLAiEAvzEToNbeYfSIj+h8hB9OFdd8aYvXyqpHZhdfqTo3oDk=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "unpackedSize": 440738
+  },
+  "releaseCommit": "305025e36e9f9f503135eed3dce33a7b51d373f4",
+  "method": "Interactive browser-authenticated publication of the original Release run 34678342082 artifact; no rebuild",
+  "matchesOriginalBundle": true
+}

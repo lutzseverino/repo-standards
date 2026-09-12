@@ -1,0 +1,68 @@
+format: repo-standards/v1
+name: Utility and service standards
+description: Lightweight personal utility standards and focused team service documentation standards.
+requires:
+  repo-standards: "1.1.0"
+defaults:
+  declarations:
+    editor-line-endings:
+      kind: file
+      target: .editorconfig
+      exact: files/editorconfig
+    readme-usage:
+      kind: file
+      target: README.md
+      guidance: guidance/readme.md
+    reproducible-bug-reports:
+      kind: file
+      target: CONTRIBUTING.md
+      guidance: guidance/contributing.md
+    notes-final-newline:
+      kind: file
+      target: NOTES.md
+      guidance: guidance/notes.md
+      checks:
+        - id: final-newline
+          run:
+            executable: node
+            script: operations/notes-final-newline.cjs
+            resources: []
+            arguments: [check]
+          prerequisite:
+            version-arguments: [--version]
+            version: ">=24.0.0 <25.0.0"
+          timeout-seconds: 10
+      fixes:
+        - id: append-final-newline
+          run:
+            executable: node
+            script: operations/notes-final-newline.cjs
+            resources: []
+            arguments: [fix]
+          prerequisite:
+            version-arguments: [--version]
+            version: ">=24.0.0 <25.0.0"
+          timeout-seconds: 10
+    documentation-review:
+      kind: skill
+      name: documentation-review
+      source: skills/documentation-review
+profiles:
+  personal-tools:
+    description: Small personal CSV and text conversion utilities.
+    declarations: {}
+  team-services:
+    description: Team services with service documentation and recovery runbooks.
+    declarations:
+      readme-usage:
+        kind: file
+        target: README.md
+        guidance: guidance/team-readme.md
+      reproducible-bug-reports:
+        exclude: true
+      runbook-recovery:
+        kind: repository
+        guidance: guidance/runbooks.md
+        targets:
+          paths: []
+          directories: [docs/runbooks]

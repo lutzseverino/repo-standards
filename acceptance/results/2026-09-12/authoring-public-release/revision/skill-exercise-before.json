@@ -1,0 +1,37 @@
+[
+  {
+    "path": "personal-complete/CONTRIBUTING.md",
+    "sha256": "6465e5ad05ec419a93f3e73103609bcb6f3334a313fd3715be2a7c4af7e917f2",
+    "mode": "0o600"
+  },
+  {
+    "path": "personal-complete/README.md",
+    "sha256": "bb133df8dec606986e24a22340b8555a518c28fbc05cc32da63c3a85a599b435",
+    "mode": "0o600"
+  },
+  {
+    "path": "personal-missing-failures/CONTRIBUTING.md",
+    "sha256": "6465e5ad05ec419a93f3e73103609bcb6f3334a313fd3715be2a7c4af7e917f2",
+    "mode": "0o600"
+  },
+  {
+    "path": "personal-missing-failures/README.md",
+    "sha256": "5155d56f5b0086d1abf8df1ac34c199485b4465be7573ce0598daeb6e726c4da",
+    "mode": "0o600"
+  },
+  {
+    "path": "team-complete/CONTRIBUTING.md",
+    "sha256": "880a1612b4e6cc4773ccf0042addffd24660d1ec2ad4272f4ba0c2c90174bef7",
+    "mode": "0o600"
+  },
+  {
+    "path": "team-complete/README.md",
+    "sha256": "599363ac05c516b655f792c4ec07e99ece10054f9e4852789b2b17956de7bb54",
+    "mode": "0o600"
+  },
+  {
+    "path": "team-complete/docs/runbooks/recovery.md",
+    "sha256": "efcfc9eedceed7fbbbff52a8d1a467c9bea3074dd5e419825c5ea221c9af35eb",
+    "mode": "0o600"
+  }
+]

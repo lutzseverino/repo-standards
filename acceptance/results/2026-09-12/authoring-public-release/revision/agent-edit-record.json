@@ -1,0 +1,14 @@
+{
+  "guidance/readme.md": [
+    "- One working invocation for this project, alongside concrete sample output.",
+    "- One working invocation for this project.\n- A brief explanation of relevant failure cases and how the utility reports them."
+  ],
+  "skills/documentation-review/references/checklist.md": [
+    "- One working invocation for the project, alongside concrete sample output.",
+    "- One working invocation for the project.\n- A brief explanation of relevant failure cases and how the utility reports them."
+  ],
+  "authoring-notes.md": [
+    "  brief purpose, one working invocation with concrete sample output, and its\n  input/output. No headings or setup section are required; keep tiny-tool\n  documentation proportionate to maintenance effort.",
+    "  brief purpose, one working invocation, a brief explanation of relevant failure\n  cases and how the utility reports them, and the invocation’s input/output.\n  This personal-tools revision retires the sample-output requirement so readers\n  understand unsuccessful use; keep failure descriptions current. The matching\n  personal-tools checklist in skills/documentation-review/references/checklist.md\n  follows this rule. The whole skill bundle remains shared, while team-services\n  criteria remain unchanged. No headings or setup section are required; keep\n  tiny-tool documentation proportionate to maintenance effort."
+  ]
+}

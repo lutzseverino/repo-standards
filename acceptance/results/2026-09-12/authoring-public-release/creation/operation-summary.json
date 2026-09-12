@@ -1,0 +1,19 @@
+{
+  "profiles": [
+    "personal-tools",
+    "team-services"
+  ],
+  "operationInvocations": 68,
+  "missingRuntimeProbes": 4,
+  "allAssertionsPassed": true,
+  "runtime": "v24.11.1",
+  "retainedFiles": [
+    "operations/notes-final-newline.cjs"
+  ],
+  "limits": [
+    "Linux only; macOS not exercised.",
+    "Concurrent writers, forced termination during append/chmod/fsync, disk-full and I/O failure injection were not exercised.",
+    "Missing runtime was exercised by an empty PATH; incompatible, timed-out and unreadable-version probes were not exercised.",
+    "Direct protocol exercises do not verify the CLI adoption lifecycle, integrity enforcement or prerequisite orchestration."
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "workspace": "/tmp/repo-standards-31-public-release/no-standards-workspace",
+  "inventory": [
+    "authoring-notes.md"
+  ],
+  "notes_accepted": true,
+  "standards_yaml_exists": false,
+  "git_metadata_exists": false,
+  "validation_status": "not applicable: no standards confirmed; validation not run or claimed successful",
+  "commit_tag_release_publication_adoption": "not performed"
+}

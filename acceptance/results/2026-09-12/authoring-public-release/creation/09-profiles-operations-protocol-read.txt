@@ -1,0 +1,296 @@
+FILE: /tmp/repo-standards-author-vbJPu5/home/.agents/skills/author-standards/references/profiles.md
+# Review complete profiles
+
+Use this branch when the author confirms meaningful differences between working
+contexts. Review concrete content before translating it into declarations.
+
+For each difference, show the shared draft and the proposed alternative side by
+side, with an example of a project in each context and the practical trade-off.
+Ask whether ambiguous wording means identical content or shared intent: for
+example, “the same contribution instructions” might mean a source-owned complete
+`CONTRIBUTING.md`, or project-owned instructions describing each project's actual
+workflow. Show the exact file or the contextual guidance and its target so the
+author can decide without knowing the format. Ownership itself can differ by
+context; confirm that choice as well as the wording.
+
+Map accepted choices to a small selection table: declaration ID, shared default,
+and the complete result for each profile. Place common declarations in defaults.
+Where a shared starting declaration has accepted exceptions, keep it in defaults
+and express those exceptions in profiles. Use stable IDs for the same intent:
+
+- Omit an ID to inherit its entire default declaration.
+- Repeat its ID with a complete declaration to replace it. Restate the kind,
+  target/scope, content or guidance reference, and any accepted operations that
+  should remain. No field, check, or fix is inherited from the replaced unit.
+- Use only `exclude: true` at that ID to remove the default and its operations
+  from that profile's governance. Exclusion does not delete project content.
+- Add a new ID for an accepted intent specific to that profile. A renamed ID
+  means retirement plus addition, not a variation of the same declaration.
+
+Profiles resolve independently from defaults. One profile cannot inherit from
+another; there are no chains, field merges, or extra schema levels. Use only the
+mechanisms the accepted differences need; never invent a policy to demonstrate
+all four. Each profile is the complete selection an adopting project chooses,
+not a partial set to combine with another profile.
+
+Review the table with the author alongside the complete source and notes. Trace
+every differing cell to an accepted draft and rationale, including exclusions
+and ownership changes. If no meaningful differences remain accepted, keep a
+single profile and record the non-decisions without generating policy.
+
+During final all-profile CLI validation, compare the resolved output against
+that reviewed table: inherited declarations match the default in full,
+replacements contain only their own fields and operations, excluded IDs are
+absent, and added IDs appear only in the intended profiles. Return discrepancies
+that change meaning to author review; retain the complete output as evidence.
+
+FILE: /tmp/repo-standards-author-vbJPu5/home/.agents/skills/author-standards/references/operations.md
+# Accepted behavior and disposable exercises
+
+Use this branch when configuration or guidance leaves a concrete need for a
+check, fix, or ordinary-work author skill. Read the acquired CLI's matching
+`docs/author-format.md` and `docs/script-protocol.md` using [the acquisition
+guide](cli.md). Those documents define the format and operation protocol.
+
+## Propose and obtain acceptance
+
+Explain the additional value over configuration/guidance, then show a small
+behavior proposal before including material in the source:
+
+- What triggers it, which declaration and paths it governs, and what it leaves
+  alone. Explain profile exclusions and any limitations of the check's evidence.
+- For a check, what passes, fails, or blocks and how it stays read-only. For a
+  fix, precisely what it changes or preserves, when it blocks, and why retrying
+  after a partial run is safe. For a skill, its ordinary-work invocation, actions,
+  expected output, and whole-directory ownership; it has no adoption role.
+- Tools, versions, version probes, literal arguments, timeouts, resources, and
+  any network, credential, or host-access needs. Trusted operations inherit the
+  invoking user's access; disposable fixtures are not a sandbox. Skill tools and
+  prerequisites belong in the skill material, not new YAML fields.
+
+Ask for acceptance of that behavior and those prerequisites. A policy-only yes
+is insufficient. Explicit acceptance already given in the current request counts;
+return for review when the behavior, scope, or prerequisites change. Record the
+accepted choice and rationale in authoring notes, not the private conversation.
+
+## Generate the whole material
+
+Use the four existing declaration forms. Checks/fixes belong to their owning
+declaration and disappear with its exclusion; replacement restates the whole
+declaration. Generate every referenced script and resource, preserving their
+source-relative layout. Use declared literal argument vectors without a shell.
+Scripts read the versioned stdin request, active resolved declarations and
+`allowedTargets`, and respect the selected scope. A fix observes current content
+and makes only missing changes. Checks leave project content unchanged.
+
+Return exactly the protocol's result object on stdout, human logs on stderr,
+and zero exit for ordinary result statuses, including a failed check or blocked
+fix. Report process failures separately. Use the matching protocol's allowed
+statuses for each phase; a successful process exit alone is not a passing check.
+
+For an author skill, generate a complete `SKILL.md` with its name, description,
+ordinary-work steps and completion criteria, plus every referenced resource.
+Use a non-reserved skill name. Review all material and its ownership with the
+author; format validation checks references, not instruction quality.
+
+## Exercise operations without adoption
+
+Validate the local source with the installed public CLI, retaining the complete
+all-profile JSON outside the source. Validation is read-only: it executes neither
+author operations nor prerequisite probes. Use its resolved declarations to
+construct exercises; do not implement another YAML resolver or add an authoring
+CLI command.
+
+Create disposable project-content fixtures outside the source and working
+projects. They need no Git repository. Copy only the selected scripts and declared
+resources to a separate temporary retained-source directory, keeping relative
+paths, so undeclared resource dependencies cannot hide in the original source.
+Keep requests, results, and the exercise harness outside project fixtures too.
+
+For each active operation:
+
+1. Separately run the declared executable with its literal version-probe
+   arguments from the fixture root, bounded by the declared timeout. Compare the
+   observed version with the declared range as the matching protocol describes.
+   If missing, failed, unreadable, or incompatible, record the actual blocker and
+   leave that operation unverified. Do not silently install or substitute tools.
+2. Build a `repo-standards/operation/v1` request using the validated profile's
+   complete resolved declarations, its actual owning declaration/phase/operation
+   ID, absolute fixture `projectRoot`, and the owner's exact `allowedTargets`.
+   Supply syntactically valid, explicitly synthetic standards provenance in the
+   protocol's repository/version/commit fields; this is fixture metadata, not a
+   publication claim. File owners allow one path, skill owners their whole target
+   directory, and repository owners their declared paths/directory trees.
+3. Invoke `[executable, absolute-copied-script, ...run.arguments]` directly with
+   fixture-root cwd, the JSON request on stdin, and bounded timeout/output. For
+   example, a Node exercise can use `spawnSync(executable, [script, ...args],
+   { cwd: projectRoot, input: JSON.stringify(request), encoding: 'utf8',
+   timeout: timeoutSeconds * 1000, maxBuffer: 1024 * 1024, shell: false })`.
+   Capture process status, stdout, stderr and parsed result separately. Check the
+   exact result fields/format and phase-appropriate status against the protocol.
+4. Run the check on violating content first; expect a zero-exit `failed` result
+   with a useful reason. Exercise an applicable blocked case. Run the fix on
+   repairable content, inspect the actual change, then repeat it and expect
+   `unchanged` with identical bytes/modes. Check the repaired fixture and expect
+   `passed`. Also exercise any promised preservation or partial-retry behavior.
+5. Compare full fixture inventories, bytes and modes around each invocation.
+   Every check must preserve them, including when failed or blocked; fixes must
+   preserve content outside allowed scope. Include unrelated sentinel content and
+   relevant excluded material. Select operations only from resolved declarations:
+   an excluded declaration contributes no invocation. Preserve literal arguments
+   (including spaces or shell-looking text where relevant) and verify behavior
+   with only declared resources available.
+
+Adapt fixtures to accepted behavior instead of inventing policies to fit a test.
+Keep this exercise separate from standards adoption: do not call `inspect`,
+`start`, or `resume`, provision/commit a repository, publish a source, or add
+local-directory adoption. Product acceptance separately reuses its installed-CLI
+author-operation/adoption fixtures to verify runtime enforcement. A direct
+protocol exercise demonstrates the generated script, not the CLI's integrity,
+prerequisite orchestration, or adoption lifecycle.
+
+## Review evidence and limits
+
+Retain fixture inputs, requests, actual command vectors, tool versions, process
+and protocol results, and before/after comparisons outside the generated source.
+Report failure → repair → repeated fix → passing check only when observed. Name
+untested platforms, branches, unavailable tools, external services and other
+limits. If behavior fails its accepted intent, correct and rerun it; changes to
+the accepted proposal return to author review.
+
+Exercise an author skill in a disposable ordinary-work task when its tools are
+available. Record the actual actions/output and who evaluated usefulness. A
+content review or valid directory alone is not behavioral verification; if no
+agent exercise occurred, say so and obtain explicit deferral of that verification.
+Author skills use their ordinary agent interface, not the operation JSON protocol.
+
+Return to whole-source review with complete generated material and separate
+structural, operation, and author-skill evidence. Resolve or explicitly defer
+remaining verification with the author, then validate the final reviewed source
+again. Completion hands off publication; it makes no claim of adoption.
+
+FILE: /tmp/repo-standards-author-vbJPu5/cli/node_modules/@lutzseverino/repo-standards/docs/script-protocol.md
+# Trusted script protocol
+
+Every active declaration may own checks and repeat-safe fixes as described in
+[Author format](author-format.md#checks-and-fixes). Inspection displays their
+scripts, literal arguments, resources and prerequisites without executing them.
+Maintainer confirmation authorizes their execution. Scripts are trusted code
+with the invoking user's host, environment and network access. Declared
+resources control retention, not sandbox access.
+
+## Prerequisites and invocation
+
+Before changing project content, start invokes every operation's executable
+with its literal `prerequisite.version-arguments`, from the project root.
+It compares the first complete SemVer-like version observed in either output
+stream with the declared npm SemVer range. Version fragments from different
+streams are never combined. A leading `v`, prerelease and build suffixes are
+supported. Missing executables, unsuccessful or timed-out probes, unreadable
+versions and incompatible versions are reported for all operations and block
+installation. The CLI never installs prerequisites. The operation's timeout
+also applies to its probe, with a 1 MiB limit on each output stream.
+
+After installation the CLI invokes this argument vector directly:
+
+```text
+[executable, absolute-retained-script-path, ...literal-arguments]
+```
+
+The current directory is the adopting-project root. Arguments containing spaces,
+empty strings, wildcard characters or shell expressions retain their literal
+values. There is no shell, author-defined environment override, or custom
+working directory. The process inherits the CLI environment. Retained scripts
+live under `.repo-standards/inputs/source/` at their original source-relative
+paths. Declared resources keep the same layout; scripts can locate them relative
+to their own retained path. Other profiles and unrelated source material are
+not retained.
+
+## JSON input on stdin
+
+The CLI supplies one UTF-8 JSON object and closes stdin:
+
+```json
+{
+  "format": "repo-standards/operation/v1",
+  "operation": {"declaration": "readme", "phase": "checks", "id": "headings"},
+  "projectRoot": "/absolute/project",
+  "standards": {
+    "repository": "https://github.com/alice/standards",
+    "version": "v1.0.0",
+    "commit": "40-character-resolved-commit-sha"
+  },
+  "profile": "work",
+  "declarations": [],
+  "allowedTargets": {"paths": ["README.md"], "directories": []}
+}
+```
+
+`declarations` contains every active, fully resolved declaration, including its
+ID and complete checks/fixes lists; the empty array above is abbreviated.
+`operation.phase` is `fixes` or `checks`. `allowedTargets` describes this
+operation's owning declaration: file targets are explicit paths, skills are
+whole `.agents/skills/<name>` directories, and repository guidance retains its
+explicit paths and directory trees. All targets are project-relative. Authors
+must respect that scope, the active profile, and exclusions.
+
+## JSON result on stdout
+
+Return exactly one UTF-8 JSON object with these three fields, and exit zero:
+
+```json
+{"format":"repo-standards/result/v1","status":"passed","message":"Required headings are present."}
+```
+
+A fix status is `unchanged`, `changed`, or `blocked`. A check status is `passed`,
+`failed`, or `blocked`. `message` is a string explaining the result. Additional
+fields, wrong formats, invalid statuses, missing fields, multiple JSON values,
+and non-JSON stdout are protocol errors. Surrounding whitespace is accepted.
+Write human logs to stderr. A standards failure is a zero-exit `failed` result;
+it is distinct from a process failure.
+
+Nonzero exits, signals, timeouts, spawn failures, output exceeding 1 MiB per
+stream, and invalid protocol output are execution errors. On timeout or excess
+output the CLI kills the operation's process group with SIGKILL, so a process
+ignoring SIGTERM cannot keep the run waiting. This is process cleanup, not a
+sandbox. Captured output is bounded and retained under ignored
+`.repo-standards/local/operations/`. Reports separate `process` evidence
+(`exitCode`, `signal`, `error`, `timedOut`), a parsed `result` or null, the
+execution `error` code or null, and stdout/stderr log paths. Durable state keeps
+check evidence; detailed logs remain local and are absent from fresh checkouts.
+
+## Ordering, integrity and incomplete work
+
+Declarations execute by ID; operations execute in their listed order. All fixes
+run before contextual work. Checks run after a satisfied, current [agent assessment](assessment-protocol.md);
+profiles without contextual declarations run checks immediately after fixes.
+Excluded declarations and their operations never run. Fixes stop at the first
+block or execution error. Ordinary failed checks allow remaining checks to
+collect evidence. A blocked check or execution error stops further execution.
+
+Fixes must be safe to repeat, including after interruption at any point. Observe
+the current project and make only the missing changes; do not assume a previous
+invocation finished or never started. Return `unchanged` when no work is needed.
+The CLI records an uncertain operation before invocation and records its result
+afterward. Recovery requires explicit `resume --retry`: it verifies installed
+progress, repeats fixes, requests renewed contextual assessment, and reruns
+checks before completion. It never implicitly retries an uncertain operation.
+Use `abandon` to preserve incomplete work and its report without asserting
+completion. A surviving author process group blocks retry and abandonment even
+after its direct fix or prerequisite probe returns. See the
+[recovery commands](adoption.md#recover-or-abandon-an-interrupted-run).
+
+Checks must leave project content unchanged. The CLI compares tracked and
+non-ignored untracked content before and after each check, independently of
+whether adoption already dirtied the working tree. It also verifies exact bytes
+and executable state, whole skill inventories, retained inputs, runtime files,
+product state, HEAD and the index against installation expectations after each
+operation. Index verification includes skip-worktree and assume-unchanged flags
+that can conceal later edits from Git status. Unexpected changes are preserved and adoption remains incomplete;
+they cannot redefine the installed baseline. Altered local run-report bytes are
+preserved beside the operation logs before the incomplete report is saved.
+
+Use `status --json` and the incomplete report to review actual changes and
+successful, failed or uncertain work. Follow the recovery instructions in
+[Adoption](adoption.md#completion-and-incomplete-results). No process error,
+blocked result, failed check or contextual handoff asserts complete adoption.

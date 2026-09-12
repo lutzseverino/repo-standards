@@ -1,0 +1,13 @@
+diff --git a/guidance/runbooks.md b/guidance/runbooks.md
+index 9b355ac..1bc2833 100644
+--- a/guidance/runbooks.md
++++ b/guidance/runbooks.md
+@@ -1,4 +1,5 @@
+-# Runbook recovery guidance
++# Runbook response guidance
+ 
+-Runbooks under docs/runbooks/ must describe a recovery procedure and identify an owner to contact.
+-Keep the runbooks project-owned and use the service's actual procedures and ownership information.
++Runbooks under docs/runbooks/ must explain how to locate the current on-call responder
++and when and how to escalate an incident. Keep these details project-owned and factual.
++A recovery procedure and a named owner are no longer required by this declaration.

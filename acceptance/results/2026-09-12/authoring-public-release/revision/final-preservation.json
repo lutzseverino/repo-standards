@@ -1,0 +1,75 @@
+{
+  "initialFixture": "before.json",
+  "initialAuthorCapture": "agent-start-source.json and agent-start-git.json",
+  "head": "ad96edb05d135f03e8c38397089766cd47da0eb7",
+  "headUnchanged": true,
+  "indexSha256": "c5dc060dbddde5d5ac4dffd45913c242ffbed9f2f1cabc0fe690271395525e68",
+  "rawIndexUnchanged": true,
+  "indexEntriesUnchanged": true,
+  "stagedDiffUnchanged": true,
+  "existingUnstagedScratchDiffUnchanged": true,
+  "existingUntrackedListBytesAndModesUnchanged": true,
+  "allFileModesUnchanged": true,
+  "changedFiles": [
+    "authoring-notes.md",
+    "guidance/readme.md",
+    "skills/documentation-review/references/checklist.md"
+  ],
+  "newFiles": [],
+  "deletedFiles": [],
+  "finalStatus": " M authoring-notes.md\n M guidance/readme.md\nMM scratch.txt\n M skills/documentation-review/references/checklist.md\n?? local-draft.txt\n",
+  "files": {
+    "authoring-notes.md": {
+      "sha256": "5b2c5eb4a7be17eddd3c124d54c2150c893ff96b8159adb1e9251c78604384a0",
+      "mode": "0o644"
+    },
+    "files/editorconfig": {
+      "sha256": "12799d2c06823790390a6873c35db831ecd9e839ae9342cba6124ecfe9a0d7d0",
+      "mode": "0o644"
+    },
+    "guidance/contributing.md": {
+      "sha256": "c4d8c6714e03940fe2052c9c129fa261e6a83477cba5ef3599419827d6373b3c",
+      "mode": "0o644"
+    },
+    "guidance/notes.md": {
+      "sha256": "2aba06c22ab0a56f0c6e9d68c51a81182bc3b0c5bbdb067008511d4a41d753da",
+      "mode": "0o644"
+    },
+    "guidance/readme.md": {
+      "sha256": "b863579a0e111232b68a74b7323e8b1faf7d0acd290c5e17bd9cc775e63a7d63",
+      "mode": "0o644"
+    },
+    "guidance/runbooks.md": {
+      "sha256": "d9521d60d2d1256c5552f0970bc643b540a43c0325a439548f549d4d48a0568d",
+      "mode": "0o644"
+    },
+    "guidance/team-readme.md": {
+      "sha256": "c3381bf577341d5394c3cfc0d54f58b393d32c59370f74b07d88b34d27cf4f65",
+      "mode": "0o644"
+    },
+    "local-draft.txt": {
+      "sha256": "5517d763b6c0044fd3f0fb82b29a45868f88f353211236b8285edb194acc393f",
+      "mode": "0o600"
+    },
+    "operations/notes-final-newline.cjs": {
+      "sha256": "1ce8e6c6fe8c13b70abc089fa10020962694be4a87cf2b466a7c7e2fff295261",
+      "mode": "0o644"
+    },
+    "scratch.txt": {
+      "sha256": "f25014b1b6a9b01a3edb6833c1b67f48c03ef4c5d1e3c4f897f2a4c13e1148b6",
+      "mode": "0o600"
+    },
+    "skills/documentation-review/SKILL.md": {
+      "sha256": "740eb99b8350f2848fa8914d6f3fb1d5751a8fbfdb1221984ba8c42173e2bfe3",
+      "mode": "0o644"
+    },
+    "skills/documentation-review/references/checklist.md": {
+      "sha256": "e74a4892e36d238f465e17322a2cbf7b9de71ae339c7134caf40929c3811b806",
+      "mode": "0o644"
+    },
+    "standards.yaml": {
+      "sha256": "5c6a410d240a6be8974ffbeff4a083f5aa1a06624e916f2976ae1216b463075e",
+      "mode": "0o644"
+    }
+  }
+}

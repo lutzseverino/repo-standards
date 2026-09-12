@@ -1,0 +1,41 @@
+{
+  "status": "complete",
+  "source": "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+  "wholeSourceAccepted": true,
+  "acceptedReview": "complete-source-review.md",
+  "finalCompleteSource": "final-complete-source.md",
+  "fullSourceSnapshot": "final-source/",
+  "cliVersion": "1.1.0",
+  "nodeVersion": "v24.11.1",
+  "validation": {
+    "exit": 0,
+    "valid": true,
+    "profiles": [
+      "personal-tools",
+      "team-services"
+    ],
+    "evidence": "final-validation.json"
+  },
+  "changedFiles": [
+    "authoring-notes.md",
+    "guidance/readme.md",
+    "skills/documentation-review/references/checklist.md"
+  ],
+  "preservationEvidence": "final-preservation.json",
+  "skillExercise": {
+    "kind": "same-agent disposable ordinary-work review",
+    "result": "Revised personal-tools distinction and unchanged team criteria observed",
+    "evidence": "skill-exercise-review.md"
+  },
+  "operations": "Unchanged; not rerun during revision; accepted verification limit",
+  "skipped": [
+    "CI"
+  ],
+  "deferred": [
+    "Whether to require tests"
+  ],
+  "publicationHandoff": "publication-handoff.md",
+  "published": false,
+  "committed": false,
+  "adopted": false
+}

@@ -1,0 +1,68 @@
+diff --git a/authoring-notes.md b/authoring-notes.md
+index e175168..642b2a3 100644
+--- a/authoring-notes.md
++++ b/authoring-notes.md
+@@ -44,8 +44,13 @@ operations), and documentation-review. It:
+ - Excludes reproducible-bug-reports because CONTRIBUTING.md belongs to the
+   employer. Exclusion removes governance; it does not delete employer content.
+ - Adds runbook-recovery, with guidance/runbooks.md across the explicit
+-  docs/runbooks directory tree: a recovery procedure and an owner to contact.
+-  Maintain procedures and contacts for incident responders.
++  docs/runbooks directory tree: explain how to locate the current on-call
++  responder and when and how to escalate an incident. The intentional manual
++  edit to guidance/runbooks.md supersedes the earlier recovery-procedure and
++  named-owner requirements for team-services only. Keep its wording unchanged.
++  Align only the team-services section of the shared documentation-review
++  checklist and the team-services profile description; both profiles receive
++  the same skill bundle, with personal-tools criteria unchanged.
+ 
+ README.md, CONTRIBUTING.md when selected, NOTES.md, and runbooks remain
+ project-owned. Profiles are complete alternatives, not combined selections.
+diff --git a/guidance/runbooks.md b/guidance/runbooks.md
+index 9b355ac..1bc2833 100644
+--- a/guidance/runbooks.md
++++ b/guidance/runbooks.md
+@@ -1,4 +1,5 @@
+-# Runbook recovery guidance
++# Runbook response guidance
+ 
+-Runbooks under docs/runbooks/ must describe a recovery procedure and identify an owner to contact.
+-Keep the runbooks project-owned and use the service's actual procedures and ownership information.
++Runbooks under docs/runbooks/ must explain how to locate the current on-call responder
++and when and how to escalate an incident. Keep these details project-owned and factual.
++A recovery procedure and a named owner are no longer required by this declaration.
+diff --git a/scratch.txt b/scratch.txt
+index b852ba9..a81e293 100644
+--- a/scratch.txt
++++ b/scratch.txt
+@@ -1 +1,2 @@
+ Existing staged author work.
++Existing unstaged author work.
+diff --git a/skills/documentation-review/references/checklist.md b/skills/documentation-review/references/checklist.md
+index 9c4240c..dc47a88 100644
+--- a/skills/documentation-review/references/checklist.md
++++ b/skills/documentation-review/references/checklist.md
+@@ -19,6 +19,8 @@ README.md should explain the service's purpose, startup command, and health
+ endpoint using project facts. No tiny-tool invocation or sample output is
+ required beyond the startup command.
+ 
+-Runbooks under docs/runbooks/ should describe a recovery procedure and identify
+-an owner to contact. Use the actual procedures and ownership information.
++Runbooks under docs/runbooks/ should explain how to locate the current on-call
++responder and when and how to escalate an incident. Keep these details
++project-owned and factual. A recovery procedure and a named owner are not
++required.
+ CONTRIBUTING.md is outside this profile's governance and this review.
+diff --git a/standards.yaml b/standards.yaml
+index aaabdfb..965f8cc 100644
+--- a/standards.yaml
++++ b/standards.yaml
+@@ -52,7 +52,7 @@ profiles:
+     description: Small personal CSV and text conversion utilities.
+     declarations: {}
+   team-services:
+-    description: Team services with service documentation and recovery runbooks.
++    description: Team services with service documentation and runbooks for on-call lookup and incident escalation.
+     declarations:
+       readme-usage:
+         kind: file

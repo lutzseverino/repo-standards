@@ -1,0 +1,20 @@
+{
+  "source": "/tmp/repo-standards-author-vbJPu5/workspace/utility-standards",
+  "evidence": "/tmp/repo-standards-31-public-release/creation-evidence",
+  "cli": "1.1.0",
+  "node": "v24.11.1",
+  "allProfilesValid": true,
+  "matchesWholeSourceReviewBytesAndModes": true,
+  "wholeSourceAccepted": true,
+  "untestedScenariosExplicitlyDeferred": true,
+  "sourceFiles": 11,
+  "profiles": [
+    "personal-tools",
+    "team-services"
+  ],
+  "gitMetadataInWorkspace": false,
+  "provisioningPerformed": false,
+  "commitsPerformed": false,
+  "publicationPerformed": false,
+  "adoptionPerformed": false
+}

@@ -1,0 +1,116 @@
+[
+  {
+    "argv": [
+      "/tmp/repo-standards-author-vbJPu5/cli/node_modules/.bin/repo-standards",
+      "--version"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+    "exit": 0,
+    "stdout": "1.1.0\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "node",
+      "--version"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+    "exit": 0,
+    "stdout": "v24.11.1\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "/tmp/repo-standards-author-vbJPu5/cli/node_modules/.bin/repo-standards",
+      "source",
+      "validate",
+      "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+      "--json"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+    "exit": 0,
+    "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"Utility and service standards\",\n    \"description\": \"Lightweight personal utility standards and focused team service documentation standards.\",\n    \"requires\": {\n      \"repo-standards\": \"1.1.0\"\n    }\n  },\n  \"profiles\": {\n    \"personal-tools\": {\n      \"description\": \"Small personal CSV and text conversion utilities.\",\n      \"declarations\": [\n        {\n          \"id\": \"documentation-review\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"documentation-review\",\n          \"source\": \"skills/documentation-review\"\n        },\n        {\n          \"id\": \"editor-line-endings\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"notes-final-newline\",\n          \"checks\": [\n            {\n              \"id\": \"final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"check\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"append-final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"fix\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"file\",\n          \"target\": \"NOTES.md\",\n          \"guidance\": \"guidance/notes.md\"\n        },\n        {\n          \"id\": \"readme-usage\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"guidance/readme.md\"\n        },\n        {\n          \"id\": \"reproducible-bug-reports\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"CONTRIBUTING.md\",\n          \"guidance\": \"guidance/contributing.md\"\n        }\n      ]\n    },\n    \"team-services\": {\n      \"description\": \"Team services with service documentation and recovery runbooks.\",\n      \"declarations\": [\n        {\n          \"id\": \"documentation-review\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"documentation-review\",\n          \"source\": \"skills/documentation-review\"\n        },\n        {\n          \"id\": \"editor-line-endings\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"notes-final-newline\",\n          \"checks\": [\n            {\n              \"id\": \"final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"check\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"append-final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"fix\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"file\",\n          \"target\": \"NOTES.md\",\n          \"guidance\": \"guidance/notes.md\"\n        },\n        {\n          \"id\": \"readme-usage\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"guidance/team-readme.md\"\n        },\n        {\n          \"id\": \"runbook-recovery\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"repository\",\n          \"guidance\": \"guidance/runbooks.md\",\n          \"targets\": {\n            \"paths\": [],\n            \"directories\": [\n              \"docs/runbooks\"\n            ]\n          }\n        }\n      ]\n    }\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "rev-parse",
+      "HEAD"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+    "exit": 0,
+    "stdout": "ad96edb05d135f03e8c38397089766cd47da0eb7\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "ls-files",
+      "--stage"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+    "exit": 0,
+    "stdout": "100644 e17516890eab58d9fd31e0558c2b9cdd961a606b 0\tauthoring-notes.md\n100644 1c33738acd9402569824911534806c4e7de26c8b 0\tfiles/editorconfig\n100644 75ee85ea31fbc2497ebd0d9f84865d28c57d4944 0\tguidance/contributing.md\n100644 0d657a835a14aea59e054a2fa161df60e49ebe21 0\tguidance/notes.md\n100644 30d6b03ab9f2b69941ec7062091b6593f120959b 0\tguidance/readme.md\n100644 9b355acee3eaa78f518065d73a567fe5ac469f95 0\tguidance/runbooks.md\n100644 d3bd0d11fe55689f53b19a94f967e0ac72330345 0\tguidance/team-readme.md\n100644 d0a5008f3ddad41600bd752d24d74f649ce7bad4 0\toperations/notes-final-newline.cjs\n100644 b852ba9dbf4ce747bc277b1fd643bc5f3a722482 0\tscratch.txt\n100644 096c7e8094ba485d62d04980c6811282bffb16df 0\tskills/documentation-review/SKILL.md\n100644 9c4240cd2f80d3a7eaf5d16130f0372e83b37219 0\tskills/documentation-review/references/checklist.md\n100644 aaabdfb84a1518d65fbb0de688b648726db6e555 0\tstandards.yaml\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--cached",
+      "--binary"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+    "exit": 0,
+    "stdout": "diff --git a/scratch.txt b/scratch.txt\nindex 4fe3da3..b852ba9 100644\n--- a/scratch.txt\n+++ b/scratch.txt\n@@ -1 +1 @@\n-Existing author scratch baseline.\n+Existing staged author work.\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--binary"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+    "exit": 0,
+    "stdout": "diff --git a/authoring-notes.md b/authoring-notes.md\nindex e175168..aef936f 100644\n--- a/authoring-notes.md\n+++ b/authoring-notes.md\n@@ -5,9 +5,14 @@\n - editor-line-endings: files/editorconfig owns the entire non-executable\n   .editorconfig in both profiles. Only LF endings and a final newline are set.\n - readme-usage: guidance/readme.md governs project-owned README.md by default:\n-  brief purpose, one working invocation with concrete sample output, and its\n-  input/output. No headings or setup section are required; keep tiny-tool\n-  documentation proportionate to maintenance effort.\n+  brief purpose, one working invocation, a brief explanation of relevant failure\n+  cases and how the utility reports them, and the invocation\u2019s input/output.\n+  This personal-tools revision retires the sample-output requirement so readers\n+  understand unsuccessful use; keep failure descriptions current. The matching\n+  personal-tools checklist in skills/documentation-review/references/checklist.md\n+  follows this rule. The whole skill bundle remains shared, while team-services\n+  criteria remain unchanged. No headings or setup section are required; keep\n+  tiny-tool documentation proportionate to maintenance effort.\n - reproducible-bug-reports: guidance/contributing.md governs project-owned\n   CONTRIBUTING.md by default with a brief reproducible-bug reporting explanation.\n   No contribution workflow is prescribed.\ndiff --git a/guidance/readme.md b/guidance/readme.md\nindex 30d6b03..672747f 100644\n--- a/guidance/readme.md\n+++ b/guidance/readme.md\n@@ -2,7 +2,8 @@\n \n Keep README.md brief. Include:\n - A brief explanation of the utility's purpose.\n-- One working invocation for this project, alongside concrete sample output.\n+- One working invocation for this project.\n+- A brief explanation of relevant failure cases and how the utility reports them.\n - A short explanation of that invocation's input and output, including file paths or stdin/stdout where relevant.\n \n Use the project's own facts and organization. No particular headings or setup section are required.\ndiff --git a/scratch.txt b/scratch.txt\nindex b852ba9..a81e293 100644\n--- a/scratch.txt\n+++ b/scratch.txt\n@@ -1 +1,2 @@\n Existing staged author work.\n+Existing unstaged author work.\ndiff --git a/skills/documentation-review/references/checklist.md b/skills/documentation-review/references/checklist.md\nindex 9c4240c..fc76143 100644\n--- a/skills/documentation-review/references/checklist.md\n+++ b/skills/documentation-review/references/checklist.md\n@@ -4,7 +4,8 @@\n \n README.md should remain brief and contain:\n - A brief explanation of the utility's purpose.\n-- One working invocation for the project, alongside concrete sample output.\n+- One working invocation for the project.\n+- A brief explanation of relevant failure cases and how the utility reports them.\n - A short explanation of its input/output, including paths or stdin/stdout where relevant.\n \n No particular headings or setup section are required. Review the documentation\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "status",
+      "--porcelain=v1"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+    "exit": 0,
+    "stdout": " M authoring-notes.md\n M guidance/readme.md\nMM scratch.txt\n M skills/documentation-review/references/checklist.md\n?? local-draft.txt\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "ls-files",
+      "--others",
+      "--exclude-standard"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+    "exit": 0,
+    "stdout": "local-draft.txt\n",
+    "stderr": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--binary",
+      "--",
+      "scratch.txt"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/revision-workspace/standards",
+    "exit": 0,
+    "stdout": "diff --git a/scratch.txt b/scratch.txt\nindex b852ba9..a81e293 100644\n--- a/scratch.txt\n+++ b/scratch.txt\n@@ -1 +1,2 @@\n Existing staged author work.\n+Existing unstaged author work.\n",
+    "stderr": ""
+  }
+]

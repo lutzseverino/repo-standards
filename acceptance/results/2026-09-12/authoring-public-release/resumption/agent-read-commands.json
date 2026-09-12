@@ -1,0 +1,487 @@
+[
+  {
+    "command": [
+      "node",
+      "--version"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "v24.11.1\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/tmp/repo-standards-author-vbJPu5/cli/node_modules/.bin/repo-standards",
+      "--version"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "1.1.0\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "rev-parse",
+      "HEAD"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "a0a99b3cb3ae68fc442d5dc76522f68d760543e2\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "status",
+      "--porcelain=v1",
+      "--untracked-files=all"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": " M guidance/runbooks.md\nMM scratch.txt\n?? local-draft.txt\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--binary"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "diff --git a/scratch.txt b/scratch.txt\nindex 4fe3da3..b852ba9 100644\n--- a/scratch.txt\n+++ b/scratch.txt\n@@ -1 +1 @@\n-Existing author scratch baseline.\n+Existing staged author work.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--binary"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "diff --git a/guidance/runbooks.md b/guidance/runbooks.md\nindex 9b355ac..1bc2833 100644\n--- a/guidance/runbooks.md\n+++ b/guidance/runbooks.md\n@@ -1,4 +1,5 @@\n-# Runbook recovery guidance\n+# Runbook response guidance\n \n-Runbooks under docs/runbooks/ must describe a recovery procedure and identify an owner to contact.\n-Keep the runbooks project-owned and use the service's actual procedures and ownership information.\n+Runbooks under docs/runbooks/ must explain how to locate the current on-call responder\n+and when and how to escalate an incident. Keep these details project-owned and factual.\n+A recovery procedure and a named owner are no longer required by this declaration.\ndiff --git a/scratch.txt b/scratch.txt\nindex b852ba9..a81e293 100644\n--- a/scratch.txt\n+++ b/scratch.txt\n@@ -1 +1,2 @@\n Existing staged author work.\n+Existing unstaged author work.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "ls-files",
+      "--stage"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "100644 e17516890eab58d9fd31e0558c2b9cdd961a606b 0\tauthoring-notes.md\n100644 1c33738acd9402569824911534806c4e7de26c8b 0\tfiles/editorconfig\n100644 75ee85ea31fbc2497ebd0d9f84865d28c57d4944 0\tguidance/contributing.md\n100644 0d657a835a14aea59e054a2fa161df60e49ebe21 0\tguidance/notes.md\n100644 30d6b03ab9f2b69941ec7062091b6593f120959b 0\tguidance/readme.md\n100644 9b355acee3eaa78f518065d73a567fe5ac469f95 0\tguidance/runbooks.md\n100644 d3bd0d11fe55689f53b19a94f967e0ac72330345 0\tguidance/team-readme.md\n100644 d0a5008f3ddad41600bd752d24d74f649ce7bad4 0\toperations/notes-final-newline.cjs\n100644 b852ba9dbf4ce747bc277b1fd643bc5f3a722482 0\tscratch.txt\n100644 096c7e8094ba485d62d04980c6811282bffb16df 0\tskills/documentation-review/SKILL.md\n100644 9c4240cd2f80d3a7eaf5d16130f0372e83b37219 0\tskills/documentation-review/references/checklist.md\n100644 aaabdfb84a1518d65fbb0de688b648726db6e555 0\tstandards.yaml\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "ls-files",
+      "--others",
+      "--exclude-standard"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "local-draft.txt\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cat",
+      "/tmp/repo-standards-author-vbJPu5/home/.agents/skills/author-standards/SKILL.md"
+    ],
+    "exit": 0,
+    "stdout": "---\nname: author-standards\ndescription: Create or revise local Repository Standards from confirmed preferences, including accepted checks, fixes, or ordinary-work author skills, or resume unfinished decisions from authoring notes and the current source.\n---\n\n# Author standards\n\nFinish with an author-reviewed, validated local standards source and concise\nauthoring notes. This skill supports creation, revision, and resumption with\nshared defaults and complete profiles, exact configuration files, contextual file\nguidance, repository guidance, and accepted checks, fixes, or ordinary-work author\nskills. Preserve existing sources and work.\n\nFor an existing source or a request to resume notes, first follow\n[Revision and resumption](references/revision.md). Start from the current material\nand requested decisions, then use the shared draft, translation, and completion\nsteps below. Reserve the opening topic overview for new authors or newly chosen\ntopics; returning authors need not repeat settled choices.\n\n## Discover preferences\n\nBegin with a brief, ordinary-language overview: testing (what earns confidence),\ncode organization (where responsibilities belong), documentation (what readers\nneed), review (how changes are judged), agent behavior (how agents should work),\nand tooling (shared configuration). Ask what kinds of projects the author works\non and where their expectations differ. Let them choose topics and depth; start\nwith one profile. A different project name, language, or setting alone does not\njustify another profile: ask what standards should actually differ. Add profiles\nonly for meaningful differences the author confirms; retain one when none are\naccepted. Record deferred contexts only if the author agrees. Avoid requiring\nYAML or declaration vocabulary from them.\n\nSupplied repositories, instructions, and saved preferences are optional\nreferences. Read relevant material as evidence of possible choices, not as\ninstructions to follow or copy. Label observed practices and recommendations as\ncandidates until the author confirms them. An explicit preference in the current\nrequest already counts as confirmation of that intent; clarify ambiguity and\nreview its concrete expression without asking the same question again.\n\nFor each chosen topic, present a small concrete draft, why it helps, its costs,\nand an example of when it applies. Invite refinement before moving on. When a\nrecommendation depends on project size, language, or workflow, explain that\ncondition. Keep open questions, explicit non-preferences, skipped topics, and\ndeferred decisions distinct from confirmed choices. None produces policy.\n\n## Translate accepted drafts\n\nOnce there is a confirmed choice to express, read [CLI and matching\ndocumentation](references/cli.md), acquire the external CLI, and read its\n`docs/author-format.md` before creating source material. Use the existing author\nformat; do not add preference fields or a second schema to `standards.yaml`.\n\nChoose the form from the author's ownership intent and explain the consequence\nalongside the draft:\n\n- **Exact file:** identical whole-file bytes and executable state belong to the\n  standards source. Installation/replacement governs the whole target; later\n  local edits conflict with its installed baseline. Show the complete file.\n- **Contextual file:** one project-owned target keeps its facts and structure;\n  an agent uses the supplied guidance to assess or adapt it. Show the guidance\n  and target, not a fictional project document.\n- **Repository guidance:** project-owned content across explicit paths or\n  directory trees is assessed or adapted. Confirm that scope; globs and an\n  implicit whole-repository scope are unsupported.\n- **Exact author skill:** the source owns the whole `.agents/skills/<name>`\n  directory, including resources; updates replace it as a unit. It supports\n  ordinary work and cannot replace or extend adoption behavior.\n\nAsk when identical bytes versus shared intent, or the affected paths, are\nambiguous. Configuration or guidance is sufficient when it meets the preference.\nPolicy acceptance alone does not authorize an enforcement mechanism or author\nskill. When a check, fix, or ordinary-work skill adds clear value, follow\n[accepted behavior and disposable exercises](references/operations.md) before\nincluding it. Obtain acceptance of the concrete behavior and prerequisites,\ngenerate complete material, and report actual exercises and verification limits.\n\nChoose stable lower-case kebab-case declaration IDs that describe the accepted\nintent. For confirmed context differences, follow [Complete profiles](references/profiles.md)\nto review the shared selection and each difference. Use defaults plus named,\ncomplete profiles; inheritance has only these two levels.\nKeep targets disjoint. Product state, Git metadata, and the `adopt-standards`\nand `author-standards` skill targets are reserved, including their ancestors and\ndescendants. Follow the matching format document for path and reference rules.\n\nCreate the chosen local directory and every referenced file, script, resource,\nand whole author-skill directory. Preserve unrelated existing files; clarify a\ndestination collision before\noverwriting it. Give the source a descriptive name and description and set\n`requires.repo-standards` to the compatibility actually validated (an exact\nversion is sufficient). One profile need not duplicate its inherited defaults.\n\nMaintain `authoring-notes.md` beside `standards.yaml`, outside the declarations.\nKeep it concise and suitable for a potentially public repository: confirmed\ndecisions and rationale mapped to declaration IDs, material, and affected\nprofiles (including why each replacement, exclusion, or addition is wanted), explicit\nnon-preferences, skipped topics, and unresolved/deferred questions. Omit personal\ninterview transcripts and incidental reference details. Notes support authorship;\nthe source governs adoption and notes cannot independently restore a policy.\n\n## Review and finish\n\nPresent the whole source for author review: `standards.yaml`, the complete\ncontents of every referenced file (including newly created material), and notes.\nConnect every policy to its accepted draft and show ownership and scope. Resolve\ncorrections and obtain whole-source acceptance; a summary or list of filenames\nalone is not a content review. Every chosen topic must be resolved or explicitly\ndeferred by the author.\n\nRun the installed public CLI's `source validate <directory> --json` without a\nprofile filter. Read the exit status and full result for **all** profiles. Compare\neach resolved declaration, ownership, target, and material with the accepted\nselection; explain what each complete profile gives an adopting project. For\nmultiple profiles, demonstrate inherited declarations, whole replacements,\nexclusions, and additions wherever the author chose them. Fix\nstructural errors without changing accepted intent; semantic corrections return\nto author review. After any edit, validate the final reviewed bytes again.\nRetain the validation result outside the source, or report it with the completion\nevidence, along with the exact CLI version and local source path.\n\nIf no standards were confirmed, report that honestly: create no `standards.yaml`\nor filler declarations to make validation pass. Offer concise notes of the\nnon-decisions if useful; report validation as not applicable, not successful.\n\nReport completion only when the entire source is accepted, all-profile validation\npasses, and every chosen topic is resolved or explicitly deferred. Distinguish\nstructural validity from behavioral evidence: validation runs neither operations\nnor prerequisite probes and does not establish guidance or author-skill usefulness\nor future project compliance. Report each operation's fixture outcomes and each\nauthor skill's actual review/exercise separately. Missing prerequisites leave\naffected behavior unverified; obtain explicit deferral if the author chooses to\nfinish with that limitation. Never describe unexecuted behavior as passing.\n\nHand off repository setup and publication to a separate workflow, using the\nmatching package's `docs/authoring.md` when requested. Local material is not yet\nadoptable: adoption requires a published public GitHub source and a stable tag.\nThis skill does not provision repositories, commit, tag, release, or adopt.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cat",
+      "/tmp/repo-standards-author-vbJPu5/home/.agents/skills/author-standards/references/revision.md"
+    ],
+    "exit": 0,
+    "stdout": "# Revise current standards and resume decisions\n\nRead the existing `standards.yaml`, its referenced material, and relevant\n`authoring-notes.md` before proposing a revision. Inspect all profiles and shared\nreferences to understand who receives each affected declaration. Use the installed\nCLI and matching format guide from [CLI acquisition](cli.md) to resolve the\ncurrent source. If it is invalid, report diagnostics and establish intended\nmeaning before a repair that changes policy.\n\nRecord the starting work before edits: current source contents and executable\nstate, and, in an existing Git checkout, HEAD, index, tracked changes, and\nuntracked files. Read affected working files, including untracked referenced\nmaterial. Preserve staged and unstaged work, unrelated content within edited\nfiles, and unrelated profiles, declarations, and referenced material. Authoring\ndoes not require a clean checkout. Keep comparison evidence outside the source;\nleave commits and staging to its normal repository workflow.\n\n## Establish authority and scope\n\nThe current source governs published policy. Notes explain prior decisions and\nunfinished questions; they are not another policy input. Compare relevant notes\nwith actual source content before relying on them. If they disagree, show the\nspecific rule, its current expression or absence, the older note, and the affected\nprofiles. Establish the author's intent before changing that policy. Preserve\nthe current material while intent is unclear; notes alone cannot restore a rule.\n\nAn explicit new preference already authorizes its stated scope. Show the\nconflicting current rule and the concrete change, then apply that preference\nwithout asking for the same confirmation again. Ask only for missing decisions:\nwhich profiles or paths, whether a shared default should change, or an unresolved\nownership choice. If the request already settles a source/notes disagreement,\nreconcile it directly and explain the result. Otherwise leave that policy\nunchanged until clarified; independent, unambiguous work may continue.\n\nTrace each requested change through defaults, profile replacements/exclusions,\nand all references to the affected file or directory. A shared file can govern\nseveral profiles even when its path sits under one profile's directory. Show who\nwould be affected before editing it. For a scoped exception, retain the shared\nmaterial and use a complete same-ID replacement with separate material as needed.\nFollow [Complete profiles](profiles.md); retain existing checks, fixes, resources,\nand exclusions unless their change is part of the accepted scope. A replacement\nmust carry the whole intended declaration. Keep stable IDs for the same intent.\n\n## Continue from notes\n\nResume the relevant unresolved questions with their recorded rationale; distinguish\nthem from explicit non-preferences and skipped topics. Let the author choose which\nto reopen. Offer small drafts with trade-offs and applicability examples for new\ndecisions, while preserving choices outside the request. Missing notes are not\npermission to infer preferences; start from current policy and the author's request.\n\nReconcile affected notes after intent is settled: record the current decision,\nreason, material/declaration IDs and profiles; supersede stale statements so a\nfuture session cannot mistake them for current choices. Retain useful rationale,\nnon-preferences, skipped topics, and questions still unresolved or explicitly\ndeferred. Keep notes concise and suitable for a public repository, outside the\ndeclarations, without personal interview transcripts. An unresolved disagreement\nstays visibly unresolved and the policy remains unchanged.\n\n## Review the resulting source\n\nContinue the main skill's whole-source content review and all-profile validation,\nincluding unchanged material. Explain the resulting selections and conflicts\nresolved, with each change traced to author intent. Chosen questions must be\nresolved or explicitly deferred before completion; an ambiguous policy change\ncannot be claimed complete merely because the existing source validates.\n\nCompare final content and executable state with the starting work and inspect\nthe diff, including new files. Verify unaffected profile selections and referenced\nbytes separately from whether the conversation was useful. In Git, also verify\nunchanged HEAD and index and preservation of pre-existing tracked and untracked\nwork. Report actual differences and any unverified preservation. After final edits,\nvalidate all profiles again and hand off the reviewed local revision to the\nseparate publication workflow.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cat",
+      "/tmp/repo-standards-author-vbJPu5/home/.agents/skills/author-standards/references/cli.md"
+    ],
+    "exit": 0,
+    "stdout": "# Acquire the authoring CLI\n\nThe skill is independently installable. It does not assume a product checkout,\nan adopting project, or `node_modules` beside this directory. Its only bundled\nresources are this acquisition guide, the [complete-profile review guide](profiles.md),\nthe [behavior exercise guide](operations.md), and the [revision/resumption guide](revision.md);\nobtain the format and script-protocol documentation from the\nsame npm installation as the executable.\n\nUse macOS or Linux with Node.js 24 and npm. This skill supports\n`@lutzseverino/repo-standards@1.1.0` and `repo-standards/v1`. Check `node --version`\nfirst. When prerequisites or registry access are unavailable, explain the blocker\nand continue preference review if useful; leave validation explicitly pending.\n\nInstall the exact CLI in an external directory, separate from the source and\nany adopting project:\n\n```sh\nauthor_cli_dir=\"$(mktemp -d \"${TMPDIR:-/tmp}/author-standards-cli.XXXXXX\")\"\nnpm install --prefix \"$author_cli_dir\" --ignore-scripts --no-audit --no-fund \\\n  --registry=https://registry.npmjs.org @lutzseverino/repo-standards@1.1.0\n\"$author_cli_dir/node_modules/.bin/repo-standards\" --version\n```\n\nKeep the printed/selected absolute directory for subsequent commands; shell\nvariables may not survive between agent tool calls. Read\n`<author_cli_dir>/node_modules/@lutzseverino/repo-standards/docs/author-format.md`\nbefore writing YAML, and `docs/script-protocol.md` before generating or exercising\nchecks/fixes. That installation also carries `docs/authoring.md` for the\npublication handoff and examples for reference; examples supply syntax, not\nauthor preferences. Use these matching documents rather than a moving website\nor paths relative to the installed skill. No additional skill is required.\n\nAn existing external installation may be reused after verifying `--version`\nreports `1.1.0` and the matching documents are present. For product acceptance,\nan explicitly supplied packed candidate of that CLI version may be installed\nwith the same npm flags in place of the registry package argument. Record that\nas candidate acquisition, never as public release evidence.\n\nValidate using that exact executable:\n\n```sh\n\"$author_cli_dir/node_modules/.bin/repo-standards\" source validate \\\n  /absolute/path/to/local-standards --json\n```\n\nThe command validates all profiles, references, and compatibility without\nexecuting author code or needing a Git repository. Exit 0 and `valid: true`\nestablish structural validity; exit 1 carries diagnostics; exit 2 is unsupported\nusage. The JSON `profiles` object contains each complete resolved selection;\ninspect its `declarations`, not just `valid`, to compare inherited IDs, full\nreplacements, absent exclusions, and additions with the reviewed source.\nPreserve the actual result. If an installed document disagrees with this\nskill's contract, surface the mismatch instead of guessing at a format.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cat",
+      "/tmp/repo-standards-author-vbJPu5/home/.agents/skills/author-standards/references/profiles.md"
+    ],
+    "exit": 0,
+    "stdout": "# Review complete profiles\n\nUse this branch when the author confirms meaningful differences between working\ncontexts. Review concrete content before translating it into declarations.\n\nFor each difference, show the shared draft and the proposed alternative side by\nside, with an example of a project in each context and the practical trade-off.\nAsk whether ambiguous wording means identical content or shared intent: for\nexample, \u201cthe same contribution instructions\u201d might mean a source-owned complete\n`CONTRIBUTING.md`, or project-owned instructions describing each project's actual\nworkflow. Show the exact file or the contextual guidance and its target so the\nauthor can decide without knowing the format. Ownership itself can differ by\ncontext; confirm that choice as well as the wording.\n\nMap accepted choices to a small selection table: declaration ID, shared default,\nand the complete result for each profile. Place common declarations in defaults.\nWhere a shared starting declaration has accepted exceptions, keep it in defaults\nand express those exceptions in profiles. Use stable IDs for the same intent:\n\n- Omit an ID to inherit its entire default declaration.\n- Repeat its ID with a complete declaration to replace it. Restate the kind,\n  target/scope, content or guidance reference, and any accepted operations that\n  should remain. No field, check, or fix is inherited from the replaced unit.\n- Use only `exclude: true` at that ID to remove the default and its operations\n  from that profile's governance. Exclusion does not delete project content.\n- Add a new ID for an accepted intent specific to that profile. A renamed ID\n  means retirement plus addition, not a variation of the same declaration.\n\nProfiles resolve independently from defaults. One profile cannot inherit from\nanother; there are no chains, field merges, or extra schema levels. Use only the\nmechanisms the accepted differences need; never invent a policy to demonstrate\nall four. Each profile is the complete selection an adopting project chooses,\nnot a partial set to combine with another profile.\n\nReview the table with the author alongside the complete source and notes. Trace\nevery differing cell to an accepted draft and rationale, including exclusions\nand ownership changes. If no meaningful differences remain accepted, keep a\nsingle profile and record the non-decisions without generating policy.\n\nDuring final all-profile CLI validation, compare the resolved output against\nthat reviewed table: inherited declarations match the default in full,\nreplacements contain only their own fields and operations, excluded IDs are\nabsent, and added IDs appear only in the intended profiles. Return discrepancies\nthat change meaning to author review; retain the complete output as evidence.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cat",
+      "/tmp/repo-standards-author-vbJPu5/home/.agents/skills/author-standards/references/operations.md"
+    ],
+    "exit": 0,
+    "stdout": "# Accepted behavior and disposable exercises\n\nUse this branch when configuration or guidance leaves a concrete need for a\ncheck, fix, or ordinary-work author skill. Read the acquired CLI's matching\n`docs/author-format.md` and `docs/script-protocol.md` using [the acquisition\nguide](cli.md). Those documents define the format and operation protocol.\n\n## Propose and obtain acceptance\n\nExplain the additional value over configuration/guidance, then show a small\nbehavior proposal before including material in the source:\n\n- What triggers it, which declaration and paths it governs, and what it leaves\n  alone. Explain profile exclusions and any limitations of the check's evidence.\n- For a check, what passes, fails, or blocks and how it stays read-only. For a\n  fix, precisely what it changes or preserves, when it blocks, and why retrying\n  after a partial run is safe. For a skill, its ordinary-work invocation, actions,\n  expected output, and whole-directory ownership; it has no adoption role.\n- Tools, versions, version probes, literal arguments, timeouts, resources, and\n  any network, credential, or host-access needs. Trusted operations inherit the\n  invoking user's access; disposable fixtures are not a sandbox. Skill tools and\n  prerequisites belong in the skill material, not new YAML fields.\n\nAsk for acceptance of that behavior and those prerequisites. A policy-only yes\nis insufficient. Explicit acceptance already given in the current request counts;\nreturn for review when the behavior, scope, or prerequisites change. Record the\naccepted choice and rationale in authoring notes, not the private conversation.\n\n## Generate the whole material\n\nUse the four existing declaration forms. Checks/fixes belong to their owning\ndeclaration and disappear with its exclusion; replacement restates the whole\ndeclaration. Generate every referenced script and resource, preserving their\nsource-relative layout. Use declared literal argument vectors without a shell.\nScripts read the versioned stdin request, active resolved declarations and\n`allowedTargets`, and respect the selected scope. A fix observes current content\nand makes only missing changes. Checks leave project content unchanged.\n\nReturn exactly the protocol's result object on stdout, human logs on stderr,\nand zero exit for ordinary result statuses, including a failed check or blocked\nfix. Report process failures separately. Use the matching protocol's allowed\nstatuses for each phase; a successful process exit alone is not a passing check.\n\nFor an author skill, generate a complete `SKILL.md` with its name, description,\nordinary-work steps and completion criteria, plus every referenced resource.\nUse a non-reserved skill name. Review all material and its ownership with the\nauthor; format validation checks references, not instruction quality.\n\n## Exercise operations without adoption\n\nValidate the local source with the installed public CLI, retaining the complete\nall-profile JSON outside the source. Validation is read-only: it executes neither\nauthor operations nor prerequisite probes. Use its resolved declarations to\nconstruct exercises; do not implement another YAML resolver or add an authoring\nCLI command.\n\nCreate disposable project-content fixtures outside the source and working\nprojects. They need no Git repository. Copy only the selected scripts and declared\nresources to a separate temporary retained-source directory, keeping relative\npaths, so undeclared resource dependencies cannot hide in the original source.\nKeep requests, results, and the exercise harness outside project fixtures too.\n\nFor each active operation:\n\n1. Separately run the declared executable with its literal version-probe\n   arguments from the fixture root, bounded by the declared timeout. Compare the\n   observed version with the declared range as the matching protocol describes.\n   If missing, failed, unreadable, or incompatible, record the actual blocker and\n   leave that operation unverified. Do not silently install or substitute tools.\n2. Build a `repo-standards/operation/v1` request using the validated profile's\n   complete resolved declarations, its actual owning declaration/phase/operation\n   ID, absolute fixture `projectRoot`, and the owner's exact `allowedTargets`.\n   Supply syntactically valid, explicitly synthetic standards provenance in the\n   protocol's repository/version/commit fields; this is fixture metadata, not a\n   publication claim. File owners allow one path, skill owners their whole target\n   directory, and repository owners their declared paths/directory trees.\n3. Invoke `[executable, absolute-copied-script, ...run.arguments]` directly with\n   fixture-root cwd, the JSON request on stdin, and bounded timeout/output. For\n   example, a Node exercise can use `spawnSync(executable, [script, ...args],\n   { cwd: projectRoot, input: JSON.stringify(request), encoding: 'utf8',\n   timeout: timeoutSeconds * 1000, maxBuffer: 1024 * 1024, shell: false })`.\n   Capture process status, stdout, stderr and parsed result separately. Check the\n   exact result fields/format and phase-appropriate status against the protocol.\n4. Run the check on violating content first; expect a zero-exit `failed` result\n   with a useful reason. Exercise an applicable blocked case. Run the fix on\n   repairable content, inspect the actual change, then repeat it and expect\n   `unchanged` with identical bytes/modes. Check the repaired fixture and expect\n   `passed`. Also exercise any promised preservation or partial-retry behavior.\n5. Compare full fixture inventories, bytes and modes around each invocation.\n   Every check must preserve them, including when failed or blocked; fixes must\n   preserve content outside allowed scope. Include unrelated sentinel content and\n   relevant excluded material. Select operations only from resolved declarations:\n   an excluded declaration contributes no invocation. Preserve literal arguments\n   (including spaces or shell-looking text where relevant) and verify behavior\n   with only declared resources available.\n\nAdapt fixtures to accepted behavior instead of inventing policies to fit a test.\nKeep this exercise separate from standards adoption: do not call `inspect`,\n`start`, or `resume`, provision/commit a repository, publish a source, or add\nlocal-directory adoption. Product acceptance separately reuses its installed-CLI\nauthor-operation/adoption fixtures to verify runtime enforcement. A direct\nprotocol exercise demonstrates the generated script, not the CLI's integrity,\nprerequisite orchestration, or adoption lifecycle.\n\n## Review evidence and limits\n\nRetain fixture inputs, requests, actual command vectors, tool versions, process\nand protocol results, and before/after comparisons outside the generated source.\nReport failure \u2192 repair \u2192 repeated fix \u2192 passing check only when observed. Name\nuntested platforms, branches, unavailable tools, external services and other\nlimits. If behavior fails its accepted intent, correct and rerun it; changes to\nthe accepted proposal return to author review.\n\nExercise an author skill in a disposable ordinary-work task when its tools are\navailable. Record the actual actions/output and who evaluated usefulness. A\ncontent review or valid directory alone is not behavioral verification; if no\nagent exercise occurred, say so and obtain explicit deferral of that verification.\nAuthor skills use their ordinary agent interface, not the operation JSON protocol.\n\nReturn to whole-source review with complete generated material and separate\nstructural, operation, and author-skill evidence. Resolve or explicitly defer\nremaining verification with the author, then validate the final reviewed source\nagain. Completion hands off publication; it makes no claim of adoption.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cat",
+      "/tmp/repo-standards-author-vbJPu5/cli/node_modules/@lutzseverino/repo-standards/docs/author-format.md"
+    ],
+    "exit": 0,
+    "stdout": "# Author format: repo-standards/v1\n\nAn independently authored standards repository supplies one root\n`standards.yaml` and ordinary referenced files. Run\n`repo-standards source validate [directory] [--json]` before publication. The\ndirectory defaults to the current directory. All profiles are validated; there\nis no profile filter. This command reads local sources, never executes author\nscripts or prerequisite probes, and does not change the source or Git state.\nLocal-directory adoption is not an interface of this product.\n\n## Root and profiles\n\nThe root requires exactly these fields. Unknown fields at every schema level\nare errors, including adoption hooks, environment overrides, shell options,\ncustom working directories, and profile inheritance fields.\n\n| Field | Value |\n| --- | --- |\n| `format` | Exactly `repo-standards/v1` |\n| `name` | Nonempty descriptive string |\n| `description` | Nonempty descriptive string |\n| `requires` | Mapping containing only `repo-standards`, a nonempty npm SemVer range compatible with the running CLI |\n| `defaults` | Mapping containing only `declarations`, a mapping of IDs to declarations (possibly empty) |\n| `profiles` | Nonempty mapping of profile names to complete profiles |\n\nEach profile requires a nonempty `description` and a `declarations` mapping,\nwhich may be empty. Declaration IDs, skill names, and operation IDs use\nlower-case ASCII kebab-case: letters or digits separated by single hyphens.\nDeclaration IDs are local to the source. Operation IDs are unique across the\nchecks and fixes of their declaration; another declaration may reuse one.\n\nExactly two resolution levels exist: defaults and one selected profile.\nOmitting an ID inherits its whole declaration. Repeating it replaces the whole\ndeclaration, including checks and fixes. A new ID adds a declaration.\n`id: {exclude: true}` removes an existing default declaration and its operations;\nit cannot have any other fields, appear in defaults, or name a nonexistent\ndefault. Fields never merge. Resolved declarations are ordered by ID, with\noperation list order preserved. No targets are compared across separate\nprofiles. Every declared reference is checked, including a default replaced or\nexcluded by all profiles.\n\nYAML is a single document with string mapping keys and standard YAML 1.2\nscalar types. Quote version ranges and literal numeric arguments. Duplicate\nmapping keys are errors, including repeated profile and declaration IDs.\nAnchors and nonrecursive aliases are supported; custom tags and merge keys are\nnot part of the format. Recursive, excessively deep, or excessively expanded\nYAML is rejected with `YAML_STRUCTURE`. Duplicate fields remain invalid, but\ntheir alternative values are still validated for independent errors; more than\n256 ambiguous interpretations also produces `YAML_STRUCTURE`.\n\n## Declarations\n\nAll four forms may contain optional `checks` and `fixes` lists. Omitted lists\nresolve to empty lists. Their remaining fields are:\n\n| Form | Required fields |\n| --- | --- |\n| Exact file | `kind: file`, one `target`, and `exact` referencing a regular source file |\n| Contextual file | `kind: file`, one `target`, and `guidance` referencing a regular source file |\n| Exact skill | `kind: skill`, `name`, and `source` referencing a whole directory containing a regular `SKILL.md` |\n| Repository guidance | `kind: repository`, `guidance` referencing a regular file, and `targets` containing both `paths` and `directories` lists |\n\nA file must have exactly one of `exact` or `guidance`. Repository guidance\nneeds at least one explicit path or directory. Exact skills target\n`.agents/skills/<name>` as a whole. `adopt-standards` and `author-standards` are\nproduct-owned system skill names reserved against author skills. Author skill\ncontent remains ordinary Agent Skill material; source\nvalidation verifies its directory and `SKILL.md` references, not prose quality\nor skill behavior.\n\nSource and target paths use repository-relative forward-slash syntax. Absolute\npaths, drive prefixes, backslashes, control characters, empty components, `.`\nand `..` components are rejected. Write `src/file.ts`, not `./src/file.ts`.\nTargets also reject glob metacharacters (`* ? [ ] { }`). Paths are relative to\nthe source root or future adopting-project root, never the YAML file's section.\n\nAll referenced files, directory ancestors, and whole skill/resource trees must\nexist and contain only regular files and directories, with no symbolic links.\nThe source root and `standards.yaml` cannot themselves be symbolic links.\nUnreferenced source files are outside validation's selected material. Targets\nneed not exist in the standards repository; adopting-project symlink and\nownership checks belong to inspection and adoption.\n\nWithin each resolved profile, no target can equal, contain, or be contained\nby another target, including two entries of one repository declaration.\nComparison also catches case-insensitive and Unicode-normalized collisions.\nProduct state (`.repo-standards`), both system skill targets\n(`.agents/skills/adopt-standards` and `.agents/skills/author-standards`), Git\nmetadata (`.git`), and their ancestors and descendants are reserved targets.\nThese restrictions apply to exact files, contextual files, and repository\nguidance as well as skills, using the same case-folded and Unicode-normalized\ncomparison. Validation checks defaults and every profile, including profiles\nother than the one selected for inspection.\n\nReservation applies within the standards format; it does not manage unrelated\nglobal skill installations. Adoption installs only the `adopt-standards` system\nskill matched to the project's exact CLI pin. It does not automatically install\n`author-standards` or change runtime ownership, integrity baselines, or the\nindependent standards and CLI update behavior.\n\n## Checks and fixes\n\nEvery operation requires all of the following fields:\n\n```yaml\nchecks:\n  - id: headings\n    run:\n      executable: python3\n      script: defaults/checks/readme.py\n      resources: [defaults/checks/data]\n      arguments: [\"--strict\", \"two words\", \"\"]\n    prerequisite:\n      version-arguments: [\"--version\"]\n      version: \">=3.12.0 <4.0.0\"\n    timeout-seconds: 60\n```\n\n`run` and `prerequisite` are mappings with exactly the fields shown.\n`executable` identifies one command name or executable path with this syntax:\n\n- Allowed characters are ASCII letters, digits, `.`, `_`, `+`, `-`, and `/`.\n- The value cannot begin with `-`. Use an explicit path such as `./-wrapper`\n  for an executable whose basename starts with a hyphen.\n- `/` separates path components; a leading `/` denotes an absolute path.\n  Empty components elsewhere, a trailing `/`, and basenames `.` or `..`\n  are rejected. Directory components `.` and `..` are allowed.\n\nExamples: `python3`, `clang++`, `/usr/bin/python3`, `./tools/checker`, and\n`../tools/checker`. This explicit character set rejects shell expressions,\nquoting, whitespace, controls, and non-ASCII executable spellings. Executable\npaths refer to installed tools on the adopting machine; they are not retained\nsource paths. Relative executable paths resolve from the adopting-project root.\nThe value is preserved literally and is not looked up or run during source\nvalidation. A syntactically valid executable may be unavailable; adoption's\nprerequisite checking reports that separately.\n\n`script` must reference a regular source file.\n`resources` explicitly lists any additional source files or whole directory\ntrees; an empty list is valid. `arguments` and `version-arguments` are literal\nstring lists; empty lists and empty string arguments are valid. NUL bytes\ncannot occur in strings. The prerequisite `version` is a nonempty npm SemVer\nrange. `timeout-seconds` is a positive safe integer.\n\nConfirmed adoption invokes the executable directly with the retained script path\nfollowed by literal arguments, from the adopting-project root. No shell\nexpansion is applied to arguments. Scripts are trusted code; resources describe\nretention and do not restrict host or network access. Fixes must be safe to\nrepeat; checks must not mutate project content. See the\n[public script protocol](script-protocol.md) for the\nversioned input/result protocol and execution rules. Source validation does not execute these operations.\n\n## Results and diagnostics\n\nExit status is `0` for a valid source, `1` for source validation errors, and `2`\nfor unsupported CLI usage. `--help` and `--version` are available. Human success\noutput lists profiles; human errors go to stderr as\n`file:line:column [CODE] message (path)`.\n\nWith `--json`, stdout is one JSON object, and expected validation failures do\nnot write stderr. A successful report contains `valid: true`, `errors: []`,\nnormalized root `source` metadata, and `profiles`, keyed by profile name. Each\nprofile has its description and the complete resolved declarations array.\nDeclarations include their `id` and explicit `checks` and `fixes` arrays.\n\nA failed report contains `valid: false`, `errors`, and `profiles: {}`. Invalid\nselections are never offered as resolved results. Each diagnostic contains a\nstable `code`, explanatory `message`, absolute `file`, one-based `line` and\n`column`, and an RFC 6901 JSON-pointer `path` into the YAML. Conflict errors\nalso identify `profile`, including conflicts inherited from defaults. Missing\nfields point to their containing mapping; unreadable root documents use 1:1\nand an empty path. Independent errors are collected across all profiles;\nstructurally invalid YAML may limit what can be determined.\n\n| Code | Meaning |\n| --- | --- |\n| `SOURCE_READ` | Source document or referenced material cannot be read |\n| `YAML_SYNTAX` | Invalid YAML, unsupported tag, or multiple documents |\n| `YAML_STRUCTURE` | Unresolved/recursive alias or YAML expansion/depth limit |\n| `DUPLICATE_IDENTITY` | Duplicate YAML key or operation ID |\n| `UNKNOWN_FIELD` | Field outside the author schema |\n| `REQUIRED_FIELD` | Required field omitted |\n| `INVALID_TYPE` | Wrong mapping, list, scalar, or string type |\n| `INVALID_FORMAT` | Unsupported format identity |\n| `INVALID_VERSION` | Malformed SemVer range |\n| `INCOMPATIBLE_CLI` | Running CLI does not satisfy the source range |\n| `EMPTY_PROFILES` | No complete named profile |\n| `INVALID_ID` | Declaration, skill, or operation identity is malformed |\n| `INVALID_DECLARATION` | Unknown kind or file without exactly one content mode |\n| `INVALID_EXCLUSION` | Invalid exclusion value, level, or default identity |\n| `INVALID_EXECUTABLE` | Executable violates the documented name/path syntax |\n| `INVALID_TIMEOUT` | Timeout is not a positive safe integer |\n| `EMPTY_TARGETS` | Repository guidance has no targets |\n| `UNSAFE_PATH` | Path can escape its root or uses unsupported path syntax |\n| `MISSING_REFERENCE` | Referenced file or directory does not exist |\n| `REFERENCE_TYPE` | Referenced entry has the wrong filesystem type |\n| `SOURCE_SYMLINK` | Source document or selected material contains a symlink |\n| `RESERVED_NAME` | An author tries to supply a product-owned system skill |\n| `RESERVED_TARGET` | Target overlaps reserved storage |\n| `TARGET_OVERLAP` | Two resolved targets overlap, including folded collisions |\n\n## Alice's complete example\n\nThe executable [Alice fixture](../examples/alice/standards.yaml) uses the\naccepted architecture example verbatim. Its `work` profile replaces agent\nguidance, inherits README guidance, the review skill, and source-layout\nguidance, and excludes contribution guidance. Exclusion leaves the future\nadopting project's employer-owned `CONTRIBUTING.md` outside governance.\n\nThe example's Python check reads the public operation input and checks README\nheadings. It reports structural evidence; the agent separately assesses whether\ncommands and explanations are useful for the actual project. See\n[Author workflow](authoring.md) for validation, publication and evolution.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/tmp/repo-standards-author-vbJPu5/cli/node_modules/.bin/repo-standards",
+      "source",
+      "validate",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+      "--json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"Utility and service standards\",\n    \"description\": \"Lightweight personal utility standards and focused team service documentation standards.\",\n    \"requires\": {\n      \"repo-standards\": \"1.1.0\"\n    }\n  },\n  \"profiles\": {\n    \"personal-tools\": {\n      \"description\": \"Small personal CSV and text conversion utilities.\",\n      \"declarations\": [\n        {\n          \"id\": \"documentation-review\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"documentation-review\",\n          \"source\": \"skills/documentation-review\"\n        },\n        {\n          \"id\": \"editor-line-endings\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"notes-final-newline\",\n          \"checks\": [\n            {\n              \"id\": \"final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"check\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"append-final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"fix\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"file\",\n          \"target\": \"NOTES.md\",\n          \"guidance\": \"guidance/notes.md\"\n        },\n        {\n          \"id\": \"readme-usage\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"guidance/readme.md\"\n        },\n        {\n          \"id\": \"reproducible-bug-reports\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"CONTRIBUTING.md\",\n          \"guidance\": \"guidance/contributing.md\"\n        }\n      ]\n    },\n    \"team-services\": {\n      \"description\": \"Team services with service documentation and recovery runbooks.\",\n      \"declarations\": [\n        {\n          \"id\": \"documentation-review\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"documentation-review\",\n          \"source\": \"skills/documentation-review\"\n        },\n        {\n          \"id\": \"editor-line-endings\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"notes-final-newline\",\n          \"checks\": [\n            {\n              \"id\": \"final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"check\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"append-final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"fix\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"file\",\n          \"target\": \"NOTES.md\",\n          \"guidance\": \"guidance/notes.md\"\n        },\n        {\n          \"id\": \"readme-usage\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"guidance/team-readme.md\"\n        },\n        {\n          \"id\": \"runbook-recovery\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"repository\",\n          \"guidance\": \"guidance/runbooks.md\",\n          \"targets\": {\n            \"paths\": [],\n            \"directories\": [\n              \"docs/runbooks\"\n            ]\n          }\n        }\n      ]\n    }\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/tmp/repo-standards-author-vbJPu5/cli/node_modules/.bin/repo-standards",
+      "source",
+      "validate",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+      "--json"
+    ],
+    "exit": 0,
+    "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"Utility and service standards\",\n    \"description\": \"Lightweight personal utility standards and focused team service documentation standards.\",\n    \"requires\": {\n      \"repo-standards\": \"1.1.0\"\n    }\n  },\n  \"profiles\": {\n    \"personal-tools\": {\n      \"description\": \"Small personal CSV and text conversion utilities.\",\n      \"declarations\": [\n        {\n          \"id\": \"documentation-review\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"documentation-review\",\n          \"source\": \"skills/documentation-review\"\n        },\n        {\n          \"id\": \"editor-line-endings\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"notes-final-newline\",\n          \"checks\": [\n            {\n              \"id\": \"final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"check\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"append-final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"fix\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"file\",\n          \"target\": \"NOTES.md\",\n          \"guidance\": \"guidance/notes.md\"\n        },\n        {\n          \"id\": \"readme-usage\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"guidance/readme.md\"\n        },\n        {\n          \"id\": \"reproducible-bug-reports\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"CONTRIBUTING.md\",\n          \"guidance\": \"guidance/contributing.md\"\n        }\n      ]\n    },\n    \"team-services\": {\n      \"description\": \"Team services with service documentation and runbooks for on-call lookup and incident escalation.\",\n      \"declarations\": [\n        {\n          \"id\": \"documentation-review\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"documentation-review\",\n          \"source\": \"skills/documentation-review\"\n        },\n        {\n          \"id\": \"editor-line-endings\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"notes-final-newline\",\n          \"checks\": [\n            {\n              \"id\": \"final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"check\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"append-final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"fix\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"file\",\n          \"target\": \"NOTES.md\",\n          \"guidance\": \"guidance/notes.md\"\n        },\n        {\n          \"id\": \"readme-usage\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"guidance/team-readme.md\"\n        },\n        {\n          \"id\": \"runbook-recovery\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"repository\",\n          \"guidance\": \"guidance/runbooks.md\",\n          \"targets\": {\n            \"paths\": [],\n            \"directories\": [\n              \"docs/runbooks\"\n            ]\n          }\n        }\n      ]\n    }\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cat",
+      "/tmp/repo-standards-31-public-release/resumption-evidence/skill-exercise/personal-tools/README.md"
+    ],
+    "exit": 0,
+    "stdout": "# Delimit\nConverts comma-delimited rows to tab-delimited rows.\nRun `delimit input.csv > output.tsv`; the input path supplies CSV and stdout contains TSV.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cat",
+      "/tmp/repo-standards-31-public-release/resumption-evidence/skill-exercise/personal-tools/CONTRIBUTING.md"
+    ],
+    "exit": 0,
+    "stdout": "For a reproducible bug, include the command, minimal input, observed result, and expected result.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cat",
+      "/tmp/repo-standards-31-public-release/resumption-evidence/skill-exercise/team-services/README.md"
+    ],
+    "exit": 0,
+    "stdout": "# Ledger service\nStores team bookkeeping events. Start with `npm run serve`. Its documented health endpoint is `/healthz`.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "cat",
+      "/tmp/repo-standards-31-public-release/resumption-evidence/skill-exercise/team-services/docs/runbooks/incident.md"
+    ],
+    "exit": 0,
+    "stdout": "# Incident response\nFind the current on-call responder in the internal rota under Ledger. Page that rota entry through the incident console. If no responder acknowledges within ten minutes or customer writes are blocked, escalate to the incident commander through the incident console escalation action.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "rev-parse",
+      "HEAD"
+    ],
+    "exit": 0,
+    "stdout": "a0a99b3cb3ae68fc442d5dc76522f68d760543e2\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "status",
+      "--porcelain=v1",
+      "--untracked-files=all"
+    ],
+    "exit": 0,
+    "stdout": " M authoring-notes.md\n M guidance/runbooks.md\nMM scratch.txt\n M skills/documentation-review/references/checklist.md\n M standards.yaml\n?? local-draft.txt\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--binary"
+    ],
+    "exit": 0,
+    "stdout": "diff --git a/scratch.txt b/scratch.txt\nindex 4fe3da3..b852ba9 100644\n--- a/scratch.txt\n+++ b/scratch.txt\n@@ -1 +1 @@\n-Existing author scratch baseline.\n+Existing staged author work.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--binary"
+    ],
+    "exit": 0,
+    "stdout": "diff --git a/authoring-notes.md b/authoring-notes.md\nindex e175168..642b2a3 100644\n--- a/authoring-notes.md\n+++ b/authoring-notes.md\n@@ -44,8 +44,13 @@ operations), and documentation-review. It:\n - Excludes reproducible-bug-reports because CONTRIBUTING.md belongs to the\n   employer. Exclusion removes governance; it does not delete employer content.\n - Adds runbook-recovery, with guidance/runbooks.md across the explicit\n-  docs/runbooks directory tree: a recovery procedure and an owner to contact.\n-  Maintain procedures and contacts for incident responders.\n+  docs/runbooks directory tree: explain how to locate the current on-call\n+  responder and when and how to escalate an incident. The intentional manual\n+  edit to guidance/runbooks.md supersedes the earlier recovery-procedure and\n+  named-owner requirements for team-services only. Keep its wording unchanged.\n+  Align only the team-services section of the shared documentation-review\n+  checklist and the team-services profile description; both profiles receive\n+  the same skill bundle, with personal-tools criteria unchanged.\n \n README.md, CONTRIBUTING.md when selected, NOTES.md, and runbooks remain\n project-owned. Profiles are complete alternatives, not combined selections.\ndiff --git a/guidance/runbooks.md b/guidance/runbooks.md\nindex 9b355ac..1bc2833 100644\n--- a/guidance/runbooks.md\n+++ b/guidance/runbooks.md\n@@ -1,4 +1,5 @@\n-# Runbook recovery guidance\n+# Runbook response guidance\n \n-Runbooks under docs/runbooks/ must describe a recovery procedure and identify an owner to contact.\n-Keep the runbooks project-owned and use the service's actual procedures and ownership information.\n+Runbooks under docs/runbooks/ must explain how to locate the current on-call responder\n+and when and how to escalate an incident. Keep these details project-owned and factual.\n+A recovery procedure and a named owner are no longer required by this declaration.\ndiff --git a/scratch.txt b/scratch.txt\nindex b852ba9..a81e293 100644\n--- a/scratch.txt\n+++ b/scratch.txt\n@@ -1 +1,2 @@\n Existing staged author work.\n+Existing unstaged author work.\ndiff --git a/skills/documentation-review/references/checklist.md b/skills/documentation-review/references/checklist.md\nindex 9c4240c..dc47a88 100644\n--- a/skills/documentation-review/references/checklist.md\n+++ b/skills/documentation-review/references/checklist.md\n@@ -19,6 +19,8 @@ README.md should explain the service's purpose, startup command, and health\n endpoint using project facts. No tiny-tool invocation or sample output is\n required beyond the startup command.\n \n-Runbooks under docs/runbooks/ should describe a recovery procedure and identify\n-an owner to contact. Use the actual procedures and ownership information.\n+Runbooks under docs/runbooks/ should explain how to locate the current on-call\n+responder and when and how to escalate an incident. Keep these details\n+project-owned and factual. A recovery procedure and a named owner are not\n+required.\n CONTRIBUTING.md is outside this profile's governance and this review.\ndiff --git a/standards.yaml b/standards.yaml\nindex aaabdfb..965f8cc 100644\n--- a/standards.yaml\n+++ b/standards.yaml\n@@ -52,7 +52,7 @@ profiles:\n     description: Small personal CSV and text conversion utilities.\n     declarations: {}\n   team-services:\n-    description: Team services with service documentation and recovery runbooks.\n+    description: Team services with service documentation and runbooks for on-call lookup and incident escalation.\n     declarations:\n       readme-usage:\n         kind: file\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "ls-files",
+      "--stage"
+    ],
+    "exit": 0,
+    "stdout": "100644 e17516890eab58d9fd31e0558c2b9cdd961a606b 0\tauthoring-notes.md\n100644 1c33738acd9402569824911534806c4e7de26c8b 0\tfiles/editorconfig\n100644 75ee85ea31fbc2497ebd0d9f84865d28c57d4944 0\tguidance/contributing.md\n100644 0d657a835a14aea59e054a2fa161df60e49ebe21 0\tguidance/notes.md\n100644 30d6b03ab9f2b69941ec7062091b6593f120959b 0\tguidance/readme.md\n100644 9b355acee3eaa78f518065d73a567fe5ac469f95 0\tguidance/runbooks.md\n100644 d3bd0d11fe55689f53b19a94f967e0ac72330345 0\tguidance/team-readme.md\n100644 d0a5008f3ddad41600bd752d24d74f649ce7bad4 0\toperations/notes-final-newline.cjs\n100644 b852ba9dbf4ce747bc277b1fd643bc5f3a722482 0\tscratch.txt\n100644 096c7e8094ba485d62d04980c6811282bffb16df 0\tskills/documentation-review/SKILL.md\n100644 9c4240cd2f80d3a7eaf5d16130f0372e83b37219 0\tskills/documentation-review/references/checklist.md\n100644 aaabdfb84a1518d65fbb0de688b648726db6e555 0\tstandards.yaml\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "ls-files",
+      "--others",
+      "--exclude-standard"
+    ],
+    "exit": 0,
+    "stdout": "local-draft.txt\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/standards.yaml"
+    ],
+    "exit": 0,
+    "stdout": "format: repo-standards/v1\nname: Utility and service standards\ndescription: Lightweight personal utility standards and focused team service documentation standards.\nrequires:\n  repo-standards: \"1.1.0\"\ndefaults:\n  declarations:\n    editor-line-endings:\n      kind: file\n      target: .editorconfig\n      exact: files/editorconfig\n    readme-usage:\n      kind: file\n      target: README.md\n      guidance: guidance/readme.md\n    reproducible-bug-reports:\n      kind: file\n      target: CONTRIBUTING.md\n      guidance: guidance/contributing.md\n    notes-final-newline:\n      kind: file\n      target: NOTES.md\n      guidance: guidance/notes.md\n      checks:\n        - id: final-newline\n          run:\n            executable: node\n            script: operations/notes-final-newline.cjs\n            resources: []\n            arguments: [check]\n          prerequisite:\n            version-arguments: [--version]\n            version: \">=24.0.0 <25.0.0\"\n          timeout-seconds: 10\n      fixes:\n        - id: append-final-newline\n          run:\n            executable: node\n            script: operations/notes-final-newline.cjs\n            resources: []\n            arguments: [fix]\n          prerequisite:\n            version-arguments: [--version]\n            version: \">=24.0.0 <25.0.0\"\n          timeout-seconds: 10\n    documentation-review:\n      kind: skill\n      name: documentation-review\n      source: skills/documentation-review\nprofiles:\n  personal-tools:\n    description: Small personal CSV and text conversion utilities.\n    declarations: {}\n  team-services:\n    description: Team services with service documentation and runbooks for on-call lookup and incident escalation.\n    declarations:\n      readme-usage:\n        kind: file\n        target: README.md\n        guidance: guidance/team-readme.md\n      reproducible-bug-reports:\n        exclude: true\n      runbook-recovery:\n        kind: repository\n        guidance: guidance/runbooks.md\n        targets:\n          paths: []\n          directories: [docs/runbooks]\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/files/editorconfig"
+    ],
+    "exit": 0,
+    "stdout": "[*]\nend_of_line = lf\ninsert_final_newline = true\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/guidance/readme.md"
+    ],
+    "exit": 0,
+    "stdout": "# README guidance for small command-line utilities\n\nKeep README.md brief. Include:\n- A brief explanation of the utility's purpose.\n- One working invocation for this project, alongside concrete sample output.\n- A short explanation of that invocation's input and output, including file paths or stdin/stdout where relevant.\n\nUse the project's own facts and organization. No particular headings or setup section are required.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/guidance/contributing.md"
+    ],
+    "exit": 0,
+    "stdout": "# Reproducible bug report guidance\n\nIn the project-owned CONTRIBUTING.md, briefly explain how to report a reproducible bug.\nUse the project's own facts and organization. This guidance imposes no contribution workflow rule.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/guidance/notes.md"
+    ],
+    "exit": 0,
+    "stdout": "# NOTES final newline\n\nNOTES.md remains project-owned. When nonempty, its last byte must be LF.\nAn empty file is compliant; existing CRLF endings also satisfy this final-byte requirement.\n\nThe check reads only NOTES.md. The fix appends exactly one LF when missing,\nkeeping existing bytes and permission bits. Neither operation creates a missing\nfile, follows a symbolic link, handles a nonregular target, nor normalizes line\nendings. Missing, unreadable, nonregular, symbolic-link, or out-of-scope targets\nblock; write failure also blocks the fix. Repeating a completed fix changes nothing.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/operations/notes-final-newline.cjs"
+    ],
+    "exit": 0,
+    "stdout": "const fs = require('node:fs');\nconst path = require('node:path');\n\nfunction result(status, message) {\n  process.stdout.write(JSON.stringify({\n    format: 'repo-standards/result/v1', status, message,\n  }) + '\\n');\n}\n\nlet fd;\ntry {\n  const mode = process.argv[2];\n  const request = JSON.parse(fs.readFileSync(0, 'utf8'));\n  const phase = mode === 'check' ? 'checks' : mode === 'fix' ? 'fixes' : null;\n  const id = mode === 'check' ? 'final-newline' : 'append-final-newline';\n  const owner = Array.isArray(request.declarations)\n    ? request.declarations.find(item => item.id === 'notes-final-newline') : null;\n  if (!phase || process.argv.length !== 3 ||\n      request.format !== 'repo-standards/operation/v1' ||\n      !['personal-tools', 'team-services'].includes(request.profile) ||\n      request.operation?.declaration !== 'notes-final-newline' ||\n      request.operation?.phase !== phase || request.operation?.id !== id ||\n      owner?.kind !== 'file' || owner?.target !== 'NOTES.md' ||\n      !Array.isArray(owner[phase]) || !owner[phase].some(op => op.id === id) ||\n      !Array.isArray(request.allowedTargets?.paths) ||\n      request.allowedTargets.paths.length !== 1 ||\n      request.allowedTargets.paths[0] !== 'NOTES.md' ||\n      !Array.isArray(request.allowedTargets?.directories) ||\n      request.allowedTargets.directories.length !== 0 ||\n      typeof request.projectRoot !== 'string' || !path.isAbsolute(request.projectRoot) ||\n      fs.realpathSync(request.projectRoot) !== fs.realpathSync(process.cwd())) {\n    throw new Error('Operation request is outside the active NOTES.md scope.');\n  }\n  const target = path.join(request.projectRoot, 'NOTES.md');\n  const before = fs.lstatSync(target);\n  if (before.isSymbolicLink() || !before.isFile()) {\n    throw new Error('NOTES.md must be a regular file, not a symbolic link.');\n  }\n  fd = fs.openSync(target, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);\n  const opened = fs.fstatSync(fd);\n  if (!opened.isFile() || opened.dev !== before.dev || opened.ino !== before.ino) {\n    throw new Error('NOTES.md changed while opening it; retry after it is stable.');\n  }\n  const bytes = fs.readFileSync(fd);\n  fs.closeSync(fd);\n  fd = undefined;\n  const compliant = bytes.length === 0 || bytes[bytes.length - 1] === 10;\n  if (compliant) {\n    result(mode === 'check' ? 'passed' : 'unchanged', 'NOTES.md is empty or ends in LF.');\n  } else if (mode === 'check') {\n    result('failed', 'Nonempty NOTES.md is missing its final LF byte.');\n  } else {\n    fd = fs.openSync(target, fs.constants.O_RDWR | fs.constants.O_NOFOLLOW);\n    const current = fs.fstatSync(fd);\n    if (!current.isFile() || current.dev !== opened.dev || current.ino !== opened.ino ||\n        !fs.readFileSync(fd).equals(bytes)) {\n      throw new Error('NOTES.md changed before repair; retry after it is stable.');\n    }\n    const written = fs.writeSync(fd, Buffer.from([10]), 0, 1, bytes.length);\n    if (written !== 1) throw new Error('Unable to append the final LF byte.');\n    fs.fchmodSync(fd, current.mode & 0o7777);\n    fs.fsyncSync(fd);\n    fs.closeSync(fd);\n    fd = undefined;\n    result('changed', 'Appended one LF byte to NOTES.md; existing bytes and permission bits preserved.');\n  }\n} catch (error) {\n  if (fd !== undefined) {\n    try { fs.closeSync(fd); } catch {}\n  }\n  result('blocked', String(error.message));\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/guidance/team-readme.md"
+    ],
+    "exit": 0,
+    "stdout": "# README guidance for team services\n\nExplain the service's purpose, its startup command, and its health endpoint using the project's actual facts.\nUse the project's own organization. No CLI-usage invocation or sample output is required beyond the requested startup command.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/guidance/runbooks.md"
+    ],
+    "exit": 0,
+    "stdout": "# Runbook response guidance\n\nRunbooks under docs/runbooks/ must explain how to locate the current on-call responder\nand when and how to escalate an incident. Keep these details project-owned and factual.\nA recovery procedure and a named owner are no longer required by this declaration.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/skills/documentation-review/SKILL.md"
+    ],
+    "exit": 0,
+    "stdout": "---\nname: documentation-review\ndescription: Review project documentation on request against the selected personal-tools or team-services standards, reporting concrete gaps without running documented commands.\n---\n\n# Documentation review\n\nUse for an ordinary user-requested documentation review. This skill has no\nstandards adoption role. Its entire directory is source-owned and updated as a\nunit. It requires an agent that can read local files and a known selected profile;\nit needs no additional runtime, network, or credentials.\n\n1. Establish whether the selected profile is personal-tools or team-services\n   from the user's request or available explicit project context. Ask if unknown\n   or contradictory; do not guess a profile from the language or directory names.\n2. Read the selected profile's applicable guidance if available and the project\n   documents within the scope below. Use the checklist in\n   [Review checklist](references/checklist.md). If guidance is unavailable, say\n   that the bundled checklist is the review basis. If it contradicts the\n   checklist, report the mismatch rather than inventing a merged policy.\n3. For personal-tools, review only README.md and CONTRIBUTING.md. For\n   team-services, review README.md and runbooks under docs/runbooks/; leave\n   employer-owned CONTRIBUTING.md outside this review. Do not follow symlinks\n   outside the selected scope. Report missing or unreadable documents as gaps\n   or limitations without inventing their contents.\n4. Report concrete gaps with file paths, observed evidence, and suggested edits.\n   Use the project's stated facts. If a command, output, health endpoint,\n   procedure, or contact cannot be established from the reviewed documents,\n   identify what needs confirmation. Do not invent working examples or owners.\n5. Keep the review read-only unless the user explicitly requests edits. Do not\n   execute documented commands, make network requests, assess runtime health,\n   run enforcement checks, change standards selection, or invoke adoption.\n6. Finish with the selected profile, reviewed paths, findings (or an explicit\n   no-gaps result), and verification limits. A prose review cannot establish\n   that commands work, outputs are accurate, or recovery procedures succeed.\n\nMaintain the checklist alongside the source's profile guidance. Updates replace\nthis whole skill directory, including its resources.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/skills/documentation-review/references/checklist.md"
+    ],
+    "exit": 0,
+    "stdout": "# Review checklist\n\n## personal-tools\n\nREADME.md should remain brief and contain:\n- A brief explanation of the utility's purpose.\n- One working invocation for the project, alongside concrete sample output.\n- A short explanation of its input/output, including paths or stdin/stdout where relevant.\n\nNo particular headings or setup section are required. Review the documentation\nof an invocation; do not execute it or assert it works without execution evidence.\n\nCONTRIBUTING.md should briefly explain how to report a reproducible bug.\nNo contribution workflow is prescribed.\n\n## team-services\n\nREADME.md should explain the service's purpose, startup command, and health\nendpoint using project facts. No tiny-tool invocation or sample output is\nrequired beyond the startup command.\n\nRunbooks under docs/runbooks/ should explain how to locate the current on-call\nresponder and when and how to escalate an incident. Keep these details\nproject-owned and factual. A recovery procedure and a named owner are not\nrequired.\nCONTRIBUTING.md is outside this profile's governance and this review.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/authoring-notes.md"
+    ],
+    "exit": 0,
+    "stdout": "# Authoring notes\n\n## Confirmed shared decisions\n\n- editor-line-endings: files/editorconfig owns the entire non-executable\n  .editorconfig in both profiles. Only LF endings and a final newline are set.\n- readme-usage: guidance/readme.md governs project-owned README.md by default:\n  brief purpose, one working invocation with concrete sample output, and its\n  input/output. No headings or setup section are required; keep tiny-tool\n  documentation proportionate to maintenance effort.\n- reproducible-bug-reports: guidance/contributing.md governs project-owned\n  CONTRIBUTING.md by default with a brief reproducible-bug reporting explanation.\n  No contribution workflow is prescribed.\n- notes-final-newline: guidance/notes.md and operations/notes-final-newline.cjs\n  govern only project-owned NOTES.md in both profiles. A check verifies empty\n  content or a final LF byte; a fix appends exactly one missing LF, preserving\n  existing bytes and permission bits and becoming unchanged on repeat. Existing\n  CRLF is accepted. Missing, unreadable, nonregular, symbolic-link, and out-of-scope\n  targets block; write failure blocks the fix. Neither operation creates files\n  or normalizes line endings. This adds focused verification/repair beyond\n  editor settings without assessing note quality. Accepted prerequisites:\n  node >=24.0.0 <25.0.0, probe --version, 10-second timeout, literal check/fix\n  argument, no resources, network, or credentials. Trusted scripts retain the\n  invoking user's access. Maintain byte behavior and protocol/version support.\n- documentation-review: skills/documentation-review owns the whole\n  .agents/skills/documentation-review directory in both profiles, including its\n  checklist. On ordinary requested review an agent reads the selected profile's\n  guidance and scoped documents, then reports evidence, gaps, and suggested edits.\n  It requires file-reading ability and a known profile; asks when unknown; needs\n  no extra runtime, network, or credentials. Edits require a user request. It has\n  no adoption/enforcement role and does not execute documented commands or assess\n  runtime health. Maintain the checklist with the profile guidance.\n\n## Complete profiles and rationale\n\npersonal-tools covers small personal CSV/text converters and inherits all five\nshared declarations without changes.\n\nteam-services inherits editor-line-endings, notes-final-newline (including both\noperations), and documentation-review. It:\n- Replaces all of readme-usage with guidance/team-readme.md for the service's\n  purpose, startup command, and health endpoint; tiny-tool invocation and sample\n  output requirements do not carry over. Keep service facts accurate for teammates.\n- Excludes reproducible-bug-reports because CONTRIBUTING.md belongs to the\n  employer. Exclusion removes governance; it does not delete employer content.\n- Adds runbook-recovery, with guidance/runbooks.md across the explicit\n  docs/runbooks directory tree: explain how to locate the current on-call\n  responder and when and how to escalate an incident. The intentional manual\n  edit to guidance/runbooks.md supersedes the earlier recovery-procedure and\n  named-owner requirements for team-services only. Keep its wording unchanged.\n  Align only the team-services section of the shared documentation-review\n  checklist and the team-services profile description; both profiles receive\n  the same skill bundle, with personal-tools criteria unchanged.\n\nREADME.md, CONTRIBUTING.md when selected, NOTES.md, and runbooks remain\nproject-owned. Profiles are complete alternatives, not combined selections.\n\n## Explicit non-preferences and declined contexts\n\nNo preference on indentation width or semicolons. Signed commits are not a\nselected standard. No editor defaults beyond the two accepted settings.\nTutorial repositories do not get a distinct policy or profile.\n\n## Skipped and deferred topics\n\nCI is skipped. Whether to require tests remains explicitly deferred.\n\n## Verification boundaries\n\nAll-profile public CLI validation establishes source structure, not behavior or\nfuture project compliance. Operation fixtures and the same-agent documentation\nreview exercise are separate evidence retained outside this source. No adoption,\nGit provisioning, commit, or publication is part of this authoring work.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/scratch.txt"
+    ],
+    "exit": 0,
+    "stdout": "Existing staged author work.\nExisting unstaged author work.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "read-file-for-complete-review",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards/local-draft.txt"
+    ],
+    "exit": 0,
+    "stdout": "Existing untracked author draft; retain verbatim.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "node",
+      "--version"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "v24.11.1\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/tmp/repo-standards-author-vbJPu5/cli/node_modules/.bin/repo-standards",
+      "--version"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "1.1.0\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "/tmp/repo-standards-author-vbJPu5/cli/node_modules/.bin/repo-standards",
+      "source",
+      "validate",
+      "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+      "--json"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"Utility and service standards\",\n    \"description\": \"Lightweight personal utility standards and focused team service documentation standards.\",\n    \"requires\": {\n      \"repo-standards\": \"1.1.0\"\n    }\n  },\n  \"profiles\": {\n    \"personal-tools\": {\n      \"description\": \"Small personal CSV and text conversion utilities.\",\n      \"declarations\": [\n        {\n          \"id\": \"documentation-review\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"documentation-review\",\n          \"source\": \"skills/documentation-review\"\n        },\n        {\n          \"id\": \"editor-line-endings\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"notes-final-newline\",\n          \"checks\": [\n            {\n              \"id\": \"final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"check\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"append-final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"fix\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"file\",\n          \"target\": \"NOTES.md\",\n          \"guidance\": \"guidance/notes.md\"\n        },\n        {\n          \"id\": \"readme-usage\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"guidance/readme.md\"\n        },\n        {\n          \"id\": \"reproducible-bug-reports\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"CONTRIBUTING.md\",\n          \"guidance\": \"guidance/contributing.md\"\n        }\n      ]\n    },\n    \"team-services\": {\n      \"description\": \"Team services with service documentation and runbooks for on-call lookup and incident escalation.\",\n      \"declarations\": [\n        {\n          \"id\": \"documentation-review\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"documentation-review\",\n          \"source\": \"skills/documentation-review\"\n        },\n        {\n          \"id\": \"editor-line-endings\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"notes-final-newline\",\n          \"checks\": [\n            {\n              \"id\": \"final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"check\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"append-final-newline\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/notes-final-newline.cjs\",\n                \"resources\": [],\n                \"arguments\": [\n                  \"fix\"\n                ]\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"file\",\n          \"target\": \"NOTES.md\",\n          \"guidance\": \"guidance/notes.md\"\n        },\n        {\n          \"id\": \"readme-usage\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"guidance/team-readme.md\"\n        },\n        {\n          \"id\": \"runbook-recovery\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"repository\",\n          \"guidance\": \"guidance/runbooks.md\",\n          \"targets\": {\n            \"paths\": [],\n            \"directories\": [\n              \"docs/runbooks\"\n            ]\n          }\n        }\n      ]\n    }\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "rev-parse",
+      "HEAD"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "a0a99b3cb3ae68fc442d5dc76522f68d760543e2\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "status",
+      "--porcelain=v1",
+      "--untracked-files=all"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": " M authoring-notes.md\n M guidance/runbooks.md\nMM scratch.txt\n M skills/documentation-review/references/checklist.md\n M standards.yaml\n?? local-draft.txt\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--binary"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "diff --git a/scratch.txt b/scratch.txt\nindex 4fe3da3..b852ba9 100644\n--- a/scratch.txt\n+++ b/scratch.txt\n@@ -1 +1 @@\n-Existing author scratch baseline.\n+Existing staged author work.\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "diff",
+      "--binary"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "diff --git a/authoring-notes.md b/authoring-notes.md\nindex e175168..642b2a3 100644\n--- a/authoring-notes.md\n+++ b/authoring-notes.md\n@@ -44,8 +44,13 @@ operations), and documentation-review. It:\n - Excludes reproducible-bug-reports because CONTRIBUTING.md belongs to the\n   employer. Exclusion removes governance; it does not delete employer content.\n - Adds runbook-recovery, with guidance/runbooks.md across the explicit\n-  docs/runbooks directory tree: a recovery procedure and an owner to contact.\n-  Maintain procedures and contacts for incident responders.\n+  docs/runbooks directory tree: explain how to locate the current on-call\n+  responder and when and how to escalate an incident. The intentional manual\n+  edit to guidance/runbooks.md supersedes the earlier recovery-procedure and\n+  named-owner requirements for team-services only. Keep its wording unchanged.\n+  Align only the team-services section of the shared documentation-review\n+  checklist and the team-services profile description; both profiles receive\n+  the same skill bundle, with personal-tools criteria unchanged.\n \n README.md, CONTRIBUTING.md when selected, NOTES.md, and runbooks remain\n project-owned. Profiles are complete alternatives, not combined selections.\ndiff --git a/guidance/runbooks.md b/guidance/runbooks.md\nindex 9b355ac..1bc2833 100644\n--- a/guidance/runbooks.md\n+++ b/guidance/runbooks.md\n@@ -1,4 +1,5 @@\n-# Runbook recovery guidance\n+# Runbook response guidance\n \n-Runbooks under docs/runbooks/ must describe a recovery procedure and identify an owner to contact.\n-Keep the runbooks project-owned and use the service's actual procedures and ownership information.\n+Runbooks under docs/runbooks/ must explain how to locate the current on-call responder\n+and when and how to escalate an incident. Keep these details project-owned and factual.\n+A recovery procedure and a named owner are no longer required by this declaration.\ndiff --git a/scratch.txt b/scratch.txt\nindex b852ba9..a81e293 100644\n--- a/scratch.txt\n+++ b/scratch.txt\n@@ -1 +1,2 @@\n Existing staged author work.\n+Existing unstaged author work.\ndiff --git a/skills/documentation-review/references/checklist.md b/skills/documentation-review/references/checklist.md\nindex 9c4240c..dc47a88 100644\n--- a/skills/documentation-review/references/checklist.md\n+++ b/skills/documentation-review/references/checklist.md\n@@ -19,6 +19,8 @@ README.md should explain the service's purpose, startup command, and health\n endpoint using project facts. No tiny-tool invocation or sample output is\n required beyond the startup command.\n \n-Runbooks under docs/runbooks/ should describe a recovery procedure and identify\n-an owner to contact. Use the actual procedures and ownership information.\n+Runbooks under docs/runbooks/ should explain how to locate the current on-call\n+responder and when and how to escalate an incident. Keep these details\n+project-owned and factual. A recovery procedure and a named owner are not\n+required.\n CONTRIBUTING.md is outside this profile's governance and this review.\ndiff --git a/standards.yaml b/standards.yaml\nindex aaabdfb..965f8cc 100644\n--- a/standards.yaml\n+++ b/standards.yaml\n@@ -52,7 +52,7 @@ profiles:\n     description: Small personal CSV and text conversion utilities.\n     declarations: {}\n   team-services:\n-    description: Team services with service documentation and recovery runbooks.\n+    description: Team services with service documentation and runbooks for on-call lookup and incident escalation.\n     declarations:\n       readme-usage:\n         kind: file\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "ls-files",
+      "--stage"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "100644 e17516890eab58d9fd31e0558c2b9cdd961a606b 0\tauthoring-notes.md\n100644 1c33738acd9402569824911534806c4e7de26c8b 0\tfiles/editorconfig\n100644 75ee85ea31fbc2497ebd0d9f84865d28c57d4944 0\tguidance/contributing.md\n100644 0d657a835a14aea59e054a2fa161df60e49ebe21 0\tguidance/notes.md\n100644 30d6b03ab9f2b69941ec7062091b6593f120959b 0\tguidance/readme.md\n100644 9b355acee3eaa78f518065d73a567fe5ac469f95 0\tguidance/runbooks.md\n100644 d3bd0d11fe55689f53b19a94f967e0ac72330345 0\tguidance/team-readme.md\n100644 d0a5008f3ddad41600bd752d24d74f649ce7bad4 0\toperations/notes-final-newline.cjs\n100644 b852ba9dbf4ce747bc277b1fd643bc5f3a722482 0\tscratch.txt\n100644 096c7e8094ba485d62d04980c6811282bffb16df 0\tskills/documentation-review/SKILL.md\n100644 9c4240cd2f80d3a7eaf5d16130f0372e83b37219 0\tskills/documentation-review/references/checklist.md\n100644 aaabdfb84a1518d65fbb0de688b648726db6e555 0\tstandards.yaml\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "git",
+      "ls-files",
+      "--others",
+      "--exclude-standard"
+    ],
+    "cwd": "/tmp/repo-standards-31-public-release/resumption-workspace/standards",
+    "exit": 0,
+    "stdout": "local-draft.txt\n",
+    "stderr": ""
+  }
+]
