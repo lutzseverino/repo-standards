@@ -73,6 +73,17 @@ It refuses an existing Git tag; inspect any partial previous publication before
 retrying. An npm version cannot be overwritten, so a failed later step needs
 explicit recovery using the original artifacts, not another publish attempt.
 
+If interactive publication is needed after a failed workflow publish job,
+download that run's `release-bundle`, verify `SHA256SUMS`, and check the registry
+and GitHub for partial publication. Publish only the original tarball after
+browser authentication, verify its registry integrity against `release.json`,
+then create the GitHub release at the original validated commit with the same
+four bundle files. Run the `Release` workflow with `verify_published: true` and
+the exact published version to collect both platforms' public installation
+evidence. This mode skips validation/packaging/publication and runs the existing
+public checks; retain the original validation run separately. Browser login on
+a local machine does not repair the GitHub environment's token authentication.
+
 For an initial local release using an authenticated npm account:
 
 ```sh
