@@ -32,4 +32,8 @@ authoring skill responsibility for provisioning, commits, publication, or adopti
 At the maintainer's additional request, GitHub Actions now uses npm trusted
 publishing. A live OIDC exchange passed; the next real release must verify the
 complete direct-publish/provenance path. The 1.1.0 publication used browser
-approval of the original tested bundle. The PR remains unmerged.
+approval of the original tested bundle.
+
+Completion update — 2026-09-13: PR #37 merged on 2026-09-12. Issues #31 and
+#25 are closed as completed following maintainer review. Release-reliability
+maintenance is tracked separately in PR #38; it does not block standards authoring.
