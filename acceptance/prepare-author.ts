@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { release, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { stripVTControlCharacters } from 'node:util';
@@ -14,7 +14,8 @@ if (args.length !== 0 && (args.length !== 2 || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0
   throw new Error('Usage: node acceptance/prepare-author.ts [<published-version> <evidence.json>]');
 }
 if (process.env.NODE_OPTIONS) throw new Error('Run author acceptance without NODE_OPTIONS or acquisition fixtures.');
-const root = mkdtempSync(join(tmpdir(), 'repo-standards-author-'));
+// npm lockfile keys depend on a canonical prefix (macOS /var aliases /private/var).
+const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-author-')));
 const isolatedHome = join(root, 'home');
 const workspace = join(root, 'workspace');
 const catalog = join(root, 'candidate');
