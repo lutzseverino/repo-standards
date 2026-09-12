@@ -31,7 +31,10 @@ const env = { ...process.env, HOME: isolatedHome, CODEX_HOME: join(isolatedHome,
   npm_config_registry: 'https://registry.npmjs.org/', npm_config_cache: join(root, 'npm-cache'),
   DISABLE_TELEMETRY: '1', NO_COLOR: '1' };
 const commands: { executable: string; args: string[]; status: number | null; stdout: string; stderr: string }[] = [];
-const downloads: { url: string; status: number; sha256: string }[] = [];
+const downloads: { url: string; status: number | null; sha256?: string; headers: Record<string, string> }[] = [];
+const retry = ['node', 'acceptance/prepare-author.ts', ...(version ? [version, `${resolve(evidencePath!)}.retry-${Date.now()}.json`] : [])]
+  .map(value => `'${value.replaceAll("'", "'\\''")}'`).join(' ');
+let nextAction = `Inspect the failure evidence, correct the cause, then rerun with a new evidence path: ${retry}`;
 function run(executable: string, commandArgs: string[]) {
   const result = spawnSync(executable, commandArgs, { cwd: workspace, env, encoding: 'utf8',
     timeout: 300_000, maxBuffer: 32 * 1024 * 1024 });
@@ -49,10 +52,26 @@ function inventory(directory: string) {
     }).sort((a, b) => a.path.localeCompare(b.path));
 }
 async function downloadJson(url: string) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+  let response: Response;
+  try { response = await fetch(url, { signal: AbortSignal.timeout(60_000) }); }
+  catch {
+    downloads.push({ url, status: null, headers: {} });
+    throw new Error(`Cannot reach public release metadata: ${url}`);
+  }
+  const headers = Object.fromEntries(['date', 'retry-after', 'x-ratelimit-limit', 'x-ratelimit-remaining',
+    'x-ratelimit-reset', 'x-ratelimit-resource', 'x-github-request-id']
+    .flatMap(name => response.headers.has(name) ? [[name, response.headers.get(name)!]] : []));
+  const download: (typeof downloads)[number] = { url, status: response.status, headers };
+  downloads.push(download);
+  if (response.status !== 200) {
+    if ([403, 429].includes(response.status) && headers['x-ratelimit-remaining'] === '0' && /^\d{1,10}$/.test(headers['x-ratelimit-reset'] ?? '')) {
+      const reset = new Date(Number(headers['x-ratelimit-reset']) * 1000).toISOString();
+      nextAction = `Public API quota exhausted. Wait until ${reset}, then retry with a new evidence path: ${retry}. Shared runner capacity may still be unavailable.`;
+    }
+    throw new Error(`Cannot acquire public release metadata: HTTP ${response.status} for ${url}`);
+  }
   const bytes = Buffer.from(await response.arrayBuffer());
-  downloads.push({ url, status: response.status, sha256: createHash('sha256').update(bytes).digest('hex') });
-  assert.equal(response.status, 200, `Cannot acquire public release metadata: ${url}`);
+  download.sha256 = createHash('sha256').update(bytes).digest('hex');
   return JSON.parse(bytes.toString('utf8'));
 }
 const skill = join(isolatedHome, '.agents/skills/author-standards');
@@ -131,7 +150,8 @@ try {
 } finally {
   const session = join(root, 'journey.json');
   const evidence = { kind: version ? 'public author-standards release installation' : 'local author-standards candidate installation',
-    passed, failure, root, workspace, skill, resources: existsSync(skill) ? inventory(skill) : [],
+    passed, failure, nextAction: passed ? undefined : nextAction,
+    root, workspace, skill, resources: existsSync(skill) ? inventory(skill) : [],
     installer: 'skills@1.5.25', command: ['npm', ...installArgs], skillRevision, version, cli, distribution, documents,
     platform: process.platform, arch: process.arch, osRelease: release(), node: process.version,
     npm: npmVersion, installedAt: new Date().toISOString(),
@@ -145,4 +165,5 @@ try {
     writeFileSync(destination, JSON.stringify(evidence, null, 2) + '\n');
   }
   console.log(session);
+  if (!passed) console.error(nextAction);
 }
