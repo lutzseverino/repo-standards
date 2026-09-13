@@ -32,12 +32,6 @@ export function observedChanges(before: WorkObservation, after: WorkObservation)
     const current = after.files[path] ?? { type: 'missing' };
     if (JSON.stringify(previous) !== JSON.stringify(current)) changed.push(path);
   }
-  // Creating/removing an ancestor directory is accounted for by its file paths.
-  // Changing an existing ancestor's mode is separate observed work.
-  for (const [path, previous] of Object.entries(before.boundaries)) {
-    const current = after.boundaries[path];
-    if (previous.type === 'directory' && current?.type === 'directory' && previous.mode !== current.mode) changed.push(path);
-  }
   for (const key of new Set([...Object.keys(before.ignores), ...Object.keys(after.ignores)])) {
     if (key === 'global' || key === 'info') {
       if (JSON.stringify(before.ignores[key]) !== JSON.stringify(after.ignores[key])) changed.push(`@ignore/${key}`);
@@ -48,14 +42,28 @@ export function observedChanges(before: WorkObservation, after: WorkObservation)
 }
 export interface WorkInterval {
   phase: 'fixes' | 'checks' | 'agent'; scope: Scope; before: WorkObservation;
-  operation?: { declaration: string; phase: 'fixes' | 'checks'; id: string };
-  after?: WorkObservation; changedPaths?: string[]; violations?: string[]; interrupted?: boolean;
+  operation?: { declaration: string; phase: 'fixes' | 'checks'; id: string }; operationIndex?: number;
+  after?: WorkObservation; changedPaths?: string[]; boundaryChanges?: string[]; violations?: string[]; interrupted?: boolean;
+  restoredExact?: WorkObservation['files'];
 }
 export function finishInterval(interval: WorkInterval, after: WorkObservation) {
   interval.after = after;
   interval.changedPaths = observedChanges(interval.before, after);
-  interval.violations = interval.changedPaths.filter(path => interval.phase === 'checks'
-    || !Object.values(interval.scope).some(targets => permits(targets, path)));
+  interval.boundaryChanges = [...new Set([...Object.keys(interval.before.boundaries), ...Object.keys(after.boundaries)])]
+    .filter(path => JSON.stringify(interval.before.boundaries[path] ?? { type: 'missing' }) !== JSON.stringify(after.boundaries[path] ?? { type: 'missing' })).sort();
+  const scopes = Object.values(interval.scope);
+  const fileViolations = interval.changedPaths.filter(path => interval.phase === 'checks'
+    || (!interval.restoredExact?.[path] && !scopes.some(targets => permits(targets, path))));
+  const boundaryViolations = interval.boundaryChanges.filter(path => {
+    if (interval.phase === 'checks') return true;
+    if (scopes.some(targets => permits(targets, path))) return false;
+    const before = interval.before.boundaries[path];
+    // Named file authority includes creating its missing parent directories,
+    // but does not authorize deleting or changing existing ancestors.
+    return !((!before || before.type === 'missing') && after.boundaries[path]?.type === 'directory'
+      && scopes.some(targets => [...targets.paths, ...targets.directories].some(target => target.startsWith(path + '/'))));
+  });
+  interval.violations = [...new Set([...fileViolations, ...boundaryViolations])].sort();
 }
 export function requireValidIntervals(intervals: WorkInterval[]) {
   const invalid = intervals.find(interval => interval.violations?.length);
@@ -67,12 +75,18 @@ export function requireValidIntervals(intervals: WorkInterval[]) {
 
 // Recovery closes an interrupted operation under its original authority. Work
 // after a recorded operation belongs to a separate agent interval, never replay.
-export function observeContinuation(root: string, intervals: WorkInterval[], resolved: ResolvedProfile, interrupted = false) {
+export function observeContinuation(root: string, intervals: WorkInterval[], resolved: ResolvedProfile, recordedOperations?: number, restorable?: Scope[string]) {
   const last = intervals.at(-1);
   if (!last) return;
   const after = observeWork(root, concreteScope(resolved));
   const interval: WorkInterval = last.after ? { phase: 'agent', scope: contextualScope(resolved), before: last.after } : last;
   if (last.after) intervals.push(interval);
+  if (last.after && restorable) {
+    // The caller verified the immutable installation first. Only restoration
+    // of those exact paths/inventories is exempt from contextual attribution.
+    interval.restoredExact = Object.fromEntries(observedChanges(interval.before, after).filter(path => permits(restorable, path))
+      .map(path => [path, after.files[path] ?? { type: 'missing' }]));
+  }
   finishInterval(interval, after);
-  if (interrupted && interval.operation) interval.interrupted = true;
+  if (interval.operation && recordedOperations !== undefined && interval.operationIndex === recordedOperations) interval.interrupted = true;
 }

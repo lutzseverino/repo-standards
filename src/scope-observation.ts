@@ -117,6 +117,7 @@ export function observeScope(root: string, named: string[] = [], options: { exec
   if (paths.length + named.length > limits.paths) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeds the path limit.');
   const files: Record<string, FileState> = Object.create(null);
   const boundaries: Record<string, FileState> = Object.create(null);
+  if (options.execution) boundaries['.'] = file(root);
   function observePath(path: string, eligible: boolean) {
     const parts = path.split('/');
     if (parts.length > limits.depth || parts.some(part => !part || part === '..' || part === '.') || isAbsolute(path)) throw new ProductError('OBSERVATION_UNSAFE', 'Unsafe discovery observation path.');

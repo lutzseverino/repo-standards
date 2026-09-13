@@ -144,7 +144,7 @@ promise. Incomplete observation blocks progression.
 
 `changedPaths` must account for the union of **observed agent changes across all
 agent intervals in this run**, under each owning declaration. It excludes work
-observed only during fixes. If the agent edits `README.md` and a retried fix
+observed only during fixes and verified restoration recorded in `restoredExact`. If the agent edits `README.md` and a retried fix
 restores earlier bytes, the earlier agent change still requires reporting and
 renewed assessment of the current file. Refresh and retry preserve earlier
 intervals; neither can turn missing, false or out-of-scope evidence into valid

@@ -170,7 +170,7 @@ export function abandon(project: string, cliVersion: string) {
     if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before abandonment.`);
     if (run.outcome === 'complete') throw new ProductError('ALREADY_COMPLETE', 'This adoption completed before interruption. Use resume --retry to verify and release its remaining progress record.');
     if (run.observations) {
-      try { observeContinuation(root, run.observations, readInstallation(root, run).report.resolved, true); }
+      try { observeContinuation(root, run.observations, readInstallation(root, run).report.resolved, run.operations.length); }
       catch { run.uncertain.push('The final abandoned observation could not be completed; earlier interval evidence is preserved.'); }
     }
     run.archivedFiles = archiveRunEvidence(root, run);
@@ -360,26 +360,34 @@ export class AdoptionRunSession {
     this.#mutated = true;
   }
 
-  openObservation(interval: WorkInterval) {
+  openObservation(interval: WorkInterval, interveningScope = interval.scope) {
     const run = this.#state();
     if (!run.observations) return;
     if (run.observations.at(-1) && !run.observations.at(-1)!.after) throw new ProductError('OBSERVATION_INCOMPLETE', 'The preceding observation interval must be closed before more work.');
+    const previous = run.observations.at(-1);
+    if (previous?.after && json(previous.after) !== json(interval.before)) {
+      const gap: WorkInterval = { phase: 'agent', scope: interveningScope, before: previous.after };
+      finishInterval(gap, interval.before);
+      run.observations.push(gap);
+      this.#save();
+      requireValidIntervals(run.observations);
+    }
     run.observations.push(structuredClone(interval));
     this.#save();
   }
 
-  observeContinuation(resolved: Installation['report']['resolved'], interrupted = false) {
+  observeContinuation(resolved: Installation['report']['resolved'], interrupted = false, restorable?: WorkInterval['scope'][string]) {
     const intervals = this.#state().observations;
     if (!intervals) return;
-    observeContinuation(this.#root, intervals, resolved, interrupted);
+    observeContinuation(this.#root, intervals, resolved, interrupted ? this.#state().operations.length : undefined, restorable);
     this.#save();
   }
 
   async authorProcess(operation: { phase: 'fixes' | 'checks'; declaration: string; id: string },
-    execute: (onSpawn: (group: number) => void) => Promise<OperationEvidence>, verify: () => void, observation?: { scope: WorkInterval['scope']; before: WorkObservation; capture: () => WorkObservation }) {
+    execute: (onSpawn: (group: number) => void) => Promise<OperationEvidence>, verify: () => void, observation?: { scope: WorkInterval['scope']; agentScope: WorkInterval['scope']; before: WorkObservation; capture: () => WorkObservation }) {
     const run = this.#state();
     const root = this.#root;
-    if (observation) this.openObservation({ phase: operation.phase, operation, scope: observation.scope, before: observation.before });
+    if (observation) this.openObservation({ phase: operation.phase, operation, operationIndex: run.operations.length, scope: observation.scope, before: observation.before }, observation.agentScope);
     run.phase = operation.phase; run.reason = 'Run in progress or interrupted.';
     run.uncertain = [`${operation.declaration}/${operation.id}: process outcome uncertain until recorded`]; this.#save();
     const persistedRun = file(json(run));
@@ -459,7 +467,12 @@ export class AdoptionRunSession {
       delete run.completion;
     }
     if (run.observations) {
-      this.observeContinuation(installation.report.resolved, true);
+      let restorable: WorkInterval['scope'][string] | undefined;
+      if (run.installation?.complete) {
+        verify(root, installation);
+        restorable = { paths: Object.keys(installation.exactBaselines), directories: Object.keys(installation.skills) };
+      }
+      this.observeContinuation(installation.report.resolved, true, restorable);
       requireValidIntervals(run.observations);
     }
     const interruptedReport = archivedFiles['.repo-standards/local/run.json'];

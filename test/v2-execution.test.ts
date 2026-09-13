@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+import { filesystemFault } from './adoption-faults.ts';
 import { registryFixture } from './registry-fixture.ts';
 
 const cli = installCli();
@@ -178,6 +179,12 @@ ${result}`);
   assert.equal(failed.operations[0].result.status, 'changed');
   assert.equal(failed.observations[0].after, undefined);
   assert.match(f.run(['resume', '--retry', '--json']).report.reason, /OBSERVATION_LIMIT/);
+  writeFileSync(join(f.project.root, 'README.md'), 'Reconciled');
+  const retry = f.run(['resume', '--retry', '--json']).report;
+  assert.match(retry.reason, /OBSERVATION_LIMIT/);
+  assert.equal(retry.observations[0].interrupted, undefined);
+  assert.equal(retry.observations[0].operationIndex, 0);
+  assert.equal(retry.operations[0].result.status, 'changed');
   const abandoned = f.run(['abandon', '--json']).report;
   assert.equal(abandoned.abandoned, true);
   assert.ok(abandoned.uncertain.some((message: string) => message.includes('observation')));
@@ -230,9 +237,61 @@ test('v2 refuses unsafe named ancestors and stale assessments after observation 
   const started = f.start().report;
   writeFileSync(join(f.project.root, 'docs'), 'Unsafe non-directory ancestor');
   assert.match(f.run(['resume', '--json']).report.reason, /OBSERVATION_UNSAFE/);
-  const { rmSync } = await import('node:fs');
   rmSync(join(f.project.root, 'docs'));
   git(f.project.root, 'config', 'core.filemode', 'false');
   assert.match(f.assess(started.workRequest).report.reason, /STALE_ASSESSMENT/);
   assert.equal(f.run(['status', '--json']).report.lastComplete, null);
+});
+
+
+test('v2 observes gaps between completed fixes before another operation can accept a new baseline', async t => {
+  const f = await fixture(t, `${prelude}\n${result}`, {
+    readme: { kind: 'file', target: 'README.md', guidance: 'guide.md', fixes: [operation('prepare'), operation('again')] },
+  });
+  const env = filesystemFault(f.remote.support.root, f.env, 'fixes', `
+const nextWrite = fs.writeFileSync;
+let changed = false;
+fs.writeFileSync = function(path, data, ...args) {
+  const result = nextWrite.call(this, path, data, ...args);
+  let value; try { value = JSON.parse(String(data)); } catch {}
+  if (!changed && value?.completed?.some(item => item.startsWith('fixes: readme/prepare'))) {
+    changed = true; write.call(fs, 'OTHER.md', 'Changed between operations');
+  }
+  return result;
+};
+syncBuiltinESMExports();`);
+  const started = JSON.parse(cli.run(f.startArgs, f.project.root, env).stdout);
+  assert.match(started.reason, /ASSESSMENT_SCOPE.*OTHER.md/);
+  assert.equal(started.operations.length, 1);
+  assert.equal(readFileSync(join(f.project.root, 'OTHER.md'), 'utf8'), 'Changed between operations');
+});
+
+test('v2 observes named ancestor deletion, root mode changes, and empty directories created by checks', async t => {
+  for (const [name, mutation, phase, code] of [
+    ['ancestor', "rmSync('docs', {recursive:true});", 'fixes', 'OPERATION_SCOPE'],
+    ['root', "chmodSync('.', 0o755);", 'fixes', 'OPERATION_SCOPE'],
+    ['empty directory', "mkdirSync('unrelated');", 'checks', 'CHECK_MUTATION'],
+  ]) await t.test(name!, async st => {
+    const f = await fixture(st, `${prelude}\nif (input.operation.phase === '${phase}') { ${mutation} }\n${result}`, {
+      docs: { kind: 'repository', guidance: 'guide.md', targets: { paths: ['docs/new.md'], directories: [] },
+        fixes: [operation('prepare')], checks: [operation('verify')] },
+    });
+    mkdirSync(join(f.project.root, 'docs'));
+    const started = f.start().report;
+    const failed = phase === 'checks' ? f.assess(started.workRequest).report : started;
+    assert.match(failed.reason, new RegExp(code!));
+  });
+});
+
+test('v2 retry permits verified restoration of an exact file without granting agent authority over it', async t => {
+  const f = await fixture(t, `${prelude}
+const marker = '.repo-standards/local/attempt';
+if (!existsSync(marker)) { writeFileSync(marker, 'attempted'); writeFileSync('AGENTS.md', 'Corrupted'); }
+${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fixes: [operation('prepare')] } });
+  assert.match(f.start().report.reason, /FINAL_INTEGRITY/);
+  writeFileSync(join(f.project.root, 'AGENTS.md'), 'Expected instructions');
+  const retry = f.run(['resume', '--retry', '--json']);
+  assert.equal(retry.result.status, 0, retry.result.stdout);
+  assert.equal(readFileSync(join(f.project.root, 'AGENTS.md'), 'utf8'), 'Expected instructions');
+  assert.equal(retry.report.observations[1].restoredExact['AGENTS.md'].type, 'file');
 });

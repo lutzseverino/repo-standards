@@ -277,7 +277,7 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
     }
     const accepted = validateAssessment(root, session.observation, installation.contextualBaseline!, assessment, report.source?.format === 'repo-standards/v2' ? {
       snapshot: workSnapshot(root, session.observation, report),
-      changedPaths: [...new Set(session.observation.observations!.filter(interval => interval.phase === 'agent').flatMap(interval => interval.changedPaths ?? []))],
+      changedPaths: [...new Set(session.observation.observations!.filter(interval => interval.phase === 'agent').flatMap(interval => (interval.changedPaths ?? []).filter(path => !interval.restoredExact?.[path])))],
     } : undefined);
     session.record({ type: 'assessment-submitted', assessment: accepted });
     if (accepted.declarations.some(entry => entry.status === 'blocked')) throw new ProductError('ASSESSMENT_BLOCKED', 'Agent reports blocked contextual work. Resolve the explanation and submit renewed evidence before checks.');
@@ -294,7 +294,7 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
         onSpawn => execute(root, selected, report.selection, report.resolved, onSpawn), () => {
           verifyInstalled();
           if (before !== null && projectSnapshot(root) !== before) throw new ProductError('CHECK_MUTATION', `Check ${selected.declaration}/${selected.operation.id} changed observed project content. Changes are preserved; checks must be read-only.`);
-        }, v2 ? { scope: { [selected.declaration]: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === selected.declaration)!) }, before: capture(), capture } : undefined);
+        }, v2 ? { scope: { [selected.declaration]: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === selected.declaration)!) }, agentScope: contextualScope(report.resolved), before: capture(), capture } : undefined);
       if (evidence.error) throw new ProductError(evidence.error, `Operation ${selected.declaration}/${selected.operation.id} did not return a successful process and protocol result. Read its logs and preserve changes.`);
       if (evidence.result?.status === 'blocked') throw new ProductError('OPERATION_BLOCKED', `Operation ${selected.declaration}/${selected.operation.id} is blocked: ${evidence.result.message}`);
       session.record({ type: 'operation-accepted', description: `${phase}: ${selected.declaration}/${selected.operation.id} (${evidence.result!.status})` });
@@ -309,6 +309,8 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
   if (run.operations.slice(operationStart).some(evidence => evidence.result?.status === 'failed')) throw new ProductError('CHECKS_FAILED', 'One or more standards checks failed. All remaining ordinary check evidence was collected.');
   session.record({ type: 'final-verification' });
   verifyInstalled();
+  session.observeContinuation(report.resolved);
+  if (session.observation.observations) requireValidIntervals(session.observation.observations!);
   if (run.assessments.length && run.assessments[0]!.snapshot !== workSnapshot(root, run, report)) throw new ProductError('STALE_ASSESSMENT', 'Project content changed after assessment. Refresh the work request, reassess, and rerun checks.');
   session.complete(installation, operationStart);
 }

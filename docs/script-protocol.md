@@ -149,8 +149,8 @@ block progression and preserve incomplete work.
 `repo-standards/run/v2` records `observations` separately from `operations` and
 `assessments`. Each interval has a phase (`fixes`, `checks`, or `agent`), its
 applicable declaration `scope`, and a `before` observation. Closed intervals add
-`after`, `changedPaths`, and `violations`. Operation intervals identify the
-operation; an interval closed during explicit recovery has `interrupted: true`
+`after`, file `changedPaths`, `boundaryChanges`, and `violations`. Operation intervals identify the
+operation and its `operationIndex` in the run's operation history; an interval closed during explicit recovery has `interrupted: true`
 when its operation outcome was not fully recorded. An open interval is evidence
 that observation is incomplete, never evidence of no changes. Observations
 contain file identities and executable state, boundaries, settings, and consulted
@@ -158,10 +158,18 @@ ignore-input identities. Changes to external ignore inputs/settings are reported
 as `@ignore/global`, `@ignore/info`, or `@git/observation-settings` and cannot be
 authorized as project paths.
 
+Adjacent observations are compared across operation and handoff boundaries;
+work between author invocations has its own agent interval. Named file scope
+permits creating missing parent directories, but not deleting or changing
+existing ancestors. Checks may not create even empty directories.
+
 Retry retains intervals and earlier agent evidence before repeating fixes; it
 cannot authorize new scope or hide a recorded violation. A recorded scope or
 check-mutation violation requires abandonment and reconciliation before a new
-adoption. An incomplete observation must first become readable and complete.
+adoption. An incomplete observation must first become readable and complete. Restoring
+corrupted exact content is permitted only after verifying the immutable
+installation expectations; `restoredExact` records those restored identities
+separately from contextual work. This grants no new contextual scope.
 Durable `repo-standards/state/v2` and `repo-standards/status/v2` retain intervals,
 operation history, retry history, final checks and assessments. Detailed logs
 remain local; the recorded outcomes and interval evidence survive a fresh
