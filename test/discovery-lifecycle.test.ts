@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { inc } from 'semver';
 import { stringify } from 'yaml';
@@ -140,6 +140,11 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
     checks: firstState.checks,
     assessments: firstState.assessments,
   }]);
+  const emptyInstalledDirectory = join(f.project.root, '.agents/skills/adopt-standards/added-directory');
+  mkdirSync(emptyInstalledDirectory);
+  const inventoryDrift = f.run(['inspect', '--readopt', '--json']).report;
+  assert.ok(inventoryDrift.start.blockers.some((blocker: { code: string }) => blocker.code === 'INSTALLED_CONTENT_EDITED'));
+  rmSync(emptyInstalledDirectory, { recursive: true });
 
   const checkout = join(f.remote.support.root, 'readopt-checkout');
   git(f.project.root, 'clone', '--quiet', f.project.root, checkout);

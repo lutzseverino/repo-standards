@@ -134,7 +134,7 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
     } catch { throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.'); }
   }
   return { selection: lock.selection, baselines: state.baselines, skills: state.skills,
-    completeInventory: ['repo-standards/state/v2', 'repo-standards/state/v3'].includes(state.format), resolved, files: lock.files,
+    completeInventory: ['repo-standards/state/v2', 'repo-standards/state/v3', 'repo-standards/state/v4'].includes(state.format), resolved, files: lock.files,
     ...(historicalScope ? { historicalScope } : {}) };
 }
 
