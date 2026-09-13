@@ -28,8 +28,9 @@ The agent rechecks coverage after fixes and during contextual assessment. Empty
 scope retains the declaration and its operations. Source validation alone proves
 neither project-specific safety nor semantic coverage. Eligible active discovery runs can
 [preview scope amendments](inspection.md#preview-scope-amendments-in-an-active-run).
-Discovery updates, amendment execution, and same-pin re-adoption remain
-subsequent lifecycle work.
+Discovery updates, amendment execution, and same-pin v2 re-adoption remain
+subsequent lifecycle work. Unchanged v1 selections support explicit retained
+re-adoption through the public lifecycle.
 
 ## Root and profiles
 

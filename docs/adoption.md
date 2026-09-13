@@ -1,7 +1,7 @@
 # Confirmed adoption
 
-Initial adoption and deliberate updates install exact files and whole author
-skills and execute trusted fixes and checks. Profiles with contextual guidance
+Initial adoption, deliberate updates, and explicit same-pin v1 re-adoption install
+exact files and whole author skills and execute trusted fixes and checks. Profiles with contextual guidance
 return a work request after fixes and continue through the public
 [assessment protocol](assessment-protocol.md). Interrupted adoption supports
 explicit retry and abandonment as described below.
@@ -76,6 +76,34 @@ The bootstrap provides temporary inspection only. Keep the external candidate
 available for retry if installation interrupts before the project runtime is
 usable. Once adoption completes, use the new project-pinned CLI normally.
 
+## Re-adopt unchanged v1 standards
+
+Use the pinned project CLI with `--readopt` when repository growth should pass
+through the retained current v1 selection again without changing the standards
+or CLI version:
+
+```sh
+.repo-standards/runtime/node_modules/.bin/repo-standards inspect \
+  --readopt --json
+.repo-standards/runtime/node_modules/.bin/repo-standards start \
+  --readopt --confirm 'sha256:INSPECTION_HASH' --json
+```
+
+Review and confirm the complete re-adoption inspection as a new action. Plain
+`inspect --json` remains a read-only retained inspection and its identity cannot
+start re-adoption. Re-adoption rejects source, profile, standards-revision, and
+CLI-version changes and cannot be combined with active-run scope amendment. It
+requires a prior complete adoption and the same clean, committed project and
+integrity checks as an initial start.
+
+The CLI resolves the v1 source from retained inputs, so the original standards
+repository can be unavailable. It reacquires the exact pinned CLI runtime from
+the configured npm registry or cache, checks prerequisites, runs fixes, requests
+fresh contextual assessment when applicable, and runs checks through the shared
+adoption sequence. An incomplete new run retains the prior last-complete evidence;
+only successful completion advances it. Re-adoption is deliberate repository
+work, not an update, resume, retry, or automatic compliance claim.
+
 Both paths apply confirmation freshness, Git-state, prerequisite,
 compatibility, and ownership checks before mutation, then use the normal fixes,
 contextual assessment, checks, integrity verification, recovery, and
@@ -141,8 +169,10 @@ observation identities. This file is included in immutable input integrity.
 source availability. Work intervals and final scope-validity assessments are
 committed in state v2. Historical evidence makes no current-coverage claim.
 
-Discovery updates, scope amendment execution and same-pin re-adoption remain
-unsupported in this implementation. Eligible active discovery runs can use the
+Discovery updates, scope amendment execution, and v2 re-adoption remain
+unsupported in this implementation. Unchanged retained v1 selections support the
+explicit [re-adoption flow](#re-adopt-unchanged-v1-standards). Eligible active
+discovery runs can use the
 [read-only amendment preview](inspection.md#preview-scope-amendments-in-an-active-run).
 If contextual review identifies additional files, preserve the incomplete run; reconcile the review within confirmed scope
 or abandon and reconcile to a clean committed project before a new inspection.

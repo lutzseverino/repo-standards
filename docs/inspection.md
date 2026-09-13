@@ -129,6 +129,7 @@ The report has format `repo-standards/inspection/v1`:
 | `operations` | Ordered fixes and checks, literal arguments, script bytes, resource inventories, timeout, and declared prerequisite probe/range. |
 | `project` | Canonical project root, HEAD or null, Git status and index, affected content, and reserved product paths. |
 | `inputs`, `manifest` | Selected source material and normalized single-profile metadata retained by adoption. |
+| `action` | `readopt` when the caller explicitly requests a new adoption of unchanged retained v1 pins; omitted for ordinary adoption, retained inspection, and updates. |
 | `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available. |
 | `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
 
@@ -136,7 +137,7 @@ For an established candidate that changes one pin, `update` is `standards` or
 `cli`, `previousSelection` records the current pins, and `retired` lists
 declarations that will leave governance while their installed content remains
 in place. An unchanged retained inspection omits these update fields and is
-read-only.
+read-only unless `--readopt` explicitly requests a new v1 adoption.
 
 For an established selection, `project.productState` observes the full durable
 `.repo-standards/` tree, including unexpected files and their bytes. Inspection
@@ -174,7 +175,12 @@ An existing skill conflicts even if its bytes match when no installed baseline
 establishes ownership. Existing product state or reserved system-skill content
 also blocks initial adoption. Established projects can use `inspect --json` with
 their pinned CLI to inspect retained material. That unchanged inspection is
-read-only and cannot be started. The resolver
+read-only and cannot be started. Use `inspect --readopt --json` to request a
+startable same-pin v1 inspection; its action changes the inspection identity and
+must be repeated as `start --readopt --confirm <identity>`. Re-adoption preserves
+all pins, requires a complete prior adoption and a clean committed project, and
+reuses retained source material when the original source is unavailable. The
+resolver
 rejects targets overlapping `.git`, `.repo-standards`, or `adopt-standards`.
 
 ## Inspect updates
@@ -344,7 +350,9 @@ installation. Missing, invalid, unresolved, or stale scope cannot authorize
 mutation. Initial clean committed-project and prerequisite rules still apply.
 There is no separate mandatory scope confirmation. Existing explicit selections
 retain inspection/v1; v2 execution uses the [observed-scope contract](script-protocol.md#observed-scope-for-v2-adoption).
-Discovery updates and same-pin re-adoption are not yet startable.
+Discovery updates and same-pin v2 re-adoption are not yet startable. Explicit
+same-pin v1 re-adoption is documented in
+[adoption](adoption.md#re-adopt-unchanged-v1-standards).
 
 After completion, retained `inspect --json` exposes `historicalScope`: the
 accepted inspection identity, source-resolved declarations, materialized concrete
