@@ -25,16 +25,16 @@ function command(args: string[]) {
 }
 function gh(args: string[], allowMissing = false) {
   const result = spawnSync('gh', [...args, ...(args[0] === 'api' ? [] : ['--repo', repository])],
-    { encoding: 'utf8', timeout: 60_000, maxBuffer: 32 * 1024 * 1024 });
+    { timeout: 60_000, maxBuffer: 32 * 1024 * 1024 });
   if (result.status !== 0) {
-    if (allowMissing && result.status === 1 && /\(HTTP 404\)/.test(result.stderr ?? '')) return undefined;
+    if (allowMissing && result.status === 1 && /\(HTTP 404\)/.test(result.stderr?.toString('utf8') ?? '')) return undefined;
     throw new Error(`Cannot inspect GitHub (${args[0]} ${args[1]}). Check gh authentication, connectivity and run/artifact availability.`);
   }
   return result.stdout;
 }
 function github(path: string, allowMissing = false): any {
-  const bytes = gh(['api', `repos/${repository}/${path}`], allowMissing);
-  return bytes === undefined ? undefined : JSON.parse(bytes);
+  const bytes = gh(['api', `repos/${repository}${path ? `/${path}` : ''}`], allowMissing);
+  return bytes === undefined ? undefined : JSON.parse(bytes.toString('utf8'));
 }
 async function request(url: string) {
   try { return await fetch(url, { signal: AbortSignal.timeout(30_000) }); }
@@ -89,7 +89,16 @@ try {
     assert.equal(object.sha, run.head_sha, 'Release tag differs from the original validated commit');
   }
   report.tag = ref ? 'matches' : 'absent';
-  const release = github(`releases/tags/${tag}`, true);
+  let release = github(`releases/tags/${tag}`, true);
+  if (!release) {
+    // The tag endpoint describes published releases. Check the authenticated
+    // listing as well before treating a possibly unfinished draft as absent.
+    assert.equal(github('').permissions?.push, true, 'Push access is required to establish whether a draft release exists');
+    const pages = JSON.parse(gh(['api', `repos/${repository}/releases?per_page=100`, '--paginate', '--slurp'])!.toString('utf8'));
+    const matches = pages.flat().filter((candidate: { tag_name: string }) => candidate.tag_name === tag);
+    assert.ok(matches.length <= 1, 'Multiple releases use the version tag; resolve the ambiguous publication state');
+    release = matches[0];
+  }
   if (registry.status === 404) {
     assert.equal(release, undefined, 'GitHub release exists while npm version is absent; resolve the inconsistent publication state');
     report.state = 'npm-version-missing';
@@ -101,27 +110,44 @@ try {
       '--repo', repository, '--target', run.head_sha, '--title', `Repository Standards ${bundle.version}`,
       '--notes', 'Published artifacts; release acceptance is tracked separately.']);
   } else {
-    assert.ok(ref, 'A published release must have a matching Git tag');
     assert.equal(release.tag_name, tag);
-    assert.equal(release.draft, false);
+    assert.equal(typeof release.draft, 'boolean');
     assert.equal(release.prerelease, false);
+    if (!ref) {
+      assert.equal(release.draft, true, 'A published release must have a matching Git tag');
+      assert.equal(release.target_commitish, run.head_sha, 'A draft without a Git tag must target the exact original validated commit');
+    }
+    report.release = release.draft ? 'draft' : 'published';
     const matched: string[] = [];
     const missing: string[] = [];
     for (const file of files) {
-      if (!release.assets.some((asset: { name: string }) => asset.name === file)) {
+      const assets = release.assets.filter((asset: { name: string }) => asset.name === file);
+      assert.ok(assets.length <= 1, `Multiple release assets use the same name: ${file}`);
+      const asset = assets[0];
+      if (!asset) {
         missing.push(file);
         continue;
       }
-      const response = await request(`https://github.com/${repository}/releases/download/${tag}/${file}`);
-      assert.equal(response.status, 200, `Cannot inspect release asset ${file}: HTTP ${response.status}`);
-      assert.equal(createHash('sha256').update(Buffer.from(await response.arrayBuffer())).digest('hex'),
-        createHash('sha256').update(readFileSync(join(bundleDirectory, file))).digest('hex'), `Published asset differs from original bundle: ${file}`);
+      let bytes: Buffer;
+      if (release.draft) {
+        assert.ok(Number.isSafeInteger(asset.id) && asset.id > 0, `Invalid draft asset identity: ${file}`);
+        bytes = gh(['api', `repos/${repository}/releases/assets/${asset.id}`, '-H', 'Accept: application/octet-stream'])!;
+      } else {
+        const response = await request(`https://github.com/${repository}/releases/download/${tag}/${file}`);
+        assert.equal(response.status, 200, `Cannot inspect release asset ${file}: HTTP ${response.status}`);
+        bytes = Buffer.from(await response.arrayBuffer());
+      }
+      assert.equal(createHash('sha256').update(bytes).digest('hex'),
+        createHash('sha256').update(readFileSync(join(bundleDirectory, file))).digest('hex'), `Release asset differs from original bundle: ${file}`);
       matched.push(file);
     }
     report.assets = { matched, missing };
     if (missing.length) {
       report.state = 'github-assets-missing';
       report.nextAction = command(['gh', 'release', 'upload', tag, ...missing.map(file => join(bundleDirectory, file)), '--repo', repository]);
+    } else if (release.draft) {
+      report.state = 'github-draft-ready';
+      report.nextAction = command(['gh', 'release', 'edit', tag, '--draft=false', '--target', run.head_sha, '--repo', repository]);
     } else {
       const branch = spawnSync('git', ['branch', '--show-current'], { encoding: 'utf8', timeout: 10_000 });
       assert.ok(branch.status === 0 && branch.stdout.trim(), 'Use a checkout of the reviewed workflow branch to select verification code');
