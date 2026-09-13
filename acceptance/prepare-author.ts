@@ -69,9 +69,10 @@ async function downloadJson(url: string) {
         ? Number(headers['x-ratelimit-reset']) * 1000 : 0;
       const retryAfter = headers['retry-after'] ?? '';
       // GitHub reports delay-seconds; also accept the standard HTTP-date form.
+      // Date.parse normalizes invalid calendar dates, so require a round trip.
+      const parsedDate = Date.parse(retryAfter);
       const retryAt = /^\d{1,10}$/.test(retryAfter) ? Date.now() + Number(retryAfter) * 1000
-        : /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} [A-Z][a-z]{2} \d{4} \d{2}:\d{2}:\d{2} GMT$/.test(retryAfter)
-          ? Date.parse(retryAfter) : NaN;
+        : Number.isFinite(parsedDate) && new Date(parsedDate).toUTCString() === retryAfter ? parsedDate : NaN;
       const waitUntil = Math.max(primaryReset, Number.isFinite(retryAt) ? retryAt : 0);
       if (waitUntil > 0) {
         const cause = primaryReset ? 'Public API quota exhausted.' : 'Public service requested a retry delay.';

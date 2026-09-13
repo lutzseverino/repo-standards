@@ -103,7 +103,8 @@ for (const [name, headers, expected] of [
   });
 }
 
-for (const retryAfter of ['invalid', '-1', '999999999999999999999', 'Sat, 99 Sep 2026 17:10:38 GMT']) {
+for (const retryAfter of ['invalid', '-1', '999999999999999999999', 'Sat, 99 Sep 2026 17:10:38 GMT',
+  'Sat, 31 Feb 2026 17:10:38 GMT', 'Sun, 12 Sep 2026 17:10:38 GMT', 'Sun, 12 Sep 2026 24:00:00 GMT']) {
   test(`public author acquisition retains invalid Retry-After ${retryAfter} without inventing a delay`, t => {
     const f = fixture(t);
     writeFileSync(f.preload, `globalThis.fetch = async () => new Response('', {
