@@ -44,18 +44,22 @@ export interface WorkInterval {
   phase: 'fixes' | 'checks' | 'agent'; scope: Scope; before: WorkObservation;
   operation?: { declaration: string; phase: 'fixes' | 'checks'; id: string }; operationIndex?: number;
   after?: WorkObservation; changedPaths?: string[]; boundaryChanges?: string[]; violations?: string[]; interrupted?: boolean;
-  restoredExact?: WorkObservation['files'];
+  restoredExact?: WorkObservation['files']; restoredBoundaries?: WorkObservation['boundaries'];
+}
+function changedBoundaries(before: WorkObservation, after: WorkObservation) {
+  return [...new Set([...Object.keys(before.boundaries), ...Object.keys(after.boundaries)])]
+    .filter(path => JSON.stringify(before.boundaries[path] ?? { type: 'missing' }) !== JSON.stringify(after.boundaries[path] ?? { type: 'missing' })).sort();
 }
 export function finishInterval(interval: WorkInterval, after: WorkObservation) {
   interval.after = after;
   interval.changedPaths = observedChanges(interval.before, after);
-  interval.boundaryChanges = [...new Set([...Object.keys(interval.before.boundaries), ...Object.keys(after.boundaries)])]
-    .filter(path => JSON.stringify(interval.before.boundaries[path] ?? { type: 'missing' }) !== JSON.stringify(after.boundaries[path] ?? { type: 'missing' })).sort();
+  interval.boundaryChanges = changedBoundaries(interval.before, after);
   const scopes = Object.values(interval.scope);
   const fileViolations = interval.changedPaths.filter(path => interval.phase === 'checks'
     || (!interval.restoredExact?.[path] && !scopes.some(targets => permits(targets, path))));
   const boundaryViolations = interval.boundaryChanges.filter(path => {
     if (interval.phase === 'checks') return true;
+    if (interval.restoredBoundaries?.[path]) return false;
     if (scopes.some(targets => permits(targets, path))) return false;
     const before = interval.before.boundaries[path];
     // Named file authority includes creating its missing parent directories,
@@ -86,6 +90,16 @@ export function observeContinuation(root: string, intervals: WorkInterval[], res
     // of those exact paths/inventories is exempt from contextual attribution.
     interval.restoredExact = Object.fromEntries(observedChanges(interval.before, after).filter(path => permits(restorable, path))
       .map(path => [path, after.files[path] ?? { type: 'missing' }]));
+    interval.restoredBoundaries = Object.fromEntries(changedBoundaries(interval.before, after).flatMap(path => {
+      const before = interval.before.boundaries[path] ?? { type: 'missing' };
+      const current = after.boundaries[path] ?? { type: 'missing' };
+      const recreatingParent = before.type === 'missing' && current.type === 'directory'
+        && Object.entries(interval.restoredExact!).some(([file, state]) => state.type === 'file' && file.startsWith(path + '/'));
+      const removingExtra = before.type === 'directory' && current.type === 'missing'
+        && restorable.directories.some(directory => path.startsWith(directory + '/'))
+        && !restorable.paths.some(file => file.startsWith(path + '/'));
+      return recreatingParent || removingExtra ? [[path, current]] : [];
+    }));
   }
   finishInterval(interval, after);
   if (interval.operation && recordedOperations !== undefined && interval.operationIndex === recordedOperations) interval.interrupted = true;

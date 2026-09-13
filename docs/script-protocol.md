@@ -169,7 +169,10 @@ check-mutation violation requires abandonment and reconciliation before a new
 adoption. An incomplete observation must first become readable and complete. Restoring
 corrupted exact content is permitted only after verifying the immutable
 installation expectations; `restoredExact` records those restored identities
-separately from contextual work. This grants no new contextual scope.
+separately from contextual work. `restoredBoundaries` covers only recreated
+parents of restored exact files or removal of extra directories inside a
+verified skill inventory; it never exempts changes to existing directory modes.
+This grants no new contextual scope.
 Durable `repo-standards/state/v2` and `repo-standards/status/v2` retain intervals,
 operation history, retry history, final checks and assessments. Detailed logs
 remain local; the recorded outcomes and interval evidence survive a fresh

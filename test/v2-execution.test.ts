@@ -295,3 +295,23 @@ ${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fix
   assert.equal(readFileSync(join(f.project.root, 'AGENTS.md'), 'utf8'), 'Expected instructions');
   assert.equal(retry.report.observations[1].restoredExact['AGENTS.md'].type, 'file');
 });
+
+test('v2 retry restores complete exact skill inventories and their necessary directories', async t => {
+  for (const mode of ['removed', 'added']) await t.test(mode, async st => {
+    const mutation = mode === 'removed' ? "rmSync('.agents/skills/review', {recursive:true});"
+      : "mkdirSync('.agents/skills/review/unexpected'); writeFileSync('.agents/skills/review/unexpected/extra.md', 'Extra');";
+    const f = await fixture(st, `${prelude}
+const marker = '.repo-standards/local/attempt';
+if (!existsSync(marker)) { writeFileSync(marker, 'attempted'); ${mutation} }
+${result}`, { review: { kind: 'skill', name: 'review', source: 'skill', fixes: [operation('prepare')] } });
+    assert.match(f.start().report.reason, /FINAL_INTEGRITY/);
+    if (mode === 'removed') {
+      mkdirSync(join(f.project.root, '.agents/skills/review'));
+      writeFileSync(join(f.project.root, '.agents/skills/review/SKILL.md'), '# Review');
+    } else rmSync(join(f.project.root, '.agents/skills/review/unexpected'), { recursive: true });
+    const retry = f.run(['resume', '--retry', '--json']);
+    assert.equal(retry.result.status, 0, retry.report.reason);
+    assert.equal(readFileSync(join(f.project.root, '.agents/skills/review/SKILL.md'), 'utf8'), '# Review');
+    assert.ok(Object.keys(retry.report.observations[1].restoredBoundaries).includes(mode === 'removed' ? '.agents/skills/review' : '.agents/skills/review/unexpected'));
+  });
+});
