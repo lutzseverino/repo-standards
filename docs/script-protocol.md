@@ -139,6 +139,11 @@ Observations include tracked and non-ignored content, named targets even after
 they become ignored, their ancestors, effective observation settings and ignore
 inputs. Explicit directory targets include ignored descendants. Generated
 `.repo-standards` content is verified separately against installation expectations.
+The same directory-aware inventory comparison protects durable product state,
+including retained inputs and runtime manifests. Only `local`, `cache`, and
+`runtime/node_modules` are excluded from that inventory: local logs/caches are
+generated outputs, and runtime dependencies have their own complete-tree
+integrity check.
 Unlisted ignored siblings outside explicit directory trees are not inventoried;
 trusted scripts retain host/network access. These are bounded before/after
 observations, not continuous monitoring or atomic filesystem snapshots. The
@@ -178,7 +183,7 @@ operation history, retry history, final checks and assessments. Detailed logs
 remain local; the recorded outcomes and interval evidence survive a fresh
 checkout. The integrity lock remains `repo-standards/lock/v1` and binds the new
 state bytes. V1 sources retain their existing execution and report formats.
-Retained inspection also checks v2 exact-skill directories against the paths
-implied by the recorded file inventory, so later empty-directory edits block
-updates before mutation. Discovery adoption remains a separate implementation
+Retained inspection also checks v2 exact-skill and durable product directories
+against the paths implied by the recorded file inventory, so later
+empty-directory edits block updates before mutation. Discovery adoption remains a separate implementation
 slice (#45).

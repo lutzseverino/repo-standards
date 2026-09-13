@@ -333,3 +333,29 @@ ${result}`, { review: { kind: 'skill', name: 'review', source: 'skill', fixes: [
   const retained = f.run(['inspect', '--json']).report;
   assert.ok(retained.start.blockers.some((blocker: { code: string; path: string }) => blocker.code === 'INSTALLED_CONTENT_EDITED' && blocker.path === '.agents/skills/review'));
 });
+
+test('v2 protects durable product directories while permitting generated local and cache directories', async t => {
+  for (const target of ['inputs/unexpected', 'runtime/unexpected', 'unexpected']) await t.test(target, async st => {
+    const phase = target.startsWith('runtime') ? 'checks' : 'fixes';
+    const f = await fixture(st, `${prelude}
+mkdirSync('.repo-standards/local/scratch', {recursive:true});
+mkdirSync('.repo-standards/cache/scratch', {recursive:true});
+const marker = '.repo-standards/local/attempt';
+if (input.operation.phase === '${phase}' && !existsSync(marker)) {
+  writeFileSync(marker, 'attempted'); mkdirSync('.repo-standards/${target}');
+}
+${result}`);
+    const started = f.start().report;
+    const failed = phase === 'checks' ? f.assess(started.workRequest).report : started;
+    assert.match(failed.reason, /FINAL_INTEGRITY.*product state inventory/);
+    assert.equal(failed.operations.at(-1).result.status, phase === 'checks' ? 'passed' : 'changed');
+    assert.match(f.run(['resume', '--retry', '--json']).report.reason, /FINAL_INTEGRITY/);
+    rmSync(join(f.project.root, '.repo-standards', target), { recursive: true });
+    const retry = f.run(['resume', '--retry', '--json']).report;
+    assert.equal(retry.phase, 'contextual', retry.reason);
+    assert.equal(f.assess(retry.workRequest).result.status, 0);
+    mkdirSync(join(f.project.root, '.repo-standards', target));
+    const retained = f.run(['inspect', '--json']).report;
+    assert.ok(retained.start.blockers.some((blocker: { code: string; path: string }) => blocker.code === 'STATE_INTEGRITY' && blocker.path === '.repo-standards'));
+  });
+});
