@@ -104,7 +104,7 @@ export interface InspectOptions { source: string; standardsVersion: string; prof
 interface RecordedAdoption {
   selection: RecordedSelection;
   baselines: Record<string, Pick<Content, 'sha256' | 'executable'>>;
-  skills: Record<string, string[]>;
+  skills: Record<string, string[]>; completeInventory: boolean;
   resolved: { declarations: { id: string; kind: string; target?: string; name?: string }[] };
   files: Record<string, Pick<Content, 'sha256' | 'executable'>>;
 }
@@ -121,17 +121,36 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
   if (!Array.isArray(resolved?.declarations)) {
     throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state failed integrity validation. Restore the committed product state.');
   }
-  return { selection: lock.selection, baselines: state.baselines, skills: state.skills, resolved, files: lock.files };
+  return { selection: lock.selection, baselines: state.baselines, skills: state.skills, completeInventory: state.format === 'repo-standards/state/v2', resolved, files: lock.files };
 }
 
-function fileInventory(value: Observation): string[] {
+export function inventoryPaths(value: Observation, directories = false): string[] {
   const result: string[] = [];
   function visit(prefix: string, child: Observation) {
     if (child.type === 'file') result.push(prefix);
-    else if (child.type === 'directory') for (const [name, entry] of Object.entries(child.entries)) visit(prefix ? `${prefix}/${name}` : name, entry);
+    else if (child.type === 'directory') {
+      if (directories && prefix) result.push(prefix + '/');
+      for (const [name, entry] of Object.entries(child.entries)) visit(prefix ? `${prefix}/${name}` : name, entry);
+    }
   }
   visit('', value);
   return result.sort();
+}
+
+// Installed trees have the directories implied by their materialized files.
+// An extra empty directory changes that tree even when a file-only inventory
+// omits it. Use the same comparison for skills and durable product state.
+export function plannedInventory(files: string[], complete = false): Set<string> {
+  const expected = new Set(files);
+  if (complete) for (const file of files) {
+    const parts = file.split('/');
+    for (let length = 1; length < parts.length; length++) expected.add(parts.slice(0, length).join('/') + '/');
+  }
+  return expected;
+}
+
+export function matchesInventory(value: Observation, files: string[], complete = false) {
+  return JSON.stringify(inventoryPaths(value, complete)) === JSON.stringify([...plannedInventory(files, complete)].sort());
 }
 
 function productStateObservation(root: string, blockers: Blocker[]) {
@@ -146,11 +165,15 @@ function productStateObservation(root: string, blockers: Blocker[]) {
   return targetObservation(root, '.repo-standards', blockers, excluded);
 }
 
-export function productInventory(root: string): string[] {
+export function observeProductState(root: string) {
   const blockers: Blocker[] = [];
   const observed = productStateObservation(root, blockers);
   if (blockers.length) throw new ProductError('FINAL_INTEGRITY', 'Unsafe product state.', blockers);
-  return fileInventory(observed).map(path => `.repo-standards/${path}`);
+  return observed;
+}
+
+export function productInventory(root: string, complete = false): string[] {
+  return inventoryPaths(observeProductState(root), complete).map(path => `.repo-standards/${path}`);
 }
 
 export async function inspect(options: InspectOptions, cliVersion: string, retained?: Awaited<ReturnType<typeof acquireSource>> & { manifest: string; ownedSkills: ReadonlySet<string> }) {
@@ -200,7 +223,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       observation: scopeObservation,
     } : undefined;
     if (discovery) {
-      blockers.push(proposal ? { code: 'DISCOVERY_ADOPTION_UNAVAILABLE', message: 'Scope inspection is available; discovery adoption remains blocked until the initial-adoption implementation (#44).' } : { code: 'DISCOVERY_REQUIRED', message: 'Interpret the discovery guidance and submit an evidence-backed repo-standards/scope/v1 proposal with inspect --scope.' });
+      blockers.push(proposal ? { code: 'DISCOVERY_ADOPTION_UNAVAILABLE', message: 'Scope inspection is available; discovery adoption remains blocked until the initial discovery-adoption implementation (#45).' } : { code: 'DISCOVERY_REQUIRED', message: 'Interpret the discovery guidance and submit an evidence-backed repo-standards/scope/v1 proposal with inspect --scope.' });
       if (proposal?.declarations.some(entry => entry.unresolved.length)) blockers.push({ code: 'UNRESOLVED_SCOPE', message: 'Resolve the reported discovery questions and inspect a revised proposal.' });
     }
     let update: 'standards' | 'cli' | undefined;
@@ -224,15 +247,14 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       }
       for (const [path, expected] of Object.entries(previous.skills)) {
         const actual = targetObservation(root, path, blockers);
-        if (JSON.stringify(fileInventory(actual)) !== JSON.stringify(expected)) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'The installed skill inventory differs from its last-complete baseline. Reconcile added or removed resources before updating.' });
+        if (!matchesInventory(actual, expected, previous.completeInventory)) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'The installed skill inventory differs from its last-complete baseline. Reconcile added or removed resources before updating.' });
       }
       for (const [path, expected] of Object.entries(previous.files).filter(([path]) => path.startsWith('.repo-standards/'))) {
         const actual = targetObservation(root, path, blockers);
         if (actual.type !== 'file' || actual.sha256 !== expected.sha256 || actual.executable !== expected.executable) blockers.push({ code: 'STATE_INTEGRITY', path, message: 'Retained product material differs from its recorded baseline. Restore it before updating.' });
       }
       const expectedProductFiles = [...Object.keys(previous.files).filter(path => path.startsWith('.repo-standards/')), '.repo-standards/lock.json', '.repo-standards/state.json'].sort();
-      const actualProductFiles = fileInventory(productState).map(path => `.repo-standards/${path}`);
-      if (JSON.stringify(actualProductFiles) !== JSON.stringify(expectedProductFiles)) {
+      if (!matchesInventory(productState, expectedProductFiles.map(path => path.slice('.repo-standards/'.length)), previous.completeInventory)) {
         blockers.push({ code: 'STATE_INTEGRITY', path: '.repo-standards', message: 'The durable product-state inventory changed. Reconcile added or removed material before updating.' });
       }
     }

@@ -5,7 +5,8 @@ The version-one baseline is extended by the accepted
 [contextual scope specification (#41)](https://github.com/lutzseverino/repo-standards/issues/41).
 This document describes contracts; individual tickets state implementation scope.
 Tickets #42 and #43 implement v2 source validation and evidence-backed scope
-inspection. Discovery adoption and lifecycle changes remain later slices of #41;
+inspection; #44 adds v2 explicit-target operation enforcement and durable work
+intervals. Discovery adoption and lifecycle changes remain later slices of #41;
 every selection with active discovery stays blocked before execution.
 
 ## Purpose and release boundary
@@ -182,7 +183,7 @@ unresolved discovery without manufacturing empty or broad executable targets.
 Execution accepts concrete targets; unresolved discovery cannot authorize
 adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
 scope is missing. Validated proposals remain blocked from adoption until the
-initial discovery-adoption interface (#44) is implemented. Inspection accepts
+initial discovery-adoption interface (#45) is implemented. Inspection accepts
 `repo-standards/scope/v1` proposals through `--scope`, returns explicitly versioned
 `repo-standards/inspection/v2` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
@@ -292,6 +293,30 @@ retains; they cannot restrict host or network access. Authors must respect the
 resolved scope and exclusions and supply fixes safe to repeat. Checks must not
 mutate project content. Observed check mutation is an incomplete result with
 the changes preserved.
+
+### Observed v2 execution scope
+
+For v2 explicit-target adoption, each fix's observed additions, deletions, byte
+edits, and executable changes must belong to its declaration's concrete targets.
+Checks remain read-only. Installation expectations stay immutable, including
+against an exact declaration's own fix. Observation failure or a detected
+violation leaves adoption incomplete with operation outcomes and work preserved.
+
+Execution observes the eligible project snapshot, individually named targets
+and ancestors, consulted ignore inputs, and explicit directory trees (including
+ignored descendants). Unlisted ignored siblings outside these trees are not
+inventoried. Bounded, repeated observations detect incomplete reads and observed
+instability; this is neither continuous monitoring nor host/network sandboxing.
+
+Separate fix, check, and agent intervals retain before/after observations,
+applicable concrete scope, changed paths, violations, and interruption evidence.
+Retry closes the outgoing interval before replay, retains agent changes even
+when fixes subsequently overwrite the same files, and requires renewed
+assessment and checks. Detected scope violations cannot be erased by retry;
+abandon and reconcile before a new confirmed adoption. Installation, process
+liveness, concurrency, clean initial starts, and abandonment keep their existing
+contracts. See the [script](script-protocol.md#observed-scope-for-v2-explicit-target-adoption)
+and [assessment](assessment-protocol.md#v2-observation-and-replay) protocols.
 
 ## Adoption sequence and agent interface
 

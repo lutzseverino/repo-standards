@@ -122,3 +122,68 @@ Use `status --json` and the incomplete report to review actual changes and
 successful, failed or uncertain work. Follow the recovery instructions in
 [Adoption](adoption.md#completion-and-incomplete-results). No process error,
 blocked result, failed check or contextual handoff asserts complete adoption.
+
+## Observed scope for v2 explicit-target adoption
+
+Sources using `repo-standards/v2` with explicit targets use the same execution
+machinery and unchanged `repo-standards/operation/v1` input and
+`repo-standards/result/v1` output. Each fix's observed added, deleted, edited,
+and executable-state-changed files must fit **its owning declaration**, not the
+union of all declarations. A violation reports `OPERATION_SCOPE`, the operation,
+and offending paths. Checks report `CHECK_MUTATION` for observed writes, even
+within their allowed targets. A successful process/result does not override
+scope or exact-integrity failure. Exact bytes, executable state, and complete
+skill inventories (including directory paths and added empty directories) stay protected against their own declaration's fixes too.
+
+Observations include tracked and non-ignored content, named targets even after
+they become ignored, their ancestors, effective observation settings and ignore
+inputs. Explicit directory targets include ignored descendants. Generated
+`.repo-standards` content is verified separately against installation expectations.
+The same directory-aware inventory comparison protects durable product state,
+including retained inputs and runtime manifests. Only `local`, `cache`, and
+`runtime/node_modules` are excluded from that inventory: local logs/caches are
+generated outputs, and runtime dependencies have their own complete-tree
+integrity check.
+Unlisted ignored siblings outside explicit directory trees are not inventoried;
+trusted scripts retain host/network access. These are bounded before/after
+observations, not continuous monitoring or atomic filesystem snapshots. The
+[same observation limits](inspection.md#discover-contextual-file-scope-v2-sources)
+apply; incomplete reads, unsafe boundaries, instability, or exhausted limits
+block progression and preserve incomplete work.
+
+`repo-standards/run/v2` records `observations` separately from `operations` and
+`assessments`. Each interval has a phase (`fixes`, `checks`, or `agent`), its
+applicable declaration `scope`, and a `before` observation. Closed intervals add
+`after`, file `changedPaths`, `boundaryChanges`, and `violations`. Operation intervals identify the
+operation and its `operationIndex` in the run's operation history; an interval closed during explicit recovery has `interrupted: true`
+when its operation outcome was not fully recorded. An open interval is evidence
+that observation is incomplete, never evidence of no changes. Observations
+contain file identities and executable state, boundaries, settings, and consulted
+ignore-input identities. Changes to external ignore inputs/settings are reported
+as `@ignore/global`, `@ignore/info`, or `@git/observation-settings` and cannot be
+authorized as project paths.
+
+Adjacent observations are compared across operation and handoff boundaries;
+work between author invocations has its own agent interval. Named file scope
+permits creating missing parent directories, but not deleting or changing
+existing ancestors. Checks may not create even empty directories.
+
+Retry retains intervals and earlier agent evidence before repeating fixes; it
+cannot authorize new scope or hide a recorded violation. A recorded scope or
+check-mutation violation requires abandonment and reconciliation before a new
+adoption. An incomplete observation must first become readable and complete. Restoring
+corrupted exact content is permitted only after verifying the immutable
+installation expectations; `restoredExact` records those restored identities
+separately from contextual work. `restoredBoundaries` covers only recreated
+parents of restored exact files or removal of extra directories inside a
+verified skill inventory; it never exempts changes to existing directory modes.
+This grants no new contextual scope.
+Durable `repo-standards/state/v2` and `repo-standards/status/v2` retain intervals,
+operation history, retry history, final checks and assessments. Detailed logs
+remain local; the recorded outcomes and interval evidence survive a fresh
+checkout. The integrity lock remains `repo-standards/lock/v1` and binds the new
+state bytes. V1 sources retain their existing execution and report formats.
+Retained inspection also checks v2 exact-skill and durable product directories
+against the paths implied by the recorded file inventory, so later
+empty-directory edits block updates before mutation. Discovery adoption remains a separate implementation
+slice (#45).

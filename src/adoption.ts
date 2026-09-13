@@ -1,3 +1,4 @@
+import { concreteScope, contextualScope, observeWork, requireValidIntervals } from './work-observation.js';
 import { assessmentSnapshot, projectSnapshot, validateAssessment } from './assessment.js';
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
@@ -7,7 +8,7 @@ import { stringify } from 'yaml';
 import { externalPath, hash } from './acquisition.js';
 import { allowedTargets, execute, operations, preflight } from './execution.js';
 import { ProductError } from './errors.js';
-import { git, hiddenIndexPaths, inspect, observe, productInventory } from './inspection.js';
+import { git, hiddenIndexPaths, inspect, inventoryPaths, matchesInventory, observe, observeProductState, plannedInventory, productInventory } from './inspection.js';
 import type { InspectOptions, Observation } from './inspection.js';
 import { baselines, file, flatten, ignore, json, lockPath, projectRoot, safe, safeDirectory, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Files } from './adoption-files.js';
@@ -17,12 +18,18 @@ export { abandon, status } from './adoption-run.js';
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 const packageName = '@lutzseverino/repo-standards';
 
-function workRequest(root: string, run: Run, report: Pick<Inspection, 'guidance' | 'resolved'>): WorkRequest {
+function workRequest(root: string, run: Run, report: Pick<Inspection, 'guidance' | 'resolved' | 'source'>): WorkRequest {
   return { format: 'repo-standards/work-request/v1', run: run.id, selection: `sha256:${hash(json(run.selection))}`,
-    snapshot: assessmentSnapshot(root, run.retryHistory?.length),
+    snapshot: workSnapshot(root, run, report),
     declarations: report.guidance.map(guidance => ({ id: guidance.id, guidance,
       allowedTargets: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === guidance.id)!) })),
     requiredEvidence: ['status', 'explanation', 'changedPaths', 'evidence'] };
+}
+
+function workSnapshot(root: string, run: Run, report: Pick<Inspection, 'resolved' | 'source'>) {
+  return report.source?.format === 'repo-standards/v2'
+    ? `sha256:${hash(json(observeWork(root, concreteScope(report.resolved))) + `retry:${run.retryHistory?.length ?? 0}`)}`
+    : assessmentSnapshot(root, run.retryHistory?.length);
 }
 
 function verifyConfirmation(report: Inspection, confirmation: string) {
@@ -156,6 +163,7 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
   const run = session.observation;
   const progress = () => session.observation.installation!;
   const { files, before, report } = installation;
+  const completeInventory = report.source?.format === 'repo-standards/v2';
   const replaceTrees = installation.replaceTrees ?? [];
   const treeProgress = progress().trees!;
   verifyGit(root, report);
@@ -174,6 +182,10 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
     if (Object.entries(observed).some(([path, value]) => !temporaries.includes(path) && (expected[path]?.sha256 !== value.sha256 || expected[path]?.executable !== value.executable))) {
       throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed during replacement: ${tree}. Preserve and reconcile added or modified resources before retry.`);
     }
+    const expectedPaths = treeProgress[tree] === 'removing'
+      ? new Set([...inventoryPaths(before[tree]!, completeInventory).map(path => `${tree}/${path}`), ...plannedInventory(temporaries, completeInventory)])
+      : plannedInventory([...Object.keys(files), ...temporaries], completeInventory);
+    if (inventoryPaths(actual, completeInventory).some(path => !expectedPaths.has(`${tree}/${path}`))) throw new ProductError('INSTALLATION_CHANGED', `Owned tree inventory changed during replacement: ${tree}. Preserve added resources before retry.`);
   }
   // Validate the entire remaining plan before writing any part of it. An
   // unrecorded atomic write may contain either the inspected or expected bytes.
@@ -185,15 +197,15 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
     const matches = actual.type === 'file' && actual.sha256 === expected.sha256 && actual.executable === expected.executable;
     if (!matches && (progress().files.includes(path) || json(actual) !== json(before[path]))) throw new ProductError('INSTALLATION_CHANGED', `Installed or pending content changed: ${path}. Reconcile it before retry; recovery will not overwrite edits.`);
   }
+  const plannedPaths = plannedInventory([...Object.keys(files), ...temporaries], completeInventory);
   for (const skill of Object.keys(installation.skills).filter(skill => !replaceTrees.includes(skill))) {
     const current = safe(root, skill);
     if (current.type === 'missing') continue;
-    const observed: Files = Object.create(null);
-    flatten(skill, current, observed);
-    if (Object.keys(observed).some(path => !Object.hasOwn(files, path) && !temporaries.includes(path))) throw new ProductError('INSTALLATION_CHANGED', `Skill inventory changed: ${skill}. Preserve added resources before retry.`);
+    if (inventoryPaths(current, completeInventory).some(path => !plannedPaths.has(`${skill}/${path}`))) throw new ProductError('INSTALLATION_CHANGED', `Skill inventory changed: ${skill}. Preserve added resources before retry.`);
   }
   const transitional = installation.transitional ?? {};
-  if (safeDirectory(root, '.repo-standards').type !== 'missing' && productInventory(root).some(path => !Object.hasOwn(files, path) && !Object.hasOwn(transitional, path) && !replaceTrees.some(tree => path.startsWith(tree + '/')) && !temporaries.includes(path))) throw new ProductError('INSTALLATION_CHANGED', 'Product state inventory changed. Reconcile additions before retry.');
+  const productPaths = plannedInventory([...Object.keys(files), ...Object.keys(transitional), ...temporaries], completeInventory);
+  if (safeDirectory(root, '.repo-standards').type !== 'missing' && productInventory(root, completeInventory).some(path => !productPaths.has(path) && !replaceTrees.some(tree => path.startsWith(tree + '/')))) throw new ProductError('INSTALLATION_CHANGED', 'Product state inventory changed. Reconcile additions before retry.');
   const runtimePath = '.repo-standards/runtime/node_modules';
   const runtime = safeDirectory(root, runtimePath);
   function partial(actual: Observation, expected: Observation): boolean {
@@ -245,42 +257,56 @@ function verifyInstallation(root: string, installation: Installation, extra: Fil
   const expectedFiles = { ...files, ...(installation.transitional ?? {}), ...extra };
   verifyFiles(root, expectedFiles);
   if (hash(json(safeDirectory(root, '.repo-standards/runtime/node_modules'))) !== runtimeHash) throw new ProductError('FINAL_INTEGRITY', 'The installed runtime dependencies changed.');
-  if (json(productInventory(root).sort()) !== json(Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/')).sort())) throw new ProductError('FINAL_INTEGRITY', 'The product state inventory changed.');
-  for (const [path, expected] of Object.entries(skills)) if (json(inventory(root, path)) !== json(expected)) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
+  if (!matchesInventory(observeProductState(root), Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/')).map(path => path.slice('.repo-standards/'.length)), report.source?.format === 'repo-standards/v2')) throw new ProductError('FINAL_INTEGRITY', 'The product state inventory changed.');
+  for (const [path, expected] of Object.entries(skills)) if (!matchesInventory(safe(root, path), expected, report.source?.format === 'repo-standards/v2')) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
   if (json(inventory(root, '.repo-standards/inputs')) !== json(Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/inputs/')).map(path => path.slice('.repo-standards/inputs/'.length)).sort())) throw new ProductError('FINAL_INTEGRITY', 'Retained input inventory changed.');
   verifyGit(root, report);
   verifyCommittable(root, [...Object.keys(files), '.repo-standards/state.json']);
 }
 
+function openAgentObservation(root: string, session: AdoptionRunSession, report: Inspection) {
+  if (report.source?.format !== 'repo-standards/v2') return;
+  session.openObservation({ phase: 'agent', scope: contextualScope(report.resolved), before: observeWork(root, concreteScope(report.resolved)) });
+}
+
 async function advance(root: string, session: AdoptionRunSession, installation: Installation, resumed = false, assessment?: unknown) {
   const { report } = installation;
   const verifyInstalled = () => verifyInstallation(root, installation);
+  if (resumed) session.observeContinuation(report.resolved);
   verifyInstalled();
   if (resumed) {
     session.record({ type: 'assessment-started' });
-    if (assessment === undefined) session.pauseForContext(workRequest(root, session.observation, report));
-    const accepted = validateAssessment(root, session.observation, installation.contextualBaseline!, assessment);
+    if (assessment === undefined) {
+      openAgentObservation(root, session, report);
+      session.pauseForContext(workRequest(root, session.observation, report));
+    }
+    const accepted = validateAssessment(root, session.observation, installation.contextualBaseline!, assessment, report.source?.format === 'repo-standards/v2' ? {
+      snapshot: workSnapshot(root, session.observation, report),
+      changedPaths: [...new Set(session.observation.observations!.filter(interval => interval.phase === 'agent').flatMap(interval => (interval.changedPaths ?? []).filter(path => !interval.restoredExact?.[path])))],
+    } : undefined);
     session.record({ type: 'assessment-submitted', assessment: accepted });
     if (accepted.declarations.some(entry => entry.status === 'blocked')) throw new ProductError('ASSESSMENT_BLOCKED', 'Agent reports blocked contextual work. Resolve the explanation and submit renewed evidence before checks.');
     session.record({ type: 'assessment-accepted' });
+    if (session.observation.observations) requireValidIntervals(session.observation.observations!);
   }
   const operationStart = session.observation.operations.length;
   for (const phase of (resumed ? ['checks'] : ['fixes', 'checks']) as ('fixes' | 'checks')[]) {
     for (const selected of operations(report.resolved, phase)) {
-      let before: string | null = null;
-      const evidence = await session.authorProcess({ phase, declaration: selected.declaration, id: selected.operation.id }, onSpawn => {
-        before = phase === 'checks' ? projectSnapshot(root) : null;
-        return execute(root, selected, report.selection, report.resolved, onSpawn);
-      }, () => {
-        verifyInstalled();
-        if (before !== null && projectSnapshot(root) !== before) throw new ProductError('CHECK_MUTATION', `Check ${selected.declaration}/${selected.operation.id} changed observed project content. Changes are preserved; checks must be read-only.`);
-      });
+      const v2 = report.source?.format === 'repo-standards/v2';
+      const capture = () => observeWork(root, concreteScope(report.resolved));
+      const before = !v2 && phase === 'checks' ? projectSnapshot(root) : null;
+      const evidence = await session.authorProcess({ phase, declaration: selected.declaration, id: selected.operation.id },
+        onSpawn => execute(root, selected, report.selection, report.resolved, onSpawn), () => {
+          verifyInstalled();
+          if (before !== null && projectSnapshot(root) !== before) throw new ProductError('CHECK_MUTATION', `Check ${selected.declaration}/${selected.operation.id} changed observed project content. Changes are preserved; checks must be read-only.`);
+        }, v2 ? { scope: { [selected.declaration]: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === selected.declaration)!) }, agentScope: contextualScope(report.resolved), before: capture(), capture } : undefined);
       if (evidence.error) throw new ProductError(evidence.error, `Operation ${selected.declaration}/${selected.operation.id} did not return a successful process and protocol result. Read its logs and preserve changes.`);
       if (evidence.result?.status === 'blocked') throw new ProductError('OPERATION_BLOCKED', `Operation ${selected.declaration}/${selected.operation.id} is blocked: ${evidence.result.message}`);
       session.record({ type: 'operation-accepted', description: `${phase}: ${selected.declaration}/${selected.operation.id} (${evidence.result!.status})` });
     }
     if (phase === 'fixes' && report.guidance.length) {
-      installation.contextualBaseline ??= projectSnapshot(root);
+      if (report.source?.format !== 'repo-standards/v2') installation.contextualBaseline ??= projectSnapshot(root);
+      openAgentObservation(root, session, report);
       session.pauseForContext(workRequest(root, session.observation, report), installation);
     }
   }
@@ -288,7 +314,9 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
   if (run.operations.slice(operationStart).some(evidence => evidence.result?.status === 'failed')) throw new ProductError('CHECKS_FAILED', 'One or more standards checks failed. All remaining ordinary check evidence was collected.');
   session.record({ type: 'final-verification' });
   verifyInstalled();
-  if (run.assessments.length && run.assessments[0]!.snapshot !== assessmentSnapshot(root, run.retryHistory?.length)) throw new ProductError('STALE_ASSESSMENT', 'Project content changed after assessment. Refresh the work request, reassess, and rerun checks.');
+  session.observeContinuation(report.resolved);
+  if (session.observation.observations) requireValidIntervals(session.observation.observations!);
+  if (run.assessments.length && run.assessments[0]!.snapshot !== workSnapshot(root, run, report)) throw new ProductError('STALE_ASSESSMENT', 'Project content changed after assessment. Refresh the work request, reassess, and rerun checks.');
   session.complete(installation, operationStart);
 }
 

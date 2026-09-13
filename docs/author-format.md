@@ -23,7 +23,7 @@ A selected profile with unresolved discovery returns guidance, eligible evidence
 a discovery request identity, and a `DISCOVERY_REQUIRED` start blocker.
 `inspect --scope` validates an evidence-backed `repo-standards/scope/v1` proposal
 and presents concrete paths in the complete inspection. Discovery adoption
-remains blocked pending [#44](https://github.com/lutzseverino/repo-standards/issues/44),
+remains blocked pending [#45](https://github.com/lutzseverino/repo-standards/issues/45),
 including after a valid scope proposal. Source validation alone proves neither
 project-specific safety nor semantic coverage.
 

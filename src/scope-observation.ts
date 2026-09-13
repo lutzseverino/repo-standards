@@ -13,7 +13,7 @@ const identity = (value: unknown) => `sha256:${hash(JSON.stringify(value))}`;
 
 // One bounded observation is compared with a second before issuing a report.
 // Only eligible files and named boundaries are read, never ignored siblings.
-export function observeScope(root: string, named: string[] = []) {
+export function observeScope(root: string, named: string[] = [], options: { execution?: boolean; directories?: string[] } = {}) {
   let bytes = 0;
   let count = 0;
   const deadline = Date.now() + 30_000;
@@ -75,7 +75,8 @@ export function observeScope(root: string, named: string[] = []) {
   const configuredExclude = command(['config', '--null', '--path', '--get', 'core.excludesfile'], true);
   const globalExclude = configuredExclude ? configuredExclude.slice(0, -1) : join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'git/ignore');
   const infoExclude = command(['rev-parse', '--path-format=absolute', '--git-path', 'info/exclude']).replace(/\n$/, '');
-  const tracked = command(['ls-files', '--cached', '-z']).split('\0').filter(Boolean);
+  const included = (path: string) => !options.execution || (path !== '.repo-standards' && !path.startsWith('.repo-standards/'));
+  const tracked = command(['ls-files', '--cached', '-z']).split('\0').filter(path => path && included(path));
   const trackedParents = new Set<string>();
   for (const path of tracked) {
     let parent = dirname(path);
@@ -91,7 +92,7 @@ export function observeScope(root: string, named: string[] = []) {
     if (Date.now() > deadline) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeded 30 seconds.');
     const candidates = pending.flatMap(parent => names(join(root, parent))
       .filter(name => !(parent === '.' && name === '.git'))
-      .map(name => parent === '.' ? name : `${parent}/${name}`));
+      .map(name => parent === '.' ? name : `${parent}/${name}`).filter(included));
     visited += candidates.length;
     if (visited > limits.paths) throw new ProductError('OBSERVATION_LIMIT', 'Discovery directory observation exceeds the entry limit.');
     const ignoredResult = candidates.length ? git(root, ['check-ignore', '--no-index', '--stdin', '-z'], candidates.join('\0') + '\0', Math.max(1, deadline - Date.now())) : undefined;
@@ -99,7 +100,9 @@ export function observeScope(root: string, named: string[] = []) {
     const ignored = new Set(ignoredResult?.stdout.split('\0').filter(Boolean));
     pending = [];
     for (const path of candidates.sort()) {
-      if (ignored.has(path) && !known.has(path) && !trackedParents.has(path)) continue;
+      const required = [...named, ...options.directories ?? []].some(target => target === path || target.startsWith(path + '/'))
+        || options.directories?.some(directory => path.startsWith(directory + '/'));
+      if (ignored.has(path) && !known.has(path) && !trackedParents.has(path) && !required) continue;
       if (path.split('/').at(-1) === '.git') throw new ProductError('OBSERVATION_UNSAFE', 'Nested Git metadata prevents a complete discovery observation.');
       let stat;
       try { stat = lstatSync(join(root, path)); } catch { throw new ProductError('OBSERVATION_READ', 'A discovery directory entry cannot be observed.'); }
@@ -114,6 +117,7 @@ export function observeScope(root: string, named: string[] = []) {
   if (paths.length + named.length > limits.paths) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeds the path limit.');
   const files: Record<string, FileState> = Object.create(null);
   const boundaries: Record<string, FileState> = Object.create(null);
+  if (options.execution) boundaries['.'] = file(root);
   function observePath(path: string, eligible: boolean) {
     const parts = path.split('/');
     if (parts.length > limits.depth || parts.some(part => !part || part === '..' || part === '.') || isAbsolute(path)) throw new ProductError('OBSERVATION_UNSAFE', 'Unsafe discovery observation path.');
@@ -132,7 +136,7 @@ export function observeScope(root: string, named: string[] = []) {
   }
   for (const path of paths) files[path] = observePath(path, true);
   const targets: Record<string, FileState> = Object.create(null);
-  for (const path of [...new Set(named)].sort()) {
+  for (const path of [...new Set([...named, ...options.directories ?? []])].sort()) {
     targets[path] = observePath(path, false);
     // Check spelling at every named boundary without reading sibling contents.
     const parts = path.split('/');
@@ -142,7 +146,7 @@ export function observeScope(root: string, named: string[] = []) {
       const matches = names(join(root, parent)).filter(name => foldPath(name) === foldPath(parts[length]!));
       if (matches.some(name => name !== parts[length])) throw new ProductError('CASE_CONFLICT', `Named scope path has a case-folded or Unicode alias: ${path}.`);
     }
-    if (targets[path]!.type !== 'file' && targets[path]!.type !== 'missing') throw new ProductError('UNSAFE_TARGET', `Discovered targets must be individual regular files or absent files: ${path}.`);
+    if (targets[path]!.type !== 'file' && targets[path]!.type !== 'missing' && !(options.directories?.includes(path) && targets[path]!.type === 'directory')) throw new ProductError('UNSAFE_TARGET', `Discovered targets must be individual regular files or absent files: ${path}.`);
   }
   const ignores: Record<string, { location: string; state: FileState | { type: 'disabled' } }> = Object.create(null);
   for (const [key, path] of [['global', globalExclude ? resolve(root, globalExclude) : ''], ['info', infoExclude]]) {

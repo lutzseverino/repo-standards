@@ -276,8 +276,11 @@ Retry reruns repeat-safe fixes in declaration order, requests renewed contextual
 assessment where applicable, reruns checks, and verifies final integrity before
 recording completion. It retains earlier operation evidence and uncertainty as
 history. Old assessments cannot satisfy a retry, even if project bytes match.
-An existing contextual comparison baseline remains in effect so retry cannot
-hide earlier contextual edits. Submit a new assessment separately after retry;
+V1 keeps its existing contextual comparison baseline. V2 records separate
+fix and agent observation intervals, retaining earlier observed agent edits
+even when replayed fixes overwrite the same files. V2 retry cannot erase
+recorded scope violations or create scope authority; see the
+[observed execution contract](script-protocol.md#observed-scope-for-v2-explicit-target-adoption). Submit a new assessment separately after retry;
 `--retry` and `--assessment` cannot be combined. Plain `resume` and
 `resume --assessment` remain the contextual interface and never implicitly retry
 uncertain process outcomes. A failed completion write remains incomplete until
