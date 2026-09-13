@@ -590,7 +590,7 @@ export class AdoptionRunSession {
     this.#save();
   }
 
-  #failure(error: unknown) {
+  #failure(error: unknown, persist = true) {
     const run = this.#state();
     const root = this.#root;
     run.outcome = 'incomplete';
@@ -609,7 +609,7 @@ export class AdoptionRunSession {
       : 'Explicit recovery is required. Review this incomplete adoption, reconcile changes, then use resume --retry, or abandon to preserve the work and report.';
     else if (!this.#mutated && !run.processGroup) { run.uncertain = []; run.nextAction = 'Resolve the reported problem, inspect again, and confirm the new inspection before retrying.'; }
     if (error instanceof ProductError && error.code === 'SCOPE_INCOMPLETE') run.nextAction = 'Additional paths grant no authority until explicitly confirmed. Preserve the run and work, then use inspect --amend-scope with complete additions-only evidence and accept the fresh preview with resume --amend-scope --scope <file> --confirm <identity>. Correct the evidence within confirmed scope or abandon when additions cannot safely resolve the block; withdrawing active targets remains unsupported.';
-    try { this.#save(); } catch { /* Preserve the original interruption record. */ }
+    if (persist) try { this.#save(); } catch { /* Preserve the original interruption record. */ }
   }
 
   // Only the scoped entry points below can invoke lifecycle machinery.
@@ -655,12 +655,12 @@ export class AdoptionRunSession {
         if (session.#run?.outcome !== 'complete') await callback(session, installation);
       } catch (error) {
         if (!session.#reportFailures) throw error;
-        session.#failure(error);
         if (amendmentRecovery && !session.#mutated) {
+          session.#failure(error, false);
           reportedFailure = structuredClone(session.#state());
           Object.assign(session.#state(), amendmentRecovery);
           session.#save();
-        }
+        } else session.#failure(error);
       }
       return reportedFailure ?? session.observation;
     } finally {
