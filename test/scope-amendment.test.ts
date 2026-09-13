@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { after, test, type TestContext } from 'node:test';
 import { chmodSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { filesystemFault } from './adoption-faults.ts';
+import { filesystemFault, filesystemRenameFault } from './adoption-faults.ts';
 import { stringify } from 'yaml';
 import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
@@ -414,7 +414,7 @@ test('a rejected amendment preserves the prior check-failure recovery path', asy
   const status = f.run(['status', '--json']).report.active;
   assert.equal(status.phase, blocked.report.phase);
   assert.equal(status.reason, blocked.report.reason);
-  const fault = filesystemFault(f.remote.support.root, f.env, 'checks', "process.kill(process.pid, 'SIGKILL');");
+  const fault = filesystemRenameFault(f.remote.support.root, f.env, 'checks', "process.kill(process.pid, 'SIGKILL');");
   const killed = cli.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', 'sha256:stale', '--json'], f.project.root, fault);
   assert.equal(killed.signal, 'SIGKILL');
   const afterInterruption = f.run(['status', '--json']).report.active;
