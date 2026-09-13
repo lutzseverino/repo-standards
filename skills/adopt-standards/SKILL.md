@@ -38,8 +38,8 @@ until the project runtime exists. Thereafter the document root is
   unusable. Preserve progress records and partial changes.
 - **Existing complete adoption:** `inspect --json` with the pinned CLI inspects
   retained current standards read-only, including when the source is unavailable.
-  When the maintainer deliberately requests unchanged v1 standards to cover new
-  repository content, read `adoption.md#re-adopt-unchanged-v1-standards`. Use the
+  When the maintainer deliberately requests unchanged standards to cover new
+  repository content, read `adoption.md#re-adopt-unchanged-standards`. Use the
   pinned CLI for `inspect --readopt --json`, review and confirm that distinct
   action, then use `start --readopt --confirm <identity> --json`. Do not present
   re-adoption as an update, retry, resume, or automatic compliance repair.
@@ -48,10 +48,10 @@ until the project runtime exists. Thereafter the document root is
   Change one pin, keeping source and profile. Use the pinned CLI for a standards
   update and the external candidate CLI for a CLI update. Historical discovered
   scope explains prior authorization; it does not prove current coverage.
-  Discovery updates and same-pin v2 re-adoption remain unsupported by this CLI;
-  report that narrower limitation and preserve the current selection. Eligible
-  active discovery runs can confirm additions through the amendment workflow
-  below. Unchanged v1 selections support explicit retained re-adoption.
+  Every active v2 discovery declaration needs a fresh proposal for re-adoption or
+  either update, even when the original source is unavailable for retained work.
+  Eligible active discovery runs can confirm additions through the amendment
+  workflow below.
 - **Initial adoption:** obtain the public GitHub source, stable standards tag
   and complete profile from the maintainer, then inspect that selection.
 
@@ -60,7 +60,7 @@ until the project runtime exists. Thereafter the document root is
 1. Run `inspect --source <URL> --standards-version <tag> --profile <name> --json`
    for initial adoption or a standards update. For a CLI update, run the exact
    candidate's `inspect --json` without source flags to use retained standards.
-   For explicit unchanged v1 re-adoption, run the pinned project's
+   For explicit unchanged re-adoption, run the pinned project's
    `inspect --readopt --json` without source, version, or profile flags.
    Store reports outside the project. Read `inspection.md` when interpreting
    fields, blockers, or acquisition errors. If discovery is required, read
@@ -74,7 +74,7 @@ until the project runtime exists. Thereafter the document root is
    An explained empty scope retains its declaration and operations.
 2. Present the actual report's identity and exact CLI version, source URL,
    standards tag, commit and profile; for updates include previous/candidate
-   pins and retired declarations. Show exact creates/replacements/matching-file
+   pins, retired declarations, and discovered-scope additions and removals. Show exact creates/replacements/matching-file
    claims and whole-skill inventories, discovery rationale and candidate exclusions,
    contextual guidance and allowed targets, resolved exclusions, and ownership changes. Make the full inspection available
    for review, including supplied bytes and diffs against existing content.
@@ -89,9 +89,10 @@ until the project runtime exists. Thereafter the document root is
    disclosed selection/operations. A general request to adopt is not confirmation
    of an unseen inspection. Then use the same executable and selection for
    `start --confirm <identity> --json`, preserving source flags for initial or
-   standards adoption and omitting them for a CLI update. For unchanged v1
+   standards adoption and omitting them for a CLI update. For unchanged
    re-adoption, repeat `--readopt`; action mismatch invalidates the identity. For
-   initial discovery adoption, pass the same `--scope <file>` proposal. One confirmation covers the
+   every discovery-backed adoption, update, or re-adoption, pass the same
+   `--scope <file>` proposal. One confirmation covers the
    complete inspection; scope discovery itself needs no separate approval.
    Changed inputs or a stale rejection require a new inspection and renewed confirmation.
 

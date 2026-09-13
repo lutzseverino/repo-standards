@@ -84,6 +84,24 @@ function inventory(root: string, path: string) {
   return Object.keys(files).map(name => name.slice(path.length + 1)).sort();
 }
 
+interface ScopeHistoryRun {
+  inspection: string;
+  sourceResolved: NonNullable<Inspection['sourceResolved']>;
+  resolved: Inspection['resolved'];
+  discovery: NonNullable<Inspection['discovery']>;
+}
+
+function retainedScopeRuns(value: unknown): ScopeHistoryRun[] {
+  if (!value || typeof value !== 'object') throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.');
+  const history = value as Record<string, unknown>;
+  if (Array.isArray(history.runs)) return history.runs as ScopeHistoryRun[];
+  if (typeof history.inspection === 'string' && history.sourceResolved && history.resolved && history.discovery) {
+    return [{ inspection: history.inspection, sourceResolved: history.sourceResolved as ScopeHistoryRun['sourceResolved'],
+      resolved: history.resolved as ScopeHistoryRun['resolved'], discovery: history.discovery as ScopeHistoryRun['discovery'] }];
+  }
+  throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history failed integrity validation. Restore the committed product state.');
+}
+
 function verifyCommittable(root: string, paths: string[]) {
   const result = git(root, ['check-ignore', '-z', '--stdin'], paths.join('\0') + '\0');
   if (result.status !== 0 && result.status !== 1) throw new ProductError('PROJECT_READ', 'Cannot establish whether adoption outputs can be committed.');
@@ -138,10 +156,17 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
   inputs['.repo-standards/inputs/standards.yaml'] = file(report.manifest);
   inputs['.repo-standards/inputs/metadata.json'] = file(json(report.source));
   inputs['.repo-standards/inputs/resolved.json'] = file(json(report.resolved));
-  if (report.discovery) inputs['.repo-standards/inputs/scope-history.json'] = file(json({
-    format: 'repo-standards/scope-history/v1', evidence: 'historical', inspection: confirmation,
-    sourceResolved: report.sourceResolved, resolved: report.resolved, discovery: report.discovery,
-  }));
+  const historyPath = '.repo-standards/inputs/scope-history.json';
+  const previousHistory = safe(root, historyPath);
+  if (report.discovery) {
+    const current: ScopeHistoryRun = { inspection: confirmation, sourceResolved: report.sourceResolved!, resolved: report.resolved, discovery: report.discovery };
+    const runs = previousHistory.type === 'file'
+      ? [...retainedScopeRuns(JSON.parse(Buffer.from(previousHistory.content, previousHistory.encoding).toString('utf8'))), current]
+      : [current];
+    inputs[historyPath] = file(json({ format: 'repo-standards/scope-history/v2', evidence: 'historical', ...current, runs }));
+  } else if (previousHistory.type === 'file') {
+    inputs[historyPath] = previousHistory;
+  }
   Object.assign(files, inputs);
   files['.repo-standards/selection.yaml'] = file(stringify(report.selection));
   files['.repo-standards/.gitignore'] = file(ignore);

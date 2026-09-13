@@ -1,0 +1,204 @@
+import assert from 'node:assert/strict';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { after, test } from 'node:test';
+import type { TestContext } from 'node:test';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { inc } from 'semver';
+import { stringify } from 'yaml';
+import { installCli, sourceFixture } from './installed-cli.ts';
+import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+import { registryFixture } from './registry-fixture.ts';
+
+const cli = installCli();
+after(() => cli.close());
+
+const source = stringify({
+  format: 'repo-standards/v2',
+  name: 'growing-projects',
+  description: 'Documentation for maintained projects',
+  requires: { 'repo-standards': '>=1 <2' },
+  defaults: { declarations: {
+    docs: { kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md' },
+    instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
+  } },
+  profiles: { work: { description: 'Work', declarations: {} } },
+});
+
+async function fixture(t: TestContext, versions?: string[]) {
+  const registry = await registryFixture(cli.root, versions);
+  const remote = remoteFixture(source, {
+    'guidance.md': 'Keep every maintained project README useful.',
+    'discovery.md': 'Use project ownership and manifests; explain excluded former projects.',
+    'agents.md': 'Pinned instructions\n',
+  });
+  const project = sourceFixture('', { 'apps/old/README.md': '# Old project\n' });
+  commit(project.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  const env = { ...remote.env, ...registry.env };
+  const run = (args: string[]) => {
+    const result = cli.run(args, project.root, env);
+    return { result, report: JSON.parse(result.stdout) };
+  };
+  const scopeFile = join(remote.support.root, 'scope.json');
+  function proposal(request: any, included: string, excluded?: string) {
+    const evidence = [included, excluded].filter(Boolean).map(path =>
+      request.discovery.evidence.find((entry: { kind: string; path: string }) => entry.kind === 'file' && entry.path === path));
+    writeFileSync(scopeFile, JSON.stringify({
+      format: 'repo-standards/scope/v1',
+      request: request.discovery.identity,
+      declarations: [{
+        id: 'docs',
+        paths: [included],
+        coverage: excluded ? 'The new project is maintained; the former project no longer meets the retained criteria.' : 'The old project is the only maintained project.',
+        evidence,
+        candidates: [
+          { path: included, decision: 'include', reason: 'This is a maintained project README.', evidence: [evidence[0]] },
+          ...(excluded ? [{ path: excluded, decision: 'exclude', reason: 'This project is no longer maintained, so its content remains project-owned.', evidence: [evidence[1]] }] : []),
+        ],
+        unresolved: [],
+      }],
+    }));
+  }
+  function complete(started: any, runner = run) {
+    const request = started.workRequest;
+    const review = { status: 'valid', explanation: 'The confirmed projects still match the discovery criteria.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
+    const assessmentFile = join(remote.support.root, 'assessment.json');
+    writeFileSync(assessmentFile, JSON.stringify({
+      format: 'repo-standards/assessment/v2',
+      run: request.run,
+      selection: request.selection,
+      snapshot: request.snapshot,
+      scope: { inspection: request.scope.inspection, afterFixes: request.scope.afterFixes },
+      declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The existing README already satisfies the guidance.', changedPaths: [], evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }],
+    }));
+    return runner(['resume', '--assessment', assessmentFile, '--json']);
+  }
+  return { remote, project, env, run, scopeFile, proposal, complete };
+}
+
+test('same-pin v2 re-adoption recomputes retained discovery and reports scope changes without deleting former content', async t => {
+  const f = await fixture(t);
+  const firstRequest = f.run(inspectionArgs).report;
+  f.proposal(firstRequest, 'apps/old/README.md');
+  const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
+  const firstStartResult = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
+  assert.equal(firstStartResult.result.status, 1, firstStartResult.result.stdout + firstStartResult.result.stderr);
+  const firstStart = firstStartResult.report;
+  assert.equal(firstStart.phase, 'contextual', firstStartResult.result.stdout);
+  const firstComplete = f.complete(firstStart);
+  assert.equal(firstComplete.result.status, 0);
+  commit(f.project.root);
+
+  writeFileSync(join(f.project.root, 'AGENTS.md'), 'Drifted instructions\n');
+  const drifted = f.run(['inspect', '--readopt', '--json']).report;
+  assert.ok(drifted.start.blockers.some((blocker: { code: string }) => blocker.code === 'DIRTY_PROJECT'));
+  assert.ok(drifted.start.blockers.some((blocker: { code: string }) => blocker.code === 'INSTALLED_CONTENT_EDITED'));
+  writeFileSync(join(f.project.root, 'AGENTS.md'), 'Pinned instructions\n');
+
+  mkdirSync(join(f.project.root, 'apps/new'), { recursive: true });
+  writeFileSync(join(f.project.root, 'apps/new/README.md'), '# New project\n');
+  commit(f.project.root);
+  for (const key of Object.keys(f.remote.responses)) delete f.remote.responses[key];
+  f.remote.save();
+
+  const ordinary = f.run(['inspect', '--json']).report;
+  assert.equal(ordinary.historicalScope.inspection, firstInspection.identity);
+  assert.equal(ordinary.action, undefined);
+  assert.ok(ordinary.start.blockers.some((blocker: { code: string }) => blocker.code === 'NO_UPDATE'));
+
+  const request = f.run(['inspect', '--readopt', '--json']).report;
+  assert.equal(request.action, 'readopt');
+  assert.notEqual(request.discovery.identity, ordinary.discovery.identity);
+  f.proposal(firstRequest, 'apps/old/README.md');
+  const stale = f.run(['inspect', '--readopt', '--scope', f.scopeFile, '--json']);
+  assert.equal(stale.result.status, 1);
+  assert.equal(stale.report.errors[0].code, 'STALE_SCOPE');
+  f.proposal(request, 'apps/new/README.md', 'apps/old/README.md');
+  const inspected = f.run(['inspect', '--readopt', '--scope', f.scopeFile, '--json']).report;
+  assert.deepEqual(inspected.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
+  assert.deepEqual(inspected.start.blockers, []);
+
+  const started = f.run(['start', '--readopt', '--scope', f.scopeFile, '--confirm', inspected.identity, '--json']).report;
+  assert.equal(started.phase, 'contextual');
+  assert.equal(started.previousComplete.lastComplete.run, firstComplete.report.id);
+  assert.equal(JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8')).lastComplete.run, firstComplete.report.id);
+  assert.equal(f.complete(started).result.status, 0);
+  assert.equal(git(f.project.root, 'show', 'HEAD:apps/old/README.md'), '# Old project');
+  commit(f.project.root);
+  const retained = f.run(['inspect', '--json']).report.historicalScope;
+  assert.equal(retained.format, 'repo-standards/scope-history/v2');
+  assert.deepEqual(retained.runs.map((run: { inspection: string }) => run.inspection), [firstInspection.identity, inspected.identity]);
+});
+
+test('a compatible v2 standards update obtains fresh scope before changing only the standards pin', async t => {
+  const f = await fixture(t);
+  const firstRequest = f.run(inspectionArgs).report;
+  f.proposal(firstRequest, 'apps/old/README.md');
+  const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
+  const firstStart = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]).report;
+  assert.equal(f.complete(firstStart).result.status, 0);
+  commit(f.project.root);
+
+  mkdirSync(join(f.project.root, 'apps/new'), { recursive: true });
+  writeFileSync(join(f.project.root, 'apps/new/README.md'), '# New project\n');
+  commit(f.project.root);
+  f.remote.addVersion('v1.1.0', source, { 'guidance.md': 'Keep every maintained project README useful after this standards update.' });
+  const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
+  const request = f.run(updateArgs).report;
+  assert.equal(request.update, 'standards');
+  assert.ok(request.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'));
+  f.proposal(request, 'apps/new/README.md', 'apps/old/README.md');
+  const inspected = f.run([...updateArgs, '--scope', f.scopeFile]).report;
+  assert.deepEqual(inspected.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
+  assert.deepEqual(inspected.start.blockers, []);
+
+  const started = f.run(['start', ...updateArgs.slice(1), '--scope', f.scopeFile, '--confirm', inspected.identity]).report;
+  assert.equal(f.complete(started).result.status, 0);
+  assert.equal(readFileSync(join(f.project.root, 'apps/old/README.md'), 'utf8'), '# Old project\n');
+  assert.equal(f.run(['status', '--json']).report.selection.standards.version, 'v1.1.0');
+});
+
+test('a compatible CLI update uses retained v2 guidance and fresh scope without the original source', async t => {
+  const candidateVersion = inc(cli.version, 'minor')!;
+  const f = await fixture(t, [cli.version, candidateVersion]);
+  const candidate = sourceFixture('');
+  t.after(() => candidate.close());
+  const firstRequest = f.run(inspectionArgs).report;
+  f.proposal(firstRequest, 'apps/old/README.md');
+  const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
+  const firstStart = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]).report;
+  assert.equal(f.complete(firstStart).result.status, 0);
+  commit(f.project.root);
+
+  mkdirSync(join(f.project.root, 'apps/new'), { recursive: true });
+  writeFileSync(join(f.project.root, 'apps/new/README.md'), '# New project\n');
+  commit(f.project.root);
+  execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`],
+    { cwd: candidate.root, env: f.env, stdio: 'pipe' });
+  for (const key of Object.keys(f.remote.responses)) delete f.remote.responses[key];
+  f.remote.save();
+  const binary = join(candidate.root, 'node_modules/.bin/repo-standards');
+  const runCandidate = (args: string[]) => {
+    const result = spawnSync(binary, args, { cwd: f.project.root, env: f.env, encoding: 'utf8' });
+    return { result, report: JSON.parse(result.stdout) };
+  };
+
+  const request = runCandidate(['inspect', '--json']).report;
+  assert.equal(request.update, 'cli');
+  assert.equal(request.selection.cli.version, candidateVersion);
+  assert.ok(request.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'));
+  f.proposal(request, 'apps/new/README.md', 'apps/old/README.md');
+  const inspected = runCandidate(['inspect', '--scope', f.scopeFile, '--json']).report;
+  assert.deepEqual(inspected.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
+  assert.deepEqual(inspected.start.blockers, []);
+
+  const started = runCandidate(['start', '--scope', f.scopeFile, '--confirm', inspected.identity, '--json']).report;
+  assert.equal(started.phase, 'contextual');
+  assert.equal(f.complete(started, runCandidate).result.status, 0);
+  assert.equal(readFileSync(join(f.project.root, 'apps/old/README.md'), 'utf8'), '# Old project\n');
+  const status = runCandidate(['status', '--json']).report;
+  assert.equal(status.selection.cli.version, candidateVersion);
+  assert.equal(status.selection.standards.version, 'v1.0.0');
+  assert.equal(existsSync(join(f.project.root, '.agents/skills/author-standards')), false);
+});
