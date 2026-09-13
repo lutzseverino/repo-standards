@@ -418,8 +418,7 @@ test('a rejected amendment preserves the prior check-failure recovery path', asy
   const killed = cli.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', 'sha256:stale', '--json'], f.project.root, fault);
   assert.equal(killed.signal, 'SIGKILL');
   const afterInterruption = f.run(['status', '--json']).report.active;
-  assert.equal(afterInterruption.phase, blocked.report.phase);
-  assert.equal(afterInterruption.reason, blocked.report.reason);
+  assert.deepEqual(afterInterruption, status);
   const resumed = submit(f, false, blocked.report.workRequest);
   assert.match(resumed.report.reason, /^CHECKS_FAILED:/, resumed.result.stdout);
   assert.notEqual(preview.identity, 'sha256:stale');
