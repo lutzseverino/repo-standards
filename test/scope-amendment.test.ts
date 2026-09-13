@@ -115,6 +115,10 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',m
   const retained = f.run(['inspect', '--json']).report;
   assert.equal(retained.historicalScope.scopeRevision, 1);
   assert.equal(retained.historicalScope.amendments[0].confirmation, preview.identity);
+  mkdirSync(join(f.project.root, '.repo-standards/inputs/empty'));
+  const changedInventory = f.run(['inspect', '--json']);
+  assert.equal(changedInventory.result.status, 0, changedInventory.result.stdout);
+  assert.ok(changedInventory.report.start.blockers.some((blocker: any) => blocker.code === 'STATE_INTEGRITY'));
 });
 
 test('scope amendment confirmation requires its complete standalone resume command', async t => {
@@ -457,6 +461,19 @@ test('amendment binds consulted ignore inputs and never hides a previously named
   writeFileSync(join(f.project.root, 'future.md'), 'Ignored but explicitly named now');
   const stale = f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']);
   assert.equal(stale.result.status, 1, stale.result.stdout);
+});
+
+test('accepted ignored additions remain visible in active change reports', async t => {
+  const f = await fixture(t, { declarations: { ignores: { kind: 'file', target: '.gitignore', guidance: 'guide.md' } } });
+  writeFileSync(join(f.project.root, '.gitignore'), 'future.md\n');
+  const request = f.run(['inspect', '--amend-scope', '--json']).report;
+  const preview = f.inspectScope(request, ['README.md', 'future.md']).report;
+  assert.equal(preview.discovery.namedObservation.targets['future.md'].type, 'missing');
+  const accepted = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.identity, '--json']);
+  assert.equal(accepted.report.phase, 'contextual', accepted.result.stdout);
+  writeFileSync(join(f.project.root, 'future.md'), 'Authorized ignored documentation\n');
+  const status = f.run(['status', '--json']).report;
+  assert.ok(status.active.changes.includes('future.md'), JSON.stringify(status.active.changes));
 });
 
 test('installed exact files and skills cannot supply amendment discovery evidence', async t => {

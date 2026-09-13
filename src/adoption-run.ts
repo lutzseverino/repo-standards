@@ -439,6 +439,7 @@ export class AdoptionRunSession {
     run.continuation = continuation;
     run.format = 'repo-standards/run/v3';
     run.observations = structuredClone(observations);
+    for (const path of Object.values(evidence.additions).flat()) run.affected[path] ??= observe(join(this.#root, path));
     (run.amendments ??= []).push({ format: 'repo-standards/scope-amendment/v1', revision,
       acceptedAt: new Date().toISOString(), outgoingObservation, ...structuredClone(evidence) });
     run.scopeRevision = revision;
