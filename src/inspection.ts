@@ -99,7 +99,7 @@ export function targetObservation(root: string, target: string, blockers: Blocke
   return observed;
 }
 
-export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string; scope?: string }
+export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string; scope?: string; readopt?: boolean }
 
 interface RecordedAdoption {
   selection: RecordedSelection;
@@ -206,9 +206,10 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
     const profile = validation.profiles[options.profile];
     if (!profile) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
+    if (options.readopt && validation.source!.format !== 'repo-standards/v1') blockers.push({ code: 'READOPTION_UNAVAILABLE', message: 'Explicit re-adoption currently supports retained repo-standards/v1 selections. Preserve this v2 selection until its discovery lifecycle is available.' });
     const discoveryDeclarations = profile.declarations.filter(declaration => 'discovery' in declaration);
     const scopeObservation = discoveryDeclarations.length ? observeScope(root) : undefined;
-    const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: retained ? 'retained' : previous ? 'update' : 'adopt', root, head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;
+    const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: options.readopt ? 'readopt' : retained ? 'retained' : previous ? 'update' : 'adopt', root, head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;
     const proposal = options.scope ? readScope(options.scope, root) : undefined;
     if (proposal && proposal.request !== requestIdentity) throw new ProductError('STALE_SCOPE', 'Scope proposal does not match this discovery request. Inspect again and review fresh evidence.');
     const resolved = materializeScope(root, profile, proposal);
@@ -224,7 +225,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     } : undefined;
     if (discovery) {
       if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: 'Interpret the discovery guidance and submit an evidence-backed repo-standards/scope/v1 proposal with inspect --scope.' });
-      if (previous && proposal) blockers.push({ code: 'DISCOVERY_UPDATE_UNAVAILABLE', message: 'Discovery adoption currently supports initial starts. Discovery updates and same-pin re-adoption require the subsequent lifecycle implementation.' });
+      if (previous && proposal) blockers.push({ code: 'DISCOVERY_UPDATE_UNAVAILABLE', message: 'Discovery adoption currently supports initial starts. Discovery updates and same-pin v2 re-adoption require the subsequent lifecycle implementation.' });
       if (proposal?.declarations.some(entry => entry.unresolved.length)) blockers.push({ code: 'UNRESOLVED_SCOPE', message: 'Resolve the reported discovery questions and inspect a revised proposal.' });
     }
     let update: 'standards' | 'cli' | undefined;
@@ -236,12 +237,14 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       const standardsChanged = source.identity.version !== previous.selection.standards.version || source.identity.commit !== previous.selection.standards.commit;
       const cliChanged = cliVersion !== previous.selection.cli.version;
       if (!sameSource || options.profile !== previous.selection.profile) blockers.push({ code: 'SELECTION_SWITCH', message: 'Updates must preserve the current standards source and profile. Source and profile switching are unsupported.' });
-      if (standardsChanged && cliChanged) blockers.push({ code: 'INDEPENDENT_UPDATE_REQUIRED', message: 'Update either the standards revision or the exact CLI version, then inspect the other change separately.' });
+      if (options.readopt) {
+        if (!retained || standardsChanged || cliChanged) blockers.push({ code: 'SELECTION_SWITCH', message: 'Re-adoption uses the unchanged retained source, profile, standards revision, and exact CLI version.' });
+      } else if (standardsChanged && cliChanged) blockers.push({ code: 'INDEPENDENT_UPDATE_REQUIRED', message: 'Update either the standards revision or the exact CLI version, then inspect the other change separately.' });
       else if (standardsChanged) update = 'standards';
       else if (cliChanged) {
         update = 'cli';
         if (!retained) blockers.push({ code: 'CLI_UPDATE_REQUIRES_RETAINED', message: 'CLI updates use the current retained standards. Omit source flags and inspect with the candidate exact CLI version.' });
-      } else blockers.push({ code: 'NO_UPDATE', message: 'The inspected selection matches the current pins. Choose a new standards revision or inspect with a different exact CLI version.' });
+      } else blockers.push({ code: 'NO_UPDATE', message: 'The inspected selection matches the current pins. Choose a new standards revision or inspect with a different exact CLI version, or use --readopt to deliberately re-adopt unchanged pins.' });
       for (const [path, expected] of Object.entries(previous.baselines)) {
         const actual = targetObservation(root, path, blockers);
         if (actual.type !== 'file' || actual.sha256 !== expected.sha256 || actual.executable !== expected.executable) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'Installed exact content differs from its last-complete baseline. Reconcile it before updating.' });
@@ -329,6 +332,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       source: validation.source, resolved, exact, guidance, operations, inputs, manifest: normalized,
       project: { root, head: head.status === 0 ? head.stdout.trim() : null, status: status.stdout, index: index.stdout, hidden, affected, productState, systemSkill },
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
+      ...(options.readopt ? { action: 'readopt' as const } : {}),
       ...(update ? { update, previousSelection: previous!.selection, retired } : {}),
     };
     if (scopeObservation) {
