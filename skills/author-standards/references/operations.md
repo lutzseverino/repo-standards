@@ -60,7 +60,14 @@ resources to a separate temporary retained-source directory, keeping relative
 paths, so undeclared resource dependencies cannot hide in the original source.
 Keep requests, results, and the exercise harness outside project fixtures too.
 
-For each active operation:
+If the validated source contains discovery, use a CLI with project-scope support
+to obtain the concrete fixture selection before constructing operation input.
+Source validation alone supplies no allowed targets for that declaration. When
+the matching CLI only validates discovery sources, record those operation
+exercises as unverified and follow the main skill's explicit-deferral completion
+rule; do not substitute invented targets or omit active declarations.
+
+For each active operation with a concrete fixture selection:
 
 1. Separately run the declared executable with its literal version-probe
    arguments from the fixture root, bounded by the declared timeout. Compare the

@@ -4,7 +4,7 @@ import { satisfies, validRange } from 'semver';
 import { Fields, readYaml } from './yaml.js';
 import type { Diagnostic, Value } from './yaml.js';
 import { Declarations } from './declarations.js';
-import type { ResolvedProfile } from './model.js';
+import type { SourceProfile } from './model.js';
 import { Paths } from './paths.js';
 
 export function validateSource(directory: string, cliVersion: string, sourcePaths?: ReadonlySet<string>, retainedManifest?: string) {
@@ -27,14 +27,15 @@ export function validateSource(directory: string, cliVersion: string, sourcePath
   const paths = new Paths(resolve(directory), fields, sourcePaths);
   let result: ReturnType<typeof resolveDocument> | undefined;
   for (const root of roots) result = resolveDocument(root, fields, paths, cliVersion);
-  return { valid: errors.length === 0, errors, ...(errors.length ? {} : { source: result?.source }), profiles: errors.length ? {} : result?.profiles ?? {} };
+  return { valid: errors.length === 0, errors, ...(errors.length ? {} : { source: result?.source, scope: result?.scope }), profiles: errors.length ? {} : result?.profiles ?? {} };
 }
 
 function resolveDocument(root: Value, fields: Fields, paths: Paths, cliVersion: string) {
   const error = fields.error;
   fields.map(root, ['format', 'name', 'description', 'requires', 'defaults', 'profiles']);
   const format = fields.get(root, 'format');
-  if (fields.string(format) !== 'repo-standards/v1') error('INVALID_FORMAT', 'Expected repo-standards/v1.', format);
+  const formatName = fields.string(format);
+  if (formatName !== 'repo-standards/v1' && formatName !== 'repo-standards/v2') error('INVALID_FORMAT', 'Expected repo-standards/v1 or repo-standards/v2.', format);
   const name = fields.string(fields.get(root, 'name'));
   const description = fields.string(fields.get(root, 'description'));
   const requires = fields.get(root, 'requires');
@@ -45,10 +46,10 @@ function resolveDocument(root: Value, fields: Fields, paths: Paths, cliVersion: 
   else if (range && !satisfies(cliVersion, range)) error('INCOMPATIBLE_CLI', `CLI ${cliVersion} does not satisfy ${range}.`, rangeValue);
   const defaults = fields.get(root, 'defaults');
   fields.map(defaults, ['declarations']);
-  const declarations = new Declarations(fields, paths);
+  const declarations = new Declarations(fields, paths, formatName);
   const inherited = declarations.read(fields.get(defaults, 'declarations'));
   const profilesValue = fields.get(root, 'profiles');
-  const profiles: Record<string, ResolvedProfile> = Object.create(null);
+  const profiles: Record<string, SourceProfile> = Object.create(null);
   const entries = fields.map(profilesValue);
   if (entries.size === 0) error('EMPTY_PROFILES', 'At least one named profile is required.', profilesValue);
   for (const [id, profile] of entries) {
@@ -62,5 +63,11 @@ function resolveDocument(root: Value, fields: Fields, paths: Paths, cliVersion: 
       .flatMap(([, declaration]) => declaration === null ? [] : [declaration]) };
     paths.conflicts([...resolved.values()].flatMap(declaration => declaration === null ? [] : declarations.locations.get(declaration) ?? []), id);
   }
-  return { source: { format: 'repo-standards/v1', name, description, requires: { 'repo-standards': range } }, profiles };
+  const scope = {
+    verified: 'Validated all profiles: schema, references, operations, reserved identities, and determinable explicit-target conflicts. No author code was executed.',
+    limitations: 'Source validation does not prove concrete scope safety or semantic completeness in an unfamiliar adopting project. Project inspection is required; discovery guidance still requires agent interpretation and adopter review.',
+    discoveryRequired: Object.fromEntries(Object.entries(profiles).map(([id, profile]) =>
+      [id, profile.declarations.filter(declaration => 'discovery' in declaration).map(declaration => declaration.id)])),
+  };
+  return { scope, source: { format: formatName, name, description, requires: { 'repo-standards': range } }, profiles };
 }

@@ -62,7 +62,14 @@ if (args.length === 1 && args[0] === '--version') {
   const directory = args.slice(2).find(arg => arg !== '--json') ?? '.';
   const report = validateSource(directory, version);
   if (args.includes('--json')) console.log(JSON.stringify(report, null, 2));
-  else if (report.valid) console.log(`Valid standards source; profiles: ${Object.keys(report.profiles).join(', ')}.`);
+  else if (report.valid) {
+    console.log(`Valid standards source; profiles: ${Object.keys(report.profiles).join(', ')}.`);
+    console.log(report.scope?.verified);
+    console.log(report.scope?.limitations);
+    for (const [profile, declarations] of Object.entries(report.scope?.discoveryRequired ?? {})) {
+      if (declarations.length) console.log(`Discovery required for profile ${profile}: ${declarations.join(', ')}.`);
+    }
+  }
   else for (const error of report.errors) console.error(`${error.file}:${error.line}:${error.column} [${error.code}] ${error.message} (${error.path || '/'})`);
   process.exitCode = report.valid ? 0 : 1;
 } else {

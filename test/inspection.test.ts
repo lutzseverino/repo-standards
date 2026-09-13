@@ -346,3 +346,52 @@ test('case conflicts retain the exact target bytes and bind them into inspection
     assert.notEqual(second.identity, first.identity);
   }
 });
+
+test('only selected unresolved v2 discovery blocks inspection and start without author execution', (t) => {
+  const yaml = simpleSource().replace('repo-standards/v1', 'repo-standards/v2')
+    .replace('profiles:', `    documentation:
+      kind: repository
+      guidance: guidance.md
+      discovery: discovery.md
+      fixes:
+        - id: fix
+          run: {executable: ./probe, script: script.js, resources: [], arguments: []}
+          prerequisite: {version-arguments: ["--version"], version: ">=24.0.0"}
+          timeout-seconds: 5
+profiles:`) + `  explicit:
+    description: Excludes discovery
+    declarations:
+      documentation: {exclude: true}
+  replacement:
+    description: Replaces discovery with explicit scope
+    declarations:
+      documentation:
+        kind: repository
+        guidance: guidance.md
+        targets: {paths: [README.md], directories: []}
+`;
+  const remote = remoteFixture(yaml, { 'content.md': 'Exact content', 'guidance.md': 'Improve documentation.',
+    'discovery.md': 'Find maintained projects.', 'script.js': 'process.exit(99);' });
+  const project = sourceFixture('', { 'probe': '#!/bin/sh\ntouch SENTINEL\necho 24.0.0\n' });
+  t.after(() => { remote.close(); project.close(); });
+  chmodSync(join(project.root, 'probe'), 0o755);
+  commit(project.root);
+  const before = snapshot(project.root);
+  for (const args of [inspectionArgs, ['start', ...inspectionArgs.slice(1), '--confirm', `sha256:${'a'.repeat(64)}`]]) {
+    const result = cli.run(args, project.root, remote.env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    const error = JSON.parse(result.stdout).errors[0];
+    assert.equal(error.code, 'DISCOVERY_REQUIRED', result.stdout);
+    assert.match(error.message, /documentation.*concrete.*scope/i);
+    assert.deepEqual(snapshot(project.root), before);
+  }
+  for (const profile of ['explicit', 'replacement']) {
+    const result = cli.run(inspectionArgs.map(arg => arg === 'work' ? profile : arg), project.root, remote.env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.source.format, 'repo-standards/v2');
+    assert.equal(report.start.eligible, true);
+    assert.deepEqual(report.operations, [], 'Excluding or replacing discovery removes its fixes');
+    assert.deepEqual(snapshot(project.root), before);
+  }
+});
