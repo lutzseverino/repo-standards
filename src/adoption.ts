@@ -8,7 +8,7 @@ import { stringify } from 'yaml';
 import { externalPath, hash } from './acquisition.js';
 import { allowedTargets, execute, operations, preflight } from './execution.js';
 import { ProductError } from './errors.js';
-import { git, hiddenIndexPaths, inspect, matchesInventory, observe, observeProductState, productInventory } from './inspection.js';
+import { git, hiddenIndexPaths, inspect, inventoryPaths, matchesInventory, observe, observeProductState, plannedInventory, productInventory } from './inspection.js';
 import type { InspectOptions, Observation } from './inspection.js';
 import { baselines, file, flatten, ignore, json, lockPath, projectRoot, safe, safeDirectory, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Files } from './adoption-files.js';
@@ -163,6 +163,7 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
   const run = session.observation;
   const progress = () => session.observation.installation!;
   const { files, before, report } = installation;
+  const completeInventory = report.source?.format === 'repo-standards/v2';
   const replaceTrees = installation.replaceTrees ?? [];
   const treeProgress = progress().trees!;
   verifyGit(root, report);
@@ -181,6 +182,10 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
     if (Object.entries(observed).some(([path, value]) => !temporaries.includes(path) && (expected[path]?.sha256 !== value.sha256 || expected[path]?.executable !== value.executable))) {
       throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed during replacement: ${tree}. Preserve and reconcile added or modified resources before retry.`);
     }
+    const expectedPaths = treeProgress[tree] === 'removing'
+      ? new Set([...inventoryPaths(before[tree]!, completeInventory).map(path => `${tree}/${path}`), ...plannedInventory(temporaries, completeInventory)])
+      : plannedInventory([...Object.keys(files), ...temporaries], completeInventory);
+    if (inventoryPaths(actual, completeInventory).some(path => !expectedPaths.has(`${tree}/${path}`))) throw new ProductError('INSTALLATION_CHANGED', `Owned tree inventory changed during replacement: ${tree}. Preserve added resources before retry.`);
   }
   // Validate the entire remaining plan before writing any part of it. An
   // unrecorded atomic write may contain either the inspected or expected bytes.
@@ -192,15 +197,15 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
     const matches = actual.type === 'file' && actual.sha256 === expected.sha256 && actual.executable === expected.executable;
     if (!matches && (progress().files.includes(path) || json(actual) !== json(before[path]))) throw new ProductError('INSTALLATION_CHANGED', `Installed or pending content changed: ${path}. Reconcile it before retry; recovery will not overwrite edits.`);
   }
+  const plannedPaths = plannedInventory([...Object.keys(files), ...temporaries], completeInventory);
   for (const skill of Object.keys(installation.skills).filter(skill => !replaceTrees.includes(skill))) {
     const current = safe(root, skill);
     if (current.type === 'missing') continue;
-    const observed: Files = Object.create(null);
-    flatten(skill, current, observed);
-    if (Object.keys(observed).some(path => !Object.hasOwn(files, path) && !temporaries.includes(path))) throw new ProductError('INSTALLATION_CHANGED', `Skill inventory changed: ${skill}. Preserve added resources before retry.`);
+    if (inventoryPaths(current, completeInventory).some(path => !plannedPaths.has(`${skill}/${path}`))) throw new ProductError('INSTALLATION_CHANGED', `Skill inventory changed: ${skill}. Preserve added resources before retry.`);
   }
   const transitional = installation.transitional ?? {};
-  if (safeDirectory(root, '.repo-standards').type !== 'missing' && productInventory(root).some(path => !Object.hasOwn(files, path) && !Object.hasOwn(transitional, path) && !replaceTrees.some(tree => path.startsWith(tree + '/')) && !temporaries.includes(path))) throw new ProductError('INSTALLATION_CHANGED', 'Product state inventory changed. Reconcile additions before retry.');
+  const productPaths = plannedInventory([...Object.keys(files), ...Object.keys(transitional), ...temporaries], completeInventory);
+  if (safeDirectory(root, '.repo-standards').type !== 'missing' && productInventory(root, completeInventory).some(path => !productPaths.has(path) && !replaceTrees.some(tree => path.startsWith(tree + '/')))) throw new ProductError('INSTALLATION_CHANGED', 'Product state inventory changed. Reconcile additions before retry.');
   const runtimePath = '.repo-standards/runtime/node_modules';
   const runtime = safeDirectory(root, runtimePath);
   function partial(actual: Observation, expected: Observation): boolean {

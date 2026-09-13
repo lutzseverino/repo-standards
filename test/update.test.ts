@@ -367,11 +367,11 @@ test('whole-skill updates allow resources to change between files and directorie
   assert.equal(git(project.root, 'rev-parse', 'HEAD'), head);
 });
 
-async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standards') {
+async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standards', format: 'v1' | 'v2' = 'v1') {
   const yaml = source('v1', `    review:
       kind: skill
       name: review
-      source: review`);
+      source: review`).replace('format: repo-standards/v1', `format: repo-standards/${format}`);
   const remote = remoteFixture(yaml, { 'review/SKILL.md': '# Review v1', 'review/obsolete.txt': 'Old resource' });
   const project = sourceFixture('');
   const registry = await registryFixture(cli.root, kind === 'cli' ? [cli.version, candidateVersion] : [cli.version]);
@@ -767,6 +767,41 @@ syncBuiltinESMExports();`);
   writeFileSync(path, '# Review v2');
   const reconciled = f.run(['resume', '--retry', '--json']);
   assert.equal(reconciled.status, 0, reconciled.stdout + reconciled.stderr);
+});
+
+test('v2 interrupted skill replacement preserves unexpected directories until reconciled', async t => {
+  for (const phase of ['removing', 'installing']) await t.test(phase, async t => {
+    const f = await pendingUpdate(t, 'standards', 'v2');
+    const env = filesystemFault(f.remote.support.root, f.env, 'installation', phase === 'removing' ? `
+const remove = fs.rmSync;
+fs.rmSync = function(path, ...args) {
+  if (String(path).endsWith('/.agents/skills/review')) {
+    remove.call(this, String(path) + '/obsolete.txt');
+    process.kill(process.pid, 'SIGKILL');
+  }
+  return remove.call(this, path, ...args);
+};
+syncBuiltinESMExports();` : `
+const rename = fs.renameSync;
+fs.renameSync = function(from, to) {
+  const result = rename.call(this, from, to);
+  if (String(to).endsWith('/.agents/skills/review/SKILL.md')) process.kill(process.pid, 'SIGKILL');
+  return result;
+};
+syncBuiltinESMExports();`);
+    assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
+    const addition = join(f.project.root, '.agents/skills/review/unexpected');
+    mkdirSync(addition);
+    const rejected = f.run(['resume', '--retry', '--json']);
+    assert.equal(rejected.status, 1, rejected.stdout);
+    assert.match(JSON.parse(rejected.stdout).reason, /INSTALLATION_CHANGED.*inventory/);
+    assert.equal(existsSync(addition), true);
+    assert.equal(existsSync(join(f.project.root, '.agents/skills/review/current.txt')), false);
+    rmSync(addition, { recursive: true });
+    const recovered = f.run(['resume', '--retry', '--json']);
+    assert.equal(recovered.status, 0, recovered.stdout + recovered.stderr);
+    assert.equal(JSON.parse(recovered.stdout).outcome, 'complete');
+  });
 });
 
 test('a whole-skill update resumes interrupted removal of obsolete resources', async t => {

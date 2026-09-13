@@ -124,7 +124,7 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
   return { selection: lock.selection, baselines: state.baselines, skills: state.skills, completeInventory: state.format === 'repo-standards/state/v2', resolved, files: lock.files };
 }
 
-function fileInventory(value: Observation, directories = false): string[] {
+export function inventoryPaths(value: Observation, directories = false): string[] {
   const result: string[] = [];
   function visit(prefix: string, child: Observation) {
     if (child.type === 'file') result.push(prefix);
@@ -140,13 +140,17 @@ function fileInventory(value: Observation, directories = false): string[] {
 // Installed trees have the directories implied by their materialized files.
 // An extra empty directory changes that tree even when a file-only inventory
 // omits it. Use the same comparison for skills and durable product state.
-export function matchesInventory(value: Observation, files: string[], complete = false) {
+export function plannedInventory(files: string[], complete = false): Set<string> {
   const expected = new Set(files);
   if (complete) for (const file of files) {
     const parts = file.split('/');
     for (let length = 1; length < parts.length; length++) expected.add(parts.slice(0, length).join('/') + '/');
   }
-  return JSON.stringify(fileInventory(value, complete)) === JSON.stringify([...expected].sort());
+  return expected;
+}
+
+export function matchesInventory(value: Observation, files: string[], complete = false) {
+  return JSON.stringify(inventoryPaths(value, complete)) === JSON.stringify([...plannedInventory(files, complete)].sort());
 }
 
 function productStateObservation(root: string, blockers: Blocker[]) {
@@ -168,8 +172,8 @@ export function observeProductState(root: string) {
   return observed;
 }
 
-export function productInventory(root: string): string[] {
-  return fileInventory(observeProductState(root)).map(path => `.repo-standards/${path}`);
+export function productInventory(root: string, complete = false): string[] {
+  return inventoryPaths(observeProductState(root), complete).map(path => `.repo-standards/${path}`);
 }
 
 export async function inspect(options: InspectOptions, cliVersion: string, retained?: Awaited<ReturnType<typeof acquireSource>> & { manifest: string; ownedSkills: ReadonlySet<string> }) {

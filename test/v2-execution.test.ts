@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
@@ -40,6 +40,35 @@ async function fixture(t: TestContext, script: string, declarations: Record<stri
 const prelude = `import { readFileSync, writeFileSync, chmodSync, rmSync, mkdirSync, existsSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0, 'utf8'));`;
 const result = `console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.operation.phase==='fixes'?'changed':'passed',message:'Done'}));`;
+
+test('v2 interrupted installation rejects added directories before writing pending files', async t => {
+  for (const addition of ['.agents/skills/review/unexpected', '.repo-standards/inputs/unexpected']) await t.test(addition, async t => {
+    const f = await fixture(t, '', {
+      review: { kind: 'skill', name: 'review', source: 'skill' },
+      zlast: { kind: 'file', target: 'Z-LAST.md', exact: 'exact.md' },
+    });
+    const env = filesystemFault(f.remote.support.root, f.env, 'installation', `
+const rename = fs.renameSync;
+fs.renameSync = function(from, to) {
+  const result = rename.call(this, from, to);
+  if (String(to).endsWith('/review/SKILL.md')) process.kill(process.pid, 'SIGKILL');
+  return result;
+};
+syncBuiltinESMExports();`);
+    assert.equal(cli.run(f.startArgs, f.project.root, env).signal, 'SIGKILL');
+    assert.equal(existsSync(join(f.project.root, 'Z-LAST.md')), false);
+    mkdirSync(join(f.project.root, addition), { recursive: true });
+    const rejected = f.run(['resume', '--retry', '--json']);
+    assert.equal(rejected.result.status, 1, rejected.result.stdout);
+    assert.match(rejected.report.reason, /INSTALLATION_CHANGED.*inventory/);
+    assert.equal(existsSync(join(f.project.root, 'Z-LAST.md')), false);
+    assert.equal(existsSync(join(f.project.root, addition)), true);
+    rmSync(join(f.project.root, addition), { recursive: true });
+    const recovered = f.run(['resume', '--retry', '--json']);
+    assert.equal(recovered.result.status, 0, recovered.result.stdout);
+    assert.equal(recovered.report.outcome, 'complete');
+  });
+});
 
 test('v2 fixes enforce their owning declaration rather than the union of authorized paths', async t => {
   const f = await fixture(t, `${prelude}
