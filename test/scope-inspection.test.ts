@@ -178,6 +178,7 @@ test('discovery requests become stale after project, selection, and consulted ig
   const remote = remoteFixture(source + '  other:\n    description: Other\n    declarations: {}\n', material);
   const project = sourceFixture('', { 'app/package.json': '{}', '.gitignore': 'ignored.txt\n', 'ignored.txt': 'private' });
   t.after(() => { remote.close(); project.close(); });
+  git(project.root, 'config', 'core.ignorecase', 'false');
   commit(project.root);
   const request = () => {
     const result = cli.run(inspectionArgs, project.root, remote.env);
