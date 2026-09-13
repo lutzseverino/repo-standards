@@ -104,7 +104,7 @@ export interface InspectOptions { source: string; standardsVersion: string; prof
 interface RecordedAdoption {
   selection: RecordedSelection;
   baselines: Record<string, Pick<Content, 'sha256' | 'executable'>>;
-  skills: Record<string, string[]>;
+  skills: Record<string, string[]>; completeSkillInventory: boolean;
   resolved: { declarations: { id: string; kind: string; target?: string; name?: string }[] };
   files: Record<string, Pick<Content, 'sha256' | 'executable'>>;
 }
@@ -121,17 +121,32 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
   if (!Array.isArray(resolved?.declarations)) {
     throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state failed integrity validation. Restore the committed product state.');
   }
-  return { selection: lock.selection, baselines: state.baselines, skills: state.skills, resolved, files: lock.files };
+  return { selection: lock.selection, baselines: state.baselines, skills: state.skills, completeSkillInventory: state.format === 'repo-standards/state/v2', resolved, files: lock.files };
 }
 
-function fileInventory(value: Observation): string[] {
+function fileInventory(value: Observation, directories = false): string[] {
   const result: string[] = [];
   function visit(prefix: string, child: Observation) {
     if (child.type === 'file') result.push(prefix);
-    else if (child.type === 'directory') for (const [name, entry] of Object.entries(child.entries)) visit(prefix ? `${prefix}/${name}` : name, entry);
+    else if (child.type === 'directory') {
+      if (directories && prefix) result.push(prefix + '/');
+      for (const [name, entry] of Object.entries(child.entries)) visit(prefix ? `${prefix}/${name}` : name, entry);
+    }
   }
   visit('', value);
   return result.sort();
+}
+
+// Exact skills have the directories implied by their installed file paths.
+// Git sources cannot publish empty directories; an extra empty directory is
+// still a changed installed tree, even though a file-only inventory omits it.
+export function matchesSkillInventory(value: Observation, files: string[], complete = false) {
+  const expected = new Set(files);
+  if (complete) for (const file of files) {
+    const parts = file.split('/');
+    for (let length = 1; length < parts.length; length++) expected.add(parts.slice(0, length).join('/') + '/');
+  }
+  return JSON.stringify(fileInventory(value, complete)) === JSON.stringify([...expected].sort());
 }
 
 function productStateObservation(root: string, blockers: Blocker[]) {
@@ -224,7 +239,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       }
       for (const [path, expected] of Object.entries(previous.skills)) {
         const actual = targetObservation(root, path, blockers);
-        if (JSON.stringify(fileInventory(actual)) !== JSON.stringify(expected)) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'The installed skill inventory differs from its last-complete baseline. Reconcile added or removed resources before updating.' });
+        if (!matchesSkillInventory(actual, expected, previous.completeSkillInventory)) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'The installed skill inventory differs from its last-complete baseline. Reconcile added or removed resources before updating.' });
       }
       for (const [path, expected] of Object.entries(previous.files).filter(([path]) => path.startsWith('.repo-standards/'))) {
         const actual = targetObservation(root, path, blockers);

@@ -133,7 +133,7 @@ union of all declarations. A violation reports `OPERATION_SCOPE`, the operation,
 and offending paths. Checks report `CHECK_MUTATION` for observed writes, even
 within their allowed targets. A successful process/result does not override
 scope or exact-integrity failure. Exact bytes, executable state, and complete
-skill inventories stay protected against their own declaration's fixes too.
+skill inventories (including directory paths and added empty directories) stay protected against their own declaration's fixes too.
 
 Observations include tracked and non-ignored content, named targets even after
 they become ignored, their ancestors, effective observation settings and ignore
@@ -178,4 +178,7 @@ operation history, retry history, final checks and assessments. Detailed logs
 remain local; the recorded outcomes and interval evidence survive a fresh
 checkout. The integrity lock remains `repo-standards/lock/v1` and binds the new
 state bytes. V1 sources retain their existing execution and report formats.
-Discovery adoption remains a separate implementation slice (#45).
+Retained inspection also checks v2 exact-skill directories against the paths
+implied by the recorded file inventory, so later empty-directory edits block
+updates before mutation. Discovery adoption remains a separate implementation
+slice (#45).

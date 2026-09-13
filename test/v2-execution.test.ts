@@ -315,3 +315,21 @@ ${result}`, { review: { kind: 'skill', name: 'review', source: 'skill', fixes: [
     assert.ok(Object.keys(retry.report.observations[1].restoredBoundaries).includes(mode === 'removed' ? '.agents/skills/review' : '.agents/skills/review/unexpected'));
   });
 });
+
+test('v2 exact skill integrity includes empty directories during execution, recovery and retained inspection', async t => {
+  const f = await fixture(t, `${prelude}
+const marker = '.repo-standards/local/attempt';
+if (!existsSync(marker)) { writeFileSync(marker, 'attempted'); mkdirSync('.agents/skills/review/empty'); }
+${result}`, { review: { kind: 'skill', name: 'review', source: 'skill', fixes: [operation('prepare')] } });
+  const failed = f.start().report;
+  assert.match(failed.reason, /FINAL_INTEGRITY.*Skill inventory/);
+  assert.equal(failed.operations[0].result.status, 'changed');
+  assert.deepEqual(failed.observations[0].violations, []);
+  assert.match(f.run(['resume', '--retry', '--json']).report.reason, /FINAL_INTEGRITY/);
+  rmSync(join(f.project.root, '.agents/skills/review/empty'), { recursive: true });
+  const recovered = f.run(['resume', '--retry', '--json']);
+  assert.equal(recovered.result.status, 0, recovered.result.stdout);
+  mkdirSync(join(f.project.root, '.agents/skills/review/another-empty'));
+  const retained = f.run(['inspect', '--json']).report;
+  assert.ok(retained.start.blockers.some((blocker: { code: string; path: string }) => blocker.code === 'INSTALLED_CONTENT_EDITED' && blocker.path === '.agents/skills/review'));
+});

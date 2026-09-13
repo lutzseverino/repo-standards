@@ -8,7 +8,7 @@ import { stringify } from 'yaml';
 import { externalPath, hash } from './acquisition.js';
 import { allowedTargets, execute, operations, preflight } from './execution.js';
 import { ProductError } from './errors.js';
-import { git, hiddenIndexPaths, inspect, observe, productInventory } from './inspection.js';
+import { git, hiddenIndexPaths, inspect, matchesSkillInventory, observe, productInventory } from './inspection.js';
 import type { InspectOptions, Observation } from './inspection.js';
 import { baselines, file, flatten, ignore, json, lockPath, projectRoot, safe, safeDirectory, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Files } from './adoption-files.js';
@@ -253,7 +253,7 @@ function verifyInstallation(root: string, installation: Installation, extra: Fil
   verifyFiles(root, expectedFiles);
   if (hash(json(safeDirectory(root, '.repo-standards/runtime/node_modules'))) !== runtimeHash) throw new ProductError('FINAL_INTEGRITY', 'The installed runtime dependencies changed.');
   if (json(productInventory(root).sort()) !== json(Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/')).sort())) throw new ProductError('FINAL_INTEGRITY', 'The product state inventory changed.');
-  for (const [path, expected] of Object.entries(skills)) if (json(inventory(root, path)) !== json(expected)) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
+  for (const [path, expected] of Object.entries(skills)) if (!matchesSkillInventory(safe(root, path), expected, report.source?.format === 'repo-standards/v2')) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
   if (json(inventory(root, '.repo-standards/inputs')) !== json(Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/inputs/')).map(path => path.slice('.repo-standards/inputs/'.length)).sort())) throw new ProductError('FINAL_INTEGRITY', 'Retained input inventory changed.');
   verifyGit(root, report);
   verifyCommittable(root, [...Object.keys(files), '.repo-standards/state.json']);
