@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { after, test, type TestContext } from 'node:test';
 import { chmodSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -11,7 +12,7 @@ import { registryFixture } from './registry-fixture.ts';
 const cli = installCli();
 after(() => cli.close());
 
-async function fixture(t: TestContext, options: { script?: string; phase?: 'fixes' | 'checks'; checkScript?: string; declarations?: Record<string, unknown>; deferStart?: boolean; exactTarget?: string; directories?: string[] } = {}) {
+async function fixture(t: TestContext, options: { script?: string; phase?: 'fixes' | 'checks'; checkScript?: string; declarations?: Record<string, unknown>; deferStart?: boolean; exactTarget?: string; directories?: string[]; projectFiles?: Record<string, string>; workingFiles?: Record<string, string> } = {}) {
   const operation = (id: string, script: string) => ({ id, run: { executable: process.execPath, script, resources: [], arguments: [] },
     prerequisite: { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': 5 });
   const registry = await registryFixture(cli.root);
@@ -24,9 +25,13 @@ async function fixture(t: TestContext, options: { script?: string; phase?: 'fixe
     } }, profiles: { work: { description: 'Work', declarations: {} } } }),
   { 'guide.md': 'Document maintained projects.', 'discover.md': 'Find project documentation and link repairs.', 'config.json': '{}\n',
     'run.mjs': options.script ?? '', 'check.mjs': options.checkScript ?? '' });
-  const project = sourceFixture('', { 'README.md': '# Project\n', 'package.json': '{}\n', 'LINKS.md': 'Links\n' });
+  const project = sourceFixture('', { 'README.md': '# Project\n', 'package.json': '{}\n', 'LINKS.md': 'Links\n', ...options.projectFiles });
   for (const directory of options.directories ?? []) mkdirSync(join(project.root, directory), { recursive: true });
   commit(project.root);
+  for (const [path, content] of Object.entries(options.workingFiles ?? {})) {
+    mkdirSync(join(project.root, path, '..'), { recursive: true });
+    writeFileSync(join(project.root, path), content);
+  }
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[]) => {
@@ -502,6 +507,25 @@ test('accepted ignored additions remain visible in active change reports', async
   writeFileSync(join(f.project.root, 'future.md'), 'Authorized ignored documentation\n');
   const status = f.run(['status', '--json']).report;
   assert.ok(status.active.changes.includes('future.md'), JSON.stringify(status.active.changes));
+});
+
+test('an existing ignored addition starts the amended revision without false authorship', async t => {
+  const content = 'Existing ignored documentation\n';
+  const f = await fixture(t, { projectFiles: { '.gitignore': 'future.md\n' }, workingFiles: { 'future.md': content } });
+  const request = f.run(['inspect', '--amend-scope', '--json']).report;
+  const proposal = f.proposal(request, ['README.md', 'future.md']);
+  const candidate = proposal.declarations[0].candidates.find((entry: any) => entry.path === 'future.md');
+  const contentHash = createHash('sha256').update(content).digest('hex');
+  const identity = createHash('sha256').update(JSON.stringify({ type: 'file', sha256: contentHash, executable: false })).digest('hex');
+  candidate.evidence = [...proposal.declarations[0].evidence, { kind: 'file', path: 'future.md', identity: `sha256:${identity}` }];
+  writeFileSync(f.scopeFile, JSON.stringify(proposal));
+  const preview = f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']).report;
+  assert.equal(preview.amendment.eligible, true);
+  const accepted = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.identity, '--json']);
+  assert.equal(accepted.report.phase, 'contextual', accepted.result.stdout);
+  const completed = submit(f);
+  assert.equal(completed.result.status, 0, completed.result.stdout);
+  assert.equal(completed.report.outcome, 'complete');
 });
 
 test('installed exact files and skills cannot supply amendment discovery evidence', async t => {

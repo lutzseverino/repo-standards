@@ -1,4 +1,4 @@
-import { finishInterval, observeContinuation, requireValidIntervals, type Scope, type WorkInterval, type WorkObservation } from './work-observation.js';
+import { concreteScope, contextualScope, finishInterval, observeContinuation, observeWork, requireValidIntervals, type Scope, type WorkInterval, type WorkObservation } from './work-observation.js';
 import { randomUUID } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -432,6 +432,7 @@ export class AdoptionRunSession {
     const outgoingObservation = { identity: `sha256:${hash(json(observations))}`, intervals: observations.length };
     const affected = Object.fromEntries(Object.values(evidence.additions).flat()
       .filter(path => !Object.hasOwn(run.affected, path)).map(path => [path, observe(join(this.#root, path))]));
+    const amendedBaseline = observeWork(this.#root, concreteScope(report.resolved));
     const amended = { ...installation, report };
     delete amended.scopeAfterFixes;
     const continuation = storeInstallation(this.#root, amended);
@@ -441,6 +442,9 @@ export class AdoptionRunSession {
     run.continuation = continuation;
     run.format = 'repo-standards/run/v3';
     run.observations = structuredClone(observations);
+    run.observations.push({ phase: 'agent', scope: contextualScope(report.resolved),
+      before: structuredClone(amendedBaseline), after: structuredClone(amendedBaseline),
+      changedPaths: [], boundaryChanges: [], violations: [] });
     Object.assign(run.affected, affected);
     (run.amendments ??= []).push({ format: 'repo-standards/scope-amendment/v1', revision,
       acceptedAt: new Date().toISOString(), outgoingObservation, ...structuredClone(evidence) });
