@@ -141,9 +141,10 @@ observation identities. This file is included in immutable input integrity.
 source availability. Work intervals and final scope-validity assessments are
 committed in state v2. Historical evidence makes no current-coverage claim.
 
-Discovery updates, active scope amendments and same-pin re-adoption remain
-unsupported in this implementation. If contextual review identifies additional
-files, preserve the incomplete run; reconcile the review within confirmed scope
+Discovery updates, scope amendment execution and same-pin re-adoption remain
+unsupported in this implementation. Eligible active discovery runs can use the
+[read-only amendment preview](inspection.md#preview-scope-amendments-in-an-active-run).
+If contextual review identifies additional files, preserve the incomplete run; reconcile the review within confirmed scope
 or abandon and reconcile to a clean committed project before a new inspection.
 Retry repeats fixes under existing scope and cannot authorize additional files.
 
@@ -327,6 +328,22 @@ active for reconciliation. Reconcile preserved changes
 through the project's normal workflow. A new initial adoption still requires a
 clean project without conflicting product state and a fresh confirmed inspection.
 Never remove durable run records to bypass recovery checks.
+
+## Preview additional contextual scope
+
+An active discovery adoption can use `inspect --amend-scope`, optionally with
+`--scope <external-proposal.json>`, to preview additional files or reconfirm
+unchanged scope against current evidence. It requires a contextual handoff or
+later contextual/scope/check block, definite author-operation outcomes, unchanged
+HEAD/index and intact installed content. Existing adoption working changes do
+not impose a new clean-start requirement. Uncertain work still requires explicit
+`resume --retry` first. See the [amendment preview contract](inspection.md#preview-scope-amendments-in-an-active-run).
+
+This preview leaves the run incomplete and grants no new authority. Confirmed
+execution through `resume --amend-scope` is not yet available. Never write to an
+added path based on inspection alone. Removing or transferring a mistaken target
+within the active run is unsupported; preserve the work and reconcile through
+abandonment and the normal project workflow before a new clean adoption.
 
 ## Fresh checkout and source disappearance
 

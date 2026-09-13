@@ -142,6 +142,11 @@ The selected standards material and provenance committed by an adopting project
 so its pinned standards remain inspectable independently of source availability.
 _Avoid_: Cache, working copy
 
+**Scope amendment**:
+A confirmed addition to a declaration's discovered file scope within an active
+adoption run, preserving its selection and installed-content expectations.
+_Avoid_: Scope withdrawal, new adoption, retroactive authorization
+
 **Selection**:
 The current CLI version, standards source, published standards version, and
 profile recorded for an adopting project.

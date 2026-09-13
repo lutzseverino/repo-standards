@@ -12,7 +12,8 @@ import { git, hiddenIndexPaths, inspect, inventoryPaths, matchesInventory, obser
 import type { InspectOptions, Observation } from './inspection.js';
 import { baselines, file, flatten, ignore, json, lockPath, projectRoot, safe, safeDirectory, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Files } from './adoption-files.js';
-import { recordedState, withStartRun, withResumedRun } from './adoption-run.js';
+import { inspectActiveRun, recordedState, withStartRun, withResumedRun } from './adoption-run.js';
+import { previewScopeAmendment } from './scope-amendment.js';
 import type { AdoptionRunSession, Installation, Run, StartInput, WorkRequest } from './adoption-run.js';
 export { abandon, status } from './adoption-run.js';
 type Inspection = Awaited<ReturnType<typeof inspect>>;
@@ -380,4 +381,9 @@ export async function inspectRetained(project: string, cliVersion: string, scope
   const history = '.repo-standards/inputs/scope-history.json';
   const historicalScope = Object.hasOwn(lock.files, history) ? JSON.parse(readFileSync(join(root, history), 'utf8')) : undefined;
   return { ...report, retained: true, ...(historicalScope ? { historicalScope } : {}) };
+}
+
+export function inspectAmendment(project: string, cliVersion: string, scope?: string) {
+  return inspectActiveRun(project, cliVersion, verifyInstallation,
+    (root, run, installation) => previewScopeAmendment(root, run, installation, scope));
 }

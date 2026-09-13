@@ -14,6 +14,13 @@ import { acquireWorker, executing, processGroupAlive, processIdentity } from './
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, safe, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
 
+// Persisted labels are shared by producers and eligibility checks. Keep their
+// serialized values stable so existing incomplete runs remain readable.
+const pendingWork = {
+  contextual: 'Contextual work and assessment are required before checks.',
+  assessment: 'Agent assessment has not been accepted.',
+} as const;
+
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: 'retained'; project: string; scope?: string };
 export interface Run {
@@ -229,6 +236,40 @@ export function recordedState(root: string) {
   return decodeRecordedState(safe(root, '.repo-standards/lock.json'), safe(root, '.repo-standards/state.json'));
 }
 
+// Inspection never acquires a worker or persists progress. Recheck the journal
+// and execution ownership around the read to reject a concurrent continuation.
+export function inspectActiveRun<T>(project: string, cliVersion: string, verify: VerifyInstallation,
+  preview: (root: string, run: Run, installation: Installation) => T): T {
+  const root = projectRoot(project);
+  const lock = lockPath(root);
+  function read() {
+    if (executing(lock) || existsSync(`${lock}.worker`)) throw new ProductError('ACTIVE_RUN', 'An adoption command is executing. Wait for it to finish before inspecting an amendment.');
+    if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No active adoption is available for scope amendment.');
+    const content = readFileSync(lock, 'utf8');
+    const run = JSON.parse(content) as Run;
+    if (run.selection.cli.version !== cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
+    if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('AUTHOR_PROCESS_ACTIVE', 'An author process remains active. Stop it and use resume --retry before inspecting an amendment.');
+    return { content, run };
+  }
+  const { content, run } = read();
+  if (run.uncertain.some(reason => reason !== pendingWork.contextual && reason !== pendingWork.assessment)
+    || run.observations?.some(interval => interval.operation && !interval.after)) {
+    throw new ProductError('AMENDMENT_RETRY_REQUIRED', 'Uncertain work requires explicit resume --retry before scope amendment. Preserve the work and review status.');
+  }
+  if (run.outcome !== 'incomplete' || run.abandoned || !run.installation?.complete
+    || !(['contextual', 'assessment', 'checks'].includes(run.phase) || (run.phase === 'verification' && run.reason.startsWith('STALE_ASSESSMENT:')))) {
+    throw new ProductError('AMENDMENT_UNAVAILABLE', 'Scope amendment requires a contextual handoff or later contextual, scope, or check block with definite operation outcomes. Review status and use the reported recovery action.');
+  }
+  const installation = readInstallation(root, run);
+  if (!installation.report.discovery?.proposal || !run.observations?.length) throw new ProductError('AMENDMENT_UNAVAILABLE', 'The active adoption has no confirmed discovered scope to amend.');
+  verifyFiles(root, { '.repo-standards/local/run.json': file(json(run)) });
+  verify(root, installation);
+  const report = preview(root, run, installation);
+  verify(root, installation);
+  if (read().content !== content) throw new ProductError('OBSERVATION_UNSTABLE', 'The active adoption changed during amendment inspection. Inspect again.');
+  return report;
+}
+
 // These events describe confirmed work. Phase/outcome/uncertainty coupling and
 // persistence ordering belong here, never in the execution callback.
 type Progress =
@@ -324,10 +365,10 @@ export class AdoptionRunSession {
         run.installation!.complete = true;
         run.phase = 'verification'; run.uncertain = ['final integrity verification']; break;
       case 'assessment-reading': run.phase = 'assessment'; return;
-      case 'assessment-started': run.phase = 'assessment'; run.uncertain = ['Agent assessment has not been accepted.']; return;
+      case 'assessment-started': run.phase = 'assessment'; run.uncertain = [pendingWork.assessment]; return;
       case 'retry-verification': run.phase = 'verification'; run.uncertain = ['installed progress verification']; break;
       case 'assessment-submitted':
-        run.phase = 'assessment'; run.uncertain = ['Agent assessment has not been accepted.'];
+        run.phase = 'assessment'; run.uncertain = [pendingWork.assessment];
         run.assessments = [structuredClone(event.assessment)]; break;
       case 'assessment-accepted': run.completed.push('agent assessment'); break;
       case 'operation-accepted': run.completed.push(event.description); break;
@@ -422,7 +463,7 @@ export class AdoptionRunSession {
     const run = this.#state();
     if (installation) persistInstallation(this.#root, run, installation);
     run.phase = 'contextual';
-    run.uncertain = [installation ? 'Contextual work and assessment are required before checks.' : 'Agent assessment has not been accepted.'];
+    run.uncertain = [installation ? pendingWork.contextual : pendingWork.assessment];
     run.workRequest = structuredClone(request);
     if (installation) run.nextAction = 'Apply the selected guidance, refresh the work request with resume, and submit evidence using resume --assessment <file>.';
     throw new ProductError('CONTEXTUAL_REQUIRED', installation
@@ -505,7 +546,7 @@ export class AdoptionRunSession {
       ? 'Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.'
       : 'Explicit recovery is required. Review this incomplete adoption, reconcile changes, then use resume --retry, or abandon to preserve the work and report.';
     else if (!this.#mutated && !run.processGroup) { run.uncertain = []; run.nextAction = 'Resolve the reported problem, inspect again, and confirm the new inspection before retrying.'; }
-    if (error instanceof ProductError && error.code === 'SCOPE_INCOMPLETE') run.nextAction = 'Additional paths grant no authority. Preserve the run and work; correct the coverage evidence within confirmed scope, or abandon and reconcile to a clean committed project before a new discovery inspection and confirmation. Withdrawing or expanding active scope is not supported by this interface.';
+    if (error instanceof ProductError && error.code === 'SCOPE_INCOMPLETE') run.nextAction = 'Additional paths grant no authority. Preserve the run and work; correct the coverage evidence within confirmed scope, or abandon and reconcile to a clean committed project before a new discovery inspection and confirmation. Use inspect --amend-scope for a read-only additions preview; accepting additions and withdrawing active targets remain unsupported by this interface.';
     try { this.#save(); } catch { /* Preserve the original interruption record. */ }
   }
 
