@@ -1,4 +1,5 @@
 import { hash } from './acquisition.js';
+import { dirname } from 'node:path';
 import type { Installation, Run } from './adoption-run.js';
 import { ProductError } from './errors.js';
 import { git, hiddenIndexPaths, type Blocker } from './inspection.js';
@@ -26,7 +27,12 @@ export function previewScopeAmendment(root: string, run: Run, installation: Inst
   // Installed output has independent integrity evidence. Exclude its files
   // and whole skill inventories from discovery, including directory evidence.
   // Work-interval observations above still account for all original authority.
-  const observationOptions = { execution: true, excluded: [...Object.keys(installation.exactBaselines), ...Object.keys(installation.skills)] };
+  const excluded = [...previous.exact.map(entry => entry.target), ...Object.keys(installation.skills)];
+  const createdAncestors = new Set<string>();
+  for (const path of excluded) for (let parent = dirname(path); parent !== '.'; parent = dirname(parent)) {
+    if (!Object.hasOwn(previous.discovery!.observation.inventories, parent)) createdAncestors.add(parent);
+  }
+  const observationOptions = { execution: true, excluded, excludedEmptyDirectories: [...createdAncestors] };
   const observeDiscovery = (named: string[] = []) => observeScope(root, named, observationOptions);
 
   const capture = () => {

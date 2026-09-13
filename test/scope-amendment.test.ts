@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, test, type TestContext } from 'node:test';
-import { chmodSync, cpSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { filesystemFault } from './adoption-faults.ts';
 import { stringify } from 'yaml';
@@ -11,7 +11,7 @@ import { registryFixture } from './registry-fixture.ts';
 const cli = installCli();
 after(() => cli.close());
 
-async function fixture(t: TestContext, options: { script?: string; phase?: 'fixes' | 'checks'; declarations?: Record<string, unknown>; deferStart?: boolean } = {}) {
+async function fixture(t: TestContext, options: { script?: string; phase?: 'fixes' | 'checks'; declarations?: Record<string, unknown>; deferStart?: boolean; exactTarget?: string; directories?: string[] } = {}) {
   const operation = { id: 'run', run: { executable: process.execPath, script: 'run.mjs', resources: [], arguments: [] },
     prerequisite: { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': 5 };
   const registry = await registryFixture(cli.root);
@@ -19,10 +19,11 @@ async function fixture(t: TestContext, options: { script?: string; phase?: 'fixe
     requires: { 'repo-standards': '^1' }, defaults: { declarations: {
       docs: { kind: 'repository', guidance: 'guide.md', discovery: 'discover.md', ...(options.script ? { [options.phase ?? 'checks']: [operation] } : {}) },
       ...options.declarations,
-      configuration: { kind: 'file', target: 'config.json', exact: 'config.json' },
+      configuration: { kind: 'file', target: options.exactTarget ?? 'config.json', exact: 'config.json' },
     } }, profiles: { work: { description: 'Work', declarations: {} } } }),
   { 'guide.md': 'Document maintained projects.', 'discover.md': 'Find project documentation and link repairs.', 'config.json': '{}\n', 'run.mjs': options.script ?? '' });
   const project = sourceFixture('', { 'README.md': '# Project\n', 'package.json': '{}\n', 'LINKS.md': 'Links\n' });
+  for (const directory of options.directories ?? []) mkdirSync(join(project.root, directory), { recursive: true });
   commit(project.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
@@ -268,10 +269,10 @@ test('amendment binds consulted ignore inputs and never hides a previously named
 test('installed exact files and skills cannot supply amendment discovery evidence', async t => {
   const f = await fixture(t);
   const request = f.run(['inspect', '--amend-scope', '--json']).report;
-  const installed = (path: string) => path === 'config.json' || path.startsWith('.agents/skills/adopt-standards');
+  const installed = (path: string) => path === 'config.json' || path === '.agents' || path === '.agents/skills' || path.startsWith('.agents/skills/adopt-standards');
   assert.ok(request.discovery.evidence.every((entry: any) => !installed(entry.path)));
   assert.ok(!request.discovery.observation.inventories['.'].includes('config.json'));
-  assert.ok(!request.discovery.observation.inventories['.agents/skills'].includes('.agents/skills/adopt-standards'));
+  assert.ok(!request.discovery.observation.inventories['.'].includes('.agents'));
   const preview = f.inspectScope(request, ['README.md', 'LINKS.md']).report;
   assert.equal(preview.amendment.eligible, true);
   assert.ok(preview.discovery.namedObservation.evidence.every((entry: any) => !installed(entry.path)));
@@ -284,7 +285,7 @@ test('installed exact files and skills cannot supply amendment discovery evidenc
   const inspected = f.run([...inspectionArgs, '--project', evidenceProject.root]);
   assert.equal(inspected.result.status, 0, inspected.result.stdout);
   const ordinary = inspected.report;
-  for (const [kind, path] of [['file', 'config.json'], ['directory', '.agents/skills/adopt-standards']]) {
+  for (const [kind, path] of [['file', 'config.json'], ['directory', '.agents/skills/adopt-standards'], ['directory', '.agents/skills'], ['directory', '.agents']]) {
     const value = f.proposal(request);
     const reference = ordinary.discovery.evidence.find((entry: any) => entry.kind === kind && entry.path === path);
     assert.ok(reference);
@@ -296,4 +297,21 @@ test('installed exact files and skills cannot supply amendment discovery evidenc
     assert.equal(rejected.report.errors[0].code, 'INVALID_SCOPE', rejected.result.stdout);
     assert.deepEqual(snapshot(f.project.root), before);
   }
+});
+
+test('amendment prunes installed-only ancestors while preserving pre-existing directories and project work', async t => {
+  const f = await fixture(t, { exactTarget: 'generated/nested/config.json', directories: ['.agents/skills'],
+    declarations: { notes: { kind: 'file', target: 'generated/notes.md', guidance: 'guide.md' } } });
+  const request = f.run(['inspect', '--amend-scope', '--json']).report;
+  const directories = (report: any) => report.discovery.evidence.filter((entry: any) => entry.kind === 'directory').map((entry: any) => entry.path);
+  assert.deepEqual(directories(request), ['.', '.agents', '.agents/skills']);
+  const preview = f.inspectScope(request).report;
+  assert.equal(preview.amendment.eligible, true);
+  assert.deepEqual(preview.discovery.namedObservation.inventories['.'], ['.agents', 'LINKS.md', 'README.md', 'package.json', 'standards.yaml']);
+  writeFileSync(join(f.project.root, 'generated/notes.md'), 'Authorized project-owned notes.\n');
+  const withNotes = f.run(['inspect', '--amend-scope', '--json']).report;
+  assert.ok(directories(withNotes).includes('generated'));
+  assert.ok(!directories(withNotes).includes('generated/nested'));
+  assert.deepEqual(withNotes.discovery.observation.inventories.generated, ['generated/notes.md']);
+  assert.equal(f.inspectScope(withNotes, ['README.md', 'LINKS.md']).report.amendment.eligible, true);
 });

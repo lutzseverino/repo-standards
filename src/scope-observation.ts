@@ -13,7 +13,7 @@ const identity = (value: unknown) => `sha256:${hash(JSON.stringify(value))}`;
 
 // One bounded observation is compared with a second before issuing a report.
 // Only eligible files and named boundaries are read, never ignored siblings.
-export function observeScope(root: string, named: string[] = [], options: { execution?: boolean; directories?: string[]; excluded?: string[] } = {}) {
+export function observeScope(root: string, named: string[] = [], options: { execution?: boolean; directories?: string[]; excluded?: string[]; excludedEmptyDirectories?: string[] } = {}) {
   let bytes = 0;
   let count = 0;
   const deadline = Date.now() + 30_000;
@@ -148,6 +148,15 @@ export function observeScope(root: string, named: string[] = [], options: { exec
       if (matches.some(name => name !== parts[length])) throw new ProductError('CASE_CONFLICT', `Named scope path has a case-folded or Unicode alias: ${path}.`);
     }
     if (targets[path]!.type !== 'file' && targets[path]!.type !== 'missing' && !(options.directories?.includes(path) && targets[path]!.type === 'directory')) throw new ProductError('UNSAFE_TARGET', `Discovered targets must be individual regular files or absent files: ${path}.`);
+  }
+  // Remove installation-created ancestors only when the projected directory
+  // has no project content. Keep pre-existing directories and propagate every
+  // surviving file/directory to its parents, deepest first.
+  const emptyCandidates = new Set(options.excludedEmptyDirectories);
+  const populated = new Set(paths.map(path => dirname(path)));
+  for (const directory of [...directories].sort((a, b) => b.length - a.length)) {
+    if (emptyCandidates.has(directory) && !populated.has(directory)) directories.delete(directory);
+    else if (directory !== '.') populated.add(dirname(directory));
   }
   const ignores: Record<string, { location: string; state: FileState | { type: 'disabled' } }> = Object.create(null);
   for (const [key, path] of [['global', globalExclude ? resolve(root, globalExclude) : ''], ['info', infoExclude]]) {

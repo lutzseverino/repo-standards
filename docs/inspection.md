@@ -409,8 +409,11 @@ selection, evidence and relevant observation/ignore inputs. The final identity
 also binds the complete proposal and rationale. Named paths and ancestors remain
 observed even when ignored. Installed exact files, author/system skills and
 product state are verified separately and excluded from discovery evidence,
-including directory inventories; local operation logs are not project membership
-evidence. Original work intervals still account for those installed paths.
+including directory inventories. Ancestors absent before installation are also
+excluded when only installed output remains beneath them. Pre-existing empty
+directories and ancestors containing project-owned work remain eligible.
+Local operation logs are not project membership evidence. Original work
+intervals still account for installed paths and their ancestors.
 The same observation bounds and failure protections apply.
 Repeated unchanged inspection has the same identity. Stale proposals require a
 fresh request and evidence review, not just a replaced request string.
