@@ -69,6 +69,9 @@ export function materializeScope(root: string, profile: SourceProfile, proposal?
   if (proposal && JSON.stringify(proposal.declarations.map(entry => entry.id)) !== JSON.stringify(discoveries.map(declaration => declaration.id).sort())) invalid('Supply exactly one entry per active discovery declaration and none for explicit or excluded declarations.');
   const fields = new Fields((code, message) => { throw new ProductError(code, message); });
   const paths = new Paths(root, fields);
+  for (const entry of proposal?.declarations ?? []) for (const candidate of entry.candidates) {
+    if (!paths.explicit({ data: candidate.path, offset: 0, path: entry.id })) invalid('Invalid candidate path.');
+  }
   const targets: Target[] = [];
   const resolved: ResolvedProfile = { ...profile, declarations: profile.declarations.flatMap(declaration => {
     if (!('discovery' in declaration)) return [declaration];

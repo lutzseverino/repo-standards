@@ -301,3 +301,22 @@ test('ignore input paths preserve significant whitespace and an empty override d
   writeFileSync(defaultIgnore, '# still not consulted\n');
   assert.equal(request(env), disabled);
 });
+
+test('excluded candidates require safe concrete syntax while allowing explanations for reserved and exact paths', (t) => {
+  const remote = remoteFixture(source, material);
+  const project = sourceFixture('', { 'README.md': 'Organizational repository' });
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const request = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+  const evidence = request.discovery.evidence.find((e: { path: string }) => e.path === 'README.md');
+  const proposalFile = join(remote.support.root, 'scope.json');
+  for (const path of ['../outside', '/tmp/file', 'docs/*.md', 'docs/../file', 'docs\\file', '.', '.git', 'AGENTS.md']) {
+    const safe = ['.git', 'AGENTS.md'].includes(path);
+    writeFileSync(proposalFile, JSON.stringify({ format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{
+      id: 'project-docs', paths: [], coverage: 'No maintained projects.', evidence: [evidence], candidates: [{ path, decision: 'exclude', reason: 'Outside contextual ownership.', evidence: [evidence] }], unresolved: [],
+    }] }));
+    const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
+    assert.equal(result.status, safe ? 0 : 1, result.stdout + result.stderr);
+    if (!safe) assert.equal(JSON.parse(result.stdout).errors[0].code, 'UNSAFE_PATH');
+  }
+});

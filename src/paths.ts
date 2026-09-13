@@ -35,13 +35,19 @@ export class Paths {
     return path;
   }
 
-  target(value: Value): Target | undefined {
+  explicit(value: Value): string | undefined {
     const path = this.relative(value);
     if (path === undefined) return undefined;
     if (/[*?\[\]{}]/u.test(path)) {
       this.fields.error('UNSAFE_PATH', 'Targets must be explicit paths, without glob patterns.', value);
       return undefined;
     }
+    return path;
+  }
+
+  target(value: Value): Target | undefined {
+    const path = this.explicit(value);
+    if (path === undefined) return undefined;
     if (['.repo-standards', '.agents/skills/adopt-standards', '.agents/skills/author-standards', '.git'].some(reserved => overlaps(foldPath(path), reserved))) {
       this.fields.error('RESERVED_TARGET', 'Target overlaps product-owned state, a system skill, or Git metadata.', value);
     }

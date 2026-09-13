@@ -285,8 +285,10 @@ preserved verbatim and changes the final inspection identity.
 
 `paths` contains individual repository-relative filenames, including intended
 new files. Every path needs an included candidate with a reason and evidence.
-Excluded candidates may describe directories and must not be included in that
-entry's paths. Every entry needs a nonempty coverage explanation and evidence,
+Excluded candidates may describe directories or exact/reserved paths and must
+not be included in that entry's paths. Every candidate uses the shared safe,
+repository-relative explicit-path syntax; exclusions cannot use root, parent,
+absolute, backslash, or glob paths. Every entry needs a nonempty coverage explanation and evidence,
 even with empty `paths` and `candidates`. Empty scope retains the declaration,
 guidance, and its fixes/checks. Nonempty `unresolved` produces an inspectable
 report with `UNRESOLVED_SCOPE`, never a startable result.
