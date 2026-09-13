@@ -1,0 +1,21 @@
+{
+  "run": "https://github.com/lutzseverino/repo-standards/actions/runs/34678342082",
+  "observedAt": "2026-09-12T19:43:51.555Z",
+  "state": "published",
+  "nextAction": "'gh' 'workflow' 'run' 'release.yml' '--repo' 'lutzseverino/repo-standards' '--ref' 'feat/31-public-authoring-release' '-f' 'version=1.1.0' '-F' 'verify_published=true'",
+  "commit": "305025e36e9f9f503135eed3dce33a7b51d373f4",
+  "version": "1.1.0",
+  "bundle": "/tmp/repo-standards-reliability/live-status/bundle",
+  "integrity": "sha512-V7lkekH+MedcY2iH/OmAOtusvth+MvJIHtXKky3T81sttWi2KKfPMzG0sNdNDXDDSOggZo4k51+U9L40nbaAZA==",
+  "npm": "matches",
+  "tag": "matches",
+  "assets": {
+    "matched": [
+      "lutzseverino-repo-standards-1.1.0.tgz",
+      "repo-standards-bootstrap",
+      "SHA256SUMS",
+      "release.json"
+    ],
+    "missing": []
+  }
+}

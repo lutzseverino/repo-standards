@@ -1,0 +1,46 @@
+[
+  {
+    "run": "https://github.com/lutzseverino/repo-standards/actions/runs/34705920611",
+    "lines": [
+      {
+        "file": "0_public-installation (macos-latest).txt",
+        "line": "2026-09-12T16:40:12.9857130Z AssertionError [ERR_ASSERTION]: Cannot acquire public release metadata: https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v1.1.0"
+      }
+    ]
+  },
+  {
+    "run": "https://github.com/lutzseverino/repo-standards/actions/runs/34706191543",
+    "lines": [
+      {
+        "file": "1_public-installation (macos-latest).txt",
+        "line": "2026-09-12T16:46:39.3661720Z AssertionError [ERR_ASSERTION]: Cannot acquire public release metadata: https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v1.1.0"
+      }
+    ]
+  },
+  {
+    "run": "https://github.com/lutzseverino/repo-standards/actions/runs/34706328017",
+    "lines": [
+      {
+        "file": "1_public-installation (macos-latest).txt",
+        "line": "2026-09-12T16:50:39.8429710Z {\"status\":200,\"date\":\"Sat, 12 Sep 2026 16:50:39 GMT\",\"remaining\":\"0\",\"reset\":\"1789232918\",\"limits\":{\"resources\":{\"code_search\":{\"limit\":60,\"remaining\":0,\"reset\":1789232918,\"used\":60},\"core\":{\"limit\":60,\"remaining\":0,\"reset\":1789232918,\"used\":60},\"graphql\":{\"limit\":0,\"remaining\":0,\"reset\":1789235440,\"used\":0},\"integration_manifest\":{\"limit\":5000,\"remaining\":5000,\"reset\":1789235440,\"used\":0},\"search\":{\"limit\":10,\"remaining\":10,\"reset\":1789231900,\"used\":0}},\"rate\":{\"limit\":60,\"remaining\":0,\"reset\":1789232918,\"used\":60}}}"
+      },
+      {
+        "file": "1_public-installation (macos-latest).txt",
+        "line": "2026-09-12T16:50:45.9506640Z AssertionError [ERR_ASSERTION]: Cannot acquire public release metadata: https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v1.1.0"
+      }
+    ]
+  },
+  {
+    "run": "https://github.com/lutzseverino/repo-standards/actions/runs/34707566894",
+    "lines": [
+      {
+        "file": "0_public-installation (macos-latest).txt",
+        "line": "2026-09-12T17:13:29.9536630Z {\"status\":200,\"date\":\"Sat, 12 Sep 2026 17:13:30 GMT\",\"remaining\":\"1\",\"reset\":\"1789235909\",\"limits\":{\"resources\":{\"code_search\":{\"limit\":60,\"remaining\":1,\"reset\":1789235909,\"used\":59},\"core\":{\"limit\":60,\"remaining\":1,\"reset\":1789235909,\"used\":59},\"graphql\":{\"limit\":0,\"remaining\":0,\"reset\":1789236810,\"used\":0},\"integration_manifest\":{\"limit\":5000,\"remaining\":5000,\"reset\":1789236810,\"used\":0},\"search\":{\"limit\":10,\"remaining\":10,\"reset\":1789233270,\"used\":0}},\"rate\":{\"limit\":60,\"remaining\":1,\"reset\":1789235909,\"used\":59}}}"
+      },
+      {
+        "file": "0_public-installation (macos-latest).txt",
+        "line": "2026-09-12T17:13:33.4033770Z AssertionError [ERR_ASSERTION]: Cannot acquire public release metadata: https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v1.1.0"
+      }
+    ]
+  }
+]

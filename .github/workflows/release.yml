@@ -88,6 +88,17 @@ jobs:
           gh release create "v$RELEASE_VERSION" release/* --target "$RELEASE_COMMIT" \
             --title "Repository Standards $RELEASE_VERSION" \
             --notes 'Public CLI package and standalone bootstrap. See the release procedure and acceptance evidence; publication does not close the parent release specification.'
+      - name: Explain publication recovery
+        if: failure()
+        run: |
+          node --input-type=module <<'JS'
+          import { appendFileSync } from 'node:fs';
+          const message = `Publication is incomplete or uncertain. From a checkout containing the recovery helper, run:\n\n` +
+            `\`node scripts/release-status.ts ${process.env.GITHUB_RUN_ID} release-recovery-${process.env.GITHUB_RUN_ID}\`\n\n` +
+            `This inspects the original validated bundle and prints the next action. See docs/release.md. Do not rerun publication before inspecting state.\n`;
+          console.log(message);
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, message);
+          JS
 
   verify-publisher:
     if: ${{ inputs.verify_published }}
@@ -120,12 +131,22 @@ jobs:
         with:
           node-version-file: .node-version
       - name: Record unauthenticated public GitHub API quota
+        continue-on-error: true
         run: |
           node --input-type=module <<'JS'
-          const response = await fetch('https://api.github.com/rate_limit', { signal: AbortSignal.timeout(30000) });
-          console.log(JSON.stringify({ status: response.status, date: response.headers.get('date'),
-            remaining: response.headers.get('x-ratelimit-remaining'), reset: response.headers.get('x-ratelimit-reset'),
-            limits: await response.json() }));
+          import { writeFileSync } from 'node:fs';
+          let observation;
+          try {
+            const response = await fetch('https://api.github.com/rate_limit', { signal: AbortSignal.timeout(30000) });
+            observation = { status: response.status, date: response.headers.get('date'),
+              remaining: response.headers.get('x-ratelimit-remaining'), reset: response.headers.get('x-ratelimit-reset'),
+              limits: await response.json() };
+          } catch {
+            observation = { status: null, error: 'Quota observation unavailable; public checks still run.' };
+            process.exitCode = 1;
+          }
+          writeFileSync('public-api-quota.json', JSON.stringify(observation, null, 2) + '\n');
+          console.log(JSON.stringify(observation));
           JS
       - env:
           RELEASE_VERSION: ${{ inputs.version }}
@@ -140,6 +161,7 @@ jobs:
         with:
           name: public-installation-${{ matrix.os }}
           path: |
+            public-api-quota.json
             public-installation.json
             public-author-installation.json
           if-no-files-found: error

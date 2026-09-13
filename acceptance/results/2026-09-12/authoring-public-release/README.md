@@ -168,4 +168,9 @@ the final run above.
 the workflow corrections. Its installed-CLI tests retain reservation, adoption
 pins, integrity/ownership, update and no-automatic-authoring-installation coverage.
 The [coverage map](../../../authoring-release-coverage.md) separates all twelve
-criteria. PR #37 remains ready and unmerged; issues #31 and #25 remain open.
+criteria. At the time this evidence was recorded, PR #37 awaited merge and
+issues #31 and #25 remained open.
+
+Completion update — 2026-09-13: PR #37 merged on 2026-09-12. Issues #31 and
+#25 are now closed as completed following maintainer review. The observations
+and verification limits above remain the historical release evidence.

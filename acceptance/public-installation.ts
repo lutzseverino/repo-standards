@@ -26,6 +26,10 @@ const env = { ...process.env, npm_config_registry: 'https://registry.npmjs.org/'
 const commands: { executable: string; args: string[]; status: number | null; stdout: string; stderr: string }[] = [];
 const downloads: { url: string; status: number; sha256: string }[] = [];
 let passed = false;
+let failure: string | undefined;
+const retry = ['node', 'acceptance/public-installation.ts', version, `${evidence}.retry-${Date.now()}.json`]
+  .map(value => `'${value.replaceAll("'", "'\\''")}'`).join(' ');
+const nextAction = `Inspect the failure evidence, correct the cause, then retry: ${retry}`;
 try {
   function run(executable: string, args: string[], cwd = root) {
     const result = spawnSync(executable, args, { cwd, env, encoding: 'utf8', timeout: 300_000, maxBuffer: 32 * 1024 * 1024 });
@@ -88,14 +92,18 @@ try {
     omittedVersion: latest.selection.cli.version, projectUnchanged: true,
   }));
   passed = true;
+} catch (error) {
+  failure = error instanceof Error ? error.message : String(error);
+  throw error;
 } finally {
   mkdirSync(dirname(evidence), { recursive: true });
   let identity: unknown;
   try { identity = JSON.parse(readFileSync(join(root, 'identity.json'), 'utf8')); } catch { /* Failure evidence still includes command output. */ }
   writeFileSync(evidence, JSON.stringify({ date: new Date().toISOString(),
     os: { platform: platform(), release: release(), arch: arch() }, node: process.version,
-    version, passed, identity, commands, downloads,
+    version, passed, failure, nextAction: passed ? undefined : nextAction, identity, commands, downloads,
     scope: 'Public installation, author validation, discovery and read-only bootstrap. No adoption or real-agent assessment.',
   }, null, 2) + '\n');
   rmSync(root, { recursive: true, force: true });
+  if (!passed) console.error(nextAction);
 }
