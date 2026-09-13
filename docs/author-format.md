@@ -26,8 +26,10 @@ and presents concrete paths in the complete inspection. Initial adoption passes
 the same proposal to `start --scope` with that inspection’s confirmed identity.
 The agent rechecks coverage after fixes and during contextual assessment. Empty
 scope retains the declaration and its operations. Source validation alone proves
-neither project-specific safety nor semantic coverage. Discovery updates, active
-scope amendments, and same-pin re-adoption remain subsequent lifecycle work.
+neither project-specific safety nor semantic coverage. Eligible active discovery runs can
+[preview scope amendments](inspection.md#preview-scope-amendments-in-an-active-run).
+Discovery updates, amendment execution, and same-pin re-adoption remain
+subsequent lifecycle work.
 
 ## Root and profiles
 

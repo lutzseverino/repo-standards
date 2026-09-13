@@ -21,6 +21,10 @@ until the project runtime exists. Thereafter the document root is
 - **Active run:** inspect `active.phase`, `reason`, `changes`, `completed`,
   `uncertain`, `nextAction` and `execution`. Wait while execution is active.
   An ordinary contextual handoff continues at Contextual work below.
+  When more files are needed, read
+  `inspection.md#preview-scope-amendments-in-an-active-run` and use
+  `inspect --amend-scope` to preview eligible additions. Preserve existing
+  authority: amendment execution is not yet available.
   For interrupted installation, failed/uncertain scripts, or abandonment, read
   `adoption.md#recover-or-abandon-an-interrupted-run` before acting. Obtain an
   explicit retry instruction before `resume --retry --json`, or an abandonment
@@ -34,7 +38,7 @@ until the project runtime exists. Thereafter the document root is
   Change one pin, keeping source and profile. Use the pinned CLI for a standards
   update and the external candidate CLI for a CLI update. Historical discovered
   scope explains prior authorization; it does not prove current coverage.
-  Discovery updates, active amendments and same-pin re-adoption remain unsupported
+  Discovery updates, amendment execution and same-pin re-adoption remain unsupported
   by this CLI; report the limitation and preserve the current selection.
 - **Initial adoption:** obtain the public GitHub source, stable standards tag
   and complete profile from the maintainer, then inspect that selection.

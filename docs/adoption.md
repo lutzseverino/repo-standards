@@ -141,9 +141,10 @@ observation identities. This file is included in immutable input integrity.
 source availability. Work intervals and final scope-validity assessments are
 committed in state v2. Historical evidence makes no current-coverage claim.
 
-Discovery updates, active scope amendments and same-pin re-adoption remain
-unsupported in this implementation. If contextual review identifies additional
-files, preserve the incomplete run; reconcile the review within confirmed scope
+Discovery updates, scope amendment execution and same-pin re-adoption remain
+unsupported in this implementation. Eligible active discovery runs can use the
+[read-only amendment preview](inspection.md#preview-scope-amendments-in-an-active-run).
+If contextual review identifies additional files, preserve the incomplete run; reconcile the review within confirmed scope
 or abandon and reconcile to a clean committed project before a new inspection.
 Retry repeats fixes under existing scope and cannot authorize additional files.
 

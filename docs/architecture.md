@@ -6,9 +6,9 @@ The version-one baseline is extended by the accepted
 This document describes contracts; individual tickets state implementation scope.
 Tickets #42 and #43 implement v2 source validation and evidence-backed scope
 inspection; #44 adds v2 explicit-target operation enforcement and durable work
-intervals; #45 completes initial adoption with confirmed discovered files. Active
-scope amendments, discovery updates, and same-pin re-adoption remain later slices
-of #41.
+intervals; #45 completes initial adoption with confirmed discovered files; #46
+adds read-only active scope amendment previews. Amendment execution, discovery
+updates, and same-pin re-adoption remain later slices of #41.
 
 ## Purpose and release boundary
 

@@ -14,6 +14,13 @@ import { acquireWorker, executing, processGroupAlive, processIdentity } from './
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, safe, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
 
+// Persisted labels are shared by producers and eligibility checks. Keep their
+// serialized values stable so existing incomplete runs remain readable.
+const pendingWork = {
+  contextual: 'Contextual work and assessment are required before checks.',
+  assessment: 'Agent assessment has not been accepted.',
+} as const;
+
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: 'retained'; project: string; scope?: string };
 export interface Run {
@@ -245,8 +252,7 @@ export function inspectActiveRun<T>(project: string, cliVersion: string, verify:
     return { content, run };
   }
   const { content, run } = read();
-  const pendingAssessment = new Set(['Contextual work and assessment are required before checks.', 'Agent assessment has not been accepted.']);
-  if (run.uncertain.some(reason => !pendingAssessment.has(reason))
+  if (run.uncertain.some(reason => reason !== pendingWork.contextual && reason !== pendingWork.assessment)
     || run.observations?.some(interval => interval.operation && !interval.after)) {
     throw new ProductError('AMENDMENT_RETRY_REQUIRED', 'Uncertain work requires explicit resume --retry before scope amendment. Preserve the work and review status.');
   }
@@ -359,10 +365,10 @@ export class AdoptionRunSession {
         run.installation!.complete = true;
         run.phase = 'verification'; run.uncertain = ['final integrity verification']; break;
       case 'assessment-reading': run.phase = 'assessment'; return;
-      case 'assessment-started': run.phase = 'assessment'; run.uncertain = ['Agent assessment has not been accepted.']; return;
+      case 'assessment-started': run.phase = 'assessment'; run.uncertain = [pendingWork.assessment]; return;
       case 'retry-verification': run.phase = 'verification'; run.uncertain = ['installed progress verification']; break;
       case 'assessment-submitted':
-        run.phase = 'assessment'; run.uncertain = ['Agent assessment has not been accepted.'];
+        run.phase = 'assessment'; run.uncertain = [pendingWork.assessment];
         run.assessments = [structuredClone(event.assessment)]; break;
       case 'assessment-accepted': run.completed.push('agent assessment'); break;
       case 'operation-accepted': run.completed.push(event.description); break;
@@ -457,7 +463,7 @@ export class AdoptionRunSession {
     const run = this.#state();
     if (installation) persistInstallation(this.#root, run, installation);
     run.phase = 'contextual';
-    run.uncertain = [installation ? 'Contextual work and assessment are required before checks.' : 'Agent assessment has not been accepted.'];
+    run.uncertain = [installation ? pendingWork.contextual : pendingWork.assessment];
     run.workRequest = structuredClone(request);
     if (installation) run.nextAction = 'Apply the selected guidance, refresh the work request with resume, and submit evidence using resume --assessment <file>.';
     throw new ProductError('CONTEXTUAL_REQUIRED', installation
@@ -540,7 +546,7 @@ export class AdoptionRunSession {
       ? 'Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.'
       : 'Explicit recovery is required. Review this incomplete adoption, reconcile changes, then use resume --retry, or abandon to preserve the work and report.';
     else if (!this.#mutated && !run.processGroup) { run.uncertain = []; run.nextAction = 'Resolve the reported problem, inspect again, and confirm the new inspection before retrying.'; }
-    if (error instanceof ProductError && error.code === 'SCOPE_INCOMPLETE') run.nextAction = 'Additional paths grant no authority. Preserve the run and work; correct the coverage evidence within confirmed scope, or abandon and reconcile to a clean committed project before a new discovery inspection and confirmation. Withdrawing or expanding active scope is not supported by this interface.';
+    if (error instanceof ProductError && error.code === 'SCOPE_INCOMPLETE') run.nextAction = 'Additional paths grant no authority. Preserve the run and work; correct the coverage evidence within confirmed scope, or abandon and reconcile to a clean committed project before a new discovery inspection and confirmation. Use inspect --amend-scope for a read-only additions preview; accepting additions and withdrawing active targets remain unsupported by this interface.';
     try { this.#save(); } catch { /* Preserve the original interruption record. */ }
   }
 
