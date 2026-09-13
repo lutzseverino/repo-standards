@@ -245,8 +245,8 @@ export function status(project: string) {
     const { state, pinned } = recordedState(root);
     return { format: state.format === 'repo-standards/state/v3' || format === 'repo-standards/status/v3' ? 'repo-standards/status/v3'
       : state.observations ? 'repo-standards/status/v2' : format,
-      ...(state.observations ? { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory,
-        scopeRevision: state.scopeRevision ?? 0, amendments: state.amendments ?? [] } : {}),
+      ...(state.observations ? { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory } : {}),
+      ...(state.format === 'repo-standards/state/v3' ? { scopeRevision: state.scopeRevision, amendments: state.amendments } : {}),
       selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
       checks: state.checks, assessments: state.assessments, active, abandoned, evidence: 'historical' };
   } catch (error) {
@@ -531,8 +531,8 @@ export class AdoptionRunSession {
     const completedAt = new Date().toISOString();
     const state = file(json({ format: run.amendments?.length ? 'repo-standards/state/v3'
       : run.observations ? 'repo-standards/state/v2' : 'repo-standards/state/v1',
-      ...(run.observations ? { observations: run.observations, operations: run.operations, retryHistory: run.retryHistory ?? [],
-        scopeRevision: run.scopeRevision ?? 0, amendments: run.amendments ?? [] } : {}),
+      ...(run.observations ? { observations: run.observations, operations: run.operations, retryHistory: run.retryHistory ?? [] } : {}),
+      ...(run.amendments?.length ? { scopeRevision: run.scopeRevision!, amendments: run.amendments } : {}),
       lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: report.project.head }, baselines: exactBaselines, skills,
       checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));
     const completionLock = file(json({ format: 'repo-standards/lock/v1', selection: report.selection, inspection: run.inspection, files: durable, state: { sha256: state.sha256, executable: state.executable } }));
