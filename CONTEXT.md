@@ -97,6 +97,11 @@ A content-derived identity that binds an inspection to its exact standards
 selection and relevant adopting-project state.
 _Avoid_: Approval token, mutable plan file
 
+**Scope proposal**:
+An agent's evidence-backed identification of the project paths to which
+contextual guidance applies, reviewed before authorizing that scope.
+_Avoid_: Confirmed scope, automatic project classification
+
 **Adoption**:
 The deliberate application of one resolved profile to an adopting project,
 including exact installation, contextual work, declared fixes, and checks.

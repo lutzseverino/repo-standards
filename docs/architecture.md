@@ -4,9 +4,9 @@ Status: accepted through the architecture grilling completed on 2026-09-06.
 The version-one baseline is extended by the accepted
 [contextual scope specification (#41)](https://github.com/lutzseverino/repo-standards/issues/41).
 This document describes contracts; individual tickets state implementation scope.
-Ticket #42 implements v2 authoring/validation and blocks unresolved discovery
-before execution. Project-specific discovery and lifecycle changes remain later
-slices of #41.
+Tickets #42 and #43 implement v2 source validation and evidence-backed scope
+inspection. Discovery adoption and lifecycle changes remain later slices of #41;
+every selection with active discovery stays blocked before execution.
 
 ## Purpose and release boundary
 
@@ -180,9 +180,17 @@ identities, and complete replacement/exclusion semantics remain unchanged.
 The Resolver alone interprets both author formats. Source resolution preserves
 unresolved discovery without manufacturing empty or broad executable targets.
 Execution accepts concrete targets; unresolved discovery cannot authorize
-adoption. This slice returns `DISCOVERY_REQUIRED` from inspection/start until the
-project-scope interface is implemented. Profiles without active discovery continue
-through the existing concrete-target path.
+adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
+scope is missing. Validated proposals remain blocked from adoption until the
+initial discovery-adoption interface (#44) is implemented. Inspection accepts
+`repo-standards/scope/v1` proposals through `--scope`, returns explicitly versioned
+`repo-standards/inspection/v2` reports, and binds a complete eligible project
+snapshot, relevant observation/ignore inputs, and named targets and ancestors.
+The [inspection contract](inspection.md#discover-contextual-file-scope-v2-sources)
+defines evidence references, strict proposal validation, observation limits, and
+the distinction between source declarations and materialized concrete targets.
+Profiles without active discovery continue through the existing concrete-target
+path.
 
 Source validation checks all profiles, including unselected profiles and references
 of excluded/replaced defaults, without author-code execution. It reports verified
