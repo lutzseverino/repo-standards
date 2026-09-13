@@ -83,7 +83,8 @@ node scripts/release-status.ts <original-release-run-id> <fresh-output-directory
 ```
 
 Node.js, Git and authenticated `gh` with read access to the workflow artifacts
-are prerequisites. This command downloads the original validated bundle, checks
+and repository push access to see drafts are prerequisites. This command
+downloads the original validated bundle, checks
 its hashes and npm integrity, resolves the public tag, and compares existing
 release assets. It writes `status.json` beside the bundle and prints one exact
 next action. It performs no publication or remote changes. An unknown or
@@ -114,14 +115,26 @@ service, or an authentication failure leaves state unknown; do not treat it as
 proof that publication is absent. Compare registry `dist.integrity` with the
 original bundle's `integrity`. Resolve the tag to the original validated commit;
 `target_commitish` alone is not proof of tag identity.
+If an interrupted release creation left a draft without a tag, its target must
+be the full original validated commit SHA. A branch name is insufficient.
 
 | Established state | Recovery action |
 | --- | --- |
 | npm version is absent; original validated bundle is intact | Correct authentication and publish only the original tarball using **Interactive publication** below. Recheck registry integrity before proceeding. |
 | npm integrity matches; GitHub tag/release is absent | Create the release at the original validated commit with the original four bundle files. |
 | npm integrity matches; tag matches; release exists but an asset is missing | Verify existing assets against the original bundle, then upload only missing files with `gh release upload`. |
+| npm integrity matches; draft identity matches; assets are missing | Verify existing draft assets through authenticated GitHub asset downloads, then upload only missing original files. Re-run the status helper with a fresh output directory. |
+| npm integrity matches; draft identity and all four assets match | Publish the existing draft with `gh release edit v<version> --draft=false --target <original-validated-commit>`, then re-inspect before verification-only acceptance. |
 | npm, tag, and all four release assets match | Run verification-only acceptance below. |
 | Any identity differs, or cannot be established | Stop recovery and resolve the discrepancy. Preserve the original bundle and observations. |
+
+`gh release create` uploads assets to an intermediate draft before publication.
+The status helper checks the authenticated release listing when the tag lookup
+is absent and compares draft asset bytes through the authenticated asset API.
+It preserves binary bytes and uses the same original-bundle hash checks as for
+published assets. It never deletes drafts, overwrites existing assets, or
+executes the printed action. Re-inspect after each recovery step; a draft is
+not a completed publication.
 
 For the missing-release case, after those identity checks:
 
@@ -193,7 +206,12 @@ reservation of requests. GitHub's anonymous limits are shared by source IP;
 Intel runner selection does not guarantee availability. A 403 alone does not
 establish quota exhaustion. Use the actual failure and available rate-limit
 headers; respect a reported reset or retry delay before another attempt. An
-external interruption leaves acceptance incomplete. Keep anonymous acquisition
+HTTP 403/429 with a valid `Retry-After` produces an explicit wait-until action,
+even without primary-quota headers. The helper accepts delay-seconds or an
+HTTP date and uses the later deadline when both retry and primary-reset
+headers apply. Invalid values remain in the evidence without inventing a delay.
+See [GitHub's rate-limit guidance](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api).
+An external interruption leaves acceptance incomplete. Keep anonymous acquisition
 and all assertions intact; authenticated or fixture acquisition establishes a
 different claim.
 

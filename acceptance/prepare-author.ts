@@ -64,9 +64,19 @@ async function downloadJson(url: string) {
   const download: (typeof downloads)[number] = { url, status: response.status, headers };
   downloads.push(download);
   if (response.status !== 200) {
-    if ([403, 429].includes(response.status) && headers['x-ratelimit-remaining'] === '0' && /^\d{1,10}$/.test(headers['x-ratelimit-reset'] ?? '')) {
-      const reset = new Date(Number(headers['x-ratelimit-reset']) * 1000).toISOString();
-      nextAction = `Public API quota exhausted. Wait until ${reset}, then retry with a new evidence path: ${retry}. Shared runner capacity may still be unavailable.`;
+    if ([403, 429].includes(response.status)) {
+      const primaryReset = headers['x-ratelimit-remaining'] === '0' && /^\d{1,10}$/.test(headers['x-ratelimit-reset'] ?? '')
+        ? Number(headers['x-ratelimit-reset']) * 1000 : 0;
+      const retryAfter = headers['retry-after'] ?? '';
+      // GitHub reports delay-seconds; also accept the standard HTTP-date form.
+      const retryAt = /^\d{1,10}$/.test(retryAfter) ? Date.now() + Number(retryAfter) * 1000
+        : /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} [A-Z][a-z]{2} \d{4} \d{2}:\d{2}:\d{2} GMT$/.test(retryAfter)
+          ? Date.parse(retryAfter) : NaN;
+      const waitUntil = Math.max(primaryReset, Number.isFinite(retryAt) ? retryAt : 0);
+      if (waitUntil > 0) {
+        const cause = primaryReset ? 'Public API quota exhausted.' : 'Public service requested a retry delay.';
+        nextAction = `${cause} Wait until ${new Date(waitUntil).toISOString()}, then retry with a new evidence path: ${retry}. Shared runner capacity may still be unavailable.`;
+      }
     }
     throw new Error(`Cannot acquire public release metadata: HTTP ${response.status} for ${url}`);
   }
