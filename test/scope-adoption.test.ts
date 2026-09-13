@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
+import { filesystemFault } from './adoption-faults.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -94,7 +95,7 @@ function submit(f: Awaited<ReturnType<typeof fixture>>, value: unknown) {
   writeFileSync(path, JSON.stringify(value));
   return f.run(['resume', '--assessment', path, '--json']);
 }
-function paths(f: Awaited<ReturnType<typeof fixture>>, targets: string[]) {
+function setScopeTargets(f: Awaited<ReturnType<typeof fixture>>, targets: string[]) {
   const entry = f.proposal.declarations[0]!;
   entry.paths = targets;
   entry.candidates = [entry.candidates[1]!, ...targets.map(path => {
@@ -110,7 +111,12 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     const f = await fixture(t, base, { 'old/operations.md': useful, 'INDEX.md': '[Operations](old/operations.md)\n',
       'docs/config.json': '{"shared":true}\n', 'generated/project/README.md': 'Generated; preserve.', 'organization/overview.md': 'Organizational; preserve.' });
     const targets = [`${base}/README.md`, 'old/operations.md', 'docs/projects/operations.md', 'docs/README.md', 'INDEX.md'];
-    paths(f, targets);
+    setScopeTargets(f, targets);
+    for (const [candidate, file, reason] of [
+      ['generated/project', 'generated/project/README.md', 'Generated output is not a maintained project.'],
+      ['organization', 'organization/overview.md', 'An organizational grouping, not an independently maintained project.'],
+    ]) f.proposal.declarations[0]!.candidates.push({ path: candidate!, decision: 'exclude', reason: reason!,
+      evidence: [f.request.discovery.evidence.find((entry: { kind: string; path: string }) => entry.kind === 'file' && entry.path === file)] });
     const inspected = f.inspect().report;
     const start = f.start(inspected.identity).report;
     assert.equal(start.phase, 'contextual');
@@ -232,7 +238,7 @@ test('scope-validity omissions, mismatched identities and additional file needs 
 
 test('discovered contextual changes reject stale, omitted and false evidence before completing with fresh evidence', async t => {
   const f = await fixture(t, 'apps/widget', { 'stable.md': 'Stable' });
-  paths(f, ['apps/widget/README.md', 'stable.md']);
+  setScopeTargets(f, ['apps/widget/README.md', 'stable.md']);
   const start = f.start(f.inspect().report.identity).report;
   const target = f.proposal.declarations[0]!.paths[0]!;
   writeFileSync(join(f.project.root, target), '# Project\n\nRun node server.js.\n');
@@ -291,4 +297,27 @@ test('discovered scope survives retry with separate earlier agent evidence and r
   const status = f.run(['status', '--json']).report;
   assert.deepEqual(status.observations.filter((entry: { changedPaths: string[] }) => entry.changedPaths.includes('apps/widget/README.md')).map((entry: { phase: string }) => entry.phase), ['fixes', 'agent', 'fixes']);
   assert.equal(status.retryHistory.length, 1);
+});
+
+test('interrupted pre-install discovery can retry its relative proposal from another working directory', async t => {
+  const f = await fixture(t);
+  const inspected = f.inspect().report;
+  const env = filesystemFault(f.remote.support.root, f.env, 'runtime', `
+const rename = fs.renameSync;
+fs.renameSync = function(from, to) {
+  const result = rename.call(this, from, to);
+  if (String(to).endsWith('repo-standards-run.lock')) process.kill(process.pid, 'SIGKILL');
+  return result;
+};
+syncBuiltinESMExports();`);
+  const interrupted = cli.run(['start', ...inspectionArgs.slice(1), '--scope', relative(f.project.root, f.scopeFile), '--confirm', inspected.identity], f.project.root, env);
+  assert.equal(interrupted.signal, 'SIGKILL');
+  assert.equal(existsSync(join(f.project.root, '.repo-standards')), false);
+  const elsewhere = join(f.remote.support.root, 'runner');
+  mkdirSync(elsewhere);
+  const recovered = cli.run(['resume', '--retry', '--project', f.project.root, '--json'], elsewhere, f.env);
+  const report = JSON.parse(recovered.stdout);
+  assert.equal(report.phase, 'contextual', recovered.stdout);
+  assert.equal(report.workRequest.scope.inspection, inspected.identity);
+  assert.deepEqual(report.workRequest.scope.proposal, inspected.discovery.proposal);
 });

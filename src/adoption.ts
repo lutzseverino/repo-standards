@@ -1,7 +1,7 @@
 import { concreteScope, contextualScope, observeWork, requireValidIntervals } from './work-observation.js';
 import { assessmentSnapshot, projectSnapshot, validateAssessment } from './assessment.js';
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stringify } from 'yaml';
@@ -24,9 +24,11 @@ function workRequest(root: string, run: Run, installation: Installation): WorkRe
   return { format: discovery ? 'repo-standards/work-request/v2' : 'repo-standards/work-request/v1',
     ...(discovery ? { scope: { inspection: run.inspection, afterFixes: installation.scopeAfterFixes!, proposal: discovery.proposal } } : {}), run: run.id, selection: `sha256:${hash(json(run.selection))}`,
     snapshot: workSnapshot(root, run, report),
-    declarations: report.guidance.map(guidance => ({ id: guidance.id, guidance,
-      ...(discovery?.declarations.find(entry => entry.id === guidance.id) ? { discovery: discovery.declarations.find(entry => entry.id === guidance.id)! } : {}),
-      allowedTargets: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === guidance.id)!) })),
+    declarations: report.guidance.map(guidance => {
+      const discoveryGuidance = discovery?.declarations.find(entry => entry.id === guidance.id);
+      return { id: guidance.id, guidance, ...(discoveryGuidance ? { discovery: discoveryGuidance } : {}),
+        allowedTargets: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === guidance.id)!) };
+    }),
     requiredEvidence: ['status', 'explanation', 'changedPaths', 'evidence', ...(discovery ? ['scope', 'scopeValidity.afterFixes', 'scopeValidity.current'] : [])] };
 }
 
@@ -100,7 +102,9 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
   const initial = await inspectSelection();
   const root = initial.project.root;
   verifyConfirmation(initial, confirmation);
-  const startInput: StartInput = input.kind === 'retained' ? { ...input, kind: 'retained', project: root } : { kind: 'public', options: { ...input.options, project: root } };
+  const proposalPath = input.kind === 'retained' ? input.scope : input.options.scope;
+  const scope = proposalPath === undefined ? {} : { scope: realpathSync(resolve(proposalPath)) };
+  const startInput: StartInput = input.kind === 'retained' ? { kind: 'retained', project: root, ...scope } : { kind: 'public', options: { ...input.options, project: root, ...scope } };
   session.begin(initial, confirmation, startInput);
   let temporary: string | undefined;
   const files: Files = Object.create(null);
