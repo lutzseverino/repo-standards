@@ -109,7 +109,7 @@ interface RecordedAdoption {
   files: Record<string, Pick<Content, 'sha256' | 'executable'>>;
   historicalScope?: {
     sourceResolved?: { declarations?: { id: string; discovery?: string }[] };
-    resolved?: { declarations?: { id: string; kind: string; targets?: { paths?: string[] } }[] };
+    resolved?: { declarations?: { id: string; kind: string; targets?: { paths?: string[]; directories?: string[] } }[] };
   };
 }
 
@@ -131,6 +131,14 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
     try {
       const saved = JSON.parse(readFileSync(join(root, historyPath), 'utf8'));
       historicalScope = Array.isArray(saved?.runs) ? saved.runs.at(-1) : saved;
+      const acceptedScope = (state.amendments?.at(-1) as { acceptedScope?: Record<string, { paths?: string[]; directories?: string[] }> } | undefined)?.acceptedScope;
+      if (acceptedScope && historicalScope?.resolved?.declarations) historicalScope = { ...historicalScope, resolved: {
+        ...historicalScope.resolved,
+        declarations: historicalScope.resolved.declarations.map(declaration => {
+          const amendedTargets = acceptedScope[declaration.id];
+          return amendedTargets ? { ...declaration, targets: amendedTargets } : declaration;
+        }),
+      } };
     } catch { throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.'); }
   }
   return { selection: lock.selection, baselines: state.baselines, skills: state.skills,

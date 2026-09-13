@@ -41,20 +41,21 @@ async function fixture(t: TestContext, versions?: string[]) {
     return { result, report: JSON.parse(result.stdout) };
   };
   const scopeFile = join(remote.support.root, 'scope.json');
-  function proposal(request: any, included: string, excluded?: string) {
-    const evidence = [included, excluded].filter(Boolean).map(path =>
+  function proposal(request: any, included: string | string[], excluded?: string) {
+    const includedPaths = Array.isArray(included) ? included : [included];
+    const evidence = [...includedPaths, excluded].filter(Boolean).map(path =>
       request.discovery.evidence.find((entry: { kind: string; path: string }) => entry.kind === 'file' && entry.path === path));
     writeFileSync(scopeFile, JSON.stringify({
       format: 'repo-standards/scope/v1',
       request: request.discovery.identity,
       declarations: [{
         id: 'docs',
-        paths: [included],
+        paths: includedPaths,
         coverage: excluded ? 'The new project is maintained; the former project no longer meets the retained criteria.' : 'The old project is the only maintained project.',
         evidence,
         candidates: [
-          { path: included, decision: 'include', reason: 'This is a maintained project README.', evidence: [evidence[0]] },
-          ...(excluded ? [{ path: excluded, decision: 'exclude', reason: 'This project is no longer maintained, so its content remains project-owned.', evidence: [evidence[1]] }] : []),
+          ...includedPaths.map((path, index) => ({ path, decision: 'include', reason: 'This is a maintained project README.', evidence: [evidence[index]] })),
+          ...(excluded ? [{ path: excluded, decision: 'exclude', reason: 'This project is no longer maintained, so its content remains project-owned.', evidence: [evidence.at(-1)] }] : []),
         ],
         unresolved: [],
       }],
@@ -79,6 +80,9 @@ async function fixture(t: TestContext, versions?: string[]) {
 
 test('same-pin v2 re-adoption recomputes retained discovery and reports scope changes without deleting former content', async t => {
   const f = await fixture(t);
+  mkdirSync(join(f.project.root, 'apps/amended'), { recursive: true });
+  writeFileSync(join(f.project.root, 'apps/amended/README.md'), '# Amended project\n');
+  commit(f.project.root);
   const firstRequest = f.run(inspectionArgs).report;
   f.proposal(firstRequest, 'apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
@@ -86,7 +90,12 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   assert.equal(firstStartResult.result.status, 1, firstStartResult.result.stdout + firstStartResult.result.stderr);
   const firstStart = firstStartResult.report;
   assert.equal(firstStart.phase, 'contextual', firstStartResult.result.stdout);
-  const firstComplete = f.complete(firstStart);
+  const amendmentRequest = f.run(['inspect', '--amend-scope', '--json']).report;
+  f.proposal(amendmentRequest, ['apps/old/README.md', 'apps/amended/README.md']);
+  const amendment = f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']).report;
+  const amended = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', amendment.identity, '--json']);
+  assert.equal(amended.result.status, 1, amended.result.stdout + amended.result.stderr);
+  const firstComplete = f.complete(amended.report);
   assert.equal(firstComplete.result.status, 0);
   const firstState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
   commit(f.project.root);
@@ -117,7 +126,7 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   assert.equal(stale.report.errors[0].code, 'STALE_SCOPE');
   f.proposal(request, 'apps/new/README.md', 'apps/old/README.md');
   const inspected = f.run(['inspect', '--readopt', '--scope', f.scopeFile, '--json']).report;
-  assert.deepEqual(inspected.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
+  assert.deepEqual(inspected.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/amended/README.md', 'apps/old/README.md'] }]);
   assert.deepEqual(inspected.start.blockers, []);
 
   const started = f.run(['start', '--readopt', '--scope', f.scopeFile, '--confirm', inspected.identity, '--json']).report;
@@ -139,6 +148,8 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
     retryHistory: firstState.retryHistory,
     checks: firstState.checks,
     assessments: firstState.assessments,
+    scopeRevision: firstState.scopeRevision,
+    amendments: firstState.amendments,
   }]);
   const emptyInstalledDirectory = join(f.project.root, '.agents/skills/adopt-standards/added-directory');
   mkdirSync(emptyInstalledDirectory);

@@ -269,10 +269,12 @@ export function status(project: string) {
   if (!existsSync(join(root, '.repo-standards/state.json'))) return { format, selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
   try {
     const { state, pinned } = recordedState(root);
-    return { format: state.format === 'repo-standards/state/v3' || format === 'repo-standards/status/v3' ? 'repo-standards/status/v3'
+    const amended = !!state.amendments?.length;
+    return { format: amended || format === 'repo-standards/status/v3' ? 'repo-standards/status/v3'
       : state.observations ? 'repo-standards/status/v2' : format,
       ...(state.observations ? { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory } : {}),
-      ...(state.format === 'repo-standards/state/v3' ? { scopeRevision: state.scopeRevision, amendments: state.amendments } : {}),
+      ...(state.history ? { history: state.history } : {}),
+      ...(amended ? { scopeRevision: state.scopeRevision, amendments: state.amendments } : {}),
       selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
       checks: state.checks, assessments: state.assessments, active, abandoned, evidence: 'historical' };
   } catch (error) {

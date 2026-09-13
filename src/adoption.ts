@@ -440,7 +440,7 @@ export async function inspectRetained(project: string, cliVersion: string, scope
     { root: sourceRoot, identity: lock.selection.standards, paths, manifest: readFileSync(join(root, '.repo-standards/inputs/standards.yaml'), 'utf8'), ownedSkills: new Set(Object.keys(state.skills)), close() {} });
   const history = '.repo-standards/inputs/scope-history.json';
   const historicalScope = Object.hasOwn(lock.files, history) ? JSON.parse(readFileSync(join(root, history), 'utf8')) : undefined;
-  const amended = state.format === 'repo-standards/state/v3';
+  const amended = !!state.amendments?.length;
   const retainedHistory = historicalScope ? { ...historicalScope,
     ...(amended ? { format: 'repo-standards/scope-history/v2', scopeRevision: state.scopeRevision, amendments: state.amendments } : {}) } : undefined;
   return { ...report, ...(amended ? { format: 'repo-standards/inspection/v3' } : {}),

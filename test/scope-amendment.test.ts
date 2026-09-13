@@ -132,7 +132,7 @@ test('status preserves v3 when a v2 completion has abandoned amended history', a
   const completed = await fixture(t);
   assert.equal(submit(completed).report.outcome, 'complete');
   const state = JSON.parse(readFileSync(join(completed.project.root, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(state.format, 'repo-standards/state/v2');
+  assert.equal(state.format, 'repo-standards/state/v4');
   assert.equal('scopeRevision' in state, false);
   assert.equal('amendments' in state, false);
   const ordinaryStatus = completed.run(['status', '--json']).report;

@@ -362,11 +362,13 @@ ordinary-inspection proposals cannot authorize the new run.
 
 After ordinary v2 completion, retained `inspect --json` remains
 `repo-standards/inspection/v2` and exposes `historicalScope` as
-`repo-standards/scope-history/v1`: the
+`repo-standards/scope-history/v2`: the
 accepted inspection identity, source-resolved declarations, materialized concrete
 selection, and discovery proposal, rationale, guidance, references, and observation
-identities. Repeated complete discovery runs retain ordered `runs` rather than
-erasing the earlier authorization context. Its `evidence: historical` describes prior authorization, even in a
+identities. Ordered `runs` retain each later complete lifecycle point, including
+a no-discovery state after all discovery declarations are retired, rather than
+erasing or misidentifying the immediately prior authorization context. Its
+`evidence: historical` describes prior authorization, even in a
 fresh checkout without the source. The ordinary report's current discovery
 request is separate and confers no authority or claim of current coverage.
 After an amended completion, retained inspection advances to

@@ -196,7 +196,7 @@ Retained inspection also checks v2 exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
 empty-directory edits block updates before mutation.
 Retained inspection remains `repo-standards/inspection/v2` with
-`repo-standards/scope-history/v1` after ordinary v2 completion. When state v3
+`repo-standards/scope-history/v2` after ordinary v2 completion. When state v4
 contains accepted amendments, retained inspection uses
 `repo-standards/inspection/v3` and its historical scope uses
 `repo-standards/scope-history/v2` with `scopeRevision` and `amendments`.

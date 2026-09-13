@@ -173,10 +173,10 @@ Review and commit these files through the adopting project's normal workflow:
 | Exact targets and `.agents/skills/<author skill>/` | The selected author-owned content and complete skill resources. |
 
 Discovery adoption additionally retains `inputs/scope-history.json`. Its ordered
-run records preserve each accepted inspection identity, source-resolved
-declarations, concrete resolved selection, discovery guidance, proposal,
-rationale, evidence references and observation identities. This file is included
-in immutable input integrity.
+run records mark every later complete lifecycle point; entries with discovery
+preserve the accepted inspection identity, source-resolved declarations, concrete
+resolved selection, discovery guidance, proposal, rationale, evidence references
+and observation identities. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
 source availability. Ordinary discovery completion exposes inspection v2 with
 scope-history v2. An amended completion exposes inspection v3; scope-history v2
