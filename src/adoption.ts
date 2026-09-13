@@ -345,6 +345,9 @@ export async function resume(project: string, cliVersion: string, assessmentPath
     const root = projectRoot(project);
     if (amendment) {
       requireAmendmentEligible(session.observation);
+      if (!installation.report.sourceResolved || !installation.report.discovery?.proposal || !session.observation.observations?.length) {
+        throw new ProductError('AMENDMENT_UNAVAILABLE', 'The active adoption has no confirmed discovered scope to amend.');
+      }
       verifyInstallation(root, installation);
       const preview = previewScopeAmendment(root, session.observation, installation, amendment.scope);
       if (preview.identity !== amendment.confirmation) throw new ProductError('STALE_INSPECTION', 'The active run, project evidence, proposal, or confirmation changed. Inspect --amend-scope again and obtain confirmation of the complete fresh preview.');
@@ -390,7 +393,7 @@ export async function resume(project: string, cliVersion: string, assessmentPath
       catch { throw new ProductError('ASSESSMENT_FORMAT', 'Cannot read the assessment file as JSON. Correct the file and resubmit.'); }
     }
     await advance(root, session, installation, true, assessment);
-  });
+  }, !!amendment);
 }
 
 export async function inspectRetained(project: string, cliVersion: string, scope?: string, readopt = false) {

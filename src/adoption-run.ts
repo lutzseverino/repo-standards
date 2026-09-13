@@ -607,7 +607,7 @@ export class AdoptionRunSession {
 
   // Only the scoped entry points below can invoke lifecycle machinery.
   static async scope(root: string, mode: 'start' | 'resume', callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>,
-    resume?: { cliVersion: string; retry: boolean; verify: VerifyInstallation }) {
+    resume?: { cliVersion: string; retry: boolean; verify: VerifyInstallation; amendment: boolean }) {
     const lock = lockPath(root);
     const release = acquireWorker(lock);
     const session = new AdoptionRunSession(root, mode);
@@ -620,7 +620,10 @@ export class AdoptionRunSession {
         session.#run = run;
         if (run.selection.cli.version !== resume.cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
         if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before retry or abandonment.`);
-        if (!resume.retry && !canResumeAssessment(run)) throw new ProductError('RESUME_UNAVAILABLE', 'Explicit recovery is required. Review status and use resume --retry, or abandon to preserve the incomplete work and report.');
+        if (!resume.retry && !canResumeAssessment(run)) {
+          if (resume.amendment) requireAmendmentEligible(run);
+          else throw new ProductError('RESUME_UNAVAILABLE', 'Explicit recovery is required. Review status and use resume --retry, or abandon to preserve the incomplete work and report.');
+        }
         if (resume.retry && !run.continuation && run.startInput) session.#mode = 'start';
         else {
           installation = readInstallation(root, run);
@@ -660,6 +663,6 @@ export function withStartRun(project: string, callback: (session: AdoptionRunSes
 }
 
 export function withResumedRun(project: string, cliVersion: string, retry: boolean, verify: VerifyInstallation,
-  callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>) {
-  return AdoptionRunSession.scope(projectRoot(project), 'resume', callback, { cliVersion, retry, verify });
+  callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>, amendment = false) {
+  return AdoptionRunSession.scope(projectRoot(project), 'resume', callback, { cliVersion, retry, verify, amendment });
 }

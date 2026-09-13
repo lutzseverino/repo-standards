@@ -352,6 +352,44 @@ test('definite scope and check blocks remain eligible and preview preserves oper
   });
 });
 
+test('a definite blocked check can accept an amendment before retry', async t => {
+  const f = await fixture(t, { script: "console.log(JSON.stringify({format:'repo-standards/result/v1',status:'blocked',message:'Need another documented path'}));" });
+  const blocked = submit(f);
+  assert.match(blocked.report.reason, /^OPERATION_BLOCKED:/);
+  const request = f.run(['inspect', '--amend-scope', '--json']);
+  assert.equal(request.result.status, 0, request.result.stdout);
+  const preview = f.inspectScope(request.report, ['README.md', 'LINKS.md']);
+  assert.equal(preview.report.amendment.eligible, true, preview.result.stdout);
+  const accepted = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.report.identity, '--json']);
+  assert.equal(accepted.report.phase, 'contextual', accepted.result.stdout);
+  assert.equal(accepted.report.scopeRevision, 1);
+  assert.equal(accepted.report.amendments[0].confirmation, preview.report.identity);
+});
+
+test('amendment resume rejects active runs without discovered scope as unavailable', async t => {
+  const registry = await registryFixture(cli.root);
+  const remote = remoteFixture(stringify({ format: 'repo-standards/v1', name: 'explicit', description: 'Explicit targets',
+    requires: { 'repo-standards': '^1' }, defaults: { declarations: {
+      docs: { kind: 'repository', guidance: 'guide.md', targets: { paths: ['README.md'], directories: [] } },
+      configuration: { kind: 'file', target: 'config.json', exact: 'config.json' },
+    } }, profiles: { work: { description: 'Work', declarations: {} } } }),
+  { 'guide.md': 'Review project documentation.', 'config.json': '{}\n' });
+  const project = sourceFixture('', { 'README.md': '# Project\n' });
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const inspected = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const started = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspected.identity], project.root, env);
+  assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout);
+  const scope = join(remote.support.root, 'scope.json');
+  writeFileSync(scope, '{}');
+  const rejected = cli.run(['resume', '--amend-scope', '--scope', scope, '--confirm', 'sha256:inapplicable', '--json'], project.root, env);
+  const report = JSON.parse(rejected.stdout);
+  assert.equal(rejected.status, 1, rejected.stdout);
+  assert.match(report.reason, /^AMENDMENT_UNAVAILABLE:/);
+  assert.doesNotMatch(report.reason, /Cannot read properties/);
+});
+
 test('active and uncertain author operations require stopping and explicit retry before amendment', async t => {
   const f = await fixture(t, { phase: 'fixes', deferStart: true,
     script: "console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Prepared'}));" });
