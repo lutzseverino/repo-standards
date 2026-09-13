@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
-import { chmodSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -273,4 +273,31 @@ syncBuiltinESMExports();
   const result = cli.run(inspectionArgs, project.root, { ...remote.env, NODE_OPTIONS: `${remote.env.NODE_OPTIONS} --import=${pathToFileURL(loader).href}` });
   assert.equal(result.status, 1, result.stdout + result.stderr);
   assert.equal(JSON.parse(result.stdout).errors[0].code, 'OBSERVATION_UNSTABLE');
+});
+
+test('ignore input paths preserve significant whitespace and an empty override disables the default input', (t) => {
+  const remote = remoteFixture(source, material);
+  const project = sourceFixture('', { 'app/package.json': '{}' });
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const ignore = join(remote.support.root, 'global ignore ');
+  writeFileSync(ignore, '# original\n');
+  git(project.root, 'config', 'core.excludesFile', ignore);
+  const request = (env = remote.env) => {
+    const result = cli.run(inspectionArgs, project.root, env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    return JSON.parse(result.stdout).discovery.identity;
+  };
+  const first = request();
+  writeFileSync(ignore, '# changed without changing classification\n');
+  assert.notEqual(request(), first);
+  git(project.root, 'config', 'core.excludesFile', '');
+  const configRoot = join(remote.support.root, 'config');
+  mkdirSync(join(configRoot, 'git'), { recursive: true });
+  const defaultIgnore = join(configRoot, 'git/ignore');
+  writeFileSync(defaultIgnore, '# unused input\n');
+  const env = { ...remote.env, XDG_CONFIG_HOME: configRoot };
+  const disabled = request(env);
+  writeFileSync(defaultIgnore, '# still not consulted\n');
+  assert.equal(request(env), disabled);
 });

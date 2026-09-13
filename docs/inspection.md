@@ -312,7 +312,8 @@ inspection), HEAD, index and hidden index flags, and the complete tracked and
 non-ignored project snapshot. Observation records file hashes/executable state,
 directory inventories and boundaries, effective Git observation settings, and
 consulted `.gitignore`, Git info/exclude, and global ignore inputs, including their
-absence. It retains relevant settings and ignore hashes, not unrelated Git
+absence. Configured ignore paths preserve significant whitespace; an explicitly
+empty `core.excludesFile` disables the default global ignore input. It retains relevant settings and ignore hashes, not unrelated Git
 configuration, credentials, or external ignore-file contents. The final identity
 also binds the proposal, rationale, named targets, and their ancestors. Named
 paths remain observed even if ignored. Ignored untracked files cannot be used as

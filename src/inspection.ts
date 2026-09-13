@@ -185,7 +185,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     if (!profile) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
     const discoveryDeclarations = profile.declarations.filter(declaration => 'discovery' in declaration);
     const scopeObservation = discoveryDeclarations.length ? observeScope(root) : undefined;
-    const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: retained ? 'retained' : previous ? 'update' : 'adopt', head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;
+    const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: retained ? 'retained' : previous ? 'update' : 'adopt', root, head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;
     const proposal = options.scope ? readScope(options.scope, root) : undefined;
     if (proposal && proposal.request !== requestIdentity) throw new ProductError('STALE_SCOPE', 'Scope proposal does not match this discovery request. Inspect again and review fresh evidence.');
     const resolved = materializeScope(root, profile, proposal);
@@ -308,7 +308,13 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
       ...(update ? { update, previousSelection: previous!.selection, retired } : {}),
     };
-    if (scopeObservation && (git(root, ['rev-parse', '--verify', 'HEAD']).stdout !== head.stdout || git(root, ['ls-files', '--stage', '-z']).stdout !== index.stdout || git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignore-submodules=all']).stdout !== status.stdout || JSON.stringify(hiddenIndexPaths(root)) !== JSON.stringify(hidden))) throw new ProductError('OBSERVATION_UNSTABLE', 'Git project state changed during discovery inspection. Inspect again.');
+    if (scopeObservation) {
+      const finalHead = git(root, ['rev-parse', '--verify', 'HEAD'], undefined, 30_000);
+      const finalIndex = git(root, ['ls-files', '--stage', '-z'], undefined, 30_000);
+      const finalStatus = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignore-submodules=all'], undefined, 30_000);
+      if (finalIndex.status !== 0 || finalStatus.status !== 0) throw new ProductError('OBSERVATION_READ', 'Cannot completely recheck Git project state.');
+      if (finalHead.status !== head.status || finalHead.stdout !== head.stdout || finalIndex.stdout !== index.stdout || finalStatus.stdout !== status.stdout || JSON.stringify(hiddenIndexPaths(root)) !== JSON.stringify(hidden)) throw new ProductError('OBSERVATION_UNSTABLE', 'Git project state changed during discovery inspection. Inspect again.');
+    }
     if (scopeObservation && JSON.stringify(scopeObservation) !== JSON.stringify(observeScope(root))) throw new ProductError('OBSERVATION_UNSTABLE', 'Discovery observation changed during inspection. Inspect again.');
     if (namedObservation && JSON.stringify(namedObservation) !== JSON.stringify(observeScope(root, named))) throw new ProductError('OBSERVATION_UNSTABLE', 'Named scope observations changed during inspection. Inspect again.');
     return { ...report, identity: `sha256:${hash(JSON.stringify(report))}` };

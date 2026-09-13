@@ -72,9 +72,9 @@ export function observeScope(root: string, named: string[] = []) {
   }
   const settings = Object.fromEntries(['core.ignorecase', 'core.precomposeunicode', 'core.filemode', 'core.symlinks', 'core.sparsecheckout', 'core.sparsecheckoutcone']
     .map(key => [key, command(['config', '--bool', '--get', key], true).trim() || null]));
-  const configuredExclude = command(['config', '--path', '--get', 'core.excludesfile'], true).trim();
-  const globalExclude = configuredExclude || join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'git/ignore');
-  const infoExclude = command(['rev-parse', '--path-format=absolute', '--git-path', 'info/exclude']).trim();
+  const configuredExclude = command(['config', '--null', '--path', '--get', 'core.excludesfile'], true);
+  const globalExclude = configuredExclude ? configuredExclude.slice(0, -1) : join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'git/ignore');
+  const infoExclude = command(['rev-parse', '--path-format=absolute', '--git-path', 'info/exclude']).replace(/\n$/, '');
   const tracked = command(['ls-files', '--cached', '-z']).split('\0').filter(Boolean);
   const trackedParents = new Set<string>();
   for (const path of tracked) {
@@ -144,8 +144,9 @@ export function observeScope(root: string, named: string[] = []) {
     }
     if (targets[path]!.type !== 'file' && targets[path]!.type !== 'missing') throw new ProductError('UNSAFE_TARGET', `Discovered targets must be individual regular files or absent files: ${path}.`);
   }
-  const ignores: Record<string, { location: string; state: FileState }> = Object.create(null);
-  for (const [key, path] of [['global', resolve(root, globalExclude)], ['info', infoExclude]]) {
+  const ignores: Record<string, { location: string; state: FileState | { type: 'disabled' } }> = Object.create(null);
+  for (const [key, path] of [['global', globalExclude ? resolve(root, globalExclude) : ''], ['info', infoExclude]]) {
+    if (path === '') { ignores[key!] = { location: '', state: { type: 'disabled' } }; continue; }
     const state = file(path!);
     if (state.type !== 'file' && state.type !== 'missing') throw new ProductError('OBSERVATION_UNSAFE', 'Ignore inputs must be regular files or absent.');
     ignores[key!] = { location: path!, state };
