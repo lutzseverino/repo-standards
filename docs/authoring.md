@@ -48,7 +48,12 @@ uses the same validation and discovery commands below.
 
 Use exact files or whole author-skill directories for material you intend to
 own byte-for-byte. Use contextual file guidance for project-owned documentation
-and repository guidance for explicit paths or directory trees. Guidance should
+and repository guidance for explicit paths or directory trees. Preserve v1 for
+existing explicit-scope sources. Deliberately choose v2 when the author wants
+project-specific discovery: supply separate contextual-work guidance (how to
+assess or adapt content) and discovery guidance (where it applies). Review
+membership criteria, missing files, and exclusions without inventing an adopting
+project's layout. See the [format choice and current implementation limits](author-format.md#choose-a-format-deliberately). Guidance should
 give an agent observable goals, useful evidence requirements and boundaries,
 while letting it describe the actual project. Avoid generic replacement prose
 that discards project facts. Authors cannot replace `adopt-standards` or add
@@ -77,8 +82,11 @@ repo-standards source validate /path/to/standards --json
 ```
 
 Validation checks declarations and references; it executes neither operations
-nor probes and does not assess guidance or author-skill quality. During authoring,
-exercise generated operations directly through the versioned script protocol in
+nor probes and does not assess guidance or author-skill quality, concrete scope
+safety, or semantic completeness in an unfamiliar project. Read the per-profile
+discovery requirements: valid references are not confirmed project targets. During authoring,
+exercise generated operations with a concrete selection through the versioned
+script protocol in
 disposable directories, with only selected scripts and declared resources copied
 to a separate source layout. The standalone skill's
 [exercise guide](../skills/author-standards/references/operations.md) describes

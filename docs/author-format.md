@@ -1,4 +1,4 @@
-# Author format: repo-standards/v1
+# Author formats: repo-standards/v1 and repo-standards/v2
 
 An independently authored standards repository supplies one root
 `standards.yaml` and ordinary referenced files. Run
@@ -8,6 +8,22 @@ is no profile filter. This command reads local sources, never executes author
 scripts or prerequisite probes, and does not change the source or Git state.
 Local-directory adoption is not an interface of this product.
 
+## Choose a format deliberately
+
+Existing sources keep `repo-standards/v1` and their ordinary execution behavior.
+Use `repo-standards/v2` when repository guidance needs project-specific discovery.
+V2 also accepts explicit targets; file declarations, skills, operations, and
+profile resolution keep the same contracts in both formats. Set the CLI
+compatibility range to versions actually validated; the format identity and CLI
+package version are independent. Older CLIs reject unsupported formats.
+
+This implementation supports v2 source authoring and validation. A selected
+profile with unresolved discovery fails `inspect` and `start` with
+`DISCOVERY_REQUIRED`, before author operations or project writes. Project scope
+proposals and discovery adoption are a later implementation slice of
+[the contextual scope specification](https://github.com/lutzseverino/repo-standards/issues/41).
+Validation success alone does not make such a profile executable.
+
 ## Root and profiles
 
 The root requires exactly these fields. Unknown fields at every schema level
@@ -16,7 +32,7 @@ custom working directories, and profile inheritance fields.
 
 | Field | Value |
 | --- | --- |
-| `format` | Exactly `repo-standards/v1` |
+| `format` | `repo-standards/v1` or `repo-standards/v2` |
 | `name` | Nonempty descriptive string |
 | `description` | Nonempty descriptive string |
 | `requires` | Mapping containing only `repo-standards`, a nonempty npm SemVer range compatible with the running CLI |
@@ -58,15 +74,54 @@ resolve to empty lists. Their remaining fields are:
 | Exact file | `kind: file`, one `target`, and `exact` referencing a regular source file |
 | Contextual file | `kind: file`, one `target`, and `guidance` referencing a regular source file |
 | Exact skill | `kind: skill`, `name`, and `source` referencing a whole directory containing a regular `SKILL.md` |
-| Repository guidance | `kind: repository`, `guidance` referencing a regular file, and `targets` containing both `paths` and `directories` lists |
+| Repository guidance | `kind: repository`, `guidance` referencing a regular file, and exactly one scope mode: explicit `targets` containing both `paths` and `directories` lists, or (v2 only) `discovery` referencing a regular file |
 
-A file must have exactly one of `exact` or `guidance`. Repository guidance
-needs at least one explicit path or directory. Exact skills target
+A file must have exactly one of `exact` or `guidance`. Explicit repository guidance
+needs at least one path or directory. V1 requires this explicit scope; v2 requires
+exactly one of `targets` or `discovery`. Exact skills target
 `.agents/skills/<name>` as a whole. `adopt-standards` and `author-standards` are
 product-owned system skill names reserved against author skills. Author skill
 content remains ordinary Agent Skill material; source
 validation verifies its directory and `SKILL.md` references, not prose quality
 or skill behavior.
+
+### Discovery guidance (v2)
+
+```yaml
+format: repo-standards/v2
+name: project-documentation
+description: Documentation for maintained projects
+requires: {repo-standards: "<validated CLI SemVer range>"}
+defaults:
+  declarations:
+    project-documentation:
+      kind: repository
+      guidance: guidance/documentation.md
+      discovery: guidance/find-projects.md
+profiles:
+  work:
+    description: Documentation for all maintained projects
+    declarations: {}
+```
+
+Replace the compatibility placeholder with the CLI SemVer range actually tested,
+and supply both referenced files. `guidance/documentation.md` describes how to assess
+or adapt project content, such as preserving useful facts and documenting real
+commands. `guidance/find-projects.md` describes where that guidance applies: for
+example, evidence of maintained projects including projects missing READMEs, and
+criteria for distinguishing fixtures, generated output, and organizational
+directories. Discovery is agent-interpreted prose, never an executable hook.
+
+A source-resolved discovery declaration has a `discovery` reference and no
+`targets`; this is unresolved scope, not an empty or whole-repository entitlement.
+Project discovery must eventually identify individual existing or intended file
+paths, including migration sources, destinations, and link repairs. Semantic
+coverage requires agent interpretation and adopter review. Discovered directory
+trees, globs, root scope, `protect` fields, and subtracting exact descendants
+from contextual trees are unsupported. Explicit directory scopes remain disjoint,
+including from exact configuration beneath them.
+
+### Paths and ownership
 
 Source and target paths use repository-relative forward-slash syntax. Absolute
 paths, drive prefixes, backslashes, control characters, empty components, `.`
@@ -81,7 +136,7 @@ Unreferenced source files are outside validation's selected material. Targets
 need not exist in the standards repository; adopting-project symlink and
 ownership checks belong to inspection and adoption.
 
-Within each resolved profile, no target can equal, contain, or be contained
+Within each resolved profile, no explicit target can equal, contain, or be contained
 by another target, including two entries of one repository declaration.
 Comparison also catches case-insensitive and Unicode-normalized collisions.
 Product state (`.repo-standards`), both system skill targets
@@ -160,8 +215,20 @@ output lists profiles; human errors go to stderr as
 With `--json`, stdout is one JSON object, and expected validation failures do
 not write stderr. A successful report contains `valid: true`, `errors: []`,
 normalized root `source` metadata, and `profiles`, keyed by profile name. Each
-profile has its description and the complete resolved declarations array.
+profile has its description and the complete source-resolved declarations array.
 Declarations include their `id` and explicit `checks` and `fixes` arrays.
+The source retains its authored format identity. A successful report also includes
+`scope.verified` describing the source-owned facts checked, `scope.limitations`
+explaining project-specific limits, and `scope.discoveryRequired`, a mapping of
+all profile names to their active discovery declaration IDs (empty lists for
+profiles without discovery). Human output presents these same facts and limits.
+
+Validation verifies every profile's schema, references (including both guidance
+files), operations, identities, reservations, and all determinable explicit-target
+conflicts. It cannot establish concrete scope safety or semantic completeness in
+an unfamiliar adopting project, even when all explicit source targets are valid.
+Excluded discovery declarations do not require project discovery; their source
+references are still validated like every other default reference.
 
 A failed report contains `valid: false`, `errors`, and `profiles: {}`. Invalid
 selections are never offered as resolved results. Each diagnostic contains a
@@ -186,7 +253,7 @@ structurally invalid YAML may limit what can be determined.
 | `INCOMPATIBLE_CLI` | Running CLI does not satisfy the source range |
 | `EMPTY_PROFILES` | No complete named profile |
 | `INVALID_ID` | Declaration, skill, or operation identity is malformed |
-| `INVALID_DECLARATION` | Unknown kind or file without exactly one content mode |
+| `INVALID_DECLARATION` | Unknown kind, file without exactly one content mode, or v2 repository guidance without exactly one scope mode |
 | `INVALID_EXCLUSION` | Invalid exclusion value, level, or default identity |
 | `INVALID_EXECUTABLE` | Executable violates the documented name/path syntax |
 | `INVALID_TIMEOUT` | Timeout is not a positive safe integer |

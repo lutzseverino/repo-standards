@@ -68,9 +68,14 @@ source.
 _Avoid_: Template, exact content
 
 **Repository guidance**:
-Contextual guidance that applies to an explicit set of project paths or
-directory trees instead of one file.
+Contextual guidance that applies to a set of project paths or directory trees,
+identified by explicit targets or project-specific discovery.
 _Avoid_: Global guidance, glob rule
+
+**Discovery guidance**:
+Author-provided criteria for identifying where a contextual declaration
+applies in an adopting project.
+_Avoid_: Discovery script, built-in project classification
 
 **System skill**:
 A product-owned Agent Skill that exposes shared Repository Standards behavior

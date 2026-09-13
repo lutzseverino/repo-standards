@@ -13,4 +13,10 @@ export type Declaration = DeclarationBase & (
   | { kind: 'repository'; guidance: string; targets: { paths: string[]; directories: string[] } }
 );
 
+// Source discovery has no executable targets until project scope is confirmed.
+export type SourceDeclaration = Declaration | (DeclarationBase & {
+  kind: 'repository'; guidance: string; discovery: string;
+});
+export interface SourceProfile { description: string; declarations: SourceDeclaration[] }
+
 export interface ResolvedProfile { description: string; declarations: Declaration[] }

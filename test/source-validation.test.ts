@@ -15,7 +15,7 @@ requires:
   repo-standards: ">=1.0.0 <2.0.0"
 `;
 
-test('validation preserves literal operations, never runs scripts or version probes, and leaves a dirty source unchanged', (t) => {
+for (const format of ['repo-standards/v1', 'repo-standards/v2']) test(`validation preserves literal operations, never runs scripts or version probes, and leaves a dirty source unchanged (${format})`, (t) => {
   const operation = `
           - id: probe
             run:
@@ -27,11 +27,10 @@ test('validation preserves literal operations, never runs scripts or version pro
               version-arguments: ["--version", "$(touch SENTINEL)"]
               version: ">=24.0.0 <25.0.0"
             timeout-seconds: 5`;
-  const source = sourceFixture(header + `defaults:
+  const source = sourceFixture(header.replace('repo-standards/v1', format) + `defaults:
   declarations:
     readme:
-      kind: file
-      target: README.md
+      ${format === 'repo-standards/v2' ? 'kind: repository\n      discovery: discovery.md' : 'kind: file\n      target: README.md'}
       guidance: guidance.md
       checks:${operation}
       fixes:${operation.replace('id: probe', 'id: fix')}
@@ -45,6 +44,7 @@ profiles:
       readme:
         exclude: true
 `, {
+    'discovery.md': 'Find maintained projects without running this file.',
     'guidance.md': 'Improve the README for this project.',
     'probe': '#!/bin/sh\ntouch SENTINEL\necho 24.0.0\n',
     'script.js': 'require("node:fs").writeFileSync("SENTINEL", "ran");\n',
@@ -81,7 +81,7 @@ test('the accepted Alice example validates unchanged and provides human output',
 });
 
 for (const [label, yaml, code] of [
-  ['unsupported format', header.replace('repo-standards/v1', 'repo-standards/v2'), 'INVALID_FORMAT'],
+  ['unsupported format', header.replace('repo-standards/v1', 'repo-standards/v3'), 'INVALID_FORMAT'],
   ['invalid CLI range', header.replace('>=1.0.0 <2.0.0', 'yesterday'), 'INVALID_VERSION'],
   ['incompatible CLI', header.replace('>=1.0.0 <2.0.0', '>=2.0.0'), 'INCOMPATIBLE_CLI'],
   ['missing metadata', header.replace('description: Test standards\n', ''), 'REQUIRED_FIELD'],
@@ -195,8 +195,8 @@ profiles:
   assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string }) => error.code === 'UNKNOWN_FIELD'));
 });
 
-test('unsafe references and conflicting targets are rejected even in an unselected profile', (t) => {
-  const source = sourceFixture(header + `defaults:
+for (const format of ['repo-standards/v1', 'repo-standards/v2']) test(`unsafe references and conflicting targets are rejected even in an unselected profile (${format})`, (t) => {
+  const source = sourceFixture(header.replace('repo-standards/v1', format) + `defaults:
   declarations:
     original:
       kind: file
@@ -270,8 +270,8 @@ profiles:
     error.code === 'MISSING_REFERENCE' && error.path.endsWith('/run/script')));
 });
 
-test('validation collects schema and operation errors across every profile with precise locations', (t) => {
-  const yaml = header + `extra: rejected
+for (const format of ['repo-standards/v1', 'repo-standards/v2']) test(`validation collects schema and operation errors across every profile with precise locations (${format})`, (t) => {
+  const yaml = header.replace('repo-standards/v1', format) + `extra: rejected
 defaults:
   declarations:
     old:
@@ -341,8 +341,8 @@ profiles:
   assert.ok(errors.some((error: { path: string }) => error.path.startsWith('/profiles/second/')));
 });
 
-test('all four forms resolve through inheritance, replacement, addition and exclusion as complete declarations', (t) => {
-  let yaml = readFileSync('examples/alice/standards.yaml', 'utf8');
+for (const format of ['repo-standards/v1', 'repo-standards/v2']) test(`all four forms resolve through inheritance, replacement, addition and exclusion as complete declarations (${format})`, (t) => {
+  let yaml = readFileSync('examples/alice/standards.yaml', 'utf8').replace('repo-standards/v1', format);
   yaml = yaml.replace('    declarations: {}', `    declarations:
       extra-file:
         kind: file
@@ -397,3 +397,163 @@ profiles:
   assert.deepEqual(report.errors, []);
   assert.deepEqual(report.profiles, { personal: { description: 'Standards for personal projects', declarations: [] } });
 });
+
+
+test('v2 resolves discovery separately from explicit targets across complete profiles', (t) => {
+  const source = sourceFixture(header.replace('repo-standards/v1', 'repo-standards/v2') + `defaults:
+  declarations:
+    documentation:
+      kind: repository
+      guidance: guidance.md
+      discovery: discovery.md
+profiles:
+  inherited:
+    description: Inherited discovery
+    declarations: {}
+  explicit:
+    description: Complete explicit replacement
+    declarations:
+      documentation:
+        kind: repository
+        guidance: guidance.md
+        targets: {paths: [README.md], directories: [docs]}
+  excluded:
+    description: No documentation governance
+    declarations:
+      documentation: {exclude: true}
+`, { 'guidance.md': 'Preserve useful project facts.', 'discovery.md': 'Identify maintained projects, including those without READMEs.' });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.source.format, 'repo-standards/v2');
+  assert.deepEqual(report.profiles.inherited.declarations, [{
+    id: 'documentation', kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md', checks: [], fixes: [],
+  }]);
+  assert.deepEqual(report.profiles.explicit.declarations, [{
+    id: 'documentation', kind: 'repository', guidance: 'guidance.md', targets: { paths: ['README.md'], directories: ['docs'] }, checks: [], fixes: [],
+  }]);
+  assert.deepEqual(report.profiles.excluded.declarations, []);
+  assert.deepEqual(report.scope.discoveryRequired, { inherited: ['documentation'], explicit: [], excluded: [] });
+  assert.match(report.scope.verified, /all profiles.*references.*operations.*explicit.target conflicts/i);
+  assert.match(report.scope.limitations, /concrete scope safety.*semantic completeness/i);
+  const human = cli.run(['source', 'validate'], source.root);
+  assert.equal(human.status, 0, human.stderr);
+  assert.match(human.stdout, /discovery.*inherited.*documentation/i);
+  assert.match(human.stdout, /concrete scope safety.*semantic completeness/i);
+});
+
+
+for (const [label, declaration, code, path] of [
+  ['both scope modes', 'discovery: discovery.md\n      targets: {paths: [README.md], directories: []}', 'INVALID_DECLARATION', ''],
+  ['neither scope mode', '', 'INVALID_DECLARATION', ''],
+  ['empty explicit scope', 'targets: {paths: [], directories: []}', 'EMPTY_TARGETS', '/targets'],
+  ['missing discovery', 'discovery: missing.md', 'MISSING_REFERENCE', '/discovery'],
+  ['unsafe discovery', 'discovery: ../outside.md', 'UNSAFE_PATH', '/discovery'],
+  ['absolute discovery', 'discovery: /outside.md', 'UNSAFE_PATH', '/discovery'],
+  ['directory discovery', 'discovery: resources', 'REFERENCE_TYPE', '/discovery'],
+  ['non-string discovery', 'discovery: [discovery.md]', 'INVALID_TYPE', '/discovery'],
+  ['script-shaped discovery', 'discovery: {run: discovery.md}', 'INVALID_TYPE', '/discovery'],
+  ['missing contextual guidance', 'discovery: discovery.md', 'MISSING_REFERENCE', '/guidance'],
+  ['unsafe contextual guidance', 'discovery: discovery.md', 'UNSAFE_PATH', '/guidance'],
+  ['unknown protection field', 'discovery: discovery.md\n      protect: [config.json]', 'UNKNOWN_FIELD', '/protect'],
+  ['unknown target field', 'targets: {paths: [README.md], directories: [], exclude: [config.json]}', 'UNKNOWN_FIELD', '/targets/exclude'],
+  ['duplicate discovery field', 'discovery: discovery.md\n      discovery: missing.md', 'DUPLICATE_IDENTITY', '/discovery'],
+] as const) test(`v2 rejects ${label} even when every profile excludes the default`, t => {
+  const guidance = label === 'missing contextual guidance' ? 'missing.md' : label === 'unsafe contextual guidance' ? '../outside.md' : 'guidance.md';
+  const source = sourceFixture(header.replace('repo-standards/v1', 'repo-standards/v2') + `defaults:
+  declarations:
+    documentation:
+      kind: repository
+      guidance: ${guidance}
+      ${declaration}
+profiles:
+  work:
+    description: Excludes invalid default
+    declarations:
+      documentation: {exclude: true}
+`, { 'guidance.md': 'Improve documentation.', 'discovery.md': 'Find maintained projects.', 'resources/file.md': 'A directory is not a guidance file.' });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.profiles, {});
+  assert.ok(report.errors.some((error: { code: string; path: string; line: number; column: number }) =>
+    error.code === code && error.path === `/defaults/declarations/documentation${path}` && error.line > 0 && error.column > 0), result.stdout);
+});
+
+for (const reference of ['guidance', 'discovery']) test(`v2 rejects symlinked ${reference} and its ancestors`, t => {
+  for (const path of ['linked.md', 'linked/file.md']) {
+    const source = sourceFixture(header.replace('repo-standards/v1', 'repo-standards/v2') + `defaults:
+  declarations: {}
+profiles:
+  work:
+    description: Work
+    declarations:
+      documentation:
+        kind: repository
+        guidance: ${reference === 'guidance' ? path : 'guidance.md'}
+        discovery: ${reference === 'discovery' ? path : 'discovery.md'}
+`, { 'guidance.md': 'Improve documentation.', 'discovery.md': 'Find projects.', 'resources/file.md': 'Guidance' });
+    t.after(() => source.close());
+    symlinkSync('guidance.md', join(source.root, 'linked.md'));
+    symlinkSync('resources', join(source.root, 'linked'));
+    const result = cli.run(['source', 'validate', '--json'], source.root);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string; path: string }) =>
+      error.code === 'SOURCE_SYMLINK' && error.path === `/profiles/work/declarations/documentation/${reference}`), result.stdout);
+  }
+});
+
+test('v2 collects both references and explicit conflicts in ambiguous discovery declarations', t => {
+  const source = sourceFixture(header.replace('repo-standards/v1', 'repo-standards/v2') + `defaults:
+  declarations:
+    configuration:
+      kind: file
+      target: docs/config.json
+      exact: config.json
+profiles:
+  work:
+    description: Work
+    declarations: {}
+  other:
+    description: Invalid unselected profile
+    declarations:
+      documentation:
+        kind: repository
+        guidance: missing-guidance.md
+        discovery: missing-discovery.md
+        targets: {paths: [], directories: [docs]}
+`, { 'config.json': '{}' });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.profiles, {});
+  for (const field of ['guidance', 'discovery']) assert.ok(report.errors.some((error: { code: string; path: string }) =>
+    error.code === 'MISSING_REFERENCE' && error.path === `/profiles/other/declarations/documentation/${field}`), result.stdout);
+  for (const code of ['INVALID_DECLARATION', 'TARGET_OVERLAP']) assert.ok(report.errors.some((error: { code: string }) => error.code === code), result.stdout);
+});
+
+for (const [format, kind] of [['repo-standards/v1', 'repository'], ['repo-standards/v2', 'file'], ['repo-standards/v2', 'skill']]) {
+  test(`${format} ${kind} rejects discovery outside the v2 repository form`, t => {
+    const fields = kind === 'repository' ? 'guidance: guidance.md\n      targets: {paths: [README.md], directories: []}'
+      : kind === 'file' ? 'target: README.md\n      guidance: guidance.md' : 'name: review\n      source: skill';
+    const source = sourceFixture(header.replace('repo-standards/v1', format!) + `defaults:
+  declarations:
+    documentation:
+      kind: ${kind}
+      ${fields}
+      discovery: discovery.md
+profiles:
+  work:
+    description: Work
+    declarations: {}
+`, { 'guidance.md': 'Improve documentation.', 'discovery.md': 'Find projects.', 'skill/SKILL.md': '# Review' });
+    t.after(() => source.close());
+    const result = cli.run(['source', 'validate', '--json'], source.root);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string; path: string }) =>
+      error.code === 'UNKNOWN_FIELD' && error.path === '/defaults/declarations/documentation/discovery'), result.stdout);
+  });
+}

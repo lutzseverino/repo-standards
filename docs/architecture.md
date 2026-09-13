@@ -1,7 +1,12 @@
-# Repository Standards — version-one architecture
+# Repository Standards — architecture contracts
 
 Status: accepted through the architecture grilling completed on 2026-09-06.
-This document describes the intended product, not existing implementation.
+The version-one baseline is extended by the accepted
+[contextual scope specification (#41)](https://github.com/lutzseverino/repo-standards/issues/41).
+This document describes contracts; individual tickets state implementation scope.
+Ticket #42 implements v2 authoring/validation and blocks unresolved discovery
+before execution. Project-specific discovery and lifecycle changes remain later
+slices of #41.
 
 ## Purpose and release boundary
 
@@ -41,7 +46,7 @@ are product-owned system skill names reserved within the standards format.
 | Module | Interface and responsibility |
 | --- | --- |
 | Source acquisition | A public GitHub identity and stable version produce an immutable source snapshot and provenance. Search provides candidates without establishing trust. |
-| Resolver | A source and profile produce one validated resolved selection, or structured errors. This is the sole interpreter of the author format. |
+| Resolver | A source and profile produce one validated source-resolved selection, or structured errors. Discovery references remain distinct from executable targets until project scope is confirmed. This is the sole interpreter of the author format. |
 | Repository state | A resolved selection and observed project produce an inspection, ownership conflicts, freshness identities, and durable adoption progress. |
 | Execution | Confirmed adoption progress advances through exact installation, literal process execution, checks, and integrity verification. |
 | Adoption orchestration | The system skill presents inspection, obtains confirmation, performs requested contextual work, and submits evidence through the CLI. |
@@ -64,7 +69,7 @@ and fixes. It has one of four forms:
 - Contextual file: referenced guidance for one project-owned target.
 - Exact skill: one whole Agent Skill directory, installed under its skill name.
 - Repository guidance: contextual guidance over explicit paths or directory
-  trees. There are no glob patterns.
+  trees, or (in v2) a separate discovery-guidance reference. There are no glob patterns.
 
 There are exactly two resolution levels: defaults and selected profile. A
 profile inherits an omitted declaration, wholly replaces a declaration with the
@@ -154,7 +159,7 @@ with stable codes and precise YAML locations.
 
 Source and target paths are repository-relative and cannot escape their roots.
 Selected sources cannot contain symbolic links. Targets and their ancestors
-cannot be symbolic links during adoption. Resolved targets cannot overlap,
+cannot be symbolic links during adoption. Concrete targets cannot overlap,
 including case-folded collisions. Product-owned state and both system-skill
 paths (`.agents/skills/adopt-standards` and `.agents/skills/author-standards`)
 are reserved, including equal paths, ancestors, descendants, and collisions
@@ -163,6 +168,31 @@ exact files, contextual files, and repository guidance as well as author skills,
 across defaults and all profiles, including those not selected for inspection.
 Reserving `author-standards` does not change the schema or the two-level
 resolution semantics.
+
+### V2 source resolution and validation limits
+
+V2 repository guidance retains `guidance` for contextual work and chooses exactly
+one of explicit `targets` or `discovery`, a regular source-file reference containing
+criteria for identifying applicable project files. Both references use the existing
+safe, readable source-reference contract. Other kinds, operations, declaration
+identities, and complete replacement/exclusion semantics remain unchanged.
+
+The Resolver alone interprets both author formats. Source resolution preserves
+unresolved discovery without manufacturing empty or broad executable targets.
+Execution accepts concrete targets; unresolved discovery cannot authorize
+adoption. This slice returns `DISCOVERY_REQUIRED` from inspection/start until the
+project-scope interface is implemented. Profiles without active discovery continue
+through the existing concrete-target path.
+
+Source validation checks all profiles, including unselected profiles and references
+of excluded/replaced defaults, without author-code execution. It reports verified
+schema, references, operations, reservations, and determinable explicit-target
+conflicts separately from the need for project inspection, discovery, and semantic
+review. A valid source does not prove concrete scope safety or semantic completeness
+in an unfamiliar project. Discovery will resolve to individual file paths, retaining
+the existing disjoint ownership rules. Explicit directory targets remain disjoint;
+there is no protection language, exact-descendant subtraction, discovery script,
+or additional ownership model.
 
 ## Publication and compatibility
 
@@ -176,9 +206,10 @@ Discovery searches the `repo-standards` GitHub topic. A discoverable source is
 public, has the root declaration, and has a stable SemVer release. Discovery
 does not endorse a source or automatically select a profile.
 
-The format identity is `repo-standards/v1`. Authors declare a compatible CLI
-SemVer range. Source Git provenance and SHA-256 hashes of retained inputs are
-recorded independently of the exact CLI package pin.
+Authors deliberately choose `repo-standards/v1` or `repo-standards/v2` and declare
+a compatible CLI SemVer range. Existing v1 sources retain their format and
+ordinary execution behavior; unsupported formats fail explicitly. Source Git
+provenance and SHA-256 hashes of retained inputs are recorded independently of the exact CLI package pin.
 
 ## CLI and bootstrap
 

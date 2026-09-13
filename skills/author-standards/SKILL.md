@@ -47,8 +47,11 @@ deferred decisions distinct from confirmed choices. None produces policy.
 
 Once there is a confirmed choice to express, read [CLI and matching
 documentation](references/cli.md), acquire the external CLI, and read its
-`docs/author-format.md` before creating source material. Use the existing author
-format; do not add preference fields or a second schema to `standards.yaml`.
+`docs/author-format.md` before creating source material. Choose the format
+deliberately: preserve v1 for existing explicit-scope sources;
+use v2 when accepted repository guidance needs discovery in unfamiliar layouts.
+Explain the choice and set compatibility to the CLI actually validated. Follow
+its format contract without adding preference fields to `standards.yaml`.
 
 Choose the form from the author's ownership intent and explain the consequence
 alongside the draft:
@@ -60,8 +63,14 @@ alongside the draft:
   an agent uses the supplied guidance to assess or adapt it. Show the guidance
   and target, not a fictional project document.
 - **Repository guidance:** project-owned content across explicit paths or
-  directory trees is assessed or adapted. Confirm that scope; globs and an
-  implicit whole-repository scope are unsupported.
+  directory trees, or files identified by v2 discovery, is assessed or adapted.
+  Review explicit scope or author-confirmed discovery criteria alongside the
+  contextual guidance. For discovery, create a separate file explaining where
+  guidance applies, including positive membership evidence and excluded
+  candidates; contextual guidance explains how to assess or adapt that content.
+  Plan individual existing and missing files, migration destinations, and link
+  repairs. Keep explicit trees disjoint from exact content; globs, root scope,
+  protection fields, and discovery scripts are unsupported.
 - **Exact author skill:** the source owns the whole `.agents/skills/<name>`
   directory, including resources; updates replace it as a unit. It supports
   ordinary work and cannot replace or extend adoption behavior.
@@ -108,8 +117,8 @@ deferred by the author.
 
 Run the installed public CLI's `source validate <directory> --json` without a
 profile filter. Read the exit status and full result for **all** profiles. Compare
-each resolved declaration, ownership, target, and material with the accepted
-selection; explain what each complete profile gives an adopting project. For
+each source-resolved declaration, ownership, explicit scope or discovery criteria,
+and material with the accepted selection; explain what each complete profile gives an adopting project. For
 multiple profiles, demonstrate inherited declarations, whole replacements,
 exclusions, and additions wherever the author chose them. Fix
 structural errors without changing accepted intent; semantic corrections return
@@ -124,9 +133,14 @@ non-decisions if useful; report validation as not applicable, not successful.
 Report completion only when the entire source is accepted, all-profile validation
 passes, and every chosen topic is resolved or explicitly deferred. Distinguish
 structural validity from behavioral evidence: validation runs neither operations
-nor prerequisite probes and does not establish guidance or author-skill usefulness
-or future project compliance. Report each operation's fixture outcomes and each
-author skill's actual review/exercise separately. Missing prerequisites leave
+nor prerequisite probes and does not establish guidance or author-skill usefulness,
+concrete project scope safety, semantic discovery completeness, or future project
+compliance. Read the reported discovery requirements per profile. Explain that
+valid discovery references still need agent interpretation and adopter review in
+an adopting project; they are not executable targets. If the matching CLI only
+supports discovery source validation, report adoption as unavailable for those
+profiles until project-scope support is available. Report each operation's fixture
+outcomes and each author skill's actual review/exercise separately. Missing prerequisites leave
 affected behavior unverified; obtain explicit deferral if the author chooses to
 finish with that limitation. Never describe unexecuted behavior as passing.
 

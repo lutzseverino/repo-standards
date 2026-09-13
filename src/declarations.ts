@@ -1,5 +1,5 @@
 import { validRange } from 'semver';
-import type { Declaration, Operation } from './model.js';
+import type { SourceDeclaration, Operation } from './model.js';
 import { Fields } from './yaml.js';
 import type { Value } from './yaml.js';
 import type { Paths, Target } from './paths.js';
@@ -15,8 +15,8 @@ function validExecutable(executable: string): boolean {
 }
 
 export class Declarations {
-  readonly locations = new WeakMap<Declaration, Target[]>();
-  constructor(private readonly fields: Fields, private readonly paths: Paths) {}
+  readonly locations = new WeakMap<SourceDeclaration, Target[]>();
+  constructor(private readonly fields: Fields, private readonly paths: Paths, private readonly format: string | undefined) {}
 
   private id(value: Value): string | undefined {
     const name = this.fields.string(value);
@@ -58,9 +58,9 @@ export class Declarations {
     });
   }
 
-  read(value: Value, defaults?: Map<string, Declaration | null>): Map<string, Declaration | null> {
+  read(value: Value, defaults?: Map<string, SourceDeclaration | null>): Map<string, SourceDeclaration | null> {
     const f = this.fields;
-    const declarations = new Map<string, Declaration | null>();
+    const declarations = new Map<string, SourceDeclaration | null>();
     for (const [id, declaration] of f.map(value)) {
       this.id({ ...declaration, data: id });
       const entries = f.map(declaration);
@@ -106,14 +106,25 @@ export class Declarations {
         if (source) this.paths.reference({ ...sourceValue, data: `${source}/SKILL.md` }, 'file');
         declarations.set(id, { ...base, kind, name, source });
       } else if (kind === 'repository') {
-        f.map(declaration, ['kind', 'guidance', 'targets', 'checks', 'fixes']);
+        const supportsDiscovery = this.format === 'repo-standards/v2';
+        f.map(declaration, ['kind', 'guidance', 'targets', 'checks', 'fixes', ...(supportsDiscovery ? ['discovery'] : [])]);
         const guidance = this.paths.reference(f.get(declaration, 'guidance'), 'file');
-        const targetsValue = f.get(declaration, 'targets');
-        f.map(targetsValue, ['paths', 'directories']);
-        const paths = f.list(f.get(targetsValue, 'paths')).map(targetPath);
-        const directories = f.list(f.get(targetsValue, 'directories')).map(targetPath);
-        if (!paths.length && !directories.length) f.error('EMPTY_TARGETS', 'Repository guidance requires at least one target.', targetsValue);
-        declarations.set(id, { ...base, kind, guidance, targets: { paths, directories } });
+        if (supportsDiscovery && entries.has('targets') === entries.has('discovery')) {
+          f.error('INVALID_DECLARATION', 'Repository guidance requires exactly one of targets or discovery.', declaration);
+        }
+        // Validate both branches of an ambiguous declaration for independent errors.
+        if (entries.has('targets') || !supportsDiscovery) {
+          const targetsValue = f.get(declaration, 'targets');
+          f.map(targetsValue, ['paths', 'directories']);
+          const paths = f.list(f.get(targetsValue, 'paths')).map(targetPath);
+          const directories = f.list(f.get(targetsValue, 'directories')).map(targetPath);
+          if (!paths.length && !directories.length) f.error('EMPTY_TARGETS', 'Repository guidance requires at least one target.', targetsValue);
+          declarations.set(id, { ...base, kind, guidance, targets: { paths, directories } });
+        }
+        if (supportsDiscovery && entries.has('discovery')) {
+          const discovery = this.paths.reference(f.get(declaration, 'discovery'), 'file');
+          declarations.set(id, { ...base, kind, guidance, discovery });
+        }
       } else {
         f.map(declaration, ['kind', 'target', 'exact', 'guidance', 'name', 'source', 'targets', 'checks', 'fixes']);
         f.error('INVALID_DECLARATION', 'Expected kind file, skill, or repository.', kindValue);

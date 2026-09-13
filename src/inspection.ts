@@ -8,6 +8,7 @@ import { ProductError } from './errors.js';
 import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
 import { decodeRecordedState } from './recorded-state.js';
+import type { ResolvedProfile, SourceProfile } from './model.js';
 import type { RecordedSelection } from './recorded-state.js';
 
 export interface Blocker { code: string; message: string; path?: string }
@@ -151,6 +152,14 @@ export function productInventory(root: string): string[] {
   return fileInventory(observed).map(path => `.repo-standards/${path}`);
 }
 
+function requireConcreteScope(profile: SourceProfile): ResolvedProfile {
+  return { ...profile, declarations: profile.declarations.map(declaration => {
+    if ('discovery' in declaration) throw new ProductError('DISCOVERY_REQUIRED',
+      `Declaration ${declaration.id} requires confirmed concrete project scope. This CLI validates discovery sources but does not yet accept project scope proposals. Use a CLI with discovery inspection support before adopting this profile.`);
+    return declaration;
+  }) };
+}
+
 export async function inspect(options: InspectOptions, cliVersion: string, retained?: Awaited<ReturnType<typeof acquireSource>> & { manifest: string; ownedSkills: ReadonlySet<string> }) {
   if (process.versions.node.split('.')[0] !== '24') throw new ProductError('NODE_REQUIRED', 'Node.js 24 is required. Select Node.js 24 with your version manager or install it from https://nodejs.org/en/download, then retry.');
   const npm = spawnSync('npm', ['--version'], { cwd: homedir(), encoding: 'utf8', timeout: 10_000 });
@@ -179,8 +188,9 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     if (systemSkill.type !== 'missing' && !previous) blockers.push({ code: 'SYSTEM_SKILL_CONFLICT', path: '.agents/skills/adopt-standards', message: 'Existing reserved system-skill content requires established product ownership.' });
     const validation = validateSource(source.root, cliVersion, source.paths, retained?.manifest);
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
-    const resolved = validation.profiles[options.profile];
-    if (!resolved) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
+    const profile = validation.profiles[options.profile];
+    if (!profile) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
+    const resolved = requireConcreteScope(profile);
     let update: 'standards' | 'cli' | undefined;
     if (previous) {
       const sameSource = source.identity.repository.toLowerCase() === previous.selection.standards.repository.toLowerCase();
