@@ -166,6 +166,32 @@ function clearStoppedProcess(run: Run) {
   delete run.processGroupIdentity;
 }
 
+interface CompleteRunEvidence {
+  lastComplete: { run: string; inspection: string; completedAt: string; head: string };
+  observations: WorkInterval[];
+  operations: OperationEvidence[];
+  retryHistory: NonNullable<Run['retryHistory']>;
+  checks: OperationEvidence[];
+  assessments: Assessment[];
+  scopeRevision?: number;
+  amendments?: ScopeAmendmentRecord[];
+}
+
+function completeRunHistory(installation: Installation): CompleteRunEvidence[] {
+  const previous = installation.transitional?.['.repo-standards/state.json'];
+  if (!previous) return [];
+  const state = JSON.parse(Buffer.from(previous.content, previous.encoding).toString('utf8')) as Record<string, unknown>;
+  const history = Array.isArray(state.history) ? structuredClone(state.history) as CompleteRunEvidence[] : [];
+  if (!Array.isArray(state.observations) || !Array.isArray(state.operations) || !Array.isArray(state.retryHistory)
+    || !Array.isArray(state.checks) || !Array.isArray(state.assessments) || !state.lastComplete) return history;
+  return [...history, { lastComplete: structuredClone(state.lastComplete) as CompleteRunEvidence['lastComplete'],
+    observations: structuredClone(state.observations) as WorkInterval[], operations: structuredClone(state.operations) as OperationEvidence[],
+    retryHistory: structuredClone(state.retryHistory) as NonNullable<Run['retryHistory']>, checks: structuredClone(state.checks) as OperationEvidence[],
+    assessments: structuredClone(state.assessments) as Assessment[],
+    ...(state.scopeRevision !== undefined ? { scopeRevision: state.scopeRevision as number,
+      amendments: structuredClone(state.amendments) as ScopeAmendmentRecord[] } : {}) }];
+}
+
 function canResumeAssessment(run: Run) {
   return !!run.continuation && (
     run.phase === 'contextual' || run.phase === 'assessment'
@@ -535,9 +561,8 @@ export class AdoptionRunSession {
     const { report, files, skills, exactBaselines, durable } = installation;
     this.#completing = true;
     const completedAt = new Date().toISOString();
-    const state = file(json({ format: run.amendments?.length ? 'repo-standards/state/v3'
-      : run.observations ? 'repo-standards/state/v2' : 'repo-standards/state/v1',
-      ...(run.observations ? { observations: run.observations, operations: run.operations, retryHistory: run.retryHistory ?? [] } : {}),
+    const state = file(json({ format: run.observations ? 'repo-standards/state/v4' : 'repo-standards/state/v1',
+      ...(run.observations ? { history: completeRunHistory(installation), observations: run.observations, operations: run.operations, retryHistory: run.retryHistory ?? [] } : {}),
       ...(run.amendments?.length ? { scopeRevision: run.scopeRevision!, amendments: run.amendments } : {}),
       lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: report.project.head }, baselines: exactBaselines, skills,
       checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));

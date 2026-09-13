@@ -510,7 +510,9 @@ deletion authority. Exact content is protected throughout.
 
 Retained inputs include both guidance files, selected source declarations,
 materialized scope and accepted discovery evidence. Committed interval records
-and assessments explain the authorized work in a fresh checkout. Historical
+and assessments explain the authorized work in a fresh checkout. Each later
+complete v2 run retains the prior run's interval, operation, retry, check and
+assessment evidence in the ordered state history. Historical
 scope is not evidence of current coverage. A later clean re-adoption or compatible
 one-pin update recomputes every active v2 discovery declaration from fresh
 evidence, reports additions and removals against the prior complete scope, and

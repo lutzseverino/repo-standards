@@ -165,7 +165,7 @@ Review and commit these files through the adopting project's normal workflow:
 | --- | --- |
 | `.repo-standards/selection.yaml` | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile. |
 | `.repo-standards/lock.json` | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state. |
-| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, and historical check evidence and separate assessment evidence bound to the selection and project snapshot. |
+| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, check and assessment evidence bound to the selection and project snapshot, and prior complete v2 execution evidence. |
 | `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
 | `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
@@ -179,10 +179,13 @@ rationale, evidence references and observation identities. This file is included
 in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
 source availability. Ordinary discovery completion exposes inspection v2 with
-scope-history v1. An amended completion exposes inspection v3 with scope-history
-v2, whose added fields retain the accepted revision and amendment records. Work
-intervals and final scope-validity assessments are
-committed in state v2; a run that accepts an amendment advances to run/state v3.
+scope-history v2. An amended completion exposes inspection v3; scope-history v2
+adds the accepted revision and amendment records. Work intervals and final
+scope-validity assessments are committed in state v4; a run that accepts an
+amendment advances to run v3 and retains its amendment chain in state v4. Each
+later complete v2 run moves the prior run's interval,
+operation, retry, check and assessment evidence into the state's ordered
+`history`, so earlier authorized work remains explainable in a fresh checkout.
 Historical evidence makes no current-coverage claim.
 
 Discovery-backed standards updates, CLI updates and unchanged-pin re-adoption use

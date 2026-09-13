@@ -88,6 +88,7 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   assert.equal(firstStart.phase, 'contextual', firstStartResult.result.stdout);
   const firstComplete = f.complete(firstStart);
   assert.equal(firstComplete.result.status, 0);
+  const firstState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
   commit(f.project.root);
 
   writeFileSync(join(f.project.root, 'AGENTS.md'), 'Drifted instructions\n');
@@ -129,6 +130,29 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   const retained = f.run(['inspect', '--json']).report.historicalScope;
   assert.equal(retained.format, 'repo-standards/scope-history/v2');
   assert.deepEqual(retained.runs.map((run: { inspection: string }) => run.inspection), [firstInspection.identity, inspected.identity]);
+  const secondState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
+  assert.deepEqual(secondState.history, [{
+    lastComplete: firstState.lastComplete,
+    observations: firstState.observations,
+    operations: firstState.operations,
+    retryHistory: firstState.retryHistory,
+    checks: firstState.checks,
+    assessments: firstState.assessments,
+  }]);
+
+  const checkout = join(f.remote.support.root, 'readopt-checkout');
+  git(f.project.root, 'clone', '--quiet', f.project.root, checkout);
+  const runCheckout = (args: string[]) => {
+    const result = cli.run(args, checkout, f.env);
+    return { result, report: JSON.parse(result.stdout) };
+  };
+  const checkoutRequest = runCheckout(['inspect', '--readopt', '--json']).report;
+  f.proposal(checkoutRequest, 'apps/new/README.md', 'apps/old/README.md');
+  const checkoutInspection = runCheckout(['inspect', '--readopt', '--scope', f.scopeFile, '--json']).report;
+  assert.deepEqual(checkoutInspection.start.blockers, []);
+  const checkoutStart = runCheckout(['start', '--readopt', '--scope', f.scopeFile, '--confirm', checkoutInspection.identity, '--json']);
+  assert.equal(checkoutStart.result.status, 1, checkoutStart.result.stdout + checkoutStart.result.stderr);
+  assert.equal(f.complete(checkoutStart.report, runCheckout).result.status, 0);
 });
 
 test('a compatible v2 standards update obtains fresh scope before changing only the standards pin', async t => {
