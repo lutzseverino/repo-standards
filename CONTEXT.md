@@ -132,6 +132,11 @@ A deliberate adoption operation that moves an adopting project from its pinned
 standards revision to another revision of the same source and profile.
 _Avoid_: Automatic upgrade, profile switch
 
+**Re-adoption**:
+A new adoption of the project's current selection, with unchanged standards
+and CLI versions.
+_Avoid_: Update, resume, automatic compliance repair
+
 **Retained inputs**:
 The selected standards material and provenance committed by an adopting project
 so its pinned standards remain inspectable independently of source availability.
