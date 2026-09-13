@@ -339,11 +339,11 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     for (const name of readdirSync(source.root).sort()) if (/^licen[sc]e(?:[.-].*)?$/i.test(name)) inputs[name] = observe(join(source.root, name));
     const retired = previous ? previous.resolved.declarations.filter(old => !resolved.declarations.some(declaration => declaration.id === old.id)) : [];
     let scopeChanges: { id: string; additions: string[]; removals: string[] }[] | undefined;
-    if (previous?.historicalScope && (!discoveryDeclarations.length || proposal)) {
-      const priorIds = previous.historicalScope.sourceResolved?.declarations?.filter(declaration => declaration.discovery).map(declaration => declaration.id) ?? [];
+    if (previous && (!discoveryDeclarations.length || proposal)) {
+      const priorIds = previous.historicalScope?.sourceResolved?.declarations?.filter(declaration => declaration.discovery).map(declaration => declaration.id) ?? [];
       const currentIds = discoveryDeclarations.map(declaration => declaration.id);
       scopeChanges = [...new Set([...priorIds, ...currentIds])].sort().flatMap(id => {
-        const oldDeclaration = previous.historicalScope!.resolved?.declarations?.find(declaration => declaration.id === id);
+        const oldDeclaration = previous.historicalScope?.resolved?.declarations?.find(declaration => declaration.id === id);
         const newDeclaration = resolved.declarations.find(declaration => declaration.id === id);
         const oldPaths = priorIds.includes(id) && oldDeclaration?.kind === 'repository' ? oldDeclaration.targets?.paths ?? [] : [];
         const newPaths = currentIds.includes(id) && newDeclaration?.kind === 'repository' ? newDeclaration.targets.paths : [];
