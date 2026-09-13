@@ -347,7 +347,7 @@ test('case conflicts retain the exact target bytes and bind them into inspection
   }
 });
 
-test('only selected unresolved v2 discovery blocks inspection and start without author execution', (t) => {
+test('selected v2 discovery returns a blocked inspection and prevents start without author execution', (t) => {
   const yaml = simpleSource().replace('repo-standards/v1', 'repo-standards/v2')
     .replace('profiles:', `    documentation:
       kind: repository
@@ -377,14 +377,14 @@ profiles:`) + `  explicit:
   chmodSync(join(project.root, 'probe'), 0o755);
   commit(project.root);
   const before = snapshot(project.root);
-  for (const args of [inspectionArgs, ['start', ...inspectionArgs.slice(1), '--confirm', `sha256:${'a'.repeat(64)}`]]) {
-    const result = cli.run(args, project.root, remote.env);
-    assert.equal(result.status, 1, result.stdout + result.stderr);
-    const error = JSON.parse(result.stdout).errors[0];
-    assert.equal(error.code, 'DISCOVERY_REQUIRED', result.stdout);
-    assert.match(error.message, /documentation.*concrete.*scope/i);
-    assert.deepEqual(snapshot(project.root), before);
-  }
+  const discoveryResult = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(discoveryResult.status, 0, discoveryResult.stdout + discoveryResult.stderr);
+  const discoveryReport = JSON.parse(discoveryResult.stdout);
+  assert.equal(discoveryReport.start.eligible, false);
+  assert.ok(discoveryReport.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'));
+  const startResult = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', discoveryReport.identity], project.root, remote.env);
+  assert.equal(startResult.status, 1, startResult.stdout + startResult.stderr);
+  assert.deepEqual(snapshot(project.root), before);
   for (const profile of ['explicit', 'replacement']) {
     const result = cli.run(inspectionArgs.map(arg => arg === 'work' ? profile : arg), project.root, remote.env);
     assert.equal(result.status, 0, result.stdout + result.stderr);

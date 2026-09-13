@@ -317,7 +317,7 @@ export async function resume(project: string, cliVersion: string, assessmentPath
   });
 }
 
-export async function inspectRetained(project: string, cliVersion: string) {
+export async function inspectRetained(project: string, cliVersion: string, scope?: string) {
   const root = projectRoot(project);
   if (!existsSync(join(root, '.repo-standards/state.json'))) throw new ProductError('NO_SELECTION', 'No complete adoption is recorded. Inspect a public source with --source, --standards-version and --profile.');
   const { pinned: lock, state } = recordedState(root);
@@ -333,7 +333,7 @@ export async function inspectRetained(project: string, cliVersion: string) {
     const parts = path.slice('.repo-standards/inputs/source/'.length).split('/');
     for (let length = 1; length <= parts.length; length++) paths.add(parts.slice(0, length).join('/'));
   }
-  const report = await inspect({ project: root, source: lock.selection.standards.repository, standardsVersion: lock.selection.standards.version, profile: lock.selection.profile }, cliVersion,
+  const report = await inspect({ project: root, ...(scope ? { scope } : {}), source: lock.selection.standards.repository, standardsVersion: lock.selection.standards.version, profile: lock.selection.profile }, cliVersion,
     { root: sourceRoot, identity: lock.selection.standards, paths, manifest: readFileSync(join(root, '.repo-standards/inputs/standards.yaml'), 'utf8'), ownedSkills: new Set(Object.keys(state.skills)), close() {} });
   return { ...report, retained: true };
 }

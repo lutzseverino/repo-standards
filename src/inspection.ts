@@ -8,7 +8,8 @@ import { ProductError } from './errors.js';
 import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
 import { decodeRecordedState } from './recorded-state.js';
-import type { ResolvedProfile, SourceProfile } from './model.js';
+import { observeScope } from './scope-observation.js';
+import { materializeScope, readScope, validateScopeEvidence } from './scope.js';
 import type { RecordedSelection } from './recorded-state.js';
 
 export interface Blocker { code: string; message: string; path?: string }
@@ -39,9 +40,9 @@ export function observe(path: string, excluded: ReadonlySet<string> = new Set())
   }
 }
 
-export function git(project: string, args: string[], input?: string) {
+export function git(project: string, args: string[], input?: string, timeout?: number) {
   const base = ['--no-optional-locks', '-c', 'core.fsmonitor=false', '-C', project];
-  const options = { encoding: 'utf8' as const, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' }, maxBuffer: 32 * 1024 * 1024, ...(input === undefined ? {} : { input }) };
+  const options = { encoding: 'utf8' as const, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' }, maxBuffer: 32 * 1024 * 1024, ...(timeout === undefined ? {} : { timeout }), ...(input === undefined ? {} : { input }) };
   if (args[0] === 'status') {
     // Status can run clean/process filters while refreshing tracked-file hashes.
     // Ask only for configuration names; never execute repository filter commands.
@@ -98,7 +99,7 @@ export function targetObservation(root: string, target: string, blockers: Blocke
   return observed;
 }
 
-export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string }
+export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string; scope?: string }
 
 interface RecordedAdoption {
   selection: RecordedSelection;
@@ -152,14 +153,6 @@ export function productInventory(root: string): string[] {
   return fileInventory(observed).map(path => `.repo-standards/${path}`);
 }
 
-function requireConcreteScope(profile: SourceProfile): ResolvedProfile {
-  return { ...profile, declarations: profile.declarations.map(declaration => {
-    if ('discovery' in declaration) throw new ProductError('DISCOVERY_REQUIRED',
-      `Declaration ${declaration.id} requires confirmed concrete project scope. This CLI validates discovery sources but does not yet accept project scope proposals. Use a CLI with discovery inspection support before adopting this profile.`);
-    return declaration;
-  }) };
-}
-
 export async function inspect(options: InspectOptions, cliVersion: string, retained?: Awaited<ReturnType<typeof acquireSource>> & { manifest: string; ownedSkills: ReadonlySet<string> }) {
   if (process.versions.node.split('.')[0] !== '24') throw new ProductError('NODE_REQUIRED', 'Node.js 24 is required. Select Node.js 24 with your version manager or install it from https://nodejs.org/en/download, then retry.');
   const npm = spawnSync('npm', ['--version'], { cwd: homedir(), encoding: 'utf8', timeout: 10_000 });
@@ -190,7 +183,26 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
     const profile = validation.profiles[options.profile];
     if (!profile) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
-    const resolved = requireConcreteScope(profile);
+    const discoveryDeclarations = profile.declarations.filter(declaration => 'discovery' in declaration);
+    const scopeObservation = discoveryDeclarations.length ? observeScope(root) : undefined;
+    const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: retained ? 'retained' : previous ? 'update' : 'adopt', root, head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;
+    const proposal = options.scope ? readScope(options.scope, root) : undefined;
+    if (proposal && proposal.request !== requestIdentity) throw new ProductError('STALE_SCOPE', 'Scope proposal does not match this discovery request. Inspect again and review fresh evidence.');
+    const resolved = materializeScope(root, profile, proposal);
+    const named = proposal?.declarations.flatMap(entry => entry.paths) ?? [];
+    const namedObservation = proposal ? observeScope(root, named) : undefined;
+    const absence = proposal ? validateScopeEvidence(proposal, namedObservation!) : [];
+    const discovery = scopeObservation ? {
+      identity: requestIdentity!,
+      ...(proposal ? { proposal, absence, namedObservation } : {}),
+      declarations: discoveryDeclarations.map(declaration => ({ id: declaration.id, source: declaration.discovery, ...content(join(source.root, declaration.discovery)) })),
+      evidence: scopeObservation.evidence,
+      observation: scopeObservation,
+    } : undefined;
+    if (discovery) {
+      blockers.push(proposal ? { code: 'DISCOVERY_ADOPTION_UNAVAILABLE', message: 'Scope inspection is available; discovery adoption remains blocked until the initial-adoption implementation (#44).' } : { code: 'DISCOVERY_REQUIRED', message: 'Interpret the discovery guidance and submit an evidence-backed repo-standards/scope/v1 proposal with inspect --scope.' });
+      if (proposal?.declarations.some(entry => entry.unresolved.length)) blockers.push({ code: 'UNRESOLVED_SCOPE', message: 'Resolve the reported discovery questions and inspect a revised proposal.' });
+    }
     let update: 'standards' | 'cli' | undefined;
     if (previous) {
       const sameSource = source.identity.repository.toLowerCase() === previous.selection.standards.repository.toLowerCase();
@@ -263,7 +275,8 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
         exact.push({ id: declaration.id, target, action, files });
       } else guidance.push({ id: declaration.id, targets, source: declaration.guidance, ...content(join(source.root, declaration.guidance)) });
     }
-    for (const phase of ['fixes', 'checks'] as const) for (const declaration of resolved.declarations) {
+    if (!proposal) for (const declaration of discoveryDeclarations) guidance.push({ id: declaration.id, targets: [], discoveryRequired: true, source: declaration.guidance, ...content(join(source.root, declaration.guidance)) });
+    for (const phase of ['fixes', 'checks'] as const) for (const declaration of profile.declarations) {
       for (const operation of declaration[phase]) {
         operations.push({ declaration: declaration.id, phase, ...operation,
           prerequisite: { ...operation.prerequisite, status: 'not-checked' },
@@ -276,23 +289,34 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     // remains the sole interpreter when this source is used in a fresh checkout.
     const inputs: Record<string, Observation> = Object.create(null);
     const normalized = stringify({ ...validation.source, defaults: { declarations: {} }, profiles: {
-      [options.profile]: { description: resolved.description, declarations: Object.fromEntries(resolved.declarations.map(({ id, ...declaration }) => [id, declaration])) },
+      [options.profile]: { description: profile.description, declarations: Object.fromEntries(profile.declarations.map(({ id, ...declaration }) => [id, declaration])) },
     } });
-    for (const declaration of resolved.declarations) {
+    for (const declaration of profile.declarations) {
       const paths = [declaration.kind === 'skill' ? declaration.source : 'exact' in declaration ? declaration.exact : declaration.guidance,
+        ...('discovery' in declaration ? [declaration.discovery] : []),
         ...[...declaration.fixes, ...declaration.checks].flatMap(operation => [operation.run.script, ...operation.run.resources])];
       for (const path of paths) inputs[path] = observe(join(source.root, path));
     }
     for (const name of readdirSync(source.root).sort()) if (/^licen[sc]e(?:[.-].*)?$/i.test(name)) inputs[name] = observe(join(source.root, name));
     const retired = previous ? previous.resolved.declarations.filter(old => !resolved.declarations.some(declaration => declaration.id === old.id)) : [];
     const report = {
-      format: 'repo-standards/inspection/v1',
+      format: discovery ? 'repo-standards/inspection/v2' : 'repo-standards/inspection/v1',
+      ...(discovery ? { discovery, sourceResolved: profile } : {}),
       selection: { cli: { package: '@lutzseverino/repo-standards', version: cliVersion }, standards: source.identity, profile: options.profile },
       source: validation.source, resolved, exact, guidance, operations, inputs, manifest: normalized,
       project: { root, head: head.status === 0 ? head.stdout.trim() : null, status: status.stdout, index: index.stdout, hidden, affected, productState, systemSkill },
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
       ...(update ? { update, previousSelection: previous!.selection, retired } : {}),
     };
+    if (scopeObservation) {
+      const finalHead = git(root, ['rev-parse', '--verify', 'HEAD'], undefined, 30_000);
+      const finalIndex = git(root, ['ls-files', '--stage', '-z'], undefined, 30_000);
+      const finalStatus = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignore-submodules=all'], undefined, 30_000);
+      if (finalIndex.status !== 0 || finalStatus.status !== 0) throw new ProductError('OBSERVATION_READ', 'Cannot completely recheck Git project state.');
+      if (finalHead.status !== head.status || finalHead.stdout !== head.stdout || finalIndex.stdout !== index.stdout || finalStatus.stdout !== status.stdout || JSON.stringify(hiddenIndexPaths(root)) !== JSON.stringify(hidden)) throw new ProductError('OBSERVATION_UNSTABLE', 'Git project state changed during discovery inspection. Inspect again.');
+    }
+    if (scopeObservation && JSON.stringify(scopeObservation) !== JSON.stringify(observeScope(root))) throw new ProductError('OBSERVATION_UNSTABLE', 'Discovery observation changed during inspection. Inspect again.');
+    if (namedObservation && JSON.stringify(namedObservation) !== JSON.stringify(observeScope(root, named))) throw new ProductError('OBSERVATION_UNSTABLE', 'Named scope observations changed during inspection. Inspect again.');
     return { ...report, identity: `sha256:${hash(JSON.stringify(report))}` };
   } finally { source.close(); }
 }

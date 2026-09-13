@@ -210,3 +210,128 @@ Status 2 means invalid CLI usage. JSON failures contain `valid: false` and
 `errors` with stable `code` and `message` fields. Source-validation failures
 include precise resolver diagnostics in `details`. Bootstrap failures go to
 stderr and exit 1; otherwise it forwards the invoked CLI's exit status.
+
+## Discover contextual file scope (v2 sources)
+
+A selected repository declaration with `discovery` uses two read-only inspections.
+The first invocation uses the same source, version, profile and project flags
+shown above. It returns `repo-standards/inspection/v2` with discovery instructions,
+eligible evidence, a request identity, and `DISCOVERY_REQUIRED` in `start.blockers`.
+The report still includes exact changes, contextual guidance, and all operations.
+Unresolved declarations remain in `sourceResolved`; they do not manufacture
+executable targets in `resolved`.
+
+Read each declaration's discovery guidance and inspect the eligible files to
+explain which candidates meet the author's criteria. Inventory and hash evidence
+establish what was observed; they do not prove that a candidate is a maintained
+project. Explain exclusions such as fixtures, generated output, and organizational
+directories, and disclose unresolved questions. The adopter reviews semantic
+coverage together with the complete inspection.
+
+Write a JSON proposal **outside the adopting project**, then inspect it:
+
+```sh
+repo-standards inspect \
+  --source https://github.com/OWNER/STANDARDS \
+  --standards-version v1.2.3 --profile work \
+  --scope /tmp/project-scope.json --json
+```
+
+The proposal has exactly this structure (replace request and evidence identities
+with values from the first report):
+
+```json
+{
+  "format": "repo-standards/scope/v1",
+  "request": "sha256:REQUEST_FROM_INSPECTION",
+  "declarations": [
+    {
+      "id": "project-docs",
+      "paths": ["apps/widget/README.md"],
+      "coverage": "Widget is the only maintained project; the other candidates are fixtures.",
+      "evidence": [
+        {"kind": "directory", "path": ".", "identity": "sha256:ROOT_INVENTORY_IDENTITY"}
+      ],
+      "candidates": [
+        {
+          "path": "apps/widget/README.md",
+          "decision": "include",
+          "reason": "The manifest and source establish project membership.",
+          "evidence": [
+            {"kind": "file", "path": "apps/widget/package.json", "identity": "sha256:FILE_IDENTITY"},
+            {"kind": "absence", "path": "apps/widget/README.md"}
+          ]
+        },
+        {
+          "path": "fixtures/fake",
+          "decision": "exclude",
+          "reason": "This directory supplies test data, not a maintained project.",
+          "evidence": [
+            {"kind": "file", "path": "fixtures/fake/package.json", "identity": "sha256:FIXTURE_FILE_IDENTITY"}
+          ]
+        }
+      ],
+      "unresolved": []
+    }
+  ]
+}
+```
+
+Supply exactly one entry per active discovery declaration, and none for explicit
+or excluded declarations. All fields shown are required; unknown fields,
+duplicate keys, duplicate list entries, unsupported formats, and invalid or stale
+evidence references fail. Lists are unordered and normalized; explanation text is
+preserved verbatim and changes the final inspection identity.
+
+`paths` contains individual repository-relative filenames, including intended
+new files. Every path needs an included candidate with a reason and evidence.
+Excluded candidates may describe directories or exact/reserved paths and must
+not be included in that entry's paths. Every candidate uses the shared safe,
+repository-relative explicit-path syntax; exclusions cannot use root, parent,
+absolute, backslash, or glob paths. Every entry needs a nonempty coverage explanation and evidence,
+even with empty `paths` and `candidates`. Empty scope retains the declaration,
+guidance, and its fixes/checks. Nonempty `unresolved` produces an inspectable
+report with `UNRESOLVED_SCOPE`, never a startable result.
+
+Copy file and directory references from `discovery.evidence`. Directory inventories
+contain eligible immediate child paths, not all ignored siblings. Absence references
+have only `kind` and `path`: the CLI observes the named target and ancestors and
+returns the derived identity in `discovery.absence`. Every absent target requires
+absence evidence. A missing README additionally needs a file or nonempty directory
+inventory within its project directory as positive membership evidence. The CLI
+checks this structural support; the agent and adopter judge its meaning.
+
+Discovered paths reuse the shared target validation: no directories, globs, root
+write scope, unsafe ancestors, symbolic links, special files, exact/reserved overlaps,
+duplicate ownership, or aliases under Unicode normalization and case folding.
+A valid proposal populates ordinary `targets.paths` with empty `targets.directories`
+in `resolved`; the source declarations in `sourceResolved` and the retained source
+`manifest` remain unchanged. The complete report includes normalized proposal,
+rationale, candidate exclusions, guidance, exact changes, and operations together.
+
+The request binds selection, requested action (adoption, update, or retained
+inspection), HEAD, index and hidden index flags, and the complete tracked and
+non-ignored project snapshot. Observation records file hashes/executable state,
+directory inventories and boundaries, effective Git observation settings, and
+consulted `.gitignore`, Git info/exclude, and global ignore inputs, including their
+absence. Configured ignore paths preserve significant whitespace; an explicitly
+empty `core.excludesFile` disables the default global ignore input. It retains relevant settings and ignore hashes, not unrelated Git
+configuration, credentials, or external ignore-file contents. The final identity
+also binds the proposal, rationale, named targets, and their ancestors. Named
+paths remain observed even if ignored. Ignored untracked files cannot be used as
+file evidence. Unlisted ignored siblings remain outside the observation promise.
+
+Inspection compares observations again before returning. Read failures, unsafe
+state, detected instability, or exceeded limits return a structured error without
+a partial successful report. Each observation is bounded to 20,000 directory
+entries/file observations, 128 directory levels, 8 MiB per file, 64 MiB of file
+reads, and 30 seconds of traversal. Proposals are limited to 2 MiB. There is no
+continuous monitoring or atomic filesystem snapshot guarantee. After a stale
+request, run the first inspection again and review evidence before revising the
+proposal; changing only its request string is not a substitute for that review.
+
+This release implements scope **inspection**. All profiles with active discovery
+remain blocked from adoption, including validated and empty proposals, with
+`DISCOVERY_ADOPTION_UNAVAILABLE` after proposal validation. Initial discovery
+adoption is tracked in issue #44; `start --scope` is not yet supported. Existing
+explicit selections retain inspection/v1 and their established adoption behavior.

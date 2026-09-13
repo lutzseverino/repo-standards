@@ -17,12 +17,15 @@ profile resolution keep the same contracts in both formats. Set the CLI
 compatibility range to versions actually validated; the format identity and CLI
 package version are independent. Older CLIs reject unsupported formats.
 
-This implementation supports v2 source authoring and validation. A selected
-profile with unresolved discovery fails `inspect` and `start` with
-`DISCOVERY_REQUIRED`, before author operations or project writes. Project scope
-proposals and discovery adoption are a later implementation slice of
-[the contextual scope specification](https://github.com/lutzseverino/repo-standards/issues/41).
-Validation success alone does not make such a profile executable.
+This implementation supports v2 source authoring, validation, and
+[two-pass scope inspection](inspection.md#discover-contextual-file-scope-v2-sources).
+A selected profile with unresolved discovery returns guidance, eligible evidence,
+a discovery request identity, and a `DISCOVERY_REQUIRED` start blocker.
+`inspect --scope` validates an evidence-backed `repo-standards/scope/v1` proposal
+and presents concrete paths in the complete inspection. Discovery adoption
+remains blocked pending [#44](https://github.com/lutzseverino/repo-standards/issues/44),
+including after a valid scope proposal. Source validation alone proves neither
+project-specific safety nor semantic coverage.
 
 ## Root and profiles
 
