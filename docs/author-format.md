@@ -22,10 +22,12 @@ This implementation supports v2 source authoring, validation, and
 A selected profile with unresolved discovery returns guidance, eligible evidence,
 a discovery request identity, and a `DISCOVERY_REQUIRED` start blocker.
 `inspect --scope` validates an evidence-backed `repo-standards/scope/v1` proposal
-and presents concrete paths in the complete inspection. Discovery adoption
-remains blocked pending [#45](https://github.com/lutzseverino/repo-standards/issues/45),
-including after a valid scope proposal. Source validation alone proves neither
-project-specific safety nor semantic coverage.
+and presents concrete paths in the complete inspection. Initial adoption passes
+the same proposal to `start --scope` with that inspection’s confirmed identity.
+The agent rechecks coverage after fixes and during contextual assessment. Empty
+scope retains the declaration and its operations. Source validation alone proves
+neither project-specific safety nor semantic coverage. Discovery updates, active
+scope amendments, and same-pin re-adoption remain subsequent lifecycle work.
 
 ## Root and profiles
 

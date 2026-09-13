@@ -18,12 +18,16 @@ export { abandon, status } from './adoption-run.js';
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 const packageName = '@lutzseverino/repo-standards';
 
-function workRequest(root: string, run: Run, report: Pick<Inspection, 'guidance' | 'resolved' | 'source'>): WorkRequest {
-  return { format: 'repo-standards/work-request/v1', run: run.id, selection: `sha256:${hash(json(run.selection))}`,
+function workRequest(root: string, run: Run, installation: Installation): WorkRequest {
+  const { report } = installation;
+  const discovery = report.discovery;
+  return { format: discovery ? 'repo-standards/work-request/v2' : 'repo-standards/work-request/v1',
+    ...(discovery ? { scope: { inspection: run.inspection, afterFixes: installation.scopeAfterFixes!, proposal: discovery.proposal } } : {}), run: run.id, selection: `sha256:${hash(json(run.selection))}`,
     snapshot: workSnapshot(root, run, report),
     declarations: report.guidance.map(guidance => ({ id: guidance.id, guidance,
+      ...(discovery?.declarations.find(entry => entry.id === guidance.id) ? { discovery: discovery.declarations.find(entry => entry.id === guidance.id)! } : {}),
       allowedTargets: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === guidance.id)!) })),
-    requiredEvidence: ['status', 'explanation', 'changedPaths', 'evidence'] };
+    requiredEvidence: ['status', 'explanation', 'changedPaths', 'evidence', ...(discovery ? ['scope', 'scopeValidity.afterFixes', 'scopeValidity.current'] : [])] };
 }
 
 function workSnapshot(root: string, run: Run, report: Pick<Inspection, 'resolved' | 'source'>) {
@@ -87,16 +91,16 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
   return withStartRun(options.project, session => startRun({ kind: 'public', options }, cliVersion, confirmation, session));
 }
 
-export async function startRetained(project: string, cliVersion: string, confirmation: string) {
-  return withStartRun(project, session => startRun({ kind: 'retained', project }, cliVersion, confirmation, session));
+export async function startRetained(project: string, cliVersion: string, confirmation: string, scope?: string) {
+  return withStartRun(project, session => startRun({ kind: 'retained', project, ...(scope ? { scope } : {}) }, cliVersion, confirmation, session));
 }
 
 async function startRun(input: StartInput, cliVersion: string, confirmation: string, session: AdoptionRunSession) {
-  const inspectSelection = () => input.kind === 'retained' ? inspectRetained(input.project, cliVersion) : inspect(input.options, cliVersion);
+  const inspectSelection = () => input.kind === 'retained' ? inspectRetained(input.project, cliVersion, input.scope) : inspect(input.options, cliVersion);
   const initial = await inspectSelection();
   const root = initial.project.root;
   verifyConfirmation(initial, confirmation);
-  const startInput: StartInput = input.kind === 'retained' ? { kind: 'retained', project: root } : { kind: 'public', options: { ...input.options, project: root } };
+  const startInput: StartInput = input.kind === 'retained' ? { ...input, kind: 'retained', project: root } : { kind: 'public', options: { ...input.options, project: root } };
   session.begin(initial, confirmation, startInput);
   let temporary: string | undefined;
   const files: Files = Object.create(null);
@@ -129,6 +133,10 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
   inputs['.repo-standards/inputs/standards.yaml'] = file(report.manifest);
   inputs['.repo-standards/inputs/metadata.json'] = file(json(report.source));
   inputs['.repo-standards/inputs/resolved.json'] = file(json(report.resolved));
+  if (report.discovery) inputs['.repo-standards/inputs/scope-history.json'] = file(json({
+    format: 'repo-standards/scope-history/v1', evidence: 'historical', inspection: confirmation,
+    sourceResolved: report.sourceResolved, resolved: report.resolved, discovery: report.discovery,
+  }));
   Object.assign(files, inputs);
   files['.repo-standards/selection.yaml'] = file(stringify(report.selection));
   files['.repo-standards/.gitignore'] = file(ignore);
@@ -278,13 +286,14 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
     session.record({ type: 'assessment-started' });
     if (assessment === undefined) {
       openAgentObservation(root, session, report);
-      session.pauseForContext(workRequest(root, session.observation, report));
+      session.pauseForContext(workRequest(root, session.observation, installation));
     }
     const accepted = validateAssessment(root, session.observation, installation.contextualBaseline!, assessment, report.source?.format === 'repo-standards/v2' ? {
       snapshot: workSnapshot(root, session.observation, report),
       changedPaths: [...new Set(session.observation.observations!.filter(interval => interval.phase === 'agent').flatMap(interval => (interval.changedPaths ?? []).filter(path => !interval.restoredExact?.[path])))],
     } : undefined);
     session.record({ type: 'assessment-submitted', assessment: accepted });
+    if (accepted.declarations.some(entry => entry.scopeValidity && Object.values(entry.scopeValidity).some(review => review.status === 'blocked'))) throw new ProductError('SCOPE_INCOMPLETE', 'Agent scope review reports incomplete coverage after fixes or at assessment. Additional files are not authorized; preserve work and reconcile the reported scope problem.');
     if (accepted.declarations.some(entry => entry.status === 'blocked')) throw new ProductError('ASSESSMENT_BLOCKED', 'Agent reports blocked contextual work. Resolve the explanation and submit renewed evidence before checks.');
     session.record({ type: 'assessment-accepted' });
     if (session.observation.observations) requireValidIntervals(session.observation.observations!);
@@ -305,9 +314,10 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
       session.record({ type: 'operation-accepted', description: `${phase}: ${selected.declaration}/${selected.operation.id} (${evidence.result!.status})` });
     }
     if (phase === 'fixes' && report.guidance.length) {
+      if (report.discovery) installation.scopeAfterFixes = workSnapshot(root, session.observation, report);
       if (report.source?.format !== 'repo-standards/v2') installation.contextualBaseline ??= projectSnapshot(root);
       openAgentObservation(root, session, report);
-      session.pauseForContext(workRequest(root, session.observation, report), installation);
+      session.pauseForContext(workRequest(root, session.observation, installation), installation);
     }
   }
   const run = session.observation;
@@ -363,5 +373,7 @@ export async function inspectRetained(project: string, cliVersion: string, scope
   }
   const report = await inspect({ project: root, ...(scope ? { scope } : {}), source: lock.selection.standards.repository, standardsVersion: lock.selection.standards.version, profile: lock.selection.profile }, cliVersion,
     { root: sourceRoot, identity: lock.selection.standards, paths, manifest: readFileSync(join(root, '.repo-standards/inputs/standards.yaml'), 'utf8'), ownedSkills: new Set(Object.keys(state.skills)), close() {} });
-  return { ...report, retained: true };
+  const history = '.repo-standards/inputs/scope-history.json';
+  const historicalScope = Object.hasOwn(lock.files, history) ? JSON.parse(readFileSync(join(root, history), 'utf8')) : undefined;
+  return { ...report, retained: true, ...(historicalScope ? { historicalScope } : {}) };
 }

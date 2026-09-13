@@ -6,8 +6,9 @@ The version-one baseline is extended by the accepted
 This document describes contracts; individual tickets state implementation scope.
 Tickets #42 and #43 implement v2 source validation and evidence-backed scope
 inspection; #44 adds v2 explicit-target operation enforcement and durable work
-intervals. Discovery adoption and lifecycle changes remain later slices of #41;
-every selection with active discovery stays blocked before execution.
+intervals; #45 completes initial adoption with confirmed discovered files. Active
+scope amendments, discovery updates, and same-pin re-adoption remain later slices
+of #41.
 
 ## Purpose and release boundary
 
@@ -182,8 +183,8 @@ The Resolver alone interprets both author formats. Source resolution preserves
 unresolved discovery without manufacturing empty or broad executable targets.
 Execution accepts concrete targets; unresolved discovery cannot authorize
 adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
-scope is missing. Validated proposals remain blocked from adoption until the
-initial discovery-adoption interface (#45) is implemented. Inspection accepts
+scope is missing. Initial start receives the same valid proposal and confirmed
+complete inspection identity and reconstructs inspection before mutation. Inspection accepts
 `repo-standards/scope/v1` proposals through `--scope`, returns explicitly versioned
 `repo-standards/inspection/v2` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
@@ -296,7 +297,7 @@ the changes preserved.
 
 ### Observed v2 execution scope
 
-For v2 explicit-target adoption, each fix's observed additions, deletions, byte
+For v2 adoption, each fix's observed additions, deletions, byte
 edits, and executable changes must belong to its declaration's concrete targets.
 Checks remain read-only. Installation expectations stay immutable, including
 against an exact declaration's own fix. Observation failure or a detected
@@ -315,7 +316,7 @@ when fixes subsequently overwrite the same files, and requires renewed
 assessment and checks. Detected scope violations cannot be erased by retry;
 abandon and reconcile before a new confirmed adoption. Installation, process
 liveness, concurrency, clean initial starts, and abandonment keep their existing
-contracts. See the [script](script-protocol.md#observed-scope-for-v2-explicit-target-adoption)
+contracts. See the [script](script-protocol.md#observed-scope-for-v2-adoption)
 and [assessment](assessment-protocol.md#v2-observation-and-replay) protocols.
 
 ## Adoption sequence and agent interface
@@ -471,3 +472,43 @@ adoption hooks, arbitrary extensions, marketplace infrastructure, source/profile
 switching, personal policy migration, app scaffolding, built-in GitHub workflow
 mutation, automatic commits, silent prerequisite installation, sandbox claims,
 signed releases, attestations, and universal rollback are outside version one.
+
+## Discovery adoption and reconciliation with the v1 baseline
+
+The accepted #41 contract replaces fixed author-supplied contextual scope with
+agent-discovered individual file paths where a v2 declaration requests discovery.
+One complete inspection binds source declarations and concrete scope, rationale,
+exclusions, the full eligible project snapshot, named targets and ancestors, and
+relevant observation/ignore inputs. This extends the v1 affected-target freshness
+contract. Initial starts retain the clean committed-project, prerequisite and
+disjoint ownership rules. The CLI validates structure and observations; the agent
+and adopter judge semantic coverage.
+
+After confirmation, expected installation, fix and contextual writes are assessed
+against their phase's authority, rather than the immutable pre-start snapshot.
+The shared execution machinery runs exact/runtime/system-skill installation,
+repeat-safe fixes, contextual work and assessment, checks, final integrity and
+durable completion. Fix/agent intervals retain attribution and immutable exact
+expectations through retries. Empty discovered scope retains operations.
+
+Discovery handoffs and assessments use work-request/v2 and assessment/v2. They
+bind the confirmed scope, post-fix snapshot, and current snapshot and require
+separate agent coverage reviews after fixes and at assessment. A need for more
+files or a mistaken target produces an incomplete result with preserved work and
+a safe reconciliation action; reporting additional paths grants no authority.
+All migration sources, destinations, directory introductions and link-repair
+files require prior confirmation. Deletion and creation are recorded separately,
+with the agent explaining useful-content preservation. Exclusion never implies
+deletion authority. Exact content is protected throughout.
+
+Retained inputs include both guidance files, selected source declarations,
+materialized scope and accepted discovery evidence. Committed interval records
+and assessments explain the authorized work in a fresh checkout. Historical
+scope is not evidence of current coverage.
+
+The parent also changes immutable active-run scope and same-pin non-startability
+through later additions-only amendments and explicit re-adoption. Those interfaces
+are deferred beyond #45: this implementation keeps active scope fixed and ordinary
+retained inspection non-startable. Discovery updates remain explicitly blocked
+until their lifecycle ticket. V1 formats, execution and regression coverage remain
+supported.

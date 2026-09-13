@@ -81,7 +81,7 @@ test('two unfamiliar layouts produce complete normalized scope reports including
     assert.match(report.manifest, /discovery: discovery.md/);
     assert.equal(report.guidance.find((d: { id: string }) => d.id === 'project-docs').content, material['guidance.md']);
     assert.equal(report.exact[0].files[0].after.content, material['exact.md']);
-    assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'DISCOVERY_ADOPTION_UNAVAILABLE'));
+    assert.deepEqual(report.start.blockers, []);
     proposal.declarations[0]!.evidence.reverse();
     proposal.declarations[0]!.candidates.reverse();
     assert.equal(inspect().identity, report.identity);
@@ -91,7 +91,7 @@ test('two unfamiliar layouts produce complete normalized scope reports including
   }
 });
 
-test('empty and unresolved scope retain declarations and operations while blocking adoption', (t) => {
+test('empty scope retains declarations and operations while unresolved scope blocks adoption', (t) => {
   const operations = source.replace('      discovery: discovery.md', `      discovery: discovery.md
       checks:
         - id: verify

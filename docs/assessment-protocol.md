@@ -156,3 +156,58 @@ from operation outcomes and assessment submissions. A recorded out-of-scope
 interval remains an incomplete result; abandon and reconcile before a new
 confirmed adoption. The last complete state retains interval and retry history
 as historical evidence, without asserting ongoing compliance.
+
+## Discovery work-request/v2 and assessment/v2
+
+Active discovery uses `repo-standards/work-request/v2`; v1 sources and v2 explicit
+selections continue to use the v1 work-request and assessment shapes. The v2
+request adds `scope` with the confirmed `inspection` identity, `afterFixes`
+snapshot identity, and accepted `proposal`. Each discovered declaration also
+includes `discovery` guidance alongside its contextual `guidance` and concrete
+`allowedTargets`. Explicit contextual declarations do not have discovery fields.
+The post-fix snapshot is captured after each successful fix phase, remains fixed
+across refreshes, and is renewed by explicit retry; the ordinary `snapshot` binds
+the current project state and retry attempt. Expected adoption writes are allowed
+under their phase's concrete scope, not treated as stale pre-start observations.
+
+Before editing, re-evaluate the discovery criteria against the post-fix project
+and retain your evidence. During final assessment, evaluate coverage again against
+the refreshed current project. Review included and excluded candidates, missing
+READMEs, intended destinations and links, and explained empty scope. These are
+agent judgments; the CLI checks their structure and identity, not semantic truth.
+
+Submit `repo-standards/assessment/v2` with the ordinary fields plus top-level
+`scope: {"inspection": "COPY_SCOPE_INSPECTION", "afterFixes": "COPY_SCOPE_AFTER_FIXES"}`.
+Copy only those two scope fields, not the proposal. Each discovery declaration
+requires `scopeValidity` with exactly `afterFixes` and `current`. Each review uses:
+
+```json
+{
+  "status": "valid",
+  "explanation": "The maintained projects and planned migration files remain covered.",
+  "evidence": ["Reviewed project manifests, legacy documentation and navigation links."],
+  "additionalPaths": []
+}
+```
+
+Both reviews need nonempty explanation and a nonempty list of distinct evidence
+statements. `additionalPaths` is a list of distinct repository-relative filenames.
+If coverage needs more files, use `status: blocked` and list them; unresolved
+membership or a target that must be withdrawn also requires blocked status, with
+an explanation. `valid` requires an empty additional-path list. Every discovery
+declaration needs both reviews, including empty scope. Explicit contextual
+declarations keep their ordinary entry fields. Mismatched scope identities,
+missing reviews, and a v1 submission for a v2 request are rejected.
+
+A structurally valid blocked review is retained as `SCOPE_INCOMPLETE` before checks.
+It grants no authority. Preserve work and reconcile within the confirmed scope,
+or abandon and reconcile to a clean committed project before a new inspection
+and confirmation. Active scope expansion/withdrawal is not implemented here.
+
+For migrations, report old source deletion and destination creation as separate
+`changedPaths`, along with introductions and every link-repair file. Explain
+which useful content each destination preserves. All must already be confirmed;
+there is no rename protocol or deletion authority implied by exclusions. False,
+omitted, invented or out-of-scope changes, stale assessments and exact corruption
+prevent completion and preserve work and installation expectations. Successful
+state retains the reviews and separate fix/agent observation intervals.

@@ -330,9 +330,25 @@ continuous monitoring or atomic filesystem snapshot guarantee. After a stale
 request, run the first inspection again and review evidence before revising the
 proposal; changing only its request string is not a substitute for that review.
 
-This release implements scope **inspection**. All profiles with active discovery
-remain blocked from adoption, including validated and empty proposals, with
-`DISCOVERY_ADOPTION_UNAVAILABLE` after proposal validation. Initial discovery
-adoption is tracked in issue #45; `start --scope` is not yet supported. Existing
-explicit selections retain inspection/v1; v2 execution adds the observed-scope
-enforcement described in the [script protocol](script-protocol.md#observed-scope-for-v2-explicit-target-adoption).
+For initial adoption, obtain one confirmation of this complete inspection and
+pass the same external proposal file and identity to start:
+
+```sh
+repo-standards start --source https://github.com/OWNER/STANDARDS \
+  --standards-version v1.2.3 --profile work --scope /tmp/scope.json \
+  --confirm 'sha256:INSPECTION_HASH' --json
+```
+
+Start reconstructs the inspection before prerequisites and again before
+installation. Missing, invalid, unresolved, or stale scope cannot authorize
+mutation. Initial clean committed-project and prerequisite rules still apply.
+There is no separate mandatory scope confirmation. Existing explicit selections
+retain inspection/v1; v2 execution uses the [observed-scope contract](script-protocol.md#observed-scope-for-v2-adoption).
+Discovery updates and same-pin re-adoption are not yet startable.
+
+After completion, retained `inspect --json` exposes `historicalScope`: the
+accepted inspection identity, source-resolved declarations, materialized concrete
+selection, and discovery proposal, rationale, guidance, references, and observation
+identities. Its `evidence: historical` describes prior authorization, even in a
+fresh checkout without the source. The ordinary report's current discovery
+request is separate and confers no authority or claim of current coverage.

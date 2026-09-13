@@ -29,6 +29,8 @@ repo-standards start --source https://github.com/OWNER/STANDARDS \
   --standards-version v1.2.3 --profile work --confirm 'sha256:INSPECTION_HASH' --json
 ```
 
+For discovery-backed initial adoption, follow the [two-pass inspection](inspection.md#discover-contextual-file-scope-v2-sources), then pass the same `--scope <file>` proposal with the confirmed complete inspection identity to `start`. Missing, invalid, unresolved or stale scope blocks mutation.
+
 Both commands accept `--project <directory>` and default to the current Git
 working tree. Store inspection reports outside the project to keep it clean.
 `--confirm` represents the maintainer's explicit confirmation; the CLI cannot
@@ -131,6 +133,20 @@ Review and commit these files through the adopting project's normal workflow:
 | `.agents/skills/adopt-standards/` | The product-owned system skill from this exact CLI version. |
 | Exact targets and `.agents/skills/<author skill>/` | The selected author-owned content and complete skill resources. |
 
+Discovery adoption additionally retains `inputs/scope-history.json`, containing
+its accepted inspection identity, source-resolved declarations, concrete resolved
+selection, and discovery guidance, proposal, rationale, evidence references and
+observation identities. This file is included in immutable input integrity.
+`inspect --json` exposes it as historical scope after completion, independently of
+source availability. Work intervals and final scope-validity assessments are
+committed in state v2. Historical evidence makes no current-coverage claim.
+
+Discovery updates, active scope amendments and same-pin re-adoption remain
+unsupported in this implementation. If contextual review identifies additional
+files, preserve the incomplete run; reconcile the review within confirmed scope
+or abandon and reconcile to a clean committed project before a new inspection.
+Retry repeats fixes under existing scope and cannot authorize additional files.
+
 The normalized manifest is separate from retained source files, so an author
 may legitimately select their original `standards.yaml` as exact content.
 References keep their original source-relative paths. The shared resolver also
@@ -150,7 +166,8 @@ Neither dependencies nor run records belong in commits.
 
 ## Completion and incomplete results
 
-`start` prints a `repo-standards/run/v1` JSON report. Its fields include `id`,
+`start` prints a `repo-standards/run/v1` JSON report for v1 sources and
+`repo-standards/run/v2` for v2 sources. Its fields include `id`,
 `inspection`, `selection`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
 `uncertain`, `nextAction`, `prerequisites`, `operations`, `assessments`, and contextual
 `workRequest` when required. `installation.files` and `installation.runtime` record
@@ -280,7 +297,7 @@ V1 keeps its existing contextual comparison baseline. V2 records separate
 fix and agent observation intervals, retaining earlier observed agent edits
 even when replayed fixes overwrite the same files. V2 retry cannot erase
 recorded scope violations or create scope authority; see the
-[observed execution contract](script-protocol.md#observed-scope-for-v2-explicit-target-adoption). Submit a new assessment separately after retry;
+[observed execution contract](script-protocol.md#observed-scope-for-v2-adoption). Submit a new assessment separately after retry;
 `--retry` and `--assessment` cannot be combined. Plain `resume` and
 `resume --assessment` remain the contextual interface and never implicitly retry
 uncertain process outcomes. A failed completion write remains incomplete until
