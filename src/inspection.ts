@@ -223,7 +223,8 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       observation: scopeObservation,
     } : undefined;
     if (discovery) {
-      blockers.push(proposal ? { code: 'DISCOVERY_ADOPTION_UNAVAILABLE', message: 'Scope inspection is available; discovery adoption remains blocked until the initial discovery-adoption implementation (#45).' } : { code: 'DISCOVERY_REQUIRED', message: 'Interpret the discovery guidance and submit an evidence-backed repo-standards/scope/v1 proposal with inspect --scope.' });
+      if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: 'Interpret the discovery guidance and submit an evidence-backed repo-standards/scope/v1 proposal with inspect --scope.' });
+      if (previous && proposal) blockers.push({ code: 'DISCOVERY_UPDATE_UNAVAILABLE', message: 'Discovery adoption currently supports initial starts. Discovery updates and same-pin re-adoption require the subsequent lifecycle implementation.' });
       if (proposal?.declarations.some(entry => entry.unresolved.length)) blockers.push({ code: 'UNRESOLVED_SCOPE', message: 'Resolve the reported discovery questions and inspect a revised proposal.' });
     }
     let update: 'standards' | 'cli' | undefined;

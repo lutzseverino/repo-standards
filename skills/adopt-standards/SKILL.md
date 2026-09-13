@@ -1,6 +1,6 @@
 ---
 name: adopt-standards
-description: Guide confirmed Repository Standards adoption, contextual work, updates, and recovery.
+description: Guide confirmed Repository Standards discovery, adoption, contextual work, updates, and recovery.
 disable-model-invocation: true
 ---
 
@@ -32,7 +32,10 @@ until the project runtime exists. Thereafter the document root is
   For a requested standards or CLI update, read
   `adoption.md#update-one-pin-at-a-time` for candidate acquisition and commands.
   Change one pin, keeping source and profile. Use the pinned CLI for a standards
-  update and the external candidate CLI for a CLI update.
+  update and the external candidate CLI for a CLI update. Historical discovered
+  scope explains prior authorization; it does not prove current coverage.
+  Discovery updates, active amendments and same-pin re-adoption remain unsupported
+  by this CLI; report the limitation and preserve the current selection.
 - **Initial adoption:** obtain the public GitHub source, stable standards tag
   and complete profile from the maintainer, then inspect that selection.
 
@@ -42,12 +45,20 @@ until the project runtime exists. Thereafter the document root is
    for initial adoption or a standards update. For a CLI update, run the exact
    candidate's `inspect --json` without source flags to use retained standards.
    Store reports outside the project. Read `inspection.md` when interpreting
-   fields, blockers, or acquisition errors.
+   fields, blockers, or acquisition errors. If discovery is required, read
+   `inspection.md#discover-contextual-file-scope-v2-sources` and each discovery
+   guidance file. Inspect eligible evidence in the real repository, explain
+   candidate inclusion/exclusion and membership for missing READMEs, and resolve
+   membership questions with the maintainer. Enumerate individual existing files,
+   planned destinations, directory introductions, and link-repair files around
+   exact-owned content. Prepare the versioned proposal outside the project and
+   rerun `inspect --scope <file>` until one complete inspection is reviewable.
+   An explained empty scope retains its declaration and operations.
 2. Present the actual report's identity and exact CLI version, source URL,
    standards tag, commit and profile; for updates include previous/candidate
    pins and retired declarations. Show exact creates/replacements/matching-file
-   claims and whole-skill inventories, contextual guidance and allowed targets,
-   resolved exclusions, and ownership changes. Make the full inspection available
+   claims and whole-skill inventories, discovery rationale and candidate exclusions,
+   contextual guidance and allowed targets, resolved exclusions, and ownership changes. Make the full inspection available
    for review, including supplied bytes and diffs against existing content.
 3. Disclose every declared fix/check, its script and resources, literal argument
    vector, project-root working directory, timeout, prerequisite version probe
@@ -60,8 +71,10 @@ until the project runtime exists. Thereafter the document root is
    disclosed selection/operations. A general request to adopt is not confirmation
    of an unseen inspection. Then use the same executable and selection for
    `start --confirm <identity> --json`, preserving source flags for initial or
-   standards adoption and omitting them for a CLI update. Changed inputs or a
-   stale rejection require a new inspection and renewed confirmation.
+   standards adoption and omitting them for a CLI update. For initial discovery
+   adoption, pass the same `--scope <file>` proposal. One confirmation covers the
+   complete inspection; scope discovery itself needs no separate approval.
+   Changed inputs or a stale rejection require a new inspection and renewed confirmation.
 
 Author skills are ordinary-work content. The product-owned `adopt-standards`
 skill and public CLI govern adoption for every author; author material cannot
@@ -72,8 +85,12 @@ replace this workflow or supply adoption hooks.
 When a report returns `workRequest`, read `assessment-protocol.md` before editing
 or submitting evidence. The handoff is expected incomplete adoption.
 
-1. Read every request declaration's retained guidance and explicit allowed paths
-   and directory trees. Inspect the real project files needed to understand its
+1. For a v2 discovery request, recheck semantic coverage after fixes against
+   each discovery guidance file and accepted proposal before editing. Record the
+   post-fix coverage evidence for assessment. If more files or scope withdrawal
+   are needed, follow the protocol's blocked review and safe reconciliation path;
+   additional-path evidence grants no authority. Read every request declaration's
+   retained guidance and explicit allowed paths and directory trees. Inspect the real project files needed to understand its
    purpose, commands and behavior. Apply guidance usefully within those targets;
    preserve project facts, exact content, excluded employer content and unrelated
    work. If guidance requires out-of-scope work or unsupported facts, assess it
@@ -87,7 +104,11 @@ or submitting evidence. The handoff is expected incomplete adoption.
    provide satisfied/blocked, explanation, every observed changed file since
    fixes under its governing declaration, and supporting evidence. Installation
    and fix changes are not contextual changes. Use an empty changed-path list
-   when no contextual changes were needed.
+   when no contextual changes were needed. For discovered declarations, review
+   coverage again at the refreshed snapshot and submit both scope-validity reviews
+   in assessment/v2, copying the confirmed scope and post-fix identities. Account
+   for migration deletion and creation separately and explain preservation of
+   useful content. Report observed agent changes across all retry intervals.
 4. Store the submission outside the project or in `.repo-standards/local/` and
    run `resume --assessment <file> --json`. Keep content unchanged between refresh
    and submission. Stale evidence needs a refreshed request and reassessment of

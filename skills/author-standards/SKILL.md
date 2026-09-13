@@ -137,9 +137,10 @@ nor prerequisite probes and does not establish guidance or author-skill usefulne
 concrete project scope safety, semantic discovery completeness, or future project
 compliance. Read the reported discovery requirements per profile. Explain that
 valid discovery references still need agent interpretation and adopter review in
-an adopting project; they are not executable targets. If the matching CLI only
-supports discovery source validation, report adoption as unavailable for those
-profiles until project-scope support is available. Report each operation's fixture
+an adopting project. Initial adoption materializes confirmed individual files
+through the product-owned discovery and assessment interfaces. Exercise useful
+discovery, migration, and empty scope with retained operations where applicable;
+source validation alone does not verify those journeys. Report each operation's fixture
 outcomes and each author skill's actual review/exercise separately. Missing prerequisites leave
 affected behavior unverified; obtain explicit deferral if the author chooses to
 finish with that limitation. Never describe unexecuted behavior as passing.

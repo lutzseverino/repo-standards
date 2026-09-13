@@ -4,7 +4,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, 
 import { dirname, join, relative } from 'node:path';
 import { externalPath, hash } from './acquisition.js';
 import { tmpdir } from 'node:os';
-import type { Assessment } from './assessment.js';
+import type { Assessment, ScopeConfirmation } from './assessment.js';
 import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { ProductError } from './errors.js';
 import { observe } from './inspection.js';
@@ -15,7 +15,7 @@ import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, safe
 import type { Baseline, Files } from './adoption-files.js';
 
 type Inspection = Awaited<ReturnType<typeof inspect>>;
-export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: 'retained'; project: string };
+export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: 'retained'; project: string; scope?: string };
 export interface Run {
   format: 'repo-standards/run/v1' | 'repo-standards/run/v2'; id: string; inspection: string;
   selection: Inspection['selection'];
@@ -33,14 +33,15 @@ export interface Run {
 }
 
 export interface WorkRequest {
-  format: 'repo-standards/work-request/v1'; run: string; selection: string; snapshot: string;
-  declarations: { id: string; guidance: Inspection['guidance'][number]; allowedTargets: { paths: string[]; directories: string[] } }[];
+  format: 'repo-standards/work-request/v1' | 'repo-standards/work-request/v2'; run: string; selection: string; snapshot: string;
+  scope?: ScopeConfirmation & { proposal: NonNullable<Inspection['discovery']>['proposal'] };
+  declarations: { id: string; guidance: Inspection['guidance'][number]; discovery?: NonNullable<Inspection['discovery']>['declarations'][number]; allowedTargets: { paths: string[]; directories: string[] } }[];
   requiredEvidence: string[];
 }
 export interface Installation {
   report: Inspection; files: Files; skills: Record<string, string[]>;
   exactBaselines: Record<string, Baseline>; durable: Record<string, Baseline>;
-  runtimeHash: string; contextualBaseline?: string; before: Record<string, Observation>;
+  runtimeHash: string; contextualBaseline?: string; scopeAfterFixes?: string; before: Record<string, Observation>;
   replaceTrees?: string[]; transitional?: Files;
 }
 function cleanupRun(lock: string) {
@@ -504,6 +505,7 @@ export class AdoptionRunSession {
       ? 'Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.'
       : 'Explicit recovery is required. Review this incomplete adoption, reconcile changes, then use resume --retry, or abandon to preserve the work and report.';
     else if (!this.#mutated && !run.processGroup) { run.uncertain = []; run.nextAction = 'Resolve the reported problem, inspect again, and confirm the new inspection before retrying.'; }
+    if (error instanceof ProductError && error.code === 'SCOPE_INCOMPLETE') run.nextAction = 'Additional paths grant no authority. Preserve the run and work; correct the coverage evidence within confirmed scope, or abandon and reconcile to a clean committed project before a new discovery inspection and confirmation. Withdrawing or expanding active scope is not supported by this interface.';
     try { this.#save(); } catch { /* Preserve the original interruption record. */ }
   }
 

@@ -123,9 +123,9 @@ successful, failed or uncertain work. Follow the recovery instructions in
 [Adoption](adoption.md#completion-and-incomplete-results). No process error,
 blocked result, failed check or contextual handoff asserts complete adoption.
 
-## Observed scope for v2 explicit-target adoption
+## Observed scope for v2 adoption
 
-Sources using `repo-standards/v2` with explicit targets use the same execution
+Sources using `repo-standards/v2` use the same execution
 machinery and unchanged `repo-standards/operation/v1` input and
 `repo-standards/result/v1` output. Each fix's observed added, deleted, edited,
 and executable-state-changed files must fit **its owning declaration**, not the
@@ -185,5 +185,13 @@ checkout. The integrity lock remains `repo-standards/lock/v1` and binds the new
 state bytes. V1 sources retain their existing execution and report formats.
 Retained inspection also checks v2 exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
-empty-directory edits block updates before mutation. Discovery adoption remains a separate implementation
-slice (#45).
+empty-directory edits block updates before mutation.
+
+Confirmed discovery declarations are materialized into the existing target
+representation before execution. `allowedTargets.paths` is the confirmed file
+list and `allowedTargets.directories` is empty. The active resolved declarations
+carry those same targets; operations do not interpret discovery guidance. Empty
+scope still executes its fixes and checks and requires contextual coverage review.
+Deletion and creation are separate observed changes: a move grants no implicit
+authority for its destination or link repairs. Excluded candidates and declarations
+grant no deletion authority.
