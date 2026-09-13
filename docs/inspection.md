@@ -333,5 +333,6 @@ proposal; changing only its request string is not a substitute for that review.
 This release implements scope **inspection**. All profiles with active discovery
 remain blocked from adoption, including validated and empty proposals, with
 `DISCOVERY_ADOPTION_UNAVAILABLE` after proposal validation. Initial discovery
-adoption is tracked in issue #44; `start --scope` is not yet supported. Existing
-explicit selections retain inspection/v1 and their established adoption behavior.
+adoption is tracked in issue #45; `start --scope` is not yet supported. Existing
+explicit selections retain inspection/v1; v2 execution adds the observed-scope
+enforcement described in the [script protocol](script-protocol.md#observed-scope-for-v2-explicit-target-adoption).

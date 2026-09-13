@@ -1,3 +1,4 @@
+import { finishInterval, observeContinuation, requireValidIntervals, type WorkInterval, type WorkObservation } from './work-observation.js';
 import { randomUUID } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -16,10 +17,11 @@ import type { Baseline, Files } from './adoption-files.js';
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: 'retained'; project: string };
 export interface Run {
-  format: 'repo-standards/run/v1'; id: string; inspection: string;
+  format: 'repo-standards/run/v1' | 'repo-standards/run/v2'; id: string; inspection: string;
   selection: Inspection['selection'];
   affected: Record<string, Observation>;
   prerequisites: PrerequisiteEvidence[]; operations: OperationEvidence[];
+  observations?: WorkInterval[];
   outcome: 'complete' | 'incomplete'; phase: string; reason: string;
   workRequest?: WorkRequest; continuation?: string; assessments: Assessment[];
   installation?: { files: string[]; runtime: boolean; complete?: boolean; trees?: Record<string, 'removing' | 'installing'> };
@@ -167,6 +169,10 @@ export function abandon(project: string, cliVersion: string) {
     if (run.selection.cli.version !== cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
     if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before abandonment.`);
     if (run.outcome === 'complete') throw new ProductError('ALREADY_COMPLETE', 'This adoption completed before interruption. Use resume --retry to verify and release its remaining progress record.');
+    if (run.observations) {
+      try { observeContinuation(root, run.observations, readInstallation(root, run).report.resolved, true); }
+      catch { run.uncertain.push('The final abandoned observation could not be completed; earlier interval evidence is preserved.'); }
+    }
     run.archivedFiles = archiveRunEvidence(root, run);
     for (const operation of run.operations) for (const stream of ['stdout', 'stderr'] as const) {
       const archived = run.archivedFiles[operation[stream]];
@@ -194,15 +200,17 @@ export function status(project: string) {
   const lock = lockPath(root);
   const abandoned = abandonedReports(lock);
   const active = existsSync(lock) ? JSON.parse(readFileSync(lock, 'utf8')) as Run : null;
+  const format = active?.observations || abandoned.some(run => run.observations) ? 'repo-standards/status/v2' : 'repo-standards/status/v1';
   if (active) {
     try { active.changes = actualChanges(root, active.affected); } catch { active.uncertain.push('Current project changes could not be fully read.'); }
-    return { format: 'repo-standards/status/v1', selection: active.selection, lastComplete: active.previousComplete?.lastComplete ?? null, active,
+    return { format, selection: active.selection, lastComplete: active.previousComplete?.lastComplete ?? null, active,
       execution: executing(lock) || (active.processGroup && processGroupAlive(active.processGroup, active.processGroupIdentity)) ? 'active' : 'interrupted', abandoned, evidence: 'historical' };
   }
-  if (!existsSync(join(root, '.repo-standards/state.json'))) return { format: 'repo-standards/status/v1', selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
+  if (!existsSync(join(root, '.repo-standards/state.json'))) return { format, selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
   try {
     const { state, pinned } = recordedState(root);
-    return { format: 'repo-standards/status/v1', selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills, checks: state.checks, assessments: state.assessments, active, abandoned, evidence: 'historical' };
+    return { format: state.observations ? 'repo-standards/status/v2' : format,
+      ...(state.observations ? { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory } : {}), selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills, checks: state.checks, assessments: state.assessments, active, abandoned, evidence: 'historical' };
   } catch (error) {
     if (!(error instanceof ProductError) || error.code !== 'STATE_INTEGRITY' || !abandoned.length) throw error;
     const lockFile = safe(root, '.repo-standards/lock.json');
@@ -210,7 +218,7 @@ export function status(project: string) {
     try { if (lockFile.type === 'file') inspection = JSON.parse(Buffer.from(lockFile.content, lockFile.encoding).toString('utf8'))?.inspection; }
     catch { /* Archived reports remain available even if current state cannot be decoded. */ }
     const incomplete = abandoned.find(run => run.inspection === inspection);
-    return { format: 'repo-standards/status/v1', selection: incomplete?.selection ?? null,
+    return { format, selection: incomplete?.selection ?? null,
       lastComplete: incomplete?.previousComplete?.lastComplete ?? null, active, abandoned, evidence: 'historical',
       stateError: { code: error.code, message: error.message } };
   }
@@ -273,7 +281,8 @@ export class AdoptionRunSession {
     const root = this.#root;
     const previous = report.update ? recordedState(root) : undefined;
     const recovering = this.#run;
-    const run: Run = recovering ?? { format: 'repo-standards/run/v1', id: randomUUID(), inspection: confirmation, selection: report.selection, startInput,
+    const run: Run = recovering ?? { format: report.source?.format === 'repo-standards/v2' ? 'repo-standards/run/v2' : 'repo-standards/run/v1',
+      ...(report.source?.format === 'repo-standards/v2' ? { observations: [] } : {}), id: randomUUID(), inspection: confirmation, selection: report.selection, startInput,
       ...(previous ? { previousComplete: { selection: previous.pinned.selection, lastComplete: previous.state.lastComplete } } : {}),
       affected: { ...report.project.affected, [systemTarget]: report.project.systemSkill }, outcome: 'incomplete',
       prerequisites: [], operations: [], assessments: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],
@@ -351,10 +360,26 @@ export class AdoptionRunSession {
     this.#mutated = true;
   }
 
+  openObservation(interval: WorkInterval) {
+    const run = this.#state();
+    if (!run.observations) return;
+    if (run.observations.at(-1) && !run.observations.at(-1)!.after) throw new ProductError('OBSERVATION_INCOMPLETE', 'The preceding observation interval must be closed before more work.');
+    run.observations.push(structuredClone(interval));
+    this.#save();
+  }
+
+  observeContinuation(resolved: Installation['report']['resolved'], interrupted = false) {
+    const intervals = this.#state().observations;
+    if (!intervals) return;
+    observeContinuation(this.#root, intervals, resolved, interrupted);
+    this.#save();
+  }
+
   async authorProcess(operation: { phase: 'fixes' | 'checks'; declaration: string; id: string },
-    execute: (onSpawn: (group: number) => void) => Promise<OperationEvidence>, verify: () => void) {
+    execute: (onSpawn: (group: number) => void) => Promise<OperationEvidence>, verify: () => void, observation?: { scope: WorkInterval['scope']; before: WorkObservation; capture: () => WorkObservation }) {
     const run = this.#state();
     const root = this.#root;
+    if (observation) this.openObservation({ phase: operation.phase, operation, scope: observation.scope, before: observation.before });
     run.phase = operation.phase; run.reason = 'Run in progress or interrupted.';
     run.uncertain = [`${operation.declaration}/${operation.id}: process outcome uncertain until recorded`]; this.#save();
     const persistedRun = file(json(run));
@@ -370,6 +395,9 @@ export class AdoptionRunSession {
     run.operations.push(evidence);
     clearStoppedProcess(run);
     run.uncertain = ['Post-operation integrity verification has not succeeded.'];
+    // Observe before integrity verification, but persist only after checking the
+    // author-visible journal: observation persistence must not conceal tampering.
+    if (observation) finishInterval(run.observations!.at(-1)!, observation.capture());
     const currentRun = safe(root, '.repo-standards/local/run.json');
     if (currentRun.type === 'file' && currentRun.sha256 !== persistedRun.sha256) write(root, `${log}.altered-run.json`, currentRun);
     verifyFiles(root, { '.repo-standards/local/run.json': persistedRun });
@@ -377,6 +405,7 @@ export class AdoptionRunSession {
     if (currentLock.type !== 'file' || currentLock.sha256 !== persistedLock.sha256) throw new ProductError('FINAL_INTEGRITY', 'The active adoption run lock changed during author execution.');
     verify();
     run.uncertain = [];
+    if (run.observations) requireValidIntervals(run.observations);
     return structuredClone(evidence);
   }
 
@@ -398,7 +427,8 @@ export class AdoptionRunSession {
     const { report, files, skills, exactBaselines, durable } = installation;
     this.#completing = true;
     const completedAt = new Date().toISOString();
-    const state = file(json({ format: 'repo-standards/state/v1', lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: report.project.head }, baselines: exactBaselines, skills, checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));
+    const state = file(json({ format: run.observations ? 'repo-standards/state/v2' : 'repo-standards/state/v1',
+      ...(run.observations ? { observations: run.observations, operations: run.operations, retryHistory: run.retryHistory ?? [] } : {}), lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: report.project.head }, baselines: exactBaselines, skills, checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));
     const completionLock = file(json({ format: 'repo-standards/lock/v1', selection: report.selection, inspection: run.inspection, files: durable, state: { sha256: state.sha256, executable: state.executable } }));
     run.completion = { state, lock: completionLock };
     run.phase = 'completion'; run.uncertain = ['Durable completion and final run-report persistence have not both succeeded.']; this.#save();
@@ -427,6 +457,10 @@ export class AdoptionRunSession {
       if (!preserveIncompleteState(root, run)) throw new ProductError('RECOVERY_BLOCKED', 'Cannot preserve candidate completion state. Resolve local/incomplete-state.json storage before retry; the run remains active.');
       write(root, '.repo-standards/lock.json', installation.files['.repo-standards/lock.json']!, run.id);
       delete run.completion;
+    }
+    if (run.observations) {
+      this.observeContinuation(installation.report.resolved, true);
+      requireValidIntervals(run.observations);
     }
     const interruptedReport = archivedFiles['.repo-standards/local/run.json'];
     (run.retryHistory ??= []).push({ phase: run.phase, reason: run.reason, uncertain: [...run.uncertain], assessments: run.assessments, archivedFiles, ...(interruptedReport ? { report: interruptedReport } : {}) });

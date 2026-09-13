@@ -1,3 +1,4 @@
+import { concreteScope, contextualScope, observeWork, requireValidIntervals } from './work-observation.js';
 import { assessmentSnapshot, projectSnapshot, validateAssessment } from './assessment.js';
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
@@ -17,12 +18,18 @@ export { abandon, status } from './adoption-run.js';
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 const packageName = '@lutzseverino/repo-standards';
 
-function workRequest(root: string, run: Run, report: Pick<Inspection, 'guidance' | 'resolved'>): WorkRequest {
+function workRequest(root: string, run: Run, report: Pick<Inspection, 'guidance' | 'resolved' | 'source'>): WorkRequest {
   return { format: 'repo-standards/work-request/v1', run: run.id, selection: `sha256:${hash(json(run.selection))}`,
-    snapshot: assessmentSnapshot(root, run.retryHistory?.length),
+    snapshot: workSnapshot(root, run, report),
     declarations: report.guidance.map(guidance => ({ id: guidance.id, guidance,
       allowedTargets: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === guidance.id)!) })),
     requiredEvidence: ['status', 'explanation', 'changedPaths', 'evidence'] };
+}
+
+function workSnapshot(root: string, run: Run, report: Pick<Inspection, 'resolved' | 'source'>) {
+  return report.source?.format === 'repo-standards/v2'
+    ? `sha256:${hash(json(observeWork(root, concreteScope(report.resolved))) + `retry:${run.retryHistory?.length ?? 0}`)}`
+    : assessmentSnapshot(root, run.retryHistory?.length);
 }
 
 function verifyConfirmation(report: Inspection, confirmation: string) {
@@ -252,35 +259,49 @@ function verifyInstallation(root: string, installation: Installation, extra: Fil
   verifyCommittable(root, [...Object.keys(files), '.repo-standards/state.json']);
 }
 
+function openAgentObservation(root: string, session: AdoptionRunSession, report: Inspection) {
+  if (report.source?.format !== 'repo-standards/v2') return;
+  session.openObservation({ phase: 'agent', scope: contextualScope(report.resolved), before: observeWork(root, concreteScope(report.resolved)) });
+}
+
 async function advance(root: string, session: AdoptionRunSession, installation: Installation, resumed = false, assessment?: unknown) {
   const { report } = installation;
   const verifyInstalled = () => verifyInstallation(root, installation);
+  if (resumed) session.observeContinuation(report.resolved);
   verifyInstalled();
   if (resumed) {
     session.record({ type: 'assessment-started' });
-    if (assessment === undefined) session.pauseForContext(workRequest(root, session.observation, report));
-    const accepted = validateAssessment(root, session.observation, installation.contextualBaseline!, assessment);
+    if (assessment === undefined) {
+      openAgentObservation(root, session, report);
+      session.pauseForContext(workRequest(root, session.observation, report));
+    }
+    const accepted = validateAssessment(root, session.observation, installation.contextualBaseline!, assessment, report.source?.format === 'repo-standards/v2' ? {
+      snapshot: workSnapshot(root, session.observation, report),
+      changedPaths: [...new Set(session.observation.observations!.filter(interval => interval.phase === 'agent').flatMap(interval => interval.changedPaths ?? []))],
+    } : undefined);
     session.record({ type: 'assessment-submitted', assessment: accepted });
     if (accepted.declarations.some(entry => entry.status === 'blocked')) throw new ProductError('ASSESSMENT_BLOCKED', 'Agent reports blocked contextual work. Resolve the explanation and submit renewed evidence before checks.');
     session.record({ type: 'assessment-accepted' });
+    if (session.observation.observations) requireValidIntervals(session.observation.observations!);
   }
   const operationStart = session.observation.operations.length;
   for (const phase of (resumed ? ['checks'] : ['fixes', 'checks']) as ('fixes' | 'checks')[]) {
     for (const selected of operations(report.resolved, phase)) {
-      let before: string | null = null;
-      const evidence = await session.authorProcess({ phase, declaration: selected.declaration, id: selected.operation.id }, onSpawn => {
-        before = phase === 'checks' ? projectSnapshot(root) : null;
-        return execute(root, selected, report.selection, report.resolved, onSpawn);
-      }, () => {
-        verifyInstalled();
-        if (before !== null && projectSnapshot(root) !== before) throw new ProductError('CHECK_MUTATION', `Check ${selected.declaration}/${selected.operation.id} changed observed project content. Changes are preserved; checks must be read-only.`);
-      });
+      const v2 = report.source?.format === 'repo-standards/v2';
+      const capture = () => observeWork(root, concreteScope(report.resolved));
+      const before = !v2 && phase === 'checks' ? projectSnapshot(root) : null;
+      const evidence = await session.authorProcess({ phase, declaration: selected.declaration, id: selected.operation.id },
+        onSpawn => execute(root, selected, report.selection, report.resolved, onSpawn), () => {
+          verifyInstalled();
+          if (before !== null && projectSnapshot(root) !== before) throw new ProductError('CHECK_MUTATION', `Check ${selected.declaration}/${selected.operation.id} changed observed project content. Changes are preserved; checks must be read-only.`);
+        }, v2 ? { scope: { [selected.declaration]: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === selected.declaration)!) }, before: capture(), capture } : undefined);
       if (evidence.error) throw new ProductError(evidence.error, `Operation ${selected.declaration}/${selected.operation.id} did not return a successful process and protocol result. Read its logs and preserve changes.`);
       if (evidence.result?.status === 'blocked') throw new ProductError('OPERATION_BLOCKED', `Operation ${selected.declaration}/${selected.operation.id} is blocked: ${evidence.result.message}`);
       session.record({ type: 'operation-accepted', description: `${phase}: ${selected.declaration}/${selected.operation.id} (${evidence.result!.status})` });
     }
     if (phase === 'fixes' && report.guidance.length) {
-      installation.contextualBaseline ??= projectSnapshot(root);
+      if (report.source?.format !== 'repo-standards/v2') installation.contextualBaseline ??= projectSnapshot(root);
+      openAgentObservation(root, session, report);
       session.pauseForContext(workRequest(root, session.observation, report), installation);
     }
   }
@@ -288,7 +309,7 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
   if (run.operations.slice(operationStart).some(evidence => evidence.result?.status === 'failed')) throw new ProductError('CHECKS_FAILED', 'One or more standards checks failed. All remaining ordinary check evidence was collected.');
   session.record({ type: 'final-verification' });
   verifyInstalled();
-  if (run.assessments.length && run.assessments[0]!.snapshot !== assessmentSnapshot(root, run.retryHistory?.length)) throw new ProductError('STALE_ASSESSMENT', 'Project content changed after assessment. Refresh the work request, reassess, and rerun checks.');
+  if (run.assessments.length && run.assessments[0]!.snapshot !== workSnapshot(root, run, report)) throw new ProductError('STALE_ASSESSMENT', 'Project content changed after assessment. Refresh the work request, reassess, and rerun checks.');
   session.complete(installation, operationStart);
 }
 

@@ -90,7 +90,7 @@ files, including every changed file within a directory tree. Changes made by
 installation and fixes are already accounted for and must not be claimed as
 contextual changes. An unchanged extra path, omitted observed path, path under
 the wrong declaration, unsafe target, or out-of-scope change blocks completion.
-Ignored untracked files are outside the content snapshot; tracked files remain
+For v1, ignored untracked files are outside the content snapshot; tracked files remain
 observed even when an ignore rule matches them.
 
 ## Freshness, checks, and durable evidence
@@ -103,8 +103,8 @@ report separately from script results and prevent checks from starting.
 A satisfied assessment advances to checks in declaration and list order, then
 final integrity verification and durable completion. All checks execute again
 for a renewed accepted assessment; earlier attempts remain in the active run's
-operation history. Completed state records only the final attempt's checks and
-its assessment. Changes after assessment invalidate completion, and detected
+operation history. The `checks` and `assessments` fields record the final attempt; v2 also retains
+interval and retry history as described below. Changes after assessment invalidate completion, and detected
 check mutation remains an incomplete result with changes preserved.
 
 Resume uses the installation expectations captured before contextual work;
@@ -128,5 +128,31 @@ assessment authorizes repeating these operations. Use explicit `resume --retry`
 to recover interrupted work and repeat fixes, or `abandon` to preserve its work
 and report; see [Recovery commands](adoption.md#recover-or-abandon-an-interrupted-run).
 Retry requires new assessment even when project bytes are unchanged, and retains
-the original contextual comparison baseline. Updates use this same assessment interface. The [real-agent acceptance journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) evaluates contextual
+the original contextual comparison baseline for v1; v2 retains separate intervals
+as described below. Updates use this same assessment interface. The [real-agent acceptance journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) evaluates contextual
 usefulness separately; scripted agents exercise this deterministic protocol.
+
+## V2 observation and replay
+
+For v2 explicit-target adoption, the work-request and assessment fields stay
+unchanged (`repo-standards/work-request/v1`, `repo-standards/assessment/v1`). The
+snapshot identity also binds named files and ancestors, effective observation
+settings and consulted ignore inputs. Named files remain observable when ignore
+rules change. Explicit directory targets keep their complete tree behavior;
+unlisted ignored siblings outside those trees remain outside the observation
+promise. Incomplete observation blocks progression.
+
+`changedPaths` must account for the union of **observed agent changes across all
+agent intervals in this run**, under each owning declaration. It excludes work
+observed only during fixes. If the agent edits `README.md` and a retried fix
+restores earlier bytes, the earlier agent change still requires reporting and
+renewed assessment of the current file. Refresh and retry preserve earlier
+intervals; neither can turn missing, false or out-of-scope evidence into valid
+completion. Replaying fixes requires fresh assessment and checks even when the
+current bytes happen to match an earlier snapshot.
+
+Run/state v2 records store each interval's applicable concrete scope separately
+from operation outcomes and assessment submissions. A recorded out-of-scope
+interval remains an incomplete result; abandon and reconcile before a new
+confirmed adoption. The last complete state retains interval and retry history
+as historical evidence, without asserting ongoing compliance.
