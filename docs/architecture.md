@@ -475,6 +475,11 @@ signed releases, attestations, and universal rollback are outside version one.
 
 ## Discovery adoption and reconciliation with the v1 baseline
 
+The [contextual-scope design archive](contextual-scope-design.md) records the
+accepted decisions and superseded alternatives behind [issue #41](https://github.com/lutzseverino/repo-standards/issues/41).
+Its interview-era status statements are historical; implementation contracts
+follow below.
+
 The accepted #41 contract replaces fixed author-supplied contextual scope with
 agent-discovered individual file paths where a v2 declaration requests discovery.
 One complete inspection binds source declarations and concrete scope, rationale,
