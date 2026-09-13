@@ -190,6 +190,30 @@ test('a compatible v2 standards update obtains fresh scope before changing only 
   assert.equal(f.complete(started).result.status, 0);
   assert.equal(readFileSync(join(f.project.root, 'apps/old/README.md'), 'utf8'), '# Old project\n');
   assert.equal(f.run(['status', '--json']).report.selection.standards.version, 'v1.1.0');
+  commit(f.project.root);
+
+  const withoutDiscovery = stringify({
+    format: 'repo-standards/v2', name: 'growing-projects', description: 'Documentation for maintained projects',
+    requires: { 'repo-standards': '>=1 <2' }, defaults: { declarations: {
+      instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
+    } }, profiles: { work: { description: 'Work', declarations: {} } },
+  });
+  f.remote.addVersion('v1.2.0', withoutDiscovery);
+  const retirementArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.2.0' : argument);
+  const retirement = f.run(retirementArgs).report;
+  assert.deepEqual(retirement.scopeChanges, [{ id: 'docs', additions: [], removals: ['apps/new/README.md'] }]);
+  const retired = f.run(['start', ...retirementArgs.slice(1), '--confirm', retirement.identity]);
+  assert.equal(retired.result.status, 0, retired.result.stdout + retired.result.stderr);
+  commit(f.project.root);
+  const noDiscoveryHistory = f.run(['inspect', '--json']).report.historicalScope;
+  assert.equal(noDiscoveryHistory.runs.at(-1).discovery, undefined);
+
+  f.remote.addVersion('v1.3.0', source);
+  const reintroducedArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.3.0' : argument);
+  const reintroducedRequest = f.run(reintroducedArgs).report;
+  f.proposal(reintroducedRequest, 'apps/new/README.md');
+  const reintroduced = f.run([...reintroducedArgs, '--scope', f.scopeFile]).report;
+  assert.deepEqual(reintroduced.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: [] }]);
 });
 
 test('a compatible CLI update uses retained v2 guidance and fresh scope without the original source', async t => {

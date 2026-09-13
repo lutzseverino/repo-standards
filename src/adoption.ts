@@ -86,9 +86,9 @@ function inventory(root: string, path: string) {
 
 interface ScopeHistoryRun {
   inspection: string;
-  sourceResolved: NonNullable<Inspection['sourceResolved']>;
   resolved: Inspection['resolved'];
-  discovery: NonNullable<Inspection['discovery']>;
+  sourceResolved?: NonNullable<Inspection['sourceResolved']>;
+  discovery?: NonNullable<Inspection['discovery']>;
 }
 
 function retainedScopeRuns(value: unknown): ScopeHistoryRun[] {
@@ -96,8 +96,8 @@ function retainedScopeRuns(value: unknown): ScopeHistoryRun[] {
   const history = value as Record<string, unknown>;
   if (Array.isArray(history.runs)) return history.runs as ScopeHistoryRun[];
   if (typeof history.inspection === 'string' && history.sourceResolved && history.resolved && history.discovery) {
-    return [{ inspection: history.inspection, sourceResolved: history.sourceResolved as ScopeHistoryRun['sourceResolved'],
-      resolved: history.resolved as ScopeHistoryRun['resolved'], discovery: history.discovery as ScopeHistoryRun['discovery'] }];
+    return [{ inspection: history.inspection, sourceResolved: history.sourceResolved as NonNullable<ScopeHistoryRun['sourceResolved']>,
+      resolved: history.resolved as ScopeHistoryRun['resolved'], discovery: history.discovery as NonNullable<ScopeHistoryRun['discovery']> }];
   }
   throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history failed integrity validation. Restore the committed product state.');
 }
@@ -158,14 +158,13 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
   inputs['.repo-standards/inputs/resolved.json'] = file(json(report.resolved));
   const historyPath = '.repo-standards/inputs/scope-history.json';
   const previousHistory = safe(root, historyPath);
-  if (report.discovery) {
-    const current: ScopeHistoryRun = { inspection: confirmation, sourceResolved: report.sourceResolved!, resolved: report.resolved, discovery: report.discovery };
+  if (report.discovery || previousHistory.type === 'file') {
+    const current: ScopeHistoryRun = { inspection: confirmation, resolved: report.resolved,
+      ...(report.discovery ? { sourceResolved: report.sourceResolved!, discovery: report.discovery } : {}) };
     const runs = previousHistory.type === 'file'
       ? [...retainedScopeRuns(JSON.parse(Buffer.from(previousHistory.content, previousHistory.encoding).toString('utf8'))), current]
       : [current];
     inputs[historyPath] = file(json({ format: 'repo-standards/scope-history/v2', evidence: 'historical', ...current, runs }));
-  } else if (previousHistory.type === 'file') {
-    inputs[historyPath] = previousHistory;
   }
   Object.assign(files, inputs);
   files['.repo-standards/selection.yaml'] = file(stringify(report.selection));
