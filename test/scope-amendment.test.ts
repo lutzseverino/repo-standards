@@ -118,6 +118,8 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',m
   assert.equal(status.scopeRevision, 1);
   assert.equal(status.amendments[0].confirmation, preview.identity);
   const retained = f.run(['inspect', '--json']).report;
+  assert.equal(retained.format, 'repo-standards/inspection/v3');
+  assert.equal(retained.historicalScope.format, 'repo-standards/scope-history/v2');
   assert.equal(retained.historicalScope.scopeRevision, 1);
   assert.equal(retained.historicalScope.amendments[0].confirmation, preview.identity);
   mkdirSync(join(f.project.root, '.repo-standards/inputs/empty'));

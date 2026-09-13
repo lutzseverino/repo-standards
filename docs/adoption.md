@@ -166,7 +166,10 @@ its accepted inspection identity, source-resolved declarations, concrete resolve
 selection, and discovery guidance, proposal, rationale, evidence references and
 observation identities. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
-source availability. Work intervals and final scope-validity assessments are
+source availability. Ordinary discovery completion exposes inspection v2 with
+scope-history v1. An amended completion exposes inspection v3 with scope-history
+v2, whose added fields retain the accepted revision and amendment records. Work
+intervals and final scope-validity assessments are
 committed in state v2; a run that accepts an amendment advances to run/state v3.
 Historical evidence makes no current-coverage claim.
 

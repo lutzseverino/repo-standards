@@ -354,12 +354,17 @@ Discovery updates and same-pin v2 re-adoption are not yet startable. Explicit
 same-pin v1 re-adoption is documented in
 [adoption](adoption.md#re-adopt-unchanged-v1-standards).
 
-After completion, retained `inspect --json` exposes `historicalScope`: the
+After ordinary v2 completion, retained `inspect --json` remains
+`repo-standards/inspection/v2` and exposes `historicalScope` as
+`repo-standards/scope-history/v1`: the
 accepted inspection identity, source-resolved declarations, materialized concrete
 selection, and discovery proposal, rationale, guidance, references, and observation
 identities. Its `evidence: historical` describes prior authorization, even in a
 fresh checkout without the source. The ordinary report's current discovery
 request is separate and confers no authority or claim of current coverage.
+After an amended completion, retained inspection advances to
+`repo-standards/inspection/v3`; its `repo-standards/scope-history/v2` adds the
+accepted scope revision and immutable amendment records.
 
 ## Preview scope amendments in an active run
 

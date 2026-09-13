@@ -416,9 +416,11 @@ export async function inspectRetained(project: string, cliVersion: string, scope
     { root: sourceRoot, identity: lock.selection.standards, paths, manifest: readFileSync(join(root, '.repo-standards/inputs/standards.yaml'), 'utf8'), ownedSkills: new Set(Object.keys(state.skills)), close() {} });
   const history = '.repo-standards/inputs/scope-history.json';
   const historicalScope = Object.hasOwn(lock.files, history) ? JSON.parse(readFileSync(join(root, history), 'utf8')) : undefined;
+  const amended = state.format === 'repo-standards/state/v3';
   const retainedHistory = historicalScope ? { ...historicalScope,
-    ...(state.scopeRevision !== undefined ? { scopeRevision: state.scopeRevision, amendments: state.amendments ?? [] } : {}) } : undefined;
-  return { ...report, retained: true, ...(retainedHistory ? { historicalScope: retainedHistory } : {}) };
+    ...(amended ? { format: 'repo-standards/scope-history/v2', scopeRevision: state.scopeRevision, amendments: state.amendments } : {}) } : undefined;
+  return { ...report, ...(amended ? { format: 'repo-standards/inspection/v3' } : {}),
+    retained: true, ...(retainedHistory ? { historicalScope: retainedHistory } : {}) };
 }
 
 export function inspectAmendment(project: string, cliVersion: string, scope?: string) {
