@@ -186,6 +186,8 @@ amendment advances to run v3 and retains its amendment chain in state v4. Each
 later complete v2 run moves the prior run's interval,
 operation, retry, check and assessment evidence into the state's ordered
 `history`, so earlier authorized work remains explainable in a fresh checkout.
+The v4 format makes clients that predate retained execution history reject the
+new state rather than silently overlooking it.
 Historical evidence makes no current-coverage claim.
 
 Discovery-backed standards updates, CLI updates and unchanged-pin re-adoption use
