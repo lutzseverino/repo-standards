@@ -75,7 +75,7 @@ export function previewScopeAmendment(root: string, run: Run, installation: Inst
         .map(declaration => [declaration.id, proposedScope[declaration.id]!.paths.filter(path => !existingScope[declaration.id]!.paths.includes(path))])) } : {}),
       observations, operations: run.operations, assessments: run.assessments,
       nextAction: blockers.length ? 'Resolve amendment blockers and inspect the complete proposal again. No new paths are authorized.'
-        : 'Review the complete amendment preview. Confirmed amendment execution with resume --amend-scope is not yet available; preserve the incomplete run and do not write to added paths.' },
+        : 'Review the complete amendment preview and obtain explicit maintainer confirmation of its identity. Then use resume --amend-scope with the same --scope proposal and --confirm identity. Do not write to added paths before acceptance succeeds.' },
     start: { eligible: false, blockers: [{ code: 'AMENDMENT_ONLY', message: 'This identity previews continuation of the active run and cannot start a new adoption or accept scope.' }] },
   };
   if (JSON.stringify(project) !== JSON.stringify(capture())

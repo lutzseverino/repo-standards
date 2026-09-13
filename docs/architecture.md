@@ -7,9 +7,10 @@ This document describes contracts; individual tickets state implementation scope
 Tickets #42 and #43 implement v2 source validation and evidence-backed scope
 inspection; #44 adds v2 explicit-target operation enforcement and durable work
 intervals; #45 completes initial adoption with confirmed discovered files; #46
-adds read-only active scope amendment previews. Amendment execution, discovery
-updates, and same-pin v2 re-adoption remain later slices of #41. Unchanged v1
-selections support explicit retained re-adoption through `--readopt`.
+adds read-only active scope amendment previews; #47 accepts confirmed additions
+and safely replays fixes. Discovery updates and same-pin v2 re-adoption remain
+later slices of #41. Unchanged v1 selections support explicit retained
+re-adoption through `--readopt`.
 
 ## Purpose and release boundary
 
@@ -522,9 +523,11 @@ transfer, explicit-target or selection changes are blocked. Earlier violations
 cannot become valid through expansion. Active or uncertain author work requires
 stopping and explicit retry, and installed integrity must pass.
 
-The preview accepts no scope, runs no author code and installs nothing. Confirmed
-amendment execution, durable revision acceptance and fix replay belong to the
-dependent ticket. A mistaken target requiring withdrawal leaves the run incomplete
-with an explicit reconciliation limitation. Ordinary retained inspection remains
-non-startable; explicit re-adoption and discovery updates await their lifecycle
-ticket. V1 formats, execution and regression coverage remain supported.
+The preview accepts no scope, runs no author code and installs nothing. Issue #47
+adds confirmed `resume --amend-scope`: acceptance records the validated outgoing
+intervals and immutable authorization revision, then replays fixes and requires
+renewed assessment and checks. A mistaken target requiring withdrawal leaves the
+run incomplete with an explicit reconciliation limitation. Unchanged retained v1
+selections support explicit `--readopt`; same-pin v2 re-adoption and discovery
+updates await later lifecycle tickets. V1 formats, execution and regression
+coverage remain supported.

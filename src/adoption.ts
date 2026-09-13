@@ -12,7 +12,7 @@ import { git, hiddenIndexPaths, inspect, inventoryPaths, matchesInventory, obser
 import type { InspectOptions, Observation } from './inspection.js';
 import { baselines, file, flatten, ignore, json, lockPath, projectRoot, safe, safeDirectory, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Files } from './adoption-files.js';
-import { inspectActiveRun, recordedState, withStartRun, withResumedRun } from './adoption-run.js';
+import { inspectActiveRun, recordedState, requireAmendmentEligible, withStartRun, withResumedRun } from './adoption-run.js';
 import { previewScopeAmendment } from './scope-amendment.js';
 import type { AdoptionRunSession, Installation, Run, StartInput, WorkRequest } from './adoption-run.js';
 export { abandon, status } from './adoption-run.js';
@@ -335,13 +335,49 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
   session.complete(installation, operationStart);
 }
 
-export async function resume(project: string, cliVersion: string, assessmentPath?: string, retry = false) {
+export async function resume(project: string, cliVersion: string, assessmentPath?: string, retry = false,
+  amendment?: { scope: string; confirmation: string }) {
   return withResumedRun(project, cliVersion, retry, verifyInstallation, async (session, installation) => {
     if (!installation) {
       const run = session.observation;
       return startRun(run.startInput!, cliVersion, run.inspection, session);
     }
     const root = projectRoot(project);
+    if (amendment) {
+      requireAmendmentEligible(session.observation);
+      if (!installation.report.sourceResolved || !installation.report.discovery?.proposal || !session.observation.observations?.length) {
+        throw new ProductError('AMENDMENT_UNAVAILABLE', 'The active adoption has no confirmed discovered scope to amend.');
+      }
+      verifyInstallation(root, installation);
+      const preview = previewScopeAmendment(root, session.observation, installation, amendment.scope);
+      if (preview.identity !== amendment.confirmation) throw new ProductError('STALE_INSPECTION', 'The active run, project evidence, proposal, or confirmation changed. Inspect --amend-scope again and obtain confirmation of the complete fresh preview.');
+      if (!preview.amendment.eligible || !preview.amendment.proposedScope || !preview.amendment.additions || !preview.discovery.proposal) {
+        throw new ProductError('AMENDMENT_BLOCKED', 'Resolve all amendment preview blockers before confirming continuation.', preview.amendment.blockers);
+      }
+      verifyInstallation(root, installation);
+      const previousInspection = session.observation.inspection;
+      const amendedReport: Installation['report'] = {
+        ...installation.report,
+        identity: amendment.confirmation,
+        resolved: preview.resolved,
+        guidance: preview.guidance,
+        discovery: preview.discovery,
+      };
+      session.acceptScopeAmendment(installation, amendedReport, preview.amendment.observations, {
+        previousInspection,
+        confirmation: amendment.confirmation,
+        request: preview.discovery.identity,
+        existingScope: preview.amendment.existingScope,
+        acceptedScope: preview.amendment.proposedScope,
+        additions: preview.amendment.additions,
+        proposal: preview.discovery.proposal,
+        discovery: preview.discovery,
+        project: preview.project,
+        assessments: preview.amendment.assessments,
+      });
+      await advance(root, session, installation);
+      return;
+    }
     if (retry) {
       const prerequisites = await session.prerequisites(onSpawn => preflight(root, installation.report.resolved, onSpawn));
       if (prerequisites.some(probe => probe.code)) throw new ProductError('PREREQUISITES_BLOCKED', 'Resolve the reported prerequisite problems before retry.');
@@ -357,7 +393,7 @@ export async function resume(project: string, cliVersion: string, assessmentPath
       catch { throw new ProductError('ASSESSMENT_FORMAT', 'Cannot read the assessment file as JSON. Correct the file and resubmit.'); }
     }
     await advance(root, session, installation, true, assessment);
-  });
+  }, !!amendment);
 }
 
 export async function inspectRetained(project: string, cliVersion: string, scope?: string, readopt = false) {
@@ -380,7 +416,11 @@ export async function inspectRetained(project: string, cliVersion: string, scope
     { root: sourceRoot, identity: lock.selection.standards, paths, manifest: readFileSync(join(root, '.repo-standards/inputs/standards.yaml'), 'utf8'), ownedSkills: new Set(Object.keys(state.skills)), close() {} });
   const history = '.repo-standards/inputs/scope-history.json';
   const historicalScope = Object.hasOwn(lock.files, history) ? JSON.parse(readFileSync(join(root, history), 'utf8')) : undefined;
-  return { ...report, retained: true, ...(historicalScope ? { historicalScope } : {}) };
+  const amended = state.format === 'repo-standards/state/v3';
+  const retainedHistory = historicalScope ? { ...historicalScope,
+    ...(amended ? { format: 'repo-standards/scope-history/v2', scopeRevision: state.scopeRevision, amendments: state.amendments } : {}) } : undefined;
+  return { ...report, ...(amended ? { format: 'repo-standards/inspection/v3' } : {}),
+    retained: true, ...(retainedHistory ? { historicalScope: retainedHistory } : {}) };
 }
 
 export function inspectAmendment(project: string, cliVersion: string, scope?: string) {

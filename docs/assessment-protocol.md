@@ -154,7 +154,9 @@ current bytes happen to match an earlier snapshot.
 Run/state v2 records store each interval's applicable concrete scope separately
 from operation outcomes and assessment submissions. A recorded out-of-scope
 interval remains an incomplete result; abandon and reconcile before a new
-confirmed adoption. The last complete state retains interval and retry history
+confirmed adoption. A confirmed amendment advances these records to v3 and
+adds its revision history without changing the interval representation. The last
+complete state retains interval and retry history
 as historical evidence, without asserting ongoing compliance.
 
 ## Discovery work-request/v2 and assessment/v2
@@ -202,7 +204,12 @@ missing reviews, and a v1 submission for a v2 request are rejected.
 A structurally valid blocked review is retained as `SCOPE_INCOMPLETE` before checks.
 It grants no authority. Preserve work and reconcile within the confirmed scope,
 or abandon and reconcile to a clean committed project before a new inspection
-and confirmation. Active scope expansion/withdrawal is not implemented here.
+and confirmation. If the review needs only added files and the run is eligible,
+use `inspect --amend-scope` to prepare one complete additions-only proposal,
+obtain explicit confirmation, and accept it with `resume --amend-scope --scope
+<file> --confirm <identity>`. Acceptance replays fixes and returns a new work
+request; reassess every contextual declaration and submit fresh assessment/v2
+evidence. Withdrawal and transfer remain unsupported within the active run.
 
 For migrations, report old source deletion and destination creation as separate
 `changedPaths`, along with introductions and every link-repair file. Explain

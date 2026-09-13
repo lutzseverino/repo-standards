@@ -166,17 +166,21 @@ its accepted inspection identity, source-resolved declarations, concrete resolve
 selection, and discovery guidance, proposal, rationale, evidence references and
 observation identities. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
-source availability. Work intervals and final scope-validity assessments are
-committed in state v2. Historical evidence makes no current-coverage claim.
+source availability. Ordinary discovery completion exposes inspection v2 with
+scope-history v1. An amended completion exposes inspection v3 with scope-history
+v2, whose added fields retain the accepted revision and amendment records. Work
+intervals and final scope-validity assessments are
+committed in state v2; a run that accepts an amendment advances to run/state v3.
+Historical evidence makes no current-coverage claim.
 
-Discovery updates, scope amendment execution, and v2 re-adoption remain
-unsupported in this implementation. Unchanged retained v1 selections support the
-explicit [re-adoption flow](#re-adopt-unchanged-v1-standards). Eligible active
-discovery runs can use the
-[read-only amendment preview](inspection.md#preview-scope-amendments-in-an-active-run).
-If contextual review identifies additional files, preserve the incomplete run; reconcile the review within confirmed scope
-or abandon and reconcile to a clean committed project before a new inspection.
-Retry repeats fixes under existing scope and cannot authorize additional files.
+Discovery updates and same-pin v2 re-adoption remain unsupported in this
+implementation. Unchanged retained v1 selections support the explicit
+[re-adoption flow](#re-adopt-unchanged-v1-standards). Eligible active discovery
+runs can use the
+[confirmed amendment workflow](inspection.md#preview-scope-amendments-in-an-active-run).
+If contextual review identifies additional files, prepare and confirm one
+complete additions-only amendment as described below. Retry repeats fixes under
+the currently accepted scope and cannot itself authorize additional files.
 
 The normalized manifest is separate from retained source files, so an author
 may legitimately select their original `standards.yaml` as exact content.
@@ -369,11 +373,14 @@ HEAD/index and intact installed content. Existing adoption working changes do
 not impose a new clean-start requirement. Uncertain work still requires explicit
 `resume --retry` first. See the [amendment preview contract](inspection.md#preview-scope-amendments-in-an-active-run).
 
-This preview leaves the run incomplete and grants no new authority. Confirmed
-execution through `resume --amend-scope` is not yet available. Never write to an
-added path based on inspection alone. Removing or transferring a mistaken target
-within the active run is unsupported; preserve the work and reconcile through
-abandonment and the normal project workflow before a new clean adoption.
+This preview leaves the run incomplete and grants no new authority. After explicit
+maintainer confirmation of its complete identity, accept the same proposal with
+`resume --amend-scope --scope <external-proposal.json> --confirm <identity>`.
+Acceptance authorizes the additions, records a new scope revision, replays fixes,
+and requires renewed assessment and checks. Never write to an added path based on
+inspection alone. Removing or transferring a mistaken target within the active
+run is unsupported; preserve the work and reconcile through abandonment and the
+normal project workflow before a new clean adoption.
 
 ## Fresh checkout and source disappearance
 

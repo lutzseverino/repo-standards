@@ -354,12 +354,17 @@ Discovery updates and same-pin v2 re-adoption are not yet startable. Explicit
 same-pin v1 re-adoption is documented in
 [adoption](adoption.md#re-adopt-unchanged-v1-standards).
 
-After completion, retained `inspect --json` exposes `historicalScope`: the
+After ordinary v2 completion, retained `inspect --json` remains
+`repo-standards/inspection/v2` and exposes `historicalScope` as
+`repo-standards/scope-history/v1`: the
 accepted inspection identity, source-resolved declarations, materialized concrete
 selection, and discovery proposal, rationale, guidance, references, and observation
 identities. Its `evidence: historical` describes prior authorization, even in a
 fresh checkout without the source. The ordinary report's current discovery
 request is separate and confers no authority or claim of current coverage.
+After an amended completion, retained inspection advances to
+`repo-standards/inspection/v3`; its `repo-standards/scope-history/v2` adds the
+accepted scope revision and immutable amendment records.
 
 ## Preview scope amendments in an active run
 
@@ -428,7 +433,16 @@ fresh request and evidence review, not just a replaced request string.
 
 Inspection performs no exact installation, scope acceptance, author execution or
 project mutation. `amendment.eligible: true` means the preview passed; it grants
-no new write authority. Confirmed execution via `resume --amend-scope --scope
-<file> --confirm <identity>` belongs to the dependent implementation ticket and
-is **not yet available**. Preserve the incomplete run and do not write to added
-paths until that continuation is implemented and explicitly confirmed.
+no new write authority. After explicit maintainer confirmation of the complete
+preview, accept and continue it with the same proposal and identity:
+
+```sh
+repo-standards resume --amend-scope --scope /tmp/amended-scope.json \
+  --confirm 'sha256:AMENDMENT_INSPECTION_HASH' --json
+```
+
+Resume reconstructs and verifies the preview before recording the new revision.
+Do not write to added paths before this command accepts them. The command cannot
+be combined with assessment submission, retry, source/profile/pin changes or a
+new adoption action. Stale evidence or confirmation leaves the prior scope
+authoritative and the work preserved.

@@ -121,7 +121,8 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
   if (!Array.isArray(resolved?.declarations)) {
     throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state failed integrity validation. Restore the committed product state.');
   }
-  return { selection: lock.selection, baselines: state.baselines, skills: state.skills, completeInventory: state.format === 'repo-standards/state/v2', resolved, files: lock.files };
+  return { selection: lock.selection, baselines: state.baselines, skills: state.skills,
+    completeInventory: ['repo-standards/state/v2', 'repo-standards/state/v3'].includes(state.format), resolved, files: lock.files };
 }
 
 export function inventoryPaths(value: Observation, directories = false): string[] {

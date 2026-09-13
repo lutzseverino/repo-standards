@@ -15,7 +15,28 @@ fs.writeFileSync = function(path, data, ...args) {
   const result = write.call(this, path, data, ...args);
   let report;
   try { report = JSON.parse(String(data)); } catch {}
-  if (!fired && ['repo-standards/run/v1', 'repo-standards/run/v2'].includes(report?.format) && report.phase === ${JSON.stringify(phase)}) {
+  if (!fired && ['repo-standards/run/v1', 'repo-standards/run/v2', 'repo-standards/run/v3'].includes(report?.format) && report.phase === ${JSON.stringify(phase)}) {
+    fired = true;
+    ${mutation}
+  }
+  return result;
+};
+syncBuiltinESMExports();
+`);
+  return { ...env, NODE_OPTIONS: `${env.NODE_OPTIONS ?? ''} --import=${pathToFileURL(loader).href}` };
+}
+
+export function filesystemRenameFault(directory: string, env: NodeJS.ProcessEnv, phase: string, mutation: string) {
+  const loader = join(directory, 'filesystem-rename-fault.mjs');
+  writeFileSync(loader, `import fs from 'node:fs';
+import { syncBuiltinESMExports } from 'node:module';
+const rename = fs.renameSync;
+let fired = false;
+fs.renameSync = function(from, to, ...args) {
+  const result = rename.call(this, from, to, ...args);
+  let report;
+  try { report = JSON.parse(fs.readFileSync(to, 'utf8')); } catch {}
+  if (!fired && String(to).endsWith('repo-standards-run.lock') && report?.phase === ${JSON.stringify(phase)}) {
     fired = true;
     ${mutation}
   }
