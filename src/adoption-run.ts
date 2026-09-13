@@ -430,6 +430,8 @@ export class AdoptionRunSession {
     const run = this.#state();
     const revision = (run.scopeRevision ?? 0) + 1;
     const outgoingObservation = { identity: `sha256:${hash(json(observations))}`, intervals: observations.length };
+    const affected = Object.fromEntries(Object.values(evidence.additions).flat()
+      .filter(path => !Object.hasOwn(run.affected, path)).map(path => [path, observe(join(this.#root, path))]));
     const amended = { ...installation, report };
     delete amended.scopeAfterFixes;
     const continuation = storeInstallation(this.#root, amended);
@@ -439,7 +441,7 @@ export class AdoptionRunSession {
     run.continuation = continuation;
     run.format = 'repo-standards/run/v3';
     run.observations = structuredClone(observations);
-    for (const path of Object.values(evidence.additions).flat()) run.affected[path] ??= observe(join(this.#root, path));
+    Object.assign(run.affected, affected);
     (run.amendments ??= []).push({ format: 'repo-standards/scope-amendment/v1', revision,
       acceptedAt: new Date().toISOString(), outgoingObservation, ...structuredClone(evidence) });
     run.scopeRevision = revision;
