@@ -17,6 +17,7 @@ interface RecordedState {
   lastComplete: { run: string; inspection: string; completedAt: string; head: string };
   baselines: Record<string, Baseline>; skills: Record<string, string[]>;
   checks: unknown[]; assessments: unknown[]; observations?: unknown[]; operations?: unknown[]; retryHistory?: unknown[];
+  scopeRevision?: number; amendments?: unknown[];
 }
 
 export function decodeRecordedState(lock: Observation, observed: Observation) {
@@ -27,10 +28,13 @@ export function decodeRecordedState(lock: Observation, observed: Observation) {
     pinned = JSON.parse(Buffer.from(lock.content, lock.encoding).toString('utf8'));
     state = JSON.parse(Buffer.from(observed.content, observed.encoding).toString('utf8'));
   } catch { throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state cannot be read. Restore the committed product state.'); }
-  if (pinned?.format !== 'repo-standards/lock/v1' || !['repo-standards/state/v1', 'repo-standards/state/v2'].includes(state?.format)
+  if (pinned?.format !== 'repo-standards/lock/v1' || !['repo-standards/state/v1', 'repo-standards/state/v2', 'repo-standards/state/v3'].includes(state?.format)
     || pinned.state?.sha256 !== observed.sha256 || pinned.state.executable !== observed.executable
     || !pinned.selection || !pinned.files || !state.lastComplete || !state.baselines || !state.skills
-    || (state.format === 'repo-standards/state/v2' && (!Array.isArray(state.observations) || !Array.isArray(state.operations) || !Array.isArray(state.retryHistory)))
+    || (['repo-standards/state/v2', 'repo-standards/state/v3'].includes(state.format) && (!Array.isArray(state.observations) || !Array.isArray(state.operations) || !Array.isArray(state.retryHistory)
+      || (state.scopeRevision !== undefined && (!Number.isSafeInteger(state.scopeRevision) || state.scopeRevision < 0))
+      || (state.amendments !== undefined && !Array.isArray(state.amendments))))
+    || (state.format === 'repo-standards/state/v3' && (!state.scopeRevision || !state.amendments?.length))
     || !Array.isArray(state.checks) || !Array.isArray(state.assessments)) {
     throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state failed integrity validation. Restore the committed product state.');
   }

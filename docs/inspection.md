@@ -428,7 +428,16 @@ fresh request and evidence review, not just a replaced request string.
 
 Inspection performs no exact installation, scope acceptance, author execution or
 project mutation. `amendment.eligible: true` means the preview passed; it grants
-no new write authority. Confirmed execution via `resume --amend-scope --scope
-<file> --confirm <identity>` belongs to the dependent implementation ticket and
-is **not yet available**. Preserve the incomplete run and do not write to added
-paths until that continuation is implemented and explicitly confirmed.
+no new write authority. After explicit maintainer confirmation of the complete
+preview, accept and continue it with the same proposal and identity:
+
+```sh
+repo-standards resume --amend-scope --scope /tmp/amended-scope.json \
+  --confirm 'sha256:AMENDMENT_INSPECTION_HASH' --json
+```
+
+Resume reconstructs and verifies the preview before recording the new revision.
+Do not write to added paths before this command accepts them. The command cannot
+be combined with assessment submission, retry, source/profile/pin changes or a
+new adoption action. Stale evidence or confirmation leaves the prior scope
+authoritative and the work preserved.

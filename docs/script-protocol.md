@@ -169,7 +169,12 @@ permits creating missing parent directories, but not deleting or changing
 existing ancestors. Checks may not create even empty directories.
 
 Retry retains intervals and earlier agent evidence before repeating fixes; it
-cannot authorize new scope or hide a recorded violation. A recorded scope or
+cannot authorize new scope or hide a recorded violation. A confirmed scope
+amendment first closes and validates every interval against its outgoing scope,
+then records the accepted revision before replaying fixes with the new concrete
+targets. Its replay creates new fix intervals; prior fix and agent intervals keep
+their original scope and attribution. Recovery after acceptance uses retry and
+does not create a second authorization record. A recorded scope or
 check-mutation violation requires abandonment and reconciliation before a new
 adoption. An incomplete observation must first become readable and complete. Restoring
 corrupted exact content is permitted only after verifying the immutable
@@ -178,8 +183,11 @@ separately from contextual work. `restoredBoundaries` covers only recreated
 parents of restored exact files or removal of extra directories inside a
 verified skill inventory; it never exempts changes to existing directory modes.
 This grants no new contextual scope.
-Durable `repo-standards/state/v2` and `repo-standards/status/v2` retain intervals,
-operation history, retry history, final checks and assessments. Detailed logs
+Durable `repo-standards/state/v2` and `repo-standards/status/v2` retain intervals
+for ordinary v2 execution. Accepting an amendment advances the run, state and
+status records to v3, which also retains scope revisions and their authorization
+evidence. Both retain operation history, retry history, final checks and
+assessments. Detailed logs
 remain local; the recorded outcomes and interval evidence survive a fresh
 checkout. The integrity lock remains `repo-standards/lock/v1` and binds the new
 state bytes. V1 sources retain their existing execution and report formats.

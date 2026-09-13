@@ -3,7 +3,7 @@ import { allowedTargets } from './execution.js';
 import type { ResolvedProfile } from './model.js';
 import { observeScope } from './scope-observation.js';
 
-type Scope = Record<string, { paths: string[]; directories: string[] }>;
+export type Scope = Record<string, { paths: string[]; directories: string[] }>;
 export function concreteScope(resolved: ResolvedProfile): Scope {
   return Object.fromEntries(resolved.declarations.map(declaration => [declaration.id, allowedTargets(declaration)]));
 }

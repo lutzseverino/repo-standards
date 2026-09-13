@@ -43,9 +43,10 @@ until the project runtime exists. Thereafter the document root is
   Change one pin, keeping source and profile. Use the pinned CLI for a standards
   update and the external candidate CLI for a CLI update. Historical discovered
   scope explains prior authorization; it does not prove current coverage.
-  Discovery updates, amendment execution and same-pin v2 re-adoption remain
-  unsupported by this CLI; report that narrower limitation and preserve the
-  current selection.
+  Discovery updates and same-pin v2 re-adoption remain unsupported by this CLI;
+  report that narrower limitation and preserve the current selection. Eligible
+  active discovery runs can confirm additions through the amendment workflow
+  below. Unchanged v1 selections support explicit retained re-adoption.
 - **Initial adoption:** obtain the public GitHub source, stable standards tag
   and complete profile from the maintainer, then inspect that selection.
 

@@ -70,11 +70,131 @@ test('amendment inspection previews equal and added scope in a dirty active run 
     assert.equal(preview.report.start.eligible, false);
     assert.deepEqual(preview.report.selection, f.started.selection);
     assert.ok(preview.report.amendment.observations.some((interval: any) => interval.phase === 'agent' && interval.changedPaths.includes('README.md')));
-    assert.match(preview.report.amendment.nextAction, /not yet available/i);
+    assert.match(preview.report.amendment.nextAction, /resume --amend-scope/);
     assert.equal(f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']).report.identity, preview.report.identity);
   }
   assert.deepEqual(snapshot(f.project.root), before);
   assert.equal(readFileSync(join(f.project.root, 'config.json'), 'utf8'), '{}\n');
+});
+
+test('confirmed amendment accepts added scope, replays fixes and requests renewed assessment', async t => {
+  const f = await fixture(t, { phase: 'fixes', script: `
+import { readFileSync, writeFileSync } from 'node:fs';
+const input = JSON.parse(readFileSync(0, 'utf8'));
+for (const path of input.allowedTargets.paths) writeFileSync(path, 'Prepared ' + path + '\\n');
+console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',message:'Prepared confirmed documentation'}));` });
+  const requested = f.run(['inspect', '--amend-scope', '--json']).report;
+  const preview = f.inspectScope(requested, ['README.md', 'LINKS.md']).report;
+  const accepted = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.identity, '--json']);
+  assert.equal(accepted.result.status, 1, accepted.result.stdout);
+  assert.equal(accepted.report.phase, 'contextual');
+  assert.equal(accepted.report.format, 'repo-standards/run/v3');
+  assert.equal(accepted.report.inspection, preview.identity);
+  assert.equal(accepted.report.workRequest.scope.inspection, preview.identity);
+  assert.deepEqual(accepted.report.workRequest.declarations[0].allowedTargets.paths, ['LINKS.md', 'README.md']);
+  assert.equal(readFileSync(join(f.project.root, 'LINKS.md'), 'utf8'), 'Prepared LINKS.md\n');
+  assert.equal(accepted.report.operations.filter((entry: any) => entry.operation.phase === 'fixes').length, 2);
+  assert.equal(accepted.report.assessments.length, 0);
+  assert.equal(accepted.report.amendments.length, 1);
+  assert.deepEqual(accepted.report.amendments[0].additions.docs, ['LINKS.md']);
+  assert.equal(accepted.report.amendments[0].confirmation, preview.identity);
+  assert.ok(accepted.report.amendments[0].outgoingObservation.identity.startsWith('sha256:'));
+  const staleAssessment = submit(f, false, f.started.workRequest);
+  assert.match(staleAssessment.report.reason, /^ASSESSMENT_SCOPE_MISMATCH:/);
+  const completed = submit(f);
+  assert.equal(completed.result.status, 0, completed.result.stdout);
+  assert.equal(completed.report.outcome, 'complete');
+  const status = f.run(['status', '--json']).report;
+  assert.equal(status.format, 'repo-standards/status/v3');
+  assert.equal(status.scopeRevision, 1);
+  assert.equal(status.amendments[0].confirmation, preview.identity);
+  const retained = f.run(['inspect', '--json']).report;
+  assert.equal(retained.historicalScope.scopeRevision, 1);
+  assert.equal(retained.historicalScope.amendments[0].confirmation, preview.identity);
+});
+
+test('scope amendment confirmation requires its complete standalone resume command', async t => {
+  const f = await fixture(t);
+  const requested = f.run(['inspect', '--amend-scope', '--json']).report;
+  const preview = f.inspectScope(requested, ['README.md', 'LINKS.md']).report;
+  for (const args of [
+    ['resume', '--amend-scope', '--scope', f.scopeFile, '--json'],
+    ['resume', '--amend-scope', '--confirm', preview.identity, '--json'],
+    ['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.identity, '--retry', '--json'],
+    ['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.identity, '--assessment', f.scopeFile, '--json'],
+  ]) {
+    const rejected = f.run(args);
+    assert.equal(rejected.result.status, 2, rejected.result.stdout);
+    assert.equal(rejected.report.errors[0].code, 'USAGE');
+  }
+  const stale = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', 'sha256:stale', '--json']);
+  assert.equal(stale.result.status, 1, stale.result.stdout);
+  assert.match(stale.report.reason, /^STALE_INSPECTION:/);
+  assert.equal(f.run(['status', '--json']).report.active.inspection, f.started.inspection);
+});
+
+test('repeated and equal-scope amendments retain a chained authorization history', async t => {
+  const f = await fixture(t);
+  const firstRequest = f.run(['inspect', '--amend-scope', '--json']).report;
+  const firstPreview = f.inspectScope(firstRequest, ['README.md', 'LINKS.md']).report;
+  const first = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', firstPreview.identity, '--json']).report;
+  assert.equal(first.phase, 'contextual');
+
+  const secondRequest = f.run(['inspect', '--amend-scope', '--json']).report;
+  const secondPreview = f.inspectScope(secondRequest, ['README.md', 'LINKS.md']).report;
+  assert.deepEqual(secondPreview.amendment.additions.docs, []);
+  const second = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', secondPreview.identity, '--json']).report;
+  assert.equal(second.phase, 'contextual');
+  assert.equal(second.scopeRevision, 2);
+  assert.equal(second.amendments.length, 2);
+  assert.equal(second.amendments[0].previousInspection, f.started.inspection);
+  assert.equal(second.amendments[1].previousInspection, firstPreview.identity);
+  assert.equal(second.amendments[1].confirmation, secondPreview.identity);
+  assert.deepEqual(second.amendments[1].acceptedScope.docs.paths, ['LINKS.md', 'README.md']);
+});
+
+test('interruption during amended fix replay keeps one accepted revision and recovers by retry', async t => {
+  const f = await fixture(t, { phase: 'fixes', script: `
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+const input = JSON.parse(readFileSync(0, 'utf8'));
+const marker = '.repo-standards/local/amended-fix-attempt';
+if (input.allowedTargets.paths.includes('LINKS.md') && !existsSync(marker)) {
+  writeFileSync(marker, 'attempted');
+  writeFileSync('LINKS.md', 'Amended fix began\\n');
+  process.kill(process.ppid, 'SIGKILL');
+}
+console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',message:'Prepared'}));` });
+  const request = f.run(['inspect', '--amend-scope', '--json']).report;
+  const preview = f.inspectScope(request, ['README.md', 'LINKS.md']).report;
+  const killed = cli.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.identity, '--json'], f.project.root, f.env);
+  assert.equal(killed.signal, 'SIGKILL');
+  const interrupted = f.run(['status', '--json']).report.active;
+  assert.equal(interrupted.scopeRevision, 1);
+  assert.equal(interrupted.amendments.length, 1);
+  assert.equal(interrupted.amendments[0].confirmation, preview.identity);
+  assert.equal(interrupted.phase, 'fixes');
+  const recovered = f.run(['resume', '--retry', '--json']);
+  assert.equal(recovered.report.phase, 'contextual', recovered.result.stdout);
+  assert.equal(recovered.report.amendments.length, 1);
+  assert.equal(recovered.report.retryHistory.at(-1).phase, 'fixes');
+  assert.ok(recovered.report.observations.some((interval: any) => interval.interrupted));
+});
+
+test('interruption before amendment journal replacement leaves the prior revision authoritative', async t => {
+  const f = await fixture(t);
+  const request = f.run(['inspect', '--amend-scope', '--json']).report;
+  const preview = f.inspectScope(request, ['README.md', 'LINKS.md']).report;
+  const env = filesystemFault(f.remote.support.root, f.env, 'scope-amendment', 'process.kill(process.pid, \'SIGKILL\');');
+  const killed = cli.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.identity, '--json'], f.project.root, env);
+  assert.equal(killed.signal, 'SIGKILL');
+  const interrupted = f.run(['status', '--json']).report.active;
+  assert.equal(interrupted.inspection, f.started.inspection);
+  assert.equal(interrupted.scopeRevision, undefined);
+  assert.equal(interrupted.amendments, undefined);
+  const accepted = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.identity, '--json']);
+  assert.equal(accepted.report.phase, 'contextual', accepted.result.stdout);
+  assert.equal(accepted.report.scopeRevision, 1);
+  assert.equal(accepted.report.amendments.length, 1);
 });
 
 test('amendments reject removal, selection changes, unsafe ownership and invalid evidence without accepting scope', async t => {
@@ -142,6 +262,19 @@ test('amendment cannot legitimize earlier out-of-scope writes even after restori
   assert.equal(f.run(['inspect', '--amend-scope', '--json']).report.errors[0].code, 'ASSESSMENT_SCOPE');
 });
 
+test('confirmed amendment refuses retroactive authorization when work changed after preview', async t => {
+  const f = await fixture(t);
+  const request = f.run(['inspect', '--amend-scope', '--json']).report;
+  const preview = f.inspectScope(request, ['README.md', 'LINKS.md']).report;
+  writeFileSync(join(f.project.root, 'LINKS.md'), 'Unauthorized before confirmation\n');
+  const rejected = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.identity, '--json']);
+  assert.equal(rejected.result.status, 1, rejected.result.stdout);
+  assert.match(rejected.report.reason, /^ASSESSMENT_SCOPE:.*LINKS.md/);
+  assert.equal(rejected.report.amendments, undefined);
+  assert.equal(rejected.report.inspection, f.started.inspection);
+  assert.equal(readFileSync(join(f.project.root, 'LINKS.md'), 'utf8'), 'Unauthorized before confirmation\n');
+});
+
 test('amendment blocks changed HEAD, index, installed expectations and observation failures', async t => {
   const f = await fixture(t);
   const amend = () => f.run(['inspect', '--amend-scope', '--json']);
@@ -170,8 +303,8 @@ test('amendment blocks changed HEAD, index, installed expectations and observati
   assert.equal(amend().result.status, 0);
 });
 
-function submit(f: Awaited<ReturnType<typeof fixture>>, blocked = false) {
-  const request = f.run(['resume', '--json']).report.workRequest;
+function submit(f: Awaited<ReturnType<typeof fixture>>, blocked = false, suppliedRequest?: any) {
+  const request = suppliedRequest ?? f.run(['resume', '--json']).report.workRequest;
   const review = { status: blocked ? 'blocked' : 'valid', explanation: 'Reviewed project membership and link repairs.', evidence: ['Read project manifest.'], additionalPaths: blocked ? ['LINKS.md'] : [] };
   const value = { format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
     scope: { inspection: request.scope.inspection, afterFixes: request.scope.afterFixes },
@@ -194,6 +327,10 @@ test('definite scope and check blocks remain eligible and preview preserves oper
     assert.deepEqual(preview.report.amendment.operations, blocked.report.operations);
     assert.deepEqual(preview.report.amendment.assessments, blocked.report.assessments);
     assert.deepEqual(snapshot(f.project.root), before);
+    const accepted = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.report.identity, '--json']);
+    assert.equal(accepted.report.phase, 'contextual', accepted.result.stdout);
+    assert.deepEqual(accepted.report.amendments[0].assessments, blocked.report.assessments);
+    assert.deepEqual(accepted.report.operations.slice(0, blocked.report.operations.length), blocked.report.operations);
   });
 });
 
