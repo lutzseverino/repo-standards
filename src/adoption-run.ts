@@ -229,6 +229,41 @@ export function recordedState(root: string) {
   return decodeRecordedState(safe(root, '.repo-standards/lock.json'), safe(root, '.repo-standards/state.json'));
 }
 
+// Inspection never acquires a worker or persists progress. Recheck the journal
+// and execution ownership around the read to reject a concurrent continuation.
+export function inspectActiveRun<T>(project: string, cliVersion: string, verify: VerifyInstallation,
+  preview: (root: string, run: Run, installation: Installation) => T): T {
+  const root = projectRoot(project);
+  const lock = lockPath(root);
+  function read() {
+    if (executing(lock) || existsSync(`${lock}.worker`)) throw new ProductError('ACTIVE_RUN', 'An adoption command is executing. Wait for it to finish before inspecting an amendment.');
+    if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No active adoption is available for scope amendment.');
+    const content = readFileSync(lock, 'utf8');
+    const run = JSON.parse(content) as Run;
+    if (run.selection.cli.version !== cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
+    if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('AUTHOR_PROCESS_ACTIVE', 'An author process remains active. Stop it and use resume --retry before inspecting an amendment.');
+    return { content, run };
+  }
+  const { content, run } = read();
+  const pendingAssessment = new Set(['Contextual work and assessment are required before checks.', 'Agent assessment has not been accepted.']);
+  if (run.uncertain.some(reason => !pendingAssessment.has(reason))
+    || run.observations?.some(interval => interval.operation && !interval.after)) {
+    throw new ProductError('AMENDMENT_RETRY_REQUIRED', 'Uncertain work requires explicit resume --retry before scope amendment. Preserve the work and review status.');
+  }
+  if (run.outcome !== 'incomplete' || run.abandoned || !run.installation?.complete
+    || !(['contextual', 'assessment', 'checks'].includes(run.phase) || (run.phase === 'verification' && run.reason.startsWith('STALE_ASSESSMENT:')))) {
+    throw new ProductError('AMENDMENT_UNAVAILABLE', 'Scope amendment requires a contextual handoff or later contextual, scope, or check block with definite operation outcomes. Review status and use the reported recovery action.');
+  }
+  const installation = readInstallation(root, run);
+  if (!installation.report.discovery?.proposal || !run.observations?.length) throw new ProductError('AMENDMENT_UNAVAILABLE', 'The active adoption has no confirmed discovered scope to amend.');
+  verifyFiles(root, { '.repo-standards/local/run.json': file(json(run)) });
+  verify(root, installation);
+  const report = preview(root, run, installation);
+  verify(root, installation);
+  if (read().content !== content) throw new ProductError('OBSERVATION_UNSTABLE', 'The active adoption changed during amendment inspection. Inspect again.');
+  return report;
+}
+
 // These events describe confirmed work. Phase/outcome/uncertainty coupling and
 // persistence ordering belong here, never in the execution callback.
 type Progress =

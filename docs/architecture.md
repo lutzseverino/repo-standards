@@ -506,9 +506,19 @@ materialized scope and accepted discovery evidence. Committed interval records
 and assessments explain the authorized work in a fresh checkout. Historical
 scope is not evidence of current coverage.
 
-The parent also changes immutable active-run scope and same-pin non-startability
-through later additions-only amendments and explicit re-adoption. Those interfaces
-are deferred beyond #45: this implementation keeps active scope fixed and ordinary
-retained inspection non-startable. Discovery updates remain explicitly blocked
-until their lifecycle ticket. V1 formats, execution and regression coverage remain
-supported.
+Issue #46 adds read-only `inspect --amend-scope` from the active run. Its
+inspection/v3 report binds the action, active journal, current scope revision,
+installed continuation identity, current working changes, outgoing-scope interval
+validation, proposal, rationale, evidence and relevant observation/ignore inputs.
+It preserves run HEAD/index and installed expectations without imposing initial
+clean-start rules. Each declaration may retain or add discovered files; removal,
+transfer, explicit-target or selection changes are blocked. Earlier violations
+cannot become valid through expansion. Active or uncertain author work requires
+stopping and explicit retry, and installed integrity must pass.
+
+The preview accepts no scope, runs no author code and installs nothing. Confirmed
+amendment execution, durable revision acceptance and fix replay belong to the
+dependent ticket. A mistaken target requiring withdrawal leaves the run incomplete
+with an explicit reconciliation limitation. Ordinary retained inspection remains
+non-startable; explicit re-adoption and discovery updates await their lifecycle
+ticket. V1 formats, execution and regression coverage remain supported.

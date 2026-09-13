@@ -352,3 +352,70 @@ selection, and discovery proposal, rationale, guidance, references, and observat
 identities. Its `evidence: historical` describes prior authorization, even in a
 fresh checkout without the source. The ordinary report's current discovery
 request is separate and confers no authority or claim of current coverage.
+
+## Preview scope amendments in an active run
+
+Use the pinned CLI and the active run's retained selection:
+
+```sh
+repo-standards inspect --amend-scope --json
+repo-standards inspect --amend-scope --scope /tmp/amended-scope.json --json
+```
+
+The first command returns fresh discovery guidance, eligible evidence and a
+request identity. Build the same `repo-standards/scope/v1` proposal described
+above, retaining every previously authorized path under its original declaration.
+The complete proposal can add individual files or reconfirm exactly the same
+scope with fresh evidence. It cannot remove targets, transfer them between
+declarations, change explicit targets, declaration contents, source, profile or
+pins. Source/version/profile flags are rejected; no source acquisition is needed.
+
+The report uses `repo-standards/inspection/v3` and `action: amend-scope`:
+
+| Field | Meaning |
+| --- | --- |
+| `selection`, `source`, `sourceResolved` | The active run's fixed source selection and declarations. |
+| `resolved`, `guidance`, `operations` | Proposed concrete targets and unchanged guidance/operations. Without a proposal, the existing targets remain visible. Operations are described, never executed. |
+| `discovery` | Current request, eligible evidence and observation; with a proposal, its normalized rationale, absence evidence and named-target observations. |
+| `project` | Current root, HEAD, index, hidden index flags, Git status and eligible project observation. |
+| `amendment.run`, `amendment.revision` | Active run ID and its currently accepted scope inspection identity. |
+| `amendment.existingScope`, `proposedScope`, `additions` | Per-declaration original and proposed authority, with newly requested files separately listed. The latter two require a proposal. |
+| `amendment.observations`, `operations`, `assessments` | Work observed under its outgoing scope, definite operation evidence and prior agent assessments. Inspection closes current work only in the returned preview; it writes no journal. |
+| `amendment.eligible`, `blockers`, `nextAction` | Whether the proposal passes preview protections and the safe next action. Missing scope yields `DISCOVERY_REQUIRED`; unresolved questions yield `UNRESOLVED_SCOPE`. |
+| `start` | Always ineligible with `AMENDMENT_ONLY`; this is not a new adoption inspection. |
+| `identity` | Deterministic confirmation identity binding this preview and its active-run request. |
+
+Eligible runs are at contextual handoff or a later contextual, scope or check
+block with definite author-operation outcomes. Pending contextual assessment
+alone is not an uncertain author process. A live CLI worker or author process
+blocks inspection; uncertain work requires the existing explicit `resume --retry`
+first. Verification checks exact bytes/modes, skills, runtime dependencies,
+retained inputs and installed product inventory against the saved expectations.
+HEAD, index and hidden index flags must match the run's original inspection.
+The working tree may contain authorized adoption changes: initial clean-start
+rules do not apply to this continuation.
+
+Every previously observed interval is validated against its own outgoing scope,
+including current agent work. A recorded violation continues to block amendment
+even after the file is restored, and adding the violated path to the proposal
+cannot authorize the earlier write. Removal or transfer returns
+`SCOPE_RECONCILIATION_REQUIRED`, explaining that a mistaken target requiring
+withdrawal leaves the run incomplete and needs reconciliation outside this run.
+Abandonment preserves work; it does not create reusable complete ownership.
+
+Request freshness binds the action, full active journal and saved installation
+identity, scope revision, outgoing-scope observations, current working changes,
+selection, evidence and relevant observation/ignore inputs. The final identity
+also binds the complete proposal and rationale. Named paths and ancestors remain
+observed even when ignored. Product-owned installation material is verified
+separately and is not discovery evidence; local operation logs are not project
+membership evidence. The same observation bounds and failure protections apply.
+Repeated unchanged inspection has the same identity. Stale proposals require a
+fresh request and evidence review, not just a replaced request string.
+
+Inspection performs no exact installation, scope acceptance, author execution or
+project mutation. `amendment.eligible: true` means the preview passed; it grants
+no new write authority. Confirmed execution via `resume --amend-scope --scope
+<file> --confirm <identity>` belongs to the dependent implementation ticket and
+is **not yet available**. Preserve the incomplete run and do not write to added
+paths until that continuation is implemented and explicitly confirmed.
