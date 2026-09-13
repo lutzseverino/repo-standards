@@ -151,13 +151,15 @@ intervals; neither can turn missing, false or out-of-scope evidence into valid
 completion. Replaying fixes requires fresh assessment and checks even when the
 current bytes happen to match an earlier snapshot.
 
-Run/state v2 records store each interval's applicable concrete scope separately
-from operation outcomes and assessment submissions. A recorded out-of-scope
-interval remains an incomplete result; abandon and reconcile before a new
-confirmed adoption. A confirmed amendment advances these records to v3 and
-adds its revision history without changing the interval representation. The last
-complete state retains interval and retry history
-as historical evidence, without asserting ongoing compliance.
+Run v2 and state v4 records store each interval's applicable concrete scope
+separately from operation outcomes and assessment submissions. A confirmed
+amendment advances the active run to v3 and adds its revision history without
+changing the interval representation. State v4 moves
+the preceding complete run's interval, operation, retry, check and assessment
+evidence into its ordered history. A recorded out-of-scope interval remains an
+incomplete result; abandon and reconcile before a new confirmed adoption. The
+last complete state retains interval and retry history as historical evidence,
+without asserting ongoing compliance.
 
 ## Discovery work-request/v2 and assessment/v2
 
