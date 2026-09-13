@@ -131,6 +131,7 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   assert.equal(retained.format, 'repo-standards/scope-history/v2');
   assert.deepEqual(retained.runs.map((run: { inspection: string }) => run.inspection), [firstInspection.identity, inspected.identity]);
   const secondState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
+  assert.equal(secondState.format, 'repo-standards/state/v4');
   assert.deepEqual(secondState.history, [{
     lastComplete: firstState.lastComplete,
     observations: firstState.observations,
@@ -153,6 +154,9 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   const checkoutStart = runCheckout(['start', '--readopt', '--scope', f.scopeFile, '--confirm', checkoutInspection.identity, '--json']);
   assert.equal(checkoutStart.result.status, 1, checkoutStart.result.stdout + checkoutStart.result.stderr);
   assert.equal(f.complete(checkoutStart.report, runCheckout).result.status, 0);
+  const checkoutState = JSON.parse(readFileSync(join(checkout, '.repo-standards/state.json'), 'utf8'));
+  assert.equal(checkoutState.history.length, 2);
+  assert.deepEqual(checkoutState.history[0], secondState.history[0]);
 });
 
 test('a compatible v2 standards update obtains fresh scope before changing only the standards pin', async t => {
