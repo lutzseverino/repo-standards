@@ -642,6 +642,11 @@ export class AdoptionRunSession {
           session.#reportFailures = true;
         }
       } else if (existsSync(lock)) throw new ProductError('ACTIVE_RUN', 'An adoption run is active or incomplete. Read status and preserve its work before recovery.');
+      const amendmentRecovery = resume?.amendment && session.#run ? {
+        outcome: session.#run.outcome, phase: session.#run.phase, reason: session.#run.reason,
+        uncertain: [...session.#run.uncertain], nextAction: session.#run.nextAction, changes: [...session.#run.changes],
+      } : undefined;
+      let reportedFailure: Run | undefined;
       try {
         if (installation && resume) {
           if (resume.retry) session.#recover(installation, archivedFiles, resume.verify);
@@ -651,8 +656,13 @@ export class AdoptionRunSession {
       } catch (error) {
         if (!session.#reportFailures) throw error;
         session.#failure(error);
+        if (amendmentRecovery && !session.#mutated) {
+          reportedFailure = structuredClone(session.#state());
+          Object.assign(session.#state(), amendmentRecovery);
+          session.#save();
+        }
       }
-      return session.observation;
+      return reportedFailure ?? session.observation;
     } finally {
       session.#open = false;
       try {

@@ -403,6 +403,22 @@ test('a definite blocked check can accept an amendment before retry', async t =>
   assert.equal(accepted.report.amendments[0].confirmation, preview.report.identity);
 });
 
+test('a rejected amendment preserves the prior check-failure recovery path', async t => {
+  const f = await fixture(t, { script: "console.log(JSON.stringify({format:'repo-standards/result/v1',status:'failed',message:'Missing documentation'}));" });
+  const blocked = submit(f);
+  assert.match(blocked.report.reason, /^CHECKS_FAILED:/);
+  const request = f.run(['inspect', '--amend-scope', '--json']).report;
+  const preview = f.inspectScope(request, ['README.md', 'LINKS.md']).report;
+  const rejected = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', 'sha256:stale', '--json']);
+  assert.match(rejected.report.reason, /^STALE_INSPECTION:/);
+  const status = f.run(['status', '--json']).report.active;
+  assert.equal(status.phase, blocked.report.phase);
+  assert.equal(status.reason, blocked.report.reason);
+  const resumed = submit(f, false, blocked.report.workRequest);
+  assert.match(resumed.report.reason, /^CHECKS_FAILED:/, resumed.result.stdout);
+  assert.notEqual(preview.identity, 'sha256:stale');
+});
+
 test('amendment resume rejects active runs without discovered scope as unavailable', async t => {
   const registry = await registryFixture(cli.root);
   const remote = remoteFixture(stringify({ format: 'repo-standards/v1', name: 'explicit', description: 'Explicit targets',
