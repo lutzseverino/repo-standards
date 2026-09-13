@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, test, type TestContext } from 'node:test';
 import { chmodSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { filesystemFault } from './adoption-faults.ts';
 import { stringify } from 'yaml';
 import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
@@ -119,6 +119,26 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',m
   const changedInventory = f.run(['inspect', '--json']);
   assert.equal(changedInventory.result.status, 0, changedInventory.result.stdout);
   assert.ok(changedInventory.report.start.blockers.some((blocker: any) => blocker.code === 'STATE_INTEGRITY'));
+});
+
+test('status preserves v3 when a v2 completion has abandoned amended history', async t => {
+  const completed = await fixture(t);
+  assert.equal(submit(completed).report.outcome, 'complete');
+
+  const amended = await fixture(t);
+  const request = amended.run(['inspect', '--amend-scope', '--json']).report;
+  const preview = amended.inspectScope(request, ['README.md', 'LINKS.md']).report;
+  const accepted = amended.run(['resume', '--amend-scope', '--scope', amended.scopeFile, '--confirm', preview.identity, '--json']);
+  assert.equal(accepted.report.format, 'repo-standards/run/v3');
+  const abandoned = amended.run(['abandon', '--json']).report;
+  assert.equal(abandoned.abandoned, true);
+
+  const reports = resolve(completed.project.root, git(completed.project.root, 'rev-parse', '--git-path', 'repo-standards-reports').trim());
+  mkdirSync(reports, { recursive: true });
+  writeFileSync(join(reports, 'amended.json'), JSON.stringify(abandoned));
+  const status = completed.run(['status', '--json']).report;
+  assert.equal(status.format, 'repo-standards/status/v3');
+  assert.equal(status.abandoned[0].format, 'repo-standards/run/v3');
 });
 
 test('scope amendment confirmation requires its complete standalone resume command', async t => {
