@@ -206,6 +206,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
     const profile = validation.profiles[options.profile];
     if (!profile) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
+    if (options.readopt && validation.source!.format !== 'repo-standards/v1') blockers.push({ code: 'READOPTION_UNAVAILABLE', message: 'Explicit re-adoption currently supports retained repo-standards/v1 selections. Preserve this v2 selection until its discovery lifecycle is available.' });
     const discoveryDeclarations = profile.declarations.filter(declaration => 'discovery' in declaration);
     const scopeObservation = discoveryDeclarations.length ? observeScope(root) : undefined;
     const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: options.readopt ? 'readopt' : retained ? 'retained' : previous ? 'update' : 'adopt', root, head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;

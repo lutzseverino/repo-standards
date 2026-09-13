@@ -14,7 +14,7 @@ const candidateVersion = inc(cli.version, 'minor')!;
 after(() => cli.close());
 
 const source = `format: repo-standards/v1
-name: readoption-standards
+name: re-adoption-standards
 description: Re-adoption fixture
 requires: {repo-standards: ">=1.0.0 <2.0.0"}
 defaults:
@@ -101,7 +101,7 @@ test('explicit re-adoption starts unchanged retained v1 standards without the or
 test('re-adoption requires fresh v1 contextual assessment and checks for newly committed project content', async t => {
   const operation = { id: 'documentation', run: { executable: process.execPath, script: 'check.mjs', resources: [], arguments: [] },
     prerequisite: { 'version-arguments': ['--version'], version: '>=24 <25' }, 'timeout-seconds': 5 };
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v1', name: 'readoption-context', description: 'Project documentation',
+  const remote = remoteFixture(stringify({ format: 'repo-standards/v1', name: 're-adoption-context', description: 'Project documentation',
     requires: { 'repo-standards': '^1' }, defaults: { declarations: {
       documentation: { kind: 'repository', guidance: 'guidance.md', targets: { paths: [], directories: ['projects'] }, checks: [operation] },
     } }, profiles: { work: { description: 'Work', declarations: {} } } }), {
@@ -151,4 +151,24 @@ test('re-adoption requires fresh v1 contextual assessment and checks for newly c
   const second = JSON.parse(secondCompletion.stdout);
   assert.equal(second.operations.at(-1).result.status, 'passed');
   assert.notEqual(second.id, first.id);
+});
+
+test('explicit re-adoption leaves retained v2 selections for the later discovery lifecycle', async t => {
+  const remote = remoteFixture(source.replace('repo-standards/v1', 'repo-standards/v2'), { 'agents.md': 'Pinned standards' });
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const adopted = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env);
+  assert.equal(adopted.status, 0, adopted.stdout + adopted.stderr);
+  commit(project.root);
+
+  const inspected = JSON.parse(cli.run(['inspect', '--readopt', '--json'], project.root, env).stdout);
+  assert.ok(inspected.start.blockers.some((blocker: { code: string }) => blocker.code === 'READOPTION_UNAVAILABLE'));
+  const rejected = cli.run(['start', '--readopt', '--confirm', inspected.identity, '--json'], project.root, env);
+  assert.equal(rejected.status, 1);
+  assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'START_BLOCKED');
 });
