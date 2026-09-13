@@ -370,11 +370,14 @@ HEAD/index and intact installed content. Existing adoption working changes do
 not impose a new clean-start requirement. Uncertain work still requires explicit
 `resume --retry` first. See the [amendment preview contract](inspection.md#preview-scope-amendments-in-an-active-run).
 
-This preview leaves the run incomplete and grants no new authority. Confirmed
-execution through `resume --amend-scope` is not yet available. Never write to an
-added path based on inspection alone. Removing or transferring a mistaken target
-within the active run is unsupported; preserve the work and reconcile through
-abandonment and the normal project workflow before a new clean adoption.
+This preview leaves the run incomplete and grants no new authority. After explicit
+maintainer confirmation of its complete identity, accept the same proposal with
+`resume --amend-scope --scope <external-proposal.json> --confirm <identity>`.
+Acceptance authorizes the additions, records a new scope revision, replays fixes,
+and requires renewed assessment and checks. Never write to an added path based on
+inspection alone. Removing or transferring a mistaken target within the active
+run is unsupported; preserve the work and reconcile through abandonment and the
+normal project workflow before a new clean adoption.
 
 ## Fresh checkout and source disappearance
 
