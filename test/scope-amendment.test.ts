@@ -11,17 +11,19 @@ import { registryFixture } from './registry-fixture.ts';
 const cli = installCli();
 after(() => cli.close());
 
-async function fixture(t: TestContext, options: { script?: string; phase?: 'fixes' | 'checks'; declarations?: Record<string, unknown>; deferStart?: boolean; exactTarget?: string; directories?: string[] } = {}) {
-  const operation = { id: 'run', run: { executable: process.execPath, script: 'run.mjs', resources: [], arguments: [] },
-    prerequisite: { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': 5 };
+async function fixture(t: TestContext, options: { script?: string; phase?: 'fixes' | 'checks'; checkScript?: string; declarations?: Record<string, unknown>; deferStart?: boolean; exactTarget?: string; directories?: string[] } = {}) {
+  const operation = (id: string, script: string) => ({ id, run: { executable: process.execPath, script, resources: [], arguments: [] },
+    prerequisite: { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': 5 });
   const registry = await registryFixture(cli.root);
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'amendment', description: 'Discover documentation',
     requires: { 'repo-standards': '^1' }, defaults: { declarations: {
-      docs: { kind: 'repository', guidance: 'guide.md', discovery: 'discover.md', ...(options.script ? { [options.phase ?? 'checks']: [operation] } : {}) },
+      docs: { kind: 'repository', guidance: 'guide.md', discovery: 'discover.md', ...(options.script ? { [options.phase ?? 'checks']: [operation('run', 'run.mjs')] } : {}),
+        ...(options.checkScript ? { checks: [operation('check', 'check.mjs')] } : {}) },
       ...options.declarations,
       configuration: { kind: 'file', target: options.exactTarget ?? 'config.json', exact: 'config.json' },
     } }, profiles: { work: { description: 'Work', declarations: {} } } }),
-  { 'guide.md': 'Document maintained projects.', 'discover.md': 'Find project documentation and link repairs.', 'config.json': '{}\n', 'run.mjs': options.script ?? '' });
+  { 'guide.md': 'Document maintained projects.', 'discover.md': 'Find project documentation and link repairs.', 'config.json': '{}\n',
+    'run.mjs': options.script ?? '', 'check.mjs': options.checkScript ?? '' });
   const project = sourceFixture('', { 'README.md': '# Project\n', 'package.json': '{}\n', 'LINKS.md': 'Links\n' });
   for (const directory of options.directories ?? []) mkdirSync(join(project.root, directory), { recursive: true });
   commit(project.root);
@@ -77,12 +79,13 @@ test('amendment inspection previews equal and added scope in a dirty active run 
   assert.equal(readFileSync(join(f.project.root, 'config.json'), 'utf8'), '{}\n');
 });
 
-test('confirmed amendment accepts added scope, replays fixes and requests renewed assessment', async t => {
+test('confirmed amendment accepts added scope, replays fixes, renews assessment and reruns checks', async t => {
   const f = await fixture(t, { phase: 'fixes', script: `
 import { readFileSync, writeFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0, 'utf8'));
 for (const path of input.allowedTargets.paths) writeFileSync(path, 'Prepared ' + path + '\\n');
-console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',message:'Prepared confirmed documentation'}));` });
+console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',message:'Prepared confirmed documentation'}));`,
+    checkScript: `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Confirmed documentation is valid'}));` });
   const requested = f.run(['inspect', '--amend-scope', '--json']).report;
   const preview = f.inspectScope(requested, ['README.md', 'LINKS.md']).report;
   const accepted = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', preview.identity, '--json']);
@@ -104,6 +107,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',m
   const completed = submit(f);
   assert.equal(completed.result.status, 0, completed.result.stdout);
   assert.equal(completed.report.outcome, 'complete');
+  assert.equal(completed.report.operations.filter((entry: any) => entry.operation.phase === 'checks').length, 1);
   const status = f.run(['status', '--json']).report;
   assert.equal(status.format, 'repo-standards/status/v3');
   assert.equal(status.scopeRevision, 1);
@@ -134,7 +138,7 @@ test('scope amendment confirmation requires its complete standalone resume comma
 });
 
 test('repeated and equal-scope amendments retain a chained authorization history', async t => {
-  const f = await fixture(t);
+  const f = await fixture(t, { checkScript: `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Confirmed documentation is valid'}));` });
   const firstRequest = f.run(['inspect', '--amend-scope', '--json']).report;
   const firstPreview = f.inspectScope(firstRequest, ['README.md', 'LINKS.md']).report;
   const first = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', firstPreview.identity, '--json']).report;
@@ -151,6 +155,10 @@ test('repeated and equal-scope amendments retain a chained authorization history
   assert.equal(second.amendments[1].previousInspection, firstPreview.identity);
   assert.equal(second.amendments[1].confirmation, secondPreview.identity);
   assert.deepEqual(second.amendments[1].acceptedScope.docs.paths, ['LINKS.md', 'README.md']);
+  const completed = submit(f);
+  assert.equal(completed.result.status, 0, completed.result.stdout);
+  assert.equal(completed.report.outcome, 'complete');
+  assert.equal(completed.report.operations.filter((entry: any) => entry.operation.phase === 'checks').length, 1);
 });
 
 test('interruption during amended fix replay keeps one accepted revision and recovers by retry', async t => {
@@ -319,6 +327,7 @@ test('definite scope and check blocks remain eligible and preview preserves oper
     const f = await fixture(t, { script: "console.log(JSON.stringify({format:'repo-standards/result/v1',status:'failed',message:'Missing documentation'}));" });
     const blocked = submit(f, blockedScope);
     assert.match(blocked.report.reason, blockedScope ? /^SCOPE_INCOMPLETE:/ : /^CHECKS_FAILED:/);
+    if (blockedScope) assert.match(blocked.report.nextAction, /resume --amend-scope --scope <file> --confirm <identity>/);
     const before = snapshot(f.project.root);
     const request = f.run(['inspect', '--amend-scope', '--json']);
     assert.equal(request.result.status, 0, request.result.stdout);

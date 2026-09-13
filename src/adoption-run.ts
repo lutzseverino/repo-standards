@@ -601,7 +601,7 @@ export class AdoptionRunSession {
       ? 'Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.'
       : 'Explicit recovery is required. Review this incomplete adoption, reconcile changes, then use resume --retry, or abandon to preserve the work and report.';
     else if (!this.#mutated && !run.processGroup) { run.uncertain = []; run.nextAction = 'Resolve the reported problem, inspect again, and confirm the new inspection before retrying.'; }
-    if (error instanceof ProductError && error.code === 'SCOPE_INCOMPLETE') run.nextAction = 'Additional paths grant no authority. Preserve the run and work; correct the coverage evidence within confirmed scope, or abandon and reconcile to a clean committed project before a new discovery inspection and confirmation. Use inspect --amend-scope for a read-only additions preview; accepting additions and withdrawing active targets remain unsupported by this interface.';
+    if (error instanceof ProductError && error.code === 'SCOPE_INCOMPLETE') run.nextAction = 'Additional paths grant no authority until explicitly confirmed. Preserve the run and work, then use inspect --amend-scope with complete additions-only evidence and accept the fresh preview with resume --amend-scope --scope <file> --confirm <identity>. Correct the evidence within confirmed scope or abandon when additions cannot safely resolve the block; withdrawing active targets remains unsupported.';
     try { this.#save(); } catch { /* Preserve the original interruption record. */ }
   }
 
