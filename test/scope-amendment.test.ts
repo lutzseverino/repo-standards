@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, test, type TestContext } from 'node:test';
-import { chmodSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { filesystemFault } from './adoption-faults.ts';
 import { stringify } from 'yaml';
@@ -263,4 +263,37 @@ test('amendment binds consulted ignore inputs and never hides a previously named
   writeFileSync(join(f.project.root, 'future.md'), 'Ignored but explicitly named now');
   const stale = f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']);
   assert.equal(stale.result.status, 1, stale.result.stdout);
+});
+
+test('installed exact files and skills cannot supply amendment discovery evidence', async t => {
+  const f = await fixture(t);
+  const request = f.run(['inspect', '--amend-scope', '--json']).report;
+  const installed = (path: string) => path === 'config.json' || path.startsWith('.agents/skills/adopt-standards');
+  assert.ok(request.discovery.evidence.every((entry: any) => !installed(entry.path)));
+  assert.ok(!request.discovery.observation.inventories['.'].includes('config.json'));
+  assert.ok(!request.discovery.observation.inventories['.agents/skills'].includes('.agents/skills/adopt-standards'));
+  const preview = f.inspectScope(request, ['README.md', 'LINKS.md']).report;
+  assert.equal(preview.amendment.eligible, true);
+  assert.ok(preview.discovery.namedObservation.evidence.every((entry: any) => !installed(entry.path)));
+  // A separate initial inspection can observe these files. Even their real
+  // identities cannot turn installed output into amendment membership evidence.
+  const evidenceProject = sourceFixture('', { 'config.json': '{}\n' });
+  t.after(() => evidenceProject.close());
+  cpSync(join(f.project.root, '.agents'), join(evidenceProject.root, '.agents'), { recursive: true });
+  commit(evidenceProject.root);
+  const inspected = f.run([...inspectionArgs, '--project', evidenceProject.root]);
+  assert.equal(inspected.result.status, 0, inspected.result.stdout);
+  const ordinary = inspected.report;
+  for (const [kind, path] of [['file', 'config.json'], ['directory', '.agents/skills/adopt-standards']]) {
+    const value = f.proposal(request);
+    const reference = ordinary.discovery.evidence.find((entry: any) => entry.kind === kind && entry.path === path);
+    assert.ok(reference);
+    value.declarations[0].evidence = [reference];
+    value.declarations[0].candidates[0].evidence = [reference];
+    writeFileSync(f.scopeFile, JSON.stringify(value));
+    const before = snapshot(f.project.root);
+    const rejected = f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']);
+    assert.equal(rejected.report.errors[0].code, 'INVALID_SCOPE', rejected.result.stdout);
+    assert.deepEqual(snapshot(f.project.root), before);
+  }
 });

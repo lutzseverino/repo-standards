@@ -23,13 +23,19 @@ export function previewScopeAmendment(root: string, run: Run, installation: Inst
   };
   const observations = validateWork();
 
+  // Installed output has independent integrity evidence. Exclude its files
+  // and whole skill inventories from discovery, including directory evidence.
+  // Work-interval observations above still account for all original authority.
+  const observationOptions = { execution: true, excluded: [...Object.keys(installation.exactBaselines), ...Object.keys(installation.skills)] };
+  const observeDiscovery = (named: string[] = []) => observeScope(root, named, observationOptions);
+
   const capture = () => {
     const status = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignore-submodules=all']);
     const head = git(root, ['rev-parse', '--verify', 'HEAD']);
     const index = git(root, ['ls-files', '--stage', '-z']);
     if (status.status !== 0 || head.status !== 0 || index.status !== 0) throw new ProductError('OBSERVATION_READ', 'Cannot completely observe amendment Git state.');
     return { root, head: head.stdout.trim(), index: index.stdout, hidden: hiddenIndexPaths(root), status: status.stdout,
-      observation: observeScope(root, [], { execution: true }) };
+      observation: observeDiscovery() };
   };
   const project = capture();
   const request = identity({ action: 'amend-scope', run, installation: run.continuation, revision: run.inspection, existingScope, observations, project });
@@ -45,7 +51,7 @@ export function previewScopeAmendment(root: string, run: Run, installation: Inst
     } else if (JSON.stringify(before) !== JSON.stringify(after)) throw new ProductError('SELECTION_SWITCH', 'Scope amendment cannot change explicit targets or the selected declarations.');
   }
   const named = proposal?.declarations.flatMap(entry => entry.paths) ?? [];
-  const namedObservation = proposal ? observeScope(root, named, { execution: true }) : undefined;
+  const namedObservation = proposal ? observeDiscovery(named) : undefined;
   const absence = proposal ? validateScopeEvidence(proposal, namedObservation!) : [];
   const blockers: Blocker[] = [];
   if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: 'Review current evidence and submit a complete repo-standards/scope/v1 proposal with inspect --amend-scope --scope <file>, retaining every previously authorized target per declaration.' });
@@ -67,7 +73,7 @@ export function previewScopeAmendment(root: string, run: Run, installation: Inst
     start: { eligible: false, blockers: [{ code: 'AMENDMENT_ONLY', message: 'This identity previews continuation of the active run and cannot start a new adoption or accept scope.' }] },
   };
   if (JSON.stringify(project) !== JSON.stringify(capture())
-    || (namedObservation && JSON.stringify(namedObservation) !== JSON.stringify(observeScope(root, named, { execution: true })))
+    || (namedObservation && JSON.stringify(namedObservation) !== JSON.stringify(observeDiscovery(named)))
     || JSON.stringify(observations) !== JSON.stringify(validateWork())) {
     throw new ProductError('OBSERVATION_UNSTABLE', 'Project evidence changed during amendment inspection. Inspect again.');
   }

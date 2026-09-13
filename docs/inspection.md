@@ -407,9 +407,11 @@ Request freshness binds the action, full active journal and saved installation
 identity, scope revision, outgoing-scope observations, current working changes,
 selection, evidence and relevant observation/ignore inputs. The final identity
 also binds the complete proposal and rationale. Named paths and ancestors remain
-observed even when ignored. Product-owned installation material is verified
-separately and is not discovery evidence; local operation logs are not project
-membership evidence. The same observation bounds and failure protections apply.
+observed even when ignored. Installed exact files, author/system skills and
+product state are verified separately and excluded from discovery evidence,
+including directory inventories; local operation logs are not project membership
+evidence. Original work intervals still account for those installed paths.
+The same observation bounds and failure protections apply.
 Repeated unchanged inspection has the same identity. Stale proposals require a
 fresh request and evidence review, not just a replaced request string.
 

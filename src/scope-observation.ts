@@ -13,7 +13,7 @@ const identity = (value: unknown) => `sha256:${hash(JSON.stringify(value))}`;
 
 // One bounded observation is compared with a second before issuing a report.
 // Only eligible files and named boundaries are read, never ignored siblings.
-export function observeScope(root: string, named: string[] = [], options: { execution?: boolean; directories?: string[] } = {}) {
+export function observeScope(root: string, named: string[] = [], options: { execution?: boolean; directories?: string[]; excluded?: string[] } = {}) {
   let bytes = 0;
   let count = 0;
   const deadline = Date.now() + 30_000;
@@ -75,7 +75,8 @@ export function observeScope(root: string, named: string[] = [], options: { exec
   const configuredExclude = command(['config', '--null', '--path', '--get', 'core.excludesfile'], true);
   const globalExclude = configuredExclude ? configuredExclude.slice(0, -1) : join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'git/ignore');
   const infoExclude = command(['rev-parse', '--path-format=absolute', '--git-path', 'info/exclude']).replace(/\n$/, '');
-  const included = (path: string) => !options.execution || (path !== '.repo-standards' && !path.startsWith('.repo-standards/'));
+  const included = (path: string) => (!options.execution || (path !== '.repo-standards' && !path.startsWith('.repo-standards/')))
+    && !options.excluded?.some(excluded => path === excluded || path.startsWith(excluded + '/'));
   const tracked = command(['ls-files', '--cached', '-z']).split('\0').filter(path => path && included(path));
   const trackedParents = new Set<string>();
   for (const path of tracked) {
