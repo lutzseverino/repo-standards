@@ -1,0 +1,32 @@
+{
+  "provenance": "Curated from GitHub Release, npm registry, git tag, and Release workflow observations recorded on 2026-09-14.",
+  "package": "@lutzseverino/repo-standards",
+  "version": "1.2.1",
+  "commit": "67a88db1c81ebcb99561b2583bee353ecc516057",
+  "tag": "v1.2.1",
+  "release": "https://github.com/lutzseverino/repo-standards/releases/tag/v1.2.1",
+  "publishedAt": "2026-09-14T08:18:59Z",
+  "publicationRun": {
+    "id": 34821044604,
+    "url": "https://github.com/lutzseverino/repo-standards/actions/runs/34821044604",
+    "validation": {
+      "ubuntu-latest": "success",
+      "macos-latest": "success"
+    },
+    "publish": "success",
+    "publicInstallation": {
+      "ubuntu-latest": "success",
+      "macos-26-intel": "failed: anonymous GitHub API quota exhausted after public package, bundle, and bootstrap acquisition"
+    }
+  },
+  "npm": {
+    "integrity": "sha512-m5swZ8EBiga4Phr+N03znNZ1qhWRcChSJ+IEM0SQI94IkSJ7r6F8i72L9KolVscawwPl1UisLzHuC1Dp3hK75g==",
+    "tarball": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.2.1.tgz"
+  },
+  "assets": {
+    "lutzseverino-repo-standards-1.2.1.tgz": "sha256:9227e9bf54014f9163fbe26c28ccf1e9937b407eeecb722603ba9b7c8c8eaaf3",
+    "release.json": "sha256:81994da2344cad09cea4fb671eb8752dbf903bef9f5959d214b489917c2f83b7",
+    "repo-standards-bootstrap": "sha256:8f593d792119f9e9a623b20c1e2d680f7a0e641c54819367c7ebe2fca575c46a",
+    "SHA256SUMS": "sha256:1aaaa358d822060ebcedd9033bcb28885cb28680135f59b362d3c08ccaf0f8b6"
+  }
+}

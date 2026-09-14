@@ -1,0 +1,169 @@
+{
+  "format": "repo-standards/published-regression/v1",
+  "evidence": "scripted public-package/fixture-source regression",
+  "package": {
+    "name": "@lutzseverino/repo-standards",
+    "version": "1.2.1",
+    "integrity": "sha512-m5swZ8EBiga4Phr+N03znNZ1qhWRcChSJ+IEM0SQI94IkSJ7r6F8i72L9KolVscawwPl1UisLzHuC1Dp3hK75g==",
+    "tarball": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.2.1.tgz"
+  },
+  "source": {
+    "acquisition": "deterministic GitHub HTTPS fixture",
+    "repository": "https://github.com/alice/standards",
+    "version": "v1.0.0"
+  },
+  "runs": {
+    "first": {
+      "inspection": "sha256:0511ec02b8f1bc5e9b107038aae35c055142208d9538a9e9eed3c65ec8a70308",
+      "amendment": "sha256:6ee8ca96bdbb3ec3b3a2b3f4064727b0c79e8fad305347e478299186baa10d00",
+      "complete": "3f6923b5-1f4e-4aeb-91af-3fc642bd7035",
+      "scopeRevision": 1,
+      "amendmentCount": 1
+    },
+    "second": {
+      "inspection": "sha256:fa120d203b709eff18687cf045ac966a186d0cff618960d02ed9e903821dbdc2",
+      "complete": "6d49b398-fa15-4697-a709-49bdce887608",
+      "historyCount": 1
+    }
+  },
+  "assertions": {
+    "publicPackageIntegrityMatchedInstallLock": true,
+    "run1WasAmended": true,
+    "run2WasSamePinReadoption": true,
+    "run1ScopeRevisionRetainedAfterRun2": true,
+    "run1AmendmentsRetainedAfterRun2": true,
+    "retainedInspectionExposedAmendmentHistory": true,
+    "statusExposedExecutionHistory": true,
+    "removedScopeContentWasPreserved": true,
+    "freshCloneRetainedRun1AmendmentHistory": true,
+    "sourceWasUnavailableForRun2AndFreshClone": true
+  },
+  "environment": {
+    "node": "v24.21.0",
+    "platform": "linux",
+    "arch": "arm64",
+    "git": "git version 2.47.3",
+    "npm": "11.19.0"
+  },
+  "commands": [
+    {
+      "name": "00-public-install",
+      "command": "\"npm\" \"install\" \"--prefix\" \"<temporary-cli-root>\" \"--ignore-scripts\" \"--no-audit\" \"--no-fund\" \"@lutzseverino/repo-standards@1.2.1\"",
+      "exit": 0,
+      "stdout": "00-public-install.stdout",
+      "stderr": "00-public-install.stderr"
+    },
+    {
+      "name": "01-cli-version",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"--version\"",
+      "exit": 0,
+      "stdout": "01-cli-version.stdout",
+      "stderr": "01-cli-version.stderr"
+    },
+    {
+      "name": "02-run1-request",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"inspect\" \"--source\" \"https://github.com/alice/standards\" \"--standards-version\" \"v1.0.0\" \"--profile\" \"work\" \"--json\"",
+      "exit": 0,
+      "stdout": "02-run1-request.stdout",
+      "stderr": "02-run1-request.stderr"
+    },
+    {
+      "name": "04-run1-inspection",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"inspect\" \"--source\" \"https://github.com/alice/standards\" \"--standards-version\" \"v1.0.0\" \"--profile\" \"work\" \"--scope\" \"/tmp/repo-standards-published-1.2.1-q5W0Hb/run1-scope.json\" \"--json\"",
+      "exit": 0,
+      "stdout": "04-run1-inspection.stdout",
+      "stderr": "04-run1-inspection.stderr"
+    },
+    {
+      "name": "05-run1-start",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"start\" \"--source\" \"https://github.com/alice/standards\" \"--standards-version\" \"v1.0.0\" \"--profile\" \"work\" \"--scope\" \"/tmp/repo-standards-published-1.2.1-q5W0Hb/run1-scope.json\" \"--confirm\" \"sha256:0511ec02b8f1bc5e9b107038aae35c055142208d9538a9e9eed3c65ec8a70308\" \"--json\"",
+      "exit": 1,
+      "stdout": "05-run1-start.stdout",
+      "stderr": "05-run1-start.stderr"
+    },
+    {
+      "name": "06-run1-amendment-request",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"inspect\" \"--amend-scope\" \"--json\"",
+      "exit": 0,
+      "stdout": "06-run1-amendment-request.stdout",
+      "stderr": "06-run1-amendment-request.stderr"
+    },
+    {
+      "name": "08-run1-amendment-inspection",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"inspect\" \"--amend-scope\" \"--scope\" \"/tmp/repo-standards-published-1.2.1-q5W0Hb/run1-amendment-scope.json\" \"--json\"",
+      "exit": 0,
+      "stdout": "08-run1-amendment-inspection.stdout",
+      "stderr": "08-run1-amendment-inspection.stderr"
+    },
+    {
+      "name": "09-run1-amendment-accept",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"resume\" \"--amend-scope\" \"--scope\" \"/tmp/repo-standards-published-1.2.1-q5W0Hb/run1-amendment-scope.json\" \"--confirm\" \"sha256:6ee8ca96bdbb3ec3b3a2b3f4064727b0c79e8fad305347e478299186baa10d00\" \"--json\"",
+      "exit": 1,
+      "stdout": "09-run1-amendment-accept.stdout",
+      "stderr": "09-run1-amendment-accept.stderr"
+    },
+    {
+      "name": "10-run1-complete",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"resume\" \"--assessment\" \"/tmp/repo-standards-published-1.2.1-q5W0Hb/10-run1-assessment.json\" \"--json\"",
+      "exit": 0,
+      "stdout": "10-run1-complete.stdout",
+      "stderr": "10-run1-complete.stderr"
+    },
+    {
+      "name": "12-run2-readopt-request",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"inspect\" \"--readopt\" \"--json\"",
+      "exit": 0,
+      "stdout": "12-run2-readopt-request.stdout",
+      "stderr": "12-run2-readopt-request.stderr"
+    },
+    {
+      "name": "14-run2-inspection",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"inspect\" \"--readopt\" \"--scope\" \"/tmp/repo-standards-published-1.2.1-q5W0Hb/run2-scope.json\" \"--json\"",
+      "exit": 0,
+      "stdout": "14-run2-inspection.stdout",
+      "stderr": "14-run2-inspection.stderr"
+    },
+    {
+      "name": "15-run2-start",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"start\" \"--readopt\" \"--scope\" \"/tmp/repo-standards-published-1.2.1-q5W0Hb/run2-scope.json\" \"--confirm\" \"sha256:fa120d203b709eff18687cf045ac966a186d0cff618960d02ed9e903821dbdc2\" \"--json\"",
+      "exit": 1,
+      "stdout": "15-run2-start.stdout",
+      "stderr": "15-run2-start.stderr"
+    },
+    {
+      "name": "16-run2-complete",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"resume\" \"--assessment\" \"/tmp/repo-standards-published-1.2.1-q5W0Hb/16-run2-assessment.json\" \"--json\"",
+      "exit": 0,
+      "stdout": "16-run2-complete.stdout",
+      "stderr": "16-run2-complete.stderr"
+    },
+    {
+      "name": "18-retained-inspection",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"inspect\" \"--json\"",
+      "exit": 0,
+      "stdout": "18-retained-inspection.stdout",
+      "stderr": "18-retained-inspection.stderr"
+    },
+    {
+      "name": "19-status",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"status\" \"--json\"",
+      "exit": 0,
+      "stdout": "19-status.stdout",
+      "stderr": "19-status.stderr"
+    },
+    {
+      "name": "20-fresh-clone-inspection",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"inspect\" \"--json\"",
+      "exit": 0,
+      "stdout": "20-fresh-clone-inspection.stdout",
+      "stderr": "20-fresh-clone-inspection.stderr"
+    },
+    {
+      "name": "21-fresh-clone-status",
+      "command": "\"/tmp/repo-standards-published-1.2.1-q5W0Hb/cli/node_modules/.bin/repo-standards\" \"status\" \"--json\"",
+      "exit": 0,
+      "stdout": "21-fresh-clone-status.stdout",
+      "stderr": "21-fresh-clone-status.stderr"
+    }
+  ]
+}

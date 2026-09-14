@@ -1,0 +1,28 @@
+{
+  "run": 34823592703,
+  "url": "https://github.com/lutzseverino/repo-standards/actions/runs/34823592703",
+  "version": "1.2.1",
+  "mode": "verification only; packaging and publication skipped",
+  "attempts": [
+    {
+      "attempt": 1,
+      "ubuntuArtifact": 10339103545,
+      "macosArtifact": 10339467090,
+      "ubuntu": "passed",
+      "macos": "failed: anonymous API quota exhausted"
+    },
+    {
+      "attempt": 2,
+      "macosArtifact": 10338904593,
+      "macos": "failed: anonymous API quota exhausted"
+    },
+    {
+      "attempt": 3,
+      "macosJob": 103952811047,
+      "macosArtifact": 10344597416,
+      "macos": "failed: anonymous API quota exhausted",
+      "reset": "2026-09-14T11:55:44Z"
+    }
+  ],
+  "acceptanceComplete": false
+}
