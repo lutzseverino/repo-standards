@@ -2,6 +2,7 @@
   "run": 34823592703,
   "url": "https://github.com/lutzseverino/repo-standards/actions/runs/34823592703",
   "version": "1.2.1",
+  "headSha": "67a88db1c81ebcb99561b2583bee353ecc516057",
   "mode": "verification only; packaging and publication skipped",
   "attempts": [
     {
@@ -22,7 +23,20 @@
       "macosArtifact": 10344597416,
       "macos": "failed: anonymous API quota exhausted",
       "reset": "2026-09-14T11:55:44Z"
+    },
+    {
+      "attempt": 4,
+      "macosJob": 103965572607,
+      "macosArtifact": 10346276774,
+      "macosArtifactDigest": "sha256:19d04773e75afa83e2596de4a65afd83cede46ae2d82d3f815c3739e820e6ef7",
+      "macos": "passed",
+      "environment": {
+        "platform": "darwin",
+        "release": "25.6.0",
+        "arch": "x64",
+        "node": "v24.11.1"
+      }
     }
   ],
-  "acceptanceComplete": false
+  "acceptanceComplete": true
 }

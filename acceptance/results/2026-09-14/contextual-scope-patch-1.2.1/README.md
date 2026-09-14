@@ -30,9 +30,17 @@ again reached shared anonymous API limits. The second attempt started with only
 After that deadline, attempt 3 retried only the failed job on 14 September at
 11:11 UTC. It started with 49 of 60 core requests available and exhausted the
 quota during public source acquisition, then author-skill acquisition. Its
-recorded reset is `2026-09-14T11:55:44Z`. macOS public verification remains
-incomplete; #41 stays open. A future retry must preserve anonymous acquisition
-and all assertions, respect the observed reset, and must not publish again.
+recorded reset is `2026-09-14T11:55:44Z`.
+
+Attempt 4 retried only that failed job after the reset. On GitHub-hosted macOS
+26 Intel (`darwin` 25.6.0, `x64`, Node.js 24.11.1), the unchanged public
+installation and standalone author-skill acquisition checks both passed against
+release commit `67a88db1c81ebcb99561b2583bee353ecc516057`. The advisory quota
+observation began with 54 of 60 core requests available; anonymous acquisition
+and every assertion remained enabled. This is hosted macOS scripted
+verification, not a new local or real-agent evaluation. Together with the
+passing Ubuntu evidence, it completes the outstanding public platform
+verification for #41 without republishing.
 
 - `release/publication.json` records the release, workflow, registry, commit,
   and asset identities.
@@ -45,10 +53,12 @@ and all assertions, respect the observed reset, and must not publish again.
   reconfirmed those publication identities (`release/status-final-check.json`).
 - `release/initial/` preserves the first run's passing Ubuntu evidence and
   macOS quota failure.
-- `release/verification-attempt-1/` through `release/verification-attempt-3/`
-  preserve verification-only results. `release/verification.json` maps the
-  attempts to their workflow and artifact identities; passing Ubuntu evidence
-  is retained from attempt 1. No verification-only attempt republishes bytes.
+- `release/verification-attempt-1/` through `release/verification-attempt-4/`
+  preserve every verification-only result, including the earlier quota
+  failures. `release/verification.json` maps the attempts to their workflow and
+  artifact identities; passing Ubuntu evidence is retained from attempt 1 and
+  passing macOS evidence from attempt 4. No verification-only attempt
+  republishes bytes.
 
 The earlier failed workflow
 [`34801934043`](https://github.com/lutzseverino/repo-standards/actions/runs/34801934043)

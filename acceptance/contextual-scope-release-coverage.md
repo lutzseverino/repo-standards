@@ -10,10 +10,14 @@ regression are recorded in
 `acceptance/results/2026-09-14/contextual-scope-patch-1.2.1/`. That scripted
 public-package/fixture-source record supplements the 1.2.0 release below; the
 broad public-source and real-agent journeys remain the original 1.2.0 evidence.
+The patch record also retains passing public installation and standalone
+author-skill acquisition on Ubuntu and GitHub-hosted macOS, including the
+earlier macOS anonymous-quota failures.
 
-Candidate CLI version: `1.2.0`. Until the evidence index records the matching
-published npm integrity, GitHub release, both operating systems, and fresh agent
-work, the release remains incomplete.
+Released CLI version: `1.2.1`. The patch record binds its npm integrity, GitHub
+release, release commit, and public checks on both operating systems. The fresh
+semantic and real-agent work remains the dated 1.2.0 evidence and is not
+relabeled as a 1.2.1 evaluation.
 
 ## Delivery criteria
 
