@@ -1,0 +1,22 @@
+{
+  "format": "repo-standards/assessment/v1",
+  "run": "0a6eae66-9c09-473a-9f02-0c4232d4293b",
+  "selection": "sha256:53499cb269a7279da94d904e849fc3afea476524c593c4240a279029b31f7ea5",
+  "snapshot": "sha256:98b31db95d675f5314ced1cc115342b40a7958b5f82121b40560b005672d2725",
+  "declarations": [
+    {
+      "id": "operations-guide",
+      "status": "satisfied",
+      "explanation": "The Harbor runbook now gives source-grounded startup, health, failure, and recovery instructions while preserving the loopback warning and platform on-call ownership. The initializer-created operating status remains unverified, and the only contextual edit was the allowed runbook path.",
+      "changedPaths": [
+        "docs/operations.md"
+      ],
+      "evidence": [
+        "service/server.py binds 127.0.0.1 using PORT or 8765, serves GET /health, increments a class-level in-memory counter on POST /accept, and returns 404 for other paths.",
+        "A local PORT=18765 probe observed health {status: ok, accepted: 0}, POST /accept status 204, the counter increase to 1, unknown-path status 404, and reset to 0 after a clean process restart.",
+        "docs/operations.md preserves the existing unauthenticated-loopback warning and platform on-call escalation, and adds exact Startup, Health, and Recovery commands and limitations.",
+        "docs/operating-status.json contains status unverified as supplied by the confirmed initializer; no deployment verification is claimed."
+      ]
+    }
+  ]
+}

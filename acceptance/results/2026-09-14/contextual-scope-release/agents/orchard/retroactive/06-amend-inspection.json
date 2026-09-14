@@ -1,0 +1,9 @@
+{
+  "valid": false,
+  "errors": [
+    {
+      "code": "ASSESSMENT_SCOPE",
+      "message": "Agent work changed paths outside its authorized agent scope: CATALOG.md. Work and interval evidence are preserved; abandon and reconcile before a new adoption."
+    }
+  ]
+}

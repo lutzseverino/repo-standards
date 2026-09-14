@@ -1,0 +1,58 @@
+{
+  "confirmedAmendment": "sha256:d5f595360e04ed5a105024d3f354ba40083aceb6155b9c269bcab63d08bf1d21",
+  "run": "91c11a5c-6f3f-49ce-a06b-63af550f9d39",
+  "interruptionCommand": {
+    "invocations": 1,
+    "bridgeExitStatus": 1,
+    "bridgeSignal": null,
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "innerCliControlSignal": "SIGKILL",
+    "innerCliSignalBasis": "The acceptance-only imported harness deterministically calls process.kill(process.pid, 'SIGKILL') immediately after the first child-process spawn. acceptance/cli.ts observes the signaled child with result.status null and maps it to bridge exit status 1."
+  },
+  "durableStatusCommand": {
+    "session": "/tmp/repo-standards-public-agent-gNdlDb/journey.json",
+    "exitStatus": 0,
+    "signal": null,
+    "report": "status-after-interruption.json"
+  },
+  "durableStatus": {
+    "format": "repo-standards/status/v3",
+    "execution": "interrupted",
+    "activeFormat": "repo-standards/run/v3",
+    "activeInspection": "sha256:d5f595360e04ed5a105024d3f354ba40083aceb6155b9c269bcab63d08bf1d21",
+    "scopeRevision": 1,
+    "phase": "fixes",
+    "reason": "Run in progress or interrupted.",
+    "uncertain": [
+      "project-documentation/normalize-markdown-ending: process outcome uncertain until recorded"
+    ],
+    "nextAction": "If continuation is interrupted, review status and use resume --retry to replay fixes under the accepted scope.",
+    "amendmentAccepted": true,
+    "acceptedAddition": "project-documentation: CATALOG.md",
+    "lastObservationOperationIndex": 1,
+    "lastObservationHasAfter": false,
+    "lastComplete": null
+  },
+  "integrity": {
+    "originalSessionSha256": "274fe4c7f9e6dbcc5bc844f142b7ee7601d53997a1c9c668c3861c5a8cc80a98",
+    "interruptionSessionSha256": "5944e68be2a07c4bcfa39f6abf808cec1fff0951f38eca05b6ffc7f238200519",
+    "sessionSemanticHashExcludingNodeOptions": "00f8685dd149310710c086b58d4e83aca33990056ceb7973ae109d75daa0465e",
+    "hookSha256": "e4a3543d1b8ce0feeedcb3f1a35fc6f6a4bb77767a8b360aa4f1f12354447dbf",
+    "externalPackageTreeManifestSha256": "66da0afcec7dd3879567c4134c644d1d40b79a312f20a7bbe9d608236b407273",
+    "standardsFixtureHead": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77",
+    "standardsFixtureStatus": "",
+    "contextualTargetsUnchanged": true,
+    "catalogSha256": "c64590338589c892f251e47a3d382c1a32be52b7c3e2e4a0757a66b017eaadee",
+    "legacyOperationsSha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+    "pearManifestSha256": "eaf6d458da6b5443309f2540afcf007931d973dbf9290cf692da71162db3cf8f",
+    "newContextualFilesStillMissing": [
+      "docs/projects/index.md",
+      "docs/projects/pear/operations.md",
+      "products/pear/README.md"
+    ]
+  },
+  "safeRetryCommand": "node /srv/dev/projects/repo-standards-issue-50/acceptance/cli.ts /tmp/repo-standards-public-agent-gNdlDb/journey.json --local resume --retry --json",
+  "retryPerformed": false,
+  "contextualTargetsEdited": false
+}

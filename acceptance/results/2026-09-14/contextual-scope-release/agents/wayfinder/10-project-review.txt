@@ -1,0 +1,29 @@
+HEAD
+bf36690fdc91cc182bbd137e03a56e018434d119
+
+STATUS PORCELAIN V1
+?? .agents/skills/adopt-standards/SKILL.md
+?? .editorconfig
+?? .repo-standards/.gitignore
+?? .repo-standards/inputs/metadata.json
+?? .repo-standards/inputs/resolved.json
+?? .repo-standards/inputs/scope-history.json
+?? .repo-standards/inputs/source/LICENSE
+?? .repo-standards/inputs/source/files/editorconfig
+?? .repo-standards/inputs/source/guidance/service-discovery.md
+?? .repo-standards/inputs/source/guidance/service-readiness.md
+?? .repo-standards/inputs/source/operations/required-sections.json
+?? .repo-standards/inputs/source/operations/service-evidence.mjs
+?? .repo-standards/inputs/standards.yaml
+?? .repo-standards/lock.json
+?? .repo-standards/runtime/package-lock.json
+?? .repo-standards/runtime/package.json
+?? .repo-standards/selection.yaml
+?? .repo-standards/state.json
+?? service/relay/operating-status.json
+?? service/relay/operations.md
+
+INDEX SHA256
+cc8fffb4bf1aa57eb1336c9c85d64935f3e9a4e73a59d7bc074bfa54df1f7c74  -
+
+TRACKED DIFF FROM HEAD

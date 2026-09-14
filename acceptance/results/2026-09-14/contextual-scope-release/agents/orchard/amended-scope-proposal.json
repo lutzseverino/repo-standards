@@ -1,0 +1,165 @@
+{
+  "format": "repo-standards/scope/v1",
+  "request": "sha256:e29fc5ee4e0051c8b551a79aea224c644c710d813bc456878a82d408f966928d",
+  "declarations": [
+    {
+      "id": "project-documentation",
+      "paths": [
+        "CATALOG.md",
+        "products/pear/README.md",
+        "legacy/pear-operations.md",
+        "docs/projects/pear/operations.md",
+        "docs/projects/index.md"
+      ],
+      "coverage": "Pear remains the only independently maintained project: its service manifest names the orchard-runtime owner and a concrete start command, and its existing operations guide supplies deployment health-check and recovery instructions despite the absent project README. The complete scope retains the project README, old operations source, migration destination, and documentation index, and adds root CATALOG.md because its observed link points to the old source that will be deleted. The sample fixture, generated site, and team grouping remain evidenced exclusions. Exact docs/catalog.json remains outside contextual scope as source-owned content.",
+      "evidence": [
+        {
+          "kind": "directory",
+          "path": ".",
+          "identity": "sha256:2f0589a92d25d3e262f1173f1b6b9a62c717ba87ec01f5759a623801f7c1de84"
+        }
+      ],
+      "candidates": [
+        {
+          "path": "CATALOG.md",
+          "decision": "include",
+          "reason": "The catalog's Pear operations link targets legacy/pear-operations.md; adding this individual repair path prevents the documented migration from leaving a broken link when the old source is deleted.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "CATALOG.md",
+              "identity": "sha256:66b12bb1732d8cd39c145a7bb8c9d85dbd7393e7cdcdbdc994a36f49f60e6c11"
+            },
+            {
+              "kind": "file",
+              "path": "legacy/pear-operations.md",
+              "identity": "sha256:08f22fab01417a9a32569608e7858e753c8aa7b0c63186fc9748953eea4f41b6"
+            }
+          ]
+        },
+        {
+          "path": "products/pear/README.md",
+          "decision": "include",
+          "reason": "Pear needs a project README despite its absence: products/pear/service.json identifies orchard-runtime ownership and the concrete node server.mjs start command, while the existing operations guide documents deployment health-check and recovery procedures.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "products/pear/service.json",
+              "identity": "sha256:8b8c77f8da103753557637c4342d171289b15a681e899a7a1c93a6996a9aebda"
+            },
+            {
+              "kind": "file",
+              "path": "legacy/pear-operations.md",
+              "identity": "sha256:08f22fab01417a9a32569608e7858e753c8aa7b0c63186fc9748953eea4f41b6"
+            },
+            {
+              "kind": "absence",
+              "path": "products/pear/README.md"
+            }
+          ]
+        },
+        {
+          "path": "legacy/pear-operations.md",
+          "decision": "include",
+          "reason": "This is the individual old documentation source that will be migrated while preserving its production deploy and recovery instructions.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "legacy/pear-operations.md",
+              "identity": "sha256:08f22fab01417a9a32569608e7858e753c8aa7b0c63186fc9748953eea4f41b6"
+            },
+            {
+              "kind": "file",
+              "path": "products/pear/service.json",
+              "identity": "sha256:8b8c77f8da103753557637c4342d171289b15a681e899a7a1c93a6996a9aebda"
+            }
+          ]
+        },
+        {
+          "path": "docs/projects/pear/operations.md",
+          "decision": "include",
+          "reason": "This is the individual destination for the useful Pear operations material moved from legacy/pear-operations.md.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "legacy/pear-operations.md",
+              "identity": "sha256:08f22fab01417a9a32569608e7858e753c8aa7b0c63186fc9748953eea4f41b6"
+            },
+            {
+              "kind": "absence",
+              "path": "docs/projects/pear/operations.md"
+            }
+          ]
+        },
+        {
+          "path": "docs/projects/index.md",
+          "decision": "include",
+          "reason": "This introduced index will make the maintained Pear project README and deeper operations guide discoverable without changing the source-owned exact catalog.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "products/pear/service.json",
+              "identity": "sha256:8b8c77f8da103753557637c4342d171289b15a681e899a7a1c93a6996a9aebda"
+            },
+            {
+              "kind": "absence",
+              "path": "docs/projects/index.md"
+            }
+          ]
+        },
+        {
+          "path": "fixtures/sample",
+          "decision": "exclude",
+          "reason": "The sample service manifest explicitly marks itself as fixture data and therefore is not an independently maintained project.",
+          "evidence": [
+            {
+              "kind": "directory",
+              "path": "fixtures/sample",
+              "identity": "sha256:78730d4cd48e4b2382b150aa87840cbe7be71c3d4aada2f5129f4031b90ae94c"
+            },
+            {
+              "kind": "file",
+              "path": "fixtures/sample/service.json",
+              "identity": "sha256:fed131d11387c2933267db3e524ce83e60f47f156d6215e5976b7f31ccd7abaa"
+            }
+          ]
+        },
+        {
+          "path": "generated/site",
+          "decision": "exclude",
+          "reason": "Its README says the directory is generated output and must not be edited by hand, so it is neither a maintained project nor a contextual documentation target.",
+          "evidence": [
+            {
+              "kind": "directory",
+              "path": "generated/site",
+              "identity": "sha256:052f8cef3ed0b14ab8445c962b4efc64be06c6532c0479d5bb1bbbbeb9a2defd"
+            },
+            {
+              "kind": "file",
+              "path": "generated/site/README.md",
+              "identity": "sha256:0c40b8270199da7130b80f33a56b8fcfef4e05f3939423210a84c7542b2b7202"
+            }
+          ]
+        },
+        {
+          "path": "teams",
+          "decision": "exclude",
+          "reason": "The teams directory is an organizational grouping; teams/runtime.md identifies a team and explicitly says it is not a deployable project.",
+          "evidence": [
+            {
+              "kind": "directory",
+              "path": "teams",
+              "identity": "sha256:25df46e0239491db8bf395c86291a30656f49b0922f31e59c7cb1b8010b5e834"
+            },
+            {
+              "kind": "file",
+              "path": "teams/runtime.md",
+              "identity": "sha256:f4d2240e7c85989c89c855c002369e88540689261a970b8545a286e47b76d15f"
+            }
+          ]
+        }
+      ],
+      "unresolved": []
+    }
+  ]
+}

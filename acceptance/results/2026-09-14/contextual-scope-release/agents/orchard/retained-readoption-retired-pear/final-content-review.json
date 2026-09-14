@@ -1,0 +1,62 @@
+{
+  "format": "orchard-readopt-content-review/v1",
+  "reviewedPaths": [
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/state.json"
+  ],
+  "nonIgnoredUntracked": [],
+  "allModesNonExecutable": true,
+  "parsedJson": [
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/state.json"
+  ],
+  "resolvedTargets": {
+    "paths": [
+      "CATALOG.md",
+      "docs/projects/index.md",
+      "products/plum/README.md"
+    ],
+    "directories": []
+  },
+  "state": {
+    "format": "repo-standards/state/v4",
+    "lastComplete": "6eda44d4-2a19-4436-b4b5-7499f809dced",
+    "topKeys": [
+      "format",
+      "history",
+      "observations",
+      "operations",
+      "retryHistory",
+      "lastComplete",
+      "baselines",
+      "skills",
+      "checks",
+      "assessments"
+    ]
+  },
+  "completion": {
+    "run": "6eda44d4-2a19-4436-b4b5-7499f809dced",
+    "outcome": "complete",
+    "phase": "complete",
+    "operationResults": [
+      {
+        "format": "repo-standards/result/v1",
+        "status": "unchanged",
+        "message": "Markdown endings already satisfy the source."
+      },
+      {
+        "format": "repo-standards/result/v1",
+        "status": "passed",
+        "message": "Markdown endings already satisfy the source."
+      }
+    ],
+    "assessmentChangedPaths": []
+  },
+  "finding": "The five modified tracked files are expected durable re-adoption outputs. Resolved scope is the current three paths; scope history retains prior and current evidence; lock and state bind the completed readoption; runtime lock metadata changed during public npm ci. No non-ignored untracked output or executable-bit change exists."
+}

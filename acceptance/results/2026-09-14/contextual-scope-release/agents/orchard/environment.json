@@ -1,0 +1,53 @@
+{
+  "capturedOn": "2026-09-14",
+  "session": {
+    "path": "/tmp/repo-standards-public-agent-gNdlDb/journey.json",
+    "sha256": "274fe4c7f9e6dbcc5bc844f142b7ee7601d53997a1c9c668c3861c5a8cc80a98",
+    "acquisition": "Public npm; explicit GitHub-response fixture backed by an independent Git source",
+    "environment": {
+      "npm_config_registry": "https://registry.npmjs.org/",
+      "npm_config_userconfig": "/tmp/repo-standards-public-agent-gNdlDb/empty.npmrc",
+      "npm_config_globalconfig": "/tmp/repo-standards-public-agent-gNdlDb/global.npmrc",
+      "npm_config_cache": "/tmp/repo-standards-public-agent-gNdlDb/npm-cache",
+      "XDG_CACHE_HOME": "/tmp/repo-standards-public-agent-gNdlDb/cache",
+      "NODE_OPTIONS": "--import=file:///tmp/repo-standards-source-rw4Gzf/https-fixture.mjs"
+    }
+  },
+  "host": {
+    "node": "v24.14.0",
+    "npm": "11.9.0",
+    "git": "git version 2.47.3",
+    "kernel": "Linux raspi 6.18.34+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.18.34-1+rpt1 (2026-06-09) aarch64 GNU/Linux",
+    "libc": "glibc 2.41",
+    "timezone": "Europe/Madrid"
+  },
+  "package": {
+    "name": "@lutzseverino/repo-standards",
+    "version": "1.2.0",
+    "path": "/tmp/repo-standards-public-agent-gNdlDb/node_modules/@lutzseverino/repo-standards",
+    "resolved": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.2.0.tgz",
+    "npmIntegrity": "sha512-upetHlGX7xhNxUiWY5V88rTyLpv2umoq9zx+y1aKfAbjA24hbPuZl3ZCFAL81rQ+fUw1aL+253O/mE7W8Agdog==",
+    "installedTreeFileCount": 82,
+    "installedTreeManifestSha256": "66da0afcec7dd3879567c4134c644d1d40b79a312f20a7bbe9d608236b407273",
+    "installedTreeManifestHashMethod": "SHA-256 of the NUL-delimited, lexical sequence of each relative regular-file path and that file's SHA-256",
+    "packageJsonSha256": "40183f7e2432f82bccb5cb9b9b7aca4daf6502be6212f767e1634992b429263c",
+    "cliDistSha256": "eb89ee968f48513ee9743ce2369fc63b1974da9534ff24f7a06bd261c1758200",
+    "bootstrapSha256": "8f593d792119f9e9a623b20c1e2d680f7a0e641c54819367c7ebe2fca575c46a",
+    "runtimePackageLockSha256": "123c01bd9a0211f0e0c508a6e0ea1a67d689e6d6435574a727fd137a0da5d8c0"
+  },
+  "skill": {
+    "path": "/tmp/repo-standards-public-agent-gNdlDb/node_modules/@lutzseverino/repo-standards/skills/adopt-standards/SKILL.md",
+    "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54"
+  },
+  "project": {
+    "path": "/tmp/repo-standards-source-Aarb1O",
+    "head": "5f64286bb6d2262a1517ce321219783fb6ba7d58",
+    "branch": "master"
+  },
+  "standardsFixture": {
+    "declaredSource": "https://github.com/atlas/standards",
+    "tag": "v1.0.0",
+    "resolvedCommit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77",
+    "independentFixtureSource": "/tmp/repo-standards-source-Gs4ygo"
+  }
+}

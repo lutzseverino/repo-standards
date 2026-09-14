@@ -1,0 +1,45 @@
+{
+  "format": "repo-standards/assessment/v2",
+  "run": "6eda44d4-2a19-4436-b4b5-7499f809dced",
+  "selection": "sha256:0894cdc09b074779050f35d3ad4a81d2712ec6168c09a26833eff7bf053cc605",
+  "snapshot": "sha256:f15be3a4b241063e55a5f2598c2b81ce6e720db6303384878c15f9f91654d62e",
+  "scope": {
+    "inspection": "sha256:ac6ca2894bee92291b10db3b12b836f9e7864852520053775d1c53bee83841f8",
+    "afterFixes": "sha256:f15be3a4b241063e55a5f2598c2b81ce6e720db6303384878c15f9f91654d62e"
+  },
+  "declarations": [
+    {
+      "id": "project-documentation",
+      "status": "satisfied",
+      "explanation": "No contextual edits are needed in this re-adoption. Plum is the sole currently maintained service evidenced by its service manifest, its README already records purpose, setup state, and the verified operating command, and both confirmed shared navigation files link to that README. The preserved Pear README and operations guide remain outside current scope because the current project no longer contains independent positive ownership plus build or deployment evidence for Pear; both files remain byte-identical and were not deleted or changed. Exact docs/catalog.json and all evidenced fixture, generated, and organizational candidates remain untouched.",
+      "changedPaths": [],
+      "evidence": [
+        "products/plum/service.json names plum-api, orchard-runtime ownership, and node server.mjs; products/plum/README.md records the service purpose, setup state, and that operating command.",
+        "CATALOG.md and docs/projects/index.md each link to products/plum/README.md, and both relative links resolve.",
+        "products/pear/service.json is absent; products/pear/README.md retains SHA-256 0d2fb448cb0cf739043e8b182da814d9e1249c3a7974bf0f2f7ba13d49f7a7b2 and docs/projects/pear/operations.md retains SHA-256 4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b, matching their pre-retirement bytes.",
+        "fixtures/sample/service.json declares fixture data, generated/site/README.md identifies generated output, and teams/runtime.md says the team is not a deployable project.",
+        "docs/catalog.json remains exact with SHA-256 04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36."
+      ],
+      "scopeValidity": {
+        "afterFixes": {
+          "status": "valid",
+          "explanation": "After the unchanged newline fix, the three confirmed paths still completely cover the sole maintained Plum service and current shared navigation, while preserved Pear documentation lacks independent positive current-maintenance evidence and remains correctly excluded.",
+          "evidence": [
+            "The post-fix snapshot retains Plum's manifest and complete README, the two resolving Plum navigation links, and the absence of products/pear/service.json.",
+            "No migration source, new destination, broken navigation link, or additional maintained project path is present."
+          ],
+          "additionalPaths": []
+        },
+        "current": {
+          "status": "valid",
+          "explanation": "The refreshed current snapshot is unchanged from the post-fix snapshot, and the same three paths remain complete current contextual coverage.",
+          "evidence": [
+            "The refreshed snapshot identity equals the post-fix identity, with no contextual changed paths.",
+            "Both excluded Pear documents retain their pre-retirement hashes and both confirmed Plum navigation links resolve."
+          ],
+          "additionalPaths": []
+        }
+      }
+    }
+  ]
+}

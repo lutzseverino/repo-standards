@@ -1,0 +1,41 @@
+{
+  "session": "/tmp/repo-standards-public-agent-nM88x6/journey.json",
+  "project": "/tmp/repo-standards-source-rXGbVl",
+  "sessionHead": "9cc6e72bcdfd50ac4f2477d03f395e9298e7a99f",
+  "setupHead": "d2869abea21d5a41a57b0c37537504a1577b6fb8",
+  "setupCommit": "test: retain only non-project candidates",
+  "acquisition": "Public npm; explicit GitHub-response fixture backed by an independent Git source",
+  "package": {
+    "name": "@lutzseverino/repo-standards",
+    "version": "1.2.0",
+    "resolved": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.2.0.tgz",
+    "integrity": "sha512-upetHlGX7xhNxUiWY5V88rTyLpv2umoq9zx+y1aKfAbjA24hbPuZl3ZCFAL81rQ+fUw1aL+253O/mE7W8Agdog==",
+    "installedTreeManifestSha256": "b1a0ed9f8eabfe256c8cf9641acc8f964cca96edaa1cb7bdf366980c39ef6246",
+    "packageJsonSha256": "40183f7e2432f82bccb5cb9b9b7aca4daf6502be6212f767e1634992b429263c",
+    "skillSha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+    "inspectionDocSha256": "d54fb7229222810de78bc5297f23cafde2401b9aefb89f0475a77774fec4b646",
+    "scriptProtocolDocSha256": "e0f6106f9aed0dc199e51bd651e360394a98005dd56c15e1f75a13f7415497d6"
+  },
+  "selection": {
+    "source": "https://github.com/atlas/standards",
+    "version": "v1.0.0",
+    "resolvedCommit": "a7418aad6db00a616d6d4f28b5f8b61efada8edc",
+    "profile": "maintained"
+  },
+  "sessionEnvironment": {
+    "npm_config_registry": "https://registry.npmjs.org/",
+    "npm_config_userconfig": "/tmp/repo-standards-public-agent-nM88x6/empty.npmrc",
+    "npm_config_globalconfig": "/tmp/repo-standards-public-agent-nM88x6/global.npmrc",
+    "npm_config_cache": "/tmp/repo-standards-public-agent-nM88x6/npm-cache",
+    "XDG_CACHE_HOME": "/tmp/repo-standards-public-agent-nM88x6/cache",
+    "NODE_OPTIONS": "--import=file:///tmp/repo-standards-source-nHF83g/https-fixture.mjs"
+  },
+  "host": {
+    "node": "v24.21.0",
+    "npm": "11.19.0",
+    "git": "2.47.3",
+    "kernel": "Linux raspi 6.18.34+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.18.34-1+rpt1 (2026-06-09) aarch64 GNU/Linux",
+    "locale": "C.UTF-8",
+    "timezone": "CEST"
+  }
+}

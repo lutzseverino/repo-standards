@@ -1,0 +1,2903 @@
+{
+  "format": "repo-standards/run/v2",
+  "observations": [
+    {
+      "phase": "fixes",
+      "operation": {
+        "phase": "fixes",
+        "declaration": "project-documentation",
+        "id": "normalize-markdown-ending"
+      },
+      "operationIndex": 0,
+      "scope": {
+        "project-documentation": {
+          "paths": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "8ed54fffc7da0615a6b186c2d4b854c8fcf63e3e67b30a3cbf3aba0d606a8e6e",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "file",
+            "sha256": "3a93d2f301be34b4a08ba2defdecb17518bfbff3faa0e2a3708e54ab376cfe43",
+            "executable": false
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "missing"
+          },
+          "docs/projects/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "missing"
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "missing"
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "8ed54fffc7da0615a6b186c2d4b854c8fcf63e3e67b30a3cbf3aba0d606a8e6e",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "file",
+            "sha256": "3a93d2f301be34b4a08ba2defdecb17518bfbff3faa0e2a3708e54ab376cfe43",
+            "executable": false
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "missing"
+          },
+          "docs/projects/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "missing"
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "missing"
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [],
+      "boundaryChanges": [],
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "project-documentation": {
+          "paths": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "8ed54fffc7da0615a6b186c2d4b854c8fcf63e3e67b30a3cbf3aba0d606a8e6e",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "file",
+            "sha256": "3a93d2f301be34b4a08ba2defdecb17518bfbff3faa0e2a3708e54ab376cfe43",
+            "executable": false
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "missing"
+          },
+          "docs/projects/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "missing"
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "missing"
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "file",
+            "sha256": "df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7",
+            "executable": false
+          },
+          "docs/projects/hammer.md": {
+            "type": "file",
+            "sha256": "b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "file",
+            "sha256": "4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/.gitignore": {
+            "location": "docs/projects/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [
+        "INDEX.md",
+        "docs/projects/INDEX.md",
+        "docs/projects/hammer.md",
+        "guides/hammer.md",
+        "modules/tools/hammer/README.md"
+      ],
+      "boundaryChanges": [
+        "docs/projects"
+      ],
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "project-documentation": {
+          "paths": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "file",
+            "sha256": "df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7",
+            "executable": false
+          },
+          "docs/projects/hammer.md": {
+            "type": "file",
+            "sha256": "b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "file",
+            "sha256": "4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/.gitignore": {
+            "location": "docs/projects/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "file",
+            "sha256": "df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7",
+            "executable": false
+          },
+          "docs/projects/hammer.md": {
+            "type": "file",
+            "sha256": "b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "file",
+            "sha256": "4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/.gitignore": {
+            "location": "docs/projects/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [],
+      "boundaryChanges": [],
+      "violations": []
+    },
+    {
+      "phase": "checks",
+      "operation": {
+        "phase": "checks",
+        "declaration": "project-documentation",
+        "id": "verify-markdown-ending"
+      },
+      "operationIndex": 1,
+      "scope": {
+        "project-documentation": {
+          "paths": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "file",
+            "sha256": "df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7",
+            "executable": false
+          },
+          "docs/projects/hammer.md": {
+            "type": "file",
+            "sha256": "b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "file",
+            "sha256": "4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/.gitignore": {
+            "location": "docs/projects/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "file",
+            "sha256": "df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7",
+            "executable": false
+          },
+          "docs/projects/hammer.md": {
+            "type": "file",
+            "sha256": "b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "file",
+            "sha256": "4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/.gitignore": {
+            "location": "docs/projects/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [],
+      "boundaryChanges": [],
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "project-documentation": {
+          "paths": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "file",
+            "sha256": "df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7",
+            "executable": false
+          },
+          "docs/projects/hammer.md": {
+            "type": "file",
+            "sha256": "b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "file",
+            "sha256": "4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/.gitignore": {
+            "location": "docs/projects/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "file",
+            "sha256": "df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7",
+            "executable": false
+          },
+          "docs/projects/hammer.md": {
+            "type": "file",
+            "sha256": "b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "file",
+            "sha256": "4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/.gitignore": {
+            "location": "docs/projects/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [],
+      "boundaryChanges": [],
+      "violations": []
+    }
+  ],
+  "id": "c4aa7eb9-455d-4202-946c-aa6d0cd3e0ee",
+  "inspection": "sha256:93576f28b03162187d88414bcb2c92abdbd7687b8c9e89b70f1ed55b64520dba",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.2.0"
+    },
+    "standards": {
+      "repository": "https://github.com/atlas/standards",
+      "version": "v1.0.0",
+      "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+    },
+    "profile": "maintained"
+  },
+  "startInput": {
+    "kind": "public",
+    "options": {
+      "source": "https://github.com/atlas/standards",
+      "standardsVersion": "v1.0.0",
+      "profile": "maintained",
+      "project": "/tmp/repo-standards-source-OXjpvh",
+      "scope": "/srv/dev/projects/repo-standards-issue-50/acceptance/results/2026-09-14/contextual-scope-release/agents/forge/04-final-scope.json"
+    }
+  },
+  "affected": {
+    "docs/catalog.json": {
+      "type": "missing"
+    },
+    "INDEX.md": {
+      "type": "file",
+      "sha256": "8ed54fffc7da0615a6b186c2d4b854c8fcf63e3e67b30a3cbf3aba0d606a8e6e",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Forge documentation\n\n- [Hammer](guides/hammer.md)\n"
+    },
+    "docs/projects/INDEX.md": {
+      "type": "missing"
+    },
+    "docs/projects/hammer.md": {
+      "type": "missing"
+    },
+    "guides/hammer.md": {
+      "type": "file",
+      "sha256": "3a93d2f301be34b4a08ba2defdecb17518bfbff3faa0e2a3708e54ab376cfe43",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Hammer guide\n\nRun `cargo run --manifest-path modules/tools/hammer/Cargo.toml`. Preserve the\ninput archive before retrying a failed conversion.\n"
+    },
+    "modules/tools/hammer/README.md": {
+      "type": "missing"
+    },
+    ".agents/skills/adopt-standards": {
+      "type": "missing"
+    }
+  },
+  "outcome": "complete",
+  "prerequisites": [
+    {
+      "declaration": "project-documentation",
+      "phase": "fixes",
+      "operation": "normalize-markdown-ending",
+      "executable": "node",
+      "version": "24.21.0",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    },
+    {
+      "declaration": "project-documentation",
+      "phase": "checks",
+      "operation": "verify-markdown-ending",
+      "executable": "node",
+      "version": "24.21.0",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    }
+  ],
+  "operations": [
+    {
+      "operation": {
+        "declaration": "project-documentation",
+        "phase": "fixes",
+        "id": "normalize-markdown-ending"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v1",
+        "status": "unchanged",
+        "message": "Markdown endings already satisfy the source."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/0.stdout",
+      "stderr": ".repo-standards/local/operations/0.stderr"
+    },
+    {
+      "operation": {
+        "declaration": "project-documentation",
+        "phase": "checks",
+        "id": "verify-markdown-ending"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v1",
+        "status": "passed",
+        "message": "Markdown endings already satisfy the source."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/1.stdout",
+      "stderr": ".repo-standards/local/operations/1.stderr"
+    }
+  ],
+  "assessments": [
+    {
+      "format": "repo-standards/assessment/v2",
+      "run": "c4aa7eb9-455d-4202-946c-aa6d0cd3e0ee",
+      "selection": "sha256:0894cdc09b074779050f35d3ad4a81d2712ec6168c09a26833eff7bf053cc605",
+      "snapshot": "sha256:82b2c36a7fe4ea8d18da473c936bccff76efc5394cdbac24cec80316beca58b7",
+      "scope": {
+        "inspection": "sha256:93576f28b03162187d88414bcb2c92abdbd7687b8c9e89b70f1ed55b64520dba",
+        "afterFixes": "sha256:459c4f43f90f675b55b22c87dc9c12981c613523d600f8c7e3188e46c0a61540"
+      },
+      "declarations": [
+        {
+          "id": "project-documentation",
+          "status": "satisfied",
+          "explanation": "The maintained nested Hammer package now has a concise project README and connected project documentation. The legacy guide was migrated rather than duplicated, its useful command and recovery warning were preserved, and both the introduced documentation index and root index resolve to the new locations. Generated, fixture, organizational, and exact-owned content remained unchanged by contextual work.",
+          "changedPaths": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "evidence": [
+            "modules/tools/hammer/Cargo.toml declares package hammer version 0.1.0 with developer-tools ownership; modules/tools/hammer/README.md now states that ownership, gives the repository-root Cargo command, and links to deeper guidance.",
+            "guides/hammer.md was deleted and docs/projects/hammer.md was created separately; the destination preserves the complete documented cargo run command and the warning to preserve the input archive before retrying a failed conversion.",
+            "docs/projects/INDEX.md links to hammer.md, while INDEX.md replaces its removed guides/hammer.md link with links to the nested project README and migrated guide; a read-only resolution check found every local Markdown target.",
+            "The contextual change set is exactly the five confirmed paths; the generated README, fixture manifest, organizational index, maintained Cargo manifest, installed adopt-standards skill, and exact docs/catalog.json retained their inspected SHA-256 identities."
+          ],
+          "scopeValidity": {
+            "afterFixes": {
+              "status": "valid",
+              "explanation": "Immediately after fixes, the accepted scope still covered the sole maintained project, its missing README, its individual legacy guide and destination, the introduced project index, and the root link repair; no additional or withdrawn path was needed.",
+              "evidence": [
+                "The post-fix Hammer manifest still named package hammer version 0.1.0 with developer-tools ownership, and guides/hammer.md still supplied the operating command and recovery warning.",
+                "The fixture manifest still named fixture-hammer version 0.0.0 without ownership metadata, the generated README still identified generated output, and the group file still identified an organizational index."
+              ],
+              "additionalPaths": []
+            },
+            "current": {
+              "status": "valid",
+              "explanation": "The refreshed snapshot is fully covered by the same five individual paths, and the completed migration introduces no new project candidate, missing documentation target, link-repair file, or scope withdrawal.",
+              "evidence": [
+                "The refreshed CLI observation reports agent changes only for INDEX.md, docs/projects/INDEX.md, docs/projects/hammer.md, guides/hammer.md, and modules/tools/hammer/README.md, with no scope violations.",
+                "The new README and migrated guide cross-link, docs/projects/INDEX.md links to the guide, and INDEX.md links to both maintained Hammer entry points; all five local link resolutions succeeded."
+              ],
+              "additionalPaths": []
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "phase": "complete",
+  "reason": "Exact installation, fixes, contextual assessment where required, checks, runtime, retained inputs and durable state verified.",
+  "changes": [
+    ".agents/skills/adopt-standards",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/.gitignore",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/inputs/source/files/catalog.json",
+    ".repo-standards/inputs/source/guidance/project-discovery.md",
+    ".repo-standards/inputs/source/guidance/project-documentation.md",
+    ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/local/operations/0.stderr",
+    ".repo-standards/local/operations/0.stdout",
+    ".repo-standards/local/operations/1.stderr",
+    ".repo-standards/local/operations/1.stdout",
+    ".repo-standards/local/run.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/node_modules",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/state.json",
+    "INDEX.md",
+    "docs/catalog.json",
+    "docs/projects/INDEX.md",
+    "docs/projects/hammer.md",
+    "guides/hammer.md",
+    "modules/tools/hammer/README.md"
+  ],
+  "completed": [
+    "docs/catalog.json",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/inputs/source/files/catalog.json",
+    ".repo-standards/inputs/source/guidance/project-documentation.md",
+    ".repo-standards/inputs/source/guidance/project-discovery.md",
+    ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/lock.json",
+    "isolated runtime",
+    "fixes: project-documentation/normalize-markdown-ending (unchanged)",
+    "agent assessment",
+    "checks: project-documentation/verify-markdown-ending (passed)"
+  ],
+  "uncertain": [],
+  "nextAction": "Review and commit the uncommitted adoption changes through the project’s normal workflow.",
+  "installation": {
+    "files": [
+      ".repo-standards/.gitignore",
+      "docs/catalog.json",
+      ".agents/skills/adopt-standards/SKILL.md",
+      ".repo-standards/inputs/source/files/catalog.json",
+      ".repo-standards/inputs/source/guidance/project-documentation.md",
+      ".repo-standards/inputs/source/guidance/project-discovery.md",
+      ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+      ".repo-standards/inputs/standards.yaml",
+      ".repo-standards/inputs/metadata.json",
+      ".repo-standards/inputs/resolved.json",
+      ".repo-standards/inputs/scope-history.json",
+      ".repo-standards/selection.yaml",
+      ".repo-standards/runtime/package.json",
+      ".repo-standards/runtime/package-lock.json",
+      ".repo-standards/lock.json"
+    ],
+    "runtime": true,
+    "trees": {},
+    "complete": true
+  },
+  "continuation": "d05951a3315887cf97bdd986ff6a6a5d7f2f3240b1ad3191f5bb8f6b38b34029",
+  "workRequest": {
+    "format": "repo-standards/work-request/v2",
+    "scope": {
+      "inspection": "sha256:93576f28b03162187d88414bcb2c92abdbd7687b8c9e89b70f1ed55b64520dba",
+      "afterFixes": "sha256:459c4f43f90f675b55b22c87dc9c12981c613523d600f8c7e3188e46c0a61540",
+      "proposal": {
+        "format": "repo-standards/scope/v1",
+        "request": "sha256:4f13a9459b9617d66f4da5ce2e273920954b33f4617614f57c863dbb9d323b61",
+        "declarations": [
+          {
+            "id": "project-documentation",
+            "paths": [
+              "INDEX.md",
+              "docs/projects/INDEX.md",
+              "docs/projects/hammer.md",
+              "guides/hammer.md",
+              "modules/tools/hammer/README.md"
+            ],
+            "coverage": "modules/tools/hammer is the sole independently maintained project: its Cargo manifest names versioned package hammer and assigns ownership to team developer-tools, while guides/hammer.md supplies its real run command and recovery warning. Its missing README therefore belongs in scope. The migration moves that individual guide to docs/projects/hammer.md, introduces docs/projects/INDEX.md, and repairs INDEX.md. fixtures/hammer is test data, build/generated/README.md is generated, groups/developer-tools.md is an organizational index, and source-owned exact docs/catalog.json remains outside contextual scope.",
+            "evidence": [
+              {
+                "kind": "directory",
+                "path": ".",
+                "identity": "sha256:e1c5e3694354f77cf3e1d975c5b7b2cd228e8e0ca88d159e80c62cdf14761e03"
+              },
+              {
+                "kind": "directory",
+                "path": "modules/tools/hammer",
+                "identity": "sha256:c133db93670a54fe78e1700808d85368dfcc4039202c95102e038a6f4cf7a0e1"
+              },
+              {
+                "kind": "file",
+                "path": "guides/hammer.md",
+                "identity": "sha256:93f6b736069a5faedeebef28e2f6ad140e9cbe44a713b281fbfa966e9c93b107"
+              },
+              {
+                "kind": "file",
+                "path": "modules/tools/hammer/Cargo.toml",
+                "identity": "sha256:4ce1bba4119b58561db790e9c712ac794a44ca1a5466e7aa2c7432e20b9284b7"
+              }
+            ],
+            "candidates": [
+              {
+                "path": "INDEX.md",
+                "decision": "include",
+                "reason": "Its current Hammer link names guides/hammer.md, so the guide migration requires repairing this individual root index file.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "INDEX.md",
+                    "identity": "sha256:d104b3be450403c660d74a6715edd3c1f543fca428d7fde4f6d032e4f622db48"
+                  }
+                ]
+              },
+              {
+                "path": "build/generated/README.md",
+                "decision": "exclude",
+                "reason": "The file says its content is regenerated by the build, so it is generated output and must not be rewritten.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "build/generated/README.md",
+                    "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
+                  }
+                ]
+              },
+              {
+                "path": "docs/projects/INDEX.md",
+                "decision": "include",
+                "reason": "This absent file is the smallest useful introduced index for the project-documentation destination.",
+                "evidence": [
+                  {
+                    "kind": "absence",
+                    "path": "docs/projects/INDEX.md"
+                  }
+                ]
+              },
+              {
+                "path": "docs/projects/hammer.md",
+                "decision": "include",
+                "reason": "This absent file is the planned destination for the existing Hammer guide, whose useful command and recovery warning must be preserved.",
+                "evidence": [
+                  {
+                    "kind": "absence",
+                    "path": "docs/projects/hammer.md"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "guides/hammer.md",
+                    "identity": "sha256:93f6b736069a5faedeebef28e2f6ad140e9cbe44a713b281fbfa966e9c93b107"
+                  }
+                ]
+              },
+              {
+                "path": "fixtures/hammer",
+                "decision": "exclude",
+                "reason": "The path is under fixtures and its manifest names package fixture-hammer at version 0.0.0 with no ownership metadata; this is test data rather than the maintained Hammer project.",
+                "evidence": [
+                  {
+                    "kind": "directory",
+                    "path": "fixtures/hammer",
+                    "identity": "sha256:141b83b91d1bd30361ab0e03d443e0053a819edf9f6cbf30c873b7d5c04d614d"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "fixtures/hammer/Cargo.toml",
+                    "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
+                  }
+                ]
+              },
+              {
+                "path": "groups/developer-tools.md",
+                "decision": "exclude",
+                "reason": "The file explicitly identifies itself as an organizational index rather than a maintained project.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "groups/developer-tools.md",
+                    "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
+                  }
+                ]
+              },
+              {
+                "path": "guides/hammer.md",
+                "decision": "include",
+                "reason": "This individual existing documentation source must be removed from its old location as part of the migration after its useful content is preserved at the destination.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "guides/hammer.md",
+                    "identity": "sha256:93f6b736069a5faedeebef28e2f6ad140e9cbe44a713b281fbfa966e9c93b107"
+                  }
+                ]
+              },
+              {
+                "path": "modules/tools/hammer/README.md",
+                "decision": "include",
+                "reason": "The maintained nested Hammer project lacks a README; the versioned Cargo package, explicit developer-tools ownership metadata, nonempty project directory, and operational guide establish membership.",
+                "evidence": [
+                  {
+                    "kind": "absence",
+                    "path": "modules/tools/hammer/README.md"
+                  },
+                  {
+                    "kind": "directory",
+                    "path": "modules/tools/hammer",
+                    "identity": "sha256:c133db93670a54fe78e1700808d85368dfcc4039202c95102e038a6f4cf7a0e1"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "guides/hammer.md",
+                    "identity": "sha256:93f6b736069a5faedeebef28e2f6ad140e9cbe44a713b281fbfa966e9c93b107"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "modules/tools/hammer/Cargo.toml",
+                    "identity": "sha256:4ce1bba4119b58561db790e9c712ac794a44ca1a5466e7aa2c7432e20b9284b7"
+                  }
+                ]
+              }
+            ],
+            "unresolved": []
+          }
+        ]
+      }
+    },
+    "run": "c4aa7eb9-455d-4202-946c-aa6d0cd3e0ee",
+    "selection": "sha256:0894cdc09b074779050f35d3ad4a81d2712ec6168c09a26833eff7bf053cc605",
+    "snapshot": "sha256:82b2c36a7fe4ea8d18da473c936bccff76efc5394cdbac24cec80316beca58b7",
+    "declarations": [
+      {
+        "id": "project-documentation",
+        "guidance": {
+          "id": "project-documentation",
+          "targets": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "source": "guidance/project-documentation.md",
+          "sha256": "f4d9ba3e46d6d5d9bbcb043d2fe4bf687a96f61f505ee30bbd2e04afbf2108a9",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "# Project documentation guidance\n\nGive each maintained project a concise README with its purpose, verified setup\nand operating commands, and links to deeper material. Preserve useful facts,\nwarnings, and recovery instructions when moving existing documentation into\n`docs/projects/`. Add the smallest useful documentation index and repair links\nthat referred to old locations.\n\nDo not rewrite generated or fixture content, invent commands, or describe an\norganizational directory as a project. Preserve project-owned voice and history.\nThe exact `docs/catalog.json` is outside this contextual declaration.\n"
+        },
+        "discovery": {
+          "id": "project-documentation",
+          "source": "guidance/project-discovery.md",
+          "sha256": "014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "# Project documentation discovery\n\nIdentify independently maintained projects from positive ownership and build or\ndeployment evidence. A project can require documentation when its directory has\nno README. A familiar filename by itself does not establish membership.\n\nFor every candidate, explain inclusion or exclusion. Treat test fixtures,\ngenerated output, archived copies, and directories that only group teams or\nprojects as candidates requiring evidence, not maintained projects by default.\nLeave uncertain maintenance or ownership as an unresolved question.\n\nFor each included project, plan individual files for its project README, every\nexisting documentation source that will move, each destination and introduced\ndocumentation index, and every file whose links need repair. Do not include\n`docs/catalog.json`; the source owns that exact file. An explained empty list is\nvalid when evidence shows that no maintained project is present.\n"
+        },
+        "allowedTargets": {
+          "paths": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "directories": []
+        }
+      }
+    ],
+    "requiredEvidence": [
+      "status",
+      "explanation",
+      "changedPaths",
+      "evidence",
+      "scope",
+      "scopeValidity.afterFixes",
+      "scopeValidity.current"
+    ]
+  },
+  "completion": {
+    "state": {
+      "sha256": "bd6ed589b34f9ab207466956f7ee4c37de7c714c78962a7e520f96ed37ccf94e",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "{\n  \"format\": \"repo-standards/state/v4\",\n  \"history\": [],\n  \"observations\": [\n    {\n      \"phase\": \"fixes\",\n      \"operation\": {\n        \"phase\": \"fixes\",\n        \"declaration\": \"project-documentation\",\n        \"id\": \"normalize-markdown-ending\"\n      },\n      \"operationIndex\": 0,\n      \"scope\": {\n        \"project-documentation\": {\n          \"paths\": [\n            \"INDEX.md\",\n            \"docs/projects/INDEX.md\",\n            \"docs/projects/hammer.md\",\n            \"guides/hammer.md\",\n            \"modules/tools/hammer/README.md\"\n          ],\n          \"directories\": []\n        }\n      },\n      \"before\": {\n        \"files\": {\n          \".agents/skills/adopt-standards/SKILL.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n            \"executable\": false\n          },\n          \"INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"8ed54fffc7da0615a6b186c2d4b854c8fcf63e3e67b30a3cbf3aba0d606a8e6e\",\n            \"executable\": false\n          },\n          \"build/generated/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525\",\n            \"executable\": false\n          },\n          \"docs/catalog.json\": {\n            \"type\": \"file\",\n            \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n            \"executable\": false\n          },\n          \"fixtures/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36\",\n            \"executable\": false\n          },\n          \"groups/developer-tools.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287\",\n            \"executable\": false\n          },\n          \"guides/hammer.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"3a93d2f301be34b4a08ba2defdecb17518bfbff3faa0e2a3708e54ab376cfe43\",\n            \"executable\": false\n          },\n          \"modules/tools/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b\",\n            \"executable\": false\n          },\n          \"docs/projects/INDEX.md\": {\n            \"type\": \"missing\"\n          },\n          \"docs/projects/hammer.md\": {\n            \"type\": \"missing\"\n          },\n          \"modules/tools/hammer/README.md\": {\n            \"type\": \"missing\"\n          }\n        },\n        \"boundaries\": {\n          \".\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills/adopt-standards\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build/generated\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"groups\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"guides\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs/projects\": {\n            \"type\": \"missing\"\n          }\n        },\n        \"settings\": {\n          \"core.ignorecase\": null,\n          \"core.precomposeunicode\": null,\n          \"core.filemode\": \"true\",\n          \"core.symlinks\": null,\n          \"core.sparsecheckout\": null,\n          \"core.sparsecheckoutcone\": null\n        },\n        \"ignores\": {\n          \"global\": {\n            \"location\": \"/home/agents/.config/git/ignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"info\": {\n            \"location\": \"/tmp/repo-standards-source-OXjpvh/.git/info/exclude\",\n            \"state\": {\n              \"type\": \"file\",\n              \"sha256\": \"6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1\",\n              \"executable\": false\n            }\n          },\n          \".gitignore\": {\n            \"location\": \".gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/.gitignore\": {\n            \"location\": \".agents/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/.gitignore\": {\n            \"location\": \".agents/skills/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/adopt-standards/.gitignore\": {\n            \"location\": \".agents/skills/adopt-standards/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/.gitignore\": {\n            \"location\": \"build/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/generated/.gitignore\": {\n            \"location\": \"build/generated/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/.gitignore\": {\n            \"location\": \"docs/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/.gitignore\": {\n            \"location\": \"fixtures/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/hammer/.gitignore\": {\n            \"location\": \"fixtures/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"groups/.gitignore\": {\n            \"location\": \"groups/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"guides/.gitignore\": {\n            \"location\": \"guides/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/.gitignore\": {\n            \"location\": \"modules/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/.gitignore\": {\n            \"location\": \"modules/tools/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/hammer/.gitignore\": {\n            \"location\": \"modules/tools/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          }\n        }\n      },\n      \"after\": {\n        \"files\": {\n          \".agents/skills/adopt-standards/SKILL.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n            \"executable\": false\n          },\n          \"INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"8ed54fffc7da0615a6b186c2d4b854c8fcf63e3e67b30a3cbf3aba0d606a8e6e\",\n            \"executable\": false\n          },\n          \"build/generated/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525\",\n            \"executable\": false\n          },\n          \"docs/catalog.json\": {\n            \"type\": \"file\",\n            \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n            \"executable\": false\n          },\n          \"fixtures/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36\",\n            \"executable\": false\n          },\n          \"groups/developer-tools.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287\",\n            \"executable\": false\n          },\n          \"guides/hammer.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"3a93d2f301be34b4a08ba2defdecb17518bfbff3faa0e2a3708e54ab376cfe43\",\n            \"executable\": false\n          },\n          \"modules/tools/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b\",\n            \"executable\": false\n          },\n          \"docs/projects/INDEX.md\": {\n            \"type\": \"missing\"\n          },\n          \"docs/projects/hammer.md\": {\n            \"type\": \"missing\"\n          },\n          \"modules/tools/hammer/README.md\": {\n            \"type\": \"missing\"\n          }\n        },\n        \"boundaries\": {\n          \".\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills/adopt-standards\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build/generated\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"groups\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"guides\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs/projects\": {\n            \"type\": \"missing\"\n          }\n        },\n        \"settings\": {\n          \"core.ignorecase\": null,\n          \"core.precomposeunicode\": null,\n          \"core.filemode\": \"true\",\n          \"core.symlinks\": null,\n          \"core.sparsecheckout\": null,\n          \"core.sparsecheckoutcone\": null\n        },\n        \"ignores\": {\n          \"global\": {\n            \"location\": \"/home/agents/.config/git/ignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"info\": {\n            \"location\": \"/tmp/repo-standards-source-OXjpvh/.git/info/exclude\",\n            \"state\": {\n              \"type\": \"file\",\n              \"sha256\": \"6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1\",\n              \"executable\": false\n            }\n          },\n          \".gitignore\": {\n            \"location\": \".gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/.gitignore\": {\n            \"location\": \".agents/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/.gitignore\": {\n            \"location\": \".agents/skills/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/adopt-standards/.gitignore\": {\n            \"location\": \".agents/skills/adopt-standards/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/.gitignore\": {\n            \"location\": \"build/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/generated/.gitignore\": {\n            \"location\": \"build/generated/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/.gitignore\": {\n            \"location\": \"docs/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/.gitignore\": {\n            \"location\": \"fixtures/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/hammer/.gitignore\": {\n            \"location\": \"fixtures/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"groups/.gitignore\": {\n            \"location\": \"groups/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"guides/.gitignore\": {\n            \"location\": \"guides/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/.gitignore\": {\n            \"location\": \"modules/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/.gitignore\": {\n            \"location\": \"modules/tools/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/hammer/.gitignore\": {\n            \"location\": \"modules/tools/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          }\n        }\n      },\n      \"changedPaths\": [],\n      \"boundaryChanges\": [],\n      \"violations\": []\n    },\n    {\n      \"phase\": \"agent\",\n      \"scope\": {\n        \"project-documentation\": {\n          \"paths\": [\n            \"INDEX.md\",\n            \"docs/projects/INDEX.md\",\n            \"docs/projects/hammer.md\",\n            \"guides/hammer.md\",\n            \"modules/tools/hammer/README.md\"\n          ],\n          \"directories\": []\n        }\n      },\n      \"before\": {\n        \"files\": {\n          \".agents/skills/adopt-standards/SKILL.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n            \"executable\": false\n          },\n          \"INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"8ed54fffc7da0615a6b186c2d4b854c8fcf63e3e67b30a3cbf3aba0d606a8e6e\",\n            \"executable\": false\n          },\n          \"build/generated/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525\",\n            \"executable\": false\n          },\n          \"docs/catalog.json\": {\n            \"type\": \"file\",\n            \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n            \"executable\": false\n          },\n          \"fixtures/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36\",\n            \"executable\": false\n          },\n          \"groups/developer-tools.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287\",\n            \"executable\": false\n          },\n          \"guides/hammer.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"3a93d2f301be34b4a08ba2defdecb17518bfbff3faa0e2a3708e54ab376cfe43\",\n            \"executable\": false\n          },\n          \"modules/tools/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b\",\n            \"executable\": false\n          },\n          \"docs/projects/INDEX.md\": {\n            \"type\": \"missing\"\n          },\n          \"docs/projects/hammer.md\": {\n            \"type\": \"missing\"\n          },\n          \"modules/tools/hammer/README.md\": {\n            \"type\": \"missing\"\n          }\n        },\n        \"boundaries\": {\n          \".\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills/adopt-standards\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build/generated\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"groups\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"guides\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs/projects\": {\n            \"type\": \"missing\"\n          }\n        },\n        \"settings\": {\n          \"core.ignorecase\": null,\n          \"core.precomposeunicode\": null,\n          \"core.filemode\": \"true\",\n          \"core.symlinks\": null,\n          \"core.sparsecheckout\": null,\n          \"core.sparsecheckoutcone\": null\n        },\n        \"ignores\": {\n          \"global\": {\n            \"location\": \"/home/agents/.config/git/ignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"info\": {\n            \"location\": \"/tmp/repo-standards-source-OXjpvh/.git/info/exclude\",\n            \"state\": {\n              \"type\": \"file\",\n              \"sha256\": \"6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1\",\n              \"executable\": false\n            }\n          },\n          \".gitignore\": {\n            \"location\": \".gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/.gitignore\": {\n            \"location\": \".agents/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/.gitignore\": {\n            \"location\": \".agents/skills/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/adopt-standards/.gitignore\": {\n            \"location\": \".agents/skills/adopt-standards/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/.gitignore\": {\n            \"location\": \"build/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/generated/.gitignore\": {\n            \"location\": \"build/generated/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/.gitignore\": {\n            \"location\": \"docs/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/.gitignore\": {\n            \"location\": \"fixtures/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/hammer/.gitignore\": {\n            \"location\": \"fixtures/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"groups/.gitignore\": {\n            \"location\": \"groups/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"guides/.gitignore\": {\n            \"location\": \"guides/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/.gitignore\": {\n            \"location\": \"modules/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/.gitignore\": {\n            \"location\": \"modules/tools/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/hammer/.gitignore\": {\n            \"location\": \"modules/tools/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          }\n        }\n      },\n      \"after\": {\n        \"files\": {\n          \".agents/skills/adopt-standards/SKILL.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n            \"executable\": false\n          },\n          \"INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904\",\n            \"executable\": false\n          },\n          \"build/generated/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525\",\n            \"executable\": false\n          },\n          \"docs/catalog.json\": {\n            \"type\": \"file\",\n            \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n            \"executable\": false\n          },\n          \"docs/projects/INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7\",\n            \"executable\": false\n          },\n          \"docs/projects/hammer.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d\",\n            \"executable\": false\n          },\n          \"fixtures/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36\",\n            \"executable\": false\n          },\n          \"groups/developer-tools.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287\",\n            \"executable\": false\n          },\n          \"guides/hammer.md\": {\n            \"type\": \"missing\"\n          },\n          \"modules/tools/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b\",\n            \"executable\": false\n          },\n          \"modules/tools/hammer/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1\",\n            \"executable\": false\n          }\n        },\n        \"boundaries\": {\n          \".\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills/adopt-standards\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build/generated\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs/projects\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"groups\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"guides\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          }\n        },\n        \"settings\": {\n          \"core.ignorecase\": null,\n          \"core.precomposeunicode\": null,\n          \"core.filemode\": \"true\",\n          \"core.symlinks\": null,\n          \"core.sparsecheckout\": null,\n          \"core.sparsecheckoutcone\": null\n        },\n        \"ignores\": {\n          \"global\": {\n            \"location\": \"/home/agents/.config/git/ignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"info\": {\n            \"location\": \"/tmp/repo-standards-source-OXjpvh/.git/info/exclude\",\n            \"state\": {\n              \"type\": \"file\",\n              \"sha256\": \"6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1\",\n              \"executable\": false\n            }\n          },\n          \".gitignore\": {\n            \"location\": \".gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/.gitignore\": {\n            \"location\": \".agents/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/.gitignore\": {\n            \"location\": \".agents/skills/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/adopt-standards/.gitignore\": {\n            \"location\": \".agents/skills/adopt-standards/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/.gitignore\": {\n            \"location\": \"build/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/generated/.gitignore\": {\n            \"location\": \"build/generated/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/.gitignore\": {\n            \"location\": \"docs/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/projects/.gitignore\": {\n            \"location\": \"docs/projects/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/.gitignore\": {\n            \"location\": \"fixtures/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/hammer/.gitignore\": {\n            \"location\": \"fixtures/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"groups/.gitignore\": {\n            \"location\": \"groups/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"guides/.gitignore\": {\n            \"location\": \"guides/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/.gitignore\": {\n            \"location\": \"modules/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/.gitignore\": {\n            \"location\": \"modules/tools/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/hammer/.gitignore\": {\n            \"location\": \"modules/tools/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          }\n        }\n      },\n      \"changedPaths\": [\n        \"INDEX.md\",\n        \"docs/projects/INDEX.md\",\n        \"docs/projects/hammer.md\",\n        \"guides/hammer.md\",\n        \"modules/tools/hammer/README.md\"\n      ],\n      \"boundaryChanges\": [\n        \"docs/projects\"\n      ],\n      \"violations\": []\n    },\n    {\n      \"phase\": \"agent\",\n      \"scope\": {\n        \"project-documentation\": {\n          \"paths\": [\n            \"INDEX.md\",\n            \"docs/projects/INDEX.md\",\n            \"docs/projects/hammer.md\",\n            \"guides/hammer.md\",\n            \"modules/tools/hammer/README.md\"\n          ],\n          \"directories\": []\n        }\n      },\n      \"before\": {\n        \"files\": {\n          \".agents/skills/adopt-standards/SKILL.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n            \"executable\": false\n          },\n          \"INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904\",\n            \"executable\": false\n          },\n          \"build/generated/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525\",\n            \"executable\": false\n          },\n          \"docs/catalog.json\": {\n            \"type\": \"file\",\n            \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n            \"executable\": false\n          },\n          \"docs/projects/INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7\",\n            \"executable\": false\n          },\n          \"docs/projects/hammer.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d\",\n            \"executable\": false\n          },\n          \"fixtures/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36\",\n            \"executable\": false\n          },\n          \"groups/developer-tools.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287\",\n            \"executable\": false\n          },\n          \"guides/hammer.md\": {\n            \"type\": \"missing\"\n          },\n          \"modules/tools/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b\",\n            \"executable\": false\n          },\n          \"modules/tools/hammer/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1\",\n            \"executable\": false\n          }\n        },\n        \"boundaries\": {\n          \".\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills/adopt-standards\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build/generated\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs/projects\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"groups\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"guides\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          }\n        },\n        \"settings\": {\n          \"core.ignorecase\": null,\n          \"core.precomposeunicode\": null,\n          \"core.filemode\": \"true\",\n          \"core.symlinks\": null,\n          \"core.sparsecheckout\": null,\n          \"core.sparsecheckoutcone\": null\n        },\n        \"ignores\": {\n          \"global\": {\n            \"location\": \"/home/agents/.config/git/ignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"info\": {\n            \"location\": \"/tmp/repo-standards-source-OXjpvh/.git/info/exclude\",\n            \"state\": {\n              \"type\": \"file\",\n              \"sha256\": \"6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1\",\n              \"executable\": false\n            }\n          },\n          \".gitignore\": {\n            \"location\": \".gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/.gitignore\": {\n            \"location\": \".agents/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/.gitignore\": {\n            \"location\": \".agents/skills/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/adopt-standards/.gitignore\": {\n            \"location\": \".agents/skills/adopt-standards/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/.gitignore\": {\n            \"location\": \"build/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/generated/.gitignore\": {\n            \"location\": \"build/generated/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/.gitignore\": {\n            \"location\": \"docs/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/projects/.gitignore\": {\n            \"location\": \"docs/projects/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/.gitignore\": {\n            \"location\": \"fixtures/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/hammer/.gitignore\": {\n            \"location\": \"fixtures/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"groups/.gitignore\": {\n            \"location\": \"groups/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"guides/.gitignore\": {\n            \"location\": \"guides/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/.gitignore\": {\n            \"location\": \"modules/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/.gitignore\": {\n            \"location\": \"modules/tools/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/hammer/.gitignore\": {\n            \"location\": \"modules/tools/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          }\n        }\n      },\n      \"after\": {\n        \"files\": {\n          \".agents/skills/adopt-standards/SKILL.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n            \"executable\": false\n          },\n          \"INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904\",\n            \"executable\": false\n          },\n          \"build/generated/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525\",\n            \"executable\": false\n          },\n          \"docs/catalog.json\": {\n            \"type\": \"file\",\n            \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n            \"executable\": false\n          },\n          \"docs/projects/INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7\",\n            \"executable\": false\n          },\n          \"docs/projects/hammer.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d\",\n            \"executable\": false\n          },\n          \"fixtures/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36\",\n            \"executable\": false\n          },\n          \"groups/developer-tools.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287\",\n            \"executable\": false\n          },\n          \"guides/hammer.md\": {\n            \"type\": \"missing\"\n          },\n          \"modules/tools/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b\",\n            \"executable\": false\n          },\n          \"modules/tools/hammer/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1\",\n            \"executable\": false\n          }\n        },\n        \"boundaries\": {\n          \".\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills/adopt-standards\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build/generated\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs/projects\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"groups\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"guides\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          }\n        },\n        \"settings\": {\n          \"core.ignorecase\": null,\n          \"core.precomposeunicode\": null,\n          \"core.filemode\": \"true\",\n          \"core.symlinks\": null,\n          \"core.sparsecheckout\": null,\n          \"core.sparsecheckoutcone\": null\n        },\n        \"ignores\": {\n          \"global\": {\n            \"location\": \"/home/agents/.config/git/ignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"info\": {\n            \"location\": \"/tmp/repo-standards-source-OXjpvh/.git/info/exclude\",\n            \"state\": {\n              \"type\": \"file\",\n              \"sha256\": \"6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1\",\n              \"executable\": false\n            }\n          },\n          \".gitignore\": {\n            \"location\": \".gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/.gitignore\": {\n            \"location\": \".agents/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/.gitignore\": {\n            \"location\": \".agents/skills/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/adopt-standards/.gitignore\": {\n            \"location\": \".agents/skills/adopt-standards/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/.gitignore\": {\n            \"location\": \"build/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/generated/.gitignore\": {\n            \"location\": \"build/generated/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/.gitignore\": {\n            \"location\": \"docs/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/projects/.gitignore\": {\n            \"location\": \"docs/projects/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/.gitignore\": {\n            \"location\": \"fixtures/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/hammer/.gitignore\": {\n            \"location\": \"fixtures/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"groups/.gitignore\": {\n            \"location\": \"groups/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"guides/.gitignore\": {\n            \"location\": \"guides/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/.gitignore\": {\n            \"location\": \"modules/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/.gitignore\": {\n            \"location\": \"modules/tools/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/hammer/.gitignore\": {\n            \"location\": \"modules/tools/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          }\n        }\n      },\n      \"changedPaths\": [],\n      \"boundaryChanges\": [],\n      \"violations\": []\n    },\n    {\n      \"phase\": \"checks\",\n      \"operation\": {\n        \"phase\": \"checks\",\n        \"declaration\": \"project-documentation\",\n        \"id\": \"verify-markdown-ending\"\n      },\n      \"operationIndex\": 1,\n      \"scope\": {\n        \"project-documentation\": {\n          \"paths\": [\n            \"INDEX.md\",\n            \"docs/projects/INDEX.md\",\n            \"docs/projects/hammer.md\",\n            \"guides/hammer.md\",\n            \"modules/tools/hammer/README.md\"\n          ],\n          \"directories\": []\n        }\n      },\n      \"before\": {\n        \"files\": {\n          \".agents/skills/adopt-standards/SKILL.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n            \"executable\": false\n          },\n          \"INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904\",\n            \"executable\": false\n          },\n          \"build/generated/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525\",\n            \"executable\": false\n          },\n          \"docs/catalog.json\": {\n            \"type\": \"file\",\n            \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n            \"executable\": false\n          },\n          \"docs/projects/INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7\",\n            \"executable\": false\n          },\n          \"docs/projects/hammer.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d\",\n            \"executable\": false\n          },\n          \"fixtures/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36\",\n            \"executable\": false\n          },\n          \"groups/developer-tools.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287\",\n            \"executable\": false\n          },\n          \"guides/hammer.md\": {\n            \"type\": \"missing\"\n          },\n          \"modules/tools/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b\",\n            \"executable\": false\n          },\n          \"modules/tools/hammer/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1\",\n            \"executable\": false\n          }\n        },\n        \"boundaries\": {\n          \".\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills/adopt-standards\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build/generated\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs/projects\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"groups\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"guides\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          }\n        },\n        \"settings\": {\n          \"core.ignorecase\": null,\n          \"core.precomposeunicode\": null,\n          \"core.filemode\": \"true\",\n          \"core.symlinks\": null,\n          \"core.sparsecheckout\": null,\n          \"core.sparsecheckoutcone\": null\n        },\n        \"ignores\": {\n          \"global\": {\n            \"location\": \"/home/agents/.config/git/ignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"info\": {\n            \"location\": \"/tmp/repo-standards-source-OXjpvh/.git/info/exclude\",\n            \"state\": {\n              \"type\": \"file\",\n              \"sha256\": \"6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1\",\n              \"executable\": false\n            }\n          },\n          \".gitignore\": {\n            \"location\": \".gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/.gitignore\": {\n            \"location\": \".agents/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/.gitignore\": {\n            \"location\": \".agents/skills/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/adopt-standards/.gitignore\": {\n            \"location\": \".agents/skills/adopt-standards/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/.gitignore\": {\n            \"location\": \"build/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/generated/.gitignore\": {\n            \"location\": \"build/generated/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/.gitignore\": {\n            \"location\": \"docs/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/projects/.gitignore\": {\n            \"location\": \"docs/projects/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/.gitignore\": {\n            \"location\": \"fixtures/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/hammer/.gitignore\": {\n            \"location\": \"fixtures/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"groups/.gitignore\": {\n            \"location\": \"groups/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"guides/.gitignore\": {\n            \"location\": \"guides/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/.gitignore\": {\n            \"location\": \"modules/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/.gitignore\": {\n            \"location\": \"modules/tools/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/hammer/.gitignore\": {\n            \"location\": \"modules/tools/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          }\n        }\n      },\n      \"after\": {\n        \"files\": {\n          \".agents/skills/adopt-standards/SKILL.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n            \"executable\": false\n          },\n          \"INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904\",\n            \"executable\": false\n          },\n          \"build/generated/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525\",\n            \"executable\": false\n          },\n          \"docs/catalog.json\": {\n            \"type\": \"file\",\n            \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n            \"executable\": false\n          },\n          \"docs/projects/INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7\",\n            \"executable\": false\n          },\n          \"docs/projects/hammer.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d\",\n            \"executable\": false\n          },\n          \"fixtures/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36\",\n            \"executable\": false\n          },\n          \"groups/developer-tools.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287\",\n            \"executable\": false\n          },\n          \"guides/hammer.md\": {\n            \"type\": \"missing\"\n          },\n          \"modules/tools/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b\",\n            \"executable\": false\n          },\n          \"modules/tools/hammer/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1\",\n            \"executable\": false\n          }\n        },\n        \"boundaries\": {\n          \".\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills/adopt-standards\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build/generated\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs/projects\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"groups\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"guides\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          }\n        },\n        \"settings\": {\n          \"core.ignorecase\": null,\n          \"core.precomposeunicode\": null,\n          \"core.filemode\": \"true\",\n          \"core.symlinks\": null,\n          \"core.sparsecheckout\": null,\n          \"core.sparsecheckoutcone\": null\n        },\n        \"ignores\": {\n          \"global\": {\n            \"location\": \"/home/agents/.config/git/ignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"info\": {\n            \"location\": \"/tmp/repo-standards-source-OXjpvh/.git/info/exclude\",\n            \"state\": {\n              \"type\": \"file\",\n              \"sha256\": \"6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1\",\n              \"executable\": false\n            }\n          },\n          \".gitignore\": {\n            \"location\": \".gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/.gitignore\": {\n            \"location\": \".agents/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/.gitignore\": {\n            \"location\": \".agents/skills/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/adopt-standards/.gitignore\": {\n            \"location\": \".agents/skills/adopt-standards/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/.gitignore\": {\n            \"location\": \"build/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/generated/.gitignore\": {\n            \"location\": \"build/generated/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/.gitignore\": {\n            \"location\": \"docs/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/projects/.gitignore\": {\n            \"location\": \"docs/projects/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/.gitignore\": {\n            \"location\": \"fixtures/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/hammer/.gitignore\": {\n            \"location\": \"fixtures/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"groups/.gitignore\": {\n            \"location\": \"groups/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"guides/.gitignore\": {\n            \"location\": \"guides/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/.gitignore\": {\n            \"location\": \"modules/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/.gitignore\": {\n            \"location\": \"modules/tools/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/hammer/.gitignore\": {\n            \"location\": \"modules/tools/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          }\n        }\n      },\n      \"changedPaths\": [],\n      \"boundaryChanges\": [],\n      \"violations\": []\n    },\n    {\n      \"phase\": \"agent\",\n      \"scope\": {\n        \"project-documentation\": {\n          \"paths\": [\n            \"INDEX.md\",\n            \"docs/projects/INDEX.md\",\n            \"docs/projects/hammer.md\",\n            \"guides/hammer.md\",\n            \"modules/tools/hammer/README.md\"\n          ],\n          \"directories\": []\n        }\n      },\n      \"before\": {\n        \"files\": {\n          \".agents/skills/adopt-standards/SKILL.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n            \"executable\": false\n          },\n          \"INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904\",\n            \"executable\": false\n          },\n          \"build/generated/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525\",\n            \"executable\": false\n          },\n          \"docs/catalog.json\": {\n            \"type\": \"file\",\n            \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n            \"executable\": false\n          },\n          \"docs/projects/INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7\",\n            \"executable\": false\n          },\n          \"docs/projects/hammer.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d\",\n            \"executable\": false\n          },\n          \"fixtures/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36\",\n            \"executable\": false\n          },\n          \"groups/developer-tools.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287\",\n            \"executable\": false\n          },\n          \"guides/hammer.md\": {\n            \"type\": \"missing\"\n          },\n          \"modules/tools/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b\",\n            \"executable\": false\n          },\n          \"modules/tools/hammer/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1\",\n            \"executable\": false\n          }\n        },\n        \"boundaries\": {\n          \".\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills/adopt-standards\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build/generated\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs/projects\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"groups\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"guides\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          }\n        },\n        \"settings\": {\n          \"core.ignorecase\": null,\n          \"core.precomposeunicode\": null,\n          \"core.filemode\": \"true\",\n          \"core.symlinks\": null,\n          \"core.sparsecheckout\": null,\n          \"core.sparsecheckoutcone\": null\n        },\n        \"ignores\": {\n          \"global\": {\n            \"location\": \"/home/agents/.config/git/ignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"info\": {\n            \"location\": \"/tmp/repo-standards-source-OXjpvh/.git/info/exclude\",\n            \"state\": {\n              \"type\": \"file\",\n              \"sha256\": \"6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1\",\n              \"executable\": false\n            }\n          },\n          \".gitignore\": {\n            \"location\": \".gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/.gitignore\": {\n            \"location\": \".agents/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/.gitignore\": {\n            \"location\": \".agents/skills/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/adopt-standards/.gitignore\": {\n            \"location\": \".agents/skills/adopt-standards/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/.gitignore\": {\n            \"location\": \"build/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/generated/.gitignore\": {\n            \"location\": \"build/generated/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/.gitignore\": {\n            \"location\": \"docs/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/projects/.gitignore\": {\n            \"location\": \"docs/projects/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/.gitignore\": {\n            \"location\": \"fixtures/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/hammer/.gitignore\": {\n            \"location\": \"fixtures/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"groups/.gitignore\": {\n            \"location\": \"groups/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"guides/.gitignore\": {\n            \"location\": \"guides/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/.gitignore\": {\n            \"location\": \"modules/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/.gitignore\": {\n            \"location\": \"modules/tools/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/hammer/.gitignore\": {\n            \"location\": \"modules/tools/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          }\n        }\n      },\n      \"after\": {\n        \"files\": {\n          \".agents/skills/adopt-standards/SKILL.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n            \"executable\": false\n          },\n          \"INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904\",\n            \"executable\": false\n          },\n          \"build/generated/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525\",\n            \"executable\": false\n          },\n          \"docs/catalog.json\": {\n            \"type\": \"file\",\n            \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n            \"executable\": false\n          },\n          \"docs/projects/INDEX.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7\",\n            \"executable\": false\n          },\n          \"docs/projects/hammer.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d\",\n            \"executable\": false\n          },\n          \"fixtures/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36\",\n            \"executable\": false\n          },\n          \"groups/developer-tools.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287\",\n            \"executable\": false\n          },\n          \"guides/hammer.md\": {\n            \"type\": \"missing\"\n          },\n          \"modules/tools/hammer/Cargo.toml\": {\n            \"type\": \"file\",\n            \"sha256\": \"470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b\",\n            \"executable\": false\n          },\n          \"modules/tools/hammer/README.md\": {\n            \"type\": \"file\",\n            \"sha256\": \"4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1\",\n            \"executable\": false\n          }\n        },\n        \"boundaries\": {\n          \".\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \".agents/skills/adopt-standards\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"build/generated\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"docs/projects\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"fixtures/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"groups\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"guides\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          },\n          \"modules/tools/hammer\": {\n            \"type\": \"directory\",\n            \"mode\": 448\n          }\n        },\n        \"settings\": {\n          \"core.ignorecase\": null,\n          \"core.precomposeunicode\": null,\n          \"core.filemode\": \"true\",\n          \"core.symlinks\": null,\n          \"core.sparsecheckout\": null,\n          \"core.sparsecheckoutcone\": null\n        },\n        \"ignores\": {\n          \"global\": {\n            \"location\": \"/home/agents/.config/git/ignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"info\": {\n            \"location\": \"/tmp/repo-standards-source-OXjpvh/.git/info/exclude\",\n            \"state\": {\n              \"type\": \"file\",\n              \"sha256\": \"6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1\",\n              \"executable\": false\n            }\n          },\n          \".gitignore\": {\n            \"location\": \".gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/.gitignore\": {\n            \"location\": \".agents/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/.gitignore\": {\n            \"location\": \".agents/skills/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \".agents/skills/adopt-standards/.gitignore\": {\n            \"location\": \".agents/skills/adopt-standards/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/.gitignore\": {\n            \"location\": \"build/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"build/generated/.gitignore\": {\n            \"location\": \"build/generated/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/.gitignore\": {\n            \"location\": \"docs/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"docs/projects/.gitignore\": {\n            \"location\": \"docs/projects/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/.gitignore\": {\n            \"location\": \"fixtures/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"fixtures/hammer/.gitignore\": {\n            \"location\": \"fixtures/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"groups/.gitignore\": {\n            \"location\": \"groups/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"guides/.gitignore\": {\n            \"location\": \"guides/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/.gitignore\": {\n            \"location\": \"modules/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/.gitignore\": {\n            \"location\": \"modules/tools/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          },\n          \"modules/tools/hammer/.gitignore\": {\n            \"location\": \"modules/tools/hammer/.gitignore\",\n            \"state\": {\n              \"type\": \"missing\"\n            }\n          }\n        }\n      },\n      \"changedPaths\": [],\n      \"boundaryChanges\": [],\n      \"violations\": []\n    }\n  ],\n  \"operations\": [\n    {\n      \"operation\": {\n        \"declaration\": \"project-documentation\",\n        \"phase\": \"fixes\",\n        \"id\": \"normalize-markdown-ending\"\n      },\n      \"process\": {\n        \"exitCode\": 0,\n        \"signal\": null,\n        \"error\": null,\n        \"timedOut\": false\n      },\n      \"result\": {\n        \"format\": \"repo-standards/result/v1\",\n        \"status\": \"unchanged\",\n        \"message\": \"Markdown endings already satisfy the source.\"\n      },\n      \"error\": null,\n      \"stdout\": \".repo-standards/local/operations/0.stdout\",\n      \"stderr\": \".repo-standards/local/operations/0.stderr\"\n    },\n    {\n      \"operation\": {\n        \"declaration\": \"project-documentation\",\n        \"phase\": \"checks\",\n        \"id\": \"verify-markdown-ending\"\n      },\n      \"process\": {\n        \"exitCode\": 0,\n        \"signal\": null,\n        \"error\": null,\n        \"timedOut\": false\n      },\n      \"result\": {\n        \"format\": \"repo-standards/result/v1\",\n        \"status\": \"passed\",\n        \"message\": \"Markdown endings already satisfy the source.\"\n      },\n      \"error\": null,\n      \"stdout\": \".repo-standards/local/operations/1.stdout\",\n      \"stderr\": \".repo-standards/local/operations/1.stderr\"\n    }\n  ],\n  \"retryHistory\": [],\n  \"lastComplete\": {\n    \"run\": \"c4aa7eb9-455d-4202-946c-aa6d0cd3e0ee\",\n    \"inspection\": \"sha256:93576f28b03162187d88414bcb2c92abdbd7687b8c9e89b70f1ed55b64520dba\",\n    \"completedAt\": \"2026-09-14T02:14:30.518Z\",\n    \"head\": \"faa892d70b97c46176e1355995ef010e5fee3fad\"\n  },\n  \"baselines\": {\n    \"docs/catalog.json\": {\n      \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n      \"executable\": false\n    },\n    \".agents/skills/adopt-standards/SKILL.md\": {\n      \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n      \"executable\": false\n    }\n  },\n  \"skills\": {\n    \".agents/skills/adopt-standards\": [\n      \"SKILL.md\"\n    ]\n  },\n  \"checks\": [\n    {\n      \"operation\": {\n        \"declaration\": \"project-documentation\",\n        \"phase\": \"checks\",\n        \"id\": \"verify-markdown-ending\"\n      },\n      \"process\": {\n        \"exitCode\": 0,\n        \"signal\": null,\n        \"error\": null,\n        \"timedOut\": false\n      },\n      \"result\": {\n        \"format\": \"repo-standards/result/v1\",\n        \"status\": \"passed\",\n        \"message\": \"Markdown endings already satisfy the source.\"\n      },\n      \"error\": null,\n      \"stdout\": \".repo-standards/local/operations/1.stdout\",\n      \"stderr\": \".repo-standards/local/operations/1.stderr\"\n    }\n  ],\n  \"assessments\": [\n    {\n      \"format\": \"repo-standards/assessment/v2\",\n      \"run\": \"c4aa7eb9-455d-4202-946c-aa6d0cd3e0ee\",\n      \"selection\": \"sha256:0894cdc09b074779050f35d3ad4a81d2712ec6168c09a26833eff7bf053cc605\",\n      \"snapshot\": \"sha256:82b2c36a7fe4ea8d18da473c936bccff76efc5394cdbac24cec80316beca58b7\",\n      \"scope\": {\n        \"inspection\": \"sha256:93576f28b03162187d88414bcb2c92abdbd7687b8c9e89b70f1ed55b64520dba\",\n        \"afterFixes\": \"sha256:459c4f43f90f675b55b22c87dc9c12981c613523d600f8c7e3188e46c0a61540\"\n      },\n      \"declarations\": [\n        {\n          \"id\": \"project-documentation\",\n          \"status\": \"satisfied\",\n          \"explanation\": \"The maintained nested Hammer package now has a concise project README and connected project documentation. The legacy guide was migrated rather than duplicated, its useful command and recovery warning were preserved, and both the introduced documentation index and root index resolve to the new locations. Generated, fixture, organizational, and exact-owned content remained unchanged by contextual work.\",\n          \"changedPaths\": [\n            \"INDEX.md\",\n            \"docs/projects/INDEX.md\",\n            \"docs/projects/hammer.md\",\n            \"guides/hammer.md\",\n            \"modules/tools/hammer/README.md\"\n          ],\n          \"evidence\": [\n            \"modules/tools/hammer/Cargo.toml declares package hammer version 0.1.0 with developer-tools ownership; modules/tools/hammer/README.md now states that ownership, gives the repository-root Cargo command, and links to deeper guidance.\",\n            \"guides/hammer.md was deleted and docs/projects/hammer.md was created separately; the destination preserves the complete documented cargo run command and the warning to preserve the input archive before retrying a failed conversion.\",\n            \"docs/projects/INDEX.md links to hammer.md, while INDEX.md replaces its removed guides/hammer.md link with links to the nested project README and migrated guide; a read-only resolution check found every local Markdown target.\",\n            \"The contextual change set is exactly the five confirmed paths; the generated README, fixture manifest, organizational index, maintained Cargo manifest, installed adopt-standards skill, and exact docs/catalog.json retained their inspected SHA-256 identities.\"\n          ],\n          \"scopeValidity\": {\n            \"afterFixes\": {\n              \"status\": \"valid\",\n              \"explanation\": \"Immediately after fixes, the accepted scope still covered the sole maintained project, its missing README, its individual legacy guide and destination, the introduced project index, and the root link repair; no additional or withdrawn path was needed.\",\n              \"evidence\": [\n                \"The post-fix Hammer manifest still named package hammer version 0.1.0 with developer-tools ownership, and guides/hammer.md still supplied the operating command and recovery warning.\",\n                \"The fixture manifest still named fixture-hammer version 0.0.0 without ownership metadata, the generated README still identified generated output, and the group file still identified an organizational index.\"\n              ],\n              \"additionalPaths\": []\n            },\n            \"current\": {\n              \"status\": \"valid\",\n              \"explanation\": \"The refreshed snapshot is fully covered by the same five individual paths, and the completed migration introduces no new project candidate, missing documentation target, link-repair file, or scope withdrawal.\",\n              \"evidence\": [\n                \"The refreshed CLI observation reports agent changes only for INDEX.md, docs/projects/INDEX.md, docs/projects/hammer.md, guides/hammer.md, and modules/tools/hammer/README.md, with no scope violations.\",\n                \"The new README and migrated guide cross-link, docs/projects/INDEX.md links to the guide, and INDEX.md links to both maintained Hammer entry points; all five local link resolutions succeeded.\"\n              ],\n              \"additionalPaths\": []\n            }\n          }\n        }\n      ]\n    }\n  ]\n}\n"
+    },
+    "lock": {
+      "sha256": "37afa98b7151d22e299c49ee874a7a6eeeacd27b1881ad7fa4ab004e47b3342d",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "{\n  \"format\": \"repo-standards/lock/v1\",\n  \"selection\": {\n    \"cli\": {\n      \"package\": \"@lutzseverino/repo-standards\",\n      \"version\": \"1.2.0\"\n    },\n    \"standards\": {\n      \"repository\": \"https://github.com/atlas/standards\",\n      \"version\": \"v1.0.0\",\n      \"commit\": \"d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77\"\n    },\n    \"profile\": \"maintained\"\n  },\n  \"inspection\": \"sha256:93576f28b03162187d88414bcb2c92abdbd7687b8c9e89b70f1ed55b64520dba\",\n  \"files\": {\n    \"docs/catalog.json\": {\n      \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n      \"executable\": false\n    },\n    \".agents/skills/adopt-standards/SKILL.md\": {\n      \"sha256\": \"6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/files/catalog.json\": {\n      \"sha256\": \"04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/guidance/project-documentation.md\": {\n      \"sha256\": \"f4d9ba3e46d6d5d9bbcb043d2fe4bf687a96f61f505ee30bbd2e04afbf2108a9\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/guidance/project-discovery.md\": {\n      \"sha256\": \"014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/source/operations/markdown-ending.mjs\": {\n      \"sha256\": \"cc333786362309d1e05db95acb7c634539ab5e99cbad96998c7172177009511d\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/standards.yaml\": {\n      \"sha256\": \"1091a2f18725536d39b789da175134e613904f0d8dc61ec26ab09fc15ba10a91\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/metadata.json\": {\n      \"sha256\": \"98e78cfc97d60b3cadabaa1f92cc0520a2f82866fd5627cd525500d835cb6199\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/resolved.json\": {\n      \"sha256\": \"e7e3d2738f754662f885599aac1c1f85be17ce8b07a4fb855f4bb2410e3ec5e1\",\n      \"executable\": false\n    },\n    \".repo-standards/inputs/scope-history.json\": {\n      \"sha256\": \"8e7603fd49ea182e9cbe00e844f74a755cc6943aedadd15f0a31a0004ecbde3e\",\n      \"executable\": false\n    },\n    \".repo-standards/selection.yaml\": {\n      \"sha256\": \"6843456152a87795fb737bf9fbd264794727dfb99271b73564272616d1052a0a\",\n      \"executable\": false\n    },\n    \".repo-standards/.gitignore\": {\n      \"sha256\": \"c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d\",\n      \"executable\": false\n    },\n    \".repo-standards/runtime/package.json\": {\n      \"sha256\": \"f385b5bf314a56b7508667f9af61fe83402bc0193b234f457f3defde46d957c6\",\n      \"executable\": false\n    },\n    \".repo-standards/runtime/package-lock.json\": {\n      \"sha256\": \"2587f230bcbec3d7619fbd9943b158d6e1a49098c735d37c2f99750a23ddfb0d\",\n      \"executable\": false\n    }\n  },\n  \"state\": {\n    \"sha256\": \"bd6ed589b34f9ab207466956f7ee4c37de7c714c78962a7e520f96ed37ccf94e\",\n    \"executable\": false\n  }\n}\n"
+    }
+  }
+}
+

@@ -1,0 +1,49 @@
+{
+  "recordedAt": "2026-09-14",
+  "session": "/tmp/repo-standards-public-agent-0k0JFV/journey.json",
+  "project": "/tmp/repo-standards-source-OXjpvh",
+  "executionBridge": "/srv/dev/projects/repo-standards-issue-50/acceptance/cli.ts",
+  "acquisition": "Public npm; explicit GitHub-response fixture backed by an independent Git source",
+  "package": {
+    "path": "/tmp/repo-standards-public-agent-0k0JFV/node_modules/@lutzseverino/repo-standards",
+    "name": "@lutzseverino/repo-standards",
+    "version": "1.2.0",
+    "resolved": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.2.0.tgz",
+    "integrity": "sha512-upetHlGX7xhNxUiWY5V88rTyLpv2umoq9zx+y1aKfAbjA24hbPuZl3ZCFAL81rQ+fUw1aL+253O/mE7W8Agdog==",
+    "installedTreeSha256": "b1a0ed9f8eabfe256c8cf9641acc8f964cca96edaa1cb7bdf366980c39ef6246",
+    "packageJsonSha256": "40183f7e2432f82bccb5cb9b9b7aca4daf6502be6212f767e1634992b429263c"
+  },
+  "skill": {
+    "path": "/tmp/repo-standards-public-agent-0k0JFV/node_modules/@lutzseverino/repo-standards/skills/adopt-standards/SKILL.md",
+    "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54"
+  },
+  "docs": {
+    "inspection.md": "d54fb7229222810de78bc5297f23cafde2401b9aefb89f0475a77774fec4b646",
+    "discovery.md": "dd61a6621aabacca8ed81276196e673b22d39fec2271629243d1136caecfda6e",
+    "adoption.md": "349ee3429f6944cb4a39cef767bb21727974940e0e0524f87e031510af744240",
+    "script-protocol.md": "e0f6106f9aed0dc199d17f7fee43867d283def76ed1a09cddec95115040d2320"
+  },
+  "selectionFixture": {
+    "source": "https://github.com/atlas/standards",
+    "standardsVersion": "v1.0.0",
+    "profile": "maintained",
+    "fixtureSource": "/tmp/repo-standards-source-xEiT7N",
+    "fixtureCommit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+  },
+  "sessionEnvironment": {
+    "npm_config_registry": "https://registry.npmjs.org/",
+    "npm_config_userconfig": "/tmp/repo-standards-public-agent-0k0JFV/empty.npmrc",
+    "npm_config_globalconfig": "/tmp/repo-standards-public-agent-0k0JFV/global.npmrc",
+    "npm_config_cache": "/tmp/repo-standards-public-agent-0k0JFV/npm-cache",
+    "XDG_CACHE_HOME": "/tmp/repo-standards-public-agent-0k0JFV/cache",
+    "NODE_OPTIONS": "--import=file:///tmp/repo-standards-source-jskJm9/https-fixture.mjs"
+  },
+  "host": {
+    "node": "v24.21.0",
+    "npm": "11.19.0",
+    "git": "2.47.3",
+    "kernel": "Linux raspi 6.18.34+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.18.34-1+rpt1 (2026-06-09) aarch64 GNU/Linux",
+    "locale": "C.UTF-8",
+    "timezone": "CEST"
+  }
+}

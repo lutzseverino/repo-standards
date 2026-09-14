@@ -1,0 +1,81 @@
+{
+  "format": "orchard-retired-pear-project-observations/v1",
+  "project": "/tmp/repo-standards-orchard-retired-readopt-K4BJ46",
+  "head": "a3d4a0942816042b8d34819b309988492857c483",
+  "files": [
+    {
+      "path": "CATALOG.md",
+      "sha256": "ca37181855a29eece4e55b58bd638d069c3c527c854a996c68d57809b4f352f2",
+      "mode": "600",
+      "executable": false,
+      "content": "# Orchard catalog\n\n- [Plum API](products/plum/README.md)\n"
+    },
+    {
+      "path": "docs/catalog.json",
+      "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+      "mode": "600",
+      "executable": false,
+      "content": "{\n  \"format\": \"atlas-documentation/v1\"\n}\n"
+    },
+    {
+      "path": "docs/projects/index.md",
+      "sha256": "e85d1c604e8ec8b14f4e693fdafa2a84722399347c35d4521615ff8354ab385a",
+      "mode": "600",
+      "executable": false,
+      "content": "# Project documentation\n\n- [Plum API](../../products/plum/README.md)\n"
+    },
+    {
+      "path": "docs/projects/pear/operations.md",
+      "sha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+      "mode": "600",
+      "executable": false,
+      "content": "# Pear API operations\n\nStart the service with `node server.mjs`. If health checks fail after a deploy,\nrestore the previous image and keep the failed revision for investigation.\n"
+    },
+    {
+      "path": "fixtures/sample/service.json",
+      "sha256": "d642750c57de6de5972989f505ea0cc0e0fcec0b09ad2e6ed385f07983d993fc",
+      "mode": "600",
+      "executable": false,
+      "content": "{\"name\":\"fixture-only\"}\n"
+    },
+    {
+      "path": "generated/site/README.md",
+      "sha256": "8eb447ab4badd20f23d768706a14f8cf4525bcd3bf94d9d207eac773848d36fc",
+      "mode": "600",
+      "executable": false,
+      "content": "# Generated documentation\n\nThis file is generated and must remain unchanged.\n"
+    },
+    {
+      "path": "products/pear/README.md",
+      "sha256": "0d2fb448cb0cf739043e8b182da814d9e1249c3a7974bf0f2f7ba13d49f7a7b2",
+      "mode": "600",
+      "executable": false,
+      "content": "# Pear API\n\nPear API is maintained by the `orchard-runtime` team.\n\n## Setup\n\nNo separate setup step is documented in this repository.\n\n## Run\n\nFrom `products/pear`, start the service with:\n\n```sh\nnode server.mjs\n```\n\n## Operations\n\nSee the [operations guide](../../docs/projects/pear/operations.md) for deployment\nhealth checks and recovery.\n"
+    },
+    {
+      "path": "products/plum/README.md",
+      "sha256": "5dbcf72065d771e314a8ac3b6a7d582e99529150ca2ba44046dba5c51fd386d9",
+      "mode": "600",
+      "executable": false,
+      "content": "# Plum API\n\nPlum API serves plum inventory data and is maintained by the `orchard-runtime`\nteam.\n\n## Setup\n\nNo separate setup step is required.\n\n## Run\n\nFrom `products/plum`, start the service with:\n\n```sh\nnode server.mjs\n```\n"
+    },
+    {
+      "path": "products/plum/service.json",
+      "sha256": "6f070c6ad4e4e83f52f0a7d2185227f5d18aeafe6ba448402a50470d79cf67c9",
+      "mode": "600",
+      "executable": false,
+      "content": "{\n  \"name\": \"plum-api\",\n  \"owner\": \"orchard-runtime\",\n  \"start\": \"node server.mjs\"\n}\n"
+    },
+    {
+      "path": "teams/runtime.md",
+      "sha256": "cb9cdeae04c6fd6a493bb70343cb514c50a8fc433a7a51b9155b72a1954fc456",
+      "mode": "600",
+      "executable": false,
+      "content": "# Runtime team\n\nThis directory groups people and is not a deployable project.\n"
+    }
+  ],
+  "absent": [
+    "products/pear/service.json",
+    "legacy/pear-operations.md"
+  ]
+}

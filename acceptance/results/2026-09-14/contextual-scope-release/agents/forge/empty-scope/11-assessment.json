@@ -1,0 +1,44 @@
+{
+  "format": "repo-standards/assessment/v2",
+  "run": "58a6c5f4-b312-4f6f-8b1c-5dd31a804e35",
+  "selection": "sha256:72e41013c4c055abaceee4ab573d3e05b25868c17053909f9db02f8da9925fc3",
+  "snapshot": "sha256:8e3e397bb8943ef76e43b1aaa11b2bd26ff72cb1cda4cedee3b77f8421dcb067",
+  "scope": {
+    "inspection": "sha256:73aecd0db9cc810c00441633da189b584e9ed3e61052c32481ff9099c3150729",
+    "afterFixes": "sha256:8e3e397bb8943ef76e43b1aaa11b2bd26ff72cb1cda4cedee3b77f8421dcb067"
+  },
+  "declarations": [
+    {
+      "id": "project-documentation",
+      "status": "satisfied",
+      "explanation": "The repository contains no independently maintained project, so the useful application of the guidance is to leave the evidence-backed fixture, generated output, and organizational index untouched. The confirmed contextual target set is empty, and no contextual file change is needed or authorized.",
+      "changedPaths": [],
+      "evidence": [
+        "fixtures/hammer/Cargo.toml declares only fixture-hammer version 0.0.0 and supplies no ownership or build/deployment evidence; it remains test data rather than maintained project membership.",
+        "build/generated/README.md states that the build regenerates it, while groups/developer-tools.md states that it is an organizational index rather than a maintained project.",
+        "The evaluator's committed setup removed the former root index, guide, and maintained Hammer manifest; the refreshed CLI observation reports no agent changed paths or scope violations.",
+        "Exact docs/catalog.json was installed and verified separately from contextual work; no project README, migration source/destination, contextual index, or link-repair file is supported by the current project evidence."
+      ],
+      "scopeValidity": {
+        "afterFixes": {
+          "status": "valid",
+          "explanation": "Immediately after fixes, the empty scope still covered the complete semantic result: no maintained project remained and every observed candidate was an evidence-backed exclusion.",
+          "evidence": [
+            "The fixture, generated, and organizational files retained their inspected identities after the empty-target fix returned unchanged.",
+            "No maintained-project manifest, project guide, root index, missing maintained-project README, migration destination, or contextual link repair existed after fixes."
+          ],
+          "additionalPaths": []
+        },
+        "current": {
+          "status": "valid",
+          "explanation": "The refreshed snapshot matches the post-fix snapshot and still requires no contextual target, addition, withdrawal, or unresolved membership decision.",
+          "evidence": [
+            "The refreshed agent observation has empty changedPaths, empty boundaryChanges, and no violations under project-documentation paths/directories both empty.",
+            "The three candidate contents remain unchanged and continue to establish generated output, fixture data, and an organizational index rather than a maintained project."
+          ],
+          "additionalPaths": []
+        }
+      }
+    }
+  ]
+}

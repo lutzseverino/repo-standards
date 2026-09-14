@@ -1,0 +1,3902 @@
+diff --git a/.agents/skills/adopt-standards/SKILL.md b/.agents/skills/adopt-standards/SKILL.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..3127c81903aa48e513a0b26db7b2036724986391
+--- /dev/null
++++ b/.agents/skills/adopt-standards/SKILL.md
+@@ -0,0 +1,155 @@
++---
++name: adopt-standards
++description: Guide confirmed Repository Standards discovery, adoption, contextual work, updates, and recovery.
++disable-model-invocation: true
++---
++
++## Choose the CLI and route
++
++Work from the adopting project's Git root. Use its pinned executable at
++`.repo-standards/runtime/node_modules/.bin/repo-standards`. If dependencies are
++absent, restore them with `npm ci --ignore-scripts --prefix .repo-standards/runtime`.
++Read `status --json` for pins, active progress and historical evidence.
++
++For initial adoption, use an externally installed exact CLI and read its
++`docs/inspection.md` for acquisition. The bootstrap performs inspection only;
++keep that disclosed exact version installed outside the project for `start`
++and recovery. Read protocol documents below from that CLI's package directory
++until the project runtime exists. Thereafter the document root is
++`.repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/`.
++
++- **Active run:** inspect `active.phase`, `reason`, `changes`, `completed`,
++  `uncertain`, `nextAction` and `execution`. Wait while execution is active.
++  An ordinary contextual handoff continues at Contextual work below.
++  When more files are needed, read
++  `inspection.md#preview-scope-amendments-in-an-active-run` and use
++  `inspect --amend-scope` to obtain current evidence, then preview one complete
++  additions-only proposal with `--scope`. Present its complete identity, changes,
++  operations, prior work and evidence; after explicit maintainer confirmation,
++  accept it with `resume --amend-scope --scope <file> --confirm <identity> --json`.
++  Do not edit added paths before acceptance. The command replays fixes and
++  requires a fresh contextual assessment and checks. Scope withdrawal remains a
++  reconciliation path outside the active run.
++  For interrupted installation, failed/uncertain scripts, or abandonment, read
++  `adoption.md#recover-or-abandon-an-interrupted-run` before acting. Obtain an
++  explicit retry instruction before `resume --retry --json`, or an abandonment
++  instruction before `abandon --json`. Retry repeats trusted fixes and requires
++  renewed assessment. Use the run's exact external CLI if the local runtime is
++  unusable. Preserve progress records and partial changes.
++- **Existing complete adoption:** `inspect --json` with the pinned CLI inspects
++  retained current standards read-only, including when the source is unavailable.
++  When the maintainer deliberately requests unchanged standards to cover new
++  repository content, read `adoption.md#re-adopt-unchanged-standards`. Use the
++  pinned CLI for `inspect --readopt --json`, review and confirm that distinct
++  action, then use `start --readopt --confirm <identity> --json`. Do not present
++  re-adoption as an update, retry, resume, or automatic compliance repair.
++  For a requested standards or CLI update, read
++  `adoption.md#update-one-pin-at-a-time` for candidate acquisition and commands.
++  Change one pin, keeping source and profile. Use the pinned CLI for a standards
++  update and the external candidate CLI for a CLI update. Historical discovered
++  scope explains prior authorization; it does not prove current coverage.
++  Every active v2 discovery declaration needs a fresh proposal for re-adoption or
++  either update, even when the original source is unavailable for retained work.
++  Eligible active discovery runs can confirm additions through the amendment
++  workflow below.
++- **Initial adoption:** obtain the public GitHub source, stable standards tag
++  and complete profile from the maintainer, then inspect that selection.
++
++## Inspect and confirm
++
++1. Run `inspect --source <URL> --standards-version <tag> --profile <name> --json`
++   for initial adoption or a standards update. For a CLI update, run the exact
++   candidate's `inspect --json` without source flags to use retained standards.
++   For explicit unchanged re-adoption, run the pinned project's
++   `inspect --readopt --json` without source, version, or profile flags.
++   Store reports outside the project. Read `inspection.md` when interpreting
++   fields, blockers, or acquisition errors. If discovery is required, read
++   `inspection.md#discover-contextual-file-scope-v2-sources` and each discovery
++   guidance file. Inspect eligible evidence in the real repository, explain
++   candidate inclusion/exclusion and membership for missing READMEs, and resolve
++   membership questions with the maintainer. Enumerate individual existing files,
++   planned destinations, directory introductions, and link-repair files around
++   exact-owned content. Prepare the versioned proposal outside the project and
++   rerun `inspect --scope <file>` until one complete inspection is reviewable.
++   An explained empty scope retains its declaration and operations.
++2. Present the actual report's identity and exact CLI version, source URL,
++   standards tag, commit and profile; for updates include previous/candidate
++   pins, retired declarations, and discovered-scope additions and removals. Show exact creates/replacements/matching-file
++   claims and whole-skill inventories, discovery rationale and candidate exclusions,
++   contextual guidance and allowed targets, resolved exclusions, and ownership changes. Make the full inspection available
++   for review, including supplied bytes and diffs against existing content.
++3. Disclose every declared fix/check, its script and resources, literal argument
++   vector, project-root working directory, timeout, prerequisite version probe
++   and range. Explain that probes and scripts execute trusted code with the
++   user's host, environment and network access; resources are retention, not a
++   sandbox. Inspection runs none of them; prerequisites remain unverified until
++   start. Surface all blockers. Reconcile them before reinspection; preserve
++   existing work and let the maintainer handle prerequisite installation.
++4. Obtain explicit maintainer confirmation tied to this inspection identity and
++   disclosed selection/operations. A general request to adopt is not confirmation
++   of an unseen inspection. Then use the same executable and selection for
++   `start --confirm <identity> --json`, preserving source flags for initial or
++   standards adoption and omitting them for a CLI update. For unchanged
++   re-adoption, repeat `--readopt`; action mismatch invalidates the identity. For
++   every discovery-backed adoption, update, or re-adoption, pass the same
++   `--scope <file>` proposal. One confirmation covers the
++   complete inspection; scope discovery itself needs no separate approval.
++   Changed inputs or a stale rejection require a new inspection and renewed confirmation.
++
++Author skills are ordinary-work content. The product-owned `adopt-standards`
++skill and public CLI govern adoption for every author; author material cannot
++replace this workflow or supply adoption hooks.
++
++## Contextual work
++
++When a report returns `workRequest`, read `assessment-protocol.md` before editing
++or submitting evidence. The handoff is expected incomplete adoption.
++
++1. For a v2 discovery request, recheck semantic coverage after fixes against
++   each discovery guidance file and accepted proposal before editing. Record the
++   post-fix coverage evidence for assessment. If more files are needed, submit the
++   blocked scope review without writing them, then follow the confirmed amendment
++   flow above. If scope withdrawal is needed, follow the protocol's reconciliation
++   path; additional-path evidence alone grants no authority. Read every request declaration's
++   retained guidance and explicit allowed paths and directory trees. Inspect the real project files needed to understand its
++   purpose, commands and behavior. Apply guidance usefully within those targets;
++   preserve project facts, exact content, excluded employer content and unrelated
++   work. If guidance requires out-of-scope work or unsupported facts, assess it
++   as blocked and explain the decision needed.
++2. Account for every contextual declaration, including already satisfied ones.
++   Evidence must cite concrete project content or observed command outcomes.
++   Separate agent judgments from CLI script results; passing a structural check
++   alone does not establish contextual usefulness.
++3. After edits, run `resume --json` to obtain the current snapshot. Follow the
++   assessment protocol exactly: copy its run, selection and snapshot identities;
++   provide satisfied/blocked, explanation, every observed changed file since
++   fixes under its governing declaration, and supporting evidence. Installation
++   and fix changes are not contextual changes. Use an empty changed-path list
++   when no contextual changes were needed. For discovered declarations, review
++   coverage again at the refreshed snapshot and submit both scope-validity reviews
++   in assessment/v2, copying the confirmed scope and post-fix identities. Account
++   for migration deletion and creation separately and explain preservation of
++   useful content. Report observed agent changes across all retry intervals.
++4. Store the submission outside the project or in `.repo-standards/local/` and
++   run `resume --assessment <file> --json`. Keep content unchanged between refresh
++   and submission. Stale evidence needs a refreshed request and reassessment of
++   every contextual declaration. Follow the protocol's distinction between
++   renewed assessment after ordinary failed checks and explicit operation retry.
++
++## Explain the result
++
++Read JSON even when the CLI exits 1: a handoff, abandonment and failed adoption
++are incomplete; diagnostic rejections may instead contain `valid: false` and
++`errors`. Report complete adoption only for `outcome: complete`.
++
++For incomplete work, explain phase, reason, actual changes, completed work,
++failed or uncertain operations, and the returned safe next action. Preserve
++partial work; retry and abandonment require the instructions described above.
++For completion, report script outcomes and agent evidence separately, then read
++`adoption.md#review-completed-outputs`. Review tracked changes and the contents
++and executable state of every non-ignored untracked file, including exact
++content, whole skills, retained inputs and durable runtime/state files.
++`git diff` omits untracked files; status names and hashes alone are not a content
++review. Keep HEAD and index unchanged while exposing new-file content; leave all
++adoption changes uncommitted for the maintainer's normal workflow. `status`
++evidence describes that run, not continuing compliance after subsequent edits.
+diff --git a/.repo-standards/.gitignore b/.repo-standards/.gitignore
+new file mode 100644
+index 0000000000000000000000000000000000000000..da27cd7ed16be59951fc5a0ccd8d43daa8e22556
+--- /dev/null
++++ b/.repo-standards/.gitignore
+@@ -0,0 +1,3 @@
++/runtime/node_modules/
++/local/
++/cache/
+diff --git a/.repo-standards/inputs/metadata.json b/.repo-standards/inputs/metadata.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..d06135e2c17514775ce9bbe33fc20decf953b7a9
+--- /dev/null
++++ b/.repo-standards/inputs/metadata.json
+@@ -0,0 +1,8 @@
++{
++  "format": "repo-standards/v2",
++  "name": "atlas-documentation",
++  "description": "Discover maintained projects and keep their documentation navigable",
++  "requires": {
++    "repo-standards": ">=1.2.0 <2.0.0"
++  }
++}
+diff --git a/.repo-standards/inputs/resolved.json b/.repo-standards/inputs/resolved.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..b80c70dd37ca29967482e7694d7e378662dc3a83
+--- /dev/null
++++ b/.repo-standards/inputs/resolved.json
+@@ -0,0 +1,58 @@
++{
++  "description": "Maintained projects whose documentation is organized in one catalog",
++  "declarations": [
++    {
++      "id": "documentation-catalog",
++      "checks": [],
++      "fixes": [],
++      "kind": "file",
++      "target": "docs/catalog.json",
++      "exact": "files/catalog.json"
++    },
++    {
++      "id": "project-documentation",
++      "checks": [
++        {
++          "id": "verify-markdown-ending",
++          "run": {
++            "executable": "node",
++            "script": "operations/markdown-ending.mjs",
++            "resources": [],
++            "arguments": []
++          },
++          "prerequisite": {
++            "version-arguments": [
++              "--version"
++            ],
++            "version": ">=24.0.0 <25.0.0"
++          },
++          "timeout-seconds": 30
++        }
++      ],
++      "fixes": [
++        {
++          "id": "normalize-markdown-ending",
++          "run": {
++            "executable": "node",
++            "script": "operations/markdown-ending.mjs",
++            "resources": [],
++            "arguments": []
++          },
++          "prerequisite": {
++            "version-arguments": [
++              "--version"
++            ],
++            "version": ">=24.0.0 <25.0.0"
++          },
++          "timeout-seconds": 30
++        }
++      ],
++      "kind": "repository",
++      "guidance": "guidance/project-documentation.md",
++      "targets": {
++        "paths": [],
++        "directories": []
++      }
++    }
++  ]
++}
+diff --git a/.repo-standards/inputs/scope-history.json b/.repo-standards/inputs/scope-history.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..9219621f4d02077a59a442d04ad15393438f5a9b
+--- /dev/null
++++ b/.repo-standards/inputs/scope-history.json
+@@ -0,0 +1,1240 @@
++{
++  "format": "repo-standards/scope-history/v2",
++  "evidence": "historical",
++  "inspection": "sha256:73aecd0db9cc810c00441633da189b584e9ed3e61052c32481ff9099c3150729",
++  "resolved": {
++    "description": "Maintained projects whose documentation is organized in one catalog",
++    "declarations": [
++      {
++        "id": "documentation-catalog",
++        "checks": [],
++        "fixes": [],
++        "kind": "file",
++        "target": "docs/catalog.json",
++        "exact": "files/catalog.json"
++      },
++      {
++        "id": "project-documentation",
++        "checks": [
++          {
++            "id": "verify-markdown-ending",
++            "run": {
++              "executable": "node",
++              "script": "operations/markdown-ending.mjs",
++              "resources": [],
++              "arguments": []
++            },
++            "prerequisite": {
++              "version-arguments": [
++                "--version"
++              ],
++              "version": ">=24.0.0 <25.0.0"
++            },
++            "timeout-seconds": 30
++          }
++        ],
++        "fixes": [
++          {
++            "id": "normalize-markdown-ending",
++            "run": {
++              "executable": "node",
++              "script": "operations/markdown-ending.mjs",
++              "resources": [],
++              "arguments": []
++            },
++            "prerequisite": {
++              "version-arguments": [
++                "--version"
++              ],
++              "version": ">=24.0.0 <25.0.0"
++            },
++            "timeout-seconds": 30
++          }
++        ],
++        "kind": "repository",
++        "guidance": "guidance/project-documentation.md",
++        "targets": {
++          "paths": [],
++          "directories": []
++        }
++      }
++    ]
++  },
++  "sourceResolved": {
++    "description": "Maintained projects whose documentation is organized in one catalog",
++    "declarations": [
++      {
++        "id": "documentation-catalog",
++        "checks": [],
++        "fixes": [],
++        "kind": "file",
++        "target": "docs/catalog.json",
++        "exact": "files/catalog.json"
++      },
++      {
++        "id": "project-documentation",
++        "checks": [
++          {
++            "id": "verify-markdown-ending",
++            "run": {
++              "executable": "node",
++              "script": "operations/markdown-ending.mjs",
++              "resources": [],
++              "arguments": []
++            },
++            "prerequisite": {
++              "version-arguments": [
++                "--version"
++              ],
++              "version": ">=24.0.0 <25.0.0"
++            },
++            "timeout-seconds": 30
++          }
++        ],
++        "fixes": [
++          {
++            "id": "normalize-markdown-ending",
++            "run": {
++              "executable": "node",
++              "script": "operations/markdown-ending.mjs",
++              "resources": [],
++              "arguments": []
++            },
++            "prerequisite": {
++              "version-arguments": [
++                "--version"
++              ],
++              "version": ">=24.0.0 <25.0.0"
++            },
++            "timeout-seconds": 30
++          }
++        ],
++        "kind": "repository",
++        "guidance": "guidance/project-documentation.md",
++        "discovery": "guidance/project-discovery.md"
++      }
++    ]
++  },
++  "discovery": {
++    "identity": "sha256:4c83ce6f22e64c9a635e8a050152b7e33077f8ae4021387a2b3a59f673e8202c",
++    "proposal": {
++      "format": "repo-standards/scope/v1",
++      "request": "sha256:4c83ce6f22e64c9a635e8a050152b7e33077f8ae4021387a2b3a59f673e8202c",
++      "declarations": [
++        {
++          "id": "project-documentation",
++          "paths": [],
++          "coverage": "No independently maintained project remains in this repository. fixtures/hammer is test data, build/generated/README.md is generated output, and groups/developer-tools.md is an organizational index; all are evidence-backed exclusions. There is therefore no project README, documentation migration, introduced contextual index, or link repair to authorize. Source-owned exact docs/catalog.json remains outside contextual scope.",
++          "evidence": [
++            {
++              "kind": "directory",
++              "path": ".",
++              "identity": "sha256:31b986082c9b923597f1aafc9abe62e04bf90c1811d0c56cbf9c83fc77b27432"
++            },
++            {
++              "kind": "file",
++              "path": "build/generated/README.md",
++              "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
++            },
++            {
++              "kind": "file",
++              "path": "fixtures/hammer/Cargo.toml",
++              "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
++            },
++            {
++              "kind": "file",
++              "path": "groups/developer-tools.md",
++              "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
++            }
++          ],
++          "candidates": [
++            {
++              "path": "build/generated/README.md",
++              "decision": "exclude",
++              "reason": "The file states that its content is regenerated by the build, so it is generated output rather than maintained project documentation.",
++              "evidence": [
++                {
++                  "kind": "directory",
++                  "path": "build/generated",
++                  "identity": "sha256:7923f0677710d83160a4d5698aa3bea5cef7abf374aa5bd4192038e3a25a7c4f"
++                },
++                {
++                  "kind": "file",
++                  "path": "build/generated/README.md",
++                  "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
++                }
++              ]
++            },
++            {
++              "path": "fixtures/hammer",
++              "decision": "exclude",
++              "reason": "The directory is under fixtures and its only manifest declares fixture-hammer version 0.0.0 without ownership or build/deployment evidence, so it is test data rather than an independently maintained project.",
++              "evidence": [
++                {
++                  "kind": "directory",
++                  "path": "fixtures/hammer",
++                  "identity": "sha256:141b83b91d1bd30361ab0e03d443e0053a819edf9f6cbf30c873b7d5c04d614d"
++                },
++                {
++                  "kind": "file",
++                  "path": "fixtures/hammer/Cargo.toml",
++                  "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
++                }
++              ]
++            },
++            {
++              "path": "groups/developer-tools.md",
++              "decision": "exclude",
++              "reason": "The file explicitly identifies itself as an organizational index rather than a maintained project.",
++              "evidence": [
++                {
++                  "kind": "directory",
++                  "path": "groups",
++                  "identity": "sha256:fffdc472534c33e4ed146a8395c3f19745b2cc47b2a8149fd7384ec4cd34690e"
++                },
++                {
++                  "kind": "file",
++                  "path": "groups/developer-tools.md",
++                  "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
++                }
++              ]
++            }
++          ],
++          "unresolved": []
++        }
++      ]
++    },
++    "absence": [],
++    "namedObservation": {
++      "files": {
++        "build/generated/README.md": {
++          "type": "file",
++          "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++          "executable": false
++        },
++        "fixtures/hammer/Cargo.toml": {
++          "type": "file",
++          "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++          "executable": false
++        },
++        "groups/developer-tools.md": {
++          "type": "file",
++          "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++          "executable": false
++        }
++      },
++      "inventories": {
++        ".": [
++          "build",
++          "fixtures",
++          "groups"
++        ],
++        "build": [
++          "build/generated"
++        ],
++        "build/generated": [
++          "build/generated/README.md"
++        ],
++        "fixtures": [
++          "fixtures/hammer"
++        ],
++        "fixtures/hammer": [
++          "fixtures/hammer/Cargo.toml"
++        ],
++        "groups": [
++          "groups/developer-tools.md"
++        ]
++      },
++      "boundaries": {
++        "build": {
++          "type": "directory",
++          "mode": 448
++        },
++        "build/generated": {
++          "type": "directory",
++          "mode": 448
++        },
++        "fixtures": {
++          "type": "directory",
++          "mode": 448
++        },
++        "fixtures/hammer": {
++          "type": "directory",
++          "mode": 448
++        },
++        "groups": {
++          "type": "directory",
++          "mode": 448
++        }
++      },
++      "targets": {},
++      "settings": {
++        "core.ignorecase": null,
++        "core.precomposeunicode": null,
++        "core.filemode": "true",
++        "core.symlinks": null,
++        "core.sparsecheckout": null,
++        "core.sparsecheckoutcone": null
++      },
++      "ignores": {
++        "global": {
++          "location": "/home/agents/.config/git/ignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "info": {
++          "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++          "state": {
++            "type": "file",
++            "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++            "executable": false
++          }
++        },
++        ".gitignore": {
++          "location": ".gitignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "build/.gitignore": {
++          "location": "build/.gitignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "build/generated/.gitignore": {
++          "location": "build/generated/.gitignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "fixtures/.gitignore": {
++          "location": "fixtures/.gitignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "fixtures/hammer/.gitignore": {
++          "location": "fixtures/hammer/.gitignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "groups/.gitignore": {
++          "location": "groups/.gitignore",
++          "state": {
++            "type": "missing"
++          }
++        }
++      },
++      "limits": {
++        "paths": 20000,
++        "fileBytes": 8388608,
++        "totalBytes": 67108864,
++        "depth": 128
++      },
++      "evidence": [
++        {
++          "kind": "directory",
++          "path": ".",
++          "identity": "sha256:31b986082c9b923597f1aafc9abe62e04bf90c1811d0c56cbf9c83fc77b27432"
++        },
++        {
++          "kind": "directory",
++          "path": "build",
++          "identity": "sha256:84fb2e9d10da460647364125322a9d41be141905bde5cc2f0c91a7b4d57f5ed8"
++        },
++        {
++          "kind": "directory",
++          "path": "build/generated",
++          "identity": "sha256:7923f0677710d83160a4d5698aa3bea5cef7abf374aa5bd4192038e3a25a7c4f"
++        },
++        {
++          "kind": "directory",
++          "path": "fixtures",
++          "identity": "sha256:ef7916a6759fbfde62fe1e812ce063febe2ee3f71e48fd44327d476e5ac25a7e"
++        },
++        {
++          "kind": "directory",
++          "path": "fixtures/hammer",
++          "identity": "sha256:141b83b91d1bd30361ab0e03d443e0053a819edf9f6cbf30c873b7d5c04d614d"
++        },
++        {
++          "kind": "directory",
++          "path": "groups",
++          "identity": "sha256:fffdc472534c33e4ed146a8395c3f19745b2cc47b2a8149fd7384ec4cd34690e"
++        },
++        {
++          "kind": "file",
++          "path": "build/generated/README.md",
++          "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
++        },
++        {
++          "kind": "file",
++          "path": "fixtures/hammer/Cargo.toml",
++          "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
++        },
++        {
++          "kind": "file",
++          "path": "groups/developer-tools.md",
++          "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
++        }
++      ]
++    },
++    "declarations": [
++      {
++        "id": "project-documentation",
++        "source": "guidance/project-discovery.md",
++        "sha256": "014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57",
++        "executable": false,
++        "encoding": "utf8",
++        "content": "# Project documentation discovery\n\nIdentify independently maintained projects from positive ownership and build or\ndeployment evidence. A project can require documentation when its directory has\nno README. A familiar filename by itself does not establish membership.\n\nFor every candidate, explain inclusion or exclusion. Treat test fixtures,\ngenerated output, archived copies, and directories that only group teams or\nprojects as candidates requiring evidence, not maintained projects by default.\nLeave uncertain maintenance or ownership as an unresolved question.\n\nFor each included project, plan individual files for its project README, every\nexisting documentation source that will move, each destination and introduced\ndocumentation index, and every file whose links need repair. Do not include\n`docs/catalog.json`; the source owns that exact file. An explained empty list is\nvalid when evidence shows that no maintained project is present.\n"
++      }
++    ],
++    "evidence": [
++      {
++        "kind": "directory",
++        "path": ".",
++        "identity": "sha256:31b986082c9b923597f1aafc9abe62e04bf90c1811d0c56cbf9c83fc77b27432"
++      },
++      {
++        "kind": "directory",
++        "path": "build",
++        "identity": "sha256:84fb2e9d10da460647364125322a9d41be141905bde5cc2f0c91a7b4d57f5ed8"
++      },
++      {
++        "kind": "directory",
++        "path": "build/generated",
++        "identity": "sha256:7923f0677710d83160a4d5698aa3bea5cef7abf374aa5bd4192038e3a25a7c4f"
++      },
++      {
++        "kind": "directory",
++        "path": "fixtures",
++        "identity": "sha256:ef7916a6759fbfde62fe1e812ce063febe2ee3f71e48fd44327d476e5ac25a7e"
++      },
++      {
++        "kind": "directory",
++        "path": "fixtures/hammer",
++        "identity": "sha256:141b83b91d1bd30361ab0e03d443e0053a819edf9f6cbf30c873b7d5c04d614d"
++      },
++      {
++        "kind": "directory",
++        "path": "groups",
++        "identity": "sha256:fffdc472534c33e4ed146a8395c3f19745b2cc47b2a8149fd7384ec4cd34690e"
++      },
++      {
++        "kind": "file",
++        "path": "build/generated/README.md",
++        "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
++      },
++      {
++        "kind": "file",
++        "path": "fixtures/hammer/Cargo.toml",
++        "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
++      },
++      {
++        "kind": "file",
++        "path": "groups/developer-tools.md",
++        "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
++      }
++    ],
++    "observation": {
++      "files": {
++        "build/generated/README.md": {
++          "type": "file",
++          "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++          "executable": false
++        },
++        "fixtures/hammer/Cargo.toml": {
++          "type": "file",
++          "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++          "executable": false
++        },
++        "groups/developer-tools.md": {
++          "type": "file",
++          "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++          "executable": false
++        }
++      },
++      "inventories": {
++        ".": [
++          "build",
++          "fixtures",
++          "groups"
++        ],
++        "build": [
++          "build/generated"
++        ],
++        "build/generated": [
++          "build/generated/README.md"
++        ],
++        "fixtures": [
++          "fixtures/hammer"
++        ],
++        "fixtures/hammer": [
++          "fixtures/hammer/Cargo.toml"
++        ],
++        "groups": [
++          "groups/developer-tools.md"
++        ]
++      },
++      "boundaries": {
++        "build": {
++          "type": "directory",
++          "mode": 448
++        },
++        "build/generated": {
++          "type": "directory",
++          "mode": 448
++        },
++        "fixtures": {
++          "type": "directory",
++          "mode": 448
++        },
++        "fixtures/hammer": {
++          "type": "directory",
++          "mode": 448
++        },
++        "groups": {
++          "type": "directory",
++          "mode": 448
++        }
++      },
++      "targets": {},
++      "settings": {
++        "core.ignorecase": null,
++        "core.precomposeunicode": null,
++        "core.filemode": "true",
++        "core.symlinks": null,
++        "core.sparsecheckout": null,
++        "core.sparsecheckoutcone": null
++      },
++      "ignores": {
++        "global": {
++          "location": "/home/agents/.config/git/ignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "info": {
++          "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++          "state": {
++            "type": "file",
++            "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++            "executable": false
++          }
++        },
++        ".gitignore": {
++          "location": ".gitignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "build/.gitignore": {
++          "location": "build/.gitignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "build/generated/.gitignore": {
++          "location": "build/generated/.gitignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "fixtures/.gitignore": {
++          "location": "fixtures/.gitignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "fixtures/hammer/.gitignore": {
++          "location": "fixtures/hammer/.gitignore",
++          "state": {
++            "type": "missing"
++          }
++        },
++        "groups/.gitignore": {
++          "location": "groups/.gitignore",
++          "state": {
++            "type": "missing"
++          }
++        }
++      },
++      "limits": {
++        "paths": 20000,
++        "fileBytes": 8388608,
++        "totalBytes": 67108864,
++        "depth": 128
++      },
++      "evidence": [
++        {
++          "kind": "directory",
++          "path": ".",
++          "identity": "sha256:31b986082c9b923597f1aafc9abe62e04bf90c1811d0c56cbf9c83fc77b27432"
++        },
++        {
++          "kind": "directory",
++          "path": "build",
++          "identity": "sha256:84fb2e9d10da460647364125322a9d41be141905bde5cc2f0c91a7b4d57f5ed8"
++        },
++        {
++          "kind": "directory",
++          "path": "build/generated",
++          "identity": "sha256:7923f0677710d83160a4d5698aa3bea5cef7abf374aa5bd4192038e3a25a7c4f"
++        },
++        {
++          "kind": "directory",
++          "path": "fixtures",
++          "identity": "sha256:ef7916a6759fbfde62fe1e812ce063febe2ee3f71e48fd44327d476e5ac25a7e"
++        },
++        {
++          "kind": "directory",
++          "path": "fixtures/hammer",
++          "identity": "sha256:141b83b91d1bd30361ab0e03d443e0053a819edf9f6cbf30c873b7d5c04d614d"
++        },
++        {
++          "kind": "directory",
++          "path": "groups",
++          "identity": "sha256:fffdc472534c33e4ed146a8395c3f19745b2cc47b2a8149fd7384ec4cd34690e"
++        },
++        {
++          "kind": "file",
++          "path": "build/generated/README.md",
++          "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
++        },
++        {
++          "kind": "file",
++          "path": "fixtures/hammer/Cargo.toml",
++          "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
++        },
++        {
++          "kind": "file",
++          "path": "groups/developer-tools.md",
++          "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
++        }
++      ]
++    }
++  },
++  "runs": [
++    {
++      "inspection": "sha256:73aecd0db9cc810c00441633da189b584e9ed3e61052c32481ff9099c3150729",
++      "resolved": {
++        "description": "Maintained projects whose documentation is organized in one catalog",
++        "declarations": [
++          {
++            "id": "documentation-catalog",
++            "checks": [],
++            "fixes": [],
++            "kind": "file",
++            "target": "docs/catalog.json",
++            "exact": "files/catalog.json"
++          },
++          {
++            "id": "project-documentation",
++            "checks": [
++              {
++                "id": "verify-markdown-ending",
++                "run": {
++                  "executable": "node",
++                  "script": "operations/markdown-ending.mjs",
++                  "resources": [],
++                  "arguments": []
++                },
++                "prerequisite": {
++                  "version-arguments": [
++                    "--version"
++                  ],
++                  "version": ">=24.0.0 <25.0.0"
++                },
++                "timeout-seconds": 30
++              }
++            ],
++            "fixes": [
++              {
++                "id": "normalize-markdown-ending",
++                "run": {
++                  "executable": "node",
++                  "script": "operations/markdown-ending.mjs",
++                  "resources": [],
++                  "arguments": []
++                },
++                "prerequisite": {
++                  "version-arguments": [
++                    "--version"
++                  ],
++                  "version": ">=24.0.0 <25.0.0"
++                },
++                "timeout-seconds": 30
++              }
++            ],
++            "kind": "repository",
++            "guidance": "guidance/project-documentation.md",
++            "targets": {
++              "paths": [],
++              "directories": []
++            }
++          }
++        ]
++      },
++      "sourceResolved": {
++        "description": "Maintained projects whose documentation is organized in one catalog",
++        "declarations": [
++          {
++            "id": "documentation-catalog",
++            "checks": [],
++            "fixes": [],
++            "kind": "file",
++            "target": "docs/catalog.json",
++            "exact": "files/catalog.json"
++          },
++          {
++            "id": "project-documentation",
++            "checks": [
++              {
++                "id": "verify-markdown-ending",
++                "run": {
++                  "executable": "node",
++                  "script": "operations/markdown-ending.mjs",
++                  "resources": [],
++                  "arguments": []
++                },
++                "prerequisite": {
++                  "version-arguments": [
++                    "--version"
++                  ],
++                  "version": ">=24.0.0 <25.0.0"
++                },
++                "timeout-seconds": 30
++              }
++            ],
++            "fixes": [
++              {
++                "id": "normalize-markdown-ending",
++                "run": {
++                  "executable": "node",
++                  "script": "operations/markdown-ending.mjs",
++                  "resources": [],
++                  "arguments": []
++                },
++                "prerequisite": {
++                  "version-arguments": [
++                    "--version"
++                  ],
++                  "version": ">=24.0.0 <25.0.0"
++                },
++                "timeout-seconds": 30
++              }
++            ],
++            "kind": "repository",
++            "guidance": "guidance/project-documentation.md",
++            "discovery": "guidance/project-discovery.md"
++          }
++        ]
++      },
++      "discovery": {
++        "identity": "sha256:4c83ce6f22e64c9a635e8a050152b7e33077f8ae4021387a2b3a59f673e8202c",
++        "proposal": {
++          "format": "repo-standards/scope/v1",
++          "request": "sha256:4c83ce6f22e64c9a635e8a050152b7e33077f8ae4021387a2b3a59f673e8202c",
++          "declarations": [
++            {
++              "id": "project-documentation",
++              "paths": [],
++              "coverage": "No independently maintained project remains in this repository. fixtures/hammer is test data, build/generated/README.md is generated output, and groups/developer-tools.md is an organizational index; all are evidence-backed exclusions. There is therefore no project README, documentation migration, introduced contextual index, or link repair to authorize. Source-owned exact docs/catalog.json remains outside contextual scope.",
++              "evidence": [
++                {
++                  "kind": "directory",
++                  "path": ".",
++                  "identity": "sha256:31b986082c9b923597f1aafc9abe62e04bf90c1811d0c56cbf9c83fc77b27432"
++                },
++                {
++                  "kind": "file",
++                  "path": "build/generated/README.md",
++                  "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
++                },
++                {
++                  "kind": "file",
++                  "path": "fixtures/hammer/Cargo.toml",
++                  "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
++                },
++                {
++                  "kind": "file",
++                  "path": "groups/developer-tools.md",
++                  "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
++                }
++              ],
++              "candidates": [
++                {
++                  "path": "build/generated/README.md",
++                  "decision": "exclude",
++                  "reason": "The file states that its content is regenerated by the build, so it is generated output rather than maintained project documentation.",
++                  "evidence": [
++                    {
++                      "kind": "directory",
++                      "path": "build/generated",
++                      "identity": "sha256:7923f0677710d83160a4d5698aa3bea5cef7abf374aa5bd4192038e3a25a7c4f"
++                    },
++                    {
++                      "kind": "file",
++                      "path": "build/generated/README.md",
++                      "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
++                    }
++                  ]
++                },
++                {
++                  "path": "fixtures/hammer",
++                  "decision": "exclude",
++                  "reason": "The directory is under fixtures and its only manifest declares fixture-hammer version 0.0.0 without ownership or build/deployment evidence, so it is test data rather than an independently maintained project.",
++                  "evidence": [
++                    {
++                      "kind": "directory",
++                      "path": "fixtures/hammer",
++                      "identity": "sha256:141b83b91d1bd30361ab0e03d443e0053a819edf9f6cbf30c873b7d5c04d614d"
++                    },
++                    {
++                      "kind": "file",
++                      "path": "fixtures/hammer/Cargo.toml",
++                      "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
++                    }
++                  ]
++                },
++                {
++                  "path": "groups/developer-tools.md",
++                  "decision": "exclude",
++                  "reason": "The file explicitly identifies itself as an organizational index rather than a maintained project.",
++                  "evidence": [
++                    {
++                      "kind": "directory",
++                      "path": "groups",
++                      "identity": "sha256:fffdc472534c33e4ed146a8395c3f19745b2cc47b2a8149fd7384ec4cd34690e"
++                    },
++                    {
++                      "kind": "file",
++                      "path": "groups/developer-tools.md",
++                      "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
++                    }
++                  ]
++                }
++              ],
++              "unresolved": []
++            }
++          ]
++        },
++        "absence": [],
++        "namedObservation": {
++          "files": {
++            "build/generated/README.md": {
++              "type": "file",
++              "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++              "executable": false
++            },
++            "fixtures/hammer/Cargo.toml": {
++              "type": "file",
++              "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++              "executable": false
++            },
++            "groups/developer-tools.md": {
++              "type": "file",
++              "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++              "executable": false
++            }
++          },
++          "inventories": {
++            ".": [
++              "build",
++              "fixtures",
++              "groups"
++            ],
++            "build": [
++              "build/generated"
++            ],
++            "build/generated": [
++              "build/generated/README.md"
++            ],
++            "fixtures": [
++              "fixtures/hammer"
++            ],
++            "fixtures/hammer": [
++              "fixtures/hammer/Cargo.toml"
++            ],
++            "groups": [
++              "groups/developer-tools.md"
++            ]
++          },
++          "boundaries": {
++            "build": {
++              "type": "directory",
++              "mode": 448
++            },
++            "build/generated": {
++              "type": "directory",
++              "mode": 448
++            },
++            "fixtures": {
++              "type": "directory",
++              "mode": 448
++            },
++            "fixtures/hammer": {
++              "type": "directory",
++              "mode": 448
++            },
++            "groups": {
++              "type": "directory",
++              "mode": 448
++            }
++          },
++          "targets": {},
++          "settings": {
++            "core.ignorecase": null,
++            "core.precomposeunicode": null,
++            "core.filemode": "true",
++            "core.symlinks": null,
++            "core.sparsecheckout": null,
++            "core.sparsecheckoutcone": null
++          },
++          "ignores": {
++            "global": {
++              "location": "/home/agents/.config/git/ignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "info": {
++              "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++              "state": {
++                "type": "file",
++                "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++                "executable": false
++              }
++            },
++            ".gitignore": {
++              "location": ".gitignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "build/.gitignore": {
++              "location": "build/.gitignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "build/generated/.gitignore": {
++              "location": "build/generated/.gitignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "fixtures/.gitignore": {
++              "location": "fixtures/.gitignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "fixtures/hammer/.gitignore": {
++              "location": "fixtures/hammer/.gitignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "groups/.gitignore": {
++              "location": "groups/.gitignore",
++              "state": {
++                "type": "missing"
++              }
++            }
++          },
++          "limits": {
++            "paths": 20000,
++            "fileBytes": 8388608,
++            "totalBytes": 67108864,
++            "depth": 128
++          },
++          "evidence": [
++            {
++              "kind": "directory",
++              "path": ".",
++              "identity": "sha256:31b986082c9b923597f1aafc9abe62e04bf90c1811d0c56cbf9c83fc77b27432"
++            },
++            {
++              "kind": "directory",
++              "path": "build",
++              "identity": "sha256:84fb2e9d10da460647364125322a9d41be141905bde5cc2f0c91a7b4d57f5ed8"
++            },
++            {
++              "kind": "directory",
++              "path": "build/generated",
++              "identity": "sha256:7923f0677710d83160a4d5698aa3bea5cef7abf374aa5bd4192038e3a25a7c4f"
++            },
++            {
++              "kind": "directory",
++              "path": "fixtures",
++              "identity": "sha256:ef7916a6759fbfde62fe1e812ce063febe2ee3f71e48fd44327d476e5ac25a7e"
++            },
++            {
++              "kind": "directory",
++              "path": "fixtures/hammer",
++              "identity": "sha256:141b83b91d1bd30361ab0e03d443e0053a819edf9f6cbf30c873b7d5c04d614d"
++            },
++            {
++              "kind": "directory",
++              "path": "groups",
++              "identity": "sha256:fffdc472534c33e4ed146a8395c3f19745b2cc47b2a8149fd7384ec4cd34690e"
++            },
++            {
++              "kind": "file",
++              "path": "build/generated/README.md",
++              "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
++            },
++            {
++              "kind": "file",
++              "path": "fixtures/hammer/Cargo.toml",
++              "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
++            },
++            {
++              "kind": "file",
++              "path": "groups/developer-tools.md",
++              "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
++            }
++          ]
++        },
++        "declarations": [
++          {
++            "id": "project-documentation",
++            "source": "guidance/project-discovery.md",
++            "sha256": "014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57",
++            "executable": false,
++            "encoding": "utf8",
++            "content": "# Project documentation discovery\n\nIdentify independently maintained projects from positive ownership and build or\ndeployment evidence. A project can require documentation when its directory has\nno README. A familiar filename by itself does not establish membership.\n\nFor every candidate, explain inclusion or exclusion. Treat test fixtures,\ngenerated output, archived copies, and directories that only group teams or\nprojects as candidates requiring evidence, not maintained projects by default.\nLeave uncertain maintenance or ownership as an unresolved question.\n\nFor each included project, plan individual files for its project README, every\nexisting documentation source that will move, each destination and introduced\ndocumentation index, and every file whose links need repair. Do not include\n`docs/catalog.json`; the source owns that exact file. An explained empty list is\nvalid when evidence shows that no maintained project is present.\n"
++          }
++        ],
++        "evidence": [
++          {
++            "kind": "directory",
++            "path": ".",
++            "identity": "sha256:31b986082c9b923597f1aafc9abe62e04bf90c1811d0c56cbf9c83fc77b27432"
++          },
++          {
++            "kind": "directory",
++            "path": "build",
++            "identity": "sha256:84fb2e9d10da460647364125322a9d41be141905bde5cc2f0c91a7b4d57f5ed8"
++          },
++          {
++            "kind": "directory",
++            "path": "build/generated",
++            "identity": "sha256:7923f0677710d83160a4d5698aa3bea5cef7abf374aa5bd4192038e3a25a7c4f"
++          },
++          {
++            "kind": "directory",
++            "path": "fixtures",
++            "identity": "sha256:ef7916a6759fbfde62fe1e812ce063febe2ee3f71e48fd44327d476e5ac25a7e"
++          },
++          {
++            "kind": "directory",
++            "path": "fixtures/hammer",
++            "identity": "sha256:141b83b91d1bd30361ab0e03d443e0053a819edf9f6cbf30c873b7d5c04d614d"
++          },
++          {
++            "kind": "directory",
++            "path": "groups",
++            "identity": "sha256:fffdc472534c33e4ed146a8395c3f19745b2cc47b2a8149fd7384ec4cd34690e"
++          },
++          {
++            "kind": "file",
++            "path": "build/generated/README.md",
++            "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
++          },
++          {
++            "kind": "file",
++            "path": "fixtures/hammer/Cargo.toml",
++            "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
++          },
++          {
++            "kind": "file",
++            "path": "groups/developer-tools.md",
++            "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
++          }
++        ],
++        "observation": {
++          "files": {
++            "build/generated/README.md": {
++              "type": "file",
++              "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++              "executable": false
++            },
++            "fixtures/hammer/Cargo.toml": {
++              "type": "file",
++              "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++              "executable": false
++            },
++            "groups/developer-tools.md": {
++              "type": "file",
++              "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++              "executable": false
++            }
++          },
++          "inventories": {
++            ".": [
++              "build",
++              "fixtures",
++              "groups"
++            ],
++            "build": [
++              "build/generated"
++            ],
++            "build/generated": [
++              "build/generated/README.md"
++            ],
++            "fixtures": [
++              "fixtures/hammer"
++            ],
++            "fixtures/hammer": [
++              "fixtures/hammer/Cargo.toml"
++            ],
++            "groups": [
++              "groups/developer-tools.md"
++            ]
++          },
++          "boundaries": {
++            "build": {
++              "type": "directory",
++              "mode": 448
++            },
++            "build/generated": {
++              "type": "directory",
++              "mode": 448
++            },
++            "fixtures": {
++              "type": "directory",
++              "mode": 448
++            },
++            "fixtures/hammer": {
++              "type": "directory",
++              "mode": 448
++            },
++            "groups": {
++              "type": "directory",
++              "mode": 448
++            }
++          },
++          "targets": {},
++          "settings": {
++            "core.ignorecase": null,
++            "core.precomposeunicode": null,
++            "core.filemode": "true",
++            "core.symlinks": null,
++            "core.sparsecheckout": null,
++            "core.sparsecheckoutcone": null
++          },
++          "ignores": {
++            "global": {
++              "location": "/home/agents/.config/git/ignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "info": {
++              "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++              "state": {
++                "type": "file",
++                "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++                "executable": false
++              }
++            },
++            ".gitignore": {
++              "location": ".gitignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "build/.gitignore": {
++              "location": "build/.gitignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "build/generated/.gitignore": {
++              "location": "build/generated/.gitignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "fixtures/.gitignore": {
++              "location": "fixtures/.gitignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "fixtures/hammer/.gitignore": {
++              "location": "fixtures/hammer/.gitignore",
++              "state": {
++                "type": "missing"
++              }
++            },
++            "groups/.gitignore": {
++              "location": "groups/.gitignore",
++              "state": {
++                "type": "missing"
++              }
++            }
++          },
++          "limits": {
++            "paths": 20000,
++            "fileBytes": 8388608,
++            "totalBytes": 67108864,
++            "depth": 128
++          },
++          "evidence": [
++            {
++              "kind": "directory",
++              "path": ".",
++              "identity": "sha256:31b986082c9b923597f1aafc9abe62e04bf90c1811d0c56cbf9c83fc77b27432"
++            },
++            {
++              "kind": "directory",
++              "path": "build",
++              "identity": "sha256:84fb2e9d10da460647364125322a9d41be141905bde5cc2f0c91a7b4d57f5ed8"
++            },
++            {
++              "kind": "directory",
++              "path": "build/generated",
++              "identity": "sha256:7923f0677710d83160a4d5698aa3bea5cef7abf374aa5bd4192038e3a25a7c4f"
++            },
++            {
++              "kind": "directory",
++              "path": "fixtures",
++              "identity": "sha256:ef7916a6759fbfde62fe1e812ce063febe2ee3f71e48fd44327d476e5ac25a7e"
++            },
++            {
++              "kind": "directory",
++              "path": "fixtures/hammer",
++              "identity": "sha256:141b83b91d1bd30361ab0e03d443e0053a819edf9f6cbf30c873b7d5c04d614d"
++            },
++            {
++              "kind": "directory",
++              "path": "groups",
++              "identity": "sha256:fffdc472534c33e4ed146a8395c3f19745b2cc47b2a8149fd7384ec4cd34690e"
++            },
++            {
++              "kind": "file",
++              "path": "build/generated/README.md",
++              "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
++            },
++            {
++              "kind": "file",
++              "path": "fixtures/hammer/Cargo.toml",
++              "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
++            },
++            {
++              "kind": "file",
++              "path": "groups/developer-tools.md",
++              "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
++            }
++          ]
++        }
++      }
++    }
++  ]
++}
+diff --git a/.repo-standards/inputs/source/files/catalog.json b/.repo-standards/inputs/source/files/catalog.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..ccede5fa9f1d7fe7f995370563fa250af7ff9c9f
+--- /dev/null
++++ b/.repo-standards/inputs/source/files/catalog.json
+@@ -0,0 +1,3 @@
++{
++  "format": "atlas-documentation/v1"
++}
+diff --git a/.repo-standards/inputs/source/guidance/project-discovery.md b/.repo-standards/inputs/source/guidance/project-discovery.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..0a817a9201838ca00a3c852a29db771cfeec3138
+--- /dev/null
++++ b/.repo-standards/inputs/source/guidance/project-discovery.md
+@@ -0,0 +1,16 @@
++# Project documentation discovery
++
++Identify independently maintained projects from positive ownership and build or
++deployment evidence. A project can require documentation when its directory has
++no README. A familiar filename by itself does not establish membership.
++
++For every candidate, explain inclusion or exclusion. Treat test fixtures,
++generated output, archived copies, and directories that only group teams or
++projects as candidates requiring evidence, not maintained projects by default.
++Leave uncertain maintenance or ownership as an unresolved question.
++
++For each included project, plan individual files for its project README, every
++existing documentation source that will move, each destination and introduced
++documentation index, and every file whose links need repair. Do not include
++`docs/catalog.json`; the source owns that exact file. An explained empty list is
++valid when evidence shows that no maintained project is present.
+diff --git a/.repo-standards/inputs/source/guidance/project-documentation.md b/.repo-standards/inputs/source/guidance/project-documentation.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..97b4d82f4a038e72e2ae9075f3bedf0548b02dfa
+--- /dev/null
++++ b/.repo-standards/inputs/source/guidance/project-documentation.md
+@@ -0,0 +1,11 @@
++# Project documentation guidance
++
++Give each maintained project a concise README with its purpose, verified setup
++and operating commands, and links to deeper material. Preserve useful facts,
++warnings, and recovery instructions when moving existing documentation into
++`docs/projects/`. Add the smallest useful documentation index and repair links
++that referred to old locations.
++
++Do not rewrite generated or fixture content, invent commands, or describe an
++organizational directory as a project. Preserve project-owned voice and history.
++The exact `docs/catalog.json` is outside this contextual declaration.
+diff --git a/.repo-standards/inputs/source/operations/markdown-ending.mjs b/.repo-standards/inputs/source/operations/markdown-ending.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..991e87e0ab415f512de9489140710a82e40b2beb
+--- /dev/null
++++ b/.repo-standards/inputs/source/operations/markdown-ending.mjs
+@@ -0,0 +1,26 @@
++import { existsSync, lstatSync, readFileSync, writeFileSync } from 'node:fs';
++import { resolve } from 'node:path';
++
++const input = JSON.parse(readFileSync(0, 'utf8'));
++const changed = [];
++const invalid = [];
++
++for (const target of input.allowedTargets.paths) {
++  if (!target.endsWith('.md') || !existsSync(target) || !lstatSync(target).isFile()) continue;
++  const path = resolve(target);
++  const content = readFileSync(path);
++  if (content.length > 0 && content.at(-1) === 0x0a) continue;
++  if (input.operation.phase === 'fixes') {
++    writeFileSync(path, Buffer.concat([content, Buffer.from('\n')]));
++    changed.push(target);
++  } else invalid.push(target);
++}
++
++const failed = input.operation.phase === 'checks' && invalid.length > 0;
++console.log(JSON.stringify({
++  format: 'repo-standards/result/v1',
++  status: failed ? 'failed' : changed.length > 0 ? 'changed' : input.operation.phase === 'checks' ? 'passed' : 'unchanged',
++  message: failed
++    ? `Markdown files without a final newline: ${invalid.join(', ')}`
++    : changed.length > 0 ? `Added final newlines: ${changed.join(', ')}` : 'Markdown endings already satisfy the source.',
++}));
+diff --git a/.repo-standards/inputs/standards.yaml b/.repo-standards/inputs/standards.yaml
+new file mode 100644
+index 0000000000000000000000000000000000000000..acd0b0691f418ab1423d13487cd56e810f7d9302
+--- /dev/null
++++ b/.repo-standards/inputs/standards.yaml
+@@ -0,0 +1,45 @@
++format: repo-standards/v2
++name: atlas-documentation
++description: Discover maintained projects and keep their documentation navigable
++requires:
++  repo-standards: ">=1.2.0 <2.0.0"
++defaults:
++  declarations: {}
++profiles:
++  maintained:
++    description: Maintained projects whose documentation is organized in one catalog
++    declarations:
++      documentation-catalog:
++        checks: []
++        fixes: []
++        kind: file
++        target: docs/catalog.json
++        exact: files/catalog.json
++      project-documentation:
++        checks:
++          - id: verify-markdown-ending
++            run:
++              executable: node
++              script: operations/markdown-ending.mjs
++              resources: []
++              arguments: []
++            prerequisite:
++              version-arguments:
++                - --version
++              version: ">=24.0.0 <25.0.0"
++            timeout-seconds: 30
++        fixes:
++          - id: normalize-markdown-ending
++            run:
++              executable: node
++              script: operations/markdown-ending.mjs
++              resources: []
++              arguments: []
++            prerequisite:
++              version-arguments:
++                - --version
++              version: ">=24.0.0 <25.0.0"
++            timeout-seconds: 30
++        kind: repository
++        guidance: guidance/project-documentation.md
++        discovery: guidance/project-discovery.md
+diff --git a/.repo-standards/lock.json b/.repo-standards/lock.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..0269d20f87a9d7e4c9bb1fbb1513a85c0120e672
+--- /dev/null
++++ b/.repo-standards/lock.json
+@@ -0,0 +1,78 @@
++{
++  "format": "repo-standards/lock/v1",
++  "selection": {
++    "cli": {
++      "package": "@lutzseverino/repo-standards",
++      "version": "1.2.0"
++    },
++    "standards": {
++      "repository": "https://github.com/atlas/standards",
++      "version": "v1.0.0",
++      "commit": "a7418aad6db00a616d6d4f28b5f8b61efada8edc"
++    },
++    "profile": "maintained"
++  },
++  "inspection": "sha256:73aecd0db9cc810c00441633da189b584e9ed3e61052c32481ff9099c3150729",
++  "files": {
++    "docs/catalog.json": {
++      "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++      "executable": false
++    },
++    ".agents/skills/adopt-standards/SKILL.md": {
++      "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++      "executable": false
++    },
++    ".repo-standards/inputs/source/files/catalog.json": {
++      "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++      "executable": false
++    },
++    ".repo-standards/inputs/source/guidance/project-documentation.md": {
++      "sha256": "f4d9ba3e46d6d5d9bbcb043d2fe4bf687a96f61f505ee30bbd2e04afbf2108a9",
++      "executable": false
++    },
++    ".repo-standards/inputs/source/guidance/project-discovery.md": {
++      "sha256": "014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57",
++      "executable": false
++    },
++    ".repo-standards/inputs/source/operations/markdown-ending.mjs": {
++      "sha256": "cc333786362309d1e05db95acb7c634539ab5e99cbad96998c7172177009511d",
++      "executable": false
++    },
++    ".repo-standards/inputs/standards.yaml": {
++      "sha256": "1091a2f18725536d39b789da175134e613904f0d8dc61ec26ab09fc15ba10a91",
++      "executable": false
++    },
++    ".repo-standards/inputs/metadata.json": {
++      "sha256": "98e78cfc97d60b3cadabaa1f92cc0520a2f82866fd5627cd525500d835cb6199",
++      "executable": false
++    },
++    ".repo-standards/inputs/resolved.json": {
++      "sha256": "0eba12475404f18537a5c46a0b76441bf4d9eb8454c52976cbc32192c163a984",
++      "executable": false
++    },
++    ".repo-standards/inputs/scope-history.json": {
++      "sha256": "6d0e893f095029a59e2b25361ec45023cc4851f0fd56cd09e427a2d6ac7637be",
++      "executable": false
++    },
++    ".repo-standards/selection.yaml": {
++      "sha256": "2ca6185770038a6eeefcff767a5ed6a1e8b9e1b787628ae4d66c4c1ada5fb8cd",
++      "executable": false
++    },
++    ".repo-standards/.gitignore": {
++      "sha256": "c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d",
++      "executable": false
++    },
++    ".repo-standards/runtime/package.json": {
++      "sha256": "f385b5bf314a56b7508667f9af61fe83402bc0193b234f457f3defde46d957c6",
++      "executable": false
++    },
++    ".repo-standards/runtime/package-lock.json": {
++      "sha256": "6830aeb74079b6e6bc000fba00aed7623e65fa34cbde6d5e6a1345a2cefd14af",
++      "executable": false
++    }
++  },
++  "state": {
++    "sha256": "2d8dc0fe13b119e88d0c579372511fd59b40c81c021d8a6fd426702f119a0a39",
++    "executable": false
++  }
++}
+diff --git a/.repo-standards/runtime/package-lock.json b/.repo-standards/runtime/package-lock.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..aa77433c9ab1444e81d14e5134a1999d098e1c28
+--- /dev/null
++++ b/.repo-standards/runtime/package-lock.json
+@@ -0,0 +1,382 @@
++{
++  "name": "repo-standards-runtime-pXxleL",
++  "lockfileVersion": 3,
++  "requires": true,
++  "packages": {
++    "": {
++      "dependencies": {
++        "@lutzseverino/repo-standards": "1.2.0"
++      }
++    },
++    "node_modules/@koromix/koffi-android-arm64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-android-arm64/-/koffi-android-arm64-3.2.1.tgz",
++      "integrity": "sha512-1pJQ4jnZlUJduK9u9DC5CGy3aOgDUPvIXpNb6syV3+Dh5Q/ugezAIGCqvY+w+1mgXsve0pd0NVvJRjdZNHQ6MA==",
++      "cpu": [
++        "arm64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "android"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-android-x64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-android-x64/-/koffi-android-x64-3.2.1.tgz",
++      "integrity": "sha512-HH40xGh3gVQifjOBnhwT2tECC0lL1lYe+nxHvWNSzxDIyQNcVPXg38ta7vuONRFpD+uIrw7fqGYLzbZIagkVcg==",
++      "cpu": [
++        "x64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "android"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-darwin-arm64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-darwin-arm64/-/koffi-darwin-arm64-3.2.1.tgz",
++      "integrity": "sha512-Vj4h+xcjc5+Cn0DhPHjgRX4omKAv96Kehtcd+1YgYuY2W7FvQn9vS+3SmzVwhC5Qmg9bIwUZObYQ8T/4hBqQqA==",
++      "cpu": [
++        "arm64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "darwin"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-darwin-x64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-darwin-x64/-/koffi-darwin-x64-3.2.1.tgz",
++      "integrity": "sha512-gFCWxNBTZIvxo1p+PURWfsy2Ctj5FGnVVs1f03lTLhBvmxEto70pdIiFztdFLDFkAJ1pmtQmruRKapeK+E8YPA==",
++      "cpu": [
++        "x64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "darwin"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-freebsd-arm64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-freebsd-arm64/-/koffi-freebsd-arm64-3.2.1.tgz",
++      "integrity": "sha512-qj+f1s2e6vULaUG1cdlTcCXmunCq2t+rjxku1+esaMIqVnHpOwj0QzPuInG0AFdXjwBNQhyVR/HpDj8daEwwsQ==",
++      "cpu": [
++        "arm64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "freebsd"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-freebsd-ia32": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-freebsd-ia32/-/koffi-freebsd-ia32-3.2.1.tgz",
++      "integrity": "sha512-6olHb1Qfgai0jjs6ddlDDD0ZfsCxy7SPi8rMRpuYQWH0qhgtyQu82hw5b1p7z+TJ0zZP3ZeQQ6l+U/MlM1ICHQ==",
++      "cpu": [
++        "ia32"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "freebsd"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-freebsd-x64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-freebsd-x64/-/koffi-freebsd-x64-3.2.1.tgz",
++      "integrity": "sha512-Dikhw1ySYNVMkmeFvFVjnU5Wdk6mffNoOjJxm9bTG96vg7OlemylxqdEven47R1YJ3yzNVJn/MlQ207ORWfi2w==",
++      "cpu": [
++        "x64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "freebsd"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-linux-arm": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-linux-arm/-/koffi-linux-arm-3.2.1.tgz",
++      "integrity": "sha512-OfwUwZylidq95wQKp6ClInULrfB2giu7dqM6Rhe0zAe6lES5I2SXNw15T9+GnRHk3/9hKT2XZ37OZLaKSyWNLA==",
++      "cpu": [
++        "arm"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-linux-arm64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-linux-arm64/-/koffi-linux-arm64-3.2.1.tgz",
++      "integrity": "sha512-K+cGUL5iBcDqxmsocrjmlASqDf24gc7artbVW3PewG2c9AqwC63lezgwvB85Nx4lZAQjB6zIFHh9A7t1yGbwhw==",
++      "cpu": [
++        "arm64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-linux-ia32": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-linux-ia32/-/koffi-linux-ia32-3.2.1.tgz",
++      "integrity": "sha512-rxj6UYjU1qd98gxNQOSCdLpc5cPRi5Giq9rNd3jnGuSNIyMkwa6Dxw4cUjmhIBCYESMJtmNt5NWnJp5u9wTfYQ==",
++      "cpu": [
++        "ia32"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-linux-loong64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-linux-loong64/-/koffi-linux-loong64-3.2.1.tgz",
++      "integrity": "sha512-aHhnHzkPRmT/IHDlGvESJ/Bs32m8N6UE6Ab6kMeJzgk74IN8af2m/81/wZJtybR1M2UxCV4NmlVNUYQQvSAO3Q==",
++      "cpu": [
++        "loong64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-linux-riscv64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-linux-riscv64/-/koffi-linux-riscv64-3.2.1.tgz",
++      "integrity": "sha512-qtQBsjbm3LiirLJvajWmKkNb7ARk7fvJVXdftJ7NtAnF3Xw8EbDvrtvmvtNI1yLPlYcBmlzCCD71hwhWYk0SIA==",
++      "cpu": [
++        "riscv64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-linux-x64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-linux-x64/-/koffi-linux-x64-3.2.1.tgz",
++      "integrity": "sha512-c7hw7Qs/r5gnFRTQLcbifBwRU7wiocj+2pVuDQ5Ahb3r36SZmupmgYbTWcLvTW+hul1jd7SKRV0d14ZJq/tvSw==",
++      "cpu": [
++        "x64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-openbsd-ia32": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-openbsd-ia32/-/koffi-openbsd-ia32-3.2.1.tgz",
++      "integrity": "sha512-mmY8fY8LQ/CB52+h3yrMYmVyoxzW3x08S0yI6VNfHWdfU6yJtZkKCbhjmQCYMrWbYKC4gMvwZwCywIGPAkLyeA==",
++      "cpu": [
++        "ia32"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "openbsd"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-openbsd-x64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-openbsd-x64/-/koffi-openbsd-x64-3.2.1.tgz",
++      "integrity": "sha512-k4ig6aAPbFSRATOIIOfdf/KtlOGH4SVls6L9fy0QnTxRJYvY2oSltTsQtBDANgEQldlq8Kl5WnpRa1VSibP4Lw==",
++      "cpu": [
++        "x64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "openbsd"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-win32-arm64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-win32-arm64/-/koffi-win32-arm64-3.2.1.tgz",
++      "integrity": "sha512-cTWBJGK//pDMeKQJE/79Aq9MiOAF4H8QyLZHSQ9IWm8czOfwjG4J1AhsQ9DjI9KFOykH77hhnpmQTGVMIubGig==",
++      "cpu": [
++        "arm64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "win32"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-win32-ia32": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-win32-ia32/-/koffi-win32-ia32-3.2.1.tgz",
++      "integrity": "sha512-Z50EM6TAZ7CFyMmyX6thv8eNpJchqe9eenhibSIy2Eq/FQYF76gU2VK/LEoaF46L8hfC7TpTp9b10MvReHEyFA==",
++      "cpu": [
++        "ia32"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "win32"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@koromix/koffi-win32-x64": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/@koromix/koffi-win32-x64/-/koffi-win32-x64-3.2.1.tgz",
++      "integrity": "sha512-ZmZNiBO6bkOSh3QNzgfvb1cMY0yMobn6ZQrSMqbAce21qyYL8niIbyipz9N/PIRDciGhsV0wUxnZsxIO+yWsHQ==",
++      "cpu": [
++        "x64"
++      ],
++      "license": "MIT",
++      "optional": true,
++      "os": [
++        "win32"
++      ],
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      }
++    },
++    "node_modules/@lutzseverino/repo-standards": {
++      "version": "1.2.0",
++      "resolved": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.2.0.tgz",
++      "integrity": "sha512-upetHlGX7xhNxUiWY5V88rTyLpv2umoq9zx+y1aKfAbjA24hbPuZl3ZCFAL81rQ+fUw1aL+253O/mE7W8Agdog==",
++      "license": "MIT",
++      "dependencies": {
++        "koffi": "3.2.1",
++        "semver": "7.8.5",
++        "unicode-case-folding": "1.1.1",
++        "yaml": "2.9.0"
++      },
++      "bin": {
++        "repo-standards": "dist/cli.js",
++        "repo-standards-bootstrap": "bootstrap/repo-standards"
++      },
++      "engines": {
++        "node": ">=24 <25"
++      }
++    },
++    "node_modules/koffi": {
++      "version": "3.2.1",
++      "resolved": "https://registry.npmjs.org/koffi/-/koffi-3.2.1.tgz",
++      "integrity": "sha512-0qE3lZ8jllRqPN4Ob6Ajl7c2bJSJDhQWuKLGP5hIEpHLllJWv1ydHFMhHmHc5p/W9GticKVDbYzZd7TBoQ4CZg==",
++      "hasInstallScript": true,
++      "license": "MIT",
++      "funding": {
++        "url": "https://liberapay.com/Koromix"
++      },
++      "optionalDependencies": {
++        "@koromix/koffi-android-arm64": "3.2.1",
++        "@koromix/koffi-android-x64": "3.2.1",
++        "@koromix/koffi-darwin-arm64": "3.2.1",
++        "@koromix/koffi-darwin-x64": "3.2.1",
++        "@koromix/koffi-freebsd-arm64": "3.2.1",
++        "@koromix/koffi-freebsd-ia32": "3.2.1",
++        "@koromix/koffi-freebsd-x64": "3.2.1",
++        "@koromix/koffi-linux-arm": "3.2.1",
++        "@koromix/koffi-linux-arm64": "3.2.1",
++        "@koromix/koffi-linux-ia32": "3.2.1",
++        "@koromix/koffi-linux-loong64": "3.2.1",
++        "@koromix/koffi-linux-riscv64": "3.2.1",
++        "@koromix/koffi-linux-x64": "3.2.1",
++        "@koromix/koffi-openbsd-ia32": "3.2.1",
++        "@koromix/koffi-openbsd-x64": "3.2.1",
++        "@koromix/koffi-win32-arm64": "3.2.1",
++        "@koromix/koffi-win32-ia32": "3.2.1",
++        "@koromix/koffi-win32-x64": "3.2.1"
++      }
++    },
++    "node_modules/semver": {
++      "version": "7.8.5",
++      "resolved": "https://registry.npmjs.org/semver/-/semver-7.8.5.tgz",
++      "integrity": "sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==",
++      "license": "ISC",
++      "bin": {
++        "semver": "bin/semver.js"
++      },
++      "engines": {
++        "node": ">=10"
++      }
++    },
++    "node_modules/unicode-case-folding": {
++      "version": "1.1.1",
++      "resolved": "https://registry.npmjs.org/unicode-case-folding/-/unicode-case-folding-1.1.1.tgz",
++      "integrity": "sha512-ZAYziAnMTBisO2dT5tyGvBFMNsIfonOS/BZTd3UZaKWtXMOZqK8s8HRUCrlKxGCTeCxCuCjS/6HW+4a6G+rbzw==",
++      "license": "MIT"
++    },
++    "node_modules/yaml": {
++      "version": "2.9.0",
++      "resolved": "https://registry.npmjs.org/yaml/-/yaml-2.9.0.tgz",
++      "integrity": "sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==",
++      "license": "ISC",
++      "bin": {
++        "yaml": "bin.mjs"
++      },
++      "engines": {
++        "node": ">= 14.6"
++      },
++      "funding": {
++        "url": "https://github.com/sponsors/eemeli"
++      }
++    }
++  }
++}
+diff --git a/.repo-standards/runtime/package.json b/.repo-standards/runtime/package.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..087e6b0b52938cf5b8983d1b01e0403133871579
+--- /dev/null
++++ b/.repo-standards/runtime/package.json
+@@ -0,0 +1,6 @@
++{
++  "private": true,
++  "dependencies": {
++    "@lutzseverino/repo-standards": "1.2.0"
++  }
++}
+diff --git a/.repo-standards/selection.yaml b/.repo-standards/selection.yaml
+new file mode 100644
+index 0000000000000000000000000000000000000000..f19654dbfe1d4ca108cdedbf6fbd51190b89cc6c
+--- /dev/null
++++ b/.repo-standards/selection.yaml
+@@ -0,0 +1,8 @@
++cli:
++  package: "@lutzseverino/repo-standards"
++  version: 1.2.0
++standards:
++  repository: https://github.com/atlas/standards
++  version: v1.0.0
++  commit: a7418aad6db00a616d6d4f28b5f8b61efada8edc
++profile: maintained
+diff --git a/.repo-standards/state.json b/.repo-standards/state.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..10de06a8825e5009241a60fc53aa0fdf3f99c760
+--- /dev/null
++++ b/.repo-standards/state.json
+@@ -0,0 +1,1763 @@
++{
++  "format": "repo-standards/state/v4",
++  "history": [],
++  "observations": [
++    {
++      "phase": "fixes",
++      "operation": {
++        "phase": "fixes",
++        "declaration": "project-documentation",
++        "id": "normalize-markdown-ending"
++      },
++      "operationIndex": 0,
++      "scope": {
++        "project-documentation": {
++          "paths": [],
++          "directories": []
++        }
++      },
++      "before": {
++        "files": {
++          ".agents/skills/adopt-standards/SKILL.md": {
++            "type": "file",
++            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++            "executable": false
++          },
++          "build/generated/README.md": {
++            "type": "file",
++            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++            "executable": false
++          },
++          "docs/catalog.json": {
++            "type": "file",
++            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++            "executable": false
++          },
++          "fixtures/hammer/Cargo.toml": {
++            "type": "file",
++            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++            "executable": false
++          },
++          "groups/developer-tools.md": {
++            "type": "file",
++            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++            "executable": false
++          }
++        },
++        "boundaries": {
++          ".": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills/adopt-standards": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build/generated": {
++            "type": "directory",
++            "mode": 448
++          },
++          "docs": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures/hammer": {
++            "type": "directory",
++            "mode": 448
++          },
++          "groups": {
++            "type": "directory",
++            "mode": 448
++          }
++        },
++        "settings": {
++          "core.ignorecase": null,
++          "core.precomposeunicode": null,
++          "core.filemode": "true",
++          "core.symlinks": null,
++          "core.sparsecheckout": null,
++          "core.sparsecheckoutcone": null
++        },
++        "ignores": {
++          "global": {
++            "location": "/home/agents/.config/git/ignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "info": {
++            "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++            "state": {
++              "type": "file",
++              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++              "executable": false
++            }
++          },
++          ".gitignore": {
++            "location": ".gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/.gitignore": {
++            "location": ".agents/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/.gitignore": {
++            "location": ".agents/skills/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/adopt-standards/.gitignore": {
++            "location": ".agents/skills/adopt-standards/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/.gitignore": {
++            "location": "build/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/generated/.gitignore": {
++            "location": "build/generated/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "docs/.gitignore": {
++            "location": "docs/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/.gitignore": {
++            "location": "fixtures/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/hammer/.gitignore": {
++            "location": "fixtures/hammer/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "groups/.gitignore": {
++            "location": "groups/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          }
++        }
++      },
++      "after": {
++        "files": {
++          ".agents/skills/adopt-standards/SKILL.md": {
++            "type": "file",
++            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++            "executable": false
++          },
++          "build/generated/README.md": {
++            "type": "file",
++            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++            "executable": false
++          },
++          "docs/catalog.json": {
++            "type": "file",
++            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++            "executable": false
++          },
++          "fixtures/hammer/Cargo.toml": {
++            "type": "file",
++            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++            "executable": false
++          },
++          "groups/developer-tools.md": {
++            "type": "file",
++            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++            "executable": false
++          }
++        },
++        "boundaries": {
++          ".": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills/adopt-standards": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build/generated": {
++            "type": "directory",
++            "mode": 448
++          },
++          "docs": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures/hammer": {
++            "type": "directory",
++            "mode": 448
++          },
++          "groups": {
++            "type": "directory",
++            "mode": 448
++          }
++        },
++        "settings": {
++          "core.ignorecase": null,
++          "core.precomposeunicode": null,
++          "core.filemode": "true",
++          "core.symlinks": null,
++          "core.sparsecheckout": null,
++          "core.sparsecheckoutcone": null
++        },
++        "ignores": {
++          "global": {
++            "location": "/home/agents/.config/git/ignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "info": {
++            "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++            "state": {
++              "type": "file",
++              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++              "executable": false
++            }
++          },
++          ".gitignore": {
++            "location": ".gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/.gitignore": {
++            "location": ".agents/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/.gitignore": {
++            "location": ".agents/skills/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/adopt-standards/.gitignore": {
++            "location": ".agents/skills/adopt-standards/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/.gitignore": {
++            "location": "build/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/generated/.gitignore": {
++            "location": "build/generated/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "docs/.gitignore": {
++            "location": "docs/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/.gitignore": {
++            "location": "fixtures/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/hammer/.gitignore": {
++            "location": "fixtures/hammer/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "groups/.gitignore": {
++            "location": "groups/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          }
++        }
++      },
++      "changedPaths": [],
++      "boundaryChanges": [],
++      "violations": []
++    },
++    {
++      "phase": "agent",
++      "scope": {
++        "project-documentation": {
++          "paths": [],
++          "directories": []
++        }
++      },
++      "before": {
++        "files": {
++          ".agents/skills/adopt-standards/SKILL.md": {
++            "type": "file",
++            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++            "executable": false
++          },
++          "build/generated/README.md": {
++            "type": "file",
++            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++            "executable": false
++          },
++          "docs/catalog.json": {
++            "type": "file",
++            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++            "executable": false
++          },
++          "fixtures/hammer/Cargo.toml": {
++            "type": "file",
++            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++            "executable": false
++          },
++          "groups/developer-tools.md": {
++            "type": "file",
++            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++            "executable": false
++          }
++        },
++        "boundaries": {
++          ".": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills/adopt-standards": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build/generated": {
++            "type": "directory",
++            "mode": 448
++          },
++          "docs": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures/hammer": {
++            "type": "directory",
++            "mode": 448
++          },
++          "groups": {
++            "type": "directory",
++            "mode": 448
++          }
++        },
++        "settings": {
++          "core.ignorecase": null,
++          "core.precomposeunicode": null,
++          "core.filemode": "true",
++          "core.symlinks": null,
++          "core.sparsecheckout": null,
++          "core.sparsecheckoutcone": null
++        },
++        "ignores": {
++          "global": {
++            "location": "/home/agents/.config/git/ignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "info": {
++            "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++            "state": {
++              "type": "file",
++              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++              "executable": false
++            }
++          },
++          ".gitignore": {
++            "location": ".gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/.gitignore": {
++            "location": ".agents/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/.gitignore": {
++            "location": ".agents/skills/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/adopt-standards/.gitignore": {
++            "location": ".agents/skills/adopt-standards/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/.gitignore": {
++            "location": "build/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/generated/.gitignore": {
++            "location": "build/generated/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "docs/.gitignore": {
++            "location": "docs/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/.gitignore": {
++            "location": "fixtures/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/hammer/.gitignore": {
++            "location": "fixtures/hammer/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "groups/.gitignore": {
++            "location": "groups/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          }
++        }
++      },
++      "after": {
++        "files": {
++          ".agents/skills/adopt-standards/SKILL.md": {
++            "type": "file",
++            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++            "executable": false
++          },
++          "build/generated/README.md": {
++            "type": "file",
++            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++            "executable": false
++          },
++          "docs/catalog.json": {
++            "type": "file",
++            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++            "executable": false
++          },
++          "fixtures/hammer/Cargo.toml": {
++            "type": "file",
++            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++            "executable": false
++          },
++          "groups/developer-tools.md": {
++            "type": "file",
++            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++            "executable": false
++          }
++        },
++        "boundaries": {
++          ".": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills/adopt-standards": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build/generated": {
++            "type": "directory",
++            "mode": 448
++          },
++          "docs": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures/hammer": {
++            "type": "directory",
++            "mode": 448
++          },
++          "groups": {
++            "type": "directory",
++            "mode": 448
++          }
++        },
++        "settings": {
++          "core.ignorecase": null,
++          "core.precomposeunicode": null,
++          "core.filemode": "true",
++          "core.symlinks": null,
++          "core.sparsecheckout": null,
++          "core.sparsecheckoutcone": null
++        },
++        "ignores": {
++          "global": {
++            "location": "/home/agents/.config/git/ignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "info": {
++            "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++            "state": {
++              "type": "file",
++              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++              "executable": false
++            }
++          },
++          ".gitignore": {
++            "location": ".gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/.gitignore": {
++            "location": ".agents/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/.gitignore": {
++            "location": ".agents/skills/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/adopt-standards/.gitignore": {
++            "location": ".agents/skills/adopt-standards/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/.gitignore": {
++            "location": "build/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/generated/.gitignore": {
++            "location": "build/generated/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "docs/.gitignore": {
++            "location": "docs/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/.gitignore": {
++            "location": "fixtures/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/hammer/.gitignore": {
++            "location": "fixtures/hammer/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "groups/.gitignore": {
++            "location": "groups/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          }
++        }
++      },
++      "changedPaths": [],
++      "boundaryChanges": [],
++      "violations": []
++    },
++    {
++      "phase": "agent",
++      "scope": {
++        "project-documentation": {
++          "paths": [],
++          "directories": []
++        }
++      },
++      "before": {
++        "files": {
++          ".agents/skills/adopt-standards/SKILL.md": {
++            "type": "file",
++            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++            "executable": false
++          },
++          "build/generated/README.md": {
++            "type": "file",
++            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++            "executable": false
++          },
++          "docs/catalog.json": {
++            "type": "file",
++            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++            "executable": false
++          },
++          "fixtures/hammer/Cargo.toml": {
++            "type": "file",
++            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++            "executable": false
++          },
++          "groups/developer-tools.md": {
++            "type": "file",
++            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++            "executable": false
++          }
++        },
++        "boundaries": {
++          ".": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills/adopt-standards": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build/generated": {
++            "type": "directory",
++            "mode": 448
++          },
++          "docs": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures/hammer": {
++            "type": "directory",
++            "mode": 448
++          },
++          "groups": {
++            "type": "directory",
++            "mode": 448
++          }
++        },
++        "settings": {
++          "core.ignorecase": null,
++          "core.precomposeunicode": null,
++          "core.filemode": "true",
++          "core.symlinks": null,
++          "core.sparsecheckout": null,
++          "core.sparsecheckoutcone": null
++        },
++        "ignores": {
++          "global": {
++            "location": "/home/agents/.config/git/ignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "info": {
++            "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++            "state": {
++              "type": "file",
++              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++              "executable": false
++            }
++          },
++          ".gitignore": {
++            "location": ".gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/.gitignore": {
++            "location": ".agents/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/.gitignore": {
++            "location": ".agents/skills/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/adopt-standards/.gitignore": {
++            "location": ".agents/skills/adopt-standards/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/.gitignore": {
++            "location": "build/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/generated/.gitignore": {
++            "location": "build/generated/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "docs/.gitignore": {
++            "location": "docs/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/.gitignore": {
++            "location": "fixtures/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/hammer/.gitignore": {
++            "location": "fixtures/hammer/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "groups/.gitignore": {
++            "location": "groups/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          }
++        }
++      },
++      "after": {
++        "files": {
++          ".agents/skills/adopt-standards/SKILL.md": {
++            "type": "file",
++            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++            "executable": false
++          },
++          "build/generated/README.md": {
++            "type": "file",
++            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++            "executable": false
++          },
++          "docs/catalog.json": {
++            "type": "file",
++            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++            "executable": false
++          },
++          "fixtures/hammer/Cargo.toml": {
++            "type": "file",
++            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++            "executable": false
++          },
++          "groups/developer-tools.md": {
++            "type": "file",
++            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++            "executable": false
++          }
++        },
++        "boundaries": {
++          ".": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills/adopt-standards": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build/generated": {
++            "type": "directory",
++            "mode": 448
++          },
++          "docs": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures/hammer": {
++            "type": "directory",
++            "mode": 448
++          },
++          "groups": {
++            "type": "directory",
++            "mode": 448
++          }
++        },
++        "settings": {
++          "core.ignorecase": null,
++          "core.precomposeunicode": null,
++          "core.filemode": "true",
++          "core.symlinks": null,
++          "core.sparsecheckout": null,
++          "core.sparsecheckoutcone": null
++        },
++        "ignores": {
++          "global": {
++            "location": "/home/agents/.config/git/ignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "info": {
++            "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++            "state": {
++              "type": "file",
++              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++              "executable": false
++            }
++          },
++          ".gitignore": {
++            "location": ".gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/.gitignore": {
++            "location": ".agents/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/.gitignore": {
++            "location": ".agents/skills/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/adopt-standards/.gitignore": {
++            "location": ".agents/skills/adopt-standards/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/.gitignore": {
++            "location": "build/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/generated/.gitignore": {
++            "location": "build/generated/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "docs/.gitignore": {
++            "location": "docs/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/.gitignore": {
++            "location": "fixtures/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/hammer/.gitignore": {
++            "location": "fixtures/hammer/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "groups/.gitignore": {
++            "location": "groups/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          }
++        }
++      },
++      "changedPaths": [],
++      "boundaryChanges": [],
++      "violations": []
++    },
++    {
++      "phase": "checks",
++      "operation": {
++        "phase": "checks",
++        "declaration": "project-documentation",
++        "id": "verify-markdown-ending"
++      },
++      "operationIndex": 1,
++      "scope": {
++        "project-documentation": {
++          "paths": [],
++          "directories": []
++        }
++      },
++      "before": {
++        "files": {
++          ".agents/skills/adopt-standards/SKILL.md": {
++            "type": "file",
++            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++            "executable": false
++          },
++          "build/generated/README.md": {
++            "type": "file",
++            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++            "executable": false
++          },
++          "docs/catalog.json": {
++            "type": "file",
++            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++            "executable": false
++          },
++          "fixtures/hammer/Cargo.toml": {
++            "type": "file",
++            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++            "executable": false
++          },
++          "groups/developer-tools.md": {
++            "type": "file",
++            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++            "executable": false
++          }
++        },
++        "boundaries": {
++          ".": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills/adopt-standards": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build/generated": {
++            "type": "directory",
++            "mode": 448
++          },
++          "docs": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures/hammer": {
++            "type": "directory",
++            "mode": 448
++          },
++          "groups": {
++            "type": "directory",
++            "mode": 448
++          }
++        },
++        "settings": {
++          "core.ignorecase": null,
++          "core.precomposeunicode": null,
++          "core.filemode": "true",
++          "core.symlinks": null,
++          "core.sparsecheckout": null,
++          "core.sparsecheckoutcone": null
++        },
++        "ignores": {
++          "global": {
++            "location": "/home/agents/.config/git/ignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "info": {
++            "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++            "state": {
++              "type": "file",
++              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++              "executable": false
++            }
++          },
++          ".gitignore": {
++            "location": ".gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/.gitignore": {
++            "location": ".agents/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/.gitignore": {
++            "location": ".agents/skills/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/adopt-standards/.gitignore": {
++            "location": ".agents/skills/adopt-standards/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/.gitignore": {
++            "location": "build/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/generated/.gitignore": {
++            "location": "build/generated/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "docs/.gitignore": {
++            "location": "docs/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/.gitignore": {
++            "location": "fixtures/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/hammer/.gitignore": {
++            "location": "fixtures/hammer/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "groups/.gitignore": {
++            "location": "groups/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          }
++        }
++      },
++      "after": {
++        "files": {
++          ".agents/skills/adopt-standards/SKILL.md": {
++            "type": "file",
++            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++            "executable": false
++          },
++          "build/generated/README.md": {
++            "type": "file",
++            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++            "executable": false
++          },
++          "docs/catalog.json": {
++            "type": "file",
++            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++            "executable": false
++          },
++          "fixtures/hammer/Cargo.toml": {
++            "type": "file",
++            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++            "executable": false
++          },
++          "groups/developer-tools.md": {
++            "type": "file",
++            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++            "executable": false
++          }
++        },
++        "boundaries": {
++          ".": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills/adopt-standards": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build/generated": {
++            "type": "directory",
++            "mode": 448
++          },
++          "docs": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures/hammer": {
++            "type": "directory",
++            "mode": 448
++          },
++          "groups": {
++            "type": "directory",
++            "mode": 448
++          }
++        },
++        "settings": {
++          "core.ignorecase": null,
++          "core.precomposeunicode": null,
++          "core.filemode": "true",
++          "core.symlinks": null,
++          "core.sparsecheckout": null,
++          "core.sparsecheckoutcone": null
++        },
++        "ignores": {
++          "global": {
++            "location": "/home/agents/.config/git/ignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "info": {
++            "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++            "state": {
++              "type": "file",
++              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++              "executable": false
++            }
++          },
++          ".gitignore": {
++            "location": ".gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/.gitignore": {
++            "location": ".agents/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/.gitignore": {
++            "location": ".agents/skills/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/adopt-standards/.gitignore": {
++            "location": ".agents/skills/adopt-standards/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/.gitignore": {
++            "location": "build/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/generated/.gitignore": {
++            "location": "build/generated/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "docs/.gitignore": {
++            "location": "docs/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/.gitignore": {
++            "location": "fixtures/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/hammer/.gitignore": {
++            "location": "fixtures/hammer/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "groups/.gitignore": {
++            "location": "groups/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          }
++        }
++      },
++      "changedPaths": [],
++      "boundaryChanges": [],
++      "violations": []
++    },
++    {
++      "phase": "agent",
++      "scope": {
++        "project-documentation": {
++          "paths": [],
++          "directories": []
++        }
++      },
++      "before": {
++        "files": {
++          ".agents/skills/adopt-standards/SKILL.md": {
++            "type": "file",
++            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++            "executable": false
++          },
++          "build/generated/README.md": {
++            "type": "file",
++            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++            "executable": false
++          },
++          "docs/catalog.json": {
++            "type": "file",
++            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++            "executable": false
++          },
++          "fixtures/hammer/Cargo.toml": {
++            "type": "file",
++            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++            "executable": false
++          },
++          "groups/developer-tools.md": {
++            "type": "file",
++            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++            "executable": false
++          }
++        },
++        "boundaries": {
++          ".": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills/adopt-standards": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build/generated": {
++            "type": "directory",
++            "mode": 448
++          },
++          "docs": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures/hammer": {
++            "type": "directory",
++            "mode": 448
++          },
++          "groups": {
++            "type": "directory",
++            "mode": 448
++          }
++        },
++        "settings": {
++          "core.ignorecase": null,
++          "core.precomposeunicode": null,
++          "core.filemode": "true",
++          "core.symlinks": null,
++          "core.sparsecheckout": null,
++          "core.sparsecheckoutcone": null
++        },
++        "ignores": {
++          "global": {
++            "location": "/home/agents/.config/git/ignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "info": {
++            "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++            "state": {
++              "type": "file",
++              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++              "executable": false
++            }
++          },
++          ".gitignore": {
++            "location": ".gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/.gitignore": {
++            "location": ".agents/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/.gitignore": {
++            "location": ".agents/skills/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/adopt-standards/.gitignore": {
++            "location": ".agents/skills/adopt-standards/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/.gitignore": {
++            "location": "build/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/generated/.gitignore": {
++            "location": "build/generated/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "docs/.gitignore": {
++            "location": "docs/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/.gitignore": {
++            "location": "fixtures/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/hammer/.gitignore": {
++            "location": "fixtures/hammer/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "groups/.gitignore": {
++            "location": "groups/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          }
++        }
++      },
++      "after": {
++        "files": {
++          ".agents/skills/adopt-standards/SKILL.md": {
++            "type": "file",
++            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++            "executable": false
++          },
++          "build/generated/README.md": {
++            "type": "file",
++            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
++            "executable": false
++          },
++          "docs/catalog.json": {
++            "type": "file",
++            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++            "executable": false
++          },
++          "fixtures/hammer/Cargo.toml": {
++            "type": "file",
++            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
++            "executable": false
++          },
++          "groups/developer-tools.md": {
++            "type": "file",
++            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
++            "executable": false
++          }
++        },
++        "boundaries": {
++          ".": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills": {
++            "type": "directory",
++            "mode": 448
++          },
++          ".agents/skills/adopt-standards": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build": {
++            "type": "directory",
++            "mode": 448
++          },
++          "build/generated": {
++            "type": "directory",
++            "mode": 448
++          },
++          "docs": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures": {
++            "type": "directory",
++            "mode": 448
++          },
++          "fixtures/hammer": {
++            "type": "directory",
++            "mode": 448
++          },
++          "groups": {
++            "type": "directory",
++            "mode": 448
++          }
++        },
++        "settings": {
++          "core.ignorecase": null,
++          "core.precomposeunicode": null,
++          "core.filemode": "true",
++          "core.symlinks": null,
++          "core.sparsecheckout": null,
++          "core.sparsecheckoutcone": null
++        },
++        "ignores": {
++          "global": {
++            "location": "/home/agents/.config/git/ignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "info": {
++            "location": "/tmp/repo-standards-source-rXGbVl/.git/info/exclude",
++            "state": {
++              "type": "file",
++              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
++              "executable": false
++            }
++          },
++          ".gitignore": {
++            "location": ".gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/.gitignore": {
++            "location": ".agents/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/.gitignore": {
++            "location": ".agents/skills/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          ".agents/skills/adopt-standards/.gitignore": {
++            "location": ".agents/skills/adopt-standards/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/.gitignore": {
++            "location": "build/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "build/generated/.gitignore": {
++            "location": "build/generated/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "docs/.gitignore": {
++            "location": "docs/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/.gitignore": {
++            "location": "fixtures/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "fixtures/hammer/.gitignore": {
++            "location": "fixtures/hammer/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          },
++          "groups/.gitignore": {
++            "location": "groups/.gitignore",
++            "state": {
++              "type": "missing"
++            }
++          }
++        }
++      },
++      "changedPaths": [],
++      "boundaryChanges": [],
++      "violations": []
++    }
++  ],
++  "operations": [
++    {
++      "operation": {
++        "declaration": "project-documentation",
++        "phase": "fixes",
++        "id": "normalize-markdown-ending"
++      },
++      "process": {
++        "exitCode": 0,
++        "signal": null,
++        "error": null,
++        "timedOut": false
++      },
++      "result": {
++        "format": "repo-standards/result/v1",
++        "status": "unchanged",
++        "message": "Markdown endings already satisfy the source."
++      },
++      "error": null,
++      "stdout": ".repo-standards/local/operations/0.stdout",
++      "stderr": ".repo-standards/local/operations/0.stderr"
++    },
++    {
++      "operation": {
++        "declaration": "project-documentation",
++        "phase": "checks",
++        "id": "verify-markdown-ending"
++      },
++      "process": {
++        "exitCode": 0,
++        "signal": null,
++        "error": null,
++        "timedOut": false
++      },
++      "result": {
++        "format": "repo-standards/result/v1",
++        "status": "passed",
++        "message": "Markdown endings already satisfy the source."
++      },
++      "error": null,
++      "stdout": ".repo-standards/local/operations/1.stdout",
++      "stderr": ".repo-standards/local/operations/1.stderr"
++    }
++  ],
++  "retryHistory": [],
++  "lastComplete": {
++    "run": "58a6c5f4-b312-4f6f-8b1c-5dd31a804e35",
++    "inspection": "sha256:73aecd0db9cc810c00441633da189b584e9ed3e61052c32481ff9099c3150729",
++    "completedAt": "2026-09-14T02:25:59.672Z",
++    "head": "d2869abea21d5a41a57b0c37537504a1577b6fb8"
++  },
++  "baselines": {
++    "docs/catalog.json": {
++      "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
++      "executable": false
++    },
++    ".agents/skills/adopt-standards/SKILL.md": {
++      "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
++      "executable": false
++    }
++  },
++  "skills": {
++    ".agents/skills/adopt-standards": [
++      "SKILL.md"
++    ]
++  },
++  "checks": [
++    {
++      "operation": {
++        "declaration": "project-documentation",
++        "phase": "checks",
++        "id": "verify-markdown-ending"
++      },
++      "process": {
++        "exitCode": 0,
++        "signal": null,
++        "error": null,
++        "timedOut": false
++      },
++      "result": {
++        "format": "repo-standards/result/v1",
++        "status": "passed",
++        "message": "Markdown endings already satisfy the source."
++      },
++      "error": null,
++      "stdout": ".repo-standards/local/operations/1.stdout",
++      "stderr": ".repo-standards/local/operations/1.stderr"
++    }
++  ],
++  "assessments": [
++    {
++      "format": "repo-standards/assessment/v2",
++      "run": "58a6c5f4-b312-4f6f-8b1c-5dd31a804e35",
++      "selection": "sha256:72e41013c4c055abaceee4ab573d3e05b25868c17053909f9db02f8da9925fc3",
++      "snapshot": "sha256:8e3e397bb8943ef76e43b1aaa11b2bd26ff72cb1cda4cedee3b77f8421dcb067",
++      "scope": {
++        "inspection": "sha256:73aecd0db9cc810c00441633da189b584e9ed3e61052c32481ff9099c3150729",
++        "afterFixes": "sha256:8e3e397bb8943ef76e43b1aaa11b2bd26ff72cb1cda4cedee3b77f8421dcb067"
++      },
++      "declarations": [
++        {
++          "id": "project-documentation",
++          "status": "satisfied",
++          "explanation": "The repository contains no independently maintained project, so the useful application of the guidance is to leave the evidence-backed fixture, generated output, and organizational index untouched. The confirmed contextual target set is empty, and no contextual file change is needed or authorized.",
++          "changedPaths": [],
++          "evidence": [
++            "fixtures/hammer/Cargo.toml declares only fixture-hammer version 0.0.0 and supplies no ownership or build/deployment evidence; it remains test data rather than maintained project membership.",
++            "build/generated/README.md states that the build regenerates it, while groups/developer-tools.md states that it is an organizational index rather than a maintained project.",
++            "The evaluator's committed setup removed the former root index, guide, and maintained Hammer manifest; the refreshed CLI observation reports no agent changed paths or scope violations.",
++            "Exact docs/catalog.json was installed and verified separately from contextual work; no project README, migration source/destination, contextual index, or link-repair file is supported by the current project evidence."
++          ],
++          "scopeValidity": {
++            "afterFixes": {
++              "status": "valid",
++              "explanation": "Immediately after fixes, the empty scope still covered the complete semantic result: no maintained project remained and every observed candidate was an evidence-backed exclusion.",
++              "evidence": [
++                "The fixture, generated, and organizational files retained their inspected identities after the empty-target fix returned unchanged.",
++                "No maintained-project manifest, project guide, root index, missing maintained-project README, migration destination, or contextual link repair existed after fixes."
++              ],
++              "additionalPaths": []
++            },
++            "current": {
++              "status": "valid",
++              "explanation": "The refreshed snapshot matches the post-fix snapshot and still requires no contextual target, addition, withdrawal, or unresolved membership decision.",
++              "evidence": [
++                "The refreshed agent observation has empty changedPaths, empty boundaryChanges, and no violations under project-documentation paths/directories both empty.",
++                "The three candidate contents remain unchanged and continue to establish generated output, fixture data, and an organizational index rather than a maintained project."
++              ],
++              "additionalPaths": []
++            }
++          }
++        }
++      ]
++    }
++  ]
++}
+diff --git a/docs/catalog.json b/docs/catalog.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..ccede5fa9f1d7fe7f995370563fa250af7ff9c9f
+--- /dev/null
++++ b/docs/catalog.json
+@@ -0,0 +1,3 @@
++{
++  "format": "atlas-documentation/v1"
++}
+

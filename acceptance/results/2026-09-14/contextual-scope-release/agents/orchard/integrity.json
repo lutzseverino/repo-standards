@@ -1,0 +1,74 @@
+{
+  "format": "orchard-integrity/v1",
+  "capturedAt": "2026-09-14T02:29:50.880Z",
+  "preparedSession": {
+    "path": "/tmp/repo-standards-public-agent-gNdlDb/journey.json",
+    "sha256": "274fe4c7f9e6dbcc5bc844f142b7ee7601d53997a1c9c668c3861c5a8cc80a98",
+    "expectedSha256": "274fe4c7f9e6dbcc5bc844f142b7ee7601d53997a1c9c668c3861c5a8cc80a98",
+    "unchanged": true
+  },
+  "adoptingProject": {
+    "path": "/tmp/repo-standards-source-Aarb1O",
+    "head": "5f64286bb6d2262a1517ce321219783fb6ba7d58",
+    "expectedHead": "5f64286bb6d2262a1517ce321219783fb6ba7d58",
+    "headPreserved": true,
+    "cachedDiffExitCode": 0,
+    "indexSha256": "b55666d922d730704611fff3e296f5df3096ee46e70d53716a89aa6b51a00bb8",
+    "beforeIndexSha256": "b55666d922d730704611fff3e296f5df3096ee46e70d53716a89aa6b51a00bb8",
+    "indexPreserved": true,
+    "statusPorcelainV2Base64": "IyBicmFuY2gub2lkIDVmNjQyODZiYjZkMjI2MmExNTE3Y2UzMjEyMTk3ODNmYjZiYTdkNTgAIyBicmFuY2guaGVhZCBtYXN0ZXIAMSAuTSBOLi4uIDEwMDY0NCAxMDA2NDQgMTAwNjQ0IGZlODdiOTFmMDdkODY5NDljY2U5Y2I2YjE2NmI5MGFmMjlmNTY0MzYgZmU4N2I5MWYwN2Q4Njk0OWNjZTljYjZiMTY2YjkwYWYyOWY1NjQzNiBDQVRBTE9HLm1kADEgLkQgTi4uLiAxMDA2NDQgMTAwNjQ0IDAwMDAwMCBjYjFiMWNjZTlmZGY0Y2QyODQ5NGU5NDdlNTM0NTMzMjc0NjhiNDNlIGNiMWIxY2NlOWZkZjRjZDI4NDk0ZTk0N2U1MzQ1MzMyNzQ2OGI0M2UgbGVnYWN5L3BlYXItb3BlcmF0aW9ucy5tZAA/IC5hZ2VudHMvc2tpbGxzL2Fkb3B0LXN0YW5kYXJkcy9TS0lMTC5tZAA/IC5yZXBvLXN0YW5kYXJkcy8uZ2l0aWdub3JlAD8gLnJlcG8tc3RhbmRhcmRzL2lucHV0cy9tZXRhZGF0YS5qc29uAD8gLnJlcG8tc3RhbmRhcmRzL2lucHV0cy9yZXNvbHZlZC5qc29uAD8gLnJlcG8tc3RhbmRhcmRzL2lucHV0cy9zY29wZS1oaXN0b3J5Lmpzb24APyAucmVwby1zdGFuZGFyZHMvaW5wdXRzL3NvdXJjZS9maWxlcy9jYXRhbG9nLmpzb24APyAucmVwby1zdGFuZGFyZHMvaW5wdXRzL3NvdXJjZS9ndWlkYW5jZS9wcm9qZWN0LWRpc2NvdmVyeS5tZAA/IC5yZXBvLXN0YW5kYXJkcy9pbnB1dHMvc291cmNlL2d1aWRhbmNlL3Byb2plY3QtZG9jdW1lbnRhdGlvbi5tZAA/IC5yZXBvLXN0YW5kYXJkcy9pbnB1dHMvc291cmNlL29wZXJhdGlvbnMvbWFya2Rvd24tZW5kaW5nLm1qcwA/IC5yZXBvLXN0YW5kYXJkcy9pbnB1dHMvc3RhbmRhcmRzLnlhbWwAPyAucmVwby1zdGFuZGFyZHMvbG9jay5qc29uAD8gLnJlcG8tc3RhbmRhcmRzL3J1bnRpbWUvcGFja2FnZS1sb2NrLmpzb24APyAucmVwby1zdGFuZGFyZHMvcnVudGltZS9wYWNrYWdlLmpzb24APyAucmVwby1zdGFuZGFyZHMvc2VsZWN0aW9uLnlhbWwAPyAucmVwby1zdGFuZGFyZHMvc3RhdGUuanNvbgA/IGRvY3MvY2F0YWxvZy5qc29uAD8gZG9jcy9wcm9qZWN0cy9pbmRleC5tZAA/IGRvY3MvcHJvamVjdHMvcGVhci9vcGVyYXRpb25zLm1kAD8gcHJvZHVjdHMvcGVhci9SRUFETUUubWQA"
+  },
+  "exactCatalog": {
+    "path": "docs/catalog.json",
+    "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+    "expectedSha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+    "content": "{\n  \"format\": \"atlas-documentation/v1\"\n}\n"
+  },
+  "migratedOperations": {
+    "source": "legacy/pear-operations.md",
+    "sourceExists": false,
+    "destination": "docs/projects/pear/operations.md",
+    "destinationSha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+    "preMigrationSourceSha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+    "exactBytesPreserved": true
+  },
+  "externalPackage": {
+    "path": "/tmp/repo-standards-public-agent-gNdlDb/node_modules/@lutzseverino/repo-standards",
+    "fileCount": 82,
+    "sha256": "66da0afcec7dd3879567c4134c644d1d40b79a312f20a7bbe9d608236b407273",
+    "expectedSha256": "66da0afcec7dd3879567c4134c644d1d40b79a312f20a7bbe9d608236b407273",
+    "unchanged": true
+  },
+  "isolatedRuntimePackage": {
+    "path": "/tmp/repo-standards-source-Aarb1O/.repo-standards/runtime/node_modules/@lutzseverino/repo-standards",
+    "fileCount": 82,
+    "sha256": "66da0afcec7dd3879567c4134c644d1d40b79a312f20a7bbe9d608236b407273",
+    "matchesExternal": true
+  },
+  "installedSkill": {
+    "externalSha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+    "projectSha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+    "match": true
+  },
+  "standardsFixture": {
+    "path": "/tmp/repo-standards-source-Gs4ygo",
+    "head": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77",
+    "expectedHead": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77",
+    "headPreserved": true,
+    "status": "",
+    "clean": true
+  },
+  "isolatedRuntimeDependencyValidation": {
+    "argv": [
+      "npm",
+      "ls",
+      "--all",
+      "--json"
+    ],
+    "cwd": "/tmp/repo-standards-source-Aarb1O/.repo-standards/runtime",
+    "exitCode": 0,
+    "signal": null,
+    "stdout": "{\n  \"name\": \"runtime\",\n  \"dependencies\": {\n    \"@lutzseverino/repo-standards\": {\n      \"version\": \"1.2.0\",\n      \"resolved\": \"https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.2.0.tgz\",\n      \"overridden\": false,\n      \"dependencies\": {\n        \"koffi\": {\n          \"version\": \"3.2.1\",\n          \"resolved\": \"https://registry.npmjs.org/koffi/-/koffi-3.2.1.tgz\",\n          \"overridden\": false,\n          \"dependencies\": {\n            \"@koromix/koffi-android-arm64\": {},\n            \"@koromix/koffi-android-x64\": {},\n            \"@koromix/koffi-darwin-arm64\": {},\n            \"@koromix/koffi-darwin-x64\": {},\n            \"@koromix/koffi-freebsd-arm64\": {},\n            \"@koromix/koffi-freebsd-ia32\": {},\n            \"@koromix/koffi-freebsd-x64\": {},\n            \"@koromix/koffi-linux-arm\": {},\n            \"@koromix/koffi-linux-arm64\": {\n              \"version\": \"3.2.1\",\n              \"resolved\": \"https://registry.npmjs.org/@koromix/koffi-linux-arm64/-/koffi-linux-arm64-3.2.1.tgz\",\n              \"overridden\": false\n            },\n            \"@koromix/koffi-linux-ia32\": {},\n            \"@koromix/koffi-linux-loong64\": {},\n            \"@koromix/koffi-linux-riscv64\": {},\n            \"@koromix/koffi-linux-x64\": {},\n            \"@koromix/koffi-openbsd-ia32\": {},\n            \"@koromix/koffi-openbsd-x64\": {},\n            \"@koromix/koffi-win32-arm64\": {},\n            \"@koromix/koffi-win32-ia32\": {},\n            \"@koromix/koffi-win32-x64\": {}\n          }\n        },\n        \"semver\": {\n          \"version\": \"7.8.5\",\n          \"resolved\": \"https://registry.npmjs.org/semver/-/semver-7.8.5.tgz\",\n          \"overridden\": false\n        },\n        \"unicode-case-folding\": {\n          \"version\": \"1.1.1\",\n          \"resolved\": \"https://registry.npmjs.org/unicode-case-folding/-/unicode-case-folding-1.1.1.tgz\",\n          \"overridden\": false\n        },\n        \"yaml\": {\n          \"version\": \"2.9.0\",\n          \"resolved\": \"https://registry.npmjs.org/yaml/-/yaml-2.9.0.tgz\",\n          \"overridden\": false\n        }\n      }\n    }\n  }\n}\n",
+    "stderr": ""
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "valid": false,
+  "errors": [
+    {
+      "code": "INVALID_SCOPE",
+      "message": "Missing project README requires positive membership evidence as well as absence: docs/projects/README.md."
+    }
+  ]
+}

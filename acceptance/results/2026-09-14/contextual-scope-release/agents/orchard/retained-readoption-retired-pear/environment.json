@@ -1,0 +1,55 @@
+{
+  "format": "orchard-retired-pear-readopt-environment/v1",
+  "capturedAt": "2026-09-14T02:40:04.797Z",
+  "checkout": "/tmp/repo-standards-orchard-retired-readopt-K4BJ46",
+  "host": {
+    "node": "v24.21.0",
+    "npm": "11.19.0",
+    "git": "git version 2.47.3",
+    "platform": "Linux 6.18.34+rpt-rpi-v8 arm64"
+  },
+  "sourceAcquisition": {
+    "retainedOnly": true,
+    "nodeOptionsUnset": true,
+    "acceptanceFixtureImportActive": false,
+    "proxy": "http://127.0.0.1:9",
+    "probeExitCode": 128,
+    "probeArtifact": "source-acquisition stderr shows immediate connection refusal; the shell command status is 128",
+    "statement": "No source, version, or profile flag was supplied. The acceptance HTTPS fixture import was absent, and outbound proxies targeted a closed loopback port."
+  },
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.2.0"
+    },
+    "standards": {
+      "repository": "https://github.com/atlas/standards",
+      "version": "v1.0.0",
+      "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+    },
+    "profile": "maintained"
+  },
+  "package": {
+    "fileCount": 82,
+    "sha256": "66da0afcec7dd3879567c4134c644d1d40b79a312f20a7bbe9d608236b407273",
+    "expectedSha256": "66da0afcec7dd3879567c4134c644d1d40b79a312f20a7bbe9d608236b407273",
+    "matchesExpected": true,
+    "installedSkillSha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+    "runtimeSkillSha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54"
+  },
+  "commits": {
+    "previous": "ebecf70af22e48928990df0402cba37bae294a96",
+    "head": "a3d4a0942816042b8d34819b309988492857c483",
+    "retainedStandardsUnchanged": true
+  },
+  "npmCi": {
+    "argv": [
+      "npm",
+      "ci",
+      "--ignore-scripts",
+      "--prefix",
+      ".repo-standards/runtime"
+    ],
+    "exitCode": 0
+  }
+}

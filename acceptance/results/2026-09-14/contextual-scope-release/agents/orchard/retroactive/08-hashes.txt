@@ -1,0 +1,2 @@
+6545275fa3e9dad4f338d8e4014d779b9e2d9e59b42e0cd5121159daf117b2ca  /tmp/repo-standards-source-WMnIxD/CATALOG.md
+04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36  /tmp/repo-standards-source-WMnIxD/docs/catalog.json

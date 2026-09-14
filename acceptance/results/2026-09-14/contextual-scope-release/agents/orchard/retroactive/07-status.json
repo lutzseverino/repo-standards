@@ -1,0 +1,1072 @@
+{
+  "format": "repo-standards/status/v2",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.2.0"
+    },
+    "standards": {
+      "repository": "https://github.com/atlas/standards",
+      "version": "v1.0.0",
+      "commit": "a7418aad6db00a616d6d4f28b5f8b61efada8edc"
+    },
+    "profile": "maintained"
+  },
+  "lastComplete": null,
+  "active": {
+    "format": "repo-standards/run/v2",
+    "observations": [
+      {
+        "phase": "fixes",
+        "operation": {
+          "phase": "fixes",
+          "declaration": "project-documentation",
+          "id": "normalize-markdown-ending"
+        },
+        "operationIndex": 0,
+        "scope": {
+          "project-documentation": {
+            "paths": [
+              "docs/projects/index.md",
+              "docs/projects/pear/operations.md",
+              "legacy/pear-operations.md",
+              "products/pear/README.md"
+            ],
+            "directories": []
+          }
+        },
+        "before": {
+          "files": {
+            ".agents/skills/adopt-standards/SKILL.md": {
+              "type": "file",
+              "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+              "executable": false
+            },
+            "CATALOG.md": {
+              "type": "file",
+              "sha256": "c64590338589c892f251e47a3d382c1a32be52b7c3e2e4a0757a66b017eaadee",
+              "executable": false
+            },
+            "docs/catalog.json": {
+              "type": "file",
+              "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+              "executable": false
+            },
+            "fixtures/sample/service.json": {
+              "type": "file",
+              "sha256": "d642750c57de6de5972989f505ea0cc0e0fcec0b09ad2e6ed385f07983d993fc",
+              "executable": false
+            },
+            "generated/site/README.md": {
+              "type": "file",
+              "sha256": "8eb447ab4badd20f23d768706a14f8cf4525bcd3bf94d9d207eac773848d36fc",
+              "executable": false
+            },
+            "legacy/pear-operations.md": {
+              "type": "file",
+              "sha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+              "executable": false
+            },
+            "products/pear/service.json": {
+              "type": "file",
+              "sha256": "eaf6d458da6b5443309f2540afcf007931d973dbf9290cf692da71162db3cf8f",
+              "executable": false
+            },
+            "teams/runtime.md": {
+              "type": "file",
+              "sha256": "cb9cdeae04c6fd6a493bb70343cb514c50a8fc433a7a51b9155b72a1954fc456",
+              "executable": false
+            },
+            "docs/projects/index.md": {
+              "type": "missing"
+            },
+            "docs/projects/pear/operations.md": {
+              "type": "missing"
+            },
+            "products/pear/README.md": {
+              "type": "missing"
+            }
+          },
+          "boundaries": {
+            ".": {
+              "type": "directory",
+              "mode": 448
+            },
+            ".agents": {
+              "type": "directory",
+              "mode": 448
+            },
+            ".agents/skills": {
+              "type": "directory",
+              "mode": 448
+            },
+            ".agents/skills/adopt-standards": {
+              "type": "directory",
+              "mode": 448
+            },
+            "docs": {
+              "type": "directory",
+              "mode": 448
+            },
+            "fixtures": {
+              "type": "directory",
+              "mode": 448
+            },
+            "fixtures/sample": {
+              "type": "directory",
+              "mode": 448
+            },
+            "generated": {
+              "type": "directory",
+              "mode": 448
+            },
+            "generated/site": {
+              "type": "directory",
+              "mode": 448
+            },
+            "legacy": {
+              "type": "directory",
+              "mode": 448
+            },
+            "products": {
+              "type": "directory",
+              "mode": 448
+            },
+            "products/pear": {
+              "type": "directory",
+              "mode": 448
+            },
+            "teams": {
+              "type": "directory",
+              "mode": 448
+            },
+            "docs/projects": {
+              "type": "missing"
+            }
+          },
+          "settings": {
+            "core.ignorecase": null,
+            "core.precomposeunicode": null,
+            "core.filemode": "true",
+            "core.symlinks": null,
+            "core.sparsecheckout": null,
+            "core.sparsecheckoutcone": null
+          },
+          "ignores": {
+            "global": {
+              "location": "/home/agents/.config/git/ignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "info": {
+              "location": "/tmp/repo-standards-source-WMnIxD/.git/info/exclude",
+              "state": {
+                "type": "file",
+                "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                "executable": false
+              }
+            },
+            ".gitignore": {
+              "location": ".gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            ".agents/.gitignore": {
+              "location": ".agents/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            ".agents/skills/.gitignore": {
+              "location": ".agents/skills/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            ".agents/skills/adopt-standards/.gitignore": {
+              "location": ".agents/skills/adopt-standards/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "docs/.gitignore": {
+              "location": "docs/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "fixtures/.gitignore": {
+              "location": "fixtures/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "fixtures/sample/.gitignore": {
+              "location": "fixtures/sample/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "generated/.gitignore": {
+              "location": "generated/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "generated/site/.gitignore": {
+              "location": "generated/site/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "legacy/.gitignore": {
+              "location": "legacy/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "products/.gitignore": {
+              "location": "products/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "products/pear/.gitignore": {
+              "location": "products/pear/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "teams/.gitignore": {
+              "location": "teams/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            }
+          }
+        },
+        "after": {
+          "files": {
+            ".agents/skills/adopt-standards/SKILL.md": {
+              "type": "file",
+              "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+              "executable": false
+            },
+            "CATALOG.md": {
+              "type": "file",
+              "sha256": "c64590338589c892f251e47a3d382c1a32be52b7c3e2e4a0757a66b017eaadee",
+              "executable": false
+            },
+            "docs/catalog.json": {
+              "type": "file",
+              "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+              "executable": false
+            },
+            "fixtures/sample/service.json": {
+              "type": "file",
+              "sha256": "d642750c57de6de5972989f505ea0cc0e0fcec0b09ad2e6ed385f07983d993fc",
+              "executable": false
+            },
+            "generated/site/README.md": {
+              "type": "file",
+              "sha256": "8eb447ab4badd20f23d768706a14f8cf4525bcd3bf94d9d207eac773848d36fc",
+              "executable": false
+            },
+            "legacy/pear-operations.md": {
+              "type": "file",
+              "sha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+              "executable": false
+            },
+            "products/pear/service.json": {
+              "type": "file",
+              "sha256": "eaf6d458da6b5443309f2540afcf007931d973dbf9290cf692da71162db3cf8f",
+              "executable": false
+            },
+            "teams/runtime.md": {
+              "type": "file",
+              "sha256": "cb9cdeae04c6fd6a493bb70343cb514c50a8fc433a7a51b9155b72a1954fc456",
+              "executable": false
+            },
+            "docs/projects/index.md": {
+              "type": "missing"
+            },
+            "docs/projects/pear/operations.md": {
+              "type": "missing"
+            },
+            "products/pear/README.md": {
+              "type": "missing"
+            }
+          },
+          "boundaries": {
+            ".": {
+              "type": "directory",
+              "mode": 448
+            },
+            ".agents": {
+              "type": "directory",
+              "mode": 448
+            },
+            ".agents/skills": {
+              "type": "directory",
+              "mode": 448
+            },
+            ".agents/skills/adopt-standards": {
+              "type": "directory",
+              "mode": 448
+            },
+            "docs": {
+              "type": "directory",
+              "mode": 448
+            },
+            "fixtures": {
+              "type": "directory",
+              "mode": 448
+            },
+            "fixtures/sample": {
+              "type": "directory",
+              "mode": 448
+            },
+            "generated": {
+              "type": "directory",
+              "mode": 448
+            },
+            "generated/site": {
+              "type": "directory",
+              "mode": 448
+            },
+            "legacy": {
+              "type": "directory",
+              "mode": 448
+            },
+            "products": {
+              "type": "directory",
+              "mode": 448
+            },
+            "products/pear": {
+              "type": "directory",
+              "mode": 448
+            },
+            "teams": {
+              "type": "directory",
+              "mode": 448
+            },
+            "docs/projects": {
+              "type": "missing"
+            }
+          },
+          "settings": {
+            "core.ignorecase": null,
+            "core.precomposeunicode": null,
+            "core.filemode": "true",
+            "core.symlinks": null,
+            "core.sparsecheckout": null,
+            "core.sparsecheckoutcone": null
+          },
+          "ignores": {
+            "global": {
+              "location": "/home/agents/.config/git/ignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "info": {
+              "location": "/tmp/repo-standards-source-WMnIxD/.git/info/exclude",
+              "state": {
+                "type": "file",
+                "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                "executable": false
+              }
+            },
+            ".gitignore": {
+              "location": ".gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            ".agents/.gitignore": {
+              "location": ".agents/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            ".agents/skills/.gitignore": {
+              "location": ".agents/skills/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            ".agents/skills/adopt-standards/.gitignore": {
+              "location": ".agents/skills/adopt-standards/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "docs/.gitignore": {
+              "location": "docs/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "fixtures/.gitignore": {
+              "location": "fixtures/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "fixtures/sample/.gitignore": {
+              "location": "fixtures/sample/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "generated/.gitignore": {
+              "location": "generated/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "generated/site/.gitignore": {
+              "location": "generated/site/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "legacy/.gitignore": {
+              "location": "legacy/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "products/.gitignore": {
+              "location": "products/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "products/pear/.gitignore": {
+              "location": "products/pear/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "teams/.gitignore": {
+              "location": "teams/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            }
+          }
+        },
+        "changedPaths": [],
+        "boundaryChanges": [],
+        "violations": []
+      },
+      {
+        "phase": "agent",
+        "scope": {
+          "project-documentation": {
+            "paths": [
+              "docs/projects/index.md",
+              "docs/projects/pear/operations.md",
+              "legacy/pear-operations.md",
+              "products/pear/README.md"
+            ],
+            "directories": []
+          }
+        },
+        "before": {
+          "files": {
+            ".agents/skills/adopt-standards/SKILL.md": {
+              "type": "file",
+              "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+              "executable": false
+            },
+            "CATALOG.md": {
+              "type": "file",
+              "sha256": "c64590338589c892f251e47a3d382c1a32be52b7c3e2e4a0757a66b017eaadee",
+              "executable": false
+            },
+            "docs/catalog.json": {
+              "type": "file",
+              "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+              "executable": false
+            },
+            "fixtures/sample/service.json": {
+              "type": "file",
+              "sha256": "d642750c57de6de5972989f505ea0cc0e0fcec0b09ad2e6ed385f07983d993fc",
+              "executable": false
+            },
+            "generated/site/README.md": {
+              "type": "file",
+              "sha256": "8eb447ab4badd20f23d768706a14f8cf4525bcd3bf94d9d207eac773848d36fc",
+              "executable": false
+            },
+            "legacy/pear-operations.md": {
+              "type": "file",
+              "sha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+              "executable": false
+            },
+            "products/pear/service.json": {
+              "type": "file",
+              "sha256": "eaf6d458da6b5443309f2540afcf007931d973dbf9290cf692da71162db3cf8f",
+              "executable": false
+            },
+            "teams/runtime.md": {
+              "type": "file",
+              "sha256": "cb9cdeae04c6fd6a493bb70343cb514c50a8fc433a7a51b9155b72a1954fc456",
+              "executable": false
+            },
+            "docs/projects/index.md": {
+              "type": "missing"
+            },
+            "docs/projects/pear/operations.md": {
+              "type": "missing"
+            },
+            "products/pear/README.md": {
+              "type": "missing"
+            }
+          },
+          "boundaries": {
+            ".": {
+              "type": "directory",
+              "mode": 448
+            },
+            ".agents": {
+              "type": "directory",
+              "mode": 448
+            },
+            ".agents/skills": {
+              "type": "directory",
+              "mode": 448
+            },
+            ".agents/skills/adopt-standards": {
+              "type": "directory",
+              "mode": 448
+            },
+            "docs": {
+              "type": "directory",
+              "mode": 448
+            },
+            "fixtures": {
+              "type": "directory",
+              "mode": 448
+            },
+            "fixtures/sample": {
+              "type": "directory",
+              "mode": 448
+            },
+            "generated": {
+              "type": "directory",
+              "mode": 448
+            },
+            "generated/site": {
+              "type": "directory",
+              "mode": 448
+            },
+            "legacy": {
+              "type": "directory",
+              "mode": 448
+            },
+            "products": {
+              "type": "directory",
+              "mode": 448
+            },
+            "products/pear": {
+              "type": "directory",
+              "mode": 448
+            },
+            "teams": {
+              "type": "directory",
+              "mode": 448
+            },
+            "docs/projects": {
+              "type": "missing"
+            }
+          },
+          "settings": {
+            "core.ignorecase": null,
+            "core.precomposeunicode": null,
+            "core.filemode": "true",
+            "core.symlinks": null,
+            "core.sparsecheckout": null,
+            "core.sparsecheckoutcone": null
+          },
+          "ignores": {
+            "global": {
+              "location": "/home/agents/.config/git/ignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "info": {
+              "location": "/tmp/repo-standards-source-WMnIxD/.git/info/exclude",
+              "state": {
+                "type": "file",
+                "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                "executable": false
+              }
+            },
+            ".gitignore": {
+              "location": ".gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            ".agents/.gitignore": {
+              "location": ".agents/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            ".agents/skills/.gitignore": {
+              "location": ".agents/skills/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            ".agents/skills/adopt-standards/.gitignore": {
+              "location": ".agents/skills/adopt-standards/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "docs/.gitignore": {
+              "location": "docs/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "fixtures/.gitignore": {
+              "location": "fixtures/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "fixtures/sample/.gitignore": {
+              "location": "fixtures/sample/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "generated/.gitignore": {
+              "location": "generated/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "generated/site/.gitignore": {
+              "location": "generated/site/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "legacy/.gitignore": {
+              "location": "legacy/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "products/.gitignore": {
+              "location": "products/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "products/pear/.gitignore": {
+              "location": "products/pear/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            },
+            "teams/.gitignore": {
+              "location": "teams/.gitignore",
+              "state": {
+                "type": "missing"
+              }
+            }
+          }
+        }
+      }
+    ],
+    "id": "4d780b91-501c-4fb3-886d-692c80d23634",
+    "inspection": "sha256:157e21137e1d6d70690f9f6e895e131f24e350780eb34df45da8759327d331c4",
+    "selection": {
+      "cli": {
+        "package": "@lutzseverino/repo-standards",
+        "version": "1.2.0"
+      },
+      "standards": {
+        "repository": "https://github.com/atlas/standards",
+        "version": "v1.0.0",
+        "commit": "a7418aad6db00a616d6d4f28b5f8b61efada8edc"
+      },
+      "profile": "maintained"
+    },
+    "startInput": {
+      "kind": "public",
+      "options": {
+        "source": "https://github.com/atlas/standards",
+        "standardsVersion": "v1.0.0",
+        "profile": "maintained",
+        "project": "/tmp/repo-standards-source-WMnIxD",
+        "scope": "/srv/dev/projects/repo-standards-issue-50/acceptance/results/2026-09-14/contextual-scope-release/agents/orchard/retroactive/02-scope.json"
+      }
+    },
+    "affected": {
+      "docs/catalog.json": {
+        "type": "missing"
+      },
+      "docs/projects/index.md": {
+        "type": "missing"
+      },
+      "docs/projects/pear/operations.md": {
+        "type": "missing"
+      },
+      "legacy/pear-operations.md": {
+        "type": "file",
+        "sha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+        "executable": false,
+        "encoding": "utf8",
+        "content": "# Pear API operations\n\nStart the service with `node server.mjs`. If health checks fail after a deploy,\nrestore the previous image and keep the failed revision for investigation.\n"
+      },
+      "products/pear/README.md": {
+        "type": "missing"
+      },
+      ".agents/skills/adopt-standards": {
+        "type": "missing"
+      }
+    },
+    "outcome": "incomplete",
+    "prerequisites": [
+      {
+        "declaration": "project-documentation",
+        "phase": "fixes",
+        "operation": "normalize-markdown-ending",
+        "executable": "node",
+        "version": "24.21.0",
+        "code": null,
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        }
+      },
+      {
+        "declaration": "project-documentation",
+        "phase": "checks",
+        "operation": "verify-markdown-ending",
+        "executable": "node",
+        "version": "24.21.0",
+        "code": null,
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        }
+      }
+    ],
+    "operations": [
+      {
+        "operation": {
+          "declaration": "project-documentation",
+          "phase": "fixes",
+          "id": "normalize-markdown-ending"
+        },
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        },
+        "result": {
+          "format": "repo-standards/result/v1",
+          "status": "unchanged",
+          "message": "Markdown endings already satisfy the source."
+        },
+        "error": null,
+        "stdout": ".repo-standards/local/operations/0.stdout",
+        "stderr": ".repo-standards/local/operations/0.stderr"
+      }
+    ],
+    "assessments": [],
+    "phase": "contextual",
+    "reason": "CONTEXTUAL_REQUIRED: Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run.",
+    "changes": [
+      ".agents/skills/adopt-standards",
+      ".agents/skills/adopt-standards/SKILL.md",
+      ".repo-standards/.gitignore",
+      ".repo-standards/inputs/metadata.json",
+      ".repo-standards/inputs/resolved.json",
+      ".repo-standards/inputs/scope-history.json",
+      ".repo-standards/inputs/source/files/catalog.json",
+      ".repo-standards/inputs/source/guidance/project-discovery.md",
+      ".repo-standards/inputs/source/guidance/project-documentation.md",
+      ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+      ".repo-standards/inputs/standards.yaml",
+      ".repo-standards/local/operations/0.stderr",
+      ".repo-standards/local/operations/0.stdout",
+      ".repo-standards/local/run.json",
+      ".repo-standards/lock.json",
+      ".repo-standards/runtime/node_modules",
+      ".repo-standards/runtime/package-lock.json",
+      ".repo-standards/runtime/package.json",
+      ".repo-standards/selection.yaml",
+      "CATALOG.md",
+      "docs/catalog.json"
+    ],
+    "completed": [
+      "docs/catalog.json",
+      ".agents/skills/adopt-standards/SKILL.md",
+      ".repo-standards/inputs/source/files/catalog.json",
+      ".repo-standards/inputs/source/guidance/project-documentation.md",
+      ".repo-standards/inputs/source/guidance/project-discovery.md",
+      ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+      ".repo-standards/inputs/standards.yaml",
+      ".repo-standards/inputs/metadata.json",
+      ".repo-standards/inputs/resolved.json",
+      ".repo-standards/inputs/scope-history.json",
+      ".repo-standards/selection.yaml",
+      ".repo-standards/runtime/package.json",
+      ".repo-standards/runtime/package-lock.json",
+      ".repo-standards/lock.json",
+      "isolated runtime",
+      "fixes: project-documentation/normalize-markdown-ending (unchanged)"
+    ],
+    "uncertain": [
+      "Contextual work and assessment are required before checks."
+    ],
+    "nextAction": "Apply the selected guidance, refresh the work request with resume, and submit evidence using resume --assessment <file>.",
+    "installation": {
+      "files": [
+        ".repo-standards/.gitignore",
+        "docs/catalog.json",
+        ".agents/skills/adopt-standards/SKILL.md",
+        ".repo-standards/inputs/source/files/catalog.json",
+        ".repo-standards/inputs/source/guidance/project-documentation.md",
+        ".repo-standards/inputs/source/guidance/project-discovery.md",
+        ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+        ".repo-standards/inputs/standards.yaml",
+        ".repo-standards/inputs/metadata.json",
+        ".repo-standards/inputs/resolved.json",
+        ".repo-standards/inputs/scope-history.json",
+        ".repo-standards/selection.yaml",
+        ".repo-standards/runtime/package.json",
+        ".repo-standards/runtime/package-lock.json",
+        ".repo-standards/lock.json"
+      ],
+      "runtime": true,
+      "trees": {},
+      "complete": true
+    },
+    "continuation": "de1d3cbcd4b4309ae452ba192eb473eab337b22f4d4a3a3ebab80765315b3ee1",
+    "workRequest": {
+      "format": "repo-standards/work-request/v2",
+      "scope": {
+        "inspection": "sha256:157e21137e1d6d70690f9f6e895e131f24e350780eb34df45da8759327d331c4",
+        "afterFixes": "sha256:e47955ace70b48029fb15a476ccbc4b13c4b6076a3259ce1d269ff35e6ac4d72",
+        "proposal": {
+          "format": "repo-standards/scope/v1",
+          "request": "sha256:34454e185521782154221b88ecf3b67305aa48aa5cb1b2706fa655450637541a",
+          "declarations": [
+            {
+              "id": "project-documentation",
+              "paths": [
+                "docs/projects/index.md",
+                "docs/projects/pear/operations.md",
+                "legacy/pear-operations.md",
+                "products/pear/README.md"
+              ],
+              "coverage": "Pear is the only independently maintained project: its service manifest names the orchard-runtime owner and a concrete start command, and its existing operations guide supplies deployment health-check and recovery instructions even though the project directory has no README. The proposal covers the project README, the old operations source and its destination as separate migration paths, and the smallest useful project-documentation index. The sample fixture, generated site, and team grouping are evidenced exclusions. Per the evaluator's staged-discovery constraint, root CATALOG.md is deliberately deferred from this initial proposal; exact docs/catalog.json remains outside contextual scope as source-owned content.",
+              "evidence": [
+                {
+                  "kind": "directory",
+                  "path": ".",
+                  "identity": "sha256:2f0589a92d25d3e262f1173f1b6b9a62c717ba87ec01f5759a623801f7c1de84"
+                }
+              ],
+              "candidates": [
+                {
+                  "path": "docs/projects/index.md",
+                  "decision": "include",
+                  "reason": "This introduced index will make the maintained Pear project README and deeper operations guide discoverable without changing the source-owned exact catalog.",
+                  "evidence": [
+                    {
+                      "kind": "absence",
+                      "path": "docs/projects/index.md"
+                    },
+                    {
+                      "kind": "file",
+                      "path": "products/pear/service.json",
+                      "identity": "sha256:8b8c77f8da103753557637c4342d171289b15a681e899a7a1c93a6996a9aebda"
+                    }
+                  ]
+                },
+                {
+                  "path": "docs/projects/pear/operations.md",
+                  "decision": "include",
+                  "reason": "This is the individual destination for the useful Pear operations material moved from legacy/pear-operations.md.",
+                  "evidence": [
+                    {
+                      "kind": "absence",
+                      "path": "docs/projects/pear/operations.md"
+                    },
+                    {
+                      "kind": "file",
+                      "path": "legacy/pear-operations.md",
+                      "identity": "sha256:08f22fab01417a9a32569608e7858e753c8aa7b0c63186fc9748953eea4f41b6"
+                    }
+                  ]
+                },
+                {
+                  "path": "fixtures/sample",
+                  "decision": "exclude",
+                  "reason": "The sample service manifest explicitly marks itself as fixture data and therefore is not an independently maintained project.",
+                  "evidence": [
+                    {
+                      "kind": "directory",
+                      "path": "fixtures/sample",
+                      "identity": "sha256:78730d4cd48e4b2382b150aa87840cbe7be71c3d4aada2f5129f4031b90ae94c"
+                    },
+                    {
+                      "kind": "file",
+                      "path": "fixtures/sample/service.json",
+                      "identity": "sha256:fed131d11387c2933267db3e524ce83e60f47f156d6215e5976b7f31ccd7abaa"
+                    }
+                  ]
+                },
+                {
+                  "path": "generated/site",
+                  "decision": "exclude",
+                  "reason": "Its README says the directory is generated output and must not be edited by hand, so it is neither a maintained project nor a contextual documentation target.",
+                  "evidence": [
+                    {
+                      "kind": "directory",
+                      "path": "generated/site",
+                      "identity": "sha256:052f8cef3ed0b14ab8445c962b4efc64be06c6532c0479d5bb1bbbbeb9a2defd"
+                    },
+                    {
+                      "kind": "file",
+                      "path": "generated/site/README.md",
+                      "identity": "sha256:0c40b8270199da7130b80f33a56b8fcfef4e05f3939423210a84c7542b2b7202"
+                    }
+                  ]
+                },
+                {
+                  "path": "legacy/pear-operations.md",
+                  "decision": "include",
+                  "reason": "This is the individual old documentation source that will be migrated while preserving its production deploy and recovery instructions.",
+                  "evidence": [
+                    {
+                      "kind": "file",
+                      "path": "legacy/pear-operations.md",
+                      "identity": "sha256:08f22fab01417a9a32569608e7858e753c8aa7b0c63186fc9748953eea4f41b6"
+                    },
+                    {
+                      "kind": "file",
+                      "path": "products/pear/service.json",
+                      "identity": "sha256:8b8c77f8da103753557637c4342d171289b15a681e899a7a1c93a6996a9aebda"
+                    }
+                  ]
+                },
+                {
+                  "path": "products/pear/README.md",
+                  "decision": "include",
+                  "reason": "Pear needs a project README despite its absence: products/pear/service.json identifies orchard-runtime ownership and the concrete node server.mjs start command, while the existing operations guide documents deployment health-check and recovery procedures.",
+                  "evidence": [
+                    {
+                      "kind": "absence",
+                      "path": "products/pear/README.md"
+                    },
+                    {
+                      "kind": "file",
+                      "path": "legacy/pear-operations.md",
+                      "identity": "sha256:08f22fab01417a9a32569608e7858e753c8aa7b0c63186fc9748953eea4f41b6"
+                    },
+                    {
+                      "kind": "file",
+                      "path": "products/pear/service.json",
+                      "identity": "sha256:8b8c77f8da103753557637c4342d171289b15a681e899a7a1c93a6996a9aebda"
+                    }
+                  ]
+                },
+                {
+                  "path": "teams",
+                  "decision": "exclude",
+                  "reason": "The teams directory is an organizational grouping; teams/runtime.md identifies a team and explicitly says it is not a deployable project.",
+                  "evidence": [
+                    {
+                      "kind": "directory",
+                      "path": "teams",
+                      "identity": "sha256:25df46e0239491db8bf395c86291a30656f49b0922f31e59c7cb1b8010b5e834"
+                    },
+                    {
+                      "kind": "file",
+                      "path": "teams/runtime.md",
+                      "identity": "sha256:f4d2240e7c85989c89c855c002369e88540689261a970b8545a286e47b76d15f"
+                    }
+                  ]
+                }
+              ],
+              "unresolved": []
+            }
+          ]
+        }
+      },
+      "run": "4d780b91-501c-4fb3-886d-692c80d23634",
+      "selection": "sha256:72e41013c4c055abaceee4ab573d3e05b25868c17053909f9db02f8da9925fc3",
+      "snapshot": "sha256:e47955ace70b48029fb15a476ccbc4b13c4b6076a3259ce1d269ff35e6ac4d72",
+      "declarations": [
+        {
+          "id": "project-documentation",
+          "guidance": {
+            "id": "project-documentation",
+            "targets": [
+              "docs/projects/index.md",
+              "docs/projects/pear/operations.md",
+              "legacy/pear-operations.md",
+              "products/pear/README.md"
+            ],
+            "source": "guidance/project-documentation.md",
+            "sha256": "f4d9ba3e46d6d5d9bbcb043d2fe4bf687a96f61f505ee30bbd2e04afbf2108a9",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "# Project documentation guidance\n\nGive each maintained project a concise README with its purpose, verified setup\nand operating commands, and links to deeper material. Preserve useful facts,\nwarnings, and recovery instructions when moving existing documentation into\n`docs/projects/`. Add the smallest useful documentation index and repair links\nthat referred to old locations.\n\nDo not rewrite generated or fixture content, invent commands, or describe an\norganizational directory as a project. Preserve project-owned voice and history.\nThe exact `docs/catalog.json` is outside this contextual declaration.\n"
+          },
+          "discovery": {
+            "id": "project-documentation",
+            "source": "guidance/project-discovery.md",
+            "sha256": "014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "# Project documentation discovery\n\nIdentify independently maintained projects from positive ownership and build or\ndeployment evidence. A project can require documentation when its directory has\nno README. A familiar filename by itself does not establish membership.\n\nFor every candidate, explain inclusion or exclusion. Treat test fixtures,\ngenerated output, archived copies, and directories that only group teams or\nprojects as candidates requiring evidence, not maintained projects by default.\nLeave uncertain maintenance or ownership as an unresolved question.\n\nFor each included project, plan individual files for its project README, every\nexisting documentation source that will move, each destination and introduced\ndocumentation index, and every file whose links need repair. Do not include\n`docs/catalog.json`; the source owns that exact file. An explained empty list is\nvalid when evidence shows that no maintained project is present.\n"
+          },
+          "allowedTargets": {
+            "paths": [
+              "docs/projects/index.md",
+              "docs/projects/pear/operations.md",
+              "legacy/pear-operations.md",
+              "products/pear/README.md"
+            ],
+            "directories": []
+          }
+        }
+      ],
+      "requiredEvidence": [
+        "status",
+        "explanation",
+        "changedPaths",
+        "evidence",
+        "scope",
+        "scopeValidity.afterFixes",
+        "scopeValidity.current"
+      ]
+    }
+  },
+  "execution": "interrupted",
+  "abandoned": [],
+  "evidence": "historical"
+}

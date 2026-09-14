@@ -1,0 +1,10 @@
+diff --git a/CATALOG.md b/CATALOG.md
+index fe87b91..a479ba5 100644
+--- a/CATALOG.md
++++ b/CATALOG.md
+@@ -1,3 +1,5 @@
+ # Orchard catalog
+ 
+ - [Pear API operations](legacy/pear-operations.md)
++
++Unauthorized line written before scope expansion.

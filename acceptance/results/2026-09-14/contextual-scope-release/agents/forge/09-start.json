@@ -1,0 +1,1107 @@
+{
+  "format": "repo-standards/run/v2",
+  "observations": [
+    {
+      "phase": "fixes",
+      "operation": {
+        "phase": "fixes",
+        "declaration": "project-documentation",
+        "id": "normalize-markdown-ending"
+      },
+      "operationIndex": 0,
+      "scope": {
+        "project-documentation": {
+          "paths": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "8ed54fffc7da0615a6b186c2d4b854c8fcf63e3e67b30a3cbf3aba0d606a8e6e",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "file",
+            "sha256": "3a93d2f301be34b4a08ba2defdecb17518bfbff3faa0e2a3708e54ab376cfe43",
+            "executable": false
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "missing"
+          },
+          "docs/projects/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "missing"
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "missing"
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "8ed54fffc7da0615a6b186c2d4b854c8fcf63e3e67b30a3cbf3aba0d606a8e6e",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "file",
+            "sha256": "3a93d2f301be34b4a08ba2defdecb17518bfbff3faa0e2a3708e54ab376cfe43",
+            "executable": false
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "missing"
+          },
+          "docs/projects/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "missing"
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "missing"
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [],
+      "boundaryChanges": [],
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "project-documentation": {
+          "paths": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "INDEX.md": {
+            "type": "file",
+            "sha256": "8ed54fffc7da0615a6b186c2d4b854c8fcf63e3e67b30a3cbf3aba0d606a8e6e",
+            "executable": false
+          },
+          "build/generated/README.md": {
+            "type": "file",
+            "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "fixtures/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+            "executable": false
+          },
+          "groups/developer-tools.md": {
+            "type": "file",
+            "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+            "executable": false
+          },
+          "guides/hammer.md": {
+            "type": "file",
+            "sha256": "3a93d2f301be34b4a08ba2defdecb17518bfbff3faa0e2a3708e54ab376cfe43",
+            "executable": false
+          },
+          "modules/tools/hammer/Cargo.toml": {
+            "type": "file",
+            "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+            "executable": false
+          },
+          "docs/projects/INDEX.md": {
+            "type": "missing"
+          },
+          "docs/projects/hammer.md": {
+            "type": "missing"
+          },
+          "modules/tools/hammer/README.md": {
+            "type": "missing"
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build": {
+            "type": "directory",
+            "mode": 448
+          },
+          "build/generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "guides": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools": {
+            "type": "directory",
+            "mode": 448
+          },
+          "modules/tools/hammer": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "missing"
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-OXjpvh/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/.gitignore": {
+            "location": "build/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "build/generated/.gitignore": {
+            "location": "build/generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/hammer/.gitignore": {
+            "location": "fixtures/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "guides/.gitignore": {
+            "location": "guides/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/.gitignore": {
+            "location": "modules/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/.gitignore": {
+            "location": "modules/tools/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "modules/tools/hammer/.gitignore": {
+            "location": "modules/tools/hammer/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "id": "c4aa7eb9-455d-4202-946c-aa6d0cd3e0ee",
+  "inspection": "sha256:93576f28b03162187d88414bcb2c92abdbd7687b8c9e89b70f1ed55b64520dba",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.2.0"
+    },
+    "standards": {
+      "repository": "https://github.com/atlas/standards",
+      "version": "v1.0.0",
+      "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+    },
+    "profile": "maintained"
+  },
+  "startInput": {
+    "kind": "public",
+    "options": {
+      "source": "https://github.com/atlas/standards",
+      "standardsVersion": "v1.0.0",
+      "profile": "maintained",
+      "project": "/tmp/repo-standards-source-OXjpvh",
+      "scope": "/srv/dev/projects/repo-standards-issue-50/acceptance/results/2026-09-14/contextual-scope-release/agents/forge/04-final-scope.json"
+    }
+  },
+  "affected": {
+    "docs/catalog.json": {
+      "type": "missing"
+    },
+    "INDEX.md": {
+      "type": "file",
+      "sha256": "8ed54fffc7da0615a6b186c2d4b854c8fcf63e3e67b30a3cbf3aba0d606a8e6e",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Forge documentation\n\n- [Hammer](guides/hammer.md)\n"
+    },
+    "docs/projects/INDEX.md": {
+      "type": "missing"
+    },
+    "docs/projects/hammer.md": {
+      "type": "missing"
+    },
+    "guides/hammer.md": {
+      "type": "file",
+      "sha256": "3a93d2f301be34b4a08ba2defdecb17518bfbff3faa0e2a3708e54ab376cfe43",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Hammer guide\n\nRun `cargo run --manifest-path modules/tools/hammer/Cargo.toml`. Preserve the\ninput archive before retrying a failed conversion.\n"
+    },
+    "modules/tools/hammer/README.md": {
+      "type": "missing"
+    },
+    ".agents/skills/adopt-standards": {
+      "type": "missing"
+    }
+  },
+  "outcome": "incomplete",
+  "prerequisites": [
+    {
+      "declaration": "project-documentation",
+      "phase": "fixes",
+      "operation": "normalize-markdown-ending",
+      "executable": "node",
+      "version": "24.21.0",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    },
+    {
+      "declaration": "project-documentation",
+      "phase": "checks",
+      "operation": "verify-markdown-ending",
+      "executable": "node",
+      "version": "24.21.0",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    }
+  ],
+  "operations": [
+    {
+      "operation": {
+        "declaration": "project-documentation",
+        "phase": "fixes",
+        "id": "normalize-markdown-ending"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v1",
+        "status": "unchanged",
+        "message": "Markdown endings already satisfy the source."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/0.stdout",
+      "stderr": ".repo-standards/local/operations/0.stderr"
+    }
+  ],
+  "assessments": [],
+  "phase": "contextual",
+  "reason": "CONTEXTUAL_REQUIRED: Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run.",
+  "changes": [
+    ".agents/skills/adopt-standards",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/.gitignore",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/inputs/source/files/catalog.json",
+    ".repo-standards/inputs/source/guidance/project-discovery.md",
+    ".repo-standards/inputs/source/guidance/project-documentation.md",
+    ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/local/operations/0.stderr",
+    ".repo-standards/local/operations/0.stdout",
+    ".repo-standards/local/run.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/node_modules",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/selection.yaml",
+    "docs/catalog.json"
+  ],
+  "completed": [
+    "docs/catalog.json",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/inputs/source/files/catalog.json",
+    ".repo-standards/inputs/source/guidance/project-documentation.md",
+    ".repo-standards/inputs/source/guidance/project-discovery.md",
+    ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/lock.json",
+    "isolated runtime",
+    "fixes: project-documentation/normalize-markdown-ending (unchanged)"
+  ],
+  "uncertain": [
+    "Contextual work and assessment are required before checks."
+  ],
+  "nextAction": "Apply the selected guidance, refresh the work request with resume, and submit evidence using resume --assessment <file>.",
+  "installation": {
+    "files": [
+      ".repo-standards/.gitignore",
+      "docs/catalog.json",
+      ".agents/skills/adopt-standards/SKILL.md",
+      ".repo-standards/inputs/source/files/catalog.json",
+      ".repo-standards/inputs/source/guidance/project-documentation.md",
+      ".repo-standards/inputs/source/guidance/project-discovery.md",
+      ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+      ".repo-standards/inputs/standards.yaml",
+      ".repo-standards/inputs/metadata.json",
+      ".repo-standards/inputs/resolved.json",
+      ".repo-standards/inputs/scope-history.json",
+      ".repo-standards/selection.yaml",
+      ".repo-standards/runtime/package.json",
+      ".repo-standards/runtime/package-lock.json",
+      ".repo-standards/lock.json"
+    ],
+    "runtime": true,
+    "trees": {},
+    "complete": true
+  },
+  "continuation": "d05951a3315887cf97bdd986ff6a6a5d7f2f3240b1ad3191f5bb8f6b38b34029",
+  "workRequest": {
+    "format": "repo-standards/work-request/v2",
+    "scope": {
+      "inspection": "sha256:93576f28b03162187d88414bcb2c92abdbd7687b8c9e89b70f1ed55b64520dba",
+      "afterFixes": "sha256:459c4f43f90f675b55b22c87dc9c12981c613523d600f8c7e3188e46c0a61540",
+      "proposal": {
+        "format": "repo-standards/scope/v1",
+        "request": "sha256:4f13a9459b9617d66f4da5ce2e273920954b33f4617614f57c863dbb9d323b61",
+        "declarations": [
+          {
+            "id": "project-documentation",
+            "paths": [
+              "INDEX.md",
+              "docs/projects/INDEX.md",
+              "docs/projects/hammer.md",
+              "guides/hammer.md",
+              "modules/tools/hammer/README.md"
+            ],
+            "coverage": "modules/tools/hammer is the sole independently maintained project: its Cargo manifest names versioned package hammer and assigns ownership to team developer-tools, while guides/hammer.md supplies its real run command and recovery warning. Its missing README therefore belongs in scope. The migration moves that individual guide to docs/projects/hammer.md, introduces docs/projects/INDEX.md, and repairs INDEX.md. fixtures/hammer is test data, build/generated/README.md is generated, groups/developer-tools.md is an organizational index, and source-owned exact docs/catalog.json remains outside contextual scope.",
+            "evidence": [
+              {
+                "kind": "directory",
+                "path": ".",
+                "identity": "sha256:e1c5e3694354f77cf3e1d975c5b7b2cd228e8e0ca88d159e80c62cdf14761e03"
+              },
+              {
+                "kind": "directory",
+                "path": "modules/tools/hammer",
+                "identity": "sha256:c133db93670a54fe78e1700808d85368dfcc4039202c95102e038a6f4cf7a0e1"
+              },
+              {
+                "kind": "file",
+                "path": "guides/hammer.md",
+                "identity": "sha256:93f6b736069a5faedeebef28e2f6ad140e9cbe44a713b281fbfa966e9c93b107"
+              },
+              {
+                "kind": "file",
+                "path": "modules/tools/hammer/Cargo.toml",
+                "identity": "sha256:4ce1bba4119b58561db790e9c712ac794a44ca1a5466e7aa2c7432e20b9284b7"
+              }
+            ],
+            "candidates": [
+              {
+                "path": "INDEX.md",
+                "decision": "include",
+                "reason": "Its current Hammer link names guides/hammer.md, so the guide migration requires repairing this individual root index file.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "INDEX.md",
+                    "identity": "sha256:d104b3be450403c660d74a6715edd3c1f543fca428d7fde4f6d032e4f622db48"
+                  }
+                ]
+              },
+              {
+                "path": "build/generated/README.md",
+                "decision": "exclude",
+                "reason": "The file says its content is regenerated by the build, so it is generated output and must not be rewritten.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "build/generated/README.md",
+                    "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"
+                  }
+                ]
+              },
+              {
+                "path": "docs/projects/INDEX.md",
+                "decision": "include",
+                "reason": "This absent file is the smallest useful introduced index for the project-documentation destination.",
+                "evidence": [
+                  {
+                    "kind": "absence",
+                    "path": "docs/projects/INDEX.md"
+                  }
+                ]
+              },
+              {
+                "path": "docs/projects/hammer.md",
+                "decision": "include",
+                "reason": "This absent file is the planned destination for the existing Hammer guide, whose useful command and recovery warning must be preserved.",
+                "evidence": [
+                  {
+                    "kind": "absence",
+                    "path": "docs/projects/hammer.md"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "guides/hammer.md",
+                    "identity": "sha256:93f6b736069a5faedeebef28e2f6ad140e9cbe44a713b281fbfa966e9c93b107"
+                  }
+                ]
+              },
+              {
+                "path": "fixtures/hammer",
+                "decision": "exclude",
+                "reason": "The path is under fixtures and its manifest names package fixture-hammer at version 0.0.0 with no ownership metadata; this is test data rather than the maintained Hammer project.",
+                "evidence": [
+                  {
+                    "kind": "directory",
+                    "path": "fixtures/hammer",
+                    "identity": "sha256:141b83b91d1bd30361ab0e03d443e0053a819edf9f6cbf30c873b7d5c04d614d"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "fixtures/hammer/Cargo.toml",
+                    "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"
+                  }
+                ]
+              },
+              {
+                "path": "groups/developer-tools.md",
+                "decision": "exclude",
+                "reason": "The file explicitly identifies itself as an organizational index rather than a maintained project.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "groups/developer-tools.md",
+                    "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"
+                  }
+                ]
+              },
+              {
+                "path": "guides/hammer.md",
+                "decision": "include",
+                "reason": "This individual existing documentation source must be removed from its old location as part of the migration after its useful content is preserved at the destination.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "guides/hammer.md",
+                    "identity": "sha256:93f6b736069a5faedeebef28e2f6ad140e9cbe44a713b281fbfa966e9c93b107"
+                  }
+                ]
+              },
+              {
+                "path": "modules/tools/hammer/README.md",
+                "decision": "include",
+                "reason": "The maintained nested Hammer project lacks a README; the versioned Cargo package, explicit developer-tools ownership metadata, nonempty project directory, and operational guide establish membership.",
+                "evidence": [
+                  {
+                    "kind": "absence",
+                    "path": "modules/tools/hammer/README.md"
+                  },
+                  {
+                    "kind": "directory",
+                    "path": "modules/tools/hammer",
+                    "identity": "sha256:c133db93670a54fe78e1700808d85368dfcc4039202c95102e038a6f4cf7a0e1"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "guides/hammer.md",
+                    "identity": "sha256:93f6b736069a5faedeebef28e2f6ad140e9cbe44a713b281fbfa966e9c93b107"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "modules/tools/hammer/Cargo.toml",
+                    "identity": "sha256:4ce1bba4119b58561db790e9c712ac794a44ca1a5466e7aa2c7432e20b9284b7"
+                  }
+                ]
+              }
+            ],
+            "unresolved": []
+          }
+        ]
+      }
+    },
+    "run": "c4aa7eb9-455d-4202-946c-aa6d0cd3e0ee",
+    "selection": "sha256:0894cdc09b074779050f35d3ad4a81d2712ec6168c09a26833eff7bf053cc605",
+    "snapshot": "sha256:459c4f43f90f675b55b22c87dc9c12981c613523d600f8c7e3188e46c0a61540",
+    "declarations": [
+      {
+        "id": "project-documentation",
+        "guidance": {
+          "id": "project-documentation",
+          "targets": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "source": "guidance/project-documentation.md",
+          "sha256": "f4d9ba3e46d6d5d9bbcb043d2fe4bf687a96f61f505ee30bbd2e04afbf2108a9",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "# Project documentation guidance\n\nGive each maintained project a concise README with its purpose, verified setup\nand operating commands, and links to deeper material. Preserve useful facts,\nwarnings, and recovery instructions when moving existing documentation into\n`docs/projects/`. Add the smallest useful documentation index and repair links\nthat referred to old locations.\n\nDo not rewrite generated or fixture content, invent commands, or describe an\norganizational directory as a project. Preserve project-owned voice and history.\nThe exact `docs/catalog.json` is outside this contextual declaration.\n"
+        },
+        "discovery": {
+          "id": "project-documentation",
+          "source": "guidance/project-discovery.md",
+          "sha256": "014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "# Project documentation discovery\n\nIdentify independently maintained projects from positive ownership and build or\ndeployment evidence. A project can require documentation when its directory has\nno README. A familiar filename by itself does not establish membership.\n\nFor every candidate, explain inclusion or exclusion. Treat test fixtures,\ngenerated output, archived copies, and directories that only group teams or\nprojects as candidates requiring evidence, not maintained projects by default.\nLeave uncertain maintenance or ownership as an unresolved question.\n\nFor each included project, plan individual files for its project README, every\nexisting documentation source that will move, each destination and introduced\ndocumentation index, and every file whose links need repair. Do not include\n`docs/catalog.json`; the source owns that exact file. An explained empty list is\nvalid when evidence shows that no maintained project is present.\n"
+        },
+        "allowedTargets": {
+          "paths": [
+            "INDEX.md",
+            "docs/projects/INDEX.md",
+            "docs/projects/hammer.md",
+            "guides/hammer.md",
+            "modules/tools/hammer/README.md"
+          ],
+          "directories": []
+        }
+      }
+    ],
+    "requiredEvidence": [
+      "status",
+      "explanation",
+      "changedPaths",
+      "evidence",
+      "scope",
+      "scopeValidity.afterFixes",
+      "scopeValidity.current"
+    ]
+  }
+}
+

@@ -1,0 +1,16 @@
+{
+  "path": "CATALOG.md",
+  "project": "/tmp/repo-standards-source-Aarb1O",
+  "tracked": true,
+  "type": "regular-file",
+  "mode": "0600",
+  "size": 70,
+  "sha256": "c64590338589c892f251e47a3d382c1a32be52b7c3e2e4a0757a66b017eaadee",
+  "discoveryEvidenceIdentity": "sha256:66b12bb1732d8cd39c145a7bb8c9d85dbd7393e7cdcdbdc994a36f49f60e6c11",
+  "encoding": "utf8",
+  "content": "# Orchard catalog\n\n- [Pear API operations](legacy/pear-operations.md)\n",
+  "gitStatusForPath": "",
+  "gitDiffForPath": "",
+  "edited": false,
+  "decision": "The legacy link must be repaired to docs/projects/pear/operations.md, but CATALOG.md remains unchanged until an eligible additions-only amendment is explicitly confirmed and accepted."
+}
