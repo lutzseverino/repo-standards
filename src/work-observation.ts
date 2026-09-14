@@ -1,12 +1,8 @@
 import { ProductError } from './errors.js';
-import { allowedTargets } from './execution.js';
 import type { ResolvedProfile } from './model.js';
+import { concreteScope, type Scope } from './scope.js';
 import { observeScope } from './scope-observation.js';
 
-export type Scope = Record<string, { paths: string[]; directories: string[] }>;
-export function concreteScope(resolved: ResolvedProfile): Scope {
-  return Object.fromEntries(resolved.declarations.map(declaration => [declaration.id, allowedTargets(declaration)]));
-}
 export function contextualScope(resolved: ResolvedProfile): Scope {
   return concreteScope({ ...resolved, declarations: resolved.declarations.filter(declaration => 'guidance' in declaration) });
 }

@@ -1,4 +1,5 @@
-import { concreteScope, contextualScope, finishInterval, observeContinuation, observeWork, requireValidIntervals, type Scope, type WorkInterval, type WorkObservation } from './work-observation.js';
+import { concreteScope, type Scope } from './scope.js';
+import { contextualScope, finishInterval, observeContinuation, observeWork, requireValidIntervals, type WorkInterval, type WorkObservation } from './work-observation.js';
 import { randomUUID } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';

@@ -1,4 +1,5 @@
-import { concreteScope, contextualScope, observeWork, requireValidIntervals } from './work-observation.js';
+import { concreteScope } from './scope.js';
+import { contextualScope, observeWork, requireValidIntervals } from './work-observation.js';
 import { assessmentSnapshot, projectSnapshot, validateAssessment } from './assessment.js';
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';

@@ -3,9 +3,9 @@ import { dirname } from 'node:path';
 import type { Installation, Run } from './adoption-run.js';
 import { ProductError } from './errors.js';
 import { git, hiddenIndexPaths, type Blocker } from './inspection.js';
-import { materializeScope, readScope, validateScopeEvidence } from './scope.js';
+import { concreteScope, validateScope } from './scope.js';
 import { observeScope } from './scope-observation.js';
-import { concreteScope, finishInterval, observeContinuation, requireValidIntervals } from './work-observation.js';
+import { finishInterval, observeContinuation, requireValidIntervals } from './work-observation.js';
 
 const identity = (value: unknown) => `sha256:${hash(JSON.stringify(value))}`;
 
@@ -45,23 +45,10 @@ export function previewScopeAmendment(root: string, run: Run, installation: Inst
   };
   const project = capture();
   const request = identity({ action: 'amend-scope', run, installation: run.continuation, revision: run.inspection, existingScope, observations, project });
-  const proposal = scope ? readScope(scope, root) : undefined;
-  if (proposal && proposal.request !== request) throw new ProductError('STALE_SCOPE', 'The amendment proposal does not match the active run and current observation. Inspect --amend-scope again and review fresh evidence.');
-  const resolved = proposal ? materializeScope(root, sourceResolved, proposal) : previous.resolved;
-  const proposedScope = proposal ? concreteScope(resolved) : undefined;
-  if (proposedScope) for (const declaration of sourceResolved.declarations) {
-    const before = existingScope[declaration.id]!;
-    const after = proposedScope[declaration.id]!;
-    if ('discovery' in declaration) {
-      if (before.paths.some(path => !after.paths.includes(path))) throw new ProductError('SCOPE_RECONCILIATION_REQUIRED', `Cannot remove or transfer previously authorized targets from ${declaration.id}. Withdrawing a mistaken target requires reconciliation outside this active run; leave the run incomplete, preserve work, and abandon and reconcile before a new clean adoption.`);
-    } else if (JSON.stringify(before) !== JSON.stringify(after)) throw new ProductError('SELECTION_SWITCH', 'Scope amendment cannot change explicit targets or the selected declarations.');
-  }
-  const named = proposal?.declarations.flatMap(entry => entry.paths) ?? [];
-  const namedObservation = proposal ? observeDiscovery(named) : undefined;
-  const absence = proposal ? validateScopeEvidence(proposal, namedObservation!) : [];
-  const blockers: Blocker[] = [];
-  if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: 'Review current evidence and submit a complete repo-standards/scope/v1 proposal with inspect --amend-scope --scope <file>, retaining every previously authorized target per declaration.' });
-  if (proposal?.declarations.some(entry => entry.unresolved.length)) blockers.push({ code: 'UNRESOLVED_SCOPE', message: 'Resolve discovery questions and inspect a revised amendment proposal before confirmation.' });
+  const validated = validateScope({ phase: 'amendment', root, sourceResolved, request, currentResolved: previous.resolved, existingScope,
+    observationOptions, ...(scope ? { proposalPath: scope } : {}) });
+  const { proposal, resolved, proposedScope, additions, named, namedObservation, absence } = validated;
+  const blockers: Blocker[] = validated.blockers;
   const report = {
     format: 'repo-standards/inspection/v3', action: 'amend-scope', selection: previous.selection,
     source: previous.source, sourceResolved, resolved,
@@ -71,8 +58,7 @@ export function previewScopeAmendment(root: string, run: Run, installation: Inst
       observation: project.observation, ...(proposal ? { proposal, absence, namedObservation } : {}) },
     project,
     amendment: { eligible: blockers.length === 0, blockers, run: run.id, revision: run.inspection,
-      existingScope, ...(proposedScope ? { proposedScope, additions: Object.fromEntries(sourceResolved.declarations.filter(declaration => 'discovery' in declaration)
-        .map(declaration => [declaration.id, proposedScope[declaration.id]!.paths.filter(path => !existingScope[declaration.id]!.paths.includes(path))])) } : {}),
+      existingScope, ...(proposedScope ? { proposedScope, additions: additions! } : {}),
       observations, operations: run.operations, assessments: run.assessments,
       nextAction: blockers.length ? 'Resolve amendment blockers and inspect the complete proposal again. No new paths are authorized.'
         : 'Review the complete amendment preview and obtain explicit maintainer confirmation of its identity. Then use resume --amend-scope with the same --scope proposal and --confirm identity. Do not write to added paths before acceptance succeeds.' },
