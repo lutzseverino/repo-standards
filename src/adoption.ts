@@ -14,7 +14,7 @@ import { baselines, file, flatten, ignore, json, lockPath, projectRoot, safe, sa
 import type { Files } from './adoption-files.js';
 import { inspectActiveRun, recordedState, requireAmendmentEligible, withStartRun, withResumedRun } from './adoption-run.js';
 import { previewScopeAmendment } from './scope-amendment.js';
-import type { AdoptionRunSession, Installation, Run, StartInput, WorkRequest } from './adoption-run.js';
+import type { AdoptionRunSession, Installation, Run, ScopeAmendmentRecord, StartInput, WorkRequest } from './adoption-run.js';
 export { abandon, status } from './adoption-run.js';
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 const packageName = '@lutzseverino/repo-standards';
@@ -89,6 +89,12 @@ interface ScopeHistoryRun {
   resolved: Inspection['resolved'];
   sourceResolved?: NonNullable<Inspection['sourceResolved']>;
   discovery?: NonNullable<Inspection['discovery']>;
+}
+
+interface CompletedScopeEvidence {
+  lastComplete: { inspection: string };
+  scopeRevision?: number;
+  amendments?: ScopeAmendmentRecord[];
 }
 
 function retainedScopeRuns(value: unknown): ScopeHistoryRun[] {
@@ -440,9 +446,16 @@ export async function inspectRetained(project: string, cliVersion: string, scope
     { root: sourceRoot, identity: lock.selection.standards, paths, manifest: readFileSync(join(root, '.repo-standards/inputs/standards.yaml'), 'utf8'), ownedSkills: new Set(Object.keys(state.skills)), close() {} });
   const history = '.repo-standards/inputs/scope-history.json';
   const historicalScope = Object.hasOwn(lock.files, history) ? JSON.parse(readFileSync(join(root, history), 'utf8')) : undefined;
-  const amended = !!state.amendments?.length;
-  const retainedHistory = historicalScope ? { ...historicalScope,
-    ...(amended ? { format: 'repo-standards/scope-history/v2', scopeRevision: state.scopeRevision, amendments: state.amendments } : {}) } : undefined;
+  const completeRuns = [...(state.history ?? []), ...(state.observations ? [{ lastComplete: state.lastComplete,
+    scopeRevision: state.scopeRevision, amendments: state.amendments }] : [])] as CompletedScopeEvidence[];
+  const runs = historicalScope?.runs?.map((scopeRun: ScopeHistoryRun) => {
+    const completed = completeRuns.find(run => run.lastComplete?.inspection === scopeRun.inspection
+      || run.amendments?.[0]?.previousInspection === scopeRun.inspection);
+    return completed?.amendments?.length ? { ...scopeRun, scopeRevision: completed.scopeRevision, amendments: completed.amendments } : scopeRun;
+  });
+  const amended = !!state.amendments?.length || runs?.some((scopeRun: ScopeHistoryRun & { amendments?: unknown[] }) => scopeRun.amendments?.length);
+  const retainedHistory = historicalScope ? { ...historicalScope, ...(runs ? { runs } : {}),
+    ...(state.amendments?.length ? { format: 'repo-standards/scope-history/v2', scopeRevision: state.scopeRevision, amendments: state.amendments } : {}) } : undefined;
   return { ...report, ...(amended ? { format: 'repo-standards/inspection/v3' } : {}),
     retained: true, ...(retainedHistory ? { historicalScope: retainedHistory } : {}) };
 }
