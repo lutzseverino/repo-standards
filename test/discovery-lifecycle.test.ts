@@ -95,7 +95,12 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   const amendment = f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']).report;
   const amended = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', amendment.identity, '--json']);
   assert.equal(amended.result.status, 1, amended.result.stdout + amended.result.stderr);
-  const firstComplete = f.complete(amended.report);
+  const reconfirmRequest = f.run(['inspect', '--amend-scope', '--json']).report;
+  f.proposal(reconfirmRequest, ['apps/old/README.md', 'apps/amended/README.md']);
+  const reconfirmation = f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']).report;
+  const reconfirmed = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', reconfirmation.identity, '--json']);
+  assert.equal(reconfirmed.result.status, 1, reconfirmed.result.stdout + reconfirmed.result.stderr);
+  const firstComplete = f.complete(reconfirmed.report);
   assert.equal(firstComplete.result.status, 0);
   const firstState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
   commit(f.project.root);
@@ -136,7 +141,9 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   assert.equal(f.complete(started).result.status, 0);
   assert.equal(git(f.project.root, 'show', 'HEAD:apps/old/README.md'), '# Old project');
   commit(f.project.root);
-  const retained = f.run(['inspect', '--json']).report.historicalScope;
+  const retainedInspection = f.run(['inspect', '--json']).report;
+  assert.equal(retainedInspection.format, 'repo-standards/inspection/v3');
+  const retained = retainedInspection.historicalScope;
   assert.equal(retained.format, 'repo-standards/scope-history/v2');
   assert.deepEqual(retained.runs.map((run: { inspection: string }) => run.inspection), [firstInspection.identity, inspected.identity]);
   const secondState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
@@ -151,6 +158,17 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
     scopeRevision: firstState.scopeRevision,
     amendments: firstState.amendments,
   }]);
+  assert.deepEqual(retained.runs[0].discovery.proposal, firstInspection.discovery.proposal);
+  assert.equal(retained.runs[0].scopeRevision, firstState.scopeRevision);
+  assert.equal(retained.runs[0].amendments[0].confirmation, amendment.identity);
+  assert.equal(retained.runs[0].amendments[1].confirmation, reconfirmation.identity);
+  assert.equal(retained.runs[0].amendments[1].previousInspection, amendment.identity);
+  assert.deepEqual(retained.runs[0].amendments[0].outgoingObservation, firstState.amendments[0].outgoingObservation);
+  assert.deepEqual(retained.runs[0].amendments[0].assessments, firstState.amendments[0].assessments);
+  const historicalExecution = f.run(['status', '--json']).report.history[0];
+  assert.equal(historicalExecution.lastComplete.inspection, firstState.lastComplete.inspection);
+  assert.deepEqual(historicalExecution.observations, firstState.observations);
+  assert.deepEqual(historicalExecution.operations, firstState.operations);
   const emptyInstalledDirectory = join(f.project.root, '.agents/skills/adopt-standards/added-directory');
   mkdirSync(emptyInstalledDirectory);
   const inventoryDrift = f.run(['inspect', '--readopt', '--json']).report;
@@ -163,6 +181,11 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
     const result = cli.run(args, checkout, f.env);
     return { result, report: JSON.parse(result.stdout) };
   };
+  const checkoutRetainedInspection = runCheckout(['inspect', '--json']).report;
+  assert.equal(checkoutRetainedInspection.format, 'repo-standards/inspection/v3');
+  const checkoutRetained = checkoutRetainedInspection.historicalScope;
+  assert.deepEqual(checkoutRetained.runs[0], retained.runs[0]);
+  assert.deepEqual(runCheckout(['status', '--json']).report.history[0], historicalExecution);
   const checkoutRequest = runCheckout(['inspect', '--readopt', '--json']).report;
   f.proposal(checkoutRequest, 'apps/new/README.md', 'apps/old/README.md');
   const checkoutInspection = runCheckout(['inspect', '--readopt', '--scope', f.scopeFile, '--json']).report;

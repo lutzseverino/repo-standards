@@ -373,7 +373,8 @@ fresh checkout without the source. The ordinary report's current discovery
 request is separate and confers no authority or claim of current coverage.
 After an amended completion, retained inspection advances to
 `repo-standards/inspection/v3`; its `repo-standards/scope-history/v2` adds the
-accepted scope revision and immutable amendment records.
+accepted scope revision and immutable amendment records. If a later adoption
+completes, the amended run keeps those fields in its ordered `runs` entry.
 
 ## Preview scope amendments in an active run
 
