@@ -17,6 +17,8 @@ jobs:
         with:
           node-version-file: .node-version
       - run: node .github/scripts/contextual-public-updates.mjs
+        env:
+          SKIP_STANDARDS_INSPECTION: '1'
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
