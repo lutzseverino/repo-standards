@@ -165,4 +165,3 @@ jobs:
             public-installation.json
             public-author-installation.json
           if-no-files-found: error
-
