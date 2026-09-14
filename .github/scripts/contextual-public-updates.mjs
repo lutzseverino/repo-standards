@@ -25,14 +25,15 @@ function run(command, args, options = {}) {
     writeFileSync(`${output}/${options.record}.stderr`, result.stderr ?? '');
     writeFileSync(`${output}/${options.record}.exit`, `${result.status ?? 1}\n`);
   }
-  assert.equal(result.status, 0, `${command} ${args.join(' ')} failed: ${result.stderr}`);
+  const allowedStatuses = options.allowedStatuses ?? [0];
+  assert.ok(allowedStatuses.includes(result.status), `${command} ${args.join(' ')} failed with ${result.status}: ${result.stderr}`);
   return result.stdout;
 }
-function cli(record, args, local = false) {
+function cli(record, args, local = false, allowedStatuses = [0]) {
   const bridgeArgs = ['acceptance/cli.ts', resolve('acceptance/results/2026-09-14/contextual-scope-release/agents/public-updates/session.json')];
   if (local) bridgeArgs.push('--local');
   bridgeArgs.push(...args, '--json');
-  return JSON.parse(run('node', bridgeArgs, { record }));
+  return JSON.parse(run('node', bridgeArgs, { record, allowedStatuses }));
 }
 function assertInspection(report, update, cliVersion, standardsVersion, standardsCommit) {
   assert.equal(report.update, update);
@@ -77,7 +78,8 @@ run('npm', ['ci', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: `${proj
 const standardsInspection = cli('03-standards-inspection', ['inspect', '--source', 'https://github.com/lutzseverino/repo-standards-example', '--standards-version', 'v1.1.0', '--profile', 'service']);
 assertInspection(standardsInspection, 'standards', '1.1.0', 'v1.1.0', 'fa6e4bc16640e320e6d06496a910cdccb23d9223');
 writeFileSync(`${output}/04-standards-confirmation.txt`, `The evaluator pre-authorized this isolated runner to confirm only after the script asserted the complete selection, profile, exact target, contextual targets, and zero blockers. I explicitly confirm inspection ${standardsInspection.identity}: CLI 1.1.0 held fixed and public standards updated to v1.1.0 at fa6e4bc16640e320e6d06496a910cdccb23d9223, with the disclosed exact content and trusted operations.\n`);
-cli('05-standards-start', ['start', '--source', 'https://github.com/lutzseverino/repo-standards-example', '--standards-version', 'v1.1.0', '--profile', 'service', '--confirm', standardsInspection.identity]);
+const standardsStart = cli('05-standards-start', ['start', '--source', 'https://github.com/lutzseverino/repo-standards-example', '--standards-version', 'v1.1.0', '--profile', 'service', '--confirm', standardsInspection.identity], false, [1]);
+assert.equal(standardsStart.phase, 'contextual');
 const standardsRefresh = cli('06-standards-refresh', ['resume'], true);
 writeFileSync(`${output}/07-standards-assessment.json`, JSON.stringify(assessment(standardsRefresh, 'standards update'), null, 2) + '\n');
 cli('08-standards-completion', ['resume', '--assessment', `${output}/07-standards-assessment.json`], true);
@@ -90,7 +92,8 @@ run('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: ex
 const cliInspection = cli('12-cli-inspection', ['inspect']);
 assertInspection(cliInspection, 'cli', '1.2.0', 'v1.1.0', 'fa6e4bc16640e320e6d06496a910cdccb23d9223');
 writeFileSync(`${output}/13-cli-confirmation.txt`, `The evaluator pre-authorized this isolated runner to confirm only after the script asserted the complete retained selection, profile, exact target, contextual targets, and zero blockers. I explicitly confirm inspection ${cliInspection.identity}: public CLI updated independently to 1.2.0 while standards v1.1.0 remained fixed, with the disclosed exact content and trusted operations.\n`);
-cli('14-cli-start', ['start', '--confirm', cliInspection.identity]);
+const cliStart = cli('14-cli-start', ['start', '--confirm', cliInspection.identity], false, [1]);
+assert.equal(cliStart.phase, 'contextual');
 const cliRefresh = cli('15-cli-refresh', ['resume'], true);
 writeFileSync(`${output}/16-cli-assessment.json`, JSON.stringify(assessment(cliRefresh, 'CLI update'), null, 2) + '\n');
 cli('17-cli-completion', ['resume', '--assessment', `${output}/16-cli-assessment.json`], true);
