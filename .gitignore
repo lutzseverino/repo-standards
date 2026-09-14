@@ -4,4 +4,4 @@ dist/
 coverage/
 *.tsbuildinfo
 *.tgz
-release/
+/release/

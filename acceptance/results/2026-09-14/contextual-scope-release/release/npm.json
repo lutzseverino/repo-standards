@@ -1,0 +1,19 @@
+{
+  "integrity": "sha512-upetHlGX7xhNxUiWY5V88rTyLpv2umoq9zx+y1aKfAbjA24hbPuZl3ZCFAL81rQ+fUw1aL+253O/mE7W8Agdog==",
+  "shasum": "741015bde56fa85434f41e4369c78702c588311a",
+  "tarball": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.2.0.tgz",
+  "fileCount": 82,
+  "unpackedSize": 643955,
+  "attestations": {
+    "url": "https://registry.npmjs.org/-/npm/v1/attestations/@lutzseverino%2frepo-standards@1.2.0",
+    "provenance": {
+      "predicateType": "https://slsa.dev/provenance/v1"
+    }
+  },
+  "signatures": [
+    {
+      "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+      "sig": "MEQCIGt/fIUYjD7gvYsX6EoZ7zocrH48P+pdns2lNDxFja1xAiBdAyUSoQqNJBADv+KLAUOIPN5CKf5Nip63hf21Fvigww=="
+    }
+  ]
+}

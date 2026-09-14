@@ -1,0 +1,114 @@
+{
+  "recoveredAt": "2026-09-14T03:42:52.290458+00:00",
+  "provenance": "Recovered original release artifacts and job log summaries; no new validation was performed.",
+  "workflow": {
+    "id": 34796996665,
+    "html_url": "https://github.com/lutzseverino/repo-standards/actions/runs/34796996665",
+    "event": "workflow_dispatch",
+    "head_sha": "9ab60775bcb2ad35076a929cb7de78a01a4576ec",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-09-14T01:46:19Z",
+    "updated_at": "2026-09-14T01:58:32Z"
+  },
+  "jobs": [
+    {
+      "id": 103831913443,
+      "name": "validate (macos-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lutzseverino/repo-standards/actions/runs/34796996665/job/103831913443"
+    },
+    {
+      "id": 103831913621,
+      "name": "validate (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lutzseverino/repo-standards/actions/runs/34796996665/job/103831913621"
+    },
+    {
+      "id": 103831914085,
+      "name": "verify-publisher",
+      "status": "completed",
+      "conclusion": "skipped",
+      "html_url": "https://github.com/lutzseverino/repo-standards/actions/runs/34796996665/job/103831914085"
+    },
+    {
+      "id": 103833472665,
+      "name": "publish",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lutzseverino/repo-standards/actions/runs/34796996665/job/103833472665"
+    },
+    {
+      "id": 103833534995,
+      "name": "public-installation (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lutzseverino/repo-standards/actions/runs/34796996665/job/103833534995"
+    },
+    {
+      "id": 103833535041,
+      "name": "public-installation (macos-26-intel)",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/lutzseverino/repo-standards/actions/runs/34796996665/job/103833535041"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 10330715123,
+      "name": "public-installation-ubuntu-latest",
+      "size_in_bytes": 12307,
+      "expired": false,
+      "created_at": "2026-09-14T01:57:38Z",
+      "expires_at": "2026-12-13T01:46:20Z"
+    },
+    {
+      "id": 10329868476,
+      "name": "release-bundle",
+      "size_in_bytes": 159241,
+      "expired": false,
+      "created_at": "2026-09-14T01:55:48Z",
+      "expires_at": "2026-12-13T01:46:20Z"
+    },
+    {
+      "id": 10329823799,
+      "name": "public-installation-macos-26-intel",
+      "size_in_bytes": 12379,
+      "expired": false,
+      "created_at": "2026-09-14T01:58:26Z",
+      "expires_at": "2026-12-13T01:46:20Z"
+    }
+  ],
+  "validation": {
+    "ubuntu": {
+      "tests": 538,
+      "pass": 538,
+      "fail": 0,
+      "skipped": 0,
+      "logExcerpt": "ubuntu-validation-summary.txt"
+    },
+    "macos": {
+      "tests": 538,
+      "pass": 537,
+      "fail": 0,
+      "skipped": 1,
+      "logExcerpt": "macos-validation-summary.txt"
+    }
+  },
+  "sha256": {
+    "SHA256SUMS": "37bda0a832f1b7b7ea6c1c844cac4d0a7202b5063aaa3cae0445346320f9723c",
+    "github-release.json": "3e4b34423abebc6b7f9ae8fe445443e62829b4dffa91212e12e4914b215872f4",
+    "macos/public-api-quota.json": "e3f89fb73aedaa81dc92658ed01a35d24e493121991b6f27eca2d180247eba2c",
+    "macos/public-author-installation.json": "fddeaa0f689b04f7e13f2852b6a9ca478c37a32ff31a91ce829d07bb00e90caa",
+    "macos/public-installation.json": "472faea7e1d70b7646f6a307bfcff7e9c8a03fc3b367918dbcce4f4e1760107a",
+    "macos-validation-summary.txt": "849482d2e9f2eb3f50c7600cf26d2b8303b5da12faf830c922dc6d886ec2d064",
+    "npm.json": "94e4d5863cdc919309e5d6863a428db74006c03ce3faa5568535f18ff6c107c1",
+    "release.json": "425a3c4fc2d1925e61f2fee5c4d81ee7e3c20a40be52b8332a869678b62a3888",
+    "ubuntu/public-api-quota.json": "55fe2397bf81298448b65767ad23f06b94a3c04a8cb5bdd8f9a7467875b5e201",
+    "ubuntu/public-author-installation.json": "39dcf7e89edd5bf2e2de7fe23fc97a88325cb2018b8c4accefe140ba6f255e8b",
+    "ubuntu/public-installation.json": "3512a4dc1c70548febce748f967d537438a4465b3f7b3b07595d48f02b26ab60",
+    "ubuntu-validation-summary.txt": "10700d7accc6b58b3d703814803ea8cee495fcc4cd7aeb056de1e188189a37aa"
+  }
+}

@@ -1,0 +1,8 @@
+validate (ubuntu-latest)	UNKNOWN STEP	2026-09-14T01:55:45.5721276Z ℹ tests 538
+validate (ubuntu-latest)	UNKNOWN STEP	2026-09-14T01:55:45.5721711Z ℹ suites 0
+validate (ubuntu-latest)	UNKNOWN STEP	2026-09-14T01:55:45.5722092Z ℹ pass 538
+validate (ubuntu-latest)	UNKNOWN STEP	2026-09-14T01:55:45.5722448Z ℹ fail 0
+validate (ubuntu-latest)	UNKNOWN STEP	2026-09-14T01:55:45.5722706Z ℹ cancelled 0
+validate (ubuntu-latest)	UNKNOWN STEP	2026-09-14T01:55:45.5723236Z ℹ skipped 0
+validate (ubuntu-latest)	UNKNOWN STEP	2026-09-14T01:55:45.5723568Z ℹ todo 0
+validate (ubuntu-latest)	UNKNOWN STEP	2026-09-14T01:55:45.5723973Z ℹ duration_ms 549330.016613
