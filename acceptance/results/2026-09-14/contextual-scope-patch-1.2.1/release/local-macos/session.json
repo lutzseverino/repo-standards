@@ -1,0 +1,52 @@
+{
+  "date": "2026-09-14",
+  "scope": "Local macOS scripted public verification; no new real-agent evaluation.",
+  "checkout": {
+    "head": "acbb9a81c937734da48d1e1da3371e2d6e1309bd",
+    "upstream": "origin/main",
+    "statusCommand": [
+      "git",
+      "status",
+      "--short",
+      "--branch"
+    ],
+    "statusOutput": "## evidence/41-local-macos...origin/main\n",
+    "clean": true
+  },
+  "environment": {
+    "product": "macOS",
+    "productVersion": "26.3",
+    "build": "25D125",
+    "darwinRelease": "25.3.0",
+    "arch": "arm64",
+    "node": "v24.11.1",
+    "pnpm": "11.20.0"
+  },
+  "acceptance": [
+    {
+      "command": "node acceptance/public-installation.ts 1.2.1 <fresh-directory>/public-installation.json",
+      "result": "passed",
+      "completedAt": "2026-09-14T12:34:18.619Z",
+      "evidence": "public-installation.json"
+    },
+    {
+      "command": "node acceptance/prepare-author.ts 1.2.1 <fresh-directory>/public-author-installation.json",
+      "result": "passed",
+      "completedAt": "2026-09-14T12:34:34.783Z",
+      "evidence": "public-author-installation.json"
+    }
+  ],
+  "cleanCheckoutConfirmation": {
+    "reason": "Retained after independent spec review requested whole-checkout porcelain evidence.",
+    "head": "acbb9a81c937734da48d1e1da3371e2d6e1309bd",
+    "detached": true,
+    "statusCommand": [
+      "git",
+      "status",
+      "--porcelain=v1",
+      "--untracked-files=all"
+    ],
+    "statusOutput": "",
+    "clean": true
+  }
+}

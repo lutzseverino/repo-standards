@@ -10,17 +10,22 @@ regression are recorded in
 `acceptance/results/2026-09-14/contextual-scope-patch-1.2.1/`. That scripted
 public-package/fixture-source record supplements the 1.2.0 release below; the
 broad public-source and real-agent journeys remain the original 1.2.0 evidence.
+The patch record also contains passing local macOS
+[public installation](results/2026-09-14/contextual-scope-patch-1.2.1/release/local-macos/public-installation.json)
+and [standalone author-skill acquisition](results/2026-09-14/contextual-scope-patch-1.2.1/release/local-macos/public-author-installation.json),
+which complete the 1.2.1 platform verification after the preserved hosted-run
+quota failures.
 
-Candidate CLI version: `1.2.0`. Until the evidence index records the matching
-published npm integrity, GitHub release, both operating systems, and fresh agent
-work, the release remains incomplete.
+Feature release: `1.2.0`; corrective patch: `1.2.1`. The evidence indexes record
+matching published npm integrity, GitHub releases, both operating systems, and
+fresh agent work. No required release prerequisite remains open.
 
 ## Delivery criteria
 
 | #50 criterion | Deterministic evidence | Required release evidence |
 | --- | --- | --- |
 | Complete outcome map and agreeing contracts | This map; `source-validation`, `scope-inspection`, `scope-adoption`, `scope-amendment`, `discovery-lifecycle`, `re-adoption`, `v2-execution`, `update`, `recovery`, `release`, and `bootstrap` tests | Final evidence index cross-checks public docs, packaged skills, results, and stated limits. |
-| Published package/bootstrap and both systems | `release` and `bootstrap`; full `pnpm validate` installs packed output | Release workflow records exact npm/release integrity plus Linux and macOS validation/public installation. Fresh checkout restores runtime with `npm ci --ignore-scripts`. |
+| Published package/bootstrap and both systems | `release` and `bootstrap`; full `pnpm validate` installs packed output | Release workflows record exact npm/release integrity plus Linux and macOS validation/public installation; the 1.2.1 patch adds the linked local macOS public checks above. Fresh checkout restores runtime with `npm ci --ignore-scripts`. |
 | Reusable discovery across two unfamiliar layouts | `scope-inspection`: two layouts, absent README, explained candidates, empty and unresolved scope; `scope-adoption`: both layouts and empty operations | Atlas source is interpreted afresh in Orchard and Forge by real agents using public CLI 1.2.0. |
 | Useful documentation migration | `scope-adoption`: old files, destinations, introduced directory/index, repaired links, exact preservation and move evidence | Agent record contains confirmed scope, complete before/after content, link checks, and exact `docs/catalog.json` bytes. |
 | Confirmed additions and recovery | `scope-amendment`: eligibility, replay, renewed assessment/checks, interval attribution, interruptions, and anti-retroactivity | Agent requests a newly discovered path, confirms a fresh amendment, recovers replay, and records the rejected retroactive case separately. |
@@ -58,7 +63,7 @@ work, the release remains incomplete.
 | Scoped execution | `v2-execution`, `execution` | Actual fix/check inputs and outcomes remain separate from agent assessment. |
 | Amendment/replay/interruption | `scope-amendment`, `v2-execution`, `recovery` | Accepted amendment history and recoverable interruption record. |
 | Re-adoption and updates | `discovery-lifecycle`, `re-adoption`, `update`, `acquisition` | Same-pin retained journey plus actual public standards and CLI version changes. |
-| Both operating systems and separate agents | Full `pnpm validate` on Linux/macOS | Workflow artifacts per OS; agent records identify runtime and agent independently. |
+| Both operating systems and separate agents | Full `pnpm validate` on Linux/macOS | Workflow validation artifacts cover both systems; the 1.2.1 local macOS public artifacts above complete public acquisition. Agent records identify runtime and agent independently. |
 
 ## Evidence boundaries
 

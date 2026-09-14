@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-09-14T12:41:57Z",
+  "request": "https://api.github.com/rate_limit",
+  "responseStatus": 200,
+  "headers": {
+    "date": "Mon, 14 Sep 2026 12:41:57 GMT",
+    "x-ratelimit-limit": "60",
+    "x-ratelimit-remaining": "0",
+    "x-ratelimit-used": "60",
+    "x-ratelimit-resource": "core",
+    "x-ratelimit-reset": "1789390206"
+  },
+  "resources": {
+    "core": {
+      "limit": 60,
+      "remaining": 0,
+      "reset": 1789390206,
+      "used": 60
+    },
+    "search": {
+      "limit": 10,
+      "remaining": 10,
+      "reset": 1789389778,
+      "used": 0
+    }
+  },
+  "resetAt": "2026-09-14T12:50:06.000Z",
+  "conclusion": "Anonymous GitHub core API quota was exhausted after the earlier passing local checks. The additional public-installation retry failed when per-candidate release reads returned HTTP 403.",
+  "scope": "Advisory anonymous quota observation; it does not replace the acceptance checks or reserve capacity."
+}
