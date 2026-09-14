@@ -21,6 +21,12 @@ completed successfully and published npm package
   installation, and the matching adoption-skill hash.
 - `release/npm.json`, `release/github-release.json`, `release/release.json`, and
   `release/SHA256SUMS` retain registry, release, workflow, and artifact identity.
+  The original workflow artifacts are retained under `release/ubuntu/` and
+  `release/macos/`. They were recovered from workflow 34796996665 during the
+  final audit after a broad `release/` ignore rule omitted them from the initial
+  evidence commit. `release/validation-summary.json` identifies the recovery,
+  original jobs, log excerpts, and artifact hashes; this is historical release
+  evidence, not a new validation run.
 
 ## Real-agent journeys
 

@@ -1,0 +1,8 @@
+validate (macos-latest)	UNKNOWN STEP	2026-09-14T01:56:47.4056100Z ℹ tests 538
+validate (macos-latest)	UNKNOWN STEP	2026-09-14T01:56:47.4056310Z ℹ suites 0
+validate (macos-latest)	UNKNOWN STEP	2026-09-14T01:56:47.4056490Z ℹ pass 537
+validate (macos-latest)	UNKNOWN STEP	2026-09-14T01:56:47.4056650Z ℹ fail 0
+validate (macos-latest)	UNKNOWN STEP	2026-09-14T01:56:47.4056800Z ℹ cancelled 0
+validate (macos-latest)	UNKNOWN STEP	2026-09-14T01:56:47.4056960Z ℹ skipped 1
+validate (macos-latest)	UNKNOWN STEP	2026-09-14T01:56:47.4057100Z ℹ todo 0
+validate (macos-latest)	UNKNOWN STEP	2026-09-14T01:56:47.4057310Z ℹ duration_ms 609684.545584
