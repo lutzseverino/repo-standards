@@ -66,7 +66,7 @@ try {
   writeFileSync(bootstrap, bootstrapBytes);
   chmodSync(bootstrap, 0o755);
   run(join(installation, 'node_modules/.bin/repo-standards-bootstrap'), ['--help']);
-  for (const author of ['alice', 'mira']) {
+  for (const author of ['alice', 'mira', 'atlas']) {
     assert.equal(JSON.parse(run(cli, ['source', 'validate', join(installed, 'examples', author), '--json'])).valid, true);
   }
   const source = 'https://github.com/lutzseverino/repo-standards-example';

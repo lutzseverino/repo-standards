@@ -1,0 +1,5 @@
+{
+  "name": "fixture-relay",
+  "owner": "test-suite",
+  "start": "do-not-run"
+}

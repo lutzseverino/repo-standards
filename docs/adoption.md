@@ -62,11 +62,11 @@ For a CLI update, obtain the candidate exact CLI outside the project. Omit the
 source flags so inspection and start use the retained current standards:
 
 ```sh
-candidate_dir="$HOME/.local/share/repo-standards/cli-1.1.0"
+candidate_dir="$HOME/.local/share/repo-standards/cli-1.2.0"
 mkdir -p "$candidate_dir"
 (cd "$candidate_dir" && npm install --prefix "$candidate_dir" \
   --ignore-scripts --save-exact --no-audit --no-fund \
-  @lutzseverino/repo-standards@1.1.0)
+  @lutzseverino/repo-standards@1.2.0)
 "$candidate_dir/node_modules/.bin/repo-standards" inspect --json
 ```
 

@@ -80,6 +80,36 @@ test('the accepted Alice example validates unchanged and provides human output',
   assert.equal(result.stderr, '');
 });
 
+test('the packaged Atlas v2 example validates with discovery and scoped operations', (t) => {
+  const source = sourceFixture('');
+  cpSync('examples/atlas', source.root, { recursive: true });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.scope.discoveryRequired, { maintained: ['project-documentation'] });
+  const declarations = report.profiles.maintained.declarations;
+  assert.equal(declarations.find((entry: { id: string }) => entry.id === 'documentation-catalog').target, 'docs/catalog.json');
+  const contextual = declarations.find((entry: { id: string }) => entry.id === 'project-documentation');
+  assert.equal(contextual.discovery, 'guidance/project-discovery.md');
+  assert.deepEqual(contextual.fixes.map((entry: { id: string }) => entry.id), ['normalize-markdown-ending']);
+  assert.deepEqual(contextual.checks.map((entry: { id: string }) => entry.id), ['verify-markdown-ending']);
+});
+
+test('the independent Wayfinder acceptance source validates through the same v2 contract', (t) => {
+  const source = sourceFixture('');
+  cpSync('acceptance/sources/wayfinder', source.root, { recursive: true });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.scope.discoveryRequired, { service: ['service-readiness'] });
+  const contextual = report.profiles.service.declarations.find((entry: { id: string }) => entry.id === 'service-readiness');
+  assert.equal(contextual.discovery, 'guidance/service-discovery.md');
+  assert.deepEqual(contextual.fixes.map((entry: { id: string }) => entry.id), ['initialize-operating-status']);
+  assert.deepEqual(contextual.checks.map((entry: { id: string }) => entry.id), ['verify-service-evidence']);
+});
+
 for (const [label, yaml, code] of [
   ['unsupported format', header.replace('repo-standards/v1', 'repo-standards/v3'), 'INVALID_FORMAT'],
   ['invalid CLI range', header.replace('>=1.0.0 <2.0.0', 'yesterday'), 'INVALID_VERSION'],

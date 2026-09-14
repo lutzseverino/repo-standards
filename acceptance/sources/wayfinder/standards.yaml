@@ -1,0 +1,46 @@
+format: repo-standards/v2
+name: wayfinder-service-readiness
+description: Discover operated services and record evidence for startup, health, and recovery
+requires:
+  repo-standards: ">=1.2.0 <2.0.0"
+
+defaults:
+  declarations:
+    editor-settings:
+      kind: file
+      target: .editorconfig
+      exact: files/editorconfig
+
+    service-readiness:
+      kind: repository
+      guidance: guidance/service-readiness.md
+      discovery: guidance/service-discovery.md
+      fixes:
+        - id: initialize-operating-status
+          run:
+            executable: node
+            script: operations/service-evidence.mjs
+            resources:
+              - operations/required-sections.json
+            arguments: []
+          prerequisite:
+            version-arguments: ["--version"]
+            version: ">=24.0.0 <25.0.0"
+          timeout-seconds: 30
+      checks:
+        - id: verify-service-evidence
+          run:
+            executable: node
+            script: operations/service-evidence.mjs
+            resources:
+              - operations/required-sections.json
+            arguments: []
+          prerequisite:
+            version-arguments: ["--version"]
+            version: ">=24.0.0 <25.0.0"
+          timeout-seconds: 30
+
+profiles:
+  service:
+    description: Operated services with project-specific readiness evidence
+    declarations: {}

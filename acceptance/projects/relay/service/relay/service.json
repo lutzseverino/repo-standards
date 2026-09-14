@@ -1,0 +1,6 @@
+{
+  "name": "relay-api",
+  "owner": "messaging-runtime",
+  "start": "python3 service/relay/server.py --port 8765",
+  "health": "http://127.0.0.1:8765/health"
+}
