@@ -27,7 +27,7 @@ work, the release remains incomplete.
 
 | Stories | Observable outcome | Owning deterministic evidence | Release observation |
 | --- | --- | --- | --- |
-| 1–4 | Authors separate discovery from contextual guidance on a v2 repository declaration; all profiles validate without executing code. | `source-validation` v1/v2 all-profile, reference, strict-field, and no-execution cases | Public 1.2.0 validates packaged Atlas and independently authored Wayfinder. |
+| 1–4 | Authors separate discovery from contextual guidance on a v2 repository declaration; all profiles validate without executing code. | `source-validation` v1/v2 all-profile, reference, strict-field, and no-execution cases | Public 1.2.0 validates packaged Atlas and the checkout's independently authored Wayfinder source. |
 | 5–8 | Agents include maintained projects without READMEs, explain inclusions/exclusions, and leave uncertainty blocking. | `scope-inspection` two-layout and empty/unresolved cases | Orchard/Forge proposal and unresolved rehearsal records. |
 | 9–10 | Explained empty scope remains active, including operations. | `scope-inspection` and `scope-adoption` empty-scope cases | Empty-scope rehearsal records operation input/outcome. |
 | 11–12 | One read-only inspection shows concrete files, changes, operations, exclusions, and executes no author code. | `scope-inspection`; `inspection`; `bootstrap` | Public bootstrap and agent before/after snapshots. |
@@ -45,7 +45,7 @@ work, the release remains incomplete.
 | --- | --- | --- |
 | Primary public CLI seam | Every listed test installs packed `dist/` through `test/installed-cli.ts`. | Linux/macOS `pnpm validate` on the exact release commit and registry integrity match. |
 | Observable bytes, modes, identities, results and safe actions | `scope-*`, `v2-execution`, `update`, `recovery` | Retained JSON, content inventories, diffs, mode/hash records, and CLI exit statuses. |
-| Source format and v1 compatibility | `source-validation`, `re-adoption` | Public Atlas/Wayfinder validation and public 1.1.0 v1 inspection. |
+| Source format and v1 compatibility | `source-validation`, `re-adoption` | Public 1.2.0 validates packaged Atlas and checkout Wayfinder; public 1.1.0 supplies v1 inspection. |
 | Semantic discovery | `scope-inspection` structural guarantees | Two fresh agents evaluate unfamiliar layouts; deterministic proposals are not relabeled as semantic proof. |
 | Read-only/fresh inspection and observation failures | `scope-inspection`, `inspection` | Bootstrap/inspection project snapshots and a stale-proposal rehearsal. |
 | Ownership and migration | `scope-adoption`, `path-validation`, `v2-execution` | Complete migrated content, exact catalog preservation, and rejected unconfirmed target. |

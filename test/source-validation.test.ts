@@ -80,34 +80,25 @@ test('the accepted Alice example validates unchanged and provides human output',
   assert.equal(result.stderr, '');
 });
 
-test('the packaged Atlas v2 example validates with discovery and scoped operations', (t) => {
+for (const example of [
+  { label: 'packaged Atlas v2 example', source: 'examples/atlas', profile: 'maintained', declaration: 'project-documentation',
+    discovery: 'guidance/project-discovery.md', fix: 'normalize-markdown-ending', check: 'verify-markdown-ending', exact: ['documentation-catalog', 'docs/catalog.json'] },
+  { label: 'independent Wayfinder acceptance source', source: 'acceptance/sources/wayfinder', profile: 'service', declaration: 'service-readiness',
+    discovery: 'guidance/service-discovery.md', fix: 'initialize-operating-status', check: 'verify-service-evidence', exact: ['editor-settings', '.editorconfig'] },
+] as const) test(`the ${example.label} validates through the same v2 contract`, (t) => {
   const source = sourceFixture('');
-  cpSync('examples/atlas', source.root, { recursive: true });
+  cpSync(example.source, source.root, { recursive: true });
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const report = JSON.parse(result.stdout);
-  assert.deepEqual(report.scope.discoveryRequired, { maintained: ['project-documentation'] });
-  const declarations = report.profiles.maintained.declarations;
-  assert.equal(declarations.find((entry: { id: string }) => entry.id === 'documentation-catalog').target, 'docs/catalog.json');
-  const contextual = declarations.find((entry: { id: string }) => entry.id === 'project-documentation');
-  assert.equal(contextual.discovery, 'guidance/project-discovery.md');
-  assert.deepEqual(contextual.fixes.map((entry: { id: string }) => entry.id), ['normalize-markdown-ending']);
-  assert.deepEqual(contextual.checks.map((entry: { id: string }) => entry.id), ['verify-markdown-ending']);
-});
-
-test('the independent Wayfinder acceptance source validates through the same v2 contract', (t) => {
-  const source = sourceFixture('');
-  cpSync('acceptance/sources/wayfinder', source.root, { recursive: true });
-  t.after(() => source.close());
-  const result = cli.run(['source', 'validate', '--json'], source.root);
-  assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
-  assert.deepEqual(report.scope.discoveryRequired, { service: ['service-readiness'] });
-  const contextual = report.profiles.service.declarations.find((entry: { id: string }) => entry.id === 'service-readiness');
-  assert.equal(contextual.discovery, 'guidance/service-discovery.md');
-  assert.deepEqual(contextual.fixes.map((entry: { id: string }) => entry.id), ['initialize-operating-status']);
-  assert.deepEqual(contextual.checks.map((entry: { id: string }) => entry.id), ['verify-service-evidence']);
+  assert.deepEqual(report.scope.discoveryRequired, { [example.profile]: [example.declaration] });
+  const declarations = report.profiles[example.profile].declarations;
+  assert.equal(declarations.find((entry: { id: string }) => entry.id === example.exact[0]).target, example.exact[1]);
+  const contextual = declarations.find((entry: { id: string }) => entry.id === example.declaration);
+  assert.equal(contextual.discovery, example.discovery);
+  assert.deepEqual(contextual.fixes.map((entry: { id: string }) => entry.id), [example.fix]);
+  assert.deepEqual(contextual.checks.map((entry: { id: string }) => entry.id), [example.check]);
 });
 
 for (const [label, yaml, code] of [

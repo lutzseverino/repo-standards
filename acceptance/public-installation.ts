@@ -13,6 +13,7 @@ if (!version || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) || !
 }
 if (process.env.NODE_OPTIONS) throw new Error('Run public acceptance without NODE_OPTIONS or acquisition fixtures.');
 const evidence = resolve(evidencePath);
+const checkout = process.cwd();
 const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-public-')));
 const project = join(root, 'project');
 mkdirSync(project);
@@ -69,6 +70,7 @@ try {
   for (const author of ['alice', 'mira', 'atlas']) {
     assert.equal(JSON.parse(run(cli, ['source', 'validate', join(installed, 'examples', author), '--json'])).valid, true);
   }
+  assert.equal(JSON.parse(run(cli, ['source', 'validate', join(checkout, 'acceptance/sources/wayfinder'), '--json'])).valid, true);
   const source = 'https://github.com/lutzseverino/repo-standards-example';
   const search = JSON.parse(run(cli, ['source', 'search', '--json']));
   assert.ok(search.candidates.some((candidate: { repository: string }) => candidate.repository === source), 'Public learning source must be discoverable');
