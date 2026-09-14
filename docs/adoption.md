@@ -180,7 +180,8 @@ and observation identities. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
 source availability. Ordinary discovery completion exposes inspection v2 with
 scope-history v2. An amended completion exposes inspection v3; scope-history v2
-adds the accepted revision and amendment records. Work intervals and final
+adds the accepted revision and amendment records, and keeps them on that run's
+ordered history entry after later completions. Work intervals and final
 scope-validity assessments are committed in state v4; a run that accepts an
 amendment advances to run v3 and retains its amendment chain in state v4. Each
 later complete v2 run moves the prior run's interval,
