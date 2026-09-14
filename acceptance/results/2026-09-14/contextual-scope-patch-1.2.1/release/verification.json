@@ -26,6 +26,7 @@
   ],
   "localMacos": {
     "checkout": "acbb9a81c937734da48d1e1da3371e2d6e1309bd",
+    "sessionEvidence": "local-macos/session.json",
     "environment": {
       "product": "macOS",
       "productVersion": "26.3",
@@ -44,6 +45,13 @@
       "result": "passed",
       "completedAt": "2026-09-14T12:34:34.783Z",
       "evidence": "local-macos/public-author-installation.json"
+    },
+    "laterQuotaRetry": {
+      "result": "failed: anonymous API quota exhausted",
+      "observedAt": "2026-09-14T12:41:57Z",
+      "reset": "2026-09-14T12:50:06Z",
+      "evidence": "local-macos/quota-retry/public-installation.json",
+      "quotaEvidence": "local-macos/quota-retry/public-api-quota.json"
     },
     "scope": "Local macOS scripted public verification; no new real-agent evaluation."
   },

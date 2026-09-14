@@ -69,6 +69,16 @@ author-skill paths.
   release resolution, standalone `author-standards` installation through
   `skills@1.5.25`, resource and npm-package inventory equality, matching CLI and
   documentation acquisition, and packaged example validation.
+- `release/local-macos/session.json` retains the clean whole-checkout status,
+  checkout identity, host versions, exact acceptance commands, results, and
+  evidence paths.
+
+An additional clean-checkout public-installation retry made while addressing an
+independent review finding reached anonymous GitHub core quota after the passing
+runs. `release/local-macos/quota-retry/` preserves its full failed result and a
+separate quota observation: 60 of 60 core requests used, with reset
+`2026-09-14T12:50:06Z`. The CLI had already passed both required local commands;
+this later observation does not replace or weaken those results.
 
 This local run completes the outstanding macOS public verification for issue
 #41. The hosted quota failures above remain part of the release history.
