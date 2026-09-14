@@ -86,7 +86,8 @@ if (process.env.SKIP_STANDARDS_INSPECTION === '1') {
 writeFileSync(`${output}/04-standards-confirmation.txt`, `The evaluator pre-authorized this isolated runner to confirm only after the script asserted the complete selection, profile, exact target, contextual targets, and zero blockers. I explicitly confirm inspection ${standardsInspection.identity}: CLI 1.1.0 held fixed and public standards updated to v1.1.0 at fa6e4bc16640e320e6d06496a910cdccb23d9223, with the disclosed exact content and trusted operations.\n`);
 const standardsStart = cli('05-standards-start', ['start', '--source', 'https://github.com/lutzseverino/repo-standards-example', '--standards-version', 'v1.1.0', '--profile', 'service', '--confirm', standardsInspection.identity], false, [1]);
 assert.equal(standardsStart.phase, 'contextual');
-const standardsRefresh = cli('06-standards-refresh', ['resume'], true);
+const standardsRefresh = cli('06-standards-refresh', ['resume'], true, [1]);
+assert.equal(standardsRefresh.phase, 'contextual');
 writeFileSync(`${output}/07-standards-assessment.json`, JSON.stringify(assessment(standardsRefresh, 'standards update'), null, 2) + '\n');
 cli('08-standards-completion', ['resume', '--assessment', `${output}/07-standards-assessment.json`], true);
 cli('09-standards-status', ['status'], true);
@@ -100,7 +101,8 @@ assertInspection(cliInspection, 'cli', '1.2.0', 'v1.1.0', 'fa6e4bc16640e320e6d06
 writeFileSync(`${output}/13-cli-confirmation.txt`, `The evaluator pre-authorized this isolated runner to confirm only after the script asserted the complete retained selection, profile, exact target, contextual targets, and zero blockers. I explicitly confirm inspection ${cliInspection.identity}: public CLI updated independently to 1.2.0 while standards v1.1.0 remained fixed, with the disclosed exact content and trusted operations.\n`);
 const cliStart = cli('14-cli-start', ['start', '--confirm', cliInspection.identity], false, [1]);
 assert.equal(cliStart.phase, 'contextual');
-const cliRefresh = cli('15-cli-refresh', ['resume'], true);
+const cliRefresh = cli('15-cli-refresh', ['resume'], true, [1]);
+assert.equal(cliRefresh.phase, 'contextual');
 writeFileSync(`${output}/16-cli-assessment.json`, JSON.stringify(assessment(cliRefresh, 'CLI update'), null, 2) + '\n');
 cli('17-cli-completion', ['resume', '--assessment', `${output}/16-cli-assessment.json`], true);
 cli('18-cli-status', ['status'], true);
