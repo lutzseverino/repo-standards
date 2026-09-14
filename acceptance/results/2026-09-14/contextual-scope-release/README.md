@@ -76,12 +76,12 @@ separate source-author and adopter roles.
 
 ### Public v1 and independent updates
 
-`agents/public-updates/` records a completed public CLI 1.1.0/source v1.0.0
-adoption using the existing v1 source format. The separate standards-only
-v1.1.0 and CLI-only 1.2.0 phases remain pending while GitHub's unauthenticated
-API quota resets; the first fail-closed `SOURCE_UNAVAILABLE` result is retained.
-This row and the overall release evidence remain incomplete until both update
-phases have their own confirmed completion and integrity records.
+`agents/public-updates/` records public GitHub and npm behavior against the
+existing v1 source format: a real-agent CLI 1.1.0/source v1.0.0 adoption, a
+separate confirmed standards-only update to source v1.1.0 with CLI 1.1.0 held
+fixed, and a separate CLI-only update to public 1.2.0 from retained v1.1.0
+inputs. Anonymous quota failures are preserved apart from the successful
+isolated-runner completion, assessments, checks, integrity, and normal commits.
 
 ## Acceptance map
 
@@ -99,7 +99,7 @@ observations. The following evidence closes the delivery rows:
 | Additions, replay, interruption, anti-retroactivity | Orchard amendment/retry history and separate retroactive rejection |
 | Empty and unresolved scope | Forge empty-scope completion and unresolved blocking inspection |
 | Same-pin growth-adoption, removals, fresh retained discovery | Orchard retained fresh checkout and scope delta |
-| v1 plus independent standards/CLI updates | Initial v1 completion recorded; independent update phases pending API reset |
+| v1 plus independent standards/CLI updates | Public agent v1 completion plus isolated-runner standards and CLI update records |
 | Second independent source | Wayfinder authorship, inspection, operation, probe, and completion records |
 | Semantic usefulness distinct from protocol | Fresh-agent transcripts/reviews versus deterministic CI artifacts |
 
@@ -118,6 +118,4 @@ snapshot. The product does not claim complete observation of unlisted ignored
 siblings. Public npm/GitHub acquisition, Node 24, subprocess dependencies,
 permissions, network access, and remote-service availability remain separate
 runtime prerequisites. Wayfinder's local Relay observations do not establish
-production state. The remaining release prerequisite is a fresh public GitHub acquisition after
-the recorded API quota resets. Issue #50 must remain open until both independent
-update phases complete.
+production state. No required release prerequisite or external blocker remained at completion.

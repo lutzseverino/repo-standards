@@ -1,0 +1,19 @@
+{
+  "format": "repo-standards/assessment/v1",
+  "run": "785843d9-0f08-4433-abb4-2477df90b48a",
+  "selection": "sha256:0ccfba20582ae50d8c49fb2796f0f7f7a209446365ac9a8de47a18768af5d7ff",
+  "snapshot": "sha256:08aca7382983b8d18896ba6bcc6e5e741e78b813d65382e014850e10808644bf",
+  "declarations": [
+    {
+      "id": "operations-guide",
+      "status": "satisfied",
+      "explanation": "The CLI update preserved the source-grounded Harbor runbook and unverified deployment status; current source, health-probe, recovery, ownership, and restart-loss evidence remain complete and no contextual file required an edit.",
+      "changedPaths": [],
+      "evidence": [
+        "docs/operations.md records the exact Python startup command, loopback address, GET /health response, failure signals, restart data loss, unsupported recovery boundary, warning, and platform on-call owner.",
+        "docs/operating-status.json remains {\"status\":\"unverified\"}; neither update claims deployment verification.",
+        "The previous completed public v1 adoption recorded local startup, health, accept-counter, 404, and restart observations; these updates change retained standards or CLI identity, not that project behavior."
+      ]
+    }
+  ]
+}

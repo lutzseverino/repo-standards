@@ -1,0 +1,22 @@
+HTTP/2 200 
+server: fasthttp
+date: Mon, 14 Sep 2026 03:10:57 GMT
+content-type: application/json; charset=utf-8
+content-length: 678
+x-ratelimit-limit: 60
+x-ratelimit-remaining: 0
+x-ratelimit-used: 60
+x-ratelimit-resource: core
+x-ratelimit-reset: 1789358858
+access-control-allow-origin: *
+access-control-expose-headers: ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, Deprecation, Sunset
+cache-control: no-cache
+content-security-policy: default-src 'none'
+referrer-policy: origin-when-cross-origin, strict-origin-when-cross-origin
+x-content-type-options: nosniff
+x-frame-options: deny
+x-github-media-type: github.v3; format=json
+x-xss-protection: 1; mode=block
+x-github-request-id: D22C:2F3C5B:8C9D3:8B775:6AA765C1
+x-github-edge-region: fra
+

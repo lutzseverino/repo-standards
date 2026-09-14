@@ -1,0 +1,83 @@
+{
+  "format": "repo-standards/status/v1",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.2.0"
+    },
+    "standards": {
+      "repository": "https://github.com/lutzseverino/repo-standards-example",
+      "version": "v1.1.0",
+      "commit": "fa6e4bc16640e320e6d06496a910cdccb23d9223"
+    },
+    "profile": "service"
+  },
+  "lastComplete": {
+    "run": "785843d9-0f08-4433-abb4-2477df90b48a",
+    "inspection": "sha256:57de56c5a42bba5ebc4c6bc5204e8b472a83b14c9ee16c40438a447f6e4a32cd",
+    "completedAt": "2026-09-14T03:19:17.393Z",
+    "head": "4b9c45976a84382c057537dd623aad318697c23b"
+  },
+  "baselines": {
+    ".editorconfig": {
+      "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+      "executable": false
+    },
+    ".agents/skills/adopt-standards/SKILL.md": {
+      "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+      "executable": false
+    }
+  },
+  "skills": {
+    ".agents/skills/adopt-standards": [
+      "SKILL.md"
+    ]
+  },
+  "checks": [
+    {
+      "operation": {
+        "declaration": "operations-guide",
+        "phase": "checks",
+        "id": "operational-evidence"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v1",
+        "status": "passed",
+        "message": "Runbook sections are present; deployment remains unverified."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/1.stdout",
+      "stderr": ".repo-standards/local/operations/1.stderr"
+    }
+  ],
+  "assessments": [
+    {
+      "format": "repo-standards/assessment/v1",
+      "run": "785843d9-0f08-4433-abb4-2477df90b48a",
+      "selection": "sha256:0ccfba20582ae50d8c49fb2796f0f7f7a209446365ac9a8de47a18768af5d7ff",
+      "snapshot": "sha256:08aca7382983b8d18896ba6bcc6e5e741e78b813d65382e014850e10808644bf",
+      "declarations": [
+        {
+          "id": "operations-guide",
+          "status": "satisfied",
+          "explanation": "The CLI update preserved the source-grounded Harbor runbook and unverified deployment status; current source, health-probe, recovery, ownership, and restart-loss evidence remain complete and no contextual file required an edit.",
+          "changedPaths": [],
+          "evidence": [
+            "docs/operations.md records the exact Python startup command, loopback address, GET /health response, failure signals, restart data loss, unsupported recovery boundary, warning, and platform on-call owner.",
+            "docs/operating-status.json remains {\"status\":\"unverified\"}; neither update claims deployment verification.",
+            "The previous completed public v1 adoption recorded local startup, health, accept-counter, 404, and restart observations; these updates change retained standards or CLI identity, not that project behavior."
+          ]
+        }
+      ]
+    }
+  ],
+  "active": null,
+  "abandoned": [],
+  "evidence": "historical"
+}
