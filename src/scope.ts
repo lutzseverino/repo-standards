@@ -13,7 +13,7 @@ interface Candidate { path: string; decision: 'include' | 'exclude'; reason: str
 interface Entry { id: string; paths: string[]; coverage: string; evidence: Reference[]; candidates: Candidate[]; unresolved: string[] }
 export interface ScopeProposal { format: 'repo-standards/scope/v1'; request: string; declarations: Entry[] }
 interface ScopeTargets { paths: string[]; directories: string[] }
-type ConcreteScope = Record<string, ScopeTargets>;
+export type Scope = Record<string, ScopeTargets>;
 interface ScopeBlocker { code: string; message: string }
 interface ScopeValidationBase {
   root: string;
@@ -24,7 +24,7 @@ interface ScopeValidationBase {
 }
 type ScopeValidationInput = ScopeValidationBase & (
   | { phase: 'inspection' }
-  | { phase: 'amendment'; currentResolved: ResolvedProfile; existingScope: ConcreteScope }
+  | { phase: 'amendment'; currentResolved: ResolvedProfile; existingScope: Scope }
 );
 function invalid(message: string): never { throw new ProductError('INVALID_SCOPE', message); }
 function object(value: unknown, keys: string[]): Record<string, unknown> {
@@ -145,7 +145,7 @@ function validateScopeEvidence(proposal: ScopeProposal, observation: ReturnType<
   return [...new Map(absence.map(ref => [ref.path, ref])).values()].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
 }
 
-function concreteScope(resolved: ResolvedProfile): ConcreteScope {
+export function concreteScope(resolved: ResolvedProfile): Scope {
   return Object.fromEntries(resolved.declarations.map(declaration => [declaration.id, allowedTargets(declaration)]));
 }
 
@@ -162,7 +162,7 @@ export function validateScope(input: ScopeValidationInput) {
 
   const resolved = proposal ? materializeScope(input.root, input.sourceResolved, proposal)
     : input.phase === 'amendment' ? input.currentResolved : materializeScope(input.root, input.sourceResolved);
-  let proposedScope: ConcreteScope | undefined;
+  let proposedScope: Scope | undefined;
   let additions: Record<string, string[]> | undefined;
   if (proposal && input.phase === 'amendment') {
     proposedScope = concreteScope(resolved);

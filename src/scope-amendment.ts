@@ -3,9 +3,9 @@ import { dirname } from 'node:path';
 import type { Installation, Run } from './adoption-run.js';
 import { ProductError } from './errors.js';
 import { git, hiddenIndexPaths, type Blocker } from './inspection.js';
-import { validateScope } from './scope.js';
+import { concreteScope, validateScope } from './scope.js';
 import { observeScope } from './scope-observation.js';
-import { concreteScope, finishInterval, observeContinuation, requireValidIntervals } from './work-observation.js';
+import { finishInterval, observeContinuation, requireValidIntervals } from './work-observation.js';
 
 const identity = (value: unknown) => `sha256:${hash(JSON.stringify(value))}`;
 
