@@ -30,9 +30,9 @@ again reached shared anonymous API limits. The second attempt started with only
 After that deadline, attempt 3 retried only the failed job on 14 September at
 11:11 UTC. It started with 49 of 60 core requests available and exhausted the
 quota during public source acquisition, then author-skill acquisition. Its
-recorded reset is `2026-09-14T11:55:44Z`. macOS public verification remains
-incomplete; #41 stays open. A future retry must preserve anonymous acquisition
-and all assertions, respect the observed reset, and must not publish again.
+recorded reset is `2026-09-14T11:55:44Z`. Those hosted macOS checks remained
+incomplete. Any future hosted retry must preserve anonymous acquisition and all
+assertions, respect the observed reset, and must not publish again.
 
 - `release/publication.json` records the release, workflow, registry, commit,
   and asset identities.
@@ -49,6 +49,29 @@ and all assertions, respect the observed reset, and must not publish again.
   preserve verification-only results. `release/verification.json` maps the
   attempts to their workflow and artifact identities; passing Ubuntu evidence
   is retained from attempt 1. No verification-only attempt republishes bytes.
+- `release/local-macos/` records the final public installation and standalone
+  author-skill acquisition from a local macOS host.
+
+## Local macOS verification
+
+On 14 September 2026, both unchanged public acceptance commands passed in a
+clean worktree at `acbb9a81c937734da48d1e1da3371e2d6e1309bd`. The host ran
+macOS 26.3 build 25D125 (Darwin 25.3.0, arm64), Node.js 24.11.1, and the
+repository-pinned pnpm 11.20.0. Acquisition remained anonymous, `NODE_OPTIONS`
+was absent, and no fixtures replaced the public npm, release, discovery, or
+author-skill paths.
+
+- `release/local-macos/public-installation.json` passed public npm installation,
+  registry and release integrity checks, packaged and checkout-bound source
+  validation, live source discovery, release asset acquisition, and explicit
+  and omitted bootstrap versions without project mutation.
+- `release/local-macos/public-author-installation.json` passed public tag and
+  release resolution, standalone `author-standards` installation through
+  `skills@1.5.25`, resource and npm-package inventory equality, matching CLI and
+  documentation acquisition, and packaged example validation.
+
+This local run completes the outstanding macOS public verification for issue
+#41. The hosted quota failures above remain part of the release history.
 
 The earlier failed workflow
 [`34801934043`](https://github.com/lutzseverino/repo-standards/actions/runs/34801934043)
