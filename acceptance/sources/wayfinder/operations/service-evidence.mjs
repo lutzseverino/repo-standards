@@ -4,9 +4,9 @@ import { dirname } from 'node:path';
 const input = JSON.parse(readFileSync(0, 'utf8'));
 const requiredSections = JSON.parse(readFileSync(
   new URL('./required-sections.json', import.meta.url), 'utf8'));
-const named = (path, basename) => path === basename || path.endsWith(`/${basename}`);
-const runbooks = input.allowedTargets.paths.filter(path => named(path, 'operations.md'));
-const statuses = input.allowedTargets.paths.filter(path => named(path, 'operating-status.json'));
+const hasBasename = (path, basename) => path === basename || path.endsWith(`/${basename}`);
+const runbooks = input.allowedTargets.paths.filter(path => hasBasename(path, 'operations.md'));
+const statuses = input.allowedTargets.paths.filter(path => hasBasename(path, 'operating-status.json'));
 
 if (input.operation.phase === 'fixes') {
   const changed = [];
