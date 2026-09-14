@@ -222,8 +222,11 @@ Run `node acceptance/public-installation.ts <version> <evidence.json>` on macOS
 and Linux after publication. It installs the public package outside a project,
 validates packaged examples, discovers the public learning source, and exercises
 explicit and omitted bootstrap versions without project mutation. It uses real
-npm and GitHub, with no acquisition fixtures. Keep these automated checks
-separate from real-agent evidence.
+npm and GitHub, with no acquisition fixtures for those public paths. It also
+validates the independently authored Wayfinder source from the clean workflow
+checkout and records the checkout commit and source tree identity; this is
+public-package/local-source validation, not live public-source acquisition. Keep
+these automated checks separate from real-agent evidence.
 
 Then perform the [real-agent journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) with public npm
 installations. Use the public learning source for live publication, discovery
