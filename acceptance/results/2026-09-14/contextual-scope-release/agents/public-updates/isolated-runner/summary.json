@@ -1,0 +1,19 @@
+{
+  "format": "repo-standards/contextual-public-updates/v1",
+  "runner": "Linux",
+  "packageRegistry": "https://registry.npmjs.org/",
+  "source": "https://github.com/lutzseverino/repo-standards-example",
+  "initialCommit": "c972ed96306853d20b23537b8b97d5cc5267ec8e",
+  "standards": {
+    "from": "v1.0.0",
+    "to": "v1.1.0",
+    "inspection": "sha256:84517b9aca7a1c8b489edf7eaa5b0ab18495081f933c90cabaeaff3a47cee497"
+  },
+  "cli": {
+    "from": "1.1.0",
+    "to": "1.2.0",
+    "inspection": "sha256:57de56c5a42bba5ebc4c6bc5204e8b472a83b14c9ee16c40438a447f6e4a32cd"
+  },
+  "finalHead": "8a58dbfccb541daa93c9f82ca122006682a10a18",
+  "clean": true
+}

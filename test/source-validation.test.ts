@@ -80,6 +80,29 @@ test('the accepted Alice example validates unchanged and provides human output',
   assert.equal(result.stderr, '');
 });
 
+for (const example of [
+  { label: 'packaged Atlas v2 example', source: 'examples/atlas', profile: 'maintained', declaration: 'project-documentation',
+    discovery: 'guidance/project-discovery.md', fix: 'normalize-markdown-ending', check: 'verify-markdown-ending',
+    exactDeclaration: 'documentation-catalog', exactTarget: 'docs/catalog.json' },
+  { label: 'independent Wayfinder acceptance source', source: 'acceptance/sources/wayfinder', profile: 'service', declaration: 'service-readiness',
+    discovery: 'guidance/service-discovery.md', fix: 'initialize-operating-status', check: 'verify-service-evidence',
+    exactDeclaration: 'editor-settings', exactTarget: '.editorconfig' },
+] as const) test(`the ${example.label} validates through the same v2 contract`, (t) => {
+  const source = sourceFixture('');
+  cpSync(example.source, source.root, { recursive: true });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.scope.discoveryRequired, { [example.profile]: [example.declaration] });
+  const declarations = report.profiles[example.profile].declarations;
+  assert.equal(declarations.find((entry: { id: string }) => entry.id === example.exactDeclaration).target, example.exactTarget);
+  const contextual = declarations.find((entry: { id: string }) => entry.id === example.declaration);
+  assert.equal(contextual.discovery, example.discovery);
+  assert.deepEqual(contextual.fixes.map((entry: { id: string }) => entry.id), [example.fix]);
+  assert.deepEqual(contextual.checks.map((entry: { id: string }) => entry.id), [example.check]);
+});
+
 for (const [label, yaml, code] of [
   ['unsupported format', header.replace('repo-standards/v1', 'repo-standards/v3'), 'INVALID_FORMAT'],
   ['invalid CLI range', header.replace('>=1.0.0 <2.0.0', 'yesterday'), 'INVALID_VERSION'],

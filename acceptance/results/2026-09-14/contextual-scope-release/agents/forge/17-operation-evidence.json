@@ -1,0 +1,319 @@
+{
+  "format": "forge-operation-evidence/v1",
+  "run": "c4aa7eb9-455d-4202-946c-aa6d0cd3e0ee",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.2.0"
+    },
+    "standards": {
+      "repository": "https://github.com/atlas/standards",
+      "version": "v1.0.0",
+      "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+    },
+    "profile": "maintained"
+  },
+  "records": [
+    {
+      "operation": {
+        "declaration": "project-documentation",
+        "phase": "fixes",
+        "id": "normalize-markdown-ending"
+      },
+      "inputCapture": {
+        "status": "reconstructed-from-retained-protocol-inputs",
+        "limitation": "The CLI retains resolved declarations, scope, logs, process evidence, and results, but does not retain the exact serialized stdin byte stream.",
+        "argv": [
+          "node",
+          "/tmp/repo-standards-source-OXjpvh/.repo-standards/inputs/source/operations/markdown-ending.mjs"
+        ],
+        "literalArguments": [],
+        "cwd": "/tmp/repo-standards-source-OXjpvh",
+        "timeoutSeconds": 30,
+        "inheritedEnvironment": true,
+        "stdin": {
+          "format": "repo-standards/operation/v1",
+          "operation": {
+            "declaration": "project-documentation",
+            "phase": "fixes",
+            "id": "normalize-markdown-ending"
+          },
+          "projectRoot": "/tmp/repo-standards-source-OXjpvh",
+          "standards": {
+            "repository": "https://github.com/atlas/standards",
+            "version": "v1.0.0",
+            "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+          },
+          "profile": "maintained",
+          "declarations": [
+            {
+              "id": "documentation-catalog",
+              "checks": [],
+              "fixes": [],
+              "kind": "file",
+              "target": "docs/catalog.json",
+              "exact": "files/catalog.json"
+            },
+            {
+              "id": "project-documentation",
+              "checks": [
+                {
+                  "id": "verify-markdown-ending",
+                  "run": {
+                    "executable": "node",
+                    "script": "operations/markdown-ending.mjs",
+                    "resources": [],
+                    "arguments": []
+                  },
+                  "prerequisite": {
+                    "version-arguments": [
+                      "--version"
+                    ],
+                    "version": ">=24.0.0 <25.0.0"
+                  },
+                  "timeout-seconds": 30
+                }
+              ],
+              "fixes": [
+                {
+                  "id": "normalize-markdown-ending",
+                  "run": {
+                    "executable": "node",
+                    "script": "operations/markdown-ending.mjs",
+                    "resources": [],
+                    "arguments": []
+                  },
+                  "prerequisite": {
+                    "version-arguments": [
+                      "--version"
+                    ],
+                    "version": ">=24.0.0 <25.0.0"
+                  },
+                  "timeout-seconds": 30
+                }
+              ],
+              "kind": "repository",
+              "guidance": "guidance/project-documentation.md",
+              "targets": {
+                "paths": [
+                  "INDEX.md",
+                  "docs/projects/INDEX.md",
+                  "docs/projects/hammer.md",
+                  "guides/hammer.md",
+                  "modules/tools/hammer/README.md"
+                ],
+                "directories": []
+              }
+            }
+          ],
+          "allowedTargets": {
+            "paths": [
+              "INDEX.md",
+              "docs/projects/INDEX.md",
+              "docs/projects/hammer.md",
+              "guides/hammer.md",
+              "modules/tools/hammer/README.md"
+            ],
+            "directories": []
+          }
+        }
+      },
+      "prerequisite": {
+        "argv": [
+          "node",
+          "--version"
+        ],
+        "requiredRange": ">=24.0.0 <25.0.0",
+        "observed": {
+          "declaration": "project-documentation",
+          "phase": "fixes",
+          "operation": "normalize-markdown-ending",
+          "executable": "node",
+          "version": "24.21.0",
+          "code": null,
+          "process": {
+            "exitCode": 0,
+            "signal": null,
+            "error": null,
+            "timedOut": false
+          }
+        }
+      },
+      "resultEvidence": {
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        },
+        "parsedResult": {
+          "format": "repo-standards/result/v1",
+          "status": "unchanged",
+          "message": "Markdown endings already satisfy the source."
+        },
+        "error": null,
+        "stdoutPath": ".repo-standards/local/operations/0.stdout",
+        "stdout": "{\"format\":\"repo-standards/result/v1\",\"status\":\"unchanged\",\"message\":\"Markdown endings already satisfy the source.\"}\n",
+        "stderrPath": ".repo-standards/local/operations/0.stderr",
+        "stderr": "",
+        "observation": {
+          "changedPaths": [],
+          "boundaryChanges": [],
+          "violations": []
+        }
+      },
+      "agentJudgment": null
+    },
+    {
+      "operation": {
+        "declaration": "project-documentation",
+        "phase": "checks",
+        "id": "verify-markdown-ending"
+      },
+      "inputCapture": {
+        "status": "reconstructed-from-retained-protocol-inputs",
+        "limitation": "The CLI retains resolved declarations, scope, logs, process evidence, and results, but does not retain the exact serialized stdin byte stream.",
+        "argv": [
+          "node",
+          "/tmp/repo-standards-source-OXjpvh/.repo-standards/inputs/source/operations/markdown-ending.mjs"
+        ],
+        "literalArguments": [],
+        "cwd": "/tmp/repo-standards-source-OXjpvh",
+        "timeoutSeconds": 30,
+        "inheritedEnvironment": true,
+        "stdin": {
+          "format": "repo-standards/operation/v1",
+          "operation": {
+            "declaration": "project-documentation",
+            "phase": "checks",
+            "id": "verify-markdown-ending"
+          },
+          "projectRoot": "/tmp/repo-standards-source-OXjpvh",
+          "standards": {
+            "repository": "https://github.com/atlas/standards",
+            "version": "v1.0.0",
+            "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+          },
+          "profile": "maintained",
+          "declarations": [
+            {
+              "id": "documentation-catalog",
+              "checks": [],
+              "fixes": [],
+              "kind": "file",
+              "target": "docs/catalog.json",
+              "exact": "files/catalog.json"
+            },
+            {
+              "id": "project-documentation",
+              "checks": [
+                {
+                  "id": "verify-markdown-ending",
+                  "run": {
+                    "executable": "node",
+                    "script": "operations/markdown-ending.mjs",
+                    "resources": [],
+                    "arguments": []
+                  },
+                  "prerequisite": {
+                    "version-arguments": [
+                      "--version"
+                    ],
+                    "version": ">=24.0.0 <25.0.0"
+                  },
+                  "timeout-seconds": 30
+                }
+              ],
+              "fixes": [
+                {
+                  "id": "normalize-markdown-ending",
+                  "run": {
+                    "executable": "node",
+                    "script": "operations/markdown-ending.mjs",
+                    "resources": [],
+                    "arguments": []
+                  },
+                  "prerequisite": {
+                    "version-arguments": [
+                      "--version"
+                    ],
+                    "version": ">=24.0.0 <25.0.0"
+                  },
+                  "timeout-seconds": 30
+                }
+              ],
+              "kind": "repository",
+              "guidance": "guidance/project-documentation.md",
+              "targets": {
+                "paths": [
+                  "INDEX.md",
+                  "docs/projects/INDEX.md",
+                  "docs/projects/hammer.md",
+                  "guides/hammer.md",
+                  "modules/tools/hammer/README.md"
+                ],
+                "directories": []
+              }
+            }
+          ],
+          "allowedTargets": {
+            "paths": [
+              "INDEX.md",
+              "docs/projects/INDEX.md",
+              "docs/projects/hammer.md",
+              "guides/hammer.md",
+              "modules/tools/hammer/README.md"
+            ],
+            "directories": []
+          }
+        }
+      },
+      "prerequisite": {
+        "argv": [
+          "node",
+          "--version"
+        ],
+        "requiredRange": ">=24.0.0 <25.0.0",
+        "observed": {
+          "declaration": "project-documentation",
+          "phase": "checks",
+          "operation": "verify-markdown-ending",
+          "executable": "node",
+          "version": "24.21.0",
+          "code": null,
+          "process": {
+            "exitCode": 0,
+            "signal": null,
+            "error": null,
+            "timedOut": false
+          }
+        }
+      },
+      "resultEvidence": {
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        },
+        "parsedResult": {
+          "format": "repo-standards/result/v1",
+          "status": "passed",
+          "message": "Markdown endings already satisfy the source."
+        },
+        "error": null,
+        "stdoutPath": ".repo-standards/local/operations/1.stdout",
+        "stdout": "{\"format\":\"repo-standards/result/v1\",\"status\":\"passed\",\"message\":\"Markdown endings already satisfy the source.\"}\n",
+        "stderrPath": ".repo-standards/local/operations/1.stderr",
+        "stderr": "",
+        "observation": {
+          "changedPaths": [],
+          "boundaryChanges": [],
+          "violations": []
+        }
+      },
+      "agentJudgment": null
+    }
+  ]
+}
+

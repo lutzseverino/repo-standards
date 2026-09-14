@@ -1,0 +1,43 @@
++ python3 --version
+Python 3.13.5
++ relay_pid=1162300
++ python3 service/relay/server.py --port 8765
++ trap cleanup EXIT
++ for attempt in 1 2 3 4 5
++ curl --fail --silent --show-error --include http://127.0.0.1:8765/health
+curl: (7) Failed to connect to 127.0.0.1 port 8765 after 0 ms: Could not connect to server
++ sleep 1
++ for attempt in 1 2 3 4 5
++ curl --fail --silent --show-error --include http://127.0.0.1:8765/health
+HTTP/1.0 200 OK
+Server: BaseHTTP/0.6 Python/3.13.5
+Date: Mon, 14 Sep 2026 02:33:09 GMT
+content-type: application/json
+content-length: 33
+
+{"status": "ok", "deliveries": 0}+ break
++ kill 1162300
++ wait 1162300
++ true
++ trap - EXIT
++ relay_pid=1162305
++ trap cleanup EXIT
++ python3 service/relay/server.py --port 8765
++ for attempt in 1 2 3 4 5
++ curl --fail --silent --show-error --include http://127.0.0.1:8765/health
+curl: (7) Failed to connect to 127.0.0.1 port 8765 after 0 ms: Could not connect to server
++ sleep 1
++ for attempt in 1 2 3 4 5
++ curl --fail --silent --show-error --include http://127.0.0.1:8765/health
+HTTP/1.0 200 OK
+Server: BaseHTTP/0.6 Python/3.13.5
+Date: Mon, 14 Sep 2026 02:33:10 GMT
+content-type: application/json
+content-length: 33
+
+{"status": "ok", "deliveries": 0}+ break
++ kill 1162305
++ wait 1162305
++ true
++ trap - EXIT
++ set +x

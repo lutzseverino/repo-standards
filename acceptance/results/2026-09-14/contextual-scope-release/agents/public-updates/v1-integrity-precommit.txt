@@ -1,0 +1,14 @@
+head=b4a70099a28dac117ceca13d6732348bd4b0a956
+index_sha256=35b487ede05641188e9b3766fd0248698ab570ef4cf57b6f9370f39608b0d6d0
+status_sha256=d9640fa5166b1e4f2c11d37901ce9ec93b26f7f806f2ff35e0393ab382c3ab39
+status:
+## master
+ M docs/operations.md
+?? .agents/
+?? .editorconfig
+?? .repo-standards/
+?? docs/operating-status.json
+cached_diff_exit=0
+review_sha256=bb9dafc895659138469b5a27161c3d62cbd9cbd9ecd78bf489174cbee0fcc2c4
+review_bytes=41760
+untracked_files=18

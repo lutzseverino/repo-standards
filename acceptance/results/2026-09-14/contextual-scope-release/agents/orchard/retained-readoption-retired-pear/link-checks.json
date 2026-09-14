@@ -1,0 +1,23 @@
+{
+  "format": "orchard-retired-pear-link-check/v1",
+  "files": [
+    "CATALOG.md",
+    "docs/projects/index.md",
+    "products/plum/README.md"
+  ],
+  "links": [
+    {
+      "source": "CATALOG.md",
+      "link": "products/plum/README.md",
+      "resolved": "products/plum/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/projects/index.md",
+      "link": "../../products/plum/README.md",
+      "resolved": "products/plum/README.md",
+      "exists": true
+    }
+  ],
+  "missing": []
+}

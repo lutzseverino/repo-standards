@@ -1,0 +1,125 @@
+{
+  "format": "orchard-retroactive-audit/v1",
+  "reviewOnly": true,
+  "cliInvokedDuringAudit": false,
+  "reconcileAttempted": false,
+  "artifacts": [
+    {
+      "path": "01-initial-inspection.json",
+      "size": 25747,
+      "sha256": "d7d5e97e272e062188eefb8ff69f6f2e52a271a87c7ac855903a56ffd0507aec"
+    },
+    {
+      "path": "01-initial-inspection.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "02-scope.json",
+      "size": 6363,
+      "sha256": "21cbf9b810092549abc1b491f7630b581f0f22ea3121122ded083ea4057e7195"
+    },
+    {
+      "path": "03-complete-inspection.json",
+      "size": 43390,
+      "sha256": "d89b8b5b9faf8ca5d3e902e00315594298a33169d105eb4fb819e3f2f1db2f5c"
+    },
+    {
+      "path": "03-complete-inspection.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "04-confirmation.txt",
+      "size": 322,
+      "sha256": "cd36482dc99d4532a5d622ff50f2822b11c93b92844fbbef5cbbe6ae6c89ff31"
+    },
+    {
+      "path": "05-start.json",
+      "size": 36411,
+      "sha256": "f556d8d3046bb142343aa2faeeedf68d273eb4bda576d4aca38c62903352f76e"
+    },
+    {
+      "path": "05-start.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "06-amend-inspection.exit",
+      "size": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "06-amend-inspection.json",
+      "size": 265,
+      "sha256": "4f18ef15389f866ae98cdbe14968666e6a0b43701fad99bddafd1e58b7a6d8de"
+    },
+    {
+      "path": "06-amend-inspection.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "07-status.json",
+      "size": 39004,
+      "sha256": "57b78cfa3cd73f277b0634c47ba7e75f330350fd67a55010a70a9292a404e8d7"
+    },
+    {
+      "path": "07-status.stderr",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "08-hashes.txt",
+      "size": 229,
+      "sha256": "8f0ec217d8eb2eca304cc4cddded50b9ddda5b18651f89740090c46cf372a162"
+    },
+    {
+      "path": "09-project.diff",
+      "size": 243,
+      "sha256": "09377021b3eaec6818bcd189a1facd2edb5b7216797e940c644ac7eb342daad8"
+    },
+    {
+      "path": "10-audit.md",
+      "size": 2012,
+      "sha256": "2a6201136ab072a1dbc5934c118dbd9ab62ed23a8bd59c0cf4f95c19f962df2b"
+    },
+    {
+      "path": "README.md",
+      "size": 1054,
+      "sha256": "1bf42fbc856860b070b1206f7e6613b8f308e70f0b10c2f5b727ec1c66cba743"
+    }
+  ],
+  "rejection": {
+    "valid": false,
+    "errors": [
+      {
+        "code": "ASSESSMENT_SCOPE",
+        "message": "Agent work changed paths outside its authorized agent scope: CATALOG.md. Work and interval evidence are preserved; abandon and reconcile before a new adoption."
+      }
+    ],
+    "issuedIdentity": false
+  },
+  "durableStatus": {
+    "format": "repo-standards/status/v2",
+    "execution": "interrupted",
+    "activeRun": "4d780b91-501c-4fb3-886d-692c80d23634",
+    "phase": "contextual",
+    "outcome": "incomplete",
+    "lastComplete": null,
+    "assessmentCount": 0,
+    "scopePaths": [
+      "docs/projects/index.md",
+      "docs/projects/pear/operations.md",
+      "legacy/pear-operations.md",
+      "products/pear/README.md"
+    ]
+  },
+  "projectReadOnlyVerification": {
+    "head": "e99d2c33d2c2166129a86b39a7725f791054a694",
+    "catalogSha256": "6545275fa3e9dad4f338d8e4014d779b9e2d9e59b42e0cd5121159daf117b2ca",
+    "exactCatalogSha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+    "cachedDiffEmpty": true
+  },
+  "finding": "The confirmed scope excluded CATALOG.md. The later out-of-scope edit caused inspect --amend-scope to fail with ASSESSMENT_SCOPE before any amendment identity, and the session remains intentionally incomplete with no last-complete adoption."
+}

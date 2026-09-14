@@ -1,0 +1,15 @@
+8a58dbf Update Repo Standards CLI to 1.2.0
+ .agents/skills/adopt-standards/SKILL.md   | 64 +++++++++++++++++++++++++------
+ .repo-standards/lock.json                 | 14 +++----
+ .repo-standards/runtime/package-lock.json | 10 ++---
+ .repo-standards/runtime/package.json      |  2 +-
+ .repo-standards/selection.yaml            |  2 +-
+ .repo-standards/state.json                | 18 ++++-----
+ 6 files changed, 76 insertions(+), 34 deletions(-)
+4b9c459 Update standards to v1.1.0
+ .repo-standards/inputs/metadata.json  |  4 ++--
+ .repo-standards/inputs/standards.yaml |  4 ++--
+ .repo-standards/lock.json             | 14 +++++++-------
+ .repo-standards/selection.yaml        |  4 ++--
+ .repo-standards/state.json            | 25 +++++++++++--------------
+ 5 files changed, 24 insertions(+), 27 deletions(-)

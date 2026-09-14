@@ -1,0 +1,57 @@
+{
+  "format": "orchard-readopt-completion-integrity/v1",
+  "project": "/tmp/repo-standards-orchard-retired-readopt-K4BJ46",
+  "head": "a3d4a0942816042b8d34819b309988492857c483",
+  "expectedHead": "a3d4a0942816042b8d34819b309988492857c483",
+  "headPreserved": true,
+  "indexSha256": "90591896e1e71e67e76f98280b0f2a8e75ebebebb80a2626efb9eed03731b2f4",
+  "initialIndexSha256": "90591896e1e71e67e76f98280b0f2a8e75ebebebb80a2626efb9eed03731b2f4",
+  "indexPreserved": true,
+  "cachedDiffExitCode": 0,
+  "workingChanges": [
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/state.json"
+  ],
+  "expectedWorkingChanges": [
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/state.json"
+  ],
+  "nonIgnoredUntracked": [],
+  "pear": {
+    "readme": {
+      "sha256": "0d2fb448cb0cf739043e8b182da814d9e1249c3a7974bf0f2f7ba13d49f7a7b2",
+      "expected": "0d2fb448cb0cf739043e8b182da814d9e1249c3a7974bf0f2f7ba13d49f7a7b2"
+    },
+    "operations": {
+      "sha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+      "expected": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b"
+    },
+    "serviceExists": false,
+    "preserved": true
+  },
+  "exactCatalog": {
+    "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+    "expected": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36"
+  },
+  "skill": {
+    "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+    "expected": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54"
+  },
+  "finalStatus": {
+    "format": "repo-standards/status/v4",
+    "active": null,
+    "lastComplete": {
+      "run": "6eda44d4-2a19-4436-b4b5-7499f809dced",
+      "inspection": "sha256:ac6ca2894bee92291b10db3b12b836f9e7864852520053775d1c53bee83841f8",
+      "completedAt": "2026-09-14T02:43:11.547Z",
+      "head": "a3d4a0942816042b8d34819b309988492857c483"
+    }
+  },
+  "complete": true
+}

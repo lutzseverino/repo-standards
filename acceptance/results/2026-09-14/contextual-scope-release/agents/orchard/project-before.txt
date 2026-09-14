@@ -1,0 +1,15 @@
+5f64286bb6d2262a1517ce321219783fb6ba7d58
+# branch.oid 5f64286bb6d2262a1517ce321219783fb6ba7d58
+# branch.head master
+100644 fe87b91f07d86949cce9cb6b166b90af29f56436 0	CATALOG.md
+100644 bcac26d912c331b7e2afd64a55d0714b1d68b482 0	fixtures/sample/service.json
+100644 a42c2226172b953b146444c7367007c06f9afa64 0	generated/site/README.md
+100644 cb1b1cce9fdf4cd28494e947e53453327468b43e 0	legacy/pear-operations.md
+100644 c40f4566a165d0d14ef5f3f8c997c06d9d36311d 0	products/pear/service.json
+100644 4397c81f3f1402896505101d7531e6a95a611a15 0	teams/runtime.md
+CATALOG.md	600	c64590338589c892f251e47a3d382c1a32be52b7c3e2e4a0757a66b017eaadee  ./CATALOG.md
+fixtures/sample/service.json	600	d642750c57de6de5972989f505ea0cc0e0fcec0b09ad2e6ed385f07983d993fc  ./fixtures/sample/service.json
+generated/site/README.md	600	8eb447ab4badd20f23d768706a14f8cf4525bcd3bf94d9d207eac773848d36fc  ./generated/site/README.md
+legacy/pear-operations.md	600	4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b  ./legacy/pear-operations.md
+products/pear/service.json	600	eaf6d458da6b5443309f2540afcf007931d973dbf9290cf692da71162db3cf8f  ./products/pear/service.json
+teams/runtime.md	600	cb9cdeae04c6fd6a493bb70343cb514c50a8fc433a7a51b9155b72a1954fc456  ./teams/runtime.md

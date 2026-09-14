@@ -13,6 +13,7 @@ if (!version || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) || !
 }
 if (process.env.NODE_OPTIONS) throw new Error('Run public acceptance without NODE_OPTIONS or acquisition fixtures.');
 const evidence = resolve(evidencePath);
+const checkout = process.cwd();
 const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-public-')));
 const project = join(root, 'project');
 mkdirSync(project);
@@ -39,6 +40,10 @@ try {
     return result.stdout.trim();
   }
   run('npm', ['--version']);
+  assert.equal(JSON.parse(readFileSync(join(checkout, 'package.json'), 'utf8')).version, version);
+  const checkoutCommit = run('git', ['rev-parse', 'HEAD'], checkout);
+  const wayfinderTree = run('git', ['rev-parse', 'HEAD:acceptance/sources/wayfinder'], checkout);
+  assert.equal(run('git', ['status', '--porcelain=v1', '--untracked-files=all', '--', 'acceptance/sources/wayfinder'], checkout), '');
   const distribution = JSON.parse(run('npm', ['view', `@lutzseverino/repo-standards@${version}`, 'dist', '--json']));
   const installation = join(root, 'cli');
   run('npm', ['install', '--prefix', installation, '--ignore-scripts', '--no-audit', '--no-fund', '--save-exact', `@lutzseverino/repo-standards@${version}`]);
@@ -66,9 +71,10 @@ try {
   writeFileSync(bootstrap, bootstrapBytes);
   chmodSync(bootstrap, 0o755);
   run(join(installation, 'node_modules/.bin/repo-standards-bootstrap'), ['--help']);
-  for (const author of ['alice', 'mira']) {
+  for (const author of ['alice', 'mira', 'atlas']) {
     assert.equal(JSON.parse(run(cli, ['source', 'validate', join(installed, 'examples', author), '--json'])).valid, true);
   }
+  assert.equal(JSON.parse(run(cli, ['source', 'validate', join(checkout, 'acceptance/sources/wayfinder'), '--json'])).valid, true);
   const source = 'https://github.com/lutzseverino/repo-standards-example';
   const search = JSON.parse(run(cli, ['source', 'search', '--json']));
   assert.ok(search.candidates.some((candidate: { repository: string }) => candidate.repository === source), 'Public learning source must be discoverable');
@@ -88,6 +94,7 @@ try {
   assert.deepEqual(snapshot(project), before);
   writeFileSync(join(root, 'identity.json'), JSON.stringify({ distribution,
     skillSha256: createHash('sha256').update(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md'))).digest('hex'),
+    checkoutCommit, wayfinderTree,
     explicitIdentity: explicit.identity, omittedIdentity: latest.identity,
     omittedVersion: latest.selection.cli.version, projectUnchanged: true,
   }));
@@ -102,7 +109,7 @@ try {
   writeFileSync(evidence, JSON.stringify({ date: new Date().toISOString(),
     os: { platform: platform(), release: release(), arch: arch() }, node: process.version,
     version, passed, failure, nextAction: passed ? undefined : nextAction, identity, commands, downloads,
-    scope: 'Public installation, author validation, discovery and read-only bootstrap. No adoption or real-agent assessment.',
+    scope: 'Public installation, packaged author validation, clean checkout-bound Wayfinder validation, discovery and read-only bootstrap. No adoption or real-agent assessment.',
   }, null, 2) + '\n');
   rmSync(root, { recursive: true, force: true });
   if (!passed) console.error(nextAction);

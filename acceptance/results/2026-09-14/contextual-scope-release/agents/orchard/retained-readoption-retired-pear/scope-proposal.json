@@ -1,0 +1,163 @@
+{
+  "format": "repo-standards/scope/v1",
+  "request": "sha256:0841860ca23d68f333608537d0bc70a8af2e8114529e2f3fd3ffd2d76fe75a40",
+  "declarations": [
+    {
+      "id": "project-documentation",
+      "paths": [
+        "CATALOG.md",
+        "docs/projects/index.md",
+        "products/plum/README.md"
+      ],
+      "coverage": "Plum is now the only independently maintained service: products/plum/service.json names orchard-runtime ownership and the concrete node server.mjs start command, and its README records purpose, setup state, and operation. The shared root catalog and smallest project documentation index both navigate to Plum. Pear's README and operations guide remain byte-preserved historical project documentation, but removal of products/pear/service.json leaves no positive ownership plus build or deployment evidence for current maintained-project membership, so both Pear documents are excluded from current contextual scope rather than deleted. The sample fixture, generated site, and team grouping remain evidenced exclusions. There is no migration source, new destination, or broken link to repair. Exact docs/catalog.json remains outside contextual scope because retained source owns its bytes.",
+      "evidence": [
+        {
+          "kind": "directory",
+          "path": ".",
+          "identity": "sha256:afee1bfe6dd8b8cfdd391e4fc88d39d6dcd3998b8777b19e200b4fc08852bccf"
+        }
+      ],
+      "candidates": [
+        {
+          "path": "CATALOG.md",
+          "decision": "include",
+          "reason": "The shared root catalog now contains a single current project link to Plum and is needed to assess maintained-project navigation.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "CATALOG.md",
+              "identity": "sha256:859f0e925018f80ca2ca61e107a32861516b653da7c047361d32ca39cb881b55"
+            }
+          ]
+        },
+        {
+          "path": "docs/catalog.json",
+          "decision": "exclude",
+          "reason": "The retained standards source owns this exact file, and discovery explicitly keeps it outside contextual scope.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "docs/catalog.json",
+              "identity": "sha256:f54bb02faa958c1e6a487e76ea8607753e5bf9144f0399d1ab2ac3edd0aec4dc"
+            }
+          ]
+        },
+        {
+          "path": "docs/projects/index.md",
+          "decision": "include",
+          "reason": "The existing smallest project documentation index points to the sole currently maintained Plum service.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "docs/projects/index.md",
+              "identity": "sha256:a1baf7ab4d74c7d426f0bd684f2002efd070bd49b429cef590bbe359dff3140a"
+            }
+          ]
+        },
+        {
+          "path": "docs/projects/pear/operations.md",
+          "decision": "exclude",
+          "reason": "The preserved operations guide contains useful historical Pear recovery facts, but documentation alone does not establish current maintained-project membership after the Pear service manifest was removed.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "docs/projects/pear/operations.md",
+              "identity": "sha256:08f22fab01417a9a32569608e7858e753c8aa7b0c63186fc9748953eea4f41b6"
+            },
+            {
+              "kind": "directory",
+              "path": "products/pear",
+              "identity": "sha256:7c610458ec252a4da4757ea2420d41a3851ef601ebd96b66aab7fd6ce44dcb90"
+            }
+          ]
+        },
+        {
+          "path": "fixtures/sample",
+          "decision": "exclude",
+          "reason": "The sample manifest explicitly marks itself as fixture data, so it is not an independently maintained project.",
+          "evidence": [
+            {
+              "kind": "directory",
+              "path": "fixtures/sample",
+              "identity": "sha256:78730d4cd48e4b2382b150aa87840cbe7be71c3d4aada2f5129f4031b90ae94c"
+            },
+            {
+              "kind": "file",
+              "path": "fixtures/sample/service.json",
+              "identity": "sha256:fed131d11387c2933267db3e524ce83e60f47f156d6215e5976b7f31ccd7abaa"
+            }
+          ]
+        },
+        {
+          "path": "generated/site",
+          "decision": "exclude",
+          "reason": "Its README identifies generated output that must not be edited by hand, so it is neither a maintained project nor contextual documentation work.",
+          "evidence": [
+            {
+              "kind": "directory",
+              "path": "generated/site",
+              "identity": "sha256:052f8cef3ed0b14ab8445c962b4efc64be06c6532c0479d5bb1bbbbeb9a2defd"
+            },
+            {
+              "kind": "file",
+              "path": "generated/site/README.md",
+              "identity": "sha256:0c40b8270199da7130b80f33a56b8fcfef4e05f3939423210a84c7542b2b7202"
+            }
+          ]
+        },
+        {
+          "path": "products/pear/README.md",
+          "decision": "exclude",
+          "reason": "The README is preserved byte-for-byte, but its own historical owner and command prose is not independent positive service evidence after products/pear/service.json was removed; current navigation no longer presents Pear as maintained.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "products/pear/README.md",
+              "identity": "sha256:65d580a21bd6cef5ff0129d76057c5e97856f404a67b8b1e186654873a0f82aa"
+            },
+            {
+              "kind": "directory",
+              "path": "products/pear",
+              "identity": "sha256:7c610458ec252a4da4757ea2420d41a3851ef601ebd96b66aab7fd6ce44dcb90"
+            }
+          ]
+        },
+        {
+          "path": "products/plum/README.md",
+          "decision": "include",
+          "reason": "Plum has positive orchard-runtime ownership and a concrete start command in its service manifest; its project README records purpose, setup state, and that operating command.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "products/plum/README.md",
+              "identity": "sha256:1aa6ea4e7151f2d26e334ff1bfeb064e10f669c08fdf7f4591eaadafb8b9dc15"
+            },
+            {
+              "kind": "file",
+              "path": "products/plum/service.json",
+              "identity": "sha256:31beacefc21ce02157fbc3f32d1ff04858240292b071e560c610b652436efb6f"
+            }
+          ]
+        },
+        {
+          "path": "teams",
+          "decision": "exclude",
+          "reason": "The teams directory is organizational; teams/runtime.md explicitly says the team is not a deployable project.",
+          "evidence": [
+            {
+              "kind": "directory",
+              "path": "teams",
+              "identity": "sha256:25df46e0239491db8bf395c86291a30656f49b0922f31e59c7cb1b8010b5e834"
+            },
+            {
+              "kind": "file",
+              "path": "teams/runtime.md",
+              "identity": "sha256:f4d2240e7c85989c89c855c002369e88540689261a970b8545a286e47b76d15f"
+            }
+          ]
+        }
+      ],
+      "unresolved": []
+    }
+  ]
+}

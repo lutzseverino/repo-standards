@@ -1,0 +1,44 @@
+format: repo-standards/v2
+name: atlas-documentation
+description: Discover maintained projects and keep their documentation navigable
+requires:
+  repo-standards: ">=1.2.0 <2.0.0"
+
+defaults:
+  declarations:
+    project-documentation:
+      kind: repository
+      guidance: guidance/project-documentation.md
+      discovery: guidance/project-discovery.md
+      fixes:
+        - id: normalize-markdown-ending
+          run:
+            executable: node
+            script: operations/markdown-ending.mjs
+            resources: []
+            arguments: []
+          prerequisite:
+            version-arguments: ["--version"]
+            version: ">=24.0.0 <25.0.0"
+          timeout-seconds: 30
+      checks:
+        - id: verify-markdown-ending
+          run:
+            executable: node
+            script: operations/markdown-ending.mjs
+            resources: []
+            arguments: []
+          prerequisite:
+            version-arguments: ["--version"]
+            version: ">=24.0.0 <25.0.0"
+          timeout-seconds: 30
+
+    documentation-catalog:
+      kind: file
+      target: docs/catalog.json
+      exact: files/catalog.json
+
+profiles:
+  maintained:
+    description: Maintained projects whose documentation is organized in one catalog
+    declarations: {}

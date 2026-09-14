@@ -1,0 +1,520 @@
+{
+  "format": "orchard-operation-invocations/v1",
+  "rawStdinCapture": false,
+  "derivation": "The CLI does not retain raw stdin bytes. Each semantic stdin object below is reconstructed from the published repo-standards/operation/v1 protocol, retained resolved declaration, accepted concrete scope, and immutable run identity; key serialization and trailing bytes are not recoverable. Command vectors, working directory, script bytes, resources, arguments, prerequisites, access boundary, and recorded results are exact.",
+  "records": [
+    {
+      "attempt": "initial-start-fix",
+      "scopeRevision": 0,
+      "cwd": "/tmp/repo-standards-source-Aarb1O",
+      "executable": "node",
+      "script": "/tmp/repo-standards-source-Aarb1O/.repo-standards/inputs/source/operations/markdown-ending.mjs",
+      "resources": [],
+      "arguments": [],
+      "timeoutSeconds": 30,
+      "prerequisite": {
+        "argv": [
+          "node",
+          "--version"
+        ],
+        "requiredVersion": ">=24.0.0 <25.0.0",
+        "observedVersion": "24.21.0"
+      },
+      "operationArgv": [
+        "node",
+        "/tmp/repo-standards-source-Aarb1O/.repo-standards/inputs/source/operations/markdown-ending.mjs"
+      ],
+      "hostAccess": "Invoking user host access",
+      "environmentAccess": "Inherited prepared-session environment",
+      "networkAccess": "Inherited host network access; no sandbox",
+      "shellExpansion": false,
+      "stdin": {
+        "format": "repo-standards/operation/v1",
+        "operation": {
+          "declaration": "project-documentation",
+          "phase": "fixes",
+          "id": "normalize-markdown-ending"
+        },
+        "projectRoot": "/tmp/repo-standards-source-Aarb1O",
+        "standards": {
+          "repository": "https://github.com/atlas/standards",
+          "version": "v1.0.0",
+          "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+        },
+        "declarations": [
+          {
+            "id": "documentation-catalog",
+            "checks": [],
+            "fixes": [],
+            "kind": "file",
+            "target": "docs/catalog.json",
+            "exact": "files/catalog.json"
+          },
+          {
+            "id": "project-documentation",
+            "checks": [
+              {
+                "id": "verify-markdown-ending",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/markdown-ending.mjs",
+                  "resources": [],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            ],
+            "fixes": [
+              {
+                "id": "normalize-markdown-ending",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/markdown-ending.mjs",
+                  "resources": [],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            ],
+            "kind": "repository",
+            "guidance": "guidance/project-documentation.md",
+            "targets": {
+              "paths": [
+                "docs/projects/index.md",
+                "docs/projects/pear/operations.md",
+                "legacy/pear-operations.md",
+                "products/pear/README.md"
+              ],
+              "directories": []
+            }
+          }
+        ],
+        "allowedTargets": {
+          "paths": [
+            "docs/projects/index.md",
+            "docs/projects/pear/operations.md",
+            "legacy/pear-operations.md",
+            "products/pear/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "recordedResult": {
+        "operation": {
+          "declaration": "project-documentation",
+          "phase": "fixes",
+          "id": "normalize-markdown-ending"
+        },
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        },
+        "result": {
+          "format": "repo-standards/result/v1",
+          "status": "unchanged",
+          "message": "Markdown endings already satisfy the source."
+        },
+        "error": null,
+        "stdout": ".repo-standards/local/operations/0.stdout",
+        "stderr": ".repo-standards/local/operations/0.stderr"
+      }
+    },
+    {
+      "attempt": "confirmed-amendment-interrupted-fix",
+      "scopeRevision": 1,
+      "cwd": "/tmp/repo-standards-source-Aarb1O",
+      "executable": "node",
+      "script": "/tmp/repo-standards-source-Aarb1O/.repo-standards/inputs/source/operations/markdown-ending.mjs",
+      "resources": [],
+      "arguments": [],
+      "timeoutSeconds": 30,
+      "prerequisite": {
+        "argv": [
+          "node",
+          "--version"
+        ],
+        "requiredVersion": ">=24.0.0 <25.0.0",
+        "observedVersion": "24.21.0"
+      },
+      "operationArgv": [
+        "node",
+        "/tmp/repo-standards-source-Aarb1O/.repo-standards/inputs/source/operations/markdown-ending.mjs"
+      ],
+      "hostAccess": "Invoking user host access",
+      "environmentAccess": "Inherited prepared-session environment",
+      "networkAccess": "Inherited host network access; no sandbox",
+      "shellExpansion": false,
+      "stdin": {
+        "format": "repo-standards/operation/v1",
+        "operation": {
+          "declaration": "project-documentation",
+          "phase": "fixes",
+          "id": "normalize-markdown-ending"
+        },
+        "projectRoot": "/tmp/repo-standards-source-Aarb1O",
+        "standards": {
+          "repository": "https://github.com/atlas/standards",
+          "version": "v1.0.0",
+          "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+        },
+        "declarations": [
+          {
+            "id": "documentation-catalog",
+            "checks": [],
+            "fixes": [],
+            "kind": "file",
+            "target": "docs/catalog.json",
+            "exact": "files/catalog.json"
+          },
+          {
+            "id": "project-documentation",
+            "checks": [
+              {
+                "id": "verify-markdown-ending",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/markdown-ending.mjs",
+                  "resources": [],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            ],
+            "fixes": [
+              {
+                "id": "normalize-markdown-ending",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/markdown-ending.mjs",
+                  "resources": [],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            ],
+            "kind": "repository",
+            "guidance": "guidance/project-documentation.md",
+            "targets": {
+              "paths": [
+                "CATALOG.md",
+                "docs/projects/index.md",
+                "docs/projects/pear/operations.md",
+                "legacy/pear-operations.md",
+                "products/pear/README.md"
+              ],
+              "directories": []
+            }
+          }
+        ],
+        "allowedTargets": {
+          "paths": [
+            "CATALOG.md",
+            "docs/projects/index.md",
+            "docs/projects/pear/operations.md",
+            "legacy/pear-operations.md",
+            "products/pear/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "recordedResult": null,
+      "interruption": {
+        "outcome": "uncertain",
+        "controlledHarness": "REPO_STANDARDS_ACCEPTANCE_INTERRUPT=after-operation-spawn",
+        "durableObservationOperationIndex": 1,
+        "outerBridgeExitCode": 1,
+        "innerCliSignal": "SIGKILL"
+      }
+    },
+    {
+      "attempt": "explicit-retry-fix",
+      "scopeRevision": 1,
+      "cwd": "/tmp/repo-standards-source-Aarb1O",
+      "executable": "node",
+      "script": "/tmp/repo-standards-source-Aarb1O/.repo-standards/inputs/source/operations/markdown-ending.mjs",
+      "resources": [],
+      "arguments": [],
+      "timeoutSeconds": 30,
+      "prerequisite": {
+        "argv": [
+          "node",
+          "--version"
+        ],
+        "requiredVersion": ">=24.0.0 <25.0.0",
+        "observedVersion": "24.21.0"
+      },
+      "operationArgv": [
+        "node",
+        "/tmp/repo-standards-source-Aarb1O/.repo-standards/inputs/source/operations/markdown-ending.mjs"
+      ],
+      "hostAccess": "Invoking user host access",
+      "environmentAccess": "Inherited prepared-session environment",
+      "networkAccess": "Inherited host network access; no sandbox",
+      "shellExpansion": false,
+      "stdin": {
+        "format": "repo-standards/operation/v1",
+        "operation": {
+          "declaration": "project-documentation",
+          "phase": "fixes",
+          "id": "normalize-markdown-ending"
+        },
+        "projectRoot": "/tmp/repo-standards-source-Aarb1O",
+        "standards": {
+          "repository": "https://github.com/atlas/standards",
+          "version": "v1.0.0",
+          "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+        },
+        "declarations": [
+          {
+            "id": "documentation-catalog",
+            "checks": [],
+            "fixes": [],
+            "kind": "file",
+            "target": "docs/catalog.json",
+            "exact": "files/catalog.json"
+          },
+          {
+            "id": "project-documentation",
+            "checks": [
+              {
+                "id": "verify-markdown-ending",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/markdown-ending.mjs",
+                  "resources": [],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            ],
+            "fixes": [
+              {
+                "id": "normalize-markdown-ending",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/markdown-ending.mjs",
+                  "resources": [],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            ],
+            "kind": "repository",
+            "guidance": "guidance/project-documentation.md",
+            "targets": {
+              "paths": [
+                "CATALOG.md",
+                "docs/projects/index.md",
+                "docs/projects/pear/operations.md",
+                "legacy/pear-operations.md",
+                "products/pear/README.md"
+              ],
+              "directories": []
+            }
+          }
+        ],
+        "allowedTargets": {
+          "paths": [
+            "CATALOG.md",
+            "docs/projects/index.md",
+            "docs/projects/pear/operations.md",
+            "legacy/pear-operations.md",
+            "products/pear/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "recordedResult": {
+        "operation": {
+          "declaration": "project-documentation",
+          "phase": "fixes",
+          "id": "normalize-markdown-ending"
+        },
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        },
+        "result": {
+          "format": "repo-standards/result/v1",
+          "status": "unchanged",
+          "message": "Markdown endings already satisfy the source."
+        },
+        "error": null,
+        "stdout": ".repo-standards/local/operations/1.stdout",
+        "stderr": ".repo-standards/local/operations/1.stderr"
+      }
+    },
+    {
+      "attempt": "completion-check",
+      "scopeRevision": 1,
+      "cwd": "/tmp/repo-standards-source-Aarb1O",
+      "executable": "node",
+      "script": "/tmp/repo-standards-source-Aarb1O/.repo-standards/inputs/source/operations/markdown-ending.mjs",
+      "resources": [],
+      "arguments": [],
+      "timeoutSeconds": 30,
+      "prerequisite": {
+        "argv": [
+          "node",
+          "--version"
+        ],
+        "requiredVersion": ">=24.0.0 <25.0.0",
+        "observedVersion": "24.21.0"
+      },
+      "operationArgv": [
+        "node",
+        "/tmp/repo-standards-source-Aarb1O/.repo-standards/inputs/source/operations/markdown-ending.mjs"
+      ],
+      "hostAccess": "Invoking user host access",
+      "environmentAccess": "Inherited prepared-session environment",
+      "networkAccess": "Inherited host network access; no sandbox",
+      "shellExpansion": false,
+      "stdin": {
+        "format": "repo-standards/operation/v1",
+        "operation": {
+          "declaration": "project-documentation",
+          "phase": "checks",
+          "id": "verify-markdown-ending"
+        },
+        "projectRoot": "/tmp/repo-standards-source-Aarb1O",
+        "standards": {
+          "repository": "https://github.com/atlas/standards",
+          "version": "v1.0.0",
+          "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+        },
+        "declarations": [
+          {
+            "id": "documentation-catalog",
+            "checks": [],
+            "fixes": [],
+            "kind": "file",
+            "target": "docs/catalog.json",
+            "exact": "files/catalog.json"
+          },
+          {
+            "id": "project-documentation",
+            "checks": [
+              {
+                "id": "verify-markdown-ending",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/markdown-ending.mjs",
+                  "resources": [],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            ],
+            "fixes": [
+              {
+                "id": "normalize-markdown-ending",
+                "run": {
+                  "executable": "node",
+                  "script": "operations/markdown-ending.mjs",
+                  "resources": [],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            ],
+            "kind": "repository",
+            "guidance": "guidance/project-documentation.md",
+            "targets": {
+              "paths": [
+                "CATALOG.md",
+                "docs/projects/index.md",
+                "docs/projects/pear/operations.md",
+                "legacy/pear-operations.md",
+                "products/pear/README.md"
+              ],
+              "directories": []
+            }
+          }
+        ],
+        "allowedTargets": {
+          "paths": [
+            "CATALOG.md",
+            "docs/projects/index.md",
+            "docs/projects/pear/operations.md",
+            "legacy/pear-operations.md",
+            "products/pear/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "recordedResult": {
+        "operation": {
+          "declaration": "project-documentation",
+          "phase": "checks",
+          "id": "verify-markdown-ending"
+        },
+        "process": {
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "timedOut": false
+        },
+        "result": {
+          "format": "repo-standards/result/v1",
+          "status": "passed",
+          "message": "Markdown endings already satisfy the source."
+        },
+        "error": null,
+        "stdout": ".repo-standards/local/operations/2.stdout",
+        "stderr": ".repo-standards/local/operations/2.stderr"
+      }
+    }
+  ]
+}

@@ -15,6 +15,29 @@ Recorded runs: [2026-09-07 macOS and Linux acceptance](results/2026-09-07/README
 The separate [live publication and discovery journey](results/2026-09-07/source-publication.md)
 uses the public synthetic `repo-standards-example` source.
 
+Issue #50's v2 release journey is tracked separately in the
+[contextual-scope coverage map](contextual-scope-release-coverage.md). Atlas is a
+reusable discovery source applied to the unfamiliar Orchard and Forge layouts;
+Wayfinder is an independently authored source with different service-evidence
+guidance and operations. Prepare their public-package/fixture-source sessions
+after 1.2.0 is published:
+
+```sh
+node acceptance/prepare-public.ts 1.2.0 fixture:atlas v1.0.0 maintained orchard
+node acceptance/prepare-public.ts 1.2.0 fixture:atlas v1.0.0 maintained forge
+node acceptance/prepare-public.ts 1.2.0 fixture:wayfinder v1.0.0 service relay
+```
+
+These sessions use public npm but substitute source acquisition with real Git
+objects. Keep live public bootstrap/search evidence separate. Fresh agents must
+author proposals from each inspection's eligible evidence, obtain confirmation,
+perform and assess useful work, and retain every proposal/report outside the
+project. The Atlas journey includes an active confirmed addition, replay and
+interrupted recovery, followed by a normal project commit, fresh checkout,
+source-unavailable same-pin re-adoption and a scope removal that preserves
+content. Exercise rejected unresolved, retrospective and unconfirmed work as
+separate negative records; never introduce failure into the completed history.
+
 ## Prepare each supported operating system
 
 For issue #11's public release, use the published package and a designated public

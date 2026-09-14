@@ -1,0 +1,1165 @@
+{
+  "format": "repo-standards/run/v2",
+  "observations": [
+    {
+      "phase": "fixes",
+      "operation": {
+        "phase": "fixes",
+        "declaration": "project-documentation",
+        "id": "normalize-markdown-ending"
+      },
+      "operationIndex": 0,
+      "scope": {
+        "project-documentation": {
+          "paths": [
+            "CATALOG.md",
+            "docs/projects/index.md",
+            "products/plum/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "CATALOG.md": {
+            "type": "file",
+            "sha256": "ca37181855a29eece4e55b58bd638d069c3c527c854a996c68d57809b4f352f2",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "docs/projects/index.md": {
+            "type": "file",
+            "sha256": "e85d1c604e8ec8b14f4e693fdafa2a84722399347c35d4521615ff8354ab385a",
+            "executable": false
+          },
+          "docs/projects/pear/operations.md": {
+            "type": "file",
+            "sha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "d642750c57de6de5972989f505ea0cc0e0fcec0b09ad2e6ed385f07983d993fc",
+            "executable": false
+          },
+          "generated/site/README.md": {
+            "type": "file",
+            "sha256": "8eb447ab4badd20f23d768706a14f8cf4525bcd3bf94d9d207eac773848d36fc",
+            "executable": false
+          },
+          "products/pear/README.md": {
+            "type": "file",
+            "sha256": "0d2fb448cb0cf739043e8b182da814d9e1249c3a7974bf0f2f7ba13d49f7a7b2",
+            "executable": false
+          },
+          "products/plum/README.md": {
+            "type": "file",
+            "sha256": "5dbcf72065d771e314a8ac3b6a7d582e99529150ca2ba44046dba5c51fd386d9",
+            "executable": false
+          },
+          "products/plum/service.json": {
+            "type": "file",
+            "sha256": "6f070c6ad4e4e83f52f0a7d2185227f5d18aeafe6ba448402a50470d79cf67c9",
+            "executable": false
+          },
+          "teams/runtime.md": {
+            "type": "file",
+            "sha256": "cb9cdeae04c6fd6a493bb70343cb514c50a8fc433a7a51b9155b72a1954fc456",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects/pear": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/site": {
+            "type": "directory",
+            "mode": 448
+          },
+          "products": {
+            "type": "directory",
+            "mode": 448
+          },
+          "products/pear": {
+            "type": "directory",
+            "mode": 448
+          },
+          "products/plum": {
+            "type": "directory",
+            "mode": 448
+          },
+          "teams": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-orchard-retired-readopt-K4BJ46/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/.gitignore": {
+            "location": "docs/projects/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/pear/.gitignore": {
+            "location": "docs/projects/pear/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/site/.gitignore": {
+            "location": "generated/site/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "products/.gitignore": {
+            "location": "products/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "products/pear/.gitignore": {
+            "location": "products/pear/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "products/plum/.gitignore": {
+            "location": "products/plum/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "teams/.gitignore": {
+            "location": "teams/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "CATALOG.md": {
+            "type": "file",
+            "sha256": "ca37181855a29eece4e55b58bd638d069c3c527c854a996c68d57809b4f352f2",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "docs/projects/index.md": {
+            "type": "file",
+            "sha256": "e85d1c604e8ec8b14f4e693fdafa2a84722399347c35d4521615ff8354ab385a",
+            "executable": false
+          },
+          "docs/projects/pear/operations.md": {
+            "type": "file",
+            "sha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "d642750c57de6de5972989f505ea0cc0e0fcec0b09ad2e6ed385f07983d993fc",
+            "executable": false
+          },
+          "generated/site/README.md": {
+            "type": "file",
+            "sha256": "8eb447ab4badd20f23d768706a14f8cf4525bcd3bf94d9d207eac773848d36fc",
+            "executable": false
+          },
+          "products/pear/README.md": {
+            "type": "file",
+            "sha256": "0d2fb448cb0cf739043e8b182da814d9e1249c3a7974bf0f2f7ba13d49f7a7b2",
+            "executable": false
+          },
+          "products/plum/README.md": {
+            "type": "file",
+            "sha256": "5dbcf72065d771e314a8ac3b6a7d582e99529150ca2ba44046dba5c51fd386d9",
+            "executable": false
+          },
+          "products/plum/service.json": {
+            "type": "file",
+            "sha256": "6f070c6ad4e4e83f52f0a7d2185227f5d18aeafe6ba448402a50470d79cf67c9",
+            "executable": false
+          },
+          "teams/runtime.md": {
+            "type": "file",
+            "sha256": "cb9cdeae04c6fd6a493bb70343cb514c50a8fc433a7a51b9155b72a1954fc456",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects/pear": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/site": {
+            "type": "directory",
+            "mode": 448
+          },
+          "products": {
+            "type": "directory",
+            "mode": 448
+          },
+          "products/pear": {
+            "type": "directory",
+            "mode": 448
+          },
+          "products/plum": {
+            "type": "directory",
+            "mode": 448
+          },
+          "teams": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-orchard-retired-readopt-K4BJ46/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/.gitignore": {
+            "location": "docs/projects/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/pear/.gitignore": {
+            "location": "docs/projects/pear/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/site/.gitignore": {
+            "location": "generated/site/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "products/.gitignore": {
+            "location": "products/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "products/pear/.gitignore": {
+            "location": "products/pear/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "products/plum/.gitignore": {
+            "location": "products/plum/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "teams/.gitignore": {
+            "location": "teams/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [],
+      "boundaryChanges": [],
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "project-documentation": {
+          "paths": [
+            "CATALOG.md",
+            "docs/projects/index.md",
+            "products/plum/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "CATALOG.md": {
+            "type": "file",
+            "sha256": "ca37181855a29eece4e55b58bd638d069c3c527c854a996c68d57809b4f352f2",
+            "executable": false
+          },
+          "docs/catalog.json": {
+            "type": "file",
+            "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+            "executable": false
+          },
+          "docs/projects/index.md": {
+            "type": "file",
+            "sha256": "e85d1c604e8ec8b14f4e693fdafa2a84722399347c35d4521615ff8354ab385a",
+            "executable": false
+          },
+          "docs/projects/pear/operations.md": {
+            "type": "file",
+            "sha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "d642750c57de6de5972989f505ea0cc0e0fcec0b09ad2e6ed385f07983d993fc",
+            "executable": false
+          },
+          "generated/site/README.md": {
+            "type": "file",
+            "sha256": "8eb447ab4badd20f23d768706a14f8cf4525bcd3bf94d9d207eac773848d36fc",
+            "executable": false
+          },
+          "products/pear/README.md": {
+            "type": "file",
+            "sha256": "0d2fb448cb0cf739043e8b182da814d9e1249c3a7974bf0f2f7ba13d49f7a7b2",
+            "executable": false
+          },
+          "products/plum/README.md": {
+            "type": "file",
+            "sha256": "5dbcf72065d771e314a8ac3b6a7d582e99529150ca2ba44046dba5c51fd386d9",
+            "executable": false
+          },
+          "products/plum/service.json": {
+            "type": "file",
+            "sha256": "6f070c6ad4e4e83f52f0a7d2185227f5d18aeafe6ba448402a50470d79cf67c9",
+            "executable": false
+          },
+          "teams/runtime.md": {
+            "type": "file",
+            "sha256": "cb9cdeae04c6fd6a493bb70343cb514c50a8fc433a7a51b9155b72a1954fc456",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects": {
+            "type": "directory",
+            "mode": 448
+          },
+          "docs/projects/pear": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/site": {
+            "type": "directory",
+            "mode": 448
+          },
+          "products": {
+            "type": "directory",
+            "mode": 448
+          },
+          "products/pear": {
+            "type": "directory",
+            "mode": 448
+          },
+          "products/plum": {
+            "type": "directory",
+            "mode": 448
+          },
+          "teams": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-orchard-retired-readopt-K4BJ46/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/.gitignore": {
+            "location": "docs/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/.gitignore": {
+            "location": "docs/projects/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "docs/projects/pear/.gitignore": {
+            "location": "docs/projects/pear/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/site/.gitignore": {
+            "location": "generated/site/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "products/.gitignore": {
+            "location": "products/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "products/pear/.gitignore": {
+            "location": "products/pear/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "products/plum/.gitignore": {
+            "location": "products/plum/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "teams/.gitignore": {
+            "location": "teams/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "id": "6eda44d4-2a19-4436-b4b5-7499f809dced",
+  "inspection": "sha256:ac6ca2894bee92291b10db3b12b836f9e7864852520053775d1c53bee83841f8",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.2.0"
+    },
+    "standards": {
+      "repository": "https://github.com/atlas/standards",
+      "version": "v1.0.0",
+      "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+    },
+    "profile": "maintained"
+  },
+  "startInput": {
+    "kind": "retained",
+    "project": "/tmp/repo-standards-orchard-retired-readopt-K4BJ46",
+    "scope": "/srv/dev/projects/repo-standards-issue-50/acceptance/results/2026-09-14/contextual-scope-release/agents/orchard/retained-readoption-retired-pear/scope-proposal.json",
+    "readopt": true
+  },
+  "previousComplete": {
+    "selection": {
+      "cli": {
+        "package": "@lutzseverino/repo-standards",
+        "version": "1.2.0"
+      },
+      "standards": {
+        "repository": "https://github.com/atlas/standards",
+        "version": "v1.0.0",
+        "commit": "d2f0ecb0c4fad52bc4cbf5ff223ba59d2663dd77"
+      },
+      "profile": "maintained"
+    },
+    "lastComplete": {
+      "run": "91c11a5c-6f3f-49ce-a06b-63af550f9d39",
+      "inspection": "sha256:d5f595360e04ed5a105024d3f354ba40083aceb6155b9c269bcab63d08bf1d21",
+      "completedAt": "2026-09-14T02:26:27.462Z",
+      "head": "5f64286bb6d2262a1517ce321219783fb6ba7d58"
+    }
+  },
+  "affected": {
+    "docs/catalog.json": {
+      "type": "file",
+      "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "{\n  \"format\": \"atlas-documentation/v1\"\n}\n"
+    },
+    "CATALOG.md": {
+      "type": "file",
+      "sha256": "ca37181855a29eece4e55b58bd638d069c3c527c854a996c68d57809b4f352f2",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Orchard catalog\n\n- [Plum API](products/plum/README.md)\n"
+    },
+    "docs/projects/index.md": {
+      "type": "file",
+      "sha256": "e85d1c604e8ec8b14f4e693fdafa2a84722399347c35d4521615ff8354ab385a",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Project documentation\n\n- [Plum API](../../products/plum/README.md)\n"
+    },
+    "products/plum/README.md": {
+      "type": "file",
+      "sha256": "5dbcf72065d771e314a8ac3b6a7d582e99529150ca2ba44046dba5c51fd386d9",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Plum API\n\nPlum API serves plum inventory data and is maintained by the `orchard-runtime`\nteam.\n\n## Setup\n\nNo separate setup step is required.\n\n## Run\n\nFrom `products/plum`, start the service with:\n\n```sh\nnode server.mjs\n```\n"
+    },
+    ".agents/skills/adopt-standards": {
+      "type": "directory",
+      "entries": {
+        "SKILL.md": {
+          "type": "file",
+          "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "---\nname: adopt-standards\ndescription: Guide confirmed Repository Standards discovery, adoption, contextual work, updates, and recovery.\ndisable-model-invocation: true\n---\n\n## Choose the CLI and route\n\nWork from the adopting project's Git root. Use its pinned executable at\n`.repo-standards/runtime/node_modules/.bin/repo-standards`. If dependencies are\nabsent, restore them with `npm ci --ignore-scripts --prefix .repo-standards/runtime`.\nRead `status --json` for pins, active progress and historical evidence.\n\nFor initial adoption, use an externally installed exact CLI and read its\n`docs/inspection.md` for acquisition. The bootstrap performs inspection only;\nkeep that disclosed exact version installed outside the project for `start`\nand recovery. Read protocol documents below from that CLI's package directory\nuntil the project runtime exists. Thereafter the document root is\n`.repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/`.\n\n- **Active run:** inspect `active.phase`, `reason`, `changes`, `completed`,\n  `uncertain`, `nextAction` and `execution`. Wait while execution is active.\n  An ordinary contextual handoff continues at Contextual work below.\n  When more files are needed, read\n  `inspection.md#preview-scope-amendments-in-an-active-run` and use\n  `inspect --amend-scope` to obtain current evidence, then preview one complete\n  additions-only proposal with `--scope`. Present its complete identity, changes,\n  operations, prior work and evidence; after explicit maintainer confirmation,\n  accept it with `resume --amend-scope --scope <file> --confirm <identity> --json`.\n  Do not edit added paths before acceptance. The command replays fixes and\n  requires a fresh contextual assessment and checks. Scope withdrawal remains a\n  reconciliation path outside the active run.\n  For interrupted installation, failed/uncertain scripts, or abandonment, read\n  `adoption.md#recover-or-abandon-an-interrupted-run` before acting. Obtain an\n  explicit retry instruction before `resume --retry --json`, or an abandonment\n  instruction before `abandon --json`. Retry repeats trusted fixes and requires\n  renewed assessment. Use the run's exact external CLI if the local runtime is\n  unusable. Preserve progress records and partial changes.\n- **Existing complete adoption:** `inspect --json` with the pinned CLI inspects\n  retained current standards read-only, including when the source is unavailable.\n  When the maintainer deliberately requests unchanged standards to cover new\n  repository content, read `adoption.md#re-adopt-unchanged-standards`. Use the\n  pinned CLI for `inspect --readopt --json`, review and confirm that distinct\n  action, then use `start --readopt --confirm <identity> --json`. Do not present\n  re-adoption as an update, retry, resume, or automatic compliance repair.\n  For a requested standards or CLI update, read\n  `adoption.md#update-one-pin-at-a-time` for candidate acquisition and commands.\n  Change one pin, keeping source and profile. Use the pinned CLI for a standards\n  update and the external candidate CLI for a CLI update. Historical discovered\n  scope explains prior authorization; it does not prove current coverage.\n  Every active v2 discovery declaration needs a fresh proposal for re-adoption or\n  either update, even when the original source is unavailable for retained work.\n  Eligible active discovery runs can confirm additions through the amendment\n  workflow below.\n- **Initial adoption:** obtain the public GitHub source, stable standards tag\n  and complete profile from the maintainer, then inspect that selection.\n\n## Inspect and confirm\n\n1. Run `inspect --source <URL> --standards-version <tag> --profile <name> --json`\n   for initial adoption or a standards update. For a CLI update, run the exact\n   candidate's `inspect --json` without source flags to use retained standards.\n   For explicit unchanged re-adoption, run the pinned project's\n   `inspect --readopt --json` without source, version, or profile flags.\n   Store reports outside the project. Read `inspection.md` when interpreting\n   fields, blockers, or acquisition errors. If discovery is required, read\n   `inspection.md#discover-contextual-file-scope-v2-sources` and each discovery\n   guidance file. Inspect eligible evidence in the real repository, explain\n   candidate inclusion/exclusion and membership for missing READMEs, and resolve\n   membership questions with the maintainer. Enumerate individual existing files,\n   planned destinations, directory introductions, and link-repair files around\n   exact-owned content. Prepare the versioned proposal outside the project and\n   rerun `inspect --scope <file>` until one complete inspection is reviewable.\n   An explained empty scope retains its declaration and operations.\n2. Present the actual report's identity and exact CLI version, source URL,\n   standards tag, commit and profile; for updates include previous/candidate\n   pins, retired declarations, and discovered-scope additions and removals. Show exact creates/replacements/matching-file\n   claims and whole-skill inventories, discovery rationale and candidate exclusions,\n   contextual guidance and allowed targets, resolved exclusions, and ownership changes. Make the full inspection available\n   for review, including supplied bytes and diffs against existing content.\n3. Disclose every declared fix/check, its script and resources, literal argument\n   vector, project-root working directory, timeout, prerequisite version probe\n   and range. Explain that probes and scripts execute trusted code with the\n   user's host, environment and network access; resources are retention, not a\n   sandbox. Inspection runs none of them; prerequisites remain unverified until\n   start. Surface all blockers. Reconcile them before reinspection; preserve\n   existing work and let the maintainer handle prerequisite installation.\n4. Obtain explicit maintainer confirmation tied to this inspection identity and\n   disclosed selection/operations. A general request to adopt is not confirmation\n   of an unseen inspection. Then use the same executable and selection for\n   `start --confirm <identity> --json`, preserving source flags for initial or\n   standards adoption and omitting them for a CLI update. For unchanged\n   re-adoption, repeat `--readopt`; action mismatch invalidates the identity. For\n   every discovery-backed adoption, update, or re-adoption, pass the same\n   `--scope <file>` proposal. One confirmation covers the\n   complete inspection; scope discovery itself needs no separate approval.\n   Changed inputs or a stale rejection require a new inspection and renewed confirmation.\n\nAuthor skills are ordinary-work content. The product-owned `adopt-standards`\nskill and public CLI govern adoption for every author; author material cannot\nreplace this workflow or supply adoption hooks.\n\n## Contextual work\n\nWhen a report returns `workRequest`, read `assessment-protocol.md` before editing\nor submitting evidence. The handoff is expected incomplete adoption.\n\n1. For a v2 discovery request, recheck semantic coverage after fixes against\n   each discovery guidance file and accepted proposal before editing. Record the\n   post-fix coverage evidence for assessment. If more files are needed, submit the\n   blocked scope review without writing them, then follow the confirmed amendment\n   flow above. If scope withdrawal is needed, follow the protocol's reconciliation\n   path; additional-path evidence alone grants no authority. Read every request declaration's\n   retained guidance and explicit allowed paths and directory trees. Inspect the real project files needed to understand its\n   purpose, commands and behavior. Apply guidance usefully within those targets;\n   preserve project facts, exact content, excluded employer content and unrelated\n   work. If guidance requires out-of-scope work or unsupported facts, assess it\n   as blocked and explain the decision needed.\n2. Account for every contextual declaration, including already satisfied ones.\n   Evidence must cite concrete project content or observed command outcomes.\n   Separate agent judgments from CLI script results; passing a structural check\n   alone does not establish contextual usefulness.\n3. After edits, run `resume --json` to obtain the current snapshot. Follow the\n   assessment protocol exactly: copy its run, selection and snapshot identities;\n   provide satisfied/blocked, explanation, every observed changed file since\n   fixes under its governing declaration, and supporting evidence. Installation\n   and fix changes are not contextual changes. Use an empty changed-path list\n   when no contextual changes were needed. For discovered declarations, review\n   coverage again at the refreshed snapshot and submit both scope-validity reviews\n   in assessment/v2, copying the confirmed scope and post-fix identities. Account\n   for migration deletion and creation separately and explain preservation of\n   useful content. Report observed agent changes across all retry intervals.\n4. Store the submission outside the project or in `.repo-standards/local/` and\n   run `resume --assessment <file> --json`. Keep content unchanged between refresh\n   and submission. Stale evidence needs a refreshed request and reassessment of\n   every contextual declaration. Follow the protocol's distinction between\n   renewed assessment after ordinary failed checks and explicit operation retry.\n\n## Explain the result\n\nRead JSON even when the CLI exits 1: a handoff, abandonment and failed adoption\nare incomplete; diagnostic rejections may instead contain `valid: false` and\n`errors`. Report complete adoption only for `outcome: complete`.\n\nFor incomplete work, explain phase, reason, actual changes, completed work,\nfailed or uncertain operations, and the returned safe next action. Preserve\npartial work; retry and abandonment require the instructions described above.\nFor completion, report script outcomes and agent evidence separately, then read\n`adoption.md#review-completed-outputs`. Review tracked changes and the contents\nand executable state of every non-ignored untracked file, including exact\ncontent, whole skills, retained inputs and durable runtime/state files.\n`git diff` omits untracked files; status names and hashes alone are not a content\nreview. Keep HEAD and index unchanged while exposing new-file content; leave all\nadoption changes uncommitted for the maintainer's normal workflow. `status`\nevidence describes that run, not continuing compliance after subsequent edits.\n"
+        }
+      }
+    }
+  },
+  "outcome": "incomplete",
+  "prerequisites": [
+    {
+      "declaration": "project-documentation",
+      "phase": "fixes",
+      "operation": "normalize-markdown-ending",
+      "executable": "node",
+      "version": "24.21.0",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    },
+    {
+      "declaration": "project-documentation",
+      "phase": "checks",
+      "operation": "verify-markdown-ending",
+      "executable": "node",
+      "version": "24.21.0",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    }
+  ],
+  "operations": [
+    {
+      "operation": {
+        "declaration": "project-documentation",
+        "phase": "fixes",
+        "id": "normalize-markdown-ending"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v1",
+        "status": "unchanged",
+        "message": "Markdown endings already satisfy the source."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/0.stdout",
+      "stderr": ".repo-standards/local/operations/0.stderr"
+    }
+  ],
+  "assessments": [],
+  "phase": "contextual",
+  "reason": "CONTEXTUAL_REQUIRED: Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run.",
+  "changes": [
+    ".repo-standards/.gitignore",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/inputs/source/files/catalog.json",
+    ".repo-standards/inputs/source/guidance/project-discovery.md",
+    ".repo-standards/inputs/source/guidance/project-documentation.md",
+    ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/local/operations/0.stderr",
+    ".repo-standards/local/operations/0.stdout",
+    ".repo-standards/local/run.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/node_modules",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/state.json"
+  ],
+  "completed": [
+    "docs/catalog.json",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/inputs/source/files/catalog.json",
+    ".repo-standards/inputs/source/guidance/project-documentation.md",
+    ".repo-standards/inputs/source/guidance/project-discovery.md",
+    ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/lock.json",
+    "isolated runtime",
+    "fixes: project-documentation/normalize-markdown-ending (unchanged)"
+  ],
+  "uncertain": [
+    "Contextual work and assessment are required before checks."
+  ],
+  "nextAction": "Apply the selected guidance, refresh the work request with resume, and submit evidence using resume --assessment <file>.",
+  "installation": {
+    "files": [
+      ".repo-standards/.gitignore",
+      "docs/catalog.json",
+      ".agents/skills/adopt-standards/SKILL.md",
+      ".repo-standards/inputs/source/files/catalog.json",
+      ".repo-standards/inputs/source/guidance/project-documentation.md",
+      ".repo-standards/inputs/source/guidance/project-discovery.md",
+      ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+      ".repo-standards/inputs/standards.yaml",
+      ".repo-standards/inputs/metadata.json",
+      ".repo-standards/inputs/resolved.json",
+      ".repo-standards/inputs/scope-history.json",
+      ".repo-standards/selection.yaml",
+      ".repo-standards/runtime/package.json",
+      ".repo-standards/runtime/package-lock.json",
+      ".repo-standards/lock.json"
+    ],
+    "runtime": true,
+    "trees": {},
+    "complete": true
+  },
+  "continuation": "4e51c571fdbf7665d6d5394ac8668b42d28af39d52853c86b8d8accf665b7b13",
+  "workRequest": {
+    "format": "repo-standards/work-request/v2",
+    "scope": {
+      "inspection": "sha256:ac6ca2894bee92291b10db3b12b836f9e7864852520053775d1c53bee83841f8",
+      "afterFixes": "sha256:f15be3a4b241063e55a5f2598c2b81ce6e720db6303384878c15f9f91654d62e",
+      "proposal": {
+        "format": "repo-standards/scope/v1",
+        "request": "sha256:0841860ca23d68f333608537d0bc70a8af2e8114529e2f3fd3ffd2d76fe75a40",
+        "declarations": [
+          {
+            "id": "project-documentation",
+            "paths": [
+              "CATALOG.md",
+              "docs/projects/index.md",
+              "products/plum/README.md"
+            ],
+            "coverage": "Plum is now the only independently maintained service: products/plum/service.json names orchard-runtime ownership and the concrete node server.mjs start command, and its README records purpose, setup state, and operation. The shared root catalog and smallest project documentation index both navigate to Plum. Pear's README and operations guide remain byte-preserved historical project documentation, but removal of products/pear/service.json leaves no positive ownership plus build or deployment evidence for current maintained-project membership, so both Pear documents are excluded from current contextual scope rather than deleted. The sample fixture, generated site, and team grouping remain evidenced exclusions. There is no migration source, new destination, or broken link to repair. Exact docs/catalog.json remains outside contextual scope because retained source owns its bytes.",
+            "evidence": [
+              {
+                "kind": "directory",
+                "path": ".",
+                "identity": "sha256:afee1bfe6dd8b8cfdd391e4fc88d39d6dcd3998b8777b19e200b4fc08852bccf"
+              }
+            ],
+            "candidates": [
+              {
+                "path": "CATALOG.md",
+                "decision": "include",
+                "reason": "The shared root catalog now contains a single current project link to Plum and is needed to assess maintained-project navigation.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "CATALOG.md",
+                    "identity": "sha256:859f0e925018f80ca2ca61e107a32861516b653da7c047361d32ca39cb881b55"
+                  }
+                ]
+              },
+              {
+                "path": "docs/catalog.json",
+                "decision": "exclude",
+                "reason": "The retained standards source owns this exact file, and discovery explicitly keeps it outside contextual scope.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "docs/catalog.json",
+                    "identity": "sha256:f54bb02faa958c1e6a487e76ea8607753e5bf9144f0399d1ab2ac3edd0aec4dc"
+                  }
+                ]
+              },
+              {
+                "path": "docs/projects/index.md",
+                "decision": "include",
+                "reason": "The existing smallest project documentation index points to the sole currently maintained Plum service.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "docs/projects/index.md",
+                    "identity": "sha256:a1baf7ab4d74c7d426f0bd684f2002efd070bd49b429cef590bbe359dff3140a"
+                  }
+                ]
+              },
+              {
+                "path": "docs/projects/pear/operations.md",
+                "decision": "exclude",
+                "reason": "The preserved operations guide contains useful historical Pear recovery facts, but documentation alone does not establish current maintained-project membership after the Pear service manifest was removed.",
+                "evidence": [
+                  {
+                    "kind": "directory",
+                    "path": "products/pear",
+                    "identity": "sha256:7c610458ec252a4da4757ea2420d41a3851ef601ebd96b66aab7fd6ce44dcb90"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "docs/projects/pear/operations.md",
+                    "identity": "sha256:08f22fab01417a9a32569608e7858e753c8aa7b0c63186fc9748953eea4f41b6"
+                  }
+                ]
+              },
+              {
+                "path": "fixtures/sample",
+                "decision": "exclude",
+                "reason": "The sample manifest explicitly marks itself as fixture data, so it is not an independently maintained project.",
+                "evidence": [
+                  {
+                    "kind": "directory",
+                    "path": "fixtures/sample",
+                    "identity": "sha256:78730d4cd48e4b2382b150aa87840cbe7be71c3d4aada2f5129f4031b90ae94c"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "fixtures/sample/service.json",
+                    "identity": "sha256:fed131d11387c2933267db3e524ce83e60f47f156d6215e5976b7f31ccd7abaa"
+                  }
+                ]
+              },
+              {
+                "path": "generated/site",
+                "decision": "exclude",
+                "reason": "Its README identifies generated output that must not be edited by hand, so it is neither a maintained project nor contextual documentation work.",
+                "evidence": [
+                  {
+                    "kind": "directory",
+                    "path": "generated/site",
+                    "identity": "sha256:052f8cef3ed0b14ab8445c962b4efc64be06c6532c0479d5bb1bbbbeb9a2defd"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "generated/site/README.md",
+                    "identity": "sha256:0c40b8270199da7130b80f33a56b8fcfef4e05f3939423210a84c7542b2b7202"
+                  }
+                ]
+              },
+              {
+                "path": "products/pear/README.md",
+                "decision": "exclude",
+                "reason": "The README is preserved byte-for-byte, but its own historical owner and command prose is not independent positive service evidence after products/pear/service.json was removed; current navigation no longer presents Pear as maintained.",
+                "evidence": [
+                  {
+                    "kind": "directory",
+                    "path": "products/pear",
+                    "identity": "sha256:7c610458ec252a4da4757ea2420d41a3851ef601ebd96b66aab7fd6ce44dcb90"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "products/pear/README.md",
+                    "identity": "sha256:65d580a21bd6cef5ff0129d76057c5e97856f404a67b8b1e186654873a0f82aa"
+                  }
+                ]
+              },
+              {
+                "path": "products/plum/README.md",
+                "decision": "include",
+                "reason": "Plum has positive orchard-runtime ownership and a concrete start command in its service manifest; its project README records purpose, setup state, and that operating command.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "products/plum/README.md",
+                    "identity": "sha256:1aa6ea4e7151f2d26e334ff1bfeb064e10f669c08fdf7f4591eaadafb8b9dc15"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "products/plum/service.json",
+                    "identity": "sha256:31beacefc21ce02157fbc3f32d1ff04858240292b071e560c610b652436efb6f"
+                  }
+                ]
+              },
+              {
+                "path": "teams",
+                "decision": "exclude",
+                "reason": "The teams directory is organizational; teams/runtime.md explicitly says the team is not a deployable project.",
+                "evidence": [
+                  {
+                    "kind": "directory",
+                    "path": "teams",
+                    "identity": "sha256:25df46e0239491db8bf395c86291a30656f49b0922f31e59c7cb1b8010b5e834"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "teams/runtime.md",
+                    "identity": "sha256:f4d2240e7c85989c89c855c002369e88540689261a970b8545a286e47b76d15f"
+                  }
+                ]
+              }
+            ],
+            "unresolved": []
+          }
+        ]
+      }
+    },
+    "run": "6eda44d4-2a19-4436-b4b5-7499f809dced",
+    "selection": "sha256:0894cdc09b074779050f35d3ad4a81d2712ec6168c09a26833eff7bf053cc605",
+    "snapshot": "sha256:f15be3a4b241063e55a5f2598c2b81ce6e720db6303384878c15f9f91654d62e",
+    "declarations": [
+      {
+        "id": "project-documentation",
+        "guidance": {
+          "id": "project-documentation",
+          "targets": [
+            "CATALOG.md",
+            "docs/projects/index.md",
+            "products/plum/README.md"
+          ],
+          "source": "guidance/project-documentation.md",
+          "sha256": "f4d9ba3e46d6d5d9bbcb043d2fe4bf687a96f61f505ee30bbd2e04afbf2108a9",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "# Project documentation guidance\n\nGive each maintained project a concise README with its purpose, verified setup\nand operating commands, and links to deeper material. Preserve useful facts,\nwarnings, and recovery instructions when moving existing documentation into\n`docs/projects/`. Add the smallest useful documentation index and repair links\nthat referred to old locations.\n\nDo not rewrite generated or fixture content, invent commands, or describe an\norganizational directory as a project. Preserve project-owned voice and history.\nThe exact `docs/catalog.json` is outside this contextual declaration.\n"
+        },
+        "discovery": {
+          "id": "project-documentation",
+          "source": "guidance/project-discovery.md",
+          "sha256": "014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "# Project documentation discovery\n\nIdentify independently maintained projects from positive ownership and build or\ndeployment evidence. A project can require documentation when its directory has\nno README. A familiar filename by itself does not establish membership.\n\nFor every candidate, explain inclusion or exclusion. Treat test fixtures,\ngenerated output, archived copies, and directories that only group teams or\nprojects as candidates requiring evidence, not maintained projects by default.\nLeave uncertain maintenance or ownership as an unresolved question.\n\nFor each included project, plan individual files for its project README, every\nexisting documentation source that will move, each destination and introduced\ndocumentation index, and every file whose links need repair. Do not include\n`docs/catalog.json`; the source owns that exact file. An explained empty list is\nvalid when evidence shows that no maintained project is present.\n"
+        },
+        "allowedTargets": {
+          "paths": [
+            "CATALOG.md",
+            "docs/projects/index.md",
+            "products/plum/README.md"
+          ],
+          "directories": []
+        }
+      }
+    ],
+    "requiredEvidence": [
+      "status",
+      "explanation",
+      "changedPaths",
+      "evidence",
+      "scope",
+      "scopeValidity.afterFixes",
+      "scopeValidity.current"
+    ]
+  }
+}

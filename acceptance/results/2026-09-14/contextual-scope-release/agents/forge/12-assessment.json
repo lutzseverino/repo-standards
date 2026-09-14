@@ -1,0 +1,50 @@
+{
+  "format": "repo-standards/assessment/v2",
+  "run": "c4aa7eb9-455d-4202-946c-aa6d0cd3e0ee",
+  "selection": "sha256:0894cdc09b074779050f35d3ad4a81d2712ec6168c09a26833eff7bf053cc605",
+  "snapshot": "sha256:82b2c36a7fe4ea8d18da473c936bccff76efc5394cdbac24cec80316beca58b7",
+  "scope": {
+    "inspection": "sha256:93576f28b03162187d88414bcb2c92abdbd7687b8c9e89b70f1ed55b64520dba",
+    "afterFixes": "sha256:459c4f43f90f675b55b22c87dc9c12981c613523d600f8c7e3188e46c0a61540"
+  },
+  "declarations": [
+    {
+      "id": "project-documentation",
+      "status": "satisfied",
+      "explanation": "The maintained nested Hammer package now has a concise project README and connected project documentation. The legacy guide was migrated rather than duplicated, its useful command and recovery warning were preserved, and both the introduced documentation index and root index resolve to the new locations. Generated, fixture, organizational, and exact-owned content remained unchanged by contextual work.",
+      "changedPaths": [
+        "INDEX.md",
+        "docs/projects/INDEX.md",
+        "docs/projects/hammer.md",
+        "guides/hammer.md",
+        "modules/tools/hammer/README.md"
+      ],
+      "evidence": [
+        "modules/tools/hammer/Cargo.toml declares package hammer version 0.1.0 with developer-tools ownership; modules/tools/hammer/README.md now states that ownership, gives the repository-root Cargo command, and links to deeper guidance.",
+        "guides/hammer.md was deleted and docs/projects/hammer.md was created separately; the destination preserves the complete documented cargo run command and the warning to preserve the input archive before retrying a failed conversion.",
+        "docs/projects/INDEX.md links to hammer.md, while INDEX.md replaces its removed guides/hammer.md link with links to the nested project README and migrated guide; a read-only resolution check found every local Markdown target.",
+        "The contextual change set is exactly the five confirmed paths; the generated README, fixture manifest, organizational index, maintained Cargo manifest, installed adopt-standards skill, and exact docs/catalog.json retained their inspected SHA-256 identities."
+      ],
+      "scopeValidity": {
+        "afterFixes": {
+          "status": "valid",
+          "explanation": "Immediately after fixes, the accepted scope still covered the sole maintained project, its missing README, its individual legacy guide and destination, the introduced project index, and the root link repair; no additional or withdrawn path was needed.",
+          "evidence": [
+            "The post-fix Hammer manifest still named package hammer version 0.1.0 with developer-tools ownership, and guides/hammer.md still supplied the operating command and recovery warning.",
+            "The fixture manifest still named fixture-hammer version 0.0.0 without ownership metadata, the generated README still identified generated output, and the group file still identified an organizational index."
+          ],
+          "additionalPaths": []
+        },
+        "current": {
+          "status": "valid",
+          "explanation": "The refreshed snapshot is fully covered by the same five individual paths, and the completed migration introduces no new project candidate, missing documentation target, link-repair file, or scope withdrawal.",
+          "evidence": [
+            "The refreshed CLI observation reports agent changes only for INDEX.md, docs/projects/INDEX.md, docs/projects/hammer.md, guides/hammer.md, and modules/tools/hammer/README.md, with no scope violations.",
+            "The new README and migrated guide cross-link, docs/projects/INDEX.md links to the guide, and INDEX.md links to both maintained Hammer entry points; all five local link resolutions succeeded."
+          ],
+          "additionalPaths": []
+        }
+      }
+    }
+  ]
+}

@@ -201,7 +201,7 @@ Run a CLI update using the candidate exact CLI outside the project, omitting all
 source flags so it validates the current retained standards:
 
 ```sh
-repo-standards-bootstrap --cli-version 1.1.0 inspect --json
+repo-standards-bootstrap --cli-version 1.2.0 inspect --json
 ```
 
 Source and profile switching and changing both pins in one inspection are

@@ -1,0 +1,1094 @@
+{
+  "format": "repo-standards/inspection/v2",
+  "discovery": {
+    "identity": "sha256:b6636fda41efec5a047a350ef52d939a4e8c72f3fb61c984d32bc2f09fd3aa83",
+    "proposal": {
+      "format": "repo-standards/scope/v1",
+      "request": "sha256:b6636fda41efec5a047a350ef52d939a4e8c72f3fb61c984d32bc2f09fd3aa83",
+      "declarations": [
+        {
+          "id": "service-readiness",
+          "paths": [
+            "service/relay/operating-status.json",
+            "service/relay/operations.md"
+          ],
+          "coverage": "Relay is the repository's only independently operated service: its manifest names the messaging-runtime owner, an executable Python startup command, and a loopback health endpoint, and its source implements that endpoint. The fixture manifest, generated catalog entry, and organizational group are not operated services. The Relay limitations note supplies useful recovery and state-loss facts but does not need edits and remains evidence rather than a governed target.",
+          "evidence": [
+            {
+              "kind": "directory",
+              "path": ".",
+              "identity": "sha256:06104b7ba6b4867bd54a7bc08101ced905a8cf1a35a4118dff93884629241ecd"
+            },
+            {
+              "kind": "directory",
+              "path": "service/relay",
+              "identity": "sha256:b5255602a5cd0199e4a4bc2316d84222af106d4a8500d16e7cdfeab98108c40c"
+            }
+          ],
+          "candidates": [
+            {
+              "path": "fixtures/sample",
+              "decision": "exclude",
+              "reason": "Its manifest explicitly identifies fixture-relay, assigns ownership to test-suite, and marks its start command do-not-run, so it is test data rather than an operated service.",
+              "evidence": [
+                {
+                  "kind": "file",
+                  "path": "fixtures/sample/service.json",
+                  "identity": "sha256:1e617a07adf870b2d646e799fd7d0bc69f879924ad92a3c8e4e3b1959f27b9d5"
+                }
+              ]
+            },
+            {
+              "path": "generated/catalog",
+              "decision": "exclude",
+              "reason": "Its manifest identifies a generated inventory entry owned by the catalog generator and explicitly says its start value is not an entry point.",
+              "evidence": [
+                {
+                  "kind": "file",
+                  "path": "generated/catalog/service.json",
+                  "identity": "sha256:3700e56d84759ba028cd8b5c4f29bccc3d62d492b52f3c9da01fdcbe3ccb8b37"
+                }
+              ]
+            },
+            {
+              "path": "groups",
+              "decision": "exclude",
+              "reason": "The messaging-runtime document says this directory describes an organization and contains no independently operated service.",
+              "evidence": [
+                {
+                  "kind": "file",
+                  "path": "groups/messaging-runtime.md",
+                  "identity": "sha256:dfd291049f986e60c7423b0c2fefa4e97598dbacdfc1bd4dbd83a8969c225a2b"
+                }
+              ]
+            },
+            {
+              "path": "notes/relay-limitations.md",
+              "decision": "exclude",
+              "reason": "This existing note is useful evidence about in-memory state loss, recovery, and unavailable production access, but the discovery guidance allows such notes to remain outside governed scope when they need no edits.",
+              "evidence": [
+                {
+                  "kind": "file",
+                  "path": "notes/relay-limitations.md",
+                  "identity": "sha256:8ca0f55824c6df3d8725e4cb9c2bc30de8f16cd65d6047d9f19a5b8e37ac6803"
+                }
+              ]
+            },
+            {
+              "path": "service/relay/operating-status.json",
+              "decision": "include",
+              "reason": "Relay's manifest and executable entry point establish an operated service that requires adjacent structured startup, health, restart, and evidence status.",
+              "evidence": [
+                {
+                  "kind": "absence",
+                  "path": "service/relay/operating-status.json"
+                },
+                {
+                  "kind": "file",
+                  "path": "service/relay/server.py",
+                  "identity": "sha256:cf99d7318836640232bd408775893dfbba004209ad7ceba5d60e5984b137812a"
+                },
+                {
+                  "kind": "file",
+                  "path": "service/relay/service.json",
+                  "identity": "sha256:ed8369ebc10999b20a60f80a63213a12d7eb6098f0309f37c5e6faccb50c4fc9"
+                }
+              ]
+            },
+            {
+              "path": "service/relay/operations.md",
+              "decision": "include",
+              "reason": "Relay's manifest and executable entry point establish an operated service whose startup, health, recovery, and limitations need the required adjacent runbook.",
+              "evidence": [
+                {
+                  "kind": "absence",
+                  "path": "service/relay/operations.md"
+                },
+                {
+                  "kind": "file",
+                  "path": "service/relay/server.py",
+                  "identity": "sha256:cf99d7318836640232bd408775893dfbba004209ad7ceba5d60e5984b137812a"
+                },
+                {
+                  "kind": "file",
+                  "path": "service/relay/service.json",
+                  "identity": "sha256:ed8369ebc10999b20a60f80a63213a12d7eb6098f0309f37c5e6faccb50c4fc9"
+                }
+              ]
+            }
+          ],
+          "unresolved": []
+        }
+      ]
+    },
+    "absence": [
+      {
+        "kind": "absence",
+        "path": "service/relay/operating-status.json",
+        "identity": "sha256:9d363117d025d527c0d2e865a1bacc0d40d416841d449e9230e927db482b1335"
+      },
+      {
+        "kind": "absence",
+        "path": "service/relay/operations.md",
+        "identity": "sha256:0660abe24fbb36e1e8b54567d51db36d73aede27f3b45a50d78aa0cc1fca4b47"
+      }
+    ],
+    "namedObservation": {
+      "files": {
+        "fixtures/sample/service.json": {
+          "type": "file",
+          "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+          "executable": false
+        },
+        "generated/catalog/service.json": {
+          "type": "file",
+          "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+          "executable": false
+        },
+        "groups/messaging-runtime.md": {
+          "type": "file",
+          "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+          "executable": false
+        },
+        "notes/relay-limitations.md": {
+          "type": "file",
+          "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+          "executable": false
+        },
+        "service/relay/server.py": {
+          "type": "file",
+          "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+          "executable": false
+        },
+        "service/relay/service.json": {
+          "type": "file",
+          "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+          "executable": false
+        }
+      },
+      "inventories": {
+        ".": [
+          "fixtures",
+          "generated",
+          "groups",
+          "notes",
+          "service"
+        ],
+        "fixtures": [
+          "fixtures/sample"
+        ],
+        "fixtures/sample": [
+          "fixtures/sample/service.json"
+        ],
+        "generated": [
+          "generated/catalog"
+        ],
+        "generated/catalog": [
+          "generated/catalog/service.json"
+        ],
+        "groups": [
+          "groups/messaging-runtime.md"
+        ],
+        "notes": [
+          "notes/relay-limitations.md"
+        ],
+        "service": [
+          "service/relay"
+        ],
+        "service/relay": [
+          "service/relay/server.py",
+          "service/relay/service.json"
+        ]
+      },
+      "boundaries": {
+        "fixtures": {
+          "type": "directory",
+          "mode": 448
+        },
+        "fixtures/sample": {
+          "type": "directory",
+          "mode": 448
+        },
+        "generated": {
+          "type": "directory",
+          "mode": 448
+        },
+        "generated/catalog": {
+          "type": "directory",
+          "mode": 448
+        },
+        "groups": {
+          "type": "directory",
+          "mode": 448
+        },
+        "notes": {
+          "type": "directory",
+          "mode": 448
+        },
+        "service": {
+          "type": "directory",
+          "mode": 448
+        },
+        "service/relay": {
+          "type": "directory",
+          "mode": 448
+        }
+      },
+      "targets": {
+        "service/relay/operating-status.json": {
+          "type": "missing"
+        },
+        "service/relay/operations.md": {
+          "type": "missing"
+        }
+      },
+      "settings": {
+        "core.ignorecase": null,
+        "core.precomposeunicode": null,
+        "core.filemode": "true",
+        "core.symlinks": null,
+        "core.sparsecheckout": null,
+        "core.sparsecheckoutcone": null
+      },
+      "ignores": {
+        "global": {
+          "location": "/home/agents/.config/git/ignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "info": {
+          "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+          "state": {
+            "type": "file",
+            "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+            "executable": false
+          }
+        },
+        ".gitignore": {
+          "location": ".gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "fixtures/.gitignore": {
+          "location": "fixtures/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "fixtures/sample/.gitignore": {
+          "location": "fixtures/sample/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "generated/.gitignore": {
+          "location": "generated/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "generated/catalog/.gitignore": {
+          "location": "generated/catalog/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "groups/.gitignore": {
+          "location": "groups/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "notes/.gitignore": {
+          "location": "notes/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "service/.gitignore": {
+          "location": "service/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "service/relay/.gitignore": {
+          "location": "service/relay/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        }
+      },
+      "limits": {
+        "paths": 20000,
+        "fileBytes": 8388608,
+        "totalBytes": 67108864,
+        "depth": 128
+      },
+      "evidence": [
+        {
+          "kind": "directory",
+          "path": ".",
+          "identity": "sha256:06104b7ba6b4867bd54a7bc08101ced905a8cf1a35a4118dff93884629241ecd"
+        },
+        {
+          "kind": "directory",
+          "path": "fixtures",
+          "identity": "sha256:16eaca2095ea78b33d9fada5623d62453ec844592214ce70d3a28b8f097ba30b"
+        },
+        {
+          "kind": "directory",
+          "path": "fixtures/sample",
+          "identity": "sha256:78730d4cd48e4b2382b150aa87840cbe7be71c3d4aada2f5129f4031b90ae94c"
+        },
+        {
+          "kind": "directory",
+          "path": "generated",
+          "identity": "sha256:c0a05ce11ff000efc1f4fc5899798253e6bf3d020f6d5874f8b63e4af34f42e0"
+        },
+        {
+          "kind": "directory",
+          "path": "generated/catalog",
+          "identity": "sha256:da7d26a9debac2ff22c00dd414a8acc568940365ff8fc77d32e79c320e3c3326"
+        },
+        {
+          "kind": "directory",
+          "path": "groups",
+          "identity": "sha256:0d6d5ad35ee91f716508c55cd9b38cd694c12880a4848e14bbf896d5b56c610a"
+        },
+        {
+          "kind": "directory",
+          "path": "notes",
+          "identity": "sha256:ce49ed9b3d410315041f3b5fb8e52a977cfd0841c65c2e7d59f51cd99d8fac02"
+        },
+        {
+          "kind": "directory",
+          "path": "service",
+          "identity": "sha256:e2a2b16d4534d915d18bfa2b924095a998eb07e6a20ae4141943e13208bdde44"
+        },
+        {
+          "kind": "directory",
+          "path": "service/relay",
+          "identity": "sha256:b5255602a5cd0199e4a4bc2316d84222af106d4a8500d16e7cdfeab98108c40c"
+        },
+        {
+          "kind": "file",
+          "path": "fixtures/sample/service.json",
+          "identity": "sha256:1e617a07adf870b2d646e799fd7d0bc69f879924ad92a3c8e4e3b1959f27b9d5"
+        },
+        {
+          "kind": "file",
+          "path": "generated/catalog/service.json",
+          "identity": "sha256:3700e56d84759ba028cd8b5c4f29bccc3d62d492b52f3c9da01fdcbe3ccb8b37"
+        },
+        {
+          "kind": "file",
+          "path": "groups/messaging-runtime.md",
+          "identity": "sha256:dfd291049f986e60c7423b0c2fefa4e97598dbacdfc1bd4dbd83a8969c225a2b"
+        },
+        {
+          "kind": "file",
+          "path": "notes/relay-limitations.md",
+          "identity": "sha256:8ca0f55824c6df3d8725e4cb9c2bc30de8f16cd65d6047d9f19a5b8e37ac6803"
+        },
+        {
+          "kind": "file",
+          "path": "service/relay/server.py",
+          "identity": "sha256:cf99d7318836640232bd408775893dfbba004209ad7ceba5d60e5984b137812a"
+        },
+        {
+          "kind": "file",
+          "path": "service/relay/service.json",
+          "identity": "sha256:ed8369ebc10999b20a60f80a63213a12d7eb6098f0309f37c5e6faccb50c4fc9"
+        }
+      ]
+    },
+    "declarations": [
+      {
+        "id": "service-readiness",
+        "source": "guidance/service-discovery.md",
+        "sha256": "7e9aed6423d15af3d550d36024024f1723cbd1b7411c6245c7127c70d453606c",
+        "executable": false,
+        "encoding": "utf8",
+        "content": "# Service readiness discovery\n\nIdentify independently operated services from positive runtime and ownership\nevidence. Useful evidence includes a service manifest, executable entry point,\nhealth endpoint, and named owner. A directory name or familiar manifest name by\nitself does not establish that a service is operated.\n\nFor each operated service, include an individual operations runbook and its\nadjacent `operating-status.json`. Either file can be absent before adoption; use\nthe service's manifest, source, or nonempty directory inventory as positive\nmembership evidence. Existing project notes can support the decision without\nbecoming governed targets when they do not need edits.\n\nExplain every inclusion and exclusion. Treat fixtures, generated inventories,\narchived examples, and directories that only group teams or services as\ncandidates requiring evidence rather than operated services. Leave uncertain\nownership, deployment, or runtime status as an unresolved question. An explained\nempty target list is valid when the evidence shows that the repository operates\nno service; its readiness operations still run over that empty scope.\n"
+      }
+    ],
+    "evidence": [
+      {
+        "kind": "directory",
+        "path": ".",
+        "identity": "sha256:06104b7ba6b4867bd54a7bc08101ced905a8cf1a35a4118dff93884629241ecd"
+      },
+      {
+        "kind": "directory",
+        "path": "fixtures",
+        "identity": "sha256:16eaca2095ea78b33d9fada5623d62453ec844592214ce70d3a28b8f097ba30b"
+      },
+      {
+        "kind": "directory",
+        "path": "fixtures/sample",
+        "identity": "sha256:78730d4cd48e4b2382b150aa87840cbe7be71c3d4aada2f5129f4031b90ae94c"
+      },
+      {
+        "kind": "directory",
+        "path": "generated",
+        "identity": "sha256:c0a05ce11ff000efc1f4fc5899798253e6bf3d020f6d5874f8b63e4af34f42e0"
+      },
+      {
+        "kind": "directory",
+        "path": "generated/catalog",
+        "identity": "sha256:da7d26a9debac2ff22c00dd414a8acc568940365ff8fc77d32e79c320e3c3326"
+      },
+      {
+        "kind": "directory",
+        "path": "groups",
+        "identity": "sha256:0d6d5ad35ee91f716508c55cd9b38cd694c12880a4848e14bbf896d5b56c610a"
+      },
+      {
+        "kind": "directory",
+        "path": "notes",
+        "identity": "sha256:ce49ed9b3d410315041f3b5fb8e52a977cfd0841c65c2e7d59f51cd99d8fac02"
+      },
+      {
+        "kind": "directory",
+        "path": "service",
+        "identity": "sha256:e2a2b16d4534d915d18bfa2b924095a998eb07e6a20ae4141943e13208bdde44"
+      },
+      {
+        "kind": "directory",
+        "path": "service/relay",
+        "identity": "sha256:b5255602a5cd0199e4a4bc2316d84222af106d4a8500d16e7cdfeab98108c40c"
+      },
+      {
+        "kind": "file",
+        "path": "fixtures/sample/service.json",
+        "identity": "sha256:1e617a07adf870b2d646e799fd7d0bc69f879924ad92a3c8e4e3b1959f27b9d5"
+      },
+      {
+        "kind": "file",
+        "path": "generated/catalog/service.json",
+        "identity": "sha256:3700e56d84759ba028cd8b5c4f29bccc3d62d492b52f3c9da01fdcbe3ccb8b37"
+      },
+      {
+        "kind": "file",
+        "path": "groups/messaging-runtime.md",
+        "identity": "sha256:dfd291049f986e60c7423b0c2fefa4e97598dbacdfc1bd4dbd83a8969c225a2b"
+      },
+      {
+        "kind": "file",
+        "path": "notes/relay-limitations.md",
+        "identity": "sha256:8ca0f55824c6df3d8725e4cb9c2bc30de8f16cd65d6047d9f19a5b8e37ac6803"
+      },
+      {
+        "kind": "file",
+        "path": "service/relay/server.py",
+        "identity": "sha256:cf99d7318836640232bd408775893dfbba004209ad7ceba5d60e5984b137812a"
+      },
+      {
+        "kind": "file",
+        "path": "service/relay/service.json",
+        "identity": "sha256:ed8369ebc10999b20a60f80a63213a12d7eb6098f0309f37c5e6faccb50c4fc9"
+      }
+    ],
+    "observation": {
+      "files": {
+        "fixtures/sample/service.json": {
+          "type": "file",
+          "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+          "executable": false
+        },
+        "generated/catalog/service.json": {
+          "type": "file",
+          "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+          "executable": false
+        },
+        "groups/messaging-runtime.md": {
+          "type": "file",
+          "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+          "executable": false
+        },
+        "notes/relay-limitations.md": {
+          "type": "file",
+          "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+          "executable": false
+        },
+        "service/relay/server.py": {
+          "type": "file",
+          "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+          "executable": false
+        },
+        "service/relay/service.json": {
+          "type": "file",
+          "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+          "executable": false
+        }
+      },
+      "inventories": {
+        ".": [
+          "fixtures",
+          "generated",
+          "groups",
+          "notes",
+          "service"
+        ],
+        "fixtures": [
+          "fixtures/sample"
+        ],
+        "fixtures/sample": [
+          "fixtures/sample/service.json"
+        ],
+        "generated": [
+          "generated/catalog"
+        ],
+        "generated/catalog": [
+          "generated/catalog/service.json"
+        ],
+        "groups": [
+          "groups/messaging-runtime.md"
+        ],
+        "notes": [
+          "notes/relay-limitations.md"
+        ],
+        "service": [
+          "service/relay"
+        ],
+        "service/relay": [
+          "service/relay/server.py",
+          "service/relay/service.json"
+        ]
+      },
+      "boundaries": {
+        "fixtures": {
+          "type": "directory",
+          "mode": 448
+        },
+        "fixtures/sample": {
+          "type": "directory",
+          "mode": 448
+        },
+        "generated": {
+          "type": "directory",
+          "mode": 448
+        },
+        "generated/catalog": {
+          "type": "directory",
+          "mode": 448
+        },
+        "groups": {
+          "type": "directory",
+          "mode": 448
+        },
+        "notes": {
+          "type": "directory",
+          "mode": 448
+        },
+        "service": {
+          "type": "directory",
+          "mode": 448
+        },
+        "service/relay": {
+          "type": "directory",
+          "mode": 448
+        }
+      },
+      "targets": {},
+      "settings": {
+        "core.ignorecase": null,
+        "core.precomposeunicode": null,
+        "core.filemode": "true",
+        "core.symlinks": null,
+        "core.sparsecheckout": null,
+        "core.sparsecheckoutcone": null
+      },
+      "ignores": {
+        "global": {
+          "location": "/home/agents/.config/git/ignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "info": {
+          "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+          "state": {
+            "type": "file",
+            "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+            "executable": false
+          }
+        },
+        ".gitignore": {
+          "location": ".gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "fixtures/.gitignore": {
+          "location": "fixtures/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "fixtures/sample/.gitignore": {
+          "location": "fixtures/sample/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "generated/.gitignore": {
+          "location": "generated/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "generated/catalog/.gitignore": {
+          "location": "generated/catalog/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "groups/.gitignore": {
+          "location": "groups/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "notes/.gitignore": {
+          "location": "notes/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "service/.gitignore": {
+          "location": "service/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        },
+        "service/relay/.gitignore": {
+          "location": "service/relay/.gitignore",
+          "state": {
+            "type": "missing"
+          }
+        }
+      },
+      "limits": {
+        "paths": 20000,
+        "fileBytes": 8388608,
+        "totalBytes": 67108864,
+        "depth": 128
+      },
+      "evidence": [
+        {
+          "kind": "directory",
+          "path": ".",
+          "identity": "sha256:06104b7ba6b4867bd54a7bc08101ced905a8cf1a35a4118dff93884629241ecd"
+        },
+        {
+          "kind": "directory",
+          "path": "fixtures",
+          "identity": "sha256:16eaca2095ea78b33d9fada5623d62453ec844592214ce70d3a28b8f097ba30b"
+        },
+        {
+          "kind": "directory",
+          "path": "fixtures/sample",
+          "identity": "sha256:78730d4cd48e4b2382b150aa87840cbe7be71c3d4aada2f5129f4031b90ae94c"
+        },
+        {
+          "kind": "directory",
+          "path": "generated",
+          "identity": "sha256:c0a05ce11ff000efc1f4fc5899798253e6bf3d020f6d5874f8b63e4af34f42e0"
+        },
+        {
+          "kind": "directory",
+          "path": "generated/catalog",
+          "identity": "sha256:da7d26a9debac2ff22c00dd414a8acc568940365ff8fc77d32e79c320e3c3326"
+        },
+        {
+          "kind": "directory",
+          "path": "groups",
+          "identity": "sha256:0d6d5ad35ee91f716508c55cd9b38cd694c12880a4848e14bbf896d5b56c610a"
+        },
+        {
+          "kind": "directory",
+          "path": "notes",
+          "identity": "sha256:ce49ed9b3d410315041f3b5fb8e52a977cfd0841c65c2e7d59f51cd99d8fac02"
+        },
+        {
+          "kind": "directory",
+          "path": "service",
+          "identity": "sha256:e2a2b16d4534d915d18bfa2b924095a998eb07e6a20ae4141943e13208bdde44"
+        },
+        {
+          "kind": "directory",
+          "path": "service/relay",
+          "identity": "sha256:b5255602a5cd0199e4a4bc2316d84222af106d4a8500d16e7cdfeab98108c40c"
+        },
+        {
+          "kind": "file",
+          "path": "fixtures/sample/service.json",
+          "identity": "sha256:1e617a07adf870b2d646e799fd7d0bc69f879924ad92a3c8e4e3b1959f27b9d5"
+        },
+        {
+          "kind": "file",
+          "path": "generated/catalog/service.json",
+          "identity": "sha256:3700e56d84759ba028cd8b5c4f29bccc3d62d492b52f3c9da01fdcbe3ccb8b37"
+        },
+        {
+          "kind": "file",
+          "path": "groups/messaging-runtime.md",
+          "identity": "sha256:dfd291049f986e60c7423b0c2fefa4e97598dbacdfc1bd4dbd83a8969c225a2b"
+        },
+        {
+          "kind": "file",
+          "path": "notes/relay-limitations.md",
+          "identity": "sha256:8ca0f55824c6df3d8725e4cb9c2bc30de8f16cd65d6047d9f19a5b8e37ac6803"
+        },
+        {
+          "kind": "file",
+          "path": "service/relay/server.py",
+          "identity": "sha256:cf99d7318836640232bd408775893dfbba004209ad7ceba5d60e5984b137812a"
+        },
+        {
+          "kind": "file",
+          "path": "service/relay/service.json",
+          "identity": "sha256:ed8369ebc10999b20a60f80a63213a12d7eb6098f0309f37c5e6faccb50c4fc9"
+        }
+      ]
+    }
+  },
+  "sourceResolved": {
+    "description": "Operated services with project-specific readiness evidence",
+    "declarations": [
+      {
+        "id": "editor-settings",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".editorconfig",
+        "exact": "files/editorconfig"
+      },
+      {
+        "id": "service-readiness",
+        "checks": [
+          {
+            "id": "verify-service-evidence",
+            "run": {
+              "executable": "node",
+              "script": "operations/service-evidence.mjs",
+              "resources": [
+                "operations/required-sections.json"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0"
+            },
+            "timeout-seconds": 30
+          }
+        ],
+        "fixes": [
+          {
+            "id": "initialize-operating-status",
+            "run": {
+              "executable": "node",
+              "script": "operations/service-evidence.mjs",
+              "resources": [
+                "operations/required-sections.json"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0"
+            },
+            "timeout-seconds": 30
+          }
+        ],
+        "kind": "repository",
+        "guidance": "guidance/service-readiness.md",
+        "discovery": "guidance/service-discovery.md"
+      }
+    ]
+  },
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.2.0"
+    },
+    "standards": {
+      "repository": "https://github.com/wayfinder/standards",
+      "version": "v1.0.0",
+      "commit": "243ffb89e370f971a86c5ca599d4c90678ffda5f"
+    },
+    "profile": "service"
+  },
+  "source": {
+    "format": "repo-standards/v2",
+    "name": "wayfinder-service-readiness",
+    "description": "Discover operated services and record evidence for startup, health, and recovery",
+    "requires": {
+      "repo-standards": ">=1.2.0 <2.0.0"
+    }
+  },
+  "resolved": {
+    "description": "Operated services with project-specific readiness evidence",
+    "declarations": [
+      {
+        "id": "editor-settings",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".editorconfig",
+        "exact": "files/editorconfig"
+      },
+      {
+        "id": "service-readiness",
+        "checks": [
+          {
+            "id": "verify-service-evidence",
+            "run": {
+              "executable": "node",
+              "script": "operations/service-evidence.mjs",
+              "resources": [
+                "operations/required-sections.json"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0"
+            },
+            "timeout-seconds": 30
+          }
+        ],
+        "fixes": [
+          {
+            "id": "initialize-operating-status",
+            "run": {
+              "executable": "node",
+              "script": "operations/service-evidence.mjs",
+              "resources": [
+                "operations/required-sections.json"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0"
+            },
+            "timeout-seconds": 30
+          }
+        ],
+        "kind": "repository",
+        "guidance": "guidance/service-readiness.md",
+        "targets": {
+          "paths": [
+            "service/relay/operating-status.json",
+            "service/relay/operations.md"
+          ],
+          "directories": []
+        }
+      }
+    ]
+  },
+  "exact": [
+    {
+      "id": "editor-settings",
+      "target": ".editorconfig",
+      "action": "create",
+      "files": [
+        {
+          "path": ".editorconfig",
+          "before": {
+            "type": "missing"
+          },
+          "after": {
+            "type": "file",
+            "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "root = true\n\n[*]\ncharset = utf-8\nend_of_line = lf\ninsert_final_newline = true\n"
+          }
+        }
+      ]
+    }
+  ],
+  "guidance": [
+    {
+      "id": "service-readiness",
+      "targets": [
+        "service/relay/operating-status.json",
+        "service/relay/operations.md"
+      ],
+      "source": "guidance/service-readiness.md",
+      "sha256": "a9d8aff083016b608361063fe90110da8cba43f591807c6a26bcd7e6f709190a",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Service readiness guidance\n\nGive each confirmed service a concise operations runbook with these sections:\nStartup, Health, Recovery, and Known limitations. Derive commands and behavior\nfrom the actual project. When practical, start the service locally and probe its\ndocumented loopback health endpoint. Record what was observed separately from\nwhat remains unverified.\n\nPreserve useful project facts and warnings. Explain restart behavior, state that\ncan be lost, and a safe recovery action. Do not claim that deployment, external\npermissions, production health, or rollback succeeded unless they were actually\nobserved. Update the adjacent `operating-status.json` with `observed` or\n`unverified` for startup, health, and restart, plus a nonempty evidence list.\n\nDo not rewrite service code, manifests, fixtures, generated output, or\norganizational indexes. Those files can provide discovery or assessment evidence\nwithout becoming contextual targets. The exact root `.editorconfig` remains\nsource-owned and outside this declaration.\n"
+    }
+  ],
+  "operations": [
+    {
+      "declaration": "service-readiness",
+      "phase": "fixes",
+      "id": "initialize-operating-status",
+      "run": {
+        "executable": "node",
+        "script": "operations/service-evidence.mjs",
+        "resources": [
+          "operations/required-sections.json"
+        ],
+        "arguments": []
+      },
+      "prerequisite": {
+        "version-arguments": [
+          "--version"
+        ],
+        "version": ">=24.0.0 <25.0.0",
+        "status": "not-checked"
+      },
+      "timeout-seconds": 30,
+      "script": {
+        "sha256": "44a70041755787c76503f04d91728645f50795b2d3af44472773da4f68352a78",
+        "executable": false,
+        "encoding": "utf8",
+        "content": "import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';\nimport { dirname } from 'node:path';\n\nconst input = JSON.parse(readFileSync(0, 'utf8'));\nconst requiredSections = JSON.parse(readFileSync(\n  new URL('./required-sections.json', import.meta.url), 'utf8'));\nconst hasBasename = (path, basename) => path === basename || path.endsWith(`/${basename}`);\nconst runbooks = input.allowedTargets.paths.filter(path => hasBasename(path, 'operations.md'));\nconst statuses = input.allowedTargets.paths.filter(path => hasBasename(path, 'operating-status.json'));\n\nif (input.operation.phase === 'fixes') {\n  const changed = [];\n  for (const path of statuses) {\n    if (existsSync(path)) continue;\n    mkdirSync(dirname(path), { recursive: true });\n    writeFileSync(path, JSON.stringify({\n      startup: 'unverified',\n      health: 'unverified',\n      restart: 'unverified',\n      evidence: ['Generated placeholder; replace with observations during contextual work.'],\n    }, null, 2) + '\\n');\n    changed.push(path);\n  }\n  console.log(JSON.stringify({\n    format: 'repo-standards/result/v1',\n    status: changed.length > 0 ? 'changed' : 'unchanged',\n    message: changed.length > 0\n      ? `Initialized service status: ${changed.join(', ')}`\n      : 'Every confirmed service status already exists.',\n  }));\n  process.exit(0);\n}\n\nconst problems = [];\nfor (const path of runbooks) {\n  if (!existsSync(path)) {\n    problems.push(`${path} is missing`);\n    continue;\n  }\n  const content = readFileSync(path, 'utf8');\n  for (const section of requiredSections) {\n    if (!new RegExp(`^##\\\\s+${section}\\\\s*$`, 'mi').test(content)) {\n      problems.push(`${path} lacks ${section}`);\n    }\n  }\n}\nfor (const path of statuses) {\n  if (!existsSync(path)) {\n    problems.push(`${path} is missing`);\n    continue;\n  }\n  try {\n    const status = JSON.parse(readFileSync(path, 'utf8'));\n    for (const field of ['startup', 'health', 'restart']) {\n      if (!['observed', 'unverified'].includes(status[field])) {\n        problems.push(`${path} has invalid ${field} evidence`);\n      }\n    }\n    if (!Array.isArray(status.evidence) || status.evidence.length === 0 ||\n        status.evidence.some(value => typeof value !== 'string' || value.trim() === '')) {\n      problems.push(`${path} needs nonempty evidence statements`);\n    }\n  } catch {\n    problems.push(`${path} is not valid JSON`);\n  }\n}\n\nconsole.log(JSON.stringify({\n  format: 'repo-standards/result/v1',\n  status: problems.length > 0 ? 'failed' : 'passed',\n  message: problems.length > 0\n    ? problems.join('; ')\n    : runbooks.length === 0 && statuses.length === 0\n      ? 'No operated services are in the confirmed scope.'\n      : 'Confirmed service runbooks and status evidence are structurally complete.',\n}));\n"
+      },
+      "resources": [
+        {
+          "path": "operations/required-sections.json",
+          "content": {
+            "type": "file",
+            "sha256": "9e766a91cadc8dbff271f315dbd806e4f38bb989208a4c01b01cffc57916b899",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "[\n  \"Startup\",\n  \"Health\",\n  \"Recovery\",\n  \"Known limitations\"\n]\n"
+          }
+        }
+      ]
+    },
+    {
+      "declaration": "service-readiness",
+      "phase": "checks",
+      "id": "verify-service-evidence",
+      "run": {
+        "executable": "node",
+        "script": "operations/service-evidence.mjs",
+        "resources": [
+          "operations/required-sections.json"
+        ],
+        "arguments": []
+      },
+      "prerequisite": {
+        "version-arguments": [
+          "--version"
+        ],
+        "version": ">=24.0.0 <25.0.0",
+        "status": "not-checked"
+      },
+      "timeout-seconds": 30,
+      "script": {
+        "sha256": "44a70041755787c76503f04d91728645f50795b2d3af44472773da4f68352a78",
+        "executable": false,
+        "encoding": "utf8",
+        "content": "import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';\nimport { dirname } from 'node:path';\n\nconst input = JSON.parse(readFileSync(0, 'utf8'));\nconst requiredSections = JSON.parse(readFileSync(\n  new URL('./required-sections.json', import.meta.url), 'utf8'));\nconst hasBasename = (path, basename) => path === basename || path.endsWith(`/${basename}`);\nconst runbooks = input.allowedTargets.paths.filter(path => hasBasename(path, 'operations.md'));\nconst statuses = input.allowedTargets.paths.filter(path => hasBasename(path, 'operating-status.json'));\n\nif (input.operation.phase === 'fixes') {\n  const changed = [];\n  for (const path of statuses) {\n    if (existsSync(path)) continue;\n    mkdirSync(dirname(path), { recursive: true });\n    writeFileSync(path, JSON.stringify({\n      startup: 'unverified',\n      health: 'unverified',\n      restart: 'unverified',\n      evidence: ['Generated placeholder; replace with observations during contextual work.'],\n    }, null, 2) + '\\n');\n    changed.push(path);\n  }\n  console.log(JSON.stringify({\n    format: 'repo-standards/result/v1',\n    status: changed.length > 0 ? 'changed' : 'unchanged',\n    message: changed.length > 0\n      ? `Initialized service status: ${changed.join(', ')}`\n      : 'Every confirmed service status already exists.',\n  }));\n  process.exit(0);\n}\n\nconst problems = [];\nfor (const path of runbooks) {\n  if (!existsSync(path)) {\n    problems.push(`${path} is missing`);\n    continue;\n  }\n  const content = readFileSync(path, 'utf8');\n  for (const section of requiredSections) {\n    if (!new RegExp(`^##\\\\s+${section}\\\\s*$`, 'mi').test(content)) {\n      problems.push(`${path} lacks ${section}`);\n    }\n  }\n}\nfor (const path of statuses) {\n  if (!existsSync(path)) {\n    problems.push(`${path} is missing`);\n    continue;\n  }\n  try {\n    const status = JSON.parse(readFileSync(path, 'utf8'));\n    for (const field of ['startup', 'health', 'restart']) {\n      if (!['observed', 'unverified'].includes(status[field])) {\n        problems.push(`${path} has invalid ${field} evidence`);\n      }\n    }\n    if (!Array.isArray(status.evidence) || status.evidence.length === 0 ||\n        status.evidence.some(value => typeof value !== 'string' || value.trim() === '')) {\n      problems.push(`${path} needs nonempty evidence statements`);\n    }\n  } catch {\n    problems.push(`${path} is not valid JSON`);\n  }\n}\n\nconsole.log(JSON.stringify({\n  format: 'repo-standards/result/v1',\n  status: problems.length > 0 ? 'failed' : 'passed',\n  message: problems.length > 0\n    ? problems.join('; ')\n    : runbooks.length === 0 && statuses.length === 0\n      ? 'No operated services are in the confirmed scope.'\n      : 'Confirmed service runbooks and status evidence are structurally complete.',\n}));\n"
+      },
+      "resources": [
+        {
+          "path": "operations/required-sections.json",
+          "content": {
+            "type": "file",
+            "sha256": "9e766a91cadc8dbff271f315dbd806e4f38bb989208a4c01b01cffc57916b899",
+            "executable": false,
+            "encoding": "utf8",
+            "content": "[\n  \"Startup\",\n  \"Health\",\n  \"Recovery\",\n  \"Known limitations\"\n]\n"
+          }
+        }
+      ]
+    }
+  ],
+  "inputs": {
+    "files/editorconfig": {
+      "type": "file",
+      "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "root = true\n\n[*]\ncharset = utf-8\nend_of_line = lf\ninsert_final_newline = true\n"
+    },
+    "guidance/service-readiness.md": {
+      "type": "file",
+      "sha256": "a9d8aff083016b608361063fe90110da8cba43f591807c6a26bcd7e6f709190a",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Service readiness guidance\n\nGive each confirmed service a concise operations runbook with these sections:\nStartup, Health, Recovery, and Known limitations. Derive commands and behavior\nfrom the actual project. When practical, start the service locally and probe its\ndocumented loopback health endpoint. Record what was observed separately from\nwhat remains unverified.\n\nPreserve useful project facts and warnings. Explain restart behavior, state that\ncan be lost, and a safe recovery action. Do not claim that deployment, external\npermissions, production health, or rollback succeeded unless they were actually\nobserved. Update the adjacent `operating-status.json` with `observed` or\n`unverified` for startup, health, and restart, plus a nonempty evidence list.\n\nDo not rewrite service code, manifests, fixtures, generated output, or\norganizational indexes. Those files can provide discovery or assessment evidence\nwithout becoming contextual targets. The exact root `.editorconfig` remains\nsource-owned and outside this declaration.\n"
+    },
+    "guidance/service-discovery.md": {
+      "type": "file",
+      "sha256": "7e9aed6423d15af3d550d36024024f1723cbd1b7411c6245c7127c70d453606c",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Service readiness discovery\n\nIdentify independently operated services from positive runtime and ownership\nevidence. Useful evidence includes a service manifest, executable entry point,\nhealth endpoint, and named owner. A directory name or familiar manifest name by\nitself does not establish that a service is operated.\n\nFor each operated service, include an individual operations runbook and its\nadjacent `operating-status.json`. Either file can be absent before adoption; use\nthe service's manifest, source, or nonempty directory inventory as positive\nmembership evidence. Existing project notes can support the decision without\nbecoming governed targets when they do not need edits.\n\nExplain every inclusion and exclusion. Treat fixtures, generated inventories,\narchived examples, and directories that only group teams or services as\ncandidates requiring evidence rather than operated services. Leave uncertain\nownership, deployment, or runtime status as an unresolved question. An explained\nempty target list is valid when the evidence shows that the repository operates\nno service; its readiness operations still run over that empty scope.\n"
+    },
+    "operations/service-evidence.mjs": {
+      "type": "file",
+      "sha256": "44a70041755787c76503f04d91728645f50795b2d3af44472773da4f68352a78",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';\nimport { dirname } from 'node:path';\n\nconst input = JSON.parse(readFileSync(0, 'utf8'));\nconst requiredSections = JSON.parse(readFileSync(\n  new URL('./required-sections.json', import.meta.url), 'utf8'));\nconst hasBasename = (path, basename) => path === basename || path.endsWith(`/${basename}`);\nconst runbooks = input.allowedTargets.paths.filter(path => hasBasename(path, 'operations.md'));\nconst statuses = input.allowedTargets.paths.filter(path => hasBasename(path, 'operating-status.json'));\n\nif (input.operation.phase === 'fixes') {\n  const changed = [];\n  for (const path of statuses) {\n    if (existsSync(path)) continue;\n    mkdirSync(dirname(path), { recursive: true });\n    writeFileSync(path, JSON.stringify({\n      startup: 'unverified',\n      health: 'unverified',\n      restart: 'unverified',\n      evidence: ['Generated placeholder; replace with observations during contextual work.'],\n    }, null, 2) + '\\n');\n    changed.push(path);\n  }\n  console.log(JSON.stringify({\n    format: 'repo-standards/result/v1',\n    status: changed.length > 0 ? 'changed' : 'unchanged',\n    message: changed.length > 0\n      ? `Initialized service status: ${changed.join(', ')}`\n      : 'Every confirmed service status already exists.',\n  }));\n  process.exit(0);\n}\n\nconst problems = [];\nfor (const path of runbooks) {\n  if (!existsSync(path)) {\n    problems.push(`${path} is missing`);\n    continue;\n  }\n  const content = readFileSync(path, 'utf8');\n  for (const section of requiredSections) {\n    if (!new RegExp(`^##\\\\s+${section}\\\\s*$`, 'mi').test(content)) {\n      problems.push(`${path} lacks ${section}`);\n    }\n  }\n}\nfor (const path of statuses) {\n  if (!existsSync(path)) {\n    problems.push(`${path} is missing`);\n    continue;\n  }\n  try {\n    const status = JSON.parse(readFileSync(path, 'utf8'));\n    for (const field of ['startup', 'health', 'restart']) {\n      if (!['observed', 'unverified'].includes(status[field])) {\n        problems.push(`${path} has invalid ${field} evidence`);\n      }\n    }\n    if (!Array.isArray(status.evidence) || status.evidence.length === 0 ||\n        status.evidence.some(value => typeof value !== 'string' || value.trim() === '')) {\n      problems.push(`${path} needs nonempty evidence statements`);\n    }\n  } catch {\n    problems.push(`${path} is not valid JSON`);\n  }\n}\n\nconsole.log(JSON.stringify({\n  format: 'repo-standards/result/v1',\n  status: problems.length > 0 ? 'failed' : 'passed',\n  message: problems.length > 0\n    ? problems.join('; ')\n    : runbooks.length === 0 && statuses.length === 0\n      ? 'No operated services are in the confirmed scope.'\n      : 'Confirmed service runbooks and status evidence are structurally complete.',\n}));\n"
+    },
+    "operations/required-sections.json": {
+      "type": "file",
+      "sha256": "9e766a91cadc8dbff271f315dbd806e4f38bb989208a4c01b01cffc57916b899",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "[\n  \"Startup\",\n  \"Health\",\n  \"Recovery\",\n  \"Known limitations\"\n]\n"
+    },
+    "LICENSE": {
+      "type": "file",
+      "sha256": "c32ba329d87e3e38909de90e57891324422034f1b20eefdf46df2602e3bcf7d2",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "MIT License\n\nCopyright (c) 2026 Wayfinder standards authors\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+    }
+  },
+  "manifest": "format: repo-standards/v2\nname: wayfinder-service-readiness\ndescription: Discover operated services and record evidence for startup, health,\n  and recovery\nrequires:\n  repo-standards: \">=1.2.0 <2.0.0\"\ndefaults:\n  declarations: {}\nprofiles:\n  service:\n    description: Operated services with project-specific readiness evidence\n    declarations:\n      editor-settings:\n        checks: []\n        fixes: []\n        kind: file\n        target: .editorconfig\n        exact: files/editorconfig\n      service-readiness:\n        checks:\n          - id: verify-service-evidence\n            run:\n              executable: node\n              script: operations/service-evidence.mjs\n              resources:\n                - operations/required-sections.json\n              arguments: []\n            prerequisite:\n              version-arguments:\n                - --version\n              version: \">=24.0.0 <25.0.0\"\n            timeout-seconds: 30\n        fixes:\n          - id: initialize-operating-status\n            run:\n              executable: node\n              script: operations/service-evidence.mjs\n              resources:\n                - operations/required-sections.json\n              arguments: []\n            prerequisite:\n              version-arguments:\n                - --version\n              version: \">=24.0.0 <25.0.0\"\n            timeout-seconds: 30\n        kind: repository\n        guidance: guidance/service-readiness.md\n        discovery: guidance/service-discovery.md\n",
+  "project": {
+    "root": "/tmp/repo-standards-source-QeeNNK",
+    "head": "bf36690fdc91cc182bbd137e03a56e018434d119",
+    "status": "",
+    "index": "100644 c275d25cac6b3ad3e519b6cae932a0d17e0d05b0 0\tfixtures/sample/service.json\u0000100644 2fb0cf3f0e055319711ac53e231616fccfbf1fd6 0\tgenerated/catalog/service.json\u0000100644 a3246af941535e1b6982b599fa6bfa203f5f9c66 0\tgroups/messaging-runtime.md\u0000100644 f56ee196846230616abeac9944866727815c037b 0\tnotes/relay-limitations.md\u0000100644 688b7986c97e0236c307ba09f4eb2d694fdaf9f8 0\tservice/relay/server.py\u0000100644 2a0249d33220a42e674337c60024eff3dd00ca9b 0\tservice/relay/service.json\u0000",
+    "hidden": [],
+    "affected": {
+      ".editorconfig": {
+        "type": "missing"
+      },
+      "service/relay/operating-status.json": {
+        "type": "missing"
+      },
+      "service/relay/operations.md": {
+        "type": "missing"
+      }
+    },
+    "productState": {
+      "type": "missing"
+    },
+    "systemSkill": {
+      "type": "missing"
+    }
+  },
+  "start": {
+    "eligible": null,
+    "blockers": [],
+    "prerequisites": "not-checked"
+  },
+  "identity": "sha256:830a3c5b0dedbd108c4438060f3f8a0b7296726259cce44b5109d2bc7d030bbe"
+}

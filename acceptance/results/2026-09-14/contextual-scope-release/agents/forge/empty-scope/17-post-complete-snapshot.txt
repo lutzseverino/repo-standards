@@ -1,0 +1,40 @@
+d2869abea21d5a41a57b0c37537504a1577b6fb8
+? .agents/skills/adopt-standards/SKILL.md
+? .repo-standards/.gitignore
+? .repo-standards/inputs/metadata.json
+? .repo-standards/inputs/resolved.json
+? .repo-standards/inputs/scope-history.json
+? .repo-standards/inputs/source/files/catalog.json
+? .repo-standards/inputs/source/guidance/project-discovery.md
+? .repo-standards/inputs/source/guidance/project-documentation.md
+? .repo-standards/inputs/source/operations/markdown-ending.mjs
+? .repo-standards/inputs/standards.yaml
+? .repo-standards/lock.json
+? .repo-standards/runtime/package-lock.json
+? .repo-standards/runtime/package.json
+? .repo-standards/selection.yaml
+? .repo-standards/state.json
+? docs/catalog.json
+100644 5260cea697690dca132fa95ece2af81bf9420d21 0	build/generated/README.md
+100644 2f41eba743ecf7ce58e95b9d3cae12ce6816e6fd 0	fixtures/hammer/Cargo.toml
+100644 fa2cc93ff2c4c66e0829232daaaf5ea5be138f88 0	groups/developer-tools.md
+file 6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54 644 .agents/skills/adopt-standards/SKILL.md
+file c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d 644 .repo-standards/.gitignore
+file 98e78cfc97d60b3cadabaa1f92cc0520a2f82866fd5627cd525500d835cb6199 644 .repo-standards/inputs/metadata.json
+file 0eba12475404f18537a5c46a0b76441bf4d9eb8454c52976cbc32192c163a984 644 .repo-standards/inputs/resolved.json
+file 6d0e893f095029a59e2b25361ec45023cc4851f0fd56cd09e427a2d6ac7637be 644 .repo-standards/inputs/scope-history.json
+file 04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36 644 .repo-standards/inputs/source/files/catalog.json
+file 014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57 644 .repo-standards/inputs/source/guidance/project-discovery.md
+file f4d9ba3e46d6d5d9bbcb043d2fe4bf687a96f61f505ee30bbd2e04afbf2108a9 644 .repo-standards/inputs/source/guidance/project-documentation.md
+file cc333786362309d1e05db95acb7c634539ab5e99cbad96998c7172177009511d 644 .repo-standards/inputs/source/operations/markdown-ending.mjs
+file 1091a2f18725536d39b789da175134e613904f0d8dc61ec26ab09fc15ba10a91 644 .repo-standards/inputs/standards.yaml
+file 3b042b51e44a6424b08a68e9e7ba5e685b4a2c5c9b759939e40c67552cdacbdc 644 .repo-standards/lock.json
+file 6830aeb74079b6e6bc000fba00aed7623e65fa34cbde6d5e6a1345a2cefd14af 644 .repo-standards/runtime/package-lock.json
+file f385b5bf314a56b7508667f9af61fe83402bc0193b234f457f3defde46d957c6 644 .repo-standards/runtime/package.json
+file 2ca6185770038a6eeefcff767a5ed6a1e8b9e1b787628ae4d66c4c1ada5fb8cd 644 .repo-standards/selection.yaml
+file 2d8dc0fe13b119e88d0c579372511fd59b40c81c021d8a6fd426702f119a0a39 644 .repo-standards/state.json
+file 04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36 644 docs/catalog.json
+file 30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525 600 build/generated/README.md
+file 8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36 600 fixtures/hammer/Cargo.toml
+file abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287 600 groups/developer-tools.md
+

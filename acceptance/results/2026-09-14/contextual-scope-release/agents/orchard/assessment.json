@@ -1,0 +1,51 @@
+{
+  "format": "repo-standards/assessment/v2",
+  "run": "91c11a5c-6f3f-49ce-a06b-63af550f9d39",
+  "selection": "sha256:0894cdc09b074779050f35d3ad4a81d2712ec6168c09a26833eff7bf053cc605",
+  "snapshot": "sha256:05cd9c6c2c81c7d3c0d82fdcbd51d3f97fd6f994632361d61080910cde205ac0",
+  "scope": {
+    "inspection": "sha256:d5f595360e04ed5a105024d3f354ba40083aceb6155b9c269bcab63d08bf1d21",
+    "afterFixes": "sha256:b37fe16b1fa0549db258bb18a5cc0a395ed8d68017a95ef6420653f32cd7ef92"
+  },
+  "declarations": [
+    {
+      "id": "project-documentation",
+      "status": "satisfied",
+      "explanation": "Pear is the sole independently maintained project evidenced by an orchard-runtime owner and node server.mjs start command. Its project README now records those facts and explicitly records the absence of a separately documented setup step; the documentation index makes the README and operations guide discoverable; the old operations source was migrated byte-for-byte to its project destination; and the root catalog link was repaired. The fixture, generated output, and organizational team material remain correctly excluded, while exact docs/catalog.json remains unchanged and outside contextual scope.",
+      "changedPaths": [
+        "CATALOG.md",
+        "docs/projects/index.md",
+        "docs/projects/pear/operations.md",
+        "legacy/pear-operations.md",
+        "products/pear/README.md"
+      ],
+      "evidence": [
+        "products/pear/service.json identifies pear-api, orchard-runtime ownership, and the node server.mjs start command; products/pear/README.md preserves those facts without inventing a setup command.",
+        "docs/projects/pear/operations.md has SHA-256 4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b, exactly matching the deleted legacy/pear-operations.md source observed before the migration, so the deployment health-check and rollback guidance is preserved byte-for-byte.",
+        "docs/projects/index.md links to the Pear README and operations guide, and CATALOG.md now links to docs/projects/pear/operations.md; all four relative Markdown links resolve.",
+        "fixtures/sample/service.json marks itself as fixture data, generated/site/README.md says it is generated and not hand-edited, and teams/runtime.md says the team is not a deployable project.",
+        "docs/catalog.json remains exactly {\"format\":\"atlas-documentation/v1\"} with SHA-256 04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36."
+      ],
+      "scopeValidity": {
+        "afterFixes": {
+          "status": "valid",
+          "explanation": "After the successful retried fix, the accepted five paths still completely covered the useful Pear documentation migration and catalog repair while the evidenced fixture, generated, and organizational candidates remained exclusions.",
+          "evidence": [
+            "The post-fix project still showed Pear ownership and its start command in products/pear/service.json, operations facts in legacy/pear-operations.md, the legacy link in CATALOG.md, and no Pear README or project documentation index.",
+            "No additional maintained project, migration source, destination, index, or navigation repair path was identified during the post-fix semantic recheck."
+          ],
+          "additionalPaths": []
+        },
+        "current": {
+          "status": "valid",
+          "explanation": "At the refreshed current snapshot, all observed agent changes are exactly the five confirmed paths and they fully implement the migration without creating a need for another contextual target.",
+          "evidence": [
+            "The old source is deleted, its destination preserves the exact bytes, the Pear README and documentation index are present, and CATALOG.md points to the destination.",
+            "All relative Markdown links in the four current documentation files resolve, and exact docs/catalog.json remains unchanged outside contextual scope."
+          ],
+          "additionalPaths": []
+        }
+      }
+    }
+  ]
+}

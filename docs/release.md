@@ -59,7 +59,8 @@ The output directory `release/` must not exist. The bundle contains the npm
 tarball, executable standalone bootstrap, `SHA256SUMS`, and `release.json`
 (package/version, npm integrity, and SHA-256 artifact hashes). The package
 includes compiled CLI code, its matching reserved system skill, public protocol
-documents and both author examples. Pack once and publish that same tarball.
+documents, and the Alice, Mira, and Atlas author examples. Pack once and publish
+that same tarball.
 `pnpm validate` installs a release bundle with scripts disabled and exercises its
 executables and supplied author material alongside owning behavior tests.
 
@@ -221,8 +222,11 @@ Run `node acceptance/public-installation.ts <version> <evidence.json>` on macOS
 and Linux after publication. It installs the public package outside a project,
 validates packaged examples, discovers the public learning source, and exercises
 explicit and omitted bootstrap versions without project mutation. It uses real
-npm and GitHub, with no acquisition fixtures. Keep these automated checks
-separate from real-agent evidence.
+npm and GitHub, with no acquisition fixtures for those public paths. It also
+validates the independently authored Wayfinder source from the clean workflow
+checkout and records the checkout commit and source tree identity; this is
+public-package/local-source validation, not live public-source acquisition. Keep
+these automated checks separate from real-agent evidence.
 
 Then perform the [real-agent journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) with public npm
 installations. Use the public learning source for live publication, discovery
@@ -236,8 +240,10 @@ adoption output, unchanged HEAD/index, normal project commits, fresh-checkout
 restoration with scripts disabled, and retained inspection without source access.
 Exercise independent standards and CLI updates using actual published versions;
 a rewritten fixture manifest is not public update evidence. Record each OS and
-each source independently. The coverage map in
-`acceptance/release-coverage.md` points to the owning deterministic tests.
+each source independently. `acceptance/release-coverage.md` maps the original
+release, while `acceptance/contextual-scope-release-coverage.md` extends it for
+discovery, amendment, and re-adoption. Both maps point to owning deterministic
+tests and required live evidence.
 
 Do not label the release complete while publication, either OS, real-agent work,
 or any parent criterion remains unverified. The parent remains open and unchanged.

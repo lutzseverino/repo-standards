@@ -1,0 +1,9 @@
+{
+  "valid": false,
+  "errors": [
+    {
+      "code": "SOURCE_UNAVAILABLE",
+      "message": "Public GitHub returned HTTP 403 for /repos/lutzseverino/repo-standards-example/git/blobs/f039b584757e94dd4f2a9e781632965a8701f2f1. Check the public repository, version tag, and API rate limit."
+    }
+  ]
+}

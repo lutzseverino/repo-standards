@@ -1,0 +1,1 @@
+I reviewed the complete inspection and explicitly confirm inspection identity sha256:157e21137e1d6d70690f9f6e895e131f24e350780eb34df45da8759327d331c4, including the four-path project-documentation scope that deliberately excludes CATALOG.md, exact docs/catalog.json, candidate rationale, and disclosed trusted operations.

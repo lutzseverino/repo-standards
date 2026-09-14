@@ -59,7 +59,7 @@ Once the release version is available on public npm, use Node.js 24 and npm;
 no product checkout or pnpm is needed:
 
 ```sh
-npm install --global --ignore-scripts @lutzseverino/repo-standards@1.1.0
+npm install --global --ignore-scripts @lutzseverino/repo-standards@1.2.0
 repo-standards --version
 repo-standards source validate /path/to/standards-repository --json
 ```

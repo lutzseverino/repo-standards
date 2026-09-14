@@ -1,0 +1,26 @@
+{
+  "format": "orchard-retired-pear-readopt-readonly/v1",
+  "inspectionIdentities": [
+    "sha256:0e54923a7831ae02972b5b58d4aa23aeca6b4b1f35903ad3ac9bb3d6db474c4a",
+    "invalid-scope-attempt",
+    "sha256:ac6ca2894bee92291b10db3b12b836f9e7864852520053775d1c53bee83841f8"
+  ],
+  "pass1": {
+    "head": "a3d4a0942816042b8d34819b309988492857c483",
+    "status": "",
+    "indexSha256": "90591896e1e71e67e76f98280b0f2a8e75ebebebb80a2626efb9eed03731b2f4"
+  },
+  "pass2": {
+    "head": "a3d4a0942816042b8d34819b309988492857c483",
+    "status": "",
+    "indexSha256": "90591896e1e71e67e76f98280b0f2a8e75ebebebb80a2626efb9eed03731b2f4"
+  },
+  "current": {
+    "head": "a3d4a0942816042b8d34819b309988492857c483",
+    "status": "",
+    "indexSha256": "90591896e1e71e67e76f98280b0f2a8e75ebebebb80a2626efb9eed03731b2f4",
+    "workingDiffExitCode": 0,
+    "cachedDiffExitCode": 0
+  },
+  "verified": true
+}

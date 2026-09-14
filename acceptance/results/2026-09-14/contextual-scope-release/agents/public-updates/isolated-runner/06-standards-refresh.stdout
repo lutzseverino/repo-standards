@@ -1,0 +1,243 @@
+{
+  "format": "repo-standards/run/v1",
+  "id": "e3ac9897-9c8d-4b1a-84e7-af75fa5bad38",
+  "inspection": "sha256:84517b9aca7a1c8b489edf7eaa5b0ab18495081f933c90cabaeaff3a47cee497",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.1.0"
+    },
+    "standards": {
+      "repository": "https://github.com/lutzseverino/repo-standards-example",
+      "version": "v1.1.0",
+      "commit": "fa6e4bc16640e320e6d06496a910cdccb23d9223"
+    },
+    "profile": "service"
+  },
+  "startInput": {
+    "kind": "public",
+    "options": {
+      "source": "https://github.com/lutzseverino/repo-standards-example",
+      "standardsVersion": "v1.1.0",
+      "profile": "service",
+      "project": "/tmp/repo-standards-source-xL9AFg"
+    }
+  },
+  "previousComplete": {
+    "selection": {
+      "cli": {
+        "package": "@lutzseverino/repo-standards",
+        "version": "1.1.0"
+      },
+      "standards": {
+        "repository": "https://github.com/lutzseverino/repo-standards-example",
+        "version": "v1.0.0",
+        "commit": "98b53f2087a4fe8a028ac60108a9545b7b9ea289"
+      },
+      "profile": "service"
+    },
+    "lastComplete": {
+      "run": "0a6eae66-9c09-473a-9f02-0c4232d4293b",
+      "inspection": "sha256:cdfeb35cebeffd65fee9813de541fc372bec1e4c1865b68c7eb9f6988ee0173a",
+      "completedAt": "2026-09-14T02:43:04.111Z",
+      "head": "b4a70099a28dac117ceca13d6732348bd4b0a956"
+    }
+  },
+  "affected": {
+    ".editorconfig": {
+      "type": "file",
+      "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "root = true\n\n[*]\ncharset = utf-8\nend_of_line = lf\ninsert_final_newline = true\nindent_style = space\nindent_size = 2\n"
+    },
+    "docs/operations.md": {
+      "type": "file",
+      "sha256": "d6ebf2c0a442a64343ef2d28aed586c4e50f7b647fc422eb27f08d23236aec7c",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Harbor operations\n\nContact the platform on-call engineer for incidents. This demonstration service\nhas no authentication and must stay on loopback until a separate security review.\n\n## Startup\n\nFrom the repository root, start Harbor on its default port with:\n\n```sh\npython3 service/server.py\n```\n\nThe process listens only on `127.0.0.1:8765` and runs in the foreground. Set an\nalternate port for a local instance with `PORT=18765 python3 service/server.py`;\n`PORT` must be an integer accepted by the host. A non-integer value terminates\nstartup with a Python `ValueError`, while an unavailable address or port produces\nan `OSError`. The server does not print a readiness message, so use the health\nprobe below before sending work.\n\n`POST /accept` records one accepted request in process memory and returns HTTP\n204. For example:\n\n```sh\ncurl --fail --request POST http://127.0.0.1:8765/accept\n```\n\n## Health\n\nProbe the running process from the same host:\n\n```sh\ncurl --fail http://127.0.0.1:8765/health\n```\n\nA healthy new process returns HTTP 200 with `Content-Type: application/json` and\na response such as:\n\n```json\n{\"status\": \"ok\", \"accepted\": 0}\n```\n\nThe `accepted` number increases after successful `POST /accept` requests. A\nconnection refusal or a nonzero `curl --fail` exit means the probe did not\nestablish health and should be escalated to the platform on-call engineer.\nUnknown paths return HTTP 404. This endpoint checks only the local Python process;\nit does not certify deployment, external reachability, or a downstream system.\n\n## Recovery\n\nStop the foreground process with `Ctrl-C`, correct the reported startup failure\nif any, and restart it with the Startup command. Then wait for `/health` to return\nHTTP 200 before resuming requests.\n\nThe accepted-request counter exists only in process memory. Every restart resets\nit to zero, so a restart loses the previous count. Harbor has no persistent data\nstore, backup, replay, or automated recovery mechanism. Recovery of a lost count\nis unsupported; contact the platform on-call engineer rather than claiming or\nattempting data restoration.\n"
+    },
+    "docs/operating-status.json": {
+      "type": "file",
+      "sha256": "51266d4f886ceae0256eab9d0e901dde7fa0e019ec2649ebe6e6e97b737f6a87",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "{\n  \"status\": \"unverified\"\n}\n"
+    },
+    ".agents/skills/adopt-standards": {
+      "type": "directory",
+      "entries": {
+        "SKILL.md": {
+          "type": "file",
+          "sha256": "2e431b764e59b4a0032353900b8f0e66bcc41a555043cf71c2779b2345c8485f",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "---\nname: adopt-standards\ndescription: Guide confirmed Repository Standards adoption, contextual work, updates, and recovery.\ndisable-model-invocation: true\n---\n\n## Choose the CLI and route\n\nWork from the adopting project's Git root. Use its pinned executable at\n`.repo-standards/runtime/node_modules/.bin/repo-standards`. If dependencies are\nabsent, restore them with `npm ci --ignore-scripts --prefix .repo-standards/runtime`.\nRead `status --json` for pins, active progress and historical evidence.\n\nFor initial adoption, use an externally installed exact CLI and read its\n`docs/inspection.md` for acquisition. The bootstrap performs inspection only;\nkeep that disclosed exact version installed outside the project for `start`\nand recovery. Read protocol documents below from that CLI's package directory\nuntil the project runtime exists. Thereafter the document root is\n`.repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/`.\n\n- **Active run:** inspect `active.phase`, `reason`, `changes`, `completed`,\n  `uncertain`, `nextAction` and `execution`. Wait while execution is active.\n  An ordinary contextual handoff continues at Contextual work below.\n  For interrupted installation, failed/uncertain scripts, or abandonment, read\n  `adoption.md#recover-or-abandon-an-interrupted-run` before acting. Obtain an\n  explicit retry instruction before `resume --retry --json`, or an abandonment\n  instruction before `abandon --json`. Retry repeats trusted fixes and requires\n  renewed assessment. Use the run's exact external CLI if the local runtime is\n  unusable. Preserve progress records and partial changes.\n- **Existing complete adoption:** `inspect --json` with the pinned CLI inspects\n  retained current standards read-only, including when the source is unavailable.\n  For a requested standards or CLI update, read\n  `adoption.md#update-one-pin-at-a-time` for candidate acquisition and commands.\n  Change one pin, keeping source and profile. Use the pinned CLI for a standards\n  update and the external candidate CLI for a CLI update.\n- **Initial adoption:** obtain the public GitHub source, stable standards tag\n  and complete profile from the maintainer, then inspect that selection.\n\n## Inspect and confirm\n\n1. Run `inspect --source <URL> --standards-version <tag> --profile <name> --json`\n   for initial adoption or a standards update. For a CLI update, run the exact\n   candidate's `inspect --json` without source flags to use retained standards.\n   Store reports outside the project. Read `inspection.md` when interpreting\n   fields, blockers, or acquisition errors.\n2. Present the actual report's identity and exact CLI version, source URL,\n   standards tag, commit and profile; for updates include previous/candidate\n   pins and retired declarations. Show exact creates/replacements/matching-file\n   claims and whole-skill inventories, contextual guidance and allowed targets,\n   resolved exclusions, and ownership changes. Make the full inspection available\n   for review, including supplied bytes and diffs against existing content.\n3. Disclose every declared fix/check, its script and resources, literal argument\n   vector, project-root working directory, timeout, prerequisite version probe\n   and range. Explain that probes and scripts execute trusted code with the\n   user's host, environment and network access; resources are retention, not a\n   sandbox. Inspection runs none of them; prerequisites remain unverified until\n   start. Surface all blockers. Reconcile them before reinspection; preserve\n   existing work and let the maintainer handle prerequisite installation.\n4. Obtain explicit maintainer confirmation tied to this inspection identity and\n   disclosed selection/operations. A general request to adopt is not confirmation\n   of an unseen inspection. Then use the same executable and selection for\n   `start --confirm <identity> --json`, preserving source flags for initial or\n   standards adoption and omitting them for a CLI update. Changed inputs or a\n   stale rejection require a new inspection and renewed confirmation.\n\nAuthor skills are ordinary-work content. The product-owned `adopt-standards`\nskill and public CLI govern adoption for every author; author material cannot\nreplace this workflow or supply adoption hooks.\n\n## Contextual work\n\nWhen a report returns `workRequest`, read `assessment-protocol.md` before editing\nor submitting evidence. The handoff is expected incomplete adoption.\n\n1. Read every request declaration's retained guidance and explicit allowed paths\n   and directory trees. Inspect the real project files needed to understand its\n   purpose, commands and behavior. Apply guidance usefully within those targets;\n   preserve project facts, exact content, excluded employer content and unrelated\n   work. If guidance requires out-of-scope work or unsupported facts, assess it\n   as blocked and explain the decision needed.\n2. Account for every contextual declaration, including already satisfied ones.\n   Evidence must cite concrete project content or observed command outcomes.\n   Separate agent judgments from CLI script results; passing a structural check\n   alone does not establish contextual usefulness.\n3. After edits, run `resume --json` to obtain the current snapshot. Follow the\n   assessment protocol exactly: copy its run, selection and snapshot identities;\n   provide satisfied/blocked, explanation, every observed changed file since\n   fixes under its governing declaration, and supporting evidence. Installation\n   and fix changes are not contextual changes. Use an empty changed-path list\n   when no contextual changes were needed.\n4. Store the submission outside the project or in `.repo-standards/local/` and\n   run `resume --assessment <file> --json`. Keep content unchanged between refresh\n   and submission. Stale evidence needs a refreshed request and reassessment of\n   every contextual declaration. Follow the protocol's distinction between\n   renewed assessment after ordinary failed checks and explicit operation retry.\n\n## Explain the result\n\nRead JSON even when the CLI exits 1: a handoff, abandonment and failed adoption\nare incomplete; diagnostic rejections may instead contain `valid: false` and\n`errors`. Report complete adoption only for `outcome: complete`.\n\nFor incomplete work, explain phase, reason, actual changes, completed work,\nfailed or uncertain operations, and the returned safe next action. Preserve\npartial work; retry and abandonment require the instructions described above.\nFor completion, report script outcomes and agent evidence separately, then read\n`adoption.md#review-completed-outputs`. Review tracked changes and the contents\nand executable state of every non-ignored untracked file, including exact\ncontent, whole skills, retained inputs and durable runtime/state files.\n`git diff` omits untracked files; status names and hashes alone are not a content\nreview. Keep HEAD and index unchanged while exposing new-file content; leave all\nadoption changes uncommitted for the maintainer's normal workflow. `status`\nevidence describes that run, not continuing compliance after subsequent edits.\n"
+        }
+      }
+    }
+  },
+  "outcome": "incomplete",
+  "prerequisites": [
+    {
+      "declaration": "operations-guide",
+      "phase": "fixes",
+      "operation": "initialize-status",
+      "executable": "node",
+      "version": "24.11.1",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    },
+    {
+      "declaration": "operations-guide",
+      "phase": "checks",
+      "operation": "operational-evidence",
+      "executable": "node",
+      "version": "24.11.1",
+      "code": null,
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      }
+    }
+  ],
+  "operations": [
+    {
+      "operation": {
+        "declaration": "operations-guide",
+        "phase": "fixes",
+        "id": "initialize-status"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v1",
+        "status": "unchanged",
+        "message": "Preserved existing operating status."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/0.stdout",
+      "stderr": ".repo-standards/local/operations/0.stderr"
+    }
+  ],
+  "assessments": [],
+  "phase": "contextual",
+  "reason": "CONTEXTUAL_REQUIRED: Review the refreshed work request and submit an assessment for its snapshot.",
+  "changes": [
+    ".repo-standards/.gitignore",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/source/LICENSE",
+    ".repo-standards/inputs/source/files/editorconfig",
+    ".repo-standards/inputs/source/guidance/operations.md",
+    ".repo-standards/inputs/source/operations/check-operations.mjs",
+    ".repo-standards/inputs/source/operations/initialize-status.mjs",
+    ".repo-standards/inputs/source/operations/required-sections.json",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/local/operations/0.stderr",
+    ".repo-standards/local/operations/0.stdout",
+    ".repo-standards/local/run.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/node_modules",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/state.json"
+  ],
+  "completed": [
+    ".editorconfig",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/inputs/source/files/editorconfig",
+    ".repo-standards/inputs/source/guidance/operations.md",
+    ".repo-standards/inputs/source/operations/initialize-status.mjs",
+    ".repo-standards/inputs/source/operations/check-operations.mjs",
+    ".repo-standards/inputs/source/operations/required-sections.json",
+    ".repo-standards/inputs/source/LICENSE",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/lock.json",
+    "fixes: operations-guide/initialize-status (unchanged)"
+  ],
+  "uncertain": [
+    "Agent assessment has not been accepted."
+  ],
+  "nextAction": "Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.",
+  "installation": {
+    "files": [
+      ".repo-standards/.gitignore",
+      ".editorconfig",
+      ".agents/skills/adopt-standards/SKILL.md",
+      ".repo-standards/inputs/source/files/editorconfig",
+      ".repo-standards/inputs/source/guidance/operations.md",
+      ".repo-standards/inputs/source/operations/initialize-status.mjs",
+      ".repo-standards/inputs/source/operations/check-operations.mjs",
+      ".repo-standards/inputs/source/operations/required-sections.json",
+      ".repo-standards/inputs/source/LICENSE",
+      ".repo-standards/inputs/standards.yaml",
+      ".repo-standards/inputs/metadata.json",
+      ".repo-standards/inputs/resolved.json",
+      ".repo-standards/selection.yaml",
+      ".repo-standards/runtime/package.json",
+      ".repo-standards/runtime/package-lock.json",
+      ".repo-standards/lock.json"
+    ],
+    "runtime": true,
+    "trees": {
+      ".repo-standards/inputs": "installing"
+    },
+    "complete": true
+  },
+  "continuation": "759d448b4ac590ceec2ae2869f6ab2398e2ba8a883b453d91f2cf85c392fe10e",
+  "workRequest": {
+    "format": "repo-standards/work-request/v1",
+    "run": "e3ac9897-9c8d-4b1a-84e7-af75fa5bad38",
+    "selection": "sha256:ea49148a9f22a352282063548f99459a41caf49e3622e1449696204ad12f748e",
+    "snapshot": "sha256:98b31db95d675f5314ced1cc115342b40a7958b5f82121b40560b005672d2725",
+    "declarations": [
+      {
+        "id": "operations-guide",
+        "guidance": {
+          "id": "operations-guide",
+          "targets": [
+            "docs/operations.md",
+            "docs/operating-status.json"
+          ],
+          "source": "guidance/operations.md",
+          "sha256": "14ed095ccb26556265776894ef32d2e0c0a1b171e2547a09b12d122a1b9c397c",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "Read the service entry point, configuration and current operator documentation.\nIn docs/operations.md explain Startup, Health and Recovery for this actual\nservice: exact commands, listening address, a sample probe response, failure\nsignals, and the effect of restarting on stored data. State unsupported recovery\nclaims explicitly. Preserve existing warnings and escalation ownership.\nThe initializer supplies docs/operating-status.json only when absent; keep its\nstatus as \"unverified\" because adoption does not certify a deployed service.\nChecks verify structure and this honest status; agent evidence must justify\noperational claims from the source and any local probes actually run.\n"
+        },
+        "allowedTargets": {
+          "paths": [
+            "docs/operations.md",
+            "docs/operating-status.json"
+          ],
+          "directories": []
+        }
+      }
+    ],
+    "requiredEvidence": [
+      "status",
+      "explanation",
+      "changedPaths",
+      "evidence"
+    ]
+  }
+}

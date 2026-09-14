@@ -1,0 +1,33 @@
+{
+  "format": "orchard-readopt-scope-delta/v1",
+  "historical": {
+    "evidence": "historical only",
+    "inspection": "sha256:88109e42f53b83a0e495dda1a5a2b4c28feb9a243ed512ff8469b29c22605842",
+    "scopeRevision": 1,
+    "paths": [
+      "CATALOG.md",
+      "docs/projects/index.md",
+      "docs/projects/pear/operations.md",
+      "legacy/pear-operations.md",
+      "products/pear/README.md"
+    ]
+  },
+  "current": {
+    "inspection": "sha256:ac6ca2894bee92291b10db3b12b836f9e7864852520053775d1c53bee83841f8",
+    "action": "readopt",
+    "paths": [
+      "CATALOG.md",
+      "docs/projects/index.md",
+      "products/plum/README.md"
+    ]
+  },
+  "added": [
+    "products/plum/README.md"
+  ],
+  "removed": [
+    "docs/projects/pear/operations.md",
+    "legacy/pear-operations.md",
+    "products/pear/README.md"
+  ],
+  "explanation": "Historical scope records past authorization and completed-run evidence; it does not assert current membership or compliance. The fresh readoption includes Plum and current shared navigation, removes both preserved Pear docs and the already-absent legacy source from current contextual governance, and does not delete excluded content."
+}

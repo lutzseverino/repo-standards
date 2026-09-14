@@ -1,0 +1,54 @@
+faa892d70b97c46176e1355995ef010e5fee3fad
+1 .M N... 100644 100644 100644 6c36af829a3a5142f8542d88e7b9e3f0ae394cbc 6c36af829a3a5142f8542d88e7b9e3f0ae394cbc INDEX.md
+1 .D N... 100644 100644 000000 59abf0508cb2f2cf4f48d5a0a5eb8c2ba054b0e7 59abf0508cb2f2cf4f48d5a0a5eb8c2ba054b0e7 guides/hammer.md
+? .agents/skills/adopt-standards/SKILL.md
+? .repo-standards/.gitignore
+? .repo-standards/inputs/metadata.json
+? .repo-standards/inputs/resolved.json
+? .repo-standards/inputs/scope-history.json
+? .repo-standards/inputs/source/files/catalog.json
+? .repo-standards/inputs/source/guidance/project-discovery.md
+? .repo-standards/inputs/source/guidance/project-documentation.md
+? .repo-standards/inputs/source/operations/markdown-ending.mjs
+? .repo-standards/inputs/standards.yaml
+? .repo-standards/lock.json
+? .repo-standards/runtime/package-lock.json
+? .repo-standards/runtime/package.json
+? .repo-standards/selection.yaml
+? .repo-standards/state.json
+? docs/catalog.json
+? docs/projects/INDEX.md
+? docs/projects/hammer.md
+? modules/tools/hammer/README.md
+100644 6c36af829a3a5142f8542d88e7b9e3f0ae394cbc 0	INDEX.md
+100644 5260cea697690dca132fa95ece2af81bf9420d21 0	build/generated/README.md
+100644 2f41eba743ecf7ce58e95b9d3cae12ce6816e6fd 0	fixtures/hammer/Cargo.toml
+100644 fa2cc93ff2c4c66e0829232daaaf5ea5be138f88 0	groups/developer-tools.md
+100644 59abf0508cb2f2cf4f48d5a0a5eb8c2ba054b0e7 0	guides/hammer.md
+100644 b5da32088e93554f38355aaf6ed18c70621f400e 0	modules/tools/hammer/Cargo.toml
+file 6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54 644 .agents/skills/adopt-standards/SKILL.md
+file c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d 644 .repo-standards/.gitignore
+file 98e78cfc97d60b3cadabaa1f92cc0520a2f82866fd5627cd525500d835cb6199 644 .repo-standards/inputs/metadata.json
+file e7e3d2738f754662f885599aac1c1f85be17ce8b07a4fb855f4bb2410e3ec5e1 644 .repo-standards/inputs/resolved.json
+file 8e7603fd49ea182e9cbe00e844f74a755cc6943aedadd15f0a31a0004ecbde3e 644 .repo-standards/inputs/scope-history.json
+file 04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36 644 .repo-standards/inputs/source/files/catalog.json
+file 014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57 644 .repo-standards/inputs/source/guidance/project-discovery.md
+file f4d9ba3e46d6d5d9bbcb043d2fe4bf687a96f61f505ee30bbd2e04afbf2108a9 644 .repo-standards/inputs/source/guidance/project-documentation.md
+file cc333786362309d1e05db95acb7c634539ab5e99cbad96998c7172177009511d 644 .repo-standards/inputs/source/operations/markdown-ending.mjs
+file 1091a2f18725536d39b789da175134e613904f0d8dc61ec26ab09fc15ba10a91 644 .repo-standards/inputs/standards.yaml
+file 37afa98b7151d22e299c49ee874a7a6eeeacd27b1881ad7fa4ab004e47b3342d 644 .repo-standards/lock.json
+file 2587f230bcbec3d7619fbd9943b158d6e1a49098c735d37c2f99750a23ddfb0d 644 .repo-standards/runtime/package-lock.json
+file f385b5bf314a56b7508667f9af61fe83402bc0193b234f457f3defde46d957c6 644 .repo-standards/runtime/package.json
+file 6843456152a87795fb737bf9fbd264794727dfb99271b73564272616d1052a0a 644 .repo-standards/selection.yaml
+file bd6ed589b34f9ab207466956f7ee4c37de7c714c78962a7e520f96ed37ccf94e 644 .repo-standards/state.json
+file 04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36 644 docs/catalog.json
+file df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7 600 docs/projects/INDEX.md
+file b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d 600 docs/projects/hammer.md
+file 4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1 600 modules/tools/hammer/README.md
+file 535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904 600 INDEX.md
+file 30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525 600 build/generated/README.md
+file 8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36 600 fixtures/hammer/Cargo.toml
+file abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287 600 groups/developer-tools.md
+missing - - guides/hammer.md
+file 470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b 600 modules/tools/hammer/Cargo.toml
+

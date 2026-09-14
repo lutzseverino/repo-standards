@@ -1,0 +1,5 @@
+{
+  "name": "generated-inventory-entry",
+  "owner": "catalog-generator",
+  "start": "not-an-entrypoint"
+}

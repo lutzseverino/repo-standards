@@ -1,0 +1,55 @@
+{
+  "format": "orchard-link-check/v1",
+  "files": [
+    "CATALOG.md",
+    "docs/projects/index.md",
+    "docs/projects/pear/operations.md",
+    "products/pear/README.md"
+  ],
+  "links": [
+    {
+      "source": "CATALOG.md",
+      "link": "docs/projects/pear/operations.md",
+      "resolved": "docs/projects/pear/operations.md",
+      "exists": true
+    },
+    {
+      "source": "docs/projects/index.md",
+      "link": "../../products/pear/README.md",
+      "resolved": "products/pear/README.md",
+      "exists": true
+    },
+    {
+      "source": "docs/projects/index.md",
+      "link": "pear/operations.md",
+      "resolved": "docs/projects/pear/operations.md",
+      "exists": true
+    },
+    {
+      "source": "products/pear/README.md",
+      "link": "../../docs/projects/pear/operations.md",
+      "resolved": "docs/projects/pear/operations.md",
+      "exists": true
+    }
+  ],
+  "missing": [],
+  "markdownEndings": [
+    {
+      "path": "CATALOG.md",
+      "endsInLf": true
+    },
+    {
+      "path": "docs/projects/index.md",
+      "endsInLf": true
+    },
+    {
+      "path": "docs/projects/pear/operations.md",
+      "endsInLf": true
+    },
+    {
+      "path": "products/pear/README.md",
+      "endsInLf": true
+    }
+  ],
+  "legacyReferenceMatches": ""
+}

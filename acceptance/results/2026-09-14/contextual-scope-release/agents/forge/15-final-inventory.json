@@ -1,0 +1,4523 @@
+{
+  "root": "/tmp/repo-standards-source-OXjpvh",
+  "head": "faa892d70b97c46176e1355995ef010e5fee3fad",
+  "statusPorcelainV2Base64": "MSAuTSBOLi4uIDEwMDY0NCAxMDA2NDQgMTAwNjQ0IDZjMzZhZjgyOWEzYTUxNDJmODU0MmQ4OGU3YjllM2YwYWUzOTRjYmMgNmMzNmFmODI5YTNhNTE0MmY4NTQyZDg4ZTdiOWUzZjBhZTM5NGNiYyBJTkRFWC5tZAAxIC5EIE4uLi4gMTAwNjQ0IDEwMDY0NCAwMDAwMDAgNTlhYmYwNTA4Y2IyZjJjZjRmNDhkNWEwYTVlYjhjMmJhMDU0YjBlNyA1OWFiZjA1MDhjYjJmMmNmNGY0OGQ1YTBhNWViOGMyYmEwNTRiMGU3IGd1aWRlcy9oYW1tZXIubWQAPyAuYWdlbnRzL3NraWxscy9hZG9wdC1zdGFuZGFyZHMvU0tJTEwubWQAPyAucmVwby1zdGFuZGFyZHMvLmdpdGlnbm9yZQA/IC5yZXBvLXN0YW5kYXJkcy9pbnB1dHMvbWV0YWRhdGEuanNvbgA/IC5yZXBvLXN0YW5kYXJkcy9pbnB1dHMvcmVzb2x2ZWQuanNvbgA/IC5yZXBvLXN0YW5kYXJkcy9pbnB1dHMvc2NvcGUtaGlzdG9yeS5qc29uAD8gLnJlcG8tc3RhbmRhcmRzL2lucHV0cy9zb3VyY2UvZmlsZXMvY2F0YWxvZy5qc29uAD8gLnJlcG8tc3RhbmRhcmRzL2lucHV0cy9zb3VyY2UvZ3VpZGFuY2UvcHJvamVjdC1kaXNjb3ZlcnkubWQAPyAucmVwby1zdGFuZGFyZHMvaW5wdXRzL3NvdXJjZS9ndWlkYW5jZS9wcm9qZWN0LWRvY3VtZW50YXRpb24ubWQAPyAucmVwby1zdGFuZGFyZHMvaW5wdXRzL3NvdXJjZS9vcGVyYXRpb25zL21hcmtkb3duLWVuZGluZy5tanMAPyAucmVwby1zdGFuZGFyZHMvaW5wdXRzL3N0YW5kYXJkcy55YW1sAD8gLnJlcG8tc3RhbmRhcmRzL2xvY2suanNvbgA/IC5yZXBvLXN0YW5kYXJkcy9ydW50aW1lL3BhY2thZ2UtbG9jay5qc29uAD8gLnJlcG8tc3RhbmRhcmRzL3J1bnRpbWUvcGFja2FnZS5qc29uAD8gLnJlcG8tc3RhbmRhcmRzL3NlbGVjdGlvbi55YW1sAD8gLnJlcG8tc3RhbmRhcmRzL3N0YXRlLmpzb24APyBkb2NzL2NhdGFsb2cuanNvbgA/IGRvY3MvcHJvamVjdHMvSU5ERVgubWQAPyBkb2NzL3Byb2plY3RzL2hhbW1lci5tZAA/IG1vZHVsZXMvdG9vbHMvaGFtbWVyL1JFQURNRS5tZAA=",
+  "indexSha256": "4e5f01214fe4bf7896e087678acdb8b7e920bceb5625fd3241f12c7173783dfe",
+  "trackedAndNonIgnoredPaths": [
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/.gitignore",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/inputs/source/files/catalog.json",
+    ".repo-standards/inputs/source/guidance/project-discovery.md",
+    ".repo-standards/inputs/source/guidance/project-documentation.md",
+    ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/state.json",
+    "docs/catalog.json",
+    "docs/projects/INDEX.md",
+    "docs/projects/hammer.md",
+    "modules/tools/hammer/README.md",
+    "INDEX.md",
+    "build/generated/README.md",
+    "fixtures/hammer/Cargo.toml",
+    "groups/developer-tools.md",
+    "guides/hammer.md",
+    "modules/tools/hammer/Cargo.toml"
+  ],
+  "counts": {
+    "directory": 102,
+    "file": 493,
+    "symlink": 4
+  },
+  "entries": [
+    {
+      "path": ".agents",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".agents/skills",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".agents/skills/adopt-standards",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".agents/skills/adopt-standards/SKILL.md",
+      "mode": "644",
+      "type": "file",
+      "bytes": 10513,
+      "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/.gitignore",
+      "mode": "644",
+      "type": "file",
+      "bytes": 39,
+      "sha256": "c458b2b2b042dcd6ca054ac2da03c35671ea811e22cba717673689cbe5ad098d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/inputs",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/inputs/metadata.json",
+      "mode": "644",
+      "type": "file",
+      "bytes": 217,
+      "sha256": "98e78cfc97d60b3cadabaa1f92cc0520a2f82866fd5627cd525500d835cb6199",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/inputs/resolved.json",
+      "mode": "644",
+      "type": "file",
+      "bytes": 1603,
+      "sha256": "e7e3d2738f754662f885599aac1c1f85be17ce8b07a4fb855f4bb2410e3ec5e1",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/inputs/scope-history.json",
+      "mode": "644",
+      "type": "file",
+      "bytes": 68744,
+      "sha256": "8e7603fd49ea182e9cbe00e844f74a755cc6943aedadd15f0a31a0004ecbde3e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/inputs/source",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/inputs/source/files",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/inputs/source/files/catalog.json",
+      "mode": "644",
+      "type": "file",
+      "bytes": 41,
+      "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/inputs/source/guidance",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/inputs/source/guidance/project-discovery.md",
+      "mode": "644",
+      "type": "file",
+      "bytes": 945,
+      "sha256": "014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/inputs/source/guidance/project-documentation.md",
+      "mode": "644",
+      "type": "file",
+      "bytes": 606,
+      "sha256": "f4d9ba3e46d6d5d9bbcb043d2fe4bf687a96f61f505ee30bbd2e04afbf2108a9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/inputs/source/operations",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/inputs/source/operations/markdown-ending.mjs",
+      "mode": "644",
+      "type": "file",
+      "bytes": 1140,
+      "sha256": "cc333786362309d1e05db95acb7c634539ab5e99cbad96998c7172177009511d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/inputs/standards.yaml",
+      "mode": "644",
+      "type": "file",
+      "bytes": 1390,
+      "sha256": "1091a2f18725536d39b789da175134e613904f0d8dc61ec26ab09fc15ba10a91",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/local",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/local/operations",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/local/operations/0.stderr",
+      "mode": "644",
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/local/operations/0.stdout",
+      "mode": "644",
+      "type": "file",
+      "bytes": 116,
+      "sha256": "e89db38d81632449bcf65b72994c68256feb14494de31b86efa6959dbc518a1e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/local/operations/1.stderr",
+      "mode": "644",
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/local/operations/1.stdout",
+      "mode": "644",
+      "type": "file",
+      "bytes": 113,
+      "sha256": "3e408285cffc8943851c16aae9335017115f1ca6a5184a8c1cb16a8adea086dc",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/local/run.json",
+      "mode": "644",
+      "type": "file",
+      "bytes": 182059,
+      "sha256": "1306894ffe33104a34b1e6ce413b906d031838c3a6a5cdb45b8ce9199feb7cc0",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/lock.json",
+      "mode": "644",
+      "type": "file",
+      "bytes": 2934,
+      "sha256": "37afa98b7151d22e299c49ee874a7a6eeeacd27b1881ad7fa4ab004e47b3342d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/.bin",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/.bin/repo-standards",
+      "mode": "777",
+      "type": "symlink",
+      "target": "../@lutzseverino/repo-standards/dist/cli.js",
+      "sha256": "7b454839daeb4ae94bcd32d4071b5b3ce52be9686512b84afc6640daa0182e3d"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/.bin/repo-standards-bootstrap",
+      "mode": "777",
+      "type": "symlink",
+      "target": "../@lutzseverino/repo-standards/bootstrap/repo-standards",
+      "sha256": "5d5cf6dad3da96bdfdfc7705cefe59e712a1406683a66e6b03b0b5354d365158"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/.bin/semver",
+      "mode": "777",
+      "type": "symlink",
+      "target": "../semver/bin/semver.js",
+      "sha256": "67548aec621ae3611116b30d9dd8b16a2768a72eb9dc5404f6f55e791906b795"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/.bin/yaml",
+      "mode": "777",
+      "type": "symlink",
+      "target": "../yaml/bin.mjs",
+      "sha256": "8e732bdb61bc82a3606077c1b8a8687facd88fe039184b54469f7a796af4836f"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/.package-lock.json",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3708,
+      "sha256": "c5fc245ed7ba40fe0946cf4943a6a6780d7fe6f703951dc0f0c0fdb9c35381ae",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@koromix",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@koromix/koffi-linux-arm64",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@koromix/koffi-linux-arm64/README.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 275,
+      "sha256": "91172f81bdd8f0402424c7fdb31f3f9a580d8f1733f1a721d8e939d9d022b2d5",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@koromix/koffi-linux-arm64/index.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6508,
+      "sha256": "69a7171167cc81c4430c2e9fbe4a8639301db0c8491636b0899bc3222671a0a4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@koromix/koffi-linux-arm64/linux_arm64",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@koromix/koffi-linux-arm64/linux_arm64/koffi.node",
+      "mode": "700",
+      "type": "file",
+      "bytes": 1157080,
+      "sha256": "168c3b07da97a0c0a32734c90edeb34139568c56dcde81de1e24ebf058720335",
+      "executable": true
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@koromix/koffi-linux-arm64/musl_arm64",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@koromix/koffi-linux-arm64/musl_arm64/koffi.node",
+      "mode": "700",
+      "type": "file",
+      "bytes": 1154528,
+      "sha256": "1dc7a599c6ce7c7dbdc333b3d2570f96a2f2376b2ceffa36ca40242d5f9e3761",
+      "executable": true
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@koromix/koffi-linux-arm64/package.json",
+      "mode": "600",
+      "type": "file",
+      "bytes": 650,
+      "sha256": "63141334fa33d8143557ea283d1b839bd3180e74862088cb91b95824dcba16ec",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/LICENSE",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1070,
+      "sha256": "95af378c58b45edda9f8113829ee8c2760614789127c829aaa54b247f2d12136",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/README.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3961,
+      "sha256": "6c9fbdd411ce690471bd2dfb666dba23e6dce91d71af44c76e318d3e913050fc",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/bootstrap",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/bootstrap/repo-standards",
+      "mode": "700",
+      "type": "file",
+      "bytes": 7476,
+      "sha256": "8f593d792119f9e9a623b20c1e2d680f7a0e641c54819367c7ebe2fca575c46a",
+      "executable": true
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/acquisition.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8641,
+      "sha256": "ef660203b8e3d8c5d90aab21100753ddf4a315ee3a1ca600bbb290c701fe70c9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/acquisition.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8204,
+      "sha256": "3c8022a03b7892702bb5799468dda74c7e8cfdbd0cb4d8b86f6b1d9fe57e49b9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/adoption-files.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6900,
+      "sha256": "7d622d13fc63ec082c7ce95c37f7c5472e2bc286a1ed49cdbc90791eacb1af1a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/adoption-files.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7427,
+      "sha256": "cf33362018b95fab4f91d8b19ba7c9a752625e13e1fa66d9170522a9b2338967",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/adoption-run.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 42741,
+      "sha256": "9598f47a1d9ef4b3d56045b89156302ec15ce8ba93befdbb11cadf00d5e89ea6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/adoption-run.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 37741,
+      "sha256": "9d9581f6668e7c50c3fe49f910bc3dc89d36f02d04e3602c9269512c6e3361b8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/adoption.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 36254,
+      "sha256": "c8eebb9a62f7bf1a28a342a096a2a90d8c8187eb0fc307399c35cc2642ee71d2",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/adoption.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 35185,
+      "sha256": "31a64c0299145dbee5a447343931893489dcd817d38a76ccea46c4d196f6e2d8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/assessment.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7076,
+      "sha256": "b1b285c669187b26ba3c6667e4f515eb9c2aee8d4317758faf826b8df94c70cd",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/assessment.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7140,
+      "sha256": "e4c801d6a3016562e52f6e182d4095cb636f5a5d3035bec6922006a599852dc0",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/cli.js",
+      "mode": "700",
+      "type": "file",
+      "bytes": 9792,
+      "sha256": "eb89ee968f48513ee9743ce2369fc63b1974da9534ff24f7a06bd261c1758200",
+      "executable": true
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/cli.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9858,
+      "sha256": "d091169239ed7104c579a5b375d5ff3ec3b1d8a77c6d3ff4513632c03b5ec26d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/declarations.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8395,
+      "sha256": "09afe7d2c0893b12af08a2fc9a9bff4210d719c34210d1d0992e0fcfd4d5fe72",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/declarations.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8630,
+      "sha256": "aa382447a43ccef47b2bc8a0821b288dd66b74cdae2774ef7d9225ccc5d9ac57",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/discovery.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4626,
+      "sha256": "6a049597c4ca5966989c7239306e04de0ce3b4404fdf6ebcb569d769c4f3f8fe",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/discovery.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4269,
+      "sha256": "e080ed491e720d35c3dcd9ab3df81a2ea656ba593c92c66ee3584cdff3534ef9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/errors.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 231,
+      "sha256": "6bcca7e5de343b963fb4651379de6d5c9925e6d629bd4c34c366236bd980d1cc",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/errors.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 264,
+      "sha256": "3866c9d7b10dba1e4158e416cfbd3deba4939cd36b1974b195ce8547e1aba442",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/execution.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7061,
+      "sha256": "72f410e63818c11b3affc9a89a81021af5ffedb087e926870d244023694238d9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/execution.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7861,
+      "sha256": "c64ad957ce360c7a936f17e834cd890e66f2da88906de6073ebbd3bc64ab0b53",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/inspection.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 31346,
+      "sha256": "780017644543c2707ad8e76d921cf19bf8d8ab4cac5ec8ca02d8e7cdac8eb843",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/inspection.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 29694,
+      "sha256": "45b77992054df0a5a65e36d5ad8c3e653e41d387e4769be2881e85552b42907b",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/model.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 44,
+      "sha256": "a3d85b861c2f631080eabc73b2123c963dfc1a11959f7daa9a1015c26ab275cf",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/model.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 102,
+      "sha256": "eaaf10d5fb794eed09b0071e475cd03ff388510c7625e4b38aef982c658912ce",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/paths.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4890,
+      "sha256": "def1ce9e6ac6d73d08599798ec1d729bce5b9f2f41bbc11d5e7ce0a10b2180bf",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/paths.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4988,
+      "sha256": "486867ca37fd1744c9442081d9ccc8d0e69b489c11d92416606ab2c62bb25bd7",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/process-identity.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2711,
+      "sha256": "dd3d71426284e05cd275072f09228f328f524e4e5313b162a3608b014324a9e9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/process-identity.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2342,
+      "sha256": "21f24a698ecba3ef2f690e56f8ad42f181c16a6f1956b21845f20b35291180d3",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/recorded-state.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2987,
+      "sha256": "494dc2abf44df8acfb8affc47f792439189199b2aa682539835db34d0e94dc07",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/recorded-state.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3150,
+      "sha256": "ced5d272794c30aa10622f77f5afba11abc88e34c132ef39b134630192675297",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/resolver.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4995,
+      "sha256": "0a47d36b9b57e12ec7ee4140c5c46c3f1ec2ce3efab324a0eed59914d1836701",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/resolver.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5447,
+      "sha256": "57b3f2e499d8564a7d5fad6d9ea6d24d8a02e5d3f074c3ba1da5e2f308763181",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/run-lock.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3603,
+      "sha256": "7a456a4f9579628bf3b6577de03ba4afdd4c04bae2bbd16a047829fd14279e10",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/run-lock.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3250,
+      "sha256": "407a284a810a57e5077dc0b4821e69fcd9b96020b4b1d13f0fafea64cbb5f779",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/scope-amendment.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7425,
+      "sha256": "564342e8d4e57a691cdb552a17f64f5a8cef503718ec9bce8983adfa1031d07f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/scope-amendment.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6318,
+      "sha256": "94c35ac47673705cc459a38c6d8591e95224d7bfd935c8a36c0e76f4107e8fe7",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/scope-observation.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 14040,
+      "sha256": "0219e08d537502b89ea9c3f5a10887da420fe7c926c754a49cd8c38582e54398",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/scope-observation.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 14487,
+      "sha256": "98eba18cbbfd2774dc0f18ad48900902bd54efd045a387d5b322dde865c86124",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/scope.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9011,
+      "sha256": "613f48ccd5698bcd8ade92b8a046e7e91c951627c46e093befb09430bc9305c6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/scope.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 10007,
+      "sha256": "5f0d0e0bc621989f804956fec56b1e4757141b22a562174e38203c88adafe5f4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/work-observation.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6780,
+      "sha256": "fe7c65815aebc5177965c523173f5182b82cd1a37bcd46017dc671776ed8b6c8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/work-observation.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7424,
+      "sha256": "5d2f9ab5141d2e74b9947866e33a120452fea40d443b48da6b91748639c82948",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/yaml.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7191,
+      "sha256": "c9b7494d9ea9771d54ee80f31859b4b1605c9312e1e0da7219de6245abe0aa8a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/yaml.js.map",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7944,
+      "sha256": "1a7eb0b73743bc15d07599bd18a3d291b34a4e026c0d6e78de600041bfdab9ae",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/adoption.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 25543,
+      "sha256": "349ee3429f6944cb4a39cef767bb21727974940e0e0524f87e031510af744240",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/assessment-protocol.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 12557,
+      "sha256": "caa6e8ac8dce4e67c295cd5902d9de3c01a16caac8267d0d96809a51dd01264e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/author-format.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 16455,
+      "sha256": "3cad71acc433910d1285023fcda2741b74488da3955280a98604b6ada25afaa3",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/authoring.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9969,
+      "sha256": "2bc95540fd12537d0f72379e98c462fa2016b24a676fdefa8e22b18fd0c5eba9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/discovery.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3941,
+      "sha256": "dd61a6621aabacca8ed81276196e673b22d39fec2271629243d1136caecfda6e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/inspection.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 27215,
+      "sha256": "d54fb7229222810de78bc5297f23cafde2401b9aefb89f0475a77774fec4b646",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/installation.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6849,
+      "sha256": "ed14cc4ab080be265f9b8c4afe834d7006b55ac66e4c4702ae248b49228bcc39",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/release.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 15653,
+      "sha256": "6b97033652dc0fc89128f44bb3a5d197e042a8381006c69b5eb7ac4a3a279ddd",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/script-protocol.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 12792,
+      "sha256": "e0f6106f9aed0dc199d17f7fee43867d283def76ed1a09cddec95115040d2320",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults/checks",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults/checks/readme.py",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1047,
+      "sha256": "096be53f4341c075024c2b682f030b10cf6d5450082c34b6efccd99893a7ae3e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults/files",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults/files/AGENTS.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 50,
+      "sha256": "7480220e0f324077bc4978cde35e07209cf9352b0a938d0ecf07e758532a03fd",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults/files/CONTRIBUTING.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 47,
+      "sha256": "619d50ac6efc0a7516c1924bd6707ca5f4e26702189c94f894c79e7609693ec6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults/guidance",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults/guidance/readme.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 295,
+      "sha256": "7b88bfd808553868df8a9d28dc011d22f8a822dc7a80ad755827e95612de1f7c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults/guidance/source-layout.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 474,
+      "sha256": "06ebb1450fc3f4de4f88c2f3ec5083f2e0f37b10305645c73efcab2515fe4b33",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults/skills",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults/skills/review",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/defaults/skills/review/SKILL.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 166,
+      "sha256": "9b93e8925201eb2614df961e35c12bff6915affd9b5e0d28cd67a3f28111faf3",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/profiles",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/profiles/work",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/profiles/work/files",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/profiles/work/files/AGENTS.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 61,
+      "sha256": "59d2a523636ee783e6c04d76a87790c33d4f02ed4f646075991cc73a9f5caeaf",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/alice/standards.yaml",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1373,
+      "sha256": "0537a071d6ba5d2aca7720b358376ab618197a147f01e724251bc0b58b74ce74",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/atlas",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/atlas/files",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/atlas/files/catalog.json",
+      "mode": "600",
+      "type": "file",
+      "bytes": 41,
+      "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/atlas/guidance",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/atlas/guidance/project-discovery.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 945,
+      "sha256": "014cdfed3463e8fb4d14a46c90fafd099daa087fd00a5b8d7ddbff7cdcacfd57",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/atlas/guidance/project-documentation.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 606,
+      "sha256": "f4d9ba3e46d6d5d9bbcb043d2fe4bf687a96f61f505ee30bbd2e04afbf2108a9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/atlas/operations",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/atlas/operations/markdown-ending.mjs",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1140,
+      "sha256": "cc333786362309d1e05db95acb7c634539ab5e99cbad96998c7172177009511d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/atlas/standards.yaml",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1268,
+      "sha256": "554a4d8ed42d8eb37ab8ca4ba0e44d983815bf4990922484b845b1e0a316b7d5",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/mira",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/mira/files",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/mira/files/editorconfig",
+      "mode": "600",
+      "type": "file",
+      "bytes": 115,
+      "sha256": "76565420d6347129e8c1b99ae259c764efa836509053365541eacebc5c27e188",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/mira/guidance",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/mira/guidance/operations.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 687,
+      "sha256": "14ed095ccb26556265776894ef32d2e0c0a1b171e2547a09b12d122a1b9c397c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/mira/operations",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/mira/operations/check-operations.mjs",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1349,
+      "sha256": "5c6378a3dc077e981cc80be7e30db408d5dafae4c84295bba95aeb6cde1ead53",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/mira/operations/initialize-status.mjs",
+      "mode": "600",
+      "type": "file",
+      "bytes": 877,
+      "sha256": "53c0cacb1fbef5eb302885da5672ca3384c5e45819ccc6edce2451b24fad052c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/mira/operations/required-sections.json",
+      "mode": "600",
+      "type": "file",
+      "bytes": 34,
+      "sha256": "fc1bde1264915f81b0c7458c82953f8ff456e08fdaaf18347b991261b0a402cd",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/examples/mira/standards.yaml",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1275,
+      "sha256": "a9ba79f001fa8dd95ca833f4f5b6cd6c5e1b3bfebe5f7543353c3212dc82df55",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/package.json",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1426,
+      "sha256": "40183f7e2432f82bccb5cb9b9b7aca4daf6502be6212f767e1634992b429263c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/skills",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/skills/adopt-standards",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/skills/adopt-standards/SKILL.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 10513,
+      "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/skills/author-standards",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/skills/author-standards/SKILL.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9621,
+      "sha256": "46743911d9a2e6f72e9fb762c4f8a196289827596debd479d8732fe2108e97d3",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/skills/author-standards/references",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/skills/author-standards/references/cli.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2956,
+      "sha256": "be4624e31d9781077f010afeffa8fab43d0d4c21b996331a282354024dfc3e6c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/skills/author-standards/references/operations.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8246,
+      "sha256": "3143ce8527dbb2ba3d2b116d569eb26f6addf752317944942651d531ca667c17",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/skills/author-standards/references/profiles.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2776,
+      "sha256": "784a8b5a60d3c67f61361f829797b7bc0f005e739dbe1ed1943ef31593977851",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards/skills/author-standards/references/revision.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4614,
+      "sha256": "212a85d506397cdb82a598c13f9360ab26ec143316933305fc1ec7aa3b966e4f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/CHANGELOG.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 32660,
+      "sha256": "843bdfdcf61c2be328ada4aaa4bc4522c4f43aacdb0fe8e0e27ca5e96f17904a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/LICENSE.txt",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1117,
+      "sha256": "22bcbbbacd739b026a8dc484f62a31484ce4c4e31f3408b60b29b4e41d62b290",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/README.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2783,
+      "sha256": "107b6238186d247e7063a06be27bb0c3c910618a3f559d5d6dd91e3bed416b28",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/cnoke.cjs",
+      "mode": "700",
+      "type": "file",
+      "bytes": 30576,
+      "sha256": "b7023245315bfb3f89280a3cf4ee56a9ba8e75dc87b56bf7eec3c21d92d58c56",
+      "executable": true
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/benchmarks.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4562,
+      "sha256": "8b61a0b915efb580335cb0bed8ec49609717f43848710cd68ea219752521f484",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/callbacks.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7909,
+      "sha256": "f1e3f14a1d84a5b6d6d7d6d3015a9859043f4d3773b932d361bc49f08a240284",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/composites.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 16117,
+      "sha256": "83d107330187f08088a7e2b1aa98f06585dcf2f0719aae66a47af6fb95edc40d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/contribute.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5744,
+      "sha256": "72cecf31345e1d4e46d564bc4aa5020c5a445968cc2a818b337bf3a1019a4cbe",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/index.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2869,
+      "sha256": "3da263b2eb27dd0122e8c6feba2eb4e5f2683a2306084109249037872e8adb6b",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/load.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7526,
+      "sha256": "7b9d19a90f00c1cc47537ac65742e577fad22ec2fd18d400d4485fe4e00022c4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/migration.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8909,
+      "sha256": "3826d5c78a612cd11d0319d7c4e0afebde3c5c67a7848fcb5016fc9c4ccd3333",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/misc.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3790,
+      "sha256": "df10e522dd8c9512c949073d243cb9cff4dceaea69139c98c773ababb067f4c3",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/output.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9366,
+      "sha256": "78a692be2e23954ad024345806b2d4937a45113be6c48cfc2fdd53dc49c32580",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/pointers.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 15051,
+      "sha256": "628890dec2cbe8304e006effaaead83e36d5e6b3695f3b7bf7e8add1d26f513c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/primitives.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7561,
+      "sha256": "3b4cab3721ecd6cad4ccc0ba251f9edae24e3b03bb94ac22234b5c8718a7f346",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/start.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3008,
+      "sha256": "95c57729bd5b4477e39a8950fd4f1e6c8121cf5fba58907d16f2c8d5bdf92b8d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/types.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2828,
+      "sha256": "d8a1acfcc5f416038f05b6f53a93445e80cba70755592d6ceaf5b9df9b3c5440",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/unions.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/doc/values.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6324,
+      "sha256": "f712dc80674c1711b76edc64b1a55c06e5003e17b542afe071bc20cdfed161ba",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/index.cjs",
+      "mode": "600",
+      "type": "file",
+      "bytes": 50,
+      "sha256": "a200e15ec168d00cb3155794808a98243051c61dd7f6989c23c57ee220c918b9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/index.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 12838,
+      "sha256": "b4f749b16500797d1f0e9ed0f04e08e1b162cfbaf48e3efbacee8f27182b4ad1",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/index.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 85,
+      "sha256": "34508972d2e18b79fd4a289943568a68bbaf18badd2e82a25c8deb1af27f6225",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/indirect.cjs",
+      "mode": "600",
+      "type": "file",
+      "bytes": 53,
+      "sha256": "f36c7fd3caa9c43da3db45e1ee272892087b4001b6f575fffb76dd80574829b1",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/indirect.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 91,
+      "sha256": "5c5045c5b5ec2083535efdfdbd95f5212545ce29a4b7f33a683504a35e5b6a02",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/lib",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/lib/native",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/lib/native/base",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/lib/native/base/base.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 320793,
+      "sha256": "8b68c65dc37eccacfb90dd201935d01b0eccf8460b3514b3009bd18437d4f81d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/lib/native/base/base.hh",
+      "mode": "600",
+      "type": "file",
+      "bytes": 175756,
+      "sha256": "08b1350be29988726a91f989c68de818bfc128015e50b0bc39b64ca3081c007e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/lib/native/base/unicode.inc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 36653,
+      "sha256": "a337b5e53a6c72534fcf093c58d7fbf12f7b1075f068ea83a09c91e34373b5a4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/package.json",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2208,
+      "sha256": "9ed5909da5972d5c0edf9d0f6f936393bc00d92cec8aa28df7e1c02240ef9b48",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/CMakeLists.txt",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9607,
+      "sha256": "270a032caefcc8e084d8e5c3303ec79de24127c7e28e9b4903a9024324ab16d0",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/index.cjs",
+      "mode": "600",
+      "type": "file",
+      "bytes": 11008,
+      "sha256": "3135201866d6611f4e47c7976140409c3d6a69a4c77f201f18543518764407f3",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/index.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9572,
+      "sha256": "7cc6d02a3724003738c3348db17ff823c707acff481efdee5e7250350ea3c174",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/indirect.cjs",
+      "mode": "600",
+      "type": "file",
+      "bytes": 10942,
+      "sha256": "42a293ef83bbbcb1399a1d9782d3ad5762c83f3a592d4aaf5993f66cd6d15082",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/indirect.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9516,
+      "sha256": "9ad745b77d0c9d7ebd504f8d4b6ce2e1a0b33976da199c81e7ea58d51f02c92d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/arm32.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 11601,
+      "sha256": "c5695a0e169a6ce6c1af39ded8846f2031df6c27247ff241c5b0c4baed7c7c54",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/arm32_asm.S",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4149,
+      "sha256": "8226b9db2dba1fdd1f3bbb0a38adf60f20a753560dc90fa9ec68d63d6b6c2aa2",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/arm64.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 14053,
+      "sha256": "2c56ade56a9c65968cde9357da747d2c99d42de45594e2c846fa4df4abe48bb8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/arm64_asm.S",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5252,
+      "sha256": "c9317394dbd8942a9167c91057529fda6d14282be7227ffbe64394a0c2af1b74",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/arm64_asm.asm",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4290,
+      "sha256": "11a7a8355a848dd50d4ddbd09ad51b5cc5822fded3664ecafc6fee6abf6c63d7",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/loong64.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 273,
+      "sha256": "dc53190f98c24d8f909358f23a20ce861d58124a232e87e8e2aeb3566ae02088",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/loong64_asm.S",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4648,
+      "sha256": "436bc1cd9796956ca135d154345ff3871360d5e86ca39570299fb0dbab5f0acf",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/riscv64.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 11644,
+      "sha256": "1e022470d447e1350f1eac5120d034796aa263cd8ff76eb23544fd3eb606d110",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/riscv64_asm.S",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4373,
+      "sha256": "30d96912e2bbca5a12c904a9474ffbd60bb2265e51dda3b984cee2a6423efe6a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/x64sysv.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 13877,
+      "sha256": "38f5f1216511e989df8b3c9b4e864f18d9d2b2f8c24924c665c6e405a6e553f4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/x64sysv_asm.S",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5486,
+      "sha256": "4daa7ee2445cdd047d582af8c9079447c85b3d58db9806fb734eb6a2440ea411",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/x64win.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4945,
+      "sha256": "5c370740082995e9ace526b752e8d7e3492cece0a57d486dcff4d33ad8afe9b4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/x64win_asm.S",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3883,
+      "sha256": "cf309cb28046d9656e683deed3a4e9f5e44266f129593dd154d0c88f822854d3",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/x64win_asm.asm",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4708,
+      "sha256": "2e3e8014820b352cb0eb775c03996edcd8438917b0ca43e975cda3d4f5bfc467",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/x86.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9209,
+      "sha256": "40ae76f19e16ebd3b9e5caedfba7a01241159cdf5401a6baa2a30ed57c1890bc",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/x86_asm.S",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4658,
+      "sha256": "d10bf04332429f032a59108c11c14087061c972231f39b7efccb35a16689f397",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/abi/x86_asm.asm",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3875,
+      "sha256": "e24a7ae3e2a95bef4bf6e695653bb6a6931c782f6045d3acfe5a1e6e18c8b8c5",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/call.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 71037,
+      "sha256": "ce3b41b048284a499a71a538f88ba5514aea4a5bf26c1a87a1b25ea80de9b33c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/call.hh",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6037,
+      "sha256": "363f5fd8f69089251fc18592ec896c7b5afd099d49d79349443c5cc2adbe2748",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/errno.inc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8776,
+      "sha256": "f2fea4a329fbf7aa7e5a6c52daacc480d70d782344e37fd7e62019f6b914201a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/ffi.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 106263,
+      "sha256": "a0ed472a8975a1e1aef165d9d01334c52e2dde877c30614552d0d9a91e1cea12",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/ffi.hh",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9398,
+      "sha256": "a157b30d96ce2af4f301735c2dbab0f673b05064a08186c210694b65542d030b",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/interp.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 56501,
+      "sha256": "585fb89fcfb5002e37888d0baa2f6d725f3c6f3d38ee0a3f612f00c1507c9f92",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/interp.hh",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3402,
+      "sha256": "c6ffe5b7e59f8cefa9b036398308ae1d1c0e2216c28414e991ccfa434d21d82d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/parser.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6256,
+      "sha256": "a10d056248137353dbf407788907702a1b1238f5a09709216252ebb04207535d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/parser.hh",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1253,
+      "sha256": "cfd9e374884cdc0f60716de41bbe110d361bc10d0a8539942e37d34c86b525ae",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/primitives.inc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 857,
+      "sha256": "34f524982a6e921a63c6766619b337b6d15f0a5cdefbf252481dda4b4369afda",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/static.cjs",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3251,
+      "sha256": "ca1e8bb6a3262025530cfb99e6ba27e3581c4aabfaeabfdd502baccb3755bc70",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/static.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3334,
+      "sha256": "bc048698847efedfc65544a87617c31a81eb2a5fd1de5363d2be161e78792f11",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/trampolines.cjs",
+      "mode": "700",
+      "type": "file",
+      "bytes": 2033,
+      "sha256": "82895e2a78b911b297e7497d9d6033ab87a0afe64f4904615dacfa318d83adfa",
+      "executable": true
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/type.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 22108,
+      "sha256": "3045f0875642287be3c17022e390e9357f84c93f413cefdc197117c51ce6beac",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/type.hh",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2070,
+      "sha256": "3874032e5ea22422146199e4359d8a25e6f553604dd569cc92004a58758c464e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/util.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 34958,
+      "sha256": "9b8fc771ed3648f743a80645a152c958884207bfe08f433aacadc484aab2d25f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/util.hh",
+      "mode": "600",
+      "type": "file",
+      "bytes": 13621,
+      "sha256": "8161249f0ac57a619cffb665f3c528caa4ad3e88f3644ed958eccbc55312eacc",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/uv.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6388,
+      "sha256": "1da9e82cef92232daa4090415c66fba6c3584ee901550cc83978e363dcdd5c7c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/uv.def",
+      "mode": "600",
+      "type": "file",
+      "bytes": 134,
+      "sha256": "4a40dc700dc66214fc1c464db8c4b78b82845e3b7b4e6103418ac519346ca4d2",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/uv.hh",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2536,
+      "sha256": "6ad3aeceec4070cbf5fe1f9e54a75b58dc57c2686174c654b341ff9215d70aca",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/win32.cc",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5776,
+      "sha256": "3bfa4a499afd5b1933882d09004f6168bb3ccf25ac0e42ce321d12dae67d8d6f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/src/koffi/src/win32.hh",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3932,
+      "sha256": "46b0b57a2771e1f2647d49711ca249029dc93e92a17007302a78dd58fe3bd4f2",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-addon-api",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-addon-api/LICENSE.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1150,
+      "sha256": "89024017b88a9f2b763f79b941a4f2db3b4428edfcacdc0b23866b2da633ad0c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-addon-api/README.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4994,
+      "sha256": "9c9fcf38e120933aac37fe2cbdcb85abb59ecb1a674abe944c9b627dff8539a6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-addon-api/napi-inl.deprecated.h",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6323,
+      "sha256": "b66ed1e565e735bbfabcc2f72d466ab7c5414d3ef8851d1af440b81be7f2375c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-addon-api/napi-inl.h",
+      "mode": "600",
+      "type": "file",
+      "bytes": 243618,
+      "sha256": "965fe706f18a2acd7fde0c7dfd1e450cf2d855d2cec03d9d75021c1226f10a72",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-addon-api/napi.h",
+      "mode": "600",
+      "type": "file",
+      "bytes": 125640,
+      "sha256": "f213cbbe041af5f4b8021bd88dd000dc99d7dd7f2e06aac58a2ab8b407ff4a8a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-api-headers",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-api-headers/LICENSE",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1064,
+      "sha256": "a553508f516031c91f3af1148d44970cb81bbae6c4f091be6835d39cc252238c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-api-headers/README.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2741,
+      "sha256": "63a4e81d19f02b164d51c4721ff3e88c81d410640de7e1d3520a2c406f0a7d83",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-api-headers/def",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-api-headers/def/js_native_api.def",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2734,
+      "sha256": "77653a554fbb27f6c5666f4ba05f87d26f0de72bc3d0439961ac030030c2be66",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-api-headers/def/node_api.def",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3550,
+      "sha256": "e0d5e3da0520a42e26b563f6321291081bd15bdd20821d46818e5f47900f77d6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-api-headers/include",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-api-headers/include/js_native_api.h",
+      "mode": "600",
+      "type": "file",
+      "bytes": 31081,
+      "sha256": "0953395662ea63697cd7a77a9320d94aa2829f9c9569abf3a74272b7a2923ce8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-api-headers/include/js_native_api_types.h",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6744,
+      "sha256": "21eebde05d2ee59d315ac27d4aa82434ca88508a0b2cf5819802a00ca523831d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-api-headers/include/node_api.h",
+      "mode": "600",
+      "type": "file",
+      "bytes": 10370,
+      "sha256": "2d4560831e525b47b060ec8a0864ab73993df9e20215ce9f0fe7b24cd31af32a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/koffi/vendor/node-api-headers/include/node_api_types.h",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1930,
+      "sha256": "a25356630d3058f0a0c8937d9f297e9471e037fda58c2696d8a505c2bd99cb00",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/LICENSE",
+      "mode": "600",
+      "type": "file",
+      "bytes": 765,
+      "sha256": "4ec3d4c66cd87f5c8d8ad911b10f99bf27cb00cdfcff82621956e379186b016b",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/README.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 25669,
+      "sha256": "f1a789dcec285150be24db2ea04dd3175031554fa9834ec92fab83fb5e025a57",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/bin",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/bin/semver.js",
+      "mode": "700",
+      "type": "file",
+      "bytes": 4957,
+      "sha256": "bd6c871026985937dc945011fc54b74b47f5998154216d7b8d40d5ed782e4402",
+      "executable": true
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/classes",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/classes/comparator.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3631,
+      "sha256": "054202956430d63d5ff4599fae09760ce465b489e4f0b5ef5ce7cc7ac21157ac",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/classes/index.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 143,
+      "sha256": "3bb69280c2a788d0eb16f915bb9df4dbe812075182024c753dca2283bcea1b17",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/classes/range.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 15647,
+      "sha256": "a6544485aa8575aa9854c67e2caa67726815de18a482d0ceb8a1003244de3bc1",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/classes/semver.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9891,
+      "sha256": "813b2c185512d30c9b931c2fed8140889d9d7490ceeeedc370da30337dc8ca57",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/clean.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 205,
+      "sha256": "4eadb0892844cf3ae295121a86163a66c73f89acd1b7f0b114ec115b4539512f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/cmp.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 961,
+      "sha256": "a63d74e87b73788e78e9ce0a4892b5333d6b809c0de88b31e4ed76cbf17f94b3",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/coerce.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2004,
+      "sha256": "28a251c5ab210ddf9e97551b9f37a53329fcce91f0c3943dcbc02de1a1de915a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/compare-build.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 281,
+      "sha256": "5ab651d5b40af289bd85c645a92b6d8cfe1a986dc413c797cfcc8d623d7c844c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/compare-loose.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 132,
+      "sha256": "07b6a3a1db0a5210ceb784c1708bd4679f3a94fc73a9c9eb349349e7070a6f78",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/compare.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 170,
+      "sha256": "d404b5aa48aaddc8a654c5da8fb7d4443404b7948589b21ac4b045d1cee4e34c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/diff.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1423,
+      "sha256": "7a11fd39b987cdf06c65e928cb1aca49bec583feb86fb5c8fe47a6fd61d7de31",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/eq.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 126,
+      "sha256": "b6e30a7168e52723216fc163d300e2bbabf92ec0251f9ac5438bb6ccf57c8936",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/gt.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 124,
+      "sha256": "135523704aa48cd98834dd170ee9f74f0e68043b379f32d021db11e6304c5c93",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/gte.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 127,
+      "sha256": "991c5bbe48ecb210a562646872f05862ad9fc0d42186d85aa60bdc6fa323eb9d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/inc.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 478,
+      "sha256": "952069fc8690b7d3af0fe9d55f7c54fe2ac067b48c5e74f6a54f9ce19a334493",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/lt.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 124,
+      "sha256": "1c897a9bc849320e2e9dc0f6c09555c01ee3ddf30734515d717b88ad7740ea25",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/lte.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 127,
+      "sha256": "3a8d0b1d00423f60cc7cb810b36ab77b61330831ad237dbe73eb5cecfa412800",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/major.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 136,
+      "sha256": "5c678480d882f511200fed2c16ec3847dfedb08a1d70328dc2f031d35d825276",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/minor.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 136,
+      "sha256": "1b051794f1713adec2a236517196691687c35f82e0b596ff3316a78b3cc10ae6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/neq.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 128,
+      "sha256": "a662883751918822c162183b46b9e20d09489132f82686c92ab78bee67f3a127",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/parse.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 331,
+      "sha256": "29a69e15b6d02fe381d573f861881a89590e9d0f0f0ca740c5f85eaf0234c4ad",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/patch.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 136,
+      "sha256": "f02d3c1b059fe3d96ce124886f7eef321d381a95638fd3c4a8d5ccd8e76ffadd",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/prerelease.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 234,
+      "sha256": "baedbf503d5610ad041bfb56071efa48feb331ca278295c399537d35d3ffb593",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/rcompare.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 132,
+      "sha256": "84fa5e88adf08d15c993cac8cdec6d1a65045b7e95a9c55184230a7f807f4dc0",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/rsort.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 163,
+      "sha256": "6ec659ce3b6c2b173c719286caab04409adba046c0917874ec3b5e36ddfbc7e3",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/satisfies.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 247,
+      "sha256": "8cf5e122b757251671ed6c9d9680904b71cd375845853f05312e608cf2cc2946",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/sort.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 161,
+      "sha256": "c2fe2d3ed0be8a4e9de8f02abdfd5d9c0d3bcc510d88e87af84185592882c4b8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/truncate.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1021,
+      "sha256": "e145833a250311927c92f424f56498c52f1b7bb1271ce6afbf006db87773ff43",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/functions/valid.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 176,
+      "sha256": "0de7ea736cb7807179d46dfac09c830a9338e02b6a07db12d7040cde2def6025",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/index.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2691,
+      "sha256": "4b3e57d3d40e29e0706002eba113d09f35aea593578376bbeec83b777b9912ab",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/internal",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/internal/constants.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 873,
+      "sha256": "38a112baf27ceca0260082ff26ac2fd7a9861cab1af12dd65e720277f68e6ce9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/internal/debug.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 240,
+      "sha256": "8a9f420572260f3cf944463b5090d62a60f0730589dc23a7ec4ca25e2ee41bb3",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/internal/identifiers.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 525,
+      "sha256": "b4916b09dc7869ae0eb05e71c855c942a3a7365f7e6e89185d59a9e45a2451d7",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/internal/lrucache.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 802,
+      "sha256": "14d087c87da87b6f5c36fc4cdd7d2d14077874b14a68e20fce5b6138fa2ca34f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/internal/parse-options.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 338,
+      "sha256": "fdf51d0de8d5442c35a997ef58cd530d239ce206f961d14c5121354451b01d01",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/internal/re.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8139,
+      "sha256": "5833262888e2b5d843a69193f83c05e374818dbe55379b497819b5bf58e48cd8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/package.json",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1661,
+      "sha256": "7c94cb7f2a53c27b20d76386ec144c062894dbcc909cfabd0f728c37874b1776",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/preload.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 83,
+      "sha256": "edb6808911bebcb324b2df57e5c9935149e56984ff083b74c6cfe215f5b710ba",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/range.bnf",
+      "mode": "600",
+      "type": "file",
+      "bytes": 702,
+      "sha256": "15d0baf9b7b98e6d862c0cb9e822d2533d2bc23e136bb75314d802ca1fcb0392",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges/gtr.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 231,
+      "sha256": "8fadad28e36d28e93d498ac7ac20badba2a407312845eabc18e82e90a0732b19",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges/intersects.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 224,
+      "sha256": "fe87ac5d3020010ad3ec00636dadbf0c669ff07d0f57e0a8165a8264f79a676f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges/ltr.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 227,
+      "sha256": "e5186fcc03018acf9be6d968755d4c49727aeb0d981d179eb568ae5fbe983038",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges/max-satisfying.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 593,
+      "sha256": "e1a2c0d6144cc772cd20bbc8ecb9e8a3a4074e9172a3d8e794838b591cdeb416",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges/min-satisfying.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 591,
+      "sha256": "2681abf54098aa670f12826b76a6ec77a2441186ae4243afde3be8ae4908f7ca",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges/min-version.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1514,
+      "sha256": "fefba0a88c2bf74d5cede504b5ae50a8dc3edfd69cf0174a491e2cf3e442614b",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges/outside.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2204,
+      "sha256": "3a2b0b23593d2f49419c06af2af75450cab103b0c25d665d48fe5bca495a21ca",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges/simplify.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1355,
+      "sha256": "7b78581c13322bc68ece2088685386b2a9b51c15b94d0a2063bdf2546bd41934",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges/subset.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7478,
+      "sha256": "ceb9eb6ed5bfc6c7ac7af7f47e5c3535444a4e66a0e2b58cdad4bd02a35d454d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges/to-comparators.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 282,
+      "sha256": "6c5e966210cff270fa2850668aaf8460fac7759f8d99f282521ef7a78f4564e9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/semver/ranges/valid.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 326,
+      "sha256": "5ef6f995af801868925940cf8df5735d565ebabb090b068695cae65218bcd3ac",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/unicode-case-folding",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/unicode-case-folding/LICENSE",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1066,
+      "sha256": "0a2f182ae5c667aa30bac21a0ee823fb4d2b71250f08d4feab9dd0f8f09cc072",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/unicode-case-folding/README.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1791,
+      "sha256": "55b3bb279cc80e7556c0731098d08884095939e0e5aa7845d8e6afbeeda448ef",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/unicode-case-folding/index.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 24906,
+      "sha256": "c20cb4dd91d4e79c17ed42423ea99cd0fb98344727963d002159c417df103237",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/unicode-case-folding/package.json",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1122,
+      "sha256": "97ba2850a31971d8817e87e1433d4970f0e6341f508197825033b2b531938a1a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/unicode-case-folding/types.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 611,
+      "sha256": "5e12bbb3540da13e5aa5b4b5f2dccf7656941369bb1c0afa58edae49bb442597",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/LICENSE",
+      "mode": "600",
+      "type": "file",
+      "bytes": 738,
+      "sha256": "5bba27375d93e9119f76c1015f7672cf9ad5f70952296e0842fb2243d6376869",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/README.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6266,
+      "sha256": "c8aa393826fb1c55ae195399864e7f454a2c66c4d9491459545b26cac4b958e6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/bin.mjs",
+      "mode": "700",
+      "type": "file",
+      "bytes": 310,
+      "sha256": "faebbf70669988b5be13130907adf7b788145960448eab08e92e66189e72f448",
+      "executable": true
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/compose-collection.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3500,
+      "sha256": "7fa2b7a37902d99bf924c3e4db7b003202837597a7815d9917736dbd1861b7f6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/compose-doc.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1555,
+      "sha256": "0ec9140185c6d965783c4d3e9ae427fb4a377935dd20d8872eb35b56ec461579",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/compose-node.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4122,
+      "sha256": "c6ddd844d89a2086cc1c4cc643cae6361e7fae0728dc0f71066ded02bb7b5d12",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/compose-scalar.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3316,
+      "sha256": "3b7d0f5876dd7c33b8f2bf896178008283be8e4a82495070dc638a922e202e07",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/composer.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8484,
+      "sha256": "214e221c39346468e4b7713d775bfa9dca87695463ac795399e66b91a06540cc",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/resolve-block-map.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4915,
+      "sha256": "ffa61d87f9f0e58a5e05c54073f67c34c4575234f357bcaba6fb164e36996b97",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/resolve-block-scalar.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7447,
+      "sha256": "2a89c2b128e143a98f61751b9ab7dd08d140105c185ece6a687015ea8e0be036",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/resolve-block-seq.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1740,
+      "sha256": "7905b607f90dc9078463fd40e3fbb22537e45e0ef2514fc6c662526b4cdc2ec6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/resolve-end.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1239,
+      "sha256": "e0a32e1b8c5649ea14152b0c0d45fbd64d46dbfa299a7328b71421e49ee48db2",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/resolve-flow-collection.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8778,
+      "sha256": "957722ee22cb72b48e9d78ed6dabdca97fcbff188cad1f362864a959b184925f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/resolve-flow-scalar.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7324,
+      "sha256": "133cf55793444359e187514746cfabcf3cab0880a9c5f24a8b3824b28a9c12ed",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/resolve-props.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5552,
+      "sha256": "4b6c34fe620ddaf31e06c44a1acbbbe8e49a617ae805bb8dca70a278812c16cb",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/util-contains-newline.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1051,
+      "sha256": "4810ffba0d74ebb913731e1369ea17f6fef20df2feb2ef0bd8553e439f4a6b78",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 816,
+      "sha256": "571d615e24fd379998df23e29df09f127349f4757fc4cbad176aecbfe77b7d82",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/util-flow-indent-check.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 494,
+      "sha256": "ebab50fc461c9eaffe07c807dde4aff4f8c5976f5aa4e8f02608ed57ef52a690",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/compose/util-map-includes.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 428,
+      "sha256": "584a79bdaf93b530fee951c888daf844a6a329f672ffb57450b39f72b0bdfb95",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/doc",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/doc/Document.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 12903,
+      "sha256": "6b9c9187a04d13331c07d7193baf29b0547fd20de042e1fd57289f13d61ad196",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/doc/anchors.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2276,
+      "sha256": "0d5c8fd9bf01e2f4eb0cf08771705e0c0efbd05d9835714fc94850d943003cc6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/doc/applyReviver.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1923,
+      "sha256": "b653aa07fcd8619637c1dbf6151d9de5e22efcb3becfd4dff86cdcf4bb2f1a97",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/doc/createNode.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3061,
+      "sha256": "80a8212199fa1591e0836c0b19e05f9734dd5e6a7dcd54d6da1e4f2a20f2450c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/doc/directives.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6188,
+      "sha256": "688805b988a34cf7c2f6e5b6c3f1e6a798b22b4eaa450286df095d6b741fedf0",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/errors.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2023,
+      "sha256": "410bb3397beb0d3a8c649d048b6e087bddf1f7114832eaf94be0fcbb4a8af29b",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/index.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 879,
+      "sha256": "c7d10350202ee8cb14febfce6b559c93760405cc4738a89c10abcb3c44fd6990",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/log.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 260,
+      "sha256": "2e7d7edee783c901f36a8f986d126f15f33ac504fe17d4655e6846869d07b9e4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/nodes",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/nodes/Alias.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3857,
+      "sha256": "79e032d3d6d4fda1881030c5cee45b31b8fdc0fa2de5ec1b847cc4275e74000f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/nodes/Collection.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5076,
+      "sha256": "f18de1edc4f5a3ae163a6ca894e2b4debd3a8c480338f580ac6cdffebbfc4bc9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/nodes/Node.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1339,
+      "sha256": "aaf0e1042d4b11f4760f7de032ec99ac49dda1742e55911f5a4df182cbd5471f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/nodes/Pair.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1124,
+      "sha256": "a9f0acf0f06eab7852a99418a07628fd0e26476895c90af3ae66bab8704e9b11",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/nodes/Scalar.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 700,
+      "sha256": "80a4961d380ec00c5eb9a47f29dfb378437d055910e163a9ebd9accf032b6e03",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/nodes/YAMLMap.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4957,
+      "sha256": "42b884f36dfb23248e9f2200bce5e7a6007f90e0adfd228de8079346e9627737",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/nodes/YAMLSeq.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3573,
+      "sha256": "75d12e1a5edbf1e3d04d6310ffdaf553a3a1ff7d12643cfa428330ca7189604d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/nodes/addPairToJSMap.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2289,
+      "sha256": "67cc22455591363a78723876f73640c5712161bb840423e705820666cb0d3ada",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/nodes/identity.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1513,
+      "sha256": "da71af70da393500ab6e3cdbceba9c66965bc89c3401388c9ad422c91abf467f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/nodes/toJS.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1266,
+      "sha256": "80f2431eaef0c531ab93b1a8883206394ae3fac75732cc683cdabfdcc00dd724",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/parse",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/parse/cst-scalar.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9235,
+      "sha256": "e30a85b8b613badfb50039938fbb5bbbafbd5f9f95f3a630300ad3dec5fb3dc8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/parse/cst-stringify.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1775,
+      "sha256": "275b500e3f1a0067d5d8671af5c536963a46d4921e49cf156547f796067b8810",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/parse/cst-visit.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3966,
+      "sha256": "0baadd57686b26163ba71e7323a9208fcba81978e9ecebbad80afaa8baa61788",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/parse/cst.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2886,
+      "sha256": "8bf6c87dc02b9375750d550a9099cb1cd1cd71ca9da68f1a0798844a0f76bf8f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/parse/lexer.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 24138,
+      "sha256": "14d3a6e0f1bf7945a92dfa0366f61bcd122aa3c62addb6fbfdaadd796c634036",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/parse/line-counter.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1419,
+      "sha256": "2428d1b9a18ad7d8dabc7e12276e0fd90446c9e3433f1501e6bb43e111ad63c0",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/parse/parser.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 35393,
+      "sha256": "761580b1ad5b36b6fd5e2ffb411798cb5603f8fc46ff11ad8e68ca2ba32a405f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/public-api.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3992,
+      "sha256": "1635da91bae6389b88d38bc99c57fa6ed71c017b026cb80be9cead10bbafa499",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/Schema.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1495,
+      "sha256": "515d6576e94a5cc96c999cd9da230f7ef79d8fbea1f4c6c6939631ef122fb50e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/common",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/common/map.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 439,
+      "sha256": "6094c4919ff0051a663866cf75df489be51987d808f0862b9b9e36d4090182a7",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/common/null.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 434,
+      "sha256": "6666e819b0dd4c9eac1498e8520e23943abf2c9d92cee72b9c5607557800eb14",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/common/seq.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 440,
+      "sha256": "446dc09d297b2b9823d981f3c44e595f8d87c2ce97e2435e1ecc01bc6c31f4b9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/common/string.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 421,
+      "sha256": "830740273a4f0a39b94549377cb12183ab8ce558dfb12818f7b295fe261fc08e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/core",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/core/bool.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 607,
+      "sha256": "9d4b1fe540d36d8e09cf5799b8abed53e4ee620425d3d6712e8a50c927752615",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/core/float.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1399,
+      "sha256": "b24b968b6b714be9650480e07f10d039f145e88e4299ce2268eed57de02673a8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/core/int.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1324,
+      "sha256": "dc7ae60f465273fd7e5dfd6b7f686ac47887fa02db3fe9ec603290003cc9baff",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/core/schema.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 480,
+      "sha256": "92e75125989595b02d9b9f8d6788076d4c1ec173bfa4b0f04eabaaff86153dd9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/json",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/json/schema.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1867,
+      "sha256": "a33036dc6f8916682f9494431ad7ffb1116af7616aa83439b1a956b628e44068",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/tags.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2962,
+      "sha256": "c8085f537d22c3f7f17ea2906ddc11fc69b0106d5447aac2953eec19c025f136",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/yaml-1.1",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/yaml-1.1/binary.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2315,
+      "sha256": "ad5b0407d199dda7bc4fbacaee90d2a2a99540c8ced44c13bdf6974cb6dc3ef1",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/yaml-1.1/bool.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 787,
+      "sha256": "1d605f63430047574323f352893ba3c52fc73fbd1b52e47fa6dec2eb375301a5",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/yaml-1.1/float.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1515,
+      "sha256": "40e68189590e6924d063f2b88c7b2415dcb2f796fbd6e9af18e9b119eed3ce23",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/yaml-1.1/int.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2132,
+      "sha256": "6c83bf34c4ecfa722eff2c252c8bdf95661777738c9971c4ccda3a5413218d80",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/yaml-1.1/merge.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2524,
+      "sha256": "f3ac8d7fb4701053e97d5399bdacde15cdc662420cd7e85de349eb20330dab5e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/yaml-1.1/omap.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2473,
+      "sha256": "fb3d04682a48ec1e0ad26c1afc8a85d1e6c814942ca6eba8bfb94a6571d3e9a6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/yaml-1.1/pairs.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2751,
+      "sha256": "3c37806050903fd81b51e597bfe7acfff972e788e9a1b3c0148f17b32da3f568",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/yaml-1.1/schema.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 860,
+      "sha256": "1e684cad435d9e9601aa56dd4d55243369a010e75edba21ff31d7be84c8600eb",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/yaml-1.1/set.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3030,
+      "sha256": "0cdce6c41328c116fc17f5660a79f8995af8d0227e424e89177a30894138b687",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/schema/yaml-1.1/timestamp.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3698,
+      "sha256": "18fb9beee49f0f3452601ba01b46ae1d6e49bf4a63b499e9eff28366e3dfcb5d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/stringify",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/stringify/foldFlowLines.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4794,
+      "sha256": "1a6360496e3cb52767d4c346655307c978cb2c94853229152f97017c4209745a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/stringify/stringify.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4400,
+      "sha256": "af3ccd112cba318ff9b4686ed9afd0b33fc238da51954fd431dc4c7a9db0b455",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/stringify/stringifyCollection.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5552,
+      "sha256": "0d2babd8428322fe6a9f5cd10fde361a1d8dedae662fd4245c6d151e4a5ae013",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/stringify/stringifyComment.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 724,
+      "sha256": "20d3dc6bebda3efc2394ca162455ce9e4691b6c60995b5b4418b30659e09e03e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/stringify/stringifyDocument.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2983,
+      "sha256": "3ca3818dc9e81ee7e45f0e26792065f47fccee99b6150e76a94fcbb3d0306421",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/stringify/stringifyNumber.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 778,
+      "sha256": "e0d02220e66fedc267b435e5d13d2383e24c8460562d815f670a169dadc2859f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/stringify/stringifyPair.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5285,
+      "sha256": "4074dc125fdad4ef2ec8bab4fbf7ece4b399ecd2fbd1813c4a316e88243f1179",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/stringify/stringifyString.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 13164,
+      "sha256": "0fd2e43243792cfa0a1d8cea13ba8e05ddaf6fb1296a4fde497b956454bfa44c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/util.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 594,
+      "sha256": "e6b73d7297c4253e5299d4f97dc2c05e6e30d69ace66962412f6ab9690d4d412",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/dist/visit.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9107,
+      "sha256": "d9daffd11ec68755a7238684ae3f9c64f59dc86338d0e7cbe521a8fc1d45bd19",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/index.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 191,
+      "sha256": "5ae196b7abe55bed1d4d11f7eeba63aeda0c49fb73eb3c7359e3d6b9a080696b",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/browser/package.json",
+      "mode": "600",
+      "type": "file",
+      "bytes": 23,
+      "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/cli.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1254,
+      "sha256": "e31d2f97aadbc0ff370a134851af7757885cfcfcfa3a675cd59feb7872e4f91e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/cli.mjs",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7462,
+      "sha256": "0ad1d42d88c0648fb6fbd158b21dcc2b4daa2e34e4d4df7aa949d6978d343d4d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/compose-collection.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 582,
+      "sha256": "88460b54f95b8bc0294d2071430ec0e2c1e8f8aef2206646c027425a94767faf",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/compose-collection.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3613,
+      "sha256": "a7db11a1a7987d6412df8adbbb85ccd4370171f82265703b2b6af2d13c45d646",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/compose-doc.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 623,
+      "sha256": "ba8002d807e2b012f40e877b56bdad9ce0a6e215da96dc2319688b56e2a57212",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/compose-doc.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1615,
+      "sha256": "0f388537747b5c1a241639413f17fc2b5f831451b5017d6902e46db6842a5fe4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/compose-node.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1225,
+      "sha256": "8045fa3122bf1c4b97dfb13a404f17d2d2b490521a4607b2ed5eb09b1f9c2a1a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/compose-node.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4269,
+      "sha256": "86562c85e4e5737d28b24aae2030b97bc9b672e1f2de5da9e4d25c4571e4345c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/compose-scalar.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 393,
+      "sha256": "fc7fb9cb5044dfbfc552aed73d8b8e33b7e0de07bd3421f1d28c46b8ef4d5ba6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/compose-scalar.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3446,
+      "sha256": "37920472755bdaa76399b6d33872f0015ae1fd9ba7faa031c03d501aa8c3e903",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/composer.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2652,
+      "sha256": "3e7ae921a43416e155d7bbe5b4229b7686cfa6a20af0a3ae5a79dfe127355c21",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/composer.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8692,
+      "sha256": "509c0bdb4cef641cc784c130b6cc2b350752f6841798daa1a13cbcaf4fc74c46",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-block-map.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 457,
+      "sha256": "905f841ddfebf6b28a63423c0ff43fc17d4067f4021f7ba0fac4e93bc0c2d449",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-block-map.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5071,
+      "sha256": "dcfada448c8fc532ebba96d6788a4b41bb015fc5e697a9544ff429b9c4e4c70a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-block-scalar.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 484,
+      "sha256": "acf6a9b33859e4409b56e68e919061f6daf40132529ec49bd5ba36b7ac2a1f92",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-block-scalar.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7500,
+      "sha256": "af562e2e3cd7ee7b3cb9342984177f6b5c77de73121e87695db3ff635e12d152",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-block-seq.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 467,
+      "sha256": "ffd6665710fd9c50d2eb87a584547b4ec583b39e8b639741b770be7ebcb757ea",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-block-seq.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1812,
+      "sha256": "18f54a39d73b600ebbd74a343e6671d0d08423f125bd86963b72dc24d6261911",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-end.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 283,
+      "sha256": "df9c83d8eac50c9214400faa415eaee2199288d3b87aaf381fc396799a128407",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-end.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1264,
+      "sha256": "532bf56299183e75bb7c20db75321367c28393b66ecb8ffd540faedd9817f116",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-flow-collection.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 636,
+      "sha256": "3f4d40133ff3c69fbb42e7eb758645c4288a52aaa3b1c9b6936339342ca07bd1",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-flow-collection.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 8927,
+      "sha256": "242470b54c0deba1507babba2e879f3005ed2ee3bd53a36affb6ecf82fddd375",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-flow-scalar.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 437,
+      "sha256": "1e52c1052cad40acf62ba232ff1678c132aff44563e8fd553988c8bd7d282333",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-flow-scalar.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 7386,
+      "sha256": "167fa296e6fb75618bb7b315acaa926d4e88b2b63a9ff139f1a7de9c78db4610",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-props.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 848,
+      "sha256": "f79e69096d500e49deeabf6b4e6bd5d3a51a52170e2ad07300349b963d110547",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/resolve-props.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5579,
+      "sha256": "0b49c6af0145c309883dbf24d1a00260c0c090412be10aaa301de126dad15983",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/util-contains-newline.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 131,
+      "sha256": "29d5bb59a4240ce49fb0bea3689f4a7ea6ba936374029db1f16931f50faecb97",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/util-contains-newline.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1081,
+      "sha256": "60182618fc9fa669e74ab74f4231c15b5d24bc52ab0a419684bb827a00d69be6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/util-empty-scalar-position.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 161,
+      "sha256": "cd2cc1240eb3720e7154b4ae91116822cc59a5349436ed7631fb9f43302871c3",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/util-empty-scalar-position.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 850,
+      "sha256": "460516395ef7e961d5248e047ee6d52084f279b76e8af9f3c2bac92da1c7d656",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/util-flow-indent-check.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 221,
+      "sha256": "60a9bbaf35ee0007d0925f376c067a3aa21b32485627cfcba948900a75eb42eb",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/util-flow-indent-check.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 547,
+      "sha256": "c7c0c9837a1f828de19eb3ee0947dff39c4f69222c762aed9fa2fe14fc46ee3e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/util-map-includes.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 260,
+      "sha256": "5424ca8906bc44d732c1b677a250bc85cd0942461c1d53e6408930cdd9e6e029",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/compose/util-map-includes.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 471,
+      "sha256": "0330dc34072cb499493176b293228631ca8ebaaaddcdc0e63b02bf24f6a25c2d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/doc",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/doc/Document.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6540,
+      "sha256": "df9b266bceb94167c2e8ae25db37d31a28de02ae89ff58e8174708afdec26738",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/doc/Document.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 13114,
+      "sha256": "9bc1c9a56de3902d554e77193125b6aadcfaec743073b3417b22c95a8f7d7923",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/doc/anchors.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 958,
+      "sha256": "17b91b170b12687f10167b9e0a712e25ef4bfdc8b1f465e0b756e4512be08773",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/doc/anchors.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2386,
+      "sha256": "ea9a479b1e98d88235ffa6736d0405e2119e9dde7b5249b72185488ab2527261",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/doc/applyReviver.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 445,
+      "sha256": "bc41a8e33caf4d193b0c49ec70d1e8db5ce3312eafe5447c6c1d5a2084fece12",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/doc/applyReviver.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1950,
+      "sha256": "7271668f41f264e4b9aeb184629cfd11c510b401c5a797fa7194d17a9652976e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/doc/createNode.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 662,
+      "sha256": "33a6d7b07c85ac0cef9a021b78b52e2d901d2ebfd5458db68f229ca482c1910c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/doc/createNode.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3138,
+      "sha256": "a39d14026d4cc6ff8d76d90db30c41facc26a146ebed30783bcf28e40b5caa65",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/doc/directives.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1910,
+      "sha256": "9e5b8137b7ee679d31b35221503282561e764116d8b007c5419b6f9d60765683",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/doc/directives.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 6237,
+      "sha256": "8f02c3c03571e377e33680b68027d4336234d7a6da3d8c6a8b7f1183c1c428ff",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/errors.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1260,
+      "sha256": "bea7cae6a8b2d41fd1a9d70475b54d741dd7ca2103904934858108eec0336a69",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/errors.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2118,
+      "sha256": "c389d9c448193ce1bcb9641f5eda62cbe56467b2104357d2fc8dd86df88cb07b",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/index.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1394,
+      "sha256": "9f85a1810d42f75e1abb4fc94be585aae1fdac8ae752c76b912d95aef61bf5de",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/index.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1769,
+      "sha256": "2d58984e0ae80de4acbd8f009fab332f5ce77d9e1a5f138a3058a0ada6567fb9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/log.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 226,
+      "sha256": "7c33f11a56ba4e79efc4ddae85f8a4a888e216d2bf66c863f344d403437ffc74",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/log.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 459,
+      "sha256": "f6ccc3593357801851aa1023b202f842733043ac3b25773048d836f89de8108d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/Alias.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1077,
+      "sha256": "a971cba9f67e1c87014a2a544c24bc58bad1983970dfa66051b42ae441da1f46",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/Alias.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3901,
+      "sha256": "80a8109b7cb1d0d73eee18463fdd3095d120fa21f49b282444d90d867e291ea1",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/Collection.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2909,
+      "sha256": "06b37153d512000a91cad6fcbae75ca795ecec00469effaa8916101a00d5b9e2",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/Collection.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5221,
+      "sha256": "e2d3ffdc9a997774602e72b296fba641558bc7355c9f12a3ee0502fb1e541306",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/Node.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2538,
+      "sha256": "961fa18e1658f3f8e38c23e1a9bc3f4d7be75b056a94700291d5f82f57524ff0",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/Node.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1382,
+      "sha256": "b57b42071f7ebab633626858656ec5187617f2290c272e87edc57467ef591215",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/Pair.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1118,
+      "sha256": "7821d3b702e0c672329c4d036c7037ecf2e5e758eceb5e740dde1355606dc9f2",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/Pair.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1232,
+      "sha256": "d5dad67916ba0e864a892da63265a062c45c15a191349ef50a540f2ddbae93e5",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/Scalar.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1792,
+      "sha256": "afb5e9a110ff72b60783e0fe65ce1a28adbe6ab5f30d2dc31e2fb099e0f86de4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/Scalar.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 759,
+      "sha256": "616ac0f6a0a5a6565307a4bb4443691b0dd019c03d6bb8777353750bd3459487",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/YAMLMap.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2376,
+      "sha256": "57cbeb55ec95326d068a2ce33403e1b795f2113487f07c1f53b1eaf9c21ff2ce",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/YAMLMap.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5105,
+      "sha256": "d140cfc5aa8d28737bd3c993d977d5a10ab81efe221e36708ac45b3cf18f5dce",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/YAMLSeq.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2511,
+      "sha256": "8a641e3402f2988bf993007bd814faba348b813fc4058fce5b06de3e81ed511a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/YAMLSeq.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3667,
+      "sha256": "9f89417f3cba5f22a4436f67a9ff9dce627344b5874d2ed7957ff9acffb030e4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/addPairToJSMap.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 236,
+      "sha256": "8f648847b52020c1c0cdfcc40d7bcab72ea470201a631004fde4d85ccbc0c4c7",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/addPairToJSMap.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2338,
+      "sha256": "e4977864d75c1fdbf7fc78c9f4329406e153deccfff090fd812dae2b27e6c2c2",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/identity.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1379,
+      "sha256": "a00362ee43d422bcd8239110b8b5da39f1122651a1809be83a518b1298fa6af8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/identity.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1794,
+      "sha256": "1a7cb042ae725ff68d05dc503efbbecbe65281f18b23dfc23f12d1749a440cfe",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/toJS.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 986,
+      "sha256": "cbef1abd1f8987dee5c9ed8c768a880fbfbff7f7053e063403090f48335c8e4e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/nodes/toJS.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1292,
+      "sha256": "34de93bb4e16abbf317210a7bd1b062ed20acb028cd8395b69b591f433e277b6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/options.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 11186,
+      "sha256": "1720be851bdb7cdbff68061522a71d9ddaa69db1fe90c6819a26953da05942f2",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/cst-scalar.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3528,
+      "sha256": "079c02dc397960da2786db71d7c9e716475377bcedd81dede034f8a9f94c71b8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/cst-scalar.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9382,
+      "sha256": "2f72b634348b04b395408ac427fb4f8ee67432244c327561d4b755a28a783b34",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/cst-stringify.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 310,
+      "sha256": "a7595cbb1b354b54dff14a6bb87d471e6d53b63de101a1b4d9d82d3d3f6eddec",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/cst-stringify.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1799,
+      "sha256": "4d14a7a286cff9c1a578ab15839388ea76f77ae79293db25b235394bcc377b51",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/cst-visit.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2241,
+      "sha256": "1f49a85a97e01a26245fd74232b3b301ebe408fb4e969e72e537aa6ffbd3fe14",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/cst-visit.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3986,
+      "sha256": "525535fc05841407420be6505804c74d873eb3aaa9319679896f7a24a474ca01",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/cst.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3500,
+      "sha256": "9c38563e4eabfffa597c4d6b9aa16e11e7f9a636f0dd80dd0a8bce1f6f0b2108",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/cst.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3242,
+      "sha256": "acc25760d010068844f36f4aefc7fe6f5f6048fd7f8fcc29d4290e154819d1a4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/lexer.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2921,
+      "sha256": "c7200ae85e414d5ed1d3c9507ae38c097050161f57eb1a70bef021d796af87a7",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/lexer.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 24149,
+      "sha256": "cb30a2c4628e270ee810530217f3f7bb0f2730ab89f8fbaf1f8a73ccd1883cf5",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/line-counter.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 733,
+      "sha256": "3dfcd0a3bfa70b53135db3cf2e4ddcb7eccc3e4418ce833ae24eecd06928328f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/line-counter.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1445,
+      "sha256": "ddfd11ca2cdd42d36bc6c3090a31c21e6bbcc90bf3498bf6aacfbb30c5d79436",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/parser.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2534,
+      "sha256": "4edb4ff36b17b2cf19014b2c901a6bdcdd0d8f732bcf3a11aa6fd0a111198e27",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/parse/parser.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 35551,
+      "sha256": "0adc5ffa51ffa4c0ceed1f80efa8b188d10f58c7b9389a6d46bc861e6bff34e1",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/public-api.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2864,
+      "sha256": "810f0d14ce416a343dcdd0d3074c38c094505e664c90636b113d048471c292e2",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/public-api.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4187,
+      "sha256": "9b318ac7b3a3751127c74f59dd1dd209230a70ca116000348b82faae189f72f0",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/Schema.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 787,
+      "sha256": "a820499a28a5fcdbf4baec05cc069362041d735520ab5a94c38cc44db7df614c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/Schema.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1547,
+      "sha256": "d3b1bc956a766e2489c36114366f3b3f89762a257ae05ff6271ee3fc8c2a9bf5",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/common",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/common/map.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 88,
+      "sha256": "e1b042779d17b69719d34f31822ddba8aa6f5eb15f221b02105785f4447e7f5b",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/common/map.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 483,
+      "sha256": "769207eaa56e34c113da10cdc22da845f92b4080ff2b921a72847a38d3ac03d8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/common/null.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 108,
+      "sha256": "68c7d5fe67e3dd9e0ae4809a37541e79c86c639758f6d93c478c900a23b3c715",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/common/null.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 469,
+      "sha256": "f5d5f694ea3a42ef136e0fbcc674dfd7aa0a3da2b8d62183fb750166a12e52bb",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/common/seq.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 88,
+      "sha256": "6858337936b90bd31f1674c43bedda2edbab2a488d04adc02512aef47c792fd0",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/common/seq.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 484,
+      "sha256": "51fc0e8bfc63d1d9c7c66b0370a069bb33e0dad865080ff76802803597b9909a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/common/string.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 83,
+      "sha256": "15cb3deecc635efb26133990f521f7f1cc95665d5db8d87e5056beaea564b0ce",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/common/string.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 457,
+      "sha256": "51d0b3aafab2ffa4ad9d86656a3b92c4b4824d0a8806423882ea5f92a1bf8d11",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/core",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/core/bool.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 108,
+      "sha256": "10e79425c8cb25ab4039f10bd844fb147bace0bbc1ea50b14cd6684e0e54d8b8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/core/bool.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 635,
+      "sha256": "9fa696b1efc38cf8c73a398f30d9f9841658aa5afd0b7a6b0822947c3991ba7a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/core/float.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 166,
+      "sha256": "68f5e28618d07e0cd09f3c016fc2b5c597d41730cf7a5bc165bb137ee5d239c5",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/core/float.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1510,
+      "sha256": "139e3964f0e626ad3741500faf51d855ff98eafa2d9e7523cac06260e4515382",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/core/int.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 160,
+      "sha256": "5b1d8c847722d2137a61465051289c85b42cb7fbcd16c4a2818ae21f4cca32dd",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/core/int.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1407,
+      "sha256": "f0e474254f6877d5dd23bb57017980931ab333a7eaa3d33872247a80d11f754d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/core/schema.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 98,
+      "sha256": "4763b3c6a3bfc9864e5712ca1d4a5ac2817e9d05aef44a0a1556bb449bb2bd06",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/core/schema.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 509,
+      "sha256": "481d7c64817b40090d519fb65bd83730dadd4c6baec1440b9bf85d29e52c046e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/json",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/json/schema.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 118,
+      "sha256": "4cb584df88ebd02a7f14013b5d83a7cedd9b1551ad871a58c94dff44520fb1ea",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/json/schema.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1900,
+      "sha256": "9efdd848455f6e0621feb13f3eb762453cb02b09d5e04b6501163cfb26af27ed",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/json-schema.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1998,
+      "sha256": "c82708af4dcb3fb9dfacbadc6faf9cad4f2d07ffce12407f8cf9778af37bbefe",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/tags.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1423,
+      "sha256": "213e4f26ee5853e8ba314ecad3a73cd06ab244a0809749bb777cbc1619aa07d8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/tags.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3239,
+      "sha256": "dba2f42d4dbe8cc8b13f662fd97d253da2da5567e71c47115305efede5a888f2",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/types.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3763,
+      "sha256": "281744305ba2dcb2d80e2021fae211b1b07e5d85cfc8e36f4520325fcf698dbb",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/binary.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 83,
+      "sha256": "d67098dd1ebde01f58645901458c5f7b4fe6a32558e92c91db4883e74d1b5a4d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/binary.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2800,
+      "sha256": "15d7b0b8516c8190b191ec9a0adaab16808d09751ef534d7829512944072011f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/bool.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 174,
+      "sha256": "4ec1099a421a4519d614a09f4d88aebd4e2eae1f1840d7b6d06c648f1624e426",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/bool.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 841,
+      "sha256": "80a0046224dac3437f22e3b27b0180e1aad82277ab2fee4769094c6d12d67b6f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/float.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 166,
+      "sha256": "68f5e28618d07e0cd09f3c016fc2b5c597d41730cf7a5bc165bb137ee5d239c5",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/float.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1626,
+      "sha256": "a90c44db83152e4d902d46f667737dac90aa86b401abdefe89371ac3bd03abfe",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/int.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 200,
+      "sha256": "c2a157c5321741265c9e070abdb168bd62c960a8e42fe19b268a13f019e0866b",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/int.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2232,
+      "sha256": "5ff72b08fecc3a924d4a76658a304859db5edb4fadf8893ee837aa06bba60a52",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/merge.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 459,
+      "sha256": "d0f51295f868055927afc9c23e5077f17b0db247978becf7644612290b18cc45",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/merge.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2616,
+      "sha256": "9c85b5e026e4369a96f3f7b5bc6c05da102dfa2968950b17986201cfe0be542c",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/omap.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 936,
+      "sha256": "9c37dc73c97cd17686edc94cc534486509e479a1b8809ef783067b7dde5c6713",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/omap.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2581,
+      "sha256": "3174270cd59c0f0e3ffd73b3b44c4de679efd5c681325b7aac8e0935d547bee8",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/pairs.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 725,
+      "sha256": "e2e85e40eb6108d06a7c2116bb4fbaad323709f979c8135588619b63089efec9",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/pairs.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 2854,
+      "sha256": "46ba76da72ad65a6202358c486c6a3084ab7c48a8eb5be60d241d9e198c5a9b5",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/schema.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 98,
+      "sha256": "4763b3c6a3bfc9864e5712ca1d4a5ac2817e9d05aef44a0a1556bb449bb2bd06",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/schema.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 912,
+      "sha256": "a7320808484dc6d04817b33b2d09b65ead7ffc1c672ab54e068a80972b17702e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/set.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1259,
+      "sha256": "5fe2ef29b33889d3279d5bc92f8e554ffd32145a02f48d272d30fc1eea8b4c89",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/set.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3114,
+      "sha256": "e4553b0cbde79090884908f44bb3b4afd04935fc23656a1b87ec1af87f24427a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/timestamp.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 194,
+      "sha256": "90e99573b3ab716e9203d32e8d9dd1fdb78c125128ffb8deed821c096885338e",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3775,
+      "sha256": "b157c946dc1b8854aadc4e7994b268ec8afe6d916721cb3580e0752c7d15a5f7",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/foldFlowLines.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1273,
+      "sha256": "e27605c8932e75b14e742558a4c3101d9f4fdd32e7e9a056b2ca83f37f973945",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/foldFlowLines.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4885,
+      "sha256": "7819679e80222b80c564ea4a9cf3145fa4d5e28a6cfbac248283ac55b0249761",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringify.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 865,
+      "sha256": "0132f67b7f128d4a47324f48d0918ec73cf4220a5e9ea8bd92b115397911254f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringify.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4534,
+      "sha256": "38efb5bc5553e98fee58c825a88131c59184368d8689e3e6f43c652a06e9c167",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyCollection.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 528,
+      "sha256": "7f03bfa106e6045d0ed9b1b3812df4c6edf70e231be92acb54c910530aefb7c4",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyCollection.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5718,
+      "sha256": "b55fd3b6e3f1346bbcd1fcdc48a59c089b7a4b0e6fac2b46846f7828f9488600",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyComment.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 419,
+      "sha256": "318c659afa92036e0c838821c40509e34506831f05acc9c2b182ccd39faa265f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyComment.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 801,
+      "sha256": "490bff57104b7cfdb1893f14528610bb4d0a63c29b314e122233cf308cf96662",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyDocument.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 260,
+      "sha256": "10eafb672440a5e93d378943b497a7dbd16ac5e63d843edec753d1fa3c3e8e20",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyDocument.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3104,
+      "sha256": "dd5ba1813a16b62955c466bce8d1c16254e90b36d688f863c508dc8fe38f2afe",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyNumber.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 147,
+      "sha256": "f0443725119ecde74b0d75c82555b1f95ee1c3cd371558e5528a83d1de8109de",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyNumber.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 808,
+      "sha256": "26a1980d34a21a80704d356d475a0187a24ebcbeb37a2e3b149d4d791bb65598",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyPair.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 248,
+      "sha256": "c0629a169c48068fc384a22bde7e0c4ec35c34e7e6b19b83fba4c378b8fe05cc",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyPair.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5470,
+      "sha256": "bc03ae533d85bf9122e87c0a256c841ae7fbf063499bc3034d49fd9f7b200659",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyString.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 357,
+      "sha256": "7794810c4b3f03d2faa81189504b953a73eb80e5662a90e9030ea9a9a359a66f",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/stringify/stringifyString.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 13345,
+      "sha256": "4113b71a9c4c087a197f71452794a6acb9929111f569c973ff4efe7caee8f777",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/test-events.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 96,
+      "sha256": "5e75986c9b907573b9ea4880e226f96dd189acc668cb24db0ac08651e6cf3068",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/test-events.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 4274,
+      "sha256": "5ff5e7f170702d75d4bfd5ef24a35fc95dc2871680c0ae4d714137d4c2cde571",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/util.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 835,
+      "sha256": "b074516a691a30279f0fe6dff33cd76359c1daacf4ae024659e44a68756de602",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/util.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 1008,
+      "sha256": "193b1d92fb7641d78f17a8f560cbe44dd7cdede2eb8935bacd4ca30df2f1a17a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/visit.d.ts",
+      "mode": "600",
+      "type": "file",
+      "bytes": 5048,
+      "sha256": "e39090ffe9c45c59082c3746e2aa2546dc53e3c5eeb4ad83f8210be7e2e58022",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/dist/visit.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 9253,
+      "sha256": "a757e3b924af184b25e2386d1678b1fe341805a516ebf9bccee219b47aebd5e7",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/package.json",
+      "mode": "600",
+      "type": "file",
+      "bytes": 3254,
+      "sha256": "20b8b197cbd10dad245d45e463dfe58e4c8c25a47e24bc4256ad9ab58bf35683",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/node_modules/yaml/util.js",
+      "mode": "600",
+      "type": "file",
+      "bytes": 80,
+      "sha256": "2f1db26f6cc426ef698210b592f40cec49be1b6c4b34e7f2d61904786242bd85",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/package-lock.json",
+      "mode": "644",
+      "type": "file",
+      "bytes": 12415,
+      "sha256": "2587f230bcbec3d7619fbd9943b158d6e1a49098c735d37c2f99750a23ddfb0d",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/runtime/package.json",
+      "mode": "644",
+      "type": "file",
+      "bytes": 91,
+      "sha256": "f385b5bf314a56b7508667f9af61fe83402bc0193b234f457f3defde46d957c6",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/selection.yaml",
+      "mode": "644",
+      "type": "file",
+      "bytes": 213,
+      "sha256": "6843456152a87795fb737bf9fbd264794727dfb99271b73564272616d1052a0a",
+      "executable": false
+    },
+    {
+      "path": ".repo-standards/state.json",
+      "mode": "644",
+      "type": "file",
+      "bytes": 77600,
+      "sha256": "bd6ed589b34f9ab207466956f7ee4c37de7c714c78962a7e520f96ed37ccf94e",
+      "executable": false
+    },
+    {
+      "path": "INDEX.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 116,
+      "sha256": "535745c61342a170676e84e61328877a84c1bb81ecae5af9a42333e89e960904",
+      "executable": false
+    },
+    {
+      "path": "build",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": "build/generated",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": "build/generated/README.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 68,
+      "sha256": "30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525",
+      "executable": false
+    },
+    {
+      "path": "docs",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": "docs/catalog.json",
+      "mode": "644",
+      "type": "file",
+      "bytes": 41,
+      "sha256": "04d157addc02894509d9ec06a16d1467eab2587bb4e4e3149f0a2131070bcb36",
+      "executable": false
+    },
+    {
+      "path": "docs/projects",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": "docs/projects/INDEX.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 47,
+      "sha256": "df41615f296fa277e42a1144bd6477790dbbae3b101cad36a4af8d71c031f4f7",
+      "executable": false
+    },
+    {
+      "path": "docs/projects/hammer.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 269,
+      "sha256": "b92dacc796d31c84d0174c6854ee1254faf3595e3a65f903c7ce0c2e9d31fd9d",
+      "executable": false
+    },
+    {
+      "path": "fixtures",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": "fixtures/hammer",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": "fixtures/hammer/Cargo.toml",
+      "mode": "600",
+      "type": "file",
+      "bytes": 52,
+      "sha256": "8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36",
+      "executable": false
+    },
+    {
+      "path": "groups",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": "groups/developer-tools.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 91,
+      "sha256": "abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287",
+      "executable": false
+    },
+    {
+      "path": "guides",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": "modules",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": "modules/tools",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": "modules/tools/hammer",
+      "mode": "700",
+      "type": "directory"
+    },
+    {
+      "path": "modules/tools/hammer/Cargo.toml",
+      "mode": "600",
+      "type": "file",
+      "bytes": 99,
+      "sha256": "470ec9b90e0002bf45c58630cac97a11d4afced806fb6ab2dd55773a35bf730b",
+      "executable": false
+    },
+    {
+      "path": "modules/tools/hammer/README.md",
+      "mode": "600",
+      "type": "file",
+      "bytes": 325,
+      "sha256": "4695dabac41634e0d17c1c70f2e585c1a2844707c0bac62ad71bdb00a5c612e1",
+      "executable": false
+    }
+  ]
+}
+

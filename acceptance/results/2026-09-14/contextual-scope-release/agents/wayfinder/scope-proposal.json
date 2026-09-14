@@ -1,0 +1,119 @@
+{
+  "format": "repo-standards/scope/v1",
+  "request": "sha256:b6636fda41efec5a047a350ef52d939a4e8c72f3fb61c984d32bc2f09fd3aa83",
+  "declarations": [
+    {
+      "id": "service-readiness",
+      "paths": [
+        "service/relay/operations.md",
+        "service/relay/operating-status.json"
+      ],
+      "coverage": "Relay is the repository's only independently operated service: its manifest names the messaging-runtime owner, an executable Python startup command, and a loopback health endpoint, and its source implements that endpoint. The fixture manifest, generated catalog entry, and organizational group are not operated services. The Relay limitations note supplies useful recovery and state-loss facts but does not need edits and remains evidence rather than a governed target.",
+      "evidence": [
+        {
+          "kind": "directory",
+          "path": ".",
+          "identity": "sha256:06104b7ba6b4867bd54a7bc08101ced905a8cf1a35a4118dff93884629241ecd"
+        },
+        {
+          "kind": "directory",
+          "path": "service/relay",
+          "identity": "sha256:b5255602a5cd0199e4a4bc2316d84222af106d4a8500d16e7cdfeab98108c40c"
+        }
+      ],
+      "candidates": [
+        {
+          "path": "service/relay/operations.md",
+          "decision": "include",
+          "reason": "Relay's manifest and executable entry point establish an operated service whose startup, health, recovery, and limitations need the required adjacent runbook.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "service/relay/service.json",
+              "identity": "sha256:ed8369ebc10999b20a60f80a63213a12d7eb6098f0309f37c5e6faccb50c4fc9"
+            },
+            {
+              "kind": "file",
+              "path": "service/relay/server.py",
+              "identity": "sha256:cf99d7318836640232bd408775893dfbba004209ad7ceba5d60e5984b137812a"
+            },
+            {
+              "kind": "absence",
+              "path": "service/relay/operations.md"
+            }
+          ]
+        },
+        {
+          "path": "service/relay/operating-status.json",
+          "decision": "include",
+          "reason": "Relay's manifest and executable entry point establish an operated service that requires adjacent structured startup, health, restart, and evidence status.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "service/relay/service.json",
+              "identity": "sha256:ed8369ebc10999b20a60f80a63213a12d7eb6098f0309f37c5e6faccb50c4fc9"
+            },
+            {
+              "kind": "file",
+              "path": "service/relay/server.py",
+              "identity": "sha256:cf99d7318836640232bd408775893dfbba004209ad7ceba5d60e5984b137812a"
+            },
+            {
+              "kind": "absence",
+              "path": "service/relay/operating-status.json"
+            }
+          ]
+        },
+        {
+          "path": "fixtures/sample",
+          "decision": "exclude",
+          "reason": "Its manifest explicitly identifies fixture-relay, assigns ownership to test-suite, and marks its start command do-not-run, so it is test data rather than an operated service.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "fixtures/sample/service.json",
+              "identity": "sha256:1e617a07adf870b2d646e799fd7d0bc69f879924ad92a3c8e4e3b1959f27b9d5"
+            }
+          ]
+        },
+        {
+          "path": "generated/catalog",
+          "decision": "exclude",
+          "reason": "Its manifest identifies a generated inventory entry owned by the catalog generator and explicitly says its start value is not an entry point.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "generated/catalog/service.json",
+              "identity": "sha256:3700e56d84759ba028cd8b5c4f29bccc3d62d492b52f3c9da01fdcbe3ccb8b37"
+            }
+          ]
+        },
+        {
+          "path": "groups",
+          "decision": "exclude",
+          "reason": "The messaging-runtime document says this directory describes an organization and contains no independently operated service.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "groups/messaging-runtime.md",
+              "identity": "sha256:dfd291049f986e60c7423b0c2fefa4e97598dbacdfc1bd4dbd83a8969c225a2b"
+            }
+          ]
+        },
+        {
+          "path": "notes/relay-limitations.md",
+          "decision": "exclude",
+          "reason": "This existing note is useful evidence about in-memory state loss, recovery, and unavailable production access, but the discovery guidance allows such notes to remain outside governed scope when they need no edits.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "notes/relay-limitations.md",
+              "identity": "sha256:8ca0f55824c6df3d8725e4cb9c2bc30de8f16cd65d6047d9f19a5b8e37ac6803"
+            }
+          ]
+        }
+      ],
+      "unresolved": []
+    }
+  ]
+}

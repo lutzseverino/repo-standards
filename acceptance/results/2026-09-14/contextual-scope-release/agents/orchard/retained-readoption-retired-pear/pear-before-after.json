@@ -1,0 +1,69 @@
+{
+  "beforeCommit": "ebecf70af22e48928990df0402cba37bae294a96",
+  "afterCommit": "a3d4a0942816042b8d34819b309988492857c483",
+  "files": {
+    "products/pear/service.json": {
+      "before": {
+        "exists": true,
+        "sha256": "eaf6d458da6b5443309f2540afcf007931d973dbf9290cf692da71162db3cf8f",
+        "content": "{\n  \"name\": \"pear-api\",\n  \"owner\": \"orchard-runtime\",\n  \"start\": \"node server.mjs\"\n}\n"
+      },
+      "after": {
+        "exists": false
+      }
+    },
+    "products/pear/README.md": {
+      "before": {
+        "exists": true,
+        "sha256": "0d2fb448cb0cf739043e8b182da814d9e1249c3a7974bf0f2f7ba13d49f7a7b2",
+        "content": "# Pear API\n\nPear API is maintained by the `orchard-runtime` team.\n\n## Setup\n\nNo separate setup step is documented in this repository.\n\n## Run\n\nFrom `products/pear`, start the service with:\n\n```sh\nnode server.mjs\n```\n\n## Operations\n\nSee the [operations guide](../../docs/projects/pear/operations.md) for deployment\nhealth checks and recovery.\n"
+      },
+      "after": {
+        "exists": true,
+        "sha256": "0d2fb448cb0cf739043e8b182da814d9e1249c3a7974bf0f2f7ba13d49f7a7b2",
+        "content": "# Pear API\n\nPear API is maintained by the `orchard-runtime` team.\n\n## Setup\n\nNo separate setup step is documented in this repository.\n\n## Run\n\nFrom `products/pear`, start the service with:\n\n```sh\nnode server.mjs\n```\n\n## Operations\n\nSee the [operations guide](../../docs/projects/pear/operations.md) for deployment\nhealth checks and recovery.\n"
+      }
+    },
+    "docs/projects/pear/operations.md": {
+      "before": {
+        "exists": true,
+        "sha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+        "content": "# Pear API operations\n\nStart the service with `node server.mjs`. If health checks fail after a deploy,\nrestore the previous image and keep the failed revision for investigation.\n"
+      },
+      "after": {
+        "exists": true,
+        "sha256": "4dfd4f629f3d0936915ef2101fb80dd39d70502491e9748b28bfc882e2d93a1b",
+        "content": "# Pear API operations\n\nStart the service with `node server.mjs`. If health checks fail after a deploy,\nrestore the previous image and keep the failed revision for investigation.\n"
+      }
+    },
+    "CATALOG.md": {
+      "before": {
+        "exists": true,
+        "sha256": "27dd039fd3111e9cadd7de2759abc3af01f12aacb3cecdf36d471bb1d6b831f4",
+        "content": "# Orchard catalog\n\n- [Pear API operations](docs/projects/pear/operations.md)\n- [Plum API](products/plum/README.md)\n"
+      },
+      "after": {
+        "exists": true,
+        "sha256": "ca37181855a29eece4e55b58bd638d069c3c527c854a996c68d57809b4f352f2",
+        "content": "# Orchard catalog\n\n- [Plum API](products/plum/README.md)\n"
+      }
+    },
+    "docs/projects/index.md": {
+      "before": {
+        "exists": true,
+        "sha256": "ec6d724a71ccd3bcafc60d1a940a3bd3558d9294b2d940d8574c5ebe9effeb45",
+        "content": "# Project documentation\n\n- [Pear API](../../products/pear/README.md)\n- [Pear API operations](pear/operations.md)\n- [Plum API](../../products/plum/README.md)\n"
+      },
+      "after": {
+        "exists": true,
+        "sha256": "e85d1c604e8ec8b14f4e693fdafa2a84722399347c35d4521615ff8354ab385a",
+        "content": "# Project documentation\n\n- [Plum API](../../products/plum/README.md)\n"
+      }
+    }
+  },
+  "preserved": {
+    "readme": true,
+    "operations": true,
+    "serviceRemoved": true
+  }
+}

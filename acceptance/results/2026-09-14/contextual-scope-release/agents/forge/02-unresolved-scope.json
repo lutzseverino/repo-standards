@@ -1,0 +1,80 @@
+{
+  "format": "repo-standards/scope/v1",
+  "request": "sha256:4f13a9459b9617d66f4da5ce2e273920954b33f4617614f57c863dbb9d323b61",
+  "declarations": [
+    {
+      "id": "project-documentation",
+      "paths": [
+        "INDEX.md",
+        "docs/projects/INDEX.md",
+        "docs/projects/hammer.md",
+        "guides/hammer.md",
+        "modules/tools/hammer/README.md"
+      ],
+      "coverage": "The nested modules/tools/hammer directory appears to be the maintained Hammer project. The proposed scope gives it a README, migrates its existing guide into docs/projects, introduces that documentation index, and repairs the root index. Generated output, an organizational grouping file, and source-owned docs/catalog.json are excluded; fixture/hammer remains an explicit maintenance question pending content review.",
+      "evidence": [
+        {"kind": "directory", "path": ".", "identity": "sha256:e1c5e3694354f77cf3e1d975c5b7b2cd228e8e0ca88d159e80c62cdf14761e03"},
+        {"kind": "directory", "path": "modules/tools/hammer", "identity": "sha256:c133db93670a54fe78e1700808d85368dfcc4039202c95102e038a6f4cf7a0e1"}
+      ],
+      "candidates": [
+        {
+          "path": "INDEX.md",
+          "decision": "include",
+          "reason": "The root documentation index is the existing link-repair file for the Hammer guide migration.",
+          "evidence": [{"kind": "file", "path": "INDEX.md", "identity": "sha256:d104b3be450403c660d74a6715edd3c1f543fca428d7fde4f6d032e4f622db48"}]
+        },
+        {
+          "path": "docs/projects/INDEX.md",
+          "decision": "include",
+          "reason": "This is the planned introduced documentation index for migrated project guides.",
+          "evidence": [{"kind": "absence", "path": "docs/projects/INDEX.md"}]
+        },
+        {
+          "path": "docs/projects/hammer.md",
+          "decision": "include",
+          "reason": "This is the planned destination for the existing Hammer guide.",
+          "evidence": [{"kind": "absence", "path": "docs/projects/hammer.md"}]
+        },
+        {
+          "path": "guides/hammer.md",
+          "decision": "include",
+          "reason": "This individual existing guide is the source to migrate while preserving useful content.",
+          "evidence": [{"kind": "file", "path": "guides/hammer.md", "identity": "sha256:93f6b736069a5faedeebef28e2f6ad140e9cbe44a713b281fbfa966e9c93b107"}]
+        },
+        {
+          "path": "modules/tools/hammer/README.md",
+          "decision": "include",
+          "reason": "The maintained nested Hammer project lacks a README; its nonempty project directory and Cargo manifest support the missing target.",
+          "evidence": [
+            {"kind": "file", "path": "modules/tools/hammer/Cargo.toml", "identity": "sha256:4ce1bba4119b58561db790e9c712ac794a44ca1a5466e7aa2c7432e20b9284b7"},
+            {"kind": "absence", "path": "modules/tools/hammer/README.md"}
+          ]
+        },
+        {
+          "path": "build/generated/README.md",
+          "decision": "exclude",
+          "reason": "Its build/generated location marks generated output, which the guidance says not to rewrite.",
+          "evidence": [{"kind": "file", "path": "build/generated/README.md", "identity": "sha256:262f83b521f7cb11b6ab23d978ca2b8849ce8ac9ce9a4a8a61725c45cc7e9592"}]
+        },
+        {
+          "path": "fixtures/hammer",
+          "decision": "exclude",
+          "reason": "Its fixture location suggests test data, but the manifest has not yet been read and the maintenance question remains unresolved.",
+          "evidence": [
+            {"kind": "directory", "path": "fixtures/hammer", "identity": "sha256:141b83b91d1bd30361ab0e03d443e0053a819edf9f6cbf30c873b7d5c04d614d"},
+            {"kind": "file", "path": "fixtures/hammer/Cargo.toml", "identity": "sha256:7542dfdad4e75542e344e9010fd42849939136a8f1d58329d457838e779ba93c"}
+          ]
+        },
+        {
+          "path": "groups/developer-tools.md",
+          "decision": "exclude",
+          "reason": "The groups location describes an organizational grouping candidate, not an independently maintained project target.",
+          "evidence": [{"kind": "file", "path": "groups/developer-tools.md", "identity": "sha256:9e1900bc56e2a851e607c43d012398bb9759c90682b75c63835e537b64ee103c"}]
+        }
+      ],
+      "unresolved": [
+        "Does fixtures/hammer represent independently maintained Hammer code despite living under fixtures, or is it solely test data? Its Cargo manifest must be read before final exclusion."
+      ]
+    }
+  ]
+}

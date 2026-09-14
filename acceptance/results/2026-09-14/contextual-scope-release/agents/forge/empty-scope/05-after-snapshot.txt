@@ -1,0 +1,8 @@
+d2869abea21d5a41a57b0c37537504a1577b6fb8
+100644 5260cea697690dca132fa95ece2af81bf9420d21 0	build/generated/README.md
+100644 2f41eba743ecf7ce58e95b9d3cae12ce6816e6fd 0	fixtures/hammer/Cargo.toml
+100644 fa2cc93ff2c4c66e0829232daaaf5ea5be138f88 0	groups/developer-tools.md
+file 30393dba3a7f5b6d25a04399a8a7247d1ae54172c870bbdce4b9cb6d065b6525 600 build/generated/README.md
+file 8765630a7c43f2534b2f500f7e25c22c615dc90ca809ef3ee539f23fcf1cdc36 600 fixtures/hammer/Cargo.toml
+file abb8286b4c3ca0d7387800e02c4f1e06025a3dfcde9b9b1541d4a5962e88d287 600 groups/developer-tools.md
+

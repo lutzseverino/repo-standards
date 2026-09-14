@@ -1,0 +1,2242 @@
+{
+  "format": "repo-standards/status/v4",
+  "observations": [
+    {
+      "phase": "fixes",
+      "operation": {
+        "phase": "fixes",
+        "declaration": "service-readiness",
+        "id": "initialize-operating-status"
+      },
+      "operationIndex": 0,
+      "scope": {
+        "service-readiness": {
+          "paths": [
+            "service/relay/operating-status.json",
+            "service/relay/operations.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          ".editorconfig": {
+            "type": "file",
+            "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+            "executable": false
+          },
+          "generated/catalog/service.json": {
+            "type": "file",
+            "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+            "executable": false
+          },
+          "groups/messaging-runtime.md": {
+            "type": "file",
+            "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+            "executable": false
+          },
+          "notes/relay-limitations.md": {
+            "type": "file",
+            "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+            "executable": false
+          },
+          "service/relay/server.py": {
+            "type": "file",
+            "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+            "executable": false
+          },
+          "service/relay/service.json": {
+            "type": "file",
+            "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+            "executable": false
+          },
+          "service/relay/operating-status.json": {
+            "type": "missing"
+          },
+          "service/relay/operations.md": {
+            "type": "missing"
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/catalog": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "notes": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service/relay": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/catalog/.gitignore": {
+            "location": "generated/catalog/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "notes/.gitignore": {
+            "location": "notes/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/.gitignore": {
+            "location": "service/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/relay/.gitignore": {
+            "location": "service/relay/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          ".editorconfig": {
+            "type": "file",
+            "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+            "executable": false
+          },
+          "generated/catalog/service.json": {
+            "type": "file",
+            "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+            "executable": false
+          },
+          "groups/messaging-runtime.md": {
+            "type": "file",
+            "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+            "executable": false
+          },
+          "notes/relay-limitations.md": {
+            "type": "file",
+            "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+            "executable": false
+          },
+          "service/relay/operating-status.json": {
+            "type": "file",
+            "sha256": "e7ffdee7dd079f80d63a742350a70f5596417e3629b076e8934bd86269ff65ee",
+            "executable": false
+          },
+          "service/relay/server.py": {
+            "type": "file",
+            "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+            "executable": false
+          },
+          "service/relay/service.json": {
+            "type": "file",
+            "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+            "executable": false
+          },
+          "service/relay/operations.md": {
+            "type": "missing"
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/catalog": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "notes": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service/relay": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/catalog/.gitignore": {
+            "location": "generated/catalog/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "notes/.gitignore": {
+            "location": "notes/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/.gitignore": {
+            "location": "service/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/relay/.gitignore": {
+            "location": "service/relay/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [
+        "service/relay/operating-status.json"
+      ],
+      "boundaryChanges": [],
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "service-readiness": {
+          "paths": [
+            "service/relay/operating-status.json",
+            "service/relay/operations.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          ".editorconfig": {
+            "type": "file",
+            "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+            "executable": false
+          },
+          "generated/catalog/service.json": {
+            "type": "file",
+            "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+            "executable": false
+          },
+          "groups/messaging-runtime.md": {
+            "type": "file",
+            "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+            "executable": false
+          },
+          "notes/relay-limitations.md": {
+            "type": "file",
+            "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+            "executable": false
+          },
+          "service/relay/operating-status.json": {
+            "type": "file",
+            "sha256": "e7ffdee7dd079f80d63a742350a70f5596417e3629b076e8934bd86269ff65ee",
+            "executable": false
+          },
+          "service/relay/server.py": {
+            "type": "file",
+            "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+            "executable": false
+          },
+          "service/relay/service.json": {
+            "type": "file",
+            "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+            "executable": false
+          },
+          "service/relay/operations.md": {
+            "type": "missing"
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/catalog": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "notes": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service/relay": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/catalog/.gitignore": {
+            "location": "generated/catalog/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "notes/.gitignore": {
+            "location": "notes/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/.gitignore": {
+            "location": "service/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/relay/.gitignore": {
+            "location": "service/relay/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          ".editorconfig": {
+            "type": "file",
+            "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+            "executable": false
+          },
+          "generated/catalog/service.json": {
+            "type": "file",
+            "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+            "executable": false
+          },
+          "groups/messaging-runtime.md": {
+            "type": "file",
+            "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+            "executable": false
+          },
+          "notes/relay-limitations.md": {
+            "type": "file",
+            "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+            "executable": false
+          },
+          "service/relay/operating-status.json": {
+            "type": "file",
+            "sha256": "ef8995471deb3ce27bc45b780e804b5763b76015e402b4b37dab1f3ad942dd12",
+            "executable": false
+          },
+          "service/relay/operations.md": {
+            "type": "file",
+            "sha256": "e54e6f6f6841636b61477180a0b97395be9fc791324c90f781e1d28a39f0cd06",
+            "executable": false
+          },
+          "service/relay/server.py": {
+            "type": "file",
+            "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+            "executable": false
+          },
+          "service/relay/service.json": {
+            "type": "file",
+            "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/catalog": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "notes": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service/relay": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/catalog/.gitignore": {
+            "location": "generated/catalog/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "notes/.gitignore": {
+            "location": "notes/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/.gitignore": {
+            "location": "service/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/relay/.gitignore": {
+            "location": "service/relay/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [
+        "service/relay/operating-status.json",
+        "service/relay/operations.md"
+      ],
+      "boundaryChanges": [],
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "service-readiness": {
+          "paths": [
+            "service/relay/operating-status.json",
+            "service/relay/operations.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          ".editorconfig": {
+            "type": "file",
+            "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+            "executable": false
+          },
+          "generated/catalog/service.json": {
+            "type": "file",
+            "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+            "executable": false
+          },
+          "groups/messaging-runtime.md": {
+            "type": "file",
+            "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+            "executable": false
+          },
+          "notes/relay-limitations.md": {
+            "type": "file",
+            "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+            "executable": false
+          },
+          "service/relay/operating-status.json": {
+            "type": "file",
+            "sha256": "ef8995471deb3ce27bc45b780e804b5763b76015e402b4b37dab1f3ad942dd12",
+            "executable": false
+          },
+          "service/relay/operations.md": {
+            "type": "file",
+            "sha256": "e54e6f6f6841636b61477180a0b97395be9fc791324c90f781e1d28a39f0cd06",
+            "executable": false
+          },
+          "service/relay/server.py": {
+            "type": "file",
+            "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+            "executable": false
+          },
+          "service/relay/service.json": {
+            "type": "file",
+            "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/catalog": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "notes": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service/relay": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/catalog/.gitignore": {
+            "location": "generated/catalog/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "notes/.gitignore": {
+            "location": "notes/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/.gitignore": {
+            "location": "service/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/relay/.gitignore": {
+            "location": "service/relay/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          ".editorconfig": {
+            "type": "file",
+            "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+            "executable": false
+          },
+          "generated/catalog/service.json": {
+            "type": "file",
+            "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+            "executable": false
+          },
+          "groups/messaging-runtime.md": {
+            "type": "file",
+            "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+            "executable": false
+          },
+          "notes/relay-limitations.md": {
+            "type": "file",
+            "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+            "executable": false
+          },
+          "service/relay/operating-status.json": {
+            "type": "file",
+            "sha256": "ef8995471deb3ce27bc45b780e804b5763b76015e402b4b37dab1f3ad942dd12",
+            "executable": false
+          },
+          "service/relay/operations.md": {
+            "type": "file",
+            "sha256": "e54e6f6f6841636b61477180a0b97395be9fc791324c90f781e1d28a39f0cd06",
+            "executable": false
+          },
+          "service/relay/server.py": {
+            "type": "file",
+            "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+            "executable": false
+          },
+          "service/relay/service.json": {
+            "type": "file",
+            "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/catalog": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "notes": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service/relay": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/catalog/.gitignore": {
+            "location": "generated/catalog/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "notes/.gitignore": {
+            "location": "notes/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/.gitignore": {
+            "location": "service/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/relay/.gitignore": {
+            "location": "service/relay/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [],
+      "boundaryChanges": [],
+      "violations": []
+    },
+    {
+      "phase": "checks",
+      "operation": {
+        "phase": "checks",
+        "declaration": "service-readiness",
+        "id": "verify-service-evidence"
+      },
+      "operationIndex": 1,
+      "scope": {
+        "service-readiness": {
+          "paths": [
+            "service/relay/operating-status.json",
+            "service/relay/operations.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          ".editorconfig": {
+            "type": "file",
+            "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+            "executable": false
+          },
+          "generated/catalog/service.json": {
+            "type": "file",
+            "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+            "executable": false
+          },
+          "groups/messaging-runtime.md": {
+            "type": "file",
+            "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+            "executable": false
+          },
+          "notes/relay-limitations.md": {
+            "type": "file",
+            "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+            "executable": false
+          },
+          "service/relay/operating-status.json": {
+            "type": "file",
+            "sha256": "ef8995471deb3ce27bc45b780e804b5763b76015e402b4b37dab1f3ad942dd12",
+            "executable": false
+          },
+          "service/relay/operations.md": {
+            "type": "file",
+            "sha256": "e54e6f6f6841636b61477180a0b97395be9fc791324c90f781e1d28a39f0cd06",
+            "executable": false
+          },
+          "service/relay/server.py": {
+            "type": "file",
+            "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+            "executable": false
+          },
+          "service/relay/service.json": {
+            "type": "file",
+            "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/catalog": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "notes": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service/relay": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/catalog/.gitignore": {
+            "location": "generated/catalog/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "notes/.gitignore": {
+            "location": "notes/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/.gitignore": {
+            "location": "service/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/relay/.gitignore": {
+            "location": "service/relay/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          ".editorconfig": {
+            "type": "file",
+            "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+            "executable": false
+          },
+          "generated/catalog/service.json": {
+            "type": "file",
+            "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+            "executable": false
+          },
+          "groups/messaging-runtime.md": {
+            "type": "file",
+            "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+            "executable": false
+          },
+          "notes/relay-limitations.md": {
+            "type": "file",
+            "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+            "executable": false
+          },
+          "service/relay/operating-status.json": {
+            "type": "file",
+            "sha256": "ef8995471deb3ce27bc45b780e804b5763b76015e402b4b37dab1f3ad942dd12",
+            "executable": false
+          },
+          "service/relay/operations.md": {
+            "type": "file",
+            "sha256": "e54e6f6f6841636b61477180a0b97395be9fc791324c90f781e1d28a39f0cd06",
+            "executable": false
+          },
+          "service/relay/server.py": {
+            "type": "file",
+            "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+            "executable": false
+          },
+          "service/relay/service.json": {
+            "type": "file",
+            "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/catalog": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "notes": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service/relay": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/catalog/.gitignore": {
+            "location": "generated/catalog/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "notes/.gitignore": {
+            "location": "notes/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/.gitignore": {
+            "location": "service/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/relay/.gitignore": {
+            "location": "service/relay/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [],
+      "boundaryChanges": [],
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "service-readiness": {
+          "paths": [
+            "service/relay/operating-status.json",
+            "service/relay/operations.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          ".editorconfig": {
+            "type": "file",
+            "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+            "executable": false
+          },
+          "generated/catalog/service.json": {
+            "type": "file",
+            "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+            "executable": false
+          },
+          "groups/messaging-runtime.md": {
+            "type": "file",
+            "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+            "executable": false
+          },
+          "notes/relay-limitations.md": {
+            "type": "file",
+            "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+            "executable": false
+          },
+          "service/relay/operating-status.json": {
+            "type": "file",
+            "sha256": "ef8995471deb3ce27bc45b780e804b5763b76015e402b4b37dab1f3ad942dd12",
+            "executable": false
+          },
+          "service/relay/operations.md": {
+            "type": "file",
+            "sha256": "e54e6f6f6841636b61477180a0b97395be9fc791324c90f781e1d28a39f0cd06",
+            "executable": false
+          },
+          "service/relay/server.py": {
+            "type": "file",
+            "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+            "executable": false
+          },
+          "service/relay/service.json": {
+            "type": "file",
+            "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/catalog": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "notes": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service/relay": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/catalog/.gitignore": {
+            "location": "generated/catalog/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "notes/.gitignore": {
+            "location": "notes/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/.gitignore": {
+            "location": "service/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/relay/.gitignore": {
+            "location": "service/relay/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          ".editorconfig": {
+            "type": "file",
+            "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+            "executable": false
+          },
+          "fixtures/sample/service.json": {
+            "type": "file",
+            "sha256": "15784b756a0c0b85ee7ee13e66c7cf9bc2b0f8b59a4e68d515ee4ef521495413",
+            "executable": false
+          },
+          "generated/catalog/service.json": {
+            "type": "file",
+            "sha256": "bb7227f6dfc60456088ee512fee9b566827d47b3ace729770627f61481937407",
+            "executable": false
+          },
+          "groups/messaging-runtime.md": {
+            "type": "file",
+            "sha256": "c6701ac18d7421219f1caf81a647bfd3df4fa4a8296fdbacf024791670a1631f",
+            "executable": false
+          },
+          "notes/relay-limitations.md": {
+            "type": "file",
+            "sha256": "fb0dbfb2df146df5371655fb092927d64953d62e383de25914fb27a32d9d7c1e",
+            "executable": false
+          },
+          "service/relay/operating-status.json": {
+            "type": "file",
+            "sha256": "ef8995471deb3ce27bc45b780e804b5763b76015e402b4b37dab1f3ad942dd12",
+            "executable": false
+          },
+          "service/relay/operations.md": {
+            "type": "file",
+            "sha256": "e54e6f6f6841636b61477180a0b97395be9fc791324c90f781e1d28a39f0cd06",
+            "executable": false
+          },
+          "service/relay/server.py": {
+            "type": "file",
+            "sha256": "567f449b24f0f5614aa1134e958d1b7dabcb33844abbc3accef15d6d5d7e7033",
+            "executable": false
+          },
+          "service/relay/service.json": {
+            "type": "file",
+            "sha256": "4647f1c737fd46369d6a8407c8aa52b0b83dcebf8193f27d4709caea7b078664",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures": {
+            "type": "directory",
+            "mode": 448
+          },
+          "fixtures/sample": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated": {
+            "type": "directory",
+            "mode": 448
+          },
+          "generated/catalog": {
+            "type": "directory",
+            "mode": 448
+          },
+          "groups": {
+            "type": "directory",
+            "mode": 448
+          },
+          "notes": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service": {
+            "type": "directory",
+            "mode": 448
+          },
+          "service/relay": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-QeeNNK/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/.gitignore": {
+            "location": "fixtures/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "fixtures/sample/.gitignore": {
+            "location": "fixtures/sample/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/.gitignore": {
+            "location": "generated/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "generated/catalog/.gitignore": {
+            "location": "generated/catalog/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "groups/.gitignore": {
+            "location": "groups/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "notes/.gitignore": {
+            "location": "notes/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/.gitignore": {
+            "location": "service/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "service/relay/.gitignore": {
+            "location": "service/relay/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [],
+      "boundaryChanges": [],
+      "violations": []
+    }
+  ],
+  "operations": [
+    {
+      "operation": {
+        "declaration": "service-readiness",
+        "phase": "fixes",
+        "id": "initialize-operating-status"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v1",
+        "status": "changed",
+        "message": "Initialized service status: service/relay/operating-status.json"
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/0.stdout",
+      "stderr": ".repo-standards/local/operations/0.stderr"
+    },
+    {
+      "operation": {
+        "declaration": "service-readiness",
+        "phase": "checks",
+        "id": "verify-service-evidence"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v1",
+        "status": "passed",
+        "message": "Confirmed service runbooks and status evidence are structurally complete."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/1.stdout",
+      "stderr": ".repo-standards/local/operations/1.stderr"
+    }
+  ],
+  "retryHistory": [],
+  "history": [],
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.2.0"
+    },
+    "standards": {
+      "repository": "https://github.com/wayfinder/standards",
+      "version": "v1.0.0",
+      "commit": "243ffb89e370f971a86c5ca599d4c90678ffda5f"
+    },
+    "profile": "service"
+  },
+  "lastComplete": {
+    "run": "53c74320-3129-4f45-b44a-021b84becd16",
+    "inspection": "sha256:830a3c5b0dedbd108c4438060f3f8a0b7296726259cce44b5109d2bc7d030bbe",
+    "completedAt": "2026-09-14T02:34:40.635Z",
+    "head": "bf36690fdc91cc182bbd137e03a56e018434d119"
+  },
+  "baselines": {
+    ".editorconfig": {
+      "sha256": "a38dc184aabf62d6bea89d602420a10eb74d0cf4c464968cf6b597670752e669",
+      "executable": false
+    },
+    ".agents/skills/adopt-standards/SKILL.md": {
+      "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+      "executable": false
+    }
+  },
+  "skills": {
+    ".agents/skills/adopt-standards": [
+      "SKILL.md"
+    ]
+  },
+  "checks": [
+    {
+      "operation": {
+        "declaration": "service-readiness",
+        "phase": "checks",
+        "id": "verify-service-evidence"
+      },
+      "process": {
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "timedOut": false
+      },
+      "result": {
+        "format": "repo-standards/result/v1",
+        "status": "passed",
+        "message": "Confirmed service runbooks and status evidence are structurally complete."
+      },
+      "error": null,
+      "stdout": ".repo-standards/local/operations/1.stdout",
+      "stderr": ".repo-standards/local/operations/1.stderr"
+    }
+  ],
+  "assessments": [
+    {
+      "format": "repo-standards/assessment/v2",
+      "run": "53c74320-3129-4f45-b44a-021b84becd16",
+      "selection": "sha256:74fb4b677162335322880ca4db80c3002e3283ad919cf6bf81b4259cc8133c8a",
+      "snapshot": "sha256:d9685df2a9ef57d830cdb978c60149fe21d4a0bb593f463d8999f0cd4de90318",
+      "scope": {
+        "inspection": "sha256:830a3c5b0dedbd108c4438060f3f8a0b7296726259cce44b5109d2bc7d030bbe",
+        "afterFixes": "sha256:330165e721e1e044c86953031cd56f26450126d640c5775dd994955d21772dab"
+      },
+      "declarations": [
+        {
+          "id": "service-readiness",
+          "status": "satisfied",
+          "explanation": "Relay now has an adjacent operations runbook and structured status evidence derived from its manifest, implementation, existing limitations note, and observed local startup, health, and restart behavior. The documentation explicitly leaves production deployment, external connectivity, production health, and production rollback unverified.",
+          "changedPaths": [
+            "service/relay/operating-status.json",
+            "service/relay/operations.md"
+          ],
+          "evidence": [
+            "service/relay/operations.md contains the required Startup, Health, Recovery, and Known limitations sections and uses the manifest's exact startup command and loopback health URL.",
+            "On 2026-09-14, Python 3.13.5 started Relay locally twice; each GET to http://127.0.0.1:8765/health returned HTTP 200 with status ok and deliveries 0.",
+            "service/relay/operating-status.json records startup, health, and restart as observed and includes four nonempty evidence statements.",
+            "The runbook preserves the existing warning that the in-memory delivery counter is lost on restart and recommends stopping a failed rollout and restarting the last reviewed revision.",
+            "Both authorized files state that production deployment access, production health, external connectivity, and production rollback were not observed."
+          ],
+          "scopeValidity": {
+            "afterFixes": {
+              "status": "valid",
+              "explanation": "After the trusted fix, Relay remained the sole independently operated service and the confirmed adjacent operations.md and operating-status.json paths still covered all required readiness outputs.",
+              "evidence": [
+                "service/relay/service.json still named relay-api, owner messaging-runtime, the Python startup command, and the loopback health endpoint; service/relay/server.py still implemented that endpoint; the fixture, generated catalog, and organizational group remained explicit non-service candidates; notes/relay-limitations.md remained supporting evidence outside the targets."
+              ],
+              "additionalPaths": []
+            },
+            "current": {
+              "status": "valid",
+              "explanation": "At the refreshed snapshot, the two confirmed Relay files fully cover the only operated service and no additional contextual targets are needed.",
+              "evidence": [
+                "The Relay manifest and server remain unchanged, both planned adjacent files now exist, all four required runbook sections are present, excluded candidates remain unchanged, and the limitations note remains useful evidence without needing edits."
+              ],
+              "additionalPaths": []
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "active": null,
+  "abandoned": [],
+  "evidence": "historical"
+}
