@@ -270,8 +270,9 @@ export function status(project: string) {
   try {
     const { state, pinned } = recordedState(root);
     const amended = !!state.amendments?.length;
-    return { format: amended || format === 'repo-standards/status/v3' ? 'repo-standards/status/v3'
-      : state.observations ? 'repo-standards/status/v2' : format,
+    return { format: state.format === 'repo-standards/state/v4' ? 'repo-standards/status/v4'
+      : amended || format === 'repo-standards/status/v3' ? 'repo-standards/status/v3'
+        : state.observations ? 'repo-standards/status/v2' : format,
       ...(state.observations ? { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory } : {}),
       ...(state.history ? { history: state.history } : {}),
       ...(amended ? { scopeRevision: state.scopeRevision, amendments: state.amendments } : {}),

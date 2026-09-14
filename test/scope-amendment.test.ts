@@ -114,7 +114,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',m
   assert.equal(completed.report.outcome, 'complete');
   assert.equal(completed.report.operations.filter((entry: any) => entry.operation.phase === 'checks').length, 1);
   const status = f.run(['status', '--json']).report;
-  assert.equal(status.format, 'repo-standards/status/v3');
+  assert.equal(status.format, 'repo-standards/status/v4');
   assert.equal(status.scopeRevision, 1);
   assert.equal(status.amendments[0].confirmation, preview.identity);
   const retained = f.run(['inspect', '--json']).report;
@@ -128,7 +128,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',m
   assert.ok(changedInventory.report.start.blockers.some((blocker: any) => blocker.code === 'STATE_INTEGRITY'));
 });
 
-test('status preserves v3 when a v2 completion has abandoned amended history', async t => {
+test('completed status stays v4 with abandoned amended history', async t => {
   const completed = await fixture(t);
   assert.equal(submit(completed).report.outcome, 'complete');
   const state = JSON.parse(readFileSync(join(completed.project.root, '.repo-standards/state.json'), 'utf8'));
@@ -136,7 +136,7 @@ test('status preserves v3 when a v2 completion has abandoned amended history', a
   assert.equal('scopeRevision' in state, false);
   assert.equal('amendments' in state, false);
   const ordinaryStatus = completed.run(['status', '--json']).report;
-  assert.equal(ordinaryStatus.format, 'repo-standards/status/v2');
+  assert.equal(ordinaryStatus.format, 'repo-standards/status/v4');
   assert.equal('scopeRevision' in ordinaryStatus, false);
   assert.equal('amendments' in ordinaryStatus, false);
 
@@ -152,7 +152,7 @@ test('status preserves v3 when a v2 completion has abandoned amended history', a
   mkdirSync(reports, { recursive: true });
   writeFileSync(join(reports, 'amended.json'), JSON.stringify(abandoned));
   const status = completed.run(['status', '--json']).report;
-  assert.equal(status.format, 'repo-standards/status/v3');
+  assert.equal(status.format, 'repo-standards/status/v4');
   assert.equal(status.abandoned[0].format, 'repo-standards/run/v3');
 });
 

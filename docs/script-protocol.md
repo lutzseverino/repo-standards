@@ -183,10 +183,10 @@ separately from contextual work. `restoredBoundaries` covers only recreated
 parents of restored exact files or removal of extra directories inside a
 verified skill inventory; it never exempts changes to existing directory modes.
 This grants no new contextual scope.
-Durable `repo-standards/state/v4` and `repo-standards/status/v2` retain intervals,
+Durable `repo-standards/state/v4` and `repo-standards/status/v4` retain intervals,
 operation history, retry history, final checks and assessments. Accepting an
-amendment advances the active run and status records to v3; state v4 retains its
-scope revisions and authorization evidence. State v4 also
+amendment advances the active run and active status records to v3; completed
+state and status v4 retain the scope revisions and authorization evidence. State v4 also
 retains each prior complete v2 run's corresponding evidence in its ordered
 `history`. Detailed logs remain local; the recorded outcomes and interval
 evidence survive a fresh checkout. The integrity lock remains
