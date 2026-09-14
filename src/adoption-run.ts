@@ -564,8 +564,11 @@ export class AdoptionRunSession {
     const { report, files, skills, exactBaselines, durable } = installation;
     this.#completing = true;
     const completedAt = new Date().toISOString();
-    const state = file(json({ format: run.observations ? 'repo-standards/state/v4' : 'repo-standards/state/v1',
-      ...(run.observations ? { history: completeRunHistory(installation), observations: run.observations, operations: run.operations, retryHistory: run.retryHistory ?? [] } : {}),
+    const history = completeRunHistory(installation);
+    const retainExecutionHistory = run.observations !== undefined || history.length > 0;
+    const state = file(json({ format: retainExecutionHistory ? 'repo-standards/state/v4' : 'repo-standards/state/v1',
+      ...(retainExecutionHistory ? { history } : {}),
+      ...(run.observations ? { observations: run.observations, operations: run.operations, retryHistory: run.retryHistory ?? [] } : {}),
       ...(run.amendments?.length ? { scopeRevision: run.scopeRevision!, amendments: run.amendments } : {}),
       lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: report.project.head }, baselines: exactBaselines, skills,
       checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));

@@ -186,6 +186,9 @@ amendment advances to run v3 and retains its amendment chain in state v4. Each
 later complete v2 run moves the prior run's interval,
 operation, retry, check and assessment evidence into the state's ordered
 `history`, so earlier authorized work remains explainable in a fresh checkout.
+An intervening v1 standards update keeps its v1 run, work-request and assessment
+protocols while carrying the earlier v2 evidence in state and status v4; a later
+v2 completion therefore cannot erase that history.
 The v4 format makes clients that predate retained execution history reject the
 new state rather than silently overlooking it.
 Historical evidence makes no current-coverage claim.

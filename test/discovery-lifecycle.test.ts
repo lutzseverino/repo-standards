@@ -175,7 +175,7 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   assert.deepEqual(checkoutState.history[0], secondState.history[0]);
 });
 
-test('a compatible v2 standards update obtains fresh scope before changing only the standards pin', async t => {
+test('compatible standards updates preserve v2 evidence through discovery retirement and source-format changes', async t => {
   const f = await fixture(t);
   const firstRequest = f.run(inspectionArgs).report;
   f.proposal(firstRequest, 'apps/old/README.md');
@@ -204,7 +204,7 @@ test('a compatible v2 standards update obtains fresh scope before changing only 
   commit(f.project.root);
 
   const withoutDiscovery = stringify({
-    format: 'repo-standards/v2', name: 'growing-projects', description: 'Documentation for maintained projects',
+    format: 'repo-standards/v1', name: 'growing-projects', description: 'Documentation for maintained projects',
     requires: { 'repo-standards': '>=1 <2' }, defaults: { declarations: {
       instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
     } }, profiles: { work: { description: 'Work', declarations: {} } },
@@ -216,6 +216,13 @@ test('a compatible v2 standards update obtains fresh scope before changing only 
   const retired = f.run(['start', ...retirementArgs.slice(1), '--confirm', retirement.identity]);
   assert.equal(retired.result.status, 0, retired.result.stdout + retired.result.stderr);
   commit(f.project.root);
+  const retiredState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
+  assert.equal(retiredState.format, 'repo-standards/state/v4');
+  assert.equal('observations' in retiredState, false);
+  assert.equal(retiredState.history.length, 2);
+  const retiredStatus = f.run(['status', '--json']).report;
+  assert.equal(retiredStatus.format, 'repo-standards/status/v4');
+  assert.equal(retiredStatus.history.length, 2);
   const noDiscoveryHistory = f.run(['inspect', '--json']).report.historicalScope;
   assert.equal(noDiscoveryHistory.runs.at(-1).discovery, undefined);
 
@@ -225,6 +232,11 @@ test('a compatible v2 standards update obtains fresh scope before changing only 
   f.proposal(reintroducedRequest, 'apps/new/README.md');
   const reintroduced = f.run([...reintroducedArgs, '--scope', f.scopeFile]).report;
   assert.deepEqual(reintroduced.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: [] }]);
+  const reintroducedRun = f.run(['start', ...reintroducedArgs.slice(1), '--scope', f.scopeFile, '--confirm', reintroduced.identity]).report;
+  assert.equal(f.complete(reintroducedRun).result.status, 0);
+  const reintroducedState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
+  assert.equal(reintroducedState.format, 'repo-standards/state/v4');
+  assert.equal(reintroducedState.history.length, 2);
 });
 
 test('a compatible CLI update uses retained v2 guidance and fresh scope without the original source', async t => {

@@ -191,7 +191,9 @@ retains each prior complete v2 run's corresponding evidence in its ordered
 `history`. Detailed logs remain local; the recorded outcomes and interval
 evidence survive a fresh checkout. The integrity lock remains
 `repo-standards/lock/v1` and binds the new state bytes. V1 sources retain their
-existing execution and report formats.
+existing run, work-request and assessment formats. When an update moves through
+v1 after a v2 completion, durable state and status remain v4 so the earlier v2
+execution history survives a later return to v2.
 Retained inspection also checks v2 exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
 empty-directory edits block updates before mutation.
