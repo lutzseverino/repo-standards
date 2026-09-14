@@ -1,6 +1,6 @@
 # Confirmed adoption
 
-Initial adoption, deliberate updates, and explicit same-pin v1 re-adoption install
+Initial adoption, deliberate updates, and explicit same-pin re-adoption install
 exact files and whole author skills and execute trusted fixes and checks. Profiles with contextual guidance
 return a work request after fixes and continue through the public
 [assessment protocol](assessment-protocol.md). Interrupted adoption supports
@@ -52,6 +52,12 @@ start the exact same selection with its identity:
   --confirm 'sha256:INSPECTION_HASH' --json
 ```
 
+When the candidate v2 profile has active discovery declarations, the first
+inspection requires fresh project evidence. Build a new `--scope` proposal and
+pass it to both the complete inspection and confirmed start. The report lists
+discovered-scope additions and removals relative to the prior complete adoption;
+removed scope ends governance without deleting that project-owned content.
+
 For a CLI update, obtain the candidate exact CLI outside the project. Omit the
 source flags so inspection and start use the retained current standards:
 
@@ -76,18 +82,23 @@ The bootstrap provides temporary inspection only. Keep the external candidate
 available for retry if installation interrupts before the project runtime is
 usable. Once adoption completes, use the new project-pinned CLI normally.
 
-## Re-adopt unchanged v1 standards
+## Re-adopt unchanged standards
 
 Use the pinned project CLI with `--readopt` when repository growth should pass
-through the retained current v1 selection again without changing the standards
+through the retained current selection again without changing the standards
 or CLI version:
 
 ```sh
 .repo-standards/runtime/node_modules/.bin/repo-standards inspect \
-  --readopt --json
+  --readopt --scope /tmp/project-scope.json --json
 .repo-standards/runtime/node_modules/.bin/repo-standards start \
-  --readopt --confirm 'sha256:INSPECTION_HASH' --json
+  --readopt --scope /tmp/project-scope.json \
+  --confirm 'sha256:INSPECTION_HASH' --json
 ```
+
+Omit `--scope` for v1 and for v2 selections without active discovery. For v2,
+first run `inspect --readopt --json`, interpret the retained discovery guidance
+against fresh project evidence, then use the new proposal in the commands above.
 
 Review and confirm the complete re-adoption inspection as a new action. Plain
 `inspect --json` remains a read-only retained inspection and its identity cannot
@@ -96,7 +107,7 @@ CLI-version changes and cannot be combined with active-run scope amendment. It
 requires a prior complete adoption and the same clean, committed project and
 integrity checks as an initial start.
 
-The CLI resolves the v1 source from retained inputs, so the original standards
+The CLI resolves the source from retained inputs, so the original standards
 repository can be unavailable. It reacquires the exact pinned CLI runtime from
 the configured npm registry or cache, checks prerequisites, runs fixes, requests
 fresh contextual assessment when applicable, and runs checks through the shared
@@ -154,29 +165,37 @@ Review and commit these files through the adopting project's normal workflow:
 | --- | --- |
 | `.repo-standards/selection.yaml` | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile. |
 | `.repo-standards/lock.json` | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state. |
-| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, and historical check evidence and separate assessment evidence bound to the selection and project snapshot. |
+| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, check and assessment evidence bound to the selection and project snapshot, and prior complete v2 execution evidence. |
 | `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
 | `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
 | `.agents/skills/adopt-standards/` | The product-owned system skill from this exact CLI version. |
 | Exact targets and `.agents/skills/<author skill>/` | The selected author-owned content and complete skill resources. |
 
-Discovery adoption additionally retains `inputs/scope-history.json`, containing
-its accepted inspection identity, source-resolved declarations, concrete resolved
-selection, and discovery guidance, proposal, rationale, evidence references and
-observation identities. This file is included in immutable input integrity.
+Discovery adoption additionally retains `inputs/scope-history.json`. Its ordered
+run records mark every later complete lifecycle point; entries with discovery
+preserve the accepted inspection identity, source-resolved declarations, concrete
+resolved selection, discovery guidance, proposal, rationale, evidence references
+and observation identities. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
 source availability. Ordinary discovery completion exposes inspection v2 with
-scope-history v1. An amended completion exposes inspection v3 with scope-history
-v2, whose added fields retain the accepted revision and amendment records. Work
-intervals and final scope-validity assessments are
-committed in state v2; a run that accepts an amendment advances to run/state v3.
+scope-history v2. An amended completion exposes inspection v3; scope-history v2
+adds the accepted revision and amendment records. Work intervals and final
+scope-validity assessments are committed in state v4; a run that accepts an
+amendment advances to run v3 and retains its amendment chain in state v4. Each
+later complete v2 run moves the prior run's interval,
+operation, retry, check and assessment evidence into the state's ordered
+`history`, so earlier authorized work remains explainable in a fresh checkout.
+An intervening v1 standards update keeps its v1 run, work-request and assessment
+protocols while carrying the earlier v2 evidence in state and status v4; a later
+v2 completion therefore cannot erase that history.
+The v4 format makes clients that predate retained execution history reject the
+new state rather than silently overlooking it.
 Historical evidence makes no current-coverage claim.
 
-Discovery updates and same-pin v2 re-adoption remain unsupported in this
-implementation. Unchanged retained v1 selections support the explicit
-[re-adoption flow](#re-adopt-unchanged-v1-standards). Eligible active discovery
-runs can use the
+Discovery-backed standards updates, CLI updates and unchanged-pin re-adoption use
+fresh proposals and preserve prior run evidence. Eligible active
+discovery runs can use the
 [confirmed amendment workflow](inspection.md#preview-scope-amendments-in-an-active-run).
 If contextual review identifies additional files, prepare and confirm one
 complete additions-only amendment as described below. Retry repeats fixes under
@@ -397,8 +416,10 @@ No standards-source connection is needed for these commands. `inspect` without
 source flags verifies retained input integrity and resolves the current profile
 from retained material. Local edits to exact project content remain visible in
 the report. With the pinned CLI, this unchanged report has `retained: true` and
-is read-only. With a different exact CLI version, it discloses a CLI update that
-can be confirmed and started as described above.
+is read-only. Use `--readopt` for a deliberate unchanged-pin run. With a different
+exact CLI version, it discloses a CLI update that can be confirmed and started as
+described above. Active v2 discovery declarations require fresh `--scope`
+proposals for both actions; retained historical scope never substitutes for them.
 
 `status` reports pins, active progress, and historical last-complete evidence.
 After an abandoned update, it still returns the archived report. If the

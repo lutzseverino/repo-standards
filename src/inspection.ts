@@ -107,6 +107,10 @@ interface RecordedAdoption {
   skills: Record<string, string[]>; completeInventory: boolean;
   resolved: { declarations: { id: string; kind: string; target?: string; name?: string }[] };
   files: Record<string, Pick<Content, 'sha256' | 'executable'>>;
+  historicalScope?: {
+    sourceResolved?: { declarations?: { id: string; discovery?: string }[] };
+    resolved?: { declarations?: { id: string; kind: string; targets?: { paths?: string[]; directories?: string[] } }[] };
+  };
 }
 
 function recordedAdoption(root: string): RecordedAdoption | undefined {
@@ -121,8 +125,25 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
   if (!Array.isArray(resolved?.declarations)) {
     throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state failed integrity validation. Restore the committed product state.');
   }
+  let historicalScope: RecordedAdoption['historicalScope'];
+  const historyPath = '.repo-standards/inputs/scope-history.json';
+  if (Object.hasOwn(lock.files, historyPath)) {
+    try {
+      const saved = JSON.parse(readFileSync(join(root, historyPath), 'utf8'));
+      historicalScope = Array.isArray(saved?.runs) ? saved.runs.at(-1) : saved;
+      const acceptedScope = (state.amendments?.at(-1) as { acceptedScope?: Record<string, { paths?: string[]; directories?: string[] }> } | undefined)?.acceptedScope;
+      if (acceptedScope && historicalScope?.resolved?.declarations) historicalScope = { ...historicalScope, resolved: {
+        ...historicalScope.resolved,
+        declarations: historicalScope.resolved.declarations.map(declaration => {
+          const amendedTargets = acceptedScope[declaration.id];
+          return amendedTargets ? { ...declaration, targets: amendedTargets } : declaration;
+        }),
+      } };
+    } catch { throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.'); }
+  }
   return { selection: lock.selection, baselines: state.baselines, skills: state.skills,
-    completeInventory: ['repo-standards/state/v2', 'repo-standards/state/v3'].includes(state.format), resolved, files: lock.files };
+    completeInventory: ['repo-standards/state/v2', 'repo-standards/state/v3', 'repo-standards/state/v4'].includes(state.format), resolved, files: lock.files,
+    ...(historicalScope ? { historicalScope } : {}) };
 }
 
 export function inventoryPaths(value: Observation, directories = false): string[] {
@@ -207,10 +228,12 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
     const profile = validation.profiles[options.profile];
     if (!profile) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
-    if (options.readopt && validation.source!.format !== 'repo-standards/v1') blockers.push({ code: 'READOPTION_UNAVAILABLE', message: 'Explicit re-adoption currently supports retained repo-standards/v1 selections. Preserve this v2 selection until its discovery lifecycle is available.' });
+    const standardsChanged = previous ? source.identity.version !== previous.selection.standards.version || source.identity.commit !== previous.selection.standards.commit : false;
+    const cliChanged = previous ? cliVersion !== previous.selection.cli.version : false;
+    const requestedAction = options.readopt ? 'readopt' : previous && (standardsChanged || cliChanged) ? 'update' : retained ? 'retained' : 'adopt';
     const discoveryDeclarations = profile.declarations.filter(declaration => 'discovery' in declaration);
     const scopeObservation = discoveryDeclarations.length ? observeScope(root) : undefined;
-    const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: options.readopt ? 'readopt' : retained ? 'retained' : previous ? 'update' : 'adopt', root, head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;
+    const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: requestedAction, root, head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;
     const proposal = options.scope ? readScope(options.scope, root) : undefined;
     if (proposal && proposal.request !== requestIdentity) throw new ProductError('STALE_SCOPE', 'Scope proposal does not match this discovery request. Inspect again and review fresh evidence.');
     const resolved = materializeScope(root, profile, proposal);
@@ -226,7 +249,6 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     } : undefined;
     if (discovery) {
       if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: 'Interpret the discovery guidance and submit an evidence-backed repo-standards/scope/v1 proposal with inspect --scope.' });
-      if (previous && proposal) blockers.push({ code: 'DISCOVERY_UPDATE_UNAVAILABLE', message: 'Discovery adoption currently supports initial starts. Discovery updates and same-pin v2 re-adoption require the subsequent lifecycle implementation.' });
       if (proposal?.declarations.some(entry => entry.unresolved.length)) blockers.push({ code: 'UNRESOLVED_SCOPE', message: 'Resolve the reported discovery questions and inspect a revised proposal.' });
     }
     let update: 'standards' | 'cli' | undefined;
@@ -235,8 +257,6 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       if (sameSource && source.identity.version === previous.selection.standards.version && source.identity.commit !== previous.selection.standards.commit) {
         throw new ProductError('MOVED_TAG', `The recorded ${source.identity.version} tag previously resolved to ${previous.selection.standards.commit}; it now resolves to ${source.identity.commit}. Choose a new immutable version.`);
       }
-      const standardsChanged = source.identity.version !== previous.selection.standards.version || source.identity.commit !== previous.selection.standards.commit;
-      const cliChanged = cliVersion !== previous.selection.cli.version;
       if (!sameSource || options.profile !== previous.selection.profile) blockers.push({ code: 'SELECTION_SWITCH', message: 'Updates must preserve the current standards source and profile. Source and profile switching are unsupported.' });
       if (options.readopt) {
         if (!retained || standardsChanged || cliChanged) blockers.push({ code: 'SELECTION_SWITCH', message: 'Re-adoption uses the unchanged retained source, profile, standards revision, and exact CLI version.' });
@@ -326,6 +346,20 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     }
     for (const name of readdirSync(source.root).sort()) if (/^licen[sc]e(?:[.-].*)?$/i.test(name)) inputs[name] = observe(join(source.root, name));
     const retired = previous ? previous.resolved.declarations.filter(old => !resolved.declarations.some(declaration => declaration.id === old.id)) : [];
+    let scopeChanges: { id: string; additions: string[]; removals: string[] }[] | undefined;
+    if (previous && (!discoveryDeclarations.length || proposal)) {
+      const priorIds = previous.historicalScope?.sourceResolved?.declarations?.filter(declaration => declaration.discovery).map(declaration => declaration.id) ?? [];
+      const currentIds = discoveryDeclarations.map(declaration => declaration.id);
+      scopeChanges = [...new Set([...priorIds, ...currentIds])].sort().flatMap(id => {
+        const oldDeclaration = previous.historicalScope?.resolved?.declarations?.find(declaration => declaration.id === id);
+        const newDeclaration = resolved.declarations.find(declaration => declaration.id === id);
+        const oldPaths = priorIds.includes(id) && oldDeclaration?.kind === 'repository' ? oldDeclaration.targets?.paths ?? [] : [];
+        const newPaths = currentIds.includes(id) && newDeclaration?.kind === 'repository' ? newDeclaration.targets.paths : [];
+        const additions = newPaths.filter(path => !oldPaths.includes(path)).sort();
+        const removals = oldPaths.filter(path => !newPaths.includes(path)).sort();
+        return additions.length || removals.length ? [{ id, additions, removals }] : [];
+      });
+    }
     const report = {
       format: discovery ? 'repo-standards/inspection/v2' : 'repo-standards/inspection/v1',
       ...(discovery ? { discovery, sourceResolved: profile } : {}),
@@ -335,6 +369,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
       ...(options.readopt ? { action: 'readopt' as const } : {}),
       ...(update ? { update, previousSelection: previous!.selection, retired } : {}),
+      ...(scopeChanges ? { scopeChanges } : {}),
     };
     if (scopeObservation) {
       const finalHead = git(root, ['rev-parse', '--verify', 'HEAD'], undefined, 30_000);

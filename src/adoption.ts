@@ -84,6 +84,24 @@ function inventory(root: string, path: string) {
   return Object.keys(files).map(name => name.slice(path.length + 1)).sort();
 }
 
+interface ScopeHistoryRun {
+  inspection: string;
+  resolved: Inspection['resolved'];
+  sourceResolved?: NonNullable<Inspection['sourceResolved']>;
+  discovery?: NonNullable<Inspection['discovery']>;
+}
+
+function retainedScopeRuns(value: unknown): ScopeHistoryRun[] {
+  if (!value || typeof value !== 'object') throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.');
+  const history = value as Record<string, unknown>;
+  if (Array.isArray(history.runs)) return history.runs as ScopeHistoryRun[];
+  if (typeof history.inspection === 'string' && history.sourceResolved && history.resolved && history.discovery) {
+    return [{ inspection: history.inspection, sourceResolved: history.sourceResolved as NonNullable<ScopeHistoryRun['sourceResolved']>,
+      resolved: history.resolved as ScopeHistoryRun['resolved'], discovery: history.discovery as NonNullable<ScopeHistoryRun['discovery']> }];
+  }
+  throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history failed integrity validation. Restore the committed product state.');
+}
+
 function verifyCommittable(root: string, paths: string[]) {
   const result = git(root, ['check-ignore', '-z', '--stdin'], paths.join('\0') + '\0');
   if (result.status !== 0 && result.status !== 1) throw new ProductError('PROJECT_READ', 'Cannot establish whether adoption outputs can be committed.');
@@ -138,10 +156,16 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
   inputs['.repo-standards/inputs/standards.yaml'] = file(report.manifest);
   inputs['.repo-standards/inputs/metadata.json'] = file(json(report.source));
   inputs['.repo-standards/inputs/resolved.json'] = file(json(report.resolved));
-  if (report.discovery) inputs['.repo-standards/inputs/scope-history.json'] = file(json({
-    format: 'repo-standards/scope-history/v1', evidence: 'historical', inspection: confirmation,
-    sourceResolved: report.sourceResolved, resolved: report.resolved, discovery: report.discovery,
-  }));
+  const historyPath = '.repo-standards/inputs/scope-history.json';
+  const previousHistory = safe(root, historyPath);
+  if (report.discovery || previousHistory.type === 'file') {
+    const current: ScopeHistoryRun = { inspection: confirmation, resolved: report.resolved,
+      ...(report.discovery ? { sourceResolved: report.sourceResolved!, discovery: report.discovery } : {}) };
+    const runs = previousHistory.type === 'file'
+      ? [...retainedScopeRuns(JSON.parse(Buffer.from(previousHistory.content, previousHistory.encoding).toString('utf8'))), current]
+      : [current];
+    inputs[historyPath] = file(json({ format: 'repo-standards/scope-history/v2', evidence: 'historical', ...current, runs }));
+  }
   Object.assign(files, inputs);
   files['.repo-standards/selection.yaml'] = file(stringify(report.selection));
   files['.repo-standards/.gitignore'] = file(ignore);
@@ -416,7 +440,7 @@ export async function inspectRetained(project: string, cliVersion: string, scope
     { root: sourceRoot, identity: lock.selection.standards, paths, manifest: readFileSync(join(root, '.repo-standards/inputs/standards.yaml'), 'utf8'), ownedSkills: new Set(Object.keys(state.skills)), close() {} });
   const history = '.repo-standards/inputs/scope-history.json';
   const historicalScope = Object.hasOwn(lock.files, history) ? JSON.parse(readFileSync(join(root, history), 'utf8')) : undefined;
-  const amended = state.format === 'repo-standards/state/v3';
+  const amended = !!state.amendments?.length;
   const retainedHistory = historicalScope ? { ...historicalScope,
     ...(amended ? { format: 'repo-standards/scope-history/v2', scopeRevision: state.scopeRevision, amendments: state.amendments } : {}) } : undefined;
   return { ...report, ...(amended ? { format: 'repo-standards/inspection/v3' } : {}),

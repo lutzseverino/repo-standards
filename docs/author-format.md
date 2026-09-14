@@ -29,9 +29,9 @@ scope retains the declaration and its operations. Source validation alone proves
 neither project-specific safety nor semantic coverage. Eligible active discovery runs can
 [preview and confirm additions-only scope amendments](inspection.md#preview-scope-amendments-in-an-active-run).
 Confirmed amendments replay fixes and require renewed assessment and checks.
-Discovery updates and same-pin v2 re-adoption remain subsequent lifecycle work.
-Unchanged v1 selections support explicit retained re-adoption through the public
-lifecycle.
+Fresh discovery proposals also apply during compatible standards and CLI updates
+and explicit same-pin re-adoption. Between complete runs, scope can add or remove
+individual paths; removals end governance without deleting project content.
 
 ## Root and profiles
 

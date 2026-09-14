@@ -183,19 +183,22 @@ separately from contextual work. `restoredBoundaries` covers only recreated
 parents of restored exact files or removal of extra directories inside a
 verified skill inventory; it never exempts changes to existing directory modes.
 This grants no new contextual scope.
-Durable `repo-standards/state/v2` and `repo-standards/status/v2` retain intervals
-for ordinary v2 execution. Accepting an amendment advances the run, state and
-status records to v3, which also retains scope revisions and their authorization
-evidence. Both retain operation history, retry history, final checks and
-assessments. Detailed logs
-remain local; the recorded outcomes and interval evidence survive a fresh
-checkout. The integrity lock remains `repo-standards/lock/v1` and binds the new
-state bytes. V1 sources retain their existing execution and report formats.
+Durable `repo-standards/state/v4` and `repo-standards/status/v4` retain intervals,
+operation history, retry history, final checks and assessments. Accepting an
+amendment advances the active run and active status records to v3; completed
+state and status v4 retain the scope revisions and authorization evidence. State v4 also
+retains each prior complete v2 run's corresponding evidence in its ordered
+`history`. Detailed logs remain local; the recorded outcomes and interval
+evidence survive a fresh checkout. The integrity lock remains
+`repo-standards/lock/v1` and binds the new state bytes. V1 sources retain their
+existing run, work-request and assessment formats. When an update moves through
+v1 after a v2 completion, durable state and status remain v4 so the earlier v2
+execution history survives a later return to v2.
 Retained inspection also checks v2 exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
 empty-directory edits block updates before mutation.
 Retained inspection remains `repo-standards/inspection/v2` with
-`repo-standards/scope-history/v1` after ordinary v2 completion. When state v3
+`repo-standards/scope-history/v2` after ordinary v2 completion. When state v4
 contains accepted amendments, retained inspection uses
 `repo-standards/inspection/v3` and its historical scope uses
 `repo-standards/scope-history/v2` with `scopeRevision` and `amendments`.

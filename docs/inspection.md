@@ -129,7 +129,7 @@ The report has format `repo-standards/inspection/v1`:
 | `operations` | Ordered fixes and checks, literal arguments, script bytes, resource inventories, timeout, and declared prerequisite probe/range. |
 | `project` | Canonical project root, HEAD or null, Git status and index, affected content, and reserved product paths. |
 | `inputs`, `manifest` | Selected source material and normalized single-profile metadata retained by adoption. |
-| `action` | `readopt` when the caller explicitly requests a new adoption of unchanged retained v1 pins; omitted for ordinary adoption, retained inspection, and updates. |
+| `action` | `readopt` when the caller explicitly requests a new adoption of unchanged retained pins; omitted for ordinary adoption, retained inspection, and updates. |
 | `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available. |
 | `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
 
@@ -137,7 +137,10 @@ For an established candidate that changes one pin, `update` is `standards` or
 `cli`, `previousSelection` records the current pins, and `retired` lists
 declarations that will leave governance while their installed content remains
 in place. An unchanged retained inspection omits these update fields and is
-read-only unless `--readopt` explicitly requests a new v1 adoption.
+read-only unless `--readopt` explicitly requests a new adoption. A complete
+discovery-backed re-adoption or update also includes `scopeChanges`, listing
+individual additions and removals by declaration relative to the prior complete
+adoption. Removed contextual paths remain project content and are not deleted.
 
 For an established selection, `project.productState` observes the full durable
 `.repo-standards/` tree, including unexpected files and their bytes. Inspection
@@ -176,7 +179,7 @@ establishes ownership. Existing product state or reserved system-skill content
 also blocks initial adoption. Established projects can use `inspect --json` with
 their pinned CLI to inspect retained material. That unchanged inspection is
 read-only and cannot be started. Use `inspect --readopt --json` to request a
-startable same-pin v1 inspection; its action changes the inspection identity and
+startable same-pin inspection; its action changes the inspection identity and
 must be repeated as `start --readopt --confirm <identity>`. Re-adoption preserves
 all pins, requires a complete prior adoption and a clean committed project, and
 reuses retained source material when the original source is unavailable. The
@@ -350,16 +353,22 @@ installation. Missing, invalid, unresolved, or stale scope cannot authorize
 mutation. Initial clean committed-project and prerequisite rules still apply.
 There is no separate mandatory scope confirmation. Existing explicit selections
 retain inspection/v1; v2 execution uses the [observed-scope contract](script-protocol.md#observed-scope-for-v2-adoption).
-Discovery updates and same-pin v2 re-adoption are not yet startable. Explicit
-same-pin v1 re-adoption is documented in
-[adoption](adoption.md#re-adopt-unchanged-v1-standards).
+Standards updates, CLI updates and same-pin re-adoption repeat this fresh
+discovery pass for every active v2 declaration. Use the update commands described
+above, or `inspect --readopt --scope <file>` followed by matching confirmed
+`start --readopt --scope <file>`. The selection and requested action are bound
+into the request and final inspection identities, so retained historical or
+ordinary-inspection proposals cannot authorize the new run.
 
 After ordinary v2 completion, retained `inspect --json` remains
 `repo-standards/inspection/v2` and exposes `historicalScope` as
-`repo-standards/scope-history/v1`: the
+`repo-standards/scope-history/v2`: the
 accepted inspection identity, source-resolved declarations, materialized concrete
 selection, and discovery proposal, rationale, guidance, references, and observation
-identities. Its `evidence: historical` describes prior authorization, even in a
+identities. Ordered `runs` retain each later complete lifecycle point, including
+a no-discovery state after all discovery declarations are retired, rather than
+erasing or misidentifying the immediately prior authorization context. Its
+`evidence: historical` describes prior authorization, even in a
 fresh checkout without the source. The ordinary report's current discovery
 request is separate and confers no authority or claim of current coverage.
 After an amended completion, retained inspection advances to

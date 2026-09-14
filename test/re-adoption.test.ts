@@ -153,7 +153,7 @@ test('re-adoption requires fresh v1 contextual assessment and checks for newly c
   assert.notEqual(second.id, first.id);
 });
 
-test('explicit re-adoption leaves retained v2 selections for the later discovery lifecycle', async t => {
+test('explicit re-adoption supports retained v2 selections without active discovery', async t => {
   const remote = remoteFixture(source.replace('repo-standards/v1', 'repo-standards/v2'), { 'agents.md': 'Pinned standards' });
   const project = sourceFixture('');
   const registry = await registryFixture(cli.root);
@@ -167,8 +167,9 @@ test('explicit re-adoption leaves retained v2 selections for the later discovery
   commit(project.root);
 
   const inspected = JSON.parse(cli.run(['inspect', '--readopt', '--json'], project.root, env).stdout);
-  assert.ok(inspected.start.blockers.some((blocker: { code: string }) => blocker.code === 'READOPTION_UNAVAILABLE'));
-  const rejected = cli.run(['start', '--readopt', '--confirm', inspected.identity, '--json'], project.root, env);
-  assert.equal(rejected.status, 1);
-  assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'START_BLOCKED');
+  assert.equal(inspected.action, 'readopt');
+  assert.deepEqual(inspected.start.blockers, []);
+  const completed = cli.run(['start', '--readopt', '--confirm', inspected.identity, '--json'], project.root, env);
+  assert.equal(completed.status, 0, completed.stdout + completed.stderr);
+  assert.equal(JSON.parse(completed.stdout).outcome, 'complete');
 });

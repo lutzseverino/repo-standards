@@ -151,7 +151,7 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     assert.equal(retained.result.status, 0, retained.result.stdout);
     assert.equal(retained.report.format, 'repo-standards/inspection/v2');
     assert.equal(retained.report.retained, true);
-    assert.equal(retained.report.historicalScope.format, 'repo-standards/scope-history/v1');
+    assert.equal(retained.report.historicalScope.format, 'repo-standards/scope-history/v2');
     assert.equal(retained.report.historicalScope.evidence, 'historical');
     assert.equal(retained.report.historicalScope.inspection, inspected.identity);
     assert.deepEqual(retained.report.historicalScope.resolved, inspected.resolved);

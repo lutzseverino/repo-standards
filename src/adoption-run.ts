@@ -166,6 +166,32 @@ function clearStoppedProcess(run: Run) {
   delete run.processGroupIdentity;
 }
 
+interface CompleteRunEvidence {
+  lastComplete: { run: string; inspection: string; completedAt: string; head: string };
+  observations: WorkInterval[];
+  operations: OperationEvidence[];
+  retryHistory: NonNullable<Run['retryHistory']>;
+  checks: OperationEvidence[];
+  assessments: Assessment[];
+  scopeRevision?: number;
+  amendments?: ScopeAmendmentRecord[];
+}
+
+function completeRunHistory(installation: Installation): CompleteRunEvidence[] {
+  const previous = installation.transitional?.['.repo-standards/state.json'];
+  if (!previous) return [];
+  const state = JSON.parse(Buffer.from(previous.content, previous.encoding).toString('utf8')) as Record<string, unknown>;
+  const history = Array.isArray(state.history) ? structuredClone(state.history) as CompleteRunEvidence[] : [];
+  if (!Array.isArray(state.observations) || !Array.isArray(state.operations) || !Array.isArray(state.retryHistory)
+    || !Array.isArray(state.checks) || !Array.isArray(state.assessments) || !state.lastComplete) return history;
+  return [...history, { lastComplete: structuredClone(state.lastComplete) as CompleteRunEvidence['lastComplete'],
+    observations: structuredClone(state.observations) as WorkInterval[], operations: structuredClone(state.operations) as OperationEvidence[],
+    retryHistory: structuredClone(state.retryHistory) as NonNullable<Run['retryHistory']>, checks: structuredClone(state.checks) as OperationEvidence[],
+    assessments: structuredClone(state.assessments) as Assessment[],
+    ...(state.scopeRevision !== undefined ? { scopeRevision: state.scopeRevision as number,
+      amendments: structuredClone(state.amendments) as ScopeAmendmentRecord[] } : {}) }];
+}
+
 function canResumeAssessment(run: Run) {
   return !!run.continuation && (
     run.phase === 'contextual' || run.phase === 'assessment'
@@ -243,10 +269,13 @@ export function status(project: string) {
   if (!existsSync(join(root, '.repo-standards/state.json'))) return { format, selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
   try {
     const { state, pinned } = recordedState(root);
-    return { format: state.format === 'repo-standards/state/v3' || format === 'repo-standards/status/v3' ? 'repo-standards/status/v3'
-      : state.observations ? 'repo-standards/status/v2' : format,
+    const amended = !!state.amendments?.length;
+    return { format: state.format === 'repo-standards/state/v4' ? 'repo-standards/status/v4'
+      : amended || format === 'repo-standards/status/v3' ? 'repo-standards/status/v3'
+        : state.observations ? 'repo-standards/status/v2' : format,
       ...(state.observations ? { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory } : {}),
-      ...(state.format === 'repo-standards/state/v3' ? { scopeRevision: state.scopeRevision, amendments: state.amendments } : {}),
+      ...(state.history ? { history: state.history } : {}),
+      ...(amended ? { scopeRevision: state.scopeRevision, amendments: state.amendments } : {}),
       selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
       checks: state.checks, assessments: state.assessments, active, abandoned, evidence: 'historical' };
   } catch (error) {
@@ -535,8 +564,10 @@ export class AdoptionRunSession {
     const { report, files, skills, exactBaselines, durable } = installation;
     this.#completing = true;
     const completedAt = new Date().toISOString();
-    const state = file(json({ format: run.amendments?.length ? 'repo-standards/state/v3'
-      : run.observations ? 'repo-standards/state/v2' : 'repo-standards/state/v1',
+    const history = completeRunHistory(installation);
+    const retainExecutionHistory = run.observations !== undefined || history.length > 0;
+    const state = file(json({ format: retainExecutionHistory ? 'repo-standards/state/v4' : 'repo-standards/state/v1',
+      ...(retainExecutionHistory ? { history } : {}),
       ...(run.observations ? { observations: run.observations, operations: run.operations, retryHistory: run.retryHistory ?? [] } : {}),
       ...(run.amendments?.length ? { scopeRevision: run.scopeRevision!, amendments: run.amendments } : {}),
       lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: report.project.head }, baselines: exactBaselines, skills,
