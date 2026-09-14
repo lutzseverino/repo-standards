@@ -1,0 +1,266 @@
+{
+  "kind": "public author-standards release installation",
+  "passed": true,
+  "root": "/tmp/repo-standards-author-rHdHc6",
+  "workspace": "/tmp/repo-standards-author-rHdHc6/workspace",
+  "skill": "/tmp/repo-standards-author-rHdHc6/home/.agents/skills/author-standards",
+  "resources": [
+    {
+      "path": "references/cli.md",
+      "sha256": "1595f2a9fd93ace080729ccece5a4f20416bc24cdefcd2450bdb02f022043017"
+    },
+    {
+      "path": "references/operations.md",
+      "sha256": "3143ce8527dbb2ba3d2b116d569eb26f6addf752317944942651d531ca667c17"
+    },
+    {
+      "path": "references/profiles.md",
+      "sha256": "784a8b5a60d3c67f61361f829797b7bc0f005e739dbe1ed1943ef31593977851"
+    },
+    {
+      "path": "references/revision.md",
+      "sha256": "212a85d506397cdb82a598c13f9360ab26ec143316933305fc1ec7aa3b966e4f"
+    },
+    {
+      "path": "SKILL.md",
+      "sha256": "46743911d9a2e6f72e9fb762c4f8a196289827596debd479d8732fe2108e97d3"
+    }
+  ],
+  "installer": "skills@1.5.25",
+  "command": [
+    "npm",
+    "exec",
+    "--yes",
+    "--registry=https://registry.npmjs.org",
+    "--package=skills@1.5.25",
+    "--",
+    "skills",
+    "add",
+    "https://github.com/lutzseverino/repo-standards/tree/v1.2.1/skills/author-standards",
+    "--skill",
+    "author-standards",
+    "--global",
+    "--agent",
+    "codex",
+    "--copy",
+    "--yes"
+  ],
+  "skillRevision": "67a88db1c81ebcb99561b2583bee353ecc516057",
+  "version": "1.2.1",
+  "cli": "/tmp/repo-standards-author-rHdHc6/cli/node_modules/.bin/repo-standards",
+  "distribution": {
+    "integrity": "sha512-m5swZ8EBiga4Phr+N03znNZ1qhWRcChSJ+IEM0SQI94IkSJ7r6F8i72L9KolVscawwPl1UisLzHuC1Dp3hK75g==",
+    "shasum": "7199af40d9776cf9f6cda1c252c966943c6b8dc5",
+    "tarball": "https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.2.1.tgz",
+    "fileCount": 82,
+    "unpackedSize": 647558,
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@lutzseverino%2frepo-standards@1.2.1",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "signatures": [
+      {
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+        "sig": "MEYCIQD2U7FuZhQCiUQweaIN0Z3LtcdbrIKSMhXE2lHQso0aYwIhAP2b74CIzJgursVwJwsyyv69U0CeRbQao8sZBeMpMvHT"
+      }
+    ]
+  },
+  "documents": [
+    {
+      "path": "adoption.md",
+      "sha256": "969519f5249611a656e6da04f955efa0f69a48ff9ad67a52c68d42f965afcad6"
+    },
+    {
+      "path": "assessment-protocol.md",
+      "sha256": "caa6e8ac8dce4e67c295cd5902d9de3c01a16caac8267d0d96809a51dd01264e"
+    },
+    {
+      "path": "author-format.md",
+      "sha256": "3cad71acc433910d1285023fcda2741b74488da3955280a98604b6ada25afaa3"
+    },
+    {
+      "path": "authoring.md",
+      "sha256": "2bc95540fd12537d0f72379e98c462fa2016b24a676fdefa8e22b18fd0c5eba9"
+    },
+    {
+      "path": "discovery.md",
+      "sha256": "dd61a6621aabacca8ed81276196e673b22d39fec2271629243d1136caecfda6e"
+    },
+    {
+      "path": "inspection.md",
+      "sha256": "27fed986ee3c2481e0c7c4e25b159979addef5bf35fa06f74083bd7688328c63"
+    },
+    {
+      "path": "installation.md",
+      "sha256": "a532501a25b3fe381229df8fc08833ac1e9db8ffa2d9cadd3324120a583cc5d8"
+    },
+    {
+      "path": "release.md",
+      "sha256": "6b97033652dc0fc89128f44bb3a5d197e042a8381006c69b5eb7ac4a3a279ddd"
+    },
+    {
+      "path": "script-protocol.md",
+      "sha256": "e0f6106f9aed0dc199d17f7fee43867d283def76ed1a09cddec95115040d2320"
+    }
+  ],
+  "platform": "linux",
+  "arch": "x64",
+  "osRelease": "6.17.0-1022-azure",
+  "node": "v24.11.1",
+  "npm": "11.6.2",
+  "installedAt": "2026-09-14T08:37:02.871Z",
+  "commands": [
+    {
+      "executable": "npm",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "11.6.2\n",
+      "stderr": ""
+    },
+    {
+      "executable": "git",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "git version 2.55.0\n",
+      "stderr": ""
+    },
+    {
+      "executable": "git",
+      "args": [
+        "ls-remote",
+        "https://github.com/lutzseverino/repo-standards.git",
+        "refs/tags/v1.2.1",
+        "refs/tags/v1.2.1^{}"
+      ],
+      "status": 0,
+      "stdout": "67a88db1c81ebcb99561b2583bee353ecc516057\trefs/tags/v1.2.1\n",
+      "stderr": ""
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "exec",
+        "--yes",
+        "--registry=https://registry.npmjs.org",
+        "--package=skills@1.5.25",
+        "--",
+        "skills",
+        "add",
+        "https://github.com/lutzseverino/repo-standards/tree/v1.2.1/skills/author-standards",
+        "--skill",
+        "author-standards",
+        "--global",
+        "--agent",
+        "codex",
+        "--copy",
+        "--yes"
+      ],
+      "status": 0,
+      "stdout": "\n███████╗██╗  ██╗██╗██╗     ██╗     ███████╗\n██╔════╝██║ ██╔╝██║██║     ██║     ██╔════╝\n███████╗█████╔╝ ██║██║     ██║     ███████╗\n╚════██║██╔═██╗ ██║██║     ██║     ╚════██║\n███████║██║  ██╗██║███████╗███████╗███████║\n╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝\n\n┌   skills \n│\n│  Tip: use the --yes (-y) and --global (-g) flags to install without prompts.\n│\n◇  Source: https://github.com/lutzseverino/repo-standards.git @ v1.2.1 (skills/author-standards)\n│\n◒  Cloning repository…...\n◇  Repository cloned\n│\n\n◇  Found 1 skill\n│\n●  Selected 1 skill: author-standards\n\n│\n◇  Installation Summary ──────────────╮\n│                                     │\n│  ~/.agents/skills/author-standards  │\n│    copy → Codex                     │\n│                                     │\n├─────────────────────────────────────╯\n│\n\n◇  Installation complete\n\n│\n◇  Installed 1 skill ─────────────────────╮\n│                                         │\n│  ✓ author-standards (copied)            │\n│    → ~/.agents/skills/author-standards  │\n│                                         │\n├─────────────────────────────────────────╯\n\n│\n└  Done!  Review skills before use; they run with full agent permissions.\n\n",
+      "stderr": ""
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "view",
+        "@lutzseverino/repo-standards@1.2.1",
+        "dist",
+        "--json"
+      ],
+      "status": 0,
+      "stdout": "{\n  \"integrity\": \"sha512-m5swZ8EBiga4Phr+N03znNZ1qhWRcChSJ+IEM0SQI94IkSJ7r6F8i72L9KolVscawwPl1UisLzHuC1Dp3hK75g==\",\n  \"shasum\": \"7199af40d9776cf9f6cda1c252c966943c6b8dc5\",\n  \"tarball\": \"https://registry.npmjs.org/@lutzseverino/repo-standards/-/repo-standards-1.2.1.tgz\",\n  \"fileCount\": 82,\n  \"unpackedSize\": 647558,\n  \"attestations\": {\n    \"url\": \"https://registry.npmjs.org/-/npm/v1/attestations/@lutzseverino%2frepo-standards@1.2.1\",\n    \"provenance\": {\n      \"predicateType\": \"https://slsa.dev/provenance/v1\"\n    }\n  },\n  \"signatures\": [\n    {\n      \"keyid\": \"SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U\",\n      \"sig\": \"MEYCIQD2U7FuZhQCiUQweaIN0Z3LtcdbrIKSMhXE2lHQso0aYwIhAP2b74CIzJgursVwJwsyyv69U0CeRbQao8sZBeMpMvHT\"\n    }\n  ]\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "npm",
+      "args": [
+        "install",
+        "--prefix",
+        "/tmp/repo-standards-author-rHdHc6/cli",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        "--save-exact",
+        "@lutzseverino/repo-standards@1.2.1"
+      ],
+      "status": 0,
+      "stdout": "\nadded 6 packages in 777ms\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/tmp/repo-standards-author-rHdHc6/cli/node_modules/.bin/repo-standards",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "1.2.1\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/tmp/repo-standards-author-rHdHc6/cli/node_modules/.bin/repo-standards",
+      "args": [
+        "source",
+        "validate",
+        "/tmp/repo-standards-author-rHdHc6/cli/node_modules/@lutzseverino/repo-standards/examples/alice",
+        "--json"
+      ],
+      "status": 0,
+      "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"alice-standards\",\n    \"description\": \"Alice's repository standards\",\n    \"requires\": {\n      \"repo-standards\": \">=1.0.0 <2.0.0\"\n    }\n  },\n  \"scope\": {\n    \"verified\": \"Validated all profiles: schema, references, operations, reserved identities, and determinable explicit-target conflicts. No author code was executed.\",\n    \"limitations\": \"Source validation does not prove concrete scope safety or semantic completeness in an unfamiliar adopting project. Project inspection is required; discovery guidance still requires agent interpretation and adopter review.\",\n    \"discoveryRequired\": {\n      \"personal\": [],\n      \"work\": []\n    }\n  },\n  \"profiles\": {\n    \"personal\": {\n      \"description\": \"Standards for personal projects\",\n      \"declarations\": [\n        {\n          \"id\": \"agent-guidance\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"AGENTS.md\",\n          \"exact\": \"defaults/files/AGENTS.md\"\n        },\n        {\n          \"id\": \"contribution-guidance\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"CONTRIBUTING.md\",\n          \"exact\": \"defaults/files/CONTRIBUTING.md\"\n        },\n        {\n          \"id\": \"readme\",\n          \"checks\": [\n            {\n              \"id\": \"headings\",\n              \"run\": {\n                \"executable\": \"python3\",\n                \"script\": \"defaults/checks/readme.py\",\n                \"resources\": [],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=3.12.0 <4.0.0\"\n              },\n              \"timeout-seconds\": 60\n            }\n          ],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"defaults/guidance/readme.md\"\n        },\n        {\n          \"id\": \"review-skill\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"review\",\n          \"source\": \"defaults/skills/review\"\n        },\n        {\n          \"id\": \"source-layout\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"repository\",\n          \"guidance\": \"defaults/guidance/source-layout.md\",\n          \"targets\": {\n            \"paths\": [],\n            \"directories\": [\n              \"src\"\n            ]\n          }\n        }\n      ]\n    },\n    \"work\": {\n      \"description\": \"Standards for work projects\",\n      \"declarations\": [\n        {\n          \"id\": \"agent-guidance\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"AGENTS.md\",\n          \"exact\": \"profiles/work/files/AGENTS.md\"\n        },\n        {\n          \"id\": \"readme\",\n          \"checks\": [\n            {\n              \"id\": \"headings\",\n              \"run\": {\n                \"executable\": \"python3\",\n                \"script\": \"defaults/checks/readme.py\",\n                \"resources\": [],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=3.12.0 <4.0.0\"\n              },\n              \"timeout-seconds\": 60\n            }\n          ],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \"README.md\",\n          \"guidance\": \"defaults/guidance/readme.md\"\n        },\n        {\n          \"id\": \"review-skill\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"skill\",\n          \"name\": \"review\",\n          \"source\": \"defaults/skills/review\"\n        },\n        {\n          \"id\": \"source-layout\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"repository\",\n          \"guidance\": \"defaults/guidance/source-layout.md\",\n          \"targets\": {\n            \"paths\": [],\n            \"directories\": [\n              \"src\"\n            ]\n          }\n        }\n      ]\n    }\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "/tmp/repo-standards-author-rHdHc6/cli/node_modules/.bin/repo-standards",
+      "args": [
+        "source",
+        "validate",
+        "/tmp/repo-standards-author-rHdHc6/cli/node_modules/@lutzseverino/repo-standards/examples/mira",
+        "--json"
+      ],
+      "status": 0,
+      "stdout": "{\n  \"valid\": true,\n  \"errors\": [],\n  \"source\": {\n    \"format\": \"repo-standards/v1\",\n    \"name\": \"mira-service-standards\",\n    \"description\": \"Operational readiness for small services\",\n    \"requires\": {\n      \"repo-standards\": \">=1.0.0 <2.0.0\"\n    }\n  },\n  \"scope\": {\n    \"verified\": \"Validated all profiles: schema, references, operations, reserved identities, and determinable explicit-target conflicts. No author code was executed.\",\n    \"limitations\": \"Source validation does not prove concrete scope safety or semantic completeness in an unfamiliar adopting project. Project inspection is required; discovery guidance still requires agent interpretation and adopter review.\",\n    \"discoveryRequired\": {\n      \"service\": []\n    }\n  },\n  \"profiles\": {\n    \"service\": {\n      \"description\": \"Operated service with a project-specific runbook\",\n      \"declarations\": [\n        {\n          \"id\": \"editor-settings\",\n          \"checks\": [],\n          \"fixes\": [],\n          \"kind\": \"file\",\n          \"target\": \".editorconfig\",\n          \"exact\": \"files/editorconfig\"\n        },\n        {\n          \"id\": \"operations-guide\",\n          \"checks\": [\n            {\n              \"id\": \"operational-evidence\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/check-operations.mjs\",\n                \"resources\": [\n                  \"operations/required-sections.json\"\n                ],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"fixes\": [\n            {\n              \"id\": \"initialize-status\",\n              \"run\": {\n                \"executable\": \"node\",\n                \"script\": \"operations/initialize-status.mjs\",\n                \"resources\": [],\n                \"arguments\": []\n              },\n              \"prerequisite\": {\n                \"version-arguments\": [\n                  \"--version\"\n                ],\n                \"version\": \">=24.0.0 <25.0.0\"\n              },\n              \"timeout-seconds\": 10\n            }\n          ],\n          \"kind\": \"repository\",\n          \"guidance\": \"guidance/operations.md\",\n          \"targets\": {\n            \"paths\": [\n              \"docs/operations.md\",\n              \"docs/operating-status.json\"\n            ],\n            \"directories\": []\n          }\n        }\n      ]\n    }\n  }\n}\n",
+      "stderr": ""
+    },
+    {
+      "executable": "git",
+      "args": [
+        "ls-remote",
+        "https://github.com/lutzseverino/repo-standards.git",
+        "refs/tags/v1.2.1",
+        "refs/tags/v1.2.1^{}"
+      ],
+      "status": 0,
+      "stdout": "67a88db1c81ebcb99561b2583bee353ecc516057\trefs/tags/v1.2.1\n",
+      "stderr": ""
+    }
+  ],
+  "downloads": [
+    {
+      "url": "https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v1.2.1",
+      "status": 200,
+      "headers": {
+        "date": "Mon, 14 Sep 2026 08:36:58 GMT",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "1",
+        "x-ratelimit-reset": "1789377619",
+        "x-ratelimit-resource": "core",
+        "x-github-request-id": "E3C4:2F36AA:304E6:39DFD:6AA7B22A"
+      },
+      "sha256": "82b359c636e5f77177c8bf5628d20d35ef24485dc7062f1e1097e395284c119c"
+    },
+    {
+      "url": "https://github.com/lutzseverino/repo-standards/releases/download/v1.2.1/release.json",
+      "status": 200,
+      "headers": {
+        "date": "Mon, 14 Sep 2026 08:37:02 GMT"
+      },
+      "sha256": "81994da2344cad09cea4fb671eb8752dbf903bef9f5959d214b489917c2f83b7"
+    }
+  ],
+  "scope": "Installation, resources, matching CLI/docs and example validation only. No real-agent or skills.sh listing claim. Telemetry disabled."
+}

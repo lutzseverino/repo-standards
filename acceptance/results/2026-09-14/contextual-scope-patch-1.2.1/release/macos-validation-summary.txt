@@ -1,0 +1,7 @@
+Release workflow 34821044604, validate (macos-latest), job 103902457356
+tests 538
+pass 537
+fail 0
+skipped 1
+skip: case-conflict coverage requires a case-sensitive filesystem where both foo and FOO can exist
+duration_ms 686272.890459

@@ -1,0 +1,331 @@
+{
+  "format": "repo-standards/run/v2",
+  "observations": [
+    {
+      "phase": "agent",
+      "scope": {
+        "docs": {
+          "paths": [
+            "apps/old/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "AGENTS.md": {
+            "type": "file",
+            "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+            "executable": false
+          },
+          "apps/amended/README.md": {
+            "type": "file",
+            "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+            "executable": false
+          },
+          "apps/old/README.md": {
+            "type": "file",
+            "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+            "executable": false
+          },
+          "standards.yaml": {
+            "type": "file",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/amended": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/old": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/.gitignore": {
+            "location": "apps/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/amended/.gitignore": {
+            "location": "apps/amended/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/old/.gitignore": {
+            "location": "apps/old/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "id": "3f6923b5-1f4e-4aeb-91af-3fc642bd7035",
+  "inspection": "sha256:0511ec02b8f1bc5e9b107038aae35c055142208d9538a9e9eed3c65ec8a70308",
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.2.1"
+    },
+    "standards": {
+      "repository": "https://github.com/alice/standards",
+      "version": "v1.0.0",
+      "commit": "c9dea004eebff677f316adffcc2b19cc561e8f15"
+    },
+    "profile": "work"
+  },
+  "startInput": {
+    "kind": "public",
+    "options": {
+      "source": "https://github.com/alice/standards",
+      "standardsVersion": "v1.0.0",
+      "profile": "work",
+      "project": "/tmp/repo-standards-source-LSYWhf",
+      "scope": "/tmp/repo-standards-published-1.2.1-q5W0Hb/run1-scope.json"
+    }
+  },
+  "affected": {
+    "apps/old/README.md": {
+      "type": "file",
+      "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+      "executable": false,
+      "encoding": "utf8",
+      "content": "# Old project\n"
+    },
+    "AGENTS.md": {
+      "type": "missing"
+    },
+    ".agents/skills/adopt-standards": {
+      "type": "missing"
+    }
+  },
+  "outcome": "incomplete",
+  "prerequisites": [],
+  "operations": [],
+  "assessments": [],
+  "phase": "contextual",
+  "reason": "CONTEXTUAL_REQUIRED: Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run.",
+  "changes": [
+    ".agents/skills/adopt-standards",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/.gitignore",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/inputs/source/agents.md",
+    ".repo-standards/inputs/source/discovery.md",
+    ".repo-standards/inputs/source/guidance.md",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/local/run.json",
+    ".repo-standards/lock.json",
+    ".repo-standards/runtime/node_modules",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/selection.yaml",
+    "AGENTS.md"
+  ],
+  "completed": [
+    "AGENTS.md",
+    ".agents/skills/adopt-standards/SKILL.md",
+    ".repo-standards/inputs/source/guidance.md",
+    ".repo-standards/inputs/source/discovery.md",
+    ".repo-standards/inputs/source/agents.md",
+    ".repo-standards/inputs/standards.yaml",
+    ".repo-standards/inputs/metadata.json",
+    ".repo-standards/inputs/resolved.json",
+    ".repo-standards/inputs/scope-history.json",
+    ".repo-standards/selection.yaml",
+    ".repo-standards/runtime/package.json",
+    ".repo-standards/runtime/package-lock.json",
+    ".repo-standards/lock.json",
+    "isolated runtime"
+  ],
+  "uncertain": [
+    "Contextual work and assessment are required before checks."
+  ],
+  "nextAction": "Apply the selected guidance, refresh the work request with resume, and submit evidence using resume --assessment <file>.",
+  "installation": {
+    "files": [
+      ".repo-standards/.gitignore",
+      "AGENTS.md",
+      ".agents/skills/adopt-standards/SKILL.md",
+      ".repo-standards/inputs/source/guidance.md",
+      ".repo-standards/inputs/source/discovery.md",
+      ".repo-standards/inputs/source/agents.md",
+      ".repo-standards/inputs/standards.yaml",
+      ".repo-standards/inputs/metadata.json",
+      ".repo-standards/inputs/resolved.json",
+      ".repo-standards/inputs/scope-history.json",
+      ".repo-standards/selection.yaml",
+      ".repo-standards/runtime/package.json",
+      ".repo-standards/runtime/package-lock.json",
+      ".repo-standards/lock.json"
+    ],
+    "runtime": true,
+    "trees": {},
+    "complete": true
+  },
+  "continuation": "e3dd8175043745427aa053967937993595d7df838a999680fc9c741abf8b94e9",
+  "workRequest": {
+    "format": "repo-standards/work-request/v2",
+    "scope": {
+      "inspection": "sha256:0511ec02b8f1bc5e9b107038aae35c055142208d9538a9e9eed3c65ec8a70308",
+      "afterFixes": "sha256:bef52f630d4adce5eb9a6df260097886325caf5abd30ad6f5b4478bb78f1de92",
+      "proposal": {
+        "format": "repo-standards/scope/v1",
+        "request": "sha256:9472092055be7c3a1fc9de4d899419b16f630d60e9cea960501ea5bb0494f28d",
+        "declarations": [
+          {
+            "id": "docs",
+            "paths": [
+              "apps/old/README.md"
+            ],
+            "coverage": "Included current maintained projects and explained projects that no longer meet the retained criteria.",
+            "evidence": [
+              {
+                "kind": "file",
+                "path": "apps/old/README.md",
+                "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+              }
+            ],
+            "candidates": [
+              {
+                "path": "apps/old/README.md",
+                "decision": "include",
+                "reason": "This is a maintained project README.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "apps/old/README.md",
+                    "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+                  }
+                ]
+              }
+            ],
+            "unresolved": []
+          }
+        ]
+      }
+    },
+    "run": "3f6923b5-1f4e-4aeb-91af-3fc642bd7035",
+    "selection": "sha256:4902d1721e9f22ae99b4f045163123a05b11f14a678fb46daff5dde2b3509830",
+    "snapshot": "sha256:bef52f630d4adce5eb9a6df260097886325caf5abd30ad6f5b4478bb78f1de92",
+    "declarations": [
+      {
+        "id": "docs",
+        "guidance": {
+          "id": "docs",
+          "targets": [
+            "apps/old/README.md"
+          ],
+          "source": "guidance.md",
+          "sha256": "4ee3889152fe28c2ed5e93324a63d793bb4405a7a6dd998e82a11e021950f10f",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "Keep every maintained project README useful."
+        },
+        "discovery": {
+          "id": "docs",
+          "source": "discovery.md",
+          "sha256": "817ffa990eea24744a850d52f02391db88cc2a8c54d3d70b7c2aa8503c9b71df",
+          "executable": false,
+          "encoding": "utf8",
+          "content": "Use project ownership and manifests; explain excluded former projects."
+        },
+        "allowedTargets": {
+          "paths": [
+            "apps/old/README.md"
+          ],
+          "directories": []
+        }
+      }
+    ],
+    "requiredEvidence": [
+      "status",
+      "explanation",
+      "changedPaths",
+      "evidence",
+      "scope",
+      "scopeValidity.afterFixes",
+      "scopeValidity.current"
+    ]
+  }
+}

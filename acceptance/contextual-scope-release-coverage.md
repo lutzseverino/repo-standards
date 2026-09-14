@@ -5,6 +5,12 @@ Deterministic tests exercise the installed public CLI seam; their presence is
 not evidence that a published package or a real-agent journey passed. Release
 records belong under `acceptance/results/2026-09-14/contextual-scope-release/`.
 
+Patch 1.2.1 publication and the focused historical-amendment retention
+regression are recorded in
+`acceptance/results/2026-09-14/contextual-scope-patch-1.2.1/`. That scripted
+public-package/fixture-source record supplements the 1.2.0 release below; the
+broad public-source and real-agent journeys remain the original 1.2.0 evidence.
+
 Candidate CLI version: `1.2.0`. Until the evidence index records the matching
 published npm integrity, GitHub release, both operating systems, and fresh agent
 work, the release remains incomplete.

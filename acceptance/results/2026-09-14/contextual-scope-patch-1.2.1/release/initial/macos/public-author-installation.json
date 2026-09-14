@@ -1,0 +1,85 @@
+{
+  "kind": "public author-standards release installation",
+  "passed": false,
+  "failure": "Cannot acquire public release metadata: HTTP 403 for https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v1.2.1",
+  "nextAction": "Public API quota exhausted. Wait until 2026-09-14T08:36:12.000Z, then retry with a new evidence path: 'node' 'acceptance/prepare-author.ts' '1.2.1' '/Users/runner/work/repo-standards/repo-standards/public-author-installation.json.retry-1789373984888.json'. Shared runner capacity may still be unavailable.",
+  "root": "/private/var/folders/fq/bhsbs5bd52791c8x2z6s3dh40000gn/T/repo-standards-author-P7vJT5",
+  "workspace": "/private/var/folders/fq/bhsbs5bd52791c8x2z6s3dh40000gn/T/repo-standards-author-P7vJT5/workspace",
+  "skill": "/private/var/folders/fq/bhsbs5bd52791c8x2z6s3dh40000gn/T/repo-standards-author-P7vJT5/home/.agents/skills/author-standards",
+  "resources": [],
+  "installer": "skills@1.5.25",
+  "command": [
+    "npm",
+    "exec",
+    "--yes",
+    "--registry=https://registry.npmjs.org",
+    "--package=skills@1.5.25",
+    "--",
+    "skills",
+    "add",
+    "https://github.com/lutzseverino/repo-standards/tree/v1.2.1/skills/author-standards",
+    "--skill",
+    "author-standards",
+    "--global",
+    "--agent",
+    "codex",
+    "--copy",
+    "--yes"
+  ],
+  "skillRevision": "67a88db1c81ebcb99561b2583bee353ecc516057",
+  "version": "1.2.1",
+  "documents": [],
+  "platform": "darwin",
+  "arch": "x64",
+  "osRelease": "25.6.0",
+  "node": "v24.11.1",
+  "npm": "11.6.2",
+  "installedAt": "2026-09-14T08:19:45.955Z",
+  "commands": [
+    {
+      "executable": "npm",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "11.6.2\n",
+      "stderr": ""
+    },
+    {
+      "executable": "git",
+      "args": [
+        "--version"
+      ],
+      "status": 0,
+      "stdout": "git version 2.55.0\n",
+      "stderr": ""
+    },
+    {
+      "executable": "git",
+      "args": [
+        "ls-remote",
+        "https://github.com/lutzseverino/repo-standards.git",
+        "refs/tags/v1.2.1",
+        "refs/tags/v1.2.1^{}"
+      ],
+      "status": 0,
+      "stdout": "67a88db1c81ebcb99561b2583bee353ecc516057\trefs/tags/v1.2.1\n",
+      "stderr": ""
+    }
+  ],
+  "downloads": [
+    {
+      "url": "https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v1.2.1",
+      "status": 403,
+      "headers": {
+        "date": "Mon, 14 Sep 2026 08:19:46 GMT",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "0",
+        "x-ratelimit-reset": "1789374972",
+        "x-ratelimit-resource": "core",
+        "x-github-request-id": "8315:31C88F:3895D0:3BF05D:6AA7AE22"
+      }
+    }
+  ],
+  "scope": "Installation, resources, matching CLI/docs and example validation only. No real-agent or skills.sh listing claim. Telemetry disabled."
+}

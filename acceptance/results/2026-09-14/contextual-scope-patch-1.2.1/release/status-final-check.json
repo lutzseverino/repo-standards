@@ -1,0 +1,21 @@
+{
+  "run": "https://github.com/lutzseverino/repo-standards/actions/runs/34821044604",
+  "observedAt": "2026-09-14T11:12:07.708Z",
+  "state": "published",
+  "commit": "67a88db1c81ebcb99561b2583bee353ecc516057",
+  "version": "1.2.1",
+  "integrity": "sha512-m5swZ8EBiga4Phr+N03znNZ1qhWRcChSJ+IEM0SQI94IkSJ7r6F8i72L9KolVscawwPl1UisLzHuC1Dp3hK75g==",
+  "npm": "matches",
+  "tag": "matches",
+  "release": "published",
+  "assets": {
+    "matched": [
+      "lutzseverino-repo-standards-1.2.1.tgz",
+      "repo-standards-bootstrap",
+      "SHA256SUMS",
+      "release.json"
+    ],
+    "missing": []
+  },
+  "provenance": "Read-only scripts/release-status.ts against original release run; temporary bundle path and suggested command omitted."
+}

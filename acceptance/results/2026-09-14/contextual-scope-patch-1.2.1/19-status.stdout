@@ -1,0 +1,2508 @@
+{
+  "format": "repo-standards/status/v4",
+  "observations": [
+    {
+      "phase": "agent",
+      "scope": {
+        "docs": {
+          "paths": [
+            "apps/new/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "AGENTS.md": {
+            "type": "file",
+            "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+            "executable": false
+          },
+          "apps/amended/README.md": {
+            "type": "file",
+            "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+            "executable": false
+          },
+          "apps/new/README.md": {
+            "type": "file",
+            "sha256": "46ce5a50190f80e4470f4e06cce09fc10ef1ee52b04c5f658da257adec7c2cbe",
+            "executable": false
+          },
+          "apps/old/README.md": {
+            "type": "file",
+            "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+            "executable": false
+          },
+          "standards.yaml": {
+            "type": "file",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/amended": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/new": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/old": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/.gitignore": {
+            "location": "apps/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/amended/.gitignore": {
+            "location": "apps/amended/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/new/.gitignore": {
+            "location": "apps/new/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/old/.gitignore": {
+            "location": "apps/old/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "AGENTS.md": {
+            "type": "file",
+            "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+            "executable": false
+          },
+          "apps/amended/README.md": {
+            "type": "file",
+            "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+            "executable": false
+          },
+          "apps/new/README.md": {
+            "type": "file",
+            "sha256": "46ce5a50190f80e4470f4e06cce09fc10ef1ee52b04c5f658da257adec7c2cbe",
+            "executable": false
+          },
+          "apps/old/README.md": {
+            "type": "file",
+            "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+            "executable": false
+          },
+          "standards.yaml": {
+            "type": "file",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/amended": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/new": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/old": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/.gitignore": {
+            "location": "apps/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/amended/.gitignore": {
+            "location": "apps/amended/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/new/.gitignore": {
+            "location": "apps/new/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/old/.gitignore": {
+            "location": "apps/old/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [],
+      "boundaryChanges": [],
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "docs": {
+          "paths": [
+            "apps/new/README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "AGENTS.md": {
+            "type": "file",
+            "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+            "executable": false
+          },
+          "apps/amended/README.md": {
+            "type": "file",
+            "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+            "executable": false
+          },
+          "apps/new/README.md": {
+            "type": "file",
+            "sha256": "46ce5a50190f80e4470f4e06cce09fc10ef1ee52b04c5f658da257adec7c2cbe",
+            "executable": false
+          },
+          "apps/old/README.md": {
+            "type": "file",
+            "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+            "executable": false
+          },
+          "standards.yaml": {
+            "type": "file",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/amended": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/new": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/old": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/.gitignore": {
+            "location": "apps/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/amended/.gitignore": {
+            "location": "apps/amended/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/new/.gitignore": {
+            "location": "apps/new/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/old/.gitignore": {
+            "location": "apps/old/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "after": {
+        "files": {
+          ".agents/skills/adopt-standards/SKILL.md": {
+            "type": "file",
+            "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+            "executable": false
+          },
+          "AGENTS.md": {
+            "type": "file",
+            "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+            "executable": false
+          },
+          "apps/amended/README.md": {
+            "type": "file",
+            "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+            "executable": false
+          },
+          "apps/new/README.md": {
+            "type": "file",
+            "sha256": "46ce5a50190f80e4470f4e06cce09fc10ef1ee52b04c5f658da257adec7c2cbe",
+            "executable": false
+          },
+          "apps/old/README.md": {
+            "type": "file",
+            "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+            "executable": false
+          },
+          "standards.yaml": {
+            "type": "file",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "executable": false
+          }
+        },
+        "boundaries": {
+          ".": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills": {
+            "type": "directory",
+            "mode": 448
+          },
+          ".agents/skills/adopt-standards": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/amended": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/new": {
+            "type": "directory",
+            "mode": 448
+          },
+          "apps/old": {
+            "type": "directory",
+            "mode": 448
+          }
+        },
+        "settings": {
+          "core.ignorecase": null,
+          "core.precomposeunicode": null,
+          "core.filemode": "true",
+          "core.symlinks": null,
+          "core.sparsecheckout": null,
+          "core.sparsecheckoutcone": null
+        },
+        "ignores": {
+          "global": {
+            "location": "/home/agents/.config/git/ignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "info": {
+            "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+            "state": {
+              "type": "file",
+              "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+              "executable": false
+            }
+          },
+          ".gitignore": {
+            "location": ".gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/.gitignore": {
+            "location": ".agents/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/.gitignore": {
+            "location": ".agents/skills/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          ".agents/skills/adopt-standards/.gitignore": {
+            "location": ".agents/skills/adopt-standards/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/.gitignore": {
+            "location": "apps/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/amended/.gitignore": {
+            "location": "apps/amended/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/new/.gitignore": {
+            "location": "apps/new/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          },
+          "apps/old/.gitignore": {
+            "location": "apps/old/.gitignore",
+            "state": {
+              "type": "missing"
+            }
+          }
+        }
+      },
+      "changedPaths": [],
+      "boundaryChanges": [],
+      "violations": []
+    }
+  ],
+  "operations": [],
+  "retryHistory": [],
+  "history": [
+    {
+      "lastComplete": {
+        "run": "3f6923b5-1f4e-4aeb-91af-3fc642bd7035",
+        "inspection": "sha256:6ee8ca96bdbb3ec3b3a2b3f4064727b0c79e8fad305347e478299186baa10d00",
+        "completedAt": "2026-09-14T08:21:00.156Z",
+        "head": "4332686c953b274b93b55aeb458bd748e75109ce"
+      },
+      "observations": [
+        {
+          "phase": "agent",
+          "scope": {
+            "docs": {
+              "paths": [
+                "apps/old/README.md"
+              ],
+              "directories": []
+            }
+          },
+          "before": {
+            "files": {
+              ".agents/skills/adopt-standards/SKILL.md": {
+                "type": "file",
+                "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+                "executable": false
+              },
+              "AGENTS.md": {
+                "type": "file",
+                "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+                "executable": false
+              },
+              "apps/amended/README.md": {
+                "type": "file",
+                "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                "executable": false
+              },
+              "apps/old/README.md": {
+                "type": "file",
+                "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                "executable": false
+              },
+              "standards.yaml": {
+                "type": "file",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "executable": false
+              }
+            },
+            "boundaries": {
+              ".": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills/adopt-standards": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/amended": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/old": {
+                "type": "directory",
+                "mode": 448
+              }
+            },
+            "settings": {
+              "core.ignorecase": null,
+              "core.precomposeunicode": null,
+              "core.filemode": "true",
+              "core.symlinks": null,
+              "core.sparsecheckout": null,
+              "core.sparsecheckoutcone": null
+            },
+            "ignores": {
+              "global": {
+                "location": "/home/agents/.config/git/ignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "info": {
+                "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+                "state": {
+                  "type": "file",
+                  "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                  "executable": false
+                }
+              },
+              ".gitignore": {
+                "location": ".gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/.gitignore": {
+                "location": ".agents/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/.gitignore": {
+                "location": ".agents/skills/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/adopt-standards/.gitignore": {
+                "location": ".agents/skills/adopt-standards/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/.gitignore": {
+                "location": "apps/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/amended/.gitignore": {
+                "location": "apps/amended/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/old/.gitignore": {
+                "location": "apps/old/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              }
+            }
+          },
+          "after": {
+            "files": {
+              ".agents/skills/adopt-standards/SKILL.md": {
+                "type": "file",
+                "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+                "executable": false
+              },
+              "AGENTS.md": {
+                "type": "file",
+                "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+                "executable": false
+              },
+              "apps/amended/README.md": {
+                "type": "file",
+                "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                "executable": false
+              },
+              "apps/old/README.md": {
+                "type": "file",
+                "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                "executable": false
+              },
+              "standards.yaml": {
+                "type": "file",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "executable": false
+              }
+            },
+            "boundaries": {
+              ".": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills/adopt-standards": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/amended": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/old": {
+                "type": "directory",
+                "mode": 448
+              }
+            },
+            "settings": {
+              "core.ignorecase": null,
+              "core.precomposeunicode": null,
+              "core.filemode": "true",
+              "core.symlinks": null,
+              "core.sparsecheckout": null,
+              "core.sparsecheckoutcone": null
+            },
+            "ignores": {
+              "global": {
+                "location": "/home/agents/.config/git/ignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "info": {
+                "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+                "state": {
+                  "type": "file",
+                  "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                  "executable": false
+                }
+              },
+              ".gitignore": {
+                "location": ".gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/.gitignore": {
+                "location": ".agents/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/.gitignore": {
+                "location": ".agents/skills/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/adopt-standards/.gitignore": {
+                "location": ".agents/skills/adopt-standards/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/.gitignore": {
+                "location": "apps/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/amended/.gitignore": {
+                "location": "apps/amended/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/old/.gitignore": {
+                "location": "apps/old/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              }
+            }
+          },
+          "changedPaths": [],
+          "boundaryChanges": [],
+          "violations": []
+        },
+        {
+          "phase": "agent",
+          "scope": {
+            "docs": {
+              "paths": [
+                "apps/amended/README.md",
+                "apps/old/README.md"
+              ],
+              "directories": []
+            }
+          },
+          "before": {
+            "files": {
+              ".agents/skills/adopt-standards/SKILL.md": {
+                "type": "file",
+                "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+                "executable": false
+              },
+              "AGENTS.md": {
+                "type": "file",
+                "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+                "executable": false
+              },
+              "apps/amended/README.md": {
+                "type": "file",
+                "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                "executable": false
+              },
+              "apps/old/README.md": {
+                "type": "file",
+                "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                "executable": false
+              },
+              "standards.yaml": {
+                "type": "file",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "executable": false
+              }
+            },
+            "boundaries": {
+              ".": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills/adopt-standards": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/amended": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/old": {
+                "type": "directory",
+                "mode": 448
+              }
+            },
+            "settings": {
+              "core.ignorecase": null,
+              "core.precomposeunicode": null,
+              "core.filemode": "true",
+              "core.symlinks": null,
+              "core.sparsecheckout": null,
+              "core.sparsecheckoutcone": null
+            },
+            "ignores": {
+              "global": {
+                "location": "/home/agents/.config/git/ignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "info": {
+                "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+                "state": {
+                  "type": "file",
+                  "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                  "executable": false
+                }
+              },
+              ".gitignore": {
+                "location": ".gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/.gitignore": {
+                "location": ".agents/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/.gitignore": {
+                "location": ".agents/skills/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/adopt-standards/.gitignore": {
+                "location": ".agents/skills/adopt-standards/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/.gitignore": {
+                "location": "apps/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/amended/.gitignore": {
+                "location": "apps/amended/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/old/.gitignore": {
+                "location": "apps/old/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              }
+            }
+          },
+          "after": {
+            "files": {
+              ".agents/skills/adopt-standards/SKILL.md": {
+                "type": "file",
+                "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+                "executable": false
+              },
+              "AGENTS.md": {
+                "type": "file",
+                "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+                "executable": false
+              },
+              "apps/amended/README.md": {
+                "type": "file",
+                "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                "executable": false
+              },
+              "apps/old/README.md": {
+                "type": "file",
+                "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                "executable": false
+              },
+              "standards.yaml": {
+                "type": "file",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "executable": false
+              }
+            },
+            "boundaries": {
+              ".": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills/adopt-standards": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/amended": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/old": {
+                "type": "directory",
+                "mode": 448
+              }
+            },
+            "settings": {
+              "core.ignorecase": null,
+              "core.precomposeunicode": null,
+              "core.filemode": "true",
+              "core.symlinks": null,
+              "core.sparsecheckout": null,
+              "core.sparsecheckoutcone": null
+            },
+            "ignores": {
+              "global": {
+                "location": "/home/agents/.config/git/ignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "info": {
+                "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+                "state": {
+                  "type": "file",
+                  "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                  "executable": false
+                }
+              },
+              ".gitignore": {
+                "location": ".gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/.gitignore": {
+                "location": ".agents/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/.gitignore": {
+                "location": ".agents/skills/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/adopt-standards/.gitignore": {
+                "location": ".agents/skills/adopt-standards/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/.gitignore": {
+                "location": "apps/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/amended/.gitignore": {
+                "location": "apps/amended/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/old/.gitignore": {
+                "location": "apps/old/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              }
+            }
+          },
+          "changedPaths": [],
+          "boundaryChanges": [],
+          "violations": []
+        },
+        {
+          "phase": "agent",
+          "scope": {
+            "docs": {
+              "paths": [
+                "apps/amended/README.md",
+                "apps/old/README.md"
+              ],
+              "directories": []
+            }
+          },
+          "before": {
+            "files": {
+              ".agents/skills/adopt-standards/SKILL.md": {
+                "type": "file",
+                "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+                "executable": false
+              },
+              "AGENTS.md": {
+                "type": "file",
+                "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+                "executable": false
+              },
+              "apps/amended/README.md": {
+                "type": "file",
+                "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                "executable": false
+              },
+              "apps/old/README.md": {
+                "type": "file",
+                "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                "executable": false
+              },
+              "standards.yaml": {
+                "type": "file",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "executable": false
+              }
+            },
+            "boundaries": {
+              ".": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills/adopt-standards": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/amended": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/old": {
+                "type": "directory",
+                "mode": 448
+              }
+            },
+            "settings": {
+              "core.ignorecase": null,
+              "core.precomposeunicode": null,
+              "core.filemode": "true",
+              "core.symlinks": null,
+              "core.sparsecheckout": null,
+              "core.sparsecheckoutcone": null
+            },
+            "ignores": {
+              "global": {
+                "location": "/home/agents/.config/git/ignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "info": {
+                "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+                "state": {
+                  "type": "file",
+                  "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                  "executable": false
+                }
+              },
+              ".gitignore": {
+                "location": ".gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/.gitignore": {
+                "location": ".agents/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/.gitignore": {
+                "location": ".agents/skills/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/adopt-standards/.gitignore": {
+                "location": ".agents/skills/adopt-standards/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/.gitignore": {
+                "location": "apps/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/amended/.gitignore": {
+                "location": "apps/amended/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/old/.gitignore": {
+                "location": "apps/old/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              }
+            }
+          },
+          "after": {
+            "files": {
+              ".agents/skills/adopt-standards/SKILL.md": {
+                "type": "file",
+                "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+                "executable": false
+              },
+              "AGENTS.md": {
+                "type": "file",
+                "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+                "executable": false
+              },
+              "apps/amended/README.md": {
+                "type": "file",
+                "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                "executable": false
+              },
+              "apps/old/README.md": {
+                "type": "file",
+                "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                "executable": false
+              },
+              "standards.yaml": {
+                "type": "file",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "executable": false
+              }
+            },
+            "boundaries": {
+              ".": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills/adopt-standards": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/amended": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/old": {
+                "type": "directory",
+                "mode": 448
+              }
+            },
+            "settings": {
+              "core.ignorecase": null,
+              "core.precomposeunicode": null,
+              "core.filemode": "true",
+              "core.symlinks": null,
+              "core.sparsecheckout": null,
+              "core.sparsecheckoutcone": null
+            },
+            "ignores": {
+              "global": {
+                "location": "/home/agents/.config/git/ignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "info": {
+                "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+                "state": {
+                  "type": "file",
+                  "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                  "executable": false
+                }
+              },
+              ".gitignore": {
+                "location": ".gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/.gitignore": {
+                "location": ".agents/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/.gitignore": {
+                "location": ".agents/skills/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/adopt-standards/.gitignore": {
+                "location": ".agents/skills/adopt-standards/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/.gitignore": {
+                "location": "apps/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/amended/.gitignore": {
+                "location": "apps/amended/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/old/.gitignore": {
+                "location": "apps/old/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              }
+            }
+          },
+          "changedPaths": [],
+          "boundaryChanges": [],
+          "violations": []
+        },
+        {
+          "phase": "agent",
+          "scope": {
+            "docs": {
+              "paths": [
+                "apps/amended/README.md",
+                "apps/old/README.md"
+              ],
+              "directories": []
+            }
+          },
+          "before": {
+            "files": {
+              ".agents/skills/adopt-standards/SKILL.md": {
+                "type": "file",
+                "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+                "executable": false
+              },
+              "AGENTS.md": {
+                "type": "file",
+                "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+                "executable": false
+              },
+              "apps/amended/README.md": {
+                "type": "file",
+                "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                "executable": false
+              },
+              "apps/old/README.md": {
+                "type": "file",
+                "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                "executable": false
+              },
+              "standards.yaml": {
+                "type": "file",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "executable": false
+              }
+            },
+            "boundaries": {
+              ".": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills/adopt-standards": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/amended": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/old": {
+                "type": "directory",
+                "mode": 448
+              }
+            },
+            "settings": {
+              "core.ignorecase": null,
+              "core.precomposeunicode": null,
+              "core.filemode": "true",
+              "core.symlinks": null,
+              "core.sparsecheckout": null,
+              "core.sparsecheckoutcone": null
+            },
+            "ignores": {
+              "global": {
+                "location": "/home/agents/.config/git/ignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "info": {
+                "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+                "state": {
+                  "type": "file",
+                  "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                  "executable": false
+                }
+              },
+              ".gitignore": {
+                "location": ".gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/.gitignore": {
+                "location": ".agents/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/.gitignore": {
+                "location": ".agents/skills/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/adopt-standards/.gitignore": {
+                "location": ".agents/skills/adopt-standards/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/.gitignore": {
+                "location": "apps/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/amended/.gitignore": {
+                "location": "apps/amended/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/old/.gitignore": {
+                "location": "apps/old/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              }
+            }
+          },
+          "after": {
+            "files": {
+              ".agents/skills/adopt-standards/SKILL.md": {
+                "type": "file",
+                "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+                "executable": false
+              },
+              "AGENTS.md": {
+                "type": "file",
+                "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+                "executable": false
+              },
+              "apps/amended/README.md": {
+                "type": "file",
+                "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                "executable": false
+              },
+              "apps/old/README.md": {
+                "type": "file",
+                "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                "executable": false
+              },
+              "standards.yaml": {
+                "type": "file",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "executable": false
+              }
+            },
+            "boundaries": {
+              ".": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills": {
+                "type": "directory",
+                "mode": 448
+              },
+              ".agents/skills/adopt-standards": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/amended": {
+                "type": "directory",
+                "mode": 448
+              },
+              "apps/old": {
+                "type": "directory",
+                "mode": 448
+              }
+            },
+            "settings": {
+              "core.ignorecase": null,
+              "core.precomposeunicode": null,
+              "core.filemode": "true",
+              "core.symlinks": null,
+              "core.sparsecheckout": null,
+              "core.sparsecheckoutcone": null
+            },
+            "ignores": {
+              "global": {
+                "location": "/home/agents/.config/git/ignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "info": {
+                "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+                "state": {
+                  "type": "file",
+                  "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                  "executable": false
+                }
+              },
+              ".gitignore": {
+                "location": ".gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/.gitignore": {
+                "location": ".agents/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/.gitignore": {
+                "location": ".agents/skills/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              ".agents/skills/adopt-standards/.gitignore": {
+                "location": ".agents/skills/adopt-standards/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/.gitignore": {
+                "location": "apps/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/amended/.gitignore": {
+                "location": "apps/amended/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              },
+              "apps/old/.gitignore": {
+                "location": "apps/old/.gitignore",
+                "state": {
+                  "type": "missing"
+                }
+              }
+            }
+          },
+          "changedPaths": [],
+          "boundaryChanges": [],
+          "violations": []
+        }
+      ],
+      "operations": [],
+      "retryHistory": [],
+      "checks": [],
+      "assessments": [
+        {
+          "format": "repo-standards/assessment/v2",
+          "run": "3f6923b5-1f4e-4aeb-91af-3fc642bd7035",
+          "selection": "sha256:4902d1721e9f22ae99b4f045163123a05b11f14a678fb46daff5dde2b3509830",
+          "snapshot": "sha256:bef52f630d4adce5eb9a6df260097886325caf5abd30ad6f5b4478bb78f1de92",
+          "scope": {
+            "inspection": "sha256:6ee8ca96bdbb3ec3b3a2b3f4064727b0c79e8fad305347e478299186baa10d00",
+            "afterFixes": "sha256:bef52f630d4adce5eb9a6df260097886325caf5abd30ad6f5b4478bb78f1de92"
+          },
+          "declarations": [
+            {
+              "id": "docs",
+              "status": "satisfied",
+              "explanation": "The existing README content satisfies the focused fixture guidance.",
+              "changedPaths": [],
+              "evidence": [
+                "Reviewed every confirmed README without changing project content."
+              ],
+              "scopeValidity": {
+                "afterFixes": {
+                  "status": "valid",
+                  "explanation": "The confirmed projects still match the discovery criteria.",
+                  "evidence": [
+                    "Reviewed every confirmed project README."
+                  ],
+                  "additionalPaths": []
+                },
+                "current": {
+                  "status": "valid",
+                  "explanation": "The confirmed projects still match the discovery criteria.",
+                  "evidence": [
+                    "Reviewed every confirmed project README."
+                  ],
+                  "additionalPaths": []
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "scopeRevision": 1,
+      "amendments": [
+        {
+          "format": "repo-standards/scope-amendment/v1",
+          "revision": 1,
+          "acceptedAt": "2026-09-14T08:20:55.809Z",
+          "outgoingObservation": {
+            "identity": "sha256:a96cb93e159893dad783e83a6a479c94deb9426b47d6a57c5619163c5a3d1daa",
+            "intervals": 1
+          },
+          "previousInspection": "sha256:0511ec02b8f1bc5e9b107038aae35c055142208d9538a9e9eed3c65ec8a70308",
+          "confirmation": "sha256:6ee8ca96bdbb3ec3b3a2b3f4064727b0c79e8fad305347e478299186baa10d00",
+          "request": "sha256:47147fee89313ac412d2472a1c41598288a50babcd0e8cecabd3348c5b49ec0a",
+          "existingScope": {
+            "docs": {
+              "paths": [
+                "apps/old/README.md"
+              ],
+              "directories": []
+            },
+            "instructions": {
+              "paths": [
+                "AGENTS.md"
+              ],
+              "directories": []
+            }
+          },
+          "acceptedScope": {
+            "docs": {
+              "paths": [
+                "apps/amended/README.md",
+                "apps/old/README.md"
+              ],
+              "directories": []
+            },
+            "instructions": {
+              "paths": [
+                "AGENTS.md"
+              ],
+              "directories": []
+            }
+          },
+          "additions": {
+            "docs": [
+              "apps/amended/README.md"
+            ]
+          },
+          "proposal": {
+            "format": "repo-standards/scope/v1",
+            "request": "sha256:47147fee89313ac412d2472a1c41598288a50babcd0e8cecabd3348c5b49ec0a",
+            "declarations": [
+              {
+                "id": "docs",
+                "paths": [
+                  "apps/amended/README.md",
+                  "apps/old/README.md"
+                ],
+                "coverage": "Included current maintained projects and explained projects that no longer meet the retained criteria.",
+                "evidence": [
+                  {
+                    "kind": "file",
+                    "path": "apps/amended/README.md",
+                    "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+                  },
+                  {
+                    "kind": "file",
+                    "path": "apps/old/README.md",
+                    "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+                  }
+                ],
+                "candidates": [
+                  {
+                    "path": "apps/amended/README.md",
+                    "decision": "include",
+                    "reason": "This is a maintained project README.",
+                    "evidence": [
+                      {
+                        "kind": "file",
+                        "path": "apps/amended/README.md",
+                        "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+                      }
+                    ]
+                  },
+                  {
+                    "path": "apps/old/README.md",
+                    "decision": "include",
+                    "reason": "This is a maintained project README.",
+                    "evidence": [
+                      {
+                        "kind": "file",
+                        "path": "apps/old/README.md",
+                        "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+                      }
+                    ]
+                  }
+                ],
+                "unresolved": []
+              }
+            ]
+          },
+          "discovery": {
+            "identity": "sha256:47147fee89313ac412d2472a1c41598288a50babcd0e8cecabd3348c5b49ec0a",
+            "declarations": [
+              {
+                "id": "docs",
+                "source": "discovery.md",
+                "sha256": "817ffa990eea24744a850d52f02391db88cc2a8c54d3d70b7c2aa8503c9b71df",
+                "executable": false,
+                "encoding": "utf8",
+                "content": "Use project ownership and manifests; explain excluded former projects."
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "directory",
+                "path": ".",
+                "identity": "sha256:38fd0f891e71a1dc80fa6d2fe6eb25f6a630b93b2bdb0800f85fa4e1890e9eaf"
+              },
+              {
+                "kind": "directory",
+                "path": "apps",
+                "identity": "sha256:e40bd6fdde4a657042deb7f66b34934bc18a6d46eb74d58fe961354d8f93fdb2"
+              },
+              {
+                "kind": "directory",
+                "path": "apps/amended",
+                "identity": "sha256:bad293a5c028229da53dd6d9320af8fa817270368004a7ec20d9427290ea1b91"
+              },
+              {
+                "kind": "directory",
+                "path": "apps/old",
+                "identity": "sha256:ff7a0e5aa63de7e522bc9f639ec5331745041b0d78810599507a7a783973748b"
+              },
+              {
+                "kind": "file",
+                "path": "apps/amended/README.md",
+                "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+              },
+              {
+                "kind": "file",
+                "path": "apps/old/README.md",
+                "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+              },
+              {
+                "kind": "file",
+                "path": "standards.yaml",
+                "identity": "sha256:34ec4b9081ab3442a44f8f275c7700deca938f9d934d655a3fac0f95a249827c"
+              }
+            ],
+            "observation": {
+              "files": {
+                "apps/amended/README.md": {
+                  "type": "file",
+                  "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                  "executable": false
+                },
+                "apps/old/README.md": {
+                  "type": "file",
+                  "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                  "executable": false
+                },
+                "standards.yaml": {
+                  "type": "file",
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                  "executable": false
+                }
+              },
+              "inventories": {
+                ".": [
+                  "apps",
+                  "standards.yaml"
+                ],
+                "apps": [
+                  "apps/amended",
+                  "apps/old"
+                ],
+                "apps/amended": [
+                  "apps/amended/README.md"
+                ],
+                "apps/old": [
+                  "apps/old/README.md"
+                ]
+              },
+              "boundaries": {
+                ".": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                ".agents": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                ".agents/skills": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                "apps": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                "apps/amended": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                "apps/old": {
+                  "type": "directory",
+                  "mode": 448
+                }
+              },
+              "targets": {},
+              "settings": {
+                "core.ignorecase": null,
+                "core.precomposeunicode": null,
+                "core.filemode": "true",
+                "core.symlinks": null,
+                "core.sparsecheckout": null,
+                "core.sparsecheckoutcone": null
+              },
+              "ignores": {
+                "global": {
+                  "location": "/home/agents/.config/git/ignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "info": {
+                  "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+                  "state": {
+                    "type": "file",
+                    "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                    "executable": false
+                  }
+                },
+                ".gitignore": {
+                  "location": ".gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                ".agents/.gitignore": {
+                  "location": ".agents/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                ".agents/skills/.gitignore": {
+                  "location": ".agents/skills/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "apps/.gitignore": {
+                  "location": "apps/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "apps/amended/.gitignore": {
+                  "location": "apps/amended/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "apps/old/.gitignore": {
+                  "location": "apps/old/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                }
+              },
+              "limits": {
+                "paths": 20000,
+                "fileBytes": 8388608,
+                "totalBytes": 67108864,
+                "depth": 128
+              },
+              "evidence": [
+                {
+                  "kind": "directory",
+                  "path": ".",
+                  "identity": "sha256:38fd0f891e71a1dc80fa6d2fe6eb25f6a630b93b2bdb0800f85fa4e1890e9eaf"
+                },
+                {
+                  "kind": "directory",
+                  "path": "apps",
+                  "identity": "sha256:e40bd6fdde4a657042deb7f66b34934bc18a6d46eb74d58fe961354d8f93fdb2"
+                },
+                {
+                  "kind": "directory",
+                  "path": "apps/amended",
+                  "identity": "sha256:bad293a5c028229da53dd6d9320af8fa817270368004a7ec20d9427290ea1b91"
+                },
+                {
+                  "kind": "directory",
+                  "path": "apps/old",
+                  "identity": "sha256:ff7a0e5aa63de7e522bc9f639ec5331745041b0d78810599507a7a783973748b"
+                },
+                {
+                  "kind": "file",
+                  "path": "apps/amended/README.md",
+                  "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+                },
+                {
+                  "kind": "file",
+                  "path": "apps/old/README.md",
+                  "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+                },
+                {
+                  "kind": "file",
+                  "path": "standards.yaml",
+                  "identity": "sha256:34ec4b9081ab3442a44f8f275c7700deca938f9d934d655a3fac0f95a249827c"
+                }
+              ]
+            },
+            "proposal": {
+              "format": "repo-standards/scope/v1",
+              "request": "sha256:47147fee89313ac412d2472a1c41598288a50babcd0e8cecabd3348c5b49ec0a",
+              "declarations": [
+                {
+                  "id": "docs",
+                  "paths": [
+                    "apps/amended/README.md",
+                    "apps/old/README.md"
+                  ],
+                  "coverage": "Included current maintained projects and explained projects that no longer meet the retained criteria.",
+                  "evidence": [
+                    {
+                      "kind": "file",
+                      "path": "apps/amended/README.md",
+                      "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+                    },
+                    {
+                      "kind": "file",
+                      "path": "apps/old/README.md",
+                      "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+                    }
+                  ],
+                  "candidates": [
+                    {
+                      "path": "apps/amended/README.md",
+                      "decision": "include",
+                      "reason": "This is a maintained project README.",
+                      "evidence": [
+                        {
+                          "kind": "file",
+                          "path": "apps/amended/README.md",
+                          "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+                        }
+                      ]
+                    },
+                    {
+                      "path": "apps/old/README.md",
+                      "decision": "include",
+                      "reason": "This is a maintained project README.",
+                      "evidence": [
+                        {
+                          "kind": "file",
+                          "path": "apps/old/README.md",
+                          "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+                        }
+                      ]
+                    }
+                  ],
+                  "unresolved": []
+                }
+              ]
+            },
+            "absence": [],
+            "namedObservation": {
+              "files": {
+                "apps/amended/README.md": {
+                  "type": "file",
+                  "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                  "executable": false
+                },
+                "apps/old/README.md": {
+                  "type": "file",
+                  "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                  "executable": false
+                },
+                "standards.yaml": {
+                  "type": "file",
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                  "executable": false
+                }
+              },
+              "inventories": {
+                ".": [
+                  "apps",
+                  "standards.yaml"
+                ],
+                "apps": [
+                  "apps/amended",
+                  "apps/old"
+                ],
+                "apps/amended": [
+                  "apps/amended/README.md"
+                ],
+                "apps/old": [
+                  "apps/old/README.md"
+                ]
+              },
+              "boundaries": {
+                ".": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                ".agents": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                ".agents/skills": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                "apps": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                "apps/amended": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                "apps/old": {
+                  "type": "directory",
+                  "mode": 448
+                }
+              },
+              "targets": {
+                "apps/amended/README.md": {
+                  "type": "file",
+                  "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                  "executable": false
+                },
+                "apps/old/README.md": {
+                  "type": "file",
+                  "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                  "executable": false
+                }
+              },
+              "settings": {
+                "core.ignorecase": null,
+                "core.precomposeunicode": null,
+                "core.filemode": "true",
+                "core.symlinks": null,
+                "core.sparsecheckout": null,
+                "core.sparsecheckoutcone": null
+              },
+              "ignores": {
+                "global": {
+                  "location": "/home/agents/.config/git/ignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "info": {
+                  "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+                  "state": {
+                    "type": "file",
+                    "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                    "executable": false
+                  }
+                },
+                ".gitignore": {
+                  "location": ".gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                ".agents/.gitignore": {
+                  "location": ".agents/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                ".agents/skills/.gitignore": {
+                  "location": ".agents/skills/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "apps/.gitignore": {
+                  "location": "apps/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "apps/amended/.gitignore": {
+                  "location": "apps/amended/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "apps/old/.gitignore": {
+                  "location": "apps/old/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                }
+              },
+              "limits": {
+                "paths": 20000,
+                "fileBytes": 8388608,
+                "totalBytes": 67108864,
+                "depth": 128
+              },
+              "evidence": [
+                {
+                  "kind": "directory",
+                  "path": ".",
+                  "identity": "sha256:38fd0f891e71a1dc80fa6d2fe6eb25f6a630b93b2bdb0800f85fa4e1890e9eaf"
+                },
+                {
+                  "kind": "directory",
+                  "path": "apps",
+                  "identity": "sha256:e40bd6fdde4a657042deb7f66b34934bc18a6d46eb74d58fe961354d8f93fdb2"
+                },
+                {
+                  "kind": "directory",
+                  "path": "apps/amended",
+                  "identity": "sha256:bad293a5c028229da53dd6d9320af8fa817270368004a7ec20d9427290ea1b91"
+                },
+                {
+                  "kind": "directory",
+                  "path": "apps/old",
+                  "identity": "sha256:ff7a0e5aa63de7e522bc9f639ec5331745041b0d78810599507a7a783973748b"
+                },
+                {
+                  "kind": "file",
+                  "path": "apps/amended/README.md",
+                  "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+                },
+                {
+                  "kind": "file",
+                  "path": "apps/old/README.md",
+                  "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+                },
+                {
+                  "kind": "file",
+                  "path": "standards.yaml",
+                  "identity": "sha256:34ec4b9081ab3442a44f8f275c7700deca938f9d934d655a3fac0f95a249827c"
+                }
+              ]
+            }
+          },
+          "project": {
+            "root": "/tmp/repo-standards-source-LSYWhf",
+            "head": "4332686c953b274b93b55aeb458bd748e75109ce",
+            "index": "100644 c1954588164ee7d053a4bc94a8bdbce91225e097 0\tapps/amended/README.md\u0000100644 11f5b073c7971636628d38e847a1a5de735f7b8f 0\tapps/old/README.md\u0000100644 e69de29bb2d1d6434b8b29ae775ad8c2e48c5391 0\tstandards.yaml\u0000",
+            "hidden": [],
+            "status": "?? .agents/skills/adopt-standards/SKILL.md\u0000?? .repo-standards/.gitignore\u0000?? .repo-standards/inputs/metadata.json\u0000?? .repo-standards/inputs/resolved.json\u0000?? .repo-standards/inputs/scope-history.json\u0000?? .repo-standards/inputs/source/agents.md\u0000?? .repo-standards/inputs/source/discovery.md\u0000?? .repo-standards/inputs/source/guidance.md\u0000?? .repo-standards/inputs/standards.yaml\u0000?? .repo-standards/lock.json\u0000?? .repo-standards/runtime/package-lock.json\u0000?? .repo-standards/runtime/package.json\u0000?? .repo-standards/selection.yaml\u0000?? AGENTS.md\u0000",
+            "observation": {
+              "files": {
+                "apps/amended/README.md": {
+                  "type": "file",
+                  "sha256": "b72edd666e4d2c708244bdd0ae1d57c0deeb0200398c9015179efb77d03f4ab0",
+                  "executable": false
+                },
+                "apps/old/README.md": {
+                  "type": "file",
+                  "sha256": "961e4d9b5985381d411330a903a979e425485c180cc1869cfb0a06efc145511a",
+                  "executable": false
+                },
+                "standards.yaml": {
+                  "type": "file",
+                  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                  "executable": false
+                }
+              },
+              "inventories": {
+                ".": [
+                  "apps",
+                  "standards.yaml"
+                ],
+                "apps": [
+                  "apps/amended",
+                  "apps/old"
+                ],
+                "apps/amended": [
+                  "apps/amended/README.md"
+                ],
+                "apps/old": [
+                  "apps/old/README.md"
+                ]
+              },
+              "boundaries": {
+                ".": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                ".agents": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                ".agents/skills": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                "apps": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                "apps/amended": {
+                  "type": "directory",
+                  "mode": 448
+                },
+                "apps/old": {
+                  "type": "directory",
+                  "mode": 448
+                }
+              },
+              "targets": {},
+              "settings": {
+                "core.ignorecase": null,
+                "core.precomposeunicode": null,
+                "core.filemode": "true",
+                "core.symlinks": null,
+                "core.sparsecheckout": null,
+                "core.sparsecheckoutcone": null
+              },
+              "ignores": {
+                "global": {
+                  "location": "/home/agents/.config/git/ignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "info": {
+                  "location": "/tmp/repo-standards-source-LSYWhf/.git/info/exclude",
+                  "state": {
+                    "type": "file",
+                    "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
+                    "executable": false
+                  }
+                },
+                ".gitignore": {
+                  "location": ".gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                ".agents/.gitignore": {
+                  "location": ".agents/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                ".agents/skills/.gitignore": {
+                  "location": ".agents/skills/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "apps/.gitignore": {
+                  "location": "apps/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "apps/amended/.gitignore": {
+                  "location": "apps/amended/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                },
+                "apps/old/.gitignore": {
+                  "location": "apps/old/.gitignore",
+                  "state": {
+                    "type": "missing"
+                  }
+                }
+              },
+              "limits": {
+                "paths": 20000,
+                "fileBytes": 8388608,
+                "totalBytes": 67108864,
+                "depth": 128
+              },
+              "evidence": [
+                {
+                  "kind": "directory",
+                  "path": ".",
+                  "identity": "sha256:38fd0f891e71a1dc80fa6d2fe6eb25f6a630b93b2bdb0800f85fa4e1890e9eaf"
+                },
+                {
+                  "kind": "directory",
+                  "path": "apps",
+                  "identity": "sha256:e40bd6fdde4a657042deb7f66b34934bc18a6d46eb74d58fe961354d8f93fdb2"
+                },
+                {
+                  "kind": "directory",
+                  "path": "apps/amended",
+                  "identity": "sha256:bad293a5c028229da53dd6d9320af8fa817270368004a7ec20d9427290ea1b91"
+                },
+                {
+                  "kind": "directory",
+                  "path": "apps/old",
+                  "identity": "sha256:ff7a0e5aa63de7e522bc9f639ec5331745041b0d78810599507a7a783973748b"
+                },
+                {
+                  "kind": "file",
+                  "path": "apps/amended/README.md",
+                  "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+                },
+                {
+                  "kind": "file",
+                  "path": "apps/old/README.md",
+                  "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+                },
+                {
+                  "kind": "file",
+                  "path": "standards.yaml",
+                  "identity": "sha256:34ec4b9081ab3442a44f8f275c7700deca938f9d934d655a3fac0f95a249827c"
+                }
+              ]
+            }
+          },
+          "assessments": []
+        }
+      ]
+    }
+  ],
+  "selection": {
+    "cli": {
+      "package": "@lutzseverino/repo-standards",
+      "version": "1.2.1"
+    },
+    "standards": {
+      "repository": "https://github.com/alice/standards",
+      "version": "v1.0.0",
+      "commit": "c9dea004eebff677f316adffcc2b19cc561e8f15"
+    },
+    "profile": "work"
+  },
+  "lastComplete": {
+    "run": "6d49b398-fa15-4697-a709-49bdce887608",
+    "inspection": "sha256:fa120d203b709eff18687cf045ac966a186d0cff618960d02ed9e903821dbdc2",
+    "completedAt": "2026-09-14T08:21:15.729Z",
+    "head": "c6070ba928b82d8dc7bd59e1f1519b75106e416a"
+  },
+  "baselines": {
+    "AGENTS.md": {
+      "sha256": "0c1116331d2e29d508131a934726e3c5c2ce2b212ce56fe5db1868ee9e60a7c0",
+      "executable": false
+    },
+    ".agents/skills/adopt-standards/SKILL.md": {
+      "sha256": "6508d7acca0ced142bb198b85b8fd194d71901b35bb865f21e4ea9c3ea52fd54",
+      "executable": false
+    }
+  },
+  "skills": {
+    ".agents/skills/adopt-standards": [
+      "SKILL.md"
+    ]
+  },
+  "checks": [],
+  "assessments": [
+    {
+      "format": "repo-standards/assessment/v2",
+      "run": "6d49b398-fa15-4697-a709-49bdce887608",
+      "selection": "sha256:4902d1721e9f22ae99b4f045163123a05b11f14a678fb46daff5dde2b3509830",
+      "snapshot": "sha256:43bd4627f700f1867b37676e8c06b482b3d441e26c7fca9e50e7d7e9e0afb171",
+      "scope": {
+        "inspection": "sha256:fa120d203b709eff18687cf045ac966a186d0cff618960d02ed9e903821dbdc2",
+        "afterFixes": "sha256:43bd4627f700f1867b37676e8c06b482b3d441e26c7fca9e50e7d7e9e0afb171"
+      },
+      "declarations": [
+        {
+          "id": "docs",
+          "status": "satisfied",
+          "explanation": "The existing README content satisfies the focused fixture guidance.",
+          "changedPaths": [],
+          "evidence": [
+            "Reviewed every confirmed README without changing project content."
+          ],
+          "scopeValidity": {
+            "afterFixes": {
+              "status": "valid",
+              "explanation": "The confirmed projects still match the discovery criteria.",
+              "evidence": [
+                "Reviewed every confirmed project README."
+              ],
+              "additionalPaths": []
+            },
+            "current": {
+              "status": "valid",
+              "explanation": "The confirmed projects still match the discovery criteria.",
+              "evidence": [
+                "Reviewed every confirmed project README."
+              ],
+              "additionalPaths": []
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "active": null,
+  "abandoned": [],
+  "evidence": "historical"
+}

@@ -1,0 +1,39 @@
+{
+  "format": "repo-standards/assessment/v2",
+  "run": "6d49b398-fa15-4697-a709-49bdce887608",
+  "selection": "sha256:4902d1721e9f22ae99b4f045163123a05b11f14a678fb46daff5dde2b3509830",
+  "snapshot": "sha256:43bd4627f700f1867b37676e8c06b482b3d441e26c7fca9e50e7d7e9e0afb171",
+  "scope": {
+    "inspection": "sha256:fa120d203b709eff18687cf045ac966a186d0cff618960d02ed9e903821dbdc2",
+    "afterFixes": "sha256:43bd4627f700f1867b37676e8c06b482b3d441e26c7fca9e50e7d7e9e0afb171"
+  },
+  "declarations": [
+    {
+      "id": "docs",
+      "status": "satisfied",
+      "explanation": "The existing README content satisfies the focused fixture guidance.",
+      "changedPaths": [],
+      "evidence": [
+        "Reviewed every confirmed README without changing project content."
+      ],
+      "scopeValidity": {
+        "afterFixes": {
+          "status": "valid",
+          "explanation": "The confirmed projects still match the discovery criteria.",
+          "evidence": [
+            "Reviewed every confirmed project README."
+          ],
+          "additionalPaths": []
+        },
+        "current": {
+          "status": "valid",
+          "explanation": "The confirmed projects still match the discovery criteria.",
+          "evidence": [
+            "Reviewed every confirmed project README."
+          ],
+          "additionalPaths": []
+        }
+      }
+    }
+  ]
+}

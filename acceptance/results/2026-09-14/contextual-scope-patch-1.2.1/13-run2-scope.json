@@ -1,0 +1,69 @@
+{
+  "format": "repo-standards/scope/v1",
+  "request": "sha256:41ff35293f82e467ced47e94f5013157359c4a70d4d2e4338ce01364086427bd",
+  "declarations": [
+    {
+      "id": "docs",
+      "paths": [
+        "apps/new/README.md"
+      ],
+      "coverage": "Included current maintained projects and explained projects that no longer meet the retained criteria.",
+      "evidence": [
+        {
+          "kind": "file",
+          "path": "apps/new/README.md",
+          "identity": "sha256:3eae2dec069ae8afb90990bc2d189d33a8f0282f5af3f3133a831d08c9fc7a3b"
+        },
+        {
+          "kind": "file",
+          "path": "apps/old/README.md",
+          "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+        },
+        {
+          "kind": "file",
+          "path": "apps/amended/README.md",
+          "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+        }
+      ],
+      "candidates": [
+        {
+          "path": "apps/new/README.md",
+          "decision": "include",
+          "reason": "This is a maintained project README.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "apps/new/README.md",
+              "identity": "sha256:3eae2dec069ae8afb90990bc2d189d33a8f0282f5af3f3133a831d08c9fc7a3b"
+            }
+          ]
+        },
+        {
+          "path": "apps/old/README.md",
+          "decision": "exclude",
+          "reason": "This project is no longer maintained, so its content remains project-owned.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "apps/old/README.md",
+              "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+            }
+          ]
+        },
+        {
+          "path": "apps/amended/README.md",
+          "decision": "exclude",
+          "reason": "This project is no longer maintained, so its content remains project-owned.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "apps/amended/README.md",
+              "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+            }
+          ]
+        }
+      ],
+      "unresolved": []
+    }
+  ]
+}

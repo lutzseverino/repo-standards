@@ -1,0 +1,53 @@
+{
+  "format": "repo-standards/scope/v1",
+  "request": "sha256:47147fee89313ac412d2472a1c41598288a50babcd0e8cecabd3348c5b49ec0a",
+  "declarations": [
+    {
+      "id": "docs",
+      "paths": [
+        "apps/old/README.md",
+        "apps/amended/README.md"
+      ],
+      "coverage": "Included current maintained projects and explained projects that no longer meet the retained criteria.",
+      "evidence": [
+        {
+          "kind": "file",
+          "path": "apps/old/README.md",
+          "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+        },
+        {
+          "kind": "file",
+          "path": "apps/amended/README.md",
+          "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+        }
+      ],
+      "candidates": [
+        {
+          "path": "apps/old/README.md",
+          "decision": "include",
+          "reason": "This is a maintained project README.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "apps/old/README.md",
+              "identity": "sha256:f1bf53d4fba0fea81e79797be7ea6007c78af08b0031e898ba2b8b3b7194fd9a"
+            }
+          ]
+        },
+        {
+          "path": "apps/amended/README.md",
+          "decision": "include",
+          "reason": "This is a maintained project README.",
+          "evidence": [
+            {
+              "kind": "file",
+              "path": "apps/amended/README.md",
+              "identity": "sha256:eba870336227462717c80b4e0ca9145084c04be0e572b992420b8b15d51377a9"
+            }
+          ]
+        }
+      ],
+      "unresolved": []
+    }
+  ]
+}
