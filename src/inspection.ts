@@ -9,7 +9,7 @@ import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
 import { decodeRecordedState } from './recorded-state.js';
 import { observeScope } from './scope-observation.js';
-import { materializeScope, readScope, validateScopeEvidence } from './scope.js';
+import { validateScope } from './scope.js';
 import type { RecordedSelection } from './recorded-state.js';
 
 export interface Blocker { code: string; message: string; path?: string }
@@ -234,12 +234,10 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     const discoveryDeclarations = profile.declarations.filter(declaration => 'discovery' in declaration);
     const scopeObservation = discoveryDeclarations.length ? observeScope(root) : undefined;
     const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: requestedAction, root, head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;
-    const proposal = options.scope ? readScope(options.scope, root) : undefined;
-    if (proposal && proposal.request !== requestIdentity) throw new ProductError('STALE_SCOPE', 'Scope proposal does not match this discovery request. Inspect again and review fresh evidence.');
-    const resolved = materializeScope(root, profile, proposal);
-    const named = proposal?.declarations.flatMap(entry => entry.paths) ?? [];
-    const namedObservation = proposal ? observeScope(root, named) : undefined;
-    const absence = proposal ? validateScopeEvidence(proposal, namedObservation!) : [];
+    const scope = validateScope({ phase: 'inspection', root, sourceResolved: profile, request: requestIdentity,
+      ...(options.scope ? { proposalPath: options.scope } : {}) });
+    const { proposal, resolved, named, namedObservation, absence } = scope;
+    blockers.push(...scope.blockers);
     const discovery = scopeObservation ? {
       identity: requestIdentity!,
       ...(proposal ? { proposal, absence, namedObservation } : {}),
@@ -247,10 +245,6 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       evidence: scopeObservation.evidence,
       observation: scopeObservation,
     } : undefined;
-    if (discovery) {
-      if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: 'Interpret the discovery guidance and submit an evidence-backed repo-standards/scope/v1 proposal with inspect --scope.' });
-      if (proposal?.declarations.some(entry => entry.unresolved.length)) blockers.push({ code: 'UNRESOLVED_SCOPE', message: 'Resolve the reported discovery questions and inspect a revised proposal.' });
-    }
     let update: 'standards' | 'cli' | undefined;
     if (previous) {
       const sameSource = source.identity.repository.toLowerCase() === previous.selection.standards.repository.toLowerCase();
