@@ -68,6 +68,28 @@ function git(directory: string, args: string[], binary = false): string | Buffer
   return result.stdout;
 }
 
+interface GitTreeEntry { mode: string; type: string; sha: string; path: string }
+
+function gitTree(directory: string, commit: string): GitTreeEntry[] {
+  const output = git(directory, ['ls-tree', '-r', '-t', '-z', commit], true) as Buffer;
+  const entries: GitTreeEntry[] = [];
+  for (let start = 0; start < output.length;) {
+    const end = output.indexOf(0, start);
+    if (end < 0) throw new ProductError('INVALID_SOURCE', 'Invalid Git tree data.');
+    const record = output.subarray(start, end);
+    const separator = record.indexOf(9);
+    const metadata = separator < 0 ? '' : record.subarray(0, separator).toString('ascii');
+    const match = /^(\d{6}) (blob|tree|commit) ([a-f0-9]{40})$/.exec(metadata);
+    if (!match || separator === record.length - 1) throw new ProductError('INVALID_SOURCE', 'Invalid Git tree data.');
+    const pathBytes = record.subarray(separator + 1);
+    const path = pathBytes.toString('utf8');
+    if (!Buffer.from(path).equals(pathBytes)) throw new ProductError('UNSAFE_SOURCE', 'The source tree contains a non-UTF-8 path.');
+    entries.push({ mode: match[1]!, type: match[2]!, sha: match[3]!, path });
+    start = end + 1;
+  }
+  return entries;
+}
+
 export async function acquireSource(repository: string, version: string, project?: string) {
   const match = /^https:\/\/github\.com\/([A-Za-z0-9-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/.exec(repository);
   if (!match || match[2] === '.' || match[2] === '..') throw new ProductError('UNSUPPORTED_SOURCE', 'Use a public https://github.com/owner/repository URL. Local paths, SSH, other hosts, and URL references are unsupported.');
@@ -107,7 +129,7 @@ export async function acquireSource(repository: string, version: string, project
   const objects = join(temporary, 'objects');
   try {
     mkdirSync(root);
-    git(objects, ['init', '--bare', '--quiet']);
+    git(objects, ['init', '--bare', '--quiet', '--object-format=sha1']);
     git(objects, ['-c', 'protocol.version=2', 'fetch', '--quiet', '--no-tags', '--depth=1', canonical,
       `+refs/tags/${version}:refs/tags/${version}`]);
     const fetchedCommit = String(git(objects, ['rev-parse', '--verify', `refs/tags/${version}^{commit}`])).trim();
@@ -136,6 +158,16 @@ export async function acquireSource(repository: string, version: string, project
       if (entry.type === 'tree' && entry.mode === '040000') continue;
       if (entry.mode === '120000') throw new ProductError('SOURCE_SYMLINK', `The selected source contains a symbolic link: ${entry.path}.`);
       if (entry.type !== 'blob' || !['100644', '100755'].includes(entry.mode) || !shaPattern.test(entry.sha)) throw new ProductError('UNSAFE_SOURCE', `Unsupported source entry: ${entry.path}. Submodules and special files are unsupported.`);
+    }
+    const fetchedEntries = gitTree(objects, identity.commit);
+    const comparable = (entry: GitTreeEntry) => `${entry.mode} ${entry.type} ${entry.sha}\t${entry.path}`;
+    const advertised = tree.tree.map((entry: GitTreeEntry) => comparable(entry)).sort();
+    const fetched = fetchedEntries.map(comparable).sort();
+    if (JSON.stringify(advertised) !== JSON.stringify(fetched)) {
+      throw new ProductError('SOURCE_INTEGRITY', 'The GitHub tree listing does not match the fetched commit tree.');
+    }
+    for (const entry of fetchedEntries) {
+      if (entry.type === 'tree') continue;
       let bytes: Buffer;
       try { bytes = git(objects, ['cat-file', 'blob', entry.sha], true) as Buffer; }
       catch (error) {

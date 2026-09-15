@@ -38,11 +38,11 @@ globalThis.fetch = async (url) => {
   const responses: Record<string, { body: unknown; status?: number }> = {
     [prefix]: { body: { private: false, full_name: repository, html_url: `https://github.com/${repository}` } },
   };
-  function publish(tag: string) {
+  function publishVersion(tag: string) {
     const publishedSha = git(source.root, 'rev-parse', 'HEAD');
     const publishedTreeSha = git(source.root, 'rev-parse', 'HEAD^{tree}');
     git(source.root, '-c', 'tag.gpgSign=false', 'tag', '--force', tag, publishedSha);
-    const tree = git(source.root, 'ls-tree', '-r', 'HEAD').split('\n').filter(Boolean).map(line => {
+    const tree = git(source.root, 'ls-tree', '-r', '-t', 'HEAD').split('\n').filter(Boolean).map(line => {
       const [metadata, path] = line.split('\t');
       const [mode, type, blobSha] = metadata!.split(' ');
       return { mode, type, sha: blobSha, path: JSON.parse(path!.startsWith('"') ? path! : JSON.stringify(path)) as string };
@@ -57,7 +57,7 @@ globalThis.fetch = async (url) => {
     }
     return { sha: publishedSha, treeSha: publishedTreeSha };
   }
-  publish('v1.0.0');
+  publishVersion('v1.0.0');
   const save = () => writeFileSync(dataFile, JSON.stringify(responses));
   save();
   const cache = join(support.root, 'cache');
@@ -65,6 +65,7 @@ globalThis.fetch = async (url) => {
   return {
     source, support, prefix, sha, treeSha, responses, save,
     requests: () => readFileSync(requestLog, 'utf8').split('\n').filter(Boolean),
+    publish(tag: string) { const published = publishVersion(tag); save(); return published; },
     addVersion(tag: string, nextYaml: string, nextFiles: Record<string, string | Buffer> = {}, nextExecutables: string[] = []) {
       writeFileSync(join(source.root, 'standards.yaml'), nextYaml);
       for (const [path, content] of Object.entries(nextFiles)) {
@@ -74,7 +75,7 @@ globalThis.fetch = async (url) => {
       }
       for (const path of nextExecutables) chmodSync(join(source.root, path), 0o755);
       commit(source.root);
-      const published = publish(tag);
+      const published = publishVersion(tag);
       save();
       return published;
     },
