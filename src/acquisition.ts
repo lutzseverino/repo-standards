@@ -55,7 +55,7 @@ export async function github(path: string): Promise<any> {
 function git(directory: string, args: string[], binary = false): string | Buffer {
   const result = spawnSync('git', [`--git-dir=${directory}`, ...args], {
     encoding: binary ? 'buffer' : 'utf8',
-    env: { ...process.env, GIT_OPTIONAL_LOCKS: '0', GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'Never' },
+    env: { ...process.env, GIT_DEFAULT_HASH: 'sha1', GIT_OPTIONAL_LOCKS: '0', GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'Never' },
     timeout: 120_000,
     maxBuffer: 512 * 1024 * 1024,
   });
@@ -129,7 +129,7 @@ export async function acquireSource(repository: string, version: string, project
   const objects = join(temporary, 'objects');
   try {
     mkdirSync(root);
-    git(objects, ['init', '--bare', '--quiet', '--object-format=sha1']);
+    git(objects, ['init', '--bare', '--quiet']);
     git(objects, ['-c', 'protocol.version=2', 'fetch', '--quiet', '--no-tags', '--depth=1', canonical,
       `+refs/tags/${version}:refs/tags/${version}`]);
     const fetchedCommit = String(git(objects, ['rev-parse', '--verify', `refs/tags/${version}^{commit}`])).trim();
