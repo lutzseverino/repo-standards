@@ -21,9 +21,12 @@ export function remoteFixture(yaml: string, files: Record<string, string | Buffe
   commit(source.root);
   const support = sourceFixture('');
   const dataFile = join(support.root, 'responses.json');
+  const requestLog = join(support.root, 'requests.log');
   const loader = join(support.root, 'https-fixture.mjs');
-  writeFileSync(loader, `import { readFileSync } from 'node:fs';
+  writeFileSync(requestLog, '');
+  writeFileSync(loader, `import { appendFileSync, readFileSync } from 'node:fs';
 globalThis.fetch = async (url) => {
+  appendFileSync(${JSON.stringify(requestLog)}, String(url) + '\\n');
   const responses = JSON.parse(readFileSync(${JSON.stringify(dataFile)}, 'utf8'));
   const entry = responses[String(url)];
   if (!entry) throw new Error('Unexpected remote request: ' + url);
@@ -38,6 +41,7 @@ globalThis.fetch = async (url) => {
   function publish(tag: string) {
     const publishedSha = git(source.root, 'rev-parse', 'HEAD');
     const publishedTreeSha = git(source.root, 'rev-parse', 'HEAD^{tree}');
+    git(source.root, '-c', 'tag.gpgSign=false', 'tag', '--force', tag, publishedSha);
     const tree = git(source.root, 'ls-tree', '-r', 'HEAD').split('\n').filter(Boolean).map(line => {
       const [metadata, path] = line.split('\t');
       const [mode, type, blobSha] = metadata!.split(' ');
@@ -60,6 +64,7 @@ globalThis.fetch = async (url) => {
   mkdirSync(cache);
   return {
     source, support, prefix, sha, treeSha, responses, save,
+    requests: () => readFileSync(requestLog, 'utf8').split('\n').filter(Boolean),
     addVersion(tag: string, nextYaml: string, nextFiles: Record<string, string | Buffer> = {}, nextExecutables: string[] = []) {
       writeFileSync(join(source.root, 'standards.yaml'), nextYaml);
       for (const [path, content] of Object.entries(nextFiles)) {
@@ -73,7 +78,10 @@ globalThis.fetch = async (url) => {
       save();
       return published;
     },
-    env: { ...process.env, NODE_OPTIONS: `--import=${pathToFileURL(loader).href}`, XDG_CACHE_HOME: cache },
+    env: { ...process.env, NODE_OPTIONS: `--import=${pathToFileURL(loader).href}`, XDG_CACHE_HOME: cache,
+      GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_COUNT: '2',
+      GIT_CONFIG_KEY_0: `url.${pathToFileURL(source.root).href}.insteadOf`, GIT_CONFIG_VALUE_0: `https://github.com/${repository}`,
+      GIT_CONFIG_KEY_1: 'protocol.file.allow', GIT_CONFIG_VALUE_1: 'always' },
     close() { source.close(); support.close(); },
   };
 }

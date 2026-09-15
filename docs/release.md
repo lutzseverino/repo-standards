@@ -212,6 +212,11 @@ even without primary-quota headers. The helper accepts delay-seconds or an
 HTTP date and uses the later deadline when both retry and primary-reset
 headers apply. Invalid values remain in the evidence without inventing a delay.
 See [GitHub's rate-limit guidance](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api).
+Source acquisition resolves identity and the recursive tree with a bounded set
+of REST requests, then downloads Git objects through the anonymous smart Git
+protocol; its REST demand is independent of blob count. Public acceptance still
+exercises repeated real acquisition without credentials because REST quota and
+Git transport availability are separate external dependencies.
 An external interruption leaves acceptance incomplete. Keep anonymous acquisition
 and all assertions intact; authenticated or fixture acquisition establishes a
 different claim.

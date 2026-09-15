@@ -42,6 +42,20 @@ test('direct inspection resolves annotated tags and canonical repository identit
   assert.equal(JSON.parse(moved.stdout).errors[0].code, 'MOVED_TAG');
 });
 
+test('public inspection acquires a source larger than the anonymous API allowance without per-blob requests', (t) => {
+  const files = Object.fromEntries(Array.from({ length: 70 }, (_, index) => [`material/file-${index}.txt`, `Material ${index}\n`]));
+  const remote = remoteFixture(yaml, { ...files, 'readme.md': Buffer.from([0, 1, 2, 255]) }, ['readme.md']);
+  const project = sourceFixture('');
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+
+  const result = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).selection.standards.commit, remote.sha);
+  assert.equal(remote.requests().filter(url => url.includes('/git/blobs/')).length, 0);
+  assert.ok(remote.requests().length <= 5, `Expected bounded API requests, observed ${remote.requests().length}`);
+});
+
 test('inspection rejects unsupported sources, floating references and incompatible selections with structured diagnostics', (t) => {
   const remote = remoteFixture(yaml, { 'readme.md': 'README' });
   const project = sourceFixture('');
@@ -72,8 +86,8 @@ test('private, missing, truncated, linked and corrupt remote snapshots are rejec
     ['SOURCE_SYMLINK', remote => { (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as any).tree.push({ type: 'blob', mode: '120000', path: 'unreferenced-link', sha: 'a'.repeat(40) }); }],
     ['UNSAFE_SOURCE', remote => { (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as any).tree.push({ type: 'blob', mode: '100644', path: '../escape', sha: 'a'.repeat(40) }); }],
     ['SOURCE_INTEGRITY', remote => {
-      const key = Object.keys(remote.responses).find(key => key.includes('/git/blobs/'))!;
-      (remote.responses[key]!.body as any).content = Buffer.from('Corruption').toString('base64');
+      const entries = (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as any).tree;
+      entries.find((entry: {path: string}) => entry.path === 'readme.md').sha = 'f'.repeat(40);
     }],
   ];
   for (const [code, mutate] of cases) {
