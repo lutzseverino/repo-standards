@@ -15,7 +15,7 @@ export function commit(root: string) {
 
 // Replace HTTPS responses at the process boundary; the installed CLI still
 // resolves tags, acquires Git objects, validates, and inspects real repositories.
-export function remoteFixture(yaml: string, files: Record<string, string | Buffer> = {}, executables: string[] = [], repository = 'alice/standards') {
+export function remoteFixture(yaml: string, files: Record<string, string | Buffer> = {}, executables: string[] = [], repository = 'alice/standards', recordRequests = false) {
   const source = sourceFixture(yaml, files);
   for (const path of executables) chmodSync(join(source.root, path), 0o755);
   commit(source.root);
@@ -26,7 +26,7 @@ export function remoteFixture(yaml: string, files: Record<string, string | Buffe
   writeFileSync(requestLog, '');
   writeFileSync(loader, `import { appendFileSync, readFileSync } from 'node:fs';
 globalThis.fetch = async (url) => {
-  appendFileSync(${JSON.stringify(requestLog)}, String(url) + '\\n');
+  ${recordRequests ? `appendFileSync(${JSON.stringify(requestLog)}, String(url) + '\\n');` : ''}
   const responses = JSON.parse(readFileSync(${JSON.stringify(dataFile)}, 'utf8'));
   const entry = responses[String(url)];
   if (!entry) throw new Error('Unexpected remote request: ' + url);
@@ -63,7 +63,7 @@ globalThis.fetch = async (url) => {
   const cache = join(support.root, 'cache');
   mkdirSync(cache);
   return {
-    source, support, prefix, sha, treeSha, responses, save,
+    source, support, prefix, sha, treeSha, repository, responses, save,
     requests: () => readFileSync(requestLog, 'utf8').split('\n').filter(Boolean),
     publish(tag: string) { const published = publishVersion(tag); save(); return published; },
     addVersion(tag: string, nextYaml: string, nextFiles: Record<string, string | Buffer> = {}, nextExecutables: string[] = []) {
@@ -85,6 +85,17 @@ globalThis.fetch = async (url) => {
       GIT_CONFIG_KEY_1: 'protocol.file.allow', GIT_CONFIG_VALUE_1: 'always' },
     close() { source.close(); support.close(); },
   };
+}
+
+export function remoteEnvironment(...remotes: { source: {root: string}; repository: string; env: NodeJS.ProcessEnv }[]): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = { ...remotes[0]!.env, GIT_CONFIG_COUNT: String(remotes.length + 1) };
+  remotes.forEach((remote, index) => {
+    env[`GIT_CONFIG_KEY_${index}`] = `url.${pathToFileURL(remote.source.root).href}.insteadOf`;
+    env[`GIT_CONFIG_VALUE_${index}`] = `https://github.com/${remote.repository}`;
+  });
+  env[`GIT_CONFIG_KEY_${remotes.length}`] = 'protocol.file.allow';
+  env[`GIT_CONFIG_VALUE_${remotes.length}`] = 'always';
+  return env;
 }
 
 export const inspectionArgs = ['inspect', '--source', 'https://github.com/alice/standards', '--standards-version', 'v1.0.0', '--profile', 'work', '--json'];

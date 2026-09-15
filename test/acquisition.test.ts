@@ -44,7 +44,7 @@ test('direct inspection resolves annotated tags and canonical repository identit
 
 test('public inspection acquires a source larger than the anonymous API allowance without per-blob requests', (t) => {
   const files = Object.fromEntries(Array.from({ length: 70 }, (_, index) => [`material/file-${index}.txt`, `Material ${index}\n`]));
-  const remote = remoteFixture(yaml, { ...files, 'readme.md': Buffer.from([0, 1, 2, 255]) }, ['readme.md']);
+  const remote = remoteFixture(yaml, { ...files, 'readme.md': Buffer.from([0, 1, 2, 255]) }, ['readme.md'], 'alice/standards', true);
   const project = sourceFixture('');
   t.after(() => { remote.close(); project.close(); });
   commit(project.root);
