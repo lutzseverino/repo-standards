@@ -8,3 +8,7 @@ When designing or implementing product behavior, use the language in
 
 This is a new product implementation. Keep work scoped to its agreed
 specification and ticket; report contradictions in those contracts explicitly.
+
+Repo Canon adoption preparation preserves project-specific requirements in
+[project guidance](docs/agents/project.md) and
+[development validation](docs/development/README.md). Read both before work.
