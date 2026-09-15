@@ -11,8 +11,8 @@ Alice's work profile guides Bob's parcel-preview tool, while Mira's service
 profile guides Harbor's Python HTTP service. These are synthetic publishers and
 projects, not claims about third-party production adoption.
 
-Recorded runs: [2026-09-07 macOS and Linux acceptance](results/2026-09-07/README.md).
-The separate [live publication and discovery journey](results/2026-09-07/source-publication.md)
+Recorded runs: [2026-09-07 macOS and Linux acceptance](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/results/2026-09-07/README.md).
+The separate [live publication and discovery journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/results/2026-09-07/source-publication.md)
 uses the public synthetic `repo-standards-example` source.
 
 Issue #50's v2 release journey is tracked separately in the
@@ -73,7 +73,7 @@ Record published bootstrap/discovery separately with
 `node acceptance/public-installation.ts "$PUBLISHED_CLI_VERSION" /outside/evidence.json`.
 Public release evidence must also cover the normal project commit, fresh-checkout
 restoration, retained-source use and independent updates described in
-[the release procedure](../docs/release.md#published-acceptance).
+[the release procedure](https://github.com/lutzseverino/repo-standards/blob/main/docs/development/release.md#published-acceptance).
 
 ### Earlier fixture-based acceptance
 
@@ -142,7 +142,7 @@ inspection/confirmation identities, run IDs, initial handoff, submitted
 assessment, final report, status evidence, project diff (including new files),
 and command outputs supporting contextual claims. Compare employer contribution
 bytes, initial/final HEAD and index; capture the uncommitted Git status.
-Follow [Review completed outputs](../docs/adoption.md#review-completed-outputs):
+Follow [Review completed outputs](https://github.com/lutzseverino/repo-standards/blob/main/docs/usage/adoption.md#review-completed-outputs):
 include tracked changes and every non-ignored untracked file in content diffs
 or explicit content inspection, preserving binary bytes and executable state.
 Verify coverage against `git ls-files --others --exclude-standard -z`; contextual
@@ -260,7 +260,7 @@ This slice owns parent #25 stories 16–18 and Testing Decisions criterion 7;
 do not imply coverage of revision, multiple-profile generation, public skill
 discovery, or untested operating systems.
 
-Recorded run: [accepted operations and author skill on Linux](results/2026-09-11/authoring/operations/README.md).
+Recorded run: [accepted operations and author skill on Linux](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/results/2026-09-11/authoring/operations/README.md).
 
 ### Scoped revision and reconciled resumption
 
@@ -299,7 +299,7 @@ Decisions 5 and 6. Record fresh real-agent evidence separately from `pnpm valida
 and identify platform and installation limits. Generated operations do not gate
 this guidance-based journey.
 
-Recorded run: [2026-09-11 scoped revision and reconciled resumption](results/2026-09-11/authoring/revision-resumption/README.md).
+Recorded run: [2026-09-11 scoped revision and reconciled resumption](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/results/2026-09-11/authoring/revision-resumption/README.md).
 
 ## Published authoring installation
 
