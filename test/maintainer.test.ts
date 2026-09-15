@@ -315,7 +315,7 @@ test('public CLI acceptance records an assertion failure even when every externa
   `);
   f.executable('git', `if (process.argv[2] !== 'status') console.log('${'a'.repeat(40)}');`);
   writeFileSync(f.preload, `globalThis.fetch = async () => { throw new Error('Unexpected network request'); };`);
-  const result = f.run('acceptance/public-installation.ts', ['1.2.1', f.evidence]);
+  const result = f.run('acceptance/public-installation.ts', [JSON.parse(readFileSync('package.json', 'utf8')).version, f.evidence]);
   assert.equal(result.status, 1, result.stderr);
   const evidence = JSON.parse(readFileSync(f.evidence, 'utf8'));
   assert.equal(evidence.passed, false);

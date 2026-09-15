@@ -3,7 +3,7 @@ import { after, test } from 'node:test';
 import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
-import { remoteFixture } from './remote-fixture.ts';
+import { commit, git, remoteEnvironment, remoteFixture } from './remote-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -71,6 +71,10 @@ test('search rejects unsupported and invalid candidates explicitly while keeping
   ];
   const project = sourceFixture('');
   t.after(() => { remote.close(); project.close(); others.forEach(other => other.close()); });
+  const rootless = others[3]!;
+  git(rootless.source.root, 'mv', 'standards.yaml', 'Standards.yaml');
+  commit(rootless.source.root);
+  rootless.publish('v1.0.0');
   const search = remote.responses[searchUrl]!.body as any;
   for (const other of others) {
     Object.assign(remote.responses, other.responses);
@@ -78,14 +82,11 @@ test('search rejects unsupported and invalid candidates explicitly while keeping
     search.items.push({ full_name: repository, private: false, description: null });
     remote.responses[`${other.prefix}/releases?per_page=100&page=1`] = { body: [{ ...release, html_url: `https://github.com/${repository}/releases/tag/v1.0.0` }] };
   }
-  const rootless = others[3]!;
-  const tree = (remote.responses[`${rootless.prefix}/git/trees/${rootless.treeSha}?recursive=1`]!.body as any).tree;
-  tree.find((entry: any) => entry.path === 'standards.yaml').path = 'Standards.yaml';
   search.items.push({ full_name: 'private/standards', private: true, description: null });
   search.items.push({ full_name: '../escape', private: false, description: null });
   search.total_count = search.items.length;
   remote.save();
-  const result = cli.run(['source', 'search', '--json'], project.root, remote.env);
+  const result = cli.run(['source', 'search', '--json'], project.root, remoteEnvironment(remote, ...others));
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const report = JSON.parse(result.stdout);
   assert.equal(report.candidates.length, 1);

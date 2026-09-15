@@ -327,8 +327,7 @@ test('an established selection rejects its moved current tag even without the ex
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).status, 0);
   commit(project.root);
   const moved = remote.addVersion('v1.1.0', v1, { 'agents.md': 'Moved tag content' });
-  remote.responses[`${remote.prefix}/git/ref/tags/v1.0.0`] = { body: { ref: 'refs/tags/v1.0.0', object: { type: 'commit', sha: moved.sha } } };
-  remote.save();
+  assert.equal(remote.publish('v1.0.0').sha, moved.sha);
   rmSync(join(remote.support.root, 'cache/repo-standards/tags'), { recursive: true, force: true });
   const result = cli.run(inspectionArgs, project.root, env);
   assert.equal(result.status, 1);

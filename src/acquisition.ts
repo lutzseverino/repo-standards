@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
@@ -51,6 +52,44 @@ export async function github(path: string): Promise<any> {
   return response.json();
 }
 
+function git(directory: string, args: string[], binary = false): string | Buffer {
+  const result = spawnSync('git', [`--git-dir=${directory}`, ...args], {
+    encoding: binary ? 'buffer' : 'utf8',
+    env: { ...process.env, GIT_DEFAULT_HASH: 'sha1', GIT_OPTIONAL_LOCKS: '0', GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'Never' },
+    timeout: 120_000,
+    maxBuffer: 512 * 1024 * 1024,
+  });
+  if (result.error && (result.error as NodeJS.ErrnoException).code === 'ENOENT') {
+    throw new ProductError('GIT_REQUIRED', 'Install Git to acquire a public standards source.');
+  }
+  if (result.error || result.status !== 0) {
+    throw new ProductError('SOURCE_UNAVAILABLE', 'Cannot acquire the public Git source. Check the public repository, version tag, connection, and Git configuration.');
+  }
+  return result.stdout;
+}
+
+interface GitTreeEntry { mode: string; type: string; sha: string; path: string }
+
+function gitTree(directory: string, commit: string): GitTreeEntry[] {
+  const output = git(directory, ['ls-tree', '-r', '-t', '-z', commit], true) as Buffer;
+  const entries: GitTreeEntry[] = [];
+  for (let start = 0; start < output.length;) {
+    const end = output.indexOf(0, start);
+    if (end < 0) throw new ProductError('INVALID_SOURCE', 'Invalid Git tree data.');
+    const record = output.subarray(start, end);
+    const separator = record.indexOf(9);
+    const metadata = separator < 0 ? '' : record.subarray(0, separator).toString('ascii');
+    const match = /^(\d{6}) (blob|tree|commit) ([a-f0-9]{40})$/.exec(metadata);
+    if (!match || separator === record.length - 1) throw new ProductError('INVALID_SOURCE', 'Invalid Git tree data.');
+    const pathBytes = record.subarray(separator + 1);
+    const path = pathBytes.toString('utf8');
+    if (!Buffer.from(path).equals(pathBytes)) throw new ProductError('UNSAFE_SOURCE', 'The source tree contains a non-UTF-8 path.');
+    entries.push({ mode: match[1]!, type: match[2]!, sha: match[3]!, path });
+    start = end + 1;
+  }
+  return entries;
+}
+
 export async function acquireSource(repository: string, version: string, project?: string) {
   const match = /^https:\/\/github\.com\/([A-Za-z0-9-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/.exec(repository);
   if (!match || match[2] === '.' || match[2] === '..') throw new ProductError('UNSUPPORTED_SOURCE', 'Use a public https://github.com/owner/repository URL. Local paths, SSH, other hosts, and URL references are unsupported.');
@@ -85,8 +124,19 @@ export async function acquireSource(repository: string, version: string, project
   if (commit.sha !== identity.commit || !shaPattern.test(commit.tree?.sha)) throw new ProductError('INVALID_SOURCE', 'Invalid Git commit response.');
   const tree = await github(`${api}/git/trees/${commit.tree.sha}?recursive=1`);
   if (tree.sha !== commit.tree.sha || tree.truncated !== false || !Array.isArray(tree.tree)) throw new ProductError('INVALID_SOURCE', 'GitHub must provide a complete source tree.');
-  const root = mkdtempSync(join(externalPath(tmpdir(), project), 'repo-standards-snapshot-'));
+  const temporary = mkdtempSync(join(externalPath(tmpdir(), project), 'repo-standards-source-'));
+  const root = join(temporary, 'snapshot');
+  const objects = join(temporary, 'objects');
   try {
+    mkdirSync(root);
+    git(objects, ['init', '--bare', '--quiet']);
+    git(objects, ['-c', 'protocol.version=2', 'fetch', '--quiet', '--no-tags', '--depth=1', canonical,
+      `+refs/tags/${version}:refs/tags/${version}`]);
+    const fetchedCommit = String(git(objects, ['rev-parse', '--verify', `refs/tags/${version}^{commit}`])).trim();
+    const fetchedTree = String(git(objects, ['rev-parse', '--verify', `${identity.commit}^{tree}`])).trim();
+    if (fetchedCommit !== identity.commit || fetchedTree !== commit.tree.sha) {
+      throw new ProductError('INVALID_SOURCE', 'The fetched Git tag does not match its observed commit and tree identity.');
+    }
     const paths = new Set<string>();
     const spellings = new Map<string, string>();
     for (const entry of tree.tree) {
@@ -108,9 +158,24 @@ export async function acquireSource(repository: string, version: string, project
       if (entry.type === 'tree' && entry.mode === '040000') continue;
       if (entry.mode === '120000') throw new ProductError('SOURCE_SYMLINK', `The selected source contains a symbolic link: ${entry.path}.`);
       if (entry.type !== 'blob' || !['100644', '100755'].includes(entry.mode) || !shaPattern.test(entry.sha)) throw new ProductError('UNSAFE_SOURCE', `Unsupported source entry: ${entry.path}. Submodules and special files are unsupported.`);
-      const blob = await github(`${api}/git/blobs/${entry.sha}`);
-      if (blob.sha !== entry.sha || blob.encoding !== 'base64' || typeof blob.content !== 'string') throw new ProductError('INVALID_SOURCE', `Invalid source blob: ${entry.path}.`);
-      const bytes = Buffer.from(blob.content, 'base64');
+    }
+    const fetchedEntries = gitTree(objects, identity.commit);
+    const comparable = (entry: GitTreeEntry) => `${entry.mode} ${entry.type} ${entry.sha}\t${entry.path}`;
+    const advertised = tree.tree.map((entry: GitTreeEntry) => comparable(entry)).sort();
+    const fetched = fetchedEntries.map(comparable).sort();
+    if (JSON.stringify(advertised) !== JSON.stringify(fetched)) {
+      throw new ProductError('SOURCE_INTEGRITY', 'The GitHub tree listing does not match the fetched commit tree.');
+    }
+    for (const entry of fetchedEntries) {
+      if (entry.type === 'tree') continue;
+      let bytes: Buffer;
+      try { bytes = git(objects, ['cat-file', 'blob', entry.sha], true) as Buffer; }
+      catch (error) {
+        if (error instanceof ProductError && error.code === 'SOURCE_UNAVAILABLE') {
+          throw new ProductError('SOURCE_INTEGRITY', `The fetched Git source is missing the identified bytes: ${entry.path}.`);
+        }
+        throw error;
+      }
       const oid = createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
       if (oid !== entry.sha) throw new ProductError('SOURCE_INTEGRITY', `Source bytes do not match Git identity: ${entry.path}.`);
       const target = join(root, entry.path);
@@ -118,6 +183,7 @@ export async function acquireSource(repository: string, version: string, project
       writeFileSync(target, bytes, { flag: 'wx' });
       chmodSync(target, entry.mode === '100755' ? 0o755 : 0o644);
     }
-    return { root, identity, paths, close() { rmSync(root, { recursive: true, force: true }); } };
-  } catch (error) { rmSync(root, { recursive: true, force: true }); throw error; }
+    rmSync(objects, { recursive: true, force: true });
+    return { root, identity, paths, close() { rmSync(temporary, { recursive: true, force: true }); } };
+  } catch (error) { rmSync(temporary, { recursive: true, force: true }); throw error; }
 }

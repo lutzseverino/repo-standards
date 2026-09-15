@@ -15,15 +15,18 @@ export function commit(root: string) {
 
 // Replace HTTPS responses at the process boundary; the installed CLI still
 // resolves tags, acquires Git objects, validates, and inspects real repositories.
-export function remoteFixture(yaml: string, files: Record<string, string | Buffer> = {}, executables: string[] = [], repository = 'alice/standards') {
+export function remoteFixture(yaml: string, files: Record<string, string | Buffer> = {}, executables: string[] = [], repository = 'alice/standards', recordRequests = false) {
   const source = sourceFixture(yaml, files);
   for (const path of executables) chmodSync(join(source.root, path), 0o755);
   commit(source.root);
   const support = sourceFixture('');
   const dataFile = join(support.root, 'responses.json');
+  const requestLog = join(support.root, 'requests.log');
   const loader = join(support.root, 'https-fixture.mjs');
-  writeFileSync(loader, `import { readFileSync } from 'node:fs';
+  writeFileSync(requestLog, '');
+  writeFileSync(loader, `import { appendFileSync, readFileSync } from 'node:fs';
 globalThis.fetch = async (url) => {
+  ${recordRequests ? `appendFileSync(${JSON.stringify(requestLog)}, String(url) + '\\n');` : ''}
   const responses = JSON.parse(readFileSync(${JSON.stringify(dataFile)}, 'utf8'));
   const entry = responses[String(url)];
   if (!entry) throw new Error('Unexpected remote request: ' + url);
@@ -35,10 +38,11 @@ globalThis.fetch = async (url) => {
   const responses: Record<string, { body: unknown; status?: number }> = {
     [prefix]: { body: { private: false, full_name: repository, html_url: `https://github.com/${repository}` } },
   };
-  function publish(tag: string) {
+  function publishVersion(tag: string) {
     const publishedSha = git(source.root, 'rev-parse', 'HEAD');
     const publishedTreeSha = git(source.root, 'rev-parse', 'HEAD^{tree}');
-    const tree = git(source.root, 'ls-tree', '-r', 'HEAD').split('\n').filter(Boolean).map(line => {
+    git(source.root, '-c', 'tag.gpgSign=false', 'tag', '--force', tag, publishedSha);
+    const tree = git(source.root, 'ls-tree', '-r', '-t', 'HEAD').split('\n').filter(Boolean).map(line => {
       const [metadata, path] = line.split('\t');
       const [mode, type, blobSha] = metadata!.split(' ');
       return { mode, type, sha: blobSha, path: JSON.parse(path!.startsWith('"') ? path! : JSON.stringify(path)) as string };
@@ -53,13 +57,15 @@ globalThis.fetch = async (url) => {
     }
     return { sha: publishedSha, treeSha: publishedTreeSha };
   }
-  publish('v1.0.0');
+  publishVersion('v1.0.0');
   const save = () => writeFileSync(dataFile, JSON.stringify(responses));
   save();
   const cache = join(support.root, 'cache');
   mkdirSync(cache);
   return {
-    source, support, prefix, sha, treeSha, responses, save,
+    source, support, prefix, sha, treeSha, repository, responses, save,
+    requests: () => readFileSync(requestLog, 'utf8').split('\n').filter(Boolean),
+    publish(tag: string) { const published = publishVersion(tag); save(); return published; },
     addVersion(tag: string, nextYaml: string, nextFiles: Record<string, string | Buffer> = {}, nextExecutables: string[] = []) {
       writeFileSync(join(source.root, 'standards.yaml'), nextYaml);
       for (const [path, content] of Object.entries(nextFiles)) {
@@ -69,13 +75,27 @@ globalThis.fetch = async (url) => {
       }
       for (const path of nextExecutables) chmodSync(join(source.root, path), 0o755);
       commit(source.root);
-      const published = publish(tag);
+      const published = publishVersion(tag);
       save();
       return published;
     },
-    env: { ...process.env, NODE_OPTIONS: `--import=${pathToFileURL(loader).href}`, XDG_CACHE_HOME: cache },
+    env: { ...process.env, NODE_OPTIONS: `--import=${pathToFileURL(loader).href}`, XDG_CACHE_HOME: cache,
+      GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_COUNT: '2',
+      GIT_CONFIG_KEY_0: `url.${pathToFileURL(source.root).href}.insteadOf`, GIT_CONFIG_VALUE_0: `https://github.com/${repository}`,
+      GIT_CONFIG_KEY_1: 'protocol.file.allow', GIT_CONFIG_VALUE_1: 'always' },
     close() { source.close(); support.close(); },
   };
+}
+
+export function remoteEnvironment(...remotes: { source: {root: string}; repository: string; env: NodeJS.ProcessEnv }[]): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = { ...remotes[0]!.env, GIT_CONFIG_COUNT: String(remotes.length + 1) };
+  remotes.forEach((remote, index) => {
+    env[`GIT_CONFIG_KEY_${index}`] = `url.${pathToFileURL(remote.source.root).href}.insteadOf`;
+    env[`GIT_CONFIG_VALUE_${index}`] = `https://github.com/${remote.repository}`;
+  });
+  env[`GIT_CONFIG_KEY_${remotes.length}`] = 'protocol.file.allow';
+  env[`GIT_CONFIG_VALUE_${remotes.length}`] = 'always';
+  return env;
 }
 
 export const inspectionArgs = ['inspect', '--source', 'https://github.com/alice/standards', '--standards-version', 'v1.0.0', '--profile', 'work', '--json'];
