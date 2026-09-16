@@ -376,6 +376,15 @@ After an amended completion, retained inspection advances to
 accepted scope revision and immutable amendment records. If a later adoption
 completes, the amended run keeps those fields in its ordered `runs` entry.
 
+Retained inspection reads the committed durable state, which is
+`repo-standards/state/v5` after a complete adoption and echoed by `status` as
+`repo-standards/status/v5`. It also reads state v4 and every earlier format; the
+next complete adoption rewrites the state in the compact
+[work evidence](script-protocol.md#observed-scope-for-v2-adoption) form,
+keeping the last-complete, scope-revision and amendment fields that correlate a
+complete run with its retained scope. The retained scope projection in this
+report is unchanged.
+
 ## Preview scope amendments in an active run
 
 Use the pinned CLI and the active run's retained selection:

@@ -161,3 +161,12 @@ _Avoid_: Selection, merged profile
 The recorded bytes and executable state of exact content at the end of the last
 complete adoption.
 _Avoid_: Contextual assessment, source copy
+
+**Work evidence**:
+The durable record of observation intervals and operation outcomes for one
+adoption run.
+_Avoid_: Snapshot, log
+
+**Scope evidence**:
+The retained discovery observations behind each confirmed scope.
+_Avoid_: History, cache

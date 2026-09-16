@@ -11,6 +11,7 @@ import { ProductError } from './errors.js';
 import { observe } from './inspection.js';
 import type { Content, InspectOptions, Observation, inspect } from './inspection.js';
 import { decodeRecordedState } from './recorded-state.js';
+import { carriedRuns, committedEvidenceReport, committedStatusFormat, completedEvidence, intervalsIdentity, type CommittedRun } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, safe, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
@@ -167,30 +168,12 @@ function clearStoppedProcess(run: Run) {
   delete run.processGroupIdentity;
 }
 
-interface CompleteRunEvidence {
-  lastComplete: { run: string; inspection: string; completedAt: string; head: string };
-  observations: WorkInterval[];
-  operations: OperationEvidence[];
-  retryHistory: NonNullable<Run['retryHistory']>;
-  checks: OperationEvidence[];
-  assessments: Assessment[];
-  scopeRevision?: number;
-  amendments?: ScopeAmendmentRecord[];
-}
-
-function completeRunHistory(installation: Installation): CompleteRunEvidence[] {
+// The prior complete run's work evidence is carried forward in the compact
+// committed form, compacting any legacy full-map evidence it still carries.
+function completeRunHistory(installation: Installation): CommittedRun[] {
   const previous = installation.transitional?.['.repo-standards/state.json'];
   if (!previous) return [];
-  const state = JSON.parse(Buffer.from(previous.content, previous.encoding).toString('utf8')) as Record<string, unknown>;
-  const history = Array.isArray(state.history) ? structuredClone(state.history) as CompleteRunEvidence[] : [];
-  if (!Array.isArray(state.observations) || !Array.isArray(state.operations) || !Array.isArray(state.retryHistory)
-    || !Array.isArray(state.checks) || !Array.isArray(state.assessments) || !state.lastComplete) return history;
-  return [...history, { lastComplete: structuredClone(state.lastComplete) as CompleteRunEvidence['lastComplete'],
-    observations: structuredClone(state.observations) as WorkInterval[], operations: structuredClone(state.operations) as OperationEvidence[],
-    retryHistory: structuredClone(state.retryHistory) as NonNullable<Run['retryHistory']>, checks: structuredClone(state.checks) as OperationEvidence[],
-    assessments: structuredClone(state.assessments) as Assessment[],
-    ...(state.scopeRevision !== undefined ? { scopeRevision: state.scopeRevision as number,
-      amendments: structuredClone(state.amendments) as ScopeAmendmentRecord[] } : {}) }];
+  return carriedRuns(JSON.parse(Buffer.from(previous.content, previous.encoding).toString('utf8')));
 }
 
 function canResumeAssessment(run: Run) {
@@ -271,12 +254,10 @@ export function status(project: string) {
   try {
     const { state, pinned } = recordedState(root);
     const amended = !!state.amendments?.length;
-    return { format: state.format === 'repo-standards/state/v4' ? 'repo-standards/status/v4'
-      : amended || format === 'repo-standards/status/v3' ? 'repo-standards/status/v3'
-        : state.observations ? 'repo-standards/status/v2' : format,
-      ...(state.observations ? { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory } : {}),
-      ...(state.history ? { history: state.history } : {}),
-      ...(amended ? { scopeRevision: state.scopeRevision, amendments: state.amendments } : {}),
+    return { format: committedStatusFormat(state)
+      ?? (amended || format === 'repo-standards/status/v3' ? 'repo-standards/status/v3'
+        : state.observations ? 'repo-standards/status/v2' : format),
+      ...committedEvidenceReport(state),
       selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
       checks: state.checks, assessments: state.assessments, active, abandoned, evidence: 'historical' };
   } catch (error) {
@@ -459,7 +440,7 @@ export class AdoptionRunSession {
     evidence: Omit<ScopeAmendmentRecord, 'format' | 'revision' | 'acceptedAt' | 'outgoingObservation'>) {
     const run = this.#state();
     const revision = (run.scopeRevision ?? 0) + 1;
-    const outgoingObservation = { identity: `sha256:${hash(json(observations))}`, intervals: observations.length };
+    const outgoingObservation = { identity: intervalsIdentity(observations), intervals: observations.length };
     const affected = Object.fromEntries(Object.values(evidence.additions).flat()
       .filter(path => !Object.hasOwn(run.affected, path)).map(path => [path, observe(join(this.#root, path))]));
     const amendedBaseline = observeWork(this.#root, concreteScope(report.resolved));
@@ -565,12 +546,7 @@ export class AdoptionRunSession {
     const { report, files, skills, exactBaselines, durable } = installation;
     this.#completing = true;
     const completedAt = new Date().toISOString();
-    const history = completeRunHistory(installation);
-    const retainExecutionHistory = run.observations !== undefined || history.length > 0;
-    const state = file(json({ format: retainExecutionHistory ? 'repo-standards/state/v4' : 'repo-standards/state/v1',
-      ...(retainExecutionHistory ? { history } : {}),
-      ...(run.observations ? { observations: run.observations, operations: run.operations, retryHistory: run.retryHistory ?? [] } : {}),
-      ...(run.amendments?.length ? { scopeRevision: run.scopeRevision!, amendments: run.amendments } : {}),
+    const state = file(json({ ...completedEvidence(run, completeRunHistory(installation)),
       lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: report.project.head }, baselines: exactBaselines, skills,
       checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));
     const completionLock = file(json({ format: 'repo-standards/lock/v1', selection: report.selection, inspection: run.inspection, files: durable, state: { sha256: state.sha256, executable: state.executable } }));

@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
+import { assertCompactWorkEvidence, committedState, localRunReport, observationIdentity } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
 import { registryFixture } from './registry-fixture.ts';
@@ -122,8 +124,8 @@ ${result}`);
   const complete = f.assess(retried.workRequest, { readme: ['README.md'] });
   assert.equal(complete.result.status, 0, complete.result.stdout);
   const status = f.run(['status', '--json']).report;
-  const intervals = status.observations as { phase: string; changedPaths: string[]; scope: unknown }[];
-  assert.deepEqual(intervals.filter(interval => interval.changedPaths.includes('README.md')).map(interval => interval.phase), ['fixes', 'agent', 'fixes']);
+  const intervals = status.observations as { phase: string; changes: Record<string, unknown>; scope: unknown }[];
+  assert.deepEqual(intervals.filter(interval => Object.hasOwn(interval.changes, 'README.md')).map(interval => interval.phase), ['fixes', 'agent', 'fixes']);
   assert.ok(intervals.every(interval => interval.scope));
   assert.equal(status.checks.length, 1);
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
@@ -387,4 +389,137 @@ ${result}`);
     const retained = f.run(['inspect', '--json']).report;
     assert.ok(retained.start.blockers.some((blocker: { code: string; path: string }) => blocker.code === 'STATE_INTEGRITY' && blocker.path === '.repo-standards'));
   });
+});
+
+test('v2 completion commits compact work evidence and keeps full observations local', async t => {
+  const f = await fixture(t, `${prelude}
+if (input.operation.phase === 'fixes') writeFileSync('README.md', 'Prepared');
+${result}`);
+  const started = f.start().report;
+  assert.equal(started.phase, 'contextual');
+  writeFileSync(join(f.project.root, 'OTHER.md'), 'Agent documentation');
+  const refreshed = f.run(['resume', '--json']).report;
+  const completed = f.assess(refreshed.workRequest, { other: ['OTHER.md'] });
+  assert.equal(completed.result.status, 0, completed.result.stdout);
+
+  const state = committedState(f.project.root);
+  assert.equal(state.format, 'repo-standards/state/v5');
+  assertCompactWorkEvidence(state);
+  const intervals = state.observations!;
+  assert.deepEqual(intervals.filter(interval => interval.operation)
+    .map(interval => `${interval.phase}:${interval.operation!.declaration}/${interval.operation!.id}:${interval.operationIndex}`),
+  ['fixes:readme/prepare:0', 'checks:readme/verify:1']);
+  assert.ok(intervals.some(interval => interval.phase === 'agent'));
+  const fix = intervals.find(interval => interval.operation?.id === 'prepare')!;
+  assert.deepEqual(Object.keys(fix.changes!), ['README.md']);
+  assert.equal(fix.changes!['README.md']!.before.type, 'file');
+  assert.equal(fix.changes!['README.md']!.after.type, 'file');
+  assert.notEqual(fix.changes!['README.md']!.before.sha256, fix.changes!['README.md']!.after.sha256);
+  assert.deepEqual(fix.boundaryChanges, {});
+  assert.deepEqual(fix.violations, []);
+  assert.deepEqual(fix.scope, { readme: { paths: ['README.md'], directories: [] } });
+  const agent = intervals.find(interval => interval.phase === 'agent' && Object.hasOwn(interval.changes ?? {}, 'OTHER.md'))!;
+  assert.equal(agent.changes!['OTHER.md']!.after.type, 'file');
+  // Adjacent intervals chain, so the committed identities remain tamper-evident.
+  for (const [index, interval] of intervals.entries()) if (index) assert.equal(interval.before, intervals[index - 1]!.after);
+
+  // Full observations remain in the local run report, not in committed state.
+  const report = localRunReport(f.project.root);
+  const local = report.observations!;
+  assert.equal(local.length, intervals.length);
+  assert.ok(Object.hasOwn(local[0]!.before.files, 'README.md'));
+  assert.equal(observationIdentity(local[0]!.before), intervals[0]!.before);
+  assert.equal(observationIdentity(local[0]!.after), intervals[0]!.after);
+
+  const status = f.run(['status', '--json']).report;
+  assert.equal(status.format, 'repo-standards/status/v5');
+  assert.deepEqual(status.observations, intervals);
+  assert.deepEqual(status.history, []);
+});
+
+test('a committed legacy state is read and compacted by the next complete adoption', async t => {
+  const f = await fixture(t, `${prelude}
+if (input.operation.phase === 'fixes') writeFileSync('README.md', 'Prepared');
+${result}`);
+  const started = f.start().report;
+  writeFileSync(join(f.project.root, 'OTHER.md'), 'Agent documentation');
+  assert.equal(f.assess(f.run(['resume', '--json']).report.workRequest, { other: ['OTHER.md'] }).result.status, 0);
+  commit(f.project.root);
+
+  // A project adopted before compaction retains full observation maps.
+  const observed = (sha256: string) => ({
+    files: { 'README.md': { type: 'file', sha256, executable: false } },
+    boundaries: { '.': { type: 'directory', mode: 493 } },
+    settings: { 'core.ignorecase': 'false' },
+    ignores: { '.gitignore': { location: '.gitignore', state: { type: 'missing' } } },
+  });
+  const before = observed('a'.repeat(64));
+  const after = observed('b'.repeat(64));
+  const legacyIntervals = [
+    { phase: 'fixes', scope: { readme: { paths: ['README.md'], directories: [] } },
+      operation: { declaration: 'readme', phase: 'fixes', id: 'prepare' }, operationIndex: 0,
+      before, after, changedPaths: ['README.md'], boundaryChanges: [], violations: [], interrupted: true },
+    { phase: 'agent', scope: { readme: { paths: ['README.md'], directories: [] } },
+      before: after, after, changedPaths: [], boundaryChanges: [], violations: [] },
+    { phase: 'checks', scope: { readme: { paths: ['README.md'], directories: [] } },
+      operation: { declaration: 'readme', phase: 'checks', id: 'verify' }, operationIndex: 1,
+      before: after, after, changedPaths: [], boundaryChanges: [], violations: [] },
+  ];
+  const current = committedState(f.project.root) as unknown as Record<string, unknown>;
+  const legacyLastComplete = { run: 'c0ffee00-0000-4000-8000-000000000000', inspection: 'sha256:legacy',
+    completedAt: '2026-01-01T00:00:00.000Z', head: '0'.repeat(40) };
+  const amendments = [{ format: 'repo-standards/scope-amendment/v1', revision: 1, previousInspection: 'sha256:legacy-previous' }];
+  const legacy = { ...current, format: 'repo-standards/state/v4',
+    history: [{ lastComplete: legacyLastComplete, observations: legacyIntervals, operations: [], retryHistory: [],
+      checks: [], assessments: [], scopeRevision: 1, amendments }],
+    observations: legacyIntervals };
+  const statePath = join(f.project.root, '.repo-standards/state.json');
+  const lockPath = join(f.project.root, '.repo-standards/lock.json');
+  const rewrite = (state: unknown) => {
+    const bytes = JSON.stringify(state, null, 2) + '\n';
+    writeFileSync(statePath, bytes);
+    const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
+    lock.state.sha256 = createHash('sha256').update(bytes).digest('hex');
+    writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
+    commit(f.project.root);
+  };
+  rewrite(legacy);
+
+  const legacyStatus = f.run(['status', '--json']).report;
+  assert.equal(legacyStatus.format, 'repo-standards/status/v4');
+  assert.deepEqual(legacyStatus.observations[0].before, before);
+  assert.equal(legacyStatus.history.length, 1);
+
+  const readopted = f.run(['inspect', '--readopt', '--json']).report;
+  assert.deepEqual(readopted.start.blockers, []);
+  const restarted = f.run(['start', '--readopt', '--confirm', readopted.identity, '--json']).report;
+  assert.equal(restarted.phase, 'contextual');
+  writeFileSync(join(f.project.root, 'OTHER.md'), 'Renewed agent documentation');
+  const recompleted = f.assess(f.run(['resume', '--json']).report.workRequest, { other: ['OTHER.md'] });
+  assert.equal(recompleted.result.status, 0, recompleted.result.stdout);
+
+  const compacted = committedState(f.project.root);
+  assert.equal(compacted.format, 'repo-standards/state/v5');
+  assertCompactWorkEvidence(compacted);
+  assert.equal(compacted.history!.length, 2);
+  const [legacyRun, previousRun] = compacted.history!;
+  assert.deepEqual(legacyRun!.lastComplete, legacyLastComplete);
+  assert.equal(legacyRun!.scopeRevision, 1);
+  assert.deepEqual(legacyRun!.amendments, amendments);
+  assert.equal(previousRun!.lastComplete.run, started.id);
+  for (const run of [legacyRun!, previousRun!]) {
+    assert.deepEqual(run.observations.map(interval => interval.phase), ['fixes', 'agent', 'checks']);
+    const [converted] = run.observations;
+    assert.equal(converted!.before, observationIdentity(before));
+    assert.equal(converted!.after, observationIdentity(after));
+    assert.deepEqual(converted!.changes, { 'README.md': { before: before.files['README.md'], after: after.files['README.md'] } });
+    assert.deepEqual(converted!.boundaryChanges, {});
+    assert.equal(converted!.interrupted, true);
+    assert.deepEqual(converted!.operation, { declaration: 'readme', phase: 'fixes', id: 'prepare' });
+    assert.equal(converted!.operationIndex, 0);
+  }
+
+  // The committed guarantee is enforced on read, not only when writing.
+  rewrite({ ...(compacted as unknown as Record<string, unknown>), observations: legacyIntervals });
+  assert.equal(f.run(['inspect', '--readopt', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
 });

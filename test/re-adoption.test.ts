@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { inc } from 'semver';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
+import { assertCompactWorkEvidence, committedState } from './committed-evidence.ts';
 import { commit, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 
@@ -172,4 +173,10 @@ test('explicit re-adoption supports retained v2 selections without active discov
   const completed = cli.run(['start', '--readopt', '--confirm', inspected.identity, '--json'], project.root, env);
   assert.equal(completed.status, 0, completed.stdout + completed.stderr);
   assert.equal(JSON.parse(completed.stdout).outcome, 'complete');
+  // Re-adoption with unchanged versions commits the same compact form.
+  const state = committedState(project.root);
+  assert.equal(state.format, 'repo-standards/state/v5');
+  assert.equal(state.history!.length, 1);
+  assertCompactWorkEvidence(state);
+  assert.equal(JSON.parse(cli.run(['status', '--json'], project.root, env).stdout).format, 'repo-standards/status/v5');
 });

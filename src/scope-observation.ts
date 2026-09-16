@@ -9,7 +9,9 @@ import { foldPath } from './paths.js';
 const limits = { paths: 20_000, fileBytes: 8 * 1024 * 1024, totalBytes: 64 * 1024 * 1024, depth: 128 };
 export interface Evidence { kind: 'file' | 'directory' | 'absence'; path: string; identity: string }
 type FileState = { type: 'missing' } | { type: 'file'; sha256: string; executable: boolean } | { type: 'directory'; mode: number } | { type: 'symlink'; target: string };
-const identity = (value: unknown) => `sha256:${hash(JSON.stringify(value))}`;
+// The product's observation identity: a content-derived identity for any
+// observed value, shared by discovery evidence and committed work evidence.
+export const observationIdentity = (value: unknown) => `sha256:${hash(JSON.stringify(value))}`;
 
 // One bounded observation is compared with a second before issuing a report.
 // Only eligible files and named boundaries are read, never ignored siblings.
@@ -177,8 +179,8 @@ export function observeScope(root: string, named: string[] = [], options: { exec
     if (path !== '.' && inventories[dirname(path)]) inventories[dirname(path)]!.push(path);
   }
   const evidence: Evidence[] = [
-    ...Object.entries(files).filter(([, state]) => state.type === 'file').map(([path, state]) => ({ kind: 'file' as const, path, identity: identity(state) })),
-    ...Object.entries(inventories).map(([path, entries]) => ({ kind: 'directory' as const, path, identity: identity(entries) })),
+    ...Object.entries(files).filter(([, state]) => state.type === 'file').map(([path, state]) => ({ kind: 'file' as const, path, identity: observationIdentity(state) })),
+    ...Object.entries(inventories).map(([path, entries]) => ({ kind: 'directory' as const, path, identity: observationIdentity(entries) })),
   ].sort((a, b) => a.kind < b.kind ? -1 : a.kind > b.kind ? 1 : a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
   return { files, inventories, boundaries, targets, settings, ignores, limits, evidence };
 }

@@ -165,7 +165,7 @@ Review and commit these files through the adopting project's normal workflow:
 | --- | --- |
 | `.repo-standards/selection.yaml` | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile. |
 | `.repo-standards/lock.json` | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state. |
-| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, check and assessment evidence bound to the selection and project snapshot, and prior complete v2 execution evidence. |
+| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this and each prior complete v2 run. |
 | `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
 | `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
@@ -182,16 +182,28 @@ source availability. Ordinary discovery completion exposes inspection v2 with
 scope-history v2. An amended completion exposes inspection v3; scope-history v2
 adds the accepted revision and amendment records, and keeps them on that run's
 ordered history entry after later completions. Work intervals and final
-scope-validity assessments are committed in state v4; a run that accepts an
-amendment advances to run v3 and retains its amendment chain in state v4. Each
+scope-validity assessments are committed in state v5; a run that accepts an
+amendment advances to run v3 and retains its amendment chain in state v5. Each
 later complete v2 run moves the prior run's interval,
 operation, retry, check and assessment evidence into the state's ordered
 `history`, so earlier authorized work remains explainable in a fresh checkout.
 An intervening v1 standards update keeps its v1 run, work-request and assessment
-protocols while carrying the earlier v2 evidence in state and status v4; a later
+protocols while carrying the earlier v2 evidence in state and status v5; a later
 v2 completion therefore cannot erase that history.
-The v4 format makes clients that predate retained execution history reject the
+The v5 format makes clients that predate compact work evidence reject the
 new state rather than silently overlooking it.
+
+Committed intervals are
+[work evidence](script-protocol.md#observed-scope-for-v2-adoption): the
+identities of the observations a run held and the delta between them, not the
+observations themselves. Each interval keeps its phase, scope, operation
+reference, changed paths with their before and after file state, boundary
+changes, violations and restoration evidence, so an adoption pull request stays
+reviewable and a later run adds only its own evidence. Full observations remain
+in memory and in the uncommitted local run report, which recovery, gap detection
+and scope-amendment revalidation still use. A project committed under state v4
+or any earlier format keeps working; the next complete adoption rewrites it,
+converting legacy intervals and full-map history entries into the compact form.
 Historical evidence makes no current-coverage claim.
 
 Discovery-backed standards updates, CLI updates and unchanged-pin re-adoption use
