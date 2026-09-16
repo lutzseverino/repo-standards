@@ -7,12 +7,12 @@
     },
     "standards": {
       "repository": "https://github.com/lutzseverino/repo-canon",
-      "version": "v0.1.0",
-      "commit": "639af070ddeef2d82c96b8427a805da0e1bf8ba9"
+      "version": "v0.1.1",
+      "commit": "0f313ef435c715889303ec1157f1006bee1fb9f4"
     },
     "profile": "complete"
   },
-  "inspection": "sha256:4ef78c2b40da290f419ba9174284d519c7113ce0ef6b6d3408cbc02e609f957c",
+  "inspection": "sha256:dd4129e2e9e4f750b56e8e73e135c728726ac1cf9782ee8e66ee1072a6d39c3a",
   "files": {
     "docs/agents/README.md": {
       "sha256": "1534d7dacd63d91988a97b2e2928a683ddbf5177a663b75ed438e83d3c5c4836",
@@ -87,7 +87,7 @@
       "executable": false
     },
     ".github/workflows/pr-metadata.yml": {
-      "sha256": "2e5feda40238c5631f11d9a20de6d6d2380e50026aaff13e9b62c83b0f297b8c",
+      "sha256": "597e2f3433f75fa25a2a24c9db6be3432c91740a2638ecb3541e549c518e6c82",
       "executable": false
     },
     ".github/PULL_REQUEST_TEMPLATE.md": {
@@ -531,7 +531,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/.github/workflows/pr-metadata.yml": {
-      "sha256": "2e5feda40238c5631f11d9a20de6d6d2380e50026aaff13e9b62c83b0f297b8c",
+      "sha256": "597e2f3433f75fa25a2a24c9db6be3432c91740a2638ecb3541e549c518e6c82",
       "executable": false
     },
     ".repo-standards/inputs/source/guidance/project-readmes.md": {
@@ -871,15 +871,15 @@
       "executable": false
     },
     ".repo-standards/inputs/resolved.json": {
-      "sha256": "ef937178b66c9528d1049c71a6029da8b9ac4e1e515f22de4cf39455a3679da2",
+      "sha256": "9f8abc9c2fafa85d17df948facfe6f6f1501b30ca40f0a4475b7eea5860f2961",
       "executable": false
     },
     ".repo-standards/inputs/scope-history.json": {
-      "sha256": "6752e0817e23be0145dc27a231d5dd524f5df80b429d296f1bf3ed745065ec59",
+      "sha256": "035d6d412d1d19cf3d4b3824b5c225c509611907edc203e5296f4b76df75f53f",
       "executable": false
     },
     ".repo-standards/selection.yaml": {
-      "sha256": "8a2edec872a906c7a2423dc300fbfa0003dfd8ff0f5fd2889c9008c7306ad4cc",
+      "sha256": "5a6e2269fc36af410ed7684610851fb2649713a56e4979b42dcc927f42f23d03",
       "executable": false
     },
     ".repo-standards/.gitignore": {
@@ -896,7 +896,7 @@
     }
   },
   "state": {
-    "sha256": "08a9fbd39127f70dc8aee9bd094a12fc2a7de5d8566ce8f237489b3d74bb7b24",
+    "sha256": "2bcaca33201134bc104e5895bfc5f444aed94f3ecd7c09571dba7889834e95ba",
     "executable": false
   }
 }
