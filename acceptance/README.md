@@ -73,7 +73,7 @@ Record published bootstrap/discovery separately with
 `node acceptance/public-installation.ts "$PUBLISHED_CLI_VERSION" /outside/evidence.json`.
 Public release evidence must also cover the normal project commit, fresh-checkout
 restoration, retained-source use and independent updates described in
-[the release procedure](../docs/release.md#published-acceptance).
+[the release procedure](../docs/development/release.md#published-acceptance).
 
 ### Earlier fixture-based acceptance
 
@@ -142,7 +142,7 @@ inspection/confirmation identities, run IDs, initial handoff, submitted
 assessment, final report, status evidence, project diff (including new files),
 and command outputs supporting contextual claims. Compare employer contribution
 bytes, initial/final HEAD and index; capture the uncommitted Git status.
-Follow [Review completed outputs](../docs/adoption.md#review-completed-outputs):
+Follow [Review completed outputs](../docs/usage/adoption.md#review-completed-outputs):
 include tracked changes and every non-ignored untracked file in content diffs
 or explicit content inspection, preserving binary bytes and executable state.
 Verify coverage against `git ls-files --others --exclude-standard -z`; contextual

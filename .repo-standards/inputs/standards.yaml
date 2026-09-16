@@ -1,0 +1,396 @@
+format: repo-standards/v2
+name: repo-canon
+description: Complete repository documentation, contribution, agent workflow,
+  and GitHub validation standards
+requires:
+  repo-standards: 1.2.2
+defaults:
+  declarations: {}
+profiles:
+  complete:
+    description: The complete Repo Canon standards profile
+    declarations:
+      agent-configuration-index:
+        checks: []
+        fixes: []
+        kind: file
+        target: docs/agents/README.md
+        exact: docs/agents/README.md
+      agent-guidance:
+        checks: []
+        fixes: []
+        kind: file
+        target: AGENTS.md
+        exact: AGENTS.md
+      bug-report-template:
+        checks: []
+        fixes: []
+        kind: file
+        target: .github/ISSUE_TEMPLATE/bug-report.yml
+        exact: .github/ISSUE_TEMPLATE/bug-report.yml
+      contribution-guidance:
+        checks: []
+        fixes: []
+        kind: file
+        target: CONTRIBUTING.md
+        exact: CONTRIBUTING.md
+      documentation:
+        checks:
+          - id: documentation-navigation
+            run:
+              executable: node
+              script: operations/check-documentation.mjs
+              resources:
+                - operations/lib/rendered-markdown.mjs
+                - operations/lib/local-markdown-links.mjs
+                - vendor/marked
+                - vendor/parse5
+              arguments: []
+            prerequisite:
+              version-arguments:
+                - --version
+              version: ">=24.0.0 <25.0.0"
+            timeout-seconds: 30
+        fixes: []
+        kind: repository
+        guidance: guidance/documentation.md
+        discovery: discovery/documentation.md
+      domain-configuration:
+        checks: []
+        fixes: []
+        kind: file
+        target: docs/agents/domain.md
+        exact: docs/agents/domain.md
+      feature-request-template:
+        checks: []
+        fixes: []
+        kind: file
+        target: .github/ISSUE_TEMPLATE/feature-request.yml
+        exact: .github/ISSUE_TEMPLATE/feature-request.yml
+      github-repository-configuration:
+        checks: []
+        fixes:
+          - id: canonical-labels
+            run:
+              executable: node
+              script: operations/setup-github-labels.mjs
+              resources:
+                - operations/lib/github-operation.mjs
+                - LICENSE
+                - THIRD_PARTY_NOTICES.md
+                - vendor/mattpocock-skills/LICENSE
+              arguments: []
+            prerequisite:
+              version-arguments:
+                - --version
+              version: ">=24.0.0 <25.0.0"
+            timeout-seconds: 30
+          - id: pull-request-integration
+            run:
+              executable: node
+              script: operations/setup-github-pr-integration.mjs
+              resources:
+                - operations/lib/github-operation.mjs
+              arguments: []
+            prerequisite:
+              version-arguments:
+                - --version
+              version: ">=24.0.0 <25.0.0"
+            timeout-seconds: 30
+        kind: repository
+        guidance: guidance/github-repository-configuration.md
+        discovery: discovery/github-repository-configuration.md
+      implementation-ticket-template:
+        checks: []
+        fixes: []
+        kind: file
+        target: .github/ISSUE_TEMPLATE/implementation-ticket.yml
+        exact: .github/ISSUE_TEMPLATE/implementation-ticket.yml
+      issue-contract-validator:
+        checks: []
+        fixes: []
+        kind: file
+        target: scripts/validate-issue-contract.mjs
+        exact: scripts/validate-issue-contract.mjs
+      issue-contract-workflow:
+        checks: []
+        fixes: []
+        kind: file
+        target: .github/workflows/issue-contracts.yml
+        exact: .github/workflows/issue-contracts.yml
+      issue-tracker-configuration:
+        checks: []
+        fixes: []
+        kind: file
+        target: docs/agents/issue-tracker.md
+        exact: docs/agents/issue-tracker.md
+      marked-license:
+        checks: []
+        fixes: []
+        kind: file
+        target: vendor/marked/LICENSE
+        exact: vendor/marked/LICENSE
+      marked-parser:
+        checks: []
+        fixes: []
+        kind: file
+        target: vendor/marked/marked.esm.js
+        exact: vendor/marked/marked.esm.js
+      marked-provenance:
+        checks: []
+        fixes: []
+        kind: file
+        target: vendor/marked/README.md
+        exact: vendor/marked/README.md
+      parse5-entities-license:
+        checks: []
+        fixes: []
+        kind: file
+        target: vendor/parse5/LICENSE.entities
+        exact: vendor/parse5/LICENSE.entities
+      parse5-license:
+        checks: []
+        fixes: []
+        kind: file
+        target: vendor/parse5/LICENSE.parse5
+        exact: vendor/parse5/LICENSE.parse5
+      parse5-parser:
+        checks: []
+        fixes: []
+        kind: file
+        target: vendor/parse5/parse5.esm.js
+        exact: vendor/parse5/parse5.esm.js
+      parse5-provenance:
+        checks: []
+        fixes: []
+        kind: file
+        target: vendor/parse5/README.md
+        exact: vendor/parse5/README.md
+      pr-metadata-validator:
+        checks: []
+        fixes: []
+        kind: file
+        target: .github/scripts/validate-pr-metadata.mjs
+        exact: .github/scripts/validate-pr-metadata.mjs
+      pr-metadata-workflow:
+        checks: []
+        fixes: []
+        kind: file
+        target: .github/workflows/pr-metadata.yml
+        exact: .github/workflows/pr-metadata.yml
+      project-readmes:
+        checks:
+          - id: project-readme-structure
+            run:
+              executable: node
+              script: operations/check-project-readmes.mjs
+              resources:
+                - operations/lib/rendered-markdown.mjs
+                - operations/lib/local-markdown-links.mjs
+                - vendor/marked
+                - vendor/parse5
+              arguments: []
+            prerequisite:
+              version-arguments:
+                - --version
+              version: ">=24.0.0 <25.0.0"
+            timeout-seconds: 30
+        fixes: []
+        kind: repository
+        guidance: guidance/project-readmes.md
+        discovery: discovery/project-readmes.md
+      pull-request-template:
+        checks: []
+        fixes: []
+        kind: file
+        target: .github/PULL_REQUEST_TEMPLATE.md
+        exact: .github/PULL_REQUEST_TEMPLATE.md
+      rendered-markdown-runtime:
+        checks: []
+        fixes: []
+        kind: file
+        target: operations/lib/rendered-markdown.mjs
+        exact: operations/lib/rendered-markdown.mjs
+      repository-readme:
+        checks:
+          - id: repository-readme-structure
+            run:
+              executable: node
+              script: operations/check-repository-readme.mjs
+              resources:
+                - operations/lib/rendered-markdown.mjs
+                - operations/lib/local-markdown-links.mjs
+                - vendor/marked
+                - vendor/parse5
+              arguments: []
+            prerequisite:
+              version-arguments:
+                - --version
+              version: ">=24.0.0 <25.0.0"
+            timeout-seconds: 30
+        fixes: []
+        kind: file
+        target: README.md
+        guidance: guidance/repository-readme.md
+      skill-ask-matt:
+        checks: []
+        fixes: []
+        kind: skill
+        name: ask-matt
+        source: vendor/mattpocock-skills/skills/engineering/ask-matt
+      skill-code-review:
+        checks: []
+        fixes: []
+        kind: skill
+        name: code-review
+        source: vendor/mattpocock-skills/skills/engineering/code-review
+      skill-codebase-design:
+        checks: []
+        fixes: []
+        kind: skill
+        name: codebase-design
+        source: vendor/mattpocock-skills/skills/engineering/codebase-design
+      skill-diagnosing-bugs:
+        checks: []
+        fixes: []
+        kind: skill
+        name: diagnosing-bugs
+        source: vendor/mattpocock-skills/skills/engineering/diagnosing-bugs
+      skill-domain-modeling:
+        checks: []
+        fixes: []
+        kind: skill
+        name: domain-modeling
+        source: vendor/mattpocock-skills/skills/engineering/domain-modeling
+      skill-grill-me:
+        checks: []
+        fixes: []
+        kind: skill
+        name: grill-me
+        source: vendor/mattpocock-skills/skills/productivity/grill-me
+      skill-grill-with-docs:
+        checks: []
+        fixes: []
+        kind: skill
+        name: grill-with-docs
+        source: vendor/mattpocock-skills/skills/engineering/grill-with-docs
+      skill-grilling:
+        checks: []
+        fixes: []
+        kind: skill
+        name: grilling
+        source: vendor/mattpocock-skills/skills/productivity/grilling
+      skill-handoff:
+        checks: []
+        fixes: []
+        kind: skill
+        name: handoff
+        source: vendor/mattpocock-skills/skills/productivity/handoff
+      skill-implement:
+        checks: []
+        fixes: []
+        kind: skill
+        name: implement
+        source: vendor/mattpocock-skills/skills/engineering/implement
+      skill-improve-codebase-architecture:
+        checks: []
+        fixes: []
+        kind: skill
+        name: improve-codebase-architecture
+        source: vendor/mattpocock-skills/skills/engineering/improve-codebase-architecture
+      skill-prototype:
+        checks: []
+        fixes: []
+        kind: skill
+        name: prototype
+        source: vendor/mattpocock-skills/skills/engineering/prototype
+      skill-research:
+        checks: []
+        fixes: []
+        kind: skill
+        name: research
+        source: vendor/mattpocock-skills/skills/engineering/research
+      skill-resolving-merge-conflicts:
+        checks: []
+        fixes: []
+        kind: skill
+        name: resolving-merge-conflicts
+        source: vendor/mattpocock-skills/skills/engineering/resolving-merge-conflicts
+      skill-setup-matt-pocock-skills:
+        checks: []
+        fixes: []
+        kind: skill
+        name: setup-matt-pocock-skills
+        source: vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills
+      skill-tdd:
+        checks: []
+        fixes: []
+        kind: skill
+        name: tdd
+        source: vendor/mattpocock-skills/skills/engineering/tdd
+      skill-teach:
+        checks: []
+        fixes: []
+        kind: skill
+        name: teach
+        source: vendor/mattpocock-skills/skills/productivity/teach
+      skill-to-questionnaire:
+        checks: []
+        fixes: []
+        kind: skill
+        name: to-questionnaire
+        source: vendor/mattpocock-skills/skills/productivity/to-questionnaire
+      skill-to-spec:
+        checks: []
+        fixes: []
+        kind: skill
+        name: to-spec
+        source: vendor/mattpocock-skills/skills/engineering/to-spec
+      skill-to-tickets:
+        checks: []
+        fixes: []
+        kind: skill
+        name: to-tickets
+        source: vendor/mattpocock-skills/skills/engineering/to-tickets
+      skill-triage:
+        checks: []
+        fixes: []
+        kind: skill
+        name: triage
+        source: vendor/mattpocock-skills/skills/engineering/triage
+      skill-wait-what:
+        checks: []
+        fixes: []
+        kind: skill
+        name: wait-what
+        source: vendor/mattpocock-skills/skills/productivity/wait-what
+      skill-wayfinder:
+        checks: []
+        fixes: []
+        kind: skill
+        name: wayfinder
+        source: vendor/mattpocock-skills/skills/engineering/wayfinder
+      skill-wizard:
+        checks: []
+        fixes: []
+        kind: skill
+        name: wizard
+        source: vendor/mattpocock-skills/skills/engineering/wizard
+      skill-writing-for-agents:
+        checks: []
+        fixes: []
+        kind: skill
+        name: writing-for-agents
+        source: vendor/mattpocock-skills/skills/productivity/writing-for-agents
+      specification-template:
+        checks: []
+        fixes: []
+        kind: file
+        target: .github/ISSUE_TEMPLATE/specification.yml
+        exact: .github/ISSUE_TEMPLATE/specification.yml
+      triage-label-configuration:
+        checks: []
+        fixes: []
+        kind: file
+        target: docs/agents/triage-labels.md
+        exact: docs/agents/triage-labels.md

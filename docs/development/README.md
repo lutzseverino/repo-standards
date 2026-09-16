@@ -1,8 +1,8 @@
 # Development
 
 Build, test, and maintain the Repository Standards product. The
-[architecture contracts](../architecture.md) define product behavior; the
-[release procedure](../release.md) covers packaging and publication.
+[architecture contracts](architecture.md) define product behavior; the
+[release procedure](release.md) covers packaging and publication.
 
 ## Setup and validation
 
@@ -33,3 +33,25 @@ obtain a positive Codex review, and require green macOS and Linux validation
 for the final changes. Reassess review coverage after changes and request a
 Codex rereview when their scope warrants it. Link the applicable issue and
 report actual validation results and remaining limits in the PR.
+
+## Development records
+
+- [Repository Standards — architecture contracts](architecture.md)
+- [Standards authoring skill design](authoring-skill-design.md)
+- [Project-specific contextual scope](contextual-scope-design.md)
+- [Contextual scope interfaces](contextual-scope-interfaces.md)
+- [Correctness and simplicity review](contextual-scope-review.md)
+- [Contextual scope specification archive](contextual-scope-specification.md)
+- [Release reliability investigation design](release-reliability-design.md)
+- [Release procedure](release.md)
+
+## Package compatibility
+
+`pnpm release:pack` stages the distributable package outside the checkout and
+includes the categorized documentation. It also creates complete compatibility
+copies at the nine original `docs/*.md` package paths, preserving headings and
+rebasing local links. The installed system skills can therefore keep using
+public CLI 1.2.2's documented paths. Use the release bundle's tarball for
+publication; direct `npm pack --ignore-scripts` from the source checkout omits
+those generated compatibility copies. Installed-CLI tests use the same staging
+boundary as release packaging.

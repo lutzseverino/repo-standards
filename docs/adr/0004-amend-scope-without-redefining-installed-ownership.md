@@ -1,7 +1,7 @@
 # Amend scope without redefining installed ownership
 
 Status: accepted design in [issue #41](https://github.com/lutzseverino/repo-standards/issues/41).
-Availability follows the implementation tickets and [architecture](../architecture.md).
+Availability follows the implementation tickets and [architecture](../development/architecture.md).
 
 Discovery can reveal missing scope after installation or contextual work, while
 abandoning partial adoption does not establish reusable completed ownership.

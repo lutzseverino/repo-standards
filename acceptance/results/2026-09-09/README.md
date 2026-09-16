@@ -102,7 +102,7 @@ publication and the resulting both-OS real-agent/update journeys.
 - `npm whoami --registry=https://registry.npmjs.org` returned `ENEEDAUTH`.
   The maintainer was asked to authenticate locally; no credentials were sent
   through chat. The GitHub `npm` environment was also absent when inspected.
-  Configure publication access using [the release procedure](../../../docs/release.md).
+  Configure publication access using [the release procedure](../../../docs/development/release.md).
 - The [actual public npm attempt](public-installation-macos.json) returned
   `E404` for version `1.0.0`, with `passed: false`. It did not reach GitHub asset
   downloads, discovery, inspection or adoption. There is no public Linux result

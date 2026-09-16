@@ -53,3 +53,6 @@ inspect its `declarations`, not just `valid`, to compare inherited IDs, full
 replacements, absent exclusions, and additions with the reviewed source.
 Preserve the actual result. If an installed document disagrees with this
 skill's contract, surface the mismatch instead of guessing at a format.
+
+The product repository maintains these contracts under `docs/usage/`; released
+packages preserve the legacy `docs/*.md` paths above for installed skills.
