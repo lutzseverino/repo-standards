@@ -2,7 +2,7 @@
 
 This is a new analysis of the original PR history at `37fa6de4`. Historical
 release observations and artifacts remain unchanged. The agreed scope is in
-[the design note](../../../../docs/release-reliability-design.md).
+[the design note](../../../../docs/development/release-reliability-design.md).
 
 ## Whole-branch check inventory
 

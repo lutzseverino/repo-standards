@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
@@ -43,13 +43,18 @@ test('release artifacts install without build tools and expose the matching CLI,
     assert.ok(canonical.length > 0);
     assert.deepEqual([...compatible.matchAll(/^#{1,6} .+$/gm)].map(match => match[0]),
       [...canonical.matchAll(/^#{1,6} .+$/gm)].map(match => match[0]), 'Legacy paths preserve document sections and anchors');
-    for (const documentPath of [`docs/${category}/${doc}.md`, `docs/${doc}.md`]) {
-      const content = readFileSync(join(installed, documentPath), 'utf8');
-      for (const match of content.matchAll(/\]\(([^\s)]+)\)/g)) {
-        const target = match[1]!.split('#')[0]!.split('?')[0]!;
-        if (!target || /^[a-z][a-z0-9+.-]*:/i.test(target)) continue;
-        assert.ok(existsSync(resolve(installed, dirname(documentPath), target)), `${documentPath} links to missing ${target}`);
-      }
+  }
+  // The package ships the whole categorized documentation tree, so every packaged
+  // document must resolve its own local links from its installed location.
+  const packagedDocuments = readdirSync(join(installed, 'docs'), { recursive: true, encoding: 'utf8' })
+    .filter(entry => entry.endsWith('.md')).map(entry => join('docs', entry));
+  assert.ok(packagedDocuments.length >= 30, 'The package must ship the categorized documentation tree');
+  for (const documentPath of packagedDocuments) {
+    const content = readFileSync(join(installed, documentPath), 'utf8');
+    for (const match of content.matchAll(/\]\(([^\s)]+)\)/g)) {
+      const target = match[1]!.split('#')[0]!.split('?')[0]!;
+      if (!target || /^[a-z][a-z0-9+.-]*:/i.test(target)) continue;
+      assert.ok(existsSync(resolve(installed, dirname(documentPath), target)), `${documentPath} links to missing ${target}`);
     }
   }
   for (const author of ['alice', 'mira']) {
