@@ -107,28 +107,33 @@ function committedIntervals(intervals: readonly (WorkInterval | CommittedInterva
   return intervals.map(committedInterval);
 }
 
+// One retained run in the committed order, so a carried entry and a newly
+// promoted one are written the same way and later completions leave the
+// earlier entries byte-identical.
+function carriedRun(run: Record<string, unknown>): CommittedRun {
+  return {
+    lastComplete: structuredClone(run.lastComplete) as CommittedRun['lastComplete'],
+    observations: committedIntervals((run.observations ?? []) as WorkInterval[]),
+    operations: structuredClone(run.operations) as unknown[],
+    retryHistory: structuredClone(run.retryHistory) as unknown[],
+    checks: structuredClone(run.checks) as unknown[],
+    assessments: structuredClone(run.assessments) as unknown[],
+    ...(run.scopeRevision !== undefined
+      ? { scopeRevision: run.scopeRevision as number, amendments: structuredClone(run.amendments) as unknown[] }
+      : {}),
+  };
+}
+
 // A completion moves the previous complete run's evidence into the ordered
 // history, keeping the correlation fields the retained-selection reader uses.
 export function carriedRuns(previous: unknown): CommittedRun[] {
   if (!previous || typeof previous !== 'object') return [];
   const state = previous as Record<string, unknown>;
-  const history = (Array.isArray(state.history) ? state.history as CommittedRun[] : []).map(run => {
-    const { observations, ...rest } = run ?? {} as CommittedRun;
-    return { ...structuredClone(rest), observations: committedIntervals(observations ?? []) };
-  });
+  const history = (Array.isArray(state.history) ? state.history : [])
+    .map(run => carriedRun((run ?? {}) as Record<string, unknown>));
   if (!Array.isArray(state.observations) || !Array.isArray(state.operations) || !Array.isArray(state.retryHistory)
     || !Array.isArray(state.checks) || !Array.isArray(state.assessments) || !state.lastComplete) return history;
-  return [...history, {
-    lastComplete: structuredClone(state.lastComplete) as CommittedRun['lastComplete'],
-    observations: committedIntervals(state.observations as WorkInterval[]),
-    operations: structuredClone(state.operations) as unknown[],
-    retryHistory: structuredClone(state.retryHistory) as unknown[],
-    checks: structuredClone(state.checks) as unknown[],
-    assessments: structuredClone(state.assessments) as unknown[],
-    ...(state.scopeRevision !== undefined
-      ? { scopeRevision: state.scopeRevision as number, amendments: structuredClone(state.amendments) as unknown[] }
-      : {}),
-  }];
+  return [...history, carriedRun(state)];
 }
 
 // The execution-evidence slice a completion writes. Last-complete, installed

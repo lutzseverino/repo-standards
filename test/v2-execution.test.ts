@@ -512,6 +512,12 @@ ${result}`);
   assert.equal(legacyRun!.scopeRevision, 1);
   assert.deepEqual(legacyRun!.amendments, amendments);
   assert.equal(previousRun!.lastComplete.run, started.id);
+  // Carried entries keep one committed key order, so later completions leave
+  // the earlier evidence byte-identical.
+  for (const run of compacted.history!) {
+    assert.deepEqual(Object.keys(run).slice(0, 6),
+      ['lastComplete', 'observations', 'operations', 'retryHistory', 'checks', 'assessments']);
+  }
   for (const run of [olderRun!, legacyRun!, previousRun!]) {
     assert.deepEqual(run.observations.map(interval => interval.phase), ['fixes', 'agent', 'checks']);
     const [converted] = run.observations;
