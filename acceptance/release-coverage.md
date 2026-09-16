@@ -1,6 +1,6 @@
 # First-release coverage
 
-The row numbers match `docs/architecture.md` and the corresponding parent #1
+The row numbers match `docs/development/architecture.md` and the corresponding parent #1
 release criteria. Test files own deterministic behavior; issue #11 adds public
 distribution evidence without moving those tests into a separate implementation.
 Run `pnpm validate` on macOS and Linux. A listed test is coverage, not a claim

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import test from 'node:test';
 import { installCli } from './installed-cli.ts';
 
@@ -37,7 +37,20 @@ test('release artifacts install without build tools and expose the matching CLI,
   assert.ok(documentedVersions.length > 0, 'The standalone skill must document exact CLI acquisition');
   for (const match of documentedVersions) assert.equal(match[1], bundle.version, 'Authoring must acquire the released CLI and its matching contracts');
   for (const doc of ['installation', 'release', 'inspection', 'adoption', 'assessment-protocol', 'authoring', 'author-format', 'discovery', 'script-protocol']) {
-    assert.ok(readFileSync(join(installed, `docs/${doc}.md`)).length > 0);
+    const category = doc === 'release' ? 'development' : 'usage';
+    const canonical = readFileSync(join(installed, `docs/${category}/${doc}.md`), 'utf8');
+    const compatible = readFileSync(join(installed, `docs/${doc}.md`), 'utf8');
+    assert.ok(canonical.length > 0);
+    assert.deepEqual([...compatible.matchAll(/^#{1,6} .+$/gm)].map(match => match[0]),
+      [...canonical.matchAll(/^#{1,6} .+$/gm)].map(match => match[0]), 'Legacy paths preserve document sections and anchors');
+    for (const documentPath of [`docs/${category}/${doc}.md`, `docs/${doc}.md`]) {
+      const content = readFileSync(join(installed, documentPath), 'utf8');
+      for (const match of content.matchAll(/\]\(([^\s)]+)\)/g)) {
+        const target = match[1]!.split('#')[0]!.split('?')[0]!;
+        if (!target || /^[a-z][a-z0-9+.-]*:/i.test(target)) continue;
+        assert.ok(existsSync(resolve(installed, dirname(documentPath), target)), `${documentPath} links to missing ${target}`);
+      }
+    }
   }
   for (const author of ['alice', 'mira']) {
     const result = spawnSync(cli, ['source', 'validate', join(installed, 'examples', author), '--json'], { cwd: root, encoding: 'utf8' });

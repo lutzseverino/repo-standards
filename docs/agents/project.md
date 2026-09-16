@@ -1,10 +1,10 @@
 # Repository Standards project guidance
 
 Before designing or implementing product behavior, read the root `CONTEXT.md`,
-the [architecture contracts](../architecture.md), the full assigned GitHub
+the [architecture contracts](../development/architecture.md), the full assigned GitHub
 issue, its parent specification, and blockers. Keep product behavior scoped to
 the agreed contract; report contradictions and propose contract changes
-explicitly. The public author contract is [the author format](../author-format.md).
+explicitly. The public author contract is [the author format](../usage/author-format.md).
 
 Create a focused branch from `main` for each implementation ticket. Follow
 [development and validation](../development/README.md), including the PR timing,

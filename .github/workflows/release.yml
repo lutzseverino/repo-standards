@@ -95,7 +95,7 @@ jobs:
           import { appendFileSync } from 'node:fs';
           const message = `Publication is incomplete or uncertain. From a checkout containing the recovery helper, run:\n\n` +
             `\`node scripts/release-status.ts ${process.env.GITHUB_RUN_ID} release-recovery-${process.env.GITHUB_RUN_ID}\`\n\n` +
-            `This inspects the original validated bundle and prints the next action. See docs/release.md. Do not rerun publication before inspecting state.\n`;
+            `This inspects the original validated bundle and prints the next action. See docs/development/release.md. Do not rerun publication before inspecting state.\n`;
           console.log(message);
           appendFileSync(process.env.GITHUB_STEP_SUMMARY, message);
           JS

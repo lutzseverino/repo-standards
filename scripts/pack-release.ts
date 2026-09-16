@@ -1,5 +1,5 @@
+import { packPackage } from './pack-package.ts';
 // Package the already-built output; pnpm release:pack builds before invoking this.
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { chmodSync, copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -11,7 +11,7 @@ if (manifest.name !== '@lutzseverino/repo-standards' || !/^(0|[1-9]\d*)\.(0|[1-9
 }
 // Refuse existing output so an earlier version cannot leak into release assets.
 mkdirSync(output);
-const [packed] = JSON.parse(execFileSync('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', output], { encoding: 'utf8' }));
+const packed = packPackage(output);
 copyFileSync('bootstrap/repo-standards', join(output, 'repo-standards-bootstrap'));
 chmodSync(join(output, 'repo-standards-bootstrap'), 0o755);
 const artifacts = [packed.filename, 'repo-standards-bootstrap'].map(file => ({

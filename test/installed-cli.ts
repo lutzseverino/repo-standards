@@ -1,3 +1,4 @@
+import { packPackage } from '../scripts/pack-package.ts';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { lstatSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -15,7 +16,7 @@ export function snapshot(root: string): unknown {
 export function installCli() {
   const root = mkdtempSync(join(tmpdir(), 'repo-standards-cli-'));
   try {
-    const [packed] = JSON.parse(execFileSync('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', root], { encoding: 'utf8' }));
+    const packed = packPackage(root);
     execFileSync('npm', ['install', '--prefix', root, '--ignore-scripts', '--no-audit', '--no-fund',
       join(root, packed.filename)], { stdio: 'pipe' });
     return {

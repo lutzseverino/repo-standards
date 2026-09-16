@@ -102,7 +102,7 @@ try {
   if (registry.status === 404) {
     assert.equal(release, undefined, 'GitHub release exists while npm version is absent; resolve the inconsistent publication state');
     report.state = 'npm-version-missing';
-    report.prerequisite = 'Complete interactive npm authentication and publication approval as described in docs/release.md. Reinspect state after publication.';
+    report.prerequisite = 'Complete interactive npm authentication and publication approval as described in docs/development/release.md. Reinspect state after publication.';
     report.nextAction = command(['npm', 'publish', join(bundleDirectory, bundle.tarball), '--ignore-scripts', '--access', 'public', '--registry=https://registry.npmjs.org']);
   } else if (!release) {
     report.state = 'github-release-missing';

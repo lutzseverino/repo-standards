@@ -13,15 +13,10 @@
     "bootstrap",
     "skills",
     "examples",
-    "docs/installation.md",
-    "docs/release.md",
-    "docs/adoption.md",
-    "docs/author-format.md",
-    "docs/authoring.md",
-    "docs/discovery.md",
-    "docs/inspection.md",
-    "docs/script-protocol.md",
-    "docs/assessment-protocol.md"
+    "docs",
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "CONTEXT.md"
   ],
   "engines": {
     "node": ">=24 <25"
