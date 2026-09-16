@@ -136,7 +136,12 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
           return amendedTargets ? { ...declaration, targets: amendedTargets } : declaration;
         }),
       } };
-    } catch { throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.'); }
+    } catch (error) {
+      // The scope-evidence module reports its own integrity failures; only a
+      // file this reader cannot parse becomes an unreadable history.
+      if (error instanceof ProductError) throw error;
+      throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.');
+    }
   }
   return { selection: lock.selection, baselines: state.baselines, skills: state.skills,
     // Every committed format after the original records a complete inventory.

@@ -192,8 +192,8 @@ boundary entry naming them adds. Evidence arrays and the full named observation
 are rebuilt whenever the file is read, so the historical scope a report exposes
 is unchanged. The file no longer repeats the newest run at its top level.
 Scope-history v2 and every earlier format stay readable; the next complete
-adoption after a CLI update rewrites the file as v3 and carries each earlier run
-forward once. No separate compaction command exists. Work intervals and final
+adoption rewrites the file as v3 and carries each earlier run forward once. No
+separate compaction command exists. Work intervals and final
 scope-validity assessments are committed in state v5; a run that accepts an
 amendment advances to run v3 and retains its amendment chain in state v5. Each
 later complete v2 run moves the prior run's interval,
