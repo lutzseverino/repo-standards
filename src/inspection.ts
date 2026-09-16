@@ -8,6 +8,7 @@ import { ProductError } from './errors.js';
 import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
 import { decodeRecordedState } from './recorded-state.js';
+import { latestRetainedScopeRun, type ScopeHistoryRun } from './scope-evidence.js';
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
 import type { RecordedSelection } from './recorded-state.js';
@@ -107,10 +108,7 @@ interface RecordedAdoption {
   skills: Record<string, string[]>; completeInventory: boolean;
   resolved: { declarations: { id: string; kind: string; target?: string; name?: string }[] };
   files: Record<string, Pick<Content, 'sha256' | 'executable'>>;
-  historicalScope?: {
-    sourceResolved?: { declarations?: { id: string; discovery?: string }[] };
-    resolved?: { declarations?: { id: string; kind: string; targets?: { paths?: string[]; directories?: string[] } }[] };
-  };
+  historicalScope?: ScopeHistoryRun;
 }
 
 function recordedAdoption(root: string): RecordedAdoption | undefined {
@@ -129,8 +127,7 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
   const historyPath = '.repo-standards/inputs/scope-history.json';
   if (Object.hasOwn(lock.files, historyPath)) {
     try {
-      const saved = JSON.parse(readFileSync(join(root, historyPath), 'utf8'));
-      historicalScope = Array.isArray(saved?.runs) ? saved.runs.at(-1) : saved;
+      historicalScope = latestRetainedScopeRun(JSON.parse(readFileSync(join(root, historyPath), 'utf8')));
       const acceptedScope = (state.amendments?.at(-1) as { acceptedScope?: Record<string, { paths?: string[]; directories?: string[] }> } | undefined)?.acceptedScope;
       if (acceptedScope && historicalScope?.resolved?.declarations) historicalScope = { ...historicalScope, resolved: {
         ...historicalScope.resolved,

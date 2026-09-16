@@ -8,6 +8,7 @@ import { installCli, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
+import { assertCompactScopeEvidence, committedScopeHistory } from './committed-evidence.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -152,7 +153,7 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     assert.equal(retained.result.status, 0, retained.result.stdout);
     assert.equal(retained.report.format, 'repo-standards/inspection/v2');
     assert.equal(retained.report.retained, true);
-    assert.equal(retained.report.historicalScope.format, 'repo-standards/scope-history/v2');
+    assert.equal(retained.report.historicalScope.format, 'repo-standards/scope-history/v3');
     assert.equal(retained.report.historicalScope.evidence, 'historical');
     assert.equal(retained.report.historicalScope.inspection, inspected.identity);
     assert.deepEqual(retained.report.historicalScope.resolved, inspected.resolved);
@@ -160,6 +161,14 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     assert.deepEqual(retained.report.historicalScope.discovery.absence, inspected.discovery.absence);
     assert.deepEqual(retained.report.historicalScope.sourceResolved, inspected.sourceResolved);
     assert.equal(retained.report.start.eligible, false);
+    // The committed run keeps its named observation as the delta of the
+    // confirmed targets and the boundaries naming them added.
+    const history = committedScopeHistory(checkout);
+    assertCompactScopeEvidence(history);
+    const stored = history.runs[0]!.discovery!;
+    assert.deepEqual(Object.keys(stored.named!.targets!).sort(), [...targets].sort());
+    assert.deepEqual(stored.named!.boundaries!['docs/projects'], { type: 'missing' });
+    assert.equal(Object.hasOwn(stored.observation!.boundaries!, 'docs/projects'), false);
   });
 });
 

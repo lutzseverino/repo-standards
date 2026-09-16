@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import { filesystemFault, filesystemRenameFault } from './adoption-faults.ts';
 import { stringify } from 'yaml';
 import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
-import { assertCompactWorkEvidence, committedState } from './committed-evidence.ts';
+import { assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeHistory, committedState } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 
@@ -121,7 +121,8 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',m
   assertCompactWorkEvidence(committedState(f.project.root));
   const retained = f.run(['inspect', '--json']).report;
   assert.equal(retained.format, 'repo-standards/inspection/v3');
-  assert.equal(retained.historicalScope.format, 'repo-standards/scope-history/v2');
+  assert.equal(retained.historicalScope.format, 'repo-standards/scope-history/v3');
+  assertCompactScopeEvidence(committedScopeHistory(f.project.root));
   assert.equal(retained.historicalScope.scopeRevision, 1);
   assert.equal(retained.historicalScope.amendments[0].confirmation, preview.identity);
   mkdirSync(join(f.project.root, '.repo-standards/inputs/empty'));

@@ -362,7 +362,7 @@ ordinary-inspection proposals cannot authorize the new run.
 
 After ordinary v2 completion, retained `inspect --json` remains
 `repo-standards/inspection/v2` and exposes `historicalScope` as
-`repo-standards/scope-history/v2`: the
+`repo-standards/scope-history/v3`: the
 accepted inspection identity, source-resolved declarations, materialized concrete
 selection, and discovery proposal, rationale, guidance, references, and observation
 identities. Ordered `runs` retain each later complete lifecycle point, including
@@ -372,9 +372,18 @@ erasing or misidentifying the immediately prior authorization context. Its
 fresh checkout without the source. The ordinary report's current discovery
 request is separate and confers no authority or claim of current coverage.
 After an amended completion, retained inspection advances to
-`repo-standards/inspection/v3`; its `repo-standards/scope-history/v2` adds the
+`repo-standards/inspection/v3`; its `repo-standards/scope-history/v3` adds the
 accepted scope revision and immutable amendment records. If a later adoption
 completes, the amended run keeps those fields in its ordered `runs` entry.
+
+The committed file stores each discovery run once: the project observation
+without the evidence array it implies, and the named observation as the delta of
+the confirmed targets and any boundary entry naming them adds. Both are rebuilt
+on read with the product's existing derivation, and the newest run is projected
+at the top level as before, so this report's historical scope is unchanged.
+Scope-history v2 and every earlier format stay readable; the next complete
+adoption rewrites the file in the compact form and carries each earlier run
+forward once.
 
 Retained inspection reads the committed durable state, which is
 `repo-standards/state/v5` after a complete adoption and echoed by `status` as

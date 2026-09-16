@@ -179,9 +179,21 @@ resolved selection, discovery guidance, proposal, rationale, evidence references
 and observation identities. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
 source availability. Ordinary discovery completion exposes inspection v2 with
-scope-history v2. An amended completion exposes inspection v3; scope-history v2
+scope-history v3. An amended completion exposes inspection v3; scope-history v3
 adds the accepted revision and amendment records, and keeps them on that run's
-ordered history entry after later completions. Work intervals and final
+ordered history entry after later completions.
+
+Retained runs are scope evidence: each discovery run is stored once, as its
+accepted inspection identity, resolved selection, source-resolved profile, and
+discovery identity, proposal, absence, declarations and project observation
+without the evidence array that observation implies. The named observation is
+stored as its delta from that project observation: the confirmed targets and any
+boundary entry naming them adds. Evidence arrays and the full named observation
+are rebuilt whenever the file is read, so the historical scope a report exposes
+is unchanged. The file no longer repeats the newest run at its top level.
+Scope-history v2 and every earlier format stay readable; the next complete
+adoption after a CLI update rewrites the file as v3 and carries each earlier run
+forward once. No separate compaction command exists. Work intervals and final
 scope-validity assessments are committed in state v5; a run that accepts an
 amendment advances to run v3 and retains its amendment chain in state v5. Each
 later complete v2 run moves the prior run's interval,
