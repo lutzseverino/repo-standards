@@ -49,7 +49,7 @@ export interface ExecutionEvidence {
   history?: CommittedRun[];
 }
 
-export const committedStateFormat = 'repo-standards/state/v5';
+const committedStateFormat = 'repo-standards/state/v5';
 const initialStateFormat = 'repo-standards/state/v1';
 const committedStatusFormats: Record<string, string> = {
   'repo-standards/state/v4': 'repo-standards/status/v4',
@@ -78,8 +78,10 @@ export function intervalsIdentity(intervals: readonly WorkInterval[]) {
 // Committing an interval keeps its authority, its identities and its delta.
 // An interval already stored in the compact form is retained unchanged, so a
 // legacy state compacts losslessly for the retained fields at the next
-// completion instead of needing a separate migration command.
-export function committedInterval(interval: WorkInterval | CommittedInterval): CommittedInterval {
+// completion instead of needing a separate migration command. The two forms are
+// told apart by `before`: an observation map in every legacy format, an
+// identity string in the committed one.
+function committedInterval(interval: WorkInterval | CommittedInterval): CommittedInterval {
   if (typeof interval.before === 'string') return structuredClone(interval as CommittedInterval);
   const observed = interval as WorkInterval;
   const after = observed.after;
@@ -101,7 +103,7 @@ export function committedInterval(interval: WorkInterval | CommittedInterval): C
   };
 }
 
-export function committedIntervals(intervals: readonly (WorkInterval | CommittedInterval)[]): CommittedInterval[] {
+function committedIntervals(intervals: readonly (WorkInterval | CommittedInterval)[]): CommittedInterval[] {
   return intervals.map(committedInterval);
 }
 
@@ -110,8 +112,10 @@ export function committedIntervals(intervals: readonly (WorkInterval | Committed
 export function carriedRuns(previous: unknown): CommittedRun[] {
   if (!previous || typeof previous !== 'object') return [];
   const state = previous as Record<string, unknown>;
-  const history = (Array.isArray(state.history) ? state.history as CommittedRun[] : [])
-    .map(run => ({ ...structuredClone(run), observations: committedIntervals(run?.observations ?? []) }));
+  const history = (Array.isArray(state.history) ? state.history as CommittedRun[] : []).map(run => {
+    const { observations, ...rest } = run ?? {} as CommittedRun;
+    return { ...structuredClone(rest), observations: committedIntervals(observations ?? []) };
+  });
   if (!Array.isArray(state.observations) || !Array.isArray(state.operations) || !Array.isArray(state.retryHistory)
     || !Array.isArray(state.checks) || !Array.isArray(state.assessments) || !state.lastComplete) return history;
   return [...history, {
@@ -162,11 +166,13 @@ function validRevision(run: Record<string, unknown>) {
 
 // The committed guarantee: no interval carries an observation map, and every
 // closed interval carries both identities.
+const observationMaps = ['files', 'boundaries', 'settings', 'ignores'];
 function compactIntervals(observations: unknown[]) {
   return observations.every(value => {
     const interval = value as Record<string, unknown> | null;
     return !!interval && typeof interval === 'object' && typeof interval.before === 'string'
-      && (interval.after === undefined || typeof interval.after === 'string');
+      && (interval.after === undefined || typeof interval.after === 'string')
+      && !observationMaps.some(key => Object.hasOwn(interval, key));
   });
 }
 

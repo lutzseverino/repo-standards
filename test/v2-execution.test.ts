@@ -468,10 +468,13 @@ ${result}`);
   const current = committedState(f.project.root) as unknown as Record<string, unknown>;
   const legacyLastComplete = { run: 'c0ffee00-0000-4000-8000-000000000000', inspection: 'sha256:legacy',
     completedAt: '2026-01-01T00:00:00.000Z', head: '0'.repeat(40) };
+  const olderLastComplete = { run: 'c0ffee00-0000-4000-8000-000000000001', inspection: 'sha256:legacy-older',
+    completedAt: '2025-12-01T00:00:00.000Z', head: '1'.repeat(40) };
   const amendments = [{ format: 'repo-standards/scope-amendment/v1', revision: 1, previousInspection: 'sha256:legacy-previous' }];
+  const legacyRunEvidence = { observations: legacyIntervals, operations: [], retryHistory: [], checks: [], assessments: [] };
   const legacy = { ...current, format: 'repo-standards/state/v4',
-    history: [{ lastComplete: legacyLastComplete, observations: legacyIntervals, operations: [], retryHistory: [],
-      checks: [], assessments: [], scopeRevision: 1, amendments }],
+    history: [{ lastComplete: olderLastComplete, ...legacyRunEvidence },
+      { lastComplete: legacyLastComplete, ...legacyRunEvidence, scopeRevision: 1, amendments }],
     observations: legacyIntervals };
   const statePath = join(f.project.root, '.repo-standards/state.json');
   const lockPath = join(f.project.root, '.repo-standards/lock.json');
@@ -488,7 +491,7 @@ ${result}`);
   const legacyStatus = f.run(['status', '--json']).report;
   assert.equal(legacyStatus.format, 'repo-standards/status/v4');
   assert.deepEqual(legacyStatus.observations[0].before, before);
-  assert.equal(legacyStatus.history.length, 1);
+  assert.equal(legacyStatus.history.length, 2);
 
   const readopted = f.run(['inspect', '--readopt', '--json']).report;
   assert.deepEqual(readopted.start.blockers, []);
@@ -501,13 +504,15 @@ ${result}`);
   const compacted = committedState(f.project.root);
   assert.equal(compacted.format, 'repo-standards/state/v5');
   assertCompactWorkEvidence(compacted);
-  assert.equal(compacted.history!.length, 2);
-  const [legacyRun, previousRun] = compacted.history!;
+  assert.equal(compacted.history!.length, 3);
+  const [olderRun, legacyRun, previousRun] = compacted.history!;
+  assert.deepEqual(olderRun!.lastComplete, olderLastComplete);
+  assert.equal('scopeRevision' in olderRun!, false);
   assert.deepEqual(legacyRun!.lastComplete, legacyLastComplete);
   assert.equal(legacyRun!.scopeRevision, 1);
   assert.deepEqual(legacyRun!.amendments, amendments);
   assert.equal(previousRun!.lastComplete.run, started.id);
-  for (const run of [legacyRun!, previousRun!]) {
+  for (const run of [olderRun!, legacyRun!, previousRun!]) {
     assert.deepEqual(run.observations.map(interval => interval.phase), ['fixes', 'agent', 'checks']);
     const [converted] = run.observations;
     assert.equal(converted!.before, observationIdentity(before));
