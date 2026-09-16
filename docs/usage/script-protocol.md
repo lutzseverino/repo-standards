@@ -183,23 +183,44 @@ separately from contextual work. `restoredBoundaries` covers only recreated
 parents of restored exact files or removal of extra directories inside a
 verified skill inventory; it never exempts changes to existing directory modes.
 This grants no new contextual scope.
-Durable `repo-standards/state/v4` and `repo-standards/status/v4` retain intervals,
-operation history, retry history, final checks and assessments. Accepting an
-amendment advances the active run and active status records to v3; completed
-state and status v4 retain the scope revisions and authorization evidence. State v4 also
-retains each prior complete v2 run's corresponding evidence in its ordered
-`history`. Detailed logs remain local; the recorded outcomes and interval
-evidence survive a fresh checkout. The integrity lock remains
-`repo-standards/lock/v1` and binds the new state bytes. V1 sources retain their
-existing run, work-request and assessment formats. When an update moves through
-v1 after a v2 completion, durable state and status remain v4 so the earlier v2
-execution history survives a later return to v2.
+Durable `repo-standards/state/v5` and `repo-standards/status/v5` retain work
+evidence: the run's intervals, operation history, retry history, final checks and
+assessments. A committed interval is identities plus delta, never an observation
+map. It keeps `before` and `after` observation identities, `changes` mapping each
+changed path to its before and after file state, `boundaryChanges` mapping each
+changed boundary to its before and after state, `violations`, any `restoredExact`
+and `restoredBoundaries` evidence, its phase, `scope`, operation reference,
+`operationIndex`, and `interrupted`. Identities are the product's observation
+identity, `sha256:` over the observation the run held, so the committed delta
+stays tamper-evident while the full maps remain in memory and in the local run
+report. The local run report is not compacted.
+
+Accepting an amendment advances the active run and active status records to v3;
+completed state and status v5 retain the scope revisions and authorization
+evidence. State v5 also retains each prior complete v2 run's corresponding
+evidence in its ordered `history`, in the same compact interval form, with the
+`lastComplete`, `scopeRevision` and `amendments` correlation fields. A later
+completion adds only its own run's evidence. Detailed logs remain local; the
+recorded outcomes and interval evidence survive a fresh checkout. The integrity
+lock remains `repo-standards/lock/v1` and binds the new state bytes. V1 sources
+retain their existing run, work-request and assessment formats. When an update
+moves through v1 after a v2 completion, durable state and status remain v5 so the
+earlier v2 execution history survives a later return to v2.
+
+Every earlier committed state format stays readable, including full-map
+intervals committed as state v4 or earlier. The next complete adoption after a
+CLI update rewrites the state as v5, converting legacy intervals and full-map
+history entries by computing their identities and deltas from the stored maps, so
+fix, check and agent intervals stay distinguishable and ordered. No separate
+compaction command exists. A committed v5 state whose intervals carry
+observation maps, or whose closed interval is missing either identity, fails
+state integrity validation.
 Retained inspection also checks v2 exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
 empty-directory edits block updates before mutation.
 Retained inspection remains `repo-standards/inspection/v2` with
-`repo-standards/scope-history/v2` after ordinary v2 completion. When state v4
-contains accepted amendments, retained inspection uses
+`repo-standards/scope-history/v2` after ordinary v2 completion. When the
+committed state contains accepted amendments, retained inspection uses
 `repo-standards/inspection/v3` and its historical scope uses
 `repo-standards/scope-history/v2` with `scopeRevision` and `amendments`.
 

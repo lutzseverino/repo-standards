@@ -53,6 +53,7 @@ are product-owned system skill names reserved within the standards format.
 | Resolver | A source and profile produce one validated source-resolved selection, or structured errors. Discovery references remain distinct from executable targets until project scope is confirmed. This is the sole interpreter of the author format. |
 | Repository state | A resolved selection and observed project produce an inspection, ownership conflicts, freshness identities, and durable adoption progress. |
 | Execution | Confirmed adoption progress advances through exact installation, literal process execution, checks, and integrity verification. |
+| Work evidence | An adoption run's observation intervals and operation outcomes produce the committed execution-evidence slice of durable state, as identities and deltas, and its read-side version union. Prior complete runs are carried forward in the same form. |
 | Adoption orchestration | The system skill presents inspection, obtains confirmation, performs requested contextual work, and submits evidence through the CLI. |
 
 These responsibilities do not mandate separate packages or class hierarchies.
@@ -512,8 +513,13 @@ Retained inputs include both guidance files, selected source declarations,
 materialized scope and accepted discovery evidence. Committed interval records
 and assessments explain the authorized work in a fresh checkout. Each later
 complete v2 run retains the prior run's interval, operation, retry, check and
-assessment evidence in the ordered state/v4 history; older clients reject that
-new protocol shape. Historical
+assessment evidence in the ordered state/v5 history; older clients reject that
+new protocol shape. Committed intervals are work evidence: observation
+identities and the delta between them, never the observation maps, which stay in
+memory and in the local run report. Every earlier committed format stays
+readable and the next complete adoption rewrites it in the compact form, as
+[ADR 0005](../adr/0005-retain-work-evidence-as-identities-and-deltas.md)
+records. Historical
 scope is not evidence of current coverage. A later clean re-adoption or compatible
 one-pin update recomputes every active v2 discovery declaration from fresh
 evidence, reports additions and removals against the prior complete scope, and

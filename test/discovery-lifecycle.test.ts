@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { inc } from 'semver';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
+import { assertCompactWorkEvidence, committedState } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 
@@ -147,7 +148,10 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   assert.equal(retained.format, 'repo-standards/scope-history/v2');
   assert.deepEqual(retained.runs.map((run: { inspection: string }) => run.inspection), [firstInspection.identity, inspected.identity]);
   const secondState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(secondState.format, 'repo-standards/state/v4');
+  assert.equal(secondState.format, 'repo-standards/state/v5');
+  // A later completion adds only its own run's compact evidence.
+  assertCompactWorkEvidence(committedState(f.project.root));
+  assert.equal(secondState.history.length, 1);
   assert.deepEqual(secondState.history, [{
     lastComplete: firstState.lastComplete,
     observations: firstState.observations,
@@ -240,11 +244,11 @@ test('compatible standards updates preserve v2 evidence through discovery retire
   assert.equal(retired.result.status, 0, retired.result.stdout + retired.result.stderr);
   commit(f.project.root);
   const retiredState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(retiredState.format, 'repo-standards/state/v4');
+  assert.equal(retiredState.format, 'repo-standards/state/v5');
   assert.equal('observations' in retiredState, false);
   assert.equal(retiredState.history.length, 2);
   const retiredStatus = f.run(['status', '--json']).report;
-  assert.equal(retiredStatus.format, 'repo-standards/status/v4');
+  assert.equal(retiredStatus.format, 'repo-standards/status/v5');
   assert.equal(retiredStatus.history.length, 2);
   const noDiscoveryHistory = f.run(['inspect', '--json']).report.historicalScope;
   assert.equal(noDiscoveryHistory.runs.at(-1).discovery, undefined);
@@ -258,7 +262,7 @@ test('compatible standards updates preserve v2 evidence through discovery retire
   const reintroducedRun = f.run(['start', ...reintroducedArgs.slice(1), '--scope', f.scopeFile, '--confirm', reintroduced.identity]).report;
   assert.equal(f.complete(reintroducedRun).result.status, 0);
   const reintroducedState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(reintroducedState.format, 'repo-standards/state/v4');
+  assert.equal(reintroducedState.format, 'repo-standards/state/v5');
   assert.equal(reintroducedState.history.length, 2);
 });
 

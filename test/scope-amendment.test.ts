@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path';
 import { filesystemFault, filesystemRenameFault } from './adoption-faults.ts';
 import { stringify } from 'yaml';
 import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
+import { assertCompactWorkEvidence, committedState } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 
@@ -114,9 +115,10 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',m
   assert.equal(completed.report.outcome, 'complete');
   assert.equal(completed.report.operations.filter((entry: any) => entry.operation.phase === 'checks').length, 1);
   const status = f.run(['status', '--json']).report;
-  assert.equal(status.format, 'repo-standards/status/v4');
+  assert.equal(status.format, 'repo-standards/status/v5');
   assert.equal(status.scopeRevision, 1);
   assert.equal(status.amendments[0].confirmation, preview.identity);
+  assertCompactWorkEvidence(committedState(f.project.root));
   const retained = f.run(['inspect', '--json']).report;
   assert.equal(retained.format, 'repo-standards/inspection/v3');
   assert.equal(retained.historicalScope.format, 'repo-standards/scope-history/v2');
@@ -128,15 +130,15 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',m
   assert.ok(changedInventory.report.start.blockers.some((blocker: any) => blocker.code === 'STATE_INTEGRITY'));
 });
 
-test('completed status stays v4 with abandoned amended history', async t => {
+test('completed status stays v5 with abandoned amended history', async t => {
   const completed = await fixture(t);
   assert.equal(submit(completed).report.outcome, 'complete');
   const state = JSON.parse(readFileSync(join(completed.project.root, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(state.format, 'repo-standards/state/v4');
+  assert.equal(state.format, 'repo-standards/state/v5');
   assert.equal('scopeRevision' in state, false);
   assert.equal('amendments' in state, false);
   const ordinaryStatus = completed.run(['status', '--json']).report;
-  assert.equal(ordinaryStatus.format, 'repo-standards/status/v4');
+  assert.equal(ordinaryStatus.format, 'repo-standards/status/v5');
   assert.equal('scopeRevision' in ordinaryStatus, false);
   assert.equal('amendments' in ordinaryStatus, false);
 
@@ -152,7 +154,7 @@ test('completed status stays v4 with abandoned amended history', async t => {
   mkdirSync(reports, { recursive: true });
   writeFileSync(join(reports, 'amended.json'), JSON.stringify(abandoned));
   const status = completed.run(['status', '--json']).report;
-  assert.equal(status.format, 'repo-standards/status/v4');
+  assert.equal(status.format, 'repo-standards/status/v5');
   assert.equal(status.abandoned[0].format, 'repo-standards/run/v3');
 });
 

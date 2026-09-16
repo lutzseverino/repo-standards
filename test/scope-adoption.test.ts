@@ -137,11 +137,12 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     assert.equal(readFileSync(join(f.project.root, 'docs/config.json'), 'utf8'), '{"shared":true}\n');
     assert.equal(readFileSync(join(f.project.root, 'generated/project/README.md'), 'utf8'), 'Generated; preserve.');
     const status = f.run(['status', '--json']).report;
-    const migration = status.observations.find((entry: { phase: string; changedPaths: string[] }) => entry.phase === 'agent' && entry.changedPaths.includes('old/operations.md'));
-    assert.equal(migration.before.files['old/operations.md'].type, 'file');
-    assert.equal(migration.after.files['old/operations.md'].type, 'missing');
-    assert.equal(migration.before.files['docs/projects/operations.md'].type, 'missing');
-    assert.equal(migration.after.files['docs/projects/operations.md'].type, 'file');
+    // The committed interval keeps each changed path's before and after state.
+    const migration = status.observations.find((entry: { phase: string; changes: Record<string, unknown> }) => entry.phase === 'agent' && Object.hasOwn(entry.changes, 'old/operations.md'));
+    assert.equal(migration.changes['old/operations.md'].before.type, 'file');
+    assert.equal(migration.changes['old/operations.md'].after.type, 'missing');
+    assert.equal(migration.changes['docs/projects/operations.md'].before.type, 'missing');
+    assert.equal(migration.changes['docs/projects/operations.md'].after.type, 'file');
     assert.match(status.assessments[0].declarations[0].explanation, /preserved/);
     commit(f.project.root);
     const checkout = join(f.remote.support.root, 'checkout');
@@ -297,7 +298,7 @@ test('discovered scope survives retry with separate earlier agent evidence and r
   const complete = submit(f, assessment(retried.workRequest, ['apps/widget/README.md']));
   assert.equal(complete.result.status, 0, complete.result.stdout);
   const status = f.run(['status', '--json']).report;
-  assert.deepEqual(status.observations.filter((entry: { changedPaths: string[] }) => entry.changedPaths.includes('apps/widget/README.md')).map((entry: { phase: string }) => entry.phase), ['fixes', 'agent', 'fixes']);
+  assert.deepEqual(status.observations.filter((entry: { changes: Record<string, unknown> }) => Object.hasOwn(entry.changes, 'apps/widget/README.md')).map((entry: { phase: string }) => entry.phase), ['fixes', 'agent', 'fixes']);
   assert.equal(status.retryHistory.length, 1);
 });
 
