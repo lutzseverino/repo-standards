@@ -114,10 +114,10 @@ function carriedRun(run: Record<string, unknown>): CommittedRun {
   return {
     lastComplete: structuredClone(run.lastComplete) as CommittedRun['lastComplete'],
     observations: committedIntervals((run.observations ?? []) as WorkInterval[]),
-    operations: structuredClone(run.operations) as unknown[],
-    retryHistory: structuredClone(run.retryHistory) as unknown[],
-    checks: structuredClone(run.checks) as unknown[],
-    assessments: structuredClone(run.assessments) as unknown[],
+    operations: structuredClone(run.operations ?? []) as unknown[],
+    retryHistory: structuredClone(run.retryHistory ?? []) as unknown[],
+    checks: structuredClone(run.checks ?? []) as unknown[],
+    assessments: structuredClone(run.assessments ?? []) as unknown[],
     ...(run.scopeRevision !== undefined
       ? { scopeRevision: run.scopeRevision as number, amendments: structuredClone(run.amendments) as unknown[] }
       : {}),
