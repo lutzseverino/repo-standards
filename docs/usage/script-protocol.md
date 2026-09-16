@@ -219,10 +219,14 @@ Retained inspection also checks v2 exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
 empty-directory edits block updates before mutation.
 Retained inspection remains `repo-standards/inspection/v2` with
-`repo-standards/scope-history/v2` after ordinary v2 completion. When the
+`repo-standards/scope-history/v3` after ordinary v2 completion. When the
 committed state contains accepted amendments, retained inspection uses
 `repo-standards/inspection/v3` and its historical scope uses
-`repo-standards/scope-history/v2` with `scopeRevision` and `amendments`.
+`repo-standards/scope-history/v3` with `scopeRevision` and `amendments`.
+Scope history v2 and earlier stay readable; the next complete adoption rewrites
+the file as v3, storing each discovery run once as its project observation
+without the derived evidence array and its named observation as a delta. The
+projected historical scope is unchanged.
 
 Confirmed discovery declarations are materialized into the existing target
 representation before execution. `allowedTargets.paths` is the confirmed file

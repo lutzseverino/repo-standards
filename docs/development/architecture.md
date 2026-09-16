@@ -54,6 +54,7 @@ are product-owned system skill names reserved within the standards format.
 | Repository state | A resolved selection and observed project produce an inspection, ownership conflicts, freshness identities, and durable adoption progress. |
 | Execution | Confirmed adoption progress advances through exact installation, literal process execution, checks, and integrity verification. |
 | Work evidence | An adoption run's observation intervals and operation outcomes produce the committed execution-evidence slice of durable state, as identities and deltas, and its read-side version union. Prior complete runs are carried forward in the same form. |
+| Scope evidence | Confirmed discovery runs produce the retained scope history, each run stored once with its project observation kept without derived evidence and its named observation as a delta, and its read-side version union. The projected historical scope is rebuilt on read. |
 | Adoption orchestration | The system skill presents inspection, obtains confirmation, performs requested contextual work, and submits evidence through the CLI. |
 
 These responsibilities do not mandate separate packages or class hierarchies.

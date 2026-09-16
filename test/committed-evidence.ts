@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 export interface CommittedInterval {
@@ -60,4 +60,55 @@ export function assertCompactWorkEvidence(state: ReturnType<typeof committedStat
       }
     }
   }
+}
+
+interface CommittedScopeRun {
+  inspection: string;
+  resolved: unknown;
+  sourceResolved?: unknown;
+  discovery?: { identity: string; proposal?: unknown; absence?: unknown; declarations?: unknown;
+    named?: { targets?: Record<string, unknown>; boundaries?: Record<string, unknown>; observation?: unknown };
+    observation?: { boundaries?: Record<string, unknown> } };
+}
+
+export function committedScopeHistory(root: string) {
+  return JSON.parse(readFileSync(join(root, '.repo-standards/inputs/scope-history.json'), 'utf8')) as {
+    format: string; evidence: string; runs: CommittedScopeRun[] };
+}
+
+// Structural regression guard: the retained file holds its ordered runs and
+// nothing else, each discovery run appears once without the evidence arrays or
+// the full named observation its stored observation already implies.
+export function assertCompactScopeEvidence(history: ReturnType<typeof committedScopeHistory>) {
+  assert.equal(history.format, 'repo-standards/scope-history/v3');
+  assert.deepEqual(Object.keys(history), ['format', 'evidence', 'runs'], 'the newest run must not be spread over the file');
+  assert.equal(new Set(history.runs.map(run => run.inspection)).size, history.runs.length, 'each run is stored once');
+  for (const [index, run] of history.runs.entries()) {
+    const where = `run ${index}`;
+    assert.deepEqual(Object.keys(run).filter(key => !['inspection', 'resolved', 'sourceResolved', 'discovery'].includes(key)), [], `${where} fields`);
+    const discovery = run.discovery;
+    if (!discovery) continue;
+    assert.equal(Object.hasOwn(discovery, 'evidence'), false, `${where} must not carry a derived evidence array`);
+    assert.equal(Object.hasOwn(discovery, 'namedObservation'), false, `${where} must store the named observation as a delta`);
+    assert.ok(discovery.observation, `${where} must retain its project observation`);
+    assert.equal(Object.hasOwn(discovery.observation!, 'evidence'), false, `${where} observation must not carry a derived evidence array`);
+    if (discovery.named) assert.deepEqual(Object.keys(discovery.named).filter(key => !['targets', 'boundaries'].includes(key)), [], `${where} named delta fields`);
+  }
+}
+
+// The retained file an earlier release committed for the same runs: every run
+// in full, with the newest one also spread over the top level.
+export function legacyScopeHistory(runs: unknown[]) {
+  return { format: 'repo-standards/scope-history/v2', evidence: 'historical', ...runs.at(-1) as object, runs };
+}
+
+// Replace a retained input with the bytes an earlier release would have
+// committed and rebind the integrity lock to them.
+export function rewriteRetainedInput(root: string, path: string, value: unknown) {
+  const bytes = JSON.stringify(value, null, 2) + '\n';
+  writeFileSync(join(root, path), bytes);
+  const lockPath = join(root, '.repo-standards/lock.json');
+  const lock = JSON.parse(readFileSync(lockPath, 'utf8')) as { files: Record<string, { sha256: string }> };
+  lock.files[path]!.sha256 = createHash('sha256').update(bytes).digest('hex');
+  writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
 }

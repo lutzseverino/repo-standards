@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { inc } from 'semver';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
-import { assertCompactWorkEvidence, committedState } from './committed-evidence.ts';
+import { assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeHistory, committedState, legacyScopeHistory, rewriteRetainedInput } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 
@@ -145,7 +145,8 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   const retainedInspection = f.run(['inspect', '--json']).report;
   assert.equal(retainedInspection.format, 'repo-standards/inspection/v3');
   const retained = retainedInspection.historicalScope;
-  assert.equal(retained.format, 'repo-standards/scope-history/v2');
+  assert.equal(retained.format, 'repo-standards/scope-history/v3');
+  assertCompactScopeEvidence(committedScopeHistory(f.project.root));
   assert.deepEqual(retained.runs.map((run: { inspection: string }) => run.inspection), [firstInspection.identity, inspected.identity]);
   const secondState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
   assert.equal(secondState.format, 'repo-standards/state/v5');
@@ -200,6 +201,72 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   const checkoutState = JSON.parse(readFileSync(join(checkout, '.repo-standards/state.json'), 'utf8'));
   assert.equal(checkoutState.history.length, 2);
   assert.deepEqual(checkoutState.history[0], secondState.history[0]);
+});
+
+test('a committed scope history v2 projects the same historical scope and is compacted by the next complete adoption', async t => {
+  const f = await fixture(t);
+  mkdirSync(join(f.project.root, 'apps/amended'), { recursive: true });
+  writeFileSync(join(f.project.root, 'apps/amended/README.md'), '# Amended project\n');
+  commit(f.project.root);
+  const firstRequest = f.run(inspectionArgs).report;
+  f.proposal(firstRequest, 'apps/old/README.md');
+  const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
+  const firstStart = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
+  assert.equal(firstStart.report.phase, 'contextual', firstStart.result.stdout);
+  const amendmentRequest = f.run(['inspect', '--amend-scope', '--json']).report;
+  f.proposal(amendmentRequest, ['apps/old/README.md', 'apps/amended/README.md']);
+  const amendment = f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']).report;
+  const amended = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', amendment.identity, '--json']);
+  assert.equal(f.complete(amended.report).result.status, 0);
+  commit(f.project.root);
+
+  // The completion stores the run once, as the observation without its derived
+  // evidence and the named observation as its delta.
+  const compacted = committedScopeHistory(f.project.root);
+  assertCompactScopeEvidence(compacted);
+  assert.deepEqual(compacted.runs.map(run => run.inspection), [firstInspection.identity]);
+  const stored = compacted.runs[0]!.discovery!;
+  assert.deepEqual(Object.keys(stored.named!), ['targets']);
+  assert.deepEqual(Object.keys(stored.named!.targets!), ['apps/old/README.md']);
+  assert.deepEqual(stored.proposal, firstInspection.discovery.proposal);
+  const committedSize = readFileSync(join(f.project.root, '.repo-standards/inputs/scope-history.json'), 'utf8').length;
+
+  // A project adopted before compaction retains every observation in full.
+  const legacyRun = { inspection: firstInspection.identity, resolved: firstInspection.resolved,
+    sourceResolved: firstInspection.sourceResolved, discovery: firstInspection.discovery };
+  const projection = f.run(['inspect', '--json']).report.historicalScope;
+  assert.equal(projection.format, 'repo-standards/scope-history/v3');
+  assert.equal(projection.scopeRevision, 1);
+  assert.equal(projection.amendments[0].confirmation, amendment.identity);
+  rewriteRetainedInput(f.project.root, '.repo-standards/inputs/scope-history.json', legacyScopeHistory([legacyRun]));
+  commit(f.project.root);
+  assert.ok(committedSize < readFileSync(join(f.project.root, '.repo-standards/inputs/scope-history.json'), 'utf8').length);
+  const legacyProjection = f.run(['inspect', '--json']).report.historicalScope;
+  assert.equal(legacyProjection.format, 'repo-standards/scope-history/v2');
+  assert.deepEqual({ ...legacyProjection, format: projection.format }, projection);
+
+  // The next complete adoption rewrites the file, carrying the earlier run
+  // forward exactly once and in the form a completion writes directly.
+  const readopt = f.run(['inspect', '--readopt', '--json']).report;
+  f.proposal(readopt, ['apps/old/README.md', 'apps/amended/README.md']);
+  const inspected = f.run(['inspect', '--readopt', '--scope', f.scopeFile, '--json']).report;
+  assert.deepEqual(inspected.start.blockers, []);
+  const started = f.run(['start', '--readopt', '--scope', f.scopeFile, '--confirm', inspected.identity, '--json']).report;
+  assert.equal(f.complete(started).result.status, 0);
+  const rewritten = committedScopeHistory(f.project.root);
+  assertCompactScopeEvidence(rewritten);
+  assert.deepEqual(rewritten.runs.map(run => run.inspection), [firstInspection.identity, inspected.identity]);
+  assert.deepEqual(rewritten.runs[0], compacted.runs[0]);
+  commit(f.project.root);
+  const laterProjection = f.run(['inspect', '--json']).report.historicalScope;
+  assert.deepEqual(laterProjection.runs[0], projection.runs[0]);
+  assert.equal(laterProjection.runs[0].scopeRevision, 1);
+  assert.equal(laterProjection.scopeRevision, undefined);
+
+  // The committed guarantee is enforced on read, not only when writing.
+  rewriteRetainedInput(f.project.root, '.repo-standards/inputs/scope-history.json', { ...rewritten, ...rewritten.runs[0] });
+  commit(f.project.root);
+  assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
 });
 
 test('compatible standards updates preserve v2 evidence through discovery retirement and source-format changes', async t => {

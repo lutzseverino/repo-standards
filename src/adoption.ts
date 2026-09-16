@@ -15,6 +15,7 @@ import { baselines, file, flatten, ignore, json, lockPath, projectRoot, safe, sa
 import type { Files } from './adoption-files.js';
 import { inspectActiveRun, recordedState, requireAmendmentEligible, withStartRun, withResumedRun } from './adoption-run.js';
 import { previewScopeAmendment } from './scope-amendment.js';
+import { committedScopeHistory, retainedScopeProjection, retainedScopeRuns, type ScopeHistoryRun } from './scope-evidence.js';
 import type { AdoptionRunSession, Installation, Run, ScopeAmendmentRecord, StartInput, WorkRequest } from './adoption-run.js';
 export { abandon, status } from './adoption-run.js';
 type Inspection = Awaited<ReturnType<typeof inspect>>;
@@ -85,28 +86,10 @@ function inventory(root: string, path: string) {
   return Object.keys(files).map(name => name.slice(path.length + 1)).sort();
 }
 
-interface ScopeHistoryRun {
-  inspection: string;
-  resolved: Inspection['resolved'];
-  sourceResolved?: NonNullable<Inspection['sourceResolved']>;
-  discovery?: NonNullable<Inspection['discovery']>;
-}
-
 interface CompletedScopeEvidence {
   lastComplete: { inspection: string };
   scopeRevision?: number;
   amendments?: ScopeAmendmentRecord[];
-}
-
-function retainedScopeRuns(value: unknown): ScopeHistoryRun[] {
-  if (!value || typeof value !== 'object') throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.');
-  const history = value as Record<string, unknown>;
-  if (Array.isArray(history.runs)) return history.runs as ScopeHistoryRun[];
-  if (typeof history.inspection === 'string' && history.sourceResolved && history.resolved && history.discovery) {
-    return [{ inspection: history.inspection, sourceResolved: history.sourceResolved as NonNullable<ScopeHistoryRun['sourceResolved']>,
-      resolved: history.resolved as ScopeHistoryRun['resolved'], discovery: history.discovery as NonNullable<ScopeHistoryRun['discovery']> }];
-  }
-  throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history failed integrity validation. Restore the committed product state.');
 }
 
 function verifyCommittable(root: string, paths: string[]) {
@@ -168,10 +151,9 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
   if (report.discovery || previousHistory.type === 'file') {
     const current: ScopeHistoryRun = { inspection: confirmation, resolved: report.resolved,
       ...(report.discovery ? { sourceResolved: report.sourceResolved!, discovery: report.discovery } : {}) };
-    const runs = previousHistory.type === 'file'
-      ? [...retainedScopeRuns(JSON.parse(Buffer.from(previousHistory.content, previousHistory.encoding).toString('utf8'))), current]
-      : [current];
-    inputs[historyPath] = file(json({ format: 'repo-standards/scope-history/v2', evidence: 'historical', ...current, runs }));
+    const previous = previousHistory.type === 'file'
+      ? retainedScopeRuns(JSON.parse(Buffer.from(previousHistory.content, previousHistory.encoding).toString('utf8'))) : [];
+    inputs[historyPath] = file(json(committedScopeHistory([...previous, current])));
   }
   Object.assign(files, inputs);
   files['.repo-standards/selection.yaml'] = file(stringify(report.selection));
@@ -446,17 +428,14 @@ export async function inspectRetained(project: string, cliVersion: string, scope
   const report = await inspect({ project: root, ...(scope ? { scope } : {}), ...(readopt ? { readopt: true } : {}), source: lock.selection.standards.repository, standardsVersion: lock.selection.standards.version, profile: lock.selection.profile }, cliVersion,
     { root: sourceRoot, identity: lock.selection.standards, paths, manifest: readFileSync(join(root, '.repo-standards/inputs/standards.yaml'), 'utf8'), ownedSkills: new Set(Object.keys(state.skills)), close() {} });
   const history = '.repo-standards/inputs/scope-history.json';
-  const historicalScope = Object.hasOwn(lock.files, history) ? JSON.parse(readFileSync(join(root, history), 'utf8')) : undefined;
   const completeRuns = [...(state.history ?? []), ...(state.observations ? [{ lastComplete: state.lastComplete,
     scopeRevision: state.scopeRevision, amendments: state.amendments }] : [])] as CompletedScopeEvidence[];
-  const runs = historicalScope?.runs?.map((scopeRun: ScopeHistoryRun) => {
-    const completed = completeRuns.find(run => run.lastComplete?.inspection === scopeRun.inspection
-      || run.amendments?.[0]?.previousInspection === scopeRun.inspection);
-    return completed?.amendments?.length ? { ...scopeRun, scopeRevision: completed.scopeRevision, amendments: completed.amendments } : scopeRun;
-  });
-  const amended = !!state.amendments?.length || runs?.some((scopeRun: ScopeHistoryRun & { amendments?: unknown[] }) => scopeRun.amendments?.length);
-  const retainedHistory = historicalScope ? { ...historicalScope, ...(runs ? { runs } : {}),
-    ...(state.amendments?.length ? { format: 'repo-standards/scope-history/v2', scopeRevision: state.scopeRevision, amendments: state.amendments } : {}) } : undefined;
+  const correlate = (scopeRun: ScopeHistoryRun) => completeRuns.find(run => run.lastComplete?.inspection === scopeRun.inspection
+    || run.amendments?.[0]?.previousInspection === scopeRun.inspection);
+  const retainedHistory = Object.hasOwn(lock.files, history)
+    ? retainedScopeProjection(JSON.parse(readFileSync(join(root, history), 'utf8')), correlate,
+      { scopeRevision: state.scopeRevision, amendments: state.amendments }) : undefined;
+  const amended = !!state.amendments?.length || retainedHistory?.runs.some(scopeRun => scopeRun.amendments?.length);
   return { ...report, ...(amended ? { format: 'repo-standards/inspection/v3' } : {}),
     retained: true, ...(retainedHistory ? { historicalScope: retainedHistory } : {}) };
 }
