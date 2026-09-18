@@ -412,8 +412,8 @@ test('durable product state over the per-file limit leaves discovery inspectable
     assert.equal(productState.type, 'directory');
     assert.equal(productState.entries['state.json'].type, 'file');
     assert.ok(Object.keys(productState.entries).includes('inputs'));
+    if (args === updateArgs) assert.equal(inspection.report.update, 'standards');
   }
-  assert.equal(f.run(updateArgs).report.update, 'standards');
 
   // Product state stays verified separately: its inventory still rejects
   // additions, and an oversized project-owned file still fails closed.
