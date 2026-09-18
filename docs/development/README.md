@@ -51,7 +51,7 @@ report actual validation results and remaining limits in the PR.
 includes the categorized documentation. It also creates complete compatibility
 copies at the nine original `docs/*.md` package paths, preserving headings and
 rebasing local links. The installed system skills can therefore keep using
-public CLI 1.2.2's documented paths. Use the release bundle's tarball for
+public CLI 1.3.0's documented paths. Use the release bundle's tarball for
 publication; direct `npm pack --ignore-scripts` from the source checkout omits
 those generated compatibility copies. Installed-CLI tests use the same staging
 boundary as release packaging.

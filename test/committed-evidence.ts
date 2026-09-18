@@ -112,3 +112,19 @@ export function rewriteRetainedInput(root: string, path: string, value: unknown)
   lock.files[path]!.sha256 = createHash('sha256').update(bytes).digest('hex');
   writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
 }
+
+// Grow the committed durable state past a byte threshold, the way an adopter's
+// accumulated evidence does, preserving everything the state records and
+// rebinding the integrity lock to the new bytes.
+export function growCommittedState(root: string, bytes: number) {
+  const path = join(root, '.repo-standards/state.json');
+  const state = readFileSync(path, 'utf8');
+  assert.equal(state[0], '{');
+  const grown = `{${' '.repeat(Math.max(0, bytes - state.length))}${state.slice(1)}`;
+  writeFileSync(path, grown);
+  const lockPath = join(root, '.repo-standards/lock.json');
+  const lock = JSON.parse(readFileSync(lockPath, 'utf8')) as { state: { sha256: string } };
+  lock.state.sha256 = createHash('sha256').update(grown).digest('hex');
+  writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
+  return Buffer.byteLength(grown);
+}

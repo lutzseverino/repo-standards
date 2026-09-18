@@ -12,7 +12,7 @@
 On macOS or Linux, use Node.js 24 and npm:
 
 ```sh
-npm install --global --ignore-scripts @lutzseverino/repo-standards@1.2.2
+npm install --global --ignore-scripts @lutzseverino/repo-standards@1.3.0
 repo-standards --version
 ```
 
