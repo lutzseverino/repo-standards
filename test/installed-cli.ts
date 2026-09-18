@@ -23,7 +23,9 @@ export function installCli() {
       root,
       version: packed.version as string,
       run(args: string[], cwd: string, env: NodeJS.ProcessEnv = process.env) {
-        return spawnSync(join(root, 'node_modules/.bin/repo-standards'), args, { cwd, env, encoding: 'utf8' });
+        // A report carries the observed product state, which an established
+        // adopter grows well past Node's default 1 MiB capture buffer.
+        return spawnSync(join(root, 'node_modules/.bin/repo-standards'), args, { cwd, env, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
       },
       close() { rmSync(root, { recursive: true, force: true }); },
     };

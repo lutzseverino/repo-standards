@@ -145,10 +145,12 @@ adoption. Removed contextual paths remain project content and are not deleted.
 For an established selection, `project.productState` observes the full durable
 `.repo-standards/` tree, including unexpected files and their bytes. Inspection
 rejects additions or removals from its recorded file inventory before creating
-an adoption run. Only `.repo-standards/local/`, `.repo-standards/cache/`, and
-`.repo-standards/runtime/node_modules/` are excluded from this observation;
-equally named directories elsewhere remain part of durable state. Installation
-and final verification use the same inventory rules.
+an adoption run. This verification is independent of the discovery observation,
+which excludes durable product state entirely. Only `.repo-standards/local/`,
+`.repo-standards/cache/`, and `.repo-standards/runtime/node_modules/` are
+excluded from this observation; equally named directories elsewhere remain part
+of durable state. Installation and final verification use the same inventory
+rules.
 
 File bytes use `encoding: utf8` when losslessly representable, otherwise
 `encoding: base64`. Whole-skill inventories include existing and supplied files.
@@ -329,6 +331,11 @@ configuration, credentials, or external ignore-file contents. The final identity
 also binds the proposal, rationale, named targets, and their ancestors. Named
 paths remain observed even if ignored. Ignored untracked files cannot be used as
 file evidence. Unlisted ignored siblings remain outside the observation promise.
+Durable product state is excluded from every discovery observation: no file
+state, evidence entry, directory inventory, or boundary is recorded for
+`.repo-standards/` or anything beneath it, and its bytes never count toward the
+limits below. Inspection verifies that tree separately and reports it as
+`project.productState`.
 
 Inspection compares observations again before returning. Read failures, unsafe
 state, detected instability, or exceeded limits return a structured error without

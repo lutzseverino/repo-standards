@@ -7,6 +7,8 @@ import { git } from './inspection.js';
 import { foldPath } from './paths.js';
 
 const limits = { paths: 20_000, fileBytes: 8 * 1024 * 1024, totalBytes: 64 * 1024 * 1024, depth: 128 };
+// The reserved durable product-state directory, excluded from every observation.
+const reservedProductState = '.repo-standards';
 export interface Evidence { kind: 'file' | 'directory' | 'absence'; path: string; identity: string }
 export type FileState = { type: 'missing' } | { type: 'file'; sha256: string; executable: boolean } | { type: 'directory'; mode: number } | { type: 'symlink'; target: string };
 // The product's observation identity: a content-derived identity for any
@@ -87,8 +89,12 @@ export function observeScope(root: string, named: string[] = [], options: { exec
   const configuredExclude = command(['config', '--null', '--path', '--get', 'core.excludesfile'], true);
   const globalExclude = configuredExclude ? configuredExclude.slice(0, -1) : join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'git/ignore');
   const infoExclude = command(['rev-parse', '--path-format=absolute', '--git-path', 'info/exclude']).replace(/\n$/, '');
-  const included = (path: string) => (!options.execution || (path !== '.repo-standards' && !path.startsWith('.repo-standards/')))
-    && !options.excluded?.some(excluded => path === excluded || path.startsWith(excluded + '/'));
+  // Durable product state is never discovery evidence. Inspection observes the
+  // whole reserved tree separately through its own product-state observation,
+  // with its own inventory rules, so excluding it here keeps one exclusion
+  // mechanism for every observation instead of tying it to execution.
+  const excluded = [reservedProductState, ...options.excluded ?? []];
+  const included = (path: string) => !excluded.some(prefix => path === prefix || path.startsWith(prefix + '/'));
   const tracked = command(['ls-files', '--cached', '-z']).split('\0').filter(path => path && included(path));
   const trackedParents = new Set<string>();
   for (const path of tracked) {
@@ -130,6 +136,7 @@ export function observeScope(root: string, named: string[] = [], options: { exec
   if (paths.length + named.length > limits.paths) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeds the path limit.');
   const files: Record<string, FileState> = Object.create(null);
   const boundaries: Record<string, FileState> = Object.create(null);
+  // Execution-phase observations additionally bind the observed root itself.
   if (options.execution) boundaries['.'] = file(root);
   function observePath(path: string, eligible: boolean) {
     const parts = path.split('/');

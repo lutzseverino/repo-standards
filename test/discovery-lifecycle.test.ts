@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { inc } from 'semver';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
-import { assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeHistory, committedState, legacyScopeHistory, rewriteRetainedInput } from './committed-evidence.ts';
+import { assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeHistory, committedState, growCommittedState, legacyScopeHistory, rewriteRetainedInput } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 
@@ -375,4 +375,58 @@ test('a compatible CLI update uses retained v2 guidance and fresh scope without 
   assert.equal(status.selection.cli.version, candidateVersion);
   assert.equal(status.selection.standards.version, 'v1.0.0');
   assert.equal(existsSync(join(f.project.root, '.agents/skills/author-standards')), false);
+});
+
+test('durable product state over the per-file limit leaves discovery inspectable and separately verified', async t => {
+  const f = await fixture(t);
+  const firstRequest = f.run(inspectionArgs).report;
+  f.proposal(firstRequest, 'apps/old/README.md');
+  const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
+  const started = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]).report;
+  assert.equal(f.complete(started).result.status, 0);
+  commit(f.project.root);
+
+  // An established adopter accumulates durable state until one committed file
+  // passes the per-file observation limit.
+  assert.ok(growCommittedState(f.project.root, 8 * 1024 * 1024 + 1) > 8 * 1024 * 1024);
+  commit(f.project.root);
+
+  // Every inspection route that takes a discovery observation: retained
+  // inspection without source flags, re-adoption, source-flag inspection, and
+  // a standards update.
+  f.remote.addVersion('v1.1.0', source, { 'guidance.md': 'Keep every maintained project README useful after this standards update.' });
+  const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
+  const reserved = (path: string) => path === '.repo-standards' || path.startsWith('.repo-standards/');
+  for (const args of [['inspect', '--json'], ['inspect', '--readopt', '--json'], inspectionArgs, updateArgs]) {
+    const inspection = f.run(args);
+    assert.equal(inspection.result.status, 0, inspection.result.stdout + inspection.result.stderr);
+    assert.equal(inspection.report.format, 'repo-standards/inspection/v2');
+    const { evidence, observation } = inspection.report.discovery;
+    assert.ok(evidence.some((entry: { path: string }) => entry.path === 'apps/old/README.md'));
+    assert.deepEqual(evidence.filter((entry: { path: string }) => reserved(entry.path)), []);
+    for (const record of [observation.files, observation.inventories, observation.boundaries]) {
+      assert.deepEqual(Object.keys(record).filter(reserved), []);
+    }
+    assert.deepEqual(Object.values(observation.inventories as Record<string, string[]>).flat().filter(reserved), []);
+    const productState = inspection.report.project.productState;
+    assert.equal(productState.type, 'directory');
+    assert.equal(productState.entries['state.json'].type, 'file');
+    assert.ok(Object.keys(productState.entries).includes('inputs'));
+    if (args === updateArgs) assert.equal(inspection.report.update, 'standards');
+  }
+
+  // Product state stays verified separately: its inventory still rejects
+  // additions, and an oversized project-owned file still fails closed.
+  const unexpected = join(f.project.root, '.repo-standards/unexpected.json');
+  writeFileSync(unexpected, '{}\n');
+  const drifted = f.run(['inspect', '--json']).report;
+  assert.ok(drifted.start.blockers.some((blocker: { code: string; path: string }) =>
+    blocker.code === 'STATE_INTEGRITY' && blocker.path === '.repo-standards'), JSON.stringify(drifted.start.blockers));
+  rmSync(unexpected);
+  const oversizedProjectFile = join(f.project.root, 'apps/old/large.bin');
+  writeFileSync(oversizedProjectFile, Buffer.alloc(8 * 1024 * 1024 + 1));
+  const limited = f.run(['inspect', '--json']);
+  assert.equal(limited.result.status, 1, limited.result.stdout);
+  assert.equal(limited.report.errors[0].code, 'OBSERVATION_LIMIT');
+  rmSync(oversizedProjectFile);
 });
