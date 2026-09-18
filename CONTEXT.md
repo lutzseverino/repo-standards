@@ -127,25 +127,41 @@ An adoption run in which at least one required phase did not succeed, with the
 actual work and a safe next action reported.
 _Avoid_: Rollback, generic failure
 
-**Update**:
-A deliberate adoption operation that moves an adopting project from its pinned
-standards revision to another revision of the same source and profile.
-_Avoid_: Automatic upgrade, profile switch
+**Pin**:
+One of the two version components of a selection: the exact CLI version or the
+standards version.
+_Avoid_: Lock, requirement
 
-**Re-adoption**:
-A new adoption of the project's current selection, with unchanged standards
-and CLI versions.
-_Avoid_: Update, resume, automatic compliance repair
+**Update**:
+A deliberate adoption operation that moves an adopting project from its current
+selection to a confirmed selection, including unchanged pins, changed pins, or a
+different source or profile.
+_Avoid_: Automatic upgrade, re-adoption, one-pin update
+
+**Exact update**:
+An update in which only exact content, skills, or the selection change, while
+guidance, discovery guidance, operations, and confirmed scope are unchanged.
+_Avoid_: Small update, trivial update, in-ticket update
+
+**Contextual update**:
+An update that changes guidance, discovery guidance, operations, retired
+declarations, or confirmed scope.
+_Avoid_: Large update, breaking update, separate-ticket update
+
+**Available update**:
+A published CLI or standards version newer than the corresponding pin of an
+adopting project's selection.
+_Avoid_: Drift, outdated adoption, stale pin
+
+**Drift**:
+Divergence of project content or remote state from what the last complete
+adoption established, detectable only by running checks or fixes.
+_Avoid_: Available update, staleness
 
 **Retained inputs**:
 The selected standards material and provenance committed by an adopting project
 so its pinned standards remain inspectable independently of source availability.
 _Avoid_: Cache, working copy
-
-**Scope amendment**:
-A confirmed addition to a declaration's discovered file scope within an active
-adoption run, preserving its selection and installed-content expectations.
-_Avoid_: Scope withdrawal, new adoption, retroactive authorization
 
 **Selection**:
 The current CLI version, standards source, published standards version, and

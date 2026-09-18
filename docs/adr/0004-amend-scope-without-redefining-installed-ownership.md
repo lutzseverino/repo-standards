@@ -1,6 +1,6 @@
 # Amend scope without redefining installed ownership
 
-Status: accepted design in [issue #41](https://github.com/lutzseverino/repo-standards/issues/41).
+Status: superseded by [ADR 0009](0009-correct-scope-by-adopting-again.md); accepted design in [issue #41](https://github.com/lutzseverino/repo-standards/issues/41).
 Availability follows the implementation tickets and [architecture](../development/architecture.md).
 
 Discovery can reveal missing scope after installation or contextual work, while

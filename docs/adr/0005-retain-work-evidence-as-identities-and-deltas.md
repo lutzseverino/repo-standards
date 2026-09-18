@@ -1,6 +1,6 @@
 # Retain work evidence as identities and deltas
 
-Status: accepted design in [issue #72](https://github.com/lutzseverino/repo-standards/issues/72).
+Status: accepted design in [issue #72](https://github.com/lutzseverino/repo-standards/issues/72); amended by [ADR 0007](0007-write-and-read-one-evidence-format.md).
 Availability follows the implementation tickets and [architecture](../development/architecture.md).
 
 An adopting project commits its durable state through its normal workflow, so
