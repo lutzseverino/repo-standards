@@ -391,8 +391,13 @@ test('durable product state over the per-file limit leaves discovery inspectable
   assert.ok(growCommittedState(f.project.root, 8 * 1024 * 1024 + 1) > 8 * 1024 * 1024);
   commit(f.project.root);
 
+  // Every inspection route that takes a discovery observation: retained
+  // inspection without source flags, re-adoption, source-flag inspection, and
+  // a standards update.
+  f.remote.addVersion('v1.1.0', source, { 'guidance.md': 'Keep every maintained project README useful after this standards update.' });
+  const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
   const reserved = (path: string) => path === '.repo-standards' || path.startsWith('.repo-standards/');
-  for (const args of [['inspect', '--json'], ['inspect', '--readopt', '--json']]) {
+  for (const args of [['inspect', '--json'], ['inspect', '--readopt', '--json'], inspectionArgs, updateArgs]) {
     const inspection = f.run(args);
     assert.equal(inspection.result.status, 0, inspection.result.stdout + inspection.result.stderr);
     assert.equal(inspection.report.format, 'repo-standards/inspection/v2');
@@ -408,6 +413,7 @@ test('durable product state over the per-file limit leaves discovery inspectable
     assert.equal(productState.entries['state.json'].type, 'file');
     assert.ok(Object.keys(productState.entries).includes('inputs'));
   }
+  assert.equal(f.run(updateArgs).report.update, 'standards');
 
   // Product state stays verified separately: its inventory still rejects
   // additions, and an oversized project-owned file still fails closed.
