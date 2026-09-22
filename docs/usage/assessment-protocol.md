@@ -152,9 +152,7 @@ completion. Replaying fixes requires fresh assessment and checks even when the
 current bytes happen to match an earlier snapshot.
 
 Run v2 and state v4 records store each interval's applicable concrete scope
-separately from operation outcomes and assessment submissions. A confirmed
-amendment advances the active run to v3 and adds its revision history without
-changing the interval representation. State v4 moves
+separately from operation outcomes and assessment submissions. State v4 moves
 the preceding complete run's interval, operation, retry, check and assessment
 evidence into its ordered history. A recorded out-of-scope interval remains an
 incomplete result; abandon and reconcile before a new confirmed adoption. The
@@ -204,14 +202,11 @@ declarations keep their ordinary entry fields. Mismatched scope identities,
 missing reviews, and a v1 submission for a v2 request are rejected.
 
 A structurally valid blocked review is retained as `SCOPE_INCOMPLETE` before checks.
-It grants no authority. Preserve work and reconcile within the confirmed scope,
-or abandon and reconcile to a clean committed project before a new inspection
-and confirmation. If the review needs only added files and the run is eligible,
-use `inspect --amend-scope` to prepare one complete additions-only proposal,
-obtain explicit confirmation, and accept it with `resume --amend-scope --scope
-<file> --confirm <identity>`. Acceptance replays fixes and returns a new work
-request; reassess every contextual declaration and submit fresh assessment/v2
-evidence. Withdrawal and transfer remain unsupported within the active run.
+It grants no authority, and an active run cannot change its confirmed scope.
+When coverage needs additional files or a target must be withdrawn, preserve the
+work, abandon the run, commit or discard its changes, and adopt again with a new
+confirmed scope, as described in
+[Correct a confirmed scope](adoption.md#correct-a-confirmed-scope).
 
 For migrations, report old source deletion and destination creation as separate
 `changedPaths`, along with introductions and every link-repair file. Explain

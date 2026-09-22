@@ -169,12 +169,7 @@ permits creating missing parent directories, but not deleting or changing
 existing ancestors. Checks may not create even empty directories.
 
 Retry retains intervals and earlier agent evidence before repeating fixes; it
-cannot authorize new scope or hide a recorded violation. A confirmed scope
-amendment first closes and validates every interval against its outgoing scope,
-then records the accepted revision before replaying fixes with the new concrete
-targets. Its replay creates new fix intervals; prior fix and agent intervals keep
-their original scope and attribution. Recovery after acceptance uses retry and
-does not create a second authorization record. A recorded scope or
+cannot authorize new scope or hide a recorded violation. A recorded scope or
 check-mutation violation requires abandonment and reconciliation before a new
 adoption. An incomplete observation must first become readable and complete. Restoring
 corrupted exact content is permitted only after verifying the immutable
@@ -195,11 +190,9 @@ identity, `sha256:` over the observation the run held, so the committed delta
 stays tamper-evident while the full maps remain in memory and in the local run
 report. The local run report is not compacted.
 
-Accepting an amendment advances the active run and active status records to v3;
-completed state and status v5 retain the scope revisions and authorization
-evidence. State v5 also retains each prior complete v2 run's corresponding
-evidence in its ordered `history`, in the same compact interval form, with the
-`lastComplete`, `scopeRevision` and `amendments` correlation fields. A later
+State v5 also retains each prior complete v2 run's interval, operation, retry,
+check and assessment evidence in its ordered `history`, in the same compact
+interval form, with its `lastComplete` record. A later
 completion adds only its own run's evidence. Detailed logs remain local; the
 recorded outcomes and interval evidence survive a fresh checkout. The integrity
 lock remains `repo-standards/lock/v1` and binds the new state bytes. V1 sources
@@ -219,10 +212,7 @@ Retained inspection also checks v2 exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
 empty-directory edits block updates before mutation.
 Retained inspection remains `repo-standards/inspection/v2` with
-`repo-standards/scope-history/v3` after ordinary v2 completion. When the
-committed state contains accepted amendments, retained inspection uses
-`repo-standards/inspection/v3` and its historical scope uses
-`repo-standards/scope-history/v3` with `scopeRevision` and `amendments`.
+`repo-standards/scope-history/v3` after v2 completion.
 Scope history v2 and earlier stay readable; the next complete adoption rewrites
 the file as v3, storing each discovery run once as its project observation
 without the derived evidence array and its named observation as a delta. The

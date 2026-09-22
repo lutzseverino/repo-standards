@@ -35,8 +35,6 @@ export interface CommittedRun {
   retryHistory: unknown[];
   checks: unknown[];
   assessments: unknown[];
-  scopeRevision?: number;
-  amendments?: unknown[];
 }
 
 export interface ExecutionEvidence {
@@ -44,8 +42,6 @@ export interface ExecutionEvidence {
   observations?: unknown[];
   operations?: unknown[];
   retryHistory?: unknown[];
-  scopeRevision?: number;
-  amendments?: unknown[];
   history?: CommittedRun[];
 }
 
@@ -69,10 +65,6 @@ function changedState(observation: WorkObservation, path: string): unknown {
 
 function boundaryState(observation: WorkObservation, path: string) {
   return observation.boundaries[path] ?? { type: 'missing' };
-}
-
-export function intervalsIdentity(intervals: readonly WorkInterval[]) {
-  return observationIdentity(intervals);
 }
 
 // Committing an interval keeps its authority, its identities and its delta.
@@ -118,14 +110,11 @@ function carriedRun(run: Record<string, unknown>): CommittedRun {
     retryHistory: structuredClone(run.retryHistory ?? []) as unknown[],
     checks: structuredClone(run.checks ?? []) as unknown[],
     assessments: structuredClone(run.assessments ?? []) as unknown[],
-    ...(run.scopeRevision !== undefined
-      ? { scopeRevision: run.scopeRevision as number, amendments: structuredClone(run.amendments) as unknown[] }
-      : {}),
   };
 }
 
 // A completion moves the previous complete run's evidence into the ordered
-// history, keeping the correlation fields the retained-selection reader uses.
+// history.
 export function carriedRuns(previous: unknown): CommittedRun[] {
   if (!previous || typeof previous !== 'object') return [];
   const state = previous as Record<string, unknown>;
@@ -138,15 +127,13 @@ export function carriedRuns(previous: unknown): CommittedRun[] {
 
 // The execution-evidence slice a completion writes. Last-complete, installed
 // baselines, skills, checks and assessments stay with their own owners.
-export function completedEvidence(run: { observations?: WorkInterval[]; operations: unknown[]; retryHistory?: unknown[];
-  scopeRevision?: number; amendments?: unknown[] }, history: CommittedRun[]) {
+export function completedEvidence(run: { observations?: WorkInterval[]; operations: unknown[]; retryHistory?: unknown[] }, history: CommittedRun[]) {
   const retained = run.observations !== undefined || history.length > 0;
   return {
     format: retained ? committedStateFormat : initialStateFormat,
     ...(retained ? { history } : {}),
     ...(run.observations ? { observations: committedIntervals(run.observations),
       operations: structuredClone(run.operations), retryHistory: structuredClone(run.retryHistory ?? []) } : {}),
-    ...(run.amendments?.length ? { scopeRevision: run.scopeRevision!, amendments: structuredClone(run.amendments) } : {}),
   };
 }
 
@@ -156,17 +143,11 @@ export function committedEvidenceReport(state: ExecutionEvidence) {
   return {
     ...(state.observations ? { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory } : {}),
     ...(state.history ? { history: state.history } : {}),
-    ...(state.amendments?.length ? { scopeRevision: state.scopeRevision, amendments: state.amendments } : {}),
   };
 }
 
 export function committedStatusFormat(state: ExecutionEvidence): string | undefined {
   return committedStatusFormats[state.format];
-}
-
-function validRevision(run: Record<string, unknown>) {
-  return (run.scopeRevision === undefined || (Number.isSafeInteger(run.scopeRevision) && (run.scopeRevision as number) >= 0))
-    && (run.amendments === undefined || Array.isArray(run.amendments));
 }
 
 // The committed guarantee: no interval carries an observation map, and every
@@ -187,7 +168,6 @@ function validHistory(history: unknown, compact: boolean) {
     return !!run && !!run.lastComplete
       && Array.isArray(run.observations) && Array.isArray(run.operations) && Array.isArray(run.retryHistory)
       && Array.isArray(run.checks) && Array.isArray(run.assessments)
-      && (run.scopeRevision === undefined || (Number.isSafeInteger(run.scopeRevision) && (run.scopeRevision as number) >= 0 && Array.isArray(run.amendments)))
       && (!compact || compactIntervals(run.observations));
   });
 }
@@ -202,16 +182,14 @@ export function validExecutionEvidence(value: ExecutionEvidence) {
     case initialStateFormat:
       return true;
     case 'repo-standards/state/v2':
-      return present && validRevision(state);
     case 'repo-standards/state/v3':
-      return present && validRevision(state) && !!state.scopeRevision && !!(state.amendments as unknown[] | undefined)?.length;
+      return present;
     case 'repo-standards/state/v4':
     case committedStateFormat: {
       const compact = state.format === committedStateFormat;
       if (!present && !execution.every(field => field === undefined)) return false;
-      if (!present && (state.scopeRevision !== undefined || state.amendments !== undefined)) return false;
       if (compact && present && !compactIntervals(state.observations as unknown[])) return false;
-      return validRevision(state) && validHistory(state.history, compact);
+      return validHistory(state.history, compact);
     }
     default:
       return false;

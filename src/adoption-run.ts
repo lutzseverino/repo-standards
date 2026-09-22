@@ -1,5 +1,4 @@
-import { concreteScope, type Scope } from './scope.js';
-import { contextualScope, finishInterval, observeContinuation, observeWork, requireValidIntervals, type WorkInterval, type WorkObservation } from './work-observation.js';
+import { finishInterval, observeContinuation, requireValidIntervals, type WorkInterval, type WorkObservation } from './work-observation.js';
 import { randomUUID } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -11,13 +10,13 @@ import { ProductError } from './errors.js';
 import { observe } from './inspection.js';
 import type { Content, InspectOptions, Observation, inspect } from './inspection.js';
 import { decodeRecordedState } from './recorded-state.js';
-import { carriedRuns, committedEvidenceReport, committedStatusFormat, completedEvidence, intervalsIdentity, type CommittedRun } from './work-evidence.js';
+import { carriedRuns, committedEvidenceReport, committedStatusFormat, completedEvidence, type CommittedRun } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, safe, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
 
-// Persisted labels are shared by producers and eligibility checks. Keep their
-// serialized values stable so existing incomplete runs remain readable.
+// Persisted labels are shared by several producers. Keep their serialized
+// values stable so existing incomplete runs remain readable.
 const pendingWork = {
   contextual: 'Contextual work and assessment are required before checks.',
   assessment: 'Agent assessment has not been accepted.',
@@ -26,28 +25,19 @@ const pendingWork = {
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: 'retained'; project: string; scope?: string; readopt?: true };
 export interface Run {
-  format: 'repo-standards/run/v1' | 'repo-standards/run/v2' | 'repo-standards/run/v3'; id: string; inspection: string;
+  format: 'repo-standards/run/v1' | 'repo-standards/run/v2'; id: string; inspection: string;
   selection: Inspection['selection'];
   affected: Record<string, Observation>;
   prerequisites: PrerequisiteEvidence[]; operations: OperationEvidence[];
   observations?: WorkInterval[];
   outcome: 'complete' | 'incomplete'; phase: string; reason: string;
   workRequest?: WorkRequest; continuation?: string; assessments: Assessment[];
-  scopeRevision?: number; amendments?: ScopeAmendmentRecord[];
   installation?: { files: string[]; runtime: boolean; complete?: boolean; trees?: Record<string, 'removing' | 'installing'> };
   retryHistory?: { phase: string; reason: string; uncertain: string[]; assessments: Assessment[]; report?: string; archivedFiles?: Record<string, string> }[];
   completion?: { state: Content; lock: Content };
   previousComplete?: { selection: Inspection['selection']; lastComplete: { run: string; inspection: string; completedAt: string; head: string } };
   processGroup?: number; processGroupIdentity?: string; archivedFiles?: Record<string, string>; startInput?: StartInput; abandoned?: boolean;
   changes: string[]; completed: string[]; uncertain: string[]; nextAction: string;
-}
-
-export interface ScopeAmendmentRecord {
-  format: 'repo-standards/scope-amendment/v1'; revision: number;
-  previousInspection: string; confirmation: string; request: string; acceptedAt: string;
-  existingScope: Scope; acceptedScope: Scope; additions: Record<string, string[]>;
-  proposal: unknown; discovery: unknown; project: unknown; assessments: Assessment[];
-  outgoingObservation: { identity: string; intervals: number };
 }
 
 export interface WorkRequest {
@@ -69,15 +59,11 @@ function cleanupRun(lock: string) {
 }
 
 function persistInstallation(root: string, run: Run, installation: Installation) {
-  run.continuation = storeInstallation(root, installation);
-}
-
-function storeInstallation(root: string, installation: Installation) {
   const content = json(installation);
   const identity = hash(content);
   const path = `${lockPath(root)}.context.${identity}`;
   if (!existsSync(path)) writeFileSync(path, content, { flag: 'wx' });
-  return identity;
+  run.continuation = identity;
 }
 
 function readInstallation(root: string, run: Run): Installation {
@@ -184,17 +170,6 @@ function canResumeAssessment(run: Run) {
   );
 }
 
-export function requireAmendmentEligible(run: Run) {
-  if (run.uncertain.some(reason => reason !== pendingWork.contextual && reason !== pendingWork.assessment)
-    || run.observations?.some(interval => interval.operation && !interval.after)) {
-    throw new ProductError('AMENDMENT_RETRY_REQUIRED', 'Uncertain work requires explicit resume --retry before scope amendment. Preserve the work and review status.');
-  }
-  if (run.outcome !== 'incomplete' || run.abandoned || !run.installation?.complete
-    || !(['contextual', 'assessment', 'checks'].includes(run.phase) || (run.phase === 'verification' && run.reason.startsWith('STALE_ASSESSMENT:')))) {
-    throw new ProductError('AMENDMENT_UNAVAILABLE', 'Scope amendment requires a contextual handoff or later contextual, scope, or check block with definite operation outcomes. Review status and use the reported recovery action.');
-  }
-}
-
 function abandonedReports(lock: string): Run[] {
   const directory = join(dirname(lock), 'repo-standards-reports');
   if (!existsSync(directory)) return [];
@@ -242,9 +217,7 @@ export function status(project: string) {
   const lock = lockPath(root);
   const abandoned = abandonedReports(lock);
   const active = existsSync(lock) ? JSON.parse(readFileSync(lock, 'utf8')) as Run : null;
-  const format = active?.format === 'repo-standards/run/v3' || abandoned.some(run => run.format === 'repo-standards/run/v3')
-    ? 'repo-standards/status/v3'
-    : active?.observations || abandoned.some(run => run.observations) ? 'repo-standards/status/v2' : 'repo-standards/status/v1';
+  const format = active?.observations || abandoned.some(run => run.observations) ? 'repo-standards/status/v2' : 'repo-standards/status/v1';
   if (active) {
     try { active.changes = actualChanges(root, active.affected); } catch { active.uncertain.push('Current project changes could not be fully read.'); }
     return { format, selection: active.selection, lastComplete: active.previousComplete?.lastComplete ?? null, active,
@@ -253,10 +226,7 @@ export function status(project: string) {
   if (!existsSync(join(root, '.repo-standards/state.json'))) return { format, selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
   try {
     const { state, pinned } = recordedState(root);
-    const amended = !!state.amendments?.length;
-    return { format: committedStatusFormat(state)
-      ?? (amended || format === 'repo-standards/status/v3' ? 'repo-standards/status/v3'
-        : state.observations ? 'repo-standards/status/v2' : format),
+    return { format: committedStatusFormat(state) ?? (state.observations ? 'repo-standards/status/v2' : format),
       ...committedEvidenceReport(state),
       selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
       checks: state.checks, assessments: state.assessments, active, abandoned, evidence: 'historical' };
@@ -275,33 +245,6 @@ export function status(project: string) {
 
 export function recordedState(root: string) {
   return decodeRecordedState(safe(root, '.repo-standards/lock.json'), safe(root, '.repo-standards/state.json'));
-}
-
-// Inspection never acquires a worker or persists progress. Recheck the journal
-// and execution ownership around the read to reject a concurrent continuation.
-export function inspectActiveRun<T>(project: string, cliVersion: string, verify: VerifyInstallation,
-  preview: (root: string, run: Run, installation: Installation) => T): T {
-  const root = projectRoot(project);
-  const lock = lockPath(root);
-  function read() {
-    if (executing(lock) || existsSync(`${lock}.worker`)) throw new ProductError('ACTIVE_RUN', 'An adoption command is executing. Wait for it to finish before inspecting an amendment.');
-    if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No active adoption is available for scope amendment.');
-    const content = readFileSync(lock, 'utf8');
-    const run = JSON.parse(content) as Run;
-    if (run.selection.cli.version !== cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
-    if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('AUTHOR_PROCESS_ACTIVE', 'An author process remains active. Stop it and use resume --retry before inspecting an amendment.');
-    return { content, run };
-  }
-  const { content, run } = read();
-  requireAmendmentEligible(run);
-  const installation = readInstallation(root, run);
-  if (!installation.report.discovery?.proposal || !run.observations?.length) throw new ProductError('AMENDMENT_UNAVAILABLE', 'The active adoption has no confirmed discovered scope to amend.');
-  verifyFiles(root, { '.repo-standards/local/run.json': file(json(run)) });
-  verify(root, installation);
-  const report = preview(root, run, installation);
-  verify(root, installation);
-  if (read().content !== content) throw new ProductError('OBSERVATION_UNSTABLE', 'The active adoption changed during amendment inspection. Inspect again.');
-  return report;
 }
 
 // These events describe confirmed work. Phase/outcome/uncertainty coupling and
@@ -436,41 +379,6 @@ export class AdoptionRunSession {
     this.#mutated = true;
   }
 
-  acceptScopeAmendment(installation: Installation, report: Installation['report'], observations: WorkInterval[],
-    evidence: Omit<ScopeAmendmentRecord, 'format' | 'revision' | 'acceptedAt' | 'outgoingObservation'>) {
-    const run = this.#state();
-    const revision = (run.scopeRevision ?? 0) + 1;
-    const outgoingObservation = { identity: intervalsIdentity(observations), intervals: observations.length };
-    const affected = Object.fromEntries(Object.values(evidence.additions).flat()
-      .filter(path => !Object.hasOwn(run.affected, path)).map(path => [path, observe(join(this.#root, path))]));
-    const amendedBaseline = observeWork(this.#root, concreteScope(report.resolved));
-    const amended = { ...installation, report };
-    delete amended.scopeAfterFixes;
-    const continuation = storeInstallation(this.#root, amended);
-
-    Object.assign(installation, amended);
-    delete installation.scopeAfterFixes;
-    run.continuation = continuation;
-    run.format = 'repo-standards/run/v3';
-    run.observations = structuredClone(observations);
-    run.observations.push({ phase: 'agent', scope: contextualScope(report.resolved),
-      before: structuredClone(amendedBaseline), after: structuredClone(amendedBaseline),
-      changedPaths: [], boundaryChanges: [], violations: [] });
-    Object.assign(run.affected, affected);
-    (run.amendments ??= []).push({ format: 'repo-standards/scope-amendment/v1', revision,
-      acceptedAt: new Date().toISOString(), outgoingObservation, ...structuredClone(evidence) });
-    run.scopeRevision = revision;
-    run.inspection = evidence.confirmation;
-    run.assessments = [];
-    delete run.workRequest;
-    run.phase = 'scope-amendment';
-    run.reason = 'Confirmed scope amendment accepted; repeat-safe fixes will replay for the expanded concrete targets.';
-    run.uncertain = ['confirmed scope amendment fix replay'];
-    run.nextAction = 'If continuation is interrupted, review status and use resume --retry to replay fixes under the accepted scope.';
-    this.#mutated = true;
-    this.#save();
-  }
-
   openObservation(interval: WorkInterval, interveningScope = interval.scope) {
     const run = this.#state();
     if (!run.observations) return;
@@ -598,7 +506,7 @@ export class AdoptionRunSession {
     this.#save();
   }
 
-  #failure(error: unknown, persist = true) {
+  #failure(error: unknown) {
     const run = this.#state();
     const root = this.#root;
     run.outcome = 'incomplete';
@@ -616,13 +524,13 @@ export class AdoptionRunSession {
       ? 'Review the reported problem and preserved changes. Reconcile them, refresh with resume, and submit renewed evidence with resume --assessment <file>.'
       : 'Explicit recovery is required. Review this incomplete adoption, reconcile changes, then use resume --retry, or abandon to preserve the work and report.';
     else if (!this.#mutated && !run.processGroup) { run.uncertain = []; run.nextAction = 'Resolve the reported problem, inspect again, and confirm the new inspection before retrying.'; }
-    if (error instanceof ProductError && error.code === 'SCOPE_INCOMPLETE') run.nextAction = 'Additional paths grant no authority until explicitly confirmed. Preserve the run and work, then use inspect --amend-scope with complete additions-only evidence and accept the fresh preview with resume --amend-scope --scope <file> --confirm <identity>. Correct the evidence within confirmed scope or abandon when additions cannot safely resolve the block; withdrawing active targets remains unsupported.';
-    if (persist) try { this.#save(); } catch { /* Preserve the original interruption record. */ }
+    if (error instanceof ProductError && error.code === 'SCOPE_INCOMPLETE') run.nextAction = 'Additional paths grant no authority, and an active run cannot change its confirmed scope. Preserve the work, abandon the run, commit or discard its changes, and adopt again with a new confirmed scope.';
+    try { this.#save(); } catch { /* Preserve the original interruption record. */ }
   }
 
   // Only the scoped entry points below can invoke lifecycle machinery.
   static async scope(root: string, mode: 'start' | 'resume', callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>,
-    resume?: { cliVersion: string; retry: boolean; verify: VerifyInstallation; amendment: boolean }) {
+    resume?: { cliVersion: string; retry: boolean; verify: VerifyInstallation }) {
     const lock = lockPath(root);
     const release = acquireWorker(lock);
     const session = new AdoptionRunSession(root, mode);
@@ -635,10 +543,7 @@ export class AdoptionRunSession {
         session.#run = run;
         if (run.selection.cli.version !== resume.cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
         if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before retry or abandonment.`);
-        if (!resume.retry && !canResumeAssessment(run)) {
-          if (resume.amendment) requireAmendmentEligible(run);
-          else throw new ProductError('RESUME_UNAVAILABLE', 'Explicit recovery is required. Review status and use resume --retry, or abandon to preserve the incomplete work and report.');
-        }
+        if (!resume.retry && !canResumeAssessment(run)) throw new ProductError('RESUME_UNAVAILABLE', 'Explicit recovery is required. Review status and use resume --retry, or abandon to preserve the incomplete work and report.');
         if (resume.retry && !run.continuation && run.startInput) session.#mode = 'start';
         else {
           installation = readInstallation(root, run);
@@ -650,11 +555,6 @@ export class AdoptionRunSession {
           session.#reportFailures = true;
         }
       } else if (existsSync(lock)) throw new ProductError('ACTIVE_RUN', 'An adoption run is active or incomplete. Read status and preserve its work before recovery.');
-      const amendmentRecovery = resume?.amendment && session.#run ? {
-        outcome: session.#run.outcome, phase: session.#run.phase, reason: session.#run.reason,
-        uncertain: [...session.#run.uncertain], nextAction: session.#run.nextAction, changes: [...session.#run.changes],
-      } : undefined;
-      let reportedFailure: Run | undefined;
       try {
         if (installation && resume) {
           if (resume.retry) session.#recover(installation, archivedFiles, resume.verify);
@@ -663,14 +563,9 @@ export class AdoptionRunSession {
         if (session.#run?.outcome !== 'complete') await callback(session, installation);
       } catch (error) {
         if (!session.#reportFailures) throw error;
-        if (amendmentRecovery && !session.#mutated) {
-          session.#failure(error, false);
-          reportedFailure = structuredClone(session.#state());
-          Object.assign(session.#state(), amendmentRecovery);
-          session.#save();
-        } else session.#failure(error);
+        session.#failure(error);
       }
-      return reportedFailure ?? session.observation;
+      return session.observation;
     } finally {
       session.#open = false;
       try {
@@ -688,6 +583,6 @@ export function withStartRun(project: string, callback: (session: AdoptionRunSes
 }
 
 export function withResumedRun(project: string, cliVersion: string, retry: boolean, verify: VerifyInstallation,
-  callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>, amendment = false) {
-  return AdoptionRunSession.scope(projectRoot(project), 'resume', callback, { cliVersion, retry, verify, amendment });
+  callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>) {
+  return AdoptionRunSession.scope(projectRoot(project), 'resume', callback, { cliVersion, retry, verify });
 }

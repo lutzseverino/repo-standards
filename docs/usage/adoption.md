@@ -103,8 +103,7 @@ against fresh project evidence, then use the new proposal in the commands above.
 Review and confirm the complete re-adoption inspection as a new action. Plain
 `inspect --json` remains a read-only retained inspection and its identity cannot
 start re-adoption. Re-adoption rejects source, profile, standards-revision, and
-CLI-version changes and cannot be combined with active-run scope amendment. It
-requires a prior complete adoption and the same clean, committed project and
+CLI-version changes. It requires a prior complete adoption and the same clean, committed project and
 integrity checks as an initial start.
 
 The CLI resolves the source from retained inputs, so the original standards
@@ -178,10 +177,8 @@ preserve the accepted inspection identity, source-resolved declarations, concret
 resolved selection, discovery guidance, proposal, rationale, evidence references
 and observation identities. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
-source availability. Ordinary discovery completion exposes inspection v2 with
-scope-history v3. An amended completion exposes inspection v3; scope-history v3
-adds the accepted revision and amendment records, and keeps them on that run's
-ordered history entry after later completions.
+source availability. Discovery completion exposes inspection v2 with
+scope-history v3.
 
 Retained runs are scope evidence: each discovery run is stored once, as its
 accepted inspection identity, resolved selection, source-resolved profile, and
@@ -194,8 +191,7 @@ is unchanged. The file no longer repeats the newest run at its top level.
 Scope-history v2 and every earlier format stay readable; the next complete
 adoption rewrites the file as v3 and carries each earlier run forward once. No
 separate compaction command exists. Work intervals and final
-scope-validity assessments are committed in state v5; a run that accepts an
-amendment advances to run v3 and retains its amendment chain in state v5. Each
+scope-validity assessments are committed in state v5. Each
 later complete v2 run moves the prior run's interval,
 operation, retry, check and assessment evidence into the state's ordered
 `history`, so earlier authorized work remains explainable in a fresh checkout.
@@ -212,19 +208,16 @@ observations themselves. Each interval keeps its phase, scope, operation
 reference, changed paths with their before and after file state, boundary
 changes, violations and restoration evidence, so an adoption pull request stays
 reviewable and a later run adds only its own evidence. Full observations remain
-in memory and in the uncommitted local run report, which recovery, gap detection
-and scope-amendment revalidation still use. A project committed under state v4
+in memory and in the uncommitted local run report, which recovery and gap
+detection still use. A project committed under state v4
 or any earlier format keeps working; the next complete adoption rewrites it,
 converting legacy intervals and full-map history entries into the compact form.
 Historical evidence makes no current-coverage claim.
 
 Discovery-backed standards updates, CLI updates and unchanged-pin re-adoption use
-fresh proposals and preserve prior run evidence. Eligible active
-discovery runs can use the
-[confirmed amendment workflow](inspection.md#preview-scope-amendments-in-an-active-run).
-If contextual review identifies additional files, prepare and confirm one
-complete additions-only amendment as described below. Retry repeats fixes under
-the currently accepted scope and cannot itself authorize additional files.
+fresh proposals and preserve prior run evidence. Retry repeats fixes under the
+confirmed scope and cannot authorize additional files; a scope that needs to
+change is [corrected by adopting again](#correct-a-confirmed-scope).
 
 The normalized manifest is separate from retained source files, so an author
 may legitimately select their original `standards.yaml` as exact content.
@@ -407,24 +400,25 @@ through the project's normal workflow. A new initial adoption still requires a
 clean project without conflicting product state and a fresh confirmed inspection.
 Never remove durable run records to bypass recovery checks.
 
-## Preview additional contextual scope
+## Correct a confirmed scope
 
-An active discovery adoption can use `inspect --amend-scope`, optionally with
-`--scope <external-proposal.json>`, to preview additional files or reconfirm
-unchanged scope against current evidence. It requires a contextual handoff or
-later contextual/scope/check block, definite author-operation outcomes, unchanged
-HEAD/index and intact installed content. Existing adoption working changes do
-not impose a new clean-start requirement. Uncertain work still requires explicit
-`resume --retry` first. See the [amendment preview contract](inspection.md#preview-scope-amendments-in-an-active-run).
+A run's confirmed scope never changes while the run is active. When contextual
+review finds that coverage needs files outside it, or that a confirmed target is
+mistaken, submit the blocked scope review without writing those files. The run
+stays incomplete with `SCOPE_INCOMPLETE`; reported additional paths grant no
+authority. Correct the scope by adopting again:
 
-This preview leaves the run incomplete and grants no new authority. After explicit
-maintainer confirmation of its complete identity, accept the same proposal with
-`resume --amend-scope --scope <external-proposal.json> --confirm <identity>`.
-Acceptance authorizes the additions, records a new scope revision, replays fixes,
-and requires renewed assessment and checks. Never write to an added path based on
-inspection alone. Removing or transferring a mistaken target within the active
-run is unsupported; preserve the work and reconcile through abandonment and the
-normal project workflow before a new clean adoption.
+1. Preserve the work worth keeping.
+2. Abandon the run with `abandon --json`. Its changes and report are retained.
+3. Resolve its changes through the project's normal workflow. Commit or discard
+   contextual work on project-owned files. Discard what the run installed by
+   restoring `.repo-standards/`, exact content and skills to their committed
+   state: the new run installs them again, and an abandoned run's product state
+   is not a complete adoption. The next start requires a clean committed project.
+4. Inspect again with a new discovery proposal, obtain explicit confirmation of
+   the new inspection, and start it with the same proposal.
+
+Retry repeats work under the confirmed scope and cannot correct it.
 
 ## Fresh checkout and source disappearance
 

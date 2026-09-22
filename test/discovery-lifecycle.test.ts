@@ -81,9 +81,6 @@ async function fixture(t: TestContext, versions?: string[]) {
 
 test('same-pin v2 re-adoption recomputes retained discovery and reports scope changes without deleting former content', async t => {
   const f = await fixture(t);
-  mkdirSync(join(f.project.root, 'apps/amended'), { recursive: true });
-  writeFileSync(join(f.project.root, 'apps/amended/README.md'), '# Amended project\n');
-  commit(f.project.root);
   const firstRequest = f.run(inspectionArgs).report;
   f.proposal(firstRequest, 'apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
@@ -91,17 +88,7 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   assert.equal(firstStartResult.result.status, 1, firstStartResult.result.stdout + firstStartResult.result.stderr);
   const firstStart = firstStartResult.report;
   assert.equal(firstStart.phase, 'contextual', firstStartResult.result.stdout);
-  const amendmentRequest = f.run(['inspect', '--amend-scope', '--json']).report;
-  f.proposal(amendmentRequest, ['apps/old/README.md', 'apps/amended/README.md']);
-  const amendment = f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']).report;
-  const amended = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', amendment.identity, '--json']);
-  assert.equal(amended.result.status, 1, amended.result.stdout + amended.result.stderr);
-  const reconfirmRequest = f.run(['inspect', '--amend-scope', '--json']).report;
-  f.proposal(reconfirmRequest, ['apps/old/README.md', 'apps/amended/README.md']);
-  const reconfirmation = f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']).report;
-  const reconfirmed = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', reconfirmation.identity, '--json']);
-  assert.equal(reconfirmed.result.status, 1, reconfirmed.result.stdout + reconfirmed.result.stderr);
-  const firstComplete = f.complete(reconfirmed.report);
+  const firstComplete = f.complete(firstStart);
   assert.equal(firstComplete.result.status, 0);
   const firstState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
   commit(f.project.root);
@@ -132,7 +119,7 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   assert.equal(stale.report.errors[0].code, 'STALE_SCOPE');
   f.proposal(request, 'apps/new/README.md', 'apps/old/README.md');
   const inspected = f.run(['inspect', '--readopt', '--scope', f.scopeFile, '--json']).report;
-  assert.deepEqual(inspected.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/amended/README.md', 'apps/old/README.md'] }]);
+  assert.deepEqual(inspected.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
   assert.deepEqual(inspected.start.blockers, []);
 
   const started = f.run(['start', '--readopt', '--scope', f.scopeFile, '--confirm', inspected.identity, '--json']).report;
@@ -143,7 +130,7 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
   assert.equal(git(f.project.root, 'show', 'HEAD:apps/old/README.md'), '# Old project');
   commit(f.project.root);
   const retainedInspection = f.run(['inspect', '--json']).report;
-  assert.equal(retainedInspection.format, 'repo-standards/inspection/v3');
+  assert.equal(retainedInspection.format, 'repo-standards/inspection/v2');
   const retained = retainedInspection.historicalScope;
   assert.equal(retained.format, 'repo-standards/scope-history/v3');
   assertCompactScopeEvidence(committedScopeHistory(f.project.root));
@@ -160,16 +147,8 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
     retryHistory: firstState.retryHistory,
     checks: firstState.checks,
     assessments: firstState.assessments,
-    scopeRevision: firstState.scopeRevision,
-    amendments: firstState.amendments,
   }]);
   assert.deepEqual(retained.runs[0].discovery.proposal, firstInspection.discovery.proposal);
-  assert.equal(retained.runs[0].scopeRevision, firstState.scopeRevision);
-  assert.equal(retained.runs[0].amendments[0].confirmation, amendment.identity);
-  assert.equal(retained.runs[0].amendments[1].confirmation, reconfirmation.identity);
-  assert.equal(retained.runs[0].amendments[1].previousInspection, amendment.identity);
-  assert.deepEqual(retained.runs[0].amendments[0].outgoingObservation, firstState.amendments[0].outgoingObservation);
-  assert.deepEqual(retained.runs[0].amendments[0].assessments, firstState.amendments[0].assessments);
   const historicalExecution = f.run(['status', '--json']).report.history[0];
   assert.equal(historicalExecution.lastComplete.inspection, firstState.lastComplete.inspection);
   assert.deepEqual(historicalExecution.observations, firstState.observations);
@@ -187,7 +166,7 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
     return { result, report: JSON.parse(result.stdout) };
   };
   const checkoutRetainedInspection = runCheckout(['inspect', '--json']).report;
-  assert.equal(checkoutRetainedInspection.format, 'repo-standards/inspection/v3');
+  assert.equal(checkoutRetainedInspection.format, 'repo-standards/inspection/v2');
   const checkoutRetained = checkoutRetainedInspection.historicalScope;
   assert.deepEqual(checkoutRetained.runs[0], retained.runs[0]);
   assert.deepEqual(runCheckout(['status', '--json']).report.history[0], historicalExecution);
@@ -205,19 +184,15 @@ test('same-pin v2 re-adoption recomputes retained discovery and reports scope ch
 
 test('a committed scope history v2 projects the same historical scope and is compacted by the next complete adoption', async t => {
   const f = await fixture(t);
-  mkdirSync(join(f.project.root, 'apps/amended'), { recursive: true });
-  writeFileSync(join(f.project.root, 'apps/amended/README.md'), '# Amended project\n');
+  mkdirSync(join(f.project.root, 'apps/added'), { recursive: true });
+  writeFileSync(join(f.project.root, 'apps/added/README.md'), '# Added project\n');
   commit(f.project.root);
   const firstRequest = f.run(inspectionArgs).report;
   f.proposal(firstRequest, 'apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
   const firstStart = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
   assert.equal(firstStart.report.phase, 'contextual', firstStart.result.stdout);
-  const amendmentRequest = f.run(['inspect', '--amend-scope', '--json']).report;
-  f.proposal(amendmentRequest, ['apps/old/README.md', 'apps/amended/README.md']);
-  const amendment = f.run(['inspect', '--amend-scope', '--scope', f.scopeFile, '--json']).report;
-  const amended = f.run(['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', amendment.identity, '--json']);
-  assert.equal(f.complete(amended.report).result.status, 0);
+  assert.equal(f.complete(firstStart.report).result.status, 0);
   commit(f.project.root);
 
   // The completion stores the run once, as the observation without its derived
@@ -236,8 +211,6 @@ test('a committed scope history v2 projects the same historical scope and is com
     sourceResolved: firstInspection.sourceResolved, discovery: firstInspection.discovery };
   const projection = f.run(['inspect', '--json']).report.historicalScope;
   assert.equal(projection.format, 'repo-standards/scope-history/v3');
-  assert.equal(projection.scopeRevision, 1);
-  assert.equal(projection.amendments[0].confirmation, amendment.identity);
   rewriteRetainedInput(f.project.root, '.repo-standards/inputs/scope-history.json', legacyScopeHistory([legacyRun]));
   commit(f.project.root);
   assert.ok(committedSize < readFileSync(join(f.project.root, '.repo-standards/inputs/scope-history.json'), 'utf8').length);
@@ -248,7 +221,7 @@ test('a committed scope history v2 projects the same historical scope and is com
   // The next complete adoption rewrites the file, carrying the earlier run
   // forward exactly once and in the form a completion writes directly.
   const readopt = f.run(['inspect', '--readopt', '--json']).report;
-  f.proposal(readopt, ['apps/old/README.md', 'apps/amended/README.md']);
+  f.proposal(readopt, ['apps/old/README.md', 'apps/added/README.md']);
   const inspected = f.run(['inspect', '--readopt', '--scope', f.scopeFile, '--json']).report;
   assert.deepEqual(inspected.start.blockers, []);
   const started = f.run(['start', '--readopt', '--scope', f.scopeFile, '--confirm', inspected.identity, '--json']).report;
@@ -260,8 +233,6 @@ test('a committed scope history v2 projects the same historical scope and is com
   commit(f.project.root);
   const laterProjection = f.run(['inspect', '--json']).report.historicalScope;
   assert.deepEqual(laterProjection.runs[0], projection.runs[0]);
-  assert.equal(laterProjection.runs[0].scopeRevision, 1);
-  assert.equal(laterProjection.scopeRevision, undefined);
 
   // The committed guarantee is enforced on read, not only when writing.
   rewriteRetainedInput(f.project.root, '.repo-standards/inputs/scope-history.json', { ...rewritten, ...rewritten.runs[0] });

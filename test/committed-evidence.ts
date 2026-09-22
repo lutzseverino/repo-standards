@@ -19,8 +19,7 @@ export interface CommittedInterval {
 export function committedState(root: string) {
   return JSON.parse(readFileSync(join(root, '.repo-standards/state.json'), 'utf8')) as {
     format: string; observations?: CommittedInterval[]; operations?: unknown[]; retryHistory?: unknown[];
-    history?: { lastComplete: { run: string; inspection: string }; observations: CommittedInterval[];
-      scopeRevision?: number; amendments?: unknown[] }[];
+    history?: { lastComplete: { run: string; inspection: string }; observations: CommittedInterval[] }[];
     lastComplete: { run: string; inspection: string; completedAt: string; head: string };
   };
 }

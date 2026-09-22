@@ -21,15 +21,11 @@ until the project runtime exists. Thereafter the document root is
 - **Active run:** inspect `active.phase`, `reason`, `changes`, `completed`,
   `uncertain`, `nextAction` and `execution`. Wait while execution is active.
   An ordinary contextual handoff continues at Contextual work below.
-  When more files are needed, read
-  `inspection.md#preview-scope-amendments-in-an-active-run` and use
-  `inspect --amend-scope` to obtain current evidence, then preview one complete
-  additions-only proposal with `--scope`. Present its complete identity, changes,
-  operations, prior work and evidence; after explicit maintainer confirmation,
-  accept it with `resume --amend-scope --scope <file> --confirm <identity> --json`.
-  Do not edit added paths before acceptance. The command replays fixes and
-  requires a fresh contextual assessment and checks. Scope withdrawal remains a
-  reconciliation path outside the active run.
+  An active run's confirmed scope never changes. When contextual work needs
+  files outside it or a confirmed target is mistaken, read
+  `adoption.md#correct-a-confirmed-scope`: preserve the work, obtain an
+  abandonment instruction before `abandon --json`, resolve its changes, and
+  adopt again with a new confirmed scope.
   For interrupted installation, failed/uncertain scripts, or abandonment, read
   `adoption.md#recover-or-abandon-an-interrupted-run` before acting. Obtain an
   explicit retry instruction before `resume --retry --json`, or an abandonment
@@ -50,8 +46,6 @@ until the project runtime exists. Thereafter the document root is
   scope explains prior authorization; it does not prove current coverage.
   Every active v2 discovery declaration needs a fresh proposal for re-adoption or
   either update, even when the original source is unavailable for retained work.
-  Eligible active discovery runs can confirm additions through the amendment
-  workflow below.
 - **Initial adoption:** obtain the public GitHub source, stable standards tag
   and complete profile from the maintainer, then inspect that selection.
 
@@ -107,10 +101,10 @@ or submitting evidence. The handoff is expected incomplete adoption.
 
 1. For a v2 discovery request, recheck semantic coverage after fixes against
    each discovery guidance file and accepted proposal before editing. Record the
-   post-fix coverage evidence for assessment. If more files are needed, submit the
-   blocked scope review without writing them, then follow the confirmed amendment
-   flow above. If scope withdrawal is needed, follow the protocol's reconciliation
-   path; additional-path evidence alone grants no authority. Read every request declaration's
+   post-fix coverage evidence for assessment. If more files are needed or a
+   confirmed target is mistaken, submit the blocked scope review without writing
+   those files, then correct the scope by adopting again as described above;
+   additional-path evidence alone grants no authority. Read every request declaration's
    retained guidance and explicit allowed paths and directory trees. Inspect the real project files needed to understand its
    purpose, commands and behavior. Apply guidance usefully within those targets;
    preserve project facts, exact content, excluded employer content and unrelated
