@@ -440,7 +440,9 @@ exact CLI version, it discloses a CLI update that can be confirmed and started a
 described above. Active v2 discovery declarations require fresh `--scope`
 proposals for both actions; retained historical scope never substitutes for them.
 
-`status` reports pins, active progress, and historical last-complete evidence.
+`status` reports pins, active progress, and historical last-complete evidence
+without any network request; [`outdated`](available-updates.md) reports
+available CLI and standards updates.
 After an abandoned update, it still returns the archived report. If the
 preserved product files do not represent complete adoption, `stateError`
 describes that condition; historical evidence comes from the matching archived

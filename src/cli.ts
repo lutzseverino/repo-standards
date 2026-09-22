@@ -5,13 +5,28 @@ import { validateSource } from './resolver.js';
 import { inspect } from './inspection.js';
 import { ProductError } from './errors.js';
 import { abandon, inspectRetained, resume, start, startRetained, status } from './adoption.js';
+import { outdated } from './outdated.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
 const args = process.argv.slice(2);
 if (args.length === 1 && args[0] === '--version') {
   console.log(version);
 } else if (args.length === 0 || (args.length === 1 && args[0] === '--help')) {
-  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--readopt] [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json]\n       repo-standards start [--readopt] [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json]\n\nUse the pinned CLI with source flags for a standards update. Use a candidate exact CLI without source flags for a CLI update from retained standards. Use inspect --readopt and start --readopt with the pinned CLI for deliberate same-pin re-adoption. Active v2 discovery declarations require a fresh --scope proposal for adoption, re-adoption, and either update. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report.');
+  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--readopt] [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json]\n       repo-standards start [--readopt] [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json]\n       repo-standards outdated [--project <directory>] [--json]\n\nUse the pinned CLI with source flags for a standards update. Use a candidate exact CLI without source flags for a CLI update from retained standards. Use inspect --readopt and start --readopt with the pinned CLI for deliberate same-pin re-adoption. Active v2 discovery declarations require a fresh --scope proposal for adoption, re-adoption, and either update. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project.');
+} else if (args[0] === 'outdated') {
+  const flags = new Map<string, string>();
+  for (let index = 1; index < args.length; index++) {
+    const key = args[index]!;
+    if (key === '--json' && !flags.has(key)) flags.set(key, 'true');
+    else if (key === '--project' && !flags.has(key) && args[index + 1] && !args[index + 1]!.startsWith('--')) flags.set(key, args[++index]!);
+    else flags.set('usage', key);
+  }
+  if (flags.has('usage')) {
+    const diagnostic = { code: 'USAGE', message: 'Use repo-standards outdated [--project <directory>] [--json].' };
+    if (flags.has('--json')) console.log(JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2));
+    else console.error(`[${diagnostic.code}] ${diagnostic.message}`);
+    process.exitCode = 2;
+  } else console.log(JSON.stringify(await outdated(flags.get('--project') ?? '.'), null, 2));
 } else if (args[0] === 'inspect' || args[0] === 'start' || args[0] === 'status' || args[0] === 'resume' || args[0] === 'abandon') {
   try {
     const flags = new Map<string, string>();

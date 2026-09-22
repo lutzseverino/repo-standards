@@ -40,11 +40,13 @@ export function externalPath(path: string, project?: string): string {
   return path;
 }
 
+export const githubHeaders = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'repo-standards' };
+
 export async function github(path: string): Promise<any> {
   let response: Response;
   try {
     response = await fetch(`https://api.github.com${path}`, {
-      headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'repo-standards' },
+      headers: githubHeaders,
       signal: AbortSignal.timeout(30_000),
     });
   } catch { throw new ProductError('SOURCE_UNAVAILABLE', `Cannot reach public GitHub: ${path}. Check your connection and retry.`); }
