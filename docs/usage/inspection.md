@@ -125,6 +125,7 @@ The report has format `repo-standards/inspection/v1`:
 | `selection` | Exact CLI package/version, canonical standards URL, version tag, commit SHA, and profile. |
 | `source`, `resolved` | Validated metadata and the resolver's complete active profile. |
 | `exact` | Declaration and target; `create`, `replace`, or `match`; before/after inventories with full bytes, SHA-256 hashes, and executable state. |
+| `systemSkill` | The reserved `.agents/skills/adopt-standards` target and `create`, `replace`, or `match` against the system skill packaged with the inspecting exact CLI. |
 | `guidance` | Guidance content and its explicit project paths or directory trees. |
 | `operations` | Ordered fixes and checks, literal arguments, script bytes, resource inventories, timeout, and declared prerequisite probe/range. |
 | `project` | Canonical project root, HEAD or null, Git status and index, affected content, and reserved product paths. |
@@ -154,7 +155,8 @@ rules.
 
 File bytes use `encoding: utf8` when losslessly representable, otherwise
 `encoding: base64`. Whole-skill inventories include existing and supplied files.
-Matching exact files can be claimed without rewriting during adoption.
+Matching exact files and skill directories are claimed without rewriting during
+adoption.
 When an existing exact target conflicts with the supplied file/directory type,
 the replacement entry retains both complete root observations, including any
 directory inventory. The type conflict remains a start blocker.
@@ -171,14 +173,19 @@ change it. `start --confirm` checks this identity after explicit maintainer conf
 
 Known blockers include missing commits, dirty Git state, symlink or non-directory
 ancestors, special files, case-folded existing-path conflicts, file/directory type
-conflicts, ignored or untracked replacement content, and unrelated skill names.
+conflicts, ignored or untracked replacement content, and differing unowned skills.
 Case conflicts retain every alias and the exact component when present, so
 changes to either remain visible and change the inspection identity.
 Git assume-unchanged or skip-worktree flags also block eligibility because they
 can hide working-tree changes; clear those flags and reconcile content first.
-An existing skill conflicts even if its bytes match when no installed baseline
-establishes ownership. Existing product state or reserved system-skill content
-also blocks initial adoption. Established projects can use `inspect --json` with
+An existing skill directory without an installed baseline is claimed when its
+complete inventory, bytes, and executable state match the supplied skill; any
+difference in a file, mode, or inventory entry is a `SKILL_CONFLICT`. Initial
+adoption claims existing reserved system-skill content the same way when it
+matches the skill packaged with the inspecting exact CLI and reports
+`SYSTEM_SKILL_CONFLICT` otherwise. Existing product state blocks initial
+adoption with `EXISTING_ADOPTION`; see
+[adopting afresh over installed content](adoption.md#adopt-afresh-over-installed-content). Established projects can use `inspect --json` with
 their pinned CLI to inspect retained material. That unchanged inspection is
 read-only and cannot be started. Use `inspect --readopt --json` to request a
 startable same-pin inspection; its action changes the inspection identity and

@@ -20,7 +20,7 @@ repo-standards inspect --source https://github.com/OWNER/STANDARDS \
   --standards-version v1.2.3 --profile work --json
 ```
 
-Review the pins, proposed replacements, matching-file claims, whole-skill
+Review the pins, proposed replacements, matching file and skill claims, whole-skill
 inventories, guidance, declared fixes and checks, prerequisites, and blockers. After explicit maintainer confirmation, use the same
 CLI version and selection, passing the report's `identity` verbatim:
 
@@ -134,10 +134,13 @@ uncommitted for the project's normal workflow.
 Start requires the same content-derived inspection identity, existing HEAD,
 clean index and working tree, no non-ignored untracked files, safe targets,
 recoverable replacement content, and unambiguous skill ownership. Git flags
-that hide changes and nested submodules block this initial journey. An existing
-unrelated skill conflicts even when its bytes match. Existing matching exact
-files are claimed without rewriting; unrelated and excluded content remains
-outside the selection.
+that hide changes and nested submodules block this initial journey. Existing
+exact files and skill directories whose complete inventory, bytes, and
+executable state match the supplied content are claimed without rewriting and
+recorded in the new baselines. This includes the reserved system skill when it
+matches the skill packaged with this exact CLI. A differing skill without an
+installed baseline conflicts; unrelated and excluded content remains outside the
+selection.
 
 Before installation, start probes every declared prerequisite using its literal
 version arguments from the project root. It reports all missing executables,
@@ -323,6 +326,29 @@ outputs themselves. Do not stage files (including intent-to-add) to expose their
 contents. Confirm HEAD, index entries and the working files remain unchanged
 across review, and report any unreadable or unreviewed output explicitly. Only
 the maintainer's normal workflow stages or commits the completed adoption.
+
+## Adopt afresh over installed content
+
+Initial adoption never takes over existing product state: an established
+adoption inspects as an update, and any other `.repo-standards/` content is an
+`EXISTING_ADOPTION` blocker. Giving up retained state therefore remains a
+deliberate change visible in Git. To adopt afresh over content that an earlier
+adoption installed, finish or abandon any active run, remove the product state
+directory, commit that removal through the project's normal workflow, and
+inspect the selection again:
+
+```sh
+git rm -r --quiet .repo-standards  # tracked product state
+rm -rf .repo-standards             # ignored runtime, local, and cache content
+git commit -m "Remove Repository Standards product state"
+```
+
+The new inspection claims exact files and skill directories that still match the
+selected source, and a system skill that matches the inspecting CLI's packaged
+skill, without rewriting them. A skill edited since installation, or a system
+skill installed by a different CLI version, still conflicts; reconcile or remove
+it before inspecting again. Evidence of the earlier adoption remains only in Git
+history.
 
 ## Recover or abandon an interrupted run
 

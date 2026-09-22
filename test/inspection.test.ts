@@ -120,7 +120,7 @@ test('unsafe ancestors, skill ownership and ignored replacement content block st
   assert.notEqual(JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout).identity, report.identity);
 
   const skillSource = simpleSource().replace('kind: file\n      target: AGENTS.md\n      exact: content.md', 'kind: skill\n      name: review\n      source: skill');
-  const skillRemote = remoteFixture(skillSource, { 'skill/SKILL.md': 'Unrelated skill' });
+  const skillRemote = remoteFixture(skillSource, { 'skill/SKILL.md': 'Supplied skill' });
   t.after(() => skillRemote.close());
   const skillReport = JSON.parse(cli.run(inspectionArgs, project.root, skillRemote.env).stdout);
   assert.ok(skillReport.start.blockers.some((b: { code: string }) => b.code === 'SKILL_CONFLICT'));

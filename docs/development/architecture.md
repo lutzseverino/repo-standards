@@ -266,10 +266,13 @@ a clean index and working tree with no untracked files, and the inspected HEAD
 and project state. It also examines replacement targets for ignored content:
 a clean Git status alone does not prove that content is recoverable.
 
-An existing matching exact file can be claimed without rewriting. A differing
+An existing exact file or skill directory whose complete inventory, bytes, and
+modes match the supplied content is claimed without rewriting; at initial
+adoption this includes the system skill packaged with the exact CLI. A differing
 exact file or eligible skill directory is replaced only as shown in the
-confirmed inspection. An unrelated existing skill with the same name remains
-a conflict. Ignored or otherwise untracked replacement content blocks mutation.
+confirmed inspection. A differing existing skill without an installed baseline
+remains a conflict, and existing product state blocks initial adoption.
+Ignored or otherwise untracked replacement content blocks mutation.
 
 All prerequisite executables and versions are checked before project changes.
 Version probes run installed executables directly using declared arguments;
