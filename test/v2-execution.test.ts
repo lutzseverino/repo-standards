@@ -470,11 +470,10 @@ ${result}`);
     completedAt: '2026-01-01T00:00:00.000Z', head: '0'.repeat(40) };
   const olderLastComplete = { run: 'c0ffee00-0000-4000-8000-000000000001', inspection: 'sha256:legacy-older',
     completedAt: '2025-12-01T00:00:00.000Z', head: '1'.repeat(40) };
-  const amendments = [{ format: 'repo-standards/scope-amendment/v1', revision: 1, previousInspection: 'sha256:legacy-previous' }];
   const legacyRunEvidence = { observations: legacyIntervals, operations: [], retryHistory: [], checks: [], assessments: [] };
   const legacy = { ...current, format: 'repo-standards/state/v4',
     history: [{ lastComplete: olderLastComplete, ...legacyRunEvidence },
-      { lastComplete: legacyLastComplete, ...legacyRunEvidence, scopeRevision: 1, amendments }],
+      { lastComplete: legacyLastComplete, ...legacyRunEvidence }],
     observations: legacyIntervals };
   const statePath = join(f.project.root, '.repo-standards/state.json');
   const lockPath = join(f.project.root, '.repo-standards/lock.json');
@@ -507,16 +506,12 @@ ${result}`);
   assert.equal(compacted.history!.length, 3);
   const [olderRun, legacyRun, previousRun] = compacted.history!;
   assert.deepEqual(olderRun!.lastComplete, olderLastComplete);
-  assert.equal('scopeRevision' in olderRun!, false);
   assert.deepEqual(legacyRun!.lastComplete, legacyLastComplete);
-  assert.equal(legacyRun!.scopeRevision, 1);
-  assert.deepEqual(legacyRun!.amendments, amendments);
   assert.equal(previousRun!.lastComplete.run, started.id);
   // Carried entries keep one committed key order, so later completions leave
   // the earlier evidence byte-identical.
   for (const run of compacted.history!) {
-    assert.deepEqual(Object.keys(run), ['lastComplete', 'observations', 'operations', 'retryHistory', 'checks', 'assessments',
-      ...(run.scopeRevision === undefined ? [] : ['scopeRevision', 'amendments'])]);
+    assert.deepEqual(Object.keys(run), ['lastComplete', 'observations', 'operations', 'retryHistory', 'checks', 'assessments']);
   }
   for (const run of [olderRun!, legacyRun!, previousRun!]) {
     assert.deepEqual(run.observations.map(interval => interval.phase), ['fixes', 'agent', 'checks']);

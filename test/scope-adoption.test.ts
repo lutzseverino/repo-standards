@@ -248,6 +248,40 @@ test('scope-validity omissions, mismatched identities and additional file needs 
   assert.equal(complete.result.status, 0, complete.result.stdout);
 });
 
+test('a blocked scope review is corrected by abandoning the run and adopting again with a new confirmed scope', async t => {
+  const f = await fixture(t);
+  const start = f.start(f.inspect().report.identity).report;
+  const needsMore = assessment(start.workRequest);
+  needsMore.declarations[0]!.scopeValidity.current.status = 'blocked';
+  needsMore.declarations[0]!.scopeValidity.current.additionalPaths = ['new-destination.md'];
+  const blocked = submit(f, needsMore);
+  assert.equal(blocked.result.status, 1, blocked.result.stdout);
+  assert.equal(blocked.report.outcome, 'incomplete');
+  assert.match(blocked.report.reason, /SCOPE_INCOMPLETE/);
+  assert.match(blocked.report.nextAction, /Preserve the work, abandon the run, commit or discard its changes, and adopt again with a new confirmed scope/);
+  assert.doesNotMatch(`${blocked.report.reason} ${blocked.report.nextAction}`, /amend/i);
+
+  // An active run offers no way to change its confirmed scope.
+  for (const args of [['inspect', '--amend-scope'], ['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', start.inspection]]) {
+    const rejected = f.run([...args, '--json']);
+    assert.equal(rejected.result.status, 2, rejected.result.stdout);
+    assert.equal(rejected.report.errors[0].code, 'USAGE');
+    assert.match(rejected.report.errors[0].message, /Unknown, duplicate, or incomplete option: --amend-scope/);
+  }
+  assert.doesNotMatch(cli.run(['--help'], f.project.root).stdout, /amend/i);
+
+  const abandoned = f.run(['abandon', '--json']);
+  assert.equal(abandoned.report.abandoned, true, abandoned.result.stdout);
+  git(f.project.root, 'checkout', '--', '.');
+  git(f.project.root, 'clean', '-fdxq');
+  setScopeTargets(f, ['components/odd/nested/README.md', 'new-destination.md']);
+  const corrected = f.inspect();
+  assert.deepEqual(corrected.report.start.blockers, [], corrected.result.stdout);
+  const restarted = f.start(corrected.report.identity).report;
+  assert.equal(restarted.phase, 'contextual');
+  assert.deepEqual(restarted.workRequest.declarations[0].allowedTargets.paths, ['components/odd/nested/README.md', 'new-destination.md']);
+});
+
 test('discovered contextual changes reject stale, omitted and false evidence before completing with fresh evidence', async t => {
   const f = await fixture(t, 'apps/widget', { 'stable.md': 'Stable' });
   setScopeTargets(f, ['apps/widget/README.md', 'stable.md']);

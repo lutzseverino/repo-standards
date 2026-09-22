@@ -26,9 +26,10 @@ and presents concrete paths in the complete inspection. Initial adoption passes
 the same proposal to `start --scope` with that inspection’s confirmed identity.
 The agent rechecks coverage after fixes and during contextual assessment. Empty
 scope retains the declaration and its operations. Source validation alone proves
-neither project-specific safety nor semantic coverage. Eligible active discovery runs can
-[preview and confirm additions-only scope amendments](inspection.md#preview-scope-amendments-in-an-active-run).
-Confirmed amendments replay fixes and require renewed assessment and checks.
+neither project-specific safety nor semantic coverage. An active run cannot change
+its confirmed scope; when contextual work needs other paths, the adopter abandons
+the run, commits or discards its changes, and
+[adopts again with a new confirmed scope](adoption.md#correct-a-confirmed-scope).
 Fresh discovery proposals also apply during compatible standards and CLI updates
 and explicit same-pin re-adoption. Between complete runs, scope can add or remove
 individual paths; removals end governance without deleting project content.

@@ -15,17 +15,12 @@ export interface ScopeProposal { format: 'repo-standards/scope/v1'; request: str
 interface ScopeTargets { paths: string[]; directories: string[] }
 export type Scope = Record<string, ScopeTargets>;
 interface ScopeBlocker { code: string; message: string }
-interface ScopeValidationBase {
+interface ScopeValidationInput {
   root: string;
   sourceResolved: SourceProfile;
   request: string | undefined;
   proposalPath?: string;
-  observationOptions?: Parameters<typeof observeScope>[2];
 }
-type ScopeValidationInput = ScopeValidationBase & (
-  | { phase: 'inspection' }
-  | { phase: 'amendment'; currentResolved: ResolvedProfile; existingScope: Scope }
-);
 function invalid(message: string): never { throw new ProductError('INVALID_SCOPE', message); }
 function object(value: unknown, keys: string[]): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) invalid('Expected a scope object.');
@@ -149,54 +144,26 @@ export function concreteScope(resolved: ResolvedProfile): Scope {
   return Object.fromEntries(resolved.declarations.map(declaration => [declaration.id, allowedTargets(declaration)]));
 }
 
-// Scope proposals have one validation sequence for initial inspection and
-// active-run amendment. The caller still owns the request identity and the
-// phase-specific freshness checks around this result.
+// The caller owns the request identity and the freshness checks around this
+// result.
 export function validateScope(input: ScopeValidationInput) {
   const proposal = input.proposalPath ? readScope(input.proposalPath, input.root) : undefined;
   if (proposal && proposal.request !== input.request) {
-    throw new ProductError('STALE_SCOPE', input.phase === 'inspection'
-      ? 'Scope proposal does not match this discovery request. Inspect again and review fresh evidence.'
-      : 'The amendment proposal does not match the active run and current observation. Inspect --amend-scope again and review fresh evidence.');
+    throw new ProductError('STALE_SCOPE', 'Scope proposal does not match this discovery request. Inspect again and review fresh evidence.');
   }
 
-  const resolved = proposal ? materializeScope(input.root, input.sourceResolved, proposal)
-    : input.phase === 'amendment' ? input.currentResolved : materializeScope(input.root, input.sourceResolved);
-  let proposedScope: Scope | undefined;
-  let additions: Record<string, string[]> | undefined;
-  if (proposal && input.phase === 'amendment') {
-    proposedScope = concreteScope(resolved);
-    for (const declaration of input.sourceResolved.declarations) {
-      const before = input.existingScope[declaration.id]!;
-      const after = proposedScope[declaration.id]!;
-      if ('discovery' in declaration) {
-        if (before.paths.some(path => !after.paths.includes(path))) {
-          throw new ProductError('SCOPE_RECONCILIATION_REQUIRED', `Cannot remove or transfer previously authorized targets from ${declaration.id}. Withdrawing a mistaken target requires reconciliation outside this active run; leave the run incomplete, preserve work, and abandon and reconcile before a new clean adoption.`);
-        }
-      } else if (JSON.stringify(before) !== JSON.stringify(after)) {
-        throw new ProductError('SELECTION_SWITCH', 'Scope amendment cannot change explicit targets or the selected declarations.');
-      }
-    }
-    additions = Object.fromEntries(input.sourceResolved.declarations.filter(declaration => 'discovery' in declaration)
-      .map(declaration => [declaration.id, proposedScope![declaration.id]!.paths.filter(path => !input.existingScope[declaration.id]!.paths.includes(path))]));
-  }
-
+  const resolved = materializeScope(input.root, input.sourceResolved, proposal);
   const named = proposal?.declarations.flatMap(entry => entry.paths) ?? [];
-  const namedObservation = proposal ? observeScope(input.root, named, input.observationOptions) : undefined;
+  const namedObservation = proposal ? observeScope(input.root, named) : undefined;
   const absence = proposal ? validateScopeEvidence(proposal, namedObservation!) : [];
   const blockers: ScopeBlocker[] = [];
   if (input.sourceResolved.declarations.some(declaration => 'discovery' in declaration)) {
-    if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: input.phase === 'inspection'
-      ? 'Interpret the discovery guidance and submit an evidence-backed repo-standards/scope/v1 proposal with inspect --scope.'
-      : 'Review current evidence and submit a complete repo-standards/scope/v1 proposal with inspect --amend-scope --scope <file>, retaining every previously authorized target per declaration.' });
-    if (proposal?.declarations.some(entry => entry.unresolved.length)) blockers.push({ code: 'UNRESOLVED_SCOPE', message: input.phase === 'inspection'
-      ? 'Resolve the reported discovery questions and inspect a revised proposal.'
-      : 'Resolve discovery questions and inspect a revised amendment proposal before confirmation.' });
+    if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: 'Interpret the discovery guidance and submit an evidence-backed repo-standards/scope/v1 proposal with inspect --scope.' });
+    if (proposal?.declarations.some(entry => entry.unresolved.length)) blockers.push({ code: 'UNRESOLVED_SCOPE', message: 'Resolve the reported discovery questions and inspect a revised proposal.' });
   }
 
   return {
     resolved, named, absence, blockers,
     ...(proposal ? { proposal, namedObservation } : {}),
-    ...(proposedScope ? { proposedScope, additions: additions! } : {}),
   };
 }

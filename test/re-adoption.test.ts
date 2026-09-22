@@ -79,9 +79,6 @@ test('explicit re-adoption starts unchanged retained v1 standards without the or
   const switched = cli.run(['inspect', '--readopt', ...inspectionArgs.slice(1)], project.root, env);
   assert.equal(switched.status, 1);
   assert.equal(JSON.parse(switched.stdout).errors[0].code, 'SELECTION_SWITCH');
-  const combined = cli.run(['inspect', '--readopt', '--amend-scope', '--json'], project.root, env);
-  assert.equal(combined.status, 2);
-  assert.equal(JSON.parse(combined.stdout).errors[0].code, 'USAGE');
   execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
   const changedCli = spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), ['inspect', '--readopt', '--json'], { cwd: project.root, env, encoding: 'utf8' });
   assert.equal(changedCli.status, 0, changedCli.stdout + changedCli.stderr);

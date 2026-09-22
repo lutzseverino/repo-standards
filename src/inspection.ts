@@ -128,14 +128,6 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
   if (Object.hasOwn(lock.files, historyPath)) {
     try {
       historicalScope = latestRetainedScopeRun(JSON.parse(readFileSync(join(root, historyPath), 'utf8')));
-      const acceptedScope = (state.amendments?.at(-1) as { acceptedScope?: Record<string, { paths?: string[]; directories?: string[] }> } | undefined)?.acceptedScope;
-      if (acceptedScope && historicalScope?.resolved?.declarations) historicalScope = { ...historicalScope, resolved: {
-        ...historicalScope.resolved,
-        declarations: historicalScope.resolved.declarations.map(declaration => {
-          const amendedTargets = acceptedScope[declaration.id];
-          return amendedTargets ? { ...declaration, targets: amendedTargets } : declaration;
-        }),
-      } };
     } catch (error) {
       // The scope-evidence module reports its own integrity failures; only a
       // file this reader cannot parse becomes an unreadable history.
@@ -237,7 +229,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     const discoveryDeclarations = profile.declarations.filter(declaration => 'discovery' in declaration);
     const scopeObservation = discoveryDeclarations.length ? observeScope(root) : undefined;
     const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: requestedAction, root, head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;
-    const scope = validateScope({ phase: 'inspection', root, sourceResolved: profile, request: requestIdentity,
+    const scope = validateScope({ root, sourceResolved: profile, request: requestIdentity,
       ...(options.scope ? { proposalPath: options.scope } : {}) });
     const { proposal, resolved, named, namedObservation, absence } = scope;
     blockers.push(...scope.blockers);

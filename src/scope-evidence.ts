@@ -32,20 +32,13 @@ export interface RetainedDiscovery {
   observation: ScopeObservation;
 }
 
-// One retained run as its readers see it. The revision and amendment fields are
-// correlated from durable state on read; they are never part of the file.
+// One retained run as its readers see it.
 export interface ScopeHistoryRun {
   inspection: string;
   resolved: RetainedProfile;
   sourceResolved?: RetainedProfile;
   discovery?: RetainedDiscovery;
-  scopeRevision?: number;
-  amendments?: unknown[];
 }
-
-// Durable state correlates a retained run with the completion that accepted
-// it; either field may be recorded as absent.
-export interface ScopeCorrelation { scopeRevision?: number | undefined; amendments?: unknown[] | undefined }
 
 type Boundaries = Record<string, FileState>;
 type CommittedObservation = Omit<ScopeObservation, 'evidence'>;
@@ -149,20 +142,14 @@ export function latestRetainedScopeRun(value: unknown): ScopeHistoryRun | undefi
   return runs.length ? retainedRun(runs.at(-1)) : undefined;
 }
 
-// The historical scope a retained inspection reports: every run, the newest one
-// also spread at the top level as it has always been, and the revision and
-// amendments the caller correlates with durable state.
-export function retainedScopeProjection(value: unknown, correlate: (run: ScopeHistoryRun) => ScopeCorrelation | undefined, current: ScopeCorrelation) {
+// The historical scope a retained inspection reports: every run, with the
+// newest one also spread at the top level as it has always been.
+export function retainedScopeProjection(value: unknown) {
   const history = value as Record<string, unknown>;
-  const stored = retainedScopeRuns(value);
-  const runs = stored.map(run => {
-    const completed = correlate(run);
-    return completed?.amendments?.length ? { ...run, scopeRevision: completed.scopeRevision, amendments: completed.amendments } : run;
-  });
+  const runs = retainedScopeRuns(value);
   return {
     ...(typeof history.format === 'string' ? { format: history.format } : {}),
-    evidence: 'historical', ...stored.at(-1), runs,
-    ...(current.amendments?.length ? { scopeRevision: current.scopeRevision, amendments: current.amendments } : {}),
+    evidence: 'historical', ...runs.at(-1), runs,
   };
 }
 
