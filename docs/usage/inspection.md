@@ -365,16 +365,16 @@ repo-standards start --source https://github.com/OWNER/STANDARDS \
 Start reconstructs the inspection before prerequisites and again before
 installation. Missing, invalid, unresolved, or stale scope cannot authorize
 mutation. Initial clean committed-project and prerequisite rules still apply.
-There is no separate mandatory scope confirmation. Existing explicit selections
-retain inspection/v1; v2 execution uses the [observed-scope contract](script-protocol.md#observed-scope-for-v2-adoption).
+There is no separate mandatory scope confirmation. Explicit selections use
+inspection/v1; execution uses the [observed-scope contract](script-protocol.md#observed-scope-for-v2-adoption).
 Standards updates, CLI updates and same-pin re-adoption repeat this fresh
-discovery pass for every active v2 declaration. Use the update commands described
+discovery pass for every active discovery declaration. Use the update commands described
 above, or `inspect --readopt --scope <file>` followed by matching confirmed
 `start --readopt --scope <file>`. The selection and requested action are bound
 into the request and final inspection identities, so retained historical or
 ordinary-inspection proposals cannot authorize the new run.
 
-After ordinary v2 completion, retained `inspect --json` remains
+After ordinary discovery completion, retained `inspect --json` remains
 `repo-standards/inspection/v2` and exposes `historicalScope` as
 `repo-standards/scope-history/v3`: the
 accepted inspection identity, source-resolved declarations, materialized concrete

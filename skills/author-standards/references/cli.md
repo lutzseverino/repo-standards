@@ -8,7 +8,7 @@ obtain the format and script-protocol documentation from the
 same npm installation as the executable.
 
 Use macOS or Linux with Node.js 24 and npm. This skill supports
-`@lutzseverino/repo-standards@1.3.0` and both `repo-standards/v1` and
+`@lutzseverino/repo-standards@1.3.0` and its one source format,
 `repo-standards/v2`. Check `node --version`
 first. When prerequisites or registry access are unavailable, explain the blocker
 and continue preference review if useful; leave validation explicitly pending.

@@ -33,7 +33,7 @@ async function fixture(t: TestContext, script: string, declarations: Record<stri
   return { project, remote, env, run, startArgs, head: git(project.root, 'rev-parse', 'HEAD'), start: () => run(startArgs),
     assess(request: { run: string; selection: string; snapshot: string; declarations: { id: string }[] }, changes: Record<string, string[]> = {}) {
       const path = join(remote.support.root, 'assessment.json');
-      writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v1', run: request.run, selection: request.selection, snapshot: request.snapshot,
+      writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
         declarations: request.declarations.map(({ id }) => ({ id, status: 'satisfied', explanation: 'Guidance applied.', changedPaths: changes[id] ?? [], evidence: ['Reviewed project content.'] })) }));
       return run(['resume', '--assessment', path, '--json']);
     },

@@ -1,6 +1,6 @@
 import { concreteScope } from './scope.js';
 import { contextualScope, observeWork, requireValidIntervals } from './work-observation.js';
-import { assessmentSnapshot, projectSnapshot, validateAssessment } from './assessment.js';
+import { validateAssessment } from './assessment.js';
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
@@ -22,9 +22,9 @@ const packageName = '@lutzseverino/repo-standards';
 function workRequest(root: string, run: Run, installation: Installation): WorkRequest {
   const { report } = installation;
   const discovery = report.discovery;
-  return { format: discovery ? 'repo-standards/work-request/v2' : 'repo-standards/work-request/v1',
+  return { format: 'repo-standards/work-request/v2',
     ...(discovery ? { scope: { inspection: run.inspection, afterFixes: installation.scopeAfterFixes!, proposal: discovery.proposal } } : {}), run: run.id, selection: `sha256:${hash(json(run.selection))}`,
-    snapshot: workSnapshot(root, run, report),
+    snapshot: workSnapshot(root, run, report.resolved),
     declarations: report.guidance.map(guidance => {
       const discoveryGuidance = discovery?.declarations.find(entry => entry.id === guidance.id);
       return { id: guidance.id, guidance, ...(discoveryGuidance ? { discovery: discoveryGuidance } : {}),
@@ -33,10 +33,8 @@ function workRequest(root: string, run: Run, installation: Installation): WorkRe
     requiredEvidence: ['status', 'explanation', 'changedPaths', 'evidence', ...(discovery ? ['scope', 'scopeValidity.afterFixes', 'scopeValidity.current'] : [])] };
 }
 
-function workSnapshot(root: string, run: Run, report: Pick<Inspection, 'resolved' | 'source'>) {
-  return report.source?.format === 'repo-standards/v2'
-    ? `sha256:${hash(json(observeWork(root, concreteScope(report.resolved))) + `retry:${run.retryHistory?.length ?? 0}`)}`
-    : assessmentSnapshot(root, run.retryHistory?.length);
+function workSnapshot(root: string, run: Run, resolved: Inspection['resolved']) {
+  return `sha256:${hash(json(observeWork(root, concreteScope(resolved))) + `retry:${run.retryHistory?.length ?? 0}`)}`;
 }
 
 function verifyConfirmation(report: Inspection, confirmation: string) {
@@ -181,7 +179,6 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
   const run = session.observation;
   const progress = () => session.observation.installation!;
   const { files, before, report } = installation;
-  const completeInventory = report.source?.format === 'repo-standards/v2';
   const replaceTrees = installation.replaceTrees ?? [];
   const treeProgress = progress().trees!;
   verifyGit(root, report);
@@ -201,9 +198,9 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
       throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed during replacement: ${tree}. Preserve and reconcile added or modified resources before retry.`);
     }
     const expectedPaths = treeProgress[tree] === 'removing'
-      ? new Set([...inventoryPaths(before[tree]!, completeInventory).map(path => `${tree}/${path}`), ...plannedInventory(temporaries, completeInventory)])
-      : plannedInventory([...Object.keys(files), ...temporaries], completeInventory);
-    if (inventoryPaths(actual, completeInventory).some(path => !expectedPaths.has(`${tree}/${path}`))) throw new ProductError('INSTALLATION_CHANGED', `Owned tree inventory changed during replacement: ${tree}. Preserve added resources before retry.`);
+      ? new Set([...inventoryPaths(before[tree]!).map(path => `${tree}/${path}`), ...plannedInventory(temporaries)])
+      : plannedInventory([...Object.keys(files), ...temporaries]);
+    if (inventoryPaths(actual).some(path => !expectedPaths.has(`${tree}/${path}`))) throw new ProductError('INSTALLATION_CHANGED', `Owned tree inventory changed during replacement: ${tree}. Preserve added resources before retry.`);
   }
   // Validate the entire remaining plan before writing any part of it. An
   // unrecorded atomic write may contain either the inspected or expected bytes.
@@ -215,15 +212,15 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
     const matches = actual.type === 'file' && actual.sha256 === expected.sha256 && actual.executable === expected.executable;
     if (!matches && (progress().files.includes(path) || json(actual) !== json(before[path]))) throw new ProductError('INSTALLATION_CHANGED', `Installed or pending content changed: ${path}. Reconcile it before retry; recovery will not overwrite edits.`);
   }
-  const plannedPaths = plannedInventory([...Object.keys(files), ...temporaries], completeInventory);
+  const plannedPaths = plannedInventory([...Object.keys(files), ...temporaries]);
   for (const skill of Object.keys(installation.skills).filter(skill => !replaceTrees.includes(skill))) {
     const current = safe(root, skill);
     if (current.type === 'missing') continue;
-    if (inventoryPaths(current, completeInventory).some(path => !plannedPaths.has(`${skill}/${path}`))) throw new ProductError('INSTALLATION_CHANGED', `Skill inventory changed: ${skill}. Preserve added resources before retry.`);
+    if (inventoryPaths(current).some(path => !plannedPaths.has(`${skill}/${path}`))) throw new ProductError('INSTALLATION_CHANGED', `Skill inventory changed: ${skill}. Preserve added resources before retry.`);
   }
   const transitional = installation.transitional ?? {};
-  const productPaths = plannedInventory([...Object.keys(files), ...Object.keys(transitional), ...temporaries], completeInventory);
-  if (safeDirectory(root, '.repo-standards').type !== 'missing' && productInventory(root, completeInventory).some(path => !productPaths.has(path) && !replaceTrees.some(tree => path.startsWith(tree + '/')))) throw new ProductError('INSTALLATION_CHANGED', 'Product state inventory changed. Reconcile additions before retry.');
+  const productPaths = plannedInventory([...Object.keys(files), ...Object.keys(transitional), ...temporaries]);
+  if (safeDirectory(root, '.repo-standards').type !== 'missing' && productInventory(root).some(path => !productPaths.has(path) && !replaceTrees.some(tree => path.startsWith(tree + '/')))) throw new ProductError('INSTALLATION_CHANGED', 'Product state inventory changed. Reconcile additions before retry.');
   const runtimePath = '.repo-standards/runtime/node_modules';
   const runtime = safeDirectory(root, runtimePath);
   function partial(actual: Observation, expected: Observation): boolean {
@@ -275,15 +272,14 @@ function verifyInstallation(root: string, installation: Installation, extra: Fil
   const expectedFiles = { ...files, ...(installation.transitional ?? {}), ...extra };
   verifyFiles(root, expectedFiles);
   if (hash(json(safeDirectory(root, '.repo-standards/runtime/node_modules'))) !== runtimeHash) throw new ProductError('FINAL_INTEGRITY', 'The installed runtime dependencies changed.');
-  if (!matchesInventory(observeProductState(root), Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/')).map(path => path.slice('.repo-standards/'.length)), report.source?.format === 'repo-standards/v2')) throw new ProductError('FINAL_INTEGRITY', 'The product state inventory changed.');
-  for (const [path, expected] of Object.entries(skills)) if (!matchesInventory(safe(root, path), expected, report.source?.format === 'repo-standards/v2')) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
+  if (!matchesInventory(observeProductState(root), Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/')).map(path => path.slice('.repo-standards/'.length)))) throw new ProductError('FINAL_INTEGRITY', 'The product state inventory changed.');
+  for (const [path, expected] of Object.entries(skills)) if (!matchesInventory(safe(root, path), expected)) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
   if (json(inventory(root, '.repo-standards/inputs')) !== json(Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/inputs/')).map(path => path.slice('.repo-standards/inputs/'.length)).sort())) throw new ProductError('FINAL_INTEGRITY', 'Retained input inventory changed.');
   verifyGit(root, report);
   verifyCommittable(root, [...Object.keys(files), '.repo-standards/state.json']);
 }
 
 function openAgentObservation(root: string, session: AdoptionRunSession, report: Inspection) {
-  if (report.source?.format !== 'repo-standards/v2') return;
   session.openObservation({ phase: 'agent', scope: contextualScope(report.resolved), before: observeWork(root, concreteScope(report.resolved)) });
 }
 
@@ -298,34 +294,29 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
       openAgentObservation(root, session, report);
       session.pauseForContext(workRequest(root, session.observation, installation));
     }
-    const accepted = validateAssessment(root, session.observation, installation.contextualBaseline!, assessment, report.source?.format === 'repo-standards/v2' ? {
-      snapshot: workSnapshot(root, session.observation, report),
-      changedPaths: [...new Set(session.observation.observations!.filter(interval => interval.phase === 'agent').flatMap(interval => (interval.changedPaths ?? []).filter(path => !interval.restoredExact?.[path])))],
-    } : undefined);
+    const accepted = validateAssessment(root, session.observation, assessment, {
+      snapshot: workSnapshot(root, session.observation, report.resolved),
+      changedPaths: [...new Set(session.observation.observations.filter(interval => interval.phase === 'agent').flatMap(interval => (interval.changedPaths ?? []).filter(path => !interval.restoredExact?.[path])))],
+    });
     session.record({ type: 'assessment-submitted', assessment: accepted });
     if (accepted.declarations.some(entry => entry.scopeValidity && Object.values(entry.scopeValidity).some(review => review.status === 'blocked'))) throw new ProductError('SCOPE_INCOMPLETE', 'Agent scope review reports incomplete coverage after fixes or at assessment. Additional files are not authorized; preserve work and reconcile the reported scope problem.');
     if (accepted.declarations.some(entry => entry.status === 'blocked')) throw new ProductError('ASSESSMENT_BLOCKED', 'Agent reports blocked contextual work. Resolve the explanation and submit renewed evidence before checks.');
     session.record({ type: 'assessment-accepted' });
-    if (session.observation.observations) requireValidIntervals(session.observation.observations!);
+    requireValidIntervals(session.observation.observations);
   }
   const operationStart = session.observation.operations.length;
   for (const phase of (resumed ? ['checks'] : ['fixes', 'checks']) as ('fixes' | 'checks')[]) {
     for (const selected of operations(report.resolved, phase)) {
-      const v2 = report.source?.format === 'repo-standards/v2';
       const capture = () => observeWork(root, concreteScope(report.resolved));
-      const before = !v2 && phase === 'checks' ? projectSnapshot(root) : null;
       const evidence = await session.authorProcess({ phase, declaration: selected.declaration, id: selected.operation.id },
-        onSpawn => execute(root, selected, report.selection, report.resolved, onSpawn), () => {
-          verifyInstalled();
-          if (before !== null && projectSnapshot(root) !== before) throw new ProductError('CHECK_MUTATION', `Check ${selected.declaration}/${selected.operation.id} changed observed project content. Changes are preserved; checks must be read-only.`);
-        }, v2 ? { scope: { [selected.declaration]: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === selected.declaration)!) }, agentScope: contextualScope(report.resolved), before: capture(), capture } : undefined);
+        onSpawn => execute(root, selected, report.selection, report.resolved, onSpawn), verifyInstalled,
+        { scope: { [selected.declaration]: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === selected.declaration)!) }, agentScope: contextualScope(report.resolved), before: capture(), capture });
       if (evidence.error) throw new ProductError(evidence.error, `Operation ${selected.declaration}/${selected.operation.id} did not return a successful process and protocol result. Read its logs and preserve changes.`);
       if (evidence.result?.status === 'blocked') throw new ProductError('OPERATION_BLOCKED', `Operation ${selected.declaration}/${selected.operation.id} is blocked: ${evidence.result.message}`);
       session.record({ type: 'operation-accepted', description: `${phase}: ${selected.declaration}/${selected.operation.id} (${evidence.result!.status})` });
     }
     if (phase === 'fixes' && report.guidance.length) {
-      if (report.discovery) installation.scopeAfterFixes = workSnapshot(root, session.observation, report);
-      if (report.source?.format !== 'repo-standards/v2') installation.contextualBaseline ??= projectSnapshot(root);
+      if (report.discovery) installation.scopeAfterFixes = workSnapshot(root, session.observation, report.resolved);
       openAgentObservation(root, session, report);
       session.pauseForContext(workRequest(root, session.observation, installation), installation);
     }
@@ -335,8 +326,8 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
   session.record({ type: 'final-verification' });
   verifyInstalled();
   session.observeContinuation(report.resolved);
-  if (session.observation.observations) requireValidIntervals(session.observation.observations!);
-  if (run.assessments.length && run.assessments[0]!.snapshot !== workSnapshot(root, run, report)) throw new ProductError('STALE_ASSESSMENT', 'Project content changed after assessment. Refresh the work request, reassess, and rerun checks.');
+  requireValidIntervals(session.observation.observations);
+  if (run.assessments.length && run.assessments[0]!.snapshot !== workSnapshot(root, run, report.resolved)) throw new ProductError('STALE_ASSESSMENT', 'Project content changed after assessment. Refresh the work request, reassess, and rerun checks.');
   session.complete(installation, operationStart);
 }
 

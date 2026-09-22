@@ -16,7 +16,7 @@ function validExecutable(executable: string): boolean {
 
 export class Declarations {
   readonly locations = new WeakMap<SourceDeclaration, Target[]>();
-  constructor(private readonly fields: Fields, private readonly paths: Paths, private readonly format: string | undefined) {}
+  constructor(private readonly fields: Fields, private readonly paths: Paths) {}
 
   private id(value: Value): string | undefined {
     const name = this.fields.string(value);
@@ -106,14 +106,13 @@ export class Declarations {
         if (source) this.paths.reference({ ...sourceValue, data: `${source}/SKILL.md` }, 'file');
         declarations.set(id, { ...base, kind, name, source });
       } else if (kind === 'repository') {
-        const supportsDiscovery = this.format === 'repo-standards/v2';
-        f.map(declaration, ['kind', 'guidance', 'targets', 'checks', 'fixes', ...(supportsDiscovery ? ['discovery'] : [])]);
+        f.map(declaration, ['kind', 'guidance', 'targets', 'checks', 'fixes', 'discovery']);
         const guidance = this.paths.reference(f.get(declaration, 'guidance'), 'file');
-        if (supportsDiscovery && entries.has('targets') === entries.has('discovery')) {
+        if (entries.has('targets') === entries.has('discovery')) {
           f.error('INVALID_DECLARATION', 'Repository guidance requires exactly one of targets or discovery.', declaration);
         }
         // Validate both branches of an ambiguous declaration for independent errors.
-        if (entries.has('targets') || !supportsDiscovery) {
+        if (entries.has('targets')) {
           const targetsValue = f.get(declaration, 'targets');
           f.map(targetsValue, ['paths', 'directories']);
           const paths = f.list(f.get(targetsValue, 'paths')).map(targetPath);
@@ -121,7 +120,7 @@ export class Declarations {
           if (!paths.length && !directories.length) f.error('EMPTY_TARGETS', 'Repository guidance requires at least one target.', targetsValue);
           declarations.set(id, { ...base, kind, guidance, targets: { paths, directories } });
         }
-        if (supportsDiscovery && entries.has('discovery')) {
+        if (entries.has('discovery')) {
           const discovery = this.paths.reference(f.get(declaration, 'discovery'), 'file');
           declarations.set(id, { ...base, kind, guidance, discovery });
         }

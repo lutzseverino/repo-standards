@@ -8,14 +8,14 @@ import { installCli, sourceFixture } from './installed-cli.ts';
 const cli = installCli();
 after(() => cli.close());
 
-const header = `format: repo-standards/v1
+const header = `format: repo-standards/v2
 name: test-standards
 description: Test standards
 requires:
   repo-standards: ">=1.0.0 <2.0.0"
 `;
 
-for (const format of ['repo-standards/v1', 'repo-standards/v2']) test(`validation preserves literal operations, never runs scripts or version probes, and leaves a dirty source unchanged (${format})`, (t) => {
+test('validation preserves literal operations, never runs scripts or version probes, and leaves a dirty source unchanged', (t) => {
   const operation = `
           - id: probe
             run:
@@ -27,10 +27,11 @@ for (const format of ['repo-standards/v1', 'repo-standards/v2']) test(`validatio
               version-arguments: ["--version", "$(touch SENTINEL)"]
               version: ">=24.0.0 <25.0.0"
             timeout-seconds: 5`;
-  const source = sourceFixture(header.replace('repo-standards/v1', format) + `defaults:
+  const source = sourceFixture(header + `defaults:
   declarations:
     readme:
-      ${format === 'repo-standards/v2' ? 'kind: repository\n      discovery: discovery.md' : 'kind: file\n      target: README.md'}
+      kind: repository
+      discovery: discovery.md
       guidance: guidance.md
       checks:${operation}
       fixes:${operation.replace('id: probe', 'id: fix')}
@@ -103,8 +104,29 @@ for (const example of [
   assert.deepEqual(contextual.checks.map((entry: { id: string }) => entry.id), [example.check]);
 });
 
+test('the retired repo-standards/v1 format fails with the invalid-format diagnostic naming only v2', (t) => {
+  const source = sourceFixture(header.replace('repo-standards/v2', 'repo-standards/v1') + `defaults:
+  declarations:
+    readme:
+      kind: file
+      target: README.md
+      exact: readme.md
+profiles:
+  personal:
+    description: Personal
+    declarations: {}
+`, { 'readme.md': 'Readme' });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.profiles, {});
+  assert.deepEqual(report.errors.map((error: { code: string; message: string; path: string }) => [error.code, error.message, error.path]),
+    [['INVALID_FORMAT', 'Expected repo-standards/v2.', '/format']]);
+});
+
 for (const [label, yaml, code] of [
-  ['unsupported format', header.replace('repo-standards/v1', 'repo-standards/v3'), 'INVALID_FORMAT'],
+  ['unsupported format', header.replace('repo-standards/v2', 'repo-standards/v3'), 'INVALID_FORMAT'],
   ['invalid CLI range', header.replace('>=1.0.0 <2.0.0', 'yesterday'), 'INVALID_VERSION'],
   ['incompatible CLI', header.replace('>=1.0.0 <2.0.0', '>=2.0.0'), 'INCOMPATIBLE_CLI'],
   ['missing metadata', header.replace('description: Test standards\n', ''), 'REQUIRED_FIELD'],
@@ -218,8 +240,8 @@ profiles:
   assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string }) => error.code === 'UNKNOWN_FIELD'));
 });
 
-for (const format of ['repo-standards/v1', 'repo-standards/v2']) test(`unsafe references and conflicting targets are rejected even in an unselected profile (${format})`, (t) => {
-  const source = sourceFixture(header.replace('repo-standards/v1', format) + `defaults:
+test('unsafe references and conflicting targets are rejected even in an unselected profile', (t) => {
+  const source = sourceFixture(header + `defaults:
   declarations:
     original:
       kind: file
@@ -293,8 +315,8 @@ profiles:
     error.code === 'MISSING_REFERENCE' && error.path.endsWith('/run/script')));
 });
 
-for (const format of ['repo-standards/v1', 'repo-standards/v2']) test(`validation collects schema and operation errors across every profile with precise locations (${format})`, (t) => {
-  const yaml = header.replace('repo-standards/v1', format) + `extra: rejected
+test('validation collects schema and operation errors across every profile with precise locations', (t) => {
+  const yaml = header + `extra: rejected
 defaults:
   declarations:
     old:
@@ -364,8 +386,8 @@ profiles:
   assert.ok(errors.some((error: { path: string }) => error.path.startsWith('/profiles/second/')));
 });
 
-for (const format of ['repo-standards/v1', 'repo-standards/v2']) test(`all four forms resolve through inheritance, replacement, addition and exclusion as complete declarations (${format})`, (t) => {
-  let yaml = readFileSync('examples/alice/standards.yaml', 'utf8').replace('repo-standards/v1', format);
+test('all four forms resolve through inheritance, replacement, addition and exclusion as complete declarations', (t) => {
+  let yaml = readFileSync('examples/alice/standards.yaml', 'utf8');
   yaml = yaml.replace('    declarations: {}', `    declarations:
       extra-file:
         kind: file
@@ -400,7 +422,7 @@ for (const format of ['repo-standards/v1', 'repo-standards/v2']) test(`all four 
 });
 
 test('an author validates a local standards source through the installed CLI', (t) => {
-  const source = sourceFixture(`format: repo-standards/v1
+  const source = sourceFixture(`format: repo-standards/v2
 name: alice-standards
 description: Alice's repository standards
 requires:
@@ -423,7 +445,7 @@ profiles:
 
 
 test('v2 resolves discovery separately from explicit targets across complete profiles', (t) => {
-  const source = sourceFixture(header.replace('repo-standards/v1', 'repo-standards/v2') + `defaults:
+  const source = sourceFixture(header + `defaults:
   declarations:
     documentation:
       kind: repository
@@ -484,7 +506,7 @@ for (const [label, declaration, code, path] of [
   ['duplicate discovery field', 'discovery: discovery.md\n      discovery: missing.md', 'DUPLICATE_IDENTITY', '/discovery'],
 ] as const) test(`v2 rejects ${label} even when every profile excludes the default`, t => {
   const guidance = label === 'missing contextual guidance' ? 'missing.md' : label === 'unsafe contextual guidance' ? '../outside.md' : 'guidance.md';
-  const source = sourceFixture(header.replace('repo-standards/v1', 'repo-standards/v2') + `defaults:
+  const source = sourceFixture(header + `defaults:
   declarations:
     documentation:
       kind: repository
@@ -507,7 +529,7 @@ profiles:
 
 for (const reference of ['guidance', 'discovery']) test(`v2 rejects symlinked ${reference} and its ancestors`, t => {
   for (const path of ['linked.md', 'linked/file.md']) {
-    const source = sourceFixture(header.replace('repo-standards/v1', 'repo-standards/v2') + `defaults:
+    const source = sourceFixture(header + `defaults:
   declarations: {}
 profiles:
   work:
@@ -529,7 +551,7 @@ profiles:
 });
 
 test('v2 collects both references and explicit conflicts in ambiguous discovery declarations', t => {
-  const source = sourceFixture(header.replace('repo-standards/v1', 'repo-standards/v2') + `defaults:
+  const source = sourceFixture(header + `defaults:
   declarations:
     configuration:
       kind: file
@@ -558,11 +580,11 @@ profiles:
   for (const code of ['INVALID_DECLARATION', 'TARGET_OVERLAP']) assert.ok(report.errors.some((error: { code: string }) => error.code === code), result.stdout);
 });
 
-for (const [format, kind] of [['repo-standards/v1', 'repository'], ['repo-standards/v2', 'file'], ['repo-standards/v2', 'skill']]) {
-  test(`${format} ${kind} rejects discovery outside the v2 repository form`, t => {
+for (const kind of ['file', 'skill']) {
+  test(`${kind} declarations reject discovery outside the repository form`, t => {
     const fields = kind === 'repository' ? 'guidance: guidance.md\n      targets: {paths: [README.md], directories: []}'
       : kind === 'file' ? 'target: README.md\n      guidance: guidance.md' : 'name: review\n      source: skill';
-    const source = sourceFixture(header.replace('repo-standards/v1', format!) + `defaults:
+    const source = sourceFixture(header + `defaults:
   declarations:
     documentation:
       kind: ${kind}

@@ -7,7 +7,7 @@ import { commit, git, remoteEnvironment, remoteFixture } from './remote-fixture.
 
 const cli = installCli();
 after(() => cli.close());
-const yaml = `format: repo-standards/v1
+const yaml = `format: repo-standards/v2
 name: public-standards
 description: Public standards
 requires: {repo-standards: ">=1.0.0 <2.0.0"}
@@ -64,7 +64,7 @@ test('source search returns validated public release candidates without selectin
 test('search rejects unsupported and invalid candidates explicitly while keeping valid candidates', (t) => {
   const remote = discoverable();
   const others = [
-    remoteFixture(yaml.replace('repo-standards/v1', 'repo-standards/v99'), { 'readme.md': 'README', 'never-run.mjs': '' }, [], 'invalid/standards'),
+    remoteFixture(yaml.replace('repo-standards/v2', 'repo-standards/v99'), { 'readme.md': 'README', 'never-run.mjs': '' }, [], 'invalid/standards'),
     remoteFixture(yaml.replace('>=1.0.0 <2.0.0', '>=2.0.0'), { 'readme.md': 'README', 'never-run.mjs': '' }, [], 'incompatible/standards'),
     remoteFixture(yaml, {}, [], 'missing/standards'),
     remoteFixture(yaml, { 'readme.md': 'README', 'never-run.mjs': '' }, [], 'rootless/standards'),
@@ -174,7 +174,7 @@ test('candidate failures remain explicit without falling back from an invalid ne
   const remote = discoverable();
   const project = sourceFixture('');
   t.after(() => { remote.close(); project.close(); });
-  remote.addVersion('v2.0.0', yaml.replace('repo-standards/v1', 'repo-standards/v99'));
+  remote.addVersion('v2.0.0', yaml.replace('repo-standards/v2', 'repo-standards/v99'));
   remote.responses[`${remote.prefix}/releases?per_page=100&page=1`] = { body: [{ ...release, tag_name: 'v2.0.0' }, release] };
   remote.save();
   const invalid = JSON.parse(cli.run(['source', 'search', '--json'], project.root, remote.env).stdout);

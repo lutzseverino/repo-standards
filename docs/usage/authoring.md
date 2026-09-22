@@ -48,12 +48,12 @@ uses the same validation and discovery commands below.
 
 Use exact files or whole author-skill directories for material you intend to
 own byte-for-byte. Use contextual file guidance for project-owned documentation
-and repository guidance for explicit paths or directory trees. Preserve v1 for
-existing explicit-scope sources. Deliberately choose v2 when the author wants
-project-specific discovery: supply separate contextual-work guidance (how to
+and repository guidance for explicit paths or directory trees. Every source uses
+the one `repo-standards/v2` format. Choose discovery when the author wants
+project-specific scope: supply separate contextual-work guidance (how to
 assess or adapt content) and discovery guidance (where it applies). Review
 membership criteria, missing files, and exclusions without inventing an adopting
-project's layout. See the [format choice and current implementation limits](author-format.md#choose-a-format-deliberately). Guidance should
+project's layout. See the [format identity and current implementation limits](author-format.md#format-identity). Guidance should
 give an agent observable goals, useful evidence requirements and boundaries,
 while letting it describe the actual project. Avoid generic replacement prose
 that discards project facts. Authors cannot replace `adopt-standards` or add

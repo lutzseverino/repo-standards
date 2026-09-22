@@ -6,7 +6,7 @@ import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts'
 
 const cli = installCli();
 after(() => cli.close());
-const yaml = `format: repo-standards/v1
+const yaml = `format: repo-standards/v2
 name: public-standards
 description: Public standards
 requires: {repo-standards: ">=1.0.0 <2.0.0"}

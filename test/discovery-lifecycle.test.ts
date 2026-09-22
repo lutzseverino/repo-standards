@@ -240,7 +240,7 @@ test('a committed scope history v2 projects the same historical scope and is com
   assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
 });
 
-test('compatible standards updates preserve v2 evidence through discovery retirement and source-format changes', async t => {
+test('compatible standards updates preserve discovery evidence through discovery retirement and reintroduction', async t => {
   const f = await fixture(t);
   const firstRequest = f.run(inspectionArgs).report;
   f.proposal(firstRequest, 'apps/old/README.md');
@@ -269,7 +269,7 @@ test('compatible standards updates preserve v2 evidence through discovery retire
   commit(f.project.root);
 
   const withoutDiscovery = stringify({
-    format: 'repo-standards/v1', name: 'growing-projects', description: 'Documentation for maintained projects',
+    format: 'repo-standards/v2', name: 'growing-projects', description: 'Documentation for maintained projects',
     requires: { 'repo-standards': '>=1 <2' }, defaults: { declarations: {
       instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
     } }, profiles: { work: { description: 'Work', declarations: {} } },
@@ -283,7 +283,7 @@ test('compatible standards updates preserve v2 evidence through discovery retire
   commit(f.project.root);
   const retiredState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
   assert.equal(retiredState.format, 'repo-standards/state/v5');
-  assert.equal('observations' in retiredState, false);
+  assert.ok(Array.isArray(retiredState.observations));
   assert.equal(retiredState.history.length, 2);
   const retiredStatus = f.run(['status', '--json']).report;
   assert.equal(retiredStatus.format, 'repo-standards/status/v5');
@@ -301,7 +301,7 @@ test('compatible standards updates preserve v2 evidence through discovery retire
   assert.equal(f.complete(reintroducedRun).result.status, 0);
   const reintroducedState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
   assert.equal(reintroducedState.format, 'repo-standards/state/v5');
-  assert.equal(reintroducedState.history.length, 2);
+  assert.equal(reintroducedState.history.length, 3);
 });
 
 test('a compatible CLI update uses retained v2 guidance and fresh scope without the original source', async t => {

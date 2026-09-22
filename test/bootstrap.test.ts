@@ -11,7 +11,7 @@ const cli = installCli();
 after(() => cli.close());
 
 test('the standalone bootstrap invokes the explicit CLI and resolves omitted latest stable only once outside the project', (t) => {
-  const remote = remoteFixture(`format: repo-standards/v1
+  const remote = remoteFixture(`format: repo-standards/v2
 name: test-standards
 description: Bootstrap fixture
 requires: {repo-standards: ">=1.0.0 <2.0.0"}
@@ -113,7 +113,7 @@ test('the installed inspection command checks npm without executing author prere
 
 test('exact-version bootstrap can inspect using the configured npm cache with the registry unavailable', async t => {
   const registry = await registryFixture(cli.root, ['1.0.0']);
-  const remote = remoteFixture(`format: repo-standards/v1
+  const remote = remoteFixture(`format: repo-standards/v2
 name: cached-standards
 description: Cached bootstrap fixture
 requires: {repo-standards: ">=1.0.0 <2.0.0"}

@@ -127,13 +127,12 @@ export function carriedRuns(previous: unknown): CommittedRun[] {
 
 // The execution-evidence slice a completion writes. Last-complete, installed
 // baselines, skills, checks and assessments stay with their own owners.
-export function completedEvidence(run: { observations?: WorkInterval[]; operations: unknown[]; retryHistory?: unknown[] }, history: CommittedRun[]) {
-  const retained = run.observations !== undefined || history.length > 0;
+export function completedEvidence(run: { observations: WorkInterval[]; operations: unknown[]; retryHistory?: unknown[] }, history: CommittedRun[]) {
   return {
-    format: retained ? committedStateFormat : initialStateFormat,
-    ...(retained ? { history } : {}),
-    ...(run.observations ? { observations: committedIntervals(run.observations),
-      operations: structuredClone(run.operations), retryHistory: structuredClone(run.retryHistory ?? []) } : {}),
+    format: committedStateFormat,
+    history,
+    observations: committedIntervals(run.observations),
+    operations: structuredClone(run.operations), retryHistory: structuredClone(run.retryHistory ?? []),
   };
 }
 

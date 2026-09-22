@@ -14,7 +14,7 @@ const cli = installCli();
 const candidateVersion = inc(cli.version, 'minor')!;
 after(() => cli.close());
 
-const source = `format: repo-standards/v1
+const source = `format: repo-standards/v2
 name: re-adoption-standards
 description: Re-adoption fixture
 requires: {repo-standards: ">=1.0.0 <2.0.0"}
@@ -30,7 +30,7 @@ profiles:
     declarations: {}
 `;
 
-test('explicit re-adoption starts unchanged retained v1 standards without the original source', async t => {
+test('explicit re-adoption starts unchanged retained standards without the original source', async t => {
   const remote = remoteFixture(source, { 'agents.md': 'Pinned standards' });
   const project = sourceFixture('');
   const candidate = sourceFixture('');
@@ -96,10 +96,10 @@ test('explicit re-adoption starts unchanged retained v1 standards without the or
   assert.deepEqual(current.selection, previous.selection);
 });
 
-test('re-adoption requires fresh v1 contextual assessment and checks for newly committed project content', async t => {
+test('re-adoption requires fresh contextual assessment and checks for newly committed project content', async t => {
   const operation = { id: 'documentation', run: { executable: process.execPath, script: 'check.mjs', resources: [], arguments: [] },
     prerequisite: { 'version-arguments': ['--version'], version: '>=24 <25' }, 'timeout-seconds': 5 };
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v1', name: 're-adoption-context', description: 'Project documentation',
+  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 're-adoption-context', description: 'Project documentation',
     requires: { 'repo-standards': '^1' }, defaults: { declarations: {
       documentation: { kind: 'repository', guidance: 'guidance.md', targets: { paths: [], directories: ['projects'] }, checks: [operation] },
     } }, profiles: { work: { description: 'Work', declarations: {} } } }), {
@@ -116,7 +116,7 @@ test('re-adoption requires fresh v1 contextual assessment and checks for newly c
     const refreshed = JSON.parse(cli.run(['resume', '--json'], project.root, env).stdout);
     const request = refreshed.workRequest;
     const path = join(remote.support.root, 'assessment.json');
-    writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v1', run: request.run, selection: request.selection, snapshot: request.snapshot,
+    writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
       declarations: [{ id: 'documentation', status: 'satisfied', explanation: 'Every maintained project is documented.', changedPaths: [], evidence: ['Reviewed every file under projects.'] }] }));
     return cli.run(['resume', '--assessment', path, '--json'], project.root, env);
   }
@@ -151,8 +151,8 @@ test('re-adoption requires fresh v1 contextual assessment and checks for newly c
   assert.notEqual(second.id, first.id);
 });
 
-test('explicit re-adoption supports retained v2 selections without active discovery', async t => {
-  const remote = remoteFixture(source.replace('repo-standards/v1', 'repo-standards/v2'), { 'agents.md': 'Pinned standards' });
+test('explicit re-adoption of a selection without active discovery commits the compact state format', async t => {
+  const remote = remoteFixture(source, { 'agents.md': 'Pinned standards' });
   const project = sourceFixture('');
   const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
