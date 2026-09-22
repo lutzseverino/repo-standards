@@ -76,7 +76,7 @@ only invalid usage exits 2. A pin that cannot be answered reports
 
 Answers are cached in `.repo-standards/cache/outdated.json`, inside the product
 cache directory that `.repo-standards/.gitignore` ignores. Each lookup's answer
-stays valid for 24 hours for the same registry and package, or the same source
+stays valid for 24 hours for the same registry, or for the same source
 repository; a second invocation within that time answers from the cache without
 a request. `unknown` answers are not cached, so the next invocation looks up
 again. The cache is written only when Git confirms that its path is ignored and

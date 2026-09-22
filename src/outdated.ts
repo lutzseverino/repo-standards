@@ -18,7 +18,8 @@ const cacheValidity = 24 * 60 * 60 * 1000;
 const lookupTimeout = 10_000;
 
 interface Reason { code: string; message: string }
-// One lookup's answer: every stable version it published, and when it was read.
+// One lookup's answer: every stable version published by its registry or
+// source repository, and when it was read.
 interface Lookup { key: string; checkedAt: string; versions: string[] }
 type Answer = { lookup: Lookup; cached: boolean } | { reason: Reason };
 
@@ -46,7 +47,8 @@ function githubRepository(repository: string) {
 
 async function request(url: string, headers: Record<string, string>, code: string, service: string) {
   try { return await fetch(url, { headers, signal: AbortSignal.timeout(lookupTimeout) }); }
-  catch { throw new ProductError(code, `Cannot reach ${service} at ${url}. Check the connection and retry later.`); }
+  // The registry URL can carry credentials, so the diagnostic names the service only.
+  catch { throw new ProductError(code, `Cannot reach ${service}. Check the connection and retry later.`); }
 }
 
 async function registryVersions(registry: string) {
@@ -121,11 +123,11 @@ export async function outdated(project: string) {
     return { format, cli: { package: packageName, pinned: null, update: 'unknown', reason },
       standards: { repository: null, pinned: null, update: 'unknown', reason } };
   }
-  const registry = process.env.npm_config_registry || process.env.NPM_CONFIG_REGISTRY || 'https://registry.npmjs.org/';
+  const registry = process.env.npm_config_registry || 'https://registry.npmjs.org/';
   const cache = readCache(root);
   const now = Date.now();
   const [cli, standards] = await Promise.all([
-    answer(cache.cli, `${registry}\n${packageName}`, now, () => registryVersions(registry)),
+    answer(cache.cli, registry, now, () => registryVersions(registry)),
     answer(cache.standards, selection.standards.repository, now, () => releaseVersions(selection.standards.repository)),
   ]);
   if ([cli, standards].some(result => 'lookup' in result && !result.cached)) {

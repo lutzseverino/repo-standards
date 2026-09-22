@@ -141,6 +141,10 @@ test('an unreachable registry leaves the CLI pin unknown and still answers the s
   assert.equal(typeof report.cli.reason.message, 'string');
   assert.equal(report.standards.update, 'available');
   assert.equal(report.standards.newest, 'v1.1.0');
+  const credentialed = outdated(root, environment({ npm_config_registry: `http://agent:registry-secret@127.0.0.1:${await closedPort()}/` }));
+  assert.equal(credentialed.result.status, 0, credentialed.result.stdout + credentialed.result.stderr);
+  assert.equal(credentialed.report.cli.update, 'unknown');
+  assert.doesNotMatch(credentialed.result.stdout + credentialed.result.stderr, /registry-secret/);
 });
 
 test('an unreachable remote leaves the standards pin unknown and still answers the CLI pin', t => {
