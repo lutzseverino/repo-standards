@@ -13,8 +13,9 @@ export function commit(root: string) {
   git(root, '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false', 'commit', '--quiet', '-m', 'fixture');
 }
 
-// Replace HTTPS responses at the process boundary; the installed CLI still
+// Replace GitHub API responses at the process boundary; the installed CLI still
 // resolves tags, acquires Git objects, validates, and inspects real repositories.
+// Other requests, such as those to a local registry fixture, reach their server.
 export function remoteFixture(yaml: string, files: Record<string, string | Buffer> = {}, executables: string[] = [], repository = 'alice/standards', recordRequests = false) {
   const source = sourceFixture(yaml, files);
   for (const path of executables) chmodSync(join(source.root, path), 0o755);
@@ -24,18 +25,22 @@ export function remoteFixture(yaml: string, files: Record<string, string | Buffe
   const requestLog = join(support.root, 'requests.log');
   const loader = join(support.root, 'https-fixture.mjs');
   writeFileSync(requestLog, '');
+  const readRequests = () => readFileSync(requestLog, 'utf8').split('\n').filter(Boolean)
+    .map(line => JSON.parse(line) as { url: string; authorization: string | null });
   writeFileSync(loader, `import { appendFileSync, readFileSync } from 'node:fs';
-globalThis.fetch = async (url) => {
-  ${recordRequests ? `appendFileSync(${JSON.stringify(requestLog)}, String(url) + '\\n');` : ''}
+const unmocked = globalThis.fetch;
+globalThis.fetch = async (url, init) => {
+  ${recordRequests ? `appendFileSync(${JSON.stringify(requestLog)}, JSON.stringify({url: String(url), authorization: new Headers(init?.headers).get('authorization')}) + '\\n');` : ''}
+  if (!String(url).startsWith('https://api.github.com/')) return unmocked(url, init);
   const responses = JSON.parse(readFileSync(${JSON.stringify(dataFile)}, 'utf8'));
   const entry = responses[String(url)];
   if (!entry) throw new Error('Unexpected remote request: ' + url);
-  return new Response(JSON.stringify(entry.body), {status: entry.status ?? 200});
+  return new Response(JSON.stringify(entry.body), {status: entry.status ?? 200, headers: entry.headers});
 };\n`);
   const prefix = `https://api.github.com/repos/${repository}`;
   const sha = git(source.root, 'rev-parse', 'HEAD');
   const treeSha = git(source.root, 'rev-parse', 'HEAD^{tree}');
-  const responses: Record<string, { body: unknown; status?: number }> = {
+  const responses: Record<string, { body: unknown; status?: number; headers?: Record<string, string> }> = {
     [prefix]: { body: { private: false, full_name: repository, html_url: `https://github.com/${repository}` } },
   };
   function publishVersion(tag: string) {
@@ -64,7 +69,9 @@ globalThis.fetch = async (url) => {
   mkdirSync(cache);
   return {
     source, support, prefix, sha, treeSha, repository, responses, save,
-    requests: () => readFileSync(requestLog, 'utf8').split('\n').filter(Boolean),
+    requests: () => readRequests().map(request => request.url),
+    // Each recorded request's URL and the authorization it presented, if any.
+    requestLog: readRequests,
     publish(tag: string) { const published = publishVersion(tag); save(); return published; },
     addVersion(tag: string, nextYaml: string, nextFiles: Record<string, string | Buffer> = {}, nextExecutables: string[] = []) {
       writeFileSync(join(source.root, 'standards.yaml'), nextYaml);
