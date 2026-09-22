@@ -338,8 +338,9 @@ directory, commit that removal through the project's normal workflow, and
 inspect the selection again:
 
 ```sh
-git rm -r --quiet .repo-standards
-rm -rf .repo-standards
+git rm -r --quiet .repo-standards  # tracked product state
+rm -rf .repo-standards             # ignored runtime, local, and cache content
+git commit -m "Remove Repository Standards product state"
 ```
 
 The new inspection claims exact files and skill directories that still match the

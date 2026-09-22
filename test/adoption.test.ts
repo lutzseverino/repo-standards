@@ -179,7 +179,7 @@ profiles:`), { 'content.md': 'Expected', 'skills/review/SKILL.md': '# Review\nRe
 test('start rejects every invalid initial project state without mutation', async t => {
   const skillSource = yaml.replace('kind: file\n      target: AGENTS.md\n      exact: content.md', 'kind: skill\n      name: review\n      source: skill');
   const packagedSkill = readFileSync(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/adopt-standards/SKILL.md'), 'utf8');
-  const cases: { name: string; code: string; source?: string; files?: Record<string, string>; unborn?: boolean; setup?: (root: string) => void }[] = [
+  const cases: { name: string; code: string; source?: string; sourceFiles?: Record<string, string>; files?: Record<string, string>; unborn?: boolean; setup?: (root: string) => void }[] = [
     { name: 'no commit', code: 'NO_COMMIT', unborn: true },
     { name: 'dirty working tree', code: 'DIRTY_PROJECT', setup: root => writeFileSync(join(root, 'AGENTS.md'), 'Dirty') },
     { name: 'dirty index', code: 'DIRTY_PROJECT', setup: root => { writeFileSync(join(root, 'AGENTS.md'), 'Staged'); git(root, 'add', '.'); } },
@@ -192,6 +192,7 @@ test('start rejects every invalid initial project state without mutation', async
     { name: 'skill with differing bytes', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Unrelated review' }, source: skillSource },
     { name: 'skill with a differing mode', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Review' }, source: skillSource, setup: root => { chmodSync(join(root, '.agents/skills/review/SKILL.md'), 0o755); commit(root); } },
     { name: 'skill with an additional resource', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Review', '.agents/skills/review/notes.md': 'Local' }, source: skillSource },
+    { name: 'skill missing a supplied resource', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Review' }, source: skillSource, sourceFiles: { 'skill/notes.md': 'Supplied' } },
     { name: 'reserved system skill', code: 'SYSTEM_SKILL_CONFLICT', files: { '.agents/skills/adopt-standards/SKILL.md': 'Unrelated' } },
     { name: 'system skill with a differing mode', code: 'SYSTEM_SKILL_CONFLICT', files: { '.agents/skills/adopt-standards/SKILL.md': packagedSkill }, setup: root => { chmodSync(join(root, '.agents/skills/adopt-standards/SKILL.md'), 0o755); commit(root); } },
     { name: 'system skill with an additional resource', code: 'SYSTEM_SKILL_CONFLICT', files: { '.agents/skills/adopt-standards/SKILL.md': packagedSkill, '.agents/skills/adopt-standards/notes.md': 'Local' } },
@@ -201,7 +202,7 @@ test('start rejects every invalid initial project state without mutation', async
     { name: 'skip-worktree flags', code: 'HIDDEN_INDEX_STATE', setup: root => git(root, 'update-index', '--skip-worktree', 'AGENTS.md') },
   ];
   for (const example of cases) await t.test(example.name, st => {
-    const remote = remoteFixture(example.source ?? yaml, { 'content.md': 'Expected', 'skill/SKILL.md': 'Review' });
+    const remote = remoteFixture(example.source ?? yaml, { 'content.md': 'Expected', 'skill/SKILL.md': 'Review', ...example.sourceFiles });
     const project = sourceFixture('', { 'AGENTS.md': 'Original', 'README.md': 'Project', 'folder/file': 'File', ...example.files });
     st.after(() => { remote.close(); project.close(); });
     if (!example.unborn) commit(project.root);
