@@ -221,8 +221,8 @@ test('scope-validity omissions, mismatched identities and additional file needs 
   const f = await fixture(t);
   const start = f.start(f.inspect().report.identity).report;
   const valid = assessment(start.workRequest);
-  const oldProtocol = { ...valid, format: 'repo-standards/assessment/v1' };
-  assert.match(submit(f, oldProtocol).report.reason, /ASSESSMENT_FORMAT/);
+  const retiredFormat = { ...valid, format: 'repo-standards/assessment/v1' };
+  assert.match(submit(f, retiredFormat).report.reason, /ASSESSMENT_FORMAT/);
   const noReview = JSON.parse(JSON.stringify(valid));
   delete noReview.declarations[0].scopeValidity;
   assert.match(submit(f, noReview).report.reason, /ASSESSMENT_FORMAT/);

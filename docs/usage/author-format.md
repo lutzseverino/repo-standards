@@ -1,4 +1,4 @@
-# Author formats: repo-standards/v1 and repo-standards/v2
+# Author format: repo-standards/v2
 
 An independently authored standards repository supplies one root
 `standards.yaml` and ordinary referenced files. Run
@@ -8,16 +8,17 @@ is no profile filter. This command reads local sources, never executes author
 scripts or prerequisite probes, and does not change the source or Git state.
 Local-directory adoption is not an interface of this product.
 
-## Choose a format deliberately
+## Format identity
 
-Existing sources keep `repo-standards/v1` and their ordinary execution behavior.
-Use `repo-standards/v2` when repository guidance needs project-specific discovery.
-V2 also accepts explicit targets; file declarations, skills, operations, and
-profile resolution keep the same contracts in both formats. Set the CLI
+Every source declares `format: repo-standards/v2`, the only supported format.
+Validation rejects any other value, including the retired `repo-standards/v1`,
+with `INVALID_FORMAT`. Repository guidance uses either explicit targets or
+project-specific discovery; file declarations, skills, operations, and profile
+resolution are the same for both scope modes. Set the CLI
 compatibility range to versions actually validated; the format identity and CLI
 package version are independent. Older CLIs reject unsupported formats.
 
-This implementation supports v2 source authoring, validation, and
+This implementation supports discovery authoring, validation, and
 [two-pass scope inspection](inspection.md#discover-contextual-file-scope-v2-sources).
 A selected profile with unresolved discovery returns guidance, eligible evidence,
 a discovery request identity, and a `DISCOVERY_REQUIRED` start blocker.
@@ -42,7 +43,7 @@ custom working directories, and profile inheritance fields.
 
 | Field | Value |
 | --- | --- |
-| `format` | `repo-standards/v1` or `repo-standards/v2` |
+| `format` | `repo-standards/v2` |
 | `name` | Nonempty descriptive string |
 | `description` | Nonempty descriptive string |
 | `requires` | Mapping containing only `repo-standards`, a nonempty npm SemVer range compatible with the running CLI |
@@ -84,18 +85,18 @@ resolve to empty lists. Their remaining fields are:
 | Exact file | `kind: file`, one `target`, and `exact` referencing a regular source file |
 | Contextual file | `kind: file`, one `target`, and `guidance` referencing a regular source file |
 | Exact skill | `kind: skill`, `name`, and `source` referencing a whole directory containing a regular `SKILL.md` |
-| Repository guidance | `kind: repository`, `guidance` referencing a regular file, and exactly one scope mode: explicit `targets` containing both `paths` and `directories` lists, or (v2 only) `discovery` referencing a regular file |
+| Repository guidance | `kind: repository`, `guidance` referencing a regular file, and exactly one scope mode: explicit `targets` containing both `paths` and `directories` lists, or `discovery` referencing a regular file |
 
-A file must have exactly one of `exact` or `guidance`. Explicit repository guidance
-needs at least one path or directory. V1 requires this explicit scope; v2 requires
-exactly one of `targets` or `discovery`. Exact skills target
+A file must have exactly one of `exact` or `guidance`. Repository guidance
+requires exactly one of `targets` or `discovery`, and explicit targets need at
+least one path or directory. Exact skills target
 `.agents/skills/<name>` as a whole. `adopt-standards` and `author-standards` are
 product-owned system skill names reserved against author skills. Author skill
 content remains ordinary Agent Skill material; source
 validation verifies its directory and `SKILL.md` references, not prose quality
 or skill behavior.
 
-### Discovery guidance (v2)
+### Discovery guidance
 
 ```yaml
 format: repo-standards/v2
@@ -258,12 +259,12 @@ structurally invalid YAML may limit what can be determined.
 | `UNKNOWN_FIELD` | Field outside the author schema |
 | `REQUIRED_FIELD` | Required field omitted |
 | `INVALID_TYPE` | Wrong mapping, list, scalar, or string type |
-| `INVALID_FORMAT` | Unsupported format identity |
+| `INVALID_FORMAT` | Format identity other than `repo-standards/v2`, including the retired `repo-standards/v1` |
 | `INVALID_VERSION` | Malformed SemVer range |
 | `INCOMPATIBLE_CLI` | Running CLI does not satisfy the source range |
 | `EMPTY_PROFILES` | No complete named profile |
 | `INVALID_ID` | Declaration, skill, or operation identity is malformed |
-| `INVALID_DECLARATION` | Unknown kind, file without exactly one content mode, or v2 repository guidance without exactly one scope mode |
+| `INVALID_DECLARATION` | Unknown kind, file without exactly one content mode, or repository guidance without exactly one scope mode |
 | `INVALID_EXCLUSION` | Invalid exclusion value, level, or default identity |
 | `INVALID_EXECUTABLE` | Executable violates the documented name/path syntax |
 | `INVALID_TIMEOUT` | Timeout is not a positive safe integer |

@@ -17,7 +17,7 @@ const operation = (id: string) => ({ id, run: { executable: process.execPath, sc
   prerequisite: { 'version-arguments': ['--version'], version: '>=24 <25' }, 'timeout-seconds': 5 });
 async function fixture(t: TestContext, script = `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Verified'}));`) {
   const registry = await registryFixture(cli.root);
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v1', name: 'alice', description: 'Alice standards',
+  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'alice', description: 'Alice standards',
     requires: { 'repo-standards': '^1' }, defaults: { declarations: {
       agents: { kind: 'file', target: 'AGENTS.md', exact: 'default.md' },
       contribution: { kind: 'file', target: 'CONTRIBUTING.md', exact: 'default.md' },
@@ -53,7 +53,8 @@ test('contextual handoff identifies the run, retained guidance, allowed targets 
   assert.equal(f.run.outcome, 'incomplete');
   assert.equal(f.run.operations.length, 0);
   const request = f.run.workRequest;
-  assert.equal(request.format, 'repo-standards/work-request/v1');
+  assert.equal(request.format, 'repo-standards/work-request/v2');
+  assert.equal('scope' in request, false);
   assert.equal(request.run, f.run.id);
   assert.match(request.selection, /^sha256:/);
   assert.match(request.snapshot, /^sha256:/);
@@ -67,7 +68,7 @@ test('contextual handoff identifies the run, retained guidance, allowed targets 
 });
 
 function submission(request: { run: string; selection: string; snapshot: string }, changedPaths = ['README.md']) {
-  return { format: 'repo-standards/assessment/v1', run: request.run, selection: request.selection, snapshot: request.snapshot,
+  return { format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
     declarations: [
       { id: 'layout', status: 'satisfied', explanation: 'Source responsibilities documented.', changedPaths: ['src/queue.ts'], evidence: ['Queue module identifies its responsibility.'] },
       { id: 'readme', status: 'satisfied', explanation: 'README describes Bob’s service.', changedPaths, evidence: ['Setup and architecture explain the queue.'] },
@@ -151,18 +152,17 @@ test('malformed and mismatched assessments, missing declarations and inaccurate 
 });
 
 test('unreported out-of-scope tracked and untracked changes block completion while ignored content is excluded', async t => {
-  const f = await fixture(t);
-  contextualWork(f.project.root);
-  for (const path of ['CONTRIBUTING.md', 'unrelated.txt', 'src-other.txt']) await t.test(path, () => {
-    const target = join(f.project.root, path);
-    const before = existsSync(target) ? readFileSync(target) : null;
-    writeFileSync(target, 'Unrelated work');
+  for (const path of ['CONTRIBUTING.md', 'unrelated.txt', 'src-other.txt']) await t.test(path, async st => {
+    const f = await fixture(st);
+    contextualWork(f.project.root);
+    writeFileSync(join(f.project.root, path), 'Unrelated work');
     const request = f.resume().report.workRequest;
     const { report } = f.resume(submission(request));
-    assert.match(report.reason, /ASSESSMENT_SCOPE/);
-    assert.equal(readFileSync(target, 'utf8'), 'Unrelated work');
-    if (before) writeFileSync(target, before); else rmSync(target);
+    assert.ok(report.reason.startsWith('ASSESSMENT_SCOPE:') && report.reason.includes(path), report.reason);
+    assert.equal(readFileSync(join(f.project.root, path), 'utf8'), 'Unrelated work');
   });
+  const f = await fixture(t);
+  contextualWork(f.project.root);
   mkdirSync(join(f.project.root, 'ignored'));
   const request = f.resume().report.workRequest;
   writeFileSync(join(f.project.root, 'ignored/cache'), 'Ignored work');
@@ -208,7 +208,8 @@ test('contextual work cannot corrupt installed exact content, full skills, input
     assert.equal(readFileSync(target, 'utf8'), 'Corrupted');
     if (before) writeFileSync(target, before); else rmSync(target);
   });
-  assert.equal(f.resume(valid).result.status, 0);
+  // Restoring the bytes cannot erase the recorded out-of-scope agent changes.
+  assert.match(f.resume(valid).report.reason, /^ASSESSMENT_SCOPE:/);
 });
 
 test('checks after assessment still reject mutation and exact-content corruption', async t => {
@@ -246,7 +247,7 @@ test('content changing between assessment and final verification requires reasse
 
 test('a second independent author uses fixes, repository configuration and runbook evidence through the same handoff', async t => {
   const registry = await registryFixture(cli.root);
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v1', name: 'charlie-operations', description: 'Service operations standards',
+  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'charlie-operations', description: 'Service operations standards',
     requires: { 'repo-standards': '^1' }, defaults: { declarations: {
       operations: { kind: 'repository', guidance: 'ops.md', targets: { paths: ['service.json'], directories: ['runbooks'] },
         fixes: [operation('prepare')], checks: [operation('verify')] },
@@ -274,8 +275,8 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status,message:'Se
   writeFileSync(join(project.root, 'runbooks/recovery.md'), 'Incident command: payments on-call. Replay failed payments using the queue.');
   const request = JSON.parse(cli.run(['resume', '--json'], project.root, env).stdout).workRequest;
   const path = join(remote.support.root, 'assessment.json');
-  writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v1', run: request.run, selection: request.selection, snapshot: request.snapshot,
-    declarations: [{ id: 'operations', status: 'satisfied', explanation: 'Owner recorded and payments recovery documented.', changedPaths: ['runbooks/recovery.md'], evidence: ['service.json names payments; runbook gives the replay procedure.'] }] }));
+  writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
+    declarations: [{ id: 'operations', status: 'satisfied', explanation: 'Owner recorded and payments recovery documented.', changedPaths: ['runbooks', 'runbooks/recovery.md'], evidence: ['service.json names payments; runbook gives the replay procedure.'] }] }));
   const resumed = cli.run(['resume', '--assessment', path, '--json'], project.root, env);
   assert.equal(resumed.status, 0, resumed.stdout + resumed.stderr);
   assert.deepEqual(JSON.parse(resumed.stdout).operations.map((o: { result: { status: string } }) => o.result.status), ['changed', 'passed']);

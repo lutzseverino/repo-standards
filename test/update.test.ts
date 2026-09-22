@@ -15,7 +15,7 @@ const cli = installCli();
 const candidateVersion = inc(cli.version, 'minor')!;
 after(() => cli.close());
 
-const source = (version: string, declarations: string) => `format: repo-standards/v1
+const source = (version: string, declarations: string) => `format: repo-standards/v2
 name: update-standards
 description: Update fixture ${version}
 requires: {repo-standards: ">=1.0.0 <2.0.0"}
@@ -366,11 +366,11 @@ test('whole-skill updates allow resources to change between files and directorie
   assert.equal(git(project.root, 'rev-parse', 'HEAD'), head);
 });
 
-async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standards', format: 'v1' | 'v2' = 'v1') {
+async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standards') {
   const yaml = source('v1', `    review:
       kind: skill
       name: review
-      source: review`).replace('format: repo-standards/v1', `format: repo-standards/${format}`);
+      source: review`);
   const remote = remoteFixture(yaml, { 'review/SKILL.md': '# Review v1', 'review/obsolete.txt': 'Old resource' });
   const project = sourceFixture('');
   const registry = await registryFixture(cli.root, kind === 'cli' ? [cli.version, candidateVersion] : [cli.version]);
@@ -659,7 +659,7 @@ test('both update paths run fixes, contextual assessment, and checks with only a
       readme: { kind: 'file', target: 'README.md', guidance: 'guide.md', fixes: [operation('prepare')], checks: [operation('verify')] },
       retired: { kind: 'file', target: 'RETIRED.md', exact: 'retired.md', fixes: [operation('old-fix')], checks: [operation('old-check')] },
     };
-    const manifest = (active: object) => stringify({ format: 'repo-standards/v1', name: 'contextual-updates', description: 'Update lifecycle',
+    const manifest = (active: object) => stringify({ format: 'repo-standards/v2', name: 'contextual-updates', description: 'Update lifecycle',
       requires: { 'repo-standards': '^1' }, defaults: { declarations: active }, profiles: { work: { description: 'Work', declarations: {} } } });
     const remote = remoteFixture(manifest(declarations), {
       'guide.md': 'Explain how to use this project.', 'retired.md': 'Preserve retired content',
@@ -681,7 +681,7 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status, message:
       writeFileSync(join(project.root, 'README.md'), '# Queue service\n## Usage\nRun the worker to process queued jobs.\n');
       const request = JSON.parse(run(['resume', '--json']).stdout).workRequest;
       const path = join(remote.support.root, 'assessment.json');
-      writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v1', run: request.run, selection: request.selection, snapshot: request.snapshot,
+      writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
         declarations: [{ id: 'readme', status: 'satisfied', explanation: 'Documented the queue worker.', changedPaths: ['README.md'], evidence: ['Usage explains how to process jobs.'] }] }));
       return run(['resume', '--assessment', path, '--json']);
     };
@@ -768,9 +768,9 @@ syncBuiltinESMExports();`);
   assert.equal(reconciled.status, 0, reconciled.stdout + reconciled.stderr);
 });
 
-test('v2 interrupted skill replacement preserves unexpected directories until reconciled', async t => {
+test('interrupted skill replacement preserves unexpected directories until reconciled', async t => {
   for (const phase of ['removing', 'installing']) await t.test(phase, async t => {
-    const f = await pendingUpdate(t, 'standards', 'v2');
+    const f = await pendingUpdate(t, 'standards');
     const env = filesystemFault(f.remote.support.root, f.env, 'installation', phase === 'removing' ? `
 const remove = fs.rmSync;
 fs.rmSync = function(path, ...args) {

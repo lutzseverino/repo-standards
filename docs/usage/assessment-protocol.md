@@ -2,7 +2,7 @@
 
 After exact installation and serial fixes, a profile with contextual file or
 repository guidance returns an incomplete `contextual` run with a
-`repo-standards/work-request/v1` object in `workRequest`. The CLI never runs a
+`repo-standards/work-request/v2` object in `workRequest`. The CLI never runs a
 model. This handoff uses the already confirmed selection and preserves the run,
 installed baselines, and post-fix project snapshot for subsequent commands.
 
@@ -13,9 +13,9 @@ The request contains:
 - `run`: the adoption run ID.
 - `selection`: a content-derived identity for the exact CLI, standards source,
   version, commit, and profile selection.
-- `snapshot`: a content-derived identity for current tracked and non-ignored
-  untracked project content, excluding `.repo-standards/` generated state, and
-  the current retry attempt. Copy this opaque identity from the current request.
+- `snapshot`: a content-derived identity for the current observed project
+  content, excluding `.repo-standards/` generated state, and the current retry
+  attempt. Copy this opaque identity from the current request.
 - `declarations`: every active contextual declaration, sorted by ID. Each entry
   contains `id`, `guidance` (source-relative `source`, `content`, `encoding`,
   SHA-256 and executable state), and `allowedTargets` with explicit `paths` and
@@ -53,7 +53,7 @@ unrelated project path is itself an out-of-scope change.
 
 ```json
 {
-  "format": "repo-standards/assessment/v1",
+  "format": "repo-standards/assessment/v2",
   "run": "COPY_WORK_REQUEST_RUN",
   "selection": "COPY_WORK_REQUEST_SELECTION",
   "snapshot": "COPY_WORK_REQUEST_SNAPSHOT",
@@ -90,8 +90,6 @@ files, including every changed file within a directory tree. Changes made by
 installation and fixes are already accounted for and must not be claimed as
 contextual changes. An unchanged extra path, omitted observed path, path under
 the wrong declaration, unsafe target, or out-of-scope change blocks completion.
-For v1, ignored untracked files are outside the content snapshot; tracked files remain
-observed even when an ignore rule matches them.
 
 ## Freshness, checks, and durable evidence
 
@@ -103,8 +101,8 @@ report separately from script results and prevent checks from starting.
 A satisfied assessment advances to checks in declaration and list order, then
 final integrity verification and durable completion. All checks execute again
 for a renewed accepted assessment; earlier attempts remain in the active run's
-operation history. The `checks` and `assessments` fields record the final attempt; v2 also retains
-interval and retry history as described below. Changes after assessment invalidate completion, and detected
+operation history. The `checks` and `assessments` fields record the final attempt; the
+interval and retry history is retained as described below. Changes after assessment invalidate completion, and detected
 check mutation remains an incomplete result with changes preserved.
 
 Resume uses the installation expectations captured before contextual work;
@@ -128,19 +126,20 @@ assessment authorizes repeating these operations. Use explicit `resume --retry`
 to recover interrupted work and repeat fixes, or `abandon` to preserve its work
 and report; see [Recovery commands](adoption.md#recover-or-abandon-an-interrupted-run).
 Retry requires new assessment even when project bytes are unchanged, and retains
-the original contextual comparison baseline for v1; v2 retains separate intervals
-as described below. Updates use this same assessment interface. The [real-agent acceptance journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) evaluates contextual
+separate intervals as described below. Updates use this same assessment interface. The [real-agent acceptance journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) evaluates contextual
 usefulness separately; scripted agents exercise this deterministic protocol.
 
 ## V2 observation and replay
 
-For v2 explicit-target adoption, the work-request and assessment fields stay
-unchanged (`repo-standards/work-request/v1`, `repo-standards/assessment/v1`). The
-snapshot identity also binds named files and ancestors, effective observation
-settings and consulted ignore inputs. Named files remain observable when ignore
+For explicit-target adoption, the work request and assessment carry no `scope`
+field or `scopeValidity` reviews. The snapshot identity binds the observed
+project content, named files and ancestors, effective observation settings and
+consulted ignore inputs. Named files remain observable when ignore
 rules change. Explicit directory targets keep their complete tree behavior;
 unlisted ignored siblings outside those trees remain outside the observation
-promise. Incomplete observation blocks progression.
+promise. Creating, removing, or changing the mode of an explicit directory
+target is itself an observed change: report the directory path alongside the
+files changed within it. Incomplete observation blocks progression.
 
 `changedPaths` must account for the union of **observed agent changes across all
 agent intervals in this run**, under each owning declaration. It excludes work
@@ -161,8 +160,8 @@ without asserting ongoing compliance.
 
 ## Discovery work-request/v2 and assessment/v2
 
-Active discovery uses `repo-standards/work-request/v2`; v1 sources and v2 explicit
-selections continue to use the v1 work-request and assessment shapes. The v2
+Active discovery uses the same `repo-standards/work-request/v2` and
+`repo-standards/assessment/v2` formats as explicit selections. The
 request adds `scope` with the confirmed `inspection` identity, `afterFixes`
 snapshot identity, and accepted `proposal`. Each discovered declaration also
 includes `discovery` guidance alongside its contextual `guidance` and concrete
@@ -199,7 +198,7 @@ membership or a target that must be withdrawn also requires blocked status, with
 an explanation. `valid` requires an empty additional-path list. Every discovery
 declaration needs both reviews, including empty scope. Explicit contextual
 declarations keep their ordinary entry fields. Mismatched scope identities,
-missing reviews, and a v1 submission for a v2 request are rejected.
+missing reviews, and a submission in another format are rejected.
 
 A structurally valid blocked review is retained as `SCOPE_INCOMPLETE` before checks.
 It grants no authority, and an active run cannot change its confirmed scope.

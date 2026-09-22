@@ -1,8 +1,8 @@
-format: repo-standards/v1
+format: repo-standards/v2
 name: mira-service-standards
 description: Operational readiness for small services
 requires:
-  repo-standards: ">=1.0.0 <2.0.0"
+  repo-standards: ">=1.2.0 <2.0.0"
 defaults:
   declarations:
     editor-settings:

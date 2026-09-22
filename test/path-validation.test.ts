@@ -6,7 +6,7 @@ import { installCli, sourceFixture } from './installed-cli.ts';
 
 const cli = installCli();
 after(() => cli.close());
-const header = `format: repo-standards/v1
+const header = `format: repo-standards/v2
 name: paths
 description: Path validation
 requires: {repo-standards: ">=1.0.0 <2.0.0"}

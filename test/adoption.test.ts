@@ -11,7 +11,7 @@ import { filesystemFault } from './adoption-faults.ts';
 
 const cli = installCli();
 after(() => cli.close());
-const yaml = `format: repo-standards/v1
+const yaml = `format: repo-standards/v2
 name: exact-standards
 description: Exact adoption
 requires: {repo-standards: ">=1.0.0 <2.0.0"}
@@ -566,7 +566,7 @@ let failed = false;
 fs.writeFileSync = function(path, data, ...args) {
   let report;
   try { report = JSON.parse(String(data)); } catch {}
-  if (!failed && String(path).includes('/.repo-standards/local/') && report?.format === 'repo-standards/run/v1' && report.outcome === 'complete') {
+  if (!failed && String(path).includes('/.repo-standards/local/') && report?.format === 'repo-standards/run/v2' && report.outcome === 'complete') {
     failed = true;
     throw Object.assign(new Error('No space for final run report'), {code: 'ENOSPC'});
   }

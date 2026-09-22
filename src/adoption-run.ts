@@ -25,11 +25,11 @@ const pendingWork = {
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: 'retained'; project: string; scope?: string; readopt?: true };
 export interface Run {
-  format: 'repo-standards/run/v1' | 'repo-standards/run/v2'; id: string; inspection: string;
+  format: 'repo-standards/run/v2'; id: string; inspection: string;
   selection: Inspection['selection'];
   affected: Record<string, Observation>;
   prerequisites: PrerequisiteEvidence[]; operations: OperationEvidence[];
-  observations?: WorkInterval[];
+  observations: WorkInterval[];
   outcome: 'complete' | 'incomplete'; phase: string; reason: string;
   workRequest?: WorkRequest; continuation?: string; assessments: Assessment[];
   installation?: { files: string[]; runtime: boolean; complete?: boolean; trees?: Record<string, 'removing' | 'installing'> };
@@ -41,7 +41,7 @@ export interface Run {
 }
 
 export interface WorkRequest {
-  format: 'repo-standards/work-request/v1' | 'repo-standards/work-request/v2'; run: string; selection: string; snapshot: string;
+  format: 'repo-standards/work-request/v2'; run: string; selection: string; snapshot: string;
   scope?: ScopeConfirmation & { proposal: NonNullable<Inspection['discovery']>['proposal'] };
   declarations: { id: string; guidance: Inspection['guidance'][number]; discovery?: NonNullable<Inspection['discovery']>['declarations'][number]; allowedTargets: { paths: string[]; directories: string[] } }[];
   requiredEvidence: string[];
@@ -49,7 +49,7 @@ export interface WorkRequest {
 export interface Installation {
   report: Inspection; files: Files; skills: Record<string, string[]>;
   exactBaselines: Record<string, Baseline>; durable: Record<string, Baseline>;
-  runtimeHash: string; contextualBaseline?: string; scopeAfterFixes?: string; before: Record<string, Observation>;
+  runtimeHash: string; scopeAfterFixes?: string; before: Record<string, Observation>;
   replaceTrees?: string[]; transitional?: Files;
 }
 function cleanupRun(lock: string) {
@@ -186,10 +186,8 @@ export function abandon(project: string, cliVersion: string) {
     if (run.selection.cli.version !== cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
     if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before abandonment.`);
     if (run.outcome === 'complete') throw new ProductError('ALREADY_COMPLETE', 'This adoption completed before interruption. Use resume --retry to verify and release its remaining progress record.');
-    if (run.observations) {
-      try { observeContinuation(root, run.observations, readInstallation(root, run).report.resolved, run.operations.length); }
-      catch { run.uncertain.push('The final abandoned observation could not be completed; earlier interval evidence is preserved.'); }
-    }
+    try { observeContinuation(root, run.observations, readInstallation(root, run).report.resolved, run.operations.length); }
+    catch { run.uncertain.push('The final abandoned observation could not be completed; earlier interval evidence is preserved.'); }
     run.archivedFiles = archiveRunEvidence(root, run);
     for (const operation of run.operations) for (const stream of ['stdout', 'stderr'] as const) {
       const archived = run.archivedFiles[operation[stream]];
@@ -300,8 +298,7 @@ export class AdoptionRunSession {
     const root = this.#root;
     const previous = report.update || report.action === 'readopt' ? recordedState(root) : undefined;
     const recovering = this.#run;
-    const run: Run = recovering ?? { format: report.source?.format === 'repo-standards/v2' ? 'repo-standards/run/v2' : 'repo-standards/run/v1',
-      ...(report.source?.format === 'repo-standards/v2' ? { observations: [] } : {}), id: randomUUID(), inspection: confirmation, selection: report.selection, startInput,
+    const run: Run = recovering ?? { format: 'repo-standards/run/v2', observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, startInput,
       ...(previous ? { previousComplete: { selection: previous.pinned.selection, lastComplete: previous.state.lastComplete } } : {}),
       affected: { ...report.project.affected, [systemTarget]: report.project.systemSkill }, outcome: 'incomplete',
       prerequisites: [], operations: [], assessments: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],
@@ -381,7 +378,6 @@ export class AdoptionRunSession {
 
   openObservation(interval: WorkInterval, interveningScope = interval.scope) {
     const run = this.#state();
-    if (!run.observations) return;
     if (run.observations.at(-1) && !run.observations.at(-1)!.after) throw new ProductError('OBSERVATION_INCOMPLETE', 'The preceding observation interval must be closed before more work.');
     const previous = run.observations.at(-1);
     if (previous?.after && json(previous.after) !== json(interval.before)) {
@@ -396,17 +392,15 @@ export class AdoptionRunSession {
   }
 
   observeContinuation(resolved: Installation['report']['resolved'], interrupted = false, restorable?: WorkInterval['scope'][string]) {
-    const intervals = this.#state().observations;
-    if (!intervals) return;
-    observeContinuation(this.#root, intervals, resolved, interrupted ? this.#state().operations.length : undefined, restorable);
+    observeContinuation(this.#root, this.#state().observations, resolved, interrupted ? this.#state().operations.length : undefined, restorable);
     this.#save();
   }
 
   async authorProcess(operation: { phase: 'fixes' | 'checks'; declaration: string; id: string },
-    execute: (onSpawn: (group: number) => void) => Promise<OperationEvidence>, verify: () => void, observation?: { scope: WorkInterval['scope']; agentScope: WorkInterval['scope']; before: WorkObservation; capture: () => WorkObservation }) {
+    execute: (onSpawn: (group: number) => void) => Promise<OperationEvidence>, verify: () => void, observation: { scope: WorkInterval['scope']; agentScope: WorkInterval['scope']; before: WorkObservation; capture: () => WorkObservation }) {
     const run = this.#state();
     const root = this.#root;
-    if (observation) this.openObservation({ phase: operation.phase, operation, operationIndex: run.operations.length, scope: observation.scope, before: observation.before }, observation.agentScope);
+    this.openObservation({ phase: operation.phase, operation, operationIndex: run.operations.length, scope: observation.scope, before: observation.before }, observation.agentScope);
     run.phase = operation.phase; run.reason = 'Run in progress or interrupted.';
     run.uncertain = [`${operation.declaration}/${operation.id}: process outcome uncertain until recorded`]; this.#save();
     const persistedRun = file(json(run));
@@ -424,7 +418,7 @@ export class AdoptionRunSession {
     run.uncertain = ['Post-operation integrity verification has not succeeded.'];
     // Observe before integrity verification, but persist only after checking the
     // author-visible journal: observation persistence must not conceal tampering.
-    if (observation) finishInterval(run.observations!.at(-1)!, observation.capture());
+    finishInterval(run.observations.at(-1)!, observation.capture());
     const currentRun = safe(root, '.repo-standards/local/run.json');
     if (currentRun.type === 'file' && currentRun.sha256 !== persistedRun.sha256) write(root, `${log}.altered-run.json`, currentRun);
     verifyFiles(root, { '.repo-standards/local/run.json': persistedRun });
@@ -432,7 +426,7 @@ export class AdoptionRunSession {
     if (currentLock.type !== 'file' || currentLock.sha256 !== persistedLock.sha256) throw new ProductError('FINAL_INTEGRITY', 'The active adoption run lock changed during author execution.');
     verify();
     run.uncertain = [];
-    if (run.observations) requireValidIntervals(run.observations);
+    requireValidIntervals(run.observations);
     return structuredClone(evidence);
   }
 
@@ -486,15 +480,13 @@ export class AdoptionRunSession {
       write(root, '.repo-standards/lock.json', installation.files['.repo-standards/lock.json']!, run.id);
       delete run.completion;
     }
-    if (run.observations) {
-      let restorable: WorkInterval['scope'][string] | undefined;
-      if (run.installation?.complete) {
-        verify(root, installation);
-        restorable = { paths: Object.keys(installation.exactBaselines), directories: Object.keys(installation.skills) };
-      }
-      this.observeContinuation(installation.report.resolved, true, restorable);
-      requireValidIntervals(run.observations);
+    let restorable: WorkInterval['scope'][string] | undefined;
+    if (run.installation?.complete) {
+      verify(root, installation);
+      restorable = { paths: Object.keys(installation.exactBaselines), directories: Object.keys(installation.skills) };
     }
+    this.observeContinuation(installation.report.resolved, true, restorable);
+    requireValidIntervals(run.observations);
     const interruptedReport = archivedFiles['.repo-standards/local/run.json'];
     (run.retryHistory ??= []).push({ phase: run.phase, reason: run.reason, uncertain: [...run.uncertain], assessments: run.assessments, archivedFiles, ...(interruptedReport ? { report: interruptedReport } : {}) });
     run.outcome = 'incomplete'; run.phase = 'prerequisites';

@@ -22,7 +22,7 @@ test('Alice author example checks actual README headings through installed adopt
   const started = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
   assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout);
   const assessment = (request: { run: string; selection: string; snapshot: string }, changedPaths: string[]) => ({
-    format: 'repo-standards/assessment/v1', run: request.run, selection: request.selection, snapshot: request.snapshot,
+    format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
     declarations: [
       { id: 'readme', status: 'satisfied', explanation: 'Scripted protocol exercise.', changedPaths, evidence: ['README reviewed for this deterministic check exercise.'] },
       { id: 'source-layout', status: 'satisfied', explanation: 'No source changes needed in this minimal fixture.', changedPaths: [], evidence: ['The fixture has no source tree.'] },
@@ -67,7 +67,7 @@ test('Mira service source retains check resources and preserves fix output on ex
   writeFileSync(join(project.root, 'docs/operations.md'), '# Harbor\n## Startup\nStart the service.\n## Health\nProbe loopback.\n## Recovery\nRestart loses in-memory state.\n');
   const request = JSON.parse(cli.run(['resume', '--json'], project.root, env).stdout).workRequest;
   const assessment = join(remote.support.root, 'assessment.json');
-  writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v1',
+  writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v2',
     run: request.run, selection: request.selection, snapshot: request.snapshot,
     declarations: [{ id: 'operations-guide', status: 'satisfied', explanation: 'Scripted structural test.',
       changedPaths: ['docs/operations.md'], evidence: ['Startup, Health and Recovery sections present.'] }] }));

@@ -118,7 +118,7 @@ export interface InspectOptions { source: string; standardsVersion: string; prof
 interface RecordedAdoption {
   selection: RecordedSelection;
   baselines: Record<string, Pick<Content, 'sha256' | 'executable'>>;
-  skills: Record<string, string[]>; completeInventory: boolean;
+  skills: Record<string, string[]>;
   resolved: { declarations: { id: string; kind: string; target?: string; name?: string }[] };
   files: Record<string, Pick<Content, 'sha256' | 'executable'>>;
   historicalScope?: ScopeHistoryRun;
@@ -148,18 +148,16 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
       throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.');
     }
   }
-  return { selection: lock.selection, baselines: state.baselines, skills: state.skills,
-    // Every committed format after the original records a complete inventory.
-    completeInventory: state.format !== 'repo-standards/state/v1', resolved, files: lock.files,
+  return { selection: lock.selection, baselines: state.baselines, skills: state.skills, resolved, files: lock.files,
     ...(historicalScope ? { historicalScope } : {}) };
 }
 
-export function inventoryPaths(value: Observation, directories = false): string[] {
+export function inventoryPaths(value: Observation): string[] {
   const result: string[] = [];
   function visit(prefix: string, child: Observation) {
     if (child.type === 'file') result.push(prefix);
     else if (child.type === 'directory') {
-      if (directories && prefix) result.push(prefix + '/');
+      if (prefix) result.push(prefix + '/');
       for (const [name, entry] of Object.entries(child.entries)) visit(prefix ? `${prefix}/${name}` : name, entry);
     }
   }
@@ -170,17 +168,17 @@ export function inventoryPaths(value: Observation, directories = false): string[
 // Installed trees have the directories implied by their materialized files.
 // An extra empty directory changes that tree even when a file-only inventory
 // omits it. Use the same comparison for skills and durable product state.
-export function plannedInventory(files: string[], complete = false): Set<string> {
+export function plannedInventory(files: string[]): Set<string> {
   const expected = new Set(files);
-  if (complete) for (const file of files) {
+  for (const file of files) {
     const parts = file.split('/');
     for (let length = 1; length < parts.length; length++) expected.add(parts.slice(0, length).join('/') + '/');
   }
   return expected;
 }
 
-export function matchesInventory(value: Observation, files: string[], complete = false) {
-  return JSON.stringify(inventoryPaths(value, complete)) === JSON.stringify([...plannedInventory(files, complete)].sort());
+export function matchesInventory(value: Observation, files: string[]) {
+  return JSON.stringify(inventoryPaths(value)) === JSON.stringify([...plannedInventory(files)].sort());
 }
 
 function productStateObservation(root: string, blockers: Blocker[]) {
@@ -202,8 +200,8 @@ export function observeProductState(root: string) {
   return observed;
 }
 
-export function productInventory(root: string, complete = false): string[] {
-  return inventoryPaths(observeProductState(root), complete).map(path => `.repo-standards/${path}`);
+export function productInventory(root: string): string[] {
+  return inventoryPaths(observeProductState(root)).map(path => `.repo-standards/${path}`);
 }
 
 export async function inspect(options: InspectOptions, cliVersion: string, retained?: Awaited<ReturnType<typeof acquireSource>> & { manifest: string; ownedSkills: ReadonlySet<string> }) {
@@ -284,14 +282,14 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       }
       for (const [path, expected] of Object.entries(previous.skills)) {
         const actual = targetObservation(root, path, blockers);
-        if (!matchesInventory(actual, expected, previous.completeInventory)) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'The installed skill inventory differs from its last-complete baseline. Reconcile added or removed resources before updating.' });
+        if (!matchesInventory(actual, expected)) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'The installed skill inventory differs from its last-complete baseline. Reconcile added or removed resources before updating.' });
       }
       for (const [path, expected] of Object.entries(previous.files).filter(([path]) => path.startsWith('.repo-standards/'))) {
         const actual = targetObservation(root, path, blockers);
         if (actual.type !== 'file' || actual.sha256 !== expected.sha256 || actual.executable !== expected.executable) blockers.push({ code: 'STATE_INTEGRITY', path, message: 'Retained product material differs from its recorded baseline. Restore it before updating.' });
       }
       const expectedProductFiles = [...Object.keys(previous.files).filter(path => path.startsWith('.repo-standards/')), '.repo-standards/lock.json', '.repo-standards/state.json'].sort();
-      if (!matchesInventory(productState, expectedProductFiles.map(path => path.slice('.repo-standards/'.length)), previous.completeInventory)) {
+      if (!matchesInventory(productState, expectedProductFiles.map(path => path.slice('.repo-standards/'.length)))) {
         blockers.push({ code: 'STATE_INTEGRITY', path: '.repo-standards', message: 'The durable product-state inventory changed. Reconcile added or removed material before updating.' });
       }
     }

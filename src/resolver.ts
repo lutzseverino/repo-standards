@@ -35,7 +35,7 @@ function resolveDocument(root: Value, fields: Fields, paths: Paths, cliVersion: 
   fields.map(root, ['format', 'name', 'description', 'requires', 'defaults', 'profiles']);
   const format = fields.get(root, 'format');
   const formatName = fields.string(format);
-  if (formatName !== 'repo-standards/v1' && formatName !== 'repo-standards/v2') error('INVALID_FORMAT', 'Expected repo-standards/v1 or repo-standards/v2.', format);
+  if (formatName !== 'repo-standards/v2') error('INVALID_FORMAT', 'Expected repo-standards/v2.', format);
   const name = fields.string(fields.get(root, 'name'));
   const description = fields.string(fields.get(root, 'description'));
   const requires = fields.get(root, 'requires');
@@ -46,7 +46,7 @@ function resolveDocument(root: Value, fields: Fields, paths: Paths, cliVersion: 
   else if (range && !satisfies(cliVersion, range)) error('INCOMPATIBLE_CLI', `CLI ${cliVersion} does not satisfy ${range}.`, rangeValue);
   const defaults = fields.get(root, 'defaults');
   fields.map(defaults, ['declarations']);
-  const declarations = new Declarations(fields, paths, formatName);
+  const declarations = new Declarations(fields, paths);
   const inherited = declarations.read(fields.get(defaults, 'declarations'));
   const profilesValue = fields.get(root, 'profiles');
   const profiles: Record<string, SourceProfile> = Object.create(null);

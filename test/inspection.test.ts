@@ -8,7 +8,7 @@ import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts'
 const cli = installCli();
 after(() => cli.close());
 
-const simpleSource = (target = 'AGENTS.md') => `format: repo-standards/v1
+const simpleSource = (target = 'AGENTS.md') => `format: repo-standards/v2
 name: test-standards
 description: Inspection fixture
 requires: {repo-standards: ">=1.0.0 <2.0.0"}
@@ -347,8 +347,8 @@ test('case conflicts retain the exact target bytes and bind them into inspection
   }
 });
 
-test('selected v2 discovery returns a blocked inspection and prevents start without author execution', (t) => {
-  const yaml = simpleSource().replace('repo-standards/v1', 'repo-standards/v2')
+test('selected discovery returns a blocked inspection and prevents start without author execution', (t) => {
+  const yaml = simpleSource()
     .replace('profiles:', `    documentation:
       kind: repository
       guidance: guidance.md

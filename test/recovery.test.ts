@@ -16,7 +16,7 @@ after(() => cli.close());
 
 async function fixture(t: TestContext, declarations: Record<string, unknown> = {}, script = '') {
   const registry = await registryFixture(cli.root);
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v1', name: 'recovery', description: 'Recovery standards',
+  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'recovery', description: 'Recovery standards',
     requires: { 'repo-standards': '^1' }, defaults: { declarations: {
       agents: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' }, ...declarations,
     } }, profiles: { work: { description: 'Work', declarations: {} } } }), {
@@ -98,7 +98,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.opera
   assert.equal(readFileSync(join(f.project.root, '.repo-standards/local/fix-attempts'), 'utf8'), '2');
   writeFileSync(join(f.project.root, 'README.md'), 'Prepared project with specific instructions');
   const request = f.report(['resume', '--json']).report.workRequest;
-  const assessment = { format: 'repo-standards/assessment/v1', run: request.run, selection: request.selection, snapshot: request.snapshot,
+  const assessment = { format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
     declarations: [{ id: 'readme', status: 'satisfied', explanation: 'Project instructions completed.', changedPaths: ['README.md'], evidence: ['README includes specific instructions.'] }] };
   const path = join(f.remote.support.root, 'assessment.json');
   writeFileSync(path, JSON.stringify(assessment));
@@ -164,7 +164,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status,message:'Ch
   const started = f.report(f.startArgs).report;
   const old = started.workRequest;
   const path = join(f.remote.support.root, 'assessment.json');
-  writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v1', run: old.run, selection: old.selection, snapshot: old.snapshot,
+  writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v2', run: old.run, selection: old.selection, snapshot: old.snapshot,
     declarations: [{ id: 'readme', status: 'satisfied', explanation: 'Existing content satisfies guidance.', changedPaths: [], evidence: ['Read original project description.'] }] }));
   assert.match(f.report(['resume', '--assessment', path, '--json']).report.reason, /CHECKS_FAILED/);
   writeFileSync(join(f.project.root, 'AGENTS.md'), 'Maintainer edit');
@@ -338,7 +338,7 @@ fs.writeFileSync = function(path, data, ...args) {
   const result = originalWrite.call(this, path, data, ...args);
   let value;
   try { value = JSON.parse(String(data)); } catch {}
-  if (String(path).endsWith('.tmp') && value?.format === 'repo-standards/state/v1') process.kill(process.pid, 'SIGKILL');
+  if (String(path).endsWith('.tmp') && value?.format === 'repo-standards/state/v5') process.kill(process.pid, 'SIGKILL');
   return result;
 }; syncBuiltinESMExports();`);
   assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');

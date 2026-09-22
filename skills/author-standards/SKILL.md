@@ -47,9 +47,9 @@ deferred decisions distinct from confirmed choices. None produces policy.
 
 Once there is a confirmed choice to express, read [CLI and matching
 documentation](references/cli.md), acquire the external CLI, and read its
-`docs/author-format.md` before creating source material. Choose the format
-deliberately: preserve v1 for existing explicit-scope sources;
-use v2 when accepted repository guidance needs discovery in unfamiliar layouts.
+`docs/author-format.md` before creating source material. Every source uses the
+one `repo-standards/v2` format; choose discovery when accepted repository
+guidance needs to find its scope in unfamiliar layouts.
 Explain the choice and set compatibility to the CLI actually validated. Follow
 its format contract without adding preference fields to `standards.yaml`.
 
@@ -63,7 +63,7 @@ alongside the draft:
   an agent uses the supplied guidance to assess or adapt it. Show the guidance
   and target, not a fictional project document.
 - **Repository guidance:** project-owned content across explicit paths or
-  directory trees, or files identified by v2 discovery, is assessed or adapted.
+  directory trees, or files identified by discovery, is assessed or adapted.
   Review explicit scope or author-confirmed discovery criteria alongside the
   contextual guidance. For discovery, create a separate file explaining where
   guidance applies, including positive membership evidence and excluded

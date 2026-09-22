@@ -52,7 +52,7 @@ start the exact same selection with its identity:
   --confirm 'sha256:INSPECTION_HASH' --json
 ```
 
-When the candidate v2 profile has active discovery declarations, the first
+When the candidate profile has active discovery declarations, the first
 inspection requires fresh project evidence. Build a new `--scope` proposal and
 pass it to both the complete inspection and confirmed start. The report lists
 discovered-scope additions and removals relative to the prior complete adoption;
@@ -96,7 +96,7 @@ or CLI version:
   --confirm 'sha256:INSPECTION_HASH' --json
 ```
 
-Omit `--scope` for v1 and for v2 selections without active discovery. For v2,
+Omit `--scope` for selections without active discovery. With active discovery,
 first run `inspect --readopt --json`, interpret the retained discovery guidance
 against fresh project evidence, then use the new proposal in the commands above.
 
@@ -167,7 +167,7 @@ Review and commit these files through the adopting project's normal workflow:
 | --- | --- |
 | `.repo-standards/selection.yaml` | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile. |
 | `.repo-standards/lock.json` | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state. |
-| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this and each prior complete v2 run. |
+| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this and each prior complete run. |
 | `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
 | `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
@@ -195,12 +195,9 @@ Scope-history v2 and every earlier format stay readable; the next complete
 adoption rewrites the file as v3 and carries each earlier run forward once. No
 separate compaction command exists. Work intervals and final
 scope-validity assessments are committed in state v5. Each
-later complete v2 run moves the prior run's interval,
+later complete run moves the prior run's interval,
 operation, retry, check and assessment evidence into the state's ordered
 `history`, so earlier authorized work remains explainable in a fresh checkout.
-An intervening v1 standards update keeps its v1 run, work-request and assessment
-protocols while carrying the earlier v2 evidence in state and status v5; a later
-v2 completion therefore cannot erase that history.
 The v5 format makes clients that predate compact work evidence reject the
 new state rather than silently overlooking it.
 
@@ -241,8 +238,7 @@ Neither dependencies nor run records belong in commits.
 
 ## Completion and incomplete results
 
-`start` prints a `repo-standards/run/v1` JSON report for v1 sources and
-`repo-standards/run/v2` for v2 sources. Its fields include `id`,
+`start` prints a `repo-standards/run/v2` JSON report. Its fields include `id`,
 `inspection`, `selection`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
 `uncertain`, `nextAction`, `prerequisites`, `operations`, `assessments`, and contextual
 `workRequest` when required. `installation.files` and `installation.runtime` record
@@ -391,9 +387,9 @@ Retry reruns repeat-safe fixes in declaration order, requests renewed contextual
 assessment where applicable, reruns checks, and verifies final integrity before
 recording completion. It retains earlier operation evidence and uncertainty as
 history. Old assessments cannot satisfy a retry, even if project bytes match.
-V1 keeps its existing contextual comparison baseline. V2 records separate
+Retry records separate
 fix and agent observation intervals, retaining earlier observed agent edits
-even when replayed fixes overwrite the same files. V2 retry cannot erase
+even when replayed fixes overwrite the same files. Retry cannot erase
 recorded scope violations or create scope authority; see the
 [observed execution contract](script-protocol.md#observed-scope-for-v2-adoption). Submit a new assessment separately after retry;
 `--retry` and `--assessment` cannot be combined. Plain `resume` and
@@ -463,7 +459,7 @@ from retained material. Local edits to exact project content remain visible in
 the report. With the pinned CLI, this unchanged report has `retained: true` and
 is read-only. Use `--readopt` for a deliberate unchanged-pin run. With a different
 exact CLI version, it discloses a CLI update that can be confirmed and started as
-described above. Active v2 discovery declarations require fresh `--scope`
+described above. Active discovery declarations require fresh `--scope`
 proposals for both actions; retained historical scope never substitutes for them.
 
 `status` reports pins, active progress, and historical last-complete evidence

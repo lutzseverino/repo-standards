@@ -15,7 +15,7 @@ fs.writeFileSync = function(path, data, ...args) {
   const result = write.call(this, path, data, ...args);
   let report;
   try { report = JSON.parse(String(data)); } catch {}
-  if (!fired && ['repo-standards/run/v1', 'repo-standards/run/v2'].includes(report?.format) && report.phase === ${JSON.stringify(phase)}) {
+  if (!fired && report?.format === 'repo-standards/run/v2' && report.phase === ${JSON.stringify(phase)}) {
     fired = true;
     ${mutation}
   }
