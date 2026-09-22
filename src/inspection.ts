@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { lstatSync, readdirSync, readFileSync, readlinkSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 import { foldPath } from './paths.js';
 import { acquireSource, hash } from './acquisition.js';
@@ -98,6 +99,18 @@ export function targetObservation(root: string, target: string, blockers: Blocke
   }
   if (unsafe(observed)) blockers.push({ code: 'UNSAFE_TARGET', path: target, message: 'Target tree contains a symbolic link, special file, or nested Git metadata.' });
   return observed;
+}
+
+// The system skill this exact CLI installs. Start verifies that the acquired
+// runtime package carries the same inventory.
+export function packagedSystemSkill() {
+  return observe(fileURLToPath(new URL('../skills/adopt-standards', import.meta.url)));
+}
+
+// An existing target whose complete observation (inventory, bytes and modes)
+// equals the supplied content is claimed without rewriting.
+function plannedAction(current: Observation, desired: Observation) {
+  return JSON.stringify(current) === JSON.stringify(desired) ? 'match' : current.type === 'missing' ? 'create' : 'replace';
 }
 
 export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string; scope?: string; readopt?: boolean }
@@ -214,11 +227,21 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     const hidden = hiddenIndexPaths(root);
     for (const path of hidden) blockers.push({ code: 'HIDDEN_INDEX_STATE', path, message: 'Clear assume-unchanged or skip-worktree flags and reconcile local content before adoption; Git status may hide changes.' });
     const tracked = new Set(index.stdout.split('\0').filter(Boolean).map(entry => entry.slice(entry.indexOf('\t') + 1)));
+    function checkTracked(path: string, value: Observation) {
+      if (value.type === 'directory') {
+        if (Object.keys(value.entries).length === 0) blockers.push({ code: 'UNTRACKED_REPLACEMENT', path, message: 'An existing empty directory has no recoverable Git baseline.' });
+        for (const [name, child] of Object.entries(value.entries)) checkTracked(`${path}/${name}`, child);
+      } else if (value.type !== 'missing' && !tracked.has(path)) blockers.push({ code: 'UNTRACKED_REPLACEMENT', path, message: 'Existing replacement content is ignored or untracked. Commit or reconcile it before adoption.' });
+    }
     for (const entry of index.stdout.split('\0').filter(entry => entry.startsWith('160000 '))) blockers.push({ code: 'SUBMODULE_STATE', path: entry.slice(entry.indexOf('\t') + 1), message: 'Initial inspection cannot establish clean nested submodule state without running nested Git behavior.' });
     const productState = previous ? productStateObservation(root, blockers) : targetObservation(root, '.repo-standards', blockers);
     const systemSkill = targetObservation(root, '.agents/skills/adopt-standards', blockers);
     if (!previous && productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
-    if (systemSkill.type !== 'missing' && !previous) blockers.push({ code: 'SYSTEM_SKILL_CONFLICT', path: '.agents/skills/adopt-standards', message: 'Existing reserved system-skill content requires established product ownership.' });
+    const systemSkillAction = plannedAction(systemSkill, packagedSystemSkill());
+    if (!previous) {
+      if (systemSkillAction === 'replace') blockers.push({ code: 'SYSTEM_SKILL_CONFLICT', path: '.agents/skills/adopt-standards', message: 'Existing reserved system-skill content differs from the skill packaged with this exact CLI and has no established product ownership.' });
+      checkTracked('.agents/skills/adopt-standards', systemSkill);
+    }
     const validation = validateSource(source.root, cliVersion, source.paths, retained?.manifest);
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
     const profile = validation.profiles[options.profile];
@@ -288,15 +311,9 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
         const target = targets[0]!;
         const desired = observe(join(source.root, declaration.kind === 'skill' ? declaration.source : declaration.exact));
         const current = affected[target]!;
-        if (declaration.kind === 'skill' && current.type !== 'missing' && !(retained?.ownedSkills ?? new Set(Object.keys(previous?.skills ?? {}))).has(target)) blockers.push({ code: 'SKILL_CONFLICT', path: target, message: 'An existing skill has no established installed baseline for this selection. Reconcile the unrelated skill before adoption.' });
-        function checkTracked(path: string, value: Observation) {
-          if (value.type === 'directory') {
-            if (Object.keys(value.entries).length === 0) blockers.push({ code: 'UNTRACKED_REPLACEMENT', path, message: 'An existing empty directory has no recoverable Git baseline.' });
-            for (const [name, child] of Object.entries(value.entries)) checkTracked(`${path}/${name}`, child);
-          } else if (value.type !== 'missing' && !tracked.has(path)) blockers.push({ code: 'UNTRACKED_REPLACEMENT', path, message: 'Existing replacement content is ignored or untracked. Commit or reconcile it before adoption.' });
-        }
+        const action = plannedAction(current, desired);
+        if (declaration.kind === 'skill' && action === 'replace' && !(retained?.ownedSkills ?? new Set(Object.keys(previous?.skills ?? {}))).has(target)) blockers.push({ code: 'SKILL_CONFLICT', path: target, message: 'An existing skill differs from the supplied skill and has no established installed baseline for this selection. Reconcile the unrelated skill before adoption.' });
         checkTracked(target, current);
-        const action = JSON.stringify(current) === JSON.stringify(desired) ? 'match' : current.type === 'missing' ? 'create' : 'replace';
         const files: { path: string; before: Observation; after: Observation }[] = [];
         function changes(path: string, before: Observation, after: Observation) {
           if (before.type !== after.type && before.type !== 'missing' && after.type !== 'missing') {
@@ -355,6 +372,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       selection: { cli: { package: '@lutzseverino/repo-standards', version: cliVersion }, standards: source.identity, profile: options.profile },
       source: validation.source, resolved, exact, guidance, operations, inputs, manifest: normalized,
       project: { root, head: head.status === 0 ? head.stdout.trim() : null, status: status.stdout, index: index.stdout, hidden, affected, productState, systemSkill },
+      systemSkill: { target: '.agents/skills/adopt-standards', action: systemSkillAction },
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
       ...(options.readopt ? { action: 'readopt' as const } : {}),
       ...(update ? { update, previousSelection: previous!.selection, retired } : {}),

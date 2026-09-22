@@ -4,12 +4,11 @@ import { assessmentSnapshot, projectSnapshot, validateAssessment } from './asses
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { stringify } from 'yaml';
 import { externalPath, hash } from './acquisition.js';
 import { allowedTargets, execute, operations, preflight } from './execution.js';
 import { ProductError } from './errors.js';
-import { git, hiddenIndexPaths, inspect, inventoryPaths, matchesInventory, observe, observeProductState, plannedInventory, productInventory } from './inspection.js';
+import { git, hiddenIndexPaths, inspect, inventoryPaths, matchesInventory, observe, observeProductState, packagedSystemSkill, plannedInventory, productInventory } from './inspection.js';
 import type { InspectOptions, Observation } from './inspection.js';
 import { baselines, file, flatten, ignore, json, lockPath, projectRoot, safe, safeDirectory, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Files } from './adoption-files.js';
@@ -73,7 +72,7 @@ function prepareRuntime(directory: string, version: string, project: string) {
   if (result.error || result.status !== 0) throw new ProductError('RUNTIME_INSTALL', 'Cannot install the exact CLI runtime. Check npm registry or cache availability and retry after a new inspection.', result.stderr);
   const installed = JSON.parse(readFileSync(join(directory, 'node_modules', packageName, 'package.json'), 'utf8'));
   if (installed.name !== packageName || installed.version !== version) throw new ProductError('RUNTIME_IDENTITY', 'The runtime package does not match the confirmed exact CLI version.');
-  const expectedSkill = observe(fileURLToPath(new URL('../skills/adopt-standards', import.meta.url)));
+  const expectedSkill = packagedSystemSkill();
   const installedSkill = observe(join(directory, 'node_modules', packageName, 'skills/adopt-standards'));
   if (expectedSkill.type !== 'directory' || JSON.stringify(installedSkill) !== JSON.stringify(expectedSkill)) throw new ProductError('RUNTIME_IDENTITY', 'The installed runtime does not contain the matching adoption skill.');
   return installedSkill;

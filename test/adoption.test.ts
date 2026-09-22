@@ -126,7 +126,59 @@ profiles:`).replace('    declarations: {}', '    declarations: {employer: {exclu
   assert.equal(status.evidence, 'historical');
 });
 
+test('fresh adoption over previously installed content claims byte-identical skills once product state is removed', async t => {
+  const registry = await registryFixture(cli.root);
+  const remote = remoteFixture(yaml.replace('profiles:', `    review:
+      kind: skill
+      name: review
+      source: skills/review
+profiles:`), { 'content.md': 'Expected', 'skills/review/SKILL.md': '# Review\nReview the code.', 'skills/review/scripts/run.sh': '#!/bin/sh\n' }, ['skills/review/scripts/run.sh']);
+  const packagedSkill = readFileSync(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/adopt-standards/SKILL.md'), 'utf8');
+  const project = sourceFixture('', { 'AGENTS.md': 'Expected', '.agents/skills/review/SKILL.md': '# Review\nReview the code.',
+    '.agents/skills/review/scripts/run.sh': '#!/bin/sh\n', '.agents/skills/adopt-standards/SKILL.md': packagedSkill,
+    '.repo-standards/selection.yaml': 'profile: work\n' });
+  chmodSync(join(project.root, '.agents/skills/review/scripts/run.sh'), 0o755);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const inspect = () => {
+    const result = cli.run(inspectionArgs, project.root, env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    return JSON.parse(result.stdout);
+  };
+  const blocked = inspect();
+  assert.deepEqual(blocked.start.blockers.map((b: { code: string }) => b.code), ['EXISTING_ADOPTION']);
+  assert.equal(blocked.exact.find((entry: { id: string }) => entry.id === 'review').action, 'match');
+  assert.deepEqual(blocked.systemSkill, { target: '.agents/skills/adopt-standards', action: 'match' });
+
+  rmSync(join(project.root, '.repo-standards'), { recursive: true });
+  commit(project.root);
+  const inspection = inspect();
+  assert.deepEqual(inspection.start.blockers, []);
+  assert.equal(inspection.start.eligible, true);
+  assert.equal(inspection.exact.find((entry: { id: string }) => entry.id === 'review').action, 'match');
+  assert.equal(inspection.systemSkill.action, 'match');
+  const claimed = ['.agents/skills/review/SKILL.md', '.agents/skills/review/scripts/run.sh', '.agents/skills/adopt-standards/SKILL.md'];
+  const before = Object.fromEntries(claimed.map(path => [path, lstatSync(join(project.root, path))]));
+  const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+  for (const path of claimed) {
+    const stat = lstatSync(join(project.root, path));
+    assert.equal(stat.ino, before[path]!.ino, path);
+    assert.equal(stat.mtimeMs, before[path]!.mtimeMs, path);
+  }
+  assert.equal(git(project.root, 'status', '--porcelain', '--', '.agents', 'AGENTS.md'), '');
+  const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
+  assert.deepEqual(state.skills['.agents/skills/review'], ['SKILL.md', 'scripts/run.sh']);
+  assert.deepEqual(state.skills['.agents/skills/adopt-standards'], ['SKILL.md']);
+  assert.equal(state.baselines['.agents/skills/review/scripts/run.sh'].executable, true);
+  assert.ok(state.baselines['.agents/skills/adopt-standards/SKILL.md']);
+});
+
 test('start rejects every invalid initial project state without mutation', async t => {
+  const skillSource = yaml.replace('kind: file\n      target: AGENTS.md\n      exact: content.md', 'kind: skill\n      name: review\n      source: skill');
+  const packagedSkill = readFileSync(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/adopt-standards/SKILL.md'), 'utf8');
   const cases: { name: string; code: string; source?: string; files?: Record<string, string>; unborn?: boolean; setup?: (root: string) => void }[] = [
     { name: 'no commit', code: 'NO_COMMIT', unborn: true },
     { name: 'dirty working tree', code: 'DIRTY_PROJECT', setup: root => writeFileSync(join(root, 'AGENTS.md'), 'Dirty') },
@@ -137,8 +189,13 @@ test('start rejects every invalid initial project state without mutation', async
     { name: 'unsafe ancestor', code: 'UNSAFE_TARGET', source: yaml.replace('target: AGENTS.md', 'target: linked/AGENTS.md'), setup: root => { symlinkSync('folder', join(root, 'linked')); commit(root); } },
     { name: 'wrong target type', code: 'TARGET_TYPE', source: yaml.replace('target: AGENTS.md', 'target: folder') },
     { name: 'case conflict', code: 'CASE_CONFLICT', source: yaml.replace('target: AGENTS.md', 'target: agents.md') },
-    { name: 'unrelated matching skill', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Review' }, source: yaml.replace('kind: file\n      target: AGENTS.md\n      exact: content.md', 'kind: skill\n      name: review\n      source: skill') },
+    { name: 'skill with differing bytes', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Unrelated review' }, source: skillSource },
+    { name: 'skill with a differing mode', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Review' }, source: skillSource, setup: root => { chmodSync(join(root, '.agents/skills/review/SKILL.md'), 0o755); commit(root); } },
+    { name: 'skill with an additional resource', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Review', '.agents/skills/review/notes.md': 'Local' }, source: skillSource },
     { name: 'reserved system skill', code: 'SYSTEM_SKILL_CONFLICT', files: { '.agents/skills/adopt-standards/SKILL.md': 'Unrelated' } },
+    { name: 'system skill with a differing mode', code: 'SYSTEM_SKILL_CONFLICT', files: { '.agents/skills/adopt-standards/SKILL.md': packagedSkill }, setup: root => { chmodSync(join(root, '.agents/skills/adopt-standards/SKILL.md'), 0o755); commit(root); } },
+    { name: 'system skill with an additional resource', code: 'SYSTEM_SKILL_CONFLICT', files: { '.agents/skills/adopt-standards/SKILL.md': packagedSkill, '.agents/skills/adopt-standards/notes.md': 'Local' } },
+    { name: 'ignored matching system skill', code: 'UNTRACKED_REPLACEMENT', files: { '.gitignore': '/.agents/\n', '.agents/skills/adopt-standards/SKILL.md': packagedSkill } },
     { name: 'existing product state', code: 'EXISTING_ADOPTION', files: { '.repo-standards/unknown': 'Unrelated' } },
     { name: 'hidden index flags', code: 'HIDDEN_INDEX_STATE', setup: root => git(root, 'update-index', '--assume-unchanged', 'AGENTS.md') },
     { name: 'skip-worktree flags', code: 'HIDDEN_INDEX_STATE', setup: root => git(root, 'update-index', '--skip-worktree', 'AGENTS.md') },
