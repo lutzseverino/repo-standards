@@ -131,10 +131,10 @@ its npm package and dependencies to be available or cached; new standards
 versions still require the source. These are independent availability limits.
 Status reports historical adoption evidence, not ongoing compliance.
 
-Use the pinned CLI for a standards update and an externally installed candidate
-exact CLI for a CLI update. Follow
-[Update one pin at a time](adoption.md#update-one-pin-at-a-time); each update needs
-its own inspection and confirmation. Source and profile switching are unsupported.
+Use the pinned CLI to change the standards version, source, or profile, and an
+externally installed candidate exact CLI to change the CLI pin, alone or together
+with them. Follow [Update the selection](adoption.md#update-the-selection); each
+update is one inspection, one confirmation, and one run.
 
 Windows, private sources, SSH and Git hosts other than public GitHub are outside
 version one. Trusted author scripts have normal host and network access;

@@ -130,18 +130,20 @@ The report has format `repo-standards/inspection/v1`:
 | `operations` | Ordered fixes and checks, literal arguments, script bytes, resource inventories, timeout, and declared prerequisite probe/range. |
 | `project` | Canonical project root, HEAD or null, Git status and index, affected content, and reserved product paths. |
 | `inputs`, `manifest` | Selected source material and normalized single-profile metadata retained by adoption. |
-| `action` | `readopt` when the caller explicitly requests a new adoption of unchanged retained pins; omitted for ordinary adoption, retained inspection, and updates. |
 | `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available. |
 | `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
 
-For an established candidate that changes one pin, `update` is `standards` or
-`cli`, `previousSelection` records the current pins, and `retired` lists
-declarations that will leave governance while their installed content remains
-in place. An unchanged retained inspection omits these update fields and is
-read-only unless `--readopt` explicitly requests a new adoption. A complete
-discovery-backed re-adoption or update also includes `scopeChanges`, listing
-individual additions and removals by declaration relative to the prior complete
-adoption. Removed contextual paths remain project content and are not deleted.
+For an established adoption, the report is an update. `update` lists every
+changed selection component, in the order `cli`, `standards`, `source`, and
+`profile`, and is empty for an unchanged selection. The standards component
+changes with the version tag or its commit. `previousSelection` records the
+current selection, and `retired` lists declarations that will leave governance
+while their installed content remains in place. Initial adoption omits these
+fields. Any update can be confirmed and started; an unchanged selection is
+applied again. A complete discovery-backed update also includes `scopeChanges`,
+listing individual additions and removals by declaration relative to the prior
+complete adoption. Removed contextual paths remain project content and are not
+deleted.
 
 For an established selection, `project.productState` observes the full durable
 `.repo-standards/` tree, including unexpected files and their bytes. Inspection
@@ -185,20 +187,20 @@ adoption claims existing reserved system-skill content the same way when it
 matches the skill packaged with the inspecting exact CLI and reports
 `SYSTEM_SKILL_CONFLICT` otherwise. Existing product state blocks initial
 adoption with `EXISTING_ADOPTION`; see
-[adopting afresh over installed content](adoption.md#adopt-afresh-over-installed-content). Established projects can use `inspect --json` with
-their pinned CLI to inspect retained material. That unchanged inspection is
-read-only and cannot be started. Use `inspect --readopt --json` to request a
-startable same-pin inspection; its action changes the inspection identity and
-must be repeated as `start --readopt --confirm <identity>`. Re-adoption preserves
-all pins, requires a complete prior adoption and a clean committed project, and
-reuses retained source material when the original source is unavailable. The
-resolver
+[adopting afresh over installed content](adoption.md#adopt-afresh-over-installed-content).
+Established projects can use `inspect --json` with their pinned CLI to inspect
+the unchanged selection from retained material. Confirming that inspection
+starts a run that applies the selection again. It requires a complete prior
+adoption and a clean committed project, and reuses retained source material
+when the original source is unavailable. The resolver
 rejects targets overlapping `.git`, `.repo-standards`, or `adopt-standards`.
 
 ## Inspect updates
 
-Run a standards update with the project's pinned CLI and the current source and
-profile, changing only the stable tag:
+Every change to an established selection is one update: the CLI pin, the
+standards version, the source, the profile, or any combination. Pass all three
+source flags to select a standards version, source, or profile. With the
+project's pinned CLI:
 
 ```sh
 .repo-standards/runtime/node_modules/.bin/repo-standards inspect \
@@ -206,21 +208,25 @@ profile, changing only the stable tag:
   --standards-version v1.3.0 --profile work --json
 ```
 
-Run a CLI update using the candidate exact CLI outside the project, omitting all
-source flags so it validates the current retained standards:
+To change the CLI pin, run the candidate exact CLI outside the project. Omit
+the source flags to keep the current retained standards, or pass them to change
+the standards selection in the same inspection:
 
 ```sh
 repo-standards-bootstrap --cli-version 1.2.0 inspect --json
 ```
 
-Source and profile switching and changing both pins in one inspection are
-blocked. A standards update requires its public source. A CLI update works from
-retained inputs if that source is unavailable, but its exact npm package and
-dependencies must be public or cached. Every update inspection compares bytes,
-executable state, and complete skill inventories with the last-complete
-baselines. Any committed or uncommitted local edit blocks the whole update.
-Known moved tags, incompatible CLI/format combinations, and changed retained
-product state are also blockers or structured failures before mutation.
+Selecting a standards version, source, or profile requires its public source.
+Without source flags, inspection works from retained inputs if the source is
+unavailable, but a changed CLI pin still needs its exact npm package and
+dependencies to be public or cached. The author's `requires.repo-standards`
+range is checked only when a standards version is selected from its source;
+retained inputs are validated against the running CLI's supported source
+formats alone. Every update inspection compares bytes, executable state, and
+complete skill inventories with the last-complete baselines. Any committed or
+uncommitted local edit blocks the whole update. Known moved tags, incompatible
+CLI/format combinations, and changed retained product state are also blockers
+or structured failures before mutation.
 
 Exit status 0 means a report was produced, including reports with start blockers.
 Status 1 means acquisition, compatibility, prerequisites, or inspection failed.
@@ -327,9 +333,9 @@ in `resolved`; the source declarations in `sourceResolved` and the retained sour
 `manifest` remain unchanged. The complete report includes normalized proposal,
 rationale, candidate exclusions, guidance, exact changes, and operations together.
 
-The request binds selection, requested action (adoption, update, or retained
-inspection), HEAD, index and hidden index flags, and the complete tracked and
-non-ignored project snapshot. Observation records file hashes/executable state,
+The request binds selection, requested action (initial adoption or update),
+HEAD, index and hidden index flags, and the complete tracked and non-ignored
+project snapshot. Observation records file hashes/executable state,
 directory inventories and boundaries, effective Git observation settings, and
 consulted `.gitignore`, Git info/exclude, and global ignore inputs, including their
 absence. Configured ignore paths preserve significant whitespace; an explicitly
@@ -367,12 +373,12 @@ installation. Missing, invalid, unresolved, or stale scope cannot authorize
 mutation. Initial clean committed-project and prerequisite rules still apply.
 There is no separate mandatory scope confirmation. Explicit selections use
 inspection/v1; execution uses the [observed-scope contract](script-protocol.md#observed-scope-for-v2-adoption).
-Standards updates, CLI updates and same-pin re-adoption repeat this fresh
-discovery pass for every active discovery declaration. Use the update commands described
-above, or `inspect --readopt --scope <file>` followed by matching confirmed
-`start --readopt --scope <file>`. The selection and requested action are bound
-into the request and final inspection identities, so retained historical or
-ordinary-inspection proposals cannot authorize the new run.
+Every update, including an unchanged selection, repeats this fresh discovery
+pass for every active discovery declaration: pass `--scope <file>` to the
+update commands described above and to the matching confirmed start. The
+selection, requested action, and project state are bound into the request and
+final inspection identities, so retained historical proposals cannot authorize
+the new run.
 
 After ordinary discovery completion, retained `inspect --json` remains
 `repo-standards/inspection/v2` and exposes `historicalScope` as

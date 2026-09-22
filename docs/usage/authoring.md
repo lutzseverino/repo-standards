@@ -113,8 +113,13 @@ retains root license files alongside selected source material and records their
 hashes and Git provenance. It does not infer permission from a public repository
 or copy unrelated files and other profiles into retained inputs.
 
-Set `requires.repo-standards` to the CLI SemVer range you have tested. Validation
-checks compatibility with the running CLI and resolves **all** profiles. A stable
+Set `requires.repo-standards` to an open-ended minimum: the oldest CLI version
+you have tested, such as `>=1.3.0`, without an upper bound or exact version.
+The range gates only which CLI versions can select this standards version from
+its source. An adopter's later CLI update keeps their retained standards
+whenever the new CLI supports this source format, so an upper bound protects no
+one and blocks adopters from selecting your next version. Validation checks
+compatibility with the running CLI and resolves **all** profiles. A stable
 standards version and the adopter's exact CLI package version are independent;
 use a new standards version when you change material or compatibility.
 
