@@ -19,9 +19,12 @@ states availability only. What to do with an available update is decided by
 the adopted standards' own guidance and the maintainer, not by this skill.
 If any command fails with `RETIRED_FORMAT`, read
 `adoption.md#adopt-fresh-from-a-retired-format`: nothing is converted, and the
-only path forward is fresh adoption after the maintainer removes the product
-state directory and commits that removal through their normal workflow. Then
-follow initial adoption below with an externally installed exact CLI.
+only path forward is fresh adoption. When the diagnostic names a run record in
+Git's directory, its earlier pinned CLI can still resume or abandon that run to
+preserve its work; the record must then be removed as that section describes.
+The maintainer removes any such record and the product state directory, and
+commits the directory's removal through their normal workflow. Then follow
+initial adoption below with an externally installed exact CLI.
 
 For initial adoption, use an externally installed exact CLI and read its
 `docs/inspection.md` for acquisition. The bootstrap performs inspection only;

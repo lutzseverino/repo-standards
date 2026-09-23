@@ -444,8 +444,8 @@ assessment. Reports and records carry hash inventories, unified diffs for
 changed text, and hashes for binary content, never file bytes or observation
 maps. Reading a retired format fails with `RETIRED_FORMAT` before anything else
 is read or written; nothing is converted. Its diagnostic names the one path
-forward, fresh adoption: remove the product state directory, commit that
-removal, and adopt again.
+forward, fresh adoption: remove any retired run record in Git's directory and
+the product state directory, commit the directory's removal, and adopt again.
 
 ## Updates, interruption, and retirement
 
