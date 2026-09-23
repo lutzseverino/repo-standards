@@ -7,7 +7,8 @@ import { join, resolve } from 'node:path';
 import test from 'node:test';
 import type { TestContext } from 'node:test';
 
-// Exercise maintainer commands, replacing only external executables and HTTP.
+// Exercise maintainer commands, replacing only external executables, HTTP and,
+// where a test depends on time, the clock.
 // These simulations are never public-acquisition or publication evidence.
 function fixture(t: TestContext) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-maintainer-')));
@@ -117,7 +118,7 @@ for (const retryAfter of ['invalid', '-1', '999999999999999999999', 'Sat, 99 Sep
   });
 }
 
-function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismatch'; tag?: 'mismatch' | 'absent'; github?: 'published' | 'unavailable' | 'partial' | 'draft' | 'draft-partial'; draftTarget?: string; damagedAsset?: boolean; assetUnavailable?: boolean; draftListed?: boolean; noPushAccess?: boolean; duplicateDraft?: boolean } = {}) {
+function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismatch'; tag?: 'mismatch' | 'absent'; github?: 'published' | 'unavailable' | 'partial' | 'draft' | 'draft-partial'; draftTarget?: string; damagedAsset?: boolean; assetUnavailable?: boolean; draftListed?: boolean; noPushAccess?: boolean; duplicateDraft?: boolean; runStatus?: string } = {}) {
   const f = fixture(t);
   const original = join(f.root, 'original');
   mkdirSync(original);
@@ -146,7 +147,7 @@ function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismat
       const endpoint = args[1];
       if (endpoint.endsWith('/jobs?per_page=100')) console.log(JSON.stringify({ jobs: [
         { name: 'validate (ubuntu-latest)', conclusion: 'success' }, { name: 'validate (macos-latest)', conclusion: 'success' }] }));
-      else if (endpoint.endsWith('/actions/runs/123')) console.log(JSON.stringify({ path: '.github/workflows/release.yml', head_sha: '${'a'.repeat(40)}' }));
+      else if (endpoint.endsWith('/actions/runs/123')) console.log(JSON.stringify({ path: '.github/workflows/release.yml', head_sha: '${'a'.repeat(40)}', status: ${JSON.stringify(options.runStatus ?? 'completed')} }));
       else if (endpoint.includes('/git/ref/') && ${JSON.stringify(options.tag === 'absent')}) { console.error('gh: Not Found (HTTP 404)'); process.exit(1); }
       else if (endpoint.includes('/git/ref/')) console.log(JSON.stringify({ object: { type: 'commit', sha: '${(options.tag === 'mismatch' ? 'b' : 'a').repeat(40)}' } }));
       else if (endpoint.includes('/releases/tags/')) {
@@ -186,6 +187,21 @@ test('release status verifies the original bundle and prints the missing GitHub 
   const commands = readFileSync(join(f.root, 'commands.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line));
   assert.ok(commands.every(args => args[0] === 'api' || (args[0] === 'run' && args[1] === 'download')));
 });
+
+for (const runStatus of ['queued', 'in_progress', 'waiting']) {
+  test(`release status reports run status ${runStatus} as in progress with a wait action`, t => {
+    const f = releaseFixture(t, { runStatus });
+    const result = f.runStatus();
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    const report = JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8'));
+    assert.equal(report.state, 'in-progress');
+    assert.equal(report.runStatus, runStatus);
+    assert.match(report.nextAction, /'gh' 'run' 'watch' '123'/);
+    assert.doesNotMatch(report.nextAction, /'npm'|'release'|'workflow'/);
+    const commands = readFileSync(join(f.root, 'commands.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line));
+    assert.deepEqual(commands, [['api', 'repos/lutzseverino/repo-standards/actions/runs/123']]);
+  });
+}
 
 test('release status verifies published assets before recommending verification-only acceptance', t => {
   const f = releaseFixture(t, { github: 'published' });
@@ -301,25 +317,88 @@ for (const [name, options] of [
   });
 }
 
-test('public CLI acceptance records an assertion failure even when every external command exited successfully', t => {
+// Replace npm and GitHub downloads for public acceptance. `missing` counts the
+// not-found responses each subject returns before it appears. The preload
+// advances a fake clock by each requested wait instead of sleeping.
+function publicFixture(t: TestContext, missing: { npm?: number; releaseJson?: number } = {}) {
   const f = fixture(t);
   f.executable('npm', `
     const fs = require('node:fs'), path = require('node:path');
     if (process.argv[2] === '--version') console.log('11.19.0');
-    else if (process.argv[2] === 'view') console.log(JSON.stringify({ integrity: 'example' }));
-    else if (process.argv[2] === 'install') {
+    else if (process.argv[2] === 'view') {
+      const counter = ${JSON.stringify(join(f.root, 'npm-views'))};
+      const views = fs.existsSync(counter) ? Number(fs.readFileSync(counter, 'utf8')) : 0;
+      fs.writeFileSync(counter, String(views + 1));
+      if (views < ${missing.npm ?? 0}) {
+        console.log(JSON.stringify({ error: { code: 'E404', summary: 'No match found for version' } }));
+        console.error('npm error code E404');
+        process.exit(1);
+      }
+      console.log(JSON.stringify({ integrity: 'example' }));
+    } else if (process.argv[2] === 'install') {
       const bin = path.join(process.argv[process.argv.indexOf('--prefix') + 1], 'node_modules/.bin');
       fs.mkdirSync(bin, { recursive: true });
       fs.writeFileSync(path.join(bin, 'repo-standards'), '#!${process.execPath}\\nconsole.log("1.0.0");', { mode: 0o755 });
     } else process.exit(77);
   `);
   f.executable('git', `if (process.argv[2] !== 'status') console.log('${'a'.repeat(40)}');`);
-  writeFileSync(f.preload, `globalThis.fetch = async () => { throw new Error('Unexpected network request'); };`);
-  const result = f.run('acceptance/public-installation.ts', [JSON.parse(readFileSync('package.json', 'utf8')).version, f.evidence]);
+  writeFileSync(f.preload, `let now = 1789232918000;
+    Date.now = () => now;
+    const wait = globalThis.setTimeout;
+    globalThis.setTimeout = (callback, delay = 0, ...args) => { now += delay; return wait(callback, 0, ...args); };
+    let releaseJsonMissing = ${missing.releaseJson ?? 0};
+    globalThis.fetch = async url => {
+      if (!String(url).startsWith('https://github.com/lutzseverino/repo-standards/releases/download/')) throw new Error('Unexpected network request');
+      if (String(url).endsWith('/release.json') && releaseJsonMissing-- > 0) return new Response('Not Found', { status: 404 });
+      return new Response('{}');
+    };`);
+  const version = JSON.parse(readFileSync('package.json', 'utf8')).version as string;
+  return { ...f, version, runAcceptance: () => f.run('acceptance/public-installation.ts', [version, f.evidence]) };
+}
+
+test('public CLI acceptance records an assertion failure even when every external command exited successfully', t => {
+  const f = publicFixture(t);
+  const result = f.runAcceptance();
   assert.equal(result.status, 1, result.stderr);
   const evidence = JSON.parse(readFileSync(f.evidence, 'utf8'));
   assert.equal(evidence.passed, false);
   assert.ok(evidence.commands.every((command: { status: number }) => command.status === 0));
   assert.match(evidence.failure, /1\.0\.0/);
   assert.match(evidence.nextAction, /public-installation\.ts/);
+});
+
+test('public CLI acceptance waits for the published version and release assets and logs each attempt', t => {
+  const f = publicFixture(t, { npm: 2, releaseJson: 1 });
+  const result = f.runAcceptance();
+  assert.equal(result.status, 1, result.stderr);
+  const evidence = JSON.parse(readFileSync(f.evidence, 'utf8'));
+  // Acceptance proceeds past the wait to its own assertions.
+  assert.match(evidence.failure, /1\.0\.0/);
+  const npm = `@lutzseverino/repo-standards@${f.version} on the npm registry`;
+  const asset = (file: string) => `https://github.com/lutzseverino/repo-standards/releases/download/v${f.version}/${file}`;
+  assert.deepEqual(evidence.propagation.attempts, [
+    { subject: npm, at: '2026-09-12T17:08:38.000Z', elapsedMs: 0, result: 'E404' },
+    { subject: npm, at: '2026-09-12T17:08:48.000Z', elapsedMs: 10_000, result: 'E404' },
+    { subject: npm, at: '2026-09-12T17:08:58.000Z', elapsedMs: 20_000, result: 'available' },
+    { subject: asset('release.json'), at: '2026-09-12T17:08:58.000Z', elapsedMs: 20_000, result: 'HTTP 404' },
+    { subject: asset('release.json'), at: '2026-09-12T17:09:08.000Z', elapsedMs: 30_000, result: 'available' },
+    { subject: asset('repo-standards-bootstrap'), at: '2026-09-12T17:09:08.000Z', elapsedMs: 30_000, result: 'available' },
+  ]);
+  assert.match(result.stdout, /E404/);
+});
+
+test('public CLI acceptance fails after the propagation bound naming the version and the elapsed wait', t => {
+  const f = publicFixture(t, { npm: Infinity });
+  const result = f.runAcceptance();
+  assert.equal(result.status, 1, result.stderr);
+  const evidence = JSON.parse(readFileSync(f.evidence, 'utf8'));
+  assert.equal(evidence.passed, false);
+  assert.ok(evidence.failure.includes(`@lutzseverino/repo-standards@${f.version}`), evidence.failure);
+  assert.match(evidence.failure, /300 seconds/);
+  const attempts = evidence.propagation.attempts;
+  assert.equal(attempts.length, 31);
+  assert.equal(attempts.at(-1).elapsedMs, 300_000);
+  assert.ok(attempts.every((attempt: { result: string }) => attempt.result === 'E404'));
+  assert.ok(!evidence.commands.some((command: { args: string[] }) => command.args[0] === 'install'));
+  assert.deepEqual(evidence.downloads, []);
 });

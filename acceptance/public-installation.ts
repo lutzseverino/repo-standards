@@ -26,16 +26,41 @@ const env = { ...process.env, npm_config_registry: 'https://registry.npmjs.org/'
   XDG_CACHE_HOME: join(root, 'cache') };
 const commands: { executable: string; args: string[]; status: number | null; stdout: string; stderr: string }[] = [];
 const downloads: { url: string; status: number; sha256: string }[] = [];
+// Publication reaches the npm registry and GitHub release downloads eventually.
+// Poll each subject at a fixed interval, bounding the whole wait.
+const propagation = { intervalMs: 10_000, boundMs: 300_000,
+  attempts: [] as { subject: string; at: string; elapsedMs: number; result: string }[] };
+let propagationStarted: number | undefined;
+async function awaitPublished<T>(subject: string, observe: () => Promise<{ value?: T; result: string }>): Promise<T> {
+  propagationStarted ??= Date.now();
+  for (;;) {
+    const { value, result } = await observe();
+    const now = Date.now();
+    const elapsedMs = now - propagationStarted;
+    const attempt = { subject, at: new Date(now).toISOString(), elapsedMs, result };
+    propagation.attempts.push(attempt);
+    console.log(`${attempt.at} ${subject}: ${result} after ${elapsedMs / 1000} seconds`);
+    if (value !== undefined) return value;
+    if (elapsedMs >= propagation.boundMs) {
+      throw new Error(`${subject} did not appear within the ${propagation.boundMs / 1000} seconds propagation bound; waited ${elapsedMs / 1000} seconds; last result: ${result}`);
+    }
+    await new Promise(resolve => setTimeout(resolve, Math.min(propagation.intervalMs, propagation.boundMs - elapsedMs)));
+  }
+}
 let passed = false;
 let failure: string | undefined;
 const retry = ['node', 'acceptance/public-installation.ts', version, `${evidence}.retry-${Date.now()}.json`]
   .map(value => `'${value.replaceAll("'", "'\\''")}'`).join(' ');
 const nextAction = `Inspect the failure evidence, correct the cause, then retry: ${retry}`;
 try {
-  function run(executable: string, args: string[], cwd = root) {
-    const result = spawnSync(executable, args, { cwd, env, encoding: 'utf8', timeout: 300_000, maxBuffer: 32 * 1024 * 1024 });
+  function execute(executable: string, args: string[], cwd = root, timeout = 300_000) {
+    const result = spawnSync(executable, args, { cwd, env, encoding: 'utf8', timeout, maxBuffer: 32 * 1024 * 1024 });
     commands.push({ executable, args, status: result.status, stdout: result.stdout ?? '', stderr: result.stderr ?? '' });
     if (result.error) throw result.error;
+    return result;
+  }
+  function run(executable: string, args: string[], cwd = root) {
+    const result = execute(executable, args, cwd);
     assert.equal(result.status, 0, result.stdout + result.stderr);
     return result.stdout.trim();
   }
@@ -44,7 +69,26 @@ try {
   const checkoutCommit = run('git', ['rev-parse', 'HEAD'], checkout);
   const wayfinderTree = run('git', ['rev-parse', 'HEAD:acceptance/sources/wayfinder'], checkout);
   assert.equal(run('git', ['status', '--porcelain=v1', '--untracked-files=all', '--', 'acceptance/sources/wayfinder'], checkout), '');
-  const distribution = JSON.parse(run('npm', ['view', `@lutzseverino/repo-standards@${version}`, 'dist', '--json']));
+  const distribution = await awaitPublished(`@lutzseverino/repo-standards@${version} on the npm registry`, async () => {
+    // Cap each observation like a download, so an attempt started at the bound ends within a minute.
+    const result = execute('npm', ['view', `@lutzseverino/repo-standards@${version}`, 'dist', '--json', '--prefer-online'], root, 60_000);
+    if (result.status !== 0 && /\bE404\b/.test(result.stdout + result.stderr)) return { result: 'E404' };
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    return { value: JSON.parse(result.stdout), result: 'available' };
+  });
+  async function download(file: string) {
+    const url = `https://github.com/lutzseverino/repo-standards/releases/download/v${version}/${file}`;
+    return awaitPublished(url, async () => {
+      const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+      const bytes = Buffer.from(await response.arrayBuffer());
+      downloads.push({ url, status: response.status, sha256: createHash('sha256').update(bytes).digest('hex') });
+      if (response.status === 404) return { result: 'HTTP 404' };
+      assert.equal(response.status, 200, `Cannot download ${url}`);
+      return { value: bytes, result: 'available' };
+    });
+  }
+  const bundleBytes = await download('release.json');
+  const bootstrapBytes = await download('repo-standards-bootstrap');
   const installation = join(root, 'cli');
   run('npm', ['install', '--prefix', installation, '--ignore-scripts', '--no-audit', '--no-fund', '--save-exact', `@lutzseverino/repo-standards@${version}`]);
   const cli = join(installation, 'node_modules/.bin/repo-standards');
@@ -52,20 +96,11 @@ try {
   assert.equal(run(cli, ['--version']), version);
   const lock = JSON.parse(readFileSync(join(installation, 'package-lock.json'), 'utf8'));
   assert.equal(lock.packages['node_modules/@lutzseverino/repo-standards'].integrity, distribution.integrity);
-  async function download(file: string) {
-    const url = `https://github.com/lutzseverino/repo-standards/releases/download/v${version}/${file}`;
-    const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
-    const bytes = Buffer.from(await response.arrayBuffer());
-    downloads.push({ url, status: response.status, sha256: createHash('sha256').update(bytes).digest('hex') });
-    assert.equal(response.status, 200, `Cannot download ${url}`);
-    return bytes;
-  }
-  const bundle = JSON.parse((await download('release.json')).toString('utf8'));
+  const bundle = JSON.parse(bundleBytes.toString('utf8'));
   assert.equal(bundle.version, version);
   assert.equal(bundle.package, '@lutzseverino/repo-standards');
   assert.equal(bundle.integrity, distribution.integrity);
-  const bootstrapBytes = await download('repo-standards-bootstrap');
-  assert.equal(downloads.at(-1)!.sha256, bundle.artifacts.find((artifact: { file: string }) => artifact.file === 'repo-standards-bootstrap').sha256);
+  assert.equal(createHash('sha256').update(bootstrapBytes).digest('hex'), bundle.artifacts.find((artifact: { file: string }) => artifact.file === 'repo-standards-bootstrap').sha256);
   assert.deepEqual(bootstrapBytes, readFileSync(join(installed, 'bootstrap/repo-standards')));
   const bootstrap = join(root, 'repo-standards-bootstrap');
   writeFileSync(bootstrap, bootstrapBytes);
@@ -108,7 +143,7 @@ try {
   try { identity = JSON.parse(readFileSync(join(root, 'identity.json'), 'utf8')); } catch { /* Failure evidence still includes command output. */ }
   writeFileSync(evidence, JSON.stringify({ date: new Date().toISOString(),
     os: { platform: platform(), release: release(), arch: arch() }, node: process.version,
-    version, passed, failure, nextAction: passed ? undefined : nextAction, identity, commands, downloads,
+    version, passed, failure, nextAction: passed ? undefined : nextAction, identity, propagation, commands, downloads,
     scope: 'Public installation, packaged author validation, clean checkout-bound Wayfinder validation, discovery and read-only bootstrap. No adoption or real-agent assessment.',
   }, null, 2) + '\n');
   rmSync(root, { recursive: true, force: true });
