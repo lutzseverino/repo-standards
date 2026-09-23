@@ -9,7 +9,19 @@ disable-model-invocation: true
 Work from the adopting project's Git root. Use its pinned executable at
 `.repo-standards/runtime/node_modules/.bin/repo-standards`. If dependencies are
 absent, restore them with `npm ci --ignore-scripts --prefix .repo-standards/runtime`.
-Read `status --json` for pins, active progress and historical evidence.
+Read `status --json` for pins, active progress and historical evidence; it
+makes no network request. `outdated --json` reports, for the CLI pin and the
+standards pin, whether a newer stable version is published and how many stable
+releases separate it from the pin. It is read-only apart from its ignored
+cache, needs no clean tree, and reports `unknown` with a reason when a lookup
+fails; read `usage/available-updates.md` under the document root below. It
+states availability only. What to do with an available update is decided by
+the adopted standards' own guidance and the maintainer, not by this skill.
+If any command fails with `RETIRED_FORMAT`, read
+`adoption.md#adopt-fresh-from-a-retired-format`: nothing is converted, and the
+only path forward is fresh adoption after the maintainer removes the product
+state directory and commits that removal through their normal workflow. Then
+follow initial adoption below with an externally installed exact CLI.
 
 For initial adoption, use an externally installed exact CLI and read its
 `docs/inspection.md` for acquisition. The bootstrap performs inspection only;
@@ -32,17 +44,19 @@ until the project runtime exists. Thereafter the document root is
   instruction before `abandon --json`. Retry repeats trusted fixes and requires
   renewed assessment. Use the run's exact external CLI if the local runtime is
   unusable. Preserve progress records and partial changes.
-- **Existing complete adoption:** `inspect --json` with the pinned CLI inspects
-  the unchanged selection from retained standards, including when the source is
-  unavailable. Every requested change or repetition of the selection is one
-  update; read `adoption.md#update-the-selection` for candidate acquisition and
-  commands. Pass source flags to select a standards version, source, or profile,
-  and run the external candidate CLI to change the CLI pin, alone or together
-  with them; omit source flags to keep the retained standards. A confirmed
-  inspection of the unchanged selection starts a run that applies it again; do
-  not present that run as a retry, resume, or automatic compliance repair.
+- **Existing complete adoption:** every requested change of the selection, and
+  every repetition of it, is one update on a single path: read `outdated --json`
+  for available updates, inspect, present the summary, obtain confirmation of
+  the inspection identity, and start. Read
+  `adoption.md#update-the-selection` for candidate acquisition and commands.
+  Pass source flags to select a standards version, source, or profile; run the
+  external candidate exact CLI to change the CLI pin, alone or with any of
+  them; omit source flags to keep the retained standards, which the pinned CLI
+  inspects even when the source is unavailable. A confirmed inspection of the
+  unchanged selection starts a run that applies it again; do not present that
+  run as a retry, resume, or automatic compliance repair.
   Historical discovered scope explains prior authorization; it does not prove
-  current coverage. Every active v2 discovery declaration needs a fresh proposal
+  current coverage. Every active discovery declaration needs a fresh proposal
   for every update, even when the original source is unavailable for retained
   work.
 - **Initial adoption:** obtain the public GitHub source, stable standards tag
@@ -58,7 +72,7 @@ until the project runtime exists. Thereafter the document root is
    flags.
    Store reports outside the project. Read `inspection.md` when interpreting
    fields, blockers, or acquisition errors. If discovery is required, read
-   `inspection.md#discover-contextual-file-scope-v2-sources` and each discovery
+   `inspection.md#discover-contextual-file-scope` and each discovery
    guidance file. Inspect eligible evidence in the real repository, explain
    candidate inclusion/exclusion and membership for missing READMEs, and resolve
    membership questions with the maintainer. Enumerate individual existing files,
@@ -69,7 +83,15 @@ until the project runtime exists. Thereafter the document root is
 2. Present the actual report's identity and exact CLI version, source URL,
    standards tag, commit and profile; for updates include the changed
    components, previous and candidate selections, retired declarations, and
-   discovered-scope additions and removals. Show exact creates/replacements/matching-file
+   discovered-scope additions and removals. State the update class from
+   `updateClass`: an exact update changes only exact content, skills, or the
+   selection; a contextual update changes guidance, discovery guidance,
+   operations, retired declarations, or confirmed scope, and
+   `contextualChanges` names each differing declaration. The class describes
+   the update; it neither approves it nor replaces review. Render the same
+   inspection with `inspect --summary`, using the same executable and flags
+   without `--json`, and present that Markdown as the proposal after checking
+   that its identity matches the report. Show exact creates/replacements/matching-file
    claims and whole-skill inventories, discovery rationale and candidate exclusions,
    contextual guidance and allowed targets, resolved exclusions, and ownership changes. Make the full inspection available
    for review, including its diffs against existing content and the hashes of supplied material.
@@ -99,7 +121,7 @@ replace this workflow or supply adoption hooks.
 When a report returns `workRequest`, read `assessment-protocol.md` before editing
 or submitting evidence. The handoff is expected incomplete adoption.
 
-1. For a v2 discovery request, recheck semantic coverage after fixes against
+1. For a discovery request, recheck semantic coverage after fixes against
    each discovery guidance file and accepted proposal before editing. Record the
    post-fix coverage evidence for assessment. If more files are needed or a
    confirmed target is mistaken, submit the blocked scope review without writing
@@ -147,3 +169,7 @@ content, whole skills, retained inputs and durable runtime/state files.
 review. Keep HEAD and index unchanged while exposing new-file content; leave all
 adoption changes uncommitted for the maintainer's normal workflow. `status`
 evidence describes that run, not continuing compliance after subsequent edits.
+`status --summary` renders the last complete run, or the active run, as a
+deterministic Markdown record of its selection, operations and results, changed
+paths, scope changes, and identities; offer it when the maintainer needs a
+written record of the run.

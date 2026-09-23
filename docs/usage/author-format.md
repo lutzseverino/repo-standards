@@ -11,15 +11,15 @@ Local-directory adoption is not an interface of this product.
 ## Format identity
 
 Every source declares `format: repo-standards/v2`, the only supported format.
-Validation rejects any other value, including the retired `repo-standards/v1`,
-with `INVALID_FORMAT`. Repository guidance uses either explicit targets or
-project-specific discovery; file declarations, skills, operations, and profile
-resolution are the same for both scope modes. Set the CLI
-compatibility range to versions actually validated; the format identity and CLI
-package version are independent. Older CLIs reject unsupported formats.
+Validation rejects any other value with `INVALID_FORMAT`. Repository guidance
+uses either explicit targets or project-specific discovery; file declarations,
+skills, operations, and profile resolution are the same for both scope modes.
+Set the CLI compatibility range to versions actually validated; the format
+identity and CLI package version are independent. Older CLIs reject unsupported
+formats.
 
 This implementation supports discovery authoring, validation, and
-[two-pass scope inspection](inspection.md#discover-contextual-file-scope-v2-sources).
+[two-pass scope inspection](inspection.md#discover-contextual-file-scope).
 A selected profile with unresolved discovery returns guidance, eligible evidence,
 a discovery request identity, and a `DISCOVERY_REQUIRED` start blocker.
 `inspect --scope` validates an evidence-backed `repo-standards/scope/v1` proposal
@@ -259,7 +259,7 @@ structurally invalid YAML may limit what can be determined.
 | `UNKNOWN_FIELD` | Field outside the author schema |
 | `REQUIRED_FIELD` | Required field omitted |
 | `INVALID_TYPE` | Wrong mapping, list, scalar, or string type |
-| `INVALID_FORMAT` | Format identity other than `repo-standards/v2`, including the retired `repo-standards/v1` |
+| `INVALID_FORMAT` | Format identity other than `repo-standards/v2` |
 | `INVALID_VERSION` | Malformed SemVer range |
 | `INCOMPATIBLE_CLI` | Running CLI does not satisfy the source range; the message recommends an open-ended minimum |
 | `EMPTY_PROFILES` | No complete named profile |

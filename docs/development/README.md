@@ -38,10 +38,6 @@ report actual validation results and remaining limits in the PR.
 
 - [Repository Standards — architecture contracts](architecture.md)
 - [Standards authoring skill design](authoring-skill-design.md)
-- [Project-specific contextual scope](contextual-scope-design.md)
-- [Contextual scope interfaces](contextual-scope-interfaces.md)
-- [Correctness and simplicity review](contextual-scope-review.md)
-- [Contextual scope specification archive](contextual-scope-specification.md)
 - [Release reliability investigation design](release-reliability-design.md)
 - [Release procedure](release.md)
 
@@ -51,7 +47,7 @@ report actual validation results and remaining limits in the PR.
 includes the categorized documentation. It also creates complete compatibility
 copies at the nine original `docs/*.md` package paths, preserving headings and
 rebasing local links. The installed system skills can therefore keep using
-public CLI 1.3.0's documented paths. Use the release bundle's tarball for
+public CLI 2.0.0's documented paths. Use the release bundle's tarball for
 publication; direct `npm pack --ignore-scripts` from the source checkout omits
 those generated compatibility copies. Installed-CLI tests use the same staging
 boundary as release packaging.
