@@ -1,5 +1,5 @@
-import { lstatSync, readFileSync } from 'node:fs';
-import { isAbsolute, join, relative } from 'node:path';
+import { lstatSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname, isAbsolute, join, relative } from 'node:path';
 import { ProductError } from './errors.js';
 
 // Each artifact has exactly one format, and it is the one this CLI both writes
@@ -49,11 +49,15 @@ function recorded(path: string): unknown {
 
 // Every command that reads product records rejects a retired one before it
 // reads or writes anything else, so the diagnostic is the same whichever record
-// the command would have read first. Records that cannot be read are left to
-// their owners.
+// the command would have read first: committed state, retained scope evidence,
+// the active run record, or a run report archived beside it by abandonment.
+// Records that cannot be read are left to their owners.
 export function rejectRetiredRecords(root: string, runRecord: string) {
   for (const [path, format] of [['.repo-standards/state.json', formats.state], ['.repo-standards/inputs/scope-history.json', formats.scopeHistory]] as const) {
     requireFormat(path, recorded(join(root, path)), format);
   }
-  requireFormat(recordPath(root, runRecord), recorded(runRecord), formats.run);
+  const archive = join(dirname(runRecord), 'repo-standards-reports');
+  const archived = lstatSync(archive, { throwIfNoEntry: false })?.isDirectory()
+    ? readdirSync(archive).sort().filter(name => name.endsWith('.json')).map(name => join(archive, name)) : [];
+  for (const path of [runRecord, ...archived]) requireFormat(recordPath(root, path), recorded(path), formats.run);
 }

@@ -105,10 +105,14 @@ test('a retired state, scope evidence, or run record format is rejected with the
   const reports = join(runRecord, '../repo-standards-reports');
   mkdirSync(reports, { recursive: true });
   writeFileSync(join(reports, 'c0ffee00-0000-4000-8000-000000000000.json'), JSON.stringify({ format: 'repo-standards/run/v1', id: 'c0ffee00-0000-4000-8000-000000000000' }));
-  const archived = f.run(['status', '--json']);
-  assert.equal(archived.result.status, 1);
-  assert.equal(archived.report.errors[0].code, 'RETIRED_FORMAT');
-  assert.match(archived.report.errors[0].message, /retired format repo-standards\/run\/v1/);
+  const before = snapshot(root);
+  for (const command of [['inspect'], ['status'], ['resume'], ['abandon']]) {
+    const archived = f.run([...command, '--json']);
+    assert.equal(archived.result.status, 1, `archived ${command[0]}: ${archived.result.stdout}`);
+    assert.equal(archived.report.errors[0].code, 'RETIRED_FORMAT', `archived ${command[0]}`);
+    assert.match(archived.report.errors[0].message, /repo-standards-reports\/c0ffee00-0000-4000-8000-000000000000\.json carries the retired format repo-standards\/run\/v1/);
+    assert.deepEqual(snapshot(root), before, `archived ${command[0]} must not write`);
+  }
 });
 
 test('the single committed formats are validated on read', async t => {
