@@ -445,7 +445,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       const finalIndex = git(root, ['ls-files', '--stage', '-z'], undefined, 30_000);
       const finalStatus = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignore-submodules=all'], undefined, 30_000);
       if (finalIndex.status !== 0 || finalStatus.status !== 0) throw new ProductError('OBSERVATION_READ', 'Cannot completely recheck Git project state.');
-      if (finalHead.status !== head.status || finalIndex.stdout !== index.stdout || finalStatus.stdout !== status.stdout || JSON.stringify(hiddenIndexPaths(root)) !== JSON.stringify(hidden)) throw new ProductError('OBSERVATION_UNSTABLE', 'Git project state changed during discovery inspection. Inspect again.');
+      if (finalHead.status !== head.status || finalHead.stdout !== head.stdout || finalIndex.stdout !== index.stdout || finalStatus.stdout !== status.stdout || JSON.stringify(hiddenIndexPaths(root)) !== JSON.stringify(hidden)) throw new ProductError('OBSERVATION_UNSTABLE', 'Git project state changed during discovery inspection. Inspect again.');
     }
     if (scopeObservation && JSON.stringify(scopeObservation) !== JSON.stringify(observeScope(root))) throw new ProductError('OBSERVATION_UNSTABLE', 'Discovery observation changed during inspection. Inspect again.');
     if (namedObservation && JSON.stringify(namedObservation) !== JSON.stringify(observeScope(root, named))) throw new ProductError('OBSERVATION_UNSTABLE', 'Named scope observations changed during inspection. Inspect again.');
