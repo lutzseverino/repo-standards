@@ -113,7 +113,11 @@ function plannedAction(current: Observation, desired: Observation) {
   return JSON.stringify(current) === JSON.stringify(desired) ? 'match' : current.type === 'missing' ? 'create' : 'replace';
 }
 
-export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string; scope?: string; readopt?: boolean }
+export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string; scope?: string }
+
+// The selection components an update can change, in reporting order.
+const selectionComponents = ['cli', 'standards', 'source', 'profile'] as const;
+type SelectionComponent = typeof selectionComponents[number];
 
 interface RecordedAdoption {
   selection: RecordedSelection;
@@ -244,9 +248,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
     const profile = validation.profiles[options.profile];
     if (!profile) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
-    const standardsChanged = previous ? source.identity.version !== previous.selection.standards.version || source.identity.commit !== previous.selection.standards.commit : false;
-    const cliChanged = previous ? cliVersion !== previous.selection.cli.version : false;
-    const requestedAction = options.readopt ? 'readopt' : previous && (standardsChanged || cliChanged) ? 'update' : retained ? 'retained' : 'adopt';
+    const requestedAction = previous ? 'update' : 'adopt';
     const discoveryDeclarations = profile.declarations.filter(declaration => 'discovery' in declaration);
     const scopeObservation = discoveryDeclarations.length ? observeScope(root) : undefined;
     const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: requestedAction, root, head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;
@@ -261,21 +263,21 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       evidence: scopeObservation.evidence,
       observation: scopeObservation,
     } : undefined;
-    let update: 'standards' | 'cli' | undefined;
+    // An update against an established adoption names every changed selection
+    // component together; an unchanged selection is re-applied.
+    let update: SelectionComponent[] | undefined;
     if (previous) {
       const sameSource = source.identity.repository.toLowerCase() === previous.selection.standards.repository.toLowerCase();
       if (sameSource && source.identity.version === previous.selection.standards.version && source.identity.commit !== previous.selection.standards.commit) {
         throw new ProductError('MOVED_TAG', `The recorded ${source.identity.version} tag previously resolved to ${previous.selection.standards.commit}; it now resolves to ${source.identity.commit}. Choose a new immutable version.`);
       }
-      if (!sameSource || options.profile !== previous.selection.profile) blockers.push({ code: 'SELECTION_SWITCH', message: 'Updates must preserve the current standards source and profile. Source and profile switching are unsupported.' });
-      if (options.readopt) {
-        if (!retained || standardsChanged || cliChanged) blockers.push({ code: 'SELECTION_SWITCH', message: 'Re-adoption uses the unchanged retained source, profile, standards revision, and exact CLI version.' });
-      } else if (standardsChanged && cliChanged) blockers.push({ code: 'INDEPENDENT_UPDATE_REQUIRED', message: 'Update either the standards revision or the exact CLI version, then inspect the other change separately.' });
-      else if (standardsChanged) update = 'standards';
-      else if (cliChanged) {
-        update = 'cli';
-        if (!retained) blockers.push({ code: 'CLI_UPDATE_REQUIRES_RETAINED', message: 'CLI updates use the current retained standards. Omit source flags and inspect with the candidate exact CLI version.' });
-      } else blockers.push({ code: 'NO_UPDATE', message: 'The inspected selection matches the current pins. Choose a new standards revision or inspect with a different exact CLI version, or use --readopt to deliberately re-adopt unchanged pins.' });
+      const changed: Record<SelectionComponent, boolean> = {
+        cli: cliVersion !== previous.selection.cli.version,
+        standards: source.identity.version !== previous.selection.standards.version || source.identity.commit !== previous.selection.standards.commit,
+        source: !sameSource,
+        profile: options.profile !== previous.selection.profile,
+      };
+      update = selectionComponents.filter(component => changed[component]);
       for (const [path, expected] of Object.entries(previous.baselines)) {
         const actual = targetObservation(root, path, blockers);
         if (actual.type !== 'file' || actual.sha256 !== expected.sha256 || actual.executable !== expected.executable) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'Installed exact content differs from its last-complete baseline. Reconcile it before updating.' });
@@ -372,7 +374,6 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       project: { root, head: head.status === 0 ? head.stdout.trim() : null, status: status.stdout, index: index.stdout, hidden, affected, productState, systemSkill },
       systemSkill: { target: '.agents/skills/adopt-standards', action: systemSkillAction },
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
-      ...(options.readopt ? { action: 'readopt' as const } : {}),
       ...(update ? { update, previousSelection: previous!.selection, retired } : {}),
       ...(scopeChanges ? { scopeChanges } : {}),
     };

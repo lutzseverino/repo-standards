@@ -24,7 +24,7 @@ authoring skill, and fresh-checkout restoration.
 - Validate independently authored standards and complete profiles.
 - Inspect published GitHub versions, exact replacements, and contextual scope.
 - Adopt through confirmed operations and agent assessments, retaining evidence.
-- Deliberately update standards or CLI pins, or re-adopt unchanged standards.
+- Deliberately update any pin, the source, or the profile in one confirmed run.
 - Discover sources by topic without automatically selecting or adopting them.
 
 ## Usage

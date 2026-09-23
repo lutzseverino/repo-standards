@@ -23,7 +23,7 @@ const pendingWork = {
 } as const;
 
 type Inspection = Awaited<ReturnType<typeof inspect>>;
-export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: 'retained'; project: string; scope?: string; readopt?: true };
+export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: 'retained'; project: string; scope?: string };
 export interface Run {
   format: 'repo-standards/run/v2'; id: string; inspection: string;
   selection: Inspection['selection'];
@@ -296,7 +296,7 @@ export class AdoptionRunSession {
   begin(report: Inspection, confirmation: string, startInput: StartInput) {
     this.#assertOpen();
     const root = this.#root;
-    const previous = report.update || report.action === 'readopt' ? recordedState(root) : undefined;
+    const previous = report.update !== undefined ? recordedState(root) : undefined;
     const recovering = this.#run;
     const run: Run = recovering ?? { format: 'repo-standards/run/v2', observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, startInput,
       ...(previous ? { previousComplete: { selection: previous.pinned.selection, lastComplete: previous.state.lastComplete } } : {}),

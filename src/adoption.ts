@@ -92,25 +92,28 @@ export async function start(options: InspectOptions, cliVersion: string, confirm
   return withStartRun(options.project, session => startRun({ kind: 'public', options }, cliVersion, confirmation, session));
 }
 
-export async function startRetained(project: string, cliVersion: string, confirmation: string, scope?: string, readopt = false) {
-  return withStartRun(project, session => startRun({ kind: 'retained', project, ...(scope ? { scope } : {}), ...(readopt ? { readopt: true } : {}) }, cliVersion, confirmation, session));
+export async function startRetained(project: string, cliVersion: string, confirmation: string, scope?: string) {
+  return withStartRun(project, session => startRun({ kind: 'retained', project, ...(scope ? { scope } : {}) }, cliVersion, confirmation, session));
 }
 
 async function startRun(input: StartInput, cliVersion: string, confirmation: string, session: AdoptionRunSession) {
-  const inspectSelection = () => input.kind === 'retained' ? inspectRetained(input.project, cliVersion, input.scope, input.readopt) : inspect(input.options, cliVersion);
+  const inspectSelection = () => input.kind === 'retained' ? inspectRetained(input.project, cliVersion, input.scope) : inspect(input.options, cliVersion);
   const initial = await inspectSelection();
   const root = initial.project.root;
   verifyConfirmation(initial, confirmation);
   const proposalPath = input.kind === 'retained' ? input.scope : input.options.scope;
   const scope = proposalPath === undefined ? {} : { scope: realpathSync(resolve(proposalPath)) };
-  const startInput: StartInput = input.kind === 'retained' ? { kind: 'retained', project: root, ...scope, ...(input.readopt ? { readopt: true } : {}) } : { kind: 'public', options: { ...input.options, project: root, ...scope } };
+  const startInput: StartInput = input.kind === 'retained' ? { kind: 'retained', project: root, ...scope } : { kind: 'public', options: { ...input.options, project: root, ...scope } };
   session.begin(initial, confirmation, startInput);
   let temporary: string | undefined;
   const files: Files = Object.create(null);
   const skills: Record<string, string[]> = Object.create(null);
   const prerequisites = await session.prerequisites(onSpawn => preflight(root, initial.resolved, onSpawn));
   if (prerequisites.some(probe => probe.code)) throw new ProductError('PREREQUISITES_BLOCKED', 'Resolve the reported executable and version problems; prerequisites are never installed automatically.');
-  const replaceRuntime = initial.update !== 'standards';
+  // Initial adoption installs the runtime; an update replaces it only when
+  // the CLI pin changes and otherwise keeps the installed runtime.
+  const established = initial.update !== undefined;
+  const replaceRuntime = !established || initial.update!.includes('cli');
   let preparedSystemSkill: Observation | undefined;
   if (replaceRuntime) {
     const acquired = session.acquireRuntime(directory => prepareRuntime(directory, cliVersion, root));
@@ -154,10 +157,13 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
   }
   const durable = baselines(files);
   files['.repo-standards/lock.json'] = file(json({ format: 'repo-standards/lock/v1', selection: report.selection, inspection: confirmation, files: durable }));
-  const replaceTrees = report.update === 'standards' ? ['.repo-standards/inputs', ...report.resolved.declarations
-    .filter(declaration => declaration.kind === 'skill').map(declaration => `.agents/skills/${declaration.name}`)] : report.update === 'cli' ? [systemTarget] : [];
+  // An update replaces retained inputs and every still-declared skill as whole
+  // trees, and the system skill with the runtime. Retired content stays.
+  const replaceTrees = established ? ['.repo-standards/inputs', ...report.resolved.declarations
+    .filter(declaration => declaration.kind === 'skill').map(declaration => `.agents/skills/${declaration.name}`),
+  ...(replaceRuntime ? [systemTarget] : [])] : [];
   const transitional: Files = Object.create(null);
-  if (report.update || report.action === 'readopt') {
+  if (established) {
     const oldState = safe(root, '.repo-standards/state.json');
     if (oldState.type === 'file') transitional['.repo-standards/state.json'] = oldState;
   }
@@ -233,7 +239,7 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
   } else {
     const staged = observe(`${lockPath(root)}.runtime`);
     if (hash(json(staged)) !== installation.runtimeHash) throw new ProductError('STATE_INTEGRITY', 'The saved runtime installation changed. Preserve the run and restore its recorded runtime.');
-    if (!report.update && report.action !== 'readopt' && !partial(runtime, staged)) throw new ProductError('INSTALLATION_CHANGED', 'Runtime content changed. Reconcile it before retry.');
+    if (report.update === undefined && !partial(runtime, staged)) throw new ProductError('INSTALLATION_CHANGED', 'Runtime content changed. Reconcile it before retry.');
   }
   for (const path of temporaries) { safe(root, path); rmSync(join(root, path)); }
   session.record({ type: 'installation-writing' });
@@ -356,7 +362,7 @@ export async function resume(project: string, cliVersion: string, assessmentPath
   });
 }
 
-export async function inspectRetained(project: string, cliVersion: string, scope?: string, readopt = false) {
+export async function inspectRetained(project: string, cliVersion: string, scope?: string) {
   const root = projectRoot(project);
   if (!existsSync(join(root, '.repo-standards/state.json'))) throw new ProductError('NO_SELECTION', 'No complete adoption is recorded. Inspect a public source with --source, --standards-version and --profile.');
   const { pinned: lock, state } = recordedState(root);
@@ -372,7 +378,7 @@ export async function inspectRetained(project: string, cliVersion: string, scope
     const parts = path.slice('.repo-standards/inputs/source/'.length).split('/');
     for (let length = 1; length <= parts.length; length++) paths.add(parts.slice(0, length).join('/'));
   }
-  const report = await inspect({ project: root, ...(scope ? { scope } : {}), ...(readopt ? { readopt: true } : {}), source: lock.selection.standards.repository, standardsVersion: lock.selection.standards.version, profile: lock.selection.profile }, cliVersion,
+  const report = await inspect({ project: root, ...(scope ? { scope } : {}), source: lock.selection.standards.repository, standardsVersion: lock.selection.standards.version, profile: lock.selection.profile }, cliVersion,
     { root: sourceRoot, identity: lock.selection.standards, paths, manifest: readFileSync(join(root, '.repo-standards/inputs/standards.yaml'), 'utf8'), ownedSkills: new Set(Object.keys(state.skills)), close() {} });
   const history = '.repo-standards/inputs/scope-history.json';
   const retainedHistory = Object.hasOwn(lock.files, history)

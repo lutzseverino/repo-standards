@@ -26,11 +26,13 @@ export function validateSource(directory: string, cliVersion: string, sourcePath
   const fields = new Fields(error);
   const paths = new Paths(resolve(directory), fields, sourcePaths);
   let result: ReturnType<typeof resolveDocument> | undefined;
-  for (const root of roots) result = resolveDocument(root, fields, paths, cliVersion);
+  // The author's range gates selecting a standards version from its source
+  // only. Retained inputs are validated against this CLI's formats alone.
+  for (const root of roots) result = resolveDocument(root, fields, paths, retainedManifest === undefined ? cliVersion : undefined);
   return { valid: errors.length === 0, errors, ...(errors.length ? {} : { source: result?.source, scope: result?.scope }), profiles: errors.length ? {} : result?.profiles ?? {} };
 }
 
-function resolveDocument(root: Value, fields: Fields, paths: Paths, cliVersion: string) {
+function resolveDocument(root: Value, fields: Fields, paths: Paths, cliVersion: string | undefined) {
   const error = fields.error;
   fields.map(root, ['format', 'name', 'description', 'requires', 'defaults', 'profiles']);
   const format = fields.get(root, 'format');
@@ -43,7 +45,7 @@ function resolveDocument(root: Value, fields: Fields, paths: Paths, cliVersion: 
   const rangeValue = fields.get(requires, 'repo-standards');
   const range = fields.string(rangeValue);
   if (range && !validRange(range)) error('INVALID_VERSION', 'Expected a CLI SemVer range.', rangeValue);
-  else if (range && !satisfies(cliVersion, range)) error('INCOMPATIBLE_CLI', `CLI ${cliVersion} does not satisfy ${range}.`, rangeValue);
+  else if (range && cliVersion !== undefined && !satisfies(cliVersion, range)) error('INCOMPATIBLE_CLI', `CLI ${cliVersion} does not satisfy ${range}. Declare an open-ended minimum CLI version, such as ">=1.3.0", so later CLI versions can select this standards version.`, rangeValue);
   const defaults = fields.get(root, 'defaults');
   fields.map(defaults, ['declarations']);
   const declarations = new Declarations(fields, paths);

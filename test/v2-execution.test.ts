@@ -492,9 +492,9 @@ ${result}`);
   assert.deepEqual(legacyStatus.observations[0].before, before);
   assert.equal(legacyStatus.history.length, 2);
 
-  const readopted = f.run(['inspect', '--readopt', '--json']).report;
-  assert.deepEqual(readopted.start.blockers, []);
-  const restarted = f.run(['start', '--readopt', '--confirm', readopted.identity, '--json']).report;
+  const unchanged = f.run(['inspect', '--json']).report;
+  assert.deepEqual(unchanged.start.blockers, []);
+  const restarted = f.run(['start', '--confirm', unchanged.identity, '--json']).report;
   assert.equal(restarted.phase, 'contextual');
   writeFileSync(join(f.project.root, 'OTHER.md'), 'Renewed agent documentation');
   const recompleted = f.assess(f.run(['resume', '--json']).report.workRequest, { other: ['OTHER.md'] });
@@ -527,5 +527,5 @@ ${result}`);
 
   // The committed guarantee is enforced on read, not only when writing.
   rewrite({ ...(compacted as unknown as Record<string, unknown>), observations: legacyIntervals });
-  assert.equal(f.run(['inspect', '--readopt', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
+  assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
 });

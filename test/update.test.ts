@@ -83,7 +83,7 @@ test('a confirmed standards update advances only the standards pin, replaces who
   const inspectionResult = cli.run(updateArgs, project.root, env);
   assert.equal(inspectionResult.status, 0, inspectionResult.stdout + inspectionResult.stderr);
   const inspection = JSON.parse(inspectionResult.stdout);
-  assert.equal(inspection.update, 'standards');
+  assert.deepEqual(inspection.update, ['standards']);
   assert.equal(inspection.selection.cli.version, cli.version);
   assert.equal(inspection.selection.standards.commit, published.sha);
   assert.deepEqual(inspection.retired.map((entry: { id: string }) => entry.id), ['excluded', 'retired']);
@@ -177,7 +177,7 @@ test('a candidate CLI updates only the exact runtime pin from retained standards
   const inspectionResult = runCandidate(['inspect', '--json']);
   assert.equal(inspectionResult.status, 0, inspectionResult.stdout + inspectionResult.stderr);
   const inspection = JSON.parse(inspectionResult.stdout);
-  assert.equal(inspection.update, 'cli');
+  assert.deepEqual(inspection.update, ['cli']);
   assert.equal(inspection.retained, true);
   assert.equal(inspection.selection.cli.version, candidateVersion);
   assert.deepEqual(inspection.selection.standards, originalSelection.standards);
@@ -204,7 +204,7 @@ test('a candidate CLI updates only the exact runtime pin from retained standards
   assert.deepEqual(status.selection.standards, originalSelection.standards);
 });
 
-test('a CLI update rejects an incompatible retained standards selection without mutation', async t => {
+test('a candidate CLI updates retained standards whose manifest range excludes it', async t => {
   const yaml = source('v1', `    instructions:
       kind: file
       target: AGENTS.md
@@ -219,16 +219,23 @@ test('a CLI update rejects an incompatible retained standards selection without 
   const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env).status, 0);
   commit(project.root);
+  const previous = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
   execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
   for (const key of Object.keys(remote.responses)) delete remote.responses[key];
   remote.save();
-  const before = git(project.root, 'status', '--porcelain=v1');
-  const result = spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), ['inspect', '--json'], { cwd: project.root, env, encoding: 'utf8' });
-  assert.equal(result.status, 1);
-  const error = JSON.parse(result.stdout).errors[0];
-  assert.equal(error.code, 'INVALID_STANDARDS');
-  assert.ok(error.details.some((detail: { code: string }) => detail.code === 'INCOMPATIBLE_CLI'));
-  assert.equal(git(project.root, 'status', '--porcelain=v1'), before);
+  const runCandidate = (args: string[]) => spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env, encoding: 'utf8' });
+  const inspected = runCandidate(['inspect', '--json']);
+  assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
+  const update = JSON.parse(inspected.stdout);
+  assert.deepEqual(update.update, ['cli']);
+  assert.equal(update.source.requires['repo-standards'], `>=1.0.0 <${candidateVersion}`);
+  assert.equal(update.start.eligible, true, JSON.stringify(update.start.blockers));
+  const result = runCandidate(['start', '--confirm', update.identity, '--json']);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+  const status = JSON.parse(runCandidate(['status', '--json']).stdout);
+  assert.equal(status.selection.cli.version, candidateVersion);
+  assert.deepEqual(status.selection.standards, previous.selection.standards);
 });
 
 test('an update failure preserves actual work and the previous last-complete evidence', async t => {
@@ -282,34 +289,265 @@ test('an update failure preserves actual work and the previous last-complete evi
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version two');
 });
 
-test('update inspection rejects source or profile switching and changing both pins together', async t => {
-  const v1 = source('v1', `    instructions:
+test('a confirmed inspection of the unchanged selection starts a run that re-applies it from retained inputs', async t => {
+  const remote = remoteFixture(source('v1', `    instructions:
       kind: file
       target: AGENTS.md
-      exact: agents.md`);
-  const remote = remoteFixture(v1, { 'agents.md': 'Version one' });
-  const other = remoteFixture(v1, { 'agents.md': 'Other source' }, [], 'bob/standards');
+      exact: agents.md
+      checks:
+        - id: verify
+          run: {executable: ${JSON.stringify(process.execPath)}, script: check.mjs, resources: [], arguments: []}
+          prerequisite: {version-arguments: [--version], version: ">=24 <25"}
+          timeout-seconds: 5`), {
+    'agents.md': 'Pinned standards',
+    'check.mjs': `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Ready'}));`,
+  });
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const adopted = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env);
+  assert.equal(adopted.status, 0, adopted.stdout + adopted.stderr);
+  commit(project.root);
+  const previous = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  const runtimePaths = ['.repo-standards/runtime/package.json', '.repo-standards/runtime/package-lock.json', '.agents/skills/adopt-standards/SKILL.md'];
+  const runtime = runtimePaths.map(path => readFileSync(join(project.root, path), 'utf8'));
+  const head = git(project.root, 'rev-parse', 'HEAD');
+  // Neither the source nor the npm registry is reachable: an unchanged
+  // selection re-applies retained inputs and keeps the installed runtime.
+  registry.close();
+  for (const key of Object.keys(remote.responses)) delete remote.responses[key];
+  remote.save();
+
+  for (const command of ['inspect', 'start']) {
+    const rejected = cli.run([command, '--readopt', '--json'], project.root, env);
+    assert.equal(rejected.status, 2, rejected.stdout + rejected.stderr);
+    assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'USAGE');
+  }
+  const inspectionResult = cli.run(['inspect', '--json'], project.root, env);
+  assert.equal(inspectionResult.status, 0, inspectionResult.stdout + inspectionResult.stderr);
+  const inspection = JSON.parse(inspectionResult.stdout);
+  assert.deepEqual(inspection.update, []);
+  assert.deepEqual(inspection.previousSelection, previous.selection);
+  assert.deepEqual(inspection.selection, previous.selection);
+  assert.deepEqual(inspection.retired, []);
+  assert.deepEqual(inspection.start.blockers, []);
+
+  const result = cli.run(['start', '--confirm', inspection.identity, '--json'], project.root, env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const completed = JSON.parse(result.stdout);
+  assert.equal(completed.outcome, 'complete');
+  assert.equal(completed.previousComplete.lastComplete.run, previous.lastComplete.run);
+  assert.deepEqual(completed.operations.map((entry: { operation: { id: string }; result: { status: string } }) => [entry.operation.id, entry.result.status]), [['verify', 'passed']]);
+  const current = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  assert.equal(current.lastComplete.run, completed.id);
+  assert.deepEqual(current.selection, previous.selection);
+  assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Pinned standards');
+  assert.deepEqual(runtimePaths.map(path => readFileSync(join(project.root, path), 'utf8')), runtime);
+  assert.equal(git(project.root, 'rev-parse', 'HEAD'), head);
+});
+
+test('an unchanged selection with active discovery requires a fresh proposal before it starts', async t => {
+  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'discovered-docs', description: 'Maintained project documentation',
+    requires: { 'repo-standards': '>=1.0.0' }, defaults: { declarations: { docs: { kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md' } } },
+    profiles: { work: { description: 'Work', declarations: {} } } }), {
+    'guidance.md': 'Keep every maintained project README useful.', 'discovery.md': 'Include the README of every maintained project.',
+  });
+  const project = sourceFixture('', { 'apps/old/README.md': '# Old project\n' });
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const run = (args: string[]) => cli.run(args, project.root, env);
+  const scopeFile = join(remote.support.root, 'scope.json');
+  const propose = (request: { discovery: { identity: string; evidence: { kind: string; path: string }[] } }, path: string) => {
+    const evidence = request.discovery.evidence.find(entry => entry.kind === 'file' && entry.path === path);
+    writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{ id: 'docs', paths: [path],
+      coverage: 'Every maintained project README is included.', evidence: [evidence],
+      candidates: [{ path, decision: 'include', reason: 'This is a maintained project README.', evidence: [evidence] }], unresolved: [] }] }));
+  };
+  const complete = (started: { workRequest: { run: string; selection: string; snapshot: string; scope: { inspection: string; afterFixes: string } } }) => {
+    const request = started.workRequest;
+    const review = { status: 'valid', explanation: 'The confirmed README still matches the discovery guidance.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
+    const assessmentFile = join(remote.support.root, 'assessment.json');
+    writeFileSync(assessmentFile, JSON.stringify({ format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
+      scope: { inspection: request.scope.inspection, afterFixes: request.scope.afterFixes },
+      declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The README already satisfies the guidance.', changedPaths: [], evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
+    return run(['resume', '--assessment', assessmentFile, '--json']);
+  };
+  const firstRequest = JSON.parse(run(inspectionArgs).stdout);
+  propose(firstRequest, 'apps/old/README.md');
+  const first = JSON.parse(run([...inspectionArgs, '--scope', scopeFile]).stdout);
+  const firstStart = JSON.parse(run(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', first.identity]).stdout);
+  const firstComplete = complete(firstStart);
+  assert.equal(firstComplete.status, 0, firstComplete.stdout + firstComplete.stderr);
+  commit(project.root);
+  mkdirSync(join(project.root, 'apps/new'));
+  writeFileSync(join(project.root, 'apps/new/README.md'), '# New project\n');
+  commit(project.root);
+
+  const request = JSON.parse(run(['inspect', '--json']).stdout);
+  assert.deepEqual(request.update, []);
+  assert.equal(request.start.eligible, false);
+  assert.ok(request.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'), JSON.stringify(request.start.blockers));
+  const stale = run(['inspect', '--scope', scopeFile, '--json']);
+  assert.equal(stale.status, 1, stale.stdout + stale.stderr);
+  assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_SCOPE');
+  propose(request, 'apps/new/README.md');
+  const inspection = JSON.parse(run(['inspect', '--scope', scopeFile, '--json']).stdout);
+  assert.deepEqual(inspection.start.blockers, []);
+  assert.deepEqual(inspection.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
+  const started = JSON.parse(run(['start', '--scope', scopeFile, '--confirm', inspection.identity, '--json']).stdout);
+  assert.equal(started.phase, 'contextual');
+  const completed = complete(started);
+  assert.equal(completed.status, 0, completed.stdout + completed.stderr);
+  assert.equal(JSON.parse(completed.stdout).previousComplete.lastComplete.run, JSON.parse(firstComplete.stdout).id);
+  assert.equal(readFileSync(join(project.root, 'apps/old/README.md'), 'utf8'), '# Old project\n');
+});
+
+test('a coordinated update changes the CLI and standards pins in one confirmed run when the new standards version requires the candidate', async t => {
+  const declarations = `    instructions:
+      kind: file
+      target: AGENTS.md
+      exact: agents.md
+    review:
+      kind: skill
+      name: review
+      source: review`;
+  const remote = remoteFixture(source('v1', declarations), { 'agents.md': 'Version one', 'review/SKILL.md': '# Review v1' });
   const project = sourceFixture('');
   const candidate = sourceFixture('');
   const registry = await registryFixture(cli.root, [cli.version, candidateVersion]);
-  t.after(() => { registry.close(); remote.close(); other.close(); project.close(); candidate.close(); });
+  t.after(() => { registry.close(); remote.close(); project.close(); candidate.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initialInspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
-  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).status, 0);
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   commit(project.root);
-  const v2 = v1.replace('description: Work\n    declarations: {}', 'description: Work\n    declarations: {}\n  other:\n    description: Other\n    declarations: {}');
-  remote.addVersion('v1.1.0', v2, { 'agents.md': 'Version two' });
+  const previous = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  const head = git(project.root, 'rev-parse', 'HEAD');
+  remote.addVersion('v1.1.0', source('v2', declarations).replace('>=1.0.0 <2.0.0', `>=${candidateVersion}`),
+    { 'agents.md': 'Version two', 'review/SKILL.md': '# Review v2' });
   const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
-  const switchedProfile = JSON.parse(cli.run(updateArgs.map(argument => argument === 'work' ? 'other' : argument), project.root, env).stdout);
-  assert.ok(switchedProfile.start.blockers.some((blocker: { code: string }) => blocker.code === 'SELECTION_SWITCH'));
-  const switchedSource = JSON.parse(cli.run(inspectionArgs.map(argument => argument === 'https://github.com/alice/standards' ? 'https://github.com/bob/standards' : argument), project.root, { ...other.env, ...registry.env }).stdout);
-  assert.ok(switchedSource.start.blockers.some((blocker: { code: string }) => blocker.code === 'SELECTION_SWITCH'));
+
+  // The author's range still gates selecting that version from its source.
+  const pinned = cli.run(updateArgs, project.root, env);
+  assert.equal(pinned.status, 1, pinned.stdout + pinned.stderr);
+  const error = JSON.parse(pinned.stdout).errors[0];
+  assert.equal(error.code, 'INVALID_STANDARDS');
+  const incompatible = error.details.find((detail: { code: string }) => detail.code === 'INCOMPATIBLE_CLI');
+  assert.match(incompatible.message, /open-ended minimum/);
+  assert.match(incompatible.message, />=1\.3\.0/);
+  assert.equal(git(project.root, 'status', '--porcelain=v1'), '');
 
   execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
-  const combined = JSON.parse(spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), updateArgs, { cwd: project.root, env, encoding: 'utf8' }).stdout);
-  assert.ok(combined.start.blockers.some((blocker: { code: string }) => blocker.code === 'INDEPENDENT_UPDATE_REQUIRED'));
-  assert.equal(git(project.root, 'status', '--porcelain=v1'), '');
+  const runCandidate = (args: string[]) => spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env, encoding: 'utf8' });
+  const inspectionResult = runCandidate(updateArgs);
+  assert.equal(inspectionResult.status, 0, inspectionResult.stdout + inspectionResult.stderr);
+  const inspection = JSON.parse(inspectionResult.stdout);
+  assert.deepEqual(inspection.update, ['cli', 'standards']);
+  assert.deepEqual(inspection.previousSelection, previous.selection);
+  assert.equal(inspection.selection.cli.version, candidateVersion);
+  assert.equal(inspection.selection.standards.version, 'v1.1.0');
+  assert.equal(inspection.start.eligible, true, JSON.stringify(inspection.start.blockers));
+
+  const result = runCandidate(['start', ...updateArgs.slice(1), '--confirm', inspection.identity]);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+  const selection = parse(readFileSync(join(project.root, '.repo-standards/selection.yaml'), 'utf8'));
+  assert.equal(selection.cli.version, candidateVersion);
+  assert.equal(selection.standards.version, 'v1.1.0');
+  assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version two');
+  assert.equal(readFileSync(join(project.root, '.agents/skills/review/SKILL.md'), 'utf8'), '# Review v2');
+  assert.equal(JSON.parse(readFileSync(join(project.root, '.repo-standards/runtime/package.json'), 'utf8')).dependencies['@lutzseverino/repo-standards'], candidateVersion);
+  assert.ok(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8').includes(`Fixture CLI ${candidateVersion}.`));
+  assert.equal(JSON.parse(runCandidate(['status', '--json']).stdout).lastComplete.run, JSON.parse(result.stdout).id);
+  assert.equal(git(project.root, 'rev-parse', 'HEAD'), head);
+});
+
+test('source and profile switches are updates that preserve the content of retired declarations', async t => {
+  const alice = remoteFixture(source('v1', `    instructions:
+      kind: file
+      target: AGENTS.md
+      exact: agents.md
+    legacy:
+      kind: file
+      target: LEGACY.md
+      exact: legacy.md
+    review:
+      kind: skill
+      name: review
+      source: review`).replace('    declarations: {}', '    declarations: {}\n  lean:\n    description: Lean\n    declarations: {legacy: {exclude: true}}'), {
+    'agents.md': 'Alice instructions', 'legacy.md': 'Keep legacy content', 'review/SKILL.md': '# Alice review',
+  });
+  const bob = remoteFixture(source('v1', `    instructions:
+      kind: file
+      target: AGENTS.md
+      exact: agents.md
+    lint:
+      kind: skill
+      name: lint
+      source: lint`).replace('  work:\n    description: Work', '  team:\n    description: Team'), {
+    'agents.md': 'Bob instructions', 'lint/SKILL.md': '# Bob lint',
+  }, [], 'bob/standards');
+  const project = sourceFixture('');
+  const candidate = sourceFixture('');
+  const registry = await registryFixture(cli.root, [cli.version, candidateVersion]);
+  t.after(() => { registry.close(); alice.close(); bob.close(); project.close(); candidate.close(); });
+  commit(project.root);
+  const env = { ...alice.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
+  commit(project.root);
+  const adopted = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  const runtimePaths = ['.repo-standards/runtime/package.json', '.repo-standards/runtime/package-lock.json', '.agents/skills/adopt-standards/SKILL.md'];
+  const runtime = runtimePaths.map(path => readFileSync(join(project.root, path), 'utf8'));
+
+  // A profile switch with the pinned CLI keeps the runtime.
+  const profileArgs = inspectionArgs.map(argument => argument === 'work' ? 'lean' : argument);
+  const profileSwitch = JSON.parse(cli.run(profileArgs, project.root, env).stdout);
+  assert.deepEqual(profileSwitch.update, ['profile']);
+  assert.deepEqual(profileSwitch.previousSelection, adopted.selection);
+  assert.deepEqual(profileSwitch.retired.map((entry: { id: string }) => entry.id), ['legacy']);
+  assert.equal(profileSwitch.start.eligible, true, JSON.stringify(profileSwitch.start.blockers));
+  const switched = cli.run(['start', ...profileArgs.slice(1), '--confirm', profileSwitch.identity], project.root, env);
+  assert.equal(switched.status, 0, switched.stdout + switched.stderr);
+  assert.equal(readFileSync(join(project.root, 'LEGACY.md'), 'utf8'), 'Keep legacy content');
+  let status = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  assert.equal(status.selection.profile, 'lean');
+  assert.equal(status.baselines['LEGACY.md'], undefined);
+  assert.deepEqual(runtimePaths.map(path => readFileSync(join(project.root, path), 'utf8')), runtime);
+  commit(project.root);
+
+  // A source switch can change every component at once, including the CLI pin.
+  execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
+  const bobEnv = { ...bob.env, ...registry.env };
+  const runCandidate = (args: string[]) => spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env: bobEnv, encoding: 'utf8' });
+  const sourceArgs = inspectionArgs.map(argument => argument === 'https://github.com/alice/standards' ? 'https://github.com/bob/standards' : argument === 'work' ? 'team' : argument);
+  const sourceResult = runCandidate(sourceArgs);
+  assert.equal(sourceResult.status, 0, sourceResult.stdout + sourceResult.stderr);
+  const sourceSwitch = JSON.parse(sourceResult.stdout);
+  assert.deepEqual(sourceSwitch.update, ['cli', 'standards', 'source', 'profile']);
+  assert.deepEqual(sourceSwitch.previousSelection, status.selection);
+  assert.deepEqual(sourceSwitch.retired.map((entry: { id: string }) => entry.id), ['review']);
+  assert.equal(sourceSwitch.start.eligible, true, JSON.stringify(sourceSwitch.start.blockers));
+  const result = runCandidate(['start', ...sourceArgs.slice(1), '--confirm', sourceSwitch.identity]);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+  assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Bob instructions');
+  assert.equal(readFileSync(join(project.root, '.agents/skills/lint/SKILL.md'), 'utf8'), '# Bob lint');
+  assert.equal(readFileSync(join(project.root, '.agents/skills/review/SKILL.md'), 'utf8'), '# Alice review');
+  assert.equal(readFileSync(join(project.root, 'LEGACY.md'), 'utf8'), 'Keep legacy content');
+  assert.ok(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8').includes(`Fixture CLI ${candidateVersion}.`));
+  status = JSON.parse(runCandidate(['status', '--json']).stdout);
+  assert.equal(status.selection.standards.repository, 'https://github.com/bob/standards');
+  assert.equal(status.selection.profile, 'team');
+  assert.equal(status.selection.cli.version, candidateVersion);
+  assert.equal(status.skills['.agents/skills/review'], undefined);
+  assert.equal(existsSync(join(project.root, '.repo-standards/inputs/source/legacy.md')), false);
+  assert.equal(existsSync(join(project.root, '.repo-standards/inputs/source/review/SKILL.md')), false);
 });
 
 test('an established selection rejects its moved current tag even without the external observation cache', async t => {

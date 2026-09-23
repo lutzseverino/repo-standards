@@ -95,8 +95,9 @@ Create the chosen local directory and every referenced file, script, resource,
 and whole author-skill directory. Preserve unrelated existing files; clarify a
 destination collision before
 overwriting it. Give the source a descriptive name and description and set
-`requires.repo-standards` to the compatibility actually validated (an exact
-version is sufficient). One profile need not duplicate its inherited defaults.
+`requires.repo-standards` to an open-ended minimum of the CLI version actually
+validated, such as `>=1.3.0`, never an upper bound or exact version. One
+profile need not duplicate its inherited defaults.
 
 Maintain `authoring-notes.md` beside `standards.yaml`, outside the declarations.
 Keep it concise and suitable for a potentially public repository: confirmed

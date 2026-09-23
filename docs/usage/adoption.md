@@ -1,7 +1,7 @@
 # Confirmed adoption
 
-Initial adoption, deliberate updates, and explicit same-pin re-adoption install
-exact files and whole author skills and execute trusted fixes and checks. Profiles with contextual guidance
+Initial adoption and deliberate updates install exact files and whole author
+skills and execute trusted fixes and checks. Profiles with contextual guidance
 return a work request after fixes and continue through the public
 [assessment protocol](assessment-protocol.md). Interrupted adoption supports
 explicit retry and abandonment as described below.
@@ -36,11 +36,16 @@ working tree. Store inspection reports outside the project to keep it clean.
 `--confirm` represents the maintainer's explicit confirmation; the CLI cannot
 establish whether an agent obtained that confirmation truthfully.
 
-## Update one pin at a time
+## Update the selection
 
-For a standards update, use the currently pinned CLI and preserve the source and
-profile while selecting a new stable standards tag. Inspect and review it, then
-start the exact same selection with its identity:
+An update is one inspected and confirmed run from the current selection to a
+candidate selection. The candidate can change the CLI pin, the standards pin,
+the source, the profile, any combination of them, or none of them. The
+inspection report lists every changed component together with the previous
+selection, and every update uses the same inspect, confirm, and start sequence.
+
+To select a standards version, source, or profile, pass all three source flags.
+With the currently pinned CLI:
 
 ```sh
 .repo-standards/runtime/node_modules/.bin/repo-standards inspect \
@@ -52,14 +57,10 @@ start the exact same selection with its identity:
   --confirm 'sha256:INSPECTION_HASH' --json
 ```
 
-When the candidate profile has active discovery declarations, the first
-inspection requires fresh project evidence. Build a new `--scope` proposal and
-pass it to both the complete inspection and confirmed start. The report lists
-discovered-scope additions and removals relative to the prior complete adoption;
-removed scope ends governance without deleting that project-owned content.
-
-For a CLI update, obtain the candidate exact CLI outside the project. Omit the
-source flags so inspection and start use the retained current standards:
+To change the CLI pin, obtain the candidate exact CLI outside the project and
+run it in place of the pinned executable. Omit the source flags to keep the
+retained standards, or pass them to change the standards version, source, or
+profile in the same run:
 
 ```sh
 candidate_dir="$HOME/.local/share/repo-standards/cli-1.2.0"
@@ -71,7 +72,8 @@ mkdir -p "$candidate_dir"
 ```
 
 Keep that directory outside the adopting project. Review the inspection and
-obtain explicit confirmation before running the same candidate executable:
+obtain explicit confirmation before running the same candidate executable with
+the same flags:
 
 ```sh
 "$candidate_dir/node_modules/.bin/repo-standards" start \
@@ -82,54 +84,47 @@ The bootstrap provides temporary inspection only. Keep the external candidate
 available for retry if installation interrupts before the project runtime is
 usable. Once adoption completes, use the new project-pinned CLI normally.
 
-## Re-adopt unchanged standards
-
-Use the pinned project CLI with `--readopt` when repository growth should pass
-through the retained current selection again without changing the standards
-or CLI version:
+To apply the unchanged selection again, for example after the repository gains
+content its standards should cover, run the pinned CLI without source flags:
 
 ```sh
-.repo-standards/runtime/node_modules/.bin/repo-standards inspect \
-  --readopt --scope /tmp/project-scope.json --json
+.repo-standards/runtime/node_modules/.bin/repo-standards inspect --json
 .repo-standards/runtime/node_modules/.bin/repo-standards start \
-  --readopt --scope /tmp/project-scope.json \
   --confirm 'sha256:INSPECTION_HASH' --json
 ```
 
-Omit `--scope` for selections without active discovery. With active discovery,
-first run `inspect --readopt --json`, interpret the retained discovery guidance
-against fresh project evidence, then use the new proposal in the commands above.
+Without source flags, inspection and start resolve the selection from retained
+inputs, so the original standards repository can be unavailable. Selecting a
+standards version, source, or profile requires its public source. The author's
+`requires.repo-standards` range is checked only when a standards version is
+selected from its source. Retained inputs are validated against the running
+CLI's supported source formats, so a CLI update from retained inputs succeeds
+even when the retained range excludes the candidate version.
 
-Review and confirm the complete re-adoption inspection as a new action. Plain
-`inspect --json` remains a read-only retained inspection and its identity cannot
-start re-adoption. Re-adoption rejects source, profile, standards-revision, and
-CLI-version changes. It requires a prior complete adoption and the same clean, committed project and
-integrity checks as an initial start.
+When the candidate profile has active discovery declarations, including an
+unchanged selection, the first inspection requires fresh project evidence.
+Build a new `--scope` proposal and pass it to both the complete inspection and
+confirmed start. The report lists discovered-scope additions and removals
+relative to the prior complete adoption; removed scope ends governance without
+deleting that project-owned content.
 
-The CLI resolves the source from retained inputs, so the original standards
-repository can be unavailable. It reacquires the exact pinned CLI runtime from
-the configured npm registry or cache, checks prerequisites, runs fixes, requests
-fresh contextual assessment when applicable, and runs checks through the shared
-adoption sequence. An incomplete new run retains the prior last-complete evidence;
-only successful completion advances it. Re-adoption is deliberate repository
-work, not an update, resume, retry, or automatic compliance claim.
-
-Both paths apply confirmation freshness, Git-state, prerequisite,
-compatibility, and ownership checks before mutation, then use the normal fixes,
+Every update applies confirmation freshness, Git-state, prerequisite,
+compatibility, and ownership checks before mutation, then uses the normal fixes,
 contextual assessment, checks, integrity verification, recovery, and
-abandonment behavior. A standards update replaces still-declared exact content
-and whole skills, including removal of obsolete skill resources, while retaining
-the existing runtime, npm lockfile, and system skill. Retired and
-excluded declarations keep their installed content but leave the new baselines
-and no longer contribute operations. A CLI update replaces only the isolated
-runtime manifests, npm lock, dependencies, and matching product-owned system
-skill; project dependency manifests and package-manager choices remain outside
-that runtime.
+abandonment behavior. It replaces the retained inputs and still-declared exact
+content and whole skills, including removal of obsolete skill resources.
+Retired and excluded declarations, including those a changed source or profile
+no longer declares, keep their installed content but leave the new baselines
+and no longer contribute operations. Only a changed CLI pin replaces the
+isolated runtime manifests, npm lock, dependencies, and matching product-owned
+system skill; otherwise the existing runtime and system skill remain. Project
+dependency manifests and package-manager choices remain outside that runtime.
+An incomplete run retains the prior last-complete evidence.
 
-There is no force overwrite, automatic discard, source/profile switch, or
-universal rollback. Only a complete run advances last-complete state and new
-baselines. Both update paths leave HEAD unchanged and their actual changes
-uncommitted for the project's normal workflow.
+There is no force overwrite, automatic discard, or universal rollback. Only a
+complete run advances last-complete state and new baselines. Every update
+leaves HEAD unchanged and its actual changes uncommitted for the project's
+normal workflow.
 
 Start requires the same content-derived inspection identity, existing HEAD,
 clean index and working tree, no non-ignored untracked files, safe targets,
@@ -214,8 +209,8 @@ or any earlier format keeps working; the next complete adoption rewrites it,
 converting legacy intervals and full-map history entries into the compact form.
 Historical evidence makes no current-coverage claim.
 
-Discovery-backed standards updates, CLI updates and unchanged-pin re-adoption use
-fresh proposals and preserve prior run evidence. Retry repeats fixes under the
+Discovery-backed updates, including an unchanged selection, use fresh
+proposals and preserve prior run evidence. Retry repeats fixes under the
 confirmed scope and cannot authorize additional files; a scope that needs to
 change is [corrected by adopting again](#correct-a-confirmed-scope).
 
@@ -456,11 +451,11 @@ The npm package must remain available from its locked location or an npm cache.
 No standards-source connection is needed for these commands. `inspect` without
 source flags verifies retained input integrity and resolves the current profile
 from retained material. Local edits to exact project content remain visible in
-the report. With the pinned CLI, this unchanged report has `retained: true` and
-is read-only. Use `--readopt` for a deliberate unchanged-pin run. With a different
-exact CLI version, it discloses a CLI update that can be confirmed and started as
-described above. Active discovery declarations require fresh `--scope`
-proposals for both actions; retained historical scope never substitutes for them.
+the report, which has `retained: true`. With the pinned CLI it describes the
+unchanged selection; with a different exact CLI version it describes a CLI
+update. Either can be confirmed and started as described above. Active discovery
+declarations require fresh `--scope` proposals; retained historical scope never
+substitutes for them.
 
 `status` reports pins, active progress, and historical last-complete evidence
 without any network request; [`outdated`](available-updates.md) reports

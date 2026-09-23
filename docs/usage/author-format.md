@@ -31,8 +31,8 @@ neither project-specific safety nor semantic coverage. An active run cannot chan
 its confirmed scope; when contextual work needs other paths, the adopter abandons
 the run, commits or discards its changes, and
 [adopts again with a new confirmed scope](adoption.md#correct-a-confirmed-scope).
-Fresh discovery proposals also apply during compatible standards and CLI updates
-and explicit same-pin re-adoption. Between complete runs, scope can add or remove
+Fresh discovery proposals also apply during every update, including one that
+applies an unchanged selection again. Between complete runs, scope can add or remove
 individual paths; removals end governance without deleting project content.
 
 ## Root and profiles
@@ -46,7 +46,7 @@ custom working directories, and profile inheritance fields.
 | `format` | `repo-standards/v2` |
 | `name` | Nonempty descriptive string |
 | `description` | Nonempty descriptive string |
-| `requires` | Mapping containing only `repo-standards`, a nonempty npm SemVer range compatible with the running CLI |
+| `requires` | Mapping containing only `repo-standards`, a nonempty npm SemVer range compatible with the running CLI; declare an open-ended minimum such as `>=1.3.0` |
 | `defaults` | Mapping containing only `declarations`, a mapping of IDs to declarations (possibly empty) |
 | `profiles` | Nonempty mapping of profile names to complete profiles |
 
@@ -161,8 +161,8 @@ other than the one selected for inspection.
 Reservation applies within the standards format; it does not manage unrelated
 global skill installations. Adoption installs only the `adopt-standards` system
 skill matched to the project's exact CLI pin. It does not automatically install
-`author-standards` or change runtime ownership, integrity baselines, or the
-independent standards and CLI update behavior.
+`author-standards` or change runtime ownership, integrity baselines, or update
+behavior.
 
 ## Checks and fixes
 
@@ -261,7 +261,7 @@ structurally invalid YAML may limit what can be determined.
 | `INVALID_TYPE` | Wrong mapping, list, scalar, or string type |
 | `INVALID_FORMAT` | Format identity other than `repo-standards/v2`, including the retired `repo-standards/v1` |
 | `INVALID_VERSION` | Malformed SemVer range |
-| `INCOMPATIBLE_CLI` | Running CLI does not satisfy the source range |
+| `INCOMPATIBLE_CLI` | Running CLI does not satisfy the source range; the message recommends an open-ended minimum |
 | `EMPTY_PROFILES` | No complete named profile |
 | `INVALID_ID` | Declaration, skill, or operation identity is malformed |
 | `INVALID_DECLARATION` | Unknown kind, file without exactly one content mode, or repository guidance without exactly one scope mode |
