@@ -243,12 +243,14 @@ Record useful contextual work
 through the matching installed skill, separate script and agent evidence, full
 adoption output, unchanged HEAD/index, normal project commits, fresh-checkout
 restoration with scripts disabled, and retained inspection without source access.
-Exercise independent standards and CLI updates using actual published versions;
-a rewritten fixture manifest is not public update evidence. Record each OS and
-each source independently. `acceptance/release-coverage.md` maps the original
-release, while `acceptance/contextual-scope-release-coverage.md` extends it for
-discovery, amendment, and re-adoption. Both maps point to owning deterministic
-tests and required live evidence.
+Exercise standards and CLI updates, separately and together, using actual
+published versions; a rewritten fixture manifest is not public update evidence.
+Record each OS and each source independently. `acceptance/release-coverage.md`
+maps the original release, and `acceptance/contextual-scope-release-coverage.md`
+maps the discovery release. Both maps point to owning deterministic tests and
+required live evidence. Release 2.0.0 is accepted through this repository's own
+fresh adoption of the current Repo Canon release with the published CLI,
+recorded as identities and the CLI's summary.
 
 Do not label the release complete while publication, either OS, real-agent work,
 or any parent criterion remains unverified. The parent remains open and unchanged.

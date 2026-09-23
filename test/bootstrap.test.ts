@@ -14,7 +14,7 @@ test('the standalone bootstrap invokes the explicit CLI and resolves omitted lat
   const remote = remoteFixture(`format: repo-standards/v2
 name: test-standards
 description: Bootstrap fixture
-requires: {repo-standards: ">=1.0.0 <2.0.0"}
+requires: {repo-standards: ">=1.0.0"}
 defaults: {declarations: {}}
 profiles:
   work:
@@ -116,7 +116,7 @@ test('exact-version bootstrap can inspect using the configured npm cache with th
   const remote = remoteFixture(`format: repo-standards/v2
 name: cached-standards
 description: Cached bootstrap fixture
-requires: {repo-standards: ">=1.0.0 <2.0.0"}
+requires: {repo-standards: ">=1.0.0"}
 defaults: {declarations: {}}
 profiles: {work: {description: Work, declarations: {}}}
 `);

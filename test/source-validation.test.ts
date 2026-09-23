@@ -12,7 +12,7 @@ const header = `format: repo-standards/v2
 name: test-standards
 description: Test standards
 requires:
-  repo-standards: ">=1.0.0 <2.0.0"
+  repo-standards: ">=1.0.0"
 `;
 
 test('validation preserves literal operations, never runs scripts or version probes, and leaves a dirty source unchanged', (t) => {
@@ -127,8 +127,8 @@ profiles:
 
 for (const [label, yaml, code] of [
   ['unsupported format', header.replace('repo-standards/v2', 'repo-standards/v3'), 'INVALID_FORMAT'],
-  ['invalid CLI range', header.replace('>=1.0.0 <2.0.0', 'yesterday'), 'INVALID_VERSION'],
-  ['incompatible CLI', header.replace('>=1.0.0 <2.0.0', '>=2.0.0'), 'INCOMPATIBLE_CLI'],
+  ['invalid CLI range', header.replace('>=1.0.0', 'yesterday'), 'INVALID_VERSION'],
+  ['incompatible CLI', header.replace('>=1.0.0', '>=99.0.0'), 'INCOMPATIBLE_CLI'],
   ['missing metadata', header.replace('description: Test standards\n', ''), 'REQUIRED_FIELD'],
   ['non-string metadata', header.replace('name: test-standards', 'name: 123'), 'INVALID_TYPE'],
 ] as const) {
@@ -426,7 +426,7 @@ test('an author validates a local standards source through the installed CLI', (
 name: alice-standards
 description: Alice's repository standards
 requires:
-  repo-standards: ">=1.0.0 <2.0.0"
+  repo-standards: ">=1.0.0"
 defaults:
   declarations: {}
 profiles:

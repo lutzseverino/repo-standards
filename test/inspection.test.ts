@@ -11,7 +11,7 @@ after(() => cli.close());
 const simpleSource = (target = 'AGENTS.md') => `format: repo-standards/v2
 name: test-standards
 description: Inspection fixture
-requires: {repo-standards: ">=1.0.0 <2.0.0"}
+requires: {repo-standards: ">=1.0.0"}
 defaults:
   declarations:
     instructions:

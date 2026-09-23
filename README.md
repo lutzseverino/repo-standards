@@ -12,7 +12,7 @@
 On macOS or Linux, use Node.js 24 and npm:
 
 ```sh
-npm install --global --ignore-scripts @lutzseverino/repo-standards@1.3.0
+npm install --global --ignore-scripts @lutzseverino/repo-standards@2.0.0
 repo-standards --version
 ```
 
@@ -25,6 +25,7 @@ authoring skill, and fresh-checkout restoration.
 - Inspect published GitHub versions, exact replacements, and contextual scope.
 - Adopt through confirmed operations and agent assessments, retaining evidence.
 - Deliberately update any pin, the source, or the profile in one confirmed run.
+- Report available updates and render inspections and runs as Markdown summaries.
 - Discover sources by topic without automatically selecting or adopting them.
 
 ## Usage

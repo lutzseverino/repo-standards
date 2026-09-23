@@ -10,7 +10,7 @@ after(() => cli.close());
 const yaml = `format: repo-standards/v2
 name: public-standards
 description: Public standards
-requires: {repo-standards: ">=1.0.0 <2.0.0"}
+requires: {repo-standards: ">=1.0.0"}
 defaults:
   declarations:
     readme:
@@ -51,7 +51,7 @@ test('source search returns validated public release candidates without selectin
   assert.deepEqual(report.candidates, [{
     repository: 'https://github.com/alice/standards', description: 'Alice’s standards', commit: remote.sha,
     release: { version: 'v1.0.0', name: 'First stable', url: release.html_url, publishedAt: release.published_at },
-    source: { name: 'public-standards', description: 'Public standards', requires: { 'repo-standards': '>=1.0.0 <2.0.0' } },
+    source: { name: 'public-standards', description: 'Public standards', requires: { 'repo-standards': '>=1.0.0' } },
     profiles: ['work'],
   }]);
   assert.deepEqual(report.rejected, []);
@@ -65,7 +65,7 @@ test('search rejects unsupported and invalid candidates explicitly while keeping
   const remote = discoverable();
   const others = [
     remoteFixture(yaml.replace('repo-standards/v2', 'repo-standards/v99'), { 'readme.md': 'README', 'never-run.mjs': '' }, [], 'invalid/standards'),
-    remoteFixture(yaml.replace('>=1.0.0 <2.0.0', '>=2.0.0'), { 'readme.md': 'README', 'never-run.mjs': '' }, [], 'incompatible/standards'),
+    remoteFixture(yaml.replace('>=1.0.0', '>=99.0.0'), { 'readme.md': 'README', 'never-run.mjs': '' }, [], 'incompatible/standards'),
     remoteFixture(yaml, {}, [], 'missing/standards'),
     remoteFixture(yaml, { 'readme.md': 'README', 'never-run.mjs': '' }, [], 'rootless/standards'),
   ];

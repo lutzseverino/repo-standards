@@ -130,7 +130,7 @@ Retry requires new assessment even when project bytes are unchanged, and retains
 separate intervals as described below. Updates use this same assessment interface. The [real-agent acceptance journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) evaluates contextual
 usefulness separately; scripted agents exercise this deterministic protocol.
 
-## V2 observation and replay
+## Observation and replay
 
 For explicit-target adoption, the work request and assessment carry no `scope`
 field or `scopeValidity` reviews. The snapshot identity binds the observed
@@ -151,7 +151,7 @@ intervals; neither can turn missing, false or out-of-scope evidence into valid
 completion. Replaying fixes requires fresh assessment and checks even when the
 current bytes happen to match an earlier snapshot.
 
-Run v3 and state v5 records store each interval's applicable concrete scope
+Run records and state v5 store each interval's applicable concrete scope
 separately from operation outcomes and assessment submissions. State v5 moves
 the preceding complete run's interval, operation, retry, check and assessment
 evidence into its ordered history. A recorded out-of-scope interval remains an

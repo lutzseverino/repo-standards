@@ -9,7 +9,7 @@ after(() => cli.close());
 const header = `format: repo-standards/v2
 name: paths
 description: Path validation
-requires: {repo-standards: ">=1.0.0 <2.0.0"}
+requires: {repo-standards: ">=1.0.0"}
 `;
 const profile = 'profiles:\n  personal:\n    description: Personal\n    declarations: {}\n';
 

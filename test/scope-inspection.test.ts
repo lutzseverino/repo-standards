@@ -12,7 +12,7 @@ after(() => cli.close());
 const source = `format: repo-standards/v2
 name: scoped-standards
 description: Discover maintained projects
-requires: {repo-standards: ">=1.0.0 <2.0.0"}
+requires: {repo-standards: ">=1.0.0"}
 defaults:
   declarations:
     project-docs:

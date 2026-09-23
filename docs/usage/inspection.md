@@ -121,7 +121,7 @@ the tag-cache location must resolve outside the project, including via symlinks.
 
 Every report has the single format `repo-standards/inspection/v4`. A profile
 with discovery declarations adds the `discovery` and `sourceResolved` fields
-described [below](#discover-contextual-file-scope-v2-sources):
+described [below](#discover-contextual-file-scope):
 
 | Field | Meaning |
 | --- | --- |
@@ -305,7 +305,7 @@ on stderr, and combining `--summary` with `--json` is a usage error with exit
 status 2. [`status --summary`](adoption.md#summarize-status) renders the status
 record the same way.
 
-## Discover contextual file scope (v2 sources)
+## Discover contextual file scope
 
 A selected repository declaration with `discovery` uses two read-only inspections.
 The first invocation uses the same source, version, profile and project flags
@@ -443,7 +443,7 @@ installation. Missing, invalid, unresolved, or stale scope cannot authorize
 mutation. Initial clean committed-project and prerequisite rules still apply.
 There is no separate mandatory scope confirmation. Explicit-target selections
 produce the same report format without `discovery`; execution uses the
-[observed-scope contract](script-protocol.md#observed-scope-for-v2-adoption).
+[observed-scope contract](script-protocol.md#observed-adoption-scope).
 Every update, including an unchanged selection, repeats this fresh discovery
 pass for every active discovery declaration: pass `--scope <file>` to the
 update commands described above and to the matching confirmed start. The
@@ -471,7 +471,7 @@ at the top level. Scope-history v3 is the only format written and read.
 
 Retained inspection reads the committed durable state, which is
 `repo-standards/state/v5`, the only state format, with its
-[work evidence](script-protocol.md#observed-scope-for-v2-adoption) as
+[work evidence](script-protocol.md#observed-adoption-scope) as
 identities and deltas; `status` echoes it as `repo-standards/status/v5`.
 Inspection rejects a committed state, retained scope history, or run record in
 a retired format with `RETIRED_FORMAT` before reading anything else; nothing is

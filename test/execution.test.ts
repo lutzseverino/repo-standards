@@ -16,7 +16,7 @@ function operation(id: string, overrides = {}) {
 }
 function fixture(t: TestContext, declarations: Record<string, unknown>, script = '', exclusions = {}) {
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'script-standards', description: 'Trusted operations',
-    requires: { 'repo-standards': '^1.0.0' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: exclusions } } }),
+    requires: { 'repo-standards': '>=1.0.0' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: exclusions } } }),
   { 'content.md': 'Expected', 'scripts/run.mjs': script, 'scripts/data.txt': 'Resource', 'skill/SKILL.md': '# Review' });
   const project = sourceFixture('', { 'README.md': 'Project', '.gitignore': 'ignored/\n' });
   t.after(() => { remote.close(); project.close(); });

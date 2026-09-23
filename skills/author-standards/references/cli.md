@@ -8,7 +8,7 @@ obtain the format and script-protocol documentation from the
 same npm installation as the executable.
 
 Use macOS or Linux with Node.js 24 and npm. This skill supports
-`@lutzseverino/repo-standards@1.3.0` and its one source format,
+`@lutzseverino/repo-standards@2.0.0` and its one source format,
 `repo-standards/v2`. Check `node --version`
 first. When prerequisites or registry access are unavailable, explain the blocker
 and continue preference review if useful; leave validation explicitly pending.
@@ -19,7 +19,7 @@ any adopting project:
 ```sh
 author_cli_dir="$(mktemp -d "${TMPDIR:-/tmp}/author-standards-cli.XXXXXX")"
 npm install --prefix "$author_cli_dir" --ignore-scripts --no-audit --no-fund \
-  --registry=https://registry.npmjs.org @lutzseverino/repo-standards@1.3.0
+  --registry=https://registry.npmjs.org @lutzseverino/repo-standards@2.0.0
 "$author_cli_dir/node_modules/.bin/repo-standards" --version
 ```
 
@@ -33,7 +33,7 @@ author preferences. Use these matching documents rather than a moving website
 or paths relative to the installed skill. No additional skill is required.
 
 An existing external installation may be reused after verifying `--version`
-reports `1.3.0` and the matching documents are present. For product acceptance,
+reports `2.0.0` and the matching documents are present. For product acceptance,
 an explicitly supplied packed candidate of that CLI version may be installed
 with the same npm flags in place of the registry package argument. Record that
 as candidate acquisition, never as public release evidence.

@@ -18,7 +18,7 @@ const source = stringify({
   format: 'repo-standards/v2',
   name: 'growing-projects',
   description: 'Documentation for maintained projects',
-  requires: { 'repo-standards': '>=1 <2' },
+  requires: { 'repo-standards': '>=1' },
   defaults: { declarations: {
     docs: { kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md' },
     instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
@@ -232,7 +232,7 @@ test('compatible standards updates preserve discovery evidence through discovery
 
   const withoutDiscovery = stringify({
     format: 'repo-standards/v2', name: 'growing-projects', description: 'Documentation for maintained projects',
-    requires: { 'repo-standards': '>=1 <2' }, defaults: { declarations: {
+    requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
       instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
     } }, profiles: { work: { description: 'Work', declarations: {} } },
   });

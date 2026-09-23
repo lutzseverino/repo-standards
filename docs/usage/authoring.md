@@ -168,5 +168,6 @@ changed scripts/prerequisites and CLI compatibility. Removing/excluding an ID
 preserves installed content and relinquishes governance. Renaming an ID retires
 one and adds another. A still-declared skill replaces its whole directory,
 removing obsolete resources. Adopters inspect and confirm each update; local
-exact-content edits block it before mutation. Their CLI pin can change
-independently within your declared compatible range.
+exact-content edits block it before mutation. One update can change their CLI
+pin, standards version, source, and profile together; your declared range gates
+only which CLI versions can select a standards version.

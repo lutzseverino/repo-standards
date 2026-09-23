@@ -5,7 +5,6 @@ skills and execute trusted fixes and checks. Profiles with contextual guidance
 return a work request after fixes and continue through the public
 [assessment protocol](assessment-protocol.md). Interrupted adoption supports
 explicit retry and abandonment as described below.
-Public npm delivery remains issue #11.
 
 ## Inspect, confirm, and start
 
@@ -29,7 +28,7 @@ repo-standards start --source https://github.com/OWNER/STANDARDS \
   --standards-version v1.2.3 --profile work --confirm 'sha256:INSPECTION_HASH' --json
 ```
 
-For discovery-backed initial adoption, follow the [two-pass inspection](inspection.md#discover-contextual-file-scope-v2-sources), then pass the same `--scope <file>` proposal with the confirmed complete inspection identity to `start`. Missing, invalid, unresolved or stale scope blocks mutation.
+For discovery-backed initial adoption, follow the [two-pass inspection](inspection.md#discover-contextual-file-scope), then pass the same `--scope <file>` proposal with the confirmed complete inspection identity to `start`. Missing, invalid, unresolved or stale scope blocks mutation.
 
 Both commands accept `--project <directory>` and default to the current Git
 working tree. Store inspection reports outside the project to keep it clean.
@@ -207,7 +206,7 @@ ordered `history` unchanged, so earlier authorized work remains explainable in a
 fresh checkout.
 
 Committed intervals are
-[work evidence](script-protocol.md#observed-scope-for-v2-adoption): the
+[work evidence](script-protocol.md#observed-adoption-scope): the
 identities of the observations a run held and the delta between them, not the
 observations themselves. Each interval keeps its phase, scope, operation
 reference, changed paths with their before and after file state, boundary
@@ -275,7 +274,7 @@ results. Archive names include content hashes so reusing an operation index
 cannot replace earlier evidence.
 `operations` retains recorded process results, and `observations` records each
 observation interval as identities and deltas in the
-[committed interval shape](script-protocol.md#observed-scope-for-v2-adoption),
+[committed interval shape](script-protocol.md#observed-adoption-scope),
 without observation maps. Exit status is 0 for complete adoption, 1 for an
 incomplete run or rejection, and 2 for invalid usage. Preflight rejections use
 the common `valid: false` / `errors` diagnostic format.
@@ -457,7 +456,7 @@ Retry records separate
 fix and agent observation intervals, retaining earlier observed agent edits
 even when replayed fixes overwrite the same files. Retry cannot erase
 recorded scope violations or create scope authority; see the
-[observed execution contract](script-protocol.md#observed-scope-for-v2-adoption). Submit a new assessment separately after retry;
+[observed execution contract](script-protocol.md#observed-adoption-scope). Submit a new assessment separately after retry;
 `--retry` and `--assessment` cannot be combined. Plain `resume` and
 `resume --assessment` remain the contextual interface and never implicitly retry
 uncertain process outcomes. A failed completion write remains incomplete until

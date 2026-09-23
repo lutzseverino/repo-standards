@@ -123,7 +123,7 @@ successful, failed or uncertain work. Follow the recovery instructions in
 [Adoption](adoption.md#completion-and-incomplete-results). No process error,
 blocked result, failed check or contextual handoff asserts complete adoption.
 
-## Observed scope for v2 adoption
+## Observed adoption scope
 
 Every adoption uses the same execution
 machinery and unchanged `repo-standards/operation/v1` input and
@@ -147,7 +147,7 @@ integrity check.
 Unlisted ignored siblings outside explicit directory trees are not inventoried;
 trusted scripts retain host/network access. These are bounded before/after
 observations, not continuous monitoring or atomic filesystem snapshots. The
-[same observation limits](inspection.md#discover-contextual-file-scope-v2-sources)
+[same observation limits](inspection.md#discover-contextual-file-scope)
 apply; incomplete reads, unsafe boundaries, instability, or exhausted limits
 block progression and preserve incomplete work.
 
