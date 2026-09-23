@@ -64,15 +64,17 @@ function cleanupRun(lock: string) {
   for (const name of readdirSync(dirname(lock))) if (name.startsWith(basename(lock) + '.context') || name.startsWith(basename(lock) + '.observation.')) rmSync(join(dirname(lock), name), { force: true });
 }
 
-// The run records its intervals as identities and deltas only. The one full
-// observation its last interval ends at, which recovery, gap detection and the
-// next interval compare with, is kept content-addressed beside the journal:
-// written before the journal refers to it, and removed once it no longer does.
+// The run records its intervals as identities and deltas only. While the run
+// is active, the one full observation its last interval ends at, which
+// recovery, gap detection and the next interval compare with, is kept
+// content-addressed beside the journal: written before the journal refers to
+// it, and removed once it no longer does. Abandonment closes the last interval
+// in memory only, because an archived report is never continued.
 function observationPath(root: string, identity: string) {
   return `${lockPath(root)}.observation.${identity.slice('sha256:'.length)}`;
 }
 
-function lastObservation(run: Run) {
+function lastObservationIdentity(run: Run) {
   const last = run.observations.at(-1);
   return last && (last.after ?? last.before);
 }
@@ -84,7 +86,7 @@ function persistObservation(root: string, observation: WorkObservation) {
 }
 
 function readObservation(root: string, run: Run): WorkObservation {
-  const identity = lastObservation(run)!;
+  const identity = lastObservationIdentity(run)!;
   let content: string;
   try { content = readFileSync(observationPath(root, identity), 'utf8'); }
   catch { throw new ProductError('STATE_INTEGRITY', 'The observation the run last recorded is missing. Preserve the run and abandon it to keep its evidence.'); }
@@ -94,7 +96,7 @@ function readObservation(root: string, run: Run): WorkObservation {
 
 function pruneObservations(root: string, run: Run) {
   const lock = lockPath(root);
-  const current = lastObservation(run);
+  const current = lastObservationIdentity(run);
   const kept = current && basename(observationPath(root, current));
   for (const name of readdirSync(dirname(lock))) if (name.startsWith(basename(lock) + '.observation.') && name !== kept) rmSync(join(dirname(lock), name), { force: true });
 }
