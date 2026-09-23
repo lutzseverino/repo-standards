@@ -64,59 +64,49 @@ function cleanupRun(lock: string) {
   for (const name of readdirSync(dirname(lock))) if (name.startsWith(basename(lock) + '.context') || name.startsWith(basename(lock) + '.observation.')) rmSync(join(dirname(lock), name), { force: true });
 }
 
-// The run records its intervals as identities and deltas only. While the run
-// is active, the one full observation its last interval ends at, which
-// recovery, gap detection and the next interval compare with, is kept
-// content-addressed beside the journal: written before the journal refers to
-// it, and removed once it no longer does. Abandonment closes the last interval
-// in memory only, because an archived report is never continued.
-function observationPath(root: string, identity: string) {
-  return `${lockPath(root)}.observation.${identity.slice('sha256:'.length)}`;
+// Saved run context lives beside the run record, addressed by its hash: the
+// saved installation, and the completion bytes recovery may need to verify, so
+// the run record itself carries only their hashes. The run's kept observation
+// is saved the same way under its own name, so it can be replaced on its own.
+type SavedKind = 'context' | 'observation';
+function saveContext(root: string, content: string, kind: SavedKind = 'context') {
+  const identity = hash(content);
+  const path = `${lockPath(root)}.${kind}.${identity}`;
+  if (!existsSync(path)) writeFileSync(path, content, { flag: 'wx' });
+  return identity;
 }
 
+function readContext(root: string, identity: string, name: string, kind: SavedKind = 'context') {
+  let content: string;
+  try { content = readFileSync(`${lockPath(root)}.${kind}.${identity}`, 'utf8'); }
+  catch { throw new ProductError('STATE_INTEGRITY', `${name} cannot be read. Preserve the run and restore its recorded state.`); }
+  if (hash(content) !== identity) throw new ProductError('STATE_INTEGRITY', `${name} changed. Preserve the run and restore its recorded state.`);
+  return content;
+}
+
+// The run records its intervals as identities and deltas only. While the run
+// is active, the one full observation its last interval ends at, which
+// recovery, gap detection and the next interval compare with, is kept beside
+// the journal under its identity: written before the journal refers to it, and
+// removed once it no longer does. Abandonment closes the last interval in
+// memory only, because an archived report is never continued.
 function lastObservationIdentity(run: Run) {
   const last = run.observations.at(-1);
   return last && (last.after ?? last.before);
 }
 
 function persistObservation(root: string, observation: WorkObservation) {
-  const content = JSON.stringify(observation);
-  const path = observationPath(root, observationIdentity(observation));
-  if (!existsSync(path)) writeFileSync(path, content, { flag: 'wx' });
+  saveContext(root, JSON.stringify(observation), 'observation');
 }
 
 function readObservation(root: string, run: Run): WorkObservation {
-  const identity = lastObservationIdentity(run)!;
-  let content: string;
-  try { content = readFileSync(observationPath(root, identity), 'utf8'); }
-  catch { throw new ProductError('STATE_INTEGRITY', 'The observation the run last recorded is missing. Preserve the run and abandon it to keep its evidence.'); }
-  if (`sha256:${hash(content)}` !== identity) throw new ProductError('STATE_INTEGRITY', 'The observation the run last recorded changed. Preserve the run and abandon it to keep its evidence.');
-  return JSON.parse(content) as WorkObservation;
+  return JSON.parse(readContext(root, lastObservationIdentity(run)!.slice('sha256:'.length), 'The observation the run last recorded', 'observation')) as WorkObservation;
 }
 
 function pruneObservations(root: string, run: Run) {
   const lock = lockPath(root);
-  const current = lastObservationIdentity(run);
-  const kept = current && basename(observationPath(root, current));
+  const kept = `${basename(lock)}.observation.${lastObservationIdentity(run)?.slice('sha256:'.length)}`;
   for (const name of readdirSync(dirname(lock))) if (name.startsWith(basename(lock) + '.observation.') && name !== kept) rmSync(join(dirname(lock), name), { force: true });
-}
-
-// Saved run context lives beside the run record, addressed by its hash: the
-// saved installation, and the completion bytes recovery may need to verify, so
-// the run record itself carries only their hashes.
-function saveContext(root: string, content: string) {
-  const identity = hash(content);
-  const path = `${lockPath(root)}.context.${identity}`;
-  if (!existsSync(path)) writeFileSync(path, content, { flag: 'wx' });
-  return identity;
-}
-
-function readContext(root: string, identity: string, name: string) {
-  let content: string;
-  try { content = readFileSync(`${lockPath(root)}.context.${identity}`, 'utf8'); }
-  catch { throw new ProductError('STATE_INTEGRITY', `${name} cannot be read. Preserve the run and restore its recorded state.`); }
-  if (hash(content) !== identity) throw new ProductError('STATE_INTEGRITY', `${name} changed. Preserve the run and restore its recorded state.`);
-  return content;
 }
 
 function persistInstallation(root: string, run: Run, installation: Installation) {
