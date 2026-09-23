@@ -25,15 +25,38 @@ export function committedState(root: string) {
 }
 
 export function localRunReport(root: string) {
-  return JSON.parse(readFileSync(join(root, '.repo-standards/local/run.json'), 'utf8')) as {
-    observations?: { before: { files: Record<string, unknown> }; after?: { files: Record<string, unknown> } }[];
-  };
+  return JSON.parse(readFileSync(join(root, '.repo-standards/local/run.json'), 'utf8')) as { format: string; observations: CommittedInterval[] };
 }
 
-// The product's observation identity over an observation as the local run
-// report retains it.
-export function observationIdentity(observation: unknown) {
-  return `sha256:${createHash('sha256').update(JSON.stringify(observation)).digest('hex')}`;
+// Every interval, committed or in a run record, is identities plus delta.
+const intervalFields = ['phase', 'scope', 'operation', 'operationIndex', 'before', 'after', 'changes', 'boundaryChanges',
+  'violations', 'restoredExact', 'restoredBoundaries', 'interrupted'];
+function assertCompactIntervals(label: string, observations: CommittedInterval[]) {
+  assert.ok(Array.isArray(observations), `${label} must retain ordered intervals`);
+  for (const [index, interval] of observations.entries()) {
+    const where = `${label} interval ${index}`;
+    assert.equal(typeof interval.before, 'string', `${where} must carry a before identity, not an observation map`);
+    assert.match(interval.before as string, /^sha256:[0-9a-f]{64}$/, `${where} before identity`);
+    if (interval.after !== undefined || interval.changes !== undefined || interval.violations !== undefined) {
+      assert.equal(typeof interval.after, 'string', `${where} is closed and must carry an after identity`);
+      assert.match(interval.after as string, /^sha256:[0-9a-f]{64}$/, `${where} after identity`);
+    }
+    for (const key of ['files', 'boundaries', 'settings', 'ignores', 'inventories', 'targets', 'evidence']) {
+      assert.equal(Object.hasOwn(interval, key), false, `${where} must not carry an observation map: ${key}`);
+    }
+    assert.deepEqual(Object.keys(interval).filter(key => !intervalFields.includes(key)), [], `${where} carries only the committed interval fields`);
+    for (const identity of [interval.before, interval.after]) {
+      assert.equal(typeof identity === 'object' && identity !== null, false, `${where} identities must not be observation maps`);
+    }
+  }
+}
+
+// Structural regression guard: a run record, whether the journal, the local run
+// report or an archived report, has the single run format and records its
+// intervals in the committed shape, never with an observation map.
+export function assertCompactRunRecord(record: { format: string; observations: CommittedInterval[] }, label = 'run record') {
+  assert.equal(record.format, 'repo-standards/run/v5');
+  assertCompactIntervals(label, record.observations);
 }
 
 // Structural regression guard: committed state has the single state format, no
@@ -44,24 +67,7 @@ export function assertCompactWorkEvidence(state: ReturnType<typeof committedStat
   assert.ok(Array.isArray(state.history), 'committed state must retain its ordered history');
   const runs = [{ label: 'current', observations: state.observations! },
     ...state.history!.map((run, index) => ({ label: `history[${index}]`, observations: run.observations }))];
-  for (const run of runs) {
-    assert.ok(Array.isArray(run.observations), `${run.label} must retain ordered intervals`);
-    for (const [index, interval] of run.observations.entries()) {
-      const where = `${run.label} interval ${index}`;
-      assert.equal(typeof interval.before, 'string', `${where} must carry a before identity, not an observation map`);
-      assert.match(interval.before as string, /^sha256:[0-9a-f]{64}$/, `${where} before identity`);
-      if (interval.after !== undefined || interval.changes !== undefined || interval.violations !== undefined) {
-        assert.equal(typeof interval.after, 'string', `${where} is closed and must carry an after identity`);
-        assert.match(interval.after as string, /^sha256:[0-9a-f]{64}$/, `${where} after identity`);
-      }
-      for (const key of ['files', 'boundaries', 'settings', 'ignores', 'inventories', 'targets', 'evidence']) {
-        assert.equal(Object.hasOwn(interval, key), false, `${where} must not carry an observation map: ${key}`);
-      }
-      for (const identity of [interval.before, interval.after]) {
-        assert.equal(typeof identity === 'object' && identity !== null, false, `${where} identities must not be observation maps`);
-      }
-    }
-  }
+  for (const run of runs) assertCompactIntervals(run.label, run.observations);
 }
 
 interface CommittedScopeRun {

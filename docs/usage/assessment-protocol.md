@@ -151,8 +151,8 @@ intervals; neither can turn missing, false or out-of-scope evidence into valid
 completion. Replaying fixes requires fresh assessment and checks even when the
 current bytes happen to match an earlier snapshot.
 
-Run v2 and state v4 records store each interval's applicable concrete scope
-separately from operation outcomes and assessment submissions. State v4 moves
+Run v3 and state v5 records store each interval's applicable concrete scope
+separately from operation outcomes and assessment submissions. State v5 moves
 the preceding complete run's interval, operation, retry, check and assessment
 evidence into its ordered history. A recorded out-of-scope interval remains an
 incomplete result; abandon and reconcile before a new confirmed adoption. The

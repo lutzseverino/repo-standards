@@ -8,7 +8,7 @@ import { installCli, sha256, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
-import { assertCompactScopeEvidence, committedScopeHistory } from './committed-evidence.ts';
+import { assertCompactRunRecord, assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeHistory, committedState, localRunReport } from './committed-evidence.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -124,6 +124,10 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     const inspected = f.inspect().report;
     const start = f.start(inspected.identity).report;
     assert.equal(start.phase, 'contextual');
+    // Paused for agent work, the journal and the local run report hold intervals
+    // as identities and deltas only.
+    assertCompactRunRecord(JSON.parse(readFileSync(join(f.project.root, '.git/repo-standards-run.lock'), 'utf8')), 'journal');
+    assertCompactRunRecord(localRunReport(f.project.root), 'local run report');
     const before = start.workRequest.scope.afterFixes;
     mkdirSync(join(f.project.root, 'docs/projects'), { recursive: true });
     writeFileSync(join(f.project.root, 'docs/projects/operations.md'), useful);
@@ -140,6 +144,12 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     assert.equal(existsSync(join(f.project.root, 'old/operations.md')), false);
     assert.equal(readFileSync(join(f.project.root, 'docs/config.json'), 'utf8'), '{"shared":true}\n');
     assert.equal(readFileSync(join(f.project.root, 'generated/project/README.md'), 'utf8'), 'Generated; preserve.');
+    // Completion carries the local record's intervals into committed state unchanged.
+    const local = localRunReport(f.project.root);
+    assertCompactRunRecord(local, 'local run report');
+    assert.deepEqual([...new Set(local.observations.map(interval => interval.phase))].sort(), ['agent', 'checks', 'fixes']);
+    assertCompactWorkEvidence(committedState(f.project.root));
+    assert.deepEqual(committedState(f.project.root).observations, local.observations);
     const status = f.run(['status', '--json']).report;
     // The committed interval keeps each changed path's before and after state.
     const migration = status.observations.find((entry: { phase: string; changes: Record<string, unknown> }) => entry.phase === 'agent' && Object.hasOwn(entry.changes, 'old/operations.md'));

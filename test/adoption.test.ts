@@ -666,7 +666,7 @@ let failed = false;
 fs.writeFileSync = function(path, data, ...args) {
   let report;
   try { report = JSON.parse(String(data)); } catch {}
-  if (!failed && String(path).includes('/.repo-standards/local/') && report?.format === 'repo-standards/run/v4' && report.outcome === 'complete') {
+  if (!failed && String(path).includes('/.repo-standards/local/') && report?.format === 'repo-standards/run/v5' && report.outcome === 'complete') {
     failed = true;
     throw Object.assign(new Error('No space for final run report'), {code: 'ENOSPC'});
   }

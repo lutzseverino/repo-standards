@@ -1,17 +1,18 @@
 import { finishInterval, observeContinuation, requireValidIntervals, type WorkInterval, type WorkObservation } from './work-observation.js';
 import { randomUUID } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { basename, dirname, join, relative } from 'node:path';
 import { externalPath, hash } from './acquisition.js';
 import { tmpdir } from 'node:os';
 import type { Assessment, ScopeConfirmation } from './assessment.js';
 import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { ProductError } from './errors.js';
 import { formats, recordPath, rejectRetiredRecords, requireFormat } from './formats.js';
+import { observationIdentity } from './scope-observation.js';
 import { observe } from './inspection.js';
 import type { Content, HashInventory, InspectOptions, Observation, inspect, inspectForStart } from './inspection.js';
 import { decodeRecordedState } from './recorded-state.js';
-import { carriedRuns, committedEvidenceReport, completedEvidence, type CommittedRun } from './work-evidence.js';
+import { carriedRuns, committedEvidenceReport, compactIntervals, completedEvidence, recordedInterval, type CommittedRun, type RecordedInterval } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, safe, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
@@ -32,7 +33,7 @@ export interface Run {
   head: string | null;
   affected: Record<string, HashInventory>;
   prerequisites: PrerequisiteEvidence[]; operations: OperationEvidence[];
-  observations: WorkInterval[];
+  observations: RecordedInterval[];
   outcome: 'complete' | 'incomplete'; phase: string; reason: string;
   workRequest?: WorkRequest; continuation?: string; assessments: Assessment[];
   installation?: { files: string[]; runtime: boolean; complete?: boolean; trees?: Record<string, 'removing' | 'installing'> };
@@ -60,7 +61,42 @@ export interface Installation {
 function cleanupRun(lock: string) {
   rmSync(lock, { force: true });
   rmSync(`${lock}.runtime`, { recursive: true, force: true });
-  for (const name of readdirSync(dirname(lock))) if (name.startsWith(lock.slice(dirname(lock).length + 1) + '.context')) rmSync(join(dirname(lock), name), { force: true });
+  for (const name of readdirSync(dirname(lock))) if (name.startsWith(basename(lock) + '.context') || name.startsWith(basename(lock) + '.observation.')) rmSync(join(dirname(lock), name), { force: true });
+}
+
+// The run records its intervals as identities and deltas only. The one full
+// observation its last interval ends at, which recovery, gap detection and the
+// next interval compare with, is kept content-addressed beside the journal:
+// written before the journal refers to it, and removed once it no longer does.
+function observationPath(root: string, identity: string) {
+  return `${lockPath(root)}.observation.${identity.slice('sha256:'.length)}`;
+}
+
+function lastObservation(run: Run) {
+  const last = run.observations.at(-1);
+  return last && (last.after ?? last.before);
+}
+
+function persistObservation(root: string, observation: WorkObservation) {
+  const content = JSON.stringify(observation);
+  const path = observationPath(root, observationIdentity(observation));
+  if (!existsSync(path)) writeFileSync(path, content, { flag: 'wx' });
+}
+
+function readObservation(root: string, run: Run): WorkObservation {
+  const identity = lastObservation(run)!;
+  let content: string;
+  try { content = readFileSync(observationPath(root, identity), 'utf8'); }
+  catch { throw new ProductError('STATE_INTEGRITY', 'The observation the run last recorded is missing. Preserve the run and abandon it to keep its evidence.'); }
+  if (`sha256:${hash(content)}` !== identity) throw new ProductError('STATE_INTEGRITY', 'The observation the run last recorded changed. Preserve the run and abandon it to keep its evidence.');
+  return JSON.parse(content) as WorkObservation;
+}
+
+function pruneObservations(root: string, run: Run) {
+  const lock = lockPath(root);
+  const current = lastObservation(run);
+  const kept = current && basename(observationPath(root, current));
+  for (const name of readdirSync(dirname(lock))) if (name.startsWith(basename(lock) + '.observation.') && name !== kept) rmSync(join(dirname(lock), name), { force: true });
 }
 
 // Saved run context lives beside the run record, addressed by its hash: the
@@ -99,6 +135,7 @@ function saveRun(root: string, run: Run, localReportReady: boolean) {
   if (run.outcome === 'complete') mirror();
   try { writeFileSync(temporary, json(run), { flag: 'wx' }); renameSync(temporary, lock); }
   finally { rmSync(temporary, { force: true }); }
+  pruneObservations(root, run);
   if (run.outcome !== 'complete') mirror();
 }
 
@@ -193,7 +230,8 @@ function readRun(root: string, path: string): Run {
   try { run = JSON.parse(readFileSync(path, 'utf8')); }
   catch { throw new ProductError('STATE_INTEGRITY', `The adoption run record ${where} cannot be read. Restore the recorded run.`); }
   requireFormat(where, run, formats.run);
-  if ((run as Partial<Run> | null)?.format !== formats.run) throw new ProductError('STATE_INTEGRITY', `The adoption run record ${where} failed integrity validation. Restore the recorded run.`);
+  const recorded = run as Partial<Run> | null;
+  if (recorded?.format !== formats.run || !Array.isArray(recorded.observations) || !compactIntervals(recorded.observations)) throw new ProductError('STATE_INTEGRITY', `The adoption run record ${where} failed integrity validation. Restore the recorded run.`);
   return run as Run;
 }
 
@@ -214,8 +252,10 @@ export function abandon(project: string, cliVersion: string) {
     if (run.selection.cli.version !== cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
     if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before abandonment.`);
     if (run.outcome === 'complete') throw new ProductError('ALREADY_COMPLETE', 'This adoption completed before interruption. Use resume --retry to verify and release its remaining progress record.');
-    try { observeContinuation(root, run.observations, readInstallation(root, run).report.resolved, run.operations.length); }
-    catch { run.uncertain.push('The final abandoned observation could not be completed; earlier interval evidence is preserved.'); }
+    try {
+      const continued = observeContinuation(root, run.observations, () => readObservation(root, run), readInstallation(root, run).report.resolved, run.operations.length);
+      if (continued) run.observations = continued.intervals;
+    } catch { run.uncertain.push('The final abandoned observation could not be completed; earlier interval evidence is preserved.'); }
     run.archivedFiles = archiveRunEvidence(root, run);
     for (const operation of run.operations) for (const stream of ['stdout', 'stderr'] as const) {
       const archived = run.archivedFiles[operation[stream]];
@@ -295,6 +335,7 @@ type VerifyInstallation = (root: string, installation: Installation, extra?: Fil
 
 export class AdoptionRunSession {
   #run: Run | undefined;
+  #observed: WorkObservation | undefined;
   #open = true;
   #reportFailures = false;
   #localReady = false;
@@ -341,6 +382,18 @@ export class AdoptionRunSession {
   }
 
   #save() { saveRun(this.#root, this.#state(), this.#localReady); }
+
+  // The full observation the last recorded interval ends at, read back from
+  // beside the journal when an earlier command recorded it.
+  #lastObservation() { return this.#observed ??= readObservation(this.#root, this.#state()); }
+
+  // Intervals change only together with the observation they now end at, which
+  // reaches the disk before any journal that refers to it.
+  #recordIntervals(intervals: RecordedInterval[], observed: WorkObservation) {
+    persistObservation(this.#root, observed);
+    this.#observed = observed;
+    this.#state().observations = intervals;
+  }
 
   record(event: Progress) {
     const run = this.#state();
@@ -409,19 +462,26 @@ export class AdoptionRunSession {
     const run = this.#state();
     if (run.observations.at(-1) && !run.observations.at(-1)!.after) throw new ProductError('OBSERVATION_INCOMPLETE', 'The preceding observation interval must be closed before more work.');
     const previous = run.observations.at(-1);
-    if (previous?.after && json(previous.after) !== json(interval.before)) {
-      const gap: WorkInterval = { phase: 'agent', scope: interveningScope, before: previous.after };
+    if (previous?.after && previous.after !== observationIdentity(interval.before)) {
+      const gap: WorkInterval = { phase: 'agent', scope: interveningScope, before: this.#lastObservation() };
       finishInterval(gap, interval.before);
-      run.observations.push(gap);
+      this.#recordIntervals([...run.observations, recordedInterval(gap)], interval.before);
       this.#save();
       requireValidIntervals(run.observations);
     }
-    run.observations.push(structuredClone(interval));
+    this.#recordIntervals([...run.observations, recordedInterval(interval)], interval.before);
     this.#save();
   }
 
+  #closeObservation(interval: WorkInterval, after: WorkObservation) {
+    finishInterval(interval, after);
+    this.#recordIntervals([...this.#state().observations.slice(0, -1), recordedInterval(interval)], after);
+  }
+
   observeContinuation(resolved: Installation['report']['resolved'], interrupted = false, restorable?: WorkInterval['scope'][string]) {
-    observeContinuation(this.#root, this.#state().observations, resolved, interrupted ? this.#state().operations.length : undefined, restorable);
+    const run = this.#state();
+    const continued = observeContinuation(this.#root, run.observations, () => this.#lastObservation(), resolved, interrupted ? run.operations.length : undefined, restorable);
+    if (continued) this.#recordIntervals(continued.intervals, continued.after);
     this.#save();
   }
 
@@ -429,7 +489,8 @@ export class AdoptionRunSession {
     execute: (onSpawn: (group: number) => void) => Promise<OperationEvidence>, verify: () => void, observation: { scope: WorkInterval['scope']; agentScope: WorkInterval['scope']; before: WorkObservation; capture: () => WorkObservation }) {
     const run = this.#state();
     const root = this.#root;
-    this.openObservation({ phase: operation.phase, operation, operationIndex: run.operations.length, scope: observation.scope, before: observation.before }, observation.agentScope);
+    const interval: WorkInterval = { phase: operation.phase, operation, operationIndex: run.operations.length, scope: observation.scope, before: observation.before };
+    this.openObservation(interval, observation.agentScope);
     run.phase = operation.phase; run.reason = 'Run in progress or interrupted.';
     run.uncertain = [`${operation.declaration}/${operation.id}: process outcome uncertain until recorded`]; this.#save();
     const persistedRun = file(json(run));
@@ -447,7 +508,7 @@ export class AdoptionRunSession {
     run.uncertain = ['Post-operation integrity verification has not succeeded.'];
     // Observe before integrity verification, but persist only after checking the
     // author-visible journal: observation persistence must not conceal tampering.
-    finishInterval(run.observations.at(-1)!, observation.capture());
+    this.#closeObservation(interval, observation.capture());
     const currentRun = safe(root, '.repo-standards/local/run.json');
     if (currentRun.type === 'file' && currentRun.sha256 !== persistedRun.sha256) write(root, `${log}.altered-run.json`, currentRun);
     verifyFiles(root, { '.repo-standards/local/run.json': persistedRun });

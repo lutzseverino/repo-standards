@@ -4,17 +4,20 @@ import type { Scope } from './scope.js';
 import type { WorkInterval, WorkObservation } from './work-observation.js';
 
 // Work evidence is the durable record of observation intervals and operation
-// outcomes for one adoption run. This module owns that slice of durable state:
-// what a completion commits, how its single format is validated on read, and
-// how a prior complete run is carried forward. Full observation maps stay in
-// memory and in the local run report; the committed record keeps observation
-// identities and the delta between them, so adoption pull requests remain
-// reviewable and later runs add only their own evidence.
+// outcomes for one adoption run. This module owns the recorded interval shape,
+// which the run record and committed state share, and that slice of durable
+// state: what a completion commits, how its single format is validated on
+// read, and how a prior complete run is carried forward. An interval keeps
+// observation identities and the delta between them, never observation maps,
+// so neither record grows with the project, adoption pull requests remain
+// reviewable, and later runs add only their own evidence. Full observations
+// are held in memory while a command observes; the run keeps only the one its
+// last interval ends at, beside its journal, for the next command to compare.
 
 type FileState = WorkObservation['files'][string];
 interface Delta { before: unknown; after: unknown }
 
-export interface CommittedInterval {
+export interface RecordedInterval {
   phase: WorkInterval['phase'];
   scope: Scope;
   operation?: WorkInterval['operation'];
@@ -31,7 +34,7 @@ export interface CommittedInterval {
 
 export interface CommittedRun {
   lastComplete: { run: string; inspection: string; completedAt: string; head: string };
-  observations: CommittedInterval[];
+  observations: RecordedInterval[];
   operations: unknown[];
   retryHistory: unknown[];
   checks: unknown[];
@@ -40,7 +43,7 @@ export interface CommittedRun {
 
 export interface ExecutionEvidence {
   format: typeof formats.state;
-  observations: CommittedInterval[];
+  observations: RecordedInterval[];
   operations: unknown[];
   retryHistory: unknown[];
   history: CommittedRun[];
@@ -61,8 +64,8 @@ function boundaryState(observation: WorkObservation, path: string) {
   return observation.boundaries[path] ?? { type: 'missing' };
 }
 
-// Committing an interval keeps its authority, its identities and its delta.
-function committedInterval(observed: WorkInterval): CommittedInterval {
+// Recording an interval keeps its authority, its identities and its delta.
+export function recordedInterval(observed: WorkInterval): RecordedInterval {
   const after = observed.after;
   return {
     phase: observed.phase,
@@ -92,13 +95,15 @@ export function carriedRuns(previous: ExecutionEvidence & Pick<CommittedRun, 'la
   return [...history, { lastComplete, observations, operations, retryHistory, checks, assessments }];
 }
 
-// The execution-evidence slice a completion writes. Last-complete, installed
-// baselines, skills, checks and assessments stay with their own owners.
-export function completedEvidence(run: { observations: WorkInterval[]; operations: unknown[]; retryHistory?: unknown[] }, history: CommittedRun[]): ExecutionEvidence {
+// The execution-evidence slice a completion writes. The run already records
+// its intervals in the committed shape, so they are carried without
+// transformation. Last-complete, installed baselines, skills, checks and
+// assessments stay with their own owners.
+export function completedEvidence(run: { observations: RecordedInterval[]; operations: unknown[]; retryHistory?: unknown[] }, history: CommittedRun[]): ExecutionEvidence {
   return {
     format: formats.state,
     history,
-    observations: run.observations.map(committedInterval),
+    observations: structuredClone(run.observations),
     operations: structuredClone(run.operations), retryHistory: structuredClone(run.retryHistory ?? []),
   };
 }
@@ -108,10 +113,10 @@ export function committedEvidenceReport(state: ExecutionEvidence) {
   return { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory, history: state.history };
 }
 
-// The committed guarantee: no interval carries an observation map, and every
+// The recorded guarantee: no interval carries an observation map, and every
 // closed interval carries both identities.
 const observationMaps = ['files', 'boundaries', 'settings', 'ignores'];
-function compactIntervals(observations: unknown[]) {
+export function compactIntervals(observations: unknown[]) {
   return observations.every(value => {
     const interval = value as Record<string, unknown> | null;
     return !!interval && typeof interval === 'object' && typeof interval.before === 'string'

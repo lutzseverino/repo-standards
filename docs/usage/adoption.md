@@ -207,9 +207,10 @@ identities of the observations a run held and the delta between them, not the
 observations themselves. Each interval keeps its phase, scope, operation
 reference, changed paths with their before and after file state, boundary
 changes, violations and restoration evidence, so an adoption pull request stays
-reviewable and a later run adds only its own evidence. Full observations remain
-in memory and in the uncommitted local run report, which recovery and gap
-detection still use. Historical evidence makes no current-coverage claim.
+reviewable and a later run adds only its own evidence. The run record and the
+uncommitted local run report record intervals in this same shape, so completion
+carries them into state unchanged and neither record grows with the project.
+Historical evidence makes no current-coverage claim.
 
 Each artifact has exactly one format, which this CLI both writes and reads:
 
@@ -218,7 +219,7 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Durable state, `.repo-standards/state.json` | `repo-standards/state/v5` |
 | Integrity lock, `.repo-standards/lock.json` | `repo-standards/lock/v1` |
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v3` |
-| Run record, local run report, and archived abandoned report | `repo-standards/run/v4` |
+| Run record, local run report, and archived abandoned report | `repo-standards/run/v5` |
 | `status` report | `repo-standards/status/v5` |
 | Inspection report | `repo-standards/inspection/v4` |
 | Work request and assessment | `repo-standards/work-request/v3`, `repo-standards/assessment/v2` |
@@ -244,14 +245,15 @@ installation is interrupted before local product reports can be created. Separat
 process registrations under `repo-standards-run.lock.workers/` prevent concurrent
 start, resume, retry, and abandon commands. Dead registrations do not hold an
 execution lock. Saved installation material and the completion bytes a recovery
-may need to verify, both addressed by their hashes, and runtime staging remain
-in Git's working-tree metadata until completion or abandonment.
+may need to verify, both addressed by their hashes, runtime staging, and the one
+observation the run's last interval ends at remain in Git's working-tree
+metadata until completion or abandonment.
 `.repo-standards/local/run.json` records progress once installation begins.
 Neither dependencies nor run records belong in commits.
 
 ## Completion and incomplete results
 
-`start` prints a `repo-standards/run/v4` JSON report. Its fields include `id`,
+`start` prints a `repo-standards/run/v5` JSON report. Its fields include `id`,
 `inspection`, `selection`, `head`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
 `uncertain`, `nextAction`, `prerequisites`, `operations`, `assessments`, and contextual
 `workRequest` when required. The report carries no file bytes: `affected` holds
@@ -266,7 +268,10 @@ process. Archival failure blocks retry before the existing report is overwritten
 Each retry's `archivedFiles` also retains operation logs, including unrecorded
 results. Archive names include content hashes so reusing an operation index
 cannot replace earlier evidence.
-`operations` retains recorded process results. Exit status is 0 for complete adoption, 1 for an
+`operations` retains recorded process results, and `observations` records each
+observation interval as identities and deltas in the
+[committed interval shape](script-protocol.md#observed-scope-for-v2-adoption),
+without observation maps. Exit status is 0 for complete adoption, 1 for an
 incomplete run or rejection, and 2 for invalid usage. Preflight rejections use
 the common `valid: false` / `errors` diagnostic format.
 
