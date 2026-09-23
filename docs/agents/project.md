@@ -7,7 +7,10 @@ the agreed contract; report contradictions and propose contract changes
 explicitly. The public author contract is [the author format](../usage/author-format.md).
 
 Create a focused branch from `main` for each implementation ticket. Follow
-[development and validation](../development/README.md), including the PR timing,
-independent reviews, positive Codex review, and final macOS/Linux CI requirements.
+[development and validation](../development/README.md), including the PR timing
+and the [review tier](../development/README.md#review-tiers) for the change
+kind: its independent reviews and required checks.
 The release is complete only when every acceptance criterion in its parent
-specification passes, including published installation and real-agent journeys.
+specification passes, including published installation and real-agent journeys,
+recorded as [the acceptance guide](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md#acceptance-records)
+describes.
