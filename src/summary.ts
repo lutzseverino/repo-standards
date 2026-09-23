@@ -1,4 +1,5 @@
-import type { HashInventory } from './inspection.js';
+import type { Blocker, HashInventory } from './inspection.js';
+import type { ScopeChange } from './scope-evidence.js';
 
 // One renderer turns an inspection report or a status record into a Markdown
 // summary. It is a pure function of that input, so the same input renders the
@@ -12,8 +13,6 @@ interface OperationDefinition {
   prerequisite: { 'version-arguments': string[]; version: string };
 }
 interface ChangedFile { path: string; before: HashInventory; after: HashInventory }
-interface Blocker { code: string; message: string; path?: string }
-interface ScopeChange { id: string; additions: string[]; removals: string[] }
 type TargetedDeclaration = { id: string; kind: string; target?: string; name?: string; targets?: { paths?: string[]; directories?: string[] } };
 
 export interface InspectionReport {
@@ -57,9 +56,12 @@ function code(value: string) {
   return fence + padded + fence;
 }
 
-// Recorded prose, such as messages and next actions, as literal Markdown text.
+// Recorded prose, such as messages and next actions, as literal Markdown text
+// on one line: inline markup is escaped, and so is a leading marker that would
+// start a heading, list, or quote.
 function text(value: string) {
-  return value.replace(/\r?\n/g, ' ').replace(/[\\`*_<>\[\]~]/g, character => `\\${character}`);
+  return value.replace(/\r?\n/g, ' ').replace(/[\\`*_<>\[\]~&]/g, character => `\\${character}`)
+    .replace(/^([#+=-])/, '\\$1').replace(/^(\d+)([.)])/, '$1\\$2');
 }
 
 function cell(value: string) {
