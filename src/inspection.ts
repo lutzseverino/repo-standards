@@ -14,6 +14,8 @@ import { latestRetainedScopeRun, type ScopeHistoryRun } from './scope-evidence.j
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
 import { unifiedDiff } from './unified-diff.js';
+import { classifyUpdate } from './update-class.js';
+import type { Declaration } from './model.js';
 import type { RecordedSelection } from './recorded-state.js';
 
 export interface Blocker { code: string; message: string; path?: string }
@@ -412,7 +414,15 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       for (const path of paths) inputs[path] = observe(join(source.root, path));
     }
     for (const name of readdirSync(source.root).sort()) if (/^licen[sc]e(?:[.-].*)?$/i.test(name)) inputs[name] = observe(join(source.root, name));
-    const retired = previous ? previous.resolved.declarations.filter(old => !resolved.declarations.some(declaration => declaration.id === old.id)) : [];
+    // Retirement compares source declarations: an active discovery declaration
+    // awaiting its scope proposal is still declared.
+    const retired = previous ? previous.resolved.declarations.filter(old => !profile.declarations.some(declaration => declaration.id === old.id)) : [];
+    const classified = previous ? classifyUpdate({
+      resolved: previous.resolved.declarations as Declaration[],
+      discovery: Object.fromEntries((previous.historicalScope?.sourceResolved?.declarations ?? [])
+        .flatMap(declaration => declaration.discovery ? [[declaration.id, declaration.discovery]] : [])),
+      files: previous.files,
+    }, { declarations: profile.declarations, resolved: resolved.declarations, inputs }) : undefined;
     let scopeChanges: { id: string; additions: string[]; removals: string[] }[] | undefined;
     if (previous && (!discoveryDeclarations.length || proposal)) {
       const priorIds = previous.historicalScope?.sourceResolved?.declarations?.filter(declaration => declaration.discovery).map(declaration => declaration.id) ?? [];
@@ -438,7 +448,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         productState: hashInventory(productState), systemSkill: hashInventory(systemSkill) },
       systemSkill: { target: '.agents/skills/adopt-standards', action: systemSkillAction },
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
-      ...(update ? { update, previousSelection: previous!.selection, retired } : {}),
+      ...(update ? { update, previousSelection: previous!.selection, retired, ...classified } : {}),
       ...(scopeChanges ? { scopeChanges } : {}),
     };
     if (scopeObservation) {
