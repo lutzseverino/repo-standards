@@ -243,7 +243,9 @@ its assertions the script polls for the exact version's npm `dist` metadata,
 then the release's `release.json` and `repo-standards-bootstrap` assets. It
 retries only not-found results (npm `E404`, HTTP 404) every 10 seconds; any
 other failure stops acceptance at once. The whole wait is bounded at 300
-seconds from the first observation, and the last attempt runs at the bound. A
+seconds from the first observation, and the last attempt starts at the bound.
+Each attempt has its own 60-second timeout, so the wait ends at most about a
+minute past the bound; a subject observed by that last attempt is accepted. A
 subject still missing then fails acceptance with a diagnostic naming the
 version or asset URL and the elapsed wait. The `propagation` field of the
 evidence records the interval, the bound, and each attempt's subject,

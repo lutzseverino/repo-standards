@@ -53,8 +53,8 @@ const retry = ['node', 'acceptance/public-installation.ts', version, `${evidence
   .map(value => `'${value.replaceAll("'", "'\\''")}'`).join(' ');
 const nextAction = `Inspect the failure evidence, correct the cause, then retry: ${retry}`;
 try {
-  function execute(executable: string, args: string[], cwd = root) {
-    const result = spawnSync(executable, args, { cwd, env, encoding: 'utf8', timeout: 300_000, maxBuffer: 32 * 1024 * 1024 });
+  function execute(executable: string, args: string[], cwd = root, timeout = 300_000) {
+    const result = spawnSync(executable, args, { cwd, env, encoding: 'utf8', timeout, maxBuffer: 32 * 1024 * 1024 });
     commands.push({ executable, args, status: result.status, stdout: result.stdout ?? '', stderr: result.stderr ?? '' });
     if (result.error) throw result.error;
     return result;
@@ -70,7 +70,8 @@ try {
   const wayfinderTree = run('git', ['rev-parse', 'HEAD:acceptance/sources/wayfinder'], checkout);
   assert.equal(run('git', ['status', '--porcelain=v1', '--untracked-files=all', '--', 'acceptance/sources/wayfinder'], checkout), '');
   const distribution = await awaitPublished(`@lutzseverino/repo-standards@${version} on the npm registry`, async () => {
-    const result = execute('npm', ['view', `@lutzseverino/repo-standards@${version}`, 'dist', '--json', '--prefer-online']);
+    // Cap each observation like a download, so an attempt started at the bound ends within a minute.
+    const result = execute('npm', ['view', `@lutzseverino/repo-standards@${version}`, 'dist', '--json', '--prefer-online'], root, 60_000);
     if (result.status !== 0 && /\bE404\b/.test(result.stdout + result.stderr)) return { result: 'E404' };
     assert.equal(result.status, 0, result.stdout + result.stderr);
     return { value: JSON.parse(result.stdout), result: 'available' };
