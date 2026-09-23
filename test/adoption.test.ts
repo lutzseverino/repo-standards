@@ -4,7 +4,7 @@ import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, rmSync, syml
 import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
+import { embeddedContent, installCli, sha256, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
@@ -219,14 +219,13 @@ test('start rejects every invalid initial project state without mutation', async
   });
 });
 
-test('start rejects stale identities, HEAD, project content and profile selection', async t => {
-  for (const change of ['identity', 'head', 'content', 'profile']) await t.test(change, st => {
+test('start rejects stale identities, project content and profile selection', async t => {
+  for (const change of ['identity', 'content', 'profile']) await t.test(change, st => {
     const remote = remoteFixture(yaml + '  other:\n    description: Other\n    declarations: {}\n', { 'content.md': 'Expected' });
     const project = sourceFixture('', { 'AGENTS.md': 'Original' });
     st.after(() => { remote.close(); project.close(); });
     commit(project.root);
     const inspection = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
-    if (change === 'head') git(project.root, '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false', 'commit', '--allow-empty', '-m', 'Changed HEAD');
     if (change === 'content') writeFileSync(join(project.root, 'AGENTS.md'), 'Changed');
     const before = snapshot(project.root);
     const args = change === 'profile' ? inspectionArgs.map(arg => arg === 'work' ? 'other' : arg) : inspectionArgs;
@@ -235,6 +234,107 @@ test('start rejects stale identities, HEAD, project content and profile selectio
     assert.equal(JSON.parse(result.stdout).errors[0].code, 'STALE_INSPECTION');
     assert.deepEqual(snapshot(project.root), before);
   });
+});
+
+test('a confirmation survives an unrelated commit and the run records HEAD at start', async t => {
+  const registry = await registryFixture(cli.root);
+  const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
+  const project = sourceFixture('', { 'README.md': 'Project' });
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  writeFileSync(join(project.root, 'unrelated.txt'), 'Unrelated work');
+  commit(project.root);
+  const head = git(project.root, 'rev-parse', 'HEAD');
+  const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const run = JSON.parse(result.stdout);
+  assert.equal(run.outcome, 'complete');
+  assert.equal(run.inspection, inspection.identity);
+  assert.equal(run.head, head);
+  assert.equal(JSON.parse(readFileSync(join(project.root, '.repo-standards/local/run.json'), 'utf8')).head, head);
+  assert.equal(JSON.parse(cli.run(['status', '--json'], project.root, env).stdout).lastComplete.head, head);
+  assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Expected');
+
+  // On the established project, the identity binds retained inputs and the
+  // product-state inventory, and still not HEAD.
+  commit(project.root);
+  const identity = () => JSON.parse(cli.run(['inspect', '--json'], project.root, env).stdout).identity;
+  const established = identity();
+  writeFileSync(join(project.root, 'unrelated.txt'), 'More unrelated work');
+  commit(project.root);
+  assert.equal(identity(), established);
+  const input = join(project.root, '.repo-standards/inputs/source/content.md');
+  writeFileSync(input, 'Edited retained input');
+  assert.notEqual(identity(), established);
+  writeFileSync(input, 'Expected');
+  assert.equal(identity(), established);
+  writeFileSync(join(project.root, '.repo-standards/extra.txt'), 'Unexpected product state');
+  assert.notEqual(identity(), established);
+});
+
+test('a source blob that changed between inspection and start is rejected before mutation', async t => {
+  for (const observedTag of [true, false]) await t.test(observedTag ? 'observed tag' : 'fresh tag cache', st => {
+    const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
+    const project = sourceFixture('', { 'README.md': 'Project' });
+    st.after(() => { remote.close(); project.close(); });
+    commit(project.root);
+    const inspection = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+    remote.addVersion('v1.0.0', yaml, { 'content.md': 'Changed after inspection' });
+    const env = observedTag ? remote.env : { ...remote.env, XDG_CACHE_HOME: join(remote.support.root, 'fresh-cache') };
+    const before = snapshot(project.root);
+    const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(JSON.parse(result.stdout).errors[0].code, observedTag ? 'MOVED_TAG' : 'STALE_INSPECTION');
+    assert.deepEqual(snapshot(project.root), before);
+  });
+});
+
+test('the report of an established project with a large tree carries hashes and stays under the capture limit', async t => {
+  const registry = await registryFixture(cli.root);
+  const references: Record<string, string> = Object.fromEntries(Array.from({ length: 300 }, (_, index) =>
+    [`skills/large/references/${index}.md`, `# Reference ${index}\n${'Reference material. '.repeat(200)}\n`]));
+  const remote = remoteFixture(yaml.replace('profiles:', `    large:
+      kind: skill
+      name: large
+      source: skills/large
+profiles:`), { 'content.md': 'Expected', 'skills/large/SKILL.md': '# Large\nUse the references.\n', ...references });
+  const project = sourceFixture('', { 'README.md': 'Project' });
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const adopted = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env);
+  assert.equal(adopted.status, 0, adopted.stdout + adopted.stderr);
+  commit(project.root);
+  const limit = 1024 * 1024;
+  assert.ok(Object.values(references).reduce((total, text) => total + text.length, 0) > limit, 'One copy of the tree exceeds the capture limit');
+  // Node's default capture buffer, as an agent's tool or script would use it.
+  const capture = (args: string[]) => spawnSync(join(cli.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env, encoding: 'utf8' });
+  const retained = capture(['inspect', '--json']);
+  assert.equal(retained.error, undefined);
+  assert.equal(retained.status, 0, retained.stderr);
+  assert.ok(retained.stdout.length < limit, `${retained.stdout.length} bytes`);
+  const report = JSON.parse(retained.stdout);
+  assert.deepEqual(embeddedContent(report), []);
+  const skill = report.exact.find((entry: { id: string }) => entry.id === 'large');
+  assert.equal(skill.action, 'match');
+  assert.deepEqual(skill.files.find((file: { path: string }) => file.path === '.agents/skills/large/references/7.md'),
+    { path: '.agents/skills/large/references/7.md', before: { type: 'file', sha256: sha256(references['skills/large/references/7.md']!), executable: false },
+      after: { type: 'file', sha256: sha256(references['skills/large/references/7.md']!), executable: false } });
+  assert.equal(report.inputs['skills/large'].entries.references.entries['7.md'].sha256, sha256(references['skills/large/references/7.md']!));
+  assert.equal(report.project.productState.entries.inputs.entries.source.entries.skills.entries.large.entries.references.entries['7.md'].sha256,
+    sha256(references['skills/large/references/7.md']!));
+  const started = capture(['start', '--confirm', report.identity, '--json']);
+  assert.equal(started.status, 0, started.stdout + started.stderr);
+  const run = JSON.parse(started.stdout);
+  assert.equal(run.outcome, 'complete');
+  assert.deepEqual(embeddedContent(run), []);
+  assert.equal(readFileSync(join(project.root, '.agents/skills/large/references/7.md'), 'utf8'), references['skills/large/references/7.md']);
+  const status = capture(['status', '--json']);
+  assert.equal(status.status, 0, status.stderr);
+  assert.deepEqual(embeddedContent(JSON.parse(status.stdout)), []);
 });
 
 test('final integrity failures preserve work and report an incomplete locked run with no complete adoption', async t => {
@@ -423,7 +523,7 @@ test('retained inspection preserves selected source manifests and rejects altere
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), source);
   let retained = cli.run(['inspect', '--json'], project.root, env);
   assert.equal(retained.status, 0, retained.stdout.slice(0, 2000) + retained.stderr);
-  assert.equal(JSON.parse(retained.stdout).exact[0].files[0].after.content, source);
+  assert.equal(JSON.parse(retained.stdout).exact[0].files[0].after.sha256, sha256(source));
   writeFileSync(join(project.root, 'AGENTS.md'), 'Local edit after adoption');
   assert.equal(JSON.parse(cli.run(['status', '--json'], project.root, env).stdout).lastComplete.inspection, inspection.identity);
   assert.equal(JSON.parse(cli.run(['inspect', '--json'], project.root, env).stdout).exact[0].action, 'replace');
@@ -566,7 +666,7 @@ let failed = false;
 fs.writeFileSync = function(path, data, ...args) {
   let report;
   try { report = JSON.parse(String(data)); } catch {}
-  if (!failed && String(path).includes('/.repo-standards/local/') && report?.format === 'repo-standards/run/v2' && report.outcome === 'complete') {
+  if (!failed && String(path).includes('/.repo-standards/local/') && report?.format === 'repo-standards/run/v4' && report.outcome === 'complete') {
     failed = true;
     throw Object.assign(new Error('No space for final run report'), {code: 'ENOSPC'});
   }

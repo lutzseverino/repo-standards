@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { readFileSync, readdirSync, lstatSync, writeFileSync, mkdirSync, symlinkSync, chmodSync, utimesSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
-import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
+import { embeddedContent, installCli, sha256, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 
 const cli = installCli();
@@ -45,17 +45,24 @@ test('inspection reports the pinned complete profile without changing a dirty pr
   assert.deepEqual(report.selection.standards, { repository: 'https://github.com/alice/standards', version: 'v1.0.0', commit: remote.sha });
   assert.equal(report.selection.profile, 'work');
   assert.deepEqual(report.resolved.declarations.map((d: { id: string }) => d.id), ['agent-guidance', 'readme', 'review-skill', 'source-layout']);
-  assert.equal(report.exact.find((d: { id: string }) => d.id === 'agent-guidance').action, 'replace');
-  assert.equal(report.exact.find((d: { id: string }) => d.id === 'agent-guidance').files[0].after.content, files['profiles/work/files/AGENTS.md']);
-  assert.equal(report.guidance[0].content, files['defaults/guidance/readme.md']);
+  assert.equal(report.format, 'repo-standards/inspection/v4');
+  assert.deepEqual(embeddedContent(report), [], 'Reports reference content by hash and carry changes as diffs');
+  const agents = report.exact.find((d: { id: string }) => d.id === 'agent-guidance');
+  assert.equal(agents.action, 'replace');
+  assert.deepEqual(agents.files[0].before, { type: 'file', sha256: sha256('Old guidance'), executable: false });
+  assert.deepEqual(agents.files[0].after, { type: 'file', sha256: sha256(files['profiles/work/files/AGENTS.md']!), executable: false });
+  assert.match(agents.files[0].diff, /^--- a\/AGENTS\.md\n\+\+\+ b\/AGENTS\.md\n@@ -1 \+1(,\d+)? @@\n-Old guidance\n\\ No newline at end of file\n\+/);
+  assert.deepEqual(report.guidance[0], { id: 'readme', targets: ['README.md'], source: 'defaults/guidance/readme.md', sha256: sha256(files['defaults/guidance/readme.md']!), executable: false });
   assert.equal(report.operations[0].run.executable, './probe');
   assert.equal(report.operations[0].prerequisite.status, 'not-checked');
-  assert.equal(report.operations[0].script.content, files['defaults/checks/readme.py']);
-  assert.equal(report.operations[0].resources[0].content.content, files['payload.json']);
-  assert.equal(report.operations[0].resources[1].content.entries['support.txt'].content, files['resources/support.txt']);
+  assert.deepEqual(report.operations[0].script, { path: 'defaults/checks/readme.py', sha256: sha256(files['defaults/checks/readme.py']!), executable: false });
+  assert.deepEqual(report.operations[0].resources[0], { path: 'payload.json', type: 'file', sha256: sha256(files['payload.json']!), executable: false });
+  assert.equal(report.operations[0].resources[1].entries['support.txt'].sha256, sha256(files['resources/support.txt']!));
+  assert.equal(report.inputs['payload.json'].sha256, sha256(files['payload.json']!));
+  assert.deepEqual(report.project.affected['README.md'], { type: 'file', sha256: sha256('Uncommitted project README'), executable: false });
   assert.equal(report.start.eligible, false);
   assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'DIRTY_PROJECT'));
-  assert.equal(report.project.head, git(project.root, 'rev-parse', 'HEAD'));
+  assert.deepEqual(Object.keys(report.project).sort(), ['affected', 'productState', 'root', 'systemSkill'], 'Git HEAD, index and status are not part of the report');
   assert.match(report.identity, /^sha256:[a-f0-9]{64}$/);
   assert.deepEqual(snapshot(project.root), before);
   git(project.root, 'add', '.');
@@ -131,7 +138,7 @@ test('unsafe ancestors, skill ownership and ignored replacement content block st
   assert.ok(ignoredReport.start.blockers.some((b: { code: string }) => b.code === 'UNTRACKED_REPLACEMENT'));
 });
 
-test('inspection identity is stable and changes with affected bytes, executable state, index content, HEAD and profile', (t) => {
+test('inspection identity binds affected bytes, executable state and profile, not the index or HEAD', (t) => {
   const remote = remoteFixture(simpleSource() + '  other:\n    description: Other\n    declarations: {}\n', { 'content.md': 'Expected' });
   const project = sourceFixture('', { 'AGENTS.md': 'Expected' });
   t.after(() => { remote.close(); project.close(); });
@@ -150,14 +157,17 @@ test('inspection identity is stable and changes with affected bytes, executable 
   const changed = inspect();
   assert.notEqual(changed.identity, first.identity);
   writeFileSync(join(project.root, 'AGENTS.md'), 'Changed twice');
-  assert.notEqual(inspect().identity, changed.identity);
+  const twice = inspect();
+  assert.notEqual(twice.identity, changed.identity);
   chmodSync(join(project.root, 'AGENTS.md'), 0o755);
   const executable = inspect();
   assert.equal(executable.exact[0].files[0].before.executable, true);
+  assert.notEqual(executable.identity, twice.identity);
+  // Staging the same working bytes changes only the index, which the run
+  // does not read: the dirty tree still blocks start either way.
   git(project.root, 'add', 'AGENTS.md');
   const staged = inspect();
-  assert.notEqual(staged.identity, executable.identity);
-  // The same working bytes and porcelain status can conceal different index bytes.
+  assert.equal(staged.identity, executable.identity);
   writeFileSync(join(project.root, 'AGENTS.md'), 'Index one');
   git(project.root, 'add', 'AGENTS.md');
   writeFileSync(join(project.root, 'AGENTS.md'), 'Working bytes');
@@ -166,10 +176,16 @@ test('inspection identity is stable and changes with affected bytes, executable 
   git(project.root, 'add', 'AGENTS.md');
   writeFileSync(join(project.root, 'AGENTS.md'), 'Working bytes');
   const indexTwo = inspect();
-  assert.equal(indexOne.project.status, indexTwo.project.status);
-  assert.notEqual(indexOne.identity, indexTwo.identity);
+  assert.equal(indexOne.identity, indexTwo.identity);
+  assert.ok(indexTwo.start.blockers.some((b: { code: string }) => b.code === 'DIRTY_PROJECT'));
   commit(project.root);
-  assert.notEqual(inspect().identity, indexTwo.identity);
+  const committed = inspect();
+  assert.notEqual(committed.identity, indexTwo.identity, 'Committing removes the dirty-project blocker');
+  // Unrelated commits touch nothing the run reads.
+  writeFileSync(join(project.root, 'unrelated.txt'), 'Unrelated work');
+  commit(project.root);
+  git(project.root, '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false', 'commit', '--quiet', '--allow-empty', '-m', 'Unrelated');
+  assert.equal(inspect().identity, committed.identity);
 });
 
 test('inspection reports unborn Git state and type, case, reserved-state and untracked conflicts', (t) => {
@@ -279,6 +295,46 @@ ${operation('a-check')}`;
   assert.deepEqual(snapshot(project.root), before);
 });
 
+test('exact changes carry a unified diff for text and before-and-after hashes for binary content', (t) => {
+  const yaml = simpleSource().replace('profiles:', `    created:
+      kind: file
+      target: NEW.md
+      exact: new.md
+    logo:
+      kind: file
+      target: logo.bin
+      exact: logo.bin
+    unchanged:
+      kind: file
+      target: SAME.md
+      exact: same.md
+    empty:
+      kind: file
+      target: EMPTY.md
+      exact: empty.md
+profiles:`);
+  const oldLogo = Buffer.from([0, 1, 2, 255]), newLogo = Buffer.from([0, 1, 3, 255]);
+  const remote = remoteFixture(yaml, { 'content.md': 'one\n2\nthree\nfour', 'new.md': 'hello\n', 'logo.bin': newLogo, 'same.md': 'Same\n', 'empty.md': '' });
+  const project = sourceFixture('', { 'AGENTS.md': 'one\ntwo\nthree\n', 'logo.bin': oldLogo, 'SAME.md': 'Same\n' });
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const result = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  const files = (id: string) => report.exact.find((entry: { id: string }) => entry.id === id).files;
+  const text = (value: string) => ({ type: 'file', sha256: sha256(value), executable: false });
+  assert.deepEqual(files('instructions'), [{ path: 'AGENTS.md', before: text('one\ntwo\nthree\n'), after: text('one\n2\nthree\nfour'),
+    diff: '--- a/AGENTS.md\n+++ b/AGENTS.md\n@@ -1,3 +1,4 @@\n one\n-two\n+2\n three\n+four\n\\ No newline at end of file\n' }]);
+  assert.deepEqual(files('created'), [{ path: 'NEW.md', before: { type: 'missing' }, after: text('hello\n'),
+    diff: '--- /dev/null\n+++ b/NEW.md\n@@ -0,0 +1 @@\n+hello\n' }]);
+  assert.deepEqual(files('logo'), [{ path: 'logo.bin', before: { type: 'file', sha256: sha256(oldLogo), executable: false },
+    after: { type: 'file', sha256: sha256(newLogo), executable: false }, binary: true }]);
+  assert.deepEqual(files('unchanged'), [{ path: 'SAME.md', before: text('Same\n'), after: text('Same\n') }]);
+  // A unified diff cannot express creating an empty file; its states do.
+  assert.deepEqual(files('empty'), [{ path: 'EMPTY.md', before: { type: 'missing' }, after: text('') }]);
+  assert.deepEqual(embeddedContent(report), []);
+});
+
 test('exact replacements preserve both root observations when files and directories conflict', (t) => {
   const project = sourceFixture('', { 'AGENTS.md/child.txt': 'Existing directory child', '.agents/skills/review': 'Existing file' });
   const fileRemote = remoteFixture(simpleSource(), { 'content.md': 'Desired file' });
@@ -298,20 +354,19 @@ test('exact replacements preserve both root observations when files and director
   const file = inspect(fileRemote).find((entry: {path: string}) => entry.path === 'AGENTS.md');
   assert.ok(file, 'The exact replacement must retain the root directory and desired file');
   assert.equal(file.before.type, 'directory');
-  assert.equal(file.before.entries['child.txt'].content, 'Existing directory child');
-  assert.equal(file.after.type, 'file');
-  assert.equal(file.after.content, 'Desired file');
+  assert.deepEqual(file.before.entries['child.txt'], { type: 'file', sha256: sha256('Existing directory child'), executable: false });
+  assert.deepEqual(file.after, { type: 'file', sha256: sha256('Desired file'), executable: false });
+  assert.equal(file.diff, undefined, 'A type conflict has no text diff');
   const skill = inspect(skillRemote).find((entry: {path: string}) => entry.path === '.agents/skills/review');
   assert.ok(skill, 'The exact replacement must retain the existing file and desired skill directory');
-  assert.equal(skill.before.type, 'file');
-  assert.equal(skill.before.content, 'Existing file');
+  assert.deepEqual(skill.before, { type: 'file', sha256: sha256('Existing file'), executable: false });
   assert.equal(skill.after.type, 'directory');
-  assert.equal(skill.after.entries['SKILL.md'].content, 'Desired skill');
+  assert.equal(skill.after.entries['SKILL.md'].sha256, sha256('Desired skill'));
   assert.deepEqual(snapshot(project.root), before);
 });
 
 
-test('case conflicts retain the exact target bytes and bind them into inspection identity', (t) => {
+test('case conflicts retain the exact target hashes and bind them into inspection identity', (t) => {
   for (const nested of [false, true]) {
     const target = nested ? 'foo/AGENTS.md' : 'foo';
     const alias = nested ? 'FOO/AGENTS.md' : 'FOO';
@@ -337,12 +392,10 @@ test('case conflicts retain the exact target bytes and bind them into inspection
     assert.ok(first.start.blockers.some((blocker: {code: string}) => blocker.code === 'CASE_CONFLICT'));
     const obstacles = first.project.affected[target].obstacles;
     assert.ok(obstacles.foo, 'The exact component must be observed alongside its aliases');
-    assert.equal(nested ? obstacles.foo.entries['AGENTS.md'].content : obstacles.foo.content, 'Dirty exact bytes one');
-    assert.equal(nested ? obstacles.FOO.entries['AGENTS.md'].content : obstacles.FOO.content, 'Alias bytes');
+    assert.equal(nested ? obstacles.foo.entries['AGENTS.md'].sha256 : obstacles.foo.sha256, sha256('Dirty exact bytes one'));
+    assert.equal(nested ? obstacles.FOO.entries['AGENTS.md'].sha256 : obstacles.FOO.sha256, sha256('Alias bytes'));
     writeFileSync(join(project.root, target), 'Dirty exact bytes two');
     const second = inspect();
-    assert.equal(second.project.status, first.project.status);
-    assert.equal(second.project.index, first.project.index);
     assert.notEqual(second.identity, first.identity);
   }
 });

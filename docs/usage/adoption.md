@@ -126,8 +126,8 @@ complete run advances last-complete state and new baselines. Every update
 leaves HEAD unchanged and its actual changes uncommitted for the project's
 normal workflow.
 
-Start requires the same content-derived inspection identity, existing HEAD,
-clean index and working tree, no non-ignored untracked files, safe targets,
+Start requires the same content-derived inspection identity, an existing
+commit, clean index and working tree, no non-ignored untracked files, safe targets,
 recoverable replacement content, and unambiguous skill ownership. Git flags
 that hide changes and nested submodules block this initial journey. Existing
 exact files and skill directories whose complete inventory, bytes, and
@@ -136,6 +136,15 @@ recorded in the new baselines. This includes the reserved system skill when it
 matches the skill packaged with this exact CLI. A differing skill without an
 installed baseline conflicts; unrelated and excluded content remains outside the
 selection.
+
+The identity binds what the run reads, not Git HEAD: a commit between
+inspection and start that touches no affected file, retained input, or durable
+product state leaves the confirmation valid. The run records HEAD at start in
+its `head` field for provenance, and completion records it in the state's
+`lastComplete.head`. HEAD and the index must then stay unchanged until the run
+completes. Inspection and run reports carry hash inventories and diffs rather
+than file bytes; start acquires the source again and installs only bytes that
+match the confirmed hashes. See [the inspection report](inspection.md#report-and-inspection-identity).
 
 Before installation, start probes every declared prerequisite using its literal
 version arguments from the project root. It reports all missing executables,
@@ -162,7 +171,7 @@ Review and commit these files through the adopting project's normal workflow:
 | --- | --- |
 | `.repo-standards/selection.yaml` | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile. |
 | `.repo-standards/lock.json` | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state. |
-| `.repo-standards/state.json` | Last-complete run, inspected HEAD, completion time, exact baselines, full skill file inventories, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this and each prior complete run. |
+| `.repo-standards/state.json` | Last-complete run, HEAD at start, completion time, exact baselines, full skill file inventories, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this and each prior complete run. |
 | `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
 | `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
@@ -176,7 +185,7 @@ resolved selection, discovery guidance, proposal, rationale, evidence references
 and observation identities. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
 source availability, as `repo-standards/scope-history/v3` in the
-`repo-standards/inspection/v2` report.
+`repo-standards/inspection/v4` report.
 
 Retained runs are scope evidence: each discovery run is stored once, as its
 accepted inspection identity, resolved selection, source-resolved profile, and
@@ -209,10 +218,10 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Durable state, `.repo-standards/state.json` | `repo-standards/state/v5` |
 | Integrity lock, `.repo-standards/lock.json` | `repo-standards/lock/v1` |
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v3` |
-| Run record, local run report, and archived abandoned report | `repo-standards/run/v2` |
+| Run record, local run report, and archived abandoned report | `repo-standards/run/v4` |
 | `status` report | `repo-standards/status/v5` |
-| Inspection report | `repo-standards/inspection/v2` |
-| Work request and assessment | `repo-standards/work-request/v2`, `repo-standards/assessment/v2` |
+| Inspection report | `repo-standards/inspection/v4` |
+| Work request and assessment | `repo-standards/work-request/v3`, `repo-standards/assessment/v2` |
 
 Earlier formats are retired: they are not read, converted, or compacted. A
 project that carries one [adopts fresh](#adopt-fresh-from-a-retired-format).
@@ -234,17 +243,21 @@ content and separate for each working tree. It records the current run even if
 installation is interrupted before local product reports can be created. Separate
 process registrations under `repo-standards-run.lock.workers/` prevent concurrent
 start, resume, retry, and abandon commands. Dead registrations do not hold an
-execution lock. Saved installation material and runtime staging remain in Git's
-working-tree metadata until completion or abandonment.
+execution lock. Saved installation material and the completion bytes a recovery
+may need to verify, both addressed by their hashes, and runtime staging remain
+in Git's working-tree metadata until completion or abandonment.
 `.repo-standards/local/run.json` records progress once installation begins.
 Neither dependencies nor run records belong in commits.
 
 ## Completion and incomplete results
 
-`start` prints a `repo-standards/run/v2` JSON report. Its fields include `id`,
-`inspection`, `selection`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
+`start` prints a `repo-standards/run/v4` JSON report. Its fields include `id`,
+`inspection`, `selection`, `head`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
 `uncertain`, `nextAction`, `prerequisites`, `operations`, `assessments`, and contextual
-`workRequest` when required. `installation.files` and `installation.runtime` record
+`workRequest` when required. The report carries no file bytes: `affected` holds
+the hash inventories of the targets at start, `completion` the hashes of the
+candidate lock and state, and the work request references guidance by path and
+hash. `installation.files` and `installation.runtime` record
 confirmed installation progress; `uncertain` describes work whose result has not
 been verified and recorded. `retryHistory` preserves prior failure reasons,
 uncertainty, and assessment evidence. Its `report` path points to the local report

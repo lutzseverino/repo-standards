@@ -1,7 +1,10 @@
 # Bind confirmation identity to what the run reads
 
 Status: accepted design in the adoption-friction grilling of 2026-09-18;
-specification pending.
+specified in [issue #79](https://github.com/lutzseverino/repo-standards/issues/79).
+Implemented by [issue #89](https://github.com/lutzseverino/repo-standards/issues/89),
+together with the hash inventories and diffs that replace embedded bytes in
+inspection reports and run records.
 
 An inspection identity bound HEAD, the index, and Git status, so any commit to
 the default branch between inspection and start invalidated a confirmation. That

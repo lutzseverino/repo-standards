@@ -4,7 +4,7 @@ import type { TestContext } from 'node:test';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { stringify } from 'yaml';
-import { installCli, sourceFixture } from './installed-cli.ts';
+import { installCli, sha256, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
@@ -64,10 +64,13 @@ test('discovery handoff requires versioned coverage review after fixes and at as
   const f = await fixture(t);
   const started = f.start(f.inspect().report.identity).report;
   const request = started.workRequest;
-  assert.equal(request.format, 'repo-standards/work-request/v2');
+  assert.equal(request.format, 'repo-standards/work-request/v3');
   assert.equal(request.scope.inspection, started.inspection);
   assert.equal(request.scope.afterFixes, request.snapshot);
-  assert.equal(request.declarations[0].discovery.content.startsWith('Find maintained projects'), true);
+  const discovery = request.declarations[0].discovery;
+  assert.equal(discovery.retained, `.repo-standards/inputs/source/${discovery.source}`);
+  assert.equal(readFileSync(join(f.project.root, discovery.retained), 'utf8').startsWith('Find maintained projects'), true);
+  assert.equal(sha256(readFileSync(join(f.project.root, discovery.retained))), discovery.sha256);
   const assessmentFile = join(f.remote.support.root, 'assessment.json');
   const review = { status: 'valid', explanation: 'After fixes the maintained project is still the only applicable project.', evidence: ['Reviewed the project manifest and excluded fixture.'], additionalPaths: [] };
   const assessment = { format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
@@ -151,7 +154,7 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     writeFileSync(join(f.remote.support.root, 'responses.json'), '{}');
     const retained = f.run(['inspect', '--project', checkout, '--json']);
     assert.equal(retained.result.status, 0, retained.result.stdout);
-    assert.equal(retained.report.format, 'repo-standards/inspection/v2');
+    assert.equal(retained.report.format, 'repo-standards/inspection/v4');
     assert.equal(retained.report.retained, true);
     assert.equal(retained.report.historicalScope.format, 'repo-standards/scope-history/v3');
     assert.equal(retained.report.historicalScope.evidence, 'historical');

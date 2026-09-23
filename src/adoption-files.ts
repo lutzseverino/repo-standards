@@ -3,8 +3,8 @@ import { chmodSync, lstatSync, mkdirSync, readdirSync, renameSync, rmSync, write
 import { dirname, join, resolve } from 'node:path';
 import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
-import { git, targetBoundaryObservation, targetObservation } from './inspection.js';
-import type { Blocker, Content, Observation } from './inspection.js';
+import { git, hashInventory, targetBoundaryObservation, targetObservation } from './inspection.js';
+import type { Blocker, Content, HashInventory, Observation } from './inspection.js';
 export type Baseline = Pick<Content, 'sha256' | 'executable'>;
 export type Files = Record<string, Content>;
 export const systemTarget = '.agents/skills/adopt-standards';
@@ -15,9 +15,11 @@ export function file(text: string): Content { return { sha256: hash(text), execu
 export function baselines(files: Files): Record<string, Baseline> {
   return Object.fromEntries(Object.entries(files).map(([path, value]) => [path, { sha256: value.sha256, executable: value.executable }]));
 }
-export function flatten(path: string, value: Observation, files: Files) {
+export function flatten(path: string, value: Observation, files: Files): void;
+export function flatten(path: string, value: HashInventory, files: Record<string, Baseline>): void;
+export function flatten(path: string, value: Observation | HashInventory, files: Record<string, Baseline>) {
   if (value.type === 'file') files[path] = value;
-  else if (value.type === 'directory') for (const [name, child] of Object.entries(value.entries)) flatten(`${path}/${name}`, child, files);
+  else if (value.type === 'directory') for (const [name, child] of Object.entries<Observation | HashInventory>(value.entries)) flatten(`${path}/${name}`, child as HashInventory, files);
   else throw new ProductError('UNSAFE_CONTENT', `Expected regular source material at ${path}.`);
 }
 
@@ -77,7 +79,7 @@ export function verifyFiles(root: string, files: Files) {
   }
 }
 
-export function actualChanges(root: string, affected: Record<string, Observation>) {
+export function actualChanges(root: string, affected: Record<string, HashInventory>) {
   const status = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignore-submodules=all']);
   if (status.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot report actual Git changes.');
   const records = status.stdout.split('\0').filter(Boolean);
@@ -104,7 +106,7 @@ export function actualChanges(root: string, affected: Record<string, Observation
   for (const [path, before] of Object.entries(affected)) {
     relativePath(path);
     const blockers: Blocker[] = [];
-    if (json(targetObservation(root, path, blockers)) !== json(before)) {
+    if (json(hashInventory(targetObservation(root, path, blockers))) !== json(before)) {
       paths.add(path);
       if (blockers.length === 0) collect(path);
     }

@@ -9,7 +9,7 @@ import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { ProductError } from './errors.js';
 import { formats, recordPath, rejectRetiredRecords, requireFormat } from './formats.js';
 import { observe } from './inspection.js';
-import type { Content, InspectOptions, Observation, inspect } from './inspection.js';
+import type { Content, HashInventory, InspectOptions, Observation, inspect, inspectForStart } from './inspection.js';
 import { decodeRecordedState } from './recorded-state.js';
 import { carriedRuns, committedEvidenceReport, completedEvidence, type CommittedRun } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
@@ -28,14 +28,16 @@ export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: '
 export interface Run {
   format: typeof formats.run; id: string; inspection: string;
   selection: Inspection['selection'];
-  affected: Record<string, Observation>;
+  // HEAD at start, recorded for provenance; the inspection identity does not bind it.
+  head: string | null;
+  affected: Record<string, HashInventory>;
   prerequisites: PrerequisiteEvidence[]; operations: OperationEvidence[];
   observations: WorkInterval[];
   outcome: 'complete' | 'incomplete'; phase: string; reason: string;
   workRequest?: WorkRequest; continuation?: string; assessments: Assessment[];
   installation?: { files: string[]; runtime: boolean; complete?: boolean; trees?: Record<string, 'removing' | 'installing'> };
   retryHistory?: { phase: string; reason: string; uncertain: string[]; assessments: Assessment[]; report?: string; archivedFiles?: Record<string, string> }[];
-  completion?: { state: Content; lock: Content };
+  completion?: { state: Baseline; lock: Baseline };
   previousComplete?: { selection: Inspection['selection']; lastComplete: { run: string; inspection: string; completedAt: string; head: string } };
   processGroup?: number; processGroupIdentity?: string; archivedFiles?: Record<string, string>; startInput?: StartInput; abandoned?: boolean;
   changes: string[]; completed: string[]; uncertain: string[]; nextAction: string;
@@ -44,13 +46,15 @@ export interface Run {
 export interface WorkRequest {
   format: typeof formats.workRequest; run: string; selection: string; snapshot: string;
   scope?: ScopeConfirmation & { proposal: NonNullable<Inspection['discovery']>['proposal'] };
-  declarations: { id: string; guidance: Inspection['guidance'][number]; discovery?: NonNullable<Inspection['discovery']>['declarations'][number]; allowedTargets: { paths: string[]; directories: string[] } }[];
+  declarations: { id: string; guidance: Inspection['guidance'][number] & RetainedReference; discovery?: NonNullable<Inspection['discovery']>['declarations'][number] & RetainedReference; allowedTargets: { paths: string[]; directories: string[] } }[];
   requiredEvidence: string[];
 }
+// The project path of a referenced source file's retained bytes.
+interface RetainedReference { retained: string }
 export interface Installation {
-  report: Inspection; files: Files; skills: Record<string, string[]>;
+  report: Inspection; git: Awaited<ReturnType<typeof inspectForStart>>['git']; files: Files; skills: Record<string, string[]>;
   exactBaselines: Record<string, Baseline>; durable: Record<string, Baseline>;
-  runtimeHash: string; scopeAfterFixes?: string; before: Record<string, Observation>;
+  runtimeHash: string; scopeAfterFixes?: string; before: Record<string, HashInventory>;
   replaceTrees?: string[]; transitional?: Files;
 }
 function cleanupRun(lock: string) {
@@ -59,19 +63,31 @@ function cleanupRun(lock: string) {
   for (const name of readdirSync(dirname(lock))) if (name.startsWith(lock.slice(dirname(lock).length + 1) + '.context')) rmSync(join(dirname(lock), name), { force: true });
 }
 
-function persistInstallation(root: string, run: Run, installation: Installation) {
-  const content = json(installation);
+// Saved run context lives beside the run record, addressed by its hash: the
+// saved installation, and the completion bytes recovery may need to verify, so
+// the run record itself carries only their hashes.
+function saveContext(root: string, content: string) {
   const identity = hash(content);
   const path = `${lockPath(root)}.context.${identity}`;
   if (!existsSync(path)) writeFileSync(path, content, { flag: 'wx' });
-  run.continuation = identity;
+  return identity;
+}
+
+function readContext(root: string, identity: string, name: string) {
+  let content: string;
+  try { content = readFileSync(`${lockPath(root)}.context.${identity}`, 'utf8'); }
+  catch { throw new ProductError('STATE_INTEGRITY', `${name} cannot be read. Preserve the run and restore its recorded state.`); }
+  if (hash(content) !== identity) throw new ProductError('STATE_INTEGRITY', `${name} changed. Preserve the run and restore its recorded state.`);
+  return content;
+}
+
+function persistInstallation(root: string, run: Run, installation: Installation) {
+  run.continuation = saveContext(root, json(installation));
 }
 
 function readInstallation(root: string, run: Run): Installation {
   if (!run.continuation) throw new ProductError('RESUME_UNAVAILABLE', 'Installation was not prepared. Abandon this run, inspect again, and confirm a new start.');
-  const content = readFileSync(`${lockPath(root)}.context.${run.continuation}`, 'utf8');
-  if (hash(content) !== run.continuation) throw new ProductError('STATE_INTEGRITY', 'Saved installation changed. Preserve the run and restore its recorded state.');
-  return JSON.parse(content) as Installation;
+  return JSON.parse(readContext(root, run.continuation, 'Saved installation')) as Installation;
 }
 
 function saveRun(root: string, run: Run, localReportReady: boolean) {
@@ -305,12 +321,12 @@ export class AdoptionRunSession {
 
   get observation(): Run { return structuredClone(this.#state()); }
 
-  begin(report: Inspection, confirmation: string, startInput: StartInput) {
+  begin(report: Inspection, head: string | null, confirmation: string, startInput: StartInput) {
     this.#assertOpen();
     const root = this.#root;
     const previous = report.update !== undefined ? recordedState(root) : undefined;
     const recovering = this.#run;
-    const run: Run = recovering ?? { format: formats.run, observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, startInput,
+    const run: Run = recovering ?? { format: formats.run, observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, head, startInput,
       ...(previous ? { previousComplete: { selection: previous.pinned.selection, lastComplete: previous.state.lastComplete } } : {}),
       affected: { ...report.project.affected, [systemTarget]: report.project.systemSkill }, outcome: 'incomplete',
       prerequisites: [], operations: [], assessments: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],
@@ -383,6 +399,7 @@ export class AdoptionRunSession {
     const run = this.#state();
     if (this.#temporary) cpSync(join(this.#temporary, 'node_modules'), `${lockPath(this.#root)}.runtime`, { recursive: true, verbatimSymlinks: true });
     run.installation = { files: [], runtime: !this.#temporary };
+    run.head = installation.git.head;
     persistInstallation(this.#root, run, installation);
     this.record({ type: 'installation-writing' });
     this.#mutated = true;
@@ -461,10 +478,12 @@ export class AdoptionRunSession {
     this.#completing = true;
     const completedAt = new Date().toISOString();
     const state = file(json({ ...completedEvidence(run, completeRunHistory(installation)),
-      lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: report.project.head }, baselines: exactBaselines, skills,
+      lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: installation.git.head }, baselines: exactBaselines, skills,
       checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));
     const completionLock = file(json({ format: formats.lock, selection: report.selection, inspection: run.inspection, files: durable, state: { sha256: state.sha256, executable: state.executable } }));
-    run.completion = { state, lock: completionLock };
+    saveContext(root, state.content);
+    saveContext(root, completionLock.content);
+    run.completion = { state: { sha256: state.sha256, executable: state.executable }, lock: { sha256: completionLock.sha256, executable: completionLock.executable } };
     run.phase = 'completion'; run.uncertain = ['Durable completion and final run-report persistence have not both succeeded.']; this.#save();
     write(root, '.repo-standards/lock.json', completionLock, run.id);
     write(root, '.repo-standards/state.json', state, run.id);
@@ -479,12 +498,13 @@ export class AdoptionRunSession {
     const root = this.#root;
     if (run.completion) {
       const extra: Files = {};
-      const temporaries = stagedFiles(root, { '.repo-standards/lock.json': run.completion.lock, '.repo-standards/state.json': run.completion.state }, run.id, { ...installation.files, ...installation.transitional });
+      const completion = { lock: file(readContext(root, run.completion.lock.sha256, 'Saved completion lock')), state: file(readContext(root, run.completion.state.sha256, 'Saved completion state')) };
+      const temporaries = stagedFiles(root, { '.repo-standards/lock.json': completion.lock, '.repo-standards/state.json': completion.state }, run.id, { ...installation.files, ...installation.transitional });
       for (const path of temporaries) flatten(path, safe(root, path), extra);
       const lockFile = safe(root, '.repo-standards/lock.json');
-      if (lockFile.type === 'file' && lockFile.sha256 === run.completion.lock.sha256) extra['.repo-standards/lock.json'] = run.completion.lock;
+      if (lockFile.type === 'file' && lockFile.sha256 === completion.lock.sha256) extra['.repo-standards/lock.json'] = completion.lock;
       const stateFile = safe(root, '.repo-standards/state.json');
-      if (stateFile.type === 'file' && stateFile.sha256 === run.completion.state.sha256) extra['.repo-standards/state.json'] = run.completion.state;
+      if (stateFile.type === 'file' && stateFile.sha256 === completion.state.sha256) extra['.repo-standards/state.json'] = completion.state;
       verify(root, installation, extra);
       for (const path of temporaries) { safe(root, path); rmSync(join(root, path)); }
       if (run.outcome === 'complete') return;

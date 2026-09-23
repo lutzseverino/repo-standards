@@ -151,7 +151,7 @@ observations, not continuous monitoring or atomic filesystem snapshots. The
 apply; incomplete reads, unsafe boundaries, instability, or exhausted limits
 block progression and preserve incomplete work.
 
-`repo-standards/run/v2` records `observations` separately from `operations` and
+`repo-standards/run/v4` records `observations` separately from `operations` and
 `assessments`. Each interval has a phase (`fixes`, `checks`, or `agent`), its
 applicable declaration `scope`, and a `before` observation. Closed intervals add
 `after`, file `changedPaths`, `boundaryChanges`, and `violations`. Operation intervals identify the
@@ -207,7 +207,7 @@ converted; the project
 Retained inspection also checks exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
 empty-directory edits block updates before mutation.
-Retained inspection is `repo-standards/inspection/v2` with
+Retained inspection is `repo-standards/inspection/v4` with
 `repo-standards/scope-history/v3` after discovery completion, the only
 scope-history format: each discovery run is stored once as its project
 observation without the derived evidence array and its named observation as a

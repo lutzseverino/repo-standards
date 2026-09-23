@@ -126,7 +126,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(git(f.project.root, 'show', 'HEAD:apps/old/README.md'), '# Old project');
   commit(f.project.root);
   const retainedInspection = f.run(['inspect', '--json']).report;
-  assert.equal(retainedInspection.format, 'repo-standards/inspection/v2');
+  assert.equal(retainedInspection.format, 'repo-standards/inspection/v4');
   const retained = retainedInspection.historicalScope;
   assert.equal(retained.format, 'repo-standards/scope-history/v3');
   assertCompactScopeEvidence(committedScopeHistory(f.project.root));
@@ -162,7 +162,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
     return { result, report: JSON.parse(result.stdout) };
   };
   const checkoutRetainedInspection = runCheckout(['inspect', '--json']).report;
-  assert.equal(checkoutRetainedInspection.format, 'repo-standards/inspection/v2');
+  assert.equal(checkoutRetainedInspection.format, 'repo-standards/inspection/v4');
   const checkoutRetained = checkoutRetainedInspection.historicalScope;
   assert.deepEqual(checkoutRetained.runs[0], retained.runs[0]);
   assert.deepEqual(runCheckout(['status', '--json']).report.history[0], historicalExecution);
@@ -333,7 +333,7 @@ test('durable product state over the per-file limit leaves discovery inspectable
   for (const args of [['inspect', '--json'], inspectionArgs, updateArgs]) {
     const inspection = f.run(args);
     assert.equal(inspection.result.status, 0, inspection.result.stdout + inspection.result.stderr);
-    assert.equal(inspection.report.format, 'repo-standards/inspection/v2');
+    assert.equal(inspection.report.format, 'repo-standards/inspection/v4');
     const { evidence, observation } = inspection.report.discovery;
     assert.ok(evidence.some((entry: { path: string }) => entry.path === 'apps/old/README.md'));
     assert.deepEqual(evidence.filter((entry: { path: string }) => reserved(entry.path)), []);
