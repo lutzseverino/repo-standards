@@ -45,7 +45,9 @@ the same checks; the tiers differ only in review depth.
   scripts, workflows, packaging, examples, or system skills.
 - An **exact update** of this repository's own adoption is one whose inspection
   reports the update class `exact`; its diff holds only managed exact content,
-  skills, the selection, retained inputs, and durable state.
+  installed skills, and the committed adoption files under `.repo-standards/`:
+  the selection, lock, durable state, retained inputs, and, when the CLI pin
+  changes, the runtime manifests.
 - **Product code and behavior** covers everything else, including tests,
   scripts, workflows, packaging, examples, system skills, and contextual
   updates of this repository's own adoption.
