@@ -10,10 +10,12 @@ import { formats, rejectRetiredRecords } from './formats.js';
 import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
 import { decodeRecordedState } from './recorded-state.js';
-import { latestRetainedScopeRun, type ScopeHistoryRun } from './scope-evidence.js';
+import { latestRetainedScopeRun, scopeChanges, type ScopeHistoryRun } from './scope-evidence.js';
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
 import { unifiedDiff } from './unified-diff.js';
+import { classifyUpdate } from './update-class.js';
+import type { Declaration } from './model.js';
 import type { RecordedSelection } from './recorded-state.js';
 
 export interface Blocker { code: string; message: string; path?: string }
@@ -412,21 +414,16 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       for (const path of paths) inputs[path] = observe(join(source.root, path));
     }
     for (const name of readdirSync(source.root).sort()) if (/^licen[sc]e(?:[.-].*)?$/i.test(name)) inputs[name] = observe(join(source.root, name));
-    const retired = previous ? previous.resolved.declarations.filter(old => !resolved.declarations.some(declaration => declaration.id === old.id)) : [];
-    let scopeChanges: { id: string; additions: string[]; removals: string[] }[] | undefined;
-    if (previous && (!discoveryDeclarations.length || proposal)) {
-      const priorIds = previous.historicalScope?.sourceResolved?.declarations?.filter(declaration => declaration.discovery).map(declaration => declaration.id) ?? [];
-      const currentIds = discoveryDeclarations.map(declaration => declaration.id);
-      scopeChanges = [...new Set([...priorIds, ...currentIds])].sort().flatMap(id => {
-        const oldDeclaration = previous.historicalScope?.resolved?.declarations?.find(declaration => declaration.id === id);
-        const newDeclaration = resolved.declarations.find(declaration => declaration.id === id);
-        const oldPaths = priorIds.includes(id) && oldDeclaration?.kind === 'repository' ? oldDeclaration.targets?.paths ?? [] : [];
-        const newPaths = currentIds.includes(id) && newDeclaration?.kind === 'repository' ? newDeclaration.targets.paths : [];
-        const additions = newPaths.filter(path => !oldPaths.includes(path)).sort();
-        const removals = oldPaths.filter(path => !newPaths.includes(path)).sort();
-        return additions.length || removals.length ? [{ id, additions, removals }] : [];
-      });
-    }
+    // Retirement compares source declarations: an active discovery declaration
+    // awaiting its scope proposal is still declared.
+    const retired = previous ? previous.resolved.declarations.filter(old => !profile.declarations.some(declaration => declaration.id === old.id)) : [];
+    const classified = previous ? classifyUpdate({
+      resolved: previous.resolved.declarations as Declaration[],
+      discovery: Object.fromEntries((previous.historicalScope?.sourceResolved?.declarations ?? [])
+        .flatMap(declaration => declaration.discovery ? [[declaration.id, declaration.discovery]] : [])),
+      files: previous.files,
+    }, { declarations: profile.declarations, resolved: resolved.declarations, inputs }) : undefined;
+    const changedScope = previous && (!discoveryDeclarations.length || proposal) ? scopeChanges(previous.historicalScope, { sourceResolved: profile, resolved }) : undefined;
     const report = {
       format: formats.inspection,
       ...(discovery ? { discovery, sourceResolved: profile } : {}),
@@ -438,8 +435,8 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         productState: hashInventory(productState), systemSkill: hashInventory(systemSkill) },
       systemSkill: { target: '.agents/skills/adopt-standards', action: systemSkillAction },
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
-      ...(update ? { update, previousSelection: previous!.selection, retired } : {}),
-      ...(scopeChanges ? { scopeChanges } : {}),
+      ...(update ? { update, previousSelection: previous!.selection, retired, ...classified } : {}),
+      ...(changedScope ? { scopeChanges: changedScope } : {}),
     };
     if (scopeObservation) {
       const finalHead = git(root, ['rev-parse', '--verify', 'HEAD'], undefined, 30_000);

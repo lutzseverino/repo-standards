@@ -138,6 +138,33 @@ export function latestRetainedScopeRun(value: unknown): ScopeHistoryRun | undefi
   return runs.length ? retainedRun(runs.at(-1)) : undefined;
 }
 
+type ScopeSelection = Pick<ScopeHistoryRun, 'resolved' | 'sourceResolved'>;
+export interface ScopeChange { id: string; additions: string[]; removals: string[] }
+
+// Discovered-scope additions and removals by declaration from one confirmed
+// selection to the next. A side without a discovery declaration has no
+// discovered paths for it; without a prior selection every path is added.
+export function scopeChanges(prior: ScopeSelection | undefined, current: ScopeSelection): ScopeChange[] {
+  const discovered = (selection: ScopeSelection | undefined) => selection?.sourceResolved?.declarations?.filter(declaration => declaration.discovery).map(declaration => declaration.id) ?? [];
+  const [priorIds, currentIds] = [discovered(prior), discovered(current)];
+  const paths = (selection: ScopeSelection | undefined, ids: string[], id: string) => {
+    const declaration = selection?.resolved?.declarations?.find(entry => entry.id === id);
+    return ids.includes(id) && declaration?.kind === 'repository' ? declaration.targets?.paths ?? [] : [];
+  };
+  return [...new Set([...priorIds, ...currentIds])].sort().flatMap(id => {
+    const [oldPaths, newPaths] = [paths(prior, priorIds, id), paths(current, currentIds, id)];
+    const additions = newPaths.filter(path => !oldPaths.includes(path)).sort();
+    const removals = oldPaths.filter(path => !newPaths.includes(path)).sort();
+    return additions.length || removals.length ? [{ id, additions, removals }] : [];
+  });
+}
+
+// The scope changes the latest retained run made relative to the one before it.
+export function latestScopeChanges(value: unknown) {
+  const runs = storedRuns(value) as ScopeSelection[];
+  return runs.length ? scopeChanges(runs.at(-2), runs.at(-1)!) : undefined;
+}
+
 // The historical scope a retained inspection reports: every run, with the
 // newest one also spread at the top level.
 export function retainedScopeProjection(value: unknown) {

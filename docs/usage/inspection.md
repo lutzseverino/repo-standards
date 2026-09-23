@@ -83,7 +83,8 @@ repo-standards inspect \
 working-tree root. Inspection works with staged, unstaged, untracked, and ignored
 content, and an unborn HEAD. Non-Git and bare repositories are rejected. Default
 output and `--json` provide the complete indented JSON report; `--json` also makes
-failures structured JSON on stdout.
+failures structured JSON on stdout. `--summary` renders the report as
+[Markdown](#markdown-summary) instead.
 
 Git observation disables fsmonitor and clean/process filters and prevents index
 refresh writes. Because author-defined normalization cannot run during inspection,
@@ -146,6 +147,22 @@ applied again. A complete discovery-backed update also includes `scopeChanges`,
 listing individual additions and removals by declaration relative to the prior
 complete adoption. Removed contextual paths remain project content and are not
 deleted.
+
+Every update report states its class in `updateClass`. It is an **exact update**
+(`exact`) only when each declaration's guidance, discovery guidance, and
+operations, including their scripts, arguments, and resources, are
+hash-identical to the retained inputs, its confirmed scope is unchanged, and no
+declaration retires. Exact content, skills, and the selection itself can change
+in an exact update, and an unchanged selection is one. Any other difference
+makes it a **contextual update** (`contextual`). `contextualChanges` lists each
+differing declaration by ID with what differs, in the order `guidance`,
+`discovery`, `operations`, and `scope`, or `retired` for a declaration the
+candidate no longer declares; it is empty for an exact update. Operations
+compare their complete definitions, including prerequisite probes and timeouts.
+An active discovery declaration differs in `scope` until a scope proposal
+confirms its paths, so a report still awaiting that proposal is contextual.
+The class describes the update; it does not decide how the update is handled.
+Initial adoption omits both fields.
 
 For an established selection, `project.productState` is the hash inventory of
 the full durable `.repo-standards/` tree, including unexpected files. Inspection
@@ -258,6 +275,35 @@ Status 2 means invalid CLI usage. JSON failures contain `valid: false` and
 `errors` with stable `code` and `message` fields. Source-validation failures
 include precise resolver diagnostics in `details`. Bootstrap failures go to
 stderr and exit 1; otherwise it forwards the invoked CLI's exit status.
+
+## Markdown summary
+
+`inspect --summary` renders the report as a Markdown proposal on stdout instead
+of JSON. It has these sections, in order:
+
+- **Selection**: each selection component before and after, and the changed
+  components; initial adoption has no previous selection.
+- **Update class**: for an update, whether it is an exact or a contextual
+  update, and each declaration that makes it contextual.
+- **Changed declarations**: exact content by declaration and path, created,
+  modified, deleted, or mode changed, including the reserved system skill; and
+  contextual declarations with their targets and what changed.
+- **Operations**: every fix and check with its literal argument vector,
+  prerequisite probe and range, and timeout.
+- **Scope changes**: discovered-scope additions and removals by declaration,
+  the confirmed discovered scope of an initial adoption, or that discovery
+  scope is not confirmed yet.
+- **Retired declarations**: for an update, the declarations that leave
+  governance.
+- **Blockers**: present only when the report has start blockers.
+- **Identity**: the inspection identity and start eligibility.
+
+The summary is a pure rendering of the report: the same report renders the same
+bytes, so two inspections with the same identity print the same summary. It
+describes the report and prescribes nothing. Failures print the usual diagnostic
+on stderr, and combining `--summary` with `--json` is a usage error with exit
+status 2. [`status --summary`](adoption.md#summarize-status) renders the status
+record the same way.
 
 ## Discover contextual file scope (v2 sources)
 
