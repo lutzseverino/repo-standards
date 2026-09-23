@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { formats } from './formats.js';
 import { join } from 'node:path';
 import semver from 'semver';
 import { processGroupAlive } from './run-lock.js';
@@ -43,13 +44,13 @@ export function allowedTargets(declaration: Declaration) {
 export interface OperationEvidence {
   operation: { declaration: string; phase: 'fixes' | 'checks'; id: string };
   process: { exitCode: number | null; signal: string | null; error: string | null; timedOut: boolean };
-  result: { format: 'repo-standards/result/v1'; status: string; message: string } | null;
+  result: { format: typeof formats.result; status: string; message: string } | null;
   error: string | null; stdout: string; stderr: string;
 }
 export async function execute(root: string, selected: SelectedOperation, selection: { standards: unknown; profile: string }, resolved: ResolvedProfile, onSpawn?: (group: number) => void) {
   const { declaration, phase, operation } = selected;
   const identity = { declaration, phase, id: operation.id };
-  const input = { format: 'repo-standards/operation/v1', operation: identity, projectRoot: root,
+  const input = { format: formats.operation, operation: identity, projectRoot: root,
     standards: selection.standards, profile: selection.profile, declarations: resolved.declarations,
     allowedTargets: allowedTargets(resolved.declarations.find(item => item.id === declaration)!) };
   const process = await invoke(operation.run.executable, [join(root, '.repo-standards/inputs/source', operation.run.script), ...operation.run.arguments], root, operation['timeout-seconds'], JSON.stringify(input) + '\n', onSpawn);
@@ -60,7 +61,7 @@ export async function execute(root: string, selected: SelectedOperation, selecti
     try {
       const result = JSON.parse(process.stdout);
       const statuses = phase === 'fixes' ? ['unchanged', 'changed', 'blocked'] : ['passed', 'failed', 'blocked'];
-      if (!result || typeof result !== 'object' || Array.isArray(result) || result.format !== 'repo-standards/result/v1'
+      if (!result || typeof result !== 'object' || Array.isArray(result) || result.format !== formats.result
         || !statuses.includes(result.status) || typeof result.message !== 'string'
         || Object.keys(result).some(key => !['format', 'status', 'message'].includes(key))) throw new Error('Invalid result');
       evidence.result = result;

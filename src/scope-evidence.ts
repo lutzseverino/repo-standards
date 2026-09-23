@@ -1,18 +1,18 @@
 import { ProductError } from './errors.js';
+import { formats, requireFormat } from './formats.js';
 import { scopeEvidence, type Evidence, type FileState, type ScopeObservation } from './scope-observation.js';
 
 // Scope evidence is the retained discovery observations behind each confirmed
 // scope. This module owns the retained scope-history file: what a completion
-// commits, how every earlier format is read, and how the historical scope is
-// projected for a report. Each discovery run is stored once. The project
-// observation is stored without the evidence array it implies, and the named
-// observation as its delta from that observation, so retained inputs stay
+// commits, how its single format is validated on read, and how the historical
+// scope is projected for a report. Each discovery run is stored once. The
+// project observation is stored without the evidence array it implies, and the
+// named observation as its delta from that observation, so retained inputs stay
 // inspectable without carrying the same observation several times. Evidence
 // arrays and the full named observation are rebuilt on read with the product's
-// existing derivation, leaving the projection identical to the one an earlier
-// format produced.
+// existing derivation.
 
-const committedFormat = 'repo-standards/scope-history/v3';
+const historyPath = '.repo-standards/inputs/scope-history.json';
 
 // The recorded selection fields the product interprets after reading. Anything
 // else a stored profile carries travels verbatim.
@@ -71,16 +71,15 @@ function compactHistory(history: Record<string, unknown>, runs: unknown[]) {
   });
 }
 
-// The read-side version union for retained scope evidence. Every earlier
-// committed format stays readable; only the current one is written.
+// Retained scope evidence is read in its single committed format only.
 function storedRuns(value: unknown): unknown[] {
   if (!value || typeof value !== 'object') unreadable();
+  requireFormat(historyPath, value, formats.scopeHistory);
   const history = value as Record<string, unknown>;
-  const runs = Array.isArray(history.runs) ? history.runs
-    : typeof history.inspection === 'string' && history.sourceResolved && history.resolved && history.discovery ? [history]
-    : invalid();
+  if (history.format !== formats.scopeHistory || !Array.isArray(history.runs)) invalid();
+  const runs = history.runs as unknown[];
   if (!runs.every(run => !!run && typeof run === 'object' && typeof (run as { inspection?: unknown }).inspection === 'string')) invalid();
-  if (history.format === committedFormat && !compactHistory(history, runs)) invalid();
+  if (!compactHistory(history, runs)) invalid();
   return runs;
 }
 
@@ -105,8 +104,6 @@ function retainedDiscovery(value: unknown): RetainedDiscovery {
   const discovery = value as Record<string, unknown>;
   const stored = discovery.observation as Record<string, unknown> | undefined;
   if (!stored || typeof stored !== 'object') invalid();
-  // Every format before the committed one retains its arrays in full.
-  if (Array.isArray(stored.evidence)) return discovery as unknown as RetainedDiscovery;
   const observation = derived(stored as unknown as CommittedObservation);
   const delta = discovery.named as CommittedNamed | undefined;
   return {
@@ -129,8 +126,7 @@ function retainedRun(value: unknown): ScopeHistoryRun {
   };
 }
 
-// Every retained discovery run, oldest first, in the form its readers expect
-// whatever format the file uses.
+// Every retained discovery run, oldest first, in the form its readers expect.
 export function retainedScopeRuns(value: unknown): ScopeHistoryRun[] {
   return storedRuns(value).map(retainedRun);
 }
@@ -143,14 +139,10 @@ export function latestRetainedScopeRun(value: unknown): ScopeHistoryRun | undefi
 }
 
 // The historical scope a retained inspection reports: every run, with the
-// newest one also spread at the top level as it has always been.
+// newest one also spread at the top level.
 export function retainedScopeProjection(value: unknown) {
-  const history = value as Record<string, unknown>;
   const runs = retainedScopeRuns(value);
-  return {
-    ...(typeof history.format === 'string' ? { format: history.format } : {}),
-    evidence: 'historical', ...runs.at(-1), runs,
-  };
+  return { format: formats.scopeHistory, evidence: 'historical', ...runs.at(-1), runs };
 }
 
 function committedNamed(observation: ScopeObservation, value: ScopeObservation): CommittedNamed {
@@ -184,5 +176,5 @@ function committedRun(run: ScopeHistoryRun) {
 // The retained scope history a completion writes: the ordered runs and nothing
 // else, so no run is stored twice and a later completion adds only its own run.
 export function committedScopeHistory(runs: readonly ScopeHistoryRun[]) {
-  return { format: committedFormat, evidence: 'historical', runs: runs.map(committedRun) };
+  return { format: formats.scopeHistory, evidence: 'historical', runs: runs.map(committedRun) };
 }

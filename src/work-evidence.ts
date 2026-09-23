@@ -1,14 +1,15 @@
+import { formats } from './formats.js';
 import { observationIdentity } from './scope-observation.js';
 import type { Scope } from './scope.js';
 import type { WorkInterval, WorkObservation } from './work-observation.js';
 
 // Work evidence is the durable record of observation intervals and operation
 // outcomes for one adoption run. This module owns that slice of durable state:
-// what a completion commits, how every earlier format is read, and how a prior
-// complete run is carried forward. Full observation maps stay in memory and in
-// the local run report; the committed record keeps observation identities and
-// the delta between them, so adoption pull requests remain reviewable and later
-// runs add only their own evidence.
+// what a completion commits, how its single format is validated on read, and
+// how a prior complete run is carried forward. Full observation maps stay in
+// memory and in the local run report; the committed record keeps observation
+// identities and the delta between them, so adoption pull requests remain
+// reviewable and later runs add only their own evidence.
 
 type FileState = WorkObservation['files'][string];
 interface Delta { before: unknown; after: unknown }
@@ -38,19 +39,12 @@ export interface CommittedRun {
 }
 
 export interface ExecutionEvidence {
-  format: string;
-  observations?: unknown[];
-  operations?: unknown[];
-  retryHistory?: unknown[];
-  history?: CommittedRun[];
+  format: typeof formats.state;
+  observations: CommittedInterval[];
+  operations: unknown[];
+  retryHistory: unknown[];
+  history: CommittedRun[];
 }
-
-const committedStateFormat = 'repo-standards/state/v5';
-const initialStateFormat = 'repo-standards/state/v1';
-const committedStatusFormats: Record<string, string> = {
-  'repo-standards/state/v4': 'repo-standards/status/v4',
-  [committedStateFormat]: 'repo-standards/status/v5',
-};
 
 // Changed paths name project files, but also the external ignore inputs and
 // observation settings that cannot be authorized as project paths. Each keeps
@@ -68,14 +62,7 @@ function boundaryState(observation: WorkObservation, path: string) {
 }
 
 // Committing an interval keeps its authority, its identities and its delta.
-// An interval already stored in the compact form is retained unchanged, so a
-// legacy state compacts losslessly for the retained fields at the next
-// completion instead of needing a separate migration command. The two forms are
-// told apart by `before`: an observation map in every legacy format, an
-// identity string in the committed one.
-function committedInterval(interval: WorkInterval | CommittedInterval): CommittedInterval {
-  if (typeof interval.before === 'string') return structuredClone(interval as CommittedInterval);
-  const observed = interval as WorkInterval;
+function committedInterval(observed: WorkInterval): CommittedInterval {
   const after = observed.after;
   return {
     phase: observed.phase,
@@ -95,58 +82,30 @@ function committedInterval(interval: WorkInterval | CommittedInterval): Committe
   };
 }
 
-function committedIntervals(intervals: readonly (WorkInterval | CommittedInterval)[]): CommittedInterval[] {
-  return intervals.map(committedInterval);
-}
-
-// One retained run in the committed order, so a carried entry and a newly
-// promoted one are written the same way and later completions leave the
-// earlier entries byte-identical.
-function carriedRun(run: Record<string, unknown>): CommittedRun {
-  return {
-    lastComplete: structuredClone(run.lastComplete) as CommittedRun['lastComplete'],
-    observations: committedIntervals((run.observations ?? []) as WorkInterval[]),
-    operations: structuredClone(run.operations ?? []) as unknown[],
-    retryHistory: structuredClone(run.retryHistory ?? []) as unknown[],
-    checks: structuredClone(run.checks ?? []) as unknown[],
-    assessments: structuredClone(run.assessments ?? []) as unknown[],
-  };
-}
-
 // A completion moves the previous complete run's evidence into the ordered
-// history.
-export function carriedRuns(previous: unknown): CommittedRun[] {
-  if (!previous || typeof previous !== 'object') return [];
-  const state = previous as Record<string, unknown>;
-  const history = (Array.isArray(state.history) ? state.history : [])
-    .map(run => carriedRun((run ?? {}) as Record<string, unknown>));
-  if (!Array.isArray(state.observations) || !Array.isArray(state.operations) || !Array.isArray(state.retryHistory)
-    || !Array.isArray(state.checks) || !Array.isArray(state.assessments) || !state.lastComplete) return history;
-  return [...history, carriedRun(state)];
+// history, in the committed key order, so a carried entry and a newly promoted
+// one are written the same way and later completions leave the earlier entries
+// byte-identical. The previous state is already in the single committed format,
+// so its evidence is carried without conversion.
+export function carriedRuns(previous: ExecutionEvidence & Pick<CommittedRun, 'lastComplete' | 'checks' | 'assessments'>): CommittedRun[] {
+  const { history, lastComplete, observations, operations, retryHistory, checks, assessments } = structuredClone(previous);
+  return [...history, { lastComplete, observations, operations, retryHistory, checks, assessments }];
 }
 
 // The execution-evidence slice a completion writes. Last-complete, installed
 // baselines, skills, checks and assessments stay with their own owners.
-export function completedEvidence(run: { observations: WorkInterval[]; operations: unknown[]; retryHistory?: unknown[] }, history: CommittedRun[]) {
+export function completedEvidence(run: { observations: WorkInterval[]; operations: unknown[]; retryHistory?: unknown[] }, history: CommittedRun[]): ExecutionEvidence {
   return {
-    format: committedStateFormat,
+    format: formats.state,
     history,
-    observations: committedIntervals(run.observations),
+    observations: run.observations.map(committedInterval),
     operations: structuredClone(run.operations), retryHistory: structuredClone(run.retryHistory ?? []),
   };
 }
 
-// Status echoes the committed slice under the status format that matches the
-// committed state format, so automation can distinguish the shapes.
+// Status echoes the committed slice.
 export function committedEvidenceReport(state: ExecutionEvidence) {
-  return {
-    ...(state.observations ? { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory } : {}),
-    ...(state.history ? { history: state.history } : {}),
-  };
-}
-
-export function committedStatusFormat(state: ExecutionEvidence): string | undefined {
-  return committedStatusFormats[state.format];
+  return { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory, history: state.history };
 }
 
 // The committed guarantee: no interval carries an observation map, and every
@@ -161,36 +120,17 @@ function compactIntervals(observations: unknown[]) {
   });
 }
 
-function validHistory(history: unknown, compact: boolean) {
-  return Array.isArray(history) && history.every(value => {
-    const run = value as Record<string, unknown> | null;
-    return !!run && !!run.lastComplete
-      && Array.isArray(run.observations) && Array.isArray(run.operations) && Array.isArray(run.retryHistory)
-      && Array.isArray(run.checks) && Array.isArray(run.assessments)
-      && (!compact || compactIntervals(run.observations));
-  });
-}
-
-// The read-side version union for the execution-evidence slice. Every earlier
-// committed format stays readable; only the current one is written.
+// The execution-evidence slice is read in its single committed format only.
 export function validExecutionEvidence(value: ExecutionEvidence) {
   const state = value as unknown as Record<string, unknown>;
-  const execution = [state.observations, state.operations, state.retryHistory];
-  const present = execution.every(field => Array.isArray(field));
-  switch (state.format) {
-    case initialStateFormat:
-      return true;
-    case 'repo-standards/state/v2':
-    case 'repo-standards/state/v3':
-      return present;
-    case 'repo-standards/state/v4':
-    case committedStateFormat: {
-      const compact = state.format === committedStateFormat;
-      if (!present && !execution.every(field => field === undefined)) return false;
-      if (compact && present && !compactIntervals(state.observations as unknown[])) return false;
-      return validHistory(state.history, compact);
-    }
-    default:
-      return false;
-  }
+  return state.format === formats.state
+    && Array.isArray(state.observations) && Array.isArray(state.operations) && Array.isArray(state.retryHistory)
+    && compactIntervals(state.observations)
+    && Array.isArray(state.history) && state.history.every(value => {
+      const run = value as Record<string, unknown> | null;
+      return !!run && !!run.lastComplete
+        && Array.isArray(run.observations) && Array.isArray(run.operations) && Array.isArray(run.retryHistory)
+        && Array.isArray(run.checks) && Array.isArray(run.assessments)
+        && compactIntervals(run.observations);
+    });
 }

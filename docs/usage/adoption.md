@@ -175,8 +175,8 @@ preserve the accepted inspection identity, source-resolved declarations, concret
 resolved selection, discovery guidance, proposal, rationale, evidence references
 and observation identities. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
-source availability. Discovery completion exposes inspection v2 with
-scope-history v3.
+source availability, as `repo-standards/scope-history/v3` in the
+`repo-standards/inspection/v2` report.
 
 Retained runs are scope evidence: each discovery run is stored once, as its
 accepted inspection identity, resolved selection, source-resolved profile, and
@@ -185,16 +185,12 @@ without the evidence array that observation implies. The named observation is
 stored as its delta from that project observation: the confirmed targets and any
 boundary entry naming them adds. Evidence arrays and the full named observation
 are rebuilt whenever the file is read, so the historical scope a report exposes
-is unchanged. The file no longer repeats the newest run at its top level.
-Scope-history v2 and every earlier format stay readable; the next complete
-adoption rewrites the file as v3 and carries each earlier run forward once. No
-separate compaction command exists. Work intervals and final
-scope-validity assessments are committed in state v5. Each
-later complete run moves the prior run's interval,
-operation, retry, check and assessment evidence into the state's ordered
-`history`, so earlier authorized work remains explainable in a fresh checkout.
-The v5 format makes clients that predate compact work evidence reject the
-new state rather than silently overlooking it.
+is unchanged. The file does not repeat the newest run at its top level. Work
+intervals and final scope-validity assessments are committed in
+`repo-standards/state/v5`. Each later complete run moves the prior run's
+interval, operation, retry, check and assessment evidence into the state's
+ordered `history` unchanged, so earlier authorized work remains explainable in a
+fresh checkout.
 
 Committed intervals are
 [work evidence](script-protocol.md#observed-scope-for-v2-adoption): the
@@ -204,10 +200,22 @@ reference, changed paths with their before and after file state, boundary
 changes, violations and restoration evidence, so an adoption pull request stays
 reviewable and a later run adds only its own evidence. Full observations remain
 in memory and in the uncommitted local run report, which recovery and gap
-detection still use. A project committed under state v4
-or any earlier format keeps working; the next complete adoption rewrites it,
-converting legacy intervals and full-map history entries into the compact form.
-Historical evidence makes no current-coverage claim.
+detection still use. Historical evidence makes no current-coverage claim.
+
+Each artifact has exactly one format, which this CLI both writes and reads:
+
+| Artifact | Format |
+| --- | --- |
+| Durable state, `.repo-standards/state.json` | `repo-standards/state/v5` |
+| Integrity lock, `.repo-standards/lock.json` | `repo-standards/lock/v1` |
+| Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v3` |
+| Run record, local run report, and archived abandoned report | `repo-standards/run/v2` |
+| `status` report | `repo-standards/status/v5` |
+| Inspection report | `repo-standards/inspection/v2` |
+| Work request and assessment | `repo-standards/work-request/v2`, `repo-standards/assessment/v2` |
+
+Earlier formats are retired: they are not read, converted, or compacted. A
+project that carries one [adopts fresh](#adopt-fresh-from-a-retired-format).
 
 Discovery-backed updates, including an unchanged selection, use fresh
 proposals and preserve prior run evidence. Retry repeats fixes under the
@@ -341,6 +349,27 @@ skill installed by a different CLI version, still conflicts; reconcile or remove
 it before inspecting again. Evidence of the earlier adoption remains only in Git
 history.
 
+## Adopt fresh from a retired format
+
+When committed state, retained scope evidence, or a run record carries a retired
+format, `inspect`, `start`, `status`, `resume`, and `abandon` all fail with
+`RETIRED_FORMAT` before reading or writing anything else. The diagnostic names
+the record, its retired format, and the format this CLI reads, for example:
+
+```text
+[RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v4; this CLI reads only repo-standards/state/v5. Adopt fresh: remove the .repo-standards directory, commit, and adopt again.
+```
+
+Nothing is converted. Adopt fresh as described in
+[Adopt afresh over installed content](#adopt-afresh-over-installed-content):
+remove the `.repo-standards` directory, commit the removal, and inspect,
+confirm, and start the selection again. When the diagnostic names a run record,
+an active run or an archived abandoned report in Git's directory, its earlier
+pinned CLI can still resume or abandon it to preserve its work; this CLI
+cannot. Remove that record as well before adopting fresh. The locations are
+`git rev-parse --git-path repo-standards-run.lock` and the
+`repo-standards-reports/` directory beside it.
+
 ## Recover or abandon an interrupted run
 
 Use the run's exact CLI version. If installation stopped before the project-local
@@ -415,7 +444,9 @@ archiving its report. Failed preservation blocks abandonment and keeps the run
 active for reconciliation. Reconcile preserved changes
 through the project's normal workflow. A new initial adoption still requires a
 clean project without conflicting product state and a fresh confirmed inspection.
-Never remove durable run records to bypass recovery checks.
+Never remove durable run records to bypass recovery checks; only a record in a
+[retired format](#adopt-fresh-from-a-retired-format) is removed, because this CLI
+cannot recover it.
 
 ## Correct a confirmed scope
 
