@@ -18,21 +18,48 @@ install current `dist/` output; rebuild after changing product code.
 
 ## Review and integration
 
-Once implementation and focused checks are ready, open the PR so automatic
-Codex review and CI run alongside independent Standards and Spec reviews.
-Do not wait for those reviews or a full local test run before opening the PR.
+Once implementation and focused checks are ready, open the PR so CI and the
+independent reviews run alongside each other. Do not wait for the reviews or a
+full local test run before opening the PR.
 
-CI runs `pnpm validate` on macOS and Linux: typechecking, building, packing,
-and installing the npm package into temporary directories, then testing the
-installed public CLI against temporary Git repositories. Passing full CI
-satisfies the full-suite requirement; duplicating it locally is optional.
+CI runs `pnpm validate` on macOS and Linux for every PR: typechecking, building,
+packing, and installing the npm package into temporary directories, then
+testing the installed public CLI against temporary Git repositories. Passing
+full CI satisfies the full-suite requirement; duplicating it locally is optional.
 Run additional local tests to diagnose failures when needed.
 
-Before merging, complete independent reviews, resolve actionable findings,
-obtain a positive Codex review, and require green macOS and Linux validation
-for the final changes. Reassess review coverage after changes and request a
-Codex rereview when their scope warrants it. Link the applicable issue and
-report actual validation results and remaining limits in the PR.
+### Review tiers
+
+Review depth follows the kind of change. A PR that mixes kinds, or whose kind
+is unclear, takes the product tier.
+
+| Change kind | Reviews | Checks |
+| --- | --- | --- |
+| Documentation-only | One independent review | Required CI checks green on the final commit |
+| Exact update of this repository's own adoption | One independent review | Required CI checks green on the final commit |
+| Product code and behavior | Independent Standards and Spec reviews | Required CI checks green on the final commit, including macOS and Linux validation |
+
+- **Documentation-only** changes touch only documentation: guides, ADRs, the
+  glossary, READMEs, and acceptance records. They change no source, tests,
+  scripts, workflows, packaging, examples, or system skills.
+- An **exact update** of this repository's own adoption is one whose inspection
+  reports the update class `exact`; its diff holds only managed exact content,
+  skills, the selection, retained inputs, and durable state.
+- **Product code and behavior** covers everything else, including tests,
+  scripts, workflows, packaging, examples, system skills, and contextual
+  updates of this repository's own adoption.
+
+A single independent review reads the whole diff against its linked issue, or
+against its stated purpose for a small correction. For an exact update it also
+confirms the inspection's update class and that the diff holds nothing else.
+
+Before merging, complete the tier's reviews, resolve actionable findings or
+state why each is rejected, and require the tier's checks for the final
+changes. When follow-up commits materially change reviewed content, review them
+again at the same tier. An automated review configured on the repository may
+run alongside; handle its actionable findings like other review findings, but
+it is not a merge condition. Link the applicable issue and report actual
+validation results and remaining limits in the PR.
 
 ## Development records
 

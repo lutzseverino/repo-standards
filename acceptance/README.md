@@ -38,6 +38,34 @@ source-unavailable same-pin re-adoption and a scope removal that preserves
 content. Exercise rejected unresolved, retrospective and unconfirmed work as
 separate negative records; never introduce failure into the completed history.
 
+## Acceptance records
+
+From release 2.0.0 onward, each acceptance record is a dated directory under
+`acceptance/results/` that commits only:
+
+- A short `README.md`: the release and journey, operating systems and tool
+  versions, who performed each run, the outcome of every acceptance criterion
+  it covers (passed, failed, or outstanding), and its limitations.
+- The identities that bind the record to what was evaluated, listed in the
+  README: CLI and standards pins, source and profile, package integrity,
+  installed-skill hashes, inspection identities, adoption run identities, and
+  the GitHub Actions workflow run IDs that hold the raw captures.
+- The tool's summary output, saved verbatim with one Markdown file per summary:
+  `inspect --summary` for each confirmed proposal and `status --summary` for
+  each completed run, for example `status-summary.md`.
+
+Raw captures, such as JSON reports, command output, inventories, diffs, and
+evidence files, are not committed. They live as artifacts of the workflow run
+that produced them, and the README references each by workflow run ID and
+artifact name. A workflow run ID is distinct from an adoption run identity.
+Artifacts expire with the repository's artifact retention; the committed
+identities and summaries are the durable record. Captures made outside a
+workflow, such as a local agent session's transcript, stay outside the
+repository, and the README states what they showed.
+
+The journeys below list what each run captures and checks, not what the record
+commits. Records from earlier releases keep their layout unchanged.
+
 ## Prepare each supported operating system
 
 For issue #11's public release, use the published package and a designated public
@@ -137,10 +165,10 @@ Keep deployment status unverified. Use the shared CLI and skill for both.
 
 ## Record evidence
 
-Record OS/tool versions, source and CLI pins, package and installed-skill hashes,
-inspection/confirmation identities, run IDs, initial handoff, submitted
-assessment, final report, status evidence, project diff (including new files),
-and command outputs supporting contextual claims. Compare employer contribution
+Capture OS/tool versions, source and CLI pins, package and installed-skill
+hashes, inspection/confirmation identities, adoption run identities, initial
+handoff, submitted assessment, final report, status evidence, project diff
+(including new files), and command outputs supporting contextual claims. Compare employer contribution
 bytes, initial/final HEAD and index; capture the uncommitted Git status.
 Follow [Review completed outputs](../docs/usage/adoption.md#review-completed-outputs):
 include tracked changes and every non-ignored untracked file in content diffs
@@ -150,6 +178,8 @@ patches and status/hash inventories alone are insufficient. Keep the index
 unchanged rather than staging files to make them appear in a diff.
 Record what the agent improved and why it helps a maintainer separately from
 structural check results. Record blockers or missing acceptance honestly.
+Commit only the [acceptance record](#acceptance-records); the rest are raw
+captures.
 
 For supported-OS runs, keep their evidence separate and identify whether the
 same agent or different agents performed them. A containerized Linux journey
