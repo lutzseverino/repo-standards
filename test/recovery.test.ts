@@ -17,7 +17,7 @@ after(() => cli.close());
 async function fixture(t: TestContext, declarations: Record<string, unknown> = {}, script = '') {
   const registry = await registryFixture(cli.root);
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'recovery', description: 'Recovery standards',
-    requires: { 'repo-standards': '^1' }, defaults: { declarations: {
+    requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
       agents: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' }, ...declarations,
     } }, profiles: { work: { description: 'Work', declarations: {} } } }), {
     'agents.md': 'Expected instructions', 'guide.md': 'Explain this project.', 'run.mjs': script,

@@ -20,7 +20,7 @@ async function fixture(t: TestContext, script: string, declarations: Record<stri
 }, files = {}) {
   const registry = await registryFixture(cli.root);
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'observed-scope', description: 'Observed operation scope',
-    requires: { 'repo-standards': '^1' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: {} } } }),
+    requires: { 'repo-standards': '>=1' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: {} } } }),
   { 'guide.md': 'Explain this project.', 'exact.md': 'Expected instructions', 'skill/SKILL.md': '# Review', 'run.mjs': script });
   const project = sourceFixture('', { 'README.md': 'Original', 'OTHER.md': 'Other', ...files });
   commit(project.root);

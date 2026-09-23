@@ -9,7 +9,7 @@ after(() => cli.close());
 function operationSource(executables: string[], arguments_: string[] = []) {
   return sourceFixture(stringify({
     format: 'repo-standards/v2', name: 'operations', description: 'Operation validation',
-    requires: { 'repo-standards': '>=1.0.0 <2.0.0' },
+    requires: { 'repo-standards': '>=1.0.0' },
     defaults: { declarations: { readme: {
       kind: 'file', target: 'README.md', guidance: 'guidance.md',
       checks: executables.map((executable, index) => ({

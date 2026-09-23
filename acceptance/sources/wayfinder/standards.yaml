@@ -2,7 +2,7 @@ format: repo-standards/v2
 name: wayfinder-service-readiness
 description: Discover operated services and record evidence for startup, health, and recovery
 requires:
-  repo-standards: ">=1.2.0 <2.0.0"
+  repo-standards: ">=1.2.0"
 
 defaults:
   declarations:

@@ -14,7 +14,7 @@ after(() => cli.close());
 const yaml = `format: repo-standards/v2
 name: exact-standards
 description: Exact adoption
-requires: {repo-standards: ">=1.0.0 <2.0.0"}
+requires: {repo-standards: ">=1.0.0"}
 defaults:
   declarations:
     instructions:

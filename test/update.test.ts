@@ -18,7 +18,7 @@ after(() => cli.close());
 const source = (version: string, declarations: string) => `format: repo-standards/v2
 name: update-standards
 description: Update fixture ${version}
-requires: {repo-standards: ">=1.0.0 <2.0.0"}
+requires: {repo-standards: ">=1.0.0"}
 defaults:
   declarations:
 ${declarations}
@@ -208,7 +208,7 @@ test('a candidate CLI updates retained standards whose manifest range excludes i
   const yaml = source('v1', `    instructions:
       kind: file
       target: AGENTS.md
-      exact: agents.md`).replace('>=1.0.0 <2.0.0', `>=1.0.0 <${candidateVersion}`);
+      exact: agents.md`).replace('>=1.0.0', `>=1.0.0 <${candidateVersion}`);
   const remote = remoteFixture(yaml, { 'agents.md': 'Pinned standards' });
   const project = sourceFixture('');
   const candidate = sourceFixture('');
@@ -428,7 +428,7 @@ test('a coordinated update changes the CLI and standards pins in one confirmed r
   commit(project.root);
   const previous = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
   const head = git(project.root, 'rev-parse', 'HEAD');
-  remote.addVersion('v1.1.0', source('v2', declarations).replace('>=1.0.0 <2.0.0', `>=${candidateVersion}`),
+  remote.addVersion('v1.1.0', source('v2', declarations).replace('>=1.0.0', `>=${candidateVersion}`),
     { 'agents.md': 'Version two', 'review/SKILL.md': '# Review v2' });
   const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
 
@@ -898,7 +898,7 @@ test('both update paths run fixes, contextual assessment, and checks with only a
       retired: { kind: 'file', target: 'RETIRED.md', exact: 'retired.md', fixes: [operation('old-fix')], checks: [operation('old-check')] },
     };
     const manifest = (active: object) => stringify({ format: 'repo-standards/v2', name: 'contextual-updates', description: 'Update lifecycle',
-      requires: { 'repo-standards': '^1' }, defaults: { declarations: active }, profiles: { work: { description: 'Work', declarations: {} } } });
+      requires: { 'repo-standards': '>=1' }, defaults: { declarations: active }, profiles: { work: { description: 'Work', declarations: {} } } });
     const remote = remoteFixture(manifest(declarations), {
       'guide.md': 'Explain how to use this project.', 'retired.md': 'Preserve retired content',
       'operation.mjs': `import {readFileSync, writeFileSync} from 'node:fs';

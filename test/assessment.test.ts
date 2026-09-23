@@ -18,7 +18,7 @@ const operation = (id: string) => ({ id, run: { executable: process.execPath, sc
 async function fixture(t: TestContext, script = `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Verified'}));`) {
   const registry = await registryFixture(cli.root);
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'alice', description: 'Alice standards',
-    requires: { 'repo-standards': '^1' }, defaults: { declarations: {
+    requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
       agents: { kind: 'file', target: 'AGENTS.md', exact: 'default.md' },
       contribution: { kind: 'file', target: 'CONTRIBUTING.md', exact: 'default.md' },
       readme: { kind: 'file', target: 'README.md', guidance: 'readme.md', checks: [operation('headings')] },
@@ -251,7 +251,7 @@ test('content changing between assessment and final verification requires reasse
 test('a second independent author uses fixes, repository configuration and runbook evidence through the same handoff', async t => {
   const registry = await registryFixture(cli.root);
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'charlie-operations', description: 'Service operations standards',
-    requires: { 'repo-standards': '^1' }, defaults: { declarations: {
+    requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
       operations: { kind: 'repository', guidance: 'ops.md', targets: { paths: ['service.json'], directories: ['runbooks'] },
         fixes: [operation('prepare')], checks: [operation('verify')] },
     } }, profiles: { work: { description: 'Production service', declarations: {} } } }), {

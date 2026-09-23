@@ -9,7 +9,7 @@ after(() => cli.close());
 const yaml = `format: repo-standards/v2
 name: public-standards
 description: Public standards
-requires: {repo-standards: ">=1.0.0 <2.0.0"}
+requires: {repo-standards: ">=1.0.0"}
 defaults:
   declarations:
     readme:
@@ -70,7 +70,7 @@ test('inspection rejects unsupported sources, floating references and incompatib
   }
   const missing = cli.run(inspectionArgs.map(arg => arg === 'work' ? 'missing' : arg), project.root, remote.env);
   assert.equal(JSON.parse(missing.stdout).errors[0].code, 'UNKNOWN_PROFILE');
-  const incompatible = remoteFixture(yaml.replace('>=1.0.0 <2.0.0', '>=2.0.0'), { 'readme.md': 'README' });
+  const incompatible = remoteFixture(yaml.replace('>=1.0.0', '>=99.0.0'), { 'readme.md': 'README' });
   t.after(() => incompatible.close());
   const result = cli.run(inspectionArgs, project.root, incompatible.env);
   assert.equal(JSON.parse(result.stdout).errors[0].details[0].code, 'INCOMPATIBLE_CLI');

@@ -20,7 +20,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.opera
 async function fixture(t: TestContext, base = 'components/odd/nested', files = {}, runScript = script) {
   const registry = await registryFixture(cli.root);
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'discovered-adoption', description: 'Documentation for maintained projects',
-    requires: { 'repo-standards': '^1' }, defaults: { declarations: {
+    requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
       docs: { kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md', fixes: [operation('prepare')], checks: [operation('verify')] },
       configuration: { kind: 'file', target: 'docs/config.json', exact: 'config.json' },
     } }, profiles: { work: { description: 'Work', declarations: {} } } }),
