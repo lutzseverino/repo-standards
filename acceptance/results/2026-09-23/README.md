@@ -257,7 +257,9 @@ in the released commit.
   `source-validation.test.ts` "the accepted Alice example validates unchanged
   and provides human output" and `release.test.ts` "release artifacts install
   without build tools and expose the matching CLI, bootstrap, skill and author
-  documentation".
+  documentation". At the released commit, `repo-standards/v1` appears under
+  `examples/`, `acceptance/sources/`, and `test/` only in the story 26 test
+  that plants it to assert its rejection.
 - [x] 28. Blockers, actions, and flags of removed modes are gone: #96, #97, #98,
   and #103; `scope-adoption.test.ts` rejects `--amend-scope` as an unknown
   option and `update.test.ts` "a confirmed inspection of the unchanged
@@ -318,6 +320,19 @@ in the released commit.
     `692bb0624ab5631507f447140afa3f6488eb9afa17e8fa4f6ca3452e1e05ea00`
 - Packaged `skills/adopt-standards/SKILL.md` (SHA-256):
   `d733ef6c9357f3a78515783f5c019ec7c868eb4f82c8b868ecd5e58fcd152958`.
+- Standalone `author-standards` skill installed by `prepare-author.ts` from
+  tag `v2.0.0` (revision `a8b89d4`), with an identical inventory on Linux and
+  macOS (SHA-256):
+  - `SKILL.md`:
+    `4f8b2e669f4c2ab309bcfc9dc2d5cf7544e1f6fd7090a74bc3654b5bf09c1d24`
+  - `references/cli.md`:
+    `c6fe1d7094f902127c364bdd421d3380f5202f4d8fd202fb03c2bb982dcec2ff`
+  - `references/operations.md`:
+    `3143ce8527dbb2ba3d2b116d569eb26f6addf752317944942651d531ca667c17`
+  - `references/profiles.md`:
+    `784a8b5a60d3c67f61361f829797b7bc0f005e739dbe1ed1943ef31593977851`
+  - `references/revision.md`:
+    `212a85d506397cdb82a598c13f9360ab26ec143316933305fc1ec7aa3b966e4f`
 - This repository's current pins: CLI 1.2.2, Repo Canon v0.1.1
   (`0f313ef435c715889303ec1157f1006bee1fb9f4`), profile `complete`.
 - Inspected source: Repo Canon v0.2.0, commit
