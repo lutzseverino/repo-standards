@@ -64,9 +64,12 @@ function range(start: number, count: number) {
 }
 
 // Undefined text is an absent file. Hunks keep three lines of context and use
-// the ranges and end-of-file marker of GNU diff.
+// the ranges and end-of-file marker of GNU diff. Without a changed line, such as
+// creating or deleting an empty file, there is no diff: a unified diff cannot
+// express that change, and the file's before and after state already do.
 export function unifiedDiff(path: string, before: string | undefined, after: string | undefined) {
   const script = edits(lines(before), lines(after));
+  if (script.every(edit => edit.kind === ' ')) return undefined;
   let output = `--- ${before === undefined ? '/dev/null' : `a/${path}`}\n+++ ${after === undefined ? '/dev/null' : `b/${path}`}\n`;
   const changed = script.flatMap((edit, index) => edit.kind === ' ' ? [] : [index]);
   let first = 0;

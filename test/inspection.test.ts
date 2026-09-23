@@ -308,9 +308,13 @@ test('exact changes carry a unified diff for text and before-and-after hashes fo
       kind: file
       target: SAME.md
       exact: same.md
+    empty:
+      kind: file
+      target: EMPTY.md
+      exact: empty.md
 profiles:`);
   const oldLogo = Buffer.from([0, 1, 2, 255]), newLogo = Buffer.from([0, 1, 3, 255]);
-  const remote = remoteFixture(yaml, { 'content.md': 'one\n2\nthree\nfour', 'new.md': 'hello\n', 'logo.bin': newLogo, 'same.md': 'Same\n' });
+  const remote = remoteFixture(yaml, { 'content.md': 'one\n2\nthree\nfour', 'new.md': 'hello\n', 'logo.bin': newLogo, 'same.md': 'Same\n', 'empty.md': '' });
   const project = sourceFixture('', { 'AGENTS.md': 'one\ntwo\nthree\n', 'logo.bin': oldLogo, 'SAME.md': 'Same\n' });
   t.after(() => { remote.close(); project.close(); });
   commit(project.root);
@@ -326,6 +330,8 @@ profiles:`);
   assert.deepEqual(files('logo'), [{ path: 'logo.bin', before: { type: 'file', sha256: sha256(oldLogo), executable: false },
     after: { type: 'file', sha256: sha256(newLogo), executable: false }, binary: true }]);
   assert.deepEqual(files('unchanged'), [{ path: 'SAME.md', before: text('Same\n'), after: text('Same\n') }]);
+  // A unified diff cannot express creating an empty file; its states do.
+  assert.deepEqual(files('empty'), [{ path: 'EMPTY.md', before: { type: 'missing' }, after: text('') }]);
   assert.deepEqual(embeddedContent(report), []);
 });
 

@@ -163,7 +163,8 @@ directory lists its `entries` by name, each file has its `sha256` and
 lossless UTF-8 without NUL bytes; anything else is binary. A changed text file's
 `diff` is a unified diff with three lines of context, `a/` and `b/` path
 prefixes, `/dev/null` for a missing side, and the `\ No newline at end of file`
-marker; a matching or mode-only change has no diff. Read referenced guidance,
+marker. A matching or mode-only change has no diff, and neither has creating
+or deleting an empty file, which the before and after states express. Read referenced guidance,
 discovery guidance, scripts, and resources at their source-relative paths in
 the standards source at `selection.standards.commit`; adoption retains the same
 bytes at `.repo-standards/inputs/source/<path>`. Start acquires the source again

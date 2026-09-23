@@ -59,7 +59,8 @@ function exactDelta(path: string, before: Observation, after: Observation) {
   if (before.type === 'file' ? after.type === 'file' && after.sha256 === before.sha256 : after.type === 'missing') return {};
   const [oldText, newText] = [text(before), text(after)];
   if ((before.type === 'file' && oldText === undefined) || (after.type === 'file' && newText === undefined)) return { binary: true };
-  return { diff: unifiedDiff(path, oldText, newText) };
+  const diff = unifiedDiff(path, oldText, newText);
+  return diff === undefined ? {} : { diff };
 }
 
 export function observe(path: string, excluded: ReadonlySet<string> = new Set()): Observation {
