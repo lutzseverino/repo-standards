@@ -151,10 +151,11 @@ observations, not continuous monitoring or atomic filesystem snapshots. The
 apply; incomplete reads, unsafe boundaries, instability, or exhausted limits
 block progression and preserve incomplete work.
 
-`repo-standards/run/v4` records `observations` separately from `operations` and
+`repo-standards/run/v5` records `observations` separately from `operations` and
 `assessments`. Each interval has a phase (`fixes`, `checks`, or `agent`), its
-applicable declaration `scope`, and a `before` observation. Closed intervals add
-`after`, file `changedPaths`, `boundaryChanges`, and `violations`. Operation intervals identify the
+applicable declaration `scope`, and the `before` observation identity. Closed
+intervals add the `after` identity, `changes`, `boundaryChanges`, and
+`violations`. Operation intervals identify the
 operation and its `operationIndex` in the run's operation history; an interval closed during explicit recovery has `interrupted: true`
 when its operation outcome was not fully recorded. An open interval is evidence
 that observation is incomplete, never evidence of no changes. Observations
@@ -162,6 +163,18 @@ contain file identities and executable state, boundaries, settings, and consulte
 ignore-input identities. Changes to external ignore inputs/settings are reported
 as `@ignore/global`, `@ignore/info`, or `@git/observation-settings` and cannot be
 authorized as project paths.
+
+The run record, the local run report, and an archived abandoned report record
+each interval in the same shape committed state uses, described below, and
+never carry an observation map; a run record that does fails integrity
+validation. Full observations are held in memory while a command observes.
+Only the one observation the last interval ends at, its `before` while open or
+its `after` once closed, is kept beside the run record in Git's working-tree
+metadata, named by its identity, so a later command can close or continue that
+interval. It is replaced as the run advances and removed at completion or
+abandonment. When it is missing or altered, `status` reports that in
+`uncertain` and `resume` fails with `STATE_INTEGRITY`; abandon the run to keep
+its evidence.
 
 Adjacent observations are compared across operation and handoff boundaries;
 work between author invocations has its own agent interval. Named file scope
@@ -180,15 +193,15 @@ verified skill inventory; it never exempts changes to existing directory modes.
 This grants no new contextual scope.
 Durable `repo-standards/state/v5` and `repo-standards/status/v5` retain work
 evidence: the run's intervals, operation history, retry history, final checks and
-assessments. A committed interval is identities plus delta, never an observation
+assessments. Completion commits the run record's intervals unchanged. A recorded
+interval is identities plus delta, never an observation
 map. It keeps `before` and `after` observation identities, `changes` mapping each
 changed path to its before and after file state, `boundaryChanges` mapping each
 changed boundary to its before and after state, `violations`, any `restoredExact`
 and `restoredBoundaries` evidence, its phase, `scope`, operation reference,
 `operationIndex`, and `interrupted`. Identities are the product's observation
-identity, `sha256:` over the observation the run held, so the committed delta
-stays tamper-evident while the full maps remain in memory and in the local run
-report. The local run report is not compacted.
+identity, `sha256:` over the observation the run held, so the recorded delta
+stays tamper-evident without the full maps.
 
 State v5 also retains each prior complete run's interval, operation, retry,
 check and assessment evidence in its ordered `history`, in the same compact

@@ -9,7 +9,7 @@ export const formats = {
   state: 'repo-standards/state/v5',
   lock: 'repo-standards/lock/v1',
   scopeHistory: 'repo-standards/scope-history/v3',
-  run: 'repo-standards/run/v4',
+  run: 'repo-standards/run/v5',
   status: 'repo-standards/status/v5',
   inspection: 'repo-standards/inspection/v4',
   scope: 'repo-standards/scope/v1',

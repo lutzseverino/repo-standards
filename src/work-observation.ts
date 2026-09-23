@@ -2,6 +2,7 @@ import { ProductError } from './errors.js';
 import type { ResolvedProfile } from './model.js';
 import { concreteScope, type Scope } from './scope.js';
 import { observeScope } from './scope-observation.js';
+import { recordedInterval, type RecordedInterval } from './work-evidence.js';
 
 export function contextualScope(resolved: ResolvedProfile): Scope {
   return concreteScope({ ...resolved, declarations: resolved.declarations.filter(declaration => 'guidance' in declaration) });
@@ -36,6 +37,8 @@ export function observedChanges(before: WorkObservation, after: WorkObservation)
   if (JSON.stringify(before.settings) !== JSON.stringify(after.settings)) changed.push('@git/observation-settings');
   return [...new Set(changed)].sort();
 }
+// An interval as a command holds it in memory, with its full observations.
+// Runs record it as identities and a delta through recordedInterval.
 export interface WorkInterval {
   phase: 'fixes' | 'checks' | 'agent'; scope: Scope; before: WorkObservation;
   operation?: { declaration: string; phase: 'fixes' | 'checks'; id: string }; operationIndex?: number;
@@ -65,7 +68,7 @@ export function finishInterval(interval: WorkInterval, after: WorkObservation) {
   });
   interval.violations = [...new Set([...fileViolations, ...boundaryViolations])].sort();
 }
-export function requireValidIntervals(intervals: WorkInterval[]) {
+export function requireValidIntervals(intervals: RecordedInterval[]) {
   const invalid = intervals.find(interval => interval.violations?.length);
   if (!invalid) return;
   const operation = invalid.operation;
@@ -75,12 +78,16 @@ export function requireValidIntervals(intervals: WorkInterval[]) {
 
 // Recovery closes an interrupted operation under its original authority. Work
 // after a recorded operation belongs to a separate agent interval, never replay.
-export function observeContinuation(root: string, intervals: WorkInterval[], resolved: ResolvedProfile, recordedOperations?: number, restorable?: Scope[string]) {
+// Recorded intervals keep only identities, so the caller supplies the full
+// observation the last one ends at: its before while open, its after once
+// closed. The result is the continued record and the observation it now ends at.
+export function observeContinuation(root: string, intervals: readonly RecordedInterval[], observed: () => WorkObservation, resolved: ResolvedProfile, recordedOperations?: number, restorable?: Scope[string]) {
   const last = intervals.at(-1);
   if (!last) return;
   const after = observeWork(root, concreteScope(resolved));
-  const interval: WorkInterval = last.after ? { phase: 'agent', scope: contextualScope(resolved), before: last.after } : last;
-  if (last.after) intervals.push(interval);
+  const interval: WorkInterval = last.after ? { phase: 'agent', scope: contextualScope(resolved), before: observed() }
+    : { phase: last.phase, scope: structuredClone(last.scope), ...(last.operation ? { operation: structuredClone(last.operation) } : {}),
+      ...(last.operationIndex !== undefined ? { operationIndex: last.operationIndex } : {}), before: observed() };
   if (last.after && restorable) {
     // The caller verified the immutable installation first. Only restoration
     // of those exact paths/inventories is exempt from contextual attribution.
@@ -99,4 +106,5 @@ export function observeContinuation(root: string, intervals: WorkInterval[], res
   }
   finishInterval(interval, after);
   if (interval.operation && recordedOperations !== undefined && interval.operationIndex === recordedOperations) interval.interrupted = true;
+  return { intervals: [...(last.after ? intervals : intervals.slice(0, -1)), recordedInterval(interval)], after };
 }

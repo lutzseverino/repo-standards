@@ -522,8 +522,10 @@ and assessments explain the authorized work in a fresh checkout. Each later
 complete v2 run retains the prior run's interval, operation, retry, check and
 assessment evidence in the ordered state/v5 history; older clients reject that
 new protocol shape. Committed intervals are work evidence: observation
-identities and the delta between them, never the observation maps, which stay in
-memory and in the local run report. Every earlier committed format stays
+identities and the delta between them, never the observation maps. The run
+record keeps its intervals in the same shape, so completion carries them
+unchanged; only the observation its last interval ends at is kept beside the
+journal for recovery. Every earlier committed format stays
 readable and the next complete adoption rewrites it in the compact form, as
 [ADR 0005](../adr/0005-retain-work-evidence-as-identities-and-deltas.md)
 records. Historical

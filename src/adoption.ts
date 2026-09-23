@@ -310,7 +310,7 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
     }
     const accepted = validateAssessment(root, session.observation, assessment, {
       snapshot: workSnapshot(root, session.observation, report.resolved),
-      changedPaths: [...new Set(session.observation.observations.filter(interval => interval.phase === 'agent').flatMap(interval => (interval.changedPaths ?? []).filter(path => !interval.restoredExact?.[path])))],
+      changedPaths: [...new Set(session.observation.observations.filter(interval => interval.phase === 'agent').flatMap(interval => Object.keys(interval.changes ?? {}).filter(path => !interval.restoredExact?.[path])))],
     });
     session.record({ type: 'assessment-submitted', assessment: accepted });
     if (accepted.declarations.some(entry => entry.scopeValidity && Object.values(entry.scopeValidity).some(review => review.status === 'blocked'))) throw new ProductError('SCOPE_INCOMPLETE', 'Agent scope review reports incomplete coverage after fixes or at assessment. Additional files are not authorized; preserve work and reconcile the reported scope problem.');
