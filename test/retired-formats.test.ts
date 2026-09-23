@@ -65,7 +65,7 @@ test('a retired state, scope evidence, or run record format is rejected with the
   assert.equal(history.format, 'repo-standards/scope-history/v3');
   assert.equal(f.run(['status', '--json']).report.format, 'repo-standards/status/v5');
   const retainedInspection = f.run(['inspect', '--json']).report;
-  assert.equal(retainedInspection.format, 'repo-standards/inspection/v2');
+  assert.equal(retainedInspection.format, 'repo-standards/inspection/v4');
   assert.equal(retainedInspection.historicalScope.format, 'repo-standards/scope-history/v3');
 
   const runRecord = join(root, git(root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
@@ -80,7 +80,7 @@ test('a retired state, scope evidence, or run record format is rejected with the
       plant: (format: string) => rewriteCommittedState(root, { ...state, format }) })),
     ...['v1', 'v2'].map(version => ({ format: `repo-standards/scope-history/${version}`, current: 'repo-standards/scope-history/v3',
       plant: (format: string) => rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { ...history, format }) })),
-    ...['v1', 'v3'].map(version => ({ format: `repo-standards/run/${version}`, current: 'repo-standards/run/v2',
+    ...['v1', 'v2', 'v3'].map(version => ({ format: `repo-standards/run/${version}`, current: 'repo-standards/run/v4',
       plant: (format: string) => writeFileSync(runRecord, JSON.stringify({ format, id: 'c0ffee00-0000-4000-8000-000000000000',
         selection: state, outcome: 'incomplete', phase: 'fixes' })) })),
   ];

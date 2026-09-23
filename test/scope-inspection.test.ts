@@ -4,7 +4,7 @@ import { chmodSync, mkdirSync, symlinkSync, unlinkSync, writeFileSync } from 'no
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
+import { embeddedContent, installCli, sha256, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 
 const cli = installCli();
@@ -39,11 +39,12 @@ test('discovery inspection requests eligible evidence without changing the proje
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const report = JSON.parse(result.stdout);
-  assert.equal(report.format, 'repo-standards/inspection/v2');
+  assert.equal(report.format, 'repo-standards/inspection/v4');
   assert.equal(report.start.eligible, false);
   assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'DISCOVERY_REQUIRED'));
   assert.match(report.discovery.identity, /^sha256:[a-f0-9]{64}$/);
-  assert.equal(report.discovery.declarations[0].content, material['discovery.md']);
+  assert.deepEqual(report.discovery.declarations[0], { id: 'project-docs', source: 'discovery.md', sha256: sha256(material['discovery.md']), executable: false });
+  assert.deepEqual(embeddedContent(report), []);
   assert.ok(report.discovery.evidence.some((e: { kind: string; path: string }) => e.kind === 'file' && e.path === 'apps/widget/package.json'));
   assert.ok(!JSON.stringify(report.discovery).includes('private/token'));
   assert.deepEqual(snapshot(project.root), before);
@@ -78,9 +79,9 @@ test('two unfamiliar layouts produce complete normalized scope reports including
     const report = inspect();
     assert.deepEqual(report.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs').targets, { paths: [`${base}/README.md`], directories: [] });
     assert.equal(report.sourceResolved.declarations.find((d: { id: string }) => d.id === 'project-docs').discovery, 'discovery.md');
-    assert.match(report.manifest, /discovery: discovery.md/);
-    assert.equal(report.guidance.find((d: { id: string }) => d.id === 'project-docs').content, material['guidance.md']);
-    assert.equal(report.exact[0].files[0].after.content, material['exact.md']);
+    assert.match(report.manifest.sha256, /^[a-f0-9]{64}$/);
+    assert.equal(report.guidance.find((d: { id: string }) => d.id === 'project-docs').sha256, sha256(material['guidance.md']));
+    assert.equal(report.exact[0].files[0].after.sha256, sha256(material['exact.md']));
     assert.deepEqual(report.start.blockers, []);
     proposal.declarations[0]!.evidence.reverse();
     proposal.declarations[0]!.candidates.reverse();
@@ -115,7 +116,7 @@ test('empty scope retains declarations and operations while unresolved scope blo
   const empty = inspect();
   assert.deepEqual(empty.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs').targets, { paths: [], directories: [] });
   assert.equal(empty.operations[0].id, 'verify');
-  assert.equal(empty.guidance.find((g: { id: string }) => g.id === 'project-docs').content, material['guidance.md']);
+  assert.equal(empty.guidance.find((g: { id: string }) => g.id === 'project-docs').sha256, sha256(material['guidance.md']));
   proposal.declarations[0]!.unresolved.push('Is the archived component still maintained?');
   const unresolved = inspect();
   assert.equal(unresolved.start.eligible, false);

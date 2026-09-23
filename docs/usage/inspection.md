@@ -118,7 +118,7 @@ the tag-cache location must resolve outside the project, including via symlinks.
 
 ## Report and inspection identity
 
-Every report has the single format `repo-standards/inspection/v2`. A profile
+Every report has the single format `repo-standards/inspection/v4`. A profile
 with discovery declarations adds the `discovery` and `sourceResolved` fields
 described [below](#discover-contextual-file-scope-v2-sources):
 
@@ -126,12 +126,12 @@ described [below](#discover-contextual-file-scope-v2-sources):
 | --- | --- |
 | `selection` | Exact CLI package/version, canonical standards URL, version tag, commit SHA, and profile. |
 | `source`, `resolved` | Validated metadata and the resolver's complete active profile. |
-| `exact` | Declaration and target; `create`, `replace`, or `match`; before/after inventories with full bytes, SHA-256 hashes, and executable state. |
+| `exact` | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. |
 | `systemSkill` | The reserved `.agents/skills/adopt-standards` target and `create`, `replace`, or `match` against the system skill packaged with the inspecting exact CLI. |
-| `guidance` | Guidance content and its explicit project paths or directory trees. |
-| `operations` | Ordered fixes and checks, literal arguments, script bytes, resource inventories, timeout, and declared prerequisite probe/range. |
-| `project` | Canonical project root, HEAD or null, Git status and index, affected content, and reserved product paths. |
-| `inputs`, `manifest` | Selected source material and normalized single-profile metadata retained by adoption. |
+| `guidance` | Guidance by source-relative `source` path, SHA-256 and executable state, with its explicit project paths or directory trees. |
+| `operations` | Ordered fixes and checks, literal arguments, the script by path and hash, resource hash inventories, timeout, and declared prerequisite probe/range. |
+| `project` | Canonical project root and hash inventories of the affected targets, the reserved system skill, and the durable product state. Git HEAD, index, and status are not reported. |
+| `inputs`, `manifest` | Hash inventories of the selected source material, and the hash of the normalized single-profile metadata, that adoption retains. |
 | `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available. |
 | `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
 
@@ -147,8 +147,8 @@ listing individual additions and removals by declaration relative to the prior
 complete adoption. Removed contextual paths remain project content and are not
 deleted.
 
-For an established selection, `project.productState` observes the full durable
-`.repo-standards/` tree, including unexpected files and their bytes. Inspection
+For an established selection, `project.productState` is the hash inventory of
+the full durable `.repo-standards/` tree, including unexpected files. Inspection
 rejects additions or removals from its recorded file inventory before creating
 an adoption run. This verification is independent of the discovery observation,
 which excludes durable product state entirely. Only `.repo-standards/local/`,
@@ -157,8 +157,19 @@ excluded from this observation; equally named directories elsewhere remain part
 of durable state. Installation and final verification use the same inventory
 rules.
 
-File bytes use `encoding: utf8` when losslessly representable, otherwise
-`encoding: base64`. Whole-skill inventories include existing and supplied files.
+Reports embed no file bytes. A hash inventory keeps the observed tree: a
+directory lists its `entries` by name, each file has its `sha256` and
+`executable` state, and links and unsafe entries keep their observation. Text is
+lossless UTF-8 without NUL bytes; anything else is binary. A changed text file's
+`diff` is a unified diff with three lines of context, `a/` and `b/` path
+prefixes, `/dev/null` for a missing side, and the `\ No newline at end of file`
+marker; a matching or mode-only change has no diff. Read referenced guidance,
+discovery guidance, scripts, and resources at their source-relative paths in
+the standards source at `selection.standards.commit`; adoption retains the same
+bytes at `.repo-standards/inputs/source/<path>`. Start acquires the source again
+and verifies its bytes against the hashes the confirmed identity binds, so a
+report needs no bytes to remain safe.
+Whole-skill inventories include existing and supplied files.
 Matching exact files and skill directories are claimed without rewriting during
 adoption.
 When an existing exact target conflicts with the supplied file/directory type,
@@ -169,11 +180,21 @@ appear by ID and operations retain their declared list order.
 Contextual content stays project-owned. All author prerequisites remain
 `not-checked`: inspection cannot establish them without running probes.
 
-Identity has no timestamp or random acquisition path. It binds the exact
-selection, resolved declarations and materials, project root, HEAD, index,
-Git status, affected bytes and executable state, and safety observations.
-Repeated unchanged inspection has the same identity; changes to bound inputs
-change it. `start --confirm` checks this identity after explicit maintainer confirmation.
+Identity has no timestamp or random acquisition path. It binds what the run
+reads: the exact selection, resolved declarations and materials through their
+hashes, the project root, affected bytes and executable state through their
+hashes, the product-state inventory, blockers and safety observations, and,
+when discovery is active, the discovery observation and confirmed scope. Git
+HEAD, the index, and Git status are not bound, except through the start
+blockers they produce, such as a dirty tree. A commit that touches nothing the
+run reads leaves the identity unchanged, so a confirmation survives unrelated
+work between inspection and start; a change to an affected file's bytes or mode,
+a retained input, or the product-state inventory changes it. The discovery
+observation spans the tracked and non-ignored tree, so for a discovery-backed
+selection most commits change the identity. Start still requires a clean
+committed tree, and the run records HEAD at start for provenance. Repeated
+unchanged inspection has the same identity. `start --confirm` checks this
+identity after explicit maintainer confirmation.
 
 Known blockers include missing commits, dirty Git state, symlink or non-directory
 ancestors, special files, case-folded existing-path conflicts, file/directory type
@@ -241,7 +262,7 @@ stderr and exit 1; otherwise it forwards the invoked CLI's exit status.
 
 A selected repository declaration with `discovery` uses two read-only inspections.
 The first invocation uses the same source, version, profile and project flags
-shown above. Its `repo-standards/inspection/v2` report adds discovery instructions,
+shown above. Its `repo-standards/inspection/v4` report adds discovery instructions,
 eligible evidence, a request identity, and `DISCOVERY_REQUIRED` in `start.blockers`.
 The report still includes exact changes, contextual guidance, and all operations.
 Unresolved declarations remain in `sourceResolved`; they do not manufacture
@@ -335,9 +356,9 @@ in `resolved`; the source declarations in `sourceResolved` and the retained sour
 `manifest` remain unchanged. The complete report includes normalized proposal,
 rationale, candidate exclusions, guidance, exact changes, and operations together.
 
-The request binds selection, requested action (initial adoption or update),
-HEAD, index and hidden index flags, and the complete tracked and non-ignored
-project snapshot. Observation records file hashes/executable state,
+The request binds the selection, the durable product-state inventory, and the
+complete tracked and non-ignored project snapshot; HEAD and the index are not
+bound. Observation records file hashes/executable state,
 directory inventories and boundaries, effective Git observation settings, and
 consulted `.gitignore`, Git info/exclude, and global ignore inputs, including their
 absence. Configured ignore paths preserve significant whitespace; an explicitly
@@ -379,12 +400,12 @@ produce the same report format without `discovery`; execution uses the
 Every update, including an unchanged selection, repeats this fresh discovery
 pass for every active discovery declaration: pass `--scope <file>` to the
 update commands described above and to the matching confirmed start. The
-selection, requested action, and project state are bound into the request and
-final inspection identities, so retained historical proposals cannot authorize
-the new run.
+selection, product-state inventory, and project observation are bound into the
+request and final inspection identities, so retained historical proposals cannot
+authorize the new run.
 
 After ordinary discovery completion, retained `inspect --json` remains
-`repo-standards/inspection/v2` and exposes `historicalScope` as
+`repo-standards/inspection/v4` and exposes `historicalScope` as
 `repo-standards/scope-history/v3`: the
 accepted inspection identity, source-resolved declarations, materialized concrete
 selection, and discovery proposal, rationale, guidance, references, and observation

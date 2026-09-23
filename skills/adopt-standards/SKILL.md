@@ -72,7 +72,7 @@ until the project runtime exists. Thereafter the document root is
    discovered-scope additions and removals. Show exact creates/replacements/matching-file
    claims and whole-skill inventories, discovery rationale and candidate exclusions,
    contextual guidance and allowed targets, resolved exclusions, and ownership changes. Make the full inspection available
-   for review, including supplied bytes and diffs against existing content.
+   for review, including its diffs against existing content and the hashes of supplied material.
 3. Disclose every declared fix/check, its script and resources, literal argument
    vector, project-root working directory, timeout, prerequisite version probe
    and range. Explain that probes and scripts execute trusted code with the

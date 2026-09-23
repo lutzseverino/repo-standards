@@ -9,15 +9,16 @@ import { externalPath, hash } from './acquisition.js';
 import { allowedTargets, execute, operations, preflight } from './execution.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
-import { git, hiddenIndexPaths, inspect, inventoryPaths, matchesInventory, observe, observeProductState, packagedSystemSkill, plannedInventory, productInventory } from './inspection.js';
+import { git, hashInventory, hiddenIndexPaths, inspect, inspectForStart, inventoryPaths, matchesInventory, observe, observeProductState, packagedSystemSkill, plannedInventory, productInventory } from './inspection.js';
 import type { InspectOptions, Observation } from './inspection.js';
 import { baselines, file, flatten, ignore, json, lockPath, projectRoot, safe, safeDirectory, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
-import type { Files } from './adoption-files.js';
+import type { Baseline, Files } from './adoption-files.js';
 import { recordedState, withStartRun, withResumedRun } from './adoption-run.js';
 import { committedScopeHistory, retainedScopeProjection, retainedScopeRuns, type ScopeHistoryRun } from './scope-evidence.js';
 import type { AdoptionRunSession, Installation, Run, StartInput, WorkRequest } from './adoption-run.js';
 export { abandon, status } from './adoption-run.js';
 type Inspection = Awaited<ReturnType<typeof inspect>>;
+const retainedSource = '.repo-standards/inputs/source';
 const packageName = '@lutzseverino/repo-standards';
 
 function workRequest(root: string, run: Run, installation: Installation): WorkRequest {
@@ -26,9 +27,11 @@ function workRequest(root: string, run: Run, installation: Installation): WorkRe
   return { format: formats.workRequest,
     ...(discovery ? { scope: { inspection: run.inspection, afterFixes: installation.scopeAfterFixes!, proposal: discovery.proposal } } : {}), run: run.id, selection: `sha256:${hash(json(run.selection))}`,
     snapshot: workSnapshot(root, run, report.resolved),
+    // Guidance is referenced by path and hash; its bytes are the retained input.
     declarations: report.guidance.map(guidance => {
       const discoveryGuidance = discovery?.declarations.find(entry => entry.id === guidance.id);
-      return { id: guidance.id, guidance, ...(discoveryGuidance ? { discovery: discoveryGuidance } : {}),
+      return { id: guidance.id, guidance: { ...guidance, retained: `${retainedSource}/${guidance.source}` },
+        ...(discoveryGuidance ? { discovery: { ...discoveryGuidance, retained: `${retainedSource}/${discoveryGuidance.source}` } } : {}),
         allowedTargets: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === guidance.id)!) };
     }),
     requiredEvidence: ['status', 'explanation', 'changedPaths', 'evidence', ...(discovery ? ['scope', 'scopeValidity.afterFixes', 'scopeValidity.current'] : [])] };
@@ -98,23 +101,23 @@ export async function startRetained(project: string, cliVersion: string, confirm
 }
 
 async function startRun(input: StartInput, cliVersion: string, confirmation: string, session: AdoptionRunSession) {
-  const inspectSelection = () => input.kind === 'retained' ? inspectRetained(input.project, cliVersion, input.scope) : inspect(input.options, cliVersion);
+  const inspectSelection = () => input.kind === 'retained' ? retainedInspection(input.project, cliVersion, input.scope) : inspectForStart(input.options, cliVersion);
   const initial = await inspectSelection();
-  const root = initial.project.root;
-  verifyConfirmation(initial, confirmation);
+  const root = initial.report.project.root;
+  verifyConfirmation(initial.report, confirmation);
   const proposalPath = input.kind === 'retained' ? input.scope : input.options.scope;
   const scope = proposalPath === undefined ? {} : { scope: realpathSync(resolve(proposalPath)) };
   const startInput: StartInput = input.kind === 'retained' ? { kind: 'retained', project: root, ...scope } : { kind: 'public', options: { ...input.options, project: root, ...scope } };
-  session.begin(initial, confirmation, startInput);
+  session.begin(initial.report, initial.git.head, confirmation, startInput);
   let temporary: string | undefined;
   const files: Files = Object.create(null);
   const skills: Record<string, string[]> = Object.create(null);
-  const prerequisites = await session.prerequisites(onSpawn => preflight(root, initial.resolved, onSpawn));
+  const prerequisites = await session.prerequisites(onSpawn => preflight(root, initial.report.resolved, onSpawn));
   if (prerequisites.some(probe => probe.code)) throw new ProductError('PREREQUISITES_BLOCKED', 'Resolve the reported executable and version problems; prerequisites are never installed automatically.');
   // Initial adoption installs the runtime; an update replaces it only when
   // the CLI pin changes and otherwise keeps the installed runtime.
-  const established = initial.update !== undefined;
-  const replaceRuntime = !established || initial.update!.includes('cli');
+  const established = initial.report.update !== undefined;
+  const replaceRuntime = !established || initial.report.update!.includes('cli');
   let preparedSystemSkill: Observation | undefined;
   if (replaceRuntime) {
     const acquired = session.acquireRuntime(directory => prepareRuntime(directory, cliVersion, root));
@@ -122,12 +125,14 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
     preparedSystemSkill = acquired.skill;
   }
   // Network/package acquisition can take time. Repeat all Git, source and
-  // target checks under the lock before creating any project material.
-  const report = await inspectSelection();
+  // target checks under the lock before creating any project material. The
+  // materials come from this inspection, whose confirmed identity binds their
+  // hashes.
+  const { report, materials, git: gitState } = await inspectSelection();
   verifyConfirmation(report, confirmation);
-  const systemSkill = preparedSystemSkill ?? report.project.systemSkill;
+  const systemSkill = preparedSystemSkill ?? materials.systemSkill;
   const runtime = replaceRuntime ? observe(join(temporary!, 'node_modules')) : safeDirectory(root, '.repo-standards/runtime/node_modules');
-  for (const exact of report.exact) for (const change of exact.files) if (change.after.type !== 'missing') flatten(change.path, change.after, files);
+  for (const [target, desired] of Object.entries(materials.exact)) if (desired.type !== 'missing') flatten(target, desired, files);
   flatten(systemTarget, systemSkill, files);
   for (const declaration of report.resolved.declarations) if (declaration.kind === 'skill') {
     const target = `.agents/skills/${declaration.name}`;
@@ -136,8 +141,8 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
   skills[systemTarget] = Object.keys(files).filter(path => path.startsWith(systemTarget + '/')).map(path => path.slice(systemTarget.length + 1)).sort();
   const exactBaselines = baselines(files);
   const inputs: Files = Object.create(null);
-  for (const [path, value] of Object.entries(report.inputs)) flatten(`.repo-standards/inputs/source/${path}`, value, inputs);
-  inputs['.repo-standards/inputs/standards.yaml'] = file(report.manifest);
+  for (const [path, value] of Object.entries(materials.inputs)) flatten(`${retainedSource}/${path}`, value, inputs);
+  inputs['.repo-standards/inputs/standards.yaml'] = file(materials.manifest);
   inputs['.repo-standards/inputs/metadata.json'] = file(json(report.source));
   inputs['.repo-standards/inputs/resolved.json'] = file(json(report.resolved));
   const historyPath = '.repo-standards/inputs/scope-history.json';
@@ -168,17 +173,19 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
     const oldState = safe(root, '.repo-standards/state.json');
     if (oldState.type === 'file') transitional['.repo-standards/state.json'] = oldState;
   }
-  const installation: Installation = { report, files, skills, exactBaselines, durable, runtimeHash: hash(json(runtime)), replaceTrees, transitional,
-    before: Object.fromEntries([...Object.keys(files).filter(path => !replaceTrees.some(tree => path.startsWith(tree + '/'))), ...replaceTrees].map(path => [path, safe(root, path)])) };
+  const installation: Installation = { report, git: gitState, files, skills, exactBaselines, durable, runtimeHash: hash(json(runtime)), replaceTrees, transitional,
+    before: Object.fromEntries([...Object.keys(files).filter(path => !replaceTrees.some(tree => path.startsWith(tree + '/'))), ...replaceTrees].map(path => [path, hashInventory(safe(root, path))])) };
   session.prepareInstallation(installation);
   install(root, session, installation);
   await advance(root, session, installation);
 }
 
-function verifyGit(root: string, report: Inspection) {
-  if (git(root, ['rev-parse', 'HEAD']).stdout.trim() !== report.project.head || git(root, ['ls-files', '--stage', '-z']).stdout !== report.project.index) throw new ProductError('FINAL_INTEGRITY', 'HEAD or the index changed during adoption.');
+// The Git state start observed binds the run, not the inspection identity: the
+// product never commits, so HEAD or the index changing mid-run is not its work.
+function verifyGit(root: string, expected: Installation['git']) {
+  if (git(root, ['rev-parse', 'HEAD']).stdout.trim() !== expected.head || hash(git(root, ['ls-files', '--stage', '-z']).stdout) !== expected.index) throw new ProductError('FINAL_INTEGRITY', 'HEAD or the index changed during adoption.');
   const hidden = hiddenIndexPaths(root);
-  if (json(hidden) !== json(report.project.hidden)) throw new ProductError('FINAL_INTEGRITY', `The hidden index flags changed during adoption: ${hidden.join(', ')}. Reconcile skip-worktree and assume-unchanged flags before recovery.`);
+  if (json(hidden) !== json(expected.hidden)) throw new ProductError('FINAL_INTEGRITY', `The hidden index flags changed during adoption: ${hidden.join(', ')}. Reconcile skip-worktree and assume-unchanged flags before recovery.`);
 }
 
 function install(root: string, session: AdoptionRunSession, installation: Installation) {
@@ -188,9 +195,9 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
   const { files, before, report } = installation;
   const replaceTrees = installation.replaceTrees ?? [];
   const treeProgress = progress().trees!;
-  verifyGit(root, report);
+  verifyGit(root, installation.git);
   const observedTrees = Object.fromEntries(replaceTrees.map(tree => [tree, safe(root, tree)]));
-  const unchangedTrees = replaceTrees.filter(tree => json(observedTrees[tree]) === json(before[tree]));
+  const unchangedTrees = replaceTrees.filter(tree => json(hashInventory(observedTrees[tree]!)) === json(before[tree]));
   const temporaries = stagedFiles(root, Object.fromEntries(Object.entries(files).filter(([path]) => !replaceTrees.some(tree => path.startsWith(tree + '/') && treeProgress[tree] !== 'installing'))), run.id);
   for (const tree of replaceTrees) {
     const actual = observedTrees[tree]!;
@@ -199,7 +206,7 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
     if (actual.type === 'missing') continue;
     const observed: Files = Object.create(null);
     flatten(tree, actual, observed);
-    const expected: Files = treeProgress[tree] === 'removing' ? Object.create(null) : files;
+    const expected: Record<string, Baseline> = treeProgress[tree] === 'removing' ? Object.create(null) : files;
     if (treeProgress[tree] === 'removing' && before[tree]?.type !== 'missing') flatten(tree, before[tree]!, expected);
     if (Object.entries(observed).some(([path, value]) => !temporaries.includes(path) && (expected[path]?.sha256 !== value.sha256 || expected[path]?.executable !== value.executable))) {
       throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed during replacement: ${tree}. Preserve and reconcile added or modified resources before retry.`);
@@ -217,7 +224,7 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
     if (replaceTrees.some(tree => path.startsWith(tree + '/')) && !progress().files.includes(path)) continue;
     const actual = safe(root, path);
     const matches = actual.type === 'file' && actual.sha256 === expected.sha256 && actual.executable === expected.executable;
-    if (!matches && (progress().files.includes(path) || json(actual) !== json(before[path]))) throw new ProductError('INSTALLATION_CHANGED', `Installed or pending content changed: ${path}. Reconcile it before retry; recovery will not overwrite edits.`);
+    if (!matches && (progress().files.includes(path) || json(hashInventory(actual)) !== json(before[path]))) throw new ProductError('INSTALLATION_CHANGED', `Installed or pending content changed: ${path}. Reconcile it before retry; recovery will not overwrite edits.`);
   }
   const plannedPaths = plannedInventory([...Object.keys(files), ...temporaries]);
   for (const skill of Object.keys(installation.skills).filter(skill => !replaceTrees.includes(skill))) {
@@ -275,14 +282,14 @@ function install(root: string, session: AdoptionRunSession, installation: Instal
 }
 
 function verifyInstallation(root: string, installation: Installation, extra: Files = {}) {
-  const { report, files, skills, runtimeHash } = installation;
+  const { files, skills, runtimeHash } = installation;
   const expectedFiles = { ...files, ...(installation.transitional ?? {}), ...extra };
   verifyFiles(root, expectedFiles);
   if (hash(json(safeDirectory(root, '.repo-standards/runtime/node_modules'))) !== runtimeHash) throw new ProductError('FINAL_INTEGRITY', 'The installed runtime dependencies changed.');
   if (!matchesInventory(observeProductState(root), Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/')).map(path => path.slice('.repo-standards/'.length)))) throw new ProductError('FINAL_INTEGRITY', 'The product state inventory changed.');
   for (const [path, expected] of Object.entries(skills)) if (!matchesInventory(safe(root, path), expected)) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
   if (json(inventory(root, '.repo-standards/inputs')) !== json(Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/inputs/')).map(path => path.slice('.repo-standards/inputs/'.length)).sort())) throw new ProductError('FINAL_INTEGRITY', 'Retained input inventory changed.');
-  verifyGit(root, report);
+  verifyGit(root, installation.git);
   verifyCommittable(root, [...Object.keys(files), '.repo-standards/state.json']);
 }
 
@@ -364,6 +371,10 @@ export async function resume(project: string, cliVersion: string, assessmentPath
 }
 
 export async function inspectRetained(project: string, cliVersion: string, scope?: string) {
+  return (await retainedInspection(project, cliVersion, scope)).report;
+}
+
+async function retainedInspection(project: string, cliVersion: string, scope?: string) {
   const root = projectRoot(project);
   if (!existsSync(join(root, '.repo-standards/state.json'))) throw new ProductError('NO_SELECTION', 'No complete adoption is recorded. Inspect a public source with --source, --standards-version and --profile.');
   const { pinned: lock, state } = recordedState(root);
@@ -379,10 +390,10 @@ export async function inspectRetained(project: string, cliVersion: string, scope
     const parts = path.slice('.repo-standards/inputs/source/'.length).split('/');
     for (let length = 1; length <= parts.length; length++) paths.add(parts.slice(0, length).join('/'));
   }
-  const report = await inspect({ project: root, ...(scope ? { scope } : {}), source: lock.selection.standards.repository, standardsVersion: lock.selection.standards.version, profile: lock.selection.profile }, cliVersion,
+  const inspected = await inspectForStart({ project: root, ...(scope ? { scope } : {}), source: lock.selection.standards.repository, standardsVersion: lock.selection.standards.version, profile: lock.selection.profile }, cliVersion,
     { root: sourceRoot, identity: lock.selection.standards, paths, manifest: readFileSync(join(root, '.repo-standards/inputs/standards.yaml'), 'utf8'), ownedSkills: new Set(Object.keys(state.skills)), close() {} });
   const history = '.repo-standards/inputs/scope-history.json';
   const retainedHistory = Object.hasOwn(lock.files, history)
     ? retainedScopeProjection(JSON.parse(readFileSync(join(root, history), 'utf8'))) : undefined;
-  return { ...report, retained: true, ...(retainedHistory ? { historicalScope: retainedHistory } : {}) };
+  return { ...inspected, report: { ...inspected.report, retained: true, ...(retainedHistory ? { historicalScope: retainedHistory } : {}) } };
 }

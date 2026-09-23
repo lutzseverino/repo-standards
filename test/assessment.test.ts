@@ -6,7 +6,7 @@ import type { TestContext } from 'node:test';
 import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
-import { installCli, sourceFixture } from './installed-cli.ts';
+import { embeddedContent, installCli, sha256, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
 import { registryFixture } from './registry-fixture.ts';
@@ -53,14 +53,17 @@ test('contextual handoff identifies the run, retained guidance, allowed targets 
   assert.equal(f.run.outcome, 'incomplete');
   assert.equal(f.run.operations.length, 0);
   const request = f.run.workRequest;
-  assert.equal(request.format, 'repo-standards/work-request/v2');
+  assert.equal(request.format, 'repo-standards/work-request/v3');
   assert.equal('scope' in request, false);
   assert.equal(request.run, f.run.id);
   assert.match(request.selection, /^sha256:/);
   assert.match(request.snapshot, /^sha256:/);
   assert.deepEqual(request.declarations.map((d: { id: string }) => d.id), ['layout', 'readme']);
   assert.deepEqual(request.declarations[0].allowedTargets, { paths: ['config.json'], directories: ['src'] });
-  assert.equal(request.declarations[1].guidance.content, 'Describe setup and architecture.');
+  assert.deepEqual(request.declarations[1].guidance, { id: 'readme', targets: ['README.md'], source: 'readme.md',
+    sha256: sha256('Describe setup and architecture.'), executable: false, retained: '.repo-standards/inputs/source/readme.md' });
+  assert.equal(readFileSync(join(f.project.root, request.declarations[1].guidance.retained), 'utf8'), 'Describe setup and architecture.');
+  assert.deepEqual(embeddedContent(f.run), [], 'The run record references guidance by path and hash');
   assert.deepEqual(request.requiredEvidence, ['status', 'explanation', 'changedPaths', 'evidence']);
   assert.equal(readFileSync(join(f.project.root, 'AGENTS.md'), 'utf8'), 'Work instructions');
   assert.equal(readFileSync(join(f.project.root, 'CONTRIBUTING.md'), 'utf8'), 'Employer policy');

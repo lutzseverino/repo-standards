@@ -13,17 +13,53 @@ import { decodeRecordedState } from './recorded-state.js';
 import { latestRetainedScopeRun, type ScopeHistoryRun } from './scope-evidence.js';
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
+import { unifiedDiff } from './unified-diff.js';
 import type { RecordedSelection } from './recorded-state.js';
 
 export interface Blocker { code: string; message: string; path?: string }
 export interface Content { sha256: string; executable: boolean; encoding: 'utf8' | 'base64'; content: string }
 export type Observation = { type: 'missing' } | ({ type: 'file' } & Content) | { type: 'directory'; entries: Record<string, Observation> } | { type: 'symlink'; target: string } | { type: 'unsafe'; obstacles?: Record<string, Observation> };
+// The reported form of an observation. Reports and run records carry each file
+// as its SHA-256 hash and executable mode, never its bytes.
+export type HashInventory = { type: 'missing' } | { type: 'file'; sha256: string; executable: boolean } | { type: 'directory'; entries: Record<string, HashInventory> } | { type: 'symlink'; target: string } | { type: 'unsafe'; obstacles?: Record<string, HashInventory> };
+
+function hashEntries(entries: Record<string, Observation>) {
+  return Object.fromEntries(Object.entries(entries).map(([name, child]) => [name, hashInventory(child)]));
+}
+
+export function hashInventory(value: Observation): HashInventory {
+  if (value.type === 'file') return { type: 'file', sha256: value.sha256, executable: value.executable };
+  if (value.type === 'directory') return { type: 'directory', entries: hashEntries(value.entries) };
+  if (value.type === 'unsafe') return value.obstacles ? { type: 'unsafe', obstacles: hashEntries(value.obstacles) } : { type: 'unsafe' };
+  return value;
+}
 
 function content(path: string): Content {
   const bytes = readFileSync(path);
   const utf8 = bytes.toString('utf8');
   const encoding = Buffer.from(utf8).equals(bytes) ? 'utf8' : 'base64';
   return { sha256: hash(bytes), executable: (lstatSync(path).mode & 0o111) !== 0, encoding, content: encoding === 'utf8' ? utf8 : bytes.toString('base64') };
+}
+
+// Guidance, discovery guidance and scripts are referenced by path and hash.
+function fileReference(path: string) {
+  const { sha256, executable } = content(path);
+  return { sha256, executable };
+}
+
+// Text is lossless UTF-8 without NUL bytes; anything else is binary.
+function text(value: Observation) {
+  return value.type === 'file' && value.encoding === 'utf8' && !value.content.includes('\0') ? value.content : undefined;
+}
+
+// A changed exact file carries a unified diff when both sides are text, and
+// only its before-and-after hashes when either side is binary.
+function exactDelta(path: string, before: Observation, after: Observation) {
+  if ((before.type !== 'file' && before.type !== 'missing') || (after.type !== 'file' && after.type !== 'missing')) return {};
+  if (before.type === 'file' ? after.type === 'file' && after.sha256 === before.sha256 : after.type === 'missing') return {};
+  const [oldText, newText] = [text(before), text(after)];
+  if ((before.type === 'file' && oldText === undefined) || (after.type === 'file' && newText === undefined)) return { binary: true };
+  return { diff: unifiedDiff(path, oldText, newText) };
 }
 
 export function observe(path: string, excluded: ReadonlySet<string> = new Set()): Observation {
@@ -165,13 +201,13 @@ function recordedAdoption(root: string): RecordedAdoption | undefined {
     ...(historicalScope ? { historicalScope } : {}) };
 }
 
-export function inventoryPaths(value: Observation): string[] {
+export function inventoryPaths(value: Observation | HashInventory): string[] {
   const result: string[] = [];
-  function visit(prefix: string, child: Observation) {
+  function visit(prefix: string, child: Observation | HashInventory) {
     if (child.type === 'file') result.push(prefix);
     else if (child.type === 'directory') {
       if (prefix) result.push(prefix + '/');
-      for (const [name, entry] of Object.entries(child.entries)) visit(prefix ? `${prefix}/${name}` : name, entry);
+      for (const [name, entry] of Object.entries<Observation | HashInventory>(child.entries)) visit(prefix ? `${prefix}/${name}` : name, entry);
     }
   }
   visit('', value);
@@ -217,7 +253,17 @@ export function productInventory(root: string): string[] {
   return inventoryPaths(observeProductState(root)).map(path => `.repo-standards/${path}`);
 }
 
-export async function inspect(options: InspectOptions, cliVersion: string, retained?: Awaited<ReturnType<typeof acquireSource>> & { manifest: string; ownedSkills: ReadonlySet<string> }) {
+type RetainedSource = Awaited<ReturnType<typeof acquireSource>> & { manifest: string; ownedSkills: ReadonlySet<string> };
+
+export async function inspect(options: InspectOptions, cliVersion: string, retained?: RetainedSource) {
+  return (await inspectForStart(options, cliVersion, retained)).report;
+}
+
+// Start reads the materials it installs from the same acquisition and
+// observation as the report whose identity was confirmed, so the report itself
+// needs no bytes. The Git state is recorded for provenance and for detecting
+// Git changes during the run; it is not part of the identity.
+export async function inspectForStart(options: InspectOptions, cliVersion: string, retained?: RetainedSource) {
   if (process.versions.node.split('.')[0] !== '24') throw new ProductError('NODE_REQUIRED', 'Node.js 24 is required. Select Node.js 24 with your version manager or install it from https://nodejs.org/en/download, then retry.');
   const npm = spawnSync('npm', ['--version'], { cwd: homedir(), encoding: 'utf8', timeout: 10_000 });
   if (npm.error || npm.status !== 0 || !/^\d+\.\d+\.\d+/.test(npm.stdout.trim())) throw new ProductError('NPM_REQUIRED', 'npm is required. Reinstall the npm bundled with Node.js 24 from https://nodejs.org/en/download and ensure npm is on PATH.');
@@ -258,10 +304,12 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
     const profile = validation.profiles[options.profile];
     if (!profile) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
-    const requestedAction = previous ? 'update' : 'adopt';
     const discoveryDeclarations = profile.declarations.filter(declaration => 'discovery' in declaration);
     const scopeObservation = discoveryDeclarations.length ? observeScope(root) : undefined;
-    const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, action: requestedAction, root, head: head.stdout, index: index.stdout, hidden, observation: scopeObservation }))}` : undefined;
+    // The request binds what discovery reads: the selection, the project
+    // observation, and the durable product state it excludes from that
+    // observation. Git HEAD and the index are not bound.
+    const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, root, productState: hashInventory(productState), observation: scopeObservation }))}` : undefined;
     const scope = validateScope({ root, sourceResolved: profile, request: requestIdentity,
       ...(options.scope ? { proposalPath: options.scope } : {}) });
     const { proposal, resolved, named, namedObservation, absence } = scope;
@@ -269,7 +317,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     const discovery = scopeObservation ? {
       identity: requestIdentity!,
       ...(proposal ? { proposal, absence, namedObservation } : {}),
-      declarations: discoveryDeclarations.map(declaration => ({ id: declaration.id, source: declaration.discovery, ...content(join(source.root, declaration.discovery)) })),
+      declarations: discoveryDeclarations.map(declaration => ({ id: declaration.id, source: declaration.discovery, ...fileReference(join(source.root, declaration.discovery)) })),
       evidence: scopeObservation.evidence,
       observation: scopeObservation,
     } : undefined;
@@ -309,6 +357,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
     const guidance = [];
     const operations = [];
     const affected: Record<string, Observation> = Object.create(null);
+    const desiredExact: Record<string, Observation> = Object.create(null);
     for (const declaration of resolved.declarations) {
       const targets = declaration.kind === 'repository' ? [...declaration.targets.paths, ...declaration.targets.directories] : [declaration.kind === 'skill' ? `.agents/skills/${declaration.name}` : declaration.target];
       for (const target of targets) {
@@ -320,31 +369,32 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       if (declaration.kind === 'skill' || 'exact' in declaration) {
         const target = targets[0]!;
         const desired = observe(join(source.root, declaration.kind === 'skill' ? declaration.source : declaration.exact));
+        desiredExact[target] = desired;
         const current = affected[target]!;
         const action = plannedAction(current, desired);
         if (declaration.kind === 'skill' && action === 'replace' && !(retained?.ownedSkills ?? new Set(Object.keys(previous?.skills ?? {}))).has(target)) blockers.push({ code: 'SKILL_CONFLICT', path: target, message: 'An existing skill differs from the supplied skill and has no established installed baseline for this selection. Reconcile the unrelated skill before adoption.' });
         checkTracked(target, current);
-        const files: { path: string; before: Observation; after: Observation }[] = [];
+        const files: { path: string; before: HashInventory; after: HashInventory; diff?: string; binary?: boolean }[] = [];
         function changes(path: string, before: Observation, after: Observation) {
           if (before.type !== after.type && before.type !== 'missing' && after.type !== 'missing') {
-            files.push({ path, before, after });
+            files.push({ path, before: hashInventory(before), after: hashInventory(after) });
           } else if (before.type === 'directory' || after.type === 'directory') {
             const oldEntries = before.type === 'directory' ? before.entries : {};
             const newEntries = after.type === 'directory' ? after.entries : {};
             for (const name of [...new Set([...Object.keys(oldEntries), ...Object.keys(newEntries)])].sort()) changes(`${path}/${name}`, oldEntries[name] ?? { type: 'missing' }, newEntries[name] ?? { type: 'missing' });
-          } else files.push({ path, before, after });
+          } else files.push({ path, before: hashInventory(before), after: hashInventory(after), ...exactDelta(path, before, after) });
         }
         changes(target, current, desired);
         exact.push({ id: declaration.id, target, action, files });
-      } else guidance.push({ id: declaration.id, targets, source: declaration.guidance, ...content(join(source.root, declaration.guidance)) });
+      } else guidance.push({ id: declaration.id, targets, source: declaration.guidance, ...fileReference(join(source.root, declaration.guidance)) });
     }
-    if (!proposal) for (const declaration of discoveryDeclarations) guidance.push({ id: declaration.id, targets: [], discoveryRequired: true, source: declaration.guidance, ...content(join(source.root, declaration.guidance)) });
+    if (!proposal) for (const declaration of discoveryDeclarations) guidance.push({ id: declaration.id, targets: [], discoveryRequired: true, source: declaration.guidance, ...fileReference(join(source.root, declaration.guidance)) });
     for (const phase of ['fixes', 'checks'] as const) for (const declaration of profile.declarations) {
       for (const operation of declaration[phase]) {
         operations.push({ declaration: declaration.id, phase, ...operation,
           prerequisite: { ...operation.prerequisite, status: 'not-checked' },
-          script: content(join(source.root, operation.run.script)),
-          resources: operation.run.resources.map(path => ({ path, content: observe(join(source.root, path)) })),
+          script: { path: operation.run.script, ...fileReference(join(source.root, operation.run.script)) },
+          resources: operation.run.resources.map(path => ({ path, ...hashInventory(observe(join(source.root, path))) })),
         });
       }
     }
@@ -380,8 +430,11 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       format: formats.inspection,
       ...(discovery ? { discovery, sourceResolved: profile } : {}),
       selection: { cli: { package: '@lutzseverino/repo-standards', version: cliVersion }, standards: source.identity, profile: options.profile },
-      source: validation.source, resolved, exact, guidance, operations, inputs, manifest: normalized,
-      project: { root, head: head.status === 0 ? head.stdout.trim() : null, status: status.stdout, index: index.stdout, hidden, affected, productState, systemSkill },
+      source: validation.source, resolved, exact, guidance, operations,
+      inputs: Object.fromEntries(Object.entries(inputs).map(([path, value]) => [path, hashInventory(value)])),
+      manifest: { sha256: hash(normalized), executable: false },
+      project: { root, affected: Object.fromEntries(Object.entries(affected).map(([path, value]) => [path, hashInventory(value)])),
+        productState: hashInventory(productState), systemSkill: hashInventory(systemSkill) },
       systemSkill: { target: '.agents/skills/adopt-standards', action: systemSkillAction },
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
       ...(update ? { update, previousSelection: previous!.selection, retired } : {}),
@@ -392,10 +445,14 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       const finalIndex = git(root, ['ls-files', '--stage', '-z'], undefined, 30_000);
       const finalStatus = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignore-submodules=all'], undefined, 30_000);
       if (finalIndex.status !== 0 || finalStatus.status !== 0) throw new ProductError('OBSERVATION_READ', 'Cannot completely recheck Git project state.');
-      if (finalHead.status !== head.status || finalHead.stdout !== head.stdout || finalIndex.stdout !== index.stdout || finalStatus.stdout !== status.stdout || JSON.stringify(hiddenIndexPaths(root)) !== JSON.stringify(hidden)) throw new ProductError('OBSERVATION_UNSTABLE', 'Git project state changed during discovery inspection. Inspect again.');
+      if (finalHead.status !== head.status || finalIndex.stdout !== index.stdout || finalStatus.stdout !== status.stdout || JSON.stringify(hiddenIndexPaths(root)) !== JSON.stringify(hidden)) throw new ProductError('OBSERVATION_UNSTABLE', 'Git project state changed during discovery inspection. Inspect again.');
     }
     if (scopeObservation && JSON.stringify(scopeObservation) !== JSON.stringify(observeScope(root))) throw new ProductError('OBSERVATION_UNSTABLE', 'Discovery observation changed during inspection. Inspect again.');
     if (namedObservation && JSON.stringify(namedObservation) !== JSON.stringify(observeScope(root, named))) throw new ProductError('OBSERVATION_UNSTABLE', 'Named scope observations changed during inspection. Inspect again.');
-    return { ...report, identity: `sha256:${hash(JSON.stringify(report))}` };
+    return {
+      report: { ...report, identity: `sha256:${hash(JSON.stringify(report))}` },
+      materials: { exact: desiredExact, inputs, manifest: normalized, systemSkill },
+      git: { head: head.status === 0 ? head.stdout.trim() : null, index: hash(index.stdout), hidden },
+    };
   } finally { source.close(); }
 }

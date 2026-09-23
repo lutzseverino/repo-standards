@@ -1,5 +1,6 @@
 import { packPackage } from '../scripts/pack-package.ts';
 import { execFileSync, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { lstatSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -11,6 +12,18 @@ export function snapshot(root: string): unknown {
     return [name, stat.mode, stat.isSymbolicLink() ? readlinkSync(path) : stat.isDirectory() ? snapshot(path) : readFileSync(path).toString('base64')];
   });
 }
+
+// Reports and run records carry hashes, never file bytes: list every place a
+// value still embeds content.
+export function embeddedContent(value: unknown, path = '$'): string[] {
+  if (!value || typeof value !== 'object') return [];
+  return Object.entries(value).flatMap(([key, child]) => [
+    ...(['content', 'encoding'].includes(key) ? [`${path}.${key}`] : []),
+    ...embeddedContent(child, `${path}.${key}`),
+  ]);
+}
+
+export function sha256(bytes: string | Buffer) { return createHash('sha256').update(bytes).digest('hex'); }
 
 // Every test invokes the packed, independently installed executable, never src/.
 export function installCli() {

@@ -2,7 +2,7 @@
 
 After exact installation and serial fixes, a profile with contextual file or
 repository guidance returns an incomplete `contextual` run with a
-`repo-standards/work-request/v2` object in `workRequest`. The CLI never runs a
+`repo-standards/work-request/v3` object in `workRequest`. The CLI never runs a
 model. This handoff uses the already confirmed selection and preserves the run,
 installed baselines, and post-fix project snapshot for subsequent commands.
 
@@ -17,8 +17,9 @@ The request contains:
   content, excluding `.repo-standards/` generated state, and the current retry
   attempt. Copy this opaque identity from the current request.
 - `declarations`: every active contextual declaration, sorted by ID. Each entry
-  contains `id`, `guidance` (source-relative `source`, `content`, `encoding`,
-  SHA-256 and executable state), and `allowedTargets` with explicit `paths` and
+  contains `id`, `guidance` (source-relative `source`, SHA-256 and executable
+  state, and the `retained` project path of its bytes, under
+  `.repo-standards/inputs/source/`), and `allowedTargets` with explicit `paths` and
   `directories`. Directory entries allow the directory and its descendants;
   file paths allow only that exact path. No glob interpretation occurs.
 - `requiredEvidence`: `status`, `explanation`, `changedPaths`, and `evidence`.
@@ -158,9 +159,9 @@ incomplete result; abandon and reconcile before a new confirmed adoption. The
 last complete state retains interval and retry history as historical evidence,
 without asserting ongoing compliance.
 
-## Discovery work-request/v2 and assessment/v2
+## Discovery work-request/v3 and assessment/v2
 
-Active discovery uses the same `repo-standards/work-request/v2` and
+Active discovery uses the same `repo-standards/work-request/v3` and
 `repo-standards/assessment/v2` formats as explicit selections. The
 request adds `scope` with the confirmed `inspection` identity, `afterFixes`
 snapshot identity, and accepted `proposal`. Each discovered declaration also

@@ -190,7 +190,7 @@ adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
 scope is missing. Initial start receives the same valid proposal and confirmed
 complete inspection identity and reconstructs inspection before mutation. Inspection accepts
 `repo-standards/scope/v1` proposals through `--scope`, returns explicitly versioned
-`repo-standards/inspection/v2` reports, and binds a complete eligible project
+`repo-standards/inspection/v4` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
 The [inspection contract](../usage/inspection.md#discover-contextual-file-scope-v2-sources)
 defines evidence references, strict proposal validation, observation limits, and
@@ -257,13 +257,16 @@ language and package manager remain independent.
 ## Inspection, trust, and start
 
 Inspection identifies exact changes and the trusted author operations that
-adoption will execute. Its identity binds the selection and relevant project
-state. The system skill obtains explicit confirmation of that inspection;
+adoption will execute. Its identity binds what the run reads: the selection,
+resolved materials, affected bytes and modes, the product-state inventory, and,
+when discovery is active, the discovery observation. It does not bind Git HEAD,
+the index, or status. Reports carry hash inventories and diffs, not file bytes.
+The system skill obtains explicit confirmation of that inspection;
 start rejects stale state before mutation.
 
 Inspection works in a dirty Git checkout. Start requires an existing commit,
-a clean index and working tree with no untracked files, and the inspected HEAD
-and project state. It also examines replacement targets for ignored content:
+a clean index and working tree with no untracked files, and the inspected
+project state; the run records HEAD at start for provenance. It also examines replacement targets for ignored content:
 a clean Git status alone does not prove that content is recoverable.
 
 An existing exact file or skill directory whose complete inventory, bytes, and
@@ -503,7 +506,7 @@ repeat-safe fixes, contextual work and assessment, checks, final integrity and
 durable completion. Fix/agent intervals retain attribution and immutable exact
 expectations through retries. Empty discovered scope retains operations.
 
-Discovery handoffs and assessments use work-request/v2 and assessment/v2. They
+Discovery handoffs and assessments use work-request/v3 and assessment/v2. They
 bind the confirmed scope, post-fix snapshot, and current snapshot and require
 separate agent coverage reviews after fixes and at assessment. A need for more
 files or a mistaken target produces an incomplete result with preserved work and
