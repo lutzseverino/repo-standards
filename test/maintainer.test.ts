@@ -7,7 +7,8 @@ import { join, resolve } from 'node:path';
 import test from 'node:test';
 import type { TestContext } from 'node:test';
 
-// Exercise maintainer commands, replacing only external executables and HTTP.
+// Exercise maintainer commands, replacing only external executables, HTTP and,
+// where a test depends on time, the clock.
 // These simulations are never public-acquisition or publication evidence.
 function fixture(t: TestContext) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-maintainer-')));
