@@ -22,22 +22,23 @@ Once implementation and focused checks are ready, open the PR so CI and the
 independent reviews run alongside each other. Do not wait for the reviews or a
 full local test run before opening the PR.
 
-CI runs `pnpm validate` on macOS and Linux for every PR: typechecking, building,
-packing, and installing the npm package into temporary directories, then
-testing the installed public CLI against temporary Git repositories. Passing
-full CI satisfies the full-suite requirement; duplicating it locally is optional.
-Run additional local tests to diagnose failures when needed.
+CI runs `pnpm validate` on macOS and Linux for every PR: typechecking,
+building, packing, and installing the npm package into temporary directories,
+then testing the installed public CLI against temporary Git repositories.
+Passing full CI satisfies the full-suite requirement; duplicating it locally is
+optional. Run additional local tests to diagnose failures when needed.
 
 ### Review tiers
 
 Review depth follows the kind of change. A PR that mixes kinds, or whose kind
-is unclear, takes the product tier.
+is unclear, takes the tier for product code and behavior. Every tier requires
+the same checks; the tiers differ only in review depth.
 
 | Change kind | Reviews | Checks |
 | --- | --- | --- |
-| Documentation-only | One independent review | Required CI checks green on the final commit |
-| Exact update of this repository's own adoption | One independent review | Required CI checks green on the final commit |
-| Product code and behavior | Independent Standards and Spec reviews | Required CI checks green on the final commit, including macOS and Linux validation |
+| Documentation-only | One independent review | Required CI checks, including macOS and Linux validation, green on the final commit |
+| Exact update of this repository's own adoption | One independent review | Required CI checks, including macOS and Linux validation, green on the final commit |
+| Product code and behavior | Independent Standards and Spec reviews | Required CI checks, including macOS and Linux validation, green on the final commit |
 
 - **Documentation-only** changes touch only documentation: guides, ADRs, the
   glossary, READMEs, and acceptance records. They change no source, tests,

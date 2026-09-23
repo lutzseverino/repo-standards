@@ -48,8 +48,8 @@ From release 2.0.0 onward, each acceptance record is a dated directory under
   it covers (passed, failed, or outstanding), and its limitations.
 - The identities that bind the record to what was evaluated, listed in the
   README: CLI and standards pins, source and profile, package integrity,
-  installed-skill hashes, inspection identities, adoption run identities, and
-  the GitHub Actions workflow run IDs that hold the raw captures.
+  installed-skill hashes, inspection identities, adoption run IDs, and the
+  GitHub Actions workflow run IDs that hold the raw captures.
 - The tool's summary output, saved verbatim with one Markdown file per summary:
   `inspect --summary` for each confirmed proposal and `status --summary` for
   each completed run, for example `status-summary.md`.
@@ -57,7 +57,7 @@ From release 2.0.0 onward, each acceptance record is a dated directory under
 Raw captures, such as JSON reports, command output, inventories, diffs, and
 evidence files, are not committed. They live as artifacts of the workflow run
 that produced them, and the README references each by workflow run ID and
-artifact name. A workflow run ID is distinct from an adoption run identity.
+artifact name. A workflow run ID is distinct from an adoption run ID.
 Artifacts expire with the repository's artifact retention; the committed
 identities and summaries are the durable record. Captures made outside a
 workflow, such as a local agent session's transcript, stay outside the
@@ -166,10 +166,11 @@ Keep deployment status unverified. Use the shared CLI and skill for both.
 ## Record evidence
 
 Capture OS/tool versions, source and CLI pins, package and installed-skill
-hashes, inspection/confirmation identities, adoption run identities, initial
-handoff, submitted assessment, final report, status evidence, project diff
-(including new files), and command outputs supporting contextual claims. Compare employer contribution
-bytes, initial/final HEAD and index; capture the uncommitted Git status.
+hashes, inspection/confirmation identities, adoption run IDs, initial handoff,
+submitted assessment, final report, status evidence, project diff (including
+new files), and command outputs supporting contextual claims. Compare employer
+contribution bytes, initial/final HEAD and index; capture the uncommitted Git
+status.
 Follow [Review completed outputs](../docs/usage/adoption.md#review-completed-outputs):
 include tracked changes and every non-ignored untracked file in content diffs
 or explicit content inspection, preserving binary bytes and executable state.
