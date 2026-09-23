@@ -10,7 +10,7 @@ import { formats, rejectRetiredRecords } from './formats.js';
 import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
 import { decodeRecordedState } from './recorded-state.js';
-import { latestRetainedScopeRun, type ScopeHistoryRun } from './scope-evidence.js';
+import { latestRetainedScopeRun, scopeChanges, type ScopeHistoryRun } from './scope-evidence.js';
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
 import { unifiedDiff } from './unified-diff.js';
@@ -423,20 +423,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         .flatMap(declaration => declaration.discovery ? [[declaration.id, declaration.discovery]] : [])),
       files: previous.files,
     }, { declarations: profile.declarations, resolved: resolved.declarations, inputs }) : undefined;
-    let scopeChanges: { id: string; additions: string[]; removals: string[] }[] | undefined;
-    if (previous && (!discoveryDeclarations.length || proposal)) {
-      const priorIds = previous.historicalScope?.sourceResolved?.declarations?.filter(declaration => declaration.discovery).map(declaration => declaration.id) ?? [];
-      const currentIds = discoveryDeclarations.map(declaration => declaration.id);
-      scopeChanges = [...new Set([...priorIds, ...currentIds])].sort().flatMap(id => {
-        const oldDeclaration = previous.historicalScope?.resolved?.declarations?.find(declaration => declaration.id === id);
-        const newDeclaration = resolved.declarations.find(declaration => declaration.id === id);
-        const oldPaths = priorIds.includes(id) && oldDeclaration?.kind === 'repository' ? oldDeclaration.targets?.paths ?? [] : [];
-        const newPaths = currentIds.includes(id) && newDeclaration?.kind === 'repository' ? newDeclaration.targets.paths : [];
-        const additions = newPaths.filter(path => !oldPaths.includes(path)).sort();
-        const removals = oldPaths.filter(path => !newPaths.includes(path)).sort();
-        return additions.length || removals.length ? [{ id, additions, removals }] : [];
-      });
-    }
+    const changedScope = previous && (!discoveryDeclarations.length || proposal) ? scopeChanges(previous.historicalScope, { sourceResolved: profile, resolved }) : undefined;
     const report = {
       format: formats.inspection,
       ...(discovery ? { discovery, sourceResolved: profile } : {}),
@@ -449,7 +436,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       systemSkill: { target: '.agents/skills/adopt-standards', action: systemSkillAction },
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
       ...(update ? { update, previousSelection: previous!.selection, retired, ...classified } : {}),
-      ...(scopeChanges ? { scopeChanges } : {}),
+      ...(changedScope ? { scopeChanges: changedScope } : {}),
     };
     if (scopeObservation) {
       const finalHead = git(root, ['rev-parse', '--verify', 'HEAD'], undefined, 30_000);

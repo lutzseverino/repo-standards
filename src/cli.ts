@@ -6,13 +6,15 @@ import { inspect } from './inspection.js';
 import { ProductError } from './errors.js';
 import { abandon, inspectRetained, resume, start, startRetained, status } from './adoption.js';
 import { outdated } from './outdated.js';
+import { inspectionSummary, statusSummary } from './summary.js';
+import type { InspectionReport, StatusRecord } from './summary.js';
 
 const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
 const args = process.argv.slice(2);
 if (args.length === 1 && args[0] === '--version') {
   console.log(version);
 } else if (args.length === 0 || (args.length === 1 && args[0] === '--help')) {
-  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json]\n       repo-standards outdated [--project <directory>] [--json]\n\nAn update is one confirmed run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project.');
+  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json | --summary]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json | --summary]\n       repo-standards outdated [--project <directory>] [--json]\n\nAn update is one confirmed run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project. --summary renders an inspection or status as Markdown instead of JSON.');
 } else if (args[0] === 'outdated') {
   const flags = new Map<string, string>();
   for (let index = 1; index < args.length; index++) {
@@ -32,10 +34,11 @@ if (args.length === 1 && args[0] === '--version') {
     const flags = new Map<string, string>();
     for (let index = 1; index < args.length; index++) {
       const key = args[index]!;
-      if ((key === '--json' || (key === '--retry' && args[0] === 'resume')) && !flags.has(key)) { flags.set(key, 'true'); continue; }
+      if ((key === '--json' || (key === '--retry' && args[0] === 'resume') || (key === '--summary' && ['inspect', 'status'].includes(args[0]!))) && !flags.has(key)) { flags.set(key, 'true'); continue; }
       if (!['--project', ...(['status', 'resume', 'abandon'].includes(args[0]!) ? [] : ['--source', '--standards-version', '--profile']), ...(['inspect', 'start'].includes(args[0]!) ? ['--scope'] : []), ...(args[0] === 'start' ? ['--confirm'] : []), ...(args[0] === 'resume' ? ['--assessment'] : [])].includes(key) || flags.has(key) || !args[index + 1] || args[index + 1]!.startsWith('--')) throw new ProductError('USAGE', `Unknown, duplicate, or incomplete option: ${key}. Use --help.`);
       flags.set(key, args[++index]!);
     }
+    if (flags.has('--summary') && flags.has('--json')) throw new ProductError('USAGE', 'Use either --summary or --json, not both.');
     if (flags.has('--retry') && flags.has('--assessment')) throw new ProductError('USAGE', 'Retry requests renewed contextual work; submit assessment separately after retry.');
     const selectionKeys = ['--source', '--standards-version', '--profile'];
     const selectionCount = selectionKeys.filter(key => flags.has(key)).length;
@@ -44,7 +47,8 @@ if (args.length === 1 && args[0] === '--version') {
     if (args[0] === 'start' && !flags.has('--confirm')) throw new ProductError('CONFIRMATION_REQUIRED', 'Inspect the selection, review its changes, and pass its identity with --confirm <identity> after explicit maintainer confirmation.');
     const options = { source: flags.get('--source')!, standardsVersion: flags.get('--standards-version')!, profile: flags.get('--profile')!, project: flags.get('--project') ?? '.', ...(flags.has('--scope') ? { scope: flags.get('--scope')! } : {}) };
     const report = args[0] === 'abandon' ? abandon(options.project, version) : args[0] === 'resume' ? await resume(options.project, version, flags.get('--assessment'), flags.has('--retry')) : args[0] === 'status' ? status(options.project) : args[0] === 'start' ? retained ? await startRetained(options.project, version, flags.get('--confirm')!, options.scope) : await start(options, version, flags.get('--confirm')!) : retained ? await inspectRetained(options.project, version, options.scope) : await inspect(options, version);
-    console.log(JSON.stringify(report, null, 2));
+    if (flags.has('--summary')) process.stdout.write(args[0] === 'status' ? statusSummary(report as StatusRecord) : inspectionSummary(report as InspectionReport));
+    else console.log(JSON.stringify(report, null, 2));
     if ('outcome' in report && report.outcome === 'incomplete') process.exitCode = 1;
   } catch (error) {
     const diagnostic = error instanceof ProductError ? { code: error.code, message: error.message, ...(error.details === undefined ? {} : { details: error.details }) } : { code: 'INSPECTION_FAILED', message: (error as Error).message };

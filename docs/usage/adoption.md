@@ -43,6 +43,11 @@ candidate selection. The candidate can change the CLI pin, the standards pin,
 the source, the profile, any combination of them, or none of them. The
 inspection report lists every changed component together with the previous
 selection, and every update uses the same inspect, confirm, and start sequence.
+The report also states whether the update is an exact update, which changes
+only exact content, skills, or the selection, or a contextual update, which
+changes guidance, discovery guidance, operations, retired declarations, or
+confirmed scope; see [update class](inspection.md#report-and-inspection-identity).
+`inspect --summary` renders the report as a [Markdown proposal](inspection.md#markdown-summary).
 
 To select a standards version, source, or profile, pass all three source flags.
 With the currently pinned CLI:
@@ -343,6 +348,25 @@ outputs themselves. Do not stage files (including intent-to-add) to expose their
 contents. Confirm HEAD, index entries and the working files remain unchanged
 across review, and report any unreadable or unreviewed output explicitly. Only
 the maintainer's normal workflow stages or commits the completed adoption.
+
+## Summarize status
+
+`status --summary` renders the status record as Markdown on stdout instead of
+JSON. After a complete run it is the record of that run: the selection, every
+operation with its result and message, the paths each fix, agent, or check
+interval changed, the discovered-scope additions and removals the run made, and
+the run, inspection, HEAD-at-start, and completion identities. During an active
+run it renders the run's selection, outcome, phase, execution and reason, its
+completed and uncertain work, operations and results, changed paths, next
+action, and identities. Abandoned runs and a state error are listed when
+present. The same record renders the same bytes, the summary describes the
+record without prescribing anything, and combining `--summary` with `--json` is
+a usage error.
+
+The JSON status record of a complete discovery-backed adoption includes
+`scopeChanges`: the additions and removals by declaration that its last complete
+run made relative to the run before it, read from the retained scope evidence,
+or every confirmed path for the first discovery-backed run.
 
 ## Adopt afresh over installed content
 

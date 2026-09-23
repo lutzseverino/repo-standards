@@ -9,6 +9,7 @@ import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { ProductError } from './errors.js';
 import { formats, recordPath, rejectRetiredRecords, requireFormat } from './formats.js';
 import { observationIdentity } from './scope-observation.js';
+import { latestScopeChanges } from './scope-evidence.js';
 import { observe } from './inspection.js';
 import type { Content, HashInventory, InspectOptions, Observation, inspect, inspectForStart } from './inspection.js';
 import { decodeRecordedState } from './recorded-state.js';
@@ -287,9 +288,10 @@ export function status(project: string) {
   if (!existsSync(join(root, '.repo-standards/state.json'))) return { format, selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
   try {
     const { state, pinned } = recordedState(root);
+    const changedScope = retainedScopeChanges(root, pinned.files);
     return { format, ...committedEvidenceReport(state),
       selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
-      checks: state.checks, assessments: state.assessments, active, abandoned, evidence: 'historical' };
+      checks: state.checks, assessments: state.assessments, ...(changedScope ? { scopeChanges: changedScope } : {}), active, abandoned, evidence: 'historical' };
   } catch (error) {
     if (!(error instanceof ProductError) || error.code !== 'STATE_INTEGRITY' || !abandoned.length) throw error;
     const lockFile = safe(root, '.repo-standards/lock.json');
@@ -301,6 +303,19 @@ export function status(project: string) {
       lastComplete: incomplete?.previousComplete?.lastComplete ?? null, active, abandoned, evidence: 'historical',
       stateError: { code: error.code, message: error.message } };
   }
+}
+
+// The discovered-scope changes of the last complete run, from the retained
+// scope evidence its lock records.
+function retainedScopeChanges(root: string, files: Record<string, Baseline>) {
+  const path = '.repo-standards/inputs/scope-history.json';
+  if (!Object.hasOwn(files, path)) return undefined;
+  const history = safe(root, path);
+  if (history.type !== 'file' || history.sha256 !== files[path]!.sha256) throw new ProductError('STATE_INTEGRITY', `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.`);
+  let value: unknown;
+  try { value = JSON.parse(Buffer.from(history.content, history.encoding).toString('utf8')); }
+  catch { throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.'); }
+  return latestScopeChanges(value);
 }
 
 export function recordedState(root: string) {
