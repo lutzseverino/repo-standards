@@ -11,6 +11,7 @@ Choose the row that matches the observed state:
 
 | State | Next action |
 | --- | --- |
+| A `Release` run is still queued or running | Wait for it to finish before inspecting or retrying anything. The status helper below reports this as `in-progress` with a wait action. |
 | New version, no publication attempted | Complete the trusted-publisher setup below, update the package and standalone authoring guide to the same exact version, then dispatch `Release` at the reviewed commit. |
 | A publication attempt failed or its outcome is uncertain | Follow **Recover a publication** below before dispatching another publishing run. |
 | npm and the matching GitHub assets are already published | Dispatch `Release` with `verify_published: true` and the exact published version. |
@@ -70,7 +71,8 @@ The `Release` workflow is manually dispatched at the reviewed commit with its
 exact package version. It validates on macOS and Linux, produces one bundle,
 authenticates through OIDC, publishes its tarball, and attaches that bundle to the
 matching GitHub `v<version>` release. The workflow then runs public npm smoke
-checks on both systems and retains JSON evidence as workflow artifacts.
+checks on both systems, after a bounded wait for registry propagation described
+in **Published acceptance**, and retains JSON evidence as workflow artifacts.
 It refuses an existing Git tag; inspect any partial previous publication before
 retrying. An npm version cannot be overwritten, so a failed later step needs
 explicit recovery using the original artifacts, not another publish attempt.
@@ -90,6 +92,10 @@ its hashes and npm integrity, resolves the public tag, and compares existing
 release assets. It writes `status.json` beside the bundle and prints one exact
 next action. It performs no publication or remote changes. An unknown or
 contradictory state exits nonzero with evidence, without a publication command.
+While the original run is still queued or running, including when its own
+failure step points here, the helper reports `in-progress` with the run status
+and a `gh run watch` action, exits zero, and inspects nothing further. Once
+the run has finished, inspect again with a fresh destination.
 Preserve the output directory; each inspection requires a fresh destination.
 The verification action uses the current checkout's branch, so ensure that the
 reviewed workflow/helper changes are pushed there before dispatching it.
@@ -201,6 +207,9 @@ Inspect `public-installation.json`, `public-author-installation.json`, and
 `public-api-quota.json` in the failed job's uploaded artifacts. The author helper
 retains selected headers on failed HTTP responses; both installation helpers
 record assertion failures and print a retry command with a fresh evidence path.
+A propagation failure in `public-installation.json` names the version or asset
+URL that never appeared and the elapsed wait; its `propagation.attempts` show
+each observation. Confirm publication with the status helper before retrying.
 The quota observation is advisory and cannot prevent the actual checks running.
 A quota observation is a snapshot, not a
 reservation of requests. GitHub's anonymous limits are shared by source IP;
@@ -227,7 +236,18 @@ Run `node acceptance/public-installation.ts <version> <evidence.json>` on macOS
 and Linux after publication. It installs the public package outside a project,
 validates packaged examples, discovers the public learning source, and exercises
 explicit and omitted bootstrap versions without project mutation. It uses real
-npm and GitHub, with no acquisition fixtures for those public paths. It also
+npm and GitHub, with no acquisition fixtures for those public paths.
+
+Publication reaches the registry and release downloads eventually, so before
+its assertions the script polls for the exact version's npm `dist` metadata,
+then the release's `release.json` and `repo-standards-bootstrap` assets. It
+retries only not-found results (npm `E404`, HTTP 404) every 10 seconds; any
+other failure stops acceptance at once. The whole wait is bounded at 300
+seconds from the first observation, and the last attempt runs at the bound. A
+subject still missing then fails acceptance with a diagnostic naming the
+version or asset URL and the elapsed wait. The `propagation` field of the
+evidence records the interval, the bound, and each attempt's subject,
+timestamp, elapsed time and result; the job log prints the same lines. It also
 validates the independently authored Wayfinder source from the clean workflow
 checkout and records the checkout commit and source tree identity; this is
 public-package/local-source validation, not live public-source acquisition. Keep

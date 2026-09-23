@@ -41,10 +41,17 @@ async function request(url: string) {
   catch { throw new Error(`Cannot reach ${url}; publication state is unknown.`); }
 }
 
-try {
+async function inspect(runId: string) {
   const run = github(`actions/runs/${runId}`);
   assert.equal(run.path, '.github/workflows/release.yml', 'The original run must use release.yml');
   assert.match(run.head_sha, /^[a-f0-9]{40}$/, 'The original run must identify its commit');
+  if (run.status !== 'completed') {
+    // Publication and its recovery step may still be running; nothing is settled yet.
+    report.state = 'in-progress';
+    report.runStatus = run.status;
+    report.nextAction = `Wait for the run to finish, for example with ${command(['gh', 'run', 'watch', runId, '--repo', repository])}, then rerun release-status with a fresh output directory. Do not publish, upload or dispatch while the run is in progress.`;
+    return;
+  }
   const { jobs } = github(`actions/runs/${runId}/jobs?per_page=100`);
   for (const name of ['validate (ubuntu-latest)', 'validate (macos-latest)']) {
     assert.ok(jobs.some((job: { name: string; conclusion: string }) => job.name === name && job.conclusion === 'success'),
@@ -156,6 +163,10 @@ try {
         '--ref', branch.stdout.trim(), '-f', `version=${bundle.version}`, '-F', 'verify_published=true']);
     }
   }
+}
+
+try {
+  await inspect(runId);
 } catch (error) {
   report.failure = error instanceof Error ? error.message : 'Release inspection failed';
   process.exitCode = 1;
