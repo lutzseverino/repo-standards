@@ -444,6 +444,19 @@ ${result}`);
   // Beside the journal, the run keeps only the one observation its last interval ends at.
   const observations = () => readdirSync(join(f.project.root, '.git')).filter(name => name.startsWith('repo-standards-run.lock.observation.'));
   assert.deepEqual(observations(), [`repo-standards-run.lock.observation.${record.observations.at(-1).before.slice('sha256:'.length)}`]);
+  // Losing that observation is reported by status and blocks recovery until it is restored.
+  const kept = join(f.project.root, '.git', observations()[0]!);
+  const keptBytes = readFileSync(kept);
+  const mirror = join(f.project.root, '.repo-standards/local/run.json');
+  const mirrored = readFileSync(mirror);
+  writeFileSync(kept, '{}');
+  assert.ok(f.run(['status', '--json']).report.active.uncertain.some((message: string) => message.includes('observation the run last recorded changed')));
+  rmSync(kept);
+  assert.ok(f.run(['status', '--json']).report.active.uncertain.some((message: string) => message.includes('observation the run last recorded is missing')));
+  assert.match(f.run(['resume', '--json']).report.reason, /STATE_INTEGRITY.*observation the run last recorded is missing/);
+  writeFileSync(kept, keptBytes);
+  writeFileSync(journal, recorded);
+  writeFileSync(mirror, mirrored);
   writeFileSync(journal, JSON.stringify({ ...record, observations: record.observations.map((interval: object) => ({ ...interval, before: { files: {} } })) }));
   for (const command of [['status'], ['resume']]) assert.equal(f.run([...command, '--json']).report.errors[0].code, 'STATE_INTEGRITY', command[0]);
   writeFileSync(journal, recorded);

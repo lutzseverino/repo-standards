@@ -289,6 +289,8 @@ export function status(project: string) {
   const format = formats.status;
   if (active) {
     try { active.changes = actualChanges(root, active.affected); } catch { active.uncertain.push('Current project changes could not be fully read.'); }
+    // Recovery needs the observation the last interval ends at; report its loss now, not at the next resume.
+    if (active.observations.length) try { readObservation(root, active); } catch (error) { active.uncertain.push((error as Error).message); }
     return { format, selection: active.selection, lastComplete: active.previousComplete?.lastComplete ?? null, active,
       execution: executing(lock) || (active.processGroup && processGroupAlive(active.processGroup, active.processGroupIdentity)) ? 'active' : 'interrupted', abandoned, evidence: 'historical' };
   }

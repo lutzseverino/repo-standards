@@ -172,7 +172,9 @@ Only the one observation the last interval ends at, its `before` while open or
 its `after` once closed, is kept beside the run record in Git's working-tree
 metadata, named by its identity, so a later command can close or continue that
 interval. It is replaced as the run advances and removed at completion or
-abandonment.
+abandonment. When it is missing or altered, `status` reports that in
+`uncertain` and `resume` fails with `STATE_INTEGRITY`; abandon the run to keep
+its evidence.
 
 Adjacent observations are compared across operation and handoff boundaries;
 work between author invocations has its own agent interval. Named file scope
