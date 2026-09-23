@@ -7,10 +7,11 @@ import { tmpdir } from 'node:os';
 import type { Assessment, ScopeConfirmation } from './assessment.js';
 import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { ProductError } from './errors.js';
+import { formats, recordPath, rejectRetiredRecords, requireFormat } from './formats.js';
 import { observe } from './inspection.js';
 import type { Content, InspectOptions, Observation, inspect } from './inspection.js';
 import { decodeRecordedState } from './recorded-state.js';
-import { carriedRuns, committedEvidenceReport, committedStatusFormat, completedEvidence, type CommittedRun } from './work-evidence.js';
+import { carriedRuns, committedEvidenceReport, completedEvidence, type CommittedRun } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, safe, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
@@ -25,7 +26,7 @@ const pendingWork = {
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: 'retained'; project: string; scope?: string };
 export interface Run {
-  format: 'repo-standards/run/v2'; id: string; inspection: string;
+  format: typeof formats.run; id: string; inspection: string;
   selection: Inspection['selection'];
   affected: Record<string, Observation>;
   prerequisites: PrerequisiteEvidence[]; operations: OperationEvidence[];
@@ -41,7 +42,7 @@ export interface Run {
 }
 
 export interface WorkRequest {
-  format: 'repo-standards/work-request/v2'; run: string; selection: string; snapshot: string;
+  format: typeof formats.workRequest; run: string; selection: string; snapshot: string;
   scope?: ScopeConfirmation & { proposal: NonNullable<Inspection['discovery']>['proposal'] };
   declarations: { id: string; guidance: Inspection['guidance'][number]; discovery?: NonNullable<Inspection['discovery']>['declarations'][number]; allowedTargets: { paths: string[]; directories: string[] } }[];
   requiredEvidence: string[];
@@ -68,9 +69,7 @@ function persistInstallation(root: string, run: Run, installation: Installation)
 
 function readInstallation(root: string, run: Run): Installation {
   if (!run.continuation) throw new ProductError('RESUME_UNAVAILABLE', 'Installation was not prepared. Abandon this run, inspect again, and confirm a new start.');
-  const lock = lockPath(root);
-  const path = `${lock}.context.${run.continuation}`;
-  const content = readFileSync(existsSync(path) ? path : `${lock}.context`, 'utf8');
+  const content = readFileSync(`${lockPath(root)}.context.${run.continuation}`, 'utf8');
   if (hash(content) !== run.continuation) throw new ProductError('STATE_INTEGRITY', 'Saved installation changed. Preserve the run and restore its recorded state.');
   return JSON.parse(content) as Installation;
 }
@@ -154,8 +153,8 @@ function clearStoppedProcess(run: Run) {
   delete run.processGroupIdentity;
 }
 
-// The prior complete run's work evidence is carried forward in the compact
-// committed form, compacting any legacy full-map evidence it still carries.
+// The prior complete run's work evidence is carried forward unchanged: the
+// state it was read from is already in the single committed format.
 function completeRunHistory(installation: Installation): CommittedRun[] {
   const previous = installation.transitional?.['.repo-standards/state.json'];
   if (!previous) return [];
@@ -170,19 +169,32 @@ function canResumeAssessment(run: Run) {
   );
 }
 
-function abandonedReports(lock: string): Run[] {
+// Run records, active or archived after abandonment, are read in their single
+// format only.
+function readRun(root: string, path: string): Run {
+  const where = recordPath(root, path);
+  let run: unknown;
+  try { run = JSON.parse(readFileSync(path, 'utf8')); }
+  catch { throw new ProductError('STATE_INTEGRITY', `The adoption run record ${where} cannot be read. Restore the recorded run.`); }
+  requireFormat(where, run, formats.run);
+  if ((run as Partial<Run> | null)?.format !== formats.run) throw new ProductError('STATE_INTEGRITY', `The adoption run record ${where} failed integrity validation. Restore the recorded run.`);
+  return run as Run;
+}
+
+function abandonedReports(root: string, lock: string): Run[] {
   const directory = join(dirname(lock), 'repo-standards-reports');
   if (!existsSync(directory)) return [];
-  return readdirSync(directory).sort().filter(name => name.endsWith('.json')).map(name => JSON.parse(readFileSync(join(directory, name), 'utf8')) as Run);
+  return readdirSync(directory).sort().filter(name => name.endsWith('.json')).map(name => readRun(root, join(directory, name)));
 }
 
 export function abandon(project: string, cliVersion: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
+  rejectRetiredRecords(root, lock);
   const release = acquireWorker(lock);
   try {
     if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to abandon.');
-    const run = JSON.parse(readFileSync(lock, 'utf8')) as Run;
+    const run = readRun(root, lock);
     if (run.selection.cli.version !== cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
     if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before abandonment.`);
     if (run.outcome === 'complete') throw new ProductError('ALREADY_COMPLETE', 'This adoption completed before interruption. Use resume --retry to verify and release its remaining progress record.');
@@ -213,9 +225,10 @@ export function abandon(project: string, cliVersion: string) {
 export function status(project: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
-  const abandoned = abandonedReports(lock);
-  const active = existsSync(lock) ? JSON.parse(readFileSync(lock, 'utf8')) as Run : null;
-  const format = active?.observations || abandoned.some(run => run.observations) ? 'repo-standards/status/v2' : 'repo-standards/status/v1';
+  rejectRetiredRecords(root, lock);
+  const abandoned = abandonedReports(root, lock);
+  const active = existsSync(lock) ? readRun(root, lock) : null;
+  const format = formats.status;
   if (active) {
     try { active.changes = actualChanges(root, active.affected); } catch { active.uncertain.push('Current project changes could not be fully read.'); }
     return { format, selection: active.selection, lastComplete: active.previousComplete?.lastComplete ?? null, active,
@@ -224,8 +237,7 @@ export function status(project: string) {
   if (!existsSync(join(root, '.repo-standards/state.json'))) return { format, selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
   try {
     const { state, pinned } = recordedState(root);
-    return { format: committedStatusFormat(state) ?? (state.observations ? 'repo-standards/status/v2' : format),
-      ...committedEvidenceReport(state),
+    return { format, ...committedEvidenceReport(state),
       selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
       checks: state.checks, assessments: state.assessments, active, abandoned, evidence: 'historical' };
   } catch (error) {
@@ -298,7 +310,7 @@ export class AdoptionRunSession {
     const root = this.#root;
     const previous = report.update !== undefined ? recordedState(root) : undefined;
     const recovering = this.#run;
-    const run: Run = recovering ?? { format: 'repo-standards/run/v2', observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, startInput,
+    const run: Run = recovering ?? { format: formats.run, observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, startInput,
       ...(previous ? { previousComplete: { selection: previous.pinned.selection, lastComplete: previous.state.lastComplete } } : {}),
       affected: { ...report.project.affected, [systemTarget]: report.project.systemSkill }, outcome: 'incomplete',
       prerequisites: [], operations: [], assessments: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],
@@ -451,7 +463,7 @@ export class AdoptionRunSession {
     const state = file(json({ ...completedEvidence(run, completeRunHistory(installation)),
       lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: report.project.head }, baselines: exactBaselines, skills,
       checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));
-    const completionLock = file(json({ format: 'repo-standards/lock/v1', selection: report.selection, inspection: run.inspection, files: durable, state: { sha256: state.sha256, executable: state.executable } }));
+    const completionLock = file(json({ format: formats.lock, selection: report.selection, inspection: run.inspection, files: durable, state: { sha256: state.sha256, executable: state.executable } }));
     run.completion = { state, lock: completionLock };
     run.phase = 'completion'; run.uncertain = ['Durable completion and final run-report persistence have not both succeeded.']; this.#save();
     write(root, '.repo-standards/lock.json', completionLock, run.id);
@@ -524,6 +536,7 @@ export class AdoptionRunSession {
   static async scope(root: string, mode: 'start' | 'resume', callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>,
     resume?: { cliVersion: string; retry: boolean; verify: VerifyInstallation }) {
     const lock = lockPath(root);
+    rejectRetiredRecords(root, lock);
     const release = acquireWorker(lock);
     const session = new AdoptionRunSession(root, mode);
     try {
@@ -531,7 +544,7 @@ export class AdoptionRunSession {
       let archivedFiles: Record<string, string> = {};
       if (resume) {
         if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to resume.');
-        const run = JSON.parse(readFileSync(lock, 'utf8')) as Run;
+        const run = readRun(root, lock);
         session.#run = run;
         if (run.selection.cli.version !== resume.cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
         if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before retry or abandonment.`);

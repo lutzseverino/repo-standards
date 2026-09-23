@@ -36,11 +36,14 @@ export function observationIdentity(observation: unknown) {
   return `sha256:${createHash('sha256').update(JSON.stringify(observation)).digest('hex')}`;
 }
 
-// Structural regression guard: no committed interval may carry an observation
-// map, and every closed interval must carry both observation identities.
+// Structural regression guard: committed state has the single state format, no
+// committed interval may carry an observation map, and every closed interval
+// must carry both observation identities.
 export function assertCompactWorkEvidence(state: ReturnType<typeof committedState>) {
-  const runs = [...(state.observations ? [{ label: 'current', observations: state.observations }] : []),
-    ...(state.history ?? []).map((run, index) => ({ label: `history[${index}]`, observations: run.observations }))];
+  assert.equal(state.format, 'repo-standards/state/v5');
+  assert.ok(Array.isArray(state.history), 'committed state must retain its ordered history');
+  const runs = [{ label: 'current', observations: state.observations! },
+    ...state.history!.map((run, index) => ({ label: `history[${index}]`, observations: run.observations }))];
   for (const run of runs) {
     assert.ok(Array.isArray(run.observations), `${run.label} must retain ordered intervals`);
     for (const [index, interval] of run.observations.entries()) {
@@ -95,20 +98,24 @@ export function assertCompactScopeEvidence(history: ReturnType<typeof committedS
   }
 }
 
-// The retained file an earlier release committed for the same runs: every run
-// in full, with the newest one also spread over the top level.
-export function legacyScopeHistory(runs: unknown[]) {
-  return { format: 'repo-standards/scope-history/v2', evidence: 'historical', ...runs.at(-1) as object, runs };
-}
-
-// Replace a retained input with the bytes an earlier release would have
-// committed and rebind the integrity lock to them.
+// Replace a retained input with other bytes and rebind the integrity lock to
+// them, so only the content under test differs from a committed adoption.
 export function rewriteRetainedInput(root: string, path: string, value: unknown) {
   const bytes = JSON.stringify(value, null, 2) + '\n';
   writeFileSync(join(root, path), bytes);
   const lockPath = join(root, '.repo-standards/lock.json');
   const lock = JSON.parse(readFileSync(lockPath, 'utf8')) as { files: Record<string, { sha256: string }> };
   lock.files[path]!.sha256 = createHash('sha256').update(bytes).digest('hex');
+  writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
+}
+
+// Replace the committed durable state and rebind the integrity lock to it.
+export function rewriteCommittedState(root: string, value: unknown) {
+  const bytes = JSON.stringify(value, null, 2) + '\n';
+  writeFileSync(join(root, '.repo-standards/state.json'), bytes);
+  const lockPath = join(root, '.repo-standards/lock.json');
+  const lock = JSON.parse(readFileSync(lockPath, 'utf8')) as { state: { sha256: string } };
+  lock.state.sha256 = createHash('sha256').update(bytes).digest('hex');
   writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
 }
 

@@ -1,4 +1,5 @@
 import { ProductError } from './errors.js';
+import { formats, requireFormat } from './formats.js';
 import type { Content, Observation } from './inspection.js';
 import { validExecutionEvidence, type ExecutionEvidence } from './work-evidence.js';
 
@@ -13,7 +14,7 @@ interface RecordedLock {
   format: string; selection: RecordedSelection; inspection: string;
   files: Record<string, Baseline>; state: Baseline;
 }
-// The execution-evidence slice and its version union belong to work evidence.
+// The execution-evidence slice and its validation belong to work evidence.
 interface RecordedState extends ExecutionEvidence {
   lastComplete: { run: string; inspection: string; completedAt: string; head: string };
   baselines: Record<string, Baseline>; skills: Record<string, string[]>;
@@ -28,7 +29,8 @@ export function decodeRecordedState(lock: Observation, observed: Observation) {
     pinned = JSON.parse(Buffer.from(lock.content, lock.encoding).toString('utf8'));
     state = JSON.parse(Buffer.from(observed.content, observed.encoding).toString('utf8'));
   } catch { throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state cannot be read. Restore the committed product state.'); }
-  if (pinned?.format !== 'repo-standards/lock/v1'
+  requireFormat('.repo-standards/state.json', state, formats.state);
+  if (pinned?.format !== formats.lock
     || pinned.state?.sha256 !== observed.sha256 || pinned.state.executable !== observed.executable
     || !pinned.selection || !pinned.files || !state?.lastComplete || !state.baselines || !state.skills
     || !Array.isArray(state.checks) || !Array.isArray(state.assessments)

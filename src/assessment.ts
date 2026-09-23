@@ -1,11 +1,12 @@
 import { permits } from './work-observation.js';
 import { ProductError } from './errors.js';
+import { formats } from './formats.js';
 import { targetObservation } from './inspection.js';
 
 export interface ScopeConfirmation { inspection: string; afterFixes: string }
 interface ScopeReview { status: 'valid' | 'blocked'; explanation: string; evidence: string[]; additionalPaths: string[] }
 export interface Assessment {
-  format: 'repo-standards/assessment/v2';
+  format: typeof formats.assessment;
   scope?: ScopeConfirmation; run: string; selection: string; snapshot: string;
   declarations: { id: string; status: 'satisfied' | 'blocked'; explanation: string; changedPaths: string[]; evidence: string[]; scopeValidity?: { afterFixes: ScopeReview; current: ScopeReview } }[];
 }
@@ -23,7 +24,7 @@ function path(value: string) { return !/^[A-Za-z]:|[\\\p{Cc}]/u.test(value) && v
 export function validateAssessment(root: string, run: { workRequest?: WorkRequest }, input: unknown, observation: { snapshot: string; changedPaths: string[] }): Assessment {
   const request = run.workRequest!;
   const discovery = request.scope !== undefined;
-  const format = 'repo-standards/assessment/v2';
+  const format = formats.assessment;
   if (!object(input) || !keys(input, ['format', 'run', 'selection', 'snapshot', 'declarations', ...(discovery ? ['scope'] : [])]) || input.format !== format
     || !text(input.run) || !text(input.selection) || !text(input.snapshot) || !Array.isArray(input.declarations)) {
     throw new ProductError('ASSESSMENT_FORMAT', `Expected a ${format} submission with run, selection, snapshot, declarations${discovery ? ' and scope' : ''}.`);

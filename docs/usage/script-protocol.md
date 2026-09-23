@@ -197,23 +197,21 @@ completion adds only its own run's evidence. Detailed logs remain local; the
 recorded outcomes and interval evidence survive a fresh checkout. The integrity
 lock remains `repo-standards/lock/v1` and binds the new state bytes.
 
-Every earlier committed state format stays readable, including full-map
-intervals committed as state v4 or earlier. The next complete adoption after a
-CLI update rewrites the state as v5, converting legacy intervals and full-map
-history entries by computing their identities and deltas from the stored maps, so
-fix, check and agent intervals stay distinguishable and ordered. No separate
-compaction command exists. A committed v5 state whose intervals carry
-observation maps, or whose closed interval is missing either identity, fails
-state integrity validation.
+State v5 is the only state format written and read, and a completion carries
+earlier `history` entries forward unchanged. A committed v5 state whose
+intervals carry observation maps, or whose closed interval is missing either
+identity, fails state integrity validation. A state, run record, or scope
+history in a retired format is rejected with `RETIRED_FORMAT` and never
+converted; the project
+[adopts fresh](adoption.md#adopt-fresh-from-a-retired-format).
 Retained inspection also checks exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
 empty-directory edits block updates before mutation.
-Retained inspection remains `repo-standards/inspection/v2` with
-`repo-standards/scope-history/v3` after discovery completion.
-Scope history v2 and earlier stay readable; the next complete adoption rewrites
-the file as v3, storing each discovery run once as its project observation
-without the derived evidence array and its named observation as a delta. The
-projected historical scope is unchanged.
+Retained inspection is `repo-standards/inspection/v2` with
+`repo-standards/scope-history/v3` after discovery completion, the only
+scope-history format: each discovery run is stored once as its project
+observation without the derived evidence array and its named observation as a
+delta.
 
 Confirmed discovery declarations are materialized into the existing target
 representation before execution. `allowedTargets.paths` is the confirmed file

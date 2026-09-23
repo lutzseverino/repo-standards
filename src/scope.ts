@@ -2,6 +2,7 @@ import { lstatSync, readFileSync, realpathSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve } from 'node:path';
 import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
+import { formats } from './formats.js';
 import { allowedTargets } from './execution.js';
 import type { ResolvedProfile, SourceProfile } from './model.js';
 import { Paths, type Target } from './paths.js';
@@ -11,7 +12,7 @@ import { observeScope, type Evidence } from './scope-observation.js';
 type Reference = Evidence | { kind: 'absence'; path: string };
 interface Candidate { path: string; decision: 'include' | 'exclude'; reason: string; evidence: Reference[] }
 interface Entry { id: string; paths: string[]; coverage: string; evidence: Reference[]; candidates: Candidate[]; unresolved: string[] }
-export interface ScopeProposal { format: 'repo-standards/scope/v1'; request: string; declarations: Entry[] }
+export interface ScopeProposal { format: typeof formats.scope; request: string; declarations: Entry[] }
 interface ScopeTargets { paths: string[]; directories: string[] }
 export type Scope = Record<string, ScopeTargets>;
 interface ScopeBlocker { code: string; message: string }
@@ -60,7 +61,7 @@ function readScope(path: string, root: string): ScopeProposal {
   readYaml(input, 'scope.json', diagnostics);
   if (diagnostics.length) invalid('Scope proposal contains duplicate keys or invalid structure.');
   const proposal = object(value, ['format', 'request', 'declarations']);
-  if (proposal.format !== 'repo-standards/scope/v1') invalid('Unsupported scope proposal format.');
+  if (proposal.format !== formats.scope) invalid('Unsupported scope proposal format.');
   return { format: proposal.format, request: text(proposal.request), declarations: list(proposal.declarations, value => {
     const entry = object(value, ['id', 'paths', 'coverage', 'evidence', 'candidates', 'unresolved']);
     return { id: text(entry.id), paths: list(entry.paths, text, text), coverage: text(entry.coverage), evidence: refs(entry.evidence),
@@ -158,7 +159,7 @@ export function validateScope(input: ScopeValidationInput) {
   const absence = proposal ? validateScopeEvidence(proposal, namedObservation!) : [];
   const blockers: ScopeBlocker[] = [];
   if (input.sourceResolved.declarations.some(declaration => 'discovery' in declaration)) {
-    if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: 'Interpret the discovery guidance and submit an evidence-backed repo-standards/scope/v1 proposal with inspect --scope.' });
+    if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: `Interpret the discovery guidance and submit an evidence-backed ${formats.scope} proposal with inspect --scope.` });
     if (proposal?.declarations.some(entry => entry.unresolved.length)) blockers.push({ code: 'UNRESOLVED_SCOPE', message: 'Resolve the reported discovery questions and inspect a revised proposal.' });
   }
 

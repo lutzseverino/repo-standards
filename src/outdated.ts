@@ -4,16 +4,15 @@ import { githubHeaders, isStableVersion } from './acquisition.js';
 import { file, json, projectRoot, safe, write } from './adoption-files.js';
 import type { RecordedSelection } from './recorded-state.js';
 import { ProductError } from './errors.js';
+import { formats } from './formats.js';
 import { git } from './inspection.js';
 import type { Observation } from './inspection.js';
 
 // Availability of a published CLI or standards version newer than each pin.
 // The command only reads the selection and writes its own ignored cache; any
 // failure to answer a pin degrades that pin to `unknown` instead of an error.
-const format = 'repo-standards/outdated/v1';
 const packageName = '@lutzseverino/repo-standards';
 const cachePath = '.repo-standards/cache/outdated.json';
-const cacheFormat = 'repo-standards/outdated-cache/v1';
 const cacheValidity = 24 * 60 * 60 * 1000;
 const lookupTimeout = 10_000;
 
@@ -78,7 +77,7 @@ function readCache(root: string): Record<string, Lookup> {
     const observed = safe(root, cachePath);
     if (observed.type !== 'file') return {};
     const cache = JSON.parse(Buffer.from(observed.content, observed.encoding).toString('utf8'));
-    return cache?.format === cacheFormat && typeof cache.lookups === 'object' && cache.lookups !== null ? cache.lookups : {};
+    return cache?.format === formats.outdatedCache && typeof cache.lookups === 'object' && cache.lookups !== null ? cache.lookups : {};
   } catch { return {}; }
 }
 
@@ -110,7 +109,7 @@ function pin(pinned: string, result: Answer) {
 function writeCache(root: string, lookups: Record<string, Lookup>) {
   try {
     const ignored = git(root, ['check-ignore', '--quiet', cachePath]);
-    if (ignored.status === 0) write(root, cachePath, file(json({ format: cacheFormat, lookups })));
+    if (ignored.status === 0) write(root, cachePath, file(json({ format: formats.outdatedCache, lookups })));
   } catch { /* The answer stands without a cache. */ }
 }
 
@@ -120,7 +119,7 @@ export async function outdated(project: string) {
   try { ({ root, selection } = selectionOf(project)); }
   catch (error) {
     const reason = error instanceof ProductError ? { code: error.code, message: error.message } : { code: 'INVALID_SELECTION', message: (error as Error).message };
-    return { format, cli: { package: packageName, pinned: null, update: 'unknown', reason },
+    return { format: formats.outdated, cli: { package: packageName, pinned: null, update: 'unknown', reason },
       standards: { repository: null, pinned: null, update: 'unknown', reason } };
   }
   const registry = process.env.npm_config_registry || 'https://registry.npmjs.org/';
@@ -133,7 +132,7 @@ export async function outdated(project: string) {
   if ([cli, standards].some(result => 'lookup' in result && !result.cached)) {
     writeCache(root, Object.fromEntries(Object.entries({ cli, standards }).flatMap(([name, result]) => 'lookup' in result ? [[name, result.lookup]] : [])));
   }
-  return { format,
+  return { format: formats.outdated,
     cli: { package: packageName, ...pin(selection.cli.version, cli) },
     standards: { repository: selection.standards.repository, ...pin(selection.standards.version, standards) } };
 }

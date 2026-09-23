@@ -8,6 +8,7 @@ import { stringify } from 'yaml';
 import { externalPath, hash } from './acquisition.js';
 import { allowedTargets, execute, operations, preflight } from './execution.js';
 import { ProductError } from './errors.js';
+import { formats } from './formats.js';
 import { git, hiddenIndexPaths, inspect, inventoryPaths, matchesInventory, observe, observeProductState, packagedSystemSkill, plannedInventory, productInventory } from './inspection.js';
 import type { InspectOptions, Observation } from './inspection.js';
 import { baselines, file, flatten, ignore, json, lockPath, projectRoot, safe, safeDirectory, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
@@ -22,7 +23,7 @@ const packageName = '@lutzseverino/repo-standards';
 function workRequest(root: string, run: Run, installation: Installation): WorkRequest {
   const { report } = installation;
   const discovery = report.discovery;
-  return { format: 'repo-standards/work-request/v2',
+  return { format: formats.workRequest,
     ...(discovery ? { scope: { inspection: run.inspection, afterFixes: installation.scopeAfterFixes!, proposal: discovery.proposal } } : {}), run: run.id, selection: `sha256:${hash(json(run.selection))}`,
     snapshot: workSnapshot(root, run, report.resolved),
     declarations: report.guidance.map(guidance => {
@@ -156,7 +157,7 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
     flatten(`.repo-standards/runtime/${name}`, value, files);
   }
   const durable = baselines(files);
-  files['.repo-standards/lock.json'] = file(json({ format: 'repo-standards/lock/v1', selection: report.selection, inspection: confirmation, files: durable }));
+  files['.repo-standards/lock.json'] = file(json({ format: formats.lock, selection: report.selection, inspection: confirmation, files: durable }));
   // An update replaces retained inputs and every still-declared skill as whole
   // trees, and the system skill with the runtime. Retired content stays.
   const replaceTrees = established ? ['.repo-standards/inputs', ...report.resolved.declarations

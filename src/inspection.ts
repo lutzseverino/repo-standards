@@ -6,6 +6,7 @@ import { homedir } from 'node:os';
 import { foldPath } from './paths.js';
 import { acquireSource, hash } from './acquisition.js';
 import { ProductError } from './errors.js';
+import { formats, rejectRetiredRecords } from './formats.js';
 import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
 import { decodeRecordedState } from './recorded-state.js';
@@ -103,6 +104,14 @@ export function targetObservation(root: string, target: string, blockers: Blocke
 
 // The system skill this exact CLI installs. Start verifies that the acquired
 // runtime package carries the same inventory.
+// The adoption run record lives at Git's path for this working tree, outside
+// tracked content.
+export function lockPath(root: string) {
+  const result = git(root, ['rev-parse', '--git-path', 'repo-standards-run.lock']);
+  if (result.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot locate the adoption run lock.');
+  return resolve(root, result.stdout.trim());
+}
+
 export function packagedSystemSkill() {
   return observe(fileURLToPath(new URL('../skills/adopt-standards', import.meta.url)));
 }
@@ -215,6 +224,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
   const location = git(resolve(options.project), ['rev-parse', '--show-toplevel']);
   if (location.status !== 0) throw new ProductError('GIT_REQUIRED', 'Inspection requires a Git working tree. Run git init in your project first.');
   const root = realpathSync(location.stdout.trim());
+  rejectRetiredRecords(root, lockPath(root));
   const previous = recordedAdoption(root);
   const source = retained ?? await acquireSource(options.source, options.standardsVersion, root);
   try {
@@ -367,7 +377,7 @@ export async function inspect(options: InspectOptions, cliVersion: string, retai
       });
     }
     const report = {
-      format: discovery ? 'repo-standards/inspection/v2' : 'repo-standards/inspection/v1',
+      format: formats.inspection,
       ...(discovery ? { discovery, sourceResolved: profile } : {}),
       selection: { cli: { package: '@lutzseverino/repo-standards', version: cliVersion }, standards: source.identity, profile: options.profile },
       source: validation.source, resolved, exact, guidance, operations, inputs, manifest: normalized,

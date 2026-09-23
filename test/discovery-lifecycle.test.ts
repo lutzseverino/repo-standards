@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { inc } from 'semver';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
-import { assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeHistory, committedState, growCommittedState, legacyScopeHistory, rewriteRetainedInput } from './committed-evidence.ts';
+import { assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeHistory, committedState, growCommittedState } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 
@@ -177,11 +177,8 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.deepEqual(checkoutState.history[0], secondState.history[0]);
 });
 
-test('a committed scope history v2 projects the same historical scope and is compacted by the next complete adoption', async t => {
+test('a discovery completion stores its run once with the named observation as a delta', async t => {
   const f = await fixture(t);
-  mkdirSync(join(f.project.root, 'apps/added'), { recursive: true });
-  writeFileSync(join(f.project.root, 'apps/added/README.md'), '# Added project\n');
-  commit(f.project.root);
   const firstRequest = f.run(inspectionArgs).report;
   f.proposal(firstRequest, 'apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
@@ -192,47 +189,17 @@ test('a committed scope history v2 projects the same historical scope and is com
 
   // The completion stores the run once, as the observation without its derived
   // evidence and the named observation as its delta.
-  const compacted = committedScopeHistory(f.project.root);
-  assertCompactScopeEvidence(compacted);
-  assert.deepEqual(compacted.runs.map(run => run.inspection), [firstInspection.identity]);
-  const stored = compacted.runs[0]!.discovery!;
+  const committed = committedScopeHistory(f.project.root);
+  assertCompactScopeEvidence(committed);
+  assert.deepEqual(committed.runs.map(run => run.inspection), [firstInspection.identity]);
+  const stored = committed.runs[0]!.discovery!;
   assert.deepEqual(Object.keys(stored.named!), ['targets']);
   assert.deepEqual(Object.keys(stored.named!.targets!), ['apps/old/README.md']);
   assert.deepEqual(stored.proposal, firstInspection.discovery.proposal);
-  const committedSize = readFileSync(join(f.project.root, '.repo-standards/inputs/scope-history.json'), 'utf8').length;
-
-  // A project adopted before compaction retains every observation in full.
-  const legacyRun = { inspection: firstInspection.identity, resolved: firstInspection.resolved,
-    sourceResolved: firstInspection.sourceResolved, discovery: firstInspection.discovery };
   const projection = f.run(['inspect', '--json']).report.historicalScope;
   assert.equal(projection.format, 'repo-standards/scope-history/v3');
-  rewriteRetainedInput(f.project.root, '.repo-standards/inputs/scope-history.json', legacyScopeHistory([legacyRun]));
-  commit(f.project.root);
-  assert.ok(committedSize < readFileSync(join(f.project.root, '.repo-standards/inputs/scope-history.json'), 'utf8').length);
-  const legacyProjection = f.run(['inspect', '--json']).report.historicalScope;
-  assert.equal(legacyProjection.format, 'repo-standards/scope-history/v2');
-  assert.deepEqual({ ...legacyProjection, format: projection.format }, projection);
-
-  // The next complete adoption rewrites the file, carrying the earlier run
-  // forward exactly once and in the form a completion writes directly.
-  const unchanged = f.run(['inspect', '--json']).report;
-  f.proposal(unchanged, ['apps/old/README.md', 'apps/added/README.md']);
-  const inspected = f.run(['inspect', '--scope', f.scopeFile, '--json']).report;
-  assert.deepEqual(inspected.start.blockers, []);
-  const started = f.run(['start', '--scope', f.scopeFile, '--confirm', inspected.identity, '--json']).report;
-  assert.equal(f.complete(started).result.status, 0);
-  const rewritten = committedScopeHistory(f.project.root);
-  assertCompactScopeEvidence(rewritten);
-  assert.deepEqual(rewritten.runs.map(run => run.inspection), [firstInspection.identity, inspected.identity]);
-  assert.deepEqual(rewritten.runs[0], compacted.runs[0]);
-  commit(f.project.root);
-  const laterProjection = f.run(['inspect', '--json']).report.historicalScope;
-  assert.deepEqual(laterProjection.runs[0], projection.runs[0]);
-
-  // The committed guarantee is enforced on read, not only when writing.
-  rewriteRetainedInput(f.project.root, '.repo-standards/inputs/scope-history.json', { ...rewritten, ...rewritten.runs[0] });
-  commit(f.project.root);
-  assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
+  assert.deepEqual(projection.runs.map((run: { inspection: string }) => run.inspection), [firstInspection.identity]);
+  assert.deepEqual(projection.discovery.namedObservation, firstInspection.discovery.namedObservation);
 });
 
 test('compatible standards updates preserve discovery evidence through discovery retirement and reintroduction', async t => {

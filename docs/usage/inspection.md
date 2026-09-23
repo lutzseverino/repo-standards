@@ -118,7 +118,9 @@ the tag-cache location must resolve outside the project, including via symlinks.
 
 ## Report and inspection identity
 
-The report has format `repo-standards/inspection/v1`:
+Every report has the single format `repo-standards/inspection/v2`. A profile
+with discovery declarations adds the `discovery` and `sourceResolved` fields
+described [below](#discover-contextual-file-scope-v2-sources):
 
 | Field | Meaning |
 | --- | --- |
@@ -239,7 +241,7 @@ stderr and exit 1; otherwise it forwards the invoked CLI's exit status.
 
 A selected repository declaration with `discovery` uses two read-only inspections.
 The first invocation uses the same source, version, profile and project flags
-shown above. It returns `repo-standards/inspection/v2` with discovery instructions,
+shown above. Its `repo-standards/inspection/v2` report adds discovery instructions,
 eligible evidence, a request identity, and `DISCOVERY_REQUIRED` in `start.blockers`.
 The report still includes exact changes, contextual guidance, and all operations.
 Unresolved declarations remain in `sourceResolved`; they do not manufacture
@@ -371,8 +373,9 @@ repo-standards start --source https://github.com/OWNER/STANDARDS \
 Start reconstructs the inspection before prerequisites and again before
 installation. Missing, invalid, unresolved, or stale scope cannot authorize
 mutation. Initial clean committed-project and prerequisite rules still apply.
-There is no separate mandatory scope confirmation. Explicit selections use
-inspection/v1; execution uses the [observed-scope contract](script-protocol.md#observed-scope-for-v2-adoption).
+There is no separate mandatory scope confirmation. Explicit-target selections
+produce the same report format without `discovery`; execution uses the
+[observed-scope contract](script-protocol.md#observed-scope-for-v2-adoption).
 Every update, including an unchanged selection, repeats this fresh discovery
 pass for every active discovery declaration: pass `--scope <file>` to the
 update commands described above and to the matching confirmed start. The
@@ -396,18 +399,16 @@ The committed file stores each discovery run once: the project observation
 without the evidence array it implies, and the named observation as the delta of
 the confirmed targets and any boundary entry naming them adds. Both are rebuilt
 on read with the product's existing derivation, and the newest run is projected
-at the top level as before, so this report's historical scope is unchanged.
-Scope-history v2 and every earlier format stay readable; the next complete
-adoption rewrites the file in the compact form and carries each earlier run
-forward once.
+at the top level. Scope-history v3 is the only format written and read.
 
 Retained inspection reads the committed durable state, which is
-`repo-standards/state/v5` after a complete adoption and echoed by `status` as
-`repo-standards/status/v5`. It also reads state v4 and every earlier format; the
-next complete adoption rewrites the state in the compact
-[work evidence](script-protocol.md#observed-scope-for-v2-adoption) form,
-keeping each complete run's last-complete record. The retained scope projection
-in this report is unchanged.
+`repo-standards/state/v5`, the only state format, with its
+[work evidence](script-protocol.md#observed-scope-for-v2-adoption) as
+identities and deltas; `status` echoes it as `repo-standards/status/v5`.
+Inspection rejects a committed state, retained scope history, or run record in
+a retired format with `RETIRED_FORMAT` before reading anything else; nothing is
+converted. [Adopt fresh](adoption.md#adopt-fresh-from-a-retired-format) to
+continue.
 
 A confirmed scope never changes during a run. When contextual work needs files
 outside it, or a confirmed target is mistaken, preserve the work, abandon the

@@ -68,11 +68,7 @@ export function projectRoot(project: string) {
   return result.stdout.trim();
 }
 
-export function lockPath(root: string) {
-  const result = git(root, ['rev-parse', '--git-path', 'repo-standards-run.lock']);
-  if (result.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot locate the adoption run lock.');
-  return resolve(root, result.stdout.trim());
-}
+export { lockPath } from './inspection.js';
 
 export function verifyFiles(root: string, files: Files) {
   for (const [path, expected] of Object.entries(files)) {
