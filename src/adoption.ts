@@ -297,7 +297,7 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
   const { report } = installation;
   const verifyInstalled = () => verifyInstallation(root, installation);
   // A resumed assessment is validated before the journal's violations are checked.
-  if (resumed) session.journal.continue({ check: false });
+  if (resumed) session.journal.continue({ requireAuthorized: false });
   verifyInstalled();
   if (resumed) {
     session.record({ type: 'assessment-started' });
@@ -313,7 +313,7 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
     if (accepted.declarations.some(entry => entry.scopeValidity && Object.values(entry.scopeValidity).some(review => review.status === 'blocked'))) throw new ProductError('SCOPE_INCOMPLETE', 'Agent scope review reports incomplete coverage after fixes or at assessment. Additional files are not authorized; preserve work and reconcile the reported scope problem.');
     if (accepted.declarations.some(entry => entry.status === 'blocked')) throw new ProductError('ASSESSMENT_BLOCKED', 'Agent reports blocked contextual work. Resolve the explanation and submit renewed evidence before checks.');
     session.record({ type: 'assessment-accepted' });
-    session.journal.check();
+    session.journal.requireAuthorized();
   }
   const operationStart = session.observation.operations.length;
   for (const phase of (resumed ? ['checks'] : ['fixes', 'checks']) as ('fixes' | 'checks')[]) {

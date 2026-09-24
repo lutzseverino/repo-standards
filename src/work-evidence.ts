@@ -240,17 +240,18 @@ export class WorkEvidenceJournal {
   // interval, never replay. An interrupted operation, one without a recorded
   // outcome, is marked interrupted. Restorable exact paths are exempt from
   // attribution once the caller has verified the immutable installation. The
-  // record is saved, then violations are checked unless the caller defers the
-  // check: a resumed assessment reports its own validation first, and
-  // abandonment preserves rather than reports.
-  continue({ interrupted = false, restorable, check = true }: { interrupted?: boolean; restorable?: Scope[string] | undefined; check?: boolean } = {}) {
+  // record is saved, then its intervals are required to be authorized unless
+  // the caller defers that: a resumed assessment reports its own validation
+  // first, and abandonment preserves rather than reports.
+  continue({ interrupted = false, restorable, requireAuthorized = true }: { interrupted?: boolean; restorable?: Scope[string] | undefined; requireAuthorized?: boolean } = {}) {
     if (this.#run.observations.length) this.#advance(this.#observe(), interrupted, restorable);
     this.#save();
-    if (check) this.check();
+    if (requireAuthorized) this.requireAuthorized();
   }
 
-  // Requires every recorded interval to have stayed within its authority.
-  check() { requireValidIntervals(this.#run.observations); }
+  // Requires every recorded interval to have stayed within its authority,
+  // reporting the first violation.
+  requireAuthorized() { requireValidIntervals(this.#run.observations); }
 
   // The paths agent work changed, excluding verified restoration of exact content.
   agentChanges() {

@@ -242,7 +242,7 @@ export function abandon(project: string, cliVersion: string) {
       // The archived report is never continued, so the journal keeps its final
       // observation in memory and neither saves nor checks it.
       const { resolved } = readInstallation(root, run).report;
-      new WorkEvidenceJournal(root, resolved, run, memoryStore(keptObservations(root))).continue({ interrupted: true, check: false });
+      new WorkEvidenceJournal(root, resolved, run, memoryStore(keptObservations(root))).continue({ interrupted: true, requireAuthorized: false });
     } catch { run.uncertain.push('The final abandoned observation could not be completed; earlier interval evidence is preserved.'); }
     run.archivedFiles = archiveRunEvidence(root, run);
     for (const operation of run.operations) for (const stream of ['stdout', 'stderr'] as const) {
