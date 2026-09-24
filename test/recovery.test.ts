@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { spawn } from 'node:child_process';
-import { existsSync, lstatSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { stringify } from 'yaml';
@@ -147,6 +147,41 @@ test('abandon preserves actual work, historical evidence and an accessible repor
   assert.deepEqual(status.abandoned[0].completed, started.completed);
   assert.equal(f.report(['resume', '--retry', '--json']).report.errors[0].code, 'NO_ACTIVE_RUN');
   assert.notEqual(f.report(f.startArgs).report.errors[0].code, 'ACTIVE_RUN');
+});
+
+test('abandon closes the last interval in its archived report and keeps no observation beside the journal', async t => {
+  const f = await fixture(t, { readme: { kind: 'file', target: 'README.md', guidance: 'guide.md' } });
+  f.report(f.startArgs);
+  const kept = () => readdirSync(join(f.project.root, '.git')).filter(name => name.startsWith('repo-standards-run.lock.observation.'));
+  const open = JSON.parse(readFileSync(join(f.project.root, '.git/repo-standards-run.lock'), 'utf8')).observations;
+  assert.equal(open.at(-1).phase, 'agent');
+  assert.equal(open.at(-1).after, undefined);
+  assert.equal(kept().length, 1);
+  writeFileSync(join(f.project.root, 'README.md'), 'Unfinished contextual work');
+  const abandoned = f.report(['abandon', '--json']).report;
+  assert.equal(abandoned.abandoned, true);
+  assert.deepEqual(abandoned.uncertain.filter((message: string) => message.includes('observation')), []);
+  const closed = abandoned.observations.at(-1);
+  assert.equal(abandoned.observations.length, open.length);
+  assert.equal(closed.before, open.at(-1).before);
+  assert.match(closed.after, /^sha256:[0-9a-f]{64}$/);
+  assert.deepEqual(Object.keys(closed.changes), ['README.md']);
+  assert.deepEqual(closed.violations, []);
+  assert.deepEqual(kept(), []);
+  assert.deepEqual(f.report(['status', '--json']).report.abandoned[0].observations, abandoned.observations);
+});
+
+test('abandon without the kept observation preserves earlier interval evidence and reports the uncertainty', async t => {
+  const f = await fixture(t, { readme: { kind: 'file', target: 'README.md', guidance: 'guide.md' } });
+  f.report(f.startArgs);
+  const open = JSON.parse(readFileSync(join(f.project.root, '.git/repo-standards-run.lock'), 'utf8')).observations;
+  for (const name of readdirSync(join(f.project.root, '.git'))) if (name.startsWith('repo-standards-run.lock.observation.')) rmSync(join(f.project.root, '.git', name));
+  writeFileSync(join(f.project.root, 'README.md'), 'Unfinished contextual work');
+  const abandoned = f.report(['abandon', '--json']).report;
+  assert.equal(abandoned.abandoned, true);
+  assert.ok(abandoned.uncertain.includes('The final abandoned observation could not be completed; earlier interval evidence is preserved.'), abandoned.uncertain);
+  assert.deepEqual(abandoned.observations, open);
+  assert.equal(readFileSync(join(f.project.root, 'README.md'), 'utf8'), 'Unfinished contextual work');
 });
 
 test('retry rejects installed edits and renews assessment even when project bytes stay the same', async t => {
