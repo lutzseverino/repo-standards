@@ -136,36 +136,39 @@ test('each change to guidance, discovery guidance, operations, retired declarati
   });
 });
 
+// Rewrite a retained file without rebinding the lock, restoring it after the test.
+function tamper(t: TestContext, root: string, path: string) {
+  const file = join(root, path);
+  const original = readFileSync(file);
+  t.after(() => writeFileSync(file, original));
+  writeFileSync(file, path.endsWith('.json') ? JSON.stringify({ ...JSON.parse(original.toString('utf8')), tampered: true }) : 'Tampered guidance\n');
+}
+
+const integrityError = (path: string) => ({ code: 'STATE_INTEGRITY', message: `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.` });
+
 test('tampered retained declarations, inputs and scope history fail every reader of the recorded adoption alike', async t => {
   const f = await adopted(t);
   for (const path of ['.repo-standards/inputs/resolved.json', '.repo-standards/inputs/scope-history.json', '.repo-standards/inputs/source/guidance.md']) await t.test(path, st => {
-    const file = join(f.root, path);
-    const original = readFileSync(file);
-    st.after(() => writeFileSync(file, original));
-    writeFileSync(file, path.endsWith('.json') ? JSON.stringify({ ...JSON.parse(original.toString('utf8')), tampered: true }) : 'Tampered guidance\n');
-    const expected = { code: 'STATE_INTEGRITY', message: `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.` };
+    tamper(st, f.root, path);
     for (const args of [['inspect', '--json'], versionArgs('v1.0.0'), ['start', '--confirm', 'sha256:unconfirmed', '--json'],
       ['start', ...versionArgs('v1.0.0').slice(1), '--confirm', 'sha256:unconfirmed'], ['status', '--json']]) {
       const { result, report } = f.run(args);
       assert.equal(result.status, 1, `${args.join(' ')}: ${result.stdout}`);
-      assert.deepEqual(report.errors, [expected], args.join(' '));
+      assert.deepEqual(report.errors, [integrityError(path)], args.join(' '));
     }
   });
 
   // A start interrupted before installation is restarted by resume, which reads
   // the recorded adoption again and fails on the same diagnostic.
-  await t.test('resume of an interrupted start', () => {
+  await t.test('resume of an interrupted start', st => {
     const path = '.repo-standards/inputs/resolved.json';
     const confirmed = f.inspect(['inspect', '--json']);
     const interrupted = filesystemFault(f.remote.support.root, f.env, 'prerequisites', `process.kill(process.pid, 'SIGKILL');`);
     assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
-    const file = join(f.root, path);
-    const original = readFileSync(file);
-    writeFileSync(file, JSON.stringify({ ...JSON.parse(original.toString('utf8')), tampered: true }));
+    st.after(() => f.run(['abandon', '--json']));
+    tamper(st, f.root, path);
     const { result, report } = f.run(['resume', '--retry', '--json']);
-    writeFileSync(file, original);
     assert.equal(result.status, 1, result.stdout);
-    assert.deepEqual(report.errors, [{ code: 'STATE_INTEGRITY', message: `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.` }]);
-    assert.equal(f.run(['abandon', '--json']).report.abandoned, true);
+    assert.deepEqual(report.errors, [integrityError(path)]);
   });
 });
