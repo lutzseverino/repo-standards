@@ -43,7 +43,7 @@ the CLI. From a committed adopting project, inspect the public learning source:
 ```sh
 repo-standards-bootstrap --cli-version 2.0.0 inspect \
   --source https://github.com/lutzseverino/repo-standards-example \
-  --standards-version v1.0.0 --profile service --json
+  --standards-version v2.0.0 --profile service --json
 ```
 
 Use the full bootstrap path if `$HOME/.local/bin` is not on `PATH`. Omit

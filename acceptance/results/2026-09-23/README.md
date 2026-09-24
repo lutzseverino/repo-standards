@@ -50,9 +50,9 @@ Outcomes:
 ### Verification run 35957812670: passed
 
 Run 35957812670 re-ran the acceptance against the already published package
-with the helper change from #110, which inspects the example source at
-`v2.0.0` (commit `cb11dcb0a5cff267f33cd4a1a8e73e03a69ec3b9`) with the
-`service` profile. Its `validate` and `publish` jobs were skipped, so nothing
+with the helper change from pull request #112, which inspects the example
+source at `v2.0.0` (commit `cb11dcb0a5cff267f33cd4a1a8e73e03a69ec3b9`) with
+the `service` profile. Its `validate` and `publish` jobs were skipped, so nothing
 was validated, packed, or published again. The `verify-publisher` job passed
 the trusted-publisher OIDC exchange without publishing.
 
@@ -389,9 +389,9 @@ in the released commit.
   attempts, `public-author-installation.json`, and `public-api-quota.json`.
 - No inspection identity against Repo Canon or adoption run ID exists: both
   Repo Canon inspections failed before producing a report, and no adoption
-  started. The local `outdated` and
-  `inspect` output and the status helper's `status.json` stay outside the
-  repository; the sections above state what they showed.
+  started. The local `outdated` and `inspect` output and the status helper's
+  `status.json` stay outside the repository; the sections above state what
+  they showed.
 
 ## Limits
 
