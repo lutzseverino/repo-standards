@@ -372,14 +372,23 @@ in the released commit.
   `032fa4583d1b7b108165a73a4d8400aec7a69e1a`, Wayfinder source tree
   `114d8d5e667f850d7332f3c2eb02dcd5c467a77f`. On both systems it recorded the
   npm integrity and packaged `adopt-standards` hash listed above and the same
-  standalone `author-standards` inventory. The branch was rebased after the
-  run. The Git blobs the run executed are those that pull request #112 merges:
+  standalone `author-standards` inventory. The branch was rebased onto
+  `a299abf` after the run. These Git objects the run used are the same in the
+  pull request #112 head:
+  - `.github/workflows/release.yml`:
+    `45c77af68452b5f4269e5c2bae7557d3e178b3b1`
   - `acceptance/public-installation.ts`:
     `7fb201a2c68a28da34a42d2bba751aaaa7fa1fb5`
   - `acceptance/prepare-author.ts`:
     `232e44ac8900afb6c28bd7ae3d468865ac29bfde`
-  - `.github/workflows/release.yml`:
-    `45c77af68452b5f4269e5c2bae7557d3e178b3b1`
+  - `test/installed-cli.ts`, imported by the public-installation helper:
+    `a2d696ece4426e469fe50fd1be431ba610bc0fe2`
+  - `acceptance/sources/wayfinder`: the tree above.
+
+  Two files the run loaded differ after the rebase. `scripts/pack-package.ts`
+  is imported through `test/installed-cli.ts`, but acceptance never calls it.
+  The helper reads only `version` from `package.json`, which is `2.0.0` in
+  both.
 - Bootstrap inspection identities in run 35957812670, each shared by the
   explicit and omitted CLI version inspections:
   - Linux: `sha256:bf988f4de00601b8da1784b94baf8226d180ecad6760e29c66a5817c4e340e54`
