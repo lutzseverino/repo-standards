@@ -9,14 +9,14 @@ import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { ProductError } from './errors.js';
 import { formats, recordPath, requireFormat } from './formats.js';
 import { latestScopeChanges } from './scope-evidence.js';
-import type { InspectOptions, inspect, inspectForStart } from './inspection.js';
+import type { InspectOptions, inspect } from './inspection.js';
 import { observe, type Content, type HashInventory, type Observation } from './observation.js';
 import { readRecordedAdoption, rejectRetiredRecords, type RecordedAdoption } from './recorded-state.js';
-import { carriedRuns, committedEvidenceReport, compactIntervals, completedEvidence, keptIdentity, memoryStore, WorkEvidenceJournal, type CommittedRun, type ObservationStore, type RecordedInterval } from './work-evidence.js';
+import { committedEvidenceReport, compactIntervals, keptIdentity, memoryStore, WorkEvidenceJournal, type ObservationStore, type RecordedInterval } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
-import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, safe, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
+import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, safe, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
-import type { Scope } from './scope.js';
+import { completionFiles, exactContent, restorePlannedLock, verifyInstallation, withdrawCompletionState, writeCompletion, type Installation } from './installation.js';
 
 // Persisted labels are shared by several producers. Keep their serialized
 // values stable so existing incomplete runs remain readable.
@@ -53,12 +53,6 @@ export interface WorkRequest {
 }
 // The project path of a referenced source file's retained bytes.
 interface RetainedReference { retained: string }
-export interface Installation {
-  report: Inspection; git: Awaited<ReturnType<typeof inspectForStart>>['git']; files: Files; skills: Record<string, string[]>;
-  exactBaselines: Record<string, Baseline>; durable: Record<string, Baseline>;
-  runtimeHash: string; scopeAfterFixes?: string; before: Record<string, HashInventory>;
-  replaceTrees?: string[]; transitional?: Files;
-}
 function cleanupRun(lock: string) {
   rmSync(lock, { force: true });
   rmSync(`${lock}.runtime`, { recursive: true, force: true });
@@ -163,17 +157,8 @@ function archiveRunEvidence(root: string, run: Run) {
 }
 
 function preserveIncompleteState(root: string, run: Run) {
-  try {
-    const state = safe(root, '.repo-standards/state.json');
-    if (state.type === 'file' && JSON.parse(Buffer.from(state.content, state.encoding).toString('utf8')).lastComplete?.run === run.id) {
-      safe(root, '.repo-standards/local/incomplete-state.json');
-      const previous = readInstallation(root, run).transitional?.['.repo-standards/state.json'];
-      if (previous) {
-        write(root, '.repo-standards/local/incomplete-state.json', state);
-        write(root, '.repo-standards/state.json', previous, run.id);
-      } else renameSync(join(root, '.repo-standards/state.json'), join(root, '.repo-standards/local/incomplete-state.json'));
-    }
-  } catch {
+  try { withdrawCompletionState(root, run.id, () => readInstallation(root, run)); }
+  catch {
     run.uncertain.push('Candidate completion state could not be moved to local/incomplete-state.json; preserve it during manual recovery.');
     return false;
   }
@@ -190,14 +175,6 @@ function clearStoppedProcess(run: Run) {
   if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('AUTHOR_PROCESS_ACTIVE', `Author process group ${run.processGroup} still has live processes. Stop them before retry or abandonment.`);
   delete run.processGroup;
   delete run.processGroupIdentity;
-}
-
-// The prior complete run's work evidence is carried forward unchanged: the
-// state it was read from is already in the single committed format.
-function completeRunHistory(installation: Installation): CommittedRun[] {
-  const previous = installation.transitional?.['.repo-standards/state.json'];
-  if (!previous) return [];
-  return carriedRuns(JSON.parse(Buffer.from(previous.content, previous.encoding).toString('utf8')));
 }
 
 function canResumeAssessment(run: Run) {
@@ -242,7 +219,7 @@ export function abandon(project: string, cliVersion: string) {
       // The archived report is never continued, so the journal keeps its final
       // observation in memory and neither saves nor checks it.
       const { resolved } = readInstallation(root, run).report;
-      new WorkEvidenceJournal(root, resolved, run, memoryStore(keptObservations(root))).continue({ interrupted: true, requireAuthorized: false });
+      new WorkEvidenceJournal(root, resolved, run, memoryStore(keptObservations(root))).continueInterrupted();
     } catch { run.uncertain.push('The final abandoned observation could not be completed; earlier interval evidence is preserved.'); }
     run.archivedFiles = archiveRunEvidence(root, run);
     for (const operation of run.operations) for (const stream of ['stdout', 'stderr'] as const) {
@@ -323,8 +300,6 @@ type Progress =
   | { type: 'assessment-accepted' }
   | { type: 'operation-accepted'; description: string }
   | { type: 'final-verification' };
-
-type VerifyInstallation = (root: string, installation: Installation, extra?: Files) => void;
 
 export class AdoptionRunSession {
   #run: Run | undefined;
@@ -500,50 +475,34 @@ export class AdoptionRunSession {
   complete(installation: Installation, operationStart: number) {
     const run = this.#state();
     const root = this.#root;
-    const { report, files, skills, exactBaselines, durable } = installation;
     this.#completing = true;
-    const completedAt = new Date().toISOString();
-    const state = file(json({ ...completedEvidence(run, completeRunHistory(installation)),
-      lastComplete: { run: run.id, inspection: run.inspection, completedAt, head: installation.git.head }, baselines: exactBaselines, skills,
-      checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));
-    const completionLock = file(json({ format: formats.lock, selection: report.selection, inspection: run.inspection, files: durable, state: { sha256: state.sha256, executable: state.executable } }));
+    const completion = completionFiles(installation, run, operationStart);
+    const { state, lock } = completion;
     saveContext(root, state.content);
-    saveContext(root, completionLock.content);
-    run.completion = { state: { sha256: state.sha256, executable: state.executable }, lock: { sha256: completionLock.sha256, executable: completionLock.executable } };
+    saveContext(root, lock.content);
+    run.completion = { state: { sha256: state.sha256, executable: state.executable }, lock: { sha256: lock.sha256, executable: lock.executable } };
     run.phase = 'completion'; run.uncertain = ['Durable completion and final run-report persistence have not both succeeded.']; this.#save();
-    write(root, '.repo-standards/lock.json', completionLock, run.id);
-    write(root, '.repo-standards/state.json', state, run.id);
-    verifyFiles(root, { ...files, '.repo-standards/lock.json': completionLock, '.repo-standards/state.json': state });
+    writeCompletion(root, installation, completion, run.id);
     run.changes = actualChanges(root, run.affected);
     run.outcome = 'complete'; run.phase = 'complete'; run.reason = 'Exact installation, fixes, contextual assessment where required, checks, runtime, retained inputs and durable state verified.';
     run.uncertain = []; run.nextAction = 'Review and commit the uncommitted adoption changes through the project’s normal workflow.'; this.#save();
   }
 
-  #recover(installation: Installation, archivedFiles: Record<string, string>, verify: VerifyInstallation) {
+  #recover(installation: Installation, archivedFiles: Record<string, string>) {
     const run = this.#state();
     const root = this.#root;
     if (run.completion) {
-      const extra: Files = {};
-      const completion = { lock: file(readContext(root, run.completion.lock.sha256, 'Saved completion lock')), state: file(readContext(root, run.completion.state.sha256, 'Saved completion state')) };
-      const temporaries = stagedFiles(root, { '.repo-standards/lock.json': completion.lock, '.repo-standards/state.json': completion.state }, run.id, { ...installation.files, ...installation.transitional });
-      for (const path of temporaries) flatten(path, safe(root, path), extra);
-      const lockFile = safe(root, '.repo-standards/lock.json');
-      if (lockFile.type === 'file' && lockFile.sha256 === completion.lock.sha256) extra['.repo-standards/lock.json'] = completion.lock;
-      const stateFile = safe(root, '.repo-standards/state.json');
-      if (stateFile.type === 'file' && stateFile.sha256 === completion.state.sha256) extra['.repo-standards/state.json'] = completion.state;
-      verify(root, installation, extra);
-      for (const path of temporaries) { safe(root, path); rmSync(join(root, path)); }
+      verifyInstallation(root, installation, { runId: run.id,
+        lock: file(readContext(root, run.completion.lock.sha256, 'Saved completion lock')), state: file(readContext(root, run.completion.state.sha256, 'Saved completion state')) });
       if (run.outcome === 'complete') return;
       if (!preserveIncompleteState(root, run)) throw new ProductError('RECOVERY_BLOCKED', 'Cannot preserve candidate completion state. Resolve local/incomplete-state.json storage before retry; the run remains active.');
-      write(root, '.repo-standards/lock.json', installation.files['.repo-standards/lock.json']!, run.id);
+      restorePlannedLock(root, installation, run.id);
       delete run.completion;
     }
-    let restorable: Scope[string] | undefined;
-    if (run.installation?.complete) {
-      verify(root, installation);
-      restorable = { paths: Object.keys(installation.exactBaselines), directories: Object.keys(installation.skills) };
-    }
-    this.journal.continue({ interrupted: true, restorable });
+    const installed = run.installation?.complete;
+    if (installed) verifyInstallation(root, installation);
+    this.journal.continueInterrupted(installed ? exactContent(installation) : undefined);
+    this.journal.requireAuthorized();
     const interruptedReport = archivedFiles['.repo-standards/local/run.json'];
     (run.retryHistory ??= []).push({ phase: run.phase, reason: run.reason, uncertain: [...run.uncertain], assessments: run.assessments, archivedFiles, ...(interruptedReport ? { report: interruptedReport } : {}) });
     run.outcome = 'incomplete'; run.phase = 'prerequisites';
@@ -579,7 +538,7 @@ export class AdoptionRunSession {
 
   // Only the scoped entry points below can invoke lifecycle machinery.
   static async scope(root: string, mode: 'start' | 'resume', callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>,
-    resume?: { cliVersion: string; retry: boolean; verify: VerifyInstallation }) {
+    resume?: { cliVersion: string; retry: boolean }) {
     const lock = lockPath(root);
     rejectRetiredRecords(root, lock);
     const release = acquireWorker(lock);
@@ -608,7 +567,7 @@ export class AdoptionRunSession {
       } else if (existsSync(lock)) throw new ProductError('ACTIVE_RUN', 'An adoption run is active or incomplete. Read status and preserve its work before recovery.');
       try {
         if (installation && resume) {
-          if (resume.retry) session.#recover(installation, archivedFiles, resume.verify);
+          if (resume.retry) session.#recover(installation, archivedFiles);
           else verifyFiles(root, { '.repo-standards/local/run.json': file(json(session.#state())) });
         }
         if (session.#run?.outcome !== 'complete') await callback(session, installation);
@@ -633,7 +592,7 @@ export function withStartRun(project: string, callback: (session: AdoptionRunSes
   return AdoptionRunSession.scope(projectRoot(project), 'start', callback);
 }
 
-export function withResumedRun(project: string, cliVersion: string, retry: boolean, verify: VerifyInstallation,
+export function withResumedRun(project: string, cliVersion: string, retry: boolean,
   callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>) {
-  return AdoptionRunSession.scope(projectRoot(project), 'resume', callback, { cliVersion, retry, verify });
+  return AdoptionRunSession.scope(projectRoot(project), 'resume', callback, { cliVersion, retry });
 }
