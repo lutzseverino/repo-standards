@@ -7,6 +7,7 @@ import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
 import { commit, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
+import { filesystemFault } from './adoption-faults.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -64,7 +65,7 @@ async function adopted(t: TestContext) {
   const completed = run(['resume', '--assessment', assessment, '--json']);
   assert.equal(completed.result.status, 0, completed.result.stdout);
   commit(project.root);
-  return { remote, run, inspect, root: project.root };
+  return { remote, run, inspect, root: project.root, env, scopeFile };
 }
 
 const versionArgs = (tag: string) => inspectionArgs.map(argument => argument === 'v1.0.0' ? tag : argument);
@@ -149,5 +150,22 @@ test('tampered retained declarations, inputs and scope history fail every reader
       assert.equal(result.status, 1, `${args.join(' ')}: ${result.stdout}`);
       assert.deepEqual(report.errors, [expected], args.join(' '));
     }
+  });
+
+  // A start interrupted before installation is restarted by resume, which reads
+  // the recorded adoption again and fails on the same diagnostic.
+  await t.test('resume of an interrupted start', () => {
+    const path = '.repo-standards/inputs/resolved.json';
+    const confirmed = f.inspect(['inspect', '--json']);
+    const interrupted = filesystemFault(f.remote.support.root, f.env, 'prerequisites', `process.kill(process.pid, 'SIGKILL');`);
+    assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
+    const file = join(f.root, path);
+    const original = readFileSync(file);
+    writeFileSync(file, JSON.stringify({ ...JSON.parse(original.toString('utf8')), tampered: true }));
+    const { result, report } = f.run(['resume', '--retry', '--json']);
+    writeFileSync(file, original);
+    assert.equal(result.status, 1, result.stdout);
+    assert.deepEqual(report.errors, [{ code: 'STATE_INTEGRITY', message: `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.` }]);
+    assert.equal(f.run(['abandon', '--json']).report.abandoned, true);
   });
 });
