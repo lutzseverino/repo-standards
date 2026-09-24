@@ -127,15 +127,9 @@ function retainedRun(value: unknown): ScopeHistoryRun {
 }
 
 // Every retained discovery run, oldest first, in the form its readers expect.
+// The recorded-adoption reader parses the retained file once, through here.
 export function retainedScopeRuns(value: unknown): ScopeHistoryRun[] {
   return storedRuns(value).map(retainedRun);
-}
-
-// The most recent retained run alone, for readers that need only the selection
-// the last completion confirmed.
-export function latestRetainedScopeRun(value: unknown): ScopeHistoryRun | undefined {
-  const runs = storedRuns(value);
-  return runs.length ? retainedRun(runs.at(-1)) : undefined;
 }
 
 type ScopeSelection = Pick<ScopeHistoryRun, 'resolved' | 'sourceResolved'>;
@@ -160,15 +154,13 @@ export function scopeChanges(prior: ScopeSelection | undefined, current: ScopeSe
 }
 
 // The scope changes the latest retained run made relative to the one before it.
-export function latestScopeChanges(value: unknown) {
-  const runs = storedRuns(value) as ScopeSelection[];
+export function latestScopeChanges(runs: readonly ScopeHistoryRun[]) {
   return runs.length ? scopeChanges(runs.at(-2), runs.at(-1)!) : undefined;
 }
 
 // The historical scope a retained inspection reports: every run, with the
 // newest one also spread at the top level.
-export function retainedScopeProjection(value: unknown) {
-  const runs = retainedScopeRuns(value);
+export function retainedScopeProjection(runs: readonly ScopeHistoryRun[]) {
   return { format: formats.scopeHistory, evidence: 'historical', ...runs.at(-1), runs };
 }
 

@@ -5,8 +5,8 @@ import { file, json, projectRoot, safe, write } from './adoption-files.js';
 import type { RecordedSelection } from './recorded-state.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
-import { git } from './inspection.js';
-import type { Observation } from './inspection.js';
+import { git } from './observation.js';
+import type { Observation } from './observation.js';
 
 // Availability of a published CLI or standards version newer than each pin.
 // The command only reads the selection and writes its own ignored cache; any

@@ -1,4 +1,4 @@
-import type { Blocker, HashInventory } from './inspection.js';
+import type { Blocker, HashInventory } from './observation.js';
 import type { ScopeChange } from './scope-evidence.js';
 
 // One renderer turns an inspection report or a status record into a Markdown

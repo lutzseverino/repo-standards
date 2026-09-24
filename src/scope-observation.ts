@@ -3,7 +3,7 @@ import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
-import { git } from './inspection.js';
+import { git } from './observation.js';
 import { foldPath } from './paths.js';
 
 const limits = { paths: 20_000, fileBytes: 8 * 1024 * 1024, totalBytes: 64 * 1024 * 1024, depth: 128 };

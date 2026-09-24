@@ -7,11 +7,11 @@ import { tmpdir } from 'node:os';
 import type { Assessment, ScopeConfirmation } from './assessment.js';
 import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { ProductError } from './errors.js';
-import { formats, recordPath, rejectRetiredRecords, requireFormat } from './formats.js';
+import { formats, recordPath, requireFormat } from './formats.js';
 import { latestScopeChanges } from './scope-evidence.js';
-import { observe } from './inspection.js';
-import type { Content, HashInventory, InspectOptions, Observation, inspect, inspectForStart } from './inspection.js';
-import { decodeRecordedState } from './recorded-state.js';
+import type { InspectOptions, inspect, inspectForStart } from './inspection.js';
+import { observe, type Content, type HashInventory, type Observation } from './observation.js';
+import { readRecordedAdoption, rejectRetiredRecords, type RecordedAdoption } from './recorded-state.js';
 import { carriedRuns, committedEvidenceReport, compactIntervals, completedEvidence, keptIdentity, memoryStore, WorkEvidenceJournal, type CommittedRun, type ObservationStore, type RecordedInterval } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, safe, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
@@ -282,10 +282,10 @@ export function status(project: string) {
   }
   if (!existsSync(join(root, '.repo-standards/state.json'))) return { format, selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
   try {
-    const { state, pinned } = recordedState(root);
-    const changedScope = retainedScopeChanges(root, pinned.files);
+    const { state, selection, scopeHistory } = readRecordedAdoption(root)!;
+    const changedScope = scopeHistory && latestScopeChanges(scopeHistory);
     return { format, ...committedEvidenceReport(state),
-      selection: pinned.selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
+      selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
       checks: state.checks, assessments: state.assessments, ...(changedScope ? { scopeChanges: changedScope } : {}), active, abandoned, evidence: 'historical' };
   } catch (error) {
     if (!(error instanceof ProductError) || error.code !== 'STATE_INTEGRITY' || !abandoned.length) throw error;
@@ -293,28 +293,17 @@ export function status(project: string) {
     let inspection: unknown;
     try { if (lockFile.type === 'file') inspection = JSON.parse(Buffer.from(lockFile.content, lockFile.encoding).toString('utf8'))?.inspection; }
     catch { /* Archived reports remain available even if current state cannot be decoded. */ }
-    const incomplete = abandoned.find(run => run.inspection === inspection);
-    return { format, selection: incomplete?.selection ?? null,
-      lastComplete: incomplete?.previousComplete?.lastComplete ?? null, active, abandoned, evidence: 'historical',
+    // Only an abandoned run explains the failure: one whose installation or
+    // completion wrote the lock, or one that began installing over the last
+    // complete adoption the lock still names. Anything else is an integrity
+    // failure of the recorded adoption itself.
+    const incomplete = typeof inspection === 'string' ? abandoned.find(run => run.inspection === inspection
+      || (run.installation && run.previousComplete?.lastComplete.inspection === inspection)) : undefined;
+    if (!incomplete) throw error;
+    return { format, selection: incomplete.selection,
+      lastComplete: incomplete.previousComplete?.lastComplete ?? null, active, abandoned, evidence: 'historical',
       stateError: { code: error.code, message: error.message } };
   }
-}
-
-// The discovered-scope changes of the last complete run, from the retained
-// scope evidence its lock records.
-function retainedScopeChanges(root: string, files: Record<string, Baseline>) {
-  const path = '.repo-standards/inputs/scope-history.json';
-  if (!Object.hasOwn(files, path)) return undefined;
-  const history = safe(root, path);
-  if (history.type !== 'file' || history.sha256 !== files[path]!.sha256) throw new ProductError('STATE_INTEGRITY', `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.`);
-  let value: unknown;
-  try { value = JSON.parse(Buffer.from(history.content, history.encoding).toString('utf8')); }
-  catch { throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.'); }
-  return latestScopeChanges(value);
-}
-
-export function recordedState(root: string) {
-  return decodeRecordedState(safe(root, '.repo-standards/lock.json'), safe(root, '.repo-standards/state.json'));
 }
 
 // These events describe confirmed work. Phase/outcome/uncertainty coupling and
@@ -377,13 +366,13 @@ export class AdoptionRunSession {
     this.#journal = new WorkEvidenceJournal(this.#root, installation.report.resolved, this.#state(), keptObservations(this.#root), () => this.#save());
   }
 
-  begin(report: Inspection, head: string | null, confirmation: string, startInput: StartInput) {
+  // An update begins from the recorded adoption its inspection read.
+  begin(report: Inspection, head: string | null, confirmation: string, startInput: StartInput, previous?: RecordedAdoption) {
     this.#assertOpen();
     const root = this.#root;
-    const previous = report.update !== undefined ? recordedState(root) : undefined;
     const recovering = this.#run;
     const run: Run = recovering ?? { format: formats.run, observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, head, startInput,
-      ...(previous ? { previousComplete: { selection: previous.pinned.selection, lastComplete: previous.state.lastComplete } } : {}),
+      ...(previous ? { previousComplete: { selection: previous.selection, lastComplete: previous.state.lastComplete } } : {}),
       affected: { ...report.project.affected, [systemTarget]: report.project.systemSkill }, outcome: 'incomplete',
       prerequisites: [], operations: [], assessments: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],
       nextAction: 'Read status, review actual changes, stop any surviving author process, then use resume --retry to recover this incomplete adoption, or abandon to preserve its work and report.' };

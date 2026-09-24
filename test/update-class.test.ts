@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
 import { commit, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
+import { filesystemFault } from './adoption-faults.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -64,7 +65,7 @@ async function adopted(t: TestContext) {
   const completed = run(['resume', '--assessment', assessment, '--json']);
   assert.equal(completed.result.status, 0, completed.result.stdout);
   commit(project.root);
-  return { remote, run, inspect };
+  return { remote, run, inspect, root: project.root, env, scopeFile };
 }
 
 const versionArgs = (tag: string) => inspectionArgs.map(argument => argument === 'v1.0.0' ? tag : argument);
@@ -132,5 +133,74 @@ test('each change to guidance, discovery guidance, operations, retired declarati
     assert.deepEqual(report.scopeChanges, [{ id: 'docs', additions: ['apps/b/README.md'], removals: [] }]);
     assert.equal(report.updateClass, 'contextual');
     assert.deepEqual(report.contextualChanges, [{ id: 'docs', changes: ['scope'] }]);
+  });
+});
+
+// Rewrite a retained file without rebinding the lock, restoring it after the test.
+function tamper(t: TestContext, root: string, path: string) {
+  const file = join(root, path);
+  const original = readFileSync(file);
+  t.after(() => writeFileSync(file, original));
+  writeFileSync(file, path.endsWith('.json') ? JSON.stringify({ ...JSON.parse(original.toString('utf8')), tampered: true }) : 'Tampered guidance\n');
+}
+
+const integrityError = (path: string) => ({ code: 'STATE_INTEGRITY', message: `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.` });
+
+test('tampered retained declarations, inputs and scope history fail every reader of the recorded adoption alike', async t => {
+  const f = await adopted(t);
+  for (const path of ['.repo-standards/inputs/resolved.json', '.repo-standards/inputs/scope-history.json', '.repo-standards/inputs/source/guidance.md']) await t.test(path, st => {
+    tamper(st, f.root, path);
+    for (const args of [['inspect', '--json'], versionArgs('v1.0.0'), ['start', '--confirm', 'sha256:unconfirmed', '--json'],
+      ['start', ...versionArgs('v1.0.0').slice(1), '--confirm', 'sha256:unconfirmed'], ['status', '--json']]) {
+      const { result, report } = f.run(args);
+      assert.equal(result.status, 1, `${args.join(' ')}: ${result.stdout}`);
+      assert.deepEqual(report.errors, [integrityError(path)], args.join(' '));
+    }
+  });
+
+  // A start interrupted before installation is restarted by resume, which reads
+  // the recorded adoption again and fails on the same diagnostic.
+  await t.test('resume of an interrupted start', st => {
+    const path = '.repo-standards/inputs/resolved.json';
+    const confirmed = f.inspect(['inspect', '--json']);
+    const interrupted = filesystemFault(f.remote.support.root, f.env, 'prerequisites', `process.kill(process.pid, 'SIGKILL');`);
+    assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
+    tamper(st, f.root, path);
+    const { result, report } = f.run(['resume', '--retry', '--json']);
+    assert.equal(result.status, 1, result.stdout);
+    assert.deepEqual(report.errors, [integrityError(path)]);
+    assert.equal(f.run(['abandon', '--json']).report.abandoned, true);
+  });
+
+  // An archived abandoned run explains an inconsistent state only when the lock
+  // is the one it left; it never hides tampering with the last complete adoption.
+  await t.test('status beside an abandoned run', st => {
+    assert.equal(f.run(['status', '--json']).report.abandoned.length, 1);
+    const path = '.repo-standards/inputs/resolved.json';
+    tamper(st, f.root, path);
+    const { result, report } = f.run(['status', '--json']);
+    assert.equal(result.status, 1, result.stdout);
+    assert.deepEqual(report.errors, [integrityError(path)]);
+  });
+
+  // An update abandoned after replacing retained inputs but before writing its
+  // lock leaves the previous lock; status explains that state from the run. It
+  // runs last because it leaves the adoption inconsistent.
+  await t.test('status after an update abandoned mid-installation', () => {
+    const previous = f.run(['status', '--json']).report.lastComplete;
+    const confirmed = f.inspect(['inspect', '--json']);
+    const interrupted = filesystemFault(f.remote.support.root, f.env, 'installation', `const rename = fs.renameSync;
+fs.renameSync = function(from, to) {
+  const result = rename.call(this, from, to);
+  if (String(to).endsWith('/.repo-standards/inputs/resolved.json')) process.kill(process.pid, 'SIGKILL');
+  return result;
+};
+syncBuiltinESMExports();`);
+    assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
+    assert.equal(f.run(['abandon', '--json']).report.abandoned, true);
+    const { result, report } = f.run(['status', '--json']);
+    assert.equal(result.status, 0, result.stdout);
+    assert.equal(report.stateError.code, 'STATE_INTEGRITY');
+    assert.deepEqual(report.lastComplete, previous);
   });
 });

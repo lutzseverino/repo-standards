@@ -1,47 +1,21 @@
 import { spawnSync } from 'node:child_process';
-import { lstatSync, readdirSync, readFileSync, readlinkSync, realpathSync } from 'node:fs';
+import { readdirSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
-import { foldPath } from './paths.js';
 import { acquireSource, hash } from './acquisition.js';
 import { ProductError } from './errors.js';
-import { formats, rejectRetiredRecords } from './formats.js';
+import { formats } from './formats.js';
+import { content, git, hashInventory, observe, targetBoundaryObservation, targetObservation } from './observation.js';
+import type { Blocker, HashInventory, Observation } from './observation.js';
 import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
-import { decodeRecordedState } from './recorded-state.js';
-import { latestRetainedScopeRun, scopeChanges, type ScopeHistoryRun } from './scope-evidence.js';
+import { readRecordedAdoption, type RecordedAdoption } from './recorded-state.js';
+import { scopeChanges } from './scope-evidence.js';
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
 import { unifiedDiff } from './unified-diff.js';
 import { classifyUpdate } from './update-class.js';
-import type { Declaration } from './model.js';
-import type { RecordedSelection } from './recorded-state.js';
-
-export interface Blocker { code: string; message: string; path?: string }
-export interface Content { sha256: string; executable: boolean; encoding: 'utf8' | 'base64'; content: string }
-export type Observation = { type: 'missing' } | ({ type: 'file' } & Content) | { type: 'directory'; entries: Record<string, Observation> } | { type: 'symlink'; target: string } | { type: 'unsafe'; obstacles?: Record<string, Observation> };
-// The reported form of an observation. Reports and run records carry each file
-// as its SHA-256 hash and executable mode, never its bytes.
-export type HashInventory = { type: 'missing' } | { type: 'file'; sha256: string; executable: boolean } | { type: 'directory'; entries: Record<string, HashInventory> } | { type: 'symlink'; target: string } | { type: 'unsafe'; obstacles?: Record<string, HashInventory> };
-
-function hashEntries(entries: Record<string, Observation>) {
-  return Object.fromEntries(Object.entries(entries).map(([name, child]) => [name, hashInventory(child)]));
-}
-
-export function hashInventory(value: Observation): HashInventory {
-  if (value.type === 'file') return { type: 'file', sha256: value.sha256, executable: value.executable };
-  if (value.type === 'directory') return { type: 'directory', entries: hashEntries(value.entries) };
-  if (value.type === 'unsafe') return value.obstacles ? { type: 'unsafe', obstacles: hashEntries(value.obstacles) } : { type: 'unsafe' };
-  return value;
-}
-
-function content(path: string): Content {
-  const bytes = readFileSync(path);
-  const utf8 = bytes.toString('utf8');
-  const encoding = Buffer.from(utf8).equals(bytes) ? 'utf8' : 'base64';
-  return { sha256: hash(bytes), executable: (lstatSync(path).mode & 0o111) !== 0, encoding, content: encoding === 'utf8' ? utf8 : bytes.toString('base64') };
-}
 
 // Guidance, discovery guidance and scripts are referenced by path and hash.
 function fileReference(path: string) {
@@ -65,92 +39,14 @@ function exactDelta(path: string, before: Observation, after: Observation) {
   return diff === undefined ? {} : { diff };
 }
 
-export function observe(path: string, excluded: ReadonlySet<string> = new Set()): Observation {
-  try {
-    const stat = lstatSync(path);
-    if (stat.isSymbolicLink()) return { type: 'symlink', target: readlinkSync(path) };
-    if (stat.isFile()) return { type: 'file', ...content(path) };
-    if (stat.isDirectory()) return { type: 'directory', entries: excluded.has(path) ? {} : Object.fromEntries(readdirSync(path).sort()
-      .flatMap(name => {
-        const child = observe(join(path, name), excluded);
-        return excluded.has(join(path, name)) && child.type === 'directory' ? [] : [[name, child]];
-      })) };
-    return { type: 'unsafe' };
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { type: 'missing' };
-    throw new ProductError('PROJECT_READ', `Cannot safely read project content: ${path}.`);
-  }
-}
-
-export function git(project: string, args: string[], input?: string, timeout?: number) {
-  const base = ['--no-optional-locks', '-c', 'core.fsmonitor=false', '-C', project];
-  const options = { encoding: 'utf8' as const, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' }, maxBuffer: 32 * 1024 * 1024, ...(timeout === undefined ? {} : { timeout }), ...(input === undefined ? {} : { input }) };
-  if (args[0] === 'status') {
-    // Status can run clean/process filters while refreshing tracked-file hashes.
-    // Ask only for configuration names; never execute repository filter commands.
-    const filters = spawnSync('git', [...base, 'config', '--null', '--name-only', '--get-regexp', '^filter\\..*\\.(clean|smudge|process|required)$'], options);
-    if (filters.error || (filters.status !== 0 && filters.status !== 1)) throw new ProductError('PROJECT_READ', 'Cannot disable Git filters for read-only observation.');
-    for (const key of filters.stdout.split('\0').filter(Boolean)) base.push('-c', `${key}=${key.endsWith('.required') ? 'false' : ''}`);
-  }
-  const result = spawnSync('git', [...base, ...args], options);
-  if (result.error) throw new ProductError('GIT_REQUIRED', 'Install Git and inspect an existing Git working tree.');
-  return result;
-}
-
 export function hiddenIndexPaths(root: string) {
   const flags = git(root, ['ls-files', '-v', '-z']);
   if (flags.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot inspect Git index flags.');
   return flags.stdout.split('\0').filter(entry => /^[a-zS] /.test(entry)).map(entry => entry.slice(2));
 }
 
-// Validate the target and its ancestors while observing descendants without
-// following their links. Owned runtime trees validate those descendants against
-// npm's recorded inventory instead of the author-target no-symlink contract.
-export function targetBoundaryObservation(root: string, target: string, blockers: Blocker[], excluded?: ReadonlySet<string>): Observation {
-  let parent = root;
-  const parts = target.split('/');
-  for (const [index, part] of parts.entries()) {
-    try {
-      const matches = readdirSync(parent).filter(name => foldPath(name) === foldPath(part)).sort();
-      const aliases = matches.filter(name => name !== part);
-      if (aliases.length) {
-        blockers.push({ code: 'CASE_CONFLICT', path: target, message: `Target spelling conflicts with existing ${aliases.join(', ')}.` });
-        return { type: 'unsafe', obstacles: Object.fromEntries(matches.map(name => [name, observe(join(parent, name))])) };
-      }
-      parent = join(parent, part);
-      const stat = lstatSync(parent);
-      if (stat.isSymbolicLink() || (!stat.isDirectory() && index < parts.length - 1) || (!stat.isDirectory() && !stat.isFile())) {
-        blockers.push({ code: 'UNSAFE_TARGET', path: target, message: 'A target or ancestor is a symbolic link, special file, or non-directory ancestor.' });
-        return { type: 'unsafe', obstacles: { [parts.slice(0, index + 1).join('/')]: observe(parent) } };
-      }
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { type: 'missing' };
-      throw new ProductError('PROJECT_READ', `Cannot inspect target ${target}.`);
-    }
-  }
-  return observe(parent, excluded);
-}
-
-export function targetObservation(root: string, target: string, blockers: Blocker[], excluded?: ReadonlySet<string>): Observation {
-  const observed = targetBoundaryObservation(root, target, blockers, excluded);
-  if (observed.type === 'unsafe' || observed.type === 'missing') return observed;
-  function unsafe(value: Observation): boolean {
-    return value.type === 'symlink' || value.type === 'unsafe' || (value.type === 'directory' && Object.entries(value.entries).some(([name, child]) => name.toLowerCase() === '.git' || unsafe(child)));
-  }
-  if (unsafe(observed)) blockers.push({ code: 'UNSAFE_TARGET', path: target, message: 'Target tree contains a symbolic link, special file, or nested Git metadata.' });
-  return observed;
-}
-
 // The system skill this exact CLI installs. Start verifies that the acquired
 // runtime package carries the same inventory.
-// The adoption run record lives at Git's path for this working tree, outside
-// tracked content.
-export function lockPath(root: string) {
-  const result = git(root, ['rev-parse', '--git-path', 'repo-standards-run.lock']);
-  if (result.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot locate the adoption run lock.');
-  return resolve(root, result.stdout.trim());
-}
-
 export function packagedSystemSkill() {
   return observe(fileURLToPath(new URL('../skills/adopt-standards', import.meta.url)));
 }
@@ -166,43 +62,6 @@ export interface InspectOptions { source: string; standardsVersion: string; prof
 // The selection components an update can change, in reporting order.
 const selectionComponents = ['cli', 'standards', 'source', 'profile'] as const;
 type SelectionComponent = typeof selectionComponents[number];
-
-interface RecordedAdoption {
-  selection: RecordedSelection;
-  baselines: Record<string, Pick<Content, 'sha256' | 'executable'>>;
-  skills: Record<string, string[]>;
-  resolved: { declarations: { id: string; kind: string; target?: string; name?: string }[] };
-  files: Record<string, Pick<Content, 'sha256' | 'executable'>>;
-  historicalScope?: ScopeHistoryRun;
-}
-
-function recordedAdoption(root: string): RecordedAdoption | undefined {
-  const lockValue = targetObservation(root, '.repo-standards/lock.json', []);
-  const stateValue = targetObservation(root, '.repo-standards/state.json', []);
-  if (lockValue.type === 'missing' && stateValue.type === 'missing') return undefined;
-  const { pinned: lock, state } = decodeRecordedState(lockValue, stateValue);
-  let resolved: RecordedAdoption['resolved'];
-  try {
-    resolved = JSON.parse(readFileSync(join(root, '.repo-standards/inputs/resolved.json'), 'utf8'));
-  } catch { throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state cannot be read. Restore the committed product state.'); }
-  if (!Array.isArray(resolved?.declarations)) {
-    throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state failed integrity validation. Restore the committed product state.');
-  }
-  let historicalScope: RecordedAdoption['historicalScope'];
-  const historyPath = '.repo-standards/inputs/scope-history.json';
-  if (Object.hasOwn(lock.files, historyPath)) {
-    try {
-      historicalScope = latestRetainedScopeRun(JSON.parse(readFileSync(join(root, historyPath), 'utf8')));
-    } catch (error) {
-      // The scope-evidence module reports its own integrity failures; only a
-      // file this reader cannot parse becomes an unreadable history.
-      if (error instanceof ProductError) throw error;
-      throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.');
-    }
-  }
-  return { selection: lock.selection, baselines: state.baselines, skills: state.skills, resolved, files: lock.files,
-    ...(historicalScope ? { historicalScope } : {}) };
-}
 
 export function inventoryPaths(value: Observation | HashInventory): string[] {
   const result: string[] = [];
@@ -256,26 +115,25 @@ export function productInventory(root: string): string[] {
   return inventoryPaths(observeProductState(root)).map(path => `.repo-standards/${path}`);
 }
 
-type RetainedSource = Awaited<ReturnType<typeof acquireSource>> & { manifest: string; ownedSkills: ReadonlySet<string> };
-
-export async function inspect(options: InspectOptions, cliVersion: string, retained?: RetainedSource) {
-  return (await inspectForStart(options, cliVersion, retained)).report;
+export async function inspect(options: InspectOptions, cliVersion: string) {
+  return (await inspectForStart(options, cliVersion)).report;
 }
 
 // Start reads the materials it installs from the same acquisition and
 // observation as the report whose identity was confirmed, so the report itself
 // needs no bytes. The Git state is recorded for provenance and for detecting
-// Git changes during the run; it is not part of the identity.
-export async function inspectForStart(options: InspectOptions, cliVersion: string, retained?: RetainedSource) {
+// Git changes during the run; it is not part of the identity. An inspection of
+// retained standards passes the recorded adoption it read them from.
+export async function inspectForStart(options: InspectOptions, cliVersion: string, retained?: RecordedAdoption) {
   if (process.versions.node.split('.')[0] !== '24') throw new ProductError('NODE_REQUIRED', 'Node.js 24 is required. Select Node.js 24 with your version manager or install it from https://nodejs.org/en/download, then retry.');
   const npm = spawnSync('npm', ['--version'], { cwd: homedir(), encoding: 'utf8', timeout: 10_000 });
   if (npm.error || npm.status !== 0 || !/^\d+\.\d+\.\d+/.test(npm.stdout.trim())) throw new ProductError('NPM_REQUIRED', 'npm is required. Reinstall the npm bundled with Node.js 24 from https://nodejs.org/en/download and ensure npm is on PATH.');
   const location = git(resolve(options.project), ['rev-parse', '--show-toplevel']);
   if (location.status !== 0) throw new ProductError('GIT_REQUIRED', 'Inspection requires a Git working tree. Run git init in your project first.');
   const root = realpathSync(location.stdout.trim());
-  rejectRetiredRecords(root, lockPath(root));
-  const previous = recordedAdoption(root);
-  const source = retained ?? await acquireSource(options.source, options.standardsVersion, root);
+  const previous = retained ?? readRecordedAdoption(root);
+  const retainedSource = retained?.source();
+  const source = retainedSource ?? await acquireSource(options.source, options.standardsVersion, root);
   try {
     const head = git(root, ['rev-parse', '--verify', 'HEAD']);
     const status = git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all', '--ignore-submodules=all']);
@@ -303,7 +161,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       if (systemSkillAction === 'replace') blockers.push({ code: 'SYSTEM_SKILL_CONFLICT', path: '.agents/skills/adopt-standards', message: 'Existing reserved system-skill content differs from the skill packaged with this exact CLI and has no established product ownership.' });
       checkTracked('.agents/skills/adopt-standards', systemSkill);
     }
-    const validation = validateSource(source.root, cliVersion, source.paths, retained?.manifest);
+    const validation = validateSource(source.root, cliVersion, source.paths, retainedSource?.manifest);
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
     const profile = validation.profiles[options.profile];
     if (!profile) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
@@ -339,17 +197,13 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         profile: options.profile !== previous.selection.profile,
       };
       update = selectionComponents.filter(component => changed[component]);
-      for (const [path, expected] of Object.entries(previous.baselines)) {
+      for (const [path, expected] of Object.entries(previous.state.baselines)) {
         const actual = targetObservation(root, path, blockers);
         if (actual.type !== 'file' || actual.sha256 !== expected.sha256 || actual.executable !== expected.executable) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'Installed exact content differs from its last-complete baseline. Reconcile it before updating.' });
       }
-      for (const [path, expected] of Object.entries(previous.skills)) {
+      for (const [path, expected] of Object.entries(previous.state.skills)) {
         const actual = targetObservation(root, path, blockers);
         if (!matchesInventory(actual, expected)) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'The installed skill inventory differs from its last-complete baseline. Reconcile added or removed resources before updating.' });
-      }
-      for (const [path, expected] of Object.entries(previous.files).filter(([path]) => path.startsWith('.repo-standards/'))) {
-        const actual = targetObservation(root, path, blockers);
-        if (actual.type !== 'file' || actual.sha256 !== expected.sha256 || actual.executable !== expected.executable) blockers.push({ code: 'STATE_INTEGRITY', path, message: 'Retained product material differs from its recorded baseline. Restore it before updating.' });
       }
       const expectedProductFiles = [...Object.keys(previous.files).filter(path => path.startsWith('.repo-standards/')), '.repo-standards/lock.json', '.repo-standards/state.json'].sort();
       if (!matchesInventory(productState, expectedProductFiles.map(path => path.slice('.repo-standards/'.length)))) {
@@ -375,7 +229,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         desiredExact[target] = desired;
         const current = affected[target]!;
         const action = plannedAction(current, desired);
-        if (declaration.kind === 'skill' && action === 'replace' && !(retained?.ownedSkills ?? new Set(Object.keys(previous?.skills ?? {}))).has(target)) blockers.push({ code: 'SKILL_CONFLICT', path: target, message: 'An existing skill differs from the supplied skill and has no established installed baseline for this selection. Reconcile the unrelated skill before adoption.' });
+        if (declaration.kind === 'skill' && action === 'replace' && !Object.hasOwn(previous?.state.skills ?? {}, target)) blockers.push({ code: 'SKILL_CONFLICT', path: target, message: 'An existing skill differs from the supplied skill and has no established installed baseline for this selection. Reconcile the unrelated skill before adoption.' });
         checkTracked(target, current);
         const files: { path: string; before: HashInventory; after: HashInventory; diff?: string; binary?: boolean }[] = [];
         function changes(path: string, before: Observation, after: Observation) {
@@ -418,12 +272,12 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     // awaiting its scope proposal is still declared.
     const retired = previous ? previous.resolved.declarations.filter(old => !profile.declarations.some(declaration => declaration.id === old.id)) : [];
     const classified = previous ? classifyUpdate({
-      resolved: previous.resolved.declarations as Declaration[],
-      discovery: Object.fromEntries((previous.historicalScope?.sourceResolved?.declarations ?? [])
+      resolved: previous.resolved.declarations,
+      discovery: Object.fromEntries((previous.scopeHistory?.at(-1)?.sourceResolved?.declarations ?? [])
         .flatMap(declaration => declaration.discovery ? [[declaration.id, declaration.discovery]] : [])),
       files: previous.files,
     }, { declarations: profile.declarations, resolved: resolved.declarations, inputs }) : undefined;
-    const changedScope = previous && (!discoveryDeclarations.length || proposal) ? scopeChanges(previous.historicalScope, { sourceResolved: profile, resolved }) : undefined;
+    const changedScope = previous && (!discoveryDeclarations.length || proposal) ? scopeChanges(previous.scopeHistory?.at(-1), { sourceResolved: profile, resolved }) : undefined;
     const report = {
       format: formats.inspection,
       ...(discovery ? { discovery, sourceResolved: profile } : {}),
@@ -451,6 +305,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       report: { ...report, identity: `sha256:${hash(JSON.stringify(report))}` },
       materials: { exact: desiredExact, inputs, manifest: normalized, systemSkill },
       git: { head: head.status === 0 ? head.stdout.trim() : null, index: hash(index.stdout), hidden },
+      recorded: previous,
     };
   } finally { source.close(); }
 }
