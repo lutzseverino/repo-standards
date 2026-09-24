@@ -1,7 +1,11 @@
 # Correct scope by adopting again, not by amending a run
 
 Status: accepted design in the adoption-friction grilling of 2026-09-18;
-specification pending. Supersedes [ADR 0004](0004-amend-scope-without-redefining-installed-ownership.md).
+specified in [issue #79](https://github.com/lutzseverino/repo-standards/issues/79).
+Implemented by [issue #83](https://github.com/lutzseverino/repo-standards/issues/83) in
+[PR #96](https://github.com/lutzseverino/repo-standards/pull/96) and released in
+[CLI 2.0.0](https://github.com/lutzseverino/repo-standards/releases/tag/v2.0.0).
+Supersedes [ADR 0004](0004-amend-scope-without-redefining-installed-ownership.md).
 
 Scope amendment let an active run add discovered scope without abandoning its
 progress, at the cost of a preview command, an amendment format, a third
