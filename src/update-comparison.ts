@@ -42,8 +42,13 @@ type SelectionComponent = typeof selectionComponents[number];
 
 const retainedSource = '.repo-standards/inputs/source/';
 
+// Code-unit order, as a default sort orders strings.
+function byName(a: string, b: string) {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 function sorted(files: FileHashes): FileHashes {
-  return Object.fromEntries(Object.entries(files).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0));
+  return Object.fromEntries(Object.entries(files).sort(([a], [b]) => byName(a, b)));
 }
 
 // A referenced path's files, keyed relative to it: '' for a file, '/name' for
@@ -123,16 +128,16 @@ function baselineBlockers(recorded: RecordedAdoption, project: ObservedProject) 
 }
 
 export function compareUpdate(recorded: RecordedAdoption, candidate: UpdateCandidate, project: ObservedProject) {
-  const [before, after] = [recorded.selection.standards, candidate.selection.standards];
-  const sameSource = after.repository.toLowerCase() === before.repository.toLowerCase();
-  if (sameSource && after.version === before.version && after.commit !== before.commit) {
-    throw new ProductError('MOVED_TAG', `The recorded ${after.version} tag previously resolved to ${before.commit}; it now resolves to ${after.commit}. Choose a new immutable version.`);
+  const [recordedStandards, candidateStandards] = [recorded.selection.standards, candidate.selection.standards];
+  const sameSource = candidateStandards.repository.toLowerCase() === recordedStandards.repository.toLowerCase();
+  if (sameSource && candidateStandards.version === recordedStandards.version && candidateStandards.commit !== recordedStandards.commit) {
+    throw new ProductError('MOVED_TAG', `The recorded ${candidateStandards.version} tag previously resolved to ${recordedStandards.commit}; it now resolves to ${candidateStandards.commit}. Choose a new immutable version.`);
   }
   // Every changed selection component is named together; an unchanged
   // selection is re-applied.
   const changed: Record<SelectionComponent, boolean> = {
     cli: candidate.selection.cli.version !== recorded.selection.cli.version,
-    standards: after.version !== before.version || after.commit !== before.commit,
+    standards: candidateStandards.version !== recordedStandards.version || candidateStandards.commit !== recordedStandards.commit,
     source: !sameSource,
     profile: candidate.selection.profile !== recorded.selection.profile,
   };
@@ -143,12 +148,12 @@ export function compareUpdate(recorded: RecordedAdoption, candidate: UpdateCandi
   const discovery: Record<string, string> = Object.fromEntries((recorded.scopeHistory?.at(-1)?.sourceResolved?.declarations ?? [])
     .flatMap(declaration => declaration.discovery ? [[declaration.id, declaration.discovery]] : []));
   const contextualChanges: DeclarationChanges[] = [
-    ...retired.map(({ id }): DeclarationChanges => ({ id, changes: ['retired'] })),
+    ...[...new Set(retired.map(({ id }) => id))].map((id): DeclarationChanges => ({ id, changes: ['retired'] })),
     ...candidate.declarations.flatMap(declaration => {
       const changes = declarationChanges(recorded, discovery, candidate, declaration);
       return changes.length ? [{ id: declaration.id, changes }] : [];
     }),
-  ].sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  ].sort((a, b) => byName(a.id, b.id));
   return {
     report: {
       update: selectionComponents.filter(component => changed[component]),

@@ -163,8 +163,8 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       for (const path of paths) inputs[path] = observe(join(source.root, path));
     }
     for (const name of readdirSync(source.root).sort()) if (/^licen[sc]e(?:[.-].*)?$/i.test(name)) inputs[name] = observe(join(source.root, name));
-    const update = previous ? compareUpdate(previous, { selection, declarations: profile.declarations, resolved: resolved.declarations, inputs }, { root, productState }) : undefined;
-    if (update) blockers.push(...update.blockers);
+    const comparison = previous ? compareUpdate(previous, { selection, declarations: profile.declarations, resolved: resolved.declarations, inputs }, { root, productState }) : undefined;
+    if (comparison) blockers.push(...comparison.blockers);
     const exact = [];
     const guidance = [];
     const operations = [];
@@ -222,7 +222,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         productState: hashInventory(productState), systemSkill: hashInventory(systemSkill) },
       systemSkill: { target: '.agents/skills/adopt-standards', action: systemSkillAction },
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
-      ...update?.report,
+      ...comparison?.report,
       ...(changedScope ? { scopeChanges: changedScope } : {}),
     };
     if (scopeObservation) {
