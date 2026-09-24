@@ -25,7 +25,7 @@ type Targets = { paths: string[]; directories: string[] };
 // What the candidate would adopt: its selection, its source-resolved
 // declarations, the declarations whose scope is confirmed, and each referenced
 // source path's observation.
-export interface UpdateCandidate {
+interface UpdateCandidate {
   selection: RecordedSelection;
   declarations: readonly SourceDeclaration[];
   resolved: readonly Declaration[];
@@ -34,7 +34,7 @@ export interface UpdateCandidate {
 
 // The project the update would change: its root and the observed product state
 // directory.
-export interface ObservedProject { root: string; productState: Observation }
+interface ObservedProject { root: string; productState: Observation }
 
 // The selection components an update can change, in reporting order.
 const selectionComponents = ['cli', 'standards', 'source', 'profile'] as const;
