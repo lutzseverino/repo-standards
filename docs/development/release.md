@@ -59,9 +59,12 @@ pnpm release:pack
 The output directory `release/` must not exist. The bundle contains the npm
 tarball, executable standalone bootstrap, `SHA256SUMS`, and `release.json`
 (package/version, npm integrity, and SHA-256 artifact hashes). The package
-includes compiled CLI code, its matching reserved system skill, public protocol
-documents, and the Alice, Mira, and Atlas author examples. Pack once and publish
-that same tarball.
+carries only product material: the compiled CLI, the bootstrap, the system
+skills, the Alice, Mira, and Atlas author examples, the usage documents under
+`docs/usage/` with their eight compatibility copies at `docs/<name>.md`, the
+package README, and the license. Development records, ADRs, agent guidance, the
+documentation index, `AGENTS.md`, `CONTRIBUTING.md`, and `CONTEXT.md` stay in
+the repository. Pack once and publish that same tarball.
 `pnpm validate` installs a release bundle with scripts disabled and exercises its
 executables and supplied author material alongside owning behavior tests.
 

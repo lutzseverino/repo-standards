@@ -43,16 +43,19 @@ and [adoption](docs/usage/adoption.md) for these distinct workflows.
 
 ## Documentation
 
-Start with the [documentation map](docs/README.md), [author format](docs/usage/author-format.md),
-and [architecture contracts](docs/development/architecture.md). Product release
-acceptance is recorded in the [release evidence](https://github.com/lutzseverino/repo-standards/tree/main/acceptance/results).
+Start with the [documentation map](https://github.com/lutzseverino/repo-standards/blob/main/docs/README.md),
+[author format](docs/usage/author-format.md), and
+[architecture contracts](https://github.com/lutzseverino/repo-standards/blob/main/docs/development/architecture.md).
+Product release acceptance is recorded in the
+[release evidence](https://github.com/lutzseverino/repo-standards/tree/main/acceptance/results).
 Repo Canon supplies this repository's contribution and agent conventions as a
 separate standards source; the product remains neutral for independently
 authored standards.
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [development guide](docs/development/README.md).
+Read [CONTRIBUTING.md](https://github.com/lutzseverino/repo-standards/blob/main/CONTRIBUTING.md)
+and the [development guide](https://github.com/lutzseverino/repo-standards/blob/main/docs/development/README.md).
 Work is tracked in [GitHub Issues](https://github.com/lutzseverino/repo-standards/issues).
 
 ## License
