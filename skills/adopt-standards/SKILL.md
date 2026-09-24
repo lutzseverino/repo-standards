@@ -18,7 +18,7 @@ fails; read `usage/available-updates.md` under the document root below. It
 states availability only. What to do with an available update is decided by
 the adopted standards' own guidance and the maintainer, not by this skill.
 If any command fails with `RETIRED_FORMAT`, read
-`adoption.md#adopt-fresh-from-a-retired-format`: nothing is converted, and the
+`usage/adoption.md#adopt-fresh-from-a-retired-format`: nothing is converted, and the
 only path forward is fresh adoption. When the diagnostic names a run record in
 Git's directory, its earlier pinned CLI can still resume or abandon that run to
 preserve its work; the record must then be removed as that section describes.
@@ -27,7 +27,7 @@ commits the directory's removal through their normal workflow. Then follow
 initial adoption below with an externally installed exact CLI.
 
 For initial adoption, use an externally installed exact CLI and read its
-`docs/inspection.md` for acquisition. The bootstrap performs inspection only;
+`docs/usage/inspection.md` for acquisition. The bootstrap performs inspection only;
 keep that disclosed exact version installed outside the project for `start`
 and recovery. Read protocol documents below from that CLI's package directory
 until the project runtime exists. Thereafter the document root is
@@ -38,11 +38,11 @@ until the project runtime exists. Thereafter the document root is
   An ordinary contextual handoff continues at Contextual work below.
   An active run's confirmed scope never changes. When contextual work needs
   files outside it or a confirmed target is mistaken, read
-  `adoption.md#correct-a-confirmed-scope`: preserve the work, obtain an
+  `usage/adoption.md#correct-a-confirmed-scope`: preserve the work, obtain an
   abandonment instruction before `abandon --json`, resolve its changes, and
   adopt again with a new confirmed scope.
   For interrupted installation, failed/uncertain scripts, or abandonment, read
-  `adoption.md#recover-or-abandon-an-interrupted-run` before acting. Obtain an
+  `usage/adoption.md#recover-or-abandon-an-interrupted-run` before acting. Obtain an
   explicit retry instruction before `resume --retry --json`, or an abandonment
   instruction before `abandon --json`. Retry repeats trusted fixes and requires
   renewed assessment. Use the run's exact external CLI if the local runtime is
@@ -51,7 +51,7 @@ until the project runtime exists. Thereafter the document root is
   every repetition of it, is one update on a single path: read `outdated --json`
   for available updates, inspect, present the summary, obtain confirmation of
   the inspection identity, and start. Read
-  `adoption.md#update-the-selection` for candidate acquisition and commands.
+  `usage/adoption.md#update-the-selection` for candidate acquisition and commands.
   Pass source flags to select a standards version, source, or profile; run the
   external candidate exact CLI to change the CLI pin, alone or with any of
   them; omit source flags to keep the retained standards, which the pinned CLI
@@ -73,9 +73,9 @@ until the project runtime exists. Thereafter the document root is
    or without them to keep the retained standards. To apply the unchanged
    selection again, run the pinned project's `inspect --json` without source
    flags.
-   Store reports outside the project. Read `inspection.md` when interpreting
+   Store reports outside the project. Read `usage/inspection.md` when interpreting
    fields, blockers, or acquisition errors. If discovery is required, read
-   `inspection.md#discover-contextual-file-scope` and each discovery
+   `usage/inspection.md#discover-contextual-file-scope` and each discovery
    guidance file. Inspect eligible evidence in the real repository, explain
    candidate inclusion/exclusion and membership for missing READMEs, and resolve
    membership questions with the maintainer. Enumerate individual existing files,
@@ -121,7 +121,7 @@ replace this workflow or supply adoption hooks.
 
 ## Contextual work
 
-When a report returns `workRequest`, read `assessment-protocol.md` before editing
+When a report returns `workRequest`, read `usage/assessment-protocol.md` before editing
 or submitting evidence. The handoff is expected incomplete adoption.
 
 1. For a discovery request, recheck semantic coverage after fixes against
@@ -165,7 +165,7 @@ For incomplete work, explain phase, reason, actual changes, completed work,
 failed or uncertain operations, and the returned safe next action. Preserve
 partial work; retry and abandonment require the instructions described above.
 For completion, report script outcomes and agent evidence separately, then read
-`adoption.md#review-completed-outputs`. Review tracked changes and the contents
+`usage/adoption.md#review-completed-outputs`. Review tracked changes and the contents
 and executable state of every non-ignored untracked file, including exact
 content, whole skills, retained inputs and durable runtime/state files.
 `git diff` omits untracked files; status names and hashes alone are not a content
