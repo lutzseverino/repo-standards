@@ -293,9 +293,12 @@ export function status(project: string) {
     let inspection: unknown;
     try { if (lockFile.type === 'file') inspection = JSON.parse(Buffer.from(lockFile.content, lockFile.encoding).toString('utf8'))?.inspection; }
     catch { /* Archived reports remain available even if current state cannot be decoded. */ }
-    // Only a lock an abandoned run left explains the failure; anything else is
-    // an integrity failure of the recorded adoption itself.
-    const incomplete = abandoned.find(run => run.inspection === inspection);
+    // Only an abandoned run explains the failure: one whose installation or
+    // completion wrote the lock, or one that began installing over the last
+    // complete adoption the lock still names. Anything else is an integrity
+    // failure of the recorded adoption itself.
+    const incomplete = abandoned.find(run => run.inspection === inspection
+      || (run.installation && run.previousComplete?.lastComplete.inspection === inspection));
     if (!incomplete) throw error;
     return { format, selection: incomplete.selection,
       lastComplete: incomplete.previousComplete?.lastComplete ?? null, active, abandoned, evidence: 'historical',

@@ -165,11 +165,11 @@ test('tampered retained declarations, inputs and scope history fail every reader
     const confirmed = f.inspect(['inspect', '--json']);
     const interrupted = filesystemFault(f.remote.support.root, f.env, 'prerequisites', `process.kill(process.pid, 'SIGKILL');`);
     assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
-    st.after(() => f.run(['abandon', '--json']));
     tamper(st, f.root, path);
     const { result, report } = f.run(['resume', '--retry', '--json']);
     assert.equal(result.status, 1, result.stdout);
     assert.deepEqual(report.errors, [integrityError(path)]);
+    assert.equal(f.run(['abandon', '--json']).report.abandoned, true);
   });
 
   // An archived abandoned run explains an inconsistent state only when the lock
@@ -181,5 +181,25 @@ test('tampered retained declarations, inputs and scope history fail every reader
     const { result, report } = f.run(['status', '--json']);
     assert.equal(result.status, 1, result.stdout);
     assert.deepEqual(report.errors, [integrityError(path)]);
+  });
+
+  // An update abandoned after replacing retained inputs but before writing its
+  // lock leaves the previous lock; status explains that state from the run.
+  await t.test('status after an update abandoned mid-installation', () => {
+    const previous = f.run(['status', '--json']).report.lastComplete;
+    const confirmed = f.inspect(['inspect', '--json']);
+    const interrupted = filesystemFault(f.remote.support.root, f.env, 'installation', `const rename = fs.renameSync;
+fs.renameSync = function(from, to) {
+  const result = rename.call(this, from, to);
+  if (String(to).endsWith('/.repo-standards/inputs/resolved.json')) process.kill(process.pid, 'SIGKILL');
+  return result;
+};
+syncBuiltinESMExports();`);
+    assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
+    assert.equal(f.run(['abandon', '--json']).report.abandoned, true);
+    const { result, report } = f.run(['status', '--json']);
+    assert.equal(result.status, 0, result.stdout);
+    assert.equal(report.stateError.code, 'STATE_INTEGRITY');
+    assert.deepEqual(report.lastComplete, previous);
   });
 });
