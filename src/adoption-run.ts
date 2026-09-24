@@ -293,9 +293,12 @@ export function status(project: string) {
     let inspection: unknown;
     try { if (lockFile.type === 'file') inspection = JSON.parse(Buffer.from(lockFile.content, lockFile.encoding).toString('utf8'))?.inspection; }
     catch { /* Archived reports remain available even if current state cannot be decoded. */ }
+    // Only a lock an abandoned run left explains the failure; anything else is
+    // an integrity failure of the recorded adoption itself.
     const incomplete = abandoned.find(run => run.inspection === inspection);
-    return { format, selection: incomplete?.selection ?? null,
-      lastComplete: incomplete?.previousComplete?.lastComplete ?? null, active, abandoned, evidence: 'historical',
+    if (!incomplete) throw error;
+    return { format, selection: incomplete.selection,
+      lastComplete: incomplete.previousComplete?.lastComplete ?? null, active, abandoned, evidence: 'historical',
       stateError: { code: error.code, message: error.message } };
   }
 }

@@ -171,4 +171,15 @@ test('tampered retained declarations, inputs and scope history fail every reader
     assert.equal(result.status, 1, result.stdout);
     assert.deepEqual(report.errors, [integrityError(path)]);
   });
+
+  // An archived abandoned run explains an inconsistent state only when the lock
+  // is the one it left; it never hides tampering with the last complete adoption.
+  await t.test('status beside an abandoned run', st => {
+    assert.equal(f.run(['status', '--json']).report.abandoned.length, 1);
+    const path = '.repo-standards/inputs/resolved.json';
+    tamper(st, f.root, path);
+    const { result, report } = f.run(['status', '--json']);
+    assert.equal(result.status, 1, result.stdout);
+    assert.deepEqual(report.errors, [integrityError(path)]);
+  });
 });
