@@ -9,14 +9,18 @@ disable-model-invocation: true
 Work from the adopting project's Git root. Use its pinned executable at
 `.repo-standards/runtime/node_modules/.bin/repo-standards`. If dependencies are
 absent, restore them with `npm ci --ignore-scripts --prefix .repo-standards/runtime`.
+Protocol document paths in this skill are relative to the document root: the
+externally installed exact CLI's package `docs/` directory until the project
+runtime exists, and thereafter
+`.repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/`.
 Read `status --json` for pins, active progress and historical evidence; it
 makes no network request. `outdated --json` reports, for the CLI pin and the
 standards pin, whether a newer stable version is published and how many stable
 releases separate it from the pin. It is read-only apart from its ignored
 cache, needs no clean tree, and reports `unknown` with a reason when a lookup
-fails; read `usage/available-updates.md` under the document root below. It
-states availability only. What to do with an available update is decided by
-the adopted standards' own guidance and the maintainer, not by this skill.
+fails; read `usage/available-updates.md`. It states availability only. What
+to do with an available update is decided by the adopted standards' own
+guidance and the maintainer, not by this skill.
 If any command fails with `RETIRED_FORMAT`, read
 `usage/adoption.md#adopt-fresh-from-a-retired-format`: nothing is converted, and the
 only path forward is fresh adoption. When the diagnostic names a run record in
@@ -27,12 +31,9 @@ commits the directory's removal through their normal workflow. Then follow
 initial adoption below with an externally installed exact CLI.
 
 For initial adoption, use an externally installed exact CLI and read
-`usage/inspection.md` from its package `docs/` directory for acquisition. The
-bootstrap performs inspection only; keep that disclosed exact version
-installed outside the project for `start` and recovery. Document paths in
-this skill are relative to the document root: that CLI's package `docs/`
-directory until the project runtime exists, and thereafter
-`.repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/`.
+`usage/inspection.md` for acquisition. The bootstrap performs inspection only;
+keep that disclosed exact version installed outside the project for `start`
+and recovery.
 
 - **Active run:** inspect `active.phase`, `reason`, `changes`, `completed`,
   `uncertain`, `nextAction` and `execution`. Wait while execution is active.
