@@ -1,5 +1,5 @@
 import { concreteScope } from './scope.js';
-import { contextualScope, observeWork, requireValidIntervals } from './work-observation.js';
+import { observeWork } from './work-observation.js';
 import { validateAssessment } from './assessment.js';
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
@@ -293,45 +293,40 @@ function verifyInstallation(root: string, installation: Installation, extra: Fil
   verifyCommittable(root, [...Object.keys(files), '.repo-standards/state.json']);
 }
 
-function openAgentObservation(root: string, session: AdoptionRunSession, report: Inspection) {
-  session.openObservation({ phase: 'agent', scope: contextualScope(report.resolved), before: observeWork(root, concreteScope(report.resolved)) });
-}
-
 async function advance(root: string, session: AdoptionRunSession, installation: Installation, resumed = false, assessment?: unknown) {
   const { report } = installation;
   const verifyInstalled = () => verifyInstallation(root, installation);
-  if (resumed) session.observeContinuation(report.resolved);
+  // A resumed assessment is validated before the journal's violations are checked.
+  if (resumed) session.journal.continue({ check: false });
   verifyInstalled();
   if (resumed) {
     session.record({ type: 'assessment-started' });
     if (assessment === undefined) {
-      openAgentObservation(root, session, report);
+      session.journal.open();
       session.pauseForContext(workRequest(root, session.observation, installation));
     }
     const accepted = validateAssessment(root, session.observation, assessment, {
       snapshot: workSnapshot(root, session.observation, report.resolved),
-      changedPaths: [...new Set(session.observation.observations.filter(interval => interval.phase === 'agent').flatMap(interval => Object.keys(interval.changes ?? {}).filter(path => !interval.restoredExact?.[path])))],
+      changedPaths: session.journal.agentChanges(),
     });
     session.record({ type: 'assessment-submitted', assessment: accepted });
     if (accepted.declarations.some(entry => entry.scopeValidity && Object.values(entry.scopeValidity).some(review => review.status === 'blocked'))) throw new ProductError('SCOPE_INCOMPLETE', 'Agent scope review reports incomplete coverage after fixes or at assessment. Additional files are not authorized; preserve work and reconcile the reported scope problem.');
     if (accepted.declarations.some(entry => entry.status === 'blocked')) throw new ProductError('ASSESSMENT_BLOCKED', 'Agent reports blocked contextual work. Resolve the explanation and submit renewed evidence before checks.');
     session.record({ type: 'assessment-accepted' });
-    requireValidIntervals(session.observation.observations);
+    session.journal.check();
   }
   const operationStart = session.observation.operations.length;
   for (const phase of (resumed ? ['checks'] : ['fixes', 'checks']) as ('fixes' | 'checks')[]) {
     for (const selected of operations(report.resolved, phase)) {
-      const capture = () => observeWork(root, concreteScope(report.resolved));
       const evidence = await session.authorProcess({ phase, declaration: selected.declaration, id: selected.operation.id },
-        onSpawn => execute(root, selected, report.selection, report.resolved, onSpawn), verifyInstalled,
-        { scope: { [selected.declaration]: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === selected.declaration)!) }, agentScope: contextualScope(report.resolved), before: capture(), capture });
+        onSpawn => execute(root, selected, report.selection, report.resolved, onSpawn), verifyInstalled);
       if (evidence.error) throw new ProductError(evidence.error, `Operation ${selected.declaration}/${selected.operation.id} did not return a successful process and protocol result. Read its logs and preserve changes.`);
       if (evidence.result?.status === 'blocked') throw new ProductError('OPERATION_BLOCKED', `Operation ${selected.declaration}/${selected.operation.id} is blocked: ${evidence.result.message}`);
       session.record({ type: 'operation-accepted', description: `${phase}: ${selected.declaration}/${selected.operation.id} (${evidence.result!.status})` });
     }
     if (phase === 'fixes' && report.guidance.length) {
       if (report.discovery) installation.scopeAfterFixes = workSnapshot(root, session.observation, report.resolved);
-      openAgentObservation(root, session, report);
+      session.journal.open();
       session.pauseForContext(workRequest(root, session.observation, installation), installation);
     }
   }
@@ -339,8 +334,7 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
   if (run.operations.slice(operationStart).some(evidence => evidence.result?.status === 'failed')) throw new ProductError('CHECKS_FAILED', 'One or more standards checks failed. All remaining ordinary check evidence was collected.');
   session.record({ type: 'final-verification' });
   verifyInstalled();
-  session.observeContinuation(report.resolved);
-  requireValidIntervals(session.observation.observations);
+  session.journal.continue();
   if (run.assessments.length && run.assessments[0]!.snapshot !== workSnapshot(root, run, report.resolved)) throw new ProductError('STALE_ASSESSMENT', 'Project content changed after assessment. Refresh the work request, reassess, and rerun checks.');
   session.complete(installation, operationStart);
 }

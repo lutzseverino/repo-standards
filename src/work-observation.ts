@@ -1,12 +1,10 @@
 import { ProductError } from './errors.js';
-import type { ResolvedProfile } from './model.js';
-import { concreteScope, type Scope } from './scope.js';
+import type { Scope } from './scope.js';
 import { observeScope } from './scope-observation.js';
-import { recordedInterval, type RecordedInterval } from './work-evidence.js';
 
-export function contextualScope(resolved: ResolvedProfile): Scope {
-  return concreteScope({ ...resolved, declarations: resolved.declarations.filter(declaration => 'guidance' in declaration) });
-}
+// A work observation is the project state one command observed, and what
+// changed between two of them. Intervals, their authority and their evidence
+// belong to the work-evidence journal.
 export function permits(targets: Scope[string], path: string) {
   return targets.paths.includes(path) || targets.directories.some(directory => path === directory || path.startsWith(directory + '/'));
 }
@@ -37,74 +35,7 @@ export function observedChanges(before: WorkObservation, after: WorkObservation)
   if (JSON.stringify(before.settings) !== JSON.stringify(after.settings)) changed.push('@git/observation-settings');
   return [...new Set(changed)].sort();
 }
-// An interval as a command holds it in memory, with its full observations.
-// Runs record it as identities and a delta through recordedInterval.
-export interface WorkInterval {
-  phase: 'fixes' | 'checks' | 'agent'; scope: Scope; before: WorkObservation;
-  operation?: { declaration: string; phase: 'fixes' | 'checks'; id: string }; operationIndex?: number;
-  after?: WorkObservation; changedPaths?: string[]; boundaryChanges?: string[]; violations?: string[]; interrupted?: boolean;
-  restoredExact?: WorkObservation['files']; restoredBoundaries?: WorkObservation['boundaries'];
-}
-function changedBoundaries(before: WorkObservation, after: WorkObservation) {
+export function changedBoundaries(before: WorkObservation, after: WorkObservation) {
   return [...new Set([...Object.keys(before.boundaries), ...Object.keys(after.boundaries)])]
     .filter(path => JSON.stringify(before.boundaries[path] ?? { type: 'missing' }) !== JSON.stringify(after.boundaries[path] ?? { type: 'missing' })).sort();
-}
-export function finishInterval(interval: WorkInterval, after: WorkObservation) {
-  interval.after = after;
-  interval.changedPaths = observedChanges(interval.before, after);
-  interval.boundaryChanges = changedBoundaries(interval.before, after);
-  const scopes = Object.values(interval.scope);
-  const fileViolations = interval.changedPaths.filter(path => interval.phase === 'checks'
-    || (!interval.restoredExact?.[path] && !scopes.some(targets => permits(targets, path))));
-  const boundaryViolations = interval.boundaryChanges.filter(path => {
-    if (interval.phase === 'checks') return true;
-    if (interval.restoredBoundaries?.[path]) return false;
-    if (scopes.some(targets => permits(targets, path))) return false;
-    const before = interval.before.boundaries[path];
-    // Named file authority includes creating its missing parent directories,
-    // but does not authorize deleting or changing existing ancestors.
-    return !((!before || before.type === 'missing') && after.boundaries[path]?.type === 'directory'
-      && scopes.some(targets => [...targets.paths, ...targets.directories].some(target => target.startsWith(path + '/'))));
-  });
-  interval.violations = [...new Set([...fileViolations, ...boundaryViolations])].sort();
-}
-export function requireValidIntervals(intervals: RecordedInterval[]) {
-  const invalid = intervals.find(interval => interval.violations?.length);
-  if (!invalid) return;
-  const operation = invalid.operation;
-  const code = invalid.phase === 'agent' ? 'ASSESSMENT_SCOPE' : invalid.phase === 'checks' ? 'CHECK_MUTATION' : 'OPERATION_SCOPE';
-  throw new ProductError(code, `${operation ? `Operation ${operation.declaration}/${operation.id}` : 'Agent work'} changed paths outside its authorized ${invalid.phase} scope: ${invalid.violations!.join(', ')}. Work and interval evidence are preserved; abandon and reconcile before a new adoption.`);
-}
-
-// Recovery closes an interrupted operation under its original authority. Work
-// after a recorded operation belongs to a separate agent interval, never replay.
-// Recorded intervals keep only identities, so the caller supplies the full
-// observation the last one ends at: its before while open, its after once
-// closed. The result is the continued record and the observation it now ends at.
-export function observeContinuation(root: string, intervals: readonly RecordedInterval[], observed: () => WorkObservation, resolved: ResolvedProfile, recordedOperations?: number, restorable?: Scope[string]) {
-  const last = intervals.at(-1);
-  if (!last) return;
-  const after = observeWork(root, concreteScope(resolved));
-  const interval: WorkInterval = last.after ? { phase: 'agent', scope: contextualScope(resolved), before: observed() }
-    : { phase: last.phase, scope: structuredClone(last.scope), ...(last.operation ? { operation: structuredClone(last.operation) } : {}),
-      ...(last.operationIndex !== undefined ? { operationIndex: last.operationIndex } : {}), before: observed() };
-  if (last.after && restorable) {
-    // The caller verified the immutable installation first. Only restoration
-    // of those exact paths/inventories is exempt from contextual attribution.
-    interval.restoredExact = Object.fromEntries(observedChanges(interval.before, after).filter(path => permits(restorable, path))
-      .map(path => [path, after.files[path] ?? { type: 'missing' }]));
-    interval.restoredBoundaries = Object.fromEntries(changedBoundaries(interval.before, after).flatMap(path => {
-      const before = interval.before.boundaries[path] ?? { type: 'missing' };
-      const current = after.boundaries[path] ?? { type: 'missing' };
-      const recreatingParent = before.type === 'missing' && current.type === 'directory'
-        && Object.entries(interval.restoredExact!).some(([file, state]) => state.type === 'file' && file.startsWith(path + '/'));
-      const removingExtra = before.type === 'directory' && current.type === 'missing'
-        && restorable.directories.some(directory => path.startsWith(directory + '/'))
-        && !restorable.paths.some(file => file.startsWith(path + '/'));
-      return recreatingParent || removingExtra ? [[path, current]] : [];
-    }));
-  }
-  finishInterval(interval, after);
-  if (interval.operation && recordedOperations !== undefined && interval.operationIndex === recordedOperations) interval.interrupted = true;
-  return { intervals: [...(last.after ? intervals : intervals.slice(0, -1)), recordedInterval(interval)], after };
 }
