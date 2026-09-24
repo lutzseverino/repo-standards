@@ -26,11 +26,12 @@ The maintainer removes any such record and the product state directory, and
 commits the directory's removal through their normal workflow. Then follow
 initial adoption below with an externally installed exact CLI.
 
-For initial adoption, use an externally installed exact CLI and read its
-`docs/usage/inspection.md` for acquisition. The bootstrap performs inspection only;
-keep that disclosed exact version installed outside the project for `start`
-and recovery. Read protocol documents below from that CLI's package directory
-until the project runtime exists. Thereafter the document root is
+For initial adoption, use an externally installed exact CLI and read
+`usage/inspection.md` from its package `docs/` directory for acquisition. The
+bootstrap performs inspection only; keep that disclosed exact version
+installed outside the project for `start` and recovery. Document paths in
+this skill are relative to the document root: that CLI's package `docs/`
+directory until the project runtime exists, and thereafter
 `.repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/`.
 
 - **Active run:** inspect `active.phase`, `reason`, `changes`, `completed`,
