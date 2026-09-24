@@ -1,5 +1,5 @@
 import type { Declaration, Operation, SourceDeclaration } from './model.js';
-import type { Observation } from './inspection.js';
+import type { Observation } from './observation.js';
 
 // An update's class says whether anything an adopter reviews in context
 // changes. It is exact only when every declaration's guidance, discovery

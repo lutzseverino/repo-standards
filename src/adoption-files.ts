@@ -3,8 +3,8 @@ import { chmodSync, lstatSync, mkdirSync, readdirSync, renameSync, rmSync, write
 import { dirname, join, resolve } from 'node:path';
 import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
-import { git, hashInventory, targetBoundaryObservation, targetObservation } from './inspection.js';
-import type { Blocker, Content, HashInventory, Observation } from './inspection.js';
+import { git, hashInventory, targetBoundaryObservation, targetObservation } from './observation.js';
+import type { Blocker, Content, HashInventory, Observation } from './observation.js';
 export type Baseline = Pick<Content, 'sha256' | 'executable'>;
 export type Files = Record<string, Content>;
 export const systemTarget = '.agents/skills/adopt-standards';
@@ -43,6 +43,13 @@ export function safeDirectory(root: string, path: string) {
   return value;
 }
 
+// The files of a product tree, relative to it.
+export function inventory(root: string, path: string) {
+  const files: Files = Object.create(null);
+  flatten(path, safe(root, path), files);
+  return Object.keys(files).map(name => name.slice(path.length + 1)).sort();
+}
+
 export function stagedPath(path: string, installationId?: string) {
   return join(dirname(path), `.repo-standards-${installationId ? `${installationId}-${hash(path)}` : randomUUID()}.tmp`);
 }
@@ -70,7 +77,13 @@ export function projectRoot(project: string) {
   return result.stdout.trim();
 }
 
-export { lockPath } from './inspection.js';
+// The adoption run record lives at Git's path for this working tree, outside
+// tracked content.
+export function lockPath(root: string) {
+  const result = git(root, ['rev-parse', '--git-path', 'repo-standards-run.lock']);
+  if (result.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot locate the adoption run lock.');
+  return resolve(root, result.stdout.trim());
+}
 
 export function verifyFiles(root: string, files: Files) {
   for (const [path, expected] of Object.entries(files)) {

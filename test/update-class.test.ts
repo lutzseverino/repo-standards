@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
@@ -64,7 +64,7 @@ async function adopted(t: TestContext) {
   const completed = run(['resume', '--assessment', assessment, '--json']);
   assert.equal(completed.result.status, 0, completed.result.stdout);
   commit(project.root);
-  return { remote, run, inspect };
+  return { remote, run, inspect, root: project.root };
 }
 
 const versionArgs = (tag: string) => inspectionArgs.map(argument => argument === 'v1.0.0' ? tag : argument);
@@ -132,5 +132,22 @@ test('each change to guidance, discovery guidance, operations, retired declarati
     assert.deepEqual(report.scopeChanges, [{ id: 'docs', additions: ['apps/b/README.md'], removals: [] }]);
     assert.equal(report.updateClass, 'contextual');
     assert.deepEqual(report.contextualChanges, [{ id: 'docs', changes: ['scope'] }]);
+  });
+});
+
+test('tampered retained declarations, inputs and scope history fail every reader of the recorded adoption alike', async t => {
+  const f = await adopted(t);
+  for (const path of ['.repo-standards/inputs/resolved.json', '.repo-standards/inputs/scope-history.json', '.repo-standards/inputs/source/guidance.md']) await t.test(path, st => {
+    const file = join(f.root, path);
+    const original = readFileSync(file);
+    st.after(() => writeFileSync(file, original));
+    writeFileSync(file, path.endsWith('.json') ? JSON.stringify({ ...JSON.parse(original.toString('utf8')), tampered: true }) : 'Tampered guidance\n');
+    const expected = { code: 'STATE_INTEGRITY', message: `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.` };
+    for (const args of [['inspect', '--json'], versionArgs('v1.0.0'), ['start', '--confirm', 'sha256:unconfirmed', '--json'],
+      ['start', ...versionArgs('v1.0.0').slice(1), '--confirm', 'sha256:unconfirmed'], ['status', '--json']]) {
+      const { result, report } = f.run(args);
+      assert.equal(result.status, 1, `${args.join(' ')}: ${result.stdout}`);
+      assert.deepEqual(report.errors, [expected], args.join(' '));
+    }
   });
 });

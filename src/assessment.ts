@@ -1,7 +1,7 @@
 import { permits } from './work-observation.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
-import { targetObservation } from './inspection.js';
+import { targetObservation } from './observation.js';
 
 export interface ScopeConfirmation { inspection: string; afterFixes: string }
 interface ScopeReview { status: 'valid' | 'blocked'; explanation: string; evidence: string[]; additionalPaths: string[] }
