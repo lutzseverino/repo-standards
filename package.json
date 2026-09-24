@@ -39,7 +39,7 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "node --test test/*.test.ts",
-    "validate": "pnpm typecheck && pnpm build && pnpm test",
+    "validate": "pnpm typecheck && node scripts/check-import-cycles.ts && pnpm build && pnpm test",
     "prepack": "pnpm build",
     "release:pack": "pnpm build && node scripts/pack-release.ts"
   },

@@ -23,8 +23,10 @@ independent reviews run alongside each other. Do not wait for the reviews or a
 full local test run before opening the PR.
 
 CI runs `pnpm validate` on macOS and Linux for every PR: typechecking,
-building, packing, and installing the npm package into temporary directories,
-then testing the installed public CLI against temporary Git repositories.
+rejecting any runtime import cycle among the source modules (type-only imports
+are exempt), building, packing, and installing the npm package into temporary
+directories, then testing the installed public CLI against temporary Git
+repositories.
 Passing full CI satisfies the full-suite requirement; duplicating it locally is
 optional. Run additional local tests to diagnose failures when needed.
 
