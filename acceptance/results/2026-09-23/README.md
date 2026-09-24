@@ -52,9 +52,9 @@ Outcomes:
 Run 35957812670 re-ran the acceptance against the already published package
 with the helper change from pull request #112, which inspects the example
 source at `v2.0.0` (commit `cb11dcb0a5cff267f33cd4a1a8e73e03a69ec3b9`) with
-the `service` profile. Its `validate` and `publish` jobs were skipped, so nothing
-was validated, packed, or published again. The `verify-publisher` job passed
-the trusted-publisher OIDC exchange without publishing.
+the `service` profile. Its `validate` and `publish` jobs were skipped, so
+nothing was validated, packed, or published again. The `verify-publisher` job
+passed the trusted-publisher OIDC exchange without publishing.
 
 | Check | Linux | macOS |
 | --- | --- | --- |
@@ -93,12 +93,12 @@ on macOS, so quota played no part in the failure.
 The same failure reproduces locally. With the published 2.0.0,
 `source search --json` rejects the example source's v1.1.0 release with
 `INVALID_STANDARDS`, for two reasons. `INVALID_FORMAT` says "Expected
-repo-standards/v2", and `INCOMPATIBLE_CLI` says "CLI 2.0.0 does not satisfy
->=1.0.0 <2.0.0". The acceptance helper also pinned that source's `v1.0.0` for its
-bootstrap inspections. A verification-only retry cannot pass until the example
-source publishes a v2 release with an open-ended range and the helper selects
-it. Neither was published again, and publication needs no recovery. Both
-conditions now hold, and the verification run above passed.
+repo-standards/v2", and `INCOMPATIBLE_CLI` says "CLI 2.0.0 does not
+satisfy >=1.0.0 <2.0.0". The acceptance helper also pinned that source's
+`v1.0.0` for its bootstrap inspections. A verification-only retry cannot pass
+until the example source publishes a v2 release with an open-ended range and
+the helper selects it. Neither was published again, and publication needs no
+recovery. Both conditions now hold, and the verification run above passed.
 
 ## Available updates
 
