@@ -73,11 +73,13 @@ validation results and remaining limits in the PR.
 
 ## Package compatibility
 
-`pnpm release:pack` stages the distributable package outside the checkout and
-includes the categorized documentation. It also creates complete compatibility
-copies at the nine original `docs/*.md` package paths, preserving headings and
-rebasing local links. The installed system skills can therefore keep using
-public CLI 2.0.0's documented paths. Use the release bundle's tarball for
-publication; direct `npm pack --ignore-scripts` from the source checkout omits
-those generated compatibility copies. Installed-CLI tests use the same staging
-boundary as release packaging.
+`pnpm release:pack` stages the distributable package outside the checkout. It
+carries the usage documents and none of the development, ADR, or agent
+documentation; a packaged document reaches unpackaged material through absolute
+repository URLs. Staging also creates complete compatibility copies at the
+eight original usage `docs/*.md` package paths listed in `package.json`,
+preserving headings and rebasing local links. The installed system skills can
+therefore keep using public CLI 2.0.0's documented paths. Use the release
+bundle's tarball for publication; direct `npm pack --ignore-scripts` from the
+source checkout omits those generated compatibility copies. Installed-CLI tests
+use the same staging boundary as release packaging.

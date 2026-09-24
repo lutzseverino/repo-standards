@@ -3,12 +3,10 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:f
 import { tmpdir } from 'node:os';
 import { join, posix, resolve } from 'node:path';
 
-// These published document paths remain usable by independently installed skills.
-const compatibilityDocuments = [
-  'usage/installation.md', 'development/release.md', 'usage/adoption.md',
-  'usage/author-format.md', 'usage/authoring.md', 'usage/discovery.md',
-  'usage/inspection.md', 'usage/script-protocol.md', 'usage/assessment-protocol.md',
-];
+// The manifest lists the legacy `docs/<name>.md` paths that independently
+// installed skills still use. They are not source files: staging generates each
+// one from the usage document of the same name.
+const compatibilityPath = /^docs\/[^/]+\.md$/;
 
 export function packPackage(output: string) {
   const project = process.cwd();
@@ -16,12 +14,12 @@ export function packPackage(output: string) {
   const staging = mkdtempSync(join(tmpdir(), 'repo-standards-package-'));
   try {
     const manifest = JSON.parse(readFileSync(join(project, 'package.json'), 'utf8'));
-    for (const path of new Set<string>(['package.json', 'README.md', 'LICENSE', ...manifest.files])) {
+    const files: string[] = manifest.files;
+    for (const path of new Set(['package.json', 'README.md', 'LICENSE', ...files.filter(path => !compatibilityPath.test(path))])) {
       cpSync(join(project, path), join(staging, path), { recursive: true });
     }
-    for (const document of compatibilityDocuments) {
-      const canonical = `docs/${document}`;
-      const legacy = `docs/${posix.basename(document)}`;
+    for (const legacy of files.filter(path => compatibilityPath.test(path))) {
+      const canonical = `docs/usage/${posix.basename(legacy)}`;
       const content = readFileSync(join(staging, canonical), 'utf8');
       // Preserve the full document and headings; relative links must resolve
       // from the legacy location as well as from the categorized source.
