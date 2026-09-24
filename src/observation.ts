@@ -8,8 +8,8 @@ import { foldPath } from './paths.js';
 // Read-only observation of the project: files and trees observed without
 // following links, target boundaries validated on the way down, and Git run
 // without optional locks or repository filters. Every module that reads the
-// project, including the reader of a recorded adoption, observes through here,
-// and compares an observed tree's inventory with a planned one through here.
+// project, including the reader of a recorded adoption, observes through here.
+// It also owns comparing an observed tree's inventory with a planned one.
 
 export interface Blocker { code: string; message: string; path?: string }
 export interface Content { sha256: string; executable: boolean; encoding: 'utf8' | 'base64'; content: string }

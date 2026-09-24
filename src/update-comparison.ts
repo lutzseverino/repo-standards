@@ -42,13 +42,13 @@ type SelectionComponent = typeof selectionComponents[number];
 
 const retainedSource = '.repo-standards/inputs/source/';
 
-// Code-unit order, as a default sort orders strings.
-function byName(a: string, b: string) {
+// Strings in code-unit order, as a default sort orders them.
+function codeUnitOrder(a: string, b: string) {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
 function sorted(files: FileHashes): FileHashes {
-  return Object.fromEntries(Object.entries(files).sort(([a], [b]) => byName(a, b)));
+  return Object.fromEntries(Object.entries(files).sort(([a], [b]) => codeUnitOrder(a, b)));
 }
 
 // A referenced path's files, keyed relative to it: '' for a file, '/name' for
@@ -153,7 +153,7 @@ export function compareUpdate(recorded: RecordedAdoption, candidate: UpdateCandi
       const changes = declarationChanges(recorded, discovery, candidate, declaration);
       return changes.length ? [{ id: declaration.id, changes }] : [];
     }),
-  ].sort((a, b) => byName(a.id, b.id));
+  ].sort((a, b) => codeUnitOrder(a.id, b.id));
   return {
     report: {
       update: selectionComponents.filter(component => changed[component]),
