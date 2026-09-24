@@ -11,7 +11,7 @@ function check(modules: Record<string, string>) {
   const root = mkdtempSync(join(tmpdir(), 'repo-standards-cycles-'));
   try {
     for (const [name, content] of Object.entries(modules)) writeFileSync(join(root, name), content);
-    return spawnSync(process.execPath, ['scripts/check-import-cycles.ts', root], { encoding: 'utf8' });
+    return spawnSync(process.execPath, ['--experimental-vm-modules', '--disable-warning=ExperimentalWarning', 'scripts/check-import-cycles.ts', root], { encoding: 'utf8' });
   } finally { rmSync(root, { recursive: true, force: true }); }
 }
 
@@ -32,6 +32,24 @@ test('validation rejects an import whose every specifier is an inline type, beca
   });
   assert.equal(result.status, 1, result.stdout + result.stderr);
   assert.match(result.stderr, /a\.ts -> b\.ts -> a\.ts|b\.ts -> a\.ts -> b\.ts/);
+});
+
+test('validation reads imports that span lines, carry comments, omit spaces or follow other code, and ignores commented-out ones', () => {
+  const cyclic = check({
+    'a.ts': "import {\n  b, // the value a needs\n} from './b.js';\nexport const a = () => b;\n",
+    'b.ts': "import{a}from'./a.js';\nexport const b = () => a;\n",
+  });
+  assert.equal(cyclic.status, 1, cyclic.stdout + cyclic.stderr);
+  const sameLine = check({
+    'a.ts': "export const a = 1; import './b.js';\n",
+    'b.ts': "export const b = 1; import './a.js';\n",
+  });
+  assert.equal(sameLine.status, 1, sameLine.stdout + sameLine.stderr);
+  const commented = check({
+    'a.ts': "import { b } from './b.js';\nexport const a = () => b;\n",
+    'b.ts': "// import { a } from './a.js';\n/*\nimport { a } from './a.js';\n*/\nexport const b = 1;\n",
+  });
+  assert.equal(commented.status, 0, commented.stdout + commented.stderr);
 });
 
 test('validation ignores type-only imports and exports in a cycle', () => {
