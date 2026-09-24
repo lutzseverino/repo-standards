@@ -20,6 +20,7 @@ const modules = readdirSync(root, { recursive: true, encoding: 'utf8' })
 const imports = new Map(modules.map(path => {
   const compiled = stripTypeScriptTypes(readFileSync(path, 'utf8'), { mode: 'transform' });
   const requests = new vm.SourceTextModule(compiled, { identifier: path }).moduleRequests;
+  if (!requests) throw new Error('Module parsing needs Node.js 24.4 or later.');
   return [path, requests.map(request => request.specifier).filter(specifier => specifier.startsWith('.'))
     .map(specifier => resolve(dirname(path), specifier.replace(/\.js$/, '.ts')))
     .filter(target => modules.includes(target))];

@@ -21,7 +21,7 @@ import { carriedRuns, completedEvidence } from './work-evidence.js';
 // Final integrity is this run-time check of the run's planned installation; the
 // recorded adoption reader separately verifies the committed baseline a run
 // starts from. The run session saves the value with the run and hands it back
-// on resume, leaving the plan to this module.
+// on resume, leaving interpreting the plan to this module.
 
 type StartInspection = Awaited<ReturnType<typeof inspectForStart>>;
 const retainedSource = '.repo-standards/inputs/source';

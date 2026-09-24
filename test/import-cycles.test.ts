@@ -56,7 +56,17 @@ test('validation ignores type-only imports and exports in a cycle', () => {
   const result = check({
     'a.ts': "import type { B } from './b.js';\nexport type { B };\nexport const a = 1;\n",
     'b.ts': "import { a } from './a.js';\nexport type B = typeof a;\n",
-    'c.ts': "export type { B } from './b.js';\nimport './a.js';\n",
+    'c.ts': "export type { B } from './b.js';\nexport type * from './b.js';\nimport './a.js';\n",
   });
   assert.equal(result.status, 0, result.stdout + result.stderr);
+});
+
+test('validation counts every re-export that loads its module, including inline type re-exports', () => {
+  for (const reexport of ["export * from './b.js';", "export * as b from './b.js';", "export { type B } from './b.js';"]) {
+    const result = check({
+      'a.ts': `${reexport}\nexport const a = 1;\n`,
+      'b.ts': "import { a } from './a.js';\nexport type B = typeof a;\nexport const b = a;\n",
+    });
+    assert.equal(result.status, 1, `${reexport}\n${result.stdout}${result.stderr}`);
+  }
 });
