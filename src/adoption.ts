@@ -2,22 +2,21 @@ import { concreteScope } from './scope.js';
 import { observeWork } from './work-observation.js';
 import { validateAssessment } from './assessment.js';
 import { spawnSync } from 'node:child_process';
-import { cpSync, existsSync, lstatSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
-import { stringify } from 'yaml';
 import { externalPath, hash } from './acquisition.js';
 import { allowedTargets, execute, operations, preflight } from './execution.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
-import { hiddenIndexPaths, inspect, inspectForStart, observeProductState, packagedSystemSkill, productInventory } from './inspection.js';
+import { inspect, inspectForStart, packagedSystemSkill } from './inspection.js';
 import type { InspectOptions } from './inspection.js';
-import { git, hashInventory, inventoryPaths, matchesInventory, observe, plannedInventory, type Observation } from './observation.js';
-import { baselines, file, flatten, ignore, inventory, json, lockPath, projectRoot, safe, safeDirectory, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
-import type { Baseline, Files } from './adoption-files.js';
+import { observe } from './observation.js';
+import { json, projectRoot } from './adoption-files.js';
 import { withStartRun, withResumedRun } from './adoption-run.js';
+import { install, planInstallation, verifyInstallation, type Installation } from './installation.js';
 import { readRecordedAdoption } from './recorded-state.js';
-import { committedScopeHistory, retainedScopeProjection, type ScopeHistoryRun } from './scope-evidence.js';
-import type { AdoptionRunSession, Installation, Run, StartInput, WorkRequest } from './adoption-run.js';
+import { retainedScopeProjection } from './scope-evidence.js';
+import type { AdoptionRunSession, Run, StartInput, WorkRequest } from './adoption-run.js';
 export { abandon, status } from './adoption-run.js';
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 const retainedSource = '.repo-standards/inputs/source';
@@ -82,12 +81,6 @@ function prepareRuntime(directory: string, version: string, project: string) {
   return installedSkill;
 }
 
-function verifyCommittable(root: string, paths: string[]) {
-  const result = git(root, ['check-ignore', '-z', '--stdin'], paths.join('\0') + '\0');
-  if (result.status !== 0 && result.status !== 1) throw new ProductError('PROJECT_READ', 'Cannot establish whether adoption outputs can be committed.');
-  if (result.stdout) throw new ProductError('IGNORED_OUTPUT', `Adoption outputs are ignored by Git: ${result.stdout.split('\0').filter(Boolean).join(', ')}. Reconcile ignore rules before completing adoption.`);
-}
-
 export async function start(options: InspectOptions, cliVersion: string, confirmation: string) {
   return withStartRun(options.project, session => startRun({ kind: 'public', options }, cliVersion, confirmation, session));
 }
@@ -105,189 +98,29 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
   const scope = proposalPath === undefined ? {} : { scope: realpathSync(resolve(proposalPath)) };
   const startInput: StartInput = input.kind === 'retained' ? { kind: 'retained', project: root, ...scope } : { kind: 'public', options: { ...input.options, project: root, ...scope } };
   session.begin(initial.report, initial.git.head, confirmation, startInput, initial.recorded);
-  let temporary: string | undefined;
-  const files: Files = Object.create(null);
-  const skills: Record<string, string[]> = Object.create(null);
   const prerequisites = await session.prerequisites(onSpawn => preflight(root, initial.report.resolved, onSpawn));
   if (prerequisites.some(probe => probe.code)) throw new ProductError('PREREQUISITES_BLOCKED', 'Resolve the reported executable and version problems; prerequisites are never installed automatically.');
   // Initial adoption installs the runtime; an update replaces it only when
   // the CLI pin changes and otherwise keeps the installed runtime.
-  const established = initial.report.update !== undefined;
-  const replaceRuntime = !established || initial.report.update!.includes('cli');
-  let preparedSystemSkill: Observation | undefined;
-  if (replaceRuntime) {
-    const acquired = session.acquireRuntime(directory => prepareRuntime(directory, cliVersion, root));
-    temporary = acquired.directory;
-    preparedSystemSkill = acquired.skill;
-  }
+  const replaceRuntime = initial.report.update === undefined || initial.report.update.includes('cli');
+  const runtime = replaceRuntime ? session.acquireRuntime(directory => prepareRuntime(directory, cliVersion, root)) : undefined;
   // Network/package acquisition can take time. Repeat all Git, source and
   // target checks under the lock before creating any project material. The
   // materials come from this inspection, whose confirmed identity binds their
   // hashes.
-  const { report, materials, git: gitState, recorded } = await inspectSelection();
-  verifyConfirmation(report, confirmation);
-  const systemSkill = preparedSystemSkill ?? materials.systemSkill;
-  const runtime = replaceRuntime ? observe(join(temporary!, 'node_modules')) : safeDirectory(root, '.repo-standards/runtime/node_modules');
-  for (const [target, desired] of Object.entries(materials.exact)) if (desired.type !== 'missing') flatten(target, desired, files);
-  flatten(systemTarget, systemSkill, files);
-  for (const declaration of report.resolved.declarations) if (declaration.kind === 'skill') {
-    const target = `.agents/skills/${declaration.name}`;
-    skills[target] = Object.keys(files).filter(path => path.startsWith(target + '/')).map(path => path.slice(target.length + 1)).sort();
-  }
-  skills[systemTarget] = Object.keys(files).filter(path => path.startsWith(systemTarget + '/')).map(path => path.slice(systemTarget.length + 1)).sort();
-  const exactBaselines = baselines(files);
-  const inputs: Files = Object.create(null);
-  for (const [path, value] of Object.entries(materials.inputs)) flatten(`${retainedSource}/${path}`, value, inputs);
-  inputs['.repo-standards/inputs/standards.yaml'] = file(materials.manifest);
-  inputs['.repo-standards/inputs/metadata.json'] = file(json(report.source));
-  inputs['.repo-standards/inputs/resolved.json'] = file(json(report.resolved));
-  const previousHistory = recorded?.scopeHistory;
-  if (report.discovery || previousHistory) {
-    const current: ScopeHistoryRun = { inspection: confirmation, resolved: report.resolved,
-      ...(report.discovery ? { sourceResolved: report.sourceResolved!, discovery: report.discovery } : {}) };
-    inputs['.repo-standards/inputs/scope-history.json'] = file(json(committedScopeHistory([...previousHistory ?? [], current])));
-  }
-  Object.assign(files, inputs);
-  files['.repo-standards/selection.yaml'] = file(stringify(report.selection));
-  files['.repo-standards/.gitignore'] = file(ignore);
-  for (const name of ['package.json', 'package-lock.json']) {
-    const value = observe(join(replaceRuntime ? temporary! : root, replaceRuntime ? name : `.repo-standards/runtime/${name}`));
-    flatten(`.repo-standards/runtime/${name}`, value, files);
-  }
-  const durable = baselines(files);
-  files['.repo-standards/lock.json'] = file(json({ format: formats.lock, selection: report.selection, inspection: confirmation, files: durable }));
-  // An update replaces retained inputs and every still-declared skill as whole
-  // trees, and the system skill with the runtime. Retired content stays.
-  const replaceTrees = established ? ['.repo-standards/inputs', ...report.resolved.declarations
-    .filter(declaration => declaration.kind === 'skill').map(declaration => `.agents/skills/${declaration.name}`),
-  ...(replaceRuntime ? [systemTarget] : [])] : [];
-  const transitional: Files = Object.create(null);
-  if (recorded) transitional['.repo-standards/state.json'] = recorded.stateFile;
-  const installation: Installation = { report, git: gitState, files, skills, exactBaselines, durable, runtimeHash: hash(json(runtime)), replaceTrees, transitional,
-    before: Object.fromEntries([...Object.keys(files).filter(path => !replaceTrees.some(tree => path.startsWith(tree + '/'))), ...replaceTrees].map(path => [path, hashInventory(safe(root, path))])) };
+  const inspected = await inspectSelection();
+  verifyConfirmation(inspected.report, confirmation);
+  const installation = planInstallation(root, inspected, confirmation, runtime);
   session.prepareInstallation(installation);
   install(root, session, installation);
   await advance(root, session, installation);
-}
-
-// The Git state start observed binds the run, not the inspection identity: the
-// product never commits, so HEAD or the index changing mid-run is not its work.
-function verifyGit(root: string, expected: Installation['git']) {
-  if (git(root, ['rev-parse', 'HEAD']).stdout.trim() !== expected.head || hash(git(root, ['ls-files', '--stage', '-z']).stdout) !== expected.index) throw new ProductError('FINAL_INTEGRITY', 'HEAD or the index changed during adoption.');
-  const hidden = hiddenIndexPaths(root);
-  if (json(hidden) !== json(expected.hidden)) throw new ProductError('FINAL_INTEGRITY', `The hidden index flags changed during adoption: ${hidden.join(', ')}. Reconcile skip-worktree and assume-unchanged flags before recovery.`);
-}
-
-function install(root: string, session: AdoptionRunSession, installation: Installation) {
-  session.record({ type: 'installation-verification' });
-  const run = session.observation;
-  const progress = () => session.observation.installation!;
-  const { files, before, report } = installation;
-  const replaceTrees = installation.replaceTrees ?? [];
-  const treeProgress = progress().trees!;
-  verifyGit(root, installation.git);
-  const observedTrees = Object.fromEntries(replaceTrees.map(tree => [tree, safe(root, tree)]));
-  const unchangedTrees = replaceTrees.filter(tree => json(hashInventory(observedTrees[tree]!)) === json(before[tree]));
-  const temporaries = stagedFiles(root, Object.fromEntries(Object.entries(files).filter(([path]) => !replaceTrees.some(tree => path.startsWith(tree + '/') && treeProgress[tree] !== 'installing'))), run.id);
-  for (const tree of replaceTrees) {
-    const actual = observedTrees[tree]!;
-    if (unchangedTrees.includes(tree)) continue;
-    if (!treeProgress[tree]) throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed before replacement: ${tree}. Reconcile it before retry.`);
-    if (actual.type === 'missing') continue;
-    const observed: Files = Object.create(null);
-    flatten(tree, actual, observed);
-    const expected: Record<string, Baseline> = treeProgress[tree] === 'removing' ? Object.create(null) : files;
-    if (treeProgress[tree] === 'removing' && before[tree]?.type !== 'missing') flatten(tree, before[tree]!, expected);
-    if (Object.entries(observed).some(([path, value]) => !temporaries.includes(path) && (expected[path]?.sha256 !== value.sha256 || expected[path]?.executable !== value.executable))) {
-      throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed during replacement: ${tree}. Preserve and reconcile added or modified resources before retry.`);
-    }
-    const expectedPaths = treeProgress[tree] === 'removing'
-      ? new Set([...inventoryPaths(before[tree]!).map(path => `${tree}/${path}`), ...plannedInventory(temporaries)])
-      : plannedInventory([...Object.keys(files), ...temporaries]);
-    if (inventoryPaths(actual).some(path => !expectedPaths.has(`${tree}/${path}`))) throw new ProductError('INSTALLATION_CHANGED', `Owned tree inventory changed during replacement: ${tree}. Preserve added resources before retry.`);
-  }
-  // Validate the entire remaining plan before writing any part of it. An
-  // unrecorded atomic write may contain either the inspected or expected bytes.
-  for (const [path, expected] of Object.entries(files)) {
-    // Whole-tree verification covers descendants, including old file ancestors
-    // that will become directories only after the tree has been removed.
-    if (replaceTrees.some(tree => path.startsWith(tree + '/')) && !progress().files.includes(path)) continue;
-    const actual = safe(root, path);
-    const matches = actual.type === 'file' && actual.sha256 === expected.sha256 && actual.executable === expected.executable;
-    if (!matches && (progress().files.includes(path) || json(hashInventory(actual)) !== json(before[path]))) throw new ProductError('INSTALLATION_CHANGED', `Installed or pending content changed: ${path}. Reconcile it before retry; recovery will not overwrite edits.`);
-  }
-  const plannedPaths = plannedInventory([...Object.keys(files), ...temporaries]);
-  for (const skill of Object.keys(installation.skills).filter(skill => !replaceTrees.includes(skill))) {
-    const current = safe(root, skill);
-    if (current.type === 'missing') continue;
-    if (inventoryPaths(current).some(path => !plannedPaths.has(`${skill}/${path}`))) throw new ProductError('INSTALLATION_CHANGED', `Skill inventory changed: ${skill}. Preserve added resources before retry.`);
-  }
-  const transitional = installation.transitional ?? {};
-  const productPaths = plannedInventory([...Object.keys(files), ...Object.keys(transitional), ...temporaries]);
-  if (safeDirectory(root, '.repo-standards').type !== 'missing' && productInventory(root).some(path => !productPaths.has(path) && !replaceTrees.some(tree => path.startsWith(tree + '/')))) throw new ProductError('INSTALLATION_CHANGED', 'Product state inventory changed. Reconcile additions before retry.');
-  const runtimePath = '.repo-standards/runtime/node_modules';
-  const runtime = safeDirectory(root, runtimePath);
-  function partial(actual: Observation, expected: Observation): boolean {
-    if (actual.type === 'missing') return true;
-    if (actual.type === 'directory' && expected.type === 'directory') return Object.entries(actual.entries).every(([name, child]) => expected.entries[name] !== undefined && partial(child, expected.entries[name]!));
-    return json(actual) === json(expected);
-  }
-  if (progress().runtime) {
-    if (hash(json(runtime)) !== installation.runtimeHash) throw new ProductError('INSTALLATION_CHANGED', 'Runtime content changed. Reconcile it before retry.');
-  } else {
-    const staged = observe(`${lockPath(root)}.runtime`);
-    if (hash(json(staged)) !== installation.runtimeHash) throw new ProductError('STATE_INTEGRITY', 'The saved runtime installation changed. Preserve the run and restore its recorded runtime.');
-    if (report.update === undefined && !partial(runtime, staged)) throw new ProductError('INSTALLATION_CHANGED', 'Runtime content changed. Reconcile it before retry.');
-  }
-  for (const path of temporaries) { safe(root, path); rmSync(join(root, path)); }
-  session.record({ type: 'installation-writing' });
-  const ignorePath = '.repo-standards/.gitignore';
-  write(root, ignorePath, files[ignorePath]!, run.id);
-  session.record({ type: 'file-installed', path: ignorePath });
-  for (const tree of replaceTrees) {
-    if (treeProgress[tree] === 'installing') continue;
-    session.record({ type: 'tree-removing', path: tree });
-    safeDirectory(root, tree);
-    rmSync(join(root, tree), { recursive: true, force: true });
-    session.record({ type: 'tree-installing', path: tree });
-  }
-  for (const [path, value] of Object.entries(files)) {
-    if (progress().files.includes(path)) continue;
-    write(root, path, value, run.id);
-    session.record({ type: 'file-installed', path });
-  }
-  if (!progress().runtime) {
-    safeDirectory(root, runtimePath);
-    const runtimeStage = '.repo-standards/local/runtime-stage';
-    safeDirectory(root, runtimeStage);
-    rmSync(join(root, runtimeStage), { recursive: true, force: true });
-    cpSync(`${lockPath(root)}.runtime`, join(root, runtimeStage), { recursive: true, verbatimSymlinks: true });
-    if (hash(json(observe(join(root, runtimeStage)))) !== installation.runtimeHash) throw new ProductError('FINAL_INTEGRITY', 'Runtime staging did not finish correctly.');
-    safeDirectory(root, runtimePath);
-    rmSync(join(root, runtimePath), { recursive: true, force: true });
-    renameSync(join(root, runtimeStage), join(root, runtimePath));
-    session.record({ type: 'runtime-installed' });
-  }
-  session.record({ type: 'installation-finished' });
-}
-
-function verifyInstallation(root: string, installation: Installation, extra: Files = {}) {
-  const { files, skills, runtimeHash } = installation;
-  const expectedFiles = { ...files, ...(installation.transitional ?? {}), ...extra };
-  verifyFiles(root, expectedFiles);
-  if (hash(json(safeDirectory(root, '.repo-standards/runtime/node_modules'))) !== runtimeHash) throw new ProductError('FINAL_INTEGRITY', 'The installed runtime dependencies changed.');
-  if (!matchesInventory(observeProductState(root), Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/')).map(path => path.slice('.repo-standards/'.length)))) throw new ProductError('FINAL_INTEGRITY', 'The product state inventory changed.');
-  for (const [path, expected] of Object.entries(skills)) if (!matchesInventory(safe(root, path), expected)) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
-  if (json(inventory(root, '.repo-standards/inputs')) !== json(Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/inputs/')).map(path => path.slice('.repo-standards/inputs/'.length)).sort())) throw new ProductError('FINAL_INTEGRITY', 'Retained input inventory changed.');
-  verifyGit(root, installation.git);
-  verifyCommittable(root, [...Object.keys(files), '.repo-standards/state.json']);
 }
 
 async function advance(root: string, session: AdoptionRunSession, installation: Installation, resumed = false, assessment?: unknown) {
   const { report } = installation;
   const verifyInstalled = () => verifyInstallation(root, installation);
   // A resumed assessment is validated before the journal's violations are checked.
-  if (resumed) session.journal.continue({ requireAuthorized: false });
+  if (resumed) session.journal.continue();
   verifyInstalled();
   if (resumed) {
     session.record({ type: 'assessment-started' });
@@ -325,12 +158,13 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
   session.record({ type: 'final-verification' });
   verifyInstalled();
   session.journal.continue();
+  session.journal.requireAuthorized();
   if (run.assessments.length && run.assessments[0]!.snapshot !== workSnapshot(root, run, report.resolved)) throw new ProductError('STALE_ASSESSMENT', 'Project content changed after assessment. Refresh the work request, reassess, and rerun checks.');
   session.complete(installation, operationStart);
 }
 
 export async function resume(project: string, cliVersion: string, assessmentPath?: string, retry = false) {
-  return withResumedRun(project, cliVersion, retry, verifyInstallation, async (session, installation) => {
+  return withResumedRun(project, cliVersion, retry, async (session, installation) => {
     if (!installation) {
       const run = session.observation;
       return startRun(run.startInput!, cliVersion, run.inspection, session);

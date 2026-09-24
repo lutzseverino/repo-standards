@@ -73,24 +73,34 @@ function invalid(): never {
   throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state failed integrity validation. Restore the committed product state.');
 }
 
-function text(value: RecordedFile) {
+function text(value: Pick<Content, 'content' | 'encoding'>) {
   return Buffer.from(value.content, value.encoding).toString('utf8');
+}
+
+// Decodes durable state in its single committed format. Completion decodes
+// the durable state an update carries the same way.
+export function decodeState(value: Pick<Content, 'content' | 'encoding'>): RecordedState {
+  let state: RecordedState;
+  try { state = JSON.parse(text(value)); }
+  catch { unreadable(); }
+  requireFormat(stateFile, state, formats.state);
+  if (!state?.lastComplete || !state.baselines || !state.skills
+    || !Array.isArray(state.checks) || !Array.isArray(state.assessments)
+    || !validExecutionEvidence(state)) {
+    invalid();
+  }
+  return state;
 }
 
 function decode(lock: Observation, observed: Observation) {
   if (lock.type !== 'file' || observed.type !== 'file') throw new ProductError('STATE_INTEGRITY', 'Complete adoption state or integrity lock is missing.');
   let pinned: RecordedLock;
-  let state: RecordedState;
-  try {
-    pinned = JSON.parse(text(lock));
-    state = JSON.parse(text(observed));
-  } catch { unreadable(); }
-  requireFormat(stateFile, state, formats.state);
+  try { pinned = JSON.parse(text(lock)); }
+  catch { unreadable(); }
+  const state = decodeState(observed);
   if (pinned?.format !== formats.lock
     || pinned.state?.sha256 !== observed.sha256 || pinned.state.executable !== observed.executable
-    || !pinned.selection || !pinned.files || !state?.lastComplete || !state.baselines || !state.skills
-    || !Array.isArray(state.checks) || !Array.isArray(state.assessments)
-    || !validExecutionEvidence(state)) {
+    || !pinned.selection || !pinned.files) {
     invalid();
   }
   return { pinned, state, stateFile: observed };

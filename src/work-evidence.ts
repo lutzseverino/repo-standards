@@ -165,8 +165,9 @@ export interface JournalRecord { observations: RecordedInterval[]; readonly oper
 
 // Every interval is observed over the resolved profile's concrete scope. Opening
 // and continuing persist the record through the caller's save; closing does not
-// (see close). Each close checks violations across the whole journal, so a
-// detected violation is reported again until the run is abandoned.
+// (see close). Opening a gap and each close check violations across the whole
+// journal, so a detected violation is reported again until the run is
+// abandoned; continuing leaves the check to its caller.
 export class WorkEvidenceJournal {
   readonly #root: string;
   readonly #resolved: ResolvedProfile;
@@ -237,16 +238,22 @@ export class WorkEvidenceJournal {
 
   // Continues after the last interval: an open interval is closed under its
   // original authority, and work after a closed one belongs to a new agent
-  // interval, never replay. An interrupted operation, one without a recorded
-  // outcome, is marked interrupted. Restorable exact paths are exempt from
-  // attribution once the caller has verified the immutable installation. The
-  // record is saved, then its intervals are required to be authorized unless
-  // the caller defers that: a resumed assessment reports its own validation
-  // first, and abandonment preserves rather than reports.
-  continue({ interrupted = false, restorable, requireAuthorized = true }: { interrupted?: boolean; restorable?: Scope[string] | undefined; requireAuthorized?: boolean } = {}) {
+  // interval, never replay. The record is saved; its intervals are not checked,
+  // because each caller requires authorization where the invariant holds: a
+  // resumed assessment after its own validation, recovery and final
+  // verification at once, and abandonment never, since it preserves rather
+  // than reports.
+  continue() { this.#continue(false); }
+
+  // Continues after an interruption, as continue does, marking an interrupted
+  // operation, one without a recorded outcome. Restorable exact paths are
+  // exempt from attribution once the caller has verified the immutable
+  // installation.
+  continueInterrupted(restorable?: Scope[string]) { this.#continue(true, restorable); }
+
+  #continue(interrupted: boolean, restorable?: Scope[string]) {
     if (this.#run.observations.length) this.#advance(this.#observe(), interrupted, restorable);
     this.#save();
-    if (requireAuthorized) this.requireAuthorized();
   }
 
   // Requires every recorded interval to have stayed within its authority,

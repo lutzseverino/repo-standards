@@ -4,12 +4,12 @@ import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { parse, stringify } from 'yaml';
-import { installCli, sourceFixture } from './installed-cli.ts';
+import { installCli, sha256, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
-import { filesystemFault } from './adoption-faults.ts';
+import { filesystemFault, filesystemRenameFault } from './adoption-faults.ts';
 
 const cli = installCli();
 const candidateVersion = inc(cli.version, 'minor')!;
@@ -684,6 +684,45 @@ syncBuiltinESMExports();`);
     assert.equal(completed.active, null);
     assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
   });
+});
+
+test('an update whose carried previous durable state fails decoding stops at completion with final integrity', async t => {
+  const f = await pendingUpdate(t);
+  // Stop the update once its saved installation is recorded, before it writes project content.
+  const env = filesystemRenameFault(f.remote.support.root, f.env, 'installation', "process.kill(process.pid, 'SIGKILL');");
+  assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
+  // The saved installation carries the previous durable state, which verification
+  // compares with the project's copy. Tamper both identically, so that only
+  // decoding the carried state can notice.
+  const statePath = join(f.project.root, '.repo-standards/state.json');
+  const original = readFileSync(statePath, 'utf8');
+  const { lastComplete: _, ...withoutLastComplete } = JSON.parse(original);
+  const tampered = JSON.stringify(withoutLastComplete, null, 2) + '\n';
+  writeFileSync(statePath, tampered);
+  const lock = resolve(f.project.root, git(f.project.root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
+  const run = JSON.parse(readFileSync(lock, 'utf8'));
+  const saved = JSON.parse(readFileSync(`${lock}.context.${run.continuation}`, 'utf8'));
+  let carried = 0;
+  (function replace(value: unknown) {
+    if (!value || typeof value !== 'object') return;
+    const entry = value as Record<string, unknown>;
+    if (entry.sha256 === sha256(original) && 'content' in entry) {
+      Object.assign(entry, { sha256: sha256(tampered), executable: false, encoding: 'utf8', content: tampered });
+      carried++;
+    } else Object.values(entry).forEach(replace);
+  })(saved);
+  assert.equal(carried, 1);
+  const content = JSON.stringify(saved, null, 2) + '\n';
+  run.continuation = sha256(content);
+  writeFileSync(`${lock}.context.${run.continuation}`, content);
+  writeFileSync(lock, JSON.stringify(run, null, 2) + '\n');
+  const result = f.run(['resume', '--retry', '--json']);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.outcome, 'incomplete');
+  assert.equal(report.phase, 'completion');
+  assert.match(report.reason, /^FINAL_INTEGRITY: /);
+  assert.equal(readFileSync(statePath, 'utf8'), tampered);
 });
 
 test('a standards update rejects added retained inputs before discarding any material', async t => {
