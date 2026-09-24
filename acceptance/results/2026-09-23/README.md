@@ -1,7 +1,8 @@
 # Release 2.0.0 acceptance
 
 This record covers the publication of `@lutzseverino/repo-standards@2.0.0`
-on 23 September 2026 and the acceptance of ticket #93 under specification #79.
+on 23 September 2026, its verification-only published-installation acceptance
+on 24 September 2026, and the acceptance of ticket #93 under specification #79.
 It follows [Acceptance records](../../README.md#acceptance-records): identities
 and tool summaries only. It commits no summary files because no adoption ran.
 
@@ -9,11 +10,13 @@ Outcomes:
 
 - **Publication: passed.** npm, the `v2.0.0` tag, and the GitHub release match
   the validated bundle.
-- **Published-installation acceptance: failed on macOS and Linux.** Each
-  system passed every check up to discovery. Discovery rejected the public
-  learning source, `lutzseverino/repo-standards-example`. Its only releases,
-  v1.0.0 and v1.1.0, are `repo-standards/v1` sources that declare
-  `>=1.0.0 <2.0.0`, and 2.0.0 removes that format by design.
+- **Published-installation acceptance: passed on macOS and Linux** on
+  24 September 2026, in a verification-only run under ticket #110. The first
+  attempt, in the release run, failed on both systems at discovery, which
+  rejected the public learning source, `lutzseverino/repo-standards-example`.
+  Its only releases then, v1.0.0 and v1.1.0, are `repo-standards/v1` sources
+  that declare `>=1.0.0 <2.0.0`, and 2.0.0 removes that format by design. That
+  source has since published `v2.0.0`, and the acceptance helper selects it.
 - **Fresh self-adoption: not attempted.** The maintainer is holding it until
   Repo Canon publishes a release whose author range admits 2.0.0. This
   repository's product state and installed skills are unchanged.
@@ -23,6 +26,7 @@ Outcomes:
 | Run | Performed by | Environment |
 | --- | --- | --- |
 | `Release` workflow run [35871105209](https://github.com/lutzseverino/repo-standards/actions/runs/35871105209), dispatched at `a8b89d4d00b3a4005dc912c90950ce755529bbf0` with `version=2.0.0` | GitHub-hosted runners | Validation on `ubuntu-latest` and `macos-latest`. Public acceptance on `ubuntu-latest` (Linux 6.17.0-1022-azure, x64) and `macos-26-intel` (Darwin 25.6.0, x64), Node.js 24.11.1 |
+| Verification-only `Release` workflow run [35957812670](https://github.com/lutzseverino/repo-standards/actions/runs/35957812670), dispatched from branch `chore/110-acceptance-v2-example-source` (pull request #112) at `032fa4583d1b7b108165a73a4d8400aec7a69e1a` with `version=2.0.0` and `verify_published=true` | GitHub-hosted runners | Public acceptance on `ubuntu-latest` (Linux 6.17.0-1022-azure, x64) and `macos-26-intel` (Darwin 25.6.0, x64), Node.js 24.11.1, npm 11.6.2 |
 | Read-only `outdated` and `inspect` with the published CLI | An implementation agent, from a local shell | Linux 7.0.0-31-generic x86_64, Node.js 24.21.0, npm 11.19.0, Git 2.53.0. The package was installed with `--ignore-scripts` into a directory outside any project |
 
 ## Publication
@@ -43,6 +47,34 @@ Outcomes:
 
 ## Published-installation acceptance
 
+### Verification run 35957812670: passed
+
+Run 35957812670 re-ran the acceptance against the already published package
+with the helper change from #110, which inspects the example source at
+`v2.0.0` (commit `cb11dcb0a5cff267f33cd4a1a8e73e03a69ec3b9`) with the
+`service` profile. Its `validate` and `publish` jobs were skipped, so nothing
+was validated, packed, or published again. The `verify-publisher` job passed
+the trusted-publisher OIDC exchange without publishing.
+
+| Check | Linux | macOS |
+| --- | --- | --- |
+| Registry propagation wait | npm available at the first attempt, after 0.5 s; both release assets available by 1.0 s | npm available at the first attempt, after 1.2 s; both release assets available by 1.9 s |
+| Public npm installation, version, lockfile and bundle integrity, bootstrap hash and bytes | passed | passed |
+| Packaged Alice, Mira, and Atlas and checkout Wayfinder validation | passed | passed |
+| Discovery of the public learning source | passed; the only candidate is `repo-standards-example` at `v2.0.0` | passed; the only candidate is `repo-standards-example` at `v2.0.0` |
+| Read-only bootstrap inspection, explicit and omitted CLI version | passed; both `repo-standards/inspection/v4` reports select CLI 2.0.0 and share one identity, and the project is unchanged | passed; both `repo-standards/inspection/v4` reports select CLI 2.0.0 and share one identity, and the project is unchanged |
+| Standalone authoring skill and matching CLI (`prepare-author.ts`) | passed | passed |
+
+Every propagation subject was available at its first attempt, well inside the
+300 s bound; the run started about 15 hours after publication. Each artifact's
+`public-installation.json` records the attempts in `propagation`. Anonymous
+GitHub API quota at job start was 37 of 60 on Linux and 60 of 60 on macOS.
+Discovery still rejects other public candidates, including Repo Canon v0.2.0,
+as the release run did; the acceptance requires only that the learning source
+is discoverable.
+
+### Release run 35871105209: failed
+
 | Check | Linux | macOS |
 | --- | --- | --- |
 | Registry propagation wait | npm `E404` 7 times, available after 72.4 s; both release assets available by 72.8 s | npm `E404` 4 times, available after 45.3 s; both release assets available by 46.2 s |
@@ -62,10 +94,11 @@ The same failure reproduces locally. With the published 2.0.0,
 `source search --json` rejects the example source's v1.1.0 release with
 `INVALID_STANDARDS`, for two reasons. `INVALID_FORMAT` says "Expected
 repo-standards/v2", and `INCOMPATIBLE_CLI` says "CLI 2.0.0 does not satisfy
->=1.0.0 <2.0.0". The acceptance helper also pins that source's `v1.0.0` for its
+>=1.0.0 <2.0.0". The acceptance helper also pinned that source's `v1.0.0` for its
 bootstrap inspections. A verification-only retry cannot pass until the example
 source publishes a v2 release with an open-ended range and the helper selects
-it. Neither was published again, and publication needs no recovery.
+it. Neither was published again, and publication needs no recovery. Both
+conditions now hold, and the verification run above passed.
 
 ## Available updates
 
@@ -101,11 +134,6 @@ Both runs used `inspect --source https://github.com/lutzseverino/repo-canon
 
 ## Outstanding
 
-- **Published-installation acceptance on macOS and Linux.** Blocker: the
-  public learning source has no release in the only source format 2.0.0 reads,
-  and `acceptance/public-installation.ts` pins its v1.0.0. After a v2 release of
-  `repo-standards-example` and a helper update, run verification-only
-  acceptance (`verify_published: true`) for 2.0.0. Do not publish again.
 - **Fresh self-adoption, its record, and `outdated` after it.** Blocker: a Repo
   Canon release whose author range admits 2.0.0. The current v0.2.0 declares
   exactly `1.3.0`, and Repo Canon's default branch declares `>=1.3.0` but has
@@ -123,11 +151,11 @@ Both runs used `inspect --source https://github.com/lutzseverino/repo-canon
 
 ## Ticket #93 acceptance
 
-- [ ] CLI 2.0.0 is published on npm with its matching GitHub release assets
+- [x] CLI 2.0.0 is published on npm with its matching GitHub release assets
   (passed; see [Publication](#publication)), and the published-installation
-  acceptance passes on macOS and Linux (**failed**; see
+  acceptance passes on macOS and Linux (passed in verification run
+  35957812670; see
   [Published-installation acceptance](#published-installation-acceptance)).
-  Outstanding.
 - [ ] Product state removed in a committed step, and fresh adoption of the
   current Repo Canon release completes in one confirmed run with the skills
   claimed. **Outstanding**; see [Outstanding](#outstanding).
@@ -337,14 +365,31 @@ in the released commit.
   (`0f313ef435c715889303ec1157f1006bee1fb9f4`), profile `complete`.
 - Inspected source: Repo Canon v0.2.0, commit
   `79ff51198465248df67c6e1d6a66c95e2f964df5`.
+- Public learning source for the verification run:
+  `https://github.com/lutzseverino/repo-standards-example` `v2.0.0`, commit
+  `cb11dcb0a5cff267f33cd4a1a8e73e03a69ec3b9`, profile `service`.
+- Verification run 35957812670 checkout: commit
+  `032fa4583d1b7b108165a73a4d8400aec7a69e1a`, Wayfinder source tree
+  `114d8d5e667f850d7332f3c2eb02dcd5c467a77f`. On both systems it recorded the
+  npm integrity and packaged `adopt-standards` hash listed above and the same
+  standalone `author-standards` inventory.
+- Bootstrap inspection identities in run 35957812670, each shared by the
+  explicit and omitted CLI version inspections:
+  - Linux: `sha256:bf988f4de00601b8da1784b94baf8226d180ecad6760e29c66a5817c4e340e54`
+  - macOS: `sha256:793a126902ad37bc498ac9b7edaa7a5f9c140a656325cb71225aafa4aef4a039`
 - Workflow run 35871105209 artifacts (retained until 22 December 2026):
   - `release-bundle`: the tarball, bootstrap, `release.json`, and `SHA256SUMS`.
   - `public-installation-ubuntu-latest` and
     `public-installation-macos-26-intel`: `public-installation.json` with its
     `propagation` attempts and failure, `public-author-installation.json`, and
     `public-api-quota.json`.
-- No inspection identity or adoption run ID exists: both inspections failed
-  before producing a report, and no adoption started. The local `outdated` and
+- Workflow run 35957812670 artifacts (retained until 23 December 2026):
+  `public-installation-ubuntu-latest` and `public-installation-macos-26-intel`,
+  each with a passing `public-installation.json` and its `propagation`
+  attempts, `public-author-installation.json`, and `public-api-quota.json`.
+- No inspection identity against Repo Canon or adoption run ID exists: both
+  Repo Canon inspections failed before producing a report, and no adoption
+  started. The local `outdated` and
   `inspect` output and the status helper's `status.json` stay outside the
   repository; the sections above state what they showed.
 
