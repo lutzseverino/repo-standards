@@ -184,7 +184,8 @@ test('tampered retained declarations, inputs and scope history fail every reader
   });
 
   // An update abandoned after replacing retained inputs but before writing its
-  // lock leaves the previous lock; status explains that state from the run.
+  // lock leaves the previous lock; status explains that state from the run. It
+  // runs last because it leaves the adoption inconsistent.
   await t.test('status after an update abandoned mid-installation', () => {
     const previous = f.run(['status', '--json']).report.lastComplete;
     const confirmed = f.inspect(['inspect', '--json']);

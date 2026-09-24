@@ -297,8 +297,8 @@ export function status(project: string) {
     // completion wrote the lock, or one that began installing over the last
     // complete adoption the lock still names. Anything else is an integrity
     // failure of the recorded adoption itself.
-    const incomplete = abandoned.find(run => run.inspection === inspection
-      || (run.installation && run.previousComplete?.lastComplete.inspection === inspection));
+    const incomplete = typeof inspection === 'string' ? abandoned.find(run => run.inspection === inspection
+      || (run.installation && run.previousComplete?.lastComplete.inspection === inspection)) : undefined;
     if (!incomplete) throw error;
     return { format, selection: incomplete.selection,
       lastComplete: incomplete.previousComplete?.lastComplete ?? null, active, abandoned, evidence: 'historical',
