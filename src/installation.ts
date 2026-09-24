@@ -21,7 +21,7 @@ import { carriedRuns, completedEvidence } from './work-evidence.js';
 // Final integrity is this run-time check of the run's planned installation; the
 // recorded adoption reader separately verifies the committed baseline a run
 // starts from. The run session saves the value with the run and hands it back
-// on resume without interpreting it.
+// on resume, leaving the plan to this module.
 
 type StartInspection = Awaited<ReturnType<typeof inspectForStart>>;
 const retainedSource = '.repo-standards/inputs/source';
@@ -210,7 +210,7 @@ export function verifyInstallation(root: string, installation: Installation, com
   let temporaries: string[] = [];
   if (completion) {
     const written: Files = { [lockFile]: completion.lock, [stateFile]: completion.state };
-    temporaries = stagedFiles(root, written, completion.runId, { ...expectedFiles });
+    temporaries = stagedFiles(root, written, completion.runId, expectedFiles);
     for (const path of temporaries) flatten(path, safe(root, path), expectedFiles);
     for (const [path, value] of Object.entries(written)) {
       const actual = safe(root, path);
@@ -247,10 +247,8 @@ export function completionFiles(installation: Installation, run: Run, operationS
 
 function carriedHistory(installation: Installation) {
   if (!installation.previousState) return [];
-  let previous: ReturnType<typeof decodeState>;
-  try { previous = decodeState(installation.previousState); }
+  try { return carriedRuns(decodeState(installation.previousState)); }
   catch { throw new ProductError('FINAL_INTEGRITY', 'The durable state of the last complete adoption, carried by this update, failed integrity validation.'); }
-  return carriedRuns(previous);
 }
 
 // Writes a completion's durable state and lock, and verifies them together
