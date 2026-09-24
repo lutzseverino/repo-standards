@@ -9,6 +9,7 @@ import { foldPath } from './paths.js';
 // following links, target boundaries validated on the way down, and Git run
 // without optional locks or repository filters. Every module that reads the
 // project, including the reader of a recorded adoption, observes through here.
+// It also owns comparing an observed tree's inventory with a planned one.
 
 export interface Blocker { code: string; message: string; path?: string }
 export interface Content { sha256: string; executable: boolean; encoding: 'utf8' | 'base64'; content: string }
@@ -103,4 +104,33 @@ export function targetObservation(root: string, target: string, blockers: Blocke
   }
   if (unsafe(observed)) blockers.push({ code: 'UNSAFE_TARGET', path: target, message: 'Target tree contains a symbolic link, special file, or nested Git metadata.' });
   return observed;
+}
+
+export function inventoryPaths(value: Observation | HashInventory): string[] {
+  const result: string[] = [];
+  function visit(prefix: string, child: Observation | HashInventory) {
+    if (child.type === 'file') result.push(prefix);
+    else if (child.type === 'directory') {
+      if (prefix) result.push(prefix + '/');
+      for (const [name, entry] of Object.entries<Observation | HashInventory>(child.entries)) visit(prefix ? `${prefix}/${name}` : name, entry);
+    }
+  }
+  visit('', value);
+  return result.sort();
+}
+
+// Installed trees have the directories implied by their materialized files.
+// An extra empty directory changes that tree even when a file-only inventory
+// omits it. Use the same comparison for skills and durable product state.
+export function plannedInventory(files: string[]): Set<string> {
+  const expected = new Set(files);
+  for (const file of files) {
+    const parts = file.split('/');
+    for (let length = 1; length < parts.length; length++) expected.add(parts.slice(0, length).join('/') + '/');
+  }
+  return expected;
+}
+
+export function matchesInventory(value: Observation, files: string[]) {
+  return JSON.stringify(inventoryPaths(value)) === JSON.stringify([...plannedInventory(files)].sort());
 }

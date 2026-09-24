@@ -6,7 +6,7 @@ import { homedir } from 'node:os';
 import { acquireSource, hash } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
-import { content, git, hashInventory, observe, targetBoundaryObservation, targetObservation } from './observation.js';
+import { content, git, hashInventory, inventoryPaths, observe, targetBoundaryObservation, targetObservation } from './observation.js';
 import type { Blocker, HashInventory, Observation } from './observation.js';
 import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
@@ -15,7 +15,7 @@ import { scopeChanges } from './scope-evidence.js';
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
 import { unifiedDiff } from './unified-diff.js';
-import { classifyUpdate } from './update-class.js';
+import { compareUpdate } from './update-comparison.js';
 
 // Guidance, discovery guidance and scripts are referenced by path and hash.
 function fileReference(path: string) {
@@ -58,39 +58,6 @@ function plannedAction(current: Observation, desired: Observation) {
 }
 
 export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string; scope?: string }
-
-// The selection components an update can change, in reporting order.
-const selectionComponents = ['cli', 'standards', 'source', 'profile'] as const;
-type SelectionComponent = typeof selectionComponents[number];
-
-export function inventoryPaths(value: Observation | HashInventory): string[] {
-  const result: string[] = [];
-  function visit(prefix: string, child: Observation | HashInventory) {
-    if (child.type === 'file') result.push(prefix);
-    else if (child.type === 'directory') {
-      if (prefix) result.push(prefix + '/');
-      for (const [name, entry] of Object.entries<Observation | HashInventory>(child.entries)) visit(prefix ? `${prefix}/${name}` : name, entry);
-    }
-  }
-  visit('', value);
-  return result.sort();
-}
-
-// Installed trees have the directories implied by their materialized files.
-// An extra empty directory changes that tree even when a file-only inventory
-// omits it. Use the same comparison for skills and durable product state.
-export function plannedInventory(files: string[]): Set<string> {
-  const expected = new Set(files);
-  for (const file of files) {
-    const parts = file.split('/');
-    for (let length = 1; length < parts.length; length++) expected.add(parts.slice(0, length).join('/') + '/');
-  }
-  return expected;
-}
-
-export function matchesInventory(value: Observation, files: string[]) {
-  return JSON.stringify(inventoryPaths(value)) === JSON.stringify([...plannedInventory(files)].sort());
-}
 
 function productStateObservation(root: string, blockers: Blocker[]) {
   const directories = ['local', 'cache', 'runtime/node_modules'].map(path => `.repo-standards/${path}`);
@@ -182,34 +149,22 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       evidence: scopeObservation.evidence,
       observation: scopeObservation,
     } : undefined;
-    // An update against an established adoption names every changed selection
-    // component together; an unchanged selection is re-applied.
-    let update: SelectionComponent[] | undefined;
-    if (previous) {
-      const sameSource = source.identity.repository.toLowerCase() === previous.selection.standards.repository.toLowerCase();
-      if (sameSource && source.identity.version === previous.selection.standards.version && source.identity.commit !== previous.selection.standards.commit) {
-        throw new ProductError('MOVED_TAG', `The recorded ${source.identity.version} tag previously resolved to ${previous.selection.standards.commit}; it now resolves to ${source.identity.commit}. Choose a new immutable version.`);
-      }
-      const changed: Record<SelectionComponent, boolean> = {
-        cli: cliVersion !== previous.selection.cli.version,
-        standards: source.identity.version !== previous.selection.standards.version || source.identity.commit !== previous.selection.standards.commit,
-        source: !sameSource,
-        profile: options.profile !== previous.selection.profile,
-      };
-      update = selectionComponents.filter(component => changed[component]);
-      for (const [path, expected] of Object.entries(previous.state.baselines)) {
-        const actual = targetObservation(root, path, blockers);
-        if (actual.type !== 'file' || actual.sha256 !== expected.sha256 || actual.executable !== expected.executable) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'Installed exact content differs from its last-complete baseline. Reconcile it before updating.' });
-      }
-      for (const [path, expected] of Object.entries(previous.state.skills)) {
-        const actual = targetObservation(root, path, blockers);
-        if (!matchesInventory(actual, expected)) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'The installed skill inventory differs from its last-complete baseline. Reconcile added or removed resources before updating.' });
-      }
-      const expectedProductFiles = [...Object.keys(previous.files).filter(path => path.startsWith('.repo-standards/')), '.repo-standards/lock.json', '.repo-standards/state.json'].sort();
-      if (!matchesInventory(productState, expectedProductFiles.map(path => path.slice('.repo-standards/'.length)))) {
-        blockers.push({ code: 'STATE_INTEGRITY', path: '.repo-standards', message: 'The durable product-state inventory changed. Reconcile added or removed material before updating.' });
-      }
+    const selection = { cli: { package: '@lutzseverino/repo-standards', version: cliVersion }, standards: source.identity, profile: options.profile };
+    // Retain a normalized source with only the selected profile. The resolver
+    // remains the sole interpreter when this source is used in a fresh checkout.
+    const inputs: Record<string, Observation> = Object.create(null);
+    const normalized = stringify({ ...validation.source, defaults: { declarations: {} }, profiles: {
+      [options.profile]: { description: profile.description, declarations: Object.fromEntries(profile.declarations.map(({ id, ...declaration }) => [id, declaration])) },
+    } });
+    for (const declaration of profile.declarations) {
+      const paths = [declaration.kind === 'skill' ? declaration.source : 'exact' in declaration ? declaration.exact : declaration.guidance,
+        ...('discovery' in declaration ? [declaration.discovery] : []),
+        ...[...declaration.fixes, ...declaration.checks].flatMap(operation => [operation.run.script, ...operation.run.resources])];
+      for (const path of paths) inputs[path] = observe(join(source.root, path));
     }
+    for (const name of readdirSync(source.root).sort()) if (/^licen[sc]e(?:[.-].*)?$/i.test(name)) inputs[name] = observe(join(source.root, name));
+    const comparison = previous ? compareUpdate(previous, { selection, declarations: profile.declarations, resolved: resolved.declarations, inputs }, { root, productState }) : undefined;
+    if (comparison) blockers.push(...comparison.blockers);
     const exact = [];
     const guidance = [];
     const operations = [];
@@ -255,33 +210,11 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         });
       }
     }
-    // Retain a normalized source with only the selected profile. The resolver
-    // remains the sole interpreter when this source is used in a fresh checkout.
-    const inputs: Record<string, Observation> = Object.create(null);
-    const normalized = stringify({ ...validation.source, defaults: { declarations: {} }, profiles: {
-      [options.profile]: { description: profile.description, declarations: Object.fromEntries(profile.declarations.map(({ id, ...declaration }) => [id, declaration])) },
-    } });
-    for (const declaration of profile.declarations) {
-      const paths = [declaration.kind === 'skill' ? declaration.source : 'exact' in declaration ? declaration.exact : declaration.guidance,
-        ...('discovery' in declaration ? [declaration.discovery] : []),
-        ...[...declaration.fixes, ...declaration.checks].flatMap(operation => [operation.run.script, ...operation.run.resources])];
-      for (const path of paths) inputs[path] = observe(join(source.root, path));
-    }
-    for (const name of readdirSync(source.root).sort()) if (/^licen[sc]e(?:[.-].*)?$/i.test(name)) inputs[name] = observe(join(source.root, name));
-    // Retirement compares source declarations: an active discovery declaration
-    // awaiting its scope proposal is still declared.
-    const retired = previous ? previous.resolved.declarations.filter(old => !profile.declarations.some(declaration => declaration.id === old.id)) : [];
-    const classified = previous ? classifyUpdate({
-      resolved: previous.resolved.declarations,
-      discovery: Object.fromEntries((previous.scopeHistory?.at(-1)?.sourceResolved?.declarations ?? [])
-        .flatMap(declaration => declaration.discovery ? [[declaration.id, declaration.discovery]] : [])),
-      files: previous.files,
-    }, { declarations: profile.declarations, resolved: resolved.declarations, inputs }) : undefined;
     const changedScope = previous && (!discoveryDeclarations.length || proposal) ? scopeChanges(previous.scopeHistory?.at(-1), { sourceResolved: profile, resolved }) : undefined;
     const report = {
       format: formats.inspection,
       ...(discovery ? { discovery, sourceResolved: profile } : {}),
-      selection: { cli: { package: '@lutzseverino/repo-standards', version: cliVersion }, standards: source.identity, profile: options.profile },
+      selection,
       source: validation.source, resolved, exact, guidance, operations,
       inputs: Object.fromEntries(Object.entries(inputs).map(([path, value]) => [path, hashInventory(value)])),
       manifest: { sha256: hash(normalized), executable: false },
@@ -289,7 +222,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         productState: hashInventory(productState), systemSkill: hashInventory(systemSkill) },
       systemSkill: { target: '.agents/skills/adopt-standards', action: systemSkillAction },
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
-      ...(update ? { update, previousSelection: previous!.selection, retired, ...classified } : {}),
+      ...comparison?.report,
       ...(changedScope ? { scopeChanges: changedScope } : {}),
     };
     if (scopeObservation) {
