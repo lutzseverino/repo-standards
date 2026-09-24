@@ -119,7 +119,7 @@ try {
   run('git', ['add', '.'], project);
   run('git', ['-c', 'user.name=Release acceptance', '-c', 'user.email=release@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '--quiet', '-m', 'test: initialize disposable project'], project);
   const before = snapshot(project);
-  const args = ['inspect', '--source', source, '--standards-version', 'v1.0.0', '--profile', 'service', '--json'];
+  const args = ['inspect', '--source', source, '--standards-version', 'v2.0.0', '--profile', 'service', '--json'];
   const explicit = JSON.parse(run(bootstrap, ['--cli-version', version, ...args], project));
   assert.equal(explicit.selection.cli.version, version);
   assert.deepEqual(snapshot(project), before);

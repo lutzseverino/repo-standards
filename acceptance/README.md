@@ -75,10 +75,10 @@ evaluated; an unpublished local candidate cannot supply this evidence):
 
 ```sh
 node acceptance/prepare-public.ts "$PUBLISHED_CLI_VERSION" \
-  https://github.com/lutzseverino/repo-standards-example v1.0.0 service harbor
+  https://github.com/lutzseverino/repo-standards-example v2.0.0 service harbor
 ```
 
-For Alice/Bob, use the same learning repository at `v1.1.0`, profile `work`, and
+For Alice/Bob, use the same learning repository at `v2.0.0`, profile `work`, and
 project `bob`. The maintainer chose to keep public acceptance in one repository:
 `service` and `work` are two profiles of one source, not two independent public
 publishers. Separate-source behavior and agent acceptance remain covered by the
