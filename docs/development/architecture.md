@@ -487,8 +487,9 @@ again with a new confirmed scope. Initial adoption claims existing exact files
 and skill directories, including the system skill, whose complete inventory,
 bytes, and modes match, while existing product state blocks it. Fresh adoption
 over previously installed content therefore needs the committed removal of the
-product state directory, and of a system skill that a different CLI version
-installed, which conflicts with the skill packaged with the adopting CLI.
+product state directory. An existing system skill whose bytes differ from the
+skill packaged with the adopting CLI, such as one a different CLI version
+installed, conflicts and must be reconciled or removed first.
 
 ## Acceptance criteria
 
@@ -531,7 +532,8 @@ The product is complete only when all of these pass:
     lookup fails, and classify every update as exact or contextual with
     deterministic Markdown summaries of inspections and runs.
 14. Reject retired formats with the fresh-adoption diagnostic, and adopt fresh
-    over previously installed content after removing the product state.
+    over previously installed content after removing the product state and
+    reconciling or removing any conflicting system skill.
 
 Release 2.0.0 is accepted through the fresh adoption of this repository with the
 published 2.0.0 CLI against the current Repo Canon release, recorded as

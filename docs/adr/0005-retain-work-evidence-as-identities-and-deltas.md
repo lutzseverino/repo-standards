@@ -11,13 +11,18 @@ maps after a complete adoption.
 Commit each interval as the identities of its before and after observations plus
 the delta between them: the changed paths with each path's before and after file
 state, boundary changes, violations, restoration evidence, phase, scope and
-operation reference. One module owns this slice and its committed shape.
+operation reference. Keep the full observation maps in memory and in the
+uncommitted local run report, which recovery and gap detection continue to use.
+One module owns this slice, its committed shape and its read-side version union.
 
 The trade-off is that a committed interval can no longer reconstruct the project
 observations it compared; it can only prove which observations it held and what
 changed between them. Tamper evidence survives, because the identities bind the
 delta to observations the run actually made. Reviewability of an adoption pull
 request is worth more than reconstruction of state a later run re-observes
-anyway. [ADR 0007](0007-write-and-read-one-evidence-format.md) amends this
-decision: the local run report and every inspection and run report now carry
-the same identities and deltas, and only one format is read.
+anyway. Compacting the local run report was left out: it is uncommitted, and the
+module now owns serialization if that changes.
+
+[ADR 0007](0007-write-and-read-one-evidence-format.md) amends this decision: the
+local run report and every inspection and run report now carry the same
+identities and deltas, and only one format is written and read.

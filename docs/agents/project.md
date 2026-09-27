@@ -8,8 +8,7 @@ explicitly. The public author contract is [the author format](../usage/author-fo
 
 Repo Canon supplies this repository's contribution and agent conventions as a
 separate standards source that this repository adopts like any other project.
-Keep the product neutral for independently authored standards: nothing in the
-CLI, its system skills, or its usage documentation may depend on Repo Canon.
+The product itself remains neutral for independently authored standards.
 
 Create a focused branch from `main` for each implementation ticket. Follow
 [development and validation](../development/README.md), including the PR timing
