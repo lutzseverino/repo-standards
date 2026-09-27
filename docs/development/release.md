@@ -144,7 +144,7 @@ be the full original validated commit SHA. A branch name is insufficient.
 | npm version is absent; original validated bundle is intact | Correct authentication and publish only the original tarball using **Interactive publication** below. Recheck registry integrity before proceeding. |
 | npm integrity matches; GitHub tag/release is absent | Create the release at the original validated commit with the original four bundle files and the original run's release notes. |
 | npm integrity matches; tag matches; release exists but an asset is missing | Verify existing assets against the original bundle, then upload only missing files with `gh release upload`. |
-| npm integrity matches; draft identity matches; assets are missing | Verify existing draft assets through authenticated GitHub asset downloads, then upload only missing original files. Re-run the status helper with a fresh output directory. |
+| npm integrity matches; draft identity and body match; assets are missing | Verify existing draft assets through authenticated GitHub asset downloads, then upload only missing original files. Re-run the status helper with a fresh output directory. |
 | npm integrity matches; draft identity, body, and all four assets match | Publish the existing draft with `gh release edit v<version> --draft=false --target <original-validated-commit>`, then re-inspect before verification-only acceptance. |
 | npm, tag, and all four release assets match | Run verification-only acceptance below. |
 | Any identity differs, or cannot be established | Stop recovery and resolve the discrepancy. Preserve the original bundle and observations. |
@@ -174,7 +174,10 @@ gh release create v<version> <original-bundle-directory>/* \
 The status helper downloads the same notes and prints this action with their
 path. A run dispatched before the workflow took release notes has no
 `release-notes` artifact, so the helper stops without an action; write the
-notes and pass that file to `--notes-file` instead. Use the observed version,
+notes and pass that file to `--notes-file` instead. For a draft left by such a
+run, confirm its body by hand, or set it with
+`gh release edit v<version> --notes-file <file>`, then follow the draft rows
+manually. Use the observed version,
 commit and original artifact directory. Do not rebuild an already published
 version, move an existing tag, overwrite an existing asset, or rerun an entire
 publishing job after npm has succeeded. Retain the original validation run

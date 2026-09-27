@@ -143,7 +143,8 @@ async function inspect(runId: string) {
     }
     if (release.draft) {
       // Publishing a draft makes its body the durable release record.
-      assert.equal(String(release.body ?? '').trim(), originalNotes(runId).text.trim(),
+      const normalized = (text: string) => text.replaceAll('\r\n', '\n').trim();
+      assert.equal(normalized(String(release.body ?? '')), normalized(originalNotes(runId).text),
         'The draft release body differs from the original run\'s release notes');
     }
     report.release = release.draft ? 'draft' : 'published';

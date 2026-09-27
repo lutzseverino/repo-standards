@@ -268,7 +268,7 @@ for (const tag of [undefined, 'absent'] as const) {
       assert.equal(result.status, 0, result.stdout + result.stderr);
       const report = JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8'));
       assert.equal(report.release, 'draft');
-      // The draft's body was checked against the notes supplied to the original run.
+      // The draft's notes were retrieved for the body check.
       assert.equal(report.notes, join(f.output, 'notes', 'release-notes.md'));
       if (github === 'draft-partial') {
         assert.equal(report.state, 'github-assets-missing');
@@ -291,7 +291,7 @@ for (const tag of [undefined, 'absent'] as const) {
   }
 }
 
-for (const [name, options] of [
+for (const [name, options, ...expected] of [
   ['mismatched tag', { tag: 'mismatch' }],
   ['unestablished target', { tag: 'absent', draftTarget: 'main' }],
   ['mismatched target', { tag: 'absent', draftTarget: 'b'.repeat(40) }],
@@ -299,8 +299,8 @@ for (const [name, options] of [
   ['unavailable asset', { assetUnavailable: true }],
   ['insufficient draft access', { draftListed: true, noPushAccess: true }],
   ['duplicate drafts', { draftListed: true, duplicateDraft: true }],
-  ['a body that differs from the supplied notes', { draftBody: 'Published artifacts; release acceptance is tracked separately.' }],
-  ['no retained release notes', { notes: 'absent' }],
+  ['a body that differs from the supplied notes', { draftBody: 'Published artifacts; release acceptance is tracked separately.' }, /differs from the original run's release notes/],
+  ['no retained release notes', { notes: 'absent' }, /release-notes artifact/],
 ] as const) {
   test(`release status blocks draft recovery with ${name}`, t => {
     const f = releaseFixture(t, { github: 'draft', ...options });
@@ -308,9 +308,16 @@ for (const [name, options] of [
     const report = JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8'));
     assert.equal(report.state, 'unknown');
     assert.ok(report.failure);
+    if (expected[0]) assert.match(report.failure, expected[0]);
     assert.doesNotMatch(report.nextAction, /'gh'|'npm'/);
   });
 }
+
+test('release status accepts a draft body that differs from the supplied notes only in line endings', t => {
+  const f = releaseFixture(t, { github: 'draft', draftBody: '## Changes\r\n\r\n- Supplied release notes.\r\n' });
+  assert.equal(f.runStatus().status, 0);
+  assert.equal(JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')).state, 'github-draft-ready');
+});
 
 test('release status rejects a damaged original bundle before contacting npm', t => {
   const f = releaseFixture(t);
