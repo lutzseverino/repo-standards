@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import test from 'node:test';
+import { packPackage } from '../scripts/pack-package.ts';
 import { installCli } from './installed-cli.ts';
 
 test('release artifacts install without build tools and expose the matching CLI, bootstrap, skill and author documentation', t => {
@@ -68,6 +69,47 @@ test('release artifacts install without build tools and expose the matching CLI,
     assert.equal(result.status, 0, result.stdout + result.stderr);
     assert.equal(JSON.parse(result.stdout).valid, true);
   }
+});
+
+test('the packed README reaches repository documents outside the package through absolute repository URLs', t => {
+  const links = (markdown: string) => [...markdown.matchAll(/\]\(([^\s)]+)\)/g)].map(match => match[1]!);
+  const local = (target: string) => !/^(?:[a-z][a-z0-9+.-]*:|#|\/)/i.test(target);
+  const source = links(readFileSync(resolve('README.md'), 'utf8'));
+  // The source README links repository documents relatively, and each resolves
+  // inside the repository.
+  for (const target of source) {
+    assert.doesNotMatch(target, /^https:\/\/github\.com\/lutzseverino\/repo-standards\/(?:blob|tree)\//,
+      'The source README links repository documents relatively');
+    if (!local(target)) continue;
+    const linked = resolve(target.split('#')[0]!);
+    assert.ok(!relative(resolve('.'), linked).startsWith('..') && existsSync(linked), `README.md links to missing ${target}`);
+  }
+  const root = mkdtempSync(join(tmpdir(), 'repo-standards-readme-test-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const packed = packPackage(root);
+  const tarball = join(root, packed.filename);
+  const entries = execFileSync('tar', ['-tzf', tarball], { encoding: 'utf8' })
+    .split('\n').filter(Boolean).map(entry => entry.replace(/^package\//, ''));
+  const readme = execFileSync('tar', ['-xzOf', tarball, 'package/README.md'], { encoding: 'utf8' });
+  const packedLinks = links(readme);
+  assert.equal(packedLinks.length, source.length, 'Packing keeps every README link');
+  let rewritten = 0;
+  let kept = 0;
+  source.forEach((target, index) => {
+    const [path, fragment] = target.split(/(?=#)/);
+    const inPackage = entries.some(entry => entry === path || entry.startsWith(`${path}/`));
+    if (!local(target) || inPackage) {
+      assert.equal(packedLinks[index], target, `The packed README keeps ${target}`);
+      if (local(target)) kept += 1;
+      return;
+    }
+    // GitHub addresses directories as trees and files as blobs.
+    const kind = statSync(resolve(path!)).isDirectory() ? 'tree' : 'blob';
+    assert.equal(packedLinks[index], `https://github.com/lutzseverino/repo-standards/${kind}/main/${path}${fragment ?? ''}`,
+      `The packed README links ${target} outside the package by absolute repository URL`);
+    rewritten += 1;
+  });
+  assert.ok(rewritten > 0 && kept > 0, 'The README exercises both packaged and repository-only links');
 });
 
 test('an independently installed later CLI package reports its exact release version', t => {
