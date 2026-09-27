@@ -27,12 +27,14 @@ test('release artifacts install without build tools and expose the matching CLI,
   assert.match(execFileSync(join(output, 'repo-standards-bootstrap'), ['--help'], { encoding: 'utf8' }), /Usage: repo-standards-bootstrap/);
   const installed = join(installation, 'node_modules/@lutzseverino/repo-standards');
   assert.deepEqual(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md')), readFileSync(resolve('skills/adopt-standards/SKILL.md')));
-  for (const resource of ['SKILL.md', 'references/cli.md', 'references/profiles.md', 'references/operations.md', 'references/revision.md']) {
+  const authoringResources = ['SKILL.md', 'references/cli.md', 'references/profiles.md', 'references/operations.md', 'references/revision.md'];
+  for (const resource of authoringResources) {
     assert.deepEqual(readFileSync(join(installed, 'skills/author-standards', resource)),
       readFileSync(resolve('skills/author-standards', resource)));
   }
-  // The authoring skill reads the matching package's usage documents by their canonical paths.
-  const skillDocuments = ['SKILL.md', 'references/cli.md', 'references/profiles.md', 'references/operations.md', 'references/revision.md']
+  // The authoring skill reads the matching package's usage documents by their
+  // canonical paths. The skill names each document path in backticks.
+  const skillDocuments = authoringResources
     .flatMap(resource => [...readFileSync(join(installed, 'skills/author-standards', resource), 'utf8').matchAll(/`(?:[^`\s]*\/@lutzseverino\/repo-standards\/)?(docs\/[^`\s]+\.md)`/g)].map(match => match[1]!));
   assert.ok(skillDocuments.length > 0);
   for (const document of skillDocuments) {
@@ -55,6 +57,13 @@ test('release artifacts install without build tools and expose the matching CLI,
   // Usage documents ship only at their canonical paths under docs/usage/.
   assert.deepEqual(entries('docs/'), ['usage']);
   assert.deepEqual(entries('docs/usage/'), readdirSync(resolve('docs/usage')).sort());
+  // No packaged document names a usage document at a legacy docs/<name>.md path.
+  const usageDocuments = new Set(readdirSync(resolve('docs/usage')).filter(name => name !== 'README.md'));
+  for (const documentPath of packaged.filter(entry => entry.endsWith('.md'))) {
+    const content = readFileSync(join(installed, documentPath), 'utf8');
+    const legacy = [...content.matchAll(/\bdocs\/([\w-]+\.md)/g)].filter(match => usageDocuments.has(match[1]!));
+    assert.deepEqual(legacy.map(match => match[0]), [], `${documentPath} names a legacy usage document path`);
+  }
   // Every packaged document must resolve its own local links inside the package.
   for (const documentPath of packaged.filter(entry => entry.endsWith('.md'))) {
     const content = readFileSync(join(installed, documentPath), 'utf8');
