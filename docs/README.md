@@ -1,13 +1,12 @@
 # Documentation
 
-Documentation is grouped by audience and purpose. Create categories when they
-have content; each directory has a README describing its purpose and links.
+This directory maps Repository Standards' documentation categories.
 
-- [Usage](usage/README.md): using, configuring, and integrating the product.
-- [Development](development/README.md): building, testing, architecture, and maintenance.
-- [Architecture decisions](adr/README.md): consequential decisions and rationale.
-- [Agent configuration](agents/README.md): shared workflow and project constraints.
-
-Place durable research under its usage or development topic. Keep domain
-terminology in the [root glossary](../CONTEXT.md). The executable acceptance
-harness and its historical artifacts remain under `acceptance/`.
+- [Usage](usage/README.md): installing, authoring, inspecting, adopting, and
+  updating with the product, and the public formats and protocols it defines.
+- [Development](development/README.md): setting up, validating, reviewing,
+  releasing, and maintaining the product, and its architecture contracts.
+- [Architecture decisions](adr/README.md): consequential product decisions and
+  their rationale.
+- [Agent configuration](agents/README.md): shared agent workflow configuration
+  and repository-specific agent constraints.

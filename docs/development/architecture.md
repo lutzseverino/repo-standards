@@ -1,10 +1,5 @@
 # Repository Standards — architecture contracts
 
-Status: accepted through the architecture grilling completed on 2026-09-06,
-extended by the accepted
-[contextual scope specification (#41)](https://github.com/lutzseverino/repo-standards/issues/41)
-and the
-[single update path specification (#79)](https://github.com/lutzseverino/repo-standards/issues/79).
 This document describes the current contracts of CLI 2.0.0; individual tickets
 state implementation scope, and the [architecture decisions](../adr/README.md)
 record the rationale.
@@ -491,8 +486,9 @@ preserved; the adopter abandons it, commits or discards its changes, and adopts
 again with a new confirmed scope. Initial adoption claims existing exact files
 and skill directories, including the system skill, whose complete inventory,
 bytes, and modes match, while existing product state blocks it. Fresh adoption
-over previously installed content therefore needs only the committed removal of
-the product state directory.
+over previously installed content therefore needs the committed removal of the
+product state directory, and of a system skill that a different CLI version
+installed, which conflicts with the skill packaged with the adopting CLI.
 
 ## Acceptance criteria
 
@@ -569,8 +565,7 @@ with an available, exact, or contextual update.
 ## Discovery adoption
 
 [ADR 0003](../adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md)
-records the decision behind discovery, accepted in
-[issue #41](https://github.com/lutzseverino/repo-standards/issues/41).
+records the decision behind discovery.
 
 Where a declaration requests discovery, agent-discovered individual file paths
 replace fixed author-supplied contextual scope. One complete inspection binds

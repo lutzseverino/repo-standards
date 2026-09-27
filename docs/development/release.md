@@ -1,8 +1,9 @@
 # Release procedure
 
-Issue #11 owns public distribution and release integration. Publishing a package
-does not close parent #1 or establish that its full release contract has passed.
-Record outstanding criteria explicitly on the parent specification, as
+This procedure packages, publishes, and verifies a Repository Standards
+release. Publishing a package does not by itself establish that its parent
+specification's release contract has passed. Record outstanding criteria
+explicitly on the parent specification, as
 [the acceptance guide](../../acceptance/README.md#acceptance-records) describes.
 
 ## Start here
@@ -62,11 +63,24 @@ tarball, executable standalone bootstrap, `SHA256SUMS`, and `release.json`
 (package/version, npm integrity, and SHA-256 artifact hashes). The package
 carries only product material: the compiled CLI, the bootstrap, the system
 skills, the Alice, Mira, and Atlas author examples, the usage documents under
-`docs/usage/`, the package README, and the license. Development records, ADRs,
+`docs/usage/`, the package README, and the license. Development documents, ADRs,
 agent guidance, the documentation index, `AGENTS.md`, `CONTRIBUTING.md`, and
 `CONTEXT.md` stay in the repository. Pack once and publish that same tarball.
 `pnpm validate` installs a release bundle with scripts disabled and exercises its
 executables and supplied author material alongside owning behavior tests.
+
+### Package contents
+
+`pnpm release:pack` stages the distributable package outside the checkout, with
+the usage documents at their canonical `docs/usage/` paths. A packaged document
+reaches unpackaged material through absolute repository URLs. The source README links
+repository documents relatively, and staging rewrites each of its links that
+leaves the package into an absolute repository URL on `main`; links inside the
+package stay relative. A README link that leaves the repository or names
+nothing in it stops packing. Use the release bundle's tarball for publication;
+direct `npm pack --ignore-scripts` from the source checkout omits the README
+link rewriting. Installed-CLI tests use the same staging boundary as release
+packaging.
 
 ## Publish
 
@@ -304,14 +318,15 @@ systems checked, and the outcome. Keep the notes above it unchanged.
 Do not label the release complete while publication, either OS, real-agent work,
 or any parent criterion remains unverified. The parent remains open and unchanged.
 
-## Authoring feature delivery
+## Authoring skill release
 
-Issue #31 adds `author-standards` and the reserved-identity CLI changes to the
-same npm/release process. Version 1.1.0 carries both system skills, standalone
-authoring references, and matching author/protocol documentation. Before
-packaging another version, update the authoring acquisition guide and public
-installation commands to its exact version; the release test checks the bundled
-guide against the installed executable's package version.
+Each release carries both system skills, the standalone authoring references,
+and the matching author and protocol documentation. Before packaging another
+version, update the standalone authoring guide
+(`skills/author-standards/references/cli.md`) and the public installation
+commands in [installation](../usage/installation.md) to its exact version; the
+release test checks the bundled guide against the installed executable's
+package version.
 
 After publication, the workflow also runs
 `node acceptance/prepare-author.ts <version> <evidence.json>` on macOS and Linux.
@@ -322,7 +337,5 @@ Retain those JSON artifacts alongside existing public CLI smoke evidence.
 
 Fresh real-agent creation, revision, and resumption remain separate acceptance
 work. Record direct installation independently of dated skills.sh observations.
-Issue #31's twelve criteria and their missing release evidence were recorded in
-the [authoring coverage map](https://github.com/lutzseverino/repo-standards/blob/c42455ca20a331e6983c8a5a6a3f202914851f92/acceptance/authoring-release-coverage.md),
-now kept in Git history. A ready PR, candidate test run, or public Git branch
-alone does not complete issue #31.
+A ready PR, candidate test run, or public Git branch alone does not complete
+the authoring acceptance.

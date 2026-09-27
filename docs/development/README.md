@@ -1,8 +1,7 @@
 # Development
 
-Build, test, and maintain the Repository Standards product. The
-[architecture contracts](architecture.md) define product behavior; the
-[release procedure](release.md) covers packaging and publication.
+This directory explains how to set up, validate, review, release, and maintain
+the Repository Standards product.
 
 ## Setup and validation
 
@@ -16,7 +15,7 @@ covering the changed behavior, such as
 Include observable acceptance tests with the behavior they validate. Tests
 install current `dist/` output; rebuild after changing product code.
 
-## Review and integration
+### Review and integration
 
 Once implementation and focused checks are ready, open the PR so CI and the
 independent reviews run alongside each other. Do not wait for the reviews or a
@@ -30,7 +29,7 @@ against temporary Git repositories.
 Passing full CI satisfies the full-suite requirement; duplicating it locally is
 optional. Run additional local tests to diagnose failures when needed.
 
-### Review tiers
+#### Review tiers
 
 Review depth follows the kind of change. A PR that mixes kinds, or whose kind
 is unclear, takes the tier for product code and behavior. Every tier requires
@@ -66,23 +65,11 @@ run alongside; handle its actionable findings like other review findings, but
 it is not a merge condition. Link the applicable issue and report actual
 validation results and remaining limits in the PR.
 
-## Development records
+## Documents
 
-- [Repository Standards — architecture contracts](architecture.md)
-- [Standards authoring skill design](authoring-skill-design.md)
-- [Release reliability investigation design](release-reliability-design.md)
-- [Release procedure](release.md)
-
-## Package contents
-
-`pnpm release:pack` stages the distributable package outside the checkout. It
-carries the usage documents at their canonical `docs/usage/` paths and none of
-the development, ADR, or agent documentation; a packaged document reaches
-unpackaged material through absolute repository URLs. The source README links
-repository documents relatively, and staging rewrites each of its links that
-leaves the package into an absolute repository URL on `main`; links inside the
-package stay relative. A README link that leaves the repository or names
-nothing in it stops packing. Use the release bundle's tarball for publication;
-direct `npm pack --ignore-scripts` from the source checkout omits the README
-link rewriting. Installed-CLI tests use the same staging boundary as release
-packaging.
+- [Architecture contracts](architecture.md): the product's purpose and release
+  boundary, module responsibilities, formats, commands, adoption and update
+  behavior, acceptance criteria, exclusions, and the mechanisms removed in 2.0.0.
+- [Release procedure](release.md): package contents, trusted publishing,
+  release notes, recovery of a publication, and published and real-agent
+  acceptance.

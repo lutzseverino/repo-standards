@@ -1,8 +1,5 @@
 # Use agent discovery with confirmed concrete scope
 
-Status: accepted design in [issue #41](https://github.com/lutzseverino/repo-standards/issues/41).
-Availability follows the implementation tickets and [architecture](../development/architecture.md).
-
 Authors need contextual standards that apply across unfamiliar project layouts,
 but maintained-project membership is a semantic judgment. Authors therefore
 provide discovery guidance, agents propose evidence-backed concrete scope, and

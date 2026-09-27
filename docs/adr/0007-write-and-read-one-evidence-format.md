@@ -1,13 +1,5 @@
 # Write and read one evidence format, as identities and deltas
 
-Status: accepted design in the adoption-friction grilling of 2026-09-18;
-specified in [issue #79](https://github.com/lutzseverino/repo-standards/issues/79).
-The single format per artifact and the retired-format diagnostic are implemented
-by [issue #88](https://github.com/lutzseverino/repo-standards/issues/88); hash
-inventories and diffs in inspection reports and run records by
-[issue #89](https://github.com/lutzseverino/repo-standards/issues/89); and run
-records keep intervals as identities and deltas since
-[issue #90](https://github.com/lutzseverino/repo-standards/issues/90).
 Amends [ADR 0005](0005-retain-work-evidence-as-identities-and-deltas.md).
 
 ADR 0005 compacted committed state but kept full observation maps in the local
