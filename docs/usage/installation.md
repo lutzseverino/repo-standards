@@ -1,7 +1,7 @@
 # Public installation
 
-Each version's release notes and publication identities are on its
-[GitHub release](https://github.com/lutzseverino/repo-standards/releases). The
+Each version's [GitHub release](https://github.com/lutzseverino/repo-standards/releases)
+carries its release notes, and its assets carry the publication identities. The
 commands below require the named version to have been published to public npm;
 a release bundle alone is not publication.
 

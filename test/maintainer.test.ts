@@ -118,7 +118,7 @@ for (const retryAfter of ['invalid', '-1', '999999999999999999999', 'Sat, 99 Sep
   });
 }
 
-function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismatch'; tag?: 'mismatch' | 'absent'; github?: 'published' | 'unavailable' | 'partial' | 'draft' | 'draft-partial'; draftTarget?: string; damagedAsset?: boolean; assetUnavailable?: boolean; draftListed?: boolean; noPushAccess?: boolean; duplicateDraft?: boolean; runStatus?: string; notes?: 'absent' | 'empty' } = {}) {
+function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismatch'; tag?: 'mismatch' | 'absent'; github?: 'published' | 'unavailable' | 'partial' | 'draft' | 'draft-partial'; draftTarget?: string; damagedAsset?: boolean; assetUnavailable?: boolean; draftListed?: boolean; noPushAccess?: boolean; duplicateDraft?: boolean; runStatus?: string; notes?: 'absent' | 'empty' | 'unnamed'; draftBody?: string } = {}) {
   const f = fixture(t);
   const original = join(f.root, 'original');
   mkdirSync(original);
@@ -134,13 +134,15 @@ function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismat
   writeFileSync(join(original, 'SHA256SUMS'), artifacts.map(a => `${a.sha256}  ${a.file}\n`).join(''));
   const notes = join(f.root, 'original-notes');
   mkdirSync(notes);
-  writeFileSync(join(notes, 'release-notes.md'), options.notes === 'empty' ? ' \n' : '## Changes\n\n- Supplied release notes.\n');
+  const suppliedNotes = '## Changes\n\n- Supplied release notes.\n';
+  writeFileSync(join(notes, options.notes === 'unnamed' ? 'notes.md' : 'release-notes.md'), options.notes === 'empty' ? ' \n' : suppliedNotes);
   f.executable('git', `console.log('feat/reliability');`);
   f.executable('gh', `
     const fs = require('node:fs'), path = require('node:path');
     const args = process.argv.slice(2);
     function release() { return { draft: ${JSON.stringify(options.github?.startsWith('draft') ?? false)}, prerelease: false,
       target_commitish: ${JSON.stringify(options.draftTarget ?? 'a'.repeat(40))}, tag_name: 'v1.1.0',
+      body: ${JSON.stringify(options.draftBody ?? suppliedNotes.trim())},
       assets: fs.readdirSync(${JSON.stringify(original)}).map((name, id) => ({ name, id: id + 1 }))
         .filter(asset => !${JSON.stringify(options.github?.includes('partial') ?? false)} || asset.name !== 'repo-standards-bootstrap') }; }
     fs.appendFileSync(${JSON.stringify(join(f.root, 'commands.jsonl'))}, JSON.stringify(args) + '\\n');
@@ -200,7 +202,7 @@ test('release status verifies the original bundle and prints the missing GitHub 
   assert.ok(commands.every(args => args[0] === 'api' || (args[0] === 'run' && args[1] === 'download')));
 });
 
-for (const notes of ['absent', 'empty'] as const) {
+for (const notes of ['absent', 'empty', 'unnamed'] as const) {
   test(`release status refuses to recreate a release whose supplied notes are ${notes}`, t => {
     const f = releaseFixture(t, { notes });
     assert.equal(f.runStatus().status, 1);
@@ -266,6 +268,8 @@ for (const tag of [undefined, 'absent'] as const) {
       assert.equal(result.status, 0, result.stdout + result.stderr);
       const report = JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8'));
       assert.equal(report.release, 'draft');
+      // The draft's body was checked against the notes supplied to the original run.
+      assert.equal(report.notes, join(f.output, 'notes', 'release-notes.md'));
       if (github === 'draft-partial') {
         assert.equal(report.state, 'github-assets-missing');
         assert.match(report.nextAction, /release.*upload/);
@@ -295,6 +299,8 @@ for (const [name, options] of [
   ['unavailable asset', { assetUnavailable: true }],
   ['insufficient draft access', { draftListed: true, noPushAccess: true }],
   ['duplicate drafts', { draftListed: true, duplicateDraft: true }],
+  ['a body that differs from the supplied notes', { draftBody: 'Published artifacts; release acceptance is tracked separately.' }],
+  ['no retained release notes', { notes: 'absent' }],
 ] as const) {
   test(`release status blocks draft recovery with ${name}`, t => {
     const f = releaseFixture(t, { github: 'draft', ...options });

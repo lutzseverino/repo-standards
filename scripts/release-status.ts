@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const [runId, destination, ...extra] = process.argv.slice(2);
@@ -39,6 +39,22 @@ function github(path: string, allowMissing = false): any {
 async function request(url: string) {
   try { return await fetch(url, { signal: AbortSignal.timeout(30_000) }); }
   catch { throw new Error(`Cannot reach ${url}; publication state is unknown.`); }
+}
+
+// The release body is the notes supplied when the original run was dispatched.
+function originalNotes(runId: string) {
+  const notesDirectory = join(output, 'notes');
+  try {
+    gh(['run', 'download', runId, '--name', 'release-notes', '--dir', notesDirectory]);
+  } catch {
+    throw new Error('Cannot download the original run\'s release-notes artifact. Check gh authentication and artifact availability. A run dispatched before the workflow took release notes has none; recover manually with notes written for it, as docs/development/release.md describes.');
+  }
+  const notes = join(notesDirectory, 'release-notes.md');
+  assert.ok(existsSync(notes), 'The original run\'s release notes are missing from its release-notes artifact');
+  const text = readFileSync(notes, 'utf8');
+  assert.ok(text.trim(), 'The original run\'s release notes are empty');
+  report.notes = notes;
+  return { notes, text };
 }
 
 async function inspect(runId: string) {
@@ -112,16 +128,7 @@ async function inspect(runId: string) {
     report.prerequisite = 'Complete interactive npm authentication and publication approval as described in docs/development/release.md. Reinspect state after publication.';
     report.nextAction = command(['npm', 'publish', join(bundleDirectory, bundle.tarball), '--ignore-scripts', '--access', 'public', '--registry=https://registry.npmjs.org']);
   } else if (!release) {
-    // The release carries the notes supplied when the original run was dispatched.
-    const notesDirectory = join(output, 'notes');
-    try {
-      gh(['run', 'download', runId, '--name', 'release-notes', '--dir', notesDirectory]);
-    } catch {
-      throw new Error('Cannot download the original run\'s release-notes artifact. Check gh authentication and artifact availability; recovery needs the release notes supplied to that run.');
-    }
-    const notes = join(notesDirectory, 'release-notes.md');
-    assert.ok(readFileSync(notes, 'utf8').trim(), 'The original run\'s release notes are empty');
-    report.notes = notes;
+    const { notes } = originalNotes(runId);
     report.state = 'github-release-missing';
     report.nextAction = command(['gh', 'release', 'create', tag, ...files.map(file => join(bundleDirectory, file)),
       '--repo', repository, '--target', run.head_sha, '--title', `Repository Standards ${bundle.version}`,
@@ -133,6 +140,11 @@ async function inspect(runId: string) {
     if (!ref) {
       assert.equal(release.draft, true, 'A published release must have a matching Git tag');
       assert.equal(release.target_commitish, run.head_sha, 'A draft without a Git tag must target the exact original validated commit');
+    }
+    if (release.draft) {
+      // Publishing a draft makes its body the durable release record.
+      assert.equal(String(release.body ?? '').trim(), originalNotes(runId).text.trim(),
+        'The draft release body differs from the original run\'s release notes');
     }
     report.release = release.draft ? 'draft' : 'published';
     const matched: string[] = [];

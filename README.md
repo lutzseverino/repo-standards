@@ -46,8 +46,8 @@ and [adoption](docs/usage/adoption.md) for these distinct workflows.
 Start with the [documentation map](docs/README.md),
 [author format](docs/usage/author-format.md), and
 [architecture contracts](docs/development/architecture.md). Each version's
-release notes and publication identities are on its
-[GitHub release](https://github.com/lutzseverino/repo-standards/releases).
+[GitHub release](https://github.com/lutzseverino/repo-standards/releases)
+carries its release notes, and its assets carry the publication identities.
 Repo Canon supplies this repository's contribution and agent conventions as a
 separate standards source; the product remains neutral for independently
 authored standards.

@@ -3,7 +3,7 @@
 Issue #11 owns public distribution and release integration. Publishing a package
 does not close parent #1 or establish that its full release contract has passed.
 Record outstanding criteria explicitly on the parent specification, as
-[acceptance records](../../acceptance/README.md#acceptance-records) describes.
+[the acceptance guide](../../acceptance/README.md#acceptance-records) describes.
 
 ## Start here
 
@@ -79,8 +79,9 @@ gh workflow run release.yml --repo lutzseverino/repo-standards \
 ```
 
 Write the notes in Markdown for adopters: what changed, breaking changes with
-their migration, and the parent specification. The workflow refuses to publish
-without notes. It validates on macOS and Linux, produces one bundle, retains the
+their migration, and the parent specification. GitHub limits a dispatch's
+inputs to 65,535 characters in total. The workflow refuses to publish without
+notes. It validates on macOS and Linux, produces one bundle, retains the
 notes as the `release-notes` artifact, authenticates through OIDC, publishes its
 tarball, and attaches that bundle to the matching GitHub `v<version>` release,
 whose body is the supplied notes. The workflow then runs public npm smoke
@@ -144,13 +145,15 @@ be the full original validated commit SHA. A branch name is insufficient.
 | npm integrity matches; GitHub tag/release is absent | Create the release at the original validated commit with the original four bundle files and the original run's release notes. |
 | npm integrity matches; tag matches; release exists but an asset is missing | Verify existing assets against the original bundle, then upload only missing files with `gh release upload`. |
 | npm integrity matches; draft identity matches; assets are missing | Verify existing draft assets through authenticated GitHub asset downloads, then upload only missing original files. Re-run the status helper with a fresh output directory. |
-| npm integrity matches; draft identity and all four assets match | Publish the existing draft with `gh release edit v<version> --draft=false --target <original-validated-commit>`, then re-inspect before verification-only acceptance. |
+| npm integrity matches; draft identity, body, and all four assets match | Publish the existing draft with `gh release edit v<version> --draft=false --target <original-validated-commit>`, then re-inspect before verification-only acceptance. |
 | npm, tag, and all four release assets match | Run verification-only acceptance below. |
 | Any identity differs, or cannot be established | Stop recovery and resolve the discrepancy. Preserve the original bundle and observations. |
 
 `gh release create` uploads assets to an intermediate draft before publication.
 The status helper checks the authenticated release listing when the tag lookup
 is absent and compares draft asset bytes through the authenticated asset API.
+It also requires a draft's body to equal the original run's release notes,
+because publishing the draft makes that body the release record.
 It preserves binary bytes and uses the same original-bundle hash checks as for
 published assets. It never deletes drafts, overwrites existing assets, or
 executes the printed action. Re-inspect after each recovery step; a draft is
@@ -169,10 +172,13 @@ gh release create v<version> <original-bundle-directory>/* \
 ```
 
 The status helper downloads the same notes and prints this action with their
-path. Use the observed version, commit and original artifact directory. Do not rebuild
-an already published version, move an existing tag, overwrite an existing asset,
-or rerun an entire publishing job after npm has succeeded. Retain the original
-validation run alongside recovery evidence.
+path. A run dispatched before the workflow took release notes has no
+`release-notes` artifact, so the helper stops without an action; write the
+notes and pass that file to `--notes-file` instead. Use the observed version,
+commit and original artifact directory. Do not rebuild an already published
+version, move an existing tag, overwrite an existing asset, or rerun an entire
+publishing job after npm has succeeded. Retain the original validation run
+alongside recovery evidence.
 
 ## Interactive publication
 
@@ -313,7 +319,7 @@ Retain those JSON artifacts alongside existing public CLI smoke evidence.
 
 Fresh real-agent creation, revision, and resumption remain separate acceptance
 work. Record direct installation independently of dated skills.sh observations.
-The [authoring coverage map](https://github.com/lutzseverino/repo-standards/blob/c42455ca20a331e6983c8a5a6a3f202914851f92/acceptance/authoring-release-coverage.md),
-kept in Git history, maps all twelve criteria and identifies missing release
-evidence. A ready PR,
-candidate test run, or public Git branch alone does not complete issue #31.
+Issue #31's twelve criteria and their missing release evidence were recorded in
+the [authoring coverage map](https://github.com/lutzseverino/repo-standards/blob/c42455ca20a331e6983c8a5a6a3f202914851f92/acceptance/authoring-release-coverage.md),
+now kept in Git history. A ready PR, candidate test run, or public Git branch
+alone does not complete issue #31.
