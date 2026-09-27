@@ -152,8 +152,9 @@ be the full original validated commit SHA. A branch name is insufficient.
 `gh release create` uploads assets to an intermediate draft before publication.
 The status helper checks the authenticated release listing when the tag lookup
 is absent and compares draft asset bytes through the authenticated asset API.
-It also requires a draft's body to equal the original run's release notes,
-because publishing the draft makes that body the release record.
+It also requires a draft's body to match the original run's release notes,
+ignoring line endings and surrounding whitespace, because publishing the draft
+makes that body the release record.
 It preserves binary bytes and uses the same original-bundle hash checks as for
 published assets. It never deletes drafts, overwrites existing assets, or
 executes the printed action. Re-inspect after each recovery step; a draft is
@@ -177,11 +178,10 @@ path. A run dispatched before the workflow took release notes has no
 notes and pass that file to `--notes-file` instead. For a draft left by such a
 run, confirm its body by hand, or set it with
 `gh release edit v<version> --notes-file <file>`, then follow the draft rows
-manually. Use the observed version,
-commit and original artifact directory. Do not rebuild an already published
-version, move an existing tag, overwrite an existing asset, or rerun an entire
-publishing job after npm has succeeded. Retain the original validation run
-alongside recovery evidence.
+manually. Use the observed version, commit and original artifact directory.
+Do not rebuild an already published version, move an existing tag, overwrite
+an existing asset, or rerun an entire publishing job after npm has succeeded.
+Retain the original validation run alongside recovery evidence.
 
 ## Interactive publication
 

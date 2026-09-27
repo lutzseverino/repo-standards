@@ -300,7 +300,7 @@ for (const [name, options, ...expected] of [
   ['insufficient draft access', { draftListed: true, noPushAccess: true }],
   ['duplicate drafts', { draftListed: true, duplicateDraft: true }],
   ['a body that differs from the supplied notes', { draftBody: 'Published artifacts; release acceptance is tracked separately.' }, /differs from the original run's release notes/],
-  ['no retained release notes', { notes: 'absent' }, /release-notes artifact/],
+  ['no retained release notes', { notes: 'absent' }, /Cannot download the original run's release-notes artifact/],
 ] as const) {
   test(`release status blocks draft recovery with ${name}`, t => {
     const f = releaseFixture(t, { github: 'draft', ...options });
