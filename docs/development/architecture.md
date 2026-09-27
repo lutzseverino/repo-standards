@@ -487,9 +487,10 @@ again with a new confirmed scope. Initial adoption claims existing exact files
 and skill directories, including the system skill, whose complete inventory,
 bytes, and modes match, while existing product state blocks it. Fresh adoption
 over previously installed content therefore needs the committed removal of the
-product state directory. An existing system skill whose bytes differ from the
-skill packaged with the adopting CLI, such as one a different CLI version
-installed, conflicts and must be reconciled or removed first.
+product state directory. An existing system skill whose inventory, bytes, or
+modes differ from the skill packaged with the adopting CLI, such as one a
+different CLI version installed, conflicts and must be reconciled or removed
+first.
 
 ## Acceptance criteria
 
