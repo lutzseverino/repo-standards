@@ -15,28 +15,27 @@ Recorded runs: [2026-09-07 macOS and Linux acceptance](results/2026-09-07/README
 The separate [live publication and discovery journey](results/2026-09-07/source-publication.md)
 uses the public synthetic `repo-standards-example` source.
 
-Issue #50's v2 release journey is tracked separately in the
-[contextual-scope coverage map](contextual-scope-release-coverage.md). Atlas is a
-reusable discovery source applied to the unfamiliar Orchard and Forge layouts;
-Wayfinder is an independently authored source with different service-evidence
-guidance and operations. Prepare their public-package/fixture-source sessions
-after 1.2.0 is published:
+Atlas is a reusable discovery source applied to the unfamiliar Orchard and
+Forge layouts; Wayfinder is an independently authored source with different
+service-evidence guidance and operations. Prepare their
+public-package/fixture-source sessions with `PUBLISHED_CLI_VERSION` set as in
+[Prepare each supported operating system](#prepare-each-supported-operating-system):
 
 ```sh
-node acceptance/prepare-public.ts 1.2.0 fixture:atlas v1.0.0 maintained orchard
-node acceptance/prepare-public.ts 1.2.0 fixture:atlas v1.0.0 maintained forge
-node acceptance/prepare-public.ts 1.2.0 fixture:wayfinder v1.0.0 service relay
+node acceptance/prepare-public.ts "$PUBLISHED_CLI_VERSION" fixture:atlas v1.0.0 maintained orchard
+node acceptance/prepare-public.ts "$PUBLISHED_CLI_VERSION" fixture:atlas v1.0.0 maintained forge
+node acceptance/prepare-public.ts "$PUBLISHED_CLI_VERSION" fixture:wayfinder v1.0.0 service relay
 ```
 
 These sessions use public npm but substitute source acquisition with real Git
 objects. Keep live public bootstrap/search evidence separate. Fresh agents must
 author proposals from each inspection's eligible evidence, obtain confirmation,
 perform and assess useful work, and retain every proposal/report outside the
-project. The Atlas journey includes an active confirmed addition, replay and
-interrupted recovery, followed by a normal project commit, fresh checkout,
-source-unavailable same-pin re-adoption and a scope removal that preserves
-content. Exercise rejected unresolved, retrospective and unconfirmed work as
-separate negative records; never introduce failure into the completed history.
+project. The Atlas journey includes interrupted recovery, followed by a normal
+project commit, fresh checkout, a source-unavailable update that applies the
+unchanged selection again, and a scope removal that preserves content. Exercise
+rejected unresolved and unconfirmed work as separate negative records; never
+introduce failure into the completed history.
 
 ## Acceptance records
 
@@ -335,10 +334,11 @@ Recorded run: [2026-09-11 scoped revision and reconciled resumption](results/202
 ## Published authoring installation
 
 Issue #31 verifies the delivered feature after issues #26–30. After the existing
-product release workflow publishes its exact stable version, run on macOS and Linux:
+product release workflow publishes its exact stable version, set
+`PUBLISHED_CLI_VERSION` to that version and run on macOS and Linux:
 
 ```sh
-node acceptance/prepare-author.ts 1.1.0 /outside/public-author-installation.json
+node acceptance/prepare-author.ts "$PUBLISHED_CLI_VERSION" /outside/public-author-installation.json
 ```
 
 This extends the candidate preparation above. Public mode installs the tagged

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, rmSync, rmdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, rmSync, rmdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ProductError } from './errors.js';
 import { processIdentity } from './process-identity.js';
@@ -43,9 +43,6 @@ export function acquireWorker(lock: string) {
       if (alive(peer)) throw new ProductError('ACTIVE_RUN', 'An adoption command is still executing. Wait for it to finish before resuming or abandoning.');
       rmSync(join(directory, peer), { force: true });
     }
-    // Older CLI versions used an ownerless worker file. Do not guess whether
-    // their process has stopped.
-    if (existsSync(`${lock}.worker`)) throw new ProductError('ACTIVE_RUN', 'An older CLI worker lock exists. Verify that its process stopped and preserve its report before removing that legacy worker lock.');
     return release;
   } catch (error) { release(); throw error; }
 }

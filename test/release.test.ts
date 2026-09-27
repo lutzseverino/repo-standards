@@ -31,6 +31,14 @@ test('release artifacts install without build tools and expose the matching CLI,
     assert.deepEqual(readFileSync(join(installed, 'skills/author-standards', resource)),
       readFileSync(resolve('skills/author-standards', resource)));
   }
+  // The authoring skill reads the matching package's usage documents by their canonical paths.
+  const skillDocuments = ['SKILL.md', 'references/cli.md', 'references/profiles.md', 'references/operations.md', 'references/revision.md']
+    .flatMap(resource => [...readFileSync(join(installed, 'skills/author-standards', resource), 'utf8').matchAll(/`(?:[^`\s]*\/@lutzseverino\/repo-standards\/)?(docs\/[^`\s]+\.md)`/g)].map(match => match[1]!));
+  assert.ok(skillDocuments.length > 0);
+  for (const document of skillDocuments) {
+    assert.match(document, /^docs\/usage\//, `The authoring skill names ${document} outside docs/usage/`);
+    assert.ok(existsSync(join(installed, document)), `The authoring skill names missing ${document}`);
+  }
   const standaloneSkill = join(root, 'standalone-author-standards');
   cpSync(join(installed, 'skills/author-standards'), standaloneSkill, { recursive: true });
   const acquisition = readFileSync(join(standaloneSkill, 'references/cli.md'), 'utf8');
@@ -44,16 +52,9 @@ test('release artifacts install without build tools and expose the matching CLI,
   const entries = (prefix: string) => [...new Set(packaged.filter(entry => entry.startsWith(prefix))
     .map(entry => entry.slice(prefix.length).split('/')[0]!))].sort();
   assert.deepEqual(entries(''), ['LICENSE', 'README.md', 'bootstrap', 'dist', 'docs', 'examples', 'package.json', 'skills']);
-  const compatibilityDocuments = ['adoption', 'assessment-protocol', 'author-format', 'authoring', 'discovery', 'inspection', 'installation', 'script-protocol'];
-  assert.deepEqual(entries('docs/'), [...compatibilityDocuments.map(doc => `${doc}.md`), 'usage'].sort());
+  // Usage documents ship only at their canonical paths under docs/usage/.
+  assert.deepEqual(entries('docs/'), ['usage']);
   assert.deepEqual(entries('docs/usage/'), readdirSync(resolve('docs/usage')).sort());
-  for (const doc of compatibilityDocuments) {
-    const canonical = readFileSync(join(installed, `docs/usage/${doc}.md`), 'utf8');
-    const compatible = readFileSync(join(installed, `docs/${doc}.md`), 'utf8');
-    assert.ok(canonical.length > 0);
-    assert.deepEqual([...compatible.matchAll(/^#{1,6} .+$/gm)].map(match => match[0]),
-      [...canonical.matchAll(/^#{1,6} .+$/gm)].map(match => match[0]), 'Legacy paths preserve document sections and anchors');
-  }
   // Every packaged document must resolve its own local links inside the package.
   for (const documentPath of packaged.filter(entry => entry.endsWith('.md'))) {
     const content = readFileSync(join(installed, documentPath), 'utf8');

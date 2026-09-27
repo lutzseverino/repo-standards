@@ -2,8 +2,9 @@
 
 Use this branch when configuration or guidance leaves a concrete need for a
 check, fix, or ordinary-work author skill. Read the acquired CLI's matching
-`docs/author-format.md` and `docs/script-protocol.md` using [the acquisition
-guide](cli.md). Those documents define the format and operation protocol.
+`docs/usage/author-format.md` and `docs/usage/script-protocol.md` using [the
+acquisition guide](cli.md). Those documents define the format and operation
+protocol.
 
 ## Propose and obtain acceptance
 
