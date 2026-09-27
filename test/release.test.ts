@@ -110,6 +110,34 @@ test('the packed README reaches repository documents outside the package through
     rewritten += 1;
   });
   assert.ok(rewritten > 0 && kept > 0, 'The README exercises both packaged and repository-only links');
+  assert.ok(readme.includes('](https://github.com/lutzseverino/repo-standards/blob/main/docs/development/architecture.md)'));
+  assert.ok(readme.includes('](https://github.com/lutzseverino/repo-standards/blob/main/CONTRIBUTING.md)'));
+  assert.ok(readme.includes('](docs/usage/installation.md)'));
+});
+
+test('packing keeps README query strings and fragments on repository URLs and rejects links that leave the repository', t => {
+  const project = mkdtempSync(join(tmpdir(), 'repo-standards-readme-project-'));
+  t.after(() => rmSync(project, { recursive: true, force: true }));
+  const pack = (readme: string) => {
+    writeFileSync(join(project, 'README.md'), readme);
+    const output = mkdtempSync(join(project, 'output-'));
+    const previous = process.cwd();
+    process.chdir(project);
+    try {
+      const packed = packPackage(output);
+      return execFileSync('tar', ['-xzOf', join(output, packed.filename), 'package/README.md'], { encoding: 'utf8' });
+    } finally { process.chdir(previous); }
+  };
+  writeFileSync(join(project, 'package.json'), JSON.stringify({ name: 'readme-fixture', version: '1.0.0', files: [],
+    repository: { type: 'git', url: 'git+https://github.com/example/fixture.git' } }));
+  writeFileSync(join(project, 'LICENSE'), 'License\n');
+  writeFileSync(join(project, 'GUIDE.md'), '# Guide\n');
+  assert.equal(pack('[guide](GUIDE.md?plain=1#guide) [license](LICENSE#top)\n'),
+    '[guide](https://github.com/example/fixture/blob/main/GUIDE.md?plain=1#guide) [license](LICENSE#top)\n');
+  for (const target of ['..', '../x', 'docs/../../x']) {
+    assert.throws(() => pack(`[outside](${target})\n`), /leaves the repository/, target);
+  }
+  assert.throws(() => pack('[missing](MISSING.md)\n'), /not in the repository/);
 });
 
 test('an independently installed later CLI package reports its exact release version', t => {

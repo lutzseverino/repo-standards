@@ -80,7 +80,8 @@ carries the usage documents and none of the development, ADR, or agent
 documentation; a packaged document reaches unpackaged material through absolute
 repository URLs. The source README links repository documents relatively, and
 staging rewrites each of its links that leaves the package into an absolute
-repository URL on `main`; links inside the package stay relative. Staging also
+repository URL on `main`; links inside the package stay relative. A README link
+that leaves the repository or names nothing in it stops packing. Staging also
 creates complete compatibility copies at the eight original usage `docs/*.md`
 package paths listed in `package.json`, preserving headings and rebasing local
 links. The installed system skills can therefore keep using public CLI

@@ -7,7 +7,9 @@ import { join, posix, resolve } from 'node:path';
 // installed skills still use. They are not source files: staging generates each
 // one from the usage document of the same name.
 const compatibilityPath = /^docs\/[^/]+\.md$/;
-// Absolute URLs, fragments, and root paths are not package-relative links.
+// An inline Markdown link target, and the targets that are not package-relative:
+// absolute URLs, fragments, and root paths.
+const markdownLink = /\]\(([^\s)]+)\)/g;
 const nonRelativeLink = /^(?:[a-z][a-z0-9+.-]*:|#|\/)/i;
 
 export function packPackage(output: string) {
@@ -25,14 +27,14 @@ export function packPackage(output: string) {
       const content = readFileSync(join(staging, canonical), 'utf8');
       // Preserve the full document and headings; relative links must resolve
       // from the legacy location as well as from the categorized source.
-      const compatible = content.replace(/\]\(([^\s)]+)\)/g, (link, target: string) => {
+      const compatible = content.replace(markdownLink, (link, target: string) => {
         if (nonRelativeLink.test(target)) return link;
         const resolved = posix.normalize(posix.join(posix.dirname(canonical), target));
         return `](${posix.relative(posix.dirname(legacy), resolved)})`;
       });
       writeFileSync(join(staging, legacy), compatible);
     }
-    packageReadme(project, staging, manifest.repository.url);
+    rewriteReadmeLinks(project, staging, manifest.repository.url);
     const [packed] = JSON.parse(execFileSync('npm', ['pack', '--ignore-scripts', '--json',
       '--pack-destination', destination], { cwd: staging, encoding: 'utf8' }));
     return packed as { filename: string; version: string; integrity: string };
@@ -42,21 +44,25 @@ export function packPackage(output: string) {
 }
 
 // The source README links repository documents relatively. The package carries
-// only product material, so each link that leaves it becomes an absolute URL of
-// the repository's default branch; links inside the package stay relative.
-function packageReadme(project: string, staging: string, repositoryUrl: string) {
+// only product material, so each link that leaves it becomes an absolute URL on
+// the repository's `main` branch; links inside the package stay relative.
+function rewriteReadmeLinks(project: string, staging: string, repositoryUrl: string) {
   const repository = repositoryUrl.replace(/^git\+/, '').replace(/\.git$/, '');
   const readme = join(staging, 'README.md');
-  const packaged = readFileSync(readme, 'utf8').replace(/\]\(([^\s)]+)\)/g, (link, target: string) => {
+  const packaged = readFileSync(readme, 'utf8').replace(markdownLink, (link, target: string) => {
     if (nonRelativeLink.test(target)) return link;
-    const [path = '', fragment = ''] = target.split(/(?=#)/);
-    if (existsSync(join(staging, path))) return link;
+    // The path precedes any query string or fragment, which the URL keeps.
+    const [, path = '', suffix = ''] = /^([^?#]*)(.*)$/.exec(target)!;
     const document = posix.normalize(path);
-    if (document.startsWith('../') || !existsSync(join(project, document))) {
+    if (document === '..' || document.startsWith('../')) {
+      throw new Error(`README.md links to ${target}, which leaves the repository`);
+    }
+    if (existsSync(join(staging, document))) return link;
+    if (!existsSync(join(project, document))) {
       throw new Error(`README.md links to ${target}, which is not in the repository`);
     }
     const kind = statSync(join(project, document)).isDirectory() ? 'tree' : 'blob';
-    return `](${repository}/${kind}/main/${document}${fragment})`;
+    return `](${repository}/${kind}/main/${document}${suffix})`;
   });
   writeFileSync(readme, packaged);
 }
