@@ -3,10 +3,6 @@ import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeF
 import { tmpdir } from 'node:os';
 import { join, posix, resolve } from 'node:path';
 
-// The manifest lists the legacy `docs/<name>.md` paths that independently
-// installed skills still use. They are not source files: staging generates each
-// one from the usage document of the same name.
-const compatibilityPath = /^docs\/[^/]+\.md$/;
 // An inline Markdown link target, and the targets that are not package-relative:
 // absolute URLs, fragments, and root paths.
 const markdownLink = /\]\(([^\s)]+)\)/g;
@@ -19,20 +15,8 @@ export function packPackage(output: string) {
   try {
     const manifest = JSON.parse(readFileSync(join(project, 'package.json'), 'utf8'));
     const files: string[] = manifest.files;
-    for (const path of new Set(['package.json', 'README.md', 'LICENSE', ...files.filter(path => !compatibilityPath.test(path))])) {
+    for (const path of new Set(['package.json', 'README.md', 'LICENSE', ...files])) {
       cpSync(join(project, path), join(staging, path), { recursive: true });
-    }
-    for (const legacy of files.filter(path => compatibilityPath.test(path))) {
-      const canonical = `docs/usage/${posix.basename(legacy)}`;
-      const content = readFileSync(join(staging, canonical), 'utf8');
-      // Preserve the full document and headings; relative links must resolve
-      // from the legacy location as well as from the categorized source.
-      const compatible = content.replace(markdownLink, (link, target: string) => {
-        if (nonRelativeLink.test(target)) return link;
-        const resolved = posix.normalize(posix.join(posix.dirname(canonical), target));
-        return `](${posix.relative(posix.dirname(legacy), resolved)})`;
-      });
-      writeFileSync(join(staging, legacy), compatible);
     }
     rewriteReadmeLinks(project, staging, manifest.repository.url);
     const [packed] = JSON.parse(execFileSync('npm', ['pack', '--ignore-scripts', '--json',

@@ -73,19 +73,16 @@ validation results and remaining limits in the PR.
 - [Release reliability investigation design](release-reliability-design.md)
 - [Release procedure](release.md)
 
-## Package compatibility
+## Package contents
 
 `pnpm release:pack` stages the distributable package outside the checkout. It
-carries the usage documents and none of the development, ADR, or agent
-documentation; a packaged document reaches unpackaged material through absolute
-repository URLs. The source README links repository documents relatively, and
-staging rewrites each of its links that leaves the package into an absolute
-repository URL on `main`; links inside the package stay relative. A README link
-that leaves the repository or names nothing in it stops packing. Staging also
-creates complete compatibility copies at the eight original usage `docs/*.md`
-package paths listed in `package.json`, preserving headings and rebasing local
-links. The installed system skills can therefore keep using public CLI
-2.0.0's documented paths. Use the release bundle's tarball for publication;
-direct `npm pack --ignore-scripts` from the source checkout omits those
-generated compatibility copies and the README link rewriting. Installed-CLI
-tests use the same staging boundary as release packaging.
+carries the usage documents at their canonical `docs/usage/` paths and none of
+the development, ADR, or agent documentation; a packaged document reaches
+unpackaged material through absolute repository URLs. The source README links
+repository documents relatively, and staging rewrites each of its links that
+leaves the package into an absolute repository URL on `main`; links inside the
+package stay relative. A README link that leaves the repository or names
+nothing in it stops packing. Use the release bundle's tarball for publication;
+direct `npm pack --ignore-scripts` from the source checkout omits the README
+link rewriting. Installed-CLI tests use the same staging boundary as release
+packaging.

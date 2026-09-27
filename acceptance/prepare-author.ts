@@ -143,7 +143,7 @@ try {
     assert.deepEqual(inventory(skill), inventory(join(installed, 'skills/author-standards')),
       'Conventional skill installation must match the published npm release');
     for (const document of ['author-format.md', 'script-protocol.md', 'authoring.md']) {
-      assert.ok(readFileSync(join(installed, 'docs', document)).length > 0);
+      assert.ok(readFileSync(join(installed, 'docs/usage', document)).length > 0);
     }
     documents = inventory(join(installed, 'docs'));
     for (const author of ['alice', 'mira']) {

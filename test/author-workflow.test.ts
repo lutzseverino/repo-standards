@@ -75,7 +75,7 @@ test('Mira service source retains check resources and preserves fix output on ex
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(JSON.parse(result.stdout).operations.at(-1).result.status, 'passed');
   const packageRoot = join(project.root, '.repo-standards/runtime/node_modules/@lutzseverino/repo-standards');
-  for (const path of ['docs/authoring.md', 'docs/assessment-protocol.md', 'docs/adoption.md', 'examples/mira/standards.yaml']) {
+  for (const path of ['docs/usage/authoring.md', 'docs/usage/assessment-protocol.md', 'docs/usage/adoption.md', 'examples/mira/standards.yaml']) {
     assert.ok(readFileSync(join(packageRoot, path), 'utf8').length);
   }
   assert.equal(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8'),
