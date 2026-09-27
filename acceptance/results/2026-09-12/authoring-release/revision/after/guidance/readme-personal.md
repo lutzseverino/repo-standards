@@ -1,1 +1,0 @@
-Keep README.md project-owned. Make it a concise quickstart focused on one runnable example using the project's actual command. Purpose, installation instructions, and expected output are not required. Preserve the project's facts and structure when assessing or adapting it.

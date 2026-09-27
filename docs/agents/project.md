@@ -12,5 +12,6 @@ and the [review tier](../development/README.md#review-tiers) for the change
 kind: its independent reviews and required checks.
 The release is complete only when every acceptance criterion in its parent
 specification passes, including published installation and real-agent journeys,
-recorded as [the acceptance guide](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md#acceptance-records)
+recorded with their pull request, release, or workflow run and on the parent
+specification, as [the acceptance guide](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md#acceptance-records)
 describes.

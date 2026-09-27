@@ -43,8 +43,8 @@ the same checks; the tiers differ only in review depth.
 | Product code and behavior | Independent Standards and Spec reviews | Required CI checks, including macOS and Linux validation, green on the final commit |
 
 - **Documentation-only** changes touch only documentation: guides, ADRs, the
-  glossary, READMEs, and acceptance records. They change no source, tests,
-  scripts, workflows, packaging, examples, or system skills.
+  glossary, and READMEs. They change no source, tests, scripts, workflows,
+  packaging, examples, or system skills.
 - An **exact update** of this repository's own adoption is one whose inspection
   reports the update class `exact`; its diff holds only managed exact content,
   installed skills, and the committed adoption files under `.repo-standards/`:
