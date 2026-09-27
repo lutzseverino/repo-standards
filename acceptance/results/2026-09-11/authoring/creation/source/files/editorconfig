@@ -1,6 +1,0 @@
-[*]
-insert_final_newline = true
-
-[*.{js,cjs,mjs,json}]
-indent_style = space
-indent_size = 2

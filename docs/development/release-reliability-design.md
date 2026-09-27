@@ -38,7 +38,7 @@ class, link evidence, separate established causes from hypotheses, assess whethe
 it remains possible, and explain the proposed change or decision to leave it.
 
 Preserve original observations and published artifacts. Keep new analysis separate
-from the [public-release evidence](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/results/2026-09-12/authoring-public-release/README.md).
+from the [public-release evidence](https://github.com/lutzseverino/repo-standards/blob/c42455ca20a331e6983c8a5a6a3f202914851f92/acceptance/results/2026-09-12/authoring-public-release/README.md).
 Preserve acceptance strength and anonymous public acquisition semantics. Do not
 republish 1.1.0 or create a test release. Actual OIDC publication and
 provenance remain unverified until the next real version; the authentication

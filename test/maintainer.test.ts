@@ -118,7 +118,7 @@ for (const retryAfter of ['invalid', '-1', '999999999999999999999', 'Sat, 99 Sep
   });
 }
 
-function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismatch'; tag?: 'mismatch' | 'absent'; github?: 'published' | 'unavailable' | 'partial' | 'draft' | 'draft-partial'; draftTarget?: string; damagedAsset?: boolean; assetUnavailable?: boolean; draftListed?: boolean; noPushAccess?: boolean; duplicateDraft?: boolean; runStatus?: string } = {}) {
+function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismatch'; tag?: 'mismatch' | 'absent'; github?: 'published' | 'unavailable' | 'partial' | 'draft' | 'draft-partial'; draftTarget?: string; damagedAsset?: boolean; assetUnavailable?: boolean; draftListed?: boolean; noPushAccess?: boolean; duplicateDraft?: boolean; runStatus?: string; notes?: 'absent' | 'empty' } = {}) {
   const f = fixture(t);
   const original = join(f.root, 'original');
   mkdirSync(original);
@@ -132,6 +132,9 @@ function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismat
     });
   writeFileSync(join(original, 'release.json'), JSON.stringify({ package: '@lutzseverino/repo-standards', version: '1.1.0', tarball, integrity, artifacts }));
   writeFileSync(join(original, 'SHA256SUMS'), artifacts.map(a => `${a.sha256}  ${a.file}\n`).join(''));
+  const notes = join(f.root, 'original-notes');
+  mkdirSync(notes);
+  writeFileSync(join(notes, 'release-notes.md'), options.notes === 'empty' ? ' \n' : '## Changes\n\n- Supplied release notes.\n');
   f.executable('git', `console.log('feat/reliability');`);
   f.executable('gh', `
     const fs = require('node:fs'), path = require('node:path');
@@ -141,7 +144,10 @@ function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismat
       assets: fs.readdirSync(${JSON.stringify(original)}).map((name, id) => ({ name, id: id + 1 }))
         .filter(asset => !${JSON.stringify(options.github?.includes('partial') ?? false)} || asset.name !== 'repo-standards-bootstrap') }; }
     fs.appendFileSync(${JSON.stringify(join(f.root, 'commands.jsonl'))}, JSON.stringify(args) + '\\n');
-    if (args[0] === 'run' && args[1] === 'download') {
+    if (args[0] === 'run' && args[1] === 'download' && args[args.indexOf('--name') + 1] === 'release-notes') {
+      if (${JSON.stringify(options.notes === 'absent')}) { console.error('no valid artifacts found to download'); process.exit(1); }
+      fs.cpSync(${JSON.stringify(notes)}, args[args.indexOf('--dir') + 1], { recursive: true });
+    } else if (args[0] === 'run' && args[1] === 'download') {
       fs.cpSync(${JSON.stringify(original)}, args[args.indexOf('--dir') + 1], { recursive: true });
     } else if (args[0] === 'api') {
       const endpoint = args[1];
@@ -184,9 +190,26 @@ test('release status verifies the original bundle and prints the missing GitHub 
   assert.ok(report.nextAction.includes('a'.repeat(40)));
   assert.ok(report.nextAction.includes(join(f.output, 'bundle')));
   assert.doesNotMatch(report.nextAction, /npm.*publish/);
+  // The recovered release carries the notes supplied when the release was dispatched.
+  const notes = join(f.output, 'notes', 'release-notes.md');
+  assert.ok(report.nextAction.includes(`'--notes-file' '${notes}'`));
+  assert.doesNotMatch(report.nextAction, /'--notes' /);
+  assert.equal(report.notes, notes);
+  assert.equal(readFileSync(notes, 'utf8'), '## Changes\n\n- Supplied release notes.\n');
   const commands = readFileSync(join(f.root, 'commands.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line));
   assert.ok(commands.every(args => args[0] === 'api' || (args[0] === 'run' && args[1] === 'download')));
 });
+
+for (const notes of ['absent', 'empty'] as const) {
+  test(`release status refuses to recreate a release whose supplied notes are ${notes}`, t => {
+    const f = releaseFixture(t, { notes });
+    assert.equal(f.runStatus().status, 1);
+    const report = JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8'));
+    assert.equal(report.state, 'unknown');
+    assert.match(report.failure, /release notes/);
+    assert.doesNotMatch(report.nextAction, /'gh'|'npm'/);
+  });
+}
 
 for (const runStatus of ['queued', 'in_progress', 'waiting']) {
   test(`release status reports run status ${runStatus} as in progress with a wait action`, t => {

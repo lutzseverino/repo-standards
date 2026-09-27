@@ -1,1 +1,0 @@
-The evaluator, acting as the returning author between sessions, manually removed the weekly README review requirement from personal guidance only. The notes were deliberately left unchanged. This is setup for the fresh resumption journey, not an authoring-agent edit. The library default still requires weekly review.

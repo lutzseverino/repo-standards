@@ -7,6 +7,11 @@ on:
         description: Exact stable version already recorded in package.json
         required: true
         type: string
+      notes:
+        description: Release notes in Markdown, required to publish; pass a file with -F notes=@FILE
+        required: false
+        default: ''
+        type: string
       verify_published:
         description: Only verify an already published release on macOS and Linux
         required: false
@@ -35,11 +40,12 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .node-version
-      - name: Verify release version and unused tag
+      - name: Verify release version, notes, and unused tag
         env:
           RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_NOTES: ${{ inputs.notes }}
         run: |
-          node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const version = process.env.RELEASE_VERSION; assert.match(version, /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/); assert.equal(JSON.parse(fs.readFileSync("package.json")).version, version);'
+          node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const version = process.env.RELEASE_VERSION; assert.match(version, /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/); assert.equal(JSON.parse(fs.readFileSync("package.json")).version, version); assert.ok(process.env.RELEASE_NOTES.trim(), "Supply the release notes with -F notes=@FILE");'
           if git rev-parse --verify "refs/tags/v$RELEASE_VERSION"; then
             echo 'Tag already exists; inspect the prior release before recovery.' >&2
             exit 1
@@ -54,6 +60,19 @@ jobs:
         with:
           name: release-bundle
           path: release/
+          if-no-files-found: error
+      - if: runner.os == 'Linux'
+        name: Retain the supplied release notes for publication and recovery
+        env:
+          RELEASE_NOTES: ${{ inputs.notes }}
+        run: |
+          mkdir release-notes
+          printf '%s\n' "$RELEASE_NOTES" > release-notes/release-notes.md
+      - if: runner.os == 'Linux'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-notes
+          path: release-notes/
           if-no-files-found: error
 
   publish:
@@ -73,6 +92,10 @@ jobs:
         with:
           name: release-bundle
           path: release
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-notes
+          path: release-notes
       - name: Verify bundle and publish its exact tarball
         working-directory: release
         run: |
@@ -87,7 +110,7 @@ jobs:
         run: |
           gh release create "v$RELEASE_VERSION" release/* --target "$RELEASE_COMMIT" \
             --title "Repository Standards $RELEASE_VERSION" \
-            --notes 'Public CLI package and standalone bootstrap. See the release procedure and acceptance evidence; publication does not close the parent release specification.'
+            --notes-file release-notes/release-notes.md
       - name: Explain publication recovery
         if: failure()
         run: |

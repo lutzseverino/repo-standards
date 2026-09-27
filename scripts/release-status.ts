@@ -112,10 +112,20 @@ async function inspect(runId: string) {
     report.prerequisite = 'Complete interactive npm authentication and publication approval as described in docs/development/release.md. Reinspect state after publication.';
     report.nextAction = command(['npm', 'publish', join(bundleDirectory, bundle.tarball), '--ignore-scripts', '--access', 'public', '--registry=https://registry.npmjs.org']);
   } else if (!release) {
+    // The release carries the notes supplied when the original run was dispatched.
+    const notesDirectory = join(output, 'notes');
+    try {
+      gh(['run', 'download', runId, '--name', 'release-notes', '--dir', notesDirectory]);
+    } catch {
+      throw new Error('Cannot download the original run\'s release-notes artifact. Check gh authentication and artifact availability; recovery needs the release notes supplied to that run.');
+    }
+    const notes = join(notesDirectory, 'release-notes.md');
+    assert.ok(readFileSync(notes, 'utf8').trim(), 'The original run\'s release notes are empty');
+    report.notes = notes;
     report.state = 'github-release-missing';
     report.nextAction = command(['gh', 'release', 'create', tag, ...files.map(file => join(bundleDirectory, file)),
       '--repo', repository, '--target', run.head_sha, '--title', `Repository Standards ${bundle.version}`,
-      '--notes', 'Published artifacts; release acceptance is tracked separately.']);
+      '--notes-file', notes]);
   } else {
     assert.equal(release.tag_name, tag);
     assert.equal(typeof release.draft, 'boolean');

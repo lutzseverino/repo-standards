@@ -1,9 +1,0 @@
-{
-  "valid": false,
-  "errors": [
-    {
-      "code": "INVALID_SCOPE",
-      "message": "Absence evidence is not an observed absent target: products/pear/service.json."
-    }
-  ]
-}

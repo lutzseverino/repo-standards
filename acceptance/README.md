@@ -11,10 +11,6 @@ Alice's work profile guides Bob's parcel-preview tool, while Mira's service
 profile guides Harbor's Python HTTP service. These are synthetic publishers and
 projects, not claims about third-party production adoption.
 
-Recorded runs: [2026-09-07 macOS and Linux acceptance](results/2026-09-07/README.md).
-The separate [live publication and discovery journey](results/2026-09-07/source-publication.md)
-uses the public synthetic `repo-standards-example` source.
-
 Atlas is a reusable discovery source applied to the unfamiliar Orchard and
 Forge layouts; Wayfinder is an independently authored source with different
 service-evidence guidance and operations. Prepare their
@@ -39,31 +35,30 @@ introduce failure into the completed history.
 
 ## Acceptance records
 
-From release 2.0.0 onward, each acceptance record is a dated directory under
-`acceptance/results/` that commits only:
+An acceptance record stays with the pull request, release, or workflow run it
+records. None is committed to this repository:
 
-- A short `README.md`: the release and journey, operating systems and tool
-  versions, who performed each run, the outcome of every acceptance criterion
-  it covers (passed, failed, or outstanding), and its limitations.
-- The identities that bind the record to what was evaluated, listed in the
-  README: CLI and standards pins, source and profile, package integrity,
-  installed-skill hashes, inspection identities, adoption run IDs, and the
-  GitHub Actions workflow run IDs that hold the raw captures.
-- The tool's summary output, saved verbatim with one Markdown file per summary:
-  `inspect --summary` for each confirmed proposal and `status --summary` for
-  each completed run, for example `status-summary.md`.
+- An adoption pull request's body is the tool's `status --summary` output,
+  with the inspection and adoption run identities.
+- A GitHub release's body is the release notes supplied to the `Release`
+  workflow. Its tag identifies the released commit, and its `release.json` and
+  `SHA256SUMS` assets carry the npm integrity and artifact hashes. After
+  published acceptance, a short verification paragraph in the body names the
+  workflow runs, the systems checked, and the outcome.
+- Raw captures, such as JSON reports, command output, inventories, diffs, and
+  evidence files, stay as artifacts of the workflow run that produced them. A
+  workflow run ID is distinct from an adoption run ID. Artifacts expire with
+  the repository's artifact retention, so no conclusion rests on an artifact
+  alone. Captures made outside a workflow, such as a local agent session's
+  transcript, stay outside the repository; the record states what they showed.
+- The outcome of each acceptance criterion of a specification, passed with its
+  evidence or outstanding with its blocker, is recorded in one comment on that
+  specification.
 
-Raw captures, such as JSON reports, command output, inventories, diffs, and
-evidence files, are not committed. They live as artifacts of the workflow run
-that produced them, and the README references each by workflow run ID and
-artifact name. A workflow run ID is distinct from an adoption run ID.
-Artifacts expire with the repository's artifact retention; the committed
-identities and summaries are the durable record. Captures made outside a
-workflow, such as a local agent session's transcript, stay outside the
-repository, and the README states what they showed.
+Records of earlier releases remain in Git history. A maintained document that
+still needs one cites it by commit permalink.
 
-The journeys below list what each run captures and checks, not what the record
-commits. Records from earlier releases keep their layout unchanged.
+The journeys below list what each run captures and checks.
 
 ## Prepare each supported operating system
 
@@ -178,8 +173,8 @@ patches and status/hash inventories alone are insufficient. Keep the index
 unchanged rather than staging files to make them appear in a diff.
 Record what the agent improved and why it helps a maintainer separately from
 structural check results. Record blockers or missing acceptance honestly.
-Commit only the [acceptance record](#acceptance-records); the rest are raw
-captures.
+Keep each capture with its [acceptance record](#acceptance-records); commit none
+of them.
 
 For supported-OS runs, keep their evidence separate and identify whether the
 same agent or different agents performed them. A containerized Linux journey
@@ -290,8 +285,6 @@ This slice owns parent #25 stories 16–18 and Testing Decisions criterion 7;
 do not imply coverage of revision, multiple-profile generation, public skill
 discovery, or untested operating systems.
 
-Recorded run: [accepted operations and author skill on Linux](results/2026-09-11/authoring/operations/README.md).
-
 ### Scoped revision and reconciled resumption
 
 For #30, install a fresh candidate with `acceptance/prepare-author.ts`. The
@@ -329,8 +322,6 @@ Decisions 5 and 6. Record fresh real-agent evidence separately from `pnpm valida
 and identify platform and installation limits. Generated operations do not gate
 this guidance-based journey.
 
-Recorded run: [2026-09-11 scoped revision and reconciled resumption](results/2026-09-11/authoring/revision-resumption/README.md).
-
 ## Published authoring installation
 
 Issue #31 verifies the delivered feature after issues #26–30. After the existing
@@ -367,6 +358,6 @@ and `npx skills@1.5.25 find author-standards` separately, recording time, result
 and any HTTP/error limitation. Installation success does not prove directory
 indexing, and directory absence does not prove installation failure. Acceptance
 setup disables telemetry, so it does not establish telemetry-driven discovery.
-Maintain all twelve parent Testing Decisions in
-[the release coverage map](authoring-release-coverage.md), with current evidence
-separate from historical behavior-ticket acceptance and explicit blockers.
+Record the outcome of all twelve parent Testing Decisions on the parent
+specification, with current evidence separate from historical behavior-ticket
+acceptance and explicit blockers.

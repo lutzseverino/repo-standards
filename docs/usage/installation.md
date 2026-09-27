@@ -1,8 +1,9 @@
 # Public installation
 
-Release status and outstanding evidence are recorded in the product repository's
-`acceptance/results/` directory. The commands below require the named version
-to have been published to public npm; a release bundle alone is not publication.
+Each version's release notes and publication identities are on its
+[GitHub release](https://github.com/lutzseverino/repo-standards/releases). The
+commands below require the named version to have been published to public npm;
+a release bundle alone is not publication.
 
 Use macOS or Linux with Node.js 24, npm, and Git on `PATH`. Install Node.js 24
 from <https://nodejs.org/en/download> or select it with your version manager.
@@ -103,9 +104,6 @@ Direct installation is independent of the
 The [directory FAQ](https://skills.sh/docs/faq) describes its discovery process;
 listing, indexing time, and ranking are third-party observations, not release
 guarantees. Record dated observations separately from installation results.
-The [authoring release evidence](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/authoring-release-coverage.md)
-distinguishes candidate runs, published acquisition, agent usefulness, and
-outstanding criteria.
 
 For unreleased development only, replace the public URL with a local directory
 containing the skill. That is candidate installation, even if its CLI comes

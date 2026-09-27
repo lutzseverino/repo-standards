@@ -2,7 +2,8 @@
 
 Issue #11 owns public distribution and release integration. Publishing a package
 does not close parent #1 or establish that its full release contract has passed.
-Record outstanding criteria explicitly in `acceptance/results/`.
+Record outstanding criteria explicitly on the parent specification, as
+[acceptance records](../../acceptance/README.md#acceptance-records) describes.
 
 ## Start here
 
@@ -12,7 +13,7 @@ Choose the row that matches the observed state:
 | State | Next action |
 | --- | --- |
 | A `Release` run is still queued or running | Wait for it to finish before inspecting or retrying anything. The status helper below reports this as `in-progress` with a wait action. |
-| New version, no publication attempted | Complete the trusted-publisher setup below, update the package and standalone authoring guide to the same exact version, then dispatch `Release` at the reviewed commit. |
+| New version, no publication attempted | Complete the trusted-publisher setup below, update the package and standalone authoring guide to the same exact version, write the release notes, then dispatch `Release` at the reviewed commit with them. |
 | A publication attempt failed or its outcome is uncertain | Follow **Recover a publication** below before dispatching another publishing run. |
 | npm and the matching GitHub assets are already published | Dispatch `Release` with `verify_published: true` and the exact published version. |
 | Public acceptance failed | Inspect that job's evidence and failure output. Follow **Retry public acceptance** below; preserve the failed attempt. |
@@ -70,9 +71,19 @@ executables and supplied author material alongside owning behavior tests.
 ## Publish
 
 The `Release` workflow is manually dispatched at the reviewed commit with its
-exact package version. It validates on macOS and Linux, produces one bundle,
-authenticates through OIDC, publishes its tarball, and attaches that bundle to the
-matching GitHub `v<version>` release. The workflow then runs public npm smoke
+exact package version and its release notes:
+
+```sh
+gh workflow run release.yml --repo lutzseverino/repo-standards \
+  --ref <reviewed-ref> -f version=<version> -F notes=@<release-notes-file>
+```
+
+Write the notes in Markdown for adopters: what changed, breaking changes with
+their migration, and the parent specification. The workflow refuses to publish
+without notes. It validates on macOS and Linux, produces one bundle, retains the
+notes as the `release-notes` artifact, authenticates through OIDC, publishes its
+tarball, and attaches that bundle to the matching GitHub `v<version>` release,
+whose body is the supplied notes. The workflow then runs public npm smoke
 checks on both systems, after a bounded wait for registry propagation described
 in **Published acceptance**, and retains JSON evidence as workflow artifacts.
 It refuses an existing Git tag; inspect any partial previous publication before
@@ -130,7 +141,7 @@ be the full original validated commit SHA. A branch name is insufficient.
 | Established state | Recovery action |
 | --- | --- |
 | npm version is absent; original validated bundle is intact | Correct authentication and publish only the original tarball using **Interactive publication** below. Recheck registry integrity before proceeding. |
-| npm integrity matches; GitHub tag/release is absent | Create the release at the original validated commit with the original four bundle files. |
+| npm integrity matches; GitHub tag/release is absent | Create the release at the original validated commit with the original four bundle files and the original run's release notes. |
 | npm integrity matches; tag matches; release exists but an asset is missing | Verify existing assets against the original bundle, then upload only missing files with `gh release upload`. |
 | npm integrity matches; draft identity matches; assets are missing | Verify existing draft assets through authenticated GitHub asset downloads, then upload only missing original files. Re-run the status helper with a fresh output directory. |
 | npm integrity matches; draft identity and all four assets match | Publish the existing draft with `gh release edit v<version> --draft=false --target <original-validated-commit>`, then re-inspect before verification-only acceptance. |
@@ -145,16 +156,20 @@ published assets. It never deletes drafts, overwrites existing assets, or
 executes the printed action. Re-inspect after each recovery step; a draft is
 not a completed publication.
 
-For the missing-release case, after those identity checks:
+For the missing-release case, after those identity checks, download the
+original run's notes and create the release with them:
 
 ```sh
+gh run download <run-id> --repo lutzseverino/repo-standards \
+  --name release-notes --dir <fresh-notes-directory>
 gh release create v<version> <original-bundle-directory>/* \
   --repo lutzseverino/repo-standards --target <original-validated-commit> \
   --title 'Repository Standards <version>' \
-  --notes 'Published artifacts; release acceptance is tracked separately.'
+  --notes-file <fresh-notes-directory>/release-notes.md
 ```
 
-Use the observed version, commit and original artifact directory. Do not rebuild
+The status helper downloads the same notes and prints this action with their
+path. Use the observed version, commit and original artifact directory. Do not rebuild
 an already published version, move an existing tag, overwrite an existing asset,
 or rerun an entire publishing job after npm has succeeded. Retain the original
 validation run alongside recovery evidence.
@@ -269,12 +284,13 @@ adoption output, unchanged HEAD/index, normal project commits, fresh-checkout
 restoration with scripts disabled, and retained inspection without source access.
 Exercise standards and CLI updates, separately and together, using actual
 published versions; a rewritten fixture manifest is not public update evidence.
-Record each OS and each source independently. `acceptance/release-coverage.md`
-maps the original release, and `acceptance/contextual-scope-release-coverage.md`
-maps the discovery release. Both maps point to owning deterministic tests and
-required live evidence. Release 2.0.0 is accepted through this repository's own
-fresh adoption of the current Repo Canon release with the published CLI,
-recorded as identities and the CLI's summary.
+Record each OS and each source independently. Release 2.0.0 is accepted
+through this repository's own fresh adoption of the current Repo Canon release
+with the published CLI, recorded as identities and the CLI's summary.
+
+Once published acceptance passes, add a short verification paragraph to the
+GitHub release body: the release and verification workflow run IDs, the
+systems checked, and the outcome. Keep the notes above it unchanged.
 
 Do not label the release complete while publication, either OS, real-agent work,
 or any parent criterion remains unverified. The parent remains open and unchanged.
@@ -297,6 +313,7 @@ Retain those JSON artifacts alongside existing public CLI smoke evidence.
 
 Fresh real-agent creation, revision, and resumption remain separate acceptance
 work. Record direct installation independently of dated skills.sh observations.
-The [authoring coverage map](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/authoring-release-coverage.md)
-maps all twelve criteria and identifies missing release evidence. A ready PR,
+The [authoring coverage map](https://github.com/lutzseverino/repo-standards/blob/c42455ca20a331e6983c8a5a6a3f202914851f92/acceptance/authoring-release-coverage.md),
+kept in Git history, maps all twelve criteria and identifies missing release
+evidence. A ready PR,
 candidate test run, or public Git branch alone does not complete issue #31.
