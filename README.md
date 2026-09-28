@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Repository Standards</h1>
-  <p>Publish and apply versioned repository standards through a CLI and agent-guided workflows.</p>
+  <p>A CLI and agent skills for publishing and applying versioned repository standards.</p>
   <p>
     <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
     <img src="https://img.shields.io/badge/Node.js-24-5FA04E?logo=node.js&logoColor=white" alt="Node.js 24">
@@ -12,7 +12,7 @@
 On macOS or Linux, use Node.js 24 and npm:
 
 ```sh
-npm install --global --ignore-scripts @lutzseverino/repo-standards@2.0.0
+npm install --global --ignore-scripts @lutzseverino/repo-standards
 repo-standards --version
 ```
 
@@ -24,7 +24,7 @@ authoring skill, and fresh-checkout restoration.
 - Validate independently authored standards and complete profiles.
 - Inspect published GitHub versions, exact replacements, and contextual scope.
 - Adopt through confirmed operations and agent assessments, retaining evidence.
-- Deliberately update any pin, the source, or the profile in one confirmed run.
+- Update any pin, the source, or the profile in one confirmed run.
 - Report available updates and render inspections and runs as Markdown summaries.
 - Discover sources by topic without automatically selecting or adopting them.
 
@@ -39,24 +39,18 @@ repo-standards source validate /path/to/standards-repository --json
 Authors publish complete profiles in separate standards repositories. Adopting
 projects select one profile and inspect it before confirming exact installation,
 contextual work, and trusted checks and fixes. Read [authoring](docs/usage/authoring.md)
-and [adoption](docs/usage/adoption.md) for these distinct workflows.
+and [adoption](docs/usage/adoption.md) for these distinct workflows, the
+[author format](docs/usage/author-format.md) for the source format, and the
+[architecture contracts](docs/development/architecture.md) for the product's
+behavior.
 
 ## Documentation
 
-Start with the [documentation map](docs/README.md),
-[author format](docs/usage/author-format.md), and
-[architecture contracts](docs/development/architecture.md). Each version's
-[GitHub release](https://github.com/lutzseverino/repo-standards/releases)
-carries its release notes, and its assets carry the publication identities.
-Repo Canon supplies this repository's contribution and agent conventions as a
-separate standards source; the product remains neutral for independently
-authored standards.
+[Documentation](docs/README.md)
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) and the
-[development guide](docs/development/README.md).
-Work is tracked in [GitHub Issues](https://github.com/lutzseverino/repo-standards/issues).
+[Contribution guidelines](CONTRIBUTING.md)
 
 ## License
 

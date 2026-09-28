@@ -6,6 +6,10 @@ issue, its parent specification, and blockers. Keep product behavior scoped to
 the agreed contract; report contradictions and propose contract changes
 explicitly. The public author contract is [the author format](../usage/author-format.md).
 
+Repo Canon supplies this repository's contribution and agent conventions as a
+separate standards source that this repository adopts like any other project.
+The product itself remains neutral for independently authored standards.
+
 Create a focused branch from `main` for each implementation ticket. Follow
 [development and validation](../development/README.md), including the PR timing
 and the [review tier](../development/README.md#review-tiers) for the change

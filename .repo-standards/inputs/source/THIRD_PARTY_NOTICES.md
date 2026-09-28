@@ -6,6 +6,8 @@ by its respective authors:
 
 - The pinned Matt Pocock skill collection retains its
   [MIT License and copyright notice](vendor/mattpocock-skills/LICENSE).
+  Adoption installs the same notice beside the copied skills, at
+  `.agents/skills/LICENSE.mattpocock-skills` in the adopting repository.
 - Marked 18.0.13 retains its combined
   [Marked and Markdown license notices](vendor/marked/LICENSE).
 - The bundled parse5 8.0.1 and entities 8.0.0 sources retain the separate

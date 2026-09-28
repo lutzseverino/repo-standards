@@ -98,7 +98,7 @@ result.labels = authoritativeLabels;
 
 if (!result.valid) {
   await removeReadiness(api, issueNumber, result.labels);
-  if (result.triaged) await returnTriagedRequestToReview(api, issueNumber, result.labels);
+  if (result.usesWorkflowState) await returnToReview(api, issueNumber, result.labels);
   await maintainFeedback(api, issueNumber, comments, invalidFeedback(result.errors));
   console.error(result.errors.join("\n"));
   process.exit(1);
@@ -119,15 +119,30 @@ const issueEvents = await api.listEvents(issueNumber);
 const readiness = await assessReadiness({ api, event, issue, result, issueEvents, previousFeedback, revision, openingEligible: contract.openingEligible });
 if (!readiness.valid) {
   await removeReadiness(api, issueNumber, result.labels);
-  if (result.triaged) await returnTriagedRequestToReview(api, issueNumber, result.labels);
+  if (result.usesWorkflowState) await returnToReview(api, issueNumber, result.labels);
   await maintainFeedback(api, issueNumber, comments, awaitingReviewFeedback(result.kind, revision, readiness.observedEventId, readiness.sourceInvalidation, readiness.error));
   console.error(readiness.error);
   process.exit(1);
 }
 
-if (readiness.approved && result.triaged) {
-  await replaceTriagedState(api, issueNumber, result.labels, readiness.label);
-} else if (event.action === "unlabeled" && transitionLabel && result.triaged) {
+const supersedingState = readiness.approved && result.usesWorkflowState
+  ? stateAppliedAfterReview(result.labels, readiness.reviewEventId, issueEvents, issue, event)
+  : null;
+if (supersedingState) {
+  await replaceWorkflowState(api, issueNumber, result.labels, supersedingState);
+  await maintainFeedback(
+    api,
+    issueNumber,
+    comments,
+    awaitingReviewFeedback(result.kind, revision, readiness.reviewEventId, readiness.sourceInvalidation, `\`${supersedingState}\` was applied after the review and supersedes its readiness.`),
+  );
+  console.log(`Valid ${result.kind}; \`${supersedingState}\` superseded ${readiness.label}.`);
+  process.exit(0);
+}
+
+if (readiness.approved && result.usesWorkflowState) {
+  await replaceWorkflowState(api, issueNumber, result.labels, readiness.label);
+} else if (event.action === "unlabeled" && transitionLabel && result.usesWorkflowState) {
   const remainingStates = [...result.labels].filter((label) => workflowLabels.has(label));
   if (remainingStates.length === 0) await api.addLabels(issueNumber, ["needs-triage"]);
 }
@@ -325,14 +340,14 @@ function validate({ issue, comments, blockedBy, parent, relationshipErrors }) {
     for (const name of ["Implementation Decisions", "Testing Decisions", "Further Notes"]) {
       requireSection(sections, name, errors, { allowEmpty: true });
     }
-    return outcome("specification", errors, labels, false, { type: "issue-body", body });
+    return outcome("specification", errors, labels, true, { type: "issue-body", body });
   }
 
   if (!hasTriageCategory && contractKind === "implementation ticket") {
     errors.push(...relationshipErrors);
     requireSections(sections, ["What to build", "Acceptance criteria"], errors);
     requireSection(sections, "Blocked by", errors, { allowExternalValue: blockedBy.length > 0 });
-    return outcome("implementation ticket", errors, labels, false, { type: "issue-body", body });
+    return outcome("implementation ticket", errors, labels, true, { type: "issue-body", body });
   }
 
   if (brief) {
@@ -362,7 +377,7 @@ function validate({ issue, comments, blockedBy, parent, relationshipErrors }) {
   }
 
   errors.push("Use one supported issue contract: a public form, native specification or ticket, triaged Agent Brief, Wayfinder map, or labeled Wayfinder child.");
-  return outcome("issue contract", errors, labels, false);
+  return outcome("issue contract", errors, labels, true);
 }
 
 function identifyContract(sections) {
@@ -384,8 +399,10 @@ function identifyContract(sections) {
   return null;
 }
 
-function outcome(kind, errors, labels, triaged, contract = null) {
-  return { valid: errors.length === 0, kind, errors: [...new Set(errors)], labels, triaged, contract };
+// Triaged requests, direct specifications and tickets, and unrecognized issues
+// that lose readiness carry one workflow state; Wayfinder issues never gain one.
+function outcome(kind, errors, labels, usesWorkflowState, contract = null) {
+  return { valid: errors.length === 0, kind, errors: [...new Set(errors)], labels, usesWorkflowState, contract };
 }
 
 function parseSections(markdown, acceptedNames = contractSectionNames) {
@@ -818,13 +835,43 @@ async function removeReadiness(apiClient, number, labels) {
   }
 }
 
-async function returnTriagedRequestToReview(apiClient, number, labels) {
+async function returnToReview(apiClient, number, labels) {
   const hadReadiness = [...labels].some((label) => readyLabels.has(label));
   const remainingStates = [...labels].filter((label) => workflowLabels.has(label) && !readyLabels.has(label));
   if (hadReadiness && remainingStates.length === 0) await apiClient.addLabels(number, ["needs-triage"]);
 }
 
-async function replaceTriagedState(apiClient, number, labels, readinessLabel) {
+// A non-readiness state labeled strictly after the review supersedes it; states
+// labeled before or in the same second as the review are replaced by it. A
+// present state whose application the timeline has not recorded also
+// supersedes, unless it is the triggering label with a payload time no later
+// than the review or a label the issue was opened with.
+function stateAppliedAfterReview(labels, reviewEventId, issueEvents, issue, currentEvent) {
+  const opening = String(reviewEventId).startsWith("opened:");
+  const reviewIndex = opening ? -1 : issueEvents.findIndex(({ id }) => String(id) === String(reviewEventId));
+  const reviewedAt = opening ? issue.created_at : issueEvents[reviewIndex]?.created_at;
+  const reviewKnown = Boolean(reviewedAt) && (opening || reviewIndex >= 0);
+  let latest = null;
+  for (const label of labels) {
+    if (!workflowLabels.has(label) || readyLabels.has(label)) continue;
+    const labeledIndex = issueEvents.findLastIndex((candidate) => candidate.event === "labeled" && candidate.label?.name === label);
+    const labeledAt = issueEvents[labeledIndex]?.created_at;
+    const recordedLater = reviewKnown && labeledIndex > reviewIndex && labeledAt && labeledAt > reviewedAt;
+    if (recordedLater && (!latest || labeledIndex > latest.index)) latest = { label, index: labeledIndex };
+    const triggering = currentEvent.action === "labeled" && currentEvent.label?.name === label;
+    const payloadAt = currentEvent.issue?.updated_at;
+    if (triggering) {
+      if (!recordedLater && (!reviewKnown || !payloadAt || payloadAt > reviewedAt)) return label;
+      continue;
+    }
+    const latestChange = issueEvents.findLast((candidate) => ["labeled", "unlabeled"].includes(candidate.event) && candidate.label?.name === label);
+    const openedWith = currentEvent.action === "opened" && (currentEvent.issue?.labels ?? []).some((candidate) => labelName(candidate) === label);
+    if (!openedWith && latestChange?.event !== "labeled") return label;
+  }
+  return latest?.label ?? null;
+}
+
+async function replaceWorkflowState(apiClient, number, labels, readinessLabel) {
   for (const label of labels) {
     if (workflowLabels.has(label) && label !== readinessLabel) await apiClient.removeLabel(number, label);
   }

@@ -3,7 +3,7 @@ name: repo-canon
 description: Complete repository documentation, contribution, agent workflow,
   and GitHub validation standards
 requires:
-  repo-standards: 1.2.2
+  repo-standards: ">=2.0.0"
 defaults:
   declarations: {}
 profiles:
@@ -142,6 +142,12 @@ profiles:
         kind: file
         target: vendor/marked/README.md
         exact: vendor/marked/README.md
+      mattpocock-skills-license:
+        checks: []
+        fixes: []
+        kind: file
+        target: .agents/skills/LICENSE.mattpocock-skills
+        exact: vendor/mattpocock-skills/LICENSE
       parse5-entities-license:
         checks: []
         fixes: []

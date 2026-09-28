@@ -51,9 +51,13 @@ Applying `ready-for-agent` or `ready-for-human` is the review action. The actor
 must currently have the repository `admin`, `maintain`, or `triage` role. The
 triage role is the explicit authorization for a triaging agent. Names, author
 associations, bot identity, headings, preambles, and structural success do not
-grant authority. On a triaged request, apply the new readiness label directly;
-the workflow removes the previous nonterminal workflow state after it verifies
-the review. Wayfinder planning issues do not use readiness labels; their
+grant authority. On a triaged request, specification, or implementation ticket,
+apply the new readiness label directly; after the workflow verifies the
+review, it removes every non-readiness workflow state applied before it. A
+workflow state applied later supersedes the review instead; the workflow keeps
+that state alone and removes readiness. When such a contract loses readiness,
+the workflow returns it to `needs-triage` unless another non-readiness workflow
+state remains. Wayfinder planning issues do not use readiness labels; their
 eligibility continues to use open state, assignment, and blockers.
 
 Incomplete or changed contracts lose readiness. Automation maintains one
@@ -88,7 +92,9 @@ not replace the formats of the installed planning workflow.
 they do not automatically enter issue triage as feature requests.
 
 Keep PRs focused, report actual validation, and link their implementation issue
-or explain an eligible small correction. Mark breaking changes with `!` in the
-title and explain impact and migration in the body. Squash into the default
-branch using the PR title and description, preserving those explanations and
-issue references.
+or explain an eligible small correction. Keep the PR template's sections in the
+template's order, with Limits last when relevant. Put any other material, such
+as scope, impact, or migration, in subsections of the section it belongs to.
+Mark breaking changes with `!` in the title and explain impact and migration in
+the body. Squash into the default branch using the PR title and description,
+preserving those explanations and issue references.
