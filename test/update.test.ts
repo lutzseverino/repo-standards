@@ -203,6 +203,46 @@ test('update inspections report edited installed content at each changed baselin
   });
 });
 
+test('update inspections report each declared target block before baseline-only targets sorted by path', async t => {
+  const instructions = `    instructions:
+      kind: file
+      target: AGENTS.md
+      exact: agents.md`;
+  const remote = remoteFixture(source('v1', `${instructions}
+    alpha:
+      kind: file
+      target: Z-RETIRED.md
+      exact: z.md
+    beta:
+      kind: file
+      target: A-RETIRED.md
+      exact: a.md`), { 'agents.md': 'Version one', 'z.md': 'Retired Z', 'a.md': 'Retired A' });
+  const project = sourceFixture('', { 'README.md': 'Project README' });
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initialInspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).status, 0);
+  commit(project.root);
+  const baselines = Object.keys(JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8')).baselines);
+  assert.ok(baselines.indexOf('Z-RETIRED.md') < baselines.indexOf('A-RETIRED.md'), JSON.stringify(baselines));
+  rmSync(join(project.root, 'AGENTS.md'));
+  symlinkSync('README.md', join(project.root, 'AGENTS.md'));
+  writeFileSync(join(project.root, 'Z-RETIRED.md'), 'Maintainer edit');
+  writeFileSync(join(project.root, 'A-RETIRED.md'), 'Maintainer edit');
+  commit(project.root);
+  remote.addVersion('v1.1.0', source('v2', instructions), { 'agents.md': 'Version two' });
+  const result = cli.run(inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument), project.root, env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout).start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), [
+    { code: 'UNSAFE_TARGET', path: 'AGENTS.md' },
+    { code: 'INSTALLED_CONTENT_EDITED', path: 'AGENTS.md' },
+    { code: 'INSTALLED_CONTENT_EDITED', path: 'A-RETIRED.md' },
+    { code: 'INSTALLED_CONTENT_EDITED', path: 'Z-RETIRED.md' },
+  ]);
+});
+
 test('a candidate CLI updates only the exact runtime pin from retained standards and restores without the source', async t => {
   const remote = remoteFixture(source('v1', `    instructions:
       kind: file
