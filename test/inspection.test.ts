@@ -448,3 +448,39 @@ profiles:`) + `  explicit:
     assert.deepEqual(snapshot(project.root), before);
   }
 });
+
+test('inspection reports project, scope, and product-state blockers before one block per installation target', (t) => {
+  const yaml = `format: repo-standards/v2
+name: test-standards
+description: Blocker order fixture
+requires: {repo-standards: ">=1.0.0"}
+defaults:
+  declarations:
+    project-docs:
+      kind: repository
+      guidance: guidance.md
+      discovery: discovery.md
+    review:
+      kind: skill
+      name: review
+      source: skill
+profiles:
+  work:
+    description: Work
+    declarations: {}
+`;
+  const remote = remoteFixture(yaml, { 'guidance.md': 'Document each project.', 'discovery.md': 'Find maintained projects.', 'skill/SKILL.md': 'Supplied review' });
+  const project = sourceFixture('', { '.agents/skills/adopt-standards/SKILL.md': 'Unrelated system skill', '.agents/skills/review/SKILL.md': 'Unrelated review' });
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  writeFileSync(join(project.root, '.agents/skills/review/local.md'), 'Untracked resource');
+  const result = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout).start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), [
+    { code: 'DIRTY_PROJECT', path: undefined },
+    { code: 'DISCOVERY_REQUIRED', path: undefined },
+    { code: 'SYSTEM_SKILL_CONFLICT', path: '.agents/skills/adopt-standards' },
+    { code: 'SKILL_CONFLICT', path: '.agents/skills/review' },
+    { code: 'UNTRACKED_REPLACEMENT', path: '.agents/skills/review/local.md' },
+  ]);
+});

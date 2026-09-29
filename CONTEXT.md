@@ -178,6 +178,18 @@ The recorded bytes and executable state of exact content at the end of the last
 complete adoption.
 _Avoid_: Contextual assessment, source copy
 
+**Installation target**:
+A project path into which an adoption run installs an exact file or a whole
+skill directory, including the system skill.
+_Avoid_: Destination, output file
+
+**Target ownership**:
+The product's standing over an installation target: the action a run would
+take on it (claim, create, or replace) and any ownership blockers that leave it
+to the maintainer, judged from its current content, installed baseline, and
+candidate content.
+_Avoid_: Writeability, write permission
+
 **Work evidence**:
 The durable record of observation intervals and operation outcomes for one
 adoption run.
