@@ -67,6 +67,10 @@ globalThis.fetch = async (url, init) => {
   save();
   const cache = join(support.root, 'cache');
   mkdirSync(cache);
+  // The CLI's own temporary directories, such as a runtime it acquired before a
+  // test killed it, stay inside the fixture and go with it at teardown.
+  const temporary = join(support.root, 'tmp');
+  mkdirSync(temporary);
   return {
     source, support, prefix, sha, treeSha, repository, responses, save,
     requests: () => readRequests().map(request => request.url),
@@ -86,7 +90,7 @@ globalThis.fetch = async (url, init) => {
       save();
       return published;
     },
-    env: { ...process.env, NODE_OPTIONS: `--import=${pathToFileURL(loader).href}`, XDG_CACHE_HOME: cache,
+    env: { ...process.env, NODE_OPTIONS: `--import=${pathToFileURL(loader).href}`, XDG_CACHE_HOME: cache, TMPDIR: temporary,
       GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_COUNT: '2',
       GIT_CONFIG_KEY_0: `url.${pathToFileURL(source.root).href}.insteadOf`, GIT_CONFIG_VALUE_0: `https://github.com/${repository}`,
       GIT_CONFIG_KEY_1: 'protocol.file.allow', GIT_CONFIG_VALUE_1: 'always' },

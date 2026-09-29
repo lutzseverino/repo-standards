@@ -25,9 +25,22 @@ export function embeddedContent(value: unknown, path = '$'): string[] {
 
 export function sha256(bytes: string | Buffer) { return createHash('sha256').update(bytes).digest('hex'); }
 
+// Every fixture directory still present when the test process exits, such as
+// one whose test failed before registering its teardown, is removed then.
+const fixtureRoots = new Set<string>();
+process.on('exit', () => { for (const root of fixtureRoots) remove(root); });
+function track(root: string) {
+  fixtureRoots.add(root);
+  return root;
+}
+function remove(root: string) {
+  fixtureRoots.delete(root);
+  rmSync(root, { recursive: true, force: true });
+}
+
 // Every test invokes the packed, independently installed executable, never src/.
 export function installCli() {
-  const root = mkdtempSync(join(tmpdir(), 'repo-standards-cli-'));
+  const root = track(mkdtempSync(join(tmpdir(), 'repo-standards-cli-')));
   try {
     const packed = packPackage(root);
     execFileSync('npm', ['install', '--prefix', root, '--ignore-scripts', '--no-audit', '--no-fund',
@@ -40,16 +53,16 @@ export function installCli() {
         // adopter grows well past Node's default 1 MiB capture buffer.
         return spawnSync(join(root, 'node_modules/.bin/repo-standards'), args, { cwd, env, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
       },
-      close() { rmSync(root, { recursive: true, force: true }); },
+      close() { remove(root); },
     };
   } catch (error) {
-    rmSync(root, { recursive: true, force: true });
+    remove(root);
     throw error;
   }
 }
 
 export function sourceFixture(yaml: string, files: Record<string, string | Buffer> = {}) {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-source-')));
+  const root = track(realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-source-'))));
   execFileSync('git', ['init', '--quiet', root]);
   // Fixture commits must finish all writes before preservation snapshots begin.
   // Recent Git versions otherwise launch detached automatic maintenance.
@@ -59,7 +72,7 @@ export function sourceFixture(yaml: string, files: Record<string, string | Buffe
     mkdirSync(join(target, '..'), { recursive: true });
     writeFileSync(target, content);
   }
-  return { root, close() { rmSync(root, { recursive: true, force: true }); } };
+  return { root, close() { remove(root); } };
 }
 
 // Read ordinary source/project fixtures without coupling tests to their layout.
