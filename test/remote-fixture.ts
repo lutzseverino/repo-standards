@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { chmodSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { sourceFixture } from './installed-cli.ts';
+import { directoryFixture, sourceFixture } from './installed-cli.ts';
 
 export function git(root: string, ...args: string[]) {
   return execFileSync('git', ['-c', 'core.hooksPath=/dev/null', ...args], { cwd: root, encoding: 'utf8' }).trim();
@@ -67,6 +67,9 @@ globalThis.fetch = async (url, init) => {
   save();
   const cache = join(support.root, 'cache');
   mkdirSync(cache);
+  // The CLI's own temporary directories, such as a runtime it acquired before a
+  // test killed it, stay in a directory this fixture owns and removes at teardown.
+  const temporary = directoryFixture('repo-standards-tmp-');
   return {
     source, support, prefix, sha, treeSha, repository, responses, save,
     requests: () => readRequests().map(request => request.url),
@@ -86,11 +89,11 @@ globalThis.fetch = async (url, init) => {
       save();
       return published;
     },
-    env: { ...process.env, NODE_OPTIONS: `--import=${pathToFileURL(loader).href}`, XDG_CACHE_HOME: cache,
+    env: { ...process.env, NODE_OPTIONS: `--import=${pathToFileURL(loader).href}`, XDG_CACHE_HOME: cache, TMPDIR: temporary.root,
       GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_COUNT: '2',
       GIT_CONFIG_KEY_0: `url.${pathToFileURL(source.root).href}.insteadOf`, GIT_CONFIG_VALUE_0: `https://github.com/${repository}`,
       GIT_CONFIG_KEY_1: 'protocol.file.allow', GIT_CONFIG_VALUE_1: 'always' },
-    close() { source.close(); support.close(); },
+    close() { source.close(); support.close(); temporary.close(); },
   };
 }
 

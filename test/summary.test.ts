@@ -36,10 +36,10 @@ function assertDescriptive(summary: string) {
 }
 
 async function fixture(t: TestContext) {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(manifest, files);
   const project = sourceFixture('', { 'apps/a/README.md': '# Project A\n' });
   commit(project.root);
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[]) => cli.run(args, project.root, env);

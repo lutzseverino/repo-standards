@@ -6,6 +6,8 @@ import { sourceFixture } from './installed-cli.ts';
 
 // A real npm registry boundary: npm resolves an exact package, installs its
 // dependencies, and writes a portable lock using an HTTP tarball and integrity.
+// An open registry keeps its test process alive, so register close() in the
+// test's teardown before any further setup that could fail.
 export async function registryFixture(cliRoot: string, versions?: string[]) {
   const support = sourceFixture('');
   const installedPackage = join(cliRoot, 'node_modules/@lutzseverino/repo-standards');
@@ -45,8 +47,10 @@ const server = createServer((req, res) => {
   }
 });
 server.listen(0, '127.0.0.1', () => console.log(server.address().port));
+// The test process holds the other end of standard input: stop with it, however it ends.
+process.stdin.on('end', () => process.exit()).resume();
 `);
-  const server = spawn(process.execPath, [script], { stdio: ['ignore', 'pipe', 'pipe'] });
+  const server = spawn(process.execPath, [script], { stdio: ['pipe', 'pipe', 'pipe'] });
   const port = await new Promise<string>((resolve, reject) => {
     server.stdout.once('data', data => resolve(String(data).trim()));
     server.once('error', reject);

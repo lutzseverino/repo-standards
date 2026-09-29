@@ -62,6 +62,12 @@ export function sourceFixture(yaml: string, files: Record<string, string | Buffe
   return { root, close() { rmSync(root, { recursive: true, force: true }); } };
 }
 
+// A plain temporary directory, such as the CLI's temporary storage, removed by close().
+export function directoryFixture(prefix: string) {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), prefix)));
+  return { root, close() { rmSync(root, { recursive: true, force: true }); } };
+}
+
 // Read ordinary source/project fixtures without coupling tests to their layout.
 export function fixtureFiles(root: string): Record<string, string> {
   return Object.fromEntries(readdirSync(root, { recursive: true, withFileTypes: true })

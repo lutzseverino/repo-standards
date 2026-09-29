@@ -41,10 +41,10 @@ test('start requires explicit confirmation of an inspection before any project m
 });
 
 test('a fresh checkout restores the exact runtime and inspects retained standards after the source disappears', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml, { 'content.md': 'Expected', LICENSE: 'Source license' });
   const project = sourceFixture('');
   const checkout = sourceFixture('');
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); checkout.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -76,7 +76,6 @@ test('a fresh checkout restores the exact runtime and inspects retained standard
 });
 
 test('confirmed exact adoption installs whole skills, claims matching files and leaves durable pins uncommitted', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml.replace('profiles:', `    review:
       kind: skill
       name: review
@@ -92,6 +91,7 @@ profiles:`).replace('    declarations: {}', '    declarations: {employer: {exclu
   });
   const project = sourceFixture('', { 'AGENTS.md': 'Expected', 'CONTRIBUTING.md': 'Employer content',
     'package.json': '{"private":true,"packageManager":"yarn@4.0.0"}\n', '.npmrc': 'registry=https://project.invalid/\n' });
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const head = git(project.root, 'rev-parse', 'HEAD');
@@ -127,7 +127,6 @@ profiles:`).replace('    declarations: {}', '    declarations: {employer: {exclu
 });
 
 test('fresh adoption over previously installed content claims byte-identical skills once product state is removed', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml.replace('profiles:', `    review:
       kind: skill
       name: review
@@ -138,6 +137,7 @@ profiles:`), { 'content.md': 'Expected', 'skills/review/SKILL.md': '# Review\nRe
     '.agents/skills/review/scripts/run.sh': '#!/bin/sh\n', '.agents/skills/adopt-standards/SKILL.md': packagedSkill,
     '.repo-standards/selection.yaml': 'profile: work\n' });
   chmodSync(join(project.root, '.agents/skills/review/scripts/run.sh'), 0o755);
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -237,9 +237,9 @@ test('start rejects stale identities, project content and profile selection', as
 });
 
 test('a confirmation survives an unrelated commit and the run records HEAD at start', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
   const project = sourceFixture('', { 'README.md': 'Project' });
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -292,7 +292,6 @@ test('a source blob that changed between inspection and start is rejected before
 });
 
 test('the report of an established project with a large tree carries hashes and stays under the capture limit', async t => {
-  const registry = await registryFixture(cli.root);
   const references: Record<string, string> = Object.fromEntries(Array.from({ length: 300 }, (_, index) =>
     [`skills/large/references/${index}.md`, `# Reference ${index}\n${'Reference material. '.repeat(200)}\n`]));
   const remote = remoteFixture(yaml.replace('profiles:', `    large:
@@ -301,6 +300,7 @@ test('the report of an established project with a large tree carries hashes and 
       source: skills/large
 profiles:`), { 'content.md': 'Expected', 'skills/large/SKILL.md': '# Large\nUse the references.\n', ...references });
   const project = sourceFixture('', { 'README.md': 'Project' });
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -379,9 +379,9 @@ test('final integrity failures preserve work and report an incomplete locked run
 });
 
 test('only one process can hold an active adoption run', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
   const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -426,9 +426,9 @@ test('start rechecks freshness and unsafe or ignored targets after runtime acqui
 });
 
 test('unsafe targets introduced during installation are rechecked before each write', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml.replace('target: AGENTS.md', 'target: folder/AGENTS.md'), { 'content.md': 'Expected' });
   const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -470,7 +470,6 @@ esac
 });
 
 test('exact installation preserves binary bytes and executable state and retains only the selected profile', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml + `  other:
     description: Other
     declarations:
@@ -480,6 +479,7 @@ test('exact installation preserves binary bytes and executable state and retains
         exact: other.md
 `, { 'content.md': Buffer.from([0xff, 0x00, 0x80, 0x0a]), 'other.md': 'Other profile material' }, ['content.md']);
   const project = sourceFixture('', { 'AGENTS.md': 'Old bytes' });
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -495,9 +495,9 @@ test('exact installation preserves binary bytes and executable state and retains
 });
 
 test('an empty exact profile remains inspectable from retained metadata', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml.replace('  declarations:\n    instructions:\n      kind: file\n      target: AGENTS.md\n      exact: content.md', '  declarations: {}'));
   const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -510,10 +510,10 @@ test('an empty exact profile remains inspectable from retained metadata', async 
 });
 
 test('retained inspection preserves selected source manifests and rejects altered retained or last-complete evidence', async t => {
-  const registry = await registryFixture(cli.root);
   const source = yaml.replace('exact: content.md', 'exact: standards.yaml');
   const remote = remoteFixture(source);
   const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -564,9 +564,9 @@ test('ignored adoption outputs cannot produce a complete adoption that disappear
 });
 
 test('changes to unrelated tracked content during the final source acquisition invalidate confirmation before mutation', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
   const project = sourceFixture('', { 'README.md': 'Project' });
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -588,13 +588,13 @@ globalThis.fetch = async (url, options) => {
 });
 
 test('incomplete status retains ignored exact files and complete author and system skill changes', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml.replace('profiles:', `    review:
       kind: skill
       name: review
       source: skill
 profiles:`), { 'content.md': 'Expected', 'skill/SKILL.md': '# Review', 'skill/resources/check.txt': 'Resource' });
   const project = sourceFixture('', { '.gitignore': 'AGENTS.md\n.agents/\n' });
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -616,10 +616,10 @@ profiles:`), { 'content.md': 'Expected', 'skill/SKILL.md': '# Review', 'skill/re
 });
 
 test('runtime acquisition reuses a populated external npm cache with the registry unavailable', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
   const project = sourceFixture('');
   const support = sourceFixture('');
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); support.close(); });
   commit(project.root);
   const cache = join(support.root, 'npm-cache');
@@ -651,9 +651,9 @@ test('runtime cache configuration cannot write inside the adopting project throu
 });
 
 test('a final report persistence failure retains incomplete evidence and recovery guidance', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
   const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -708,9 +708,9 @@ test('npm cache child symlinks cannot redirect acquisition content or logs into 
 });
 
 test('a failed initial ignore-file write preserves the run without exposing local reports to Git', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
   const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -738,9 +738,9 @@ syncBuiltinESMExports();
 });
 
 test('status recovers ignored installed targets after the adoption process is interrupted', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
   const project = sourceFixture('', { '.gitignore': 'AGENTS.md\n.agents/\n' });
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };

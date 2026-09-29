@@ -15,7 +15,6 @@ const cli = installCli();
 after(() => cli.close());
 
 async function fixture(t: TestContext, declarations: Record<string, unknown> = {}, script = '') {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'recovery', description: 'Recovery standards',
     requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
       agents: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' }, ...declarations,
@@ -24,6 +23,7 @@ async function fixture(t: TestContext, declarations: Record<string, unknown> = {
   });
   const project = sourceFixture('', { 'README.md': 'Original project' });
   commit(project.root);
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
   const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);

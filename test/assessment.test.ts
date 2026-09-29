@@ -16,7 +16,6 @@ after(() => cli.close());
 const operation = (id: string) => ({ id, run: { executable: process.execPath, script: 'check.mjs', resources: [], arguments: [] },
   prerequisite: { 'version-arguments': ['--version'], version: '>=24 <25' }, 'timeout-seconds': 5 });
 async function fixture(t: TestContext, script = `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Verified'}));`) {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'alice', description: 'Alice standards',
     requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
       agents: { kind: 'file', target: 'AGENTS.md', exact: 'default.md' },
@@ -29,6 +28,7 @@ async function fixture(t: TestContext, script = `console.log(JSON.stringify({for
     } } } }), { 'default.md': 'Default', 'work.md': 'Work instructions', 'readme.md': 'Describe setup and architecture.',
     'layout.md': 'Explain source responsibilities.', 'skill/SKILL.md': '# Review', 'check.mjs': script });
   const project = sourceFixture('', { 'README.md': '# Bob\nA queue service.', 'CONTRIBUTING.md': 'Employer policy', '.gitignore': 'ignored/\n', 'src/old.ts': '// Old' });
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
@@ -249,7 +249,6 @@ test('content changing between assessment and final verification requires reasse
 });
 
 test('a second independent author uses fixes, repository configuration and runbook evidence through the same handoff', async t => {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'charlie-operations', description: 'Service operations standards',
     requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
       operations: { kind: 'repository', guidance: 'ops.md', targets: { paths: ['service.json'], directories: ['runbooks'] },
@@ -263,6 +262,7 @@ const status = input.operation.phase === 'fixes' ? 'changed' : JSON.parse(readFi
 console.log(JSON.stringify({format:'repo-standards/result/v1',status,message:'Service operations verified'}));`,
   }, [], 'charlie/operations');
   const project = sourceFixture('', { 'README.md': '# Payments API' });
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };

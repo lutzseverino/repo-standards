@@ -12,8 +12,8 @@ after(() => cli.close());
 test('Alice author example checks actual README headings through installed adoption', async t => {
   const files = fixtureFiles('examples/alice');
   const remote = remoteFixture(files['standards.yaml']!, files);
-  const registry = await registryFixture(cli.root);
   const project = sourceFixture('', { 'README.md': '# Bob\nA delivery queue.\n', 'CONTRIBUTING.md': 'Employer review policy\n' });
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const head = git(project.root, 'rev-parse', 'HEAD');
@@ -50,8 +50,8 @@ test('Alice author example checks actual README headings through installed adopt
 test('Mira service source retains check resources and preserves fix output on explicit retry', async t => {
   const files = fixtureFiles('examples/mira');
   const remote = remoteFixture(files['standards.yaml']!, files, [], 'mira/standards');
-  const registry = await registryFixture(cli.root);
   const project = sourceFixture('', fixtureFiles('acceptance/projects/harbor'));
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
