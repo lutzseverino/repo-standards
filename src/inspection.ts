@@ -15,7 +15,7 @@ import { readRecordedAdoption, type RecordedAdoption } from './recorded-state.js
 import { scopeChanges } from './scope-evidence.js';
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
-import { judgeTargetOwnership, type OwnedTarget } from './target-ownership.js';
+import { judgeTargetOwnership, type OwnedTarget, type TargetKind } from './target-ownership.js';
 import { unifiedDiff } from './unified-diff.js';
 import { compareUpdate } from './update-comparison.js';
 
@@ -190,7 +190,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const ownedTargets = new Map<string, OwnedTarget>();
     ownedTargets.set(systemTarget, { path: systemTarget, kind: 'system-skill', current: systemSkill, candidate: packagedSystemSkill() });
     for (const { target, kind } of installed) ownedTargets.set(target, { path: target, kind, current: affected[target]!, candidate: desiredExact[target]! });
-    const recordedTargets: { path: string; kind: 'file' | 'skill' | 'system-skill'; baseline: NonNullable<OwnedTarget['baseline']> }[] = [];
+    const recordedTargets: { path: string; kind: TargetKind; baseline: NonNullable<OwnedTarget['baseline']> }[] = [];
     if (previous) {
       const { baselines, skills } = previous.state;
       const directories = Object.keys(skills);
