@@ -152,6 +152,57 @@ test('every committed edit to installed exact baselines blocks the entire standa
   });
 });
 
+test('update inspections report edited installed content at each changed baseline path', async t => {
+  const registry = await registryFixture(cli.root);
+  t.after(() => registry.close());
+  const declarations = `    instructions:
+      kind: file
+      target: AGENTS.md
+      exact: agents.md
+    review:
+      kind: skill
+      name: review
+      source: review`;
+  const retired = `
+    retired:
+      kind: file
+      target: RETIRED.md
+      exact: retired.md`;
+  const v1Files = { 'agents.md': 'Version one', 'review/SKILL.md': '# Review v1', 'review/resource.txt': 'Owned resource', 'retired.md': 'Retired content' };
+  const v2Files = { 'agents.md': 'Version two', 'review/SKILL.md': '# Review v2' };
+  const edited = (path: string) => ({ code: 'INSTALLED_CONTENT_EDITED', path });
+  for (const { name, mutate, blockers, actions } of [
+    { name: 'an edited retired exact file', mutate: (root: string) => writeFileSync(join(root, 'RETIRED.md'), 'Maintainer edit'),
+      blockers: [edited('RETIRED.md')] },
+    { name: 'an exact file whose bytes equal the candidate but not the baseline', mutate: (root: string) => writeFileSync(join(root, 'AGENTS.md'), 'Version two'),
+      blockers: [edited('AGENTS.md')], actions: { instructions: 'match', review: 'replace' } },
+    { name: 'a skill whose bytes equal the candidate but not the baseline', mutate: (root: string) => writeFileSync(join(root, '.agents/skills/review/SKILL.md'), '# Review v2'),
+      blockers: [edited('.agents/skills/review/SKILL.md')], actions: { instructions: 'replace', review: 'match' } },
+    { name: 'an edited system skill', mutate: (root: string) => writeFileSync(join(root, '.agents/skills/adopt-standards/SKILL.md'), 'Maintainer edit'),
+      blockers: [edited('.agents/skills/adopt-standards/SKILL.md')] },
+    { name: 'a removed skill file', mutate: (root: string) => rmSync(join(root, '.agents/skills/review/resource.txt')),
+      blockers: [edited('.agents/skills/review/resource.txt'), edited('.agents/skills/review')] },
+  ]) await t.test(name, () => {
+    const remote = remoteFixture(source('v1', declarations + retired), v1Files);
+    const project = sourceFixture('');
+    t.after(() => { remote.close(); project.close(); });
+    commit(project.root);
+    const env = { ...remote.env, ...registry.env };
+    const initialInspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+    assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).status, 0);
+    commit(project.root);
+    mutate(project.root);
+    commit(project.root);
+    remote.addVersion('v1.1.0', source('v2', declarations), v2Files);
+    const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
+    const result = cli.run(updateArgs, project.root, env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    const inspection = JSON.parse(result.stdout);
+    assert.deepEqual(inspection.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), blockers);
+    if (actions) assert.deepEqual(Object.fromEntries(inspection.exact.map(({ id, action }: { id: string; action: string }) => [id, action])), actions);
+  });
+});
+
 test('a candidate CLI updates only the exact runtime pin from retained standards and restores without the source', async t => {
   const remote = remoteFixture(source('v1', `    instructions:
       kind: file
