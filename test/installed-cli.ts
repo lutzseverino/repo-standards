@@ -25,26 +25,9 @@ export function embeddedContent(value: unknown, path = '$'): string[] {
 
 export function sha256(bytes: string | Buffer) { return createHash('sha256').update(bytes).digest('hex'); }
 
-// Every fixture directory still present when the test process exits, such as
-// one whose test failed before registering its teardown, is removed then.
-const fixtureRoots = new Set<string>();
-const removeFixtures = () => { for (const root of fixtureRoots) removeFixture(root); };
-process.on('exit', removeFixtures);
-// A cancelled run ends test processes with a termination signal, which skips
-// 'exit': remove the directories, then end with that signal.
-for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => { removeFixtures(); process.kill(process.pid, signal); });
-function trackFixture(root: string) {
-  fixtureRoots.add(root);
-  return root;
-}
-function removeFixture(root: string) {
-  fixtureRoots.delete(root);
-  rmSync(root, { recursive: true, force: true });
-}
-
 // Every test invokes the packed, independently installed executable, never src/.
 export function installCli() {
-  const root = trackFixture(mkdtempSync(join(tmpdir(), 'repo-standards-cli-')));
+  const root = mkdtempSync(join(tmpdir(), 'repo-standards-cli-'));
   try {
     const packed = packPackage(root);
     execFileSync('npm', ['install', '--prefix', root, '--ignore-scripts', '--no-audit', '--no-fund',
@@ -57,16 +40,16 @@ export function installCli() {
         // adopter grows well past Node's default 1 MiB capture buffer.
         return spawnSync(join(root, 'node_modules/.bin/repo-standards'), args, { cwd, env, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
       },
-      close() { removeFixture(root); },
+      close() { rmSync(root, { recursive: true, force: true }); },
     };
   } catch (error) {
-    removeFixture(root);
+    rmSync(root, { recursive: true, force: true });
     throw error;
   }
 }
 
 export function sourceFixture(yaml: string, files: Record<string, string | Buffer> = {}) {
-  const root = trackFixture(realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-source-'))));
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-source-')));
   execFileSync('git', ['init', '--quiet', root]);
   // Fixture commits must finish all writes before preservation snapshots begin.
   // Recent Git versions otherwise launch detached automatic maintenance.
@@ -76,13 +59,13 @@ export function sourceFixture(yaml: string, files: Record<string, string | Buffe
     mkdirSync(join(target, '..'), { recursive: true });
     writeFileSync(target, content);
   }
-  return { root, close() { removeFixture(root); } };
+  return { root, close() { rmSync(root, { recursive: true, force: true }); } };
 }
 
 // A plain temporary directory, such as the CLI's temporary storage, removed by close().
 export function directoryFixture(prefix: string) {
-  const root = trackFixture(realpathSync(mkdtempSync(join(tmpdir(), prefix))));
-  return { root, close() { removeFixture(root); } };
+  const root = realpathSync(mkdtempSync(join(tmpdir(), prefix)));
+  return { root, close() { rmSync(root, { recursive: true, force: true }); } };
 }
 
 // Read ordinary source/project fixtures without coupling tests to their layout.

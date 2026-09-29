@@ -1,7 +1,6 @@
 import { createHash } from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
 import { cpSync, readFileSync, writeFileSync } from 'node:fs';
-import type { Socket } from 'node:net';
 import { join } from 'node:path';
 import { sourceFixture } from './installed-cli.ts';
 
@@ -55,9 +54,5 @@ process.stdin.on('end', () => process.exit()).resume();
     server.once('error', reject);
     server.once('exit', code => reject(new Error(`Registry exited: ${code}`)));
   });
-  // A registry its test never closed must not keep the test process alive; it
-  // stops when that process exits.
-  server.unref();
-  for (const stream of [server.stdin, server.stdout, server.stderr]) (stream as Socket).unref();
   return { env: { npm_config_registry: `http://127.0.0.1:${port}` }, close() { server.kill(); support.close(); } };
 }
