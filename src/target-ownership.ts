@@ -29,7 +29,7 @@ function plannedAction(current: Observation, desired: Observation) {
 }
 
 // The observation at a path relative to a target's observation; '' is the target itself.
-function observed(value: Observation, relative: string): Observation {
+function entryAt(value: Observation, relative: string): Observation {
   let current = value;
   for (const name of relative ? relative.split('/') : []) {
     if (current.type !== 'directory' || !Object.hasOwn(current.entries, name)) return { type: 'missing' };
@@ -38,7 +38,7 @@ function observed(value: Observation, relative: string): Observation {
   return current;
 }
 
-function ownership(target: OwnedTarget, established: boolean, tracked: ReadonlySet<string>): TargetOwnership {
+function judge(target: OwnedTarget, established: boolean, tracked: ReadonlySet<string>): TargetOwnership {
   const { path, kind, current, candidate, baseline } = target;
   const blockers: Blocker[] = [];
   const action = candidate ? plannedAction(current, candidate) : undefined;
@@ -48,7 +48,7 @@ function ownership(target: OwnedTarget, established: boolean, tracked: ReadonlyS
   if (baseline) {
     for (const file of Object.keys(baseline.files).sort()) {
       const expected = baseline.files[file]!;
-      const actual = observed(current, file === path ? '' : file.slice(path.length + 1));
+      const actual = entryAt(current, file === path ? '' : file.slice(path.length + 1));
       if (actual.type !== 'file' || actual.sha256 !== expected.sha256 || actual.executable !== expected.executable) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path: file, message: 'Installed exact content differs from its last-complete baseline. Reconcile it before updating.' });
     }
     if (baseline.inventory && !matchesInventory(current, baseline.inventory)) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'The installed skill inventory differs from its last-complete baseline. Reconcile added or removed resources before updating.' });
@@ -66,5 +66,5 @@ function ownership(target: OwnedTarget, established: boolean, tracked: ReadonlyS
 }
 
 export function judgeTargetOwnership(input: { established: boolean; tracked: ReadonlySet<string>; targets: OwnedTarget[] }): TargetOwnership[] {
-  return input.targets.map(target => ownership(target, input.established, input.tracked));
+  return input.targets.map(target => judge(target, input.established, input.tracked));
 }
