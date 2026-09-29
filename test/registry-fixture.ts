@@ -1,33 +1,14 @@
 import { createHash } from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
-import type { ChildProcess } from 'node:child_process';
 import { cpSync, readFileSync, writeFileSync } from 'node:fs';
 import type { Socket } from 'node:net';
 import { join } from 'node:path';
 import { sourceFixture } from './installed-cli.ts';
 
-// Every registry still open when the test process exits, such as one whose test
-// failed before registering its teardown, is stopped and removed then.
-const open = new Set<() => void>();
-process.on('exit', () => { for (const close of open) close(); });
-
 // A real npm registry boundary: npm resolves an exact package, installs its
 // dependencies, and writes a portable lock using an HTTP tarball and integrity.
 export async function registryFixture(cliRoot: string, versions?: string[]) {
   const support = sourceFixture('');
-  let server: ChildProcess | undefined;
-  const close = () => { open.delete(close); server?.kill(); support.close(); };
-  open.add(close);
-  try {
-    const port = await serve(support, cliRoot, versions, started => { server = started; });
-    return { env: { npm_config_registry: `http://127.0.0.1:${port}` }, close };
-  } catch (error) {
-    close();
-    throw error;
-  }
-}
-
-async function serve(support: { root: string }, cliRoot: string, versions: string[] | undefined, started: (server: ChildProcess) => void) {
   const installedPackage = join(cliRoot, 'node_modules/@lutzseverino/repo-standards');
   const baseManifest = JSON.parse(readFileSync(join(installedPackage, 'package.json'), 'utf8'));
   const packages: Record<string, { manifest: unknown; tarball: string; integrity: string }> = {};
@@ -69,14 +50,14 @@ server.listen(0, '127.0.0.1', () => console.log(server.address().port));
 process.stdin.on('end', () => process.exit()).resume();
 `);
   const server = spawn(process.execPath, [script], { stdio: ['pipe', 'pipe', 'pipe'] });
-  started(server);
   const port = await new Promise<string>((resolve, reject) => {
     server.stdout.once('data', data => resolve(String(data).trim()));
     server.once('error', reject);
     server.once('exit', code => reject(new Error(`Registry exited: ${code}`)));
   });
-  // A registry left open must not keep the test process alive past its tests.
+  // A registry its test never closed must not keep the test process alive; it
+  // stops when that process exits.
   server.unref();
-  for (const stream of [server.stdin, server.stdout, server.stderr]) (stream as unknown as Socket).unref();
-  return port;
+  for (const stream of [server.stdin, server.stdout, server.stderr]) (stream as Socket).unref();
+  return { env: { npm_config_registry: `http://127.0.0.1:${port}` }, close() { server.kill(); support.close(); } };
 }

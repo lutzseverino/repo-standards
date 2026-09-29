@@ -28,19 +28,19 @@ export function sha256(bytes: string | Buffer) { return createHash('sha256').upd
 // Every fixture directory still present when the test process exits, such as
 // one whose test failed before registering its teardown, is removed then.
 const fixtureRoots = new Set<string>();
-process.on('exit', () => { for (const root of fixtureRoots) remove(root); });
-function track(root: string) {
+process.on('exit', () => { for (const root of fixtureRoots) removeFixture(root); });
+function trackFixture(root: string) {
   fixtureRoots.add(root);
   return root;
 }
-function remove(root: string) {
+function removeFixture(root: string) {
   fixtureRoots.delete(root);
   rmSync(root, { recursive: true, force: true });
 }
 
 // Every test invokes the packed, independently installed executable, never src/.
 export function installCli() {
-  const root = track(mkdtempSync(join(tmpdir(), 'repo-standards-cli-')));
+  const root = trackFixture(mkdtempSync(join(tmpdir(), 'repo-standards-cli-')));
   try {
     const packed = packPackage(root);
     execFileSync('npm', ['install', '--prefix', root, '--ignore-scripts', '--no-audit', '--no-fund',
@@ -53,16 +53,16 @@ export function installCli() {
         // adopter grows well past Node's default 1 MiB capture buffer.
         return spawnSync(join(root, 'node_modules/.bin/repo-standards'), args, { cwd, env, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
       },
-      close() { remove(root); },
+      close() { removeFixture(root); },
     };
   } catch (error) {
-    remove(root);
+    removeFixture(root);
     throw error;
   }
 }
 
 export function sourceFixture(yaml: string, files: Record<string, string | Buffer> = {}) {
-  const root = track(realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-source-'))));
+  const root = trackFixture(realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-source-'))));
   execFileSync('git', ['init', '--quiet', root]);
   // Fixture commits must finish all writes before preservation snapshots begin.
   // Recent Git versions otherwise launch detached automatic maintenance.
@@ -72,7 +72,13 @@ export function sourceFixture(yaml: string, files: Record<string, string | Buffe
     mkdirSync(join(target, '..'), { recursive: true });
     writeFileSync(target, content);
   }
-  return { root, close() { remove(root); } };
+  return { root, close() { removeFixture(root); } };
+}
+
+// A plain directory, such as the CLI's temporary storage, removed with its fixture.
+export function directoryFixture(prefix: string) {
+  const root = trackFixture(realpathSync(mkdtempSync(join(tmpdir(), prefix))));
+  return { root, close() { removeFixture(root); } };
 }
 
 // Read ordinary source/project fixtures without coupling tests to their layout.
