@@ -28,7 +28,11 @@ export function sha256(bytes: string | Buffer) { return createHash('sha256').upd
 // Every fixture directory still present when the test process exits, such as
 // one whose test failed before registering its teardown, is removed then.
 const fixtureRoots = new Set<string>();
-process.on('exit', () => { for (const root of fixtureRoots) removeFixture(root); });
+const removeFixtures = () => { for (const root of fixtureRoots) removeFixture(root); };
+process.on('exit', removeFixtures);
+// A cancelled run ends test processes with a termination signal, which skips
+// 'exit': remove the directories, then end with that signal.
+for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => { removeFixtures(); process.kill(process.pid, signal); });
 function trackFixture(root: string) {
   fixtureRoots.add(root);
   return root;
@@ -75,7 +79,7 @@ export function sourceFixture(yaml: string, files: Record<string, string | Buffe
   return { root, close() { removeFixture(root); } };
 }
 
-// A plain directory, such as the CLI's temporary storage, removed with its fixture.
+// A plain temporary directory, such as the CLI's temporary storage, removed by close().
 export function directoryFixture(prefix: string) {
   const root = trackFixture(realpathSync(mkdtempSync(join(tmpdir(), prefix))));
   return { root, close() { removeFixture(root); } };

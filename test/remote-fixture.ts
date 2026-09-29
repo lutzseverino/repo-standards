@@ -68,7 +68,7 @@ globalThis.fetch = async (url, init) => {
   const cache = join(support.root, 'cache');
   mkdirSync(cache);
   // The CLI's own temporary directories, such as a runtime it acquired before a
-  // test killed it, stay in the fixture and go with it at teardown.
+  // test killed it, stay in a directory this fixture owns and removes at teardown.
   const temporary = directoryFixture('repo-standards-tmp-');
   return {
     source, support, prefix, sha, treeSha, repository, responses, save,
