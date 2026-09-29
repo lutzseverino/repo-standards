@@ -18,7 +18,6 @@ const script = `import { readFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0, 'utf8'));
 console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.operation.phase==='fixes'?'unchanged':'passed',message:JSON.stringify(input.allowedTargets)}));`;
 async function fixture(t: TestContext, base = 'components/odd/nested', files = {}, runScript = script) {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'discovered-adoption', description: 'Documentation for maintained projects',
     requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
       docs: { kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md', fixes: [operation('prepare')], checks: [operation('verify')] },
@@ -27,6 +26,7 @@ async function fixture(t: TestContext, base = 'components/odd/nested', files = {
   { 'guidance.md': 'Preserve useful documentation and repair links around exact configuration.', 'discovery.md': 'Find maintained projects using manifests and ownership; exclude fixtures, generated output, and organizational directories.', 'config.json': '{"shared":true}\n', 'run.mjs': runScript });
   const project = sourceFixture('', { [`${base}/package.json`]: '{"name":"maintained"}', 'fixtures/fake/package.json': '{}', ...files });
   commit(project.root);
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: JSON.parse(result.stdout) }; };

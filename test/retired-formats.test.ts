@@ -24,7 +24,6 @@ const source = stringify({
 // A complete, committed discovery adoption: its state, retained scope evidence
 // and run records are all in the single format this CLI writes.
 async function adoptedProject(t: import('node:test').TestContext) {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(source, {
     'guidance.md': 'Keep every maintained project README useful.',
     'discovery.md': 'Include the README of every maintained project.',
@@ -32,6 +31,7 @@ async function adoptedProject(t: import('node:test').TestContext) {
   });
   const project = sourceFixture('', { 'apps/docs/README.md': '# Documented project\n' });
   commit(project.root);
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: JSON.parse(result.stdout) }; };

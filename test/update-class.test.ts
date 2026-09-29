@@ -33,10 +33,10 @@ const files = {
 // A complete discovery-backed adoption of v1.0.0 whose confirmed scope is the
 // first project README, committed through the project's workflow.
 async function adopted(t: TestContext) {
-  const registry = await registryFixture(cli.root);
   const remote = remoteFixture(manifest(), files);
   const project = sourceFixture('', { 'apps/a/README.md': '# Project A\n', 'apps/b/README.md': '# Project B\n' });
   commit(project.root);
+  const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: JSON.parse(result.stdout) }; };

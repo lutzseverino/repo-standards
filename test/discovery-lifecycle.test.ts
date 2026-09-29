@@ -27,7 +27,6 @@ const source = stringify({
 });
 
 async function fixture(t: TestContext, versions?: string[]) {
-  const registry = await registryFixture(cli.root, versions);
   const remote = remoteFixture(source, {
     'guidance.md': 'Keep every maintained project README useful.',
     'discovery.md': 'Use project ownership and manifests; explain excluded former projects.',
@@ -35,6 +34,7 @@ async function fixture(t: TestContext, versions?: string[]) {
   });
   const project = sourceFixture('', { 'apps/old/README.md': '# Old project\n' });
   commit(project.root);
+  const registry = await registryFixture(cli.root, versions);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[]) => {

@@ -6,6 +6,8 @@ import { sourceFixture } from './installed-cli.ts';
 
 // A real npm registry boundary: npm resolves an exact package, installs its
 // dependencies, and writes a portable lock using an HTTP tarball and integrity.
+// An open registry keeps its test process alive, so register close() in the
+// test's teardown before any further setup that could fail.
 export async function registryFixture(cliRoot: string, versions?: string[]) {
   const support = sourceFixture('');
   const installedPackage = join(cliRoot, 'node_modules/@lutzseverino/repo-standards');
