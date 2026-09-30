@@ -1,13 +1,14 @@
 import { ProductError } from './errors.js';
 import type { Declaration, Operation, SourceDeclaration } from './model.js';
-import { matchesInventory, targetObservation, type Blocker, type Observation } from './observation.js';
+import { matchesInventory, type Blocker, type Observation } from './observation.js';
 import type { RecordedAdoption, RecordedSelection } from './recorded-state.js';
 
 // The update comparison: what inspecting a candidate against an established
 // adoption changes. It takes the verified recorded adoption, the candidate
-// selection and materials, and the observed project, and returns the whole
-// update part of an inspection report together with the blockers the recorded
-// baselines raise. It rejects a moved tag.
+// selection and materials, and the project's observed product state, and
+// returns the whole update part of an inspection report together with the
+// product-state-integrity blocker. It rejects a moved tag. Edits to installed
+// content are for target ownership to judge.
 //
 // An update's class says whether anything an adopter reviews in context
 // changes. It is exact only when every declaration's guidance, discovery
@@ -31,10 +32,6 @@ interface UpdateCandidate {
   resolved: readonly Declaration[];
   inputs: Readonly<Record<string, Observation>>;
 }
-
-// The project the update would change: its root and the observed product state
-// directory.
-interface ObservedProject { root: string; productState: Observation }
 
 // The selection components an update can change, in reporting order.
 const selectionComponents = ['cli', 'standards', 'source', 'profile'] as const;
@@ -108,26 +105,18 @@ function declarationChanges(recorded: RecordedAdoption, discovery: Readonly<Reco
   return (['guidance', 'discovery', 'operations', 'scope'] as const).filter(field => before[field] !== after[field]);
 }
 
-// Known edits to installed content, and any change to the durable product-state
-// inventory, block the entire update before mutation.
-function baselineBlockers(recorded: RecordedAdoption, project: ObservedProject) {
+// Any change to the durable product-state inventory blocks the entire update
+// before mutation.
+function stateIntegrityBlockers(recorded: RecordedAdoption, productState: Observation) {
   const blockers: Blocker[] = [];
-  for (const [path, expected] of Object.entries(recorded.state.baselines)) {
-    const actual = targetObservation(project.root, path, blockers);
-    if (actual.type !== 'file' || actual.sha256 !== expected.sha256 || actual.executable !== expected.executable) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'Installed exact content differs from its last-complete baseline. Reconcile it before updating.' });
-  }
-  for (const [path, expected] of Object.entries(recorded.state.skills)) {
-    const actual = targetObservation(project.root, path, blockers);
-    if (!matchesInventory(actual, expected)) blockers.push({ code: 'INSTALLED_CONTENT_EDITED', path, message: 'The installed skill inventory differs from its last-complete baseline. Reconcile added or removed resources before updating.' });
-  }
   const expectedProductFiles = [...Object.keys(recorded.files).filter(path => path.startsWith('.repo-standards/')), '.repo-standards/lock.json', '.repo-standards/state.json'].sort();
-  if (!matchesInventory(project.productState, expectedProductFiles.map(path => path.slice('.repo-standards/'.length)))) {
+  if (!matchesInventory(productState, expectedProductFiles.map(path => path.slice('.repo-standards/'.length)))) {
     blockers.push({ code: 'STATE_INTEGRITY', path: '.repo-standards', message: 'The durable product-state inventory changed. Reconcile added or removed material before updating.' });
   }
   return blockers;
 }
 
-export function compareUpdate(recorded: RecordedAdoption, candidate: UpdateCandidate, project: ObservedProject) {
+export function compareUpdate(recorded: RecordedAdoption, candidate: UpdateCandidate, productState: Observation) {
   const [recordedStandards, candidateStandards] = [recorded.selection.standards, candidate.selection.standards];
   const sameSource = candidateStandards.repository.toLowerCase() === recordedStandards.repository.toLowerCase();
   if (sameSource && candidateStandards.version === recordedStandards.version && candidateStandards.commit !== recordedStandards.commit) {
@@ -141,7 +130,7 @@ export function compareUpdate(recorded: RecordedAdoption, candidate: UpdateCandi
     source: !sameSource,
     profile: candidate.selection.profile !== recorded.selection.profile,
   };
-  const blockers = baselineBlockers(recorded, project);
+  const blockers = stateIntegrityBlockers(recorded, productState);
   // Retirement compares source declarations: an active discovery declaration
   // awaiting its scope proposal is still declared.
   const retired = recorded.resolved.declarations.filter(old => !candidate.declarations.some(declaration => declaration.id === old.id));
