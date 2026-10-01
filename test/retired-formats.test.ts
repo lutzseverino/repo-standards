@@ -137,6 +137,12 @@ test('the single committed formats are validated on read', async t => {
   // Retained scope evidence records its scope change against the previous run.
   rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { format, evidence, ...run });
   assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
+  // A discovery run keeps its discovery and source-resolved declarations together.
+  const { discovery, sourceResolved, ...withoutDiscovery } = run;
+  for (const unpaired of [{ ...withoutDiscovery, discovery }, { ...withoutDiscovery, sourceResolved }]) {
+    rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { format, evidence, ...unpaired, scopeChanges });
+    assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
+  }
   // It is historical evidence, marked as such.
   rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { format, ...run, scopeChanges });
   assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');

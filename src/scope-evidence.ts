@@ -66,8 +66,9 @@ function invalid(): never {
 const strings = (value: unknown) => Array.isArray(value) && value.every(entry => typeof entry === 'string');
 
 // The committed guarantee: the file holds the current run, stored once, and its
-// scope change, and nothing else; its discovery carries neither a derived
-// evidence array nor a full named observation.
+// scope change, and nothing else; a discovery run carries both its discovery
+// and its source-resolved declarations, and its discovery carries neither a
+// derived evidence array nor a full named observation.
 const committedFields = ['format', 'evidence', 'inspection', 'resolved', 'sourceResolved', 'discovery', 'scopeChanges'];
 function compactEvidence(stored: Record<string, unknown>) {
   if (Object.keys(stored).some(key => !committedFields.includes(key))) return false;
@@ -76,6 +77,7 @@ function compactEvidence(stored: Record<string, unknown>) {
     const change = value as Record<string, unknown> | null;
     return !!change && typeof change === 'object' && typeof change.id === 'string' && strings(change.additions) && strings(change.removals);
   })) return false;
+  if ((stored.discovery === undefined) !== (stored.sourceResolved === undefined)) return false;
   if (stored.discovery === undefined) return true;
   const discovery = stored.discovery as Record<string, unknown> | null;
   if (!discovery || typeof discovery !== 'object') return false;
