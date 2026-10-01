@@ -126,29 +126,25 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(git(f.project.root, 'show', 'HEAD:apps/old/README.md'), '# Old project');
   commit(f.project.root);
   const retainedInspection = f.run(['inspect', '--json']).report;
-  assert.equal(retainedInspection.format, 'repo-standards/inspection/v4');
+  assert.equal(retainedInspection.format, 'repo-standards/inspection/v5');
   const retained = retainedInspection.historicalScope;
-  assert.equal(retained.format, 'repo-standards/scope-history/v3');
+  assert.equal(retained.format, 'repo-standards/scope-history/v4');
   assertCompactScopeEvidence(committedScopeHistory(f.project.root));
-  assert.deepEqual(retained.runs.map((run: { inspection: string }) => run.inspection), [firstInspection.identity, inspected.identity]);
+  // Retained scope evidence holds the current run and its change against the previous one.
+  assert.equal(retained.inspection, inspected.identity);
+  assert.equal(Object.hasOwn(retained, 'runs'), false);
+  assert.deepEqual(retained.discovery.proposal, inspected.discovery.proposal);
+  assert.deepEqual(retained.scopeChanges, inspected.scopeChanges);
   const secondState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(secondState.format, 'repo-standards/state/v5');
-  // A later completion adds only its own run's compact evidence.
+  assert.equal(secondState.format, 'repo-standards/state/v6');
+  // A later completion keeps only its own run's compact evidence.
   assertCompactWorkEvidence(committedState(f.project.root));
-  assert.equal(secondState.history.length, 1);
-  assert.deepEqual(secondState.history, [{
-    lastComplete: firstState.lastComplete,
-    observations: firstState.observations,
-    operations: firstState.operations,
-    retryHistory: firstState.retryHistory,
-    checks: firstState.checks,
-    assessments: firstState.assessments,
-  }]);
-  assert.deepEqual(retained.runs[0].discovery.proposal, firstInspection.discovery.proposal);
-  const historicalExecution = f.run(['status', '--json']).report.history[0];
-  assert.equal(historicalExecution.lastComplete.inspection, firstState.lastComplete.inspection);
-  assert.deepEqual(historicalExecution.observations, firstState.observations);
-  assert.deepEqual(historicalExecution.operations, firstState.operations);
+  assert.equal(secondState.lastComplete.inspection, inspected.identity);
+  assert.notEqual(secondState.lastComplete.run, firstState.lastComplete.run);
+  const secondStatus = f.run(['status', '--json']).report;
+  assert.equal(Object.hasOwn(secondStatus, 'history'), false);
+  assert.deepEqual(secondStatus.observations, secondState.observations);
+  assert.deepEqual(secondStatus.scopeChanges, inspected.scopeChanges);
   const emptyInstalledDirectory = join(f.project.root, '.agents/skills/adopt-standards/added-directory');
   mkdirSync(emptyInstalledDirectory);
   const inventoryDrift = f.run(['inspect', '--json']).report;
@@ -162,10 +158,9 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
     return { result, report: JSON.parse(result.stdout) };
   };
   const checkoutRetainedInspection = runCheckout(['inspect', '--json']).report;
-  assert.equal(checkoutRetainedInspection.format, 'repo-standards/inspection/v4');
-  const checkoutRetained = checkoutRetainedInspection.historicalScope;
-  assert.deepEqual(checkoutRetained.runs[0], retained.runs[0]);
-  assert.deepEqual(runCheckout(['status', '--json']).report.history[0], historicalExecution);
+  assert.equal(checkoutRetainedInspection.format, 'repo-standards/inspection/v5');
+  assert.deepEqual(checkoutRetainedInspection.historicalScope, retained);
+  assert.deepEqual(runCheckout(['status', '--json']).report, secondStatus);
   f.proposal(checkoutRetainedInspection, 'apps/new/README.md', 'apps/old/README.md');
   const checkoutInspection = runCheckout(['inspect', '--scope', f.scopeFile, '--json']).report;
   assert.deepEqual(checkoutInspection.start.blockers, []);
@@ -173,8 +168,58 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(checkoutStart.result.status, 1, checkoutStart.result.stdout + checkoutStart.result.stderr);
   assert.equal(f.complete(checkoutStart.report, runCheckout).result.status, 0);
   const checkoutState = JSON.parse(readFileSync(join(checkout, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(checkoutState.history.length, 2);
-  assert.deepEqual(checkoutState.history[0], secondState.history[0]);
+  assertCompactWorkEvidence(checkoutState);
+  assert.equal(checkoutState.lastComplete.inspection, checkoutInspection.identity);
+  assert.equal(JSON.stringify(checkoutState).includes(secondState.lastComplete.run), false);
+});
+
+test('repeated updates retain only the current run at a constant size and status reports its scope change', async t => {
+  const f = await fixture(t);
+  mkdirSync(join(f.project.root, 'apps/new'), { recursive: true });
+  writeFileSync(join(f.project.root, 'apps/new/README.md'), '# New project\n');
+  commit(f.project.root);
+  const statePath = join(f.project.root, '.repo-standards/state.json');
+  const scopePath = join(f.project.root, '.repo-standards/inputs/scope-history.json');
+  // Each run swaps the confirmed project, so every run after the first records
+  // a scope change of the same size against the run before it.
+  const adopt = (args: string[], included: string, excluded?: string) => {
+    f.proposal(f.run(args).report, included, excluded);
+    const inspected = f.run([...args, '--scope', f.scopeFile]).report;
+    const started = f.run(['start', ...args.slice(1), '--scope', f.scopeFile, '--confirm', inspected.identity]).report;
+    const completed = f.complete(started);
+    assert.equal(completed.result.status, 0, completed.result.stdout + completed.result.stderr);
+    commit(f.project.root);
+    return { run: completed.report.id as string, inspection: inspected.identity as string,
+      state: readFileSync(statePath, 'utf8'), scope: readFileSync(scopePath, 'utf8') };
+  };
+  const runs = [adopt(inspectionArgs, 'apps/old/README.md', 'apps/new/README.md')];
+  for (const [included, excluded] of [['apps/new/README.md', 'apps/old/README.md'], ['apps/old/README.md', 'apps/new/README.md'], ['apps/new/README.md', 'apps/old/README.md']]) {
+    runs.push(adopt(['inspect', '--json'], included!, excluded));
+    const current = runs.at(-1)!;
+    const state = committedState(f.project.root);
+    assertCompactWorkEvidence(state);
+    assert.equal(state.lastComplete.run, current.run);
+    const scope = committedScopeHistory(f.project.root);
+    assertCompactScopeEvidence(scope);
+    assert.equal(scope.inspection, current.inspection);
+    assert.deepEqual(scope.scopeChanges, [{ id: 'docs', additions: [included], removals: [excluded] }]);
+    // Nothing from an earlier run is carried.
+    for (const earlier of runs.slice(0, -1)) {
+      for (const identity of [earlier.run, earlier.inspection]) {
+        assert.equal(current.state.includes(identity), false, `state carries ${identity}`);
+        assert.equal(current.scope.includes(identity), false, `scope evidence carries ${identity}`);
+      }
+    }
+    // The scope change is reported against the previous run from the stored change.
+    const status = f.run(['status', '--json']).report;
+    assert.deepEqual(status.scopeChanges, [{ id: 'docs', additions: [included], removals: [excluded] }]);
+    const summary = cli.run(['status', '--summary'], f.project.root, f.env);
+    assert.equal(summary.status, 0, summary.stderr);
+    assert.ok(summary.stdout.includes(`\n## Scope changes\n\n| Declaration | Added | Removed |\n| --- | --- | --- |\n| \`docs\` | \`${included}\` | \`${excluded}\` |\n`), summary.stdout);
+  }
+  // Committed state and scope evidence do not grow with the number of runs.
+  const sizes = runs.slice(1).map(run => [Buffer.byteLength(run.state), Buffer.byteLength(run.scope)]);
+  assert.deepEqual(sizes.slice(1), sizes.slice(0, -1), JSON.stringify(sizes));
 });
 
 test('a discovery completion stores its run once with the named observation as a delta', async t => {
@@ -191,14 +236,15 @@ test('a discovery completion stores its run once with the named observation as a
   // evidence and the named observation as its delta.
   const committed = committedScopeHistory(f.project.root);
   assertCompactScopeEvidence(committed);
-  assert.deepEqual(committed.runs.map(run => run.inspection), [firstInspection.identity]);
-  const stored = committed.runs[0]!.discovery!;
+  assert.equal(committed.inspection, firstInspection.identity);
+  assert.deepEqual(committed.scopeChanges, [{ id: 'docs', additions: ['apps/old/README.md'], removals: [] }]);
+  const stored = committed.discovery!;
   assert.deepEqual(Object.keys(stored.named!), ['targets']);
   assert.deepEqual(Object.keys(stored.named!.targets!), ['apps/old/README.md']);
   assert.deepEqual(stored.proposal, firstInspection.discovery.proposal);
   const projection = f.run(['inspect', '--json']).report.historicalScope;
-  assert.equal(projection.format, 'repo-standards/scope-history/v3');
-  assert.deepEqual(projection.runs.map((run: { inspection: string }) => run.inspection), [firstInspection.identity]);
+  assert.equal(projection.format, 'repo-standards/scope-history/v4');
+  assert.equal(projection.inspection, firstInspection.identity);
   assert.deepEqual(projection.discovery.namedObservation, firstInspection.discovery.namedObservation);
 });
 
@@ -244,14 +290,17 @@ test('compatible standards updates preserve discovery evidence through discovery
   assert.equal(retired.result.status, 0, retired.result.stdout + retired.result.stderr);
   commit(f.project.root);
   const retiredState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(retiredState.format, 'repo-standards/state/v5');
+  assert.equal(retiredState.format, 'repo-standards/state/v6');
   assert.ok(Array.isArray(retiredState.observations));
-  assert.equal(retiredState.history.length, 2);
+  assertCompactWorkEvidence(retiredState);
   const retiredStatus = f.run(['status', '--json']).report;
-  assert.equal(retiredStatus.format, 'repo-standards/status/v5');
-  assert.equal(retiredStatus.history.length, 2);
-  const noDiscoveryHistory = f.run(['inspect', '--json']).report.historicalScope;
-  assert.equal(noDiscoveryHistory.runs.at(-1).discovery, undefined);
+  assert.equal(retiredStatus.format, 'repo-standards/status/v6');
+  // Retiring discovery keeps the stored removal against the previous run.
+  assert.deepEqual(retiredStatus.scopeChanges, retirement.scopeChanges);
+  const noDiscoveryScope = f.run(['inspect', '--json']).report.historicalScope;
+  assert.equal(noDiscoveryScope.inspection, retirement.identity);
+  assert.equal(noDiscoveryScope.discovery, undefined);
+  assert.deepEqual(noDiscoveryScope.scopeChanges, retirement.scopeChanges);
 
   f.remote.addVersion('v1.3.0', source);
   const reintroducedArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.3.0' : argument);
@@ -262,8 +311,9 @@ test('compatible standards updates preserve discovery evidence through discovery
   const reintroducedRun = f.run(['start', ...reintroducedArgs.slice(1), '--scope', f.scopeFile, '--confirm', reintroduced.identity]).report;
   assert.equal(f.complete(reintroducedRun).result.status, 0);
   const reintroducedState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(reintroducedState.format, 'repo-standards/state/v5');
-  assert.equal(reintroducedState.history.length, 3);
+  assert.equal(reintroducedState.format, 'repo-standards/state/v6');
+  assertCompactWorkEvidence(reintroducedState);
+  assert.deepEqual(f.run(['status', '--json']).report.scopeChanges, reintroduced.scopeChanges);
 });
 
 test('a compatible CLI update uses retained v2 guidance and fresh scope without the original source', async t => {
@@ -333,7 +383,7 @@ test('durable product state over the per-file limit leaves discovery inspectable
   for (const args of [['inspect', '--json'], inspectionArgs, updateArgs]) {
     const inspection = f.run(args);
     assert.equal(inspection.result.status, 0, inspection.result.stdout + inspection.result.stderr);
-    assert.equal(inspection.report.format, 'repo-standards/inspection/v4');
+    assert.equal(inspection.report.format, 'repo-standards/inspection/v5');
     const { evidence, observation } = inspection.report.discovery;
     assert.ok(evidence.some((entry: { path: string }) => entry.path === 'apps/old/README.md'));
     assert.deepEqual(evidence.filter((entry: { path: string }) => reserved(entry.path)), []);

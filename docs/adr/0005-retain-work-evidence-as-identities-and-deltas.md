@@ -26,3 +26,7 @@ module now owns serialization if that changes.
 [ADR 0007](0007-write-and-read-one-evidence-format.md) amends this decision: the
 local run report and every inspection and run report now carry the same
 identities and deltas, and only one format is written and read.
+
+[ADR 0011](0011-retain-only-the-current-run.md) amends this decision: committed
+state holds the current run's evidence only, and no completion carries an
+earlier run forward.

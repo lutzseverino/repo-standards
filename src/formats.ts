@@ -5,12 +5,12 @@ import { ProductError } from './errors.js';
 // and reads. Retired formats are neither converted nor read: a record carrying
 // one is rejected with the fresh-adoption procedure as the only path forward.
 export const formats = {
-  state: 'repo-standards/state/v5',
+  state: 'repo-standards/state/v6',
   lock: 'repo-standards/lock/v1',
-  scopeHistory: 'repo-standards/scope-history/v3',
+  scopeHistory: 'repo-standards/scope-history/v4',
   run: 'repo-standards/run/v5',
-  status: 'repo-standards/status/v5',
-  inspection: 'repo-standards/inspection/v4',
+  status: 'repo-standards/status/v6',
+  inspection: 'repo-standards/inspection/v5',
   scope: 'repo-standards/scope/v1',
   workRequest: 'repo-standards/work-request/v3',
   assessment: 'repo-standards/assessment/v2',

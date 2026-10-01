@@ -9,10 +9,9 @@ import { ProductError } from './errors.js';
 import { formats } from './formats.js';
 import { hiddenIndexPaths, observeProductState, productInventory, type inspectForStart } from './inspection.js';
 import { git, hashInventory, inventoryPaths, matchesInventory, observe, plannedInventory, type Content, type HashInventory, type Observation } from './observation.js';
-import { decodeState } from './recorded-state.js';
-import { committedScopeHistory, type ScopeHistoryRun } from './scope-evidence.js';
+import { committedScopeEvidence, type ScopeRun } from './scope-evidence.js';
 import type { Scope } from './scope.js';
-import { carriedRuns, completedEvidence } from './work-evidence.js';
+import { completedEvidence } from './work-evidence.js';
 
 // Installation is the confirmed plan of an adoption run's exact content,
 // retained inputs, durable product state and runtime, planned from one
@@ -37,7 +36,7 @@ export interface Installation {
   // runtime, the system skill as whole trees.
   replaceTrees: string[];
   // The durable state of the last complete adoption, which an update keeps in
-  // place until its completion carries it into the ordered history.
+  // place until its completion replaces it.
   previousState?: Content;
 }
 
@@ -62,11 +61,13 @@ export function planInstallation(root: string, inspected: StartInspection, confi
   inputs['.repo-standards/inputs/standards.yaml'] = file(materials.manifest);
   inputs['.repo-standards/inputs/metadata.json'] = file(json(report.source));
   inputs['.repo-standards/inputs/resolved.json'] = file(json(report.resolved));
-  const previousHistory = recorded?.scopeHistory;
-  if (report.discovery || previousHistory) {
-    const current: ScopeHistoryRun = { inspection: confirmation, resolved: report.resolved,
+  // Scope evidence retains this run and its scope change against the run that
+  // confirmed the recorded scope, once any run has discovered scope.
+  const previousScope = recorded?.scopeEvidence;
+  if (report.discovery || previousScope) {
+    const current: ScopeRun = { inspection: confirmation, resolved: report.resolved,
       ...(report.discovery ? { sourceResolved: report.sourceResolved!, discovery: report.discovery } : {}) };
-    inputs['.repo-standards/inputs/scope-history.json'] = file(json(committedScopeHistory([...previousHistory ?? [], current])));
+    inputs['.repo-standards/inputs/scope-history.json'] = file(json(committedScopeEvidence(current, previousScope)));
   }
   Object.assign(files, inputs);
   files['.repo-standards/selection.yaml'] = file(stringify(report.selection));
@@ -233,22 +234,15 @@ export function exactContent(installation: Installation): Scope[string] {
   return { paths: Object.keys(installation.exactBaselines), directories: Object.keys(installation.skills) };
 }
 
-// The durable state and lock a completion writes. The previous durable state
-// an update carries is decoded here, once, as the recorded adoption reader
-// decodes committed state, and its evidence moves into the ordered history.
+// The durable state and lock a completion writes. The state holds this run's
+// evidence only; the previous durable state it replaces is not read.
 export function completionFiles(installation: Installation, run: Run, operationStart: number) {
-  const state = file(json({ ...completedEvidence(run, carriedHistory(installation)),
+  const state = file(json({ ...completedEvidence(run),
     lastComplete: { run: run.id, inspection: run.inspection, completedAt: new Date().toISOString(), head: installation.git.head },
     baselines: installation.exactBaselines, skills: installation.skills,
     checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));
   const lock = file(json({ format: formats.lock, selection: installation.report.selection, inspection: run.inspection, files: installation.durable, state: { sha256: state.sha256, executable: state.executable } }));
   return { state, lock };
-}
-
-function carriedHistory(installation: Installation) {
-  if (!installation.previousState) return [];
-  try { return carriedRuns(decodeState(installation.previousState)); }
-  catch { throw new ProductError('FINAL_INTEGRITY', 'The durable state of the last complete adoption, carried by this update, failed integrity validation.'); }
 }
 
 // Writes a completion's durable state and lock, and verifies them together
@@ -261,7 +255,7 @@ export function writeCompletion(root: string, installation: Installation, comple
 
 // Moves a candidate durable state the run's completion wrote to
 // local/incomplete-state.json, restoring the previous durable state an update
-// carries. The installation is read only when there is a candidate to move.
+// kept in place. The installation is read only when there is a candidate to move.
 export function withdrawCompletionState(root: string, runId: string, installation: () => Installation) {
   const state = safe(root, stateFile);
   if (state.type !== 'file' || JSON.parse(Buffer.from(state.content, state.encoding).toString('utf8')).lastComplete?.run !== runId) return;

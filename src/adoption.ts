@@ -196,7 +196,7 @@ async function retainedInspection(project: string, cliVersion: string, scope?: s
   const root = projectRoot(project);
   if (!existsSync(join(root, '.repo-standards/state.json'))) throw new ProductError('NO_SELECTION', 'No complete adoption is recorded. Inspect a public source with --source, --standards-version and --profile.');
   const recorded = readRecordedAdoption(root)!;
-  const { selection, scopeHistory } = recorded;
+  const { selection, scopeEvidence } = recorded;
   const inspected = await inspectForStart({ project: root, ...(scope ? { scope } : {}), source: selection.standards.repository, standardsVersion: selection.standards.version, profile: selection.profile }, cliVersion, recorded);
-  return { ...inspected, report: { ...inspected.report, retained: true, ...(scopeHistory ? { historicalScope: retainedScopeProjection(scopeHistory) } : {}) } };
+  return { ...inspected, report: { ...inspected.report, retained: true, ...(scopeEvidence ? { historicalScope: retainedScopeProjection(scopeEvidence) } : {}) } };
 }

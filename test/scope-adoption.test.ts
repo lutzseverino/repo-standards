@@ -164,9 +164,9 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     writeFileSync(join(f.remote.support.root, 'responses.json'), '{}');
     const retained = f.run(['inspect', '--project', checkout, '--json']);
     assert.equal(retained.result.status, 0, retained.result.stdout);
-    assert.equal(retained.report.format, 'repo-standards/inspection/v4');
+    assert.equal(retained.report.format, 'repo-standards/inspection/v5');
     assert.equal(retained.report.retained, true);
-    assert.equal(retained.report.historicalScope.format, 'repo-standards/scope-history/v3');
+    assert.equal(retained.report.historicalScope.format, 'repo-standards/scope-history/v4');
     assert.equal(retained.report.historicalScope.evidence, 'historical');
     assert.equal(retained.report.historicalScope.inspection, inspected.identity);
     assert.deepEqual(retained.report.historicalScope.resolved, inspected.resolved);
@@ -178,7 +178,7 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     // confirmed targets and the boundaries naming them added.
     const history = committedScopeHistory(checkout);
     assertCompactScopeEvidence(history);
-    const stored = history.runs[0]!.discovery!;
+    const stored = history.discovery!;
     assert.deepEqual(Object.keys(stored.named!.targets!).sort(), [...targets].sort());
     assert.deepEqual(stored.named!.boundaries!['docs/projects'], { type: 'missing' });
     assert.equal(Object.hasOwn(stored.observation!.boundaries!, 'docs/projects'), false);

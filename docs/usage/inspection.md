@@ -119,7 +119,7 @@ the tag-cache location must resolve outside the project, including via symlinks.
 
 ## Report and inspection identity
 
-Every report has the single format `repo-standards/inspection/v4`. A profile
+Every report has the single format `repo-standards/inspection/v5`. A profile
 with discovery declarations adds the `discovery` and `sourceResolved` fields
 described [below](#discover-contextual-file-scope):
 
@@ -309,7 +309,7 @@ record the same way.
 
 A selected repository declaration with `discovery` uses two read-only inspections.
 The first invocation uses the same source, version, profile and project flags
-shown above. Its `repo-standards/inspection/v4` report adds discovery instructions,
+shown above. Its `repo-standards/inspection/v5` report adds discovery instructions,
 eligible evidence, a request identity, and `DISCOVERY_REQUIRED` in `start.blockers`.
 The report still includes exact changes, contextual guidance, and all operations.
 Unresolved declarations remain in `sourceResolved`; they do not manufacture
@@ -452,27 +452,27 @@ request and final inspection identities, so retained historical proposals cannot
 authorize the new run.
 
 After ordinary discovery completion, retained `inspect --json` remains
-`repo-standards/inspection/v4` and exposes `historicalScope` as
-`repo-standards/scope-history/v3`: the
-accepted inspection identity, source-resolved declarations, materialized concrete
-selection, and discovery proposal, rationale, guidance, references, and observation
-identities. Ordered `runs` retain each later complete lifecycle point, including
-a no-discovery state after all discovery declarations are retired, rather than
-erasing or misidentifying the immediately prior authorization context. Its
-`evidence: historical` describes prior authorization, even in a
-fresh checkout without the source. The ordinary report's current discovery
-request is separate and confers no authority or claim of current coverage.
+`repo-standards/inspection/v5` and exposes `historicalScope` as
+`repo-standards/scope-history/v4`: the last complete run's accepted inspection
+identity, materialized concrete selection, and, when that run discovered scope,
+its source-resolved declarations and discovery proposal, rationale, guidance,
+references, and observation identities, with `scopeChanges`, the paths that run
+added and removed against the run before it. After all discovery declarations
+are retired, it holds the no-discovery run and the removals that retirement
+made. Its `evidence: historical` describes prior authorization, even in a fresh
+checkout without the source. The ordinary report's current discovery request is
+separate and confers no authority or claim of current coverage.
 
-The committed file stores each discovery run once: the project observation
-without the evidence array it implies, and the named observation as the delta of
-the confirmed targets and any boundary entry naming them adds. Both are rebuilt
-on read with the product's existing derivation, and the newest run is projected
-at the top level. Scope-history v3 is the only format written and read.
+The committed file holds that one run only; earlier runs stay in Git history. It
+stores the project observation without the evidence array it implies, and the
+named observation as the delta of the confirmed targets and any boundary entry
+naming them adds. Both are rebuilt on read with the product's existing
+derivation. Scope-history v4 is the only format written and read.
 
 Retained inspection reads the committed durable state, which is
-`repo-standards/state/v5`, the only state format, with its
+`repo-standards/state/v6`, the only state format, with the last complete run's
 [work evidence](script-protocol.md#observed-adoption-scope) as
-identities and deltas; `status` echoes it as `repo-standards/status/v5`.
+identities and deltas; `status` echoes it as `repo-standards/status/v6`.
 Inspection rejects a committed state, retained scope history, or run record in
 a retired format with `RETIRED_FORMAT` before reading anything else; nothing is
 converted. [Adopt fresh](adoption.md#adopt-fresh-from-a-retired-format) to

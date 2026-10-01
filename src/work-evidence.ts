@@ -11,11 +11,11 @@ import { changedBoundaries, observeWork, observedChanges, permits, type WorkObse
 // and continues intervals, records the gaps between them, checks their
 // violations, and answers what the agent changed. It owns the recorded interval
 // shape, which the run record and committed state share, and that slice of
-// durable state: what a completion commits, how its single format is validated
-// on read, and how a prior complete run is carried forward. An interval keeps
-// observation identities and the delta between them, never observation maps,
-// so neither record grows with the project, adoption pull requests remain
-// reviewable, and later runs add only their own evidence. Full observations
+// durable state: what a completion commits and how its single format is
+// validated on read. Committed state holds the current run only; earlier runs
+// stay in Git history. An interval keeps observation identities and the delta
+// between them, never observation maps, so neither record grows with the
+// project and adoption pull requests remain reviewable. Full observations
 // are held in memory while a command observes; the journal keeps only the one
 // its last interval ends at, through an observation store, for the next
 // command to compare.
@@ -48,21 +48,11 @@ export interface RecordedInterval {
   interrupted?: boolean;
 }
 
-export interface CommittedRun {
-  lastComplete: { run: string; inspection: string; completedAt: string; head: string };
-  observations: RecordedInterval[];
-  operations: unknown[];
-  retryHistory: unknown[];
-  checks: unknown[];
-  assessments: unknown[];
-}
-
 export interface ExecutionEvidence {
   format: typeof formats.state;
   observations: RecordedInterval[];
   operations: unknown[];
   retryHistory: unknown[];
-  history: CommittedRun[];
 }
 
 // Changed paths name project files, but also the external ignore inputs and
@@ -294,24 +284,13 @@ export class WorkEvidenceJournal {
   }
 }
 
-// A completion moves the previous complete run's evidence into the ordered
-// history, in the committed key order, so a carried entry and a newly promoted
-// one are written the same way and later completions leave the earlier entries
-// byte-identical. The previous state is already in the single committed format,
-// so its evidence is carried without conversion.
-export function carriedRuns(previous: ExecutionEvidence & Pick<CommittedRun, 'lastComplete' | 'checks' | 'assessments'>): CommittedRun[] {
-  const { history, lastComplete, observations, operations, retryHistory, checks, assessments } = structuredClone(previous);
-  return [...history, { lastComplete, observations, operations, retryHistory, checks, assessments }];
-}
-
-// The execution-evidence slice a completion writes. The run already records
-// its intervals in the committed shape, so they are carried without
-// transformation. Last-complete, installed baselines, skills, checks and
-// assessments stay with their own owners.
-export function completedEvidence(run: { observations: RecordedInterval[]; operations: unknown[]; retryHistory?: unknown[] }, history: CommittedRun[]): ExecutionEvidence {
+// The execution-evidence slice a completion writes: this run's evidence only.
+// The run already records its intervals in the committed shape, so they are
+// carried without transformation. Last-complete, installed baselines, skills,
+// checks and assessments stay with their own owners.
+export function completedEvidence(run: { observations: RecordedInterval[]; operations: unknown[]; retryHistory?: unknown[] }): ExecutionEvidence {
   return {
     format: formats.state,
-    history,
     observations: structuredClone(run.observations),
     operations: structuredClone(run.operations), retryHistory: structuredClone(run.retryHistory ?? []),
   };
@@ -319,7 +298,7 @@ export function completedEvidence(run: { observations: RecordedInterval[]; opera
 
 // Status echoes the committed slice.
 export function committedEvidenceReport(state: ExecutionEvidence) {
-  return { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory, history: state.history };
+  return { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory };
 }
 
 // The recorded guarantee: no interval carries an observation map, and every
@@ -334,17 +313,11 @@ export function compactIntervals(observations: unknown[]) {
   });
 }
 
-// The execution-evidence slice is read in its single committed format only.
+// The execution-evidence slice is read in its single committed format only,
+// and holds the current run alone: a carried earlier run fails validation.
 export function validExecutionEvidence(value: ExecutionEvidence) {
   const state = value as unknown as Record<string, unknown>;
-  return state.format === formats.state
+  return state.format === formats.state && !Object.hasOwn(state, 'history')
     && Array.isArray(state.observations) && Array.isArray(state.operations) && Array.isArray(state.retryHistory)
-    && compactIntervals(state.observations)
-    && Array.isArray(state.history) && state.history.every(value => {
-      const run = value as Record<string, unknown> | null;
-      return !!run && !!run.lastComplete
-        && Array.isArray(run.observations) && Array.isArray(run.operations) && Array.isArray(run.retryHistory)
-        && Array.isArray(run.checks) && Array.isArray(run.assessments)
-        && compactIntervals(run.observations);
-    });
+    && compactIntervals(state.observations);
 }

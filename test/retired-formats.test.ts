@@ -61,12 +61,12 @@ test('a retired state, scope evidence, or run record format is rejected with the
   const root = f.project.root;
   const state = committedState(root);
   const history = committedScopeHistory(root);
-  assert.equal(state.format, 'repo-standards/state/v5');
-  assert.equal(history.format, 'repo-standards/scope-history/v3');
-  assert.equal(f.run(['status', '--json']).report.format, 'repo-standards/status/v5');
+  assert.equal(state.format, 'repo-standards/state/v6');
+  assert.equal(history.format, 'repo-standards/scope-history/v4');
+  assert.equal(f.run(['status', '--json']).report.format, 'repo-standards/status/v6');
   const retainedInspection = f.run(['inspect', '--json']).report;
-  assert.equal(retainedInspection.format, 'repo-standards/inspection/v4');
-  assert.equal(retainedInspection.historicalScope.format, 'repo-standards/scope-history/v3');
+  assert.equal(retainedInspection.format, 'repo-standards/inspection/v5');
+  assert.equal(retainedInspection.historicalScope.format, 'repo-standards/scope-history/v4');
 
   const runRecord = join(root, git(root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
   const committed = ['.repo-standards/state.json', '.repo-standards/lock.json', '.repo-standards/inputs/scope-history.json']
@@ -76,9 +76,9 @@ test('a retired state, scope evidence, or run record format is rejected with the
     rmSync(runRecord, { force: true });
   };
   const retired = [
-    ...['v1', 'v2', 'v3', 'v4'].map(version => ({ format: `repo-standards/state/${version}`, current: 'repo-standards/state/v5',
+    ...['v1', 'v2', 'v3', 'v4', 'v5'].map(version => ({ format: `repo-standards/state/${version}`, current: 'repo-standards/state/v6',
       plant: (format: string) => rewriteCommittedState(root, { ...state, format }) })),
-    ...['v1', 'v2'].map(version => ({ format: `repo-standards/scope-history/${version}`, current: 'repo-standards/scope-history/v3',
+    ...['v1', 'v2', 'v3'].map(version => ({ format: `repo-standards/scope-history/${version}`, current: 'repo-standards/scope-history/v4',
       plant: (format: string) => rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { ...history, format }) })),
     ...['v1', 'v2', 'v3', 'v4'].map(version => ({ format: `repo-standards/run/${version}`, current: 'repo-standards/run/v5',
       plant: (format: string) => writeFileSync(runRecord, JSON.stringify({ format, id: 'c0ffee00-0000-4000-8000-000000000000',
@@ -99,7 +99,7 @@ test('a retired state, scope evidence, or run record format is rejected with the
     }
     restore();
   }
-  assert.equal(f.run(['status', '--json']).report.format, 'repo-standards/status/v5');
+  assert.equal(f.run(['status', '--json']).report.format, 'repo-standards/status/v6');
 
   // An archived report of an abandoned run is a run record too.
   const reports = join(runRecord, '../repo-standards-reports');
@@ -124,8 +124,19 @@ test('the single committed formats are validated on read', async t => {
   rewriteCommittedState(root, { ...state, observations: state.observations!.map(interval => ({ ...interval, before: { files: {} } })) });
   assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
   assert.equal(f.run(['status', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
-  // Retained scope evidence stores each run once, never spread over the file.
-  rewriteCommittedState(root, state);
-  rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { ...history, ...history.runs[0] });
+  // Committed evidence holds the current run only; a carried earlier run is
+  // never read.
+  rewriteCommittedState(root, { ...state, history: [] });
   assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
+  assert.equal(f.run(['status', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
+  rewriteCommittedState(root, state);
+  const { format, evidence, scopeChanges, ...run } = history;
+  rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { ...history, runs: [run] });
+  assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
+  assert.equal(f.run(['status', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
+  // Retained scope evidence records its scope change against the previous run.
+  rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { format, evidence, ...run });
+  assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
+  rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', history);
+  assert.equal(f.run(['status', '--json']).result.status, 0);
 });
