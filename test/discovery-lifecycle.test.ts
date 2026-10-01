@@ -173,7 +173,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(JSON.stringify(checkoutState).includes(secondState.lastComplete.run), false);
 });
 
-test('repeated updates retain only the current run at a constant size and status reports its scope change', async t => {
+test('repeated updates retain only the current run without growing, and status reports its scope change', async t => {
   const f = await fixture(t);
   mkdirSync(join(f.project.root, 'apps/new'), { recursive: true });
   writeFileSync(join(f.project.root, 'apps/new/README.md'), '# New project\n');

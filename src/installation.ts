@@ -64,8 +64,8 @@ export function planInstallation(root: string, inspected: StartInspection, confi
   // Scope evidence retains this run and its scope change against the run that
   // confirmed the recorded scope, once any run has discovered scope. The change
   // is derived here from the same confirmed selection and recorded adoption the
-  // inspection compared, because an inspection reports one only once a proposal
-  // completes it and never for an initial adoption.
+  // inspection compared, because an inspection reports none for an initial
+  // adoption, where every discovered path is an addition.
   const previousScope = recorded?.scopeEvidence;
   if (report.discovery || previousScope) {
     const current: ScopeRun = { inspection: confirmation, resolved: report.resolved,
