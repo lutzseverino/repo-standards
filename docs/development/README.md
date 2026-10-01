@@ -22,9 +22,9 @@ rejecting any runtime cycle of static imports among the source modules
 (type-only imports are exempt), building, packing, and installing the npm
 package into temporary directories, then testing the installed public CLI
 against temporary Git repositories.
-This CI validation is the required check, and passing it replaces a local
-full-suite run, so open the PR once focused checks pass. Run additional local
-tests to diagnose failures when needed.
+Both validation jobs are the required checks for merging, and passing them
+replaces a local full-suite run, so open the PR once focused checks pass. Run
+additional local tests to diagnose failures when needed.
 
 ## Documents
 
