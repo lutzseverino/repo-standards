@@ -392,9 +392,10 @@ supporting evidence for each contextual declaration through
 The CLI binds the accepted assessment to the active run, its resolved selection,
 and the project snapshot at submission, and derives each declaration's changed
 paths from the run's observed agent changes and allowed targets. An observed
-change outside the allowed targets makes adoption incomplete. Snapshots include tracked and non-ignored untracked project
-content, excluding generated product state. A subsequent content change before
-completion requires reassessment and checks again.
+change outside the allowed targets makes adoption incomplete. Snapshots include
+tracked and non-ignored untracked project content, excluding generated product
+state. A subsequent content change before completion requires reassessment and
+checks again.
 
 Final verification compares installed exact files, complete skill inventories,
 retained inputs, and product state against their expected values. Later phases
@@ -552,8 +553,8 @@ The product is complete only when all of these pass:
 6. Support a second independently authored source with materially different
    guidance and scripts through the same interfaces.
 7. Collect script and agent evidence separately. Detect blocked assessments,
-   malformed results, omitted changed paths, out-of-scope work, mutating
-   checks, stale evidence, and final exact-content corruption.
+   malformed results, out-of-scope work, mutating checks, stale evidence, and
+   final exact-content corruption.
 8. Complete adoption with uncommitted changes and unchanged HEAD, then restore
    its pinned runtime in a fresh checkout and inspect its retained standards
    after the standards source becomes unavailable.

@@ -63,7 +63,7 @@ export function validateAssessment(root: string, run: { workRequest?: WorkReques
   }
   return { format, ...(request.scope ? { scope: { inspection: request.scope.inspection, afterFixes: request.scope.afterFixes } } : {}),
     run: request.run, selection: request.selection, snapshot: request.snapshot,
-    // A changed path is attributed to every declaration whose allowed targets permit it.
+    // Targets of one profile never overlap, so each changed path has one declaration.
     declarations: request.declarations.map(({ id, allowedTargets }) => {
       const { status, explanation, evidence, scopeValidity } = judgments.get(id)!;
       return { id, status, explanation, changedPaths: changed.filter(path => permits(allowedTargets, path)), evidence, ...(scopeValidity ? { scopeValidity } : {}) };

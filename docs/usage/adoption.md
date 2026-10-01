@@ -229,7 +229,10 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Work request and assessment | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
 
 Earlier formats are retired: they are not read, converted, or compacted. A
-project that carries one [adopts fresh](#adopt-fresh-from-a-retired-format).
+project whose committed or recorded files carry one
+[adopts fresh](#adopt-fresh-from-a-retired-format). An agent's assessment
+submission is never committed: one in an earlier format is rejected with
+`ASSESSMENT_FORMAT`, and the agent writes it again in the current format.
 
 Discovery-backed updates, including an unchanged selection, use fresh
 proposals and record their scope change against the prior run. Retry repeats

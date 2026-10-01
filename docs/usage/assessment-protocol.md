@@ -85,8 +85,9 @@ judgment, not independently verified proof.
 The CLI derives each declaration's changed paths from the run's work evidence:
 every path added, modified, deleted, or changed in executable state by agent
 work since fixes finished, including every changed file within a directory
-tree, attributed to each declaration whose allowed targets permit it. Changes
-made by installation and fixes are not attributed. An observed change outside
+tree, attributed to the declaration whose allowed targets permit it; targets of
+one profile never overlap. Changes made by installation and fixes are not
+attributed. An observed change outside
 every declaration's allowed targets, or an unsafe target, blocks completion.
 
 ## Freshness, checks, and durable evidence
@@ -95,9 +96,11 @@ The CLI binds an accepted assessment to the active run: its run, selection,
 and current work-request snapshot. A submission when no adoption run is active
 is rejected with `NO_ACTIVE_RUN`. Refresh the request after your last edit; a
 project that changed since the current work request is rejected with
-`STALE_ASSESSMENT`. Refresh after further edits, reassess all contextual
-declarations, and submit renewed evidence. Blocked assessments remain in the incomplete run
-report separately from script results and prevent checks from starting.
+`STALE_ASSESSMENT`. The submission carries no identity of its own, so the CLI
+cannot tell whether it was written for the current request: after further
+edits or a retry, refresh, reassess all contextual declarations, and submit
+renewed evidence. Blocked assessments remain in the incomplete run report
+separately from script results and prevent checks from starting.
 
 A satisfied assessment advances to checks in declaration and list order, then
 final integrity verification and durable completion. All checks execute again
@@ -116,8 +119,9 @@ removed on completion; it is never an adoption output to commit.
 Successful completion leaves changes uncommitted. `status --json` reports
 historical `checks` and separate `assessments` containing the bound run,
 selection, and snapshot, and each declaration's submitted judgment with its
-derived `changedPaths`. Exit status is 0 only for
-complete adoption, 1 for expected handoff or rejection, and 2 for usage errors.
+derived `changedPaths`. That accepted record keeps the submission's format
+name; only the CLI writes its bound fields. Exit status is 0 only for complete
+adoption, 1 for expected handoff or rejection, and 2 for usage errors.
 
 This resume interface handles contextual work, stale final assessment, and
 renewed assessment after ordinary `CHECKS_FAILED` results. A timeout, signal,
@@ -127,21 +131,23 @@ or post-check integrity failure is preserved and rejected with
 assessment authorizes repeating these operations. Use explicit `resume --retry`
 to recover interrupted work and repeat fixes, or `abandon` to preserve its work
 and report; see [Recovery commands](adoption.md#recover-or-abandon-an-interrupted-run).
-Retry requires new assessment even when project bytes are unchanged, and retains
+Retry discards the accepted assessment and requires a new submission against
+the retried request even when project bytes are unchanged, and retains
 separate intervals as described below. Updates use this same assessment interface. The [real-agent acceptance journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) evaluates contextual
 usefulness separately; scripted agents exercise this deterministic protocol.
 
 ## Observation and replay
 
-For explicit-target adoption, the work request and accepted assessment carry
-no `scope` field, and the assessment no `scopeValidity` reviews. The snapshot identity binds the observed
-project content, named files and ancestors, effective observation settings and
-consulted ignore inputs. Named files remain observable when ignore
-rules change. Explicit directory targets keep their complete tree behavior;
-unlisted ignored siblings outside those trees remain outside the observation
-promise. Creating, removing, or changing the mode of an explicit directory
-target is itself an observed change: the CLI attributes the directory path
-alongside the files changed within it. Incomplete observation blocks progression.
+For explicit-target adoption, the work request and accepted assessment carry no
+`scope` field, and the assessment no `scopeValidity` reviews. The snapshot
+identity binds the observed project content, named files and ancestors,
+effective observation settings and consulted ignore inputs. Named files remain
+observable when ignore rules change. Explicit directory targets keep their
+complete tree behavior; unlisted ignored siblings outside those trees remain
+outside the observation promise. Creating, removing, or changing the mode of an
+explicit directory target is itself an observed change: the CLI attributes the
+directory path alongside the files changed within it. Incomplete observation
+blocks progression.
 
 The derived `changedPaths` is the union of **observed agent changes across all
 agent intervals in this run**, under each owning declaration. It excludes work

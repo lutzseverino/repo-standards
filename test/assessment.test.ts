@@ -167,7 +167,7 @@ test('an assessment submitted for no active run is rejected with the next step',
   assert.deepEqual(report.errors, [{ code: 'NO_ACTIVE_RUN', message: 'No incomplete adoption is available to resume; resume and assessments apply only to an active run. Read status, and inspect and start an adoption if one is needed.' }]);
 });
 
-test('unreported out-of-scope tracked and untracked changes block completion while ignored content is excluded', async t => {
+test('observed out-of-scope tracked and untracked changes block completion while ignored content is excluded', async t => {
   for (const path of ['CONTRIBUTING.md', 'unrelated.txt', 'src-other.txt']) await t.test(path, async st => {
     const f = await fixture(st);
     contextualWork(f.project.root);
