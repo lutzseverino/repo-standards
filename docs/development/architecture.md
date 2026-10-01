@@ -51,7 +51,7 @@ are product-owned system skill names reserved within the standards format.
 | Execution | Confirmed adoption progress advances through exact installation, literal process execution, checks, and final integrity. Final integrity is the run-time check of the run's planned installation, distinct from the recorded adoption reader's check of the committed baseline a run starts from. |
 | Work evidence | The work-evidence journal owns an adoption run's observation intervals: it opens one for a phase and scope after recording any unattributed gap as an agent interval, closes intervals with their violation checks, continues after an interruption by recording and saving without checking, so each caller requires authorization where it holds, and answers what the agent changed. It keeps the one observation its last interval ends at behind an observation store seam: a file store beside the run journal for runs, an in-memory store for abandonment. Intervals and operation outcomes produce the run's execution evidence as identities and deltas, in one shape shared by the run record, the local run report, and committed durable state, which holds the current run only. |
 | Scope evidence | A confirmed run and the recorded adoption it updates produce the retained scope evidence: the current run, with its project observation kept without derived evidence and its named observation as a delta, and its scope change against the previous run. The projected historical scope is rebuilt on read. |
-| Available updates | A selection and the newest published stable CLI and standards versions produce per-pin availability, cached in the ignored product cache. It never blocks and writes nothing else. |
+| Available updates | A selection and the newest published stable CLI and standards versions produce per-pin availability, cached in the ignored product cache. It never blocks and writes nothing else; it fails only under a CLI other than the selection's CLI pin, before any lookup. |
 | Summary renderer | An inspection report or a status record produces one deterministic Markdown document. It describes and never prescribes. |
 | Adoption orchestration | The system skill reads available updates, presents inspection and its summary, obtains confirmation, performs requested contextual work, and submits evidence through the CLI. |
 
@@ -255,9 +255,17 @@ action.
 GitHub releases lookup, comparing the newest stable versions with each pin and
 ignoring prereleases and non-SemVer tags. It sends a GitHub token from the
 environment when one is present, caches each answer for 24 hours under
-`.repo-standards/cache/`, and always exits 0: network failure, exhausted quota,
-or a missing selection report `unknown` with a reason for each affected pin.
-`status` stays offline. `outdated`, the update class, and both summaries
+`.repo-standards/cache/`, and exits 0 whenever it reports: network failure,
+exhausted quota, or a missing selection report `unknown` with a reason for each
+affected pin. `status` stays offline.
+
+`status` and `outdated` require the recorded CLI pin, as `resume` and `abandon`
+do: the active run's selection when a run is active, otherwise the recorded
+selection. Under another CLI version they fail with `CLI_PIN_MISMATCH`, naming
+the pinned version and the command that reinstalls the project runtime;
+`outdated` fails before any lookup. Without a recorded pin they report under
+any CLI. Only `inspect` and `start` treat a different exact CLI as a candidate
+CLI pin change. `outdated`, the update class, and both summaries
 describe; what to do with an available or classified update belongs to
 standards content, and the product prescribes no workflow.
 

@@ -71,6 +71,12 @@ export function write(root: string, path: string, value: Content, installationId
   } finally { rmSync(temporary, { force: true }); }
 }
 
+// Commands that read or continue a recorded adoption run only under the CLI
+// its selection pins; a candidate CLI is a pin change only for inspect and start.
+export function requirePinnedCli(pinned: string, running: string) {
+  if (pinned !== running) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${pinned}, not ${running}. Reinstall the project runtime with npm ci --ignore-scripts --prefix .repo-standards/runtime and run .repo-standards/runtime/node_modules/.bin/repo-standards, or run an exact CLI ${pinned} installed elsewhere.`);
+}
+
 export function projectRoot(project: string) {
   const result = git(resolve(project), ['rev-parse', '--show-toplevel']);
   if (result.status !== 0) throw new ProductError('GIT_REQUIRED', 'Use a Git working tree.');

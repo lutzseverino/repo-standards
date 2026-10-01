@@ -20,6 +20,26 @@ an update; what to do with one belongs to the adopted standards' own guidance.
 Apply an update through inspection and confirmation as described in
 [Confirmed adoption](adoption.md).
 
+## Pinned CLI
+
+Run `outdated` with the CLI the selection pins. When the selection records a CLI
+pin and the running CLI is another version, `outdated` makes no lookup, writes
+no cache, and exits 1 with `CLI_PIN_MISMATCH`. The message names the pinned
+version and the command that reinstalls the project runtime from its committed
+manifests:
+
+```sh
+npm ci --ignore-scripts --prefix .repo-standards/runtime
+```
+
+A stale project runtime therefore never reports availability. With `--json`
+the failure is `valid: false` with the diagnostic in `errors`; without it the
+diagnostic goes to stderr. Without a readable selection no pin is recorded, so
+every CLI reports both pins `unknown` as described under
+[Degraded results](#degraded-results). To change the CLI pin, inspect with the
+candidate exact CLI instead; see
+[Update the selection](adoption.md#update-the-selection).
+
 ## Lookups
 
 Each invocation makes at most one npm registry request and one GitHub request,
@@ -60,8 +80,9 @@ which also names the `package`, and `standards`, which also names the source
 ## Degraded results
 
 `outdated` never blocks and exits 0 whether or not each pin could be answered;
-only invalid usage exits 2. A pin that cannot be answered reports
-`update: unknown` with a reason, and the other pin is still answered:
+only a [CLI other than the pin](#pinned-cli) exits 1, and invalid usage exits 2.
+A pin that cannot be answered reports `update: unknown` with a reason, and the
+other pin is still answered:
 
 | Code | Pins | Cause |
 | --- | --- | --- |
