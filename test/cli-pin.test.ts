@@ -141,7 +141,9 @@ test('a CLI pin change interrupted before its runtime is installed sends the for
   // manifest beside the former lock cannot be reinstalled either.
   const manifest = join(f.project.root, '.repo-standards/runtime/package.json');
   writeFileSync(manifest, JSON.stringify({ ...runtime, dependencies: { '@lutzseverino/repo-standards': candidateVersion } }));
-  const partial = JSON.parse(f.pinned(['status', '--json']).stdout).errors[0];
+  const rejectedPartial = f.pinned(['status', '--json']);
+  assert.equal(rejectedPartial.status, 1, rejectedPartial.stdout + rejectedPartial.stderr);
+  const partial = JSON.parse(rejectedPartial.stdout).errors[0];
   assert.equal(partial.code, 'CLI_PIN_MISMATCH');
   assert.ok(partial.message.includes('installed outside the project'), partial.message);
   assert.ok(!partial.message.includes(reinstall), partial.message);
