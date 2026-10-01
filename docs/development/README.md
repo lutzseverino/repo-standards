@@ -22,8 +22,9 @@ rejecting any runtime cycle of static imports among the source modules
 (type-only imports are exempt), building, packing, and installing the npm
 package into temporary directories, then testing the installed public CLI
 against temporary Git repositories.
-Passing full CI replaces a local full-suite run, so open the PR once focused
-checks pass. Run additional local tests to diagnose failures when needed.
+This CI validation is the required check, and passing it replaces a local
+full-suite run, so open the PR once focused checks pass. Run additional local
+tests to diagnose failures when needed.
 
 ## Documents
 
