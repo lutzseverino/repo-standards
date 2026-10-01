@@ -541,14 +541,7 @@ Release 2.0.0 is accepted through the fresh adoption of this repository with the
 published 2.0.0 CLI against the current Repo Canon release, recorded as
 identities and the CLI's summary.
 
-## Implementation plan constraints
-
-The specification will map every acceptance criterion to implementation tickets
-with explicit blockers. Each ticket delivers a bounded, observable behavior
-through the public interface and includes its validation. Early slices can
-implement a narrower working journey; the product is not complete until the
-entire acceptance list passes. Discovery, architecture investigation, and
-prototype tickets are excluded.
+## Implementation choices
 
 Internal library choices, function names, file organization, and serialization
 helpers can be implementation decisions within these contracts. Public format
