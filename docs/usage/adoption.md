@@ -202,7 +202,7 @@ discovered paths changed, the paths added and removed against the previous
 run's confirmed scope; it is computed when the run is planned and stored with
 it. Work intervals and final scope-validity assessments are committed in
 `repo-standards/state/v6`, which holds the current run's evidence only. Neither
-file carries an earlier run, so both stay the same size from run to run; Git
+file carries an earlier run, so neither grows with the number of runs; Git
 history keeps the evidence of earlier runs.
 
 Committed intervals are

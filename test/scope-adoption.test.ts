@@ -8,7 +8,7 @@ import { installCli, sha256, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
-import { assertCompactRunRecord, assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeHistory, committedState, localRunReport } from './committed-evidence.ts';
+import { assertCompactRunRecord, assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeEvidence, committedState, localRunReport } from './committed-evidence.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -176,9 +176,9 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     assert.equal(retained.report.start.eligible, false);
     // The committed run keeps its named observation as the delta of the
     // confirmed targets and the boundaries naming them added.
-    const history = committedScopeHistory(checkout);
-    assertCompactScopeEvidence(history);
-    const stored = history.discovery!;
+    const scope = committedScopeEvidence(checkout);
+    assertCompactScopeEvidence(scope);
+    const stored = scope.discovery!;
     assert.deepEqual(Object.keys(stored.named!.targets!).sort(), [...targets].sort());
     assert.deepEqual(stored.named!.boundaries!['docs/projects'], { type: 'missing' });
     assert.equal(Object.hasOwn(stored.observation!.boundaries!, 'docs/projects'), false);

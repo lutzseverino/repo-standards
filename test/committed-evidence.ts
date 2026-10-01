@@ -76,7 +76,7 @@ interface CommittedScopeRun {
     observation?: { boundaries?: Record<string, unknown> } };
 }
 
-export function committedScopeHistory(root: string) {
+export function committedScopeEvidence(root: string) {
   return JSON.parse(readFileSync(join(root, '.repo-standards/inputs/scope-history.json'), 'utf8')) as CommittedScopeRun & {
     format: string; evidence: string; scopeChanges: { id: string; additions: string[]; removals: string[] }[] };
 }
@@ -85,7 +85,7 @@ export function committedScopeHistory(root: string) {
 // scope change against the previous run, and nothing else; its discovery
 // carries neither the evidence arrays nor the full named observation its stored
 // observation already implies.
-export function assertCompactScopeEvidence(scope: ReturnType<typeof committedScopeHistory>) {
+export function assertCompactScopeEvidence(scope: ReturnType<typeof committedScopeEvidence>) {
   assert.equal(scope.format, 'repo-standards/scope-history/v4');
   assert.deepEqual(Object.keys(scope).filter(key => !['format', 'evidence', 'inspection', 'resolved', 'sourceResolved', 'discovery', 'scopeChanges'].includes(key)), [],
     'scope evidence must hold only the current run and its scope change');

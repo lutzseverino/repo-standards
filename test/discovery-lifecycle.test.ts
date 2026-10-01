@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { inc } from 'semver';
 import { stringify } from 'yaml';
 import { installCli, sourceFixture } from './installed-cli.ts';
-import { assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeHistory, committedState, growCommittedState } from './committed-evidence.ts';
+import { assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeEvidence, committedState, growCommittedState } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 
@@ -129,7 +129,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(retainedInspection.format, 'repo-standards/inspection/v5');
   const retained = retainedInspection.historicalScope;
   assert.equal(retained.format, 'repo-standards/scope-history/v4');
-  assertCompactScopeEvidence(committedScopeHistory(f.project.root));
+  assertCompactScopeEvidence(committedScopeEvidence(f.project.root));
   // Retained scope evidence holds the current run and its change against the previous one.
   assert.equal(retained.inspection, inspected.identity);
   assert.equal(Object.hasOwn(retained, 'runs'), false);
@@ -199,7 +199,7 @@ test('repeated updates retain only the current run at a constant size and status
     const state = committedState(f.project.root);
     assertCompactWorkEvidence(state);
     assert.equal(state.lastComplete.run, current.run);
-    const scope = committedScopeHistory(f.project.root);
+    const scope = committedScopeEvidence(f.project.root);
     assertCompactScopeEvidence(scope);
     assert.equal(scope.inspection, current.inspection);
     assert.deepEqual(scope.scopeChanges, [{ id: 'docs', additions: [included], removals: [excluded] }]);
@@ -234,7 +234,7 @@ test('a discovery completion stores its run once with the named observation as a
 
   // The completion stores the run once, as the observation without its derived
   // evidence and the named observation as its delta.
-  const committed = committedScopeHistory(f.project.root);
+  const committed = committedScopeEvidence(f.project.root);
   assertCompactScopeEvidence(committed);
   assert.equal(committed.inspection, firstInspection.identity);
   assert.deepEqual(committed.scopeChanges, [{ id: 'docs', additions: ['apps/old/README.md'], removals: [] }]);
@@ -301,6 +301,12 @@ test('compatible standards updates preserve discovery evidence through discovery
   assert.equal(noDiscoveryScope.inspection, retirement.identity);
   assert.equal(noDiscoveryScope.discovery, undefined);
   assert.deepEqual(noDiscoveryScope.scopeChanges, retirement.scopeChanges);
+  // A later run without discovery changes no scope against the retired one.
+  const reapplied = f.run(['inspect', '--json']).report;
+  assert.equal(f.run(['start', '--confirm', reapplied.identity, '--json']).result.status, 0);
+  commit(f.project.root);
+  assert.deepEqual(f.run(['status', '--json']).report.scopeChanges, []);
+  assert.equal(f.run(['inspect', '--json']).report.historicalScope.inspection, reapplied.identity);
 
   f.remote.addVersion('v1.3.0', source);
   const reintroducedArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.3.0' : argument);

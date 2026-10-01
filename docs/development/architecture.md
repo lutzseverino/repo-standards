@@ -476,8 +476,8 @@ The scope change is computed when the run is planned, from the confirmed
 inspection and the recorded adoption it updates, and is stored with the run.
 `status` reports the stored change; retained inspection exposes the file as
 `historicalScope`, rebuilding derived evidence. State that carries an earlier
-run, or scope evidence with any other field, fails state integrity; nothing
-reads an earlier run from committed evidence.
+run's `history`, or scope evidence with any other field, fails state integrity;
+nothing reads an earlier run from committed evidence.
 
 ## Updates, interruption, and retirement
 

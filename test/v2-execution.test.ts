@@ -497,4 +497,6 @@ ${result}`);
   assert.equal(status.format, 'repo-standards/status/v6');
   assert.deepEqual(status.observations, intervals);
   assert.equal(Object.hasOwn(status, 'history'), false);
+  // A project that never discovered scope retains no scope evidence to report.
+  assert.equal(Object.hasOwn(status, 'scopeChanges'), false);
 });

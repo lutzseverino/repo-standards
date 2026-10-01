@@ -17,8 +17,8 @@ current run's work evidence. Retained scope evidence keeps the current run's
 discovery in full and its scope change against the previous run, computed when
 the run is planned from the confirmed inspection and the recorded adoption it
 updates. `status` reports that stored change instead of comparing two stored
-runs, and nothing reads an earlier run from committed evidence. Repeated
-updates keep committed state and scope evidence at a constant size.
+runs, and nothing reads an earlier run from committed evidence. Committed state
+and scope evidence no longer grow with the number of runs.
 
 The trade-off is that a fresh checkout no longer explains an earlier run's
 authorized work or scope from the committed files alone. Git history keeps

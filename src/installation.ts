@@ -62,7 +62,10 @@ export function planInstallation(root: string, inspected: StartInspection, confi
   inputs['.repo-standards/inputs/metadata.json'] = file(json(report.source));
   inputs['.repo-standards/inputs/resolved.json'] = file(json(report.resolved));
   // Scope evidence retains this run and its scope change against the run that
-  // confirmed the recorded scope, once any run has discovered scope.
+  // confirmed the recorded scope, once any run has discovered scope. The change
+  // is derived here from the same confirmed selection and recorded adoption the
+  // inspection compared, because an inspection reports one only once a proposal
+  // completes it and never for an initial adoption.
   const previousScope = recorded?.scopeEvidence;
   if (report.discovery || previousScope) {
     const current: ScopeRun = { inspection: confirmation, resolved: report.resolved,

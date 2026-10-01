@@ -6,8 +6,8 @@ import { scopeEvidence, type Evidence, type FileState, type ScopeObservation } f
 // confirmed scope. This module owns the retained scope-evidence file: what a
 // run retains, how its single format is validated on read, and how it is
 // projected for a report. The file holds the current run only, with its scope
-// change against the previous run computed when the run is planned, so it stays
-// the same size from run to run and nothing reads an earlier run. The project
+// change against the previous run computed when the run is planned, so it does
+// not grow with the number of runs and nothing reads an earlier run. The project
 // observation is stored without the evidence array it implies, and the named
 // observation as its delta from that observation. Evidence arrays and the full
 // named observation are rebuilt on read with the product's existing derivation.
@@ -71,7 +71,7 @@ const strings = (value: unknown) => Array.isArray(value) && value.every(entry =>
 const committedFields = ['format', 'evidence', 'inspection', 'resolved', 'sourceResolved', 'discovery', 'scopeChanges'];
 function compactEvidence(stored: Record<string, unknown>) {
   if (Object.keys(stored).some(key => !committedFields.includes(key))) return false;
-  if (typeof stored.inspection !== 'string' || !stored.resolved || typeof stored.resolved !== 'object') return false;
+  if (stored.evidence !== 'historical' || typeof stored.inspection !== 'string' || !stored.resolved || typeof stored.resolved !== 'object') return false;
   if (!Array.isArray(stored.scopeChanges) || !stored.scopeChanges.every(value => {
     const change = value as Record<string, unknown> | null;
     return !!change && typeof change === 'object' && typeof change.id === 'string' && strings(change.additions) && strings(change.removals);
