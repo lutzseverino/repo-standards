@@ -204,16 +204,18 @@ test('missing, invalid, unresolved, stale and dirty discovery starts preserve th
   reject(f.start(inspection.identity).report, 'STALE_INSPECTION');
   f.proposal.declarations[0]!.coverage = coverage;
   assert.equal(f.inspect().report.identity, inspection.identity);
-  // A proposal confirmed against an earlier observation is stale once the
-  // project changes; start rejects it and asks for a fresh review.
   // A change that leaves the confirmed proposal unfit for the project is stale
   // too, although the same proposal fails validation at a new inspection.
   rmSync(join(f.project.root, f.member));
   const unfit = f.start(inspection.identity).report;
   reject(unfit, 'STALE_INSPECTION');
   assert.match(unfit.errors[0].message, /fresh discovery evidence/);
-  assert.equal(f.inspect().report.errors[0].code, 'INVALID_SCOPE');
+  const unfitAtInspection = f.inspect().report.errors[0];
+  assert.equal(unfitAtInspection.code, 'INVALID_SCOPE');
+  assert.match(unfitAtInspection.message, /discovery observation/);
   git(f.project.root, 'checkout', '--', f.member);
+  // A proposal confirmed against an earlier observation is stale once the
+  // project changes; start rejects it and asks for a fresh review.
   writeFileSync(join(f.project.root, '.git/info/exclude'), '# new observation input\n');
   const stale = f.start(inspection.identity).report;
   reject(stale, 'STALE_INSPECTION');

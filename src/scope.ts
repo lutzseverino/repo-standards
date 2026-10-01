@@ -22,8 +22,9 @@ interface ScopeBlocker { code: string; message: string }
 interface ScopeValidationInput {
   root: string;
   sourceResolved: SourceProfile;
-  // The discovery observation the proposal is inspected against.
-  observation: ScopeObservation | undefined;
+  // The discovery observation the proposal is inspected against; present
+  // whenever the selection has active discovery declarations.
+  observation?: ScopeObservation | undefined;
   proposalPath?: string;
 }
 function invalid(message: string): never { throw new ProductError('INVALID_SCOPE', message); }
@@ -155,6 +156,7 @@ export function validateScope(input: ScopeValidationInput) {
   const resolved = materializeScope(input.root, input.sourceResolved, proposal);
   const named = proposal?.declarations.flatMap(included) ?? [];
   const namedObservation = proposal ? observeScope(input.root, named) : undefined;
+  // materializeScope rejected a proposal for a selection without discovery.
   const absence = proposal ? validateScopeEvidence(proposal, input.observation!, namedObservation!) : [];
   const blockers: ScopeBlocker[] = [];
   if (input.sourceResolved.declarations.some(declaration => 'discovery' in declaration)) {
