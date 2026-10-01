@@ -5,6 +5,10 @@ import { targetObservation } from './observation.js';
 
 export interface ScopeConfirmation { inspection: string; afterFixes: string }
 interface ScopeReview { status: 'valid' | 'blocked'; explanation: string; evidence: string[]; additionalPaths: string[] }
+// An agent submits only its judgment of each declaration. The accepted
+// assessment is that judgment bound by the CLI to the active run's request and
+// snapshot, with each declaration's changed paths derived from the run's work
+// evidence.
 export interface Assessment {
   format: typeof formats.assessment;
   scope?: ScopeConfirmation; run: string; selection: string; snapshot: string;
@@ -15,6 +19,7 @@ export interface WorkRequest {
   run: string; selection: string; snapshot: string;
   declarations: { id: string; discovery?: unknown; allowedTargets: { paths: string[]; directories: string[] } }[];
 }
+type Judgment = Omit<Assessment['declarations'][number], 'changedPaths'>;
 function object(value: unknown): value is Record<string, unknown> { return !!value && typeof value === 'object' && !Array.isArray(value); }
 function keys(value: Record<string, unknown>, expected: string[]) { return Object.keys(value).length === expected.length && expected.every(key => Object.hasOwn(value, key)); }
 function text(value: unknown): value is string { return typeof value === 'string' && value.trim().length > 0; }
@@ -23,25 +28,17 @@ function path(value: string) { return !/^[A-Za-z]:|[\\\p{Cc}]/u.test(value) && v
 
 export function validateAssessment(root: string, run: { workRequest?: WorkRequest }, input: unknown, observation: { snapshot: string; changedPaths: string[] }): Assessment {
   const request = run.workRequest!;
-  const discovery = request.scope !== undefined;
   const format = formats.assessment;
-  if (!object(input) || !keys(input, ['format', 'run', 'selection', 'snapshot', 'declarations', ...(discovery ? ['scope'] : [])]) || input.format !== format
-    || !text(input.run) || !text(input.selection) || !text(input.snapshot) || !Array.isArray(input.declarations)) {
-    throw new ProductError('ASSESSMENT_FORMAT', `Expected a ${format} submission with run, selection, snapshot, declarations${discovery ? ' and scope' : ''}.`);
+  if (!object(input) || !keys(input, ['format', 'declarations']) || input.format !== format || !Array.isArray(input.declarations)) {
+    throw new ProductError('ASSESSMENT_FORMAT', `Expected a ${format} submission with only format and declarations. The CLI binds it to the active run and derives changed paths.`);
   }
-  if (discovery && (!object(input.scope) || !keys(input.scope, ['inspection', 'afterFixes'])
-    || input.scope.inspection !== request.scope!.inspection || input.scope.afterFixes !== request.scope!.afterFixes)) throw new ProductError('ASSESSMENT_SCOPE_MISMATCH', 'Copy the confirmed scope and post-fix snapshot identities from the current work request.');
-  if (input.run !== request.run || input.selection !== request.selection) throw new ProductError('ASSESSMENT_MISMATCH', 'Assessment identifies another adoption run or selection. Use the current work request.');
-  if (input.snapshot !== request.snapshot || input.snapshot !== observation.snapshot) throw new ProductError('STALE_ASSESSMENT', 'Project content changed. Refresh the work request with resume, reassess, and submit its snapshot.');
-  const ids = new Set<string>();
-  const reported = new Set<string>();
-  const changed = new Set(observation.changedPaths);
+  if (request.snapshot !== observation.snapshot) throw new ProductError('STALE_ASSESSMENT', 'Project content changed since the current work request. Refresh it with resume, reassess, and submit again.');
+  const judgments = new Map<string, Judgment>();
   for (const entry of input.declarations) {
     const discovered = object(entry) && request.declarations.some(declaration => declaration.id === entry.id && declaration.discovery !== undefined);
-    if (!object(entry) || !keys(entry, ['id', 'status', 'explanation', 'changedPaths', 'evidence', ...(discovered ? ['scopeValidity'] : [])]) || !text(entry.id)
-      || (entry.status !== 'satisfied' && entry.status !== 'blocked') || !text(entry.explanation) || !strings(entry.changedPaths)
-      || !entry.changedPaths.every(path) || !strings(entry.evidence) || entry.evidence.length === 0) {
-      throw new ProductError('ASSESSMENT_FORMAT', 'Each declaration needs an ID, satisfied or blocked status, explanation, unique repository-relative changedPaths, and nonempty supporting evidence.');
+    if (!object(entry) || !keys(entry, ['id', 'status', 'explanation', 'evidence', ...(discovered ? ['scopeValidity'] : [])]) || !text(entry.id)
+      || (entry.status !== 'satisfied' && entry.status !== 'blocked') || !text(entry.explanation) || !strings(entry.evidence) || entry.evidence.length === 0) {
+      throw new ProductError('ASSESSMENT_FORMAT', 'Each declaration needs only an ID, satisfied or blocked status, explanation, and nonempty supporting evidence, plus scopeValidity for a discovery declaration. The CLI derives changed paths.');
     }
     if (discovered) {
       if (!object(entry.scopeValidity) || !keys(entry.scopeValidity, ['afterFixes', 'current'])) throw new ProductError('ASSESSMENT_FORMAT', 'Discovery requires scopeValidity reviews afterFixes and current.');
@@ -52,24 +49,23 @@ export function validateAssessment(root: string, run: { workRequest?: WorkReques
           || (review.status === 'valid' && review.additionalPaths.length)) throw new ProductError('ASSESSMENT_FORMAT', 'Each scope review needs valid or blocked status, explanation, evidence, and additionalPaths. Additional files require blocked status and grant no authority.');
       }
     }
-    const declaration = request.declarations.find(declaration => declaration.id === entry.id);
-    if (!declaration || ids.has(entry.id)) throw new ProductError('ASSESSMENT_DECLARATIONS', `Unexpected or repeated contextual declaration: ${entry.id}.`);
-    ids.add(entry.id);
-    for (const path of entry.changedPaths) {
-      const targets = declaration.allowedTargets;
-      if (!permits(targets, path)) throw new ProductError('ASSESSMENT_SCOPE', `Path ${path} is outside declaration ${entry.id}'s allowed targets.`);
-      if (!changed.has(path)) throw new ProductError('ASSESSMENT_PATHS', `Reported path did not change during contextual work: ${path}.`);
-      reported.add(path);
-    }
+    if (!request.declarations.some(declaration => declaration.id === entry.id) || judgments.has(entry.id)) throw new ProductError('ASSESSMENT_DECLARATIONS', `Unexpected or repeated contextual declaration: ${entry.id}.`);
+    judgments.set(entry.id, entry as unknown as Judgment);
   }
-  if (ids.size !== request.declarations.length) throw new ProductError('ASSESSMENT_DECLARATIONS', 'Submit evidence for every contextual declaration.');
+  const missing = request.declarations.filter(({ id }) => !judgments.has(id)).map(({ id }) => id);
+  if (missing.length) throw new ProductError('ASSESSMENT_DECLARATIONS', `Submit evidence for every contextual declaration. Missing: ${missing.join(', ')}.`);
+  const changed = [...new Set(observation.changedPaths)].sort();
   for (const path of changed) {
-    const inScope = request.declarations.some(({ allowedTargets }) => permits(allowedTargets, path));
-    if (!inScope) throw new ProductError('ASSESSMENT_SCOPE', `Observed contextual change is outside allowed targets: ${path}. Preserve and reconcile that work before resubmission.`);
-    if (!reported.has(path)) throw new ProductError('ASSESSMENT_PATHS', `Observed contextual change was omitted: ${path}.`);
+    if (!request.declarations.some(({ allowedTargets }) => permits(allowedTargets, path))) throw new ProductError('ASSESSMENT_SCOPE', `Observed contextual change is outside allowed targets: ${path}. Preserve and reconcile that work before resubmission.`);
     const blockers: Parameters<typeof targetObservation>[2] = [];
     targetObservation(root, path, blockers);
     if (blockers.length) throw new ProductError('UNSAFE_TARGET', `Contextual path is unsafe: ${path}.`, blockers);
   }
-  return input as unknown as Assessment;
+  return { format, ...(request.scope ? { scope: { inspection: request.scope.inspection, afterFixes: request.scope.afterFixes } } : {}),
+    run: request.run, selection: request.selection, snapshot: request.snapshot,
+    // A changed path is attributed to every declaration whose allowed targets permit it.
+    declarations: request.declarations.map(({ id, allowedTargets }) => {
+      const { status, explanation, evidence, scopeValidity } = judgments.get(id)!;
+      return { id, status, explanation, changedPaths: changed.filter(path => permits(allowedTargets, path)), evidence, ...(scopeValidity ? { scopeValidity } : {}) };
+    }) };
 }

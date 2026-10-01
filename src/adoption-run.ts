@@ -470,7 +470,7 @@ export class AdoptionRunSession {
     if (installation) run.nextAction = 'Apply the selected guidance, refresh the work request with resume, and submit evidence using resume --assessment <file>.';
     throw new ProductError('CONTEXTUAL_REQUIRED', installation
       ? 'Exact installation and fixes succeeded; contextual guidance requires agent work and assessment before checks can run.'
-      : 'Review the refreshed work request and submit an assessment for its snapshot.');
+      : 'Review the refreshed work request and submit an assessment before changing the project again.');
   }
 
   complete(installation: Installation, operationStart: number) {
@@ -548,7 +548,7 @@ export class AdoptionRunSession {
       let installation: Installation | undefined;
       let archivedFiles: Record<string, string> = {};
       if (resume) {
-        if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to resume.');
+        if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to resume; resume and assessments apply only to an active run. Read status, and inspect and start an adoption if one is needed.');
         const run = readRun(root, lock);
         session.#run = run;
         if (run.selection.cli.version !== resume.cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);

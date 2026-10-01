@@ -13,7 +13,7 @@ export const formats = {
   inspection: 'repo-standards/inspection/v5',
   scope: 'repo-standards/scope/v1',
   workRequest: 'repo-standards/work-request/v3',
-  assessment: 'repo-standards/assessment/v2',
+  assessment: 'repo-standards/assessment/v3',
   operation: 'repo-standards/operation/v1',
   result: 'repo-standards/result/v1',
   outdated: 'repo-standards/outdated/v1',

@@ -15,14 +15,16 @@ The request contains:
   version, commit, and profile selection.
 - `snapshot`: a content-derived identity for the current observed project
   content, excluding `.repo-standards/` generated state, and the current retry
-  attempt. Copy this opaque identity from the current request.
+  attempt. The CLI binds an accepted assessment to it; the agent never copies
+  it.
 - `declarations`: every active contextual declaration, sorted by ID. Each entry
   contains `id`, `guidance` (source-relative `source`, SHA-256 and executable
   state, and the `retained` project path of its bytes, under
   `.repo-standards/inputs/source/`), and `allowedTargets` with explicit `paths` and
   `directories`. Directory entries allow the directory and its descendants;
   file paths allow only that exact path. No glob interpretation occurs.
-- `requiredEvidence`: `status`, `explanation`, `changedPaths`, and `evidence`.
+- `requiredEvidence`: the fields the agent supplies for each declaration:
+  `status`, `explanation`, and `evidence`.
 
 Read the selected guidance and apply it to the adopting project's actual content.
 Exact files and skills remain author-owned; excluded and unrelated content
@@ -37,7 +39,8 @@ repo-standards resume --json
 This verifies installed integrity and returns another expected incomplete
 handoff with the current snapshot. It runs neither fixes nor checks. Refreshing
 does not reset the post-fix comparison baseline or excuse out-of-scope edits.
-Keep the project content unchanged while assessing and submitting that snapshot.
+Keep the project content unchanged between refreshing and submitting; the
+assessment is bound to that snapshot.
 
 ## Assessment submission
 
@@ -54,49 +57,46 @@ unrelated project path is itself an out-of-scope change.
 
 ```json
 {
-  "format": "repo-standards/assessment/v2",
-  "run": "COPY_WORK_REQUEST_RUN",
-  "selection": "COPY_WORK_REQUEST_SELECTION",
-  "snapshot": "COPY_WORK_REQUEST_SNAPSHOT",
+  "format": "repo-standards/assessment/v3",
   "declarations": [
     {
       "id": "readme",
       "status": "satisfied",
       "explanation": "The README describes this service's setup and architecture.",
-      "changedPaths": ["README.md"],
       "evidence": ["Setup names the worker command; Architecture explains queue ownership."]
     },
     {
       "id": "source-layout",
       "status": "satisfied",
       "explanation": "Existing source modules already have clear responsibilities.",
-      "changedPaths": [],
       "evidence": ["src/queue.ts owns delivery; src/storage.ts owns persistence."]
     }
   ]
 }
 ```
 
-Use exactly the documented fields. Every contextual declaration needs one entry;
-unknown or repeated IDs are rejected. Status is `satisfied` or `blocked`.
-Explanations must be nonempty strings; evidence is a nonempty array of distinct,
-nonempty supporting statements. Evidence is agent judgment, not independently
-verified proof. `changedPaths` is an array of distinct repository-relative paths
-without dot, parent, empty, backslash, drive-prefix, or control-character
-components. Empty arrays are valid when no contextual changes were needed.
+Use exactly the documented fields: the submission holds only the agent's
+judgment. Every contextual declaration needs one entry; unknown or repeated IDs
+are rejected, and a missing declaration is rejected by name. Status is
+`satisfied` or `blocked`. Explanations must be nonempty strings; evidence is a
+nonempty array of distinct, nonempty supporting statements. Evidence is agent
+judgment, not independently verified proof.
 
-Report all added, modified, deleted, and executable-state-changed paths since
-fixes finished, against the declaration that governs each path. Report actual
-files, including every changed file within a directory tree. Changes made by
-installation and fixes are already accounted for and must not be claimed as
-contextual changes. An unchanged extra path, omitted observed path, path under
-the wrong declaration, unsafe target, or out-of-scope change blocks completion.
+The CLI derives each declaration's changed paths from the run's work evidence:
+every path added, modified, deleted, or changed in executable state by agent
+work since fixes finished, including every changed file within a directory
+tree, attributed to each declaration whose allowed targets permit it. Changes
+made by installation and fixes are not attributed. An observed change outside
+every declaration's allowed targets, or an unsafe target, blocks completion.
 
 ## Freshness, checks, and durable evidence
 
-Submissions must identify this run, selection, and the current work-request
-snapshot. Refresh after further edits, reassess all contextual declarations,
-and submit renewed evidence. Blocked assessments remain in the incomplete run
+The CLI binds an accepted assessment to the active run: its run, selection,
+and current work-request snapshot. A submission when no adoption run is active
+is rejected with `NO_ACTIVE_RUN`. Refresh the request after your last edit; a
+project that changed since the current work request is rejected with
+`STALE_ASSESSMENT`. Refresh after further edits, reassess all contextual
+declarations, and submit renewed evidence. Blocked assessments remain in the incomplete run
 report separately from script results and prevent checks from starting.
 
 A satisfied assessment advances to checks in declaration and list order, then
@@ -114,8 +114,9 @@ Recorded continuation material stays in Git's per-working-tree metadata and is
 removed on completion; it is never an adoption output to commit.
 
 Successful completion leaves changes uncommitted. `status --json` reports
-historical `checks` and separate `assessments` containing the submitted run,
-selection, snapshot, and per-declaration evidence. Exit status is 0 only for
+historical `checks` and separate `assessments` containing the bound run,
+selection, and snapshot, and each declaration's submitted judgment with its
+derived `changedPaths`. Exit status is 0 only for
 complete adoption, 1 for expected handoff or rejection, and 2 for usage errors.
 
 This resume interface handles contextual work, stale final assessment, and
@@ -132,24 +133,25 @@ usefulness separately; scripted agents exercise this deterministic protocol.
 
 ## Observation and replay
 
-For explicit-target adoption, the work request and assessment carry no `scope`
-field or `scopeValidity` reviews. The snapshot identity binds the observed
+For explicit-target adoption, the work request and accepted assessment carry
+no `scope` field, and the assessment no `scopeValidity` reviews. The snapshot identity binds the observed
 project content, named files and ancestors, effective observation settings and
 consulted ignore inputs. Named files remain observable when ignore
 rules change. Explicit directory targets keep their complete tree behavior;
 unlisted ignored siblings outside those trees remain outside the observation
 promise. Creating, removing, or changing the mode of an explicit directory
-target is itself an observed change: report the directory path alongside the
-files changed within it. Incomplete observation blocks progression.
+target is itself an observed change: the CLI attributes the directory path
+alongside the files changed within it. Incomplete observation blocks progression.
 
-`changedPaths` must account for the union of **observed agent changes across all
+The derived `changedPaths` is the union of **observed agent changes across all
 agent intervals in this run**, under each owning declaration. It excludes work
-observed only during fixes and verified restoration recorded in `restoredExact`. If the agent edits `README.md` and a retried fix
-restores earlier bytes, the earlier agent change still requires reporting and
-renewed assessment of the current file. Refresh and retry preserve earlier
-intervals; neither can turn missing, false or out-of-scope evidence into valid
-completion. Replaying fixes requires fresh assessment and checks even when the
-current bytes happen to match an earlier snapshot.
+observed only during fixes and verified restoration recorded in `restoredExact`.
+If the agent edits `README.md` and a retried fix restores earlier bytes, the
+earlier agent change is still attributed, and the current file needs renewed
+assessment. Refresh and retry preserve earlier intervals; neither can turn an
+out-of-scope change into valid completion. Replaying fixes requires a new
+submission against the retried request, and fresh checks, even when the current
+bytes happen to match an earlier snapshot.
 
 Run records and state v6 store each interval's applicable concrete scope
 separately from operation outcomes and assessment submissions. State v6 holds
@@ -160,10 +162,10 @@ reconcile before a new confirmed adoption. The last complete state retains its
 interval and retry history as historical evidence, without asserting ongoing
 compliance.
 
-## Discovery work-request/v3 and assessment/v2
+## Discovery work-request/v3 and assessment/v3
 
 Active discovery uses the same `repo-standards/work-request/v3` and
-`repo-standards/assessment/v2` formats as explicit selections. The
+`repo-standards/assessment/v3` formats as explicit selections. The
 request adds `scope` with the confirmed `inspection` identity, `afterFixes`
 snapshot identity, and accepted `proposal`. Each discovered declaration also
 includes `discovery` guidance alongside its contextual `guidance` and concrete
@@ -179,10 +181,11 @@ the refreshed current project. Review included and excluded candidates, missing
 READMEs, intended destinations and links, and explained empty scope. These are
 agent judgments; the CLI checks their structure and identity, not semantic truth.
 
-Submit `repo-standards/assessment/v2` with the ordinary fields plus top-level
-`scope: {"inspection": "COPY_SCOPE_INSPECTION", "afterFixes": "COPY_SCOPE_AFTER_FIXES"}`.
-Copy only those two scope fields, not the proposal. Each discovery declaration
-requires `scopeValidity` with exactly `afterFixes` and `current`. Each review uses:
+Submit `repo-standards/assessment/v3` with the ordinary fields. The CLI binds
+the accepted assessment to the request's confirmed `scope.inspection` and
+`scope.afterFixes` identities; the agent copies neither. Each discovery
+declaration requires `scopeValidity` with exactly `afterFixes` and `current`.
+Each review uses:
 
 ```json
 {
@@ -199,8 +202,8 @@ If coverage needs more files, use `status: blocked` and list them; unresolved
 membership or a target that must be withdrawn also requires blocked status, with
 an explanation. `valid` requires an empty additional-path list. Every discovery
 declaration needs both reviews, including empty scope. Explicit contextual
-declarations keep their ordinary entry fields. Mismatched scope identities,
-missing reviews, and a submission in another format are rejected.
+declarations keep their ordinary entry fields. Missing reviews and a
+submission in another format are rejected.
 
 A structurally valid blocked review is retained as `SCOPE_INCOMPLETE` before checks.
 It grants no authority, and an active run cannot change its confirmed scope.
@@ -209,10 +212,10 @@ work, abandon the run, commit or discard its changes, and adopt again with a new
 confirmed scope, as described in
 [Correct a confirmed scope](adoption.md#correct-a-confirmed-scope).
 
-For migrations, report old source deletion and destination creation as separate
-`changedPaths`, along with introductions and every link-repair file. Explain
-which useful content each destination preserves. All must already be confirmed;
-there is no rename protocol or deletion authority implied by exclusions. False,
-omitted, invented or out-of-scope changes, stale assessments and exact corruption
-prevent completion and preserve work and installation expectations. Successful
+For migrations, the CLI attributes old source deletion and destination creation
+as separate changed paths, along with introductions and every link-repair file.
+Explain which useful content each destination preserves. All must already be
+confirmed; there is no rename protocol or deletion authority implied by
+exclusions. Out-of-scope changes, stale assessments and exact corruption prevent
+completion and preserve work and installation expectations. Successful
 state retains the reviews and separate fix/agent observation intervals.

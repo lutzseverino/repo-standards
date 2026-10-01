@@ -373,7 +373,8 @@ and [assessment](../usage/assessment-protocol.md#observation-and-replay) protoco
 2. Install exact content, runtime state, and pinned system skills.
 3. Run declared fixes serially.
 4. Return a contextual work request if required.
-5. Validate the submitted agent assessment and observed changes.
+5. Validate the submitted agent assessment and observed changes, binding it to
+   the run and deriving its changed paths.
 6. Run checks and collect their evidence.
 7. Verify final content integrity and record complete adoption state.
 
@@ -384,13 +385,14 @@ the remaining check results.
 
 A work request identifies its adoption run, applicable guidance, allowed
 targets, and evidence requirements. The agent performs the contextual work and
-submits `satisfied` or `blocked`, an explanation, changed paths, and supporting
-evidence for each contextual declaration through `resume --assessment`.
+submits only its judgment, `satisfied` or `blocked`, an explanation, and
+supporting evidence for each contextual declaration through
+`resume --assessment`.
 
-The CLI compares observed contextual changes with the submission and allowed
-targets. Missing or out-of-scope reported changes make adoption incomplete.
-The assessment binds to the resolved selection and project snapshot at
-submission. Snapshots include tracked and non-ignored untracked project
+The CLI binds the accepted assessment to the active run, its resolved selection,
+and the project snapshot at submission, and derives each declaration's changed
+paths from the run's observed agent changes and allowed targets. An observed
+change outside the allowed targets makes adoption incomplete. Snapshots include tracked and non-ignored untracked project
 content, excluding generated product state. A subsequent content change before
 completion requires reassessment and checks again.
 

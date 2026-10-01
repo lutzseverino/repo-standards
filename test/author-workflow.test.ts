@@ -21,15 +21,15 @@ test('Alice author example checks actual README headings through installed adopt
   const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
   const started = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
   assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout);
-  const assessment = (request: { run: string; selection: string; snapshot: string }, changedPaths: string[]) => ({
-    format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
+  const assessment = () => ({
+    format: 'repo-standards/assessment/v3',
     declarations: [
-      { id: 'readme', status: 'satisfied', explanation: 'Scripted protocol exercise.', changedPaths, evidence: ['README reviewed for this deterministic check exercise.'] },
-      { id: 'source-layout', status: 'satisfied', explanation: 'No source changes needed in this minimal fixture.', changedPaths: [], evidence: ['The fixture has no source tree.'] },
+      { id: 'readme', status: 'satisfied', explanation: 'Scripted protocol exercise.', evidence: ['README reviewed for this deterministic check exercise.'] },
+      { id: 'source-layout', status: 'satisfied', explanation: 'No source changes needed in this minimal fixture.', evidence: ['The fixture has no source tree.'] },
     ],
   });
   const submission = join(remote.support.root, 'assessment.json');
-  writeFileSync(submission, JSON.stringify(assessment(JSON.parse(started.stdout).workRequest, [])));
+  writeFileSync(submission, JSON.stringify(assessment()));
   const failed = cli.run(['resume', '--assessment', submission, '--json'], project.root, env);
   const report = JSON.parse(failed.stdout);
   assert.equal(failed.status, 1, failed.stdout);
@@ -37,8 +37,8 @@ test('Alice author example checks actual README headings through installed adopt
   assert.equal(report.operations.at(-1).result.status, 'failed');
 
   writeFileSync(join(project.root, 'README.md'), '# Bob\nA delivery queue.\n## Setup\nUse Node.js 24.\n## Usage\nRun the worker.\n## Development\nRun the queue tests.\n');
-  const request = JSON.parse(cli.run(['resume', '--json'], project.root, env).stdout).workRequest;
-  writeFileSync(submission, JSON.stringify(assessment(request, ['README.md'])));
+  cli.run(['resume', '--json'], project.root, env);
+  writeFileSync(submission, JSON.stringify(assessment()));
   const completed = cli.run(['resume', '--assessment', submission, '--json'], project.root, env);
   assert.equal(completed.status, 0, completed.stdout + completed.stderr);
   assert.equal(JSON.parse(completed.stdout).operations.at(-1).result.status, 'passed');
@@ -65,12 +65,11 @@ test('Mira service source retains check resources and preserves fix output on ex
   assert.equal(retry.operations.at(-1).result.status, 'unchanged');
   assert.equal(readFileSync(join(project.root, 'docs/operating-status.json'), 'utf8'), '{\n  "status": "unverified"\n}\n');
   writeFileSync(join(project.root, 'docs/operations.md'), '# Harbor\n## Startup\nStart the service.\n## Health\nProbe loopback.\n## Recovery\nRestart loses in-memory state.\n');
-  const request = JSON.parse(cli.run(['resume', '--json'], project.root, env).stdout).workRequest;
+  cli.run(['resume', '--json'], project.root, env);
   const assessment = join(remote.support.root, 'assessment.json');
-  writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v2',
-    run: request.run, selection: request.selection, snapshot: request.snapshot,
+  writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v3',
     declarations: [{ id: 'operations-guide', status: 'satisfied', explanation: 'Scripted structural test.',
-      changedPaths: ['docs/operations.md'], evidence: ['Startup, Health and Recovery sections present.'] }] }));
+      evidence: ['Startup, Health and Recovery sections present.'] }] }));
   const result = cli.run(['resume', '--assessment', assessment, '--json'], project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(JSON.parse(result.stdout).operations.at(-1).result.status, 'passed');

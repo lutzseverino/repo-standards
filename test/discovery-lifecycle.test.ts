@@ -62,17 +62,12 @@ async function fixture(t: TestContext, versions?: string[]) {
       }],
     }));
   }
-  function complete(started: any, runner = run) {
-    const request = started.workRequest;
+  function complete(runner = run) {
     const review = { status: 'valid', explanation: 'The confirmed projects still match the discovery criteria.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
     const assessmentFile = join(remote.support.root, 'assessment.json');
     writeFileSync(assessmentFile, JSON.stringify({
-      format: 'repo-standards/assessment/v2',
-      run: request.run,
-      selection: request.selection,
-      snapshot: request.snapshot,
-      scope: { inspection: request.scope.inspection, afterFixes: request.scope.afterFixes },
-      declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The existing README already satisfies the guidance.', changedPaths: [], evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }],
+      format: 'repo-standards/assessment/v3',
+      declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The existing README already satisfies the guidance.', evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }],
     }));
     return runner(['resume', '--assessment', assessmentFile, '--json']);
   }
@@ -88,7 +83,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(firstStartResult.result.status, 1, firstStartResult.result.stdout + firstStartResult.result.stderr);
   const firstStart = firstStartResult.report;
   assert.equal(firstStart.phase, 'contextual', firstStartResult.result.stdout);
-  const firstComplete = f.complete(firstStart);
+  const firstComplete = f.complete();
   assert.equal(firstComplete.result.status, 0);
   const firstState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
   commit(f.project.root);
@@ -122,7 +117,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(started.phase, 'contextual');
   assert.equal(started.previousComplete.lastComplete.run, firstComplete.report.id);
   assert.equal(JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8')).lastComplete.run, firstComplete.report.id);
-  assert.equal(f.complete(started).result.status, 0);
+  assert.equal(f.complete().result.status, 0);
   assert.equal(git(f.project.root, 'show', 'HEAD:apps/old/README.md'), '# Old project');
   commit(f.project.root);
   const retainedInspection = f.run(['inspect', '--json']).report;
@@ -166,7 +161,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.deepEqual(checkoutInspection.start.blockers, []);
   const checkoutStart = runCheckout(['start', '--scope', f.scopeFile, '--confirm', checkoutInspection.identity, '--json']);
   assert.equal(checkoutStart.result.status, 1, checkoutStart.result.stdout + checkoutStart.result.stderr);
-  assert.equal(f.complete(checkoutStart.report, runCheckout).result.status, 0);
+  assert.equal(f.complete(runCheckout).result.status, 0);
   const checkoutState = JSON.parse(readFileSync(join(checkout, '.repo-standards/state.json'), 'utf8'));
   assertCompactWorkEvidence(checkoutState);
   assert.equal(checkoutState.lastComplete.inspection, checkoutInspection.identity);
@@ -185,8 +180,8 @@ test('repeated updates retain only the current run without growing, and status r
   const adopt = (args: string[], included: string, excluded?: string) => {
     f.proposal(f.run(args).report, included, excluded);
     const inspected = f.run([...args, '--scope', f.scopeFile]).report;
-    const started = f.run(['start', ...args.slice(1), '--scope', f.scopeFile, '--confirm', inspected.identity]).report;
-    const completed = f.complete(started);
+    f.run(['start', ...args.slice(1), '--scope', f.scopeFile, '--confirm', inspected.identity]);
+    const completed = f.complete();
     assert.equal(completed.result.status, 0, completed.result.stdout + completed.result.stderr);
     commit(f.project.root);
     return { run: completed.report.id as string, inspection: inspected.identity as string,
@@ -229,7 +224,7 @@ test('a discovery completion stores its run once with the named observation as a
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
   const firstStart = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
   assert.equal(firstStart.report.phase, 'contextual', firstStart.result.stdout);
-  assert.equal(f.complete(firstStart.report).result.status, 0);
+  assert.equal(f.complete().result.status, 0);
   commit(f.project.root);
 
   // The completion stores the run once, as the observation without its derived
@@ -253,8 +248,8 @@ test('compatible standards updates preserve discovery evidence through discovery
   const firstRequest = f.run(inspectionArgs).report;
   f.proposal(firstRequest, 'apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
-  const firstStart = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]).report;
-  assert.equal(f.complete(firstStart).result.status, 0);
+  f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
+  assert.equal(f.complete().result.status, 0);
   commit(f.project.root);
 
   mkdirSync(join(f.project.root, 'apps/new'), { recursive: true });
@@ -270,8 +265,8 @@ test('compatible standards updates preserve discovery evidence through discovery
   assert.deepEqual(inspected.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
   assert.deepEqual(inspected.start.blockers, []);
 
-  const started = f.run(['start', ...updateArgs.slice(1), '--scope', f.scopeFile, '--confirm', inspected.identity]).report;
-  assert.equal(f.complete(started).result.status, 0);
+  f.run(['start', ...updateArgs.slice(1), '--scope', f.scopeFile, '--confirm', inspected.identity]);
+  assert.equal(f.complete().result.status, 0);
   assert.equal(readFileSync(join(f.project.root, 'apps/old/README.md'), 'utf8'), '# Old project\n');
   assert.equal(f.run(['status', '--json']).report.selection.standards.version, 'v1.1.0');
   commit(f.project.root);
@@ -314,8 +309,8 @@ test('compatible standards updates preserve discovery evidence through discovery
   f.proposal(reintroducedRequest, 'apps/new/README.md');
   const reintroduced = f.run([...reintroducedArgs, '--scope', f.scopeFile]).report;
   assert.deepEqual(reintroduced.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: [] }]);
-  const reintroducedRun = f.run(['start', ...reintroducedArgs.slice(1), '--scope', f.scopeFile, '--confirm', reintroduced.identity]).report;
-  assert.equal(f.complete(reintroducedRun).result.status, 0);
+  f.run(['start', ...reintroducedArgs.slice(1), '--scope', f.scopeFile, '--confirm', reintroduced.identity]);
+  assert.equal(f.complete().result.status, 0);
   const reintroducedState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
   assert.equal(reintroducedState.format, 'repo-standards/state/v6');
   assertCompactWorkEvidence(reintroducedState);
@@ -330,8 +325,8 @@ test('a compatible CLI update uses retained v2 guidance and fresh scope without 
   const firstRequest = f.run(inspectionArgs).report;
   f.proposal(firstRequest, 'apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
-  const firstStart = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]).report;
-  assert.equal(f.complete(firstStart).result.status, 0);
+  f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
+  assert.equal(f.complete().result.status, 0);
   commit(f.project.root);
 
   mkdirSync(join(f.project.root, 'apps/new'), { recursive: true });
@@ -358,7 +353,7 @@ test('a compatible CLI update uses retained v2 guidance and fresh scope without 
 
   const started = runCandidate(['start', '--scope', f.scopeFile, '--confirm', inspected.identity, '--json']).report;
   assert.equal(started.phase, 'contextual');
-  assert.equal(f.complete(started, runCandidate).result.status, 0);
+  assert.equal(f.complete(runCandidate).result.status, 0);
   assert.equal(readFileSync(join(f.project.root, 'apps/old/README.md'), 'utf8'), '# Old project\n');
   const status = runCandidate(['status', '--json']).report;
   assert.equal(status.selection.cli.version, candidateVersion);
@@ -371,8 +366,8 @@ test('durable product state over the per-file limit leaves discovery inspectable
   const firstRequest = f.run(inspectionArgs).report;
   f.proposal(firstRequest, 'apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
-  const started = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]).report;
-  assert.equal(f.complete(started).result.status, 0);
+  f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
+  assert.equal(f.complete().result.status, 0);
   commit(f.project.root);
 
   // An established adopter accumulates durable state until one committed file

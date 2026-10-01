@@ -97,9 +97,9 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.opera
   assert.ok(retry.retryHistory[0].uncertain.length);
   assert.equal(readFileSync(join(f.project.root, '.repo-standards/local/fix-attempts'), 'utf8'), '2');
   writeFileSync(join(f.project.root, 'README.md'), 'Prepared project with specific instructions');
-  const request = f.report(['resume', '--json']).report.workRequest;
-  const assessment = { format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
-    declarations: [{ id: 'readme', status: 'satisfied', explanation: 'Project instructions completed.', changedPaths: ['README.md'], evidence: ['README includes specific instructions.'] }] };
+  f.report(['resume', '--json']);
+  const assessment = { format: 'repo-standards/assessment/v3',
+    declarations: [{ id: 'readme', status: 'satisfied', explanation: 'Project instructions completed.', evidence: ['README includes specific instructions.'] }] };
   const path = join(f.remote.support.root, 'assessment.json');
   writeFileSync(path, JSON.stringify(assessment));
   const complete = f.report(['resume', '--assessment', path, '--json']);
@@ -184,7 +184,7 @@ test('abandon without the kept observation preserves earlier interval evidence a
   assert.equal(readFileSync(join(f.project.root, 'README.md'), 'utf8'), 'Unfinished contextual work');
 });
 
-test('retry rejects installed edits and renews assessment even when project bytes stay the same', async t => {
+test('retry rejects installed edits and binds a renewed assessment to the new snapshot even when project bytes stay the same', async t => {
   const f = await fixture(t, { readme: { kind: 'file', target: 'README.md', guidance: 'guide.md',
     fixes: [operation('prepare')], checks: [operation('verify')] } }, `
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -199,8 +199,8 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status,message:'Ch
   const started = f.report(f.startArgs).report;
   const old = started.workRequest;
   const path = join(f.remote.support.root, 'assessment.json');
-  writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v2', run: old.run, selection: old.selection, snapshot: old.snapshot,
-    declarations: [{ id: 'readme', status: 'satisfied', explanation: 'Existing content satisfies guidance.', changedPaths: [], evidence: ['Read original project description.'] }] }));
+  writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v3',
+    declarations: [{ id: 'readme', status: 'satisfied', explanation: 'Existing content satisfies guidance.', evidence: ['Read original project description.'] }] }));
   assert.match(f.report(['resume', '--assessment', path, '--json']).report.reason, /CHECKS_FAILED/);
   writeFileSync(join(f.project.root, 'AGENTS.md'), 'Maintainer edit');
   assert.match(f.report(['resume', '--retry', '--json']).report.reason, /FINAL_INTEGRITY/);
@@ -210,13 +210,10 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status,message:'Ch
   assert.equal(retried.phase, 'contextual');
   assert.equal(retried.assessments.length, 0);
   assert.notEqual(retried.workRequest.snapshot, old.snapshot);
-  assert.match(f.report(['resume', '--assessment', path, '--json']).report.reason, /STALE_ASSESSMENT/);
   assert.equal(retried.operations.filter((entry: { operation: { phase: string } }) => entry.operation.phase === 'checks').length, 1);
-  const renewed = JSON.parse(readFileSync(path, 'utf8'));
-  renewed.snapshot = retried.workRequest.snapshot;
-  writeFileSync(path, JSON.stringify(renewed));
   const complete = f.report(['resume', '--assessment', path, '--json']);
   assert.equal(complete.result.status, 0, complete.result.stdout);
+  assert.equal(complete.report.assessments[0].snapshot, retried.workRequest.snapshot);
   assert.deepEqual(complete.report.operations.map((entry: { result: { status: string } }) => entry.result.status), ['unchanged', 'failed', 'unchanged', 'passed']);
   assert.equal(f.report(['status', '--json']).report.checks.length, 1);
 });

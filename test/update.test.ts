@@ -459,20 +459,18 @@ test('an unchanged selection with active discovery requires a fresh proposal bef
       coverage: 'Every maintained project README is included.', evidence: [evidence],
       candidates: [{ path, decision: 'include', reason: 'This is a maintained project README.', evidence: [evidence] }], unresolved: [] }] }));
   };
-  const complete = (started: { workRequest: { run: string; selection: string; snapshot: string; scope: { inspection: string; afterFixes: string } } }) => {
-    const request = started.workRequest;
+  const complete = () => {
     const review = { status: 'valid', explanation: 'The confirmed README still matches the discovery guidance.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
     const assessmentFile = join(remote.support.root, 'assessment.json');
-    writeFileSync(assessmentFile, JSON.stringify({ format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
-      scope: { inspection: request.scope.inspection, afterFixes: request.scope.afterFixes },
-      declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The README already satisfies the guidance.', changedPaths: [], evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
+    writeFileSync(assessmentFile, JSON.stringify({ format: 'repo-standards/assessment/v3',
+      declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The README already satisfies the guidance.', evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
     return run(['resume', '--assessment', assessmentFile, '--json']);
   };
   const firstRequest = JSON.parse(run(inspectionArgs).stdout);
   propose(firstRequest, 'apps/old/README.md');
   const first = JSON.parse(run([...inspectionArgs, '--scope', scopeFile]).stdout);
-  const firstStart = JSON.parse(run(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', first.identity]).stdout);
-  const firstComplete = complete(firstStart);
+  run(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', first.identity]);
+  const firstComplete = complete();
   assert.equal(firstComplete.status, 0, firstComplete.stdout + firstComplete.stderr);
   commit(project.root);
   mkdirSync(join(project.root, 'apps/new'));
@@ -492,7 +490,7 @@ test('an unchanged selection with active discovery requires a fresh proposal bef
   assert.deepEqual(inspection.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
   const started = JSON.parse(run(['start', '--scope', scopeFile, '--confirm', inspection.identity, '--json']).stdout);
   assert.equal(started.phase, 'contextual');
-  const completed = complete(started);
+  const completed = complete();
   assert.equal(completed.status, 0, completed.stdout + completed.stderr);
   assert.equal(JSON.parse(completed.stdout).previousComplete.lastComplete.run, JSON.parse(firstComplete.stdout).id);
   assert.equal(readFileSync(join(project.root, 'apps/old/README.md'), 'utf8'), '# Old project\n');
@@ -1008,10 +1006,10 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status, message:
     let run = (args: string[]) => cli.run(args, project.root, env);
     const assess = () => {
       writeFileSync(join(project.root, 'README.md'), '# Queue service\n## Usage\nRun the worker to process queued jobs.\n');
-      const request = JSON.parse(run(['resume', '--json']).stdout).workRequest;
+      run(['resume', '--json']);
       const path = join(remote.support.root, 'assessment.json');
-      writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
-        declarations: [{ id: 'readme', status: 'satisfied', explanation: 'Documented the queue worker.', changedPaths: ['README.md'], evidence: ['Usage explains how to process jobs.'] }] }));
+      writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v3',
+        declarations: [{ id: 'readme', status: 'satisfied', explanation: 'Documented the queue worker.', evidence: ['Usage explains how to process jobs.'] }] }));
       return run(['resume', '--assessment', path, '--json']);
     };
     const initial = JSON.parse(run(inspectionArgs).stdout);
