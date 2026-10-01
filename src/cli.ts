@@ -23,10 +23,13 @@ if (args.length === 1 && args[0] === '--version') {
     else if (key === '--project' && !flags.has(key) && args[index + 1] && !args[index + 1]!.startsWith('--')) flags.set(key, args[++index]!);
     else flags.set('usage', key);
   }
-  let diagnostic: { code: string; message: string } | undefined;
+  let diagnostic: { code: string; message: string; details?: unknown } | undefined;
   if (flags.has('usage')) diagnostic = { code: 'USAGE', message: 'Use repo-standards outdated [--project <directory>] [--json].' };
   else try { console.log(JSON.stringify(await outdated(flags.get('--project') ?? '.', version), null, 2)); }
-  catch (error) { diagnostic = error instanceof ProductError ? { code: error.code, message: error.message } : { code: 'OUTDATED_FAILED', message: (error as Error).message }; }
+  catch (error) {
+    if (!(error instanceof ProductError)) throw error;
+    diagnostic = { code: error.code, message: error.message, ...(error.details === undefined ? {} : { details: error.details }) };
+  }
   if (diagnostic) {
     if (flags.has('--json')) console.log(JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2));
     else console.error(`[${diagnostic.code}] ${diagnostic.message}`);

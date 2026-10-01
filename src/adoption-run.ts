@@ -211,7 +211,7 @@ export function abandon(project: string, cliVersion: string) {
   try {
     if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to abandon.');
     const run = readRun(root, lock);
-    requirePinnedCli(run.selection.cli.version, cliVersion);
+    requirePinnedCli(root, run.selection.cli.version, cliVersion);
     if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before abandonment.`);
     if (run.outcome === 'complete') throw new ProductError('ALREADY_COMPLETE', 'This adoption completed before interruption. Use resume --retry to verify and release its remaining progress record.');
     try {
@@ -252,7 +252,7 @@ export function status(project: string, cliVersion: string) {
   const active = existsSync(lock) ? readRun(root, lock) : null;
   const format = formats.status;
   if (active) {
-    requirePinnedCli(active.selection.cli.version, cliVersion);
+    requirePinnedCli(root, active.selection.cli.version, cliVersion);
     try { active.changes = actualChanges(root, active.affected); } catch { active.uncertain.push('Current project changes could not be fully read.'); }
     // Recovery needs the observation the last interval ends at; report its loss now, not at the next resume.
     if (active.observations.length) try { keptObservations(root).read(keptIdentity(active.observations)!); } catch (error) { active.uncertain.push((error as Error).message); }
@@ -264,7 +264,7 @@ export function status(project: string, cliVersion: string) {
     // Scope changes are the stored change of the last complete run against
     // the run before it.
     const { state, selection, scopeEvidence } = readRecordedAdoption(root)!;
-    requirePinnedCli(selection.cli.version, cliVersion);
+    requirePinnedCli(root, selection.cli.version, cliVersion);
     const changedScope = scopeEvidence?.scopeChanges;
     return { format, ...committedEvidenceReport(state),
       selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
@@ -555,7 +555,7 @@ export class AdoptionRunSession {
         if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to resume; resume and assessments apply only to an active run. Read status, and inspect and start an adoption if one is needed.');
         const run = readRun(root, lock);
         session.#run = run;
-        requirePinnedCli(run.selection.cli.version, resume.cliVersion);
+        requirePinnedCli(root, run.selection.cli.version, resume.cliVersion);
         if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before retry or abandonment.`);
         if (!resume.retry && !canResumeAssessment(run)) throw new ProductError('RESUME_UNAVAILABLE', 'Explicit recovery is required. Review status and use resume --retry, or abandon to preserve the incomplete work and report.');
         if (resume.retry && !run.continuation && run.startInput) session.#mode = 'start';

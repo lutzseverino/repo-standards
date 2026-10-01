@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { inc } from 'semver';
 import { stringify } from 'yaml';
 import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
+import { filesystemFault } from './adoption-faults.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 
@@ -33,7 +34,7 @@ async function fixture(t: TestContext, declarations: Record<string, unknown>, fi
   return {
     project, remote, env,
     pinned: (args: string[]) => cli.run(args, project.root, env),
-    candidate: (args: string[]) => spawnSync(candidateBin, args, { cwd: project.root, env, encoding: 'utf8' }),
+    candidate: (args: string[], environment: NodeJS.ProcessEnv = env) => spawnSync(candidateBin, args, { cwd: project.root, env: environment, encoding: 'utf8' }),
     adopt() {
       const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
       return cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
@@ -69,6 +70,7 @@ test('status and outdated reject a CLI other than the pin, while inspect and sta
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.equal(result.stdout, '');
     assert.match(result.stderr, /^\[CLI_PIN_MISMATCH\] /);
+    assert.ok(result.stderr.includes(` ${cli.version}`), result.stderr);
     assert.ok(result.stderr.includes(reinstall), result.stderr);
   }
   assert.deepEqual(f.remote.requestLog().slice(requests), []);
@@ -110,6 +112,34 @@ test('status, resume and abandon of an active run require the run\'s pinned CLI'
   const status = f.pinned(['status', '--json']);
   assert.equal(status.status, 0, status.stdout + status.stderr);
   assert.equal(JSON.parse(status.stdout).active.phase, 'contextual');
+});
+
+test('a CLI pin change interrupted before its runtime is installed points the former CLI to the candidate, not to a reinstall', async t => {
+  const f = await fixture(t, { instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' } }, { 'agents.md': 'Instructions' });
+  assert.equal(f.adopt().status, 0);
+  commit(f.project.root);
+  const inspection = JSON.parse(f.candidate(['inspect', '--json']).stdout);
+  assert.deepEqual(inspection.update, ['cli']);
+  const env = filesystemFault(f.remote.support.root, f.env, 'installation', `process.kill(process.pid, 'SIGKILL');`);
+  const started = f.candidate(['start', '--confirm', inspection.identity, '--json'], env);
+  assert.equal(started.signal, 'SIGKILL', started.stdout + started.stderr);
+  const runtime = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/runtime/package.json'), 'utf8'));
+  assert.equal(runtime.dependencies['@lutzseverino/repo-standards'], cli.version);
+
+  // The committed runtime still installs the former CLI, so the former CLI is
+  // sent to the candidate that started the run instead of to a reinstall.
+  for (const args of [['status', '--json'], ['resume', '--json'], ['abandon', '--json']]) {
+    const result = f.pinned(args);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    const [error] = JSON.parse(result.stdout).errors;
+    assert.equal(error.code, 'CLI_PIN_MISMATCH');
+    assert.ok(error.message.includes(` ${candidateVersion}`), error.message);
+    assert.ok(error.message.includes('installed outside the project'), error.message);
+    assert.ok(!error.message.includes(reinstall), error.message);
+  }
+  const status = f.candidate(['status', '--json']);
+  assert.equal(status.status, 0, status.stdout + status.stderr);
+  assert.equal(JSON.parse(status.stdout).active.selection.cli.version, candidateVersion);
 });
 
 test('without a recorded pin, status and outdated answer under any CLI', async t => {

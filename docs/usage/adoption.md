@@ -418,7 +418,10 @@ cannot. Remove that record as well before adopting fresh. The locations are
 
 Use the run's exact CLI version; `status`, `resume`, and `abandon` reject any
 other with `CLI_PIN_MISMATCH`. If installation stopped before the project-local
-CLI became usable, use the externally installed CLI that started the run.
+CLI became usable, use the externally installed CLI that started the run. When
+the project runtime manifest does not yet pin the run's CLI, the diagnostic
+names that CLI instead of the runtime reinstall command, which would only
+restore the former CLI.
 
 ```sh
 repo-standards status --json
@@ -536,14 +539,15 @@ substitutes for them.
 
 `status` reports pins, active progress, and historical last-complete evidence
 without any network request; [`outdated`](available-updates.md) reports
-available CLI and standards updates. Both require the pinned CLI: the active
-run's when a run is active, otherwise the last complete adoption's. Under
+available CLI and standards updates. Both require the pinned CLI. `status`
+takes the pin from the active run when a run is active, otherwise from the last
+complete adoption; `outdated` takes it from the committed selection. Under
 another CLI version each exits 1 with `CLI_PIN_MISMATCH`, naming the pinned
 version and the runtime reinstall command above, as `resume` and `abandon` do
 for an active run. Without a recorded pin, as before an initial adoption
-starts, any CLI reports. Only `inspect` and `start` accept a different exact CLI,
-as a candidate CLI pin change.
-After an abandoned update, it still returns the archived report. If the
+starts, any CLI reports. Only `inspect` and `start` accept a different exact
+CLI, as a candidate CLI pin change.
+After an abandoned update, `status` still returns the archived report. If the
 preserved product files do not represent complete adoption, `stateError`
 describes that condition; historical evidence comes from the matching archived
 run and does not certify the candidate selection as complete.

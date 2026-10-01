@@ -71,10 +71,20 @@ export function write(root: string, path: string, value: Content, installationId
   } finally { rmSync(temporary, { force: true }); }
 }
 
-// Commands that read or continue a recorded adoption run only under the CLI
-// its selection pins; a candidate CLI is a pin change only for inspect and start.
-export function requirePinnedCli(pinned: string, running: string) {
-  if (pinned !== running) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${pinned}, not ${running}. Reinstall the project runtime with npm ci --ignore-scripts --prefix .repo-standards/runtime and run .repo-standards/runtime/node_modules/.bin/repo-standards, or run an exact CLI ${pinned} installed elsewhere.`);
+// Status, outdated, resume and abandon act only under the pinned CLI; a
+// different exact CLI is a candidate pin change only for inspect and start.
+// Reinstalling the project runtime helps only when its manifest already pins
+// that CLI: a run interrupted before installation still has the former one.
+export function requirePinnedCli(root: string, pinned: string, running: string) {
+  if (pinned === running) return;
+  let runtime: unknown;
+  try {
+    const manifest = safe(root, '.repo-standards/runtime/package.json');
+    if (manifest.type === 'file') runtime = JSON.parse(Buffer.from(manifest.content, manifest.encoding).toString('utf8'))?.dependencies?.['@lutzseverino/repo-standards'];
+  } catch { /* An unreadable manifest cannot restore the pinned CLI. */ }
+  throw new ProductError('CLI_PIN_MISMATCH', runtime === pinned
+    ? `Use the project-pinned CLI ${pinned}, not ${running}. Reinstall the project runtime with npm ci --ignore-scripts --prefix .repo-standards/runtime and run .repo-standards/runtime/node_modules/.bin/repo-standards, or run an exact CLI ${pinned} installed elsewhere.`
+    : `Use the pinned CLI ${pinned}, not ${running}. The project runtime manifest does not pin it, so reinstalling the runtime cannot restore it; run an exact CLI ${pinned} installed outside the project, such as the one that started an active run.`);
 }
 
 export function projectRoot(project: string) {

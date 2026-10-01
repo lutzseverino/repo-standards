@@ -126,7 +126,7 @@ export async function outdated(project: string, cliVersion: string) {
     return { format: formats.outdated, cli: { package: packageName, pinned: null, update: 'unknown', reason },
       standards: { repository: null, pinned: null, update: 'unknown', reason } };
   }
-  requirePinnedCli(selection.cli.version, cliVersion);
+  requirePinnedCli(root, selection.cli.version, cliVersion);
   const registry = process.env.npm_config_registry || 'https://registry.npmjs.org/';
   const cache = readCache(root);
   const now = Date.now();

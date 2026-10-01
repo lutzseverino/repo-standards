@@ -12,8 +12,9 @@ standards version newer than the pinned one. It reads
 compares each to its pin. It runs no author code, needs no
 clean working tree, and changes nothing in the project except its own ignored
 cache, so it is safe to run at the start of any session. It returns JSON with or
-without `--json`; the flag also makes invalid usage structured. `--project
-<directory>` selects another Git working tree.
+without `--json`; the flag also makes invalid usage and the
+[pinned CLI](#pinned-cli) failure structured. `--project <directory>` selects
+another Git working tree.
 
 The report states availability only. It updates nothing and does not recommend
 an update; what to do with one belongs to the adopted standards' own guidance.
@@ -25,8 +26,8 @@ Apply an update through inspection and confirmation as described in
 Run `outdated` with the CLI the selection pins. When the selection records a CLI
 pin and the running CLI is another version, `outdated` makes no lookup, writes
 no cache, and exits 1 with `CLI_PIN_MISMATCH`. The message names the pinned
-version and the command that reinstalls the project runtime from its committed
-manifests:
+version and, when the committed runtime manifest pins that version, the command
+that reinstalls the project runtime from it:
 
 ```sh
 npm ci --ignore-scripts --prefix .repo-standards/runtime
