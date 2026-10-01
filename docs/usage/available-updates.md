@@ -26,14 +26,14 @@ Apply an update through inspection and confirmation as described in
 Run `outdated` with the CLI the selection pins. When the selection records a CLI
 pin and the running CLI is another version, `outdated` makes no lookup, writes
 no cache, and exits 1 with `CLI_PIN_MISMATCH`. The message names the pinned
-version and, when the committed runtime manifest pins that version, the command
-that reinstalls the project runtime from it:
+version and, when the committed runtime manifest and its npm lock both pin that
+version, the command that reinstalls the project runtime from them:
 
 ```sh
 npm ci --ignore-scripts --prefix .repo-standards/runtime
 ```
 
-When the manifest is missing, unreadable, or pins another version, the message
+When either file is missing, unreadable, or pins another version, the message
 names an exact CLI installed outside the project instead.
 
 A stale project runtime therefore never reports availability. With `--json`

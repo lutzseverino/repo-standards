@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
@@ -137,6 +137,14 @@ test('a CLI pin change interrupted before its runtime is installed sends the for
     assert.ok(error.message.includes('installed outside the project'), error.message);
     assert.ok(!error.message.includes(reinstall), error.message);
   }
+  // Installation writes the runtime manifest and its npm lock separately; a new
+  // manifest beside the former lock cannot be reinstalled either.
+  const manifest = join(f.project.root, '.repo-standards/runtime/package.json');
+  writeFileSync(manifest, JSON.stringify({ ...runtime, dependencies: { '@lutzseverino/repo-standards': candidateVersion } }));
+  const partial = JSON.parse(f.pinned(['status', '--json']).stdout).errors[0];
+  assert.equal(partial.code, 'CLI_PIN_MISMATCH');
+  assert.ok(partial.message.includes('installed outside the project'), partial.message);
+  assert.ok(!partial.message.includes(reinstall), partial.message);
   const status = f.candidate(['status', '--json']);
   assert.equal(status.status, 0, status.stdout + status.stderr);
   assert.equal(JSON.parse(status.stdout).active.selection.cli.version, candidateVersion);

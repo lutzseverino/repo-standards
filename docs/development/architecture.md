@@ -263,8 +263,8 @@ affected pin. `status` stays offline.
 do. `status` takes it from the active run's selection when a run is active,
 otherwise from the recorded adoption; `outdated` takes it from the selection it
 reads. Under another CLI version they fail with `CLI_PIN_MISMATCH`, naming
-the pinned version and, when the project runtime manifest pins it, the command
-that reinstalls the project runtime; otherwise they name an exact CLI installed
+the pinned version and, when the project runtime manifest and npm lock both pin
+it, the command that reinstalls the project runtime; otherwise they name an exact CLI installed
 outside the project. `outdated` fails before any lookup. Without a recorded pin
 they report under any CLI. Only `inspect` and `start` treat a different exact
 CLI as a candidate CLI pin change. `outdated`, the update class, and both
