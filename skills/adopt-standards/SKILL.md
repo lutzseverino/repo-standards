@@ -82,8 +82,13 @@ and recovery.
    candidate inclusion/exclusion and membership for missing READMEs, and resolve
    membership questions with the maintainer. Enumerate individual existing files,
    planned destinations, directory introductions, and link-repair files around
-   exact-owned content. Prepare the versioned proposal outside the project and
-   rerun `inspect --scope <file>` until one complete inspection is reviewable.
+   exact-owned content. Prepare the versioned proposal outside the project. For
+   each active discovery declaration it holds only your judgment: candidates,
+   each with its path, decision, reason and supporting evidence paths from
+   `discovery.evidence`; the coverage explanation; and unresolved questions.
+   Copy no identities; the CLI derives the request binding, evidence identities,
+   the absence of planned files and the included paths. Rerun
+   `inspect --scope <file>` until one complete inspection is reviewable.
    An explained empty scope retains its declaration and operations.
 2. Present the actual report's identity and exact CLI version, source URL,
    standards tag, commit and profile; for updates include the changed

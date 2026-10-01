@@ -11,7 +11,7 @@ export const formats = {
   run: 'repo-standards/run/v5',
   status: 'repo-standards/status/v6',
   inspection: 'repo-standards/inspection/v5',
-  scope: 'repo-standards/scope/v1',
+  scope: 'repo-standards/scope/v2',
   workRequest: 'repo-standards/work-request/v3',
   assessment: 'repo-standards/assessment/v3',
   operation: 'repo-standards/operation/v1',

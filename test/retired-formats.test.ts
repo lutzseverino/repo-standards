@@ -35,12 +35,10 @@ async function adoptedProject(t: import('node:test').TestContext) {
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: JSON.parse(result.stdout) }; };
-  const request = run(inspectionArgs).report;
-  const evidence = request.discovery.evidence.find((entry: { kind: string; path: string }) => entry.kind === 'file' && entry.path === 'apps/docs/README.md');
   const scopeFile = join(remote.support.root, 'scope.json');
-  writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{
-    id: 'docs', paths: ['apps/docs/README.md'], coverage: 'The only maintained project.', evidence: [evidence],
-    candidates: [{ path: 'apps/docs/README.md', decision: 'include', reason: 'A maintained project README.', evidence: [evidence] }], unresolved: [] }] }));
+  writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{
+    id: 'docs', coverage: 'The only maintained project.',
+    candidates: [{ path: 'apps/docs/README.md', decision: 'include', reason: 'A maintained project README.', evidence: ['apps/docs/README.md'] }], unresolved: [] }] }));
   const inspection = run([...inspectionArgs, '--scope', scopeFile]).report;
   const started = run(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', inspection.identity]).report;
   assert.equal(started.phase, 'contextual');

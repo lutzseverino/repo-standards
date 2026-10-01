@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { chmodSync, mkdirSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { embeddedContent, installCli, sha256, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
@@ -57,14 +57,12 @@ test('two unfamiliar layouts produce complete normalized scope reports including
     const project = sourceFixture('', { [`${base}/package.json`]: '{"name":"widget"}', 'fixtures/fake/package.json': '{}', 'generated/project/README.md': 'Generated' });
     t.after(() => project.close());
     commit(project.root);
-    const request = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
-    const evidence = request.discovery.evidence;
-    const member = evidence.find((e: { path: string }) => e.path === `${base}/package.json`);
-    const excluded = evidence.find((e: { path: string }) => e.path === 'fixtures/fake/package.json');
-    const proposal = { format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{
-      id: 'project-docs', paths: [`${base}/README.md`], coverage: 'The maintained widget is the only project; fixtures and generated output are not maintained projects.', evidence: [member, excluded],
+    const member = `${base}/package.json`;
+    const excluded = 'fixtures/fake/package.json';
+    const proposal = { format: 'repo-standards/scope/v2', declarations: [{
+      id: 'project-docs', coverage: 'The maintained widget is the only project; fixtures and generated output are not maintained projects.',
       candidates: [
-        { path: `${base}/README.md`, decision: 'include', reason: 'Manifest establishes maintained project membership.', evidence: [member, { kind: 'absence', path: `${base}/README.md` }] },
+        { path: `${base}/README.md`, decision: 'include', reason: 'Manifest establishes maintained project membership.', evidence: [member, dirname(member)] },
         { path: 'fixtures/fake', decision: 'exclude', reason: 'Test fixture, not a maintained project.', evidence: [excluded] },
       ], unresolved: [],
     }] };
@@ -83,13 +81,99 @@ test('two unfamiliar layouts produce complete normalized scope reports including
     assert.equal(report.guidance.find((d: { id: string }) => d.id === 'project-docs').sha256, sha256(material['guidance.md']));
     assert.equal(report.exact[0].files[0].after.sha256, sha256(material['exact.md']));
     assert.deepEqual(report.start.blockers, []);
-    proposal.declarations[0]!.evidence.reverse();
+    proposal.declarations[0]!.candidates[0]!.evidence.reverse();
     proposal.declarations[0]!.candidates.reverse();
     assert.equal(inspect().identity, report.identity);
     proposal.declarations[0]!.coverage += ' Reviewed by the adopter.';
     assert.notEqual(inspect().identity, report.identity);
     assert.deepEqual(snapshot(project.root), before);
   }
+});
+
+test('a proposal holding only the agent judgment is accepted, and the CLI derives its binding, evidence identities and included paths', (t) => {
+  const remote = remoteFixture(source, material);
+  const project = sourceFixture('', { 'apps/widget/package.json': '{"name":"widget"}', 'apps/docs/README.md': '# Docs\n', 'fixtures/fake/package.json': '{}' });
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const request = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+  const proposal = { format: 'repo-standards/scope/v2', declarations: [{
+    id: 'project-docs', coverage: 'Widget and docs are the maintained projects; the fixture is test data.',
+    candidates: [
+      { path: 'apps/widget/README.md', decision: 'include', reason: 'The manifest establishes a maintained project.', evidence: ['apps/widget/package.json', 'apps/widget'] },
+      { path: 'fixtures/fake', decision: 'exclude', reason: 'Test fixture, not a maintained project.', evidence: ['fixtures/fake/package.json'] },
+      { path: 'apps/docs/README.md', decision: 'include', reason: 'The README documents a maintained project.', evidence: ['apps/docs/README.md'] },
+    ], unresolved: [] as string[],
+  }] };
+  const proposalFile = join(remote.support.root, 'scope.json');
+  const inspect = () => {
+    writeFileSync(proposalFile, JSON.stringify(proposal));
+    const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    return JSON.parse(result.stdout);
+  };
+  const before = snapshot(project.root);
+  const report = inspect();
+  assert.deepEqual(report.start.blockers, []);
+  assert.equal(report.discovery.identity, request.discovery.identity);
+  assert.deepEqual(report.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs').targets, { paths: ['apps/docs/README.md', 'apps/widget/README.md'], directories: [] });
+  assert.deepEqual(report.discovery.absence.map((ref: { kind: string; path: string }) => [ref.kind, ref.path]), [['absence', 'apps/widget/README.md']]);
+  assert.match(report.discovery.absence[0].identity, /^sha256:[a-f0-9]{64}$/);
+  const candidates = report.discovery.proposal.declarations[0].candidates;
+  assert.deepEqual(candidates.map((c: { path: string }) => c.path), ['apps/docs/README.md', 'apps/widget/README.md', 'fixtures/fake']);
+  assert.deepEqual(candidates[1].evidence, ['apps/widget', 'apps/widget/package.json']);
+  assert.deepEqual(Object.keys(report.discovery.proposal.declarations[0]).sort(), ['candidates', 'coverage', 'id', 'unresolved']);
+  for (const path of ['apps/widget/package.json', 'apps/widget', 'fixtures/fake/package.json', 'apps/docs/README.md']) {
+    assert.ok(report.discovery.evidence.some((e: { path: string; identity: string }) => e.path === path && /^sha256:/.test(e.identity)), path);
+  }
+
+  // Order is normalized; every piece of proposal text feeds the identity.
+  proposal.declarations[0]!.candidates.reverse();
+  proposal.declarations[0]!.candidates[2]!.evidence.reverse();
+  assert.equal(inspect().identity, report.identity);
+  const variants: ((p: typeof proposal) => void)[] = [
+    p => { p.declarations[0]!.coverage += ' Reviewed.'; },
+    p => { p.declarations[0]!.candidates[0]!.reason += ' Reviewed.'; },
+    p => { p.declarations[0]!.candidates[0]!.evidence.push('apps'); },
+    p => { p.declarations[0]!.unresolved.push('Is the fixture ever published?'); },
+  ];
+  const original = structuredClone(proposal);
+  const identities = new Set([report.identity]);
+  for (const vary of variants) {
+    vary(proposal);
+    identities.add(inspect().identity);
+    Object.assign(proposal, structuredClone(original));
+  }
+  assert.equal(identities.size, variants.length + 1);
+  assert.deepEqual(snapshot(project.root), before);
+});
+
+test('a proposal is rejected with actionable errors for a retired format, missing or unknown declarations, and evidence paths absent from the observation', (t) => {
+  const remote = remoteFixture(source, material);
+  const project = sourceFixture('', { 'app/package.json': '{}', '.gitignore': 'ignored.txt\n', 'ignored.txt': 'private' });
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const request = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+  const original = { format: 'repo-standards/scope/v2', declarations: [{ id: 'project-docs', coverage: 'One maintained app.',
+    candidates: [{ path: 'app/README.md', decision: 'include', reason: 'App manifest.', evidence: ['app/package.json'] }], unresolved: [] as string[] }] };
+  const proposalFile = join(remote.support.root, 'scope.json');
+  function rejected(mutate: (p: typeof original) => void, message: RegExp) {
+    const proposal = structuredClone(original);
+    mutate(proposal);
+    writeFileSync(proposalFile, JSON.stringify(proposal));
+    const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    const error = JSON.parse(result.stdout).errors[0];
+    assert.equal(error.code, 'INVALID_SCOPE', result.stdout);
+    assert.match(error.message, message);
+  }
+  rejected(p => { p.format = 'repo-standards/scope/v1'; Object.assign(p, { request: request.discovery.identity }); }, /repo-standards\/scope\/v2/);
+  rejected(p => { p.declarations = []; }, /missing.*project-docs/i);
+  rejected(p => { p.declarations.push({ ...p.declarations[0]!, id: 'instructions' }); }, /not active discovery declarations.*instructions/i);
+  rejected(p => { p.declarations[0]!.id = 'unknown'; }, /project-docs[\s\S]*unknown|unknown[\s\S]*project-docs/);
+  rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['app/missing.json']; }, /app\/missing\.json.*discovery observation/);
+  rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['ignored.txt']; }, /ignored\.txt.*discovery observation/);
+  rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['app/README.md']; }, /app\/README\.md.*discovery observation/);
+  for (const field of ['request', 'paths', 'evidence']) rejected(p => { Object.assign(p.declarations[0]!, { [field]: [] }); }, /candidates, coverage, id, unresolved|id, coverage, candidates, unresolved/);
 });
 
 test('empty scope retains declarations and operations while unresolved scope blocks adoption', (t) => {
@@ -105,7 +189,7 @@ test('empty scope retains declarations and operations while unresolved scope blo
   commit(project.root);
   const request = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
   assert.equal(request.operations[0].id, 'verify');
-  const proposal = { format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{ id: 'project-docs', paths: [], coverage: 'No maintained projects exist here.', evidence: [request.discovery.evidence.find((e: { path: string }) => e.path === 'README.md')], candidates: [], unresolved: [] as string[] }] };
+  const proposal = { format: 'repo-standards/scope/v2', declarations: [{ id: 'project-docs', coverage: 'No maintained projects exist here.', candidates: [], unresolved: [] as string[] }] };
   const proposalFile = join(remote.support.root, 'scope.json');
   const inspect = () => {
     writeFileSync(proposalFile, JSON.stringify(proposal));
@@ -132,9 +216,8 @@ test('scope rejects malformed proposals, invalid evidence, and unsafe or overlap
   const project = sourceFixture('', { 'app/package.json': '{}', 'other.txt': 'other', '.gitignore': 'ignored.txt\n', 'ignored.txt': 'private' });
   t.after(() => { remote.close(); project.close(); });
   commit(project.root);
-  const request = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
-  const member = request.discovery.evidence.find((e: { path: string }) => e.path === 'app/package.json');
-  const original = { format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{ id: 'project-docs', paths: ['app/README.md'], coverage: 'One maintained app.', evidence: [member], candidates: [{ path: 'app/README.md', decision: 'include', reason: 'App manifest.', evidence: [member, { kind: 'absence', path: 'app/README.md' }] }], unresolved: [] }] };
+  const member = 'app/package.json';
+  const original = { format: 'repo-standards/scope/v2', declarations: [{ id: 'project-docs', coverage: 'One maintained app.', candidates: [{ path: 'app/README.md', decision: 'include', reason: 'App manifest.', evidence: [member] }], unresolved: [] }] };
   const proposalFile = join(remote.support.root, 'scope.json');
   function rejected(proposal: unknown, code: string) {
     writeFileSync(proposalFile, JSON.stringify(proposal));
@@ -148,16 +231,14 @@ test('scope rejects malformed proposals, invalid evidence, and unsafe or overlap
     (p: typeof original) => { p.declarations.push(p.declarations[0]!); },
     (p: typeof original) => { p.declarations[0]!.id = 'instructions'; },
     (p: typeof original) => { p.declarations[0]!.coverage = ''; },
-    (p: typeof original) => { p.declarations[0]!.paths.push('app/README.md'); },
-    (p: typeof original) => { p.declarations[0]!.evidence.push(member); },
-    (p: typeof original) => { p.declarations[0]!.evidence = []; },
-    (p: typeof original) => { p.declarations[0]!.evidence = [{ ...member, identity: 'invented' }]; },
-    (p: typeof original) => { p.declarations[0]!.evidence = [{ ...member, path: 'ignored.txt' }]; },
-    (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence = [{ kind: 'absence', path: 'app/README.md' }]; },
-    (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence = [member]; },
-    (p: typeof original) => { p.declarations[0]!.candidates = []; },
-    (p: typeof original) => { p.declarations[0]!.candidates[0]!.decision = 'exclude'; },
-    (p: typeof original) => { p.declarations[0]!.evidence = [{ kind: 'absence', path: 'other.txt' }]; },
+    (p: typeof original) => { p.declarations[0]!.candidates.push(p.declarations[0]!.candidates[0]!); },
+    (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence.push(member); },
+    (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence = ['ignored.txt']; },
+    (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence = ['app/README.md']; },
+    (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence = []; },
+    (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence = [{ kind: 'file', path: member } as unknown as string]; },
+    (p: typeof original) => { p.declarations[0]!.candidates[0]!.decision = 'maybe'; },
+    (p: typeof original) => { p.declarations[0]!.candidates[0]!.decision = 'exclude'; p.declarations[0]!.candidates[0]!.evidence = []; },
   ]) {
     const changed = structuredClone(original);
     mutate(changed);
@@ -166,7 +247,6 @@ test('scope rejects malformed proposals, invalid evidence, and unsafe or overlap
   rejected({ ...original, extra: true }, 'INVALID_SCOPE');
   for (const [path, code] of [ ['.', 'UNSAFE_PATH'], ['../escape', 'UNSAFE_PATH'], ['docs/*.md', 'UNSAFE_PATH'], ['app', 'UNSAFE_TARGET'], ['AGENTS.md', 'TARGET_OVERLAP'], ['.git/config', 'RESERVED_TARGET'], ['.repo-standards/state.json', 'RESERVED_TARGET'], ['.agents/skills/author-standards/SKILL.md', 'RESERVED_TARGET'] ]) {
     const changed = structuredClone(original);
-    changed.declarations[0]!.paths = [path!];
     changed.declarations[0]!.candidates[0]!.path = path!;
     rejected(changed, code!);
   }
@@ -191,12 +271,14 @@ test('discovery requests become stale after project, selection, and consulted ig
   writeFileSync(join(project.root, 'ignored.txt'), 'Ignored unrelated sibling changes are outside the promise.');
   assert.equal(request().identity, first.identity);
   const proposalFile = join(remote.support.root, 'scope.json');
-  writeFileSync(proposalFile, JSON.stringify({ format: 'repo-standards/scope/v1', request: first.discovery.identity, declarations: [{ id: 'project-docs', paths: [], coverage: 'No maintained projects.', candidates: [], evidence: [first.discovery.evidence[0]], unresolved: [] }] }));
+  writeFileSync(proposalFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{ id: 'project-docs', coverage: 'No maintained projects.', candidates: [], unresolved: [] }] }));
+  const proposed = () => JSON.parse(cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env).stdout).identity;
+  const confirmed = proposed();
   writeFileSync(join(project.root, 'app/package.json'), '{"name":"changed"}');
   const second = request();
   assert.notEqual(second.discovery.identity, first.discovery.identity);
-  const stale = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
-  assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_SCOPE');
+  // The same proposal inspected against the changed project is a new inspection.
+  assert.notEqual(proposed(), confirmed);
   writeFileSync(join(project.root, '.git/info/exclude'), '# no classification change\n');
   const third = request();
   assert.notEqual(third.discovery.identity, second.discovery.identity);
@@ -233,11 +315,11 @@ test('discovery fails closed on unreadable evidence, unsafe named ancestors, ali
   assert.equal(JSON.parse(request().stdout).errors[0].code, 'OBSERVATION_LIMIT');
   unlinkSync(large);
   symlinkSync(remote.support.root, join(project.root, 'linked'));
-  const first = JSON.parse(request().stdout);
-  const member = first.discovery.evidence.find((e: { path: string }) => e.path === 'app/package.json');
+  assert.equal(request().status, 0);
+  const member = 'app/package.json';
   const proposalFile = join(remote.support.root, 'scope.json');
   for (const [path, code] of [['linked/README.md', 'OBSERVATION_UNSAFE'], ['obstacle/README.md', 'OBSERVATION_UNSAFE'], ['alias/README.md', 'CASE_CONFLICT'], ['unicode/Caf\u00e9.md', 'CASE_CONFLICT']]) {
-    writeFileSync(proposalFile, JSON.stringify({ format: 'repo-standards/scope/v1', request: first.discovery.identity, declarations: [{ id: 'project-docs', paths: [path], coverage: 'Review the named file.', evidence: [member], candidates: [{ path, decision: 'include', reason: 'Candidate.', evidence: [member] }], unresolved: [] }] }));
+    writeFileSync(proposalFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{ id: 'project-docs', coverage: 'Review the named file.', candidates: [{ path, decision: 'include', reason: 'Candidate.', evidence: [member] }], unresolved: [] }] }));
     const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.equal(JSON.parse(result.stdout).errors[0].code, code, result.stdout);
@@ -309,13 +391,12 @@ test('excluded candidates require safe concrete syntax while allowing explanatio
   const project = sourceFixture('', { 'README.md': 'Organizational repository' });
   t.after(() => { remote.close(); project.close(); });
   commit(project.root);
-  const request = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
-  const evidence = request.discovery.evidence.find((e: { path: string }) => e.path === 'README.md');
+  const evidence = 'README.md';
   const proposalFile = join(remote.support.root, 'scope.json');
   for (const path of ['../outside', '/tmp/file', 'docs/*.md', 'docs/../file', 'docs\\file', '.', '.git', 'AGENTS.md']) {
     const safe = ['.git', 'AGENTS.md'].includes(path);
-    writeFileSync(proposalFile, JSON.stringify({ format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{
-      id: 'project-docs', paths: [], coverage: 'No maintained projects.', evidence: [evidence], candidates: [{ path, decision: 'exclude', reason: 'Outside contextual ownership.', evidence: [evidence] }], unresolved: [],
+    writeFileSync(proposalFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{
+      id: 'project-docs', coverage: 'No maintained projects.', candidates: [{ path, decision: 'exclude', reason: 'Outside contextual ownership.', evidence: [evidence] }], unresolved: [],
     }] }));
     const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
     assert.equal(result.status, safe ? 0 : 1, result.stdout + result.stderr);

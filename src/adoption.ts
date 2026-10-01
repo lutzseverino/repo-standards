@@ -43,7 +43,9 @@ function workSnapshot(root: string, run: Run, resolved: Inspection['resolved']) 
 }
 
 function verifyConfirmation(report: Inspection, confirmation: string) {
-  if (report.identity !== confirmation) throw new ProductError('STALE_INSPECTION', 'Selection or project state changed. Inspect again and obtain confirmation of the new identity.');
+  if (report.identity !== confirmation) throw new ProductError('STALE_INSPECTION', report.discovery
+    ? 'Selection, project state, or the scope proposal changed since the confirmed inspection. Inspect again with the proposal, review it against the fresh discovery evidence, and obtain confirmation of the new identity.'
+    : 'Selection or project state changed. Inspect again and obtain confirmation of the new identity.');
   if (report.start.blockers.length) throw new ProductError('START_BLOCKED', 'Resolve all inspection blockers before starting adoption.', report.start.blockers);
 }
 

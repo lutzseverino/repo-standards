@@ -602,11 +602,10 @@ test('an unchanged selection with active discovery requires a fresh proposal bef
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[]) => cli.run(args, project.root, env);
   const scopeFile = join(remote.support.root, 'scope.json');
-  const propose = (request: { discovery: { identity: string; evidence: { kind: string; path: string }[] } }, path: string) => {
-    const evidence = request.discovery.evidence.find(entry => entry.kind === 'file' && entry.path === path);
-    writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{ id: 'docs', paths: [path],
-      coverage: 'Every maintained project README is included.', evidence: [evidence],
-      candidates: [{ path, decision: 'include', reason: 'This is a maintained project README.', evidence: [evidence] }], unresolved: [] }] }));
+  const propose = (path: string) => {
+    writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{ id: 'docs',
+      coverage: 'Every maintained project README is included.',
+      candidates: [{ path, decision: 'include', reason: 'This is a maintained project README.', evidence: [path] }], unresolved: [] }] }));
   };
   const complete = () => {
     const review = { status: 'valid', explanation: 'The confirmed README still matches the discovery guidance.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
@@ -615,8 +614,7 @@ test('an unchanged selection with active discovery requires a fresh proposal bef
       declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The README already satisfies the guidance.', evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
     return run(['resume', '--assessment', assessmentFile, '--json']);
   };
-  const firstRequest = JSON.parse(run(inspectionArgs).stdout);
-  propose(firstRequest, 'apps/old/README.md');
+  propose('apps/old/README.md');
   const first = JSON.parse(run([...inspectionArgs, '--scope', scopeFile]).stdout);
   run(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', first.identity]);
   const firstComplete = complete();
@@ -630,10 +628,12 @@ test('an unchanged selection with active discovery requires a fresh proposal bef
   assert.deepEqual(request.update, []);
   assert.equal(request.start.eligible, false);
   assert.ok(request.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'), JSON.stringify(request.start.blockers));
-  const stale = run(['inspect', '--scope', scopeFile, '--json']);
+  const reused = JSON.parse(run(['inspect', '--scope', scopeFile, '--json']).stdout);
+  assert.notEqual(reused.identity, first.identity);
+  const stale = run(['start', '--scope', scopeFile, '--confirm', first.identity, '--json']);
   assert.equal(stale.status, 1, stale.stdout + stale.stderr);
-  assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_SCOPE');
-  propose(request, 'apps/new/README.md');
+  assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_INSPECTION');
+  propose('apps/new/README.md');
   const inspection = JSON.parse(run(['inspect', '--scope', scopeFile, '--json']).stdout);
   assert.deepEqual(inspection.start.blockers, []);
   assert.deepEqual(inspection.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);

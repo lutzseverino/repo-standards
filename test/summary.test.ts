@@ -46,11 +46,9 @@ async function fixture(t: TestContext) {
   const json = (args: string[]) => JSON.parse(run(args).stdout);
   const scopeFile = join(remote.support.root, 'scope.json');
   function propose(args: string[]) {
-    const request = json(args);
-    const evidence = request.discovery.evidence.find((entry: { kind: string; path: string }) => entry.kind === 'file' && entry.path === 'apps/a/README.md');
-    writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{
-      id: 'docs', paths: ['apps/a/README.md'], coverage: 'The only maintained project.', evidence: [evidence],
-      candidates: [{ path: 'apps/a/README.md', decision: 'include', reason: 'A maintained project README.', evidence: [evidence] }], unresolved: [] }] }));
+    writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{
+      id: 'docs', coverage: 'The only maintained project.',
+      candidates: [{ path: 'apps/a/README.md', decision: 'include', reason: 'A maintained project README.', evidence: ['apps/a/README.md'] }], unresolved: [] }] }));
     return [...args, '--scope', scopeFile];
   }
   function assess() {

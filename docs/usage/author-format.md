@@ -22,7 +22,7 @@ This implementation supports discovery authoring, validation, and
 [two-pass scope inspection](inspection.md#discover-contextual-file-scope).
 A selected profile with unresolved discovery returns guidance, eligible evidence,
 a discovery request identity, and a `DISCOVERY_REQUIRED` start blocker.
-`inspect --scope` validates an evidence-backed `repo-standards/scope/v1` proposal
+`inspect --scope` validates an evidence-backed `repo-standards/scope/v2` proposal
 and presents concrete paths in the complete inspection. Initial adoption passes
 the same proposal to `start --scope` with that inspection’s confirmed identity.
 The agent rechecks coverage after fixes and during contextual assessment. Empty

@@ -188,9 +188,13 @@ Execution accepts concrete targets; unresolved discovery cannot authorize
 adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
 scope is missing. Initial start receives the same valid proposal and confirmed
 complete inspection identity and reconstructs inspection before mutation. Inspection accepts
-`repo-standards/scope/v1` proposals through `--scope`, returns explicitly versioned
+`repo-standards/scope/v2` proposals through `--scope`, returns explicitly versioned
 `repo-standards/inspection/v5` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
+A proposal carries only the agent's judgment per active discovery declaration:
+candidates with their decisions, reasons and evidence paths, coverage, and
+unresolved questions. Inspection derives the request binding, declaration
+coverage, evidence identities and included paths from its own observation.
 The [inspection contract](../usage/inspection.md#discover-contextual-file-scope)
 defines evidence references, strict proposal validation, observation limits, and
 the distinction between source declarations and materialized concrete targets.

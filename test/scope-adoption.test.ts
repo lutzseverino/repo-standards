@@ -31,18 +31,18 @@ async function fixture(t: TestContext, base = 'components/odd/nested', files = {
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: JSON.parse(result.stdout) }; };
   const request = run(inspectionArgs).report;
-  const member = request.discovery.evidence.find((e: { kind: string; path: string }) => e.kind === 'file' && e.path === `${base}/package.json`);
-  const excluded = request.discovery.evidence.find((e: { kind: string; path: string }) => e.kind === 'file' && e.path === 'fixtures/fake/package.json');
-  const proposal = { format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{ id: 'docs', paths: [`${base}/README.md`],
-    coverage: 'The manifest and ownership identify one maintained project. Fixture manifests do not establish membership.', evidence: [member, excluded],
-    candidates: [{ path: `${base}/README.md`, decision: 'include', reason: 'Maintained project needs documentation.', evidence: [member, { kind: 'absence', path: `${base}/README.md` }] },
+  const member = `${base}/package.json`;
+  const excluded = 'fixtures/fake/package.json';
+  const proposal = { format: 'repo-standards/scope/v2', declarations: [{ id: 'docs',
+    coverage: 'The manifest and ownership identify one maintained project. Fixture manifests do not establish membership.',
+    candidates: [{ path: `${base}/README.md`, decision: 'include', reason: 'Maintained project needs documentation.', evidence: [member] },
       { path: 'fixtures/fake', decision: 'exclude', reason: 'A test fixture, not a maintained project.', evidence: [excluded] }], unresolved: [] as string[] }] };
   const scopeFile = join(remote.support.root, 'scope.json');
   function inspect() {
     writeFileSync(scopeFile, JSON.stringify(proposal));
     return run([...inspectionArgs, '--scope', scopeFile]);
   }
-  return { project, remote, env, run, request, proposal, scopeFile, inspect,
+  return { project, remote, env, run, request, proposal, member, excluded, scopeFile, inspect,
     start(identity: string) { return run(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', identity]); } };
 }
 
@@ -96,11 +96,10 @@ function submit(f: Awaited<ReturnType<typeof fixture>>, value: unknown) {
 }
 function setScopeTargets(f: Awaited<ReturnType<typeof fixture>>, targets: string[]) {
   const entry = f.proposal.declarations[0]!;
-  entry.paths = targets;
   entry.candidates = [entry.candidates[1]!, ...targets.map(path => {
-    const observed = f.request.discovery.evidence.find((e: { kind: string; path: string }) => e.kind === 'file' && e.path === path);
+    const observed = f.request.discovery.evidence.some((e: { kind: string; path: string }) => e.kind === 'file' && e.path === path);
     return { path, decision: 'include', reason: 'Individually planned migration source, destination, introduction, project README, or link repair.',
-      evidence: observed ? [observed] : [...entry.evidence, ...f.request.discovery.evidence.filter((e: { kind: string; path: string }) => e.kind === 'directory' && e.path === dirname(path)), { kind: 'absence', path }] };
+      evidence: observed ? [path] : [f.member, f.excluded, ...f.request.discovery.evidence.filter((e: { kind: string; path: string }) => e.kind === 'directory' && e.path === dirname(path)).map((e: { path: string }) => e.path)] };
   })];
 }
 
@@ -115,7 +114,7 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
       ['generated/project', 'generated/project/README.md', 'Generated output is not a maintained project.'],
       ['organization', 'organization/overview.md', 'An organizational grouping, not an independently maintained project.'],
     ]) f.proposal.declarations[0]!.candidates.push({ path: candidate!, decision: 'exclude', reason: reason!,
-      evidence: [f.request.discovery.evidence.find((entry: { kind: string; path: string }) => entry.kind === 'file' && entry.path === file)] });
+      evidence: [file!] });
     const inspected = f.inspect().report;
     const start = f.start(inspected.identity).report;
     assert.equal(start.phase, 'contextual');
@@ -199,14 +198,19 @@ test('missing, invalid, unresolved, stale and dirty discovery starts preserve th
   const unresolved = f.inspect().report;
   reject(f.start(unresolved.identity).report, 'START_BLOCKED');
   f.proposal.declarations[0]!.unresolved = [];
+  const coverage = f.proposal.declarations[0]!.coverage;
   f.proposal.declarations[0]!.coverage += ' Changed rationale.';
   f.inspect();
   reject(f.start(inspection.identity).report, 'STALE_INSPECTION');
+  f.proposal.declarations[0]!.coverage = coverage;
+  assert.equal(f.inspect().report.identity, inspection.identity);
+  // A proposal confirmed against an earlier observation is stale once the
+  // project changes; start rejects it and asks for a fresh review.
   writeFileSync(join(f.project.root, '.git/info/exclude'), '# new observation input\n');
-  reject(f.start(inspection.identity).report, 'STALE_SCOPE');
+  const stale = f.start(inspection.identity).report;
+  reject(stale, 'STALE_INSPECTION');
+  assert.match(stale.errors[0].message, /scope proposal.*fresh discovery evidence/);
   writeFileSync(join(f.project.root, 'unrelated.txt'), 'Uncommitted');
-  const request = f.run(inspectionArgs).report;
-  f.proposal.request = request.discovery.identity;
   const dirty = f.inspect().report;
   reject(f.start(dirty.identity).report, 'START_BLOCKED');
   assert.equal(readFileSync(join(f.project.root, 'unrelated.txt'), 'utf8'), 'Uncommitted');
@@ -215,8 +219,7 @@ test('missing, invalid, unresolved, stale and dirty discovery starts preserve th
 test('explained empty discovery scope retains fixes, coverage assessment and checks', async t => {
   const f = await fixture(t, 'fixtures/example');
   const entry = f.proposal.declarations[0]!;
-  entry.paths = [];
-  entry.candidates = [{ path: 'fixtures/example', decision: 'exclude', reason: 'Fixture project; there are no maintained projects here.', evidence: entry.evidence }, entry.candidates[1]!];
+  entry.candidates = [{ path: 'fixtures/example', decision: 'exclude', reason: 'Fixture project; there are no maintained projects here.', evidence: [f.member, f.excluded] }, entry.candidates[1]!];
   entry.coverage = 'This repository contains test fixtures only; no maintained project requires documentation.';
   const start = f.start(f.inspect().report.identity).report;
   assert.equal(start.phase, 'contextual');
@@ -300,7 +303,7 @@ test('discovered contextual changes reject a stale assessment and complete with 
   const f = await fixture(t, 'apps/widget', { 'stable.md': 'Stable' });
   setScopeTargets(f, ['apps/widget/README.md', 'stable.md']);
   const start = f.start(f.inspect().report.identity).report;
-  const target = f.proposal.declarations[0]!.paths[0]!;
+  const target = f.proposal.declarations[0]!.candidates.find(candidate => candidate.decision === 'include')!.path;
   writeFileSync(join(f.project.root, target), '# Project\n\nRun node server.js.\n');
   assert.match(submit(f, assessment()).report.reason, /STALE_ASSESSMENT/);
   assert.equal(start.workRequest.declarations[0].allowedTargets.paths.includes('stable.md'), true);

@@ -42,21 +42,16 @@ async function fixture(t: TestContext, versions?: string[]) {
     return { result, report: JSON.parse(result.stdout) };
   };
   const scopeFile = join(remote.support.root, 'scope.json');
-  function proposal(request: any, included: string | string[], excluded?: string) {
+  function proposal(included: string | string[], excluded?: string) {
     const includedPaths = Array.isArray(included) ? included : [included];
-    const evidence = [...includedPaths, excluded].filter(Boolean).map(path =>
-      request.discovery.evidence.find((entry: { kind: string; path: string }) => entry.kind === 'file' && entry.path === path));
     writeFileSync(scopeFile, JSON.stringify({
-      format: 'repo-standards/scope/v1',
-      request: request.discovery.identity,
+      format: 'repo-standards/scope/v2',
       declarations: [{
         id: 'docs',
-        paths: includedPaths,
         coverage: excluded ? 'The new project is maintained; the former project no longer meets the retained criteria.' : 'The old project is the only maintained project.',
-        evidence,
         candidates: [
-          ...includedPaths.map((path, index) => ({ path, decision: 'include', reason: 'This is a maintained project README.', evidence: [evidence[index]] })),
-          ...(excluded ? [{ path: excluded, decision: 'exclude', reason: 'This project is no longer maintained, so its content remains project-owned.', evidence: [evidence.at(-1)] }] : []),
+          ...includedPaths.map(path => ({ path, decision: 'include', reason: 'This is a maintained project README.', evidence: [path] })),
+          ...(excluded ? [{ path: excluded, decision: 'exclude', reason: 'This project is no longer maintained, so its content remains project-owned.', evidence: [excluded] }] : []),
         ],
         unresolved: [],
       }],
@@ -76,8 +71,7 @@ async function fixture(t: TestContext, versions?: string[]) {
 
 test('an unchanged v2 selection recomputes retained discovery and reports scope changes without deleting former content', async t => {
   const f = await fixture(t);
-  const firstRequest = f.run(inspectionArgs).report;
-  f.proposal(firstRequest, 'apps/old/README.md');
+  f.proposal('apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
   const firstStartResult = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
   assert.equal(firstStartResult.result.status, 1, firstStartResult.result.stdout + firstStartResult.result.stderr);
@@ -105,11 +99,15 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(request.historicalScope.inspection, firstInspection.identity);
   assert.deepEqual(request.update, []);
   assert.ok(request.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'));
-  f.proposal(firstRequest, 'apps/old/README.md');
-  const stale = f.run(['inspect', '--scope', f.scopeFile, '--json']);
+  // The earlier proposal is judged against the fresh observation; the earlier
+  // confirmation cannot start it.
+  f.proposal('apps/old/README.md');
+  const reused = f.run(['inspect', '--scope', f.scopeFile, '--json']).report;
+  assert.notEqual(reused.identity, firstInspection.identity);
+  const stale = f.run(['start', '--scope', f.scopeFile, '--confirm', firstInspection.identity, '--json']);
   assert.equal(stale.result.status, 1);
-  assert.equal(stale.report.errors[0].code, 'STALE_SCOPE');
-  f.proposal(request, 'apps/new/README.md', 'apps/old/README.md');
+  assert.equal(stale.report.errors[0].code, 'STALE_INSPECTION');
+  f.proposal('apps/new/README.md', 'apps/old/README.md');
   const inspected = f.run(['inspect', '--scope', f.scopeFile, '--json']).report;
   assert.deepEqual(inspected.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
   assert.deepEqual(inspected.start.blockers, []);
@@ -158,7 +156,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(checkoutRetainedInspection.format, 'repo-standards/inspection/v5');
   assert.deepEqual(checkoutRetainedInspection.historicalScope, retained);
   assert.deepEqual(runCheckout(['status', '--json']).report, secondStatus);
-  f.proposal(checkoutRetainedInspection, 'apps/new/README.md', 'apps/old/README.md');
+  f.proposal('apps/new/README.md', 'apps/old/README.md');
   const checkoutInspection = runCheckout(['inspect', '--scope', f.scopeFile, '--json']).report;
   assert.deepEqual(checkoutInspection.start.blockers, []);
   const checkoutStart = runCheckout(['start', '--scope', f.scopeFile, '--confirm', checkoutInspection.identity, '--json']);
@@ -180,7 +178,7 @@ test('repeated updates retain only the current run without growing, and status r
   // Each run swaps the confirmed project, so every run after the first records
   // a scope change of the same size against the run before it.
   const adopt = (args: string[], included: string, excluded?: string) => {
-    f.proposal(f.run(args).report, included, excluded);
+    f.proposal(included, excluded);
     const inspected = f.run([...args, '--scope', f.scopeFile]).report;
     f.run(['start', ...args.slice(1), '--scope', f.scopeFile, '--confirm', inspected.identity]);
     const completed = f.complete();
@@ -221,8 +219,7 @@ test('repeated updates retain only the current run without growing, and status r
 
 test('a discovery completion stores its run once with the named observation as a delta', async t => {
   const f = await fixture(t);
-  const firstRequest = f.run(inspectionArgs).report;
-  f.proposal(firstRequest, 'apps/old/README.md');
+  f.proposal('apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
   const firstStart = f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
   assert.equal(firstStart.report.phase, 'contextual', firstStart.result.stdout);
@@ -247,8 +244,7 @@ test('a discovery completion stores its run once with the named observation as a
 
 test('compatible standards updates preserve discovery evidence through discovery retirement and reintroduction', async t => {
   const f = await fixture(t);
-  const firstRequest = f.run(inspectionArgs).report;
-  f.proposal(firstRequest, 'apps/old/README.md');
+  f.proposal('apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
   f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
   assert.equal(f.complete().result.status, 0);
@@ -262,7 +258,7 @@ test('compatible standards updates preserve discovery evidence through discovery
   const request = f.run(updateArgs).report;
   assert.deepEqual(request.update, ['standards']);
   assert.ok(request.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'));
-  f.proposal(request, 'apps/new/README.md', 'apps/old/README.md');
+  f.proposal('apps/new/README.md', 'apps/old/README.md');
   const inspected = f.run([...updateArgs, '--scope', f.scopeFile]).report;
   assert.deepEqual(inspected.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
   assert.deepEqual(inspected.start.blockers, []);
@@ -307,8 +303,7 @@ test('compatible standards updates preserve discovery evidence through discovery
 
   f.remote.addVersion('v1.3.0', source);
   const reintroducedArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.3.0' : argument);
-  const reintroducedRequest = f.run(reintroducedArgs).report;
-  f.proposal(reintroducedRequest, 'apps/new/README.md');
+  f.proposal('apps/new/README.md');
   const reintroduced = f.run([...reintroducedArgs, '--scope', f.scopeFile]).report;
   assert.deepEqual(reintroduced.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: [] }]);
   f.run(['start', ...reintroducedArgs.slice(1), '--scope', f.scopeFile, '--confirm', reintroduced.identity]);
@@ -324,8 +319,7 @@ test('a compatible CLI update uses retained v2 guidance and fresh scope without 
   const f = await fixture(t, [cli.version, candidateVersion]);
   const candidate = sourceFixture('');
   t.after(() => candidate.close());
-  const firstRequest = f.run(inspectionArgs).report;
-  f.proposal(firstRequest, 'apps/old/README.md');
+  f.proposal('apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
   f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
   assert.equal(f.complete().result.status, 0);
@@ -348,7 +342,7 @@ test('a compatible CLI update uses retained v2 guidance and fresh scope without 
   assert.deepEqual(request.update, ['cli']);
   assert.equal(request.selection.cli.version, candidateVersion);
   assert.ok(request.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'));
-  f.proposal(request, 'apps/new/README.md', 'apps/old/README.md');
+  f.proposal('apps/new/README.md', 'apps/old/README.md');
   const inspected = runCandidate(['inspect', '--scope', f.scopeFile, '--json']).report;
   assert.deepEqual(inspected.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
   assert.deepEqual(inspected.start.blockers, []);
@@ -365,8 +359,7 @@ test('a compatible CLI update uses retained v2 guidance and fresh scope without 
 
 test('durable product state over the per-file limit leaves discovery inspectable and separately verified', async t => {
   const f = await fixture(t);
-  const firstRequest = f.run(inspectionArgs).report;
-  f.proposal(firstRequest, 'apps/old/README.md');
+  f.proposal('apps/old/README.md');
   const firstInspection = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
   f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', firstInspection.identity]);
   assert.equal(f.complete().result.status, 0);
