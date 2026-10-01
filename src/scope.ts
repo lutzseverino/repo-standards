@@ -7,7 +7,7 @@ import { allowedTargets } from './execution.js';
 import type { ResolvedProfile, SourceProfile } from './model.js';
 import { Paths, type Target } from './paths.js';
 import { Fields, readYaml, type Diagnostic } from './yaml.js';
-import { observeScope, type Evidence } from './scope-observation.js';
+import { observeScope, type Evidence, type ScopeObservation } from './scope-observation.js';
 
 // A proposal holds only the agent's judgment: per active discovery
 // declaration, its candidates with their evidence paths, its coverage, and
@@ -22,9 +22,18 @@ interface ScopeBlocker { code: string; message: string }
 interface ScopeValidationInput {
   root: string;
   sourceResolved: SourceProfile;
+  // The discovery observation the proposal is inspected against.
+  observation: ScopeObservation | undefined;
   proposalPath?: string;
 }
 function invalid(message: string): never { throw new ProductError('INVALID_SCOPE', message); }
+// A proposal rejection that depends on the observed project rather than on the
+// proposal's structure. A confirmed proposal passed these checks at its
+// inspection, so start reads one as a stale confirmation.
+export class ObservedScopeError extends ProductError {
+  constructor(message: string) { super('INVALID_SCOPE', message); }
+}
+function unfit(message: string): never { throw new ObservedScopeError(message); }
 function object(value: unknown, keys: string[]): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) invalid('Expected a scope object.');
   const record = value as Record<string, unknown>;
@@ -52,12 +61,12 @@ function readScope(path: string, root: string): ScopeProposal {
   const input = readFileSync(location, 'utf8');
   let value: unknown;
   try { value = JSON.parse(input); } catch { invalid('Scope proposal must be valid JSON.'); }
-  const diagnostics: Diagnostic[] = [];
-  readYaml(input, 'scope.json', diagnostics);
-  if (diagnostics.length) invalid('Scope proposal contains duplicate keys or invalid structure.');
   // The format is checked first: a retired proposal format is never read.
   const format = value && typeof value === 'object' ? (value as { format?: unknown }).format : undefined;
   if (format !== formats.scope) invalid(`Scope proposal format must be ${formats.scope}; other proposal formats are not read. Write the proposal again in this format.`);
+  const diagnostics: Diagnostic[] = [];
+  readYaml(input, 'scope.json', diagnostics);
+  if (diagnostics.length) invalid('Scope proposal contains duplicate keys or invalid structure.');
   const proposal = object(value, ['format', 'declarations']);
   return { format: formats.scope, declarations: list(proposal.declarations, value => {
     const entry = object(value, ['id', 'coverage', 'candidates', 'unresolved']);
@@ -110,26 +119,27 @@ function materializeScope(root: string, profile: SourceProfile, proposal?: Scope
   return resolved;
 }
 
-// Resolves every evidence path against the observation and derives the
-// absence evidence of each included target the project does not have yet.
-function validateScopeEvidence(proposal: ScopeProposal, observation: ReturnType<typeof observeScope>) {
+// Resolves every evidence path against the discovery observation presented to
+// the agent, and derives from the observation of the named targets the absence
+// evidence of each included target the project does not have yet.
+function validateScopeEvidence(proposal: ScopeProposal, observation: ScopeObservation, named: ScopeObservation) {
   const eligible = new Map(observation.evidence.map(evidence => [evidence.path, evidence]));
   const absence: Evidence[] = [];
   for (const entry of proposal.declarations) for (const candidate of entry.candidates) {
     const evidence = candidate.evidence.map(path => {
       const actual = eligible.get(path);
-      if (!actual) invalid(`Evidence path ${path} of candidate ${candidate.path} is not an eligible file or directory in the discovery observation. Cite a path from discovery.evidence, or inspect again if the project changed.`);
+      if (!actual) unfit(`Evidence path ${path} of candidate ${candidate.path} is not an eligible file or directory in the discovery observation. Cite a path from discovery.evidence, or inspect again if the project changed.`);
       return actual;
     });
-    if (candidate.decision === 'include' && observation.targets[candidate.path]?.type === 'missing') {
+    if (candidate.decision === 'include' && named.targets[candidate.path]?.type === 'missing') {
       const path = candidate.path;
-      absence.push({ kind: 'absence', path, identity: `sha256:${hash(JSON.stringify({ path, state: observation.targets[path], boundaries: observation.boundaries }))}` });
+      absence.push({ kind: 'absence', path, identity: `sha256:${hash(JSON.stringify({ path, state: named.targets[path], boundaries: named.boundaries }))}` });
       if (/^readme(?:\.[^/]*)?$/i.test(path.split('/').at(-1)!)) {
         const parent = dirname(path);
         const member = (file: string) => file !== path && (parent === '.' || file.startsWith(`${parent}/`));
-        if (!evidence.some(ref => ref.kind === 'file' ? member(ref.path) : ref.kind === 'directory' && (ref.path === parent || member(ref.path)) && Object.entries(observation.files).some(([file, state]) => state.type === 'file' && (ref.path === '.' || file.startsWith(`${ref.path}/`))))) invalid(`Missing project README requires positive membership evidence: cite a file or nonempty directory within its project directory: ${path}.`);
+        if (!evidence.some(ref => ref.kind === 'file' ? member(ref.path) : ref.kind === 'directory' && (ref.path === parent || member(ref.path)) && Object.entries(observation.files).some(([file, state]) => state.type === 'file' && (ref.path === '.' || file.startsWith(`${ref.path}/`))))) unfit(`Missing project README requires positive membership evidence: cite a file or nonempty directory within its project directory: ${path}.`);
       }
-    } else if (!evidence.length) invalid(`Candidate ${candidate.path} requires at least one evidence path from the discovery observation.`);
+    } else if (!evidence.length) unfit(`Candidate ${candidate.path} requires at least one evidence path from the discovery observation.`);
   }
   return absence.sort(byPath);
 }
@@ -145,7 +155,7 @@ export function validateScope(input: ScopeValidationInput) {
   const resolved = materializeScope(input.root, input.sourceResolved, proposal);
   const named = proposal?.declarations.flatMap(included) ?? [];
   const namedObservation = proposal ? observeScope(input.root, named) : undefined;
-  const absence = proposal ? validateScopeEvidence(proposal, namedObservation!) : [];
+  const absence = proposal ? validateScopeEvidence(proposal, input.observation!, namedObservation!) : [];
   const blockers: ScopeBlocker[] = [];
   if (input.sourceResolved.declarations.some(declaration => 'discovery' in declaration)) {
     if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: `Interpret the discovery guidance and submit an evidence-backed ${formats.scope} proposal with inspect --scope.` });

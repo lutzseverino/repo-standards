@@ -1,4 +1,4 @@
-import { concreteScope } from './scope.js';
+import { concreteScope, ObservedScopeError } from './scope.js';
 import { observeWork } from './work-observation.js';
 import { validateAssessment } from './assessment.js';
 import { spawnSync } from 'node:child_process';
@@ -42,9 +42,10 @@ function workSnapshot(root: string, run: Run, resolved: Inspection['resolved']) 
   return `sha256:${hash(json(observeWork(root, concreteScope(resolved))) + `retry:${run.retryHistory?.length ?? 0}`)}`;
 }
 
+const staleDiscovery = 'Selection, project state, or the scope proposal changed since the confirmed inspection. Inspect again with the proposal, review it against the fresh discovery evidence, and obtain confirmation of the new identity.';
+
 function verifyConfirmation(report: Inspection, confirmation: string) {
-  if (report.identity !== confirmation) throw new ProductError('STALE_INSPECTION', report.discovery
-    ? 'Selection, project state, or the scope proposal changed since the confirmed inspection. Inspect again with the proposal, review it against the fresh discovery evidence, and obtain confirmation of the new identity.'
+  if (report.identity !== confirmation) throw new ProductError('STALE_INSPECTION', report.discovery ? staleDiscovery
     : 'Selection or project state changed. Inspect again and obtain confirmation of the new identity.');
   if (report.start.blockers.length) throw new ProductError('START_BLOCKED', 'Resolve all inspection blockers before starting adoption.', report.start.blockers);
 }
@@ -92,7 +93,15 @@ export async function startRetained(project: string, cliVersion: string, confirm
 }
 
 async function startRun(input: StartInput, cliVersion: string, confirmation: string, session: AdoptionRunSession) {
-  const inspectSelection = () => input.kind === 'retained' ? retainedInspection(input.project, cliVersion, input.scope) : inspectForStart(input.options, cliVersion);
+  const inspectSelection = async () => {
+    try {
+      return await (input.kind === 'retained' ? retainedInspection(input.project, cliVersion, input.scope) : inspectForStart(input.options, cliVersion));
+    } catch (error) {
+      // The confirmed proposal fit the project it was inspected against.
+      if (error instanceof ObservedScopeError) throw new ProductError('STALE_INSPECTION', staleDiscovery);
+      throw error;
+    }
+  };
   const initial = await inspectSelection();
   const root = initial.report.project.root;
   verifyConfirmation(initial.report, confirmation);

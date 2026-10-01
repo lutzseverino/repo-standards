@@ -151,7 +151,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     // observation, and the durable product state it excludes from that
     // observation. Git HEAD and the index are not bound.
     const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, root, productState: hashInventory(productState), observation: scopeObservation }))}` : undefined;
-    const scope = validateScope({ root, sourceResolved: profile, ...(options.scope ? { proposalPath: options.scope } : {}) });
+    const scope = validateScope({ root, sourceResolved: profile, observation: scopeObservation, ...(options.scope ? { proposalPath: options.scope } : {}) });
     const { proposal, resolved, named, namedObservation, absence } = scope;
     blockers.push(...scope.blockers);
     const discovery = scopeObservation ? {

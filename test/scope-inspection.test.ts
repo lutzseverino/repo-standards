@@ -135,6 +135,7 @@ test('a proposal holding only the agent judgment is accepted, and the CLI derive
     p => { p.declarations[0]!.candidates[0]!.reason += ' Reviewed.'; },
     p => { p.declarations[0]!.candidates[0]!.evidence.push('apps'); },
     p => { p.declarations[0]!.unresolved.push('Is the fixture ever published?'); },
+    p => { p.declarations[0]!.unresolved.push('Is the docs project still maintained?'); },
   ];
   const original = structuredClone(proposal);
   const identities = new Set([report.identity]);
@@ -173,7 +174,28 @@ test('a proposal is rejected with actionable errors for a retired format, missin
   rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['app/missing.json']; }, /app\/missing\.json.*discovery observation/);
   rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['ignored.txt']; }, /ignored\.txt.*discovery observation/);
   rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['app/README.md']; }, /app\/README\.md.*discovery observation/);
-  for (const field of ['request', 'paths', 'evidence']) rejected(p => { Object.assign(p.declarations[0]!, { [field]: [] }); }, /candidates, coverage, id, unresolved|id, coverage, candidates, unresolved/);
+  // Naming an ignored file as a target does not make it evidence.
+  rejected(p => { p.declarations[0]!.candidates[0] = { path: 'ignored.txt', decision: 'include', reason: 'Named.', evidence: ['ignored.txt'] }; }, /ignored\.txt.*discovery observation/);
+  writeFileSync(proposalFile, JSON.stringify({ ...original, format: 'repo-standards/scope/v1' }).replace('"coverage":', '"coverage":"Duplicate","coverage":'));
+  const retired = JSON.parse(cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env).stdout).errors[0];
+  assert.equal(retired.code, 'INVALID_SCOPE');
+  assert.match(retired.message, /repo-standards\/scope\/v2/);
+  rejected(p => { Object.assign(p, { request: request.discovery.identity }); }, /format, declarations/);
+  for (const field of ['paths', 'evidence']) rejected(p => { Object.assign(p.declarations[0]!, { [field]: [] }); }, /id, coverage, candidates, unresolved/);
+});
+
+test('a proposal for a selection without active discovery declarations is rejected', (t) => {
+  const remote = remoteFixture(source.replace('      discovery: discovery.md', '      targets: {paths: [README.md], directories: []}'), material);
+  const project = sourceFixture('', { 'README.md': 'Project' });
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const proposalFile = join(remote.support.root, 'scope.json');
+  writeFileSync(proposalFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [] }));
+  const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const error = JSON.parse(result.stdout).errors[0];
+  assert.equal(error.code, 'INVALID_SCOPE');
+  assert.match(error.message, /no active discovery declarations.*without --scope/);
 });
 
 test('empty scope retains declarations and operations while unresolved scope blocks adoption', (t) => {

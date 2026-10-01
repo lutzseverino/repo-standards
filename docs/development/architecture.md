@@ -193,10 +193,11 @@ complete inspection identity and reconstructs inspection before mutation. Inspec
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
 A proposal carries only the agent's judgment per active discovery declaration:
 candidates with their decisions, reasons and evidence paths, coverage, and
-unresolved questions. Inspection derives the request binding, declaration
-coverage, evidence identities and included paths from its own observation.
+unresolved questions. Inspection derives the request binding, evidence
+identities and included paths from its own observation, and checks that every
+active discovery declaration has exactly one entry.
 The [inspection contract](../usage/inspection.md#discover-contextual-file-scope)
-defines evidence references, strict proposal validation, observation limits, and
+defines evidence paths, strict proposal validation, observation limits, and
 the distinction between source declarations and materialized concrete targets.
 Profiles without active discovery continue through the existing concrete-target
 path.

@@ -395,9 +395,9 @@ A candidate's `evidence` lists the paths of files and directories from
 hold as eligible evidence fails, and the error names it. Directory inventories
 contain eligible immediate child paths, not all ignored siblings. Every candidate
 needs at least one evidence path, except an included file that does not exist
-yet, whose absence the CLI observes. A missing README additionally needs a file
-or nonempty directory within its project directory as positive membership
-evidence. The CLI checks this structural support; the agent and adopter judge
+yet, whose absence the CLI observes. A missing README still needs an evidence
+path for positive membership: a file or nonempty directory within its project
+directory. The CLI checks this structural support; the agent and adopter judge
 its meaning.
 
 The CLI derives every mechanical field from the observation it inspects against:
