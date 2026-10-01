@@ -84,7 +84,7 @@ export function requirePinnedCli(root: string, pinned: string, running: string) 
   } catch { /* An unreadable manifest cannot restore the pinned CLI. */ }
   throw new ProductError('CLI_PIN_MISMATCH', runtime === pinned
     ? `Use the project-pinned CLI ${pinned}, not ${running}. Reinstall the project runtime with npm ci --ignore-scripts --prefix .repo-standards/runtime and run .repo-standards/runtime/node_modules/.bin/repo-standards, or run an exact CLI ${pinned} installed elsewhere.`
-    : `Use the pinned CLI ${pinned}, not ${running}. The project runtime manifest does not pin it, so reinstalling the runtime cannot restore it; run an exact CLI ${pinned} installed outside the project, such as the one that started an active run.`);
+    : `Use the pinned CLI ${pinned}, not ${running}. The project runtime manifest does not pin it, so reinstalling the runtime cannot restore it; run an exact CLI ${pinned} installed outside the project; if a run is active, the one that started it.`);
 }
 
 export function projectRoot(project: string) {

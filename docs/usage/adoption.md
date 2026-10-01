@@ -542,9 +542,11 @@ without any network request; [`outdated`](available-updates.md) reports
 available CLI and standards updates. Both require the pinned CLI. `status`
 takes the pin from the active run when a run is active, otherwise from the last
 complete adoption; `outdated` takes it from the committed selection. Under
-another CLI version each exits 1 with `CLI_PIN_MISMATCH`, naming the pinned
-version and the runtime reinstall command above, as `resume` and `abandon` do
-for an active run. Without a recorded pin, as before an initial adoption
+another CLI version each exits 1 with `CLI_PIN_MISMATCH`, as `resume` and
+`abandon` do for an active run. The diagnostic names the pinned version and,
+when the runtime manifest pins it, the runtime reinstall command above;
+otherwise it names an exact CLI installed outside the project, as
+[recovery](#recover-or-abandon-an-interrupted-run) describes. Without a recorded pin, as before an initial adoption
 starts, any CLI reports. Only `inspect` and `start` accept a different exact
 CLI, as a candidate CLI pin change.
 After an abandoned update, `status` still returns the archived report. If the

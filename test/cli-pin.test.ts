@@ -6,8 +6,8 @@ import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { inc } from 'semver';
 import { stringify } from 'yaml';
-import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
 import { filesystemFault } from './adoption-faults.ts';
+import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 
@@ -114,7 +114,7 @@ test('status, resume and abandon of an active run require the run\'s pinned CLI'
   assert.equal(JSON.parse(status.stdout).active.phase, 'contextual');
 });
 
-test('a CLI pin change interrupted before its runtime is installed points the former CLI to the candidate, not to a reinstall', async t => {
+test('a CLI pin change interrupted before its runtime is installed sends the former CLI to the candidate CLI instead of a reinstall', async t => {
   const f = await fixture(t, { instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' } }, { 'agents.md': 'Instructions' });
   assert.equal(f.adopt().status, 0);
   commit(f.project.root);

@@ -33,6 +33,9 @@ that reinstalls the project runtime from it:
 npm ci --ignore-scripts --prefix .repo-standards/runtime
 ```
 
+When the manifest is missing, unreadable, or pins another version, the message
+names an exact CLI installed outside the project instead.
+
 A stale project runtime therefore never reports availability. With `--json`
 the failure is `valid: false` with the diagnostic in `errors`; without it the
 diagnostic goes to stderr. Without a readable selection no pin is recorded, so
