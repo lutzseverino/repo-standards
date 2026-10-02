@@ -1,100 +1,45 @@
-# Issue tracker
+# Issue tracker: GitHub
 
-Work is tracked in GitHub Issues. Infer the repository from the Git remote and
-use authenticated `gh` operations. Resolve ambiguous remotes before making a
-change. GitHub shares issue and PR numbers; identify the artifact before acting.
+Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
 
-## Reading and writing
+## Conventions
 
-Read the complete issue body, comments, labels, relevant parent specification,
-and blockers. When reviewing a PR, also read its description and diff.
-For multiline issue, PR, and comment bodies, write the exact text to a file and
-pass it with `--body-file`.
+- **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
+- **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also fetching labels.
+- **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
+- **Comment on an issue**: `gh issue comment <number> --body "..."`
+- **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
+- **Close**: `gh issue close <number> --comment "..."`
 
-Use the repository's issue and PR templates for the corresponding artifact.
-Follow the title and commit rules in `CONTRIBUTING.md`. Specifications and
-implementation tickets live in GitHub; local documents retain durable domain
-language, decisions, usage guidance, and development knowledge.
+Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 
-## Implementation contracts
+## Pull requests as a triage surface
 
-For directly authored specifications and tickets, the issue body carries the
-implementation contract. For triaged requests, the latest Agent Brief comment
-is the candidate contract; the intake body and discussion remain context.
-Read the whole conversation and clarify contradictions before implementation.
+**PRs as a request surface: no.** _(Set to `yes` if this repo treats external PRs as feature requests; `/triage` reads this flag.)_
 
-Keep the upstream Agent Brief structure: Category, Summary, Current behavior,
-Desired behavior, Key interfaces, Acceptance criteria, and Out of scope. Include
-the upstream AI-generation preamble for a triage-generated brief.
+When set to `yes`, PRs run through the same labels and states as issues, using the `gh pr` equivalents:
 
-The latest brief becomes ready only after a maintainer or explicitly authorized
-triaging agent reviews it and applies the applicable readiness state. Editing
-or replacing it invalidates readiness and requires renewed review. A structural
-check cannot authorize an agent or approve the meaning of a contract.
+- **Read a PR**: `gh pr view <number> --comments` and `gh pr diff <number>` for the diff.
+- **List external PRs for triage**: `gh pr list --state open --json number,title,body,labels,author,authorAssociation,comments` then keep only `authorAssociation` of `CONTRIBUTOR`, `FIRST_TIME_CONTRIBUTOR`, or `NONE` (drop `OWNER`/`MEMBER`/`COLLABORATOR`).
+- **Comment / label / close**: `gh pr comment`, `gh pr edit --add-label`/`--remove-label`, `gh pr close`.
 
-The issue-contract workflow publishes the current contract revision in its one
-maintained feedback comment. A revision is a SHA-256 association over the
-selected contract kind, exact source bytes and source identity, and the source
-edit revision. The comment also records the latest observed readiness-label
-transition, or the exact GitHub issue-event ID and actor that approved the
-revision. Native parent and blocker relationships remain review context rather
-than part of the body or Brief revision; changing an explicit relationship in
-the contract source changes its exact bytes. An unedited direct specification or
-ticket created with exactly one readiness label can be associated from its
-authoritative creation snapshot. For every later review and for every Agent
-Brief, wait for the exact revision notice before applying readiness. Later
-readiness changes use the complete authoritative label-event timeline. Removing
-and re-adding readiness always creates a new review event, and delayed or
-repeated workflows preserve only the latest event's association.
+GitHub shares one number space across issues and PRs, so a bare `#42` may be either: resolve with `gh pr view 42` and fall back to `gh issue view 42`.
 
-Applying `ready-for-agent` or `ready-for-human` is the review action. The actor
-must currently have the repository `admin`, `maintain`, or `triage` role. The
-triage role is the explicit authorization for a triaging agent. Names, author
-associations, bot identity, headings, preambles, and structural success do not
-grant authority. On a triaged request, specification, or implementation ticket,
-apply the new readiness label directly; after the workflow verifies the
-review, it removes every non-readiness workflow state applied before it. A
-workflow state applied later supersedes the review instead; the workflow keeps
-that state alone and removes readiness. When such a contract loses readiness,
-the workflow returns it to `needs-triage` unless another non-readiness workflow
-state remains. Wayfinder planning issues do not use readiness labels; their
-eligibility continues to use open state, assignment, and blockers.
+## When a skill says "publish to the issue tracker"
 
-Incomplete or changed contracts lose readiness. Automation maintains one
-actionable feedback comment and returns corrected work to review rather than
-automatically declaring it ready. Use [triage labels](triage-labels.md) for the
-shared states.
+Create a GitHub issue.
 
-Direct specifications and implementation tickets produced after review by
-`to-spec` or `to-tickets` keep their native issue-body contracts and readiness
-labels. They do not require intake triage, an Agent Brief, or triage category
-labels. A specified ticket can be ready while its implementation blockers
-remain open; those blockers still prevent starting work.
+## When a skill says "fetch the relevant ticket"
 
-## Dependencies and planning
+Run `gh issue view <number> --comments`.
 
-Use GitHub's native parent/sub-issue relationships and blocking dependencies
-when available. Native dependencies use the blocker's database ID; distinguish
-it from the visible issue number. When these interfaces are unavailable, keep
-explicit parent and blocker links in the issue body.
+## Wayfinding operations
 
-Before implementing a ticket, confirm its blockers are complete. A readiness
-label alone does not start work or bypass dependencies.
+Used by `/wayfinder`. The **map** is a single issue with **child** issues as tickets.
 
-For Wayfinder, retain its map and child-ticket formats. Link children to their
-map, preserve the relevant planning labels, and follow the skill's frontier,
-claiming, and resolution procedure. The four public intake/ticket templates do
-not replace the formats of the installed planning workflow.
-
-## Pull requests
-
-**PRs as a request surface: no.** External PRs are reviewed as proposed changes;
-they do not automatically enter issue triage as feature requests.
-
-Keep PRs focused, report actual validation, and link their implementation issue
-or explain an eligible small correction. Keep the PR template's sections in the
-template's order, with Limits last when relevant. Put any other material, such
-as scope, impact, or migration, in subsections of the section it belongs to.
-Mark breaking changes with `!` in the title and explain impact and migration in
-the body. Squash into the default branch using the PR title and description,
-preserving those explanations and issue references.
+- **Map**: a single issue labelled `wayfinder:map`, holding the Notes / Decisions-so-far / Fog body. `gh issue create --label wayfinder:map`.
+- **Child ticket**: an issue linked to the map as a GitHub sub-issue (`gh api` on the sub-issues endpoint). Where sub-issues aren't enabled, add the child to a task list in the map body and put `Part of #<map>` at the top of the child body. Labels: `wayfinder:<type>` (`research`/`prototype`/`grilling`/`task`). Once claimed, the ticket is assigned to the driving dev.
+- **Blocking**: GitHub's **native issue dependencies**, the canonical, UI-visible representation. Add an edge with `gh api --method POST repos/<owner>/<repo>/issues/<child>/dependencies/blocked_by -F issue_id=<blocker-db-id>`, where `<blocker-db-id>` is the blocker's numeric **database id** (`gh api repos/<owner>/<repo>/issues/<n> --jq .id`, _not_ the `#number` or `node_id`). GitHub reports `issue_dependencies_summary.blocked_by` (open blockers only, the live gate). Where dependencies aren't available, fall back to a `Blocked by: #<n>, #<n>` line at the top of the child body. A ticket is unblocked when every blocker is closed.
+- **Frontier query**: list the map's open children (`gh issue list --state open`, scoped to the map's sub-issues / task list), drop any with an open blocker (`issue_dependencies_summary.blocked_by > 0`, or an open issue in the `Blocked by` line) or an assignee; first in map order wins.
+- **Claim**: `gh issue edit <n> --add-assignee @me`, the session's first write.
+- **Resolve**: `gh issue comment <n> --body "<answer>"`, then `gh issue close <n>`, then append a context pointer (gist + link) to the map's Decisions-so-far.

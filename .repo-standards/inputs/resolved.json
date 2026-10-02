@@ -44,6 +44,8 @@
             "resources": [
               "operations/lib/rendered-markdown.mjs",
               "operations/lib/local-markdown-links.mjs",
+              "operations/lib/documentation-model.mjs",
+              "discovery/draft-documentation-scope.mjs",
               "vendor/marked",
               "vendor/parse5"
             ],
@@ -68,18 +70,18 @@
           "docs/adr/0001-separate-authorship-from-adoption.md",
           "docs/adr/0002-finish-authoring-at-a-validated-source.md",
           "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md",
-          "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md",
           "docs/adr/0005-retain-work-evidence-as-identities-and-deltas.md",
           "docs/adr/0006-gate-selection-with-the-author-range-only.md",
           "docs/adr/0007-write-and-read-one-evidence-format.md",
           "docs/adr/0008-bind-confirmation-identity-to-what-the-run-reads.md",
           "docs/adr/0009-correct-scope-by-adopting-again.md",
+          "docs/adr/0010-replace-tracked-content-block-only-untracked.md",
+          "docs/adr/0011-retain-only-the-current-run.md",
+          "docs/adr/0012-bind-content-not-location.md",
           "docs/adr/README.md",
           "docs/agents/project.md",
           "docs/development/README.md",
           "docs/development/architecture.md",
-          "docs/development/authoring-skill-design.md",
-          "docs/development/release-reliability-design.md",
           "docs/development/release.md",
           "docs/usage/README.md",
           "docs/usage/adoption.md",
@@ -101,7 +103,7 @@
       "fixes": [],
       "kind": "file",
       "target": "docs/agents/domain.md",
-      "exact": "docs/agents/domain.md"
+      "exact": "vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills/domain.md"
     },
     {
       "id": "feature-request-template",
@@ -192,7 +194,7 @@
       "fixes": [],
       "kind": "file",
       "target": "docs/agents/issue-tracker.md",
-      "exact": "docs/agents/issue-tracker.md"
+      "exact": "vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills/issue-tracker-github.md"
     },
     {
       "id": "marked-license",
@@ -567,7 +569,7 @@
       "fixes": [],
       "kind": "file",
       "target": "docs/agents/triage-labels.md",
-      "exact": "docs/agents/triage-labels.md"
+      "exact": "vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills/triage-labels.md"
     }
   ]
 }

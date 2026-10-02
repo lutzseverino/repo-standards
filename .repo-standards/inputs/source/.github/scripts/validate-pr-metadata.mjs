@@ -44,6 +44,7 @@ const recognizedSections = new Set([
   "impact",
   "migration",
 ]);
+const adoptionRecordHeading = "# Repository Standards adoption record";
 const issueUrl = /https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/issues\/[1-9]\d*\b/i;
 
 function normalizedRenderedText(content, includeCode = true) {
@@ -105,12 +106,37 @@ function hasIssueReference(content) {
 function hasSmallCorrectionReason(content) {
   const rendered = normalizedRenderedText(content, false);
   const marker = rendered.match(/(?:^|\n)Small correction\s*:\s*([\s\S]*)$/i);
-  if (!marker || !isMeaningful(marker[1])) {
-    return false;
+  return marker !== null && isMeaningful(marker[1]);
+}
+
+// A Repository Standards adoption record is a complete update pull request
+// body only when its exact heading is the body's first line, after any blank
+// lines and apart from trailing spaces or tabs.
+function isAdoptionRecord(body) {
+  const firstLine = body.split(/\r\n?|\n/).find((line) => !/^[ \t]*$/.test(line));
+  return firstLine?.replace(/[ \t]+$/, "") === adoptionRecordHeading;
+}
+
+function validateSections(sections, errors) {
+  const summary = requiredSection(sections, "summary", errors);
+  const validation = requiredSection(sections, "validation", errors);
+  const relatedIssue = requiredSection(sections, "related issue", errors);
+
+  if (summary !== null && !isMeaningful(normalizedRenderedText(summary))) {
+    errors.push("Replace the Summary placeholder with a meaningful problem and resulting change.");
   }
-  return /\b(?:typo|spelling|punctuation|format(?:ting)?|whitespace|(?:broken|dead)[\s-]+(?:Markdown[\s-]+)?(?:link|anchor))\b/i.test(
-    marker[1],
-  );
+  if (validation !== null && !isMeaningful(normalizedRenderedText(validation))) {
+    errors.push("Replace the Validation placeholder with checks and outcomes, or explain what was not run.");
+  }
+  if (
+    relatedIssue !== null &&
+    !hasIssueReference(relatedIssue) &&
+    !hasSmallCorrectionReason(relatedIssue)
+  ) {
+    errors.push(
+      "Link a related GitHub issue, or write Small correction: followed by a meaningful reason.",
+    );
+  }
 }
 
 function inlineExplanation(content, label) {
@@ -176,14 +202,17 @@ function annotationValue(value) {
   return value.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
 }
 
-function writeSummary(errors) {
+function writeSummary(errors, adoptionRecord) {
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;
   if (!summaryPath) {
     return;
   }
+  const passed = adoptionRecord
+    ? "The title has the expected structure, and the body is a Repository Standards adoption record."
+    : "The title and required PR sections have the expected structure.";
   const lines = errors.length
     ? ["## PR metadata validation failed", "", ...errors.map((error) => `- ${error}`)]
-    : ["## PR metadata validation passed", "", "The title and required PR sections have the expected structure."];
+    : ["## PR metadata validation passed", "", passed];
   appendFileSync(summaryPath, `${lines.join("\n")}\n`, "utf8");
 }
 
@@ -207,28 +236,13 @@ function main() {
     nameSource: "rendered",
     stripTrailingColon: true,
   });
-  const summary = requiredSection(sections, "summary", errors);
-  const validation = requiredSection(sections, "validation", errors);
-  const relatedIssue = requiredSection(sections, "related issue", errors);
-
-  if (summary !== null && !isMeaningful(normalizedRenderedText(summary))) {
-    errors.push("Replace the Summary placeholder with a meaningful problem and resulting change.");
-  }
-  if (validation !== null && !isMeaningful(normalizedRenderedText(validation))) {
-    errors.push("Replace the Validation placeholder with checks and outcomes, or explain what was not run.");
-  }
-  if (
-    relatedIssue !== null &&
-    !hasIssueReference(relatedIssue) &&
-    !hasSmallCorrectionReason(relatedIssue)
-  ) {
-    errors.push(
-      "Link a related GitHub issue, or write Small correction: with a meaningful typo, broken-link, or formatting reason.",
-    );
+  const adoptionRecord = isAdoptionRecord(body);
+  if (!adoptionRecord) {
+    validateSections(sections, errors);
   }
 
   validateTitle(pullRequest.title, document.content, sections, errors);
-  writeSummary(errors);
+  writeSummary(errors, adoptionRecord);
 
   if (errors.length) {
     for (const error of errors) {

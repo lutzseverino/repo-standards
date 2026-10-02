@@ -65,25 +65,29 @@ function rootLicense(projectRoot) {
   return { path };
 }
 
-function sectionElements(allHeadings, name) {
+function sectionBody(allHeadings, name) {
   const index = allHeadings.findIndex(heading => heading.folded === name.toLocaleLowerCase('en-US'));
   if (index < 0) return null;
-  return allHeadings[index].body.elements;
+  return allHeadings[index].body;
 }
 
-// A pointer section renders exactly one link as a plain paragraph, optionally
-// inside a div: not inside a list, quotation, table, or other block, and not
-// wrapping an image.
-const plainLinkBlocks = new Set(['p', 'div']);
-
-function singleLink(events) {
-  if (events.length !== 1 || events[0].type !== 'link') return null;
-  const [link] = events;
-  return !link.containsMedia && link.blocks.every(block => plainLinkBlocks.has(block)) ? link : null;
+// A pointer section renders exactly one link, not wrapping an image. Every
+// block the section keeps therefore holds that link, and they must be one
+// paragraph, which may be wrapped in divs: the link is not outside a paragraph
+// or inside a list, quotation, table, or other block. HTML parsing can nest a
+// block inside a paragraph, for example through a button, so the paragraph
+// must hold no block of its own.
+function singleLink(body) {
+  if (body.elements.length !== 1 || body.elements[0].type !== 'link') return null;
+  const [link] = body.elements;
+  let blocks = body.blocks;
+  while (blocks.length === 1 && blocks[0].tag === 'div') blocks = blocks[0].blocks;
+  const inParagraph = blocks.length === 1 && blocks[0].tag === 'p' && blocks[0].blocks.length === 0;
+  return !link.containsMedia && inParagraph ? link : null;
 }
 
 function checkPointerSection(projectRoot, allHeadings, section, target, corrections) {
-  const body = sectionElements(allHeadings, section);
+  const body = sectionBody(allHeadings, section);
   const targetExists = lstatIsFile(join(projectRoot, target));
   if (body === null) {
     if (targetExists) corrections.push(`Add a ${section} section containing only a link to ${target}.`);
@@ -133,7 +137,7 @@ function checkStructure(projectRoot, markdown, license) {
   checkPointerSection(projectRoot, allHeadings, 'Contributing', 'CONTRIBUTING.md', corrections);
   checkPointerSection(projectRoot, allHeadings, 'Documentation', 'docs/README.md', corrections);
 
-  const licenseBody = sectionElements(allHeadings, 'License');
+  const licenseBody = sectionBody(allHeadings, 'License');
   if (license && licenseBody === null) {
     corrections.push(`Add a License section containing only [actual license name](${license.path}).`);
   } else if (license) {

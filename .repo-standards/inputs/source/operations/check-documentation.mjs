@@ -1,13 +1,12 @@
-import { lstatSync, readFileSync, readdirSync } from 'node:fs';
+import { lstatSync, readFileSync } from 'node:fs';
 import { isAbsolute, posix, sep } from 'node:path';
-import { interpretMarkdown } from './lib/rendered-markdown.mjs';
-import { brokenLocalLinks } from './lib/local-markdown-links.mjs';
+import {
+  declarationTargets,
+  documentationModel,
+  documentationRuleViolations,
+} from './lib/documentation-model.mjs';
 
 const resultFormat = 'repo-standards/result/v1';
-const rootDocumentation = 'docs';
-const documentationIndex = `${rootDocumentation}/README.md`;
-const developmentGuide = 'docs/development/README.md';
-const documentationCategories = new Set(['usage', 'development', 'adr', 'agents']);
 
 function failProcess(message) {
   throw new Error(message);
@@ -54,134 +53,53 @@ function absolutePath(projectRoot, path) {
   return `${projectRoot}${sep}${path.split('/').join(sep)}`;
 }
 
-function fileContent(projectRoot, path) {
-  try {
-    const absolute = absolutePath(projectRoot, path);
-    return lstatSync(absolute).isFile() ? readFileSync(absolute, 'utf8') : null;
-  } catch {
-    return null;
-  }
-}
-
-function directoryEntries(projectRoot, path) {
-  try {
-    const absolute = absolutePath(projectRoot, path);
-    if (!lstatSync(absolute).isDirectory()) return null;
-    return readdirSync(absolute, { withFileTypes: true });
-  } catch {
-    return null;
-  }
-}
-
-function documentationRoots(allowedPaths) {
-  const candidates = new Set([rootDocumentation]);
-  for (const path of allowedPaths) {
-    const segments = path.split('/');
-    const fileName = segments.pop();
-    if (fileName !== 'README.md' || segments.length === 0) continue;
-    if (documentationCategories.has(segments.at(-1))) segments.pop();
-    if (segments.length > 0) candidates.add(segments.join('/'));
-  }
-
-  const roots = new Set([rootDocumentation]);
-  for (const candidate of candidates) {
-    if ([...documentationCategories].some(category => (
-      allowedPaths.includes(`${candidate}/${category}/README.md`)
-    ))) roots.add(candidate);
-  }
-
-  const containedIndex = candidate => [...roots].some(root => (
-    candidate !== root && candidate.startsWith(`${root}/`)
-  ));
-  return {
-    roots: [...roots].sort(),
-    ambiguous: [...candidates]
-      .filter(candidate => !roots.has(candidate) && !containedIndex(candidate))
-      .sort(),
-  };
-}
-
-function documentationTree(projectRoot, root) {
-  const directories = [];
-  const markdownFiles = [];
-  const visit = path => {
-    const entries = directoryEntries(projectRoot, path);
-    if (entries === null) return;
-    directories.push(path);
-    for (const entry of entries) {
-      const child = `${path}/${entry.name}`;
-      if (entry.isDirectory()) visit(child);
-      else if (entry.isFile() && entry.name.toLocaleLowerCase('en-US').endsWith('.md')) markdownFiles.push(child);
-    }
-  };
-  visit(root);
-  return { directories, markdownFiles };
-}
-
-function validate(projectRoot, allowedPaths) {
+// Projects the documentation model onto its corrections, in order: the
+// development guide, then each root's index, stray entries, directory indexes
+// and confirmed category indexes, then broken links, then each documentation
+// rule violation, naming its file and its rule.
+function navigationCorrections(model) {
   const corrections = [];
-  const rootResolution = documentationRoots(allowedPaths);
-  const guide = fileContent(projectRoot, developmentGuide);
-  if (guide === null) {
-    corrections.push(`Create ${developmentGuide} with the project's prerequisites, setup, development commands, and required validation.`);
-  } else if (!interpretMarkdown(guide).content.hasContent) {
-    corrections.push(`Populate ${developmentGuide} with the project's prerequisites, setup, development commands, and required validation.`);
+  const guide = model.developmentGuide;
+  if (guide.state === 'missing') {
+    corrections.push(`Create ${guide.path} with the project's prerequisites, setup, development commands, and required validation.`);
+  } else if (guide.state === 'empty') {
+    corrections.push(`Populate ${guide.path} with the project's prerequisites, setup, development commands, and required validation.`);
   }
-  if (!allowedPaths.includes(developmentGuide)) {
-    corrections.push(`Include ${developmentGuide} in the confirmed documentation scope.`);
+  if (!guide.confirmed) {
+    corrections.push(`Include ${guide.path} in the confirmed documentation scope.`);
   }
 
-  const markdownFiles = new Set();
-  for (const root of rootResolution.roots) {
-    const indexPath = `${root}/README.md`;
-    const index = fileContent(projectRoot, indexPath);
-    if (index === null) {
-      corrections.push(`Create ${indexPath} to map the documentation categories and their placement rules.`);
-    } else if (!interpretMarkdown(index).content.hasContent) {
-      corrections.push(`Populate ${indexPath} with the documentation map and placement rules.`);
+  for (const root of model.roots) {
+    const { index } = root;
+    if (index.state === 'missing') {
+      corrections.push(`Create ${index.path} to map the documentation categories and their placement rules.`);
+    } else if (index.state === 'empty') {
+      corrections.push(`Populate ${index.path} with the documentation map and placement rules.`);
     }
-    if (!allowedPaths.includes(indexPath)) {
-      corrections.push(`Include ${indexPath} in the confirmed documentation scope.`);
+    if (!index.confirmed) {
+      corrections.push(`Include ${index.path} in the confirmed documentation scope.`);
     }
-
-    const tree = documentationTree(projectRoot, root);
-    for (const entry of directoryEntries(projectRoot, root) ?? []) {
-      if (entry.name === 'README.md'
-          || (entry.isDirectory() && documentationCategories.has(entry.name))) continue;
-      corrections.push(`Move ${root}/${entry.name} into usage, development, adr, or agents, preserving useful content and affected links.`);
+    for (const entry of root.strayEntries) {
+      corrections.push(`Move ${entry} into usage, development, adr, or agents, preserving useful content and affected links.`);
     }
-    for (const directory of tree.directories) {
-      if (directory === root) continue;
-      const directoryIndex = `${directory}/README.md`;
-      const content = fileContent(projectRoot, directoryIndex);
-      if (content === null) corrections.push(`Create ${directoryIndex} to explain this documentation directory and link its useful contents.`);
-      else if (!interpretMarkdown(content).content.hasContent) corrections.push(`Populate ${directoryIndex} with the directory purpose and links to useful contents.`);
+    for (const directory of root.directories) {
+      const directoryIndex = directory.index;
+      if (directoryIndex.state === 'missing') corrections.push(`Create ${directoryIndex.path} to explain this documentation directory and link its useful contents.`);
+      else if (directoryIndex.state === 'empty') corrections.push(`Populate ${directoryIndex.path} with the directory purpose and links to useful contents.`);
     }
-    for (const path of allowedPaths) {
-      if (!path.startsWith(`${root}/`) || posix.basename(path) !== 'README.md') continue;
-      const relative = path.slice(root.length + 1);
-      if (!documentationCategories.has(relative.split('/')[0])) continue;
-      if (fileContent(projectRoot, path) === null) {
-        corrections.push(`Create ${path} to explain this documentation directory and link its useful contents.`);
+    for (const confirmedIndex of root.confirmedIndexes) {
+      if (confirmedIndex.state === 'missing') {
+        corrections.push(`Create ${confirmedIndex.path} to explain this documentation directory and link its useful contents.`);
       }
     }
-    for (const path of tree.markdownFiles) markdownFiles.add(path);
   }
-  for (const path of allowedPaths) {
-    if (path.toLocaleLowerCase('en-US').endsWith('.md') && fileContent(projectRoot, path) !== null) {
-      markdownFiles.add(path);
-    }
+  for (const link of model.links) {
+    if (link.broken) corrections.push(`${link.source} links to missing ${link.target}.`);
   }
-  for (const path of [...markdownFiles].sort()) {
-    const document = interpretMarkdown(fileContent(projectRoot, path));
-    for (const link of brokenLocalLinks(projectRoot, path, document.content.elements)) {
-      corrections.push(`${path} links to missing ${link.target}.`);
-    }
+  for (const { rule, path, correction } of documentationRuleViolations(model)) {
+    corrections.push(`${path} breaks the ${rule} rule: ${correction}`);
   }
-  return {
-    corrections: [...new Set(corrections)],
-    ambiguous: rootResolution.ambiguous,
-  };
+  return [...new Set(corrections)];
 }
 
 function result(status, message) {
@@ -190,21 +108,24 @@ function result(status, message) {
 
 try {
   const request = readRequest();
-  const validation = validate(request.projectRoot, request.allowedTargets.paths);
-  if (validation.ambiguous.length > 0) {
-    const ambiguity = validation.ambiguous.map(root => (
+  const model = documentationModel(request.projectRoot, request.allowedTargets.paths, {
+    declaredTargets: declarationTargets(request.declarations),
+  });
+  const corrections = navigationCorrections(model);
+  if (model.ambiguousRoots.length > 0) {
+    const ambiguity = model.ambiguousRoots.map(root => (
       `Cannot determine whether ${root} is a documentation root from the confirmed paths; include its root README and at least one confirmed category README under usage, development, adr, or agents, or remove the unrelated index from this declaration.`
     )).join(' ');
-    const corrections = validation.corrections.length > 0
-      ? ` Other documentation corrections: ${validation.corrections.join(' ')}`
+    const otherCorrections = corrections.length > 0
+      ? ` Other documentation corrections: ${corrections.join(' ')}`
       : '';
-    result('blocked', `Documentation root selection is ambiguous: ${ambiguity}${corrections}`);
+    result('blocked', `Documentation root selection is ambiguous: ${ambiguity}${otherCorrections}`);
   } else {
     result(
-      validation.corrections.length === 0 ? 'passed' : 'failed',
-      validation.corrections.length === 0
+      corrections.length === 0 ? 'passed' : 'failed',
+      corrections.length === 0
         ? 'Documentation navigation is valid; content placement and usefulness still require maintainer or agent review.'
-        : `Documentation navigation needs correction: ${validation.corrections.join(' ')}`,
+        : `Documentation navigation needs correction: ${corrections.join(' ')}`,
     );
   }
 } catch (error) {

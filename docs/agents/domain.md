@@ -1,33 +1,51 @@
-# Domain documentation
+# Domain Docs
 
-Before exploring or changing code, terminology, or architecture, read the root
-`CONTEXT.md`. If `CONTEXT-MAP.md` exists, use it to find the contexts relevant
-to the work and read their glossaries.
+How the engineering skills should consume this repo's domain documentation when exploring the codebase.
 
-Read applicable decisions under `docs/adr/` and any relevant context-local ADR
-directories identified by the domain layout. Use the glossary's canonical
-terms in issues, code, tests, and explanations. Surface contradictions with
-existing decisions explicitly.
+## Before exploring, read these
 
-Missing glossaries or ADRs are normal. Domain modeling creates them when terms
-or consequential decisions are resolved. A monorepo does not by itself imply
-multiple domain contexts.
+- **`CONTEXT.md`** at the repo root, or
+- **`CONTEXT-MAP.md`** at the repo root if it exists: it points at one `CONTEXT.md` per context. Read each one relevant to the topic.
+- **`docs/adr/`**: read ADRs that touch the area you're about to work in. In multi-context repos, also check `src/<context>/docs/adr/` for context-scoped decisions.
 
-Documentation categories are `usage`, `development`, `adr`, and `agents` under
-each applicable documentation root. Create a directory when it has content.
-Every documentation directory has a README index: a one-sentence purpose, then
-one `[Title](path): description` item per entry. List each document under a
-documentation root in exactly one index: its directory's README, or for a
-directory README, its parent's. Other documents link to that index or cite a
-document in context, and never repeat the list. The installed
-`docs/agents/README.md` stays as is and cites the optional
-`docs/agents/project.md` in context. The root `docs/development/README.md`
-gives its purpose, then a Setup and validation section, then its index. Keep
-durable research with its usage or development topic. Glossaries remain outside
-`docs`, at the repository or context root.
+If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
 
-Documentation holds maintained material only. A point-in-time record, such as
-an account of one release, adoption, or validation run, stays with the pull
-request, release, or CI run it records, and documents cite it by identity, such
-as a tag, run ID, or commit permalink. Delete a superseded document rather than
-keeping it under a historical label, and repair the links to it.
+## File structure
+
+Single-context repo (most repos):
+
+```
+/
+├── CONTEXT.md
+├── docs/adr/
+│   ├── 0001-event-sourced-orders.md
+│   └── 0002-postgres-for-write-model.md
+└── src/
+```
+
+Multi-context repo (presence of `CONTEXT-MAP.md` at the root):
+
+```
+/
+├── CONTEXT-MAP.md
+├── docs/adr/                          ← system-wide decisions
+└── src/
+    ├── ordering/
+    │   ├── CONTEXT.md
+    │   └── docs/adr/                  ← context-specific decisions
+    └── billing/
+        ├── CONTEXT.md
+        └── docs/adr/
+```
+
+## Use the glossary's vocabulary
+
+When your output names a domain concept (in an issue title, a refactor proposal, a hypothesis, a test name), use the term as defined in `CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.
+
+If the concept you need isn't in the glossary yet, that's a signal: either you're inventing language the project doesn't use (reconsider) or there's a real gap (note it for `/domain-modeling`).
+
+## Flag ADR conflicts
+
+If your output contradicts an existing ADR, surface it explicitly rather than silently overriding:
+
+> _Contradicts ADR-0007 (event-sourced orders), but worth reopening because…_

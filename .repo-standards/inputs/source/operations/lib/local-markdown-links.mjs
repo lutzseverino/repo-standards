@@ -40,13 +40,27 @@ export function localPathExists(projectRoot, path) {
   }
 }
 
-export function brokenLocalLinks(projectRoot, sourcePath, elements) {
-  const broken = [];
+// Every rendered link or image in `elements` whose target is local, as
+// `{ target, path, broken }`. `path` is the target's repository-relative path,
+// or undefined when the target leaves the project, which makes the link broken.
+// External and absolute targets are not local links.
+export function localLinks(projectRoot, sourcePath, elements) {
+  const links = [];
   for (const element of elements) {
     if (!['link', 'image'].includes(element.type)) continue;
     const path = resolvedLocalPath(sourcePath, element.target);
-    if (path === null || (path !== undefined && localPathExists(projectRoot, path))) continue;
-    broken.push({ target: element.target, path });
+    if (path === null) continue;
+    links.push({
+      target: element.target,
+      path,
+      broken: path === undefined || !localPathExists(projectRoot, path),
+    });
   }
-  return broken;
+  return links;
+}
+
+export function brokenLocalLinks(projectRoot, sourcePath, elements) {
+  return localLinks(projectRoot, sourcePath, elements)
+    .filter(link => link.broken)
+    .map(({ target, path }) => ({ target, path }));
 }
