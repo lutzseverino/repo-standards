@@ -129,6 +129,8 @@ described [below](#discover-contextual-file-scope):
 | `source`, `resolved` | Validated metadata and the resolver's complete active profile. |
 | `exact` | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. |
 | `systemSkill` | The reserved `.agents/skills/adopt-standards` target and `create`, `replace`, or `match` against the system skill packaged with the inspecting exact CLI. |
+| `removed` | For an update, each installed target the selection no longer installs and the run removes, with the declaration that installed it and each file's before and after hash inventories and diff, as in `exact`. |
+| `discardedEdits` | Each target whose replacement or removal discards content that is not its installed baseline, in the order of the target blockers. At initial adoption there is no baseline, so every replaced existing target is listed. |
 | `guidance` | Guidance by source-relative `source` path, SHA-256 and executable state, with its explicit project paths or directory trees. |
 | `operations` | Ordered fixes and checks, literal arguments, the script by path and hash, resource hash inventories, timeout, and declared prerequisite probe/range. |
 | `project` | Canonical project root and hash inventories of the affected targets, the reserved system skill, and the durable product state. Git HEAD, index, and status are not reported. |
@@ -140,13 +142,17 @@ For an established adoption, the report is an update. `update` lists every
 changed selection component, in the order `cli`, `standards`, `source`, and
 `profile`, and is empty for an unchanged selection. The standards component
 changes with the version tag or its commit. `previousSelection` records the
-current selection, and `retired` lists declarations that will leave governance
-while their installed content remains in place. Initial adoption omits these
-fields. Any update can be confirmed and started; an unchanged selection is
-applied again. A complete discovery-backed update also includes `scopeChanges`,
-listing individual additions and removals by declaration relative to the prior
-complete adoption. Removed contextual paths remain project content and are not
-deleted.
+current selection, and `retired` lists declarations that will leave governance.
+The installed targets of retired declarations, and any other installed target
+the selection no longer installs, are listed in `removed`, and the run removes
+them. An installed target within contextual scope, as a contextual target or
+inside or containing one, is not removed and stays in place as project content.
+Nor is one at or inside a target the selection still installs, whose own action
+covers it. Initial adoption omits these fields. Any update can be confirmed and
+started; an unchanged selection is applied again. A complete discovery-backed
+update also includes `scopeChanges`, listing individual additions and removals
+by declaration relative to the prior complete adoption. Removed contextual
+paths remain project content and are not deleted.
 
 Every update report states its class in `updateClass`. It is an **exact update**
 (`exact`) only when each declaration's guidance, discovery guidance, and
@@ -188,7 +194,7 @@ bytes at `.repo-standards/inputs/source/<path>`. Start acquires the source again
 and verifies its bytes against the hashes the confirmed identity binds, so a
 report needs no bytes to remain safe.
 Whole-skill inventories include existing and supplied files.
-Matching exact files and skill directories are claimed without rewriting during
+Matching exact files and skill directories are matched without rewriting during
 adoption.
 When an existing exact target conflicts with the supplied file/directory type,
 the replacement entry retains both complete root observations, including any
@@ -216,18 +222,21 @@ identity after explicit maintainer confirmation.
 
 Known blockers include missing commits, dirty Git state, symlink or non-directory
 ancestors, special files, case-folded existing-path conflicts, file/directory type
-conflicts, ignored or untracked replacement content, and differing unowned skills.
+conflicts, and ignored or untracked replacement content.
 Case conflicts retain every alias and the exact component when present, so
 changes to either remain visible and change the inspection identity.
 Git assume-unchanged or skip-worktree flags also block eligibility because they
 can hide working-tree changes; clear those flags and reconcile content first.
-An existing skill directory without an installed baseline is claimed when its
-complete inventory, bytes, and executable state match the supplied skill; any
-difference in a file, mode, or inventory entry is a `SKILL_CONFLICT`. Initial
-adoption claims existing reserved system-skill content the same way when it
-matches the skill packaged with the inspecting exact CLI and reports
-`SYSTEM_SKILL_CONFLICT` otherwise. Existing product state blocks initial
-adoption with `EXISTING_ADOPTION`; see
+One ownership rule holds for every installation target, including author
+skills and the reserved system skill, at initial adoption and at update. An
+existing target whose complete inventory, bytes, and executable state equal the
+candidate is matched without rewriting. Tracked content that differs is
+replaced, because Git can recover it, and a replaced skill directory is
+replaced whole. Content that is ignored or untracked, including an empty
+directory, blocks with `UNTRACKED_REPLACEMENT`. `discardedEdits` lists each
+replacement that discards content other than the target's installed baseline,
+so confirming the inspection confirms each such overwrite. Existing product
+state blocks initial adoption with `EXISTING_ADOPTION`; see
 [adopting afresh over installed content](adoption.md#adopt-afresh-over-installed-content).
 Established projects can use `inspect --json` with their pinned CLI to inspect
 the unchanged selection from retained material. Confirming that inspection
@@ -264,8 +273,9 @@ dependencies to be public or cached. The author's `requires.repo-standards`
 range is checked only when a standards version is selected from its source;
 retained inputs are validated against the running CLI's supported source
 formats alone. Every update inspection compares bytes, executable state, and
-complete skill inventories with the last-complete baselines. Any committed or
-uncommitted local edit blocks the whole update. Known moved tags, incompatible
+complete skill inventories with the last-complete baselines, and lists each
+target whose replacement or removal discards a committed local edit in
+`discardedEdits`; an uncommitted edit makes the project dirty. Known moved tags, incompatible
 CLI/format combinations, and changed retained product state are also blockers
 or structured failures before mutation.
 
@@ -286,15 +296,19 @@ of JSON. It has these sections, in order:
 - **Update class**: for an update, whether it is an exact or a contextual
   update, and each declaration that makes it contextual.
 - **Changed declarations**: exact content by declaration and path, created,
-  modified, deleted, or mode changed, including the reserved system skill; and
-  contextual declarations with their targets and what changed.
+  modified, deleted, or mode changed, including the reserved system skill and
+  removed targets; and contextual declarations with their targets and what
+  changed.
+- **Discarded edits**: present only when a replacement or removal discards
+  content that is not the target's installed baseline, listing each such
+  target.
 - **Operations**: every fix and check with its literal argument vector,
   prerequisite probe and range, and timeout.
 - **Scope changes**: discovered-scope additions and removals by declaration,
   the confirmed discovered scope of an initial adoption, or that discovery
   scope is not confirmed yet.
 - **Retired declarations**: for an update, the declarations that leave
-  governance.
+  governance and whose installed targets are removed.
 - **Blockers**: present only when the report has start blockers.
 - **Identity**: the inspection identity and start eligibility.
 

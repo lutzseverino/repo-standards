@@ -185,9 +185,9 @@ _Avoid_: Destination, output file
 
 **Target ownership**:
 The product's standing over an installation target: the action a run would
-take on it (claim, create, or replace) and any ownership blockers that leave it
-to the maintainer, judged from its current content, installed baseline, and
-candidate content.
+take on it (match, create, or replace) and any ownership blockers that leave it
+to the maintainer. The product may replace any tracked content, which Git can
+recover; only untracked content leaves a target to the maintainer.
 _Avoid_: Writeability, write permission
 
 **Work evidence**:

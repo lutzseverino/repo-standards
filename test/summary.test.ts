@@ -134,6 +134,50 @@ test('inspect --summary renders a deterministic update proposal with its class, 
   assert.ok(blocked.stdout.includes('`DIRTY_PROJECT`'), blocked.stdout);
 });
 
+test('inspect --summary lists removed retired targets and each discarded edit', async t => {
+  const exact = (declarations: object) => stringify({ format: 'repo-standards/v2', name: 'exact-standards', description: 'Exact fixture',
+    requires: { 'repo-standards': '>=1' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: {} } } });
+  const instructions = { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' };
+  const remote = remoteFixture(exact({ instructions, notes: { kind: 'file', target: 'NOTES.md', exact: 'notes.md' }, legacy: { kind: 'file', target: 'LEGACY.md', exact: 'legacy.md' } }),
+    { 'agents.md': 'Pinned instructions\n', 'notes.md': 'Notes\n', 'legacy.md': 'Legacy\n' });
+  const project = sourceFixture('');
+  commit(project.root);
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
+  commit(project.root);
+  writeFileSync(join(project.root, 'AGENTS.md'), 'Maintainer instructions\n');
+  writeFileSync(join(project.root, 'LEGACY.md'), 'Maintainer legacy\n');
+  commit(project.root);
+  remote.addVersion('v1.1.0', exact({ instructions }), { 'agents.md': 'Revised instructions\n' });
+  const summaryArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument === '--json' ? '--summary' : argument);
+  const result = cli.run(summaryArgs, project.root, env);
+  assert.equal(result.status, 0, result.stderr);
+  const summary = result.stdout;
+  assertDescriptive(summary);
+  assert.ok(summary.includes(`## Changed declarations
+
+Exact content:
+
+| Declaration | Path | Change |
+| --- | --- | --- |
+| \`instructions\` | \`AGENTS.md\` | modified |
+| \`legacy\` | \`LEGACY.md\` | deleted |
+| \`notes\` | \`NOTES.md\` | deleted |
+`), summary);
+  assert.ok(summary.includes(`## Discarded edits
+
+Replacing or removing these targets discards content that is not their installed baseline:
+
+- \`AGENTS.md\`
+- \`LEGACY.md\`
+
+## Operations`), summary);
+  assert.ok(!summary.includes('\n## Blockers\n'), summary);
+});
+
 test('--summary and --json together are a usage error', async t => {
   const project = sourceFixture('');
   t.after(() => project.close());

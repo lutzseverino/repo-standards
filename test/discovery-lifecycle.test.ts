@@ -91,7 +91,8 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   writeFileSync(join(f.project.root, 'AGENTS.md'), 'Drifted instructions\n');
   const drifted = f.run(['inspect', '--json']).report;
   assert.ok(drifted.start.blockers.some((blocker: { code: string }) => blocker.code === 'DIRTY_PROJECT'));
-  assert.ok(drifted.start.blockers.some((blocker: { code: string }) => blocker.code === 'INSTALLED_CONTENT_EDITED'));
+  assert.ok(!drifted.start.blockers.some((blocker: { code: string }) => blocker.code === 'UNTRACKED_REPLACEMENT'));
+  assert.deepEqual(drifted.discardedEdits, ['AGENTS.md']);
   writeFileSync(join(f.project.root, 'AGENTS.md'), 'Pinned instructions\n');
 
   mkdirSync(join(f.project.root, 'apps/new'), { recursive: true });
@@ -143,7 +144,8 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   const emptyInstalledDirectory = join(f.project.root, '.agents/skills/adopt-standards/added-directory');
   mkdirSync(emptyInstalledDirectory);
   const inventoryDrift = f.run(['inspect', '--json']).report;
-  assert.ok(inventoryDrift.start.blockers.some((blocker: { code: string }) => blocker.code === 'INSTALLED_CONTENT_EDITED'));
+  assert.ok(inventoryDrift.start.blockers.some((blocker: { code: string; path?: string }) => blocker.code === 'UNTRACKED_REPLACEMENT' && blocker.path === '.agents/skills/adopt-standards/added-directory'));
+  assert.deepEqual(inventoryDrift.discardedEdits, ['.agents/skills/adopt-standards']);
   rmSync(emptyInstalledDirectory, { recursive: true });
 
   const checkout = join(f.remote.support.root, 'unchanged-checkout');

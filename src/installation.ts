@@ -32,8 +32,9 @@ export interface Installation {
   report: StartInspection['report']; git: StartInspection['git']; files: Files; skills: Record<string, string[]>;
   exactBaselines: Record<string, Baseline>; durable: Record<string, Baseline>;
   runtimeHash: string; scopeAfterFixes?: string; before: Record<string, HashInventory>;
-  // An update replaces retained inputs, still-declared skills and, with the
-  // runtime, the system skill as whole trees.
+  // Paths the run removes whole before installing the planned files under
+  // them: an update's retained inputs, each skill the inspection replaces, and
+  // each target it removes, which may be a single file.
   replaceTrees: string[];
   // The durable state of the last complete adoption, which an update keeps in
   // place until its completion replaces it.
@@ -42,7 +43,8 @@ export interface Installation {
 
 // Plans the installation of a confirmed inspection. A replaced runtime was
 // prepared in its directory, with the system skill it packages; otherwise the
-// installed runtime is kept.
+// installed runtime is kept, and the system skill is the one the inspecting
+// CLI, which is the pinned one, packages.
 export function planInstallation(root: string, inspected: StartInspection, confirmation: string, runtime?: { directory: string; skill: Observation }): Installation {
   const { report, materials, recorded } = inspected;
   const files: Files = Object.create(null);
@@ -81,11 +83,13 @@ export function planInstallation(root: string, inspected: StartInspection, confi
   }
   const durable = baselines(files);
   files[lockFile] = file(json({ format: formats.lock, selection: report.selection, inspection: confirmation, files: durable }));
-  // An update replaces retained inputs and every still-declared skill as whole
-  // trees, and the system skill with the runtime. Retired content stays.
-  const replaceTrees = report.update !== undefined ? ['.repo-standards/inputs', ...report.resolved.declarations
-    .filter(declaration => declaration.kind === 'skill').map(declaration => `.agents/skills/${declaration.name}`),
-  ...(runtime ? [systemTarget] : [])] : [];
+  // An update replaces its retained inputs as a whole tree. A replaced skill,
+  // including the system skill, is replaced as a whole tree, removing
+  // resources the candidate lacks, and a removed target is removed whole.
+  const skillTargets = new Set(Object.keys(skills));
+  const replaceTrees = [...report.update !== undefined ? ['.repo-standards/inputs'] : [],
+    ...[...report.exact, report.systemSkill].filter(({ target, action }) => action === 'replace' && skillTargets.has(target)).map(({ target }) => target),
+    ...(report.removed ?? []).map(({ target }) => target)];
   return { report, git: inspected.git, files, skills, exactBaselines, durable, runtimeHash: hash(json(installedRuntime)), replaceTrees,
     ...(recorded ? { previousState: recorded.stateFile } : {}),
     before: Object.fromEntries([...Object.keys(files).filter(path => !replaceTrees.some(tree => path.startsWith(tree + '/'))), ...replaceTrees].map(path => [path, hashInventory(safe(root, path))])) };
@@ -179,7 +183,7 @@ export function install(root: string, session: Pick<AdoptionRunSession, 'record'
   for (const tree of replaceTrees) {
     if (treeProgress[tree] === 'installing') continue;
     session.record({ type: 'tree-removing', path: tree });
-    safeDirectory(root, tree);
+    safe(root, tree);
     rmSync(join(root, tree), { recursive: true, force: true });
     session.record({ type: 'tree-installing', path: tree });
   }

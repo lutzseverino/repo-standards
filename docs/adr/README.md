@@ -28,6 +28,10 @@ alternatives.
 - [Correct scope by adopting again, not by amending a run](0009-correct-scope-by-adopting-again.md):
   a mistaken confirmed scope is corrected by abandoning the run and adopting
   again with a new scope.
+- [Replace tracked content; block only untracked](0010-replace-tracked-content-block-only-untracked.md):
+  the product replaces or removes tracked content at any installation target,
+  lists each overwrite that discards edits in the confirmed inspection, and
+  blocks only untracked content.
 - [Retain only the current run](0011-retain-only-the-current-run.md):
   committed state and scope evidence hold the current run only, with its scope
   change against the previous run, so they do not grow from run to run.

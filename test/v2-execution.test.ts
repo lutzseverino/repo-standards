@@ -401,7 +401,8 @@ ${result}`, { review: { kind: 'skill', name: 'review', source: 'skill', fixes: [
   assert.equal(recovered.result.status, 0, recovered.result.stdout);
   mkdirSync(join(f.project.root, '.agents/skills/review/another-empty'));
   const retained = f.run(['inspect', '--json']).report;
-  assert.ok(retained.start.blockers.some((blocker: { code: string; path: string }) => blocker.code === 'INSTALLED_CONTENT_EDITED' && blocker.path === '.agents/skills/review'));
+  assert.ok(retained.start.blockers.some((blocker: { code: string; path: string }) => blocker.code === 'UNTRACKED_REPLACEMENT' && blocker.path === '.agents/skills/review/another-empty'));
+  assert.deepEqual(retained.discardedEdits, ['.agents/skills/review']);
 });
 
 test('v2 protects durable product directories while permitting generated local and cache directories', async t => {

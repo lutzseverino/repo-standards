@@ -23,6 +23,7 @@ export interface InspectionReport {
   guidance: { id: string; targets: string[]; discoveryRequired?: boolean }[];
   operations: OperationDefinition[];
   systemSkill: { target: string; action: string };
+  removed?: { id: string; target: string; files: ChangedFile[] }[]; discardedEdits: string[];
   discovery?: { declarations: { id: string }[]; proposal?: unknown };
   scopeChanges?: ScopeChange[]; retired?: TargetedDeclaration[];
   start: { eligible: boolean | null; blockers: Blocker[] };
@@ -137,7 +138,7 @@ export function inspectionSummary(report: InspectionReport) {
         table(['Declaration', 'Changes'], changes.map(change => [code(change.id), change.changes.join(', ')]))].join('\n\n')));
   }
 
-  const exactRows = report.exact.flatMap(entry => entry.files.flatMap(file => {
+  const exactRows = [...report.exact, ...report.removed ?? []].flatMap(entry => entry.files.flatMap(file => {
     const change = fileChange(file);
     return change ? [[code(entry.id), code(file.path), change]] : [];
   }));
@@ -149,6 +150,11 @@ export function inspectionSummary(report: InspectionReport) {
   parts.push(section('Changed declarations', [
     exactRows.length ? `Exact content:\n\n${table(['Declaration', 'Path', 'Change'], exactRows)}` : 'No exact content changes.',
     guidanceRows.length ? `Contextual declarations:\n\n${table(['Declaration', 'Targets', 'Changes'], guidanceRows)}` : 'No contextual declaration changes.',
+  ].join('\n\n')));
+
+  if (report.discardedEdits.length) parts.push(section('Discarded edits', [
+    'Replacing or removing these targets discards content that is not their installed baseline:',
+    report.discardedEdits.map(path => `- ${code(path)}`).join('\n'),
   ].join('\n\n')));
 
   parts.push(section('Operations', report.operations.length ? table(['Phase', 'Declaration', 'Operation', 'Command', 'Prerequisite', 'Timeout'], report.operations.map(operation => [

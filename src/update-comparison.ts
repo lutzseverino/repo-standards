@@ -7,8 +7,8 @@ import type { RecordedAdoption, RecordedSelection } from './recorded-state.js';
 // adoption changes. It takes the verified recorded adoption, the candidate
 // selection and materials, and the project's observed product state, and
 // returns the whole update part of an inspection report together with the
-// product-state-integrity blocker. It rejects a moved tag. Edits to installed
-// content are for target ownership to judge.
+// product-state-integrity blocker. It rejects a moved tag. What happens to
+// installed content is for target ownership to judge.
 //
 // An update's class says whether anything an adopter reviews in context
 // changes. It is exact only when every declaration's guidance, discovery

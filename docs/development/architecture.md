@@ -45,7 +45,7 @@ are product-owned system skill names reserved within the standards format.
 | Source acquisition | A public GitHub identity and stable version produce an immutable source snapshot and provenance. Search provides candidates without establishing trust. |
 | Resolver | A source and profile produce one validated source-resolved selection, or structured errors. Discovery references remain distinct from executable targets until project scope is confirmed. This is the sole interpreter of the author format. |
 | Repository state | A resolved selection and observed project produce an inspection, its update comparison and class, freshness identities, and durable adoption progress. The update comparison takes the verified recorded adoption, the candidate selection and materials, and the project's observed product state. It rejects a recorded tag that now resolves to a different commit, and returns the whole update part of an inspection, which is the changed selection components, the previous selection, the retired declarations, the update class and contextual changes, and the product-state-integrity blocker. Scope changes stay with inspection, which holds the scope proposal. |
-| Target ownership | Each installation target's current content, its installed baseline when one exists, its candidate content when one exists, whether that content is tracked, and whether an adoption is established produce its target ownership: the action a run would take on it (match, create, or replace; none for a target with only a baseline) and its ownership blockers: skill and system-skill conflicts, edited installed content, and untracked replacement content. Inspection observes each target once and is its only caller. |
+| Target ownership | Each installation target's current content, its installed baseline when one exists, its candidate content when one exists, and whether that content is tracked produce its target ownership: the action a run would take on it (match, create, or replace; a recorded target the selection no longer installs has a missing candidate, so its removal is a replacement, unless it overlaps contextual scope or lies at or inside a target the selection still installs, where it has no candidate and no action), whether that action discards content other than the installed baseline, and its one ownership blocker, untracked replacement content. The rule is the same for every target kind in every run. Inspection observes each target once and is its only caller. |
 | Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, and status read an established adoption only through it; every command first rejects retired records in the product state and Git directories through it, which is all resume and abandon need while a run is active. `outdated` reads the selection leniently instead. |
 | Installation | A confirmed inspection produces one run's installation plan, not the adoption itself: the exact content, skills, retained inputs, durable product state, and runtime an adoption run installs, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module. |
 | Execution | Confirmed adoption progress advances through exact installation, literal process execution, checks, and final integrity. Final integrity is the run-time check of the run's planned installation, distinct from the recorded adoption reader's check of the committed baseline a run starts from. |
@@ -306,13 +306,18 @@ a clean index and working tree with no untracked files, and the inspected
 project state; the run records HEAD at start for provenance. It also examines replacement targets for ignored content:
 a clean Git status alone does not prove that content is recoverable.
 
-An existing exact file or skill directory whose complete inventory, bytes, and
-modes match the supplied content is claimed without rewriting; at initial
-adoption this includes the system skill packaged with the exact CLI. A differing
-exact file or eligible skill directory is replaced only as shown in the
-confirmed inspection. A differing existing skill without an installed baseline
-remains a conflict, and existing product state blocks initial adoption.
-Ignored or otherwise untracked replacement content blocks mutation.
+Target ownership is one rule for every installation target, including author
+skills and the system skill, in every run. An existing exact file or skill
+directory whose complete inventory, bytes, and modes match the supplied content
+is matched without rewriting. Tracked content that differs is replaced, as
+shown in the confirmed inspection, because Git can recover it; a replaced skill
+directory is replaced whole. Ignored or otherwise untracked replacement
+content, including an empty directory, blocks mutation. The inspection lists
+each replacement that discards content other than the target's installed
+baseline; at initial adoption there is no baseline, so every replacement of
+existing content is listed. Existing product state blocks initial adoption.
+[ADR 0010](../adr/0010-replace-tracked-content-block-only-untracked.md) records
+the decision.
 
 All prerequisite executables and versions are checked before project changes.
 Version probes run installed executables directly using declared arguments;
@@ -498,15 +503,21 @@ to be available or already cached. Every update, including an unchanged
 selection, requires a fresh confirmed scope for each active discovery
 declaration.
 
-Known edits to installed content block the entire update before mutation.
-There is no force-overwrite or automatic discard promise. Maintainers reconcile
-their content before a new inspection.
+Edits to installed content do not block an update. The update replaces an
+edited target, or matches it when it already holds the candidate content, and
+the inspection lists each replacement that discards an edit. Installed bytes
+that already equal the candidate are matched without rewriting.
 
 Retiring a declaration, including one that a changed source or profile no
-longer declares, preserves its content and relinquishes governance.
-Updating a still-declared skill replaces the whole directory, including removal
-of resources absent from the new version. Exclusion never authorizes deletion
-of project-owned content.
+longer declares or that the profile excludes, relinquishes governance and
+removes its installed targets; an edited one is listed among the discarded
+edits. An installed target within contextual scope, as a contextual target or
+inside or containing one, is not removed and stays in place as project content,
+and one at or inside a target the selection still installs is left to that
+target's own action. Updating a still-declared skill replaces the whole
+directory, including removal of resources absent from the new version.
+Exclusion removes only installed targets outside contextual scope and never
+deletes project-owned content.
 
 At most one run is active for an adopting project. An interrupted run must be
 resumed or abandoned. Progress records distinguish confirmed installation work
@@ -522,14 +533,13 @@ it is not a completed adoption. There is no blanket rollback promise.
 A run's confirmed scope never changes. When contextual work needs files outside
 it, or a confirmed target is mistaken, the run stays incomplete with its work
 preserved; the adopter abandons it, commits or discards its changes, and adopts
-again with a new confirmed scope. Initial adoption claims existing exact files
+again with a new confirmed scope. Initial adoption matches existing exact files
 and skill directories, including the system skill, whose complete inventory,
-bytes, and modes match, while existing product state blocks it. Fresh adoption
-over previously installed content therefore needs the committed removal of the
-product state directory. An existing system skill whose inventory, bytes, or
-modes differ from the skill packaged with the adopting CLI, such as one a
-different CLI version installed, conflicts and must be reconciled or removed
-first.
+bytes, and modes match, and replaces tracked ones that differ, while existing
+product state blocks it. Fresh adoption over previously installed content
+therefore needs only the committed removal of the product state directory; an
+existing system skill that a different CLI version installed is replaced like
+any other tracked target.
 
 ## Acceptance criteria
 
@@ -560,10 +570,12 @@ The product is complete only when all of these pass:
    after the standards source becomes unavailable.
 9. Update the CLI pin, the standards version, the source, and the profile,
    separately and together, and apply an unchanged selection again, each in one
-   confirmed run. Reject incompatible selections, moved tags, and local edits
-   before mutation. Detect added skill resources as edits and remove obsolete
+   confirmed run. Reject incompatible selections and moved tags before
+   mutation. Replace local edits to installed content, including added skill
+   resources, and list each one in the confirmed inspection; remove obsolete
    resources on an unchanged skill update.
-10. Retire a declaration by preserving its content and relinquishing ownership.
+10. Retire a declaration by removing its installed targets and relinquishing
+    ownership, listing each removed edit.
 11. Recover from interrupted installation and fixes through recorded progress
     and explicit retry. Prevent concurrent runs; preserve abandoned work.
 12. Pass the same product behavior on macOS and Linux through the published
@@ -572,8 +584,8 @@ The product is complete only when all of these pass:
     lookup fails, and classify every update as exact or contextual with
     deterministic Markdown summaries of inspections and runs.
 14. Reject retired formats with the fresh-adoption diagnostic, and adopt fresh
-    over previously installed content after removing the product state and
-    reconciling or removing any conflicting system skill.
+    over previously installed content after removing the product state,
+    replacing any differing tracked system skill without an ownership blocker.
 
 Release 2.0.0 is accepted through the fresh adoption of this repository with the
 published 2.0.0 CLI against the current Repo Canon release, recorded as
@@ -640,8 +652,9 @@ current coverage. Every later update, including one that applies an unchanged
 selection again, recomputes every active discovery declaration from fresh
 evidence, reports additions and removals against the prior complete scope, and
 retains its own proposal and evidence with that scope change, replacing the
-previous run's. Removed paths stay
-project-owned content; removal, exclusion and retirement never imply deletion.
+previous run's. Removed scope paths stay project-owned content; removing a path
+from scope, or excluding or retiring its contextual declaration, never deletes
+it.
 
 ## Removed in 2.0.0
 
