@@ -436,7 +436,7 @@ test('committed evidence binds ignore inputs by role and content and records no 
   entry.coverage = 'This repository contains test fixtures only; no maintained project requires documentation.';
   const start = f.start(f.inspect().report.identity).report;
   assert.equal(start.phase, 'contextual', JSON.stringify(start));
-  const completed = submit(f, assessment(start.workRequest));
+  const completed = submit(f, assessment());
   assert.equal(completed.result.status, 0, completed.result.stdout);
   assert.equal(completed.report.root, f.project.root);
   assert.equal(localRunReport(f.project.root).root, f.project.root);
