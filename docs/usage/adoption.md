@@ -366,10 +366,10 @@ JSON. After a complete run it is the record of that run: the selection, every
 operation with its result and message, each path the run changed, once, with
 the phases that changed it, the discovered-scope additions and removals the run
 made, and the run, inspection, HEAD-at-start, and completion identities. During
-an active run it renders the run's selection, outcome, phase, execution and reason, its
-completed and uncertain work, operations and results, changed paths, next
-action, and identities. Abandoned runs and a state error are listed when
-present. The same record renders the same bytes, the summary describes the
+an active run it renders the run's selection, outcome, phase, execution and
+reason, its completed and uncertain work, operations and results, changed
+paths, next action, and identities. Abandoned runs and a state error are listed
+when present. The same record renders the same bytes, the summary describes the
 record without prescribing anything, and combining `--summary` with `--json` is
 a usage error.
 
@@ -382,8 +382,8 @@ created, replaced, or removed; `fixes` and `agent` for the paths their intervals
 recorded. A path that a later phase returned to its state before the run is not
 listed, verified restoration of installed content after an interruption keeps
 only the installation's attribution, and product state under `.repo-standards/`
-is not listed. The JSON
-status record of a complete adoption includes the same `changeSet`.
+is not listed. The JSON status record of a complete adoption includes the same
+`changeSet`.
 
 The JSON status record of a complete discovery-backed adoption includes
 `scopeChanges`: the additions and removals by declaration that its last complete

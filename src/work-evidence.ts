@@ -322,7 +322,8 @@ function changeSet(installed: Record<string, Delta>, intervals: RecordedInterval
 // The execution-evidence slice a completion writes: this run's evidence only.
 // The run already records its intervals in the committed shape, so they are
 // carried without transformation, together with the run's net change set over
-// the paths its installation plans and its intervals. Last-complete,
+// the paths its installation plans, each with its state before and as
+// installed, and its intervals. Last-complete,
 // installed baselines, skills, checks and assessments stay with their own
 // owners.
 export function completedEvidence(run: { observations: RecordedInterval[]; operations: unknown[]; retryHistory?: unknown[] }, installed: Record<string, Delta>): ExecutionEvidence {
