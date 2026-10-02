@@ -13,6 +13,16 @@ export function snapshot(root: string): unknown {
   });
 }
 
+// A tree's files with their bytes and executable state, which is all an
+// installation preserves; other permission bits depend on the umask.
+export function installedTree(root: string, prefix = ''): [string, string, boolean][] {
+  return readdirSync(join(root, prefix)).sort().flatMap(name => {
+    const path = prefix ? `${prefix}/${name}` : name;
+    const stat = lstatSync(join(root, path));
+    return stat.isDirectory() ? installedTree(root, path) : [[path, readFileSync(join(root, path)).toString('base64'), (stat.mode & 0o111) !== 0] as [string, string, boolean]];
+  });
+}
+
 // Reports and run records carry hashes, never file bytes: list every place a
 // value still embeds content.
 export function embeddedContent(value: unknown, path = '$'): string[] {

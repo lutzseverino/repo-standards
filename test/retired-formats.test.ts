@@ -3,7 +3,7 @@ import { after, test } from 'node:test';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
-import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
+import { installCli, installedTree, snapshot, sourceFixture } from './installed-cli.ts';
 import { committedScopeEvidence, committedState, rewriteCommittedState, rewriteRetainedInput } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
@@ -146,4 +146,48 @@ test('the single committed formats are validated on read', async t => {
   assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
   rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', scope);
   assert.equal(f.run(['status', '--json']).result.status, 0);
+});
+
+test('a project on a retired format completes remove, commit, and adopt again without an ownership blocker', async t => {
+  const remote = remoteFixture(stringify({
+    format: 'repo-standards/v2', name: 'exact-standards', description: 'Exact content and a skill',
+    requires: { 'repo-standards': '>=1' },
+    defaults: { declarations: {
+      instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
+      review: { kind: 'skill', name: 'review', source: 'review' },
+    } },
+    profiles: { work: { description: 'Work', declarations: {} } },
+  }), { 'agents.md': 'Pinned instructions\n', 'review/SKILL.md': '# Review\n' });
+  const project = sourceFixture('', { 'README.md': '# Project\n' });
+  commit(project.root);
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  const env = { ...remote.env, ...registry.env };
+  const run = (args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: JSON.parse(result.stdout) }; };
+  const initial = run(inspectionArgs).report;
+  assert.equal(run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity]).result.status, 0);
+  commit(project.root);
+  // An earlier CLI wrote a retired state format and its own system skill, and
+  // the maintainer edited the installed author skill since.
+  rewriteCommittedState(project.root, { ...committedState(project.root), format: 'repo-standards/state/v5' });
+  writeFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), '# System skill of an earlier CLI\n');
+  writeFileSync(join(project.root, '.agents/skills/adopt-standards/earlier.md'), 'Earlier resource\n');
+  writeFileSync(join(project.root, '.agents/skills/review/SKILL.md'), '# Review, edited\n');
+  commit(project.root);
+  assert.equal(run(['inspect', '--json']).report.errors[0].code, 'RETIRED_FORMAT');
+
+  git(project.root, 'rm', '-r', '--quiet', '.repo-standards');
+  rmSync(join(project.root, '.repo-standards'), { recursive: true, force: true });
+  commit(project.root);
+  const inspection = run(inspectionArgs).report;
+  assert.deepEqual(inspection.start.blockers, []);
+  assert.equal(inspection.start.eligible, true);
+  assert.deepEqual(inspection.discardedEdits, ['.agents/skills/adopt-standards', '.agents/skills/review']);
+  assert.equal(inspection.exact.find((entry: { id: string }) => entry.id === 'instructions').action, 'match');
+  const started = run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity]);
+  assert.equal(started.result.status, 0, started.result.stdout + started.result.stderr);
+  assert.equal(started.report.outcome, 'complete');
+  assert.deepEqual(installedTree(join(project.root, '.agents/skills/adopt-standards')), installedTree(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/adopt-standards')));
+  assert.equal(readFileSync(join(project.root, '.agents/skills/review/SKILL.md'), 'utf8'), '# Review\n');
+  assert.equal(committedState(project.root).format, 'repo-standards/state/v6');
 });

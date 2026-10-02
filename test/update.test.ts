@@ -6,7 +6,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { parse, stringify } from 'yaml';
-import { installCli, sourceFixture } from './installed-cli.ts';
+import { installCli, installedTree, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
@@ -28,7 +28,7 @@ profiles:
     declarations: {}
 `;
 
-test('a confirmed standards update advances only the standards pin, replaces whole owned skills, and preserves retired content', async t => {
+test('a confirmed standards update advances only the standards pin, replaces whole owned skills, and removes retired and excluded content', async t => {
   const v1 = source('v1', `    instructions:
       kind: file
       target: AGENTS.md
@@ -87,6 +87,9 @@ test('a confirmed standards update advances only the standards pin, replaces who
   assert.equal(inspection.selection.cli.version, cli.version);
   assert.equal(inspection.selection.standards.commit, published.sha);
   assert.deepEqual(inspection.retired.map((entry: { id: string }) => entry.id), ['excluded', 'retired']);
+  assert.deepEqual(inspection.removed.map(({ id, target }: { id: string; target: string }) => ({ id, target })), [
+    { id: 'excluded', target: 'EXCLUDED.md' }, { id: 'retired', target: 'RETIRED.md' }]);
+  assert.deepEqual(inspection.discardedEdits, []);
 
   const result = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -94,8 +97,8 @@ test('a confirmed standards update advances only the standards pin, replaces who
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version two');
   assert.equal(readFileSync(join(project.root, '.agents/skills/review/current.txt'), 'utf8'), 'current');
   assert.equal(existsSync(join(project.root, '.agents/skills/review/obsolete.txt')), false);
-  assert.equal(readFileSync(join(project.root, 'RETIRED.md'), 'utf8'), 'Keep retired content');
-  assert.equal(readFileSync(join(project.root, 'EXCLUDED.md'), 'utf8'), 'Keep excluded content');
+  assert.equal(existsSync(join(project.root, 'RETIRED.md')), false);
+  assert.equal(existsSync(join(project.root, 'EXCLUDED.md')), false);
   const selection = parse(readFileSync(join(project.root, '.repo-standards/selection.yaml'), 'utf8'));
   assert.equal(selection.standards.version, 'v1.1.0');
   assert.equal(selection.cli.version, cli.version);
@@ -108,7 +111,7 @@ test('a confirmed standards update advances only the standards pin, replaces who
   assert.notEqual(git(project.root, 'status', '--porcelain=v1'), '');
 });
 
-test('every committed edit to installed exact baselines blocks the entire standards update before mutation', async t => {
+test('an update replaces each committed edit to installed content and lists it as a discarded edit', async t => {
   const registry = await registryFixture(cli.root);
   t.after(() => registry.close());
   const declarations = `    instructions:
@@ -119,12 +122,12 @@ test('every committed edit to installed exact baselines blocks the entire standa
       kind: skill
       name: review
       source: review`;
-  for (const [name, mutate] of [
-    ['changed bytes', (root: string) => writeFileSync(join(root, 'AGENTS.md'), 'Maintainer edit')],
-    ['changed executable state', (root: string) => chmodSync(join(root, 'AGENTS.md'), 0o755)],
-    ['added skill resource', (root: string) => writeFileSync(join(root, '.agents/skills/review/added.txt'), 'Maintainer resource')],
-    ['removed skill resource', (root: string) => rmSync(join(root, '.agents/skills/review/resource.txt'))],
-    ['changed skill resource', (root: string) => writeFileSync(join(root, '.agents/skills/review/resource.txt'), 'Maintainer edit')],
+  for (const [name, mutate, target] of [
+    ['changed bytes', (root: string) => writeFileSync(join(root, 'AGENTS.md'), 'Maintainer edit'), 'AGENTS.md'],
+    ['changed executable state', (root: string) => chmodSync(join(root, 'AGENTS.md'), 0o755), 'AGENTS.md'],
+    ['added skill resource', (root: string) => writeFileSync(join(root, '.agents/skills/review/added.txt'), 'Maintainer resource'), '.agents/skills/review'],
+    ['removed skill resource', (root: string) => rmSync(join(root, '.agents/skills/review/resource.txt')), '.agents/skills/review'],
+    ['changed skill resource', (root: string) => writeFileSync(join(root, '.agents/skills/review/resource.txt'), 'Maintainer edit'), '.agents/skills/review'],
   ] as const) await t.test(name, () => {
     const remote = remoteFixture(source('v1', declarations), {
       'agents.md': 'Version one', 'review/SKILL.md': '# Review', 'review/resource.txt': 'Owned resource',
@@ -143,16 +146,18 @@ test('every committed edit to installed exact baselines blocks the entire standa
     });
     const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
     const inspection = JSON.parse(cli.run(updateArgs, project.root, env).stdout);
-    assert.ok(inspection.start.blockers.some((blocker: { code: string }) => blocker.code === 'INSTALLED_CONTENT_EDITED'), JSON.stringify(inspection.start.blockers));
-    const before = git(project.root, 'status', '--porcelain=v1');
-    const rejected = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
-    assert.equal(rejected.status, 1);
-    assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'START_BLOCKED');
-    assert.equal(git(project.root, 'status', '--porcelain=v1'), before);
+    assert.deepEqual(inspection.start.blockers, []);
+    assert.deepEqual(inspection.discardedEdits, [target]);
+    const result = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+    assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version two');
+    assert.equal(lstatSync(join(project.root, 'AGENTS.md')).mode & 0o111, 0);
+    assert.deepEqual(installedTree(join(project.root, '.agents/skills/review')), installedTree(join(remote.source.root, 'review')));
   });
 });
 
-test('update inspections report edited installed content at each changed baseline path', async t => {
+test('update inspections match candidate-equal content and list each discarded edit, including a retired target they remove', async t => {
   const registry = await registryFixture(cli.root);
   t.after(() => registry.close());
   const declarations = `    instructions:
@@ -167,21 +172,36 @@ test('update inspections report edited installed content at each changed baselin
     retired:
       kind: file
       target: RETIRED.md
-      exact: retired.md`;
-  const v1Files = { 'agents.md': 'Version one', 'review/SKILL.md': '# Review v1', 'review/resource.txt': 'Owned resource', 'retired.md': 'Retired content' };
+      exact: retired.md
+    legacy:
+      kind: skill
+      name: legacy
+      source: legacy`;
+  const v1Files = { 'agents.md': 'Version one', 'review/SKILL.md': '# Review v1', 'review/resource.txt': 'Owned resource', 'retired.md': 'Retired content', 'legacy/SKILL.md': '# Legacy' };
   const v2Files = { 'agents.md': 'Version two', 'review/SKILL.md': '# Review v2' };
-  const edited = (path: string) => ({ code: 'INSTALLED_CONTENT_EDITED', path });
-  for (const { name, mutate, blockers, actions } of [
+  const system = '.agents/skills/adopt-standards';
+  const untracked = (path: string) => ({ code: 'UNTRACKED_REPLACEMENT', path });
+  for (const { name, mutate, blockers = [], discarded, actions } of [
     { name: 'an edited retired exact file', mutate: (root: string) => writeFileSync(join(root, 'RETIRED.md'), 'Maintainer edit'),
-      blockers: [edited('RETIRED.md')] },
+      discarded: ['RETIRED.md'] },
+    { name: 'an edited retired skill', mutate: (root: string) => writeFileSync(join(root, '.agents/skills/legacy/notes.md'), 'Maintainer notes'),
+      discarded: ['.agents/skills/legacy'] },
+    { name: 'an ignored resource in a retired skill', mutate: (root: string) => {
+      writeFileSync(join(root, '.gitignore'), '/.agents/skills/legacy/local.md\n');
+      writeFileSync(join(root, '.agents/skills/legacy/local.md'), 'Ignored notes');
+    }, blockers: [untracked('.agents/skills/legacy/local.md')], discarded: ['.agents/skills/legacy'] },
+    { name: 'an ignored retired exact file', mutate: (root: string) => {
+      writeFileSync(join(root, '.gitignore'), '/RETIRED.md\n');
+      git(root, 'rm', '--cached', '--quiet', 'RETIRED.md');
+    }, blockers: [untracked('RETIRED.md')], discarded: [] },
     { name: 'an exact file whose bytes equal the candidate but not the baseline', mutate: (root: string) => writeFileSync(join(root, 'AGENTS.md'), 'Version two'),
-      blockers: [edited('AGENTS.md')], actions: { instructions: 'match', review: 'replace' } },
+      discarded: [], actions: { instructions: 'match', review: 'replace' } },
     { name: 'a skill whose bytes equal the candidate but not the baseline', mutate: (root: string) => writeFileSync(join(root, '.agents/skills/review/SKILL.md'), '# Review v2'),
-      blockers: [edited('.agents/skills/review/SKILL.md')], actions: { instructions: 'replace', review: 'match' } },
-    { name: 'an edited system skill', mutate: (root: string) => writeFileSync(join(root, '.agents/skills/adopt-standards/SKILL.md'), 'Maintainer edit'),
-      blockers: [edited('.agents/skills/adopt-standards/SKILL.md')] },
+      discarded: [], actions: { instructions: 'replace', review: 'match' } },
+    { name: 'an edited system skill', mutate: (root: string) => writeFileSync(join(root, system, 'SKILL.md'), 'Maintainer edit'),
+      discarded: [system] },
     { name: 'a removed skill file', mutate: (root: string) => rmSync(join(root, '.agents/skills/review/resource.txt')),
-      blockers: [edited('.agents/skills/review/resource.txt'), edited('.agents/skills/review')] },
+      discarded: ['.agents/skills/review'] },
   ]) await t.test(name, () => {
     const remote = remoteFixture(source('v1', declarations + retired), v1Files);
     const project = sourceFixture('');
@@ -199,11 +219,28 @@ test('update inspections report edited installed content at each changed baselin
     assert.equal(result.status, 0, result.stdout + result.stderr);
     const inspection = JSON.parse(result.stdout);
     assert.deepEqual(inspection.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), blockers);
+    assert.deepEqual(inspection.discardedEdits, discarded);
+    assert.deepEqual(inspection.removed.map(({ id, target }: { id: string; target: string }) => ({ id, target })), [
+      { id: 'legacy', target: '.agents/skills/legacy' }, { id: 'retired', target: 'RETIRED.md' }]);
     if (actions) assert.deepEqual(Object.fromEntries(inspection.exact.map(({ id, action }: { id: string; action: string }) => [id, action])), actions);
+    const started = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+    if (blockers.length) {
+      assert.equal(started.status, 1, started.stdout + started.stderr);
+      assert.equal(JSON.parse(started.stdout).errors[0].code, 'START_BLOCKED');
+      for (const { path } of blockers) assert.ok(existsSync(join(project.root, path)), path);
+      return;
+    }
+    assert.equal(started.status, 0, started.stdout + started.stderr);
+    assert.equal(JSON.parse(started.stdout).outcome, 'complete');
+    assert.equal(existsSync(join(project.root, 'RETIRED.md')), false);
+    assert.equal(existsSync(join(project.root, '.agents/skills/legacy')), false);
+    assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version two');
+    assert.equal(readFileSync(join(project.root, '.agents/skills/review/SKILL.md'), 'utf8'), '# Review v2');
+    assert.deepEqual(installedTree(join(project.root, system)), installedTree(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/adopt-standards')));
   });
 });
 
-test('update inspections report each declared target block before baseline-only targets sorted by path', async t => {
+test('update inspections report each declared target block and discarded edit before baseline-only targets sorted by path', async t => {
   const instructions = `    instructions:
       kind: file
       target: AGENTS.md
@@ -235,12 +272,124 @@ test('update inspections report each declared target block before baseline-only 
   remote.addVersion('v1.1.0', source('v2', instructions), { 'agents.md': 'Version two' });
   const result = cli.run(inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument), project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.deepEqual(JSON.parse(result.stdout).start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), [
+  const inspection = JSON.parse(result.stdout);
+  assert.deepEqual(inspection.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), [
     { code: 'UNSAFE_TARGET', path: 'AGENTS.md' },
-    { code: 'INSTALLED_CONTENT_EDITED', path: 'AGENTS.md' },
-    { code: 'INSTALLED_CONTENT_EDITED', path: 'A-RETIRED.md' },
-    { code: 'INSTALLED_CONTENT_EDITED', path: 'Z-RETIRED.md' },
   ]);
+  assert.deepEqual(inspection.discardedEdits, ['AGENTS.md', 'A-RETIRED.md', 'Z-RETIRED.md']);
+});
+
+test('an update keeps a retired installed target that lies within contextual scope', async t => {
+  const v1 = source('v1', `    instructions:
+      kind: file
+      target: AGENTS.md
+      exact: agents.md
+    policy:
+      kind: file
+      target: docs/policy.md
+      exact: policy.md`);
+  const v2 = source('v2', `    instructions:
+      kind: file
+      target: AGENTS.md
+      guidance: agents-guide.md
+    docs:
+      kind: repository
+      guidance: docs-guide.md
+      targets: {paths: [], directories: [docs]}`);
+  const remote = remoteFixture(v1, { 'agents.md': 'Pinned instructions', 'policy.md': 'Policy' });
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
+  commit(project.root);
+  writeFileSync(join(project.root, 'docs/policy.md'), 'Maintainer policy');
+  commit(project.root);
+  remote.addVersion('v1.1.0', v2, { 'agents-guide.md': 'Keep the instructions current.', 'docs-guide.md': 'Keep the documentation current.' });
+  const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
+  const result = cli.run(updateArgs, project.root, env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const inspection = JSON.parse(result.stdout);
+  assert.deepEqual(inspection.retired.map((entry: { id: string }) => entry.id), ['policy']);
+  assert.deepEqual(inspection.removed, []);
+  assert.deepEqual(inspection.discardedEdits, []);
+  assert.deepEqual(inspection.start.blockers, []);
+  const started = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+  assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout + started.stderr);
+  assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Pinned instructions');
+  assert.equal(readFileSync(join(project.root, 'docs/policy.md'), 'utf8'), 'Maintainer policy');
+});
+
+test('an update leaves a retired installed target inside a still-installed skill to that skill', async t => {
+  const v1 = source('v1', `    instructions:
+      kind: file
+      target: .agents/skills/review/SKILL.md
+      exact: review.md`);
+  const v2 = source('v2', `    review:
+      kind: skill
+      name: review
+      source: review`);
+  const remote = remoteFixture(v1, { 'review.md': '# Review v1' });
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
+  commit(project.root);
+  remote.addVersion('v1.1.0', v2, { 'review/SKILL.md': '# Review v2', 'review/notes.md': 'Notes' });
+  const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
+  const inspection = JSON.parse(cli.run(updateArgs, project.root, env).stdout);
+  assert.deepEqual(inspection.retired.map((entry: { id: string }) => entry.id), ['instructions']);
+  assert.deepEqual(inspection.removed, []);
+  assert.deepEqual(inspection.start.blockers, []);
+  assert.equal(inspection.exact[0].action, 'replace');
+  const result = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+  assert.deepEqual(installedTree(join(project.root, '.agents/skills/review')), installedTree(join(remote.source.root, 'review')));
+});
+
+test('an update removes a retired target beside contextual scope and one that contains a newly installed target', async t => {
+  const v1 = source('v1', `    old-docs:
+      kind: file
+      target: docs-old.md
+      exact: old.md
+    legacy:
+      kind: skill
+      name: legacy
+      source: legacy`);
+  const v2 = source('v2', `    docs:
+      kind: repository
+      guidance: docs-guide.md
+      targets: {paths: [], directories: [docs]}
+    readme:
+      kind: file
+      target: .agents/skills/legacy/README.md
+      exact: readme.md`);
+  const remote = remoteFixture(v1, { 'old.md': 'Old docs', 'legacy/SKILL.md': '# Legacy' });
+  const project = sourceFixture('', { 'docs/guide.md': 'Guide' });
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
+  commit(project.root);
+  remote.addVersion('v1.1.0', v2, { 'docs-guide.md': 'Keep the documentation current.', 'readme.md': 'Read me' });
+  const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
+  const inspection = JSON.parse(cli.run(updateArgs, project.root, env).stdout);
+  assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', 'docs-old.md']);
+  assert.deepEqual(inspection.discardedEdits, []);
+  assert.deepEqual(inspection.start.blockers, []);
+  const started = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+  assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout + started.stderr);
+  assert.equal(existsSync(join(project.root, 'docs-old.md')), false);
+  assert.deepEqual(installedTree(join(project.root, '.agents/skills/legacy')), [['README.md', Buffer.from('Read me').toString('base64'), false]]);
+  assert.equal(readFileSync(join(project.root, 'docs/guide.md'), 'utf8'), 'Guide');
 });
 
 test('a candidate CLI updates only the exact runtime pin from retained standards and restores without the source', async t => {
@@ -556,7 +705,7 @@ test('a coordinated update changes the CLI and standards pins in one confirmed r
   assert.equal(git(project.root, 'rev-parse', 'HEAD'), head);
 });
 
-test('source and profile switches are updates that preserve the content of retired declarations', async t => {
+test('source and profile switches are updates that remove the installed content of retired declarations', async t => {
   const alice = remoteFixture(source('v1', `    instructions:
       kind: file
       target: AGENTS.md
@@ -603,7 +752,7 @@ test('source and profile switches are updates that preserve the content of retir
   assert.equal(profileSwitch.start.eligible, true, JSON.stringify(profileSwitch.start.blockers));
   const switched = cli.run(['start', ...profileArgs.slice(1), '--confirm', profileSwitch.identity], project.root, env);
   assert.equal(switched.status, 0, switched.stdout + switched.stderr);
-  assert.equal(readFileSync(join(project.root, 'LEGACY.md'), 'utf8'), 'Keep legacy content');
+  assert.equal(existsSync(join(project.root, 'LEGACY.md')), false);
   let status = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
   assert.equal(status.selection.profile, 'lean');
   assert.equal(status.baselines['LEGACY.md'], undefined);
@@ -627,8 +776,8 @@ test('source and profile switches are updates that preserve the content of retir
   assert.equal(JSON.parse(result.stdout).outcome, 'complete');
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Bob instructions');
   assert.equal(readFileSync(join(project.root, '.agents/skills/lint/SKILL.md'), 'utf8'), '# Bob lint');
-  assert.equal(readFileSync(join(project.root, '.agents/skills/review/SKILL.md'), 'utf8'), '# Alice review');
-  assert.equal(readFileSync(join(project.root, 'LEGACY.md'), 'utf8'), 'Keep legacy content');
+  assert.equal(existsSync(join(project.root, '.agents/skills/review')), false);
+  assert.equal(existsSync(join(project.root, 'LEGACY.md')), false);
   assert.ok(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8').includes(`Fixture CLI ${candidateVersion}.`));
   status = JSON.parse(runCandidate(['status', '--json']).stdout);
   assert.equal(status.selection.standards.repository, 'https://github.com/bob/standards');
@@ -1045,8 +1194,10 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status, message:
     const status = JSON.parse(run(['status', '--json']).stdout);
     assert.equal(status.assessments.length, 1);
     assert.equal(status.lastComplete.run, report.id);
-    if (kind === 'standards') assert.equal(status.baselines['RETIRED.md'], undefined);
-    assert.equal(readFileSync(join(project.root, 'RETIRED.md'), 'utf8'), 'Preserve retired content');
+    if (kind === 'standards') {
+      assert.equal(status.baselines['RETIRED.md'], undefined);
+      assert.equal(existsSync(join(project.root, 'RETIRED.md')), false);
+    } else assert.equal(readFileSync(join(project.root, 'RETIRED.md'), 'utf8'), 'Preserve retired content');
     assert.equal(readFileSync(join(project.root, 'package.json'), 'utf8'), '{"private":true}\n');
     assert.equal(readFileSync(join(project.root, 'yarn.lock'), 'utf8'), '# Project dependencies\n');
     assert.equal(git(project.root, 'rev-parse', 'HEAD'), head);
@@ -1127,6 +1278,66 @@ syncBuiltinESMExports();`);
     const recovered = f.run(['resume', '--retry', '--json']);
     assert.equal(recovered.status, 0, recovered.stdout + recovered.stderr);
     assert.equal(JSON.parse(recovered.stdout).outcome, 'complete');
+  });
+});
+
+test('retry resumes an interrupted removal of retired targets and an interrupted initial skill replacement', async t => {
+  const registry = await registryFixture(cli.root);
+  t.after(() => registry.close());
+  const kill = (suffix: string, before?: string) => `
+const remove = fs.rmSync;
+fs.rmSync = function(path, ...args) {
+  if (String(path).endsWith(${JSON.stringify(suffix)})) {
+    ${before ? `remove.call(this, String(path) + ${JSON.stringify(before)});` : ''}
+    process.kill(process.pid, 'SIGKILL');
+  }
+  return remove.call(this, path, ...args);
+};
+syncBuiltinESMExports();`;
+  const declarations = `    review:
+      kind: skill
+      name: review
+      source: review`;
+  for (const { name, fault, initialFiles } of [
+    { name: 'a retired exact file', fault: kill('/RETIRED.md') },
+    { name: 'a retired skill', fault: kill('/.agents/skills/legacy', '/notes.md') },
+    { name: 'an initial replacement of a differing tracked skill', fault: kill('/.agents/skills/review', '/local.md'),
+      initialFiles: { '.agents/skills/review/SKILL.md': '# Local review', '.agents/skills/review/local.md': 'Local notes' } },
+  ]) await t.test(name, () => {
+    const remote = remoteFixture(source('v1', `${declarations}
+    retired:
+      kind: file
+      target: RETIRED.md
+      exact: retired.md
+    legacy:
+      kind: skill
+      name: legacy
+      source: legacy`), { 'review/SKILL.md': '# Review', 'retired.md': 'Retired', 'legacy/SKILL.md': '# Legacy', 'legacy/notes.md': 'Legacy notes' });
+    const project = sourceFixture('', initialFiles ?? {});
+    t.after(() => { remote.close(); project.close(); });
+    commit(project.root);
+    const env = { ...remote.env, ...registry.env };
+    const run = (args: string[], environment: NodeJS.ProcessEnv = env) => cli.run(args, project.root, environment);
+    const initial = JSON.parse(run(inspectionArgs).stdout);
+    let startArgs = ['start', ...inspectionArgs.slice(1), '--confirm', initial.identity];
+    if (!initialFiles) {
+      assert.equal(run(startArgs).status, 0);
+      commit(project.root);
+      remote.addVersion('v1.1.0', source('v2', declarations), {});
+      const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
+      const inspection = JSON.parse(run(updateArgs).stdout);
+      assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', 'RETIRED.md']);
+      startArgs = ['start', ...updateArgs.slice(1), '--confirm', inspection.identity];
+    } else assert.deepEqual(initial.discardedEdits, ['.agents/skills/review']);
+    assert.equal(run(startArgs, filesystemFault(remote.support.root, env, 'installation', fault)).signal, 'SIGKILL');
+    const result = run(['resume', '--retry', '--json']);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+    assert.deepEqual(installedTree(join(project.root, '.agents/skills/review')), installedTree(join(remote.source.root, 'review')));
+    if (!initialFiles) {
+      assert.equal(existsSync(join(project.root, 'RETIRED.md')), false);
+      assert.equal(existsSync(join(project.root, '.agents/skills/legacy')), false);
+    }
   });
 });
 

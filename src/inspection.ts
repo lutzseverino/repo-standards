@@ -41,6 +41,23 @@ function exactDelta(path: string, before: Observation, after: Observation) {
   return diff === undefined ? {} : { diff };
 }
 
+// The file changes that turn a target's current content into its candidate,
+// down to each differing file.
+function changedFiles(target: string, current: Observation, desired: Observation) {
+  const files: { path: string; before: HashInventory; after: HashInventory; diff?: string; binary?: boolean }[] = [];
+  function changes(path: string, before: Observation, after: Observation) {
+    if (before.type !== after.type && before.type !== 'missing' && after.type !== 'missing') {
+      files.push({ path, before: hashInventory(before), after: hashInventory(after) });
+    } else if (before.type === 'directory' || after.type === 'directory') {
+      const oldEntries = before.type === 'directory' ? before.entries : {};
+      const newEntries = after.type === 'directory' ? after.entries : {};
+      for (const name of [...new Set([...Object.keys(oldEntries), ...Object.keys(newEntries)])].sort()) changes(`${path}/${name}`, oldEntries[name] ?? { type: 'missing' }, newEntries[name] ?? { type: 'missing' });
+    } else files.push({ path, before: hashInventory(before), after: hashInventory(after), ...exactDelta(path, before, after) });
+  }
+  changes(target, current, desired);
+  return files;
+}
+
 export function hiddenIndexPaths(root: string) {
   const flags = git(root, ['ls-files', '-v', '-z']);
   if (flags.status !== 0) throw new ProductError('PROJECT_READ', 'Cannot inspect Git index flags.');
@@ -185,10 +202,12 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       } else guidance.push({ id: declaration.id, targets, source: declaration.guidance, ...fileReference(join(source.root, declaration.guidance)) });
     }
     // Installation targets: the system skill, each exact file and skill the
-    // selection declares, and each recorded target, merged by path. A recorded
-    // target without a candidate keeps only its baseline.
+    // selection declares, and each recorded target, merged by path. Target
+    // ownership decides what happens to a recorded target the selection no
+    // longer installs.
     const ownedTargets = new Map<string, OwnedTarget>();
-    ownedTargets.set(systemTarget, { path: systemTarget, kind: 'system-skill', current: systemSkill, candidate: packagedSystemSkill() });
+    const systemCandidate = packagedSystemSkill();
+    ownedTargets.set(systemTarget, { path: systemTarget, kind: 'system-skill', current: systemSkill, candidate: systemCandidate });
     for (const { target, kind } of installed) ownedTargets.set(target, { path: target, kind, current: affected[target]!, candidate: desiredExact[target]! });
     const recordedTargets: { path: string; kind: TargetKind; baseline: NonNullable<OwnedTarget['baseline']> }[] = [];
     if (previous) {
@@ -204,32 +223,28 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       if (target) target.baseline = baseline;
       else ownedTargets.set(path, { path, kind, current: observeTarget(path), baseline });
     }
-    const ownership = new Map(judgeTargetOwnership({ established: previous !== undefined, tracked, targets: [...ownedTargets.values()] }).map(verdict => [verdict.path, verdict]));
+    const contextual = declared.filter(({ owned }) => !owned).map(({ path }) => path);
+    const ownership = new Map(judgeTargetOwnership({ tracked, contextual, targets: [...ownedTargets.values()] }).map(verdict => [verdict.path, verdict]));
     // One block per target: its safety blockers, reported once for its path,
     // then its type blockers and its ownership blockers.
+    // The targets whose replacement or removal discards edits are listed in
+    // the same order.
     const reported = new Set<string>();
+    const discardedEdits: string[] = [];
     for (const { path, typeBlockers, owned } of [{ path: systemTarget, typeBlockers: [], owned: true }, ...declared,
       ...baselineOnly.map(path => ({ path, typeBlockers: [], owned: true }))]) {
       if (!reported.has(path)) blockers.push(...observed.get(path)!.safety);
+      const verdict = owned ? ownership.get(path) : undefined;
+      if (verdict?.discardsEdits && !reported.has(path)) discardedEdits.push(path);
       reported.add(path);
-      blockers.push(...typeBlockers, ...owned ? ownership.get(path)!.blockers : []);
+      blockers.push(...typeBlockers, ...verdict?.blockers ?? []);
     }
-    const exact = installed.map(({ id, target }) => {
-      const current = affected[target]!;
-      const desired = desiredExact[target]!;
-      const files: { path: string; before: HashInventory; after: HashInventory; diff?: string; binary?: boolean }[] = [];
-      function changes(path: string, before: Observation, after: Observation) {
-        if (before.type !== after.type && before.type !== 'missing' && after.type !== 'missing') {
-          files.push({ path, before: hashInventory(before), after: hashInventory(after) });
-        } else if (before.type === 'directory' || after.type === 'directory') {
-          const oldEntries = before.type === 'directory' ? before.entries : {};
-          const newEntries = after.type === 'directory' ? after.entries : {};
-          for (const name of [...new Set([...Object.keys(oldEntries), ...Object.keys(newEntries)])].sort()) changes(`${path}/${name}`, oldEntries[name] ?? { type: 'missing' }, newEntries[name] ?? { type: 'missing' });
-        } else files.push({ path, before: hashInventory(before), after: hashInventory(after), ...exactDelta(path, before, after) });
-      }
-      changes(target, current, desired);
-      return { id, target, action: ownership.get(target)!.action!, files };
-    });
+    const exact = installed.map(({ id, target }) => ({ id, target, action: ownership.get(target)!.action!, files: changedFiles(target, affected[target]!, desiredExact[target]!) }));
+    // Each removed target is attributed to the declaration that installed it.
+    const removed = previous ? baselineOnly.filter(path => ownership.get(path)!.action === 'replace').map(target => ({
+      id: previous.resolved.declarations.find(declaration => (declaration.kind === 'skill' ? `.agents/skills/${declaration.name}` : 'exact' in declaration ? declaration.target : undefined) === target)!.id,
+      target, files: changedFiles(target, observed.get(target)!.value, { type: 'missing' }),
+    })) : undefined;
     if (!proposal) for (const declaration of discoveryDeclarations) guidance.push({ id: declaration.id, targets: [], discoveryRequired: true, source: declaration.guidance, ...fileReference(join(source.root, declaration.guidance)) });
     for (const phase of ['fixes', 'checks'] as const) for (const declaration of profile.declarations) {
       for (const operation of declaration[phase]) {
@@ -251,6 +266,8 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       project: { root, affected: Object.fromEntries(Object.entries(affected).map(([path, value]) => [path, hashInventory(value)])),
         productState: hashInventory(productState), systemSkill: hashInventory(systemSkill) },
       systemSkill: { target: systemTarget, action: ownership.get(systemTarget)!.action! },
+      ...(removed ? { removed } : {}),
+      discardedEdits,
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
       ...comparison?.report,
       ...(changedScope ? { scopeChanges: changedScope } : {}),
@@ -266,7 +283,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     if (namedObservation && JSON.stringify(namedObservation) !== JSON.stringify(observeScope(root, named))) throw new ProductError('OBSERVATION_UNSTABLE', 'Named scope observations changed during inspection. Inspect again.');
     return {
       report: { ...report, identity: `sha256:${hash(JSON.stringify(report))}` },
-      materials: { exact: desiredExact, inputs, manifest: normalized, systemSkill },
+      materials: { exact: desiredExact, inputs, manifest: normalized, systemSkill: systemCandidate },
       git: { head: head.status === 0 ? head.stdout.trim() : null, index: hash(index.stdout), hidden },
       recorded: previous,
     };

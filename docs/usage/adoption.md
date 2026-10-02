@@ -19,8 +19,8 @@ repo-standards inspect --source https://github.com/OWNER/STANDARDS \
   --standards-version v1.2.3 --profile work --json
 ```
 
-Review the pins, proposed replacements, matching file and skill claims, whole-skill
-inventories, guidance, declared fixes and checks, prerequisites, and blockers. After explicit maintainer confirmation, use the same
+Review the pins, proposed replacements and the edits they discard, matching
+files and skills, whole-skill inventories, guidance, declared fixes and checks, prerequisites, and blockers. After explicit maintainer confirmation, use the same
 CLI version and selection, passing the report's `identity` verbatim:
 
 ```sh
@@ -113,33 +113,41 @@ relative to the prior complete adoption; removed scope ends governance without
 deleting that project-owned content.
 
 Every update applies confirmation freshness, Git-state, prerequisite,
-compatibility, and ownership checks before mutation, then uses the normal fixes,
-contextual assessment, checks, integrity verification, recovery, and
+compatibility, and ownership checks before mutation, then uses the normal
+fixes, contextual assessment, checks, integrity verification, recovery, and
 abandonment behavior. It replaces the retained inputs and still-declared exact
 content and whole skills, including removal of obsolete skill resources.
 Retired and excluded declarations, including those a changed source or profile
-no longer declares, keep their installed content but leave the new baselines
-and no longer contribute operations. Only a changed CLI pin replaces the
-isolated runtime manifests, npm lock, dependencies, and matching product-owned
-system skill; otherwise the existing runtime and system skill remain. Project
-dependency manifests and package-manager choices remain outside that runtime.
-An incomplete run retains the prior last-complete evidence.
+no longer declares, leave the new baselines and no longer contribute
+operations, and the run removes their installed targets. An installed target
+within contextual scope, as a contextual target or inside or containing one, is
+not removed and stays in place as project content. Only a changed CLI pin
+replaces the isolated runtime manifests, npm lock, dependencies, and matching
+product-owned system skill; otherwise the existing runtime remains, and the
+system skill is matched or replaced with the one the pinned CLI packages.
+Project dependency manifests and package-manager choices remain outside that
+runtime. An incomplete run retains the prior last-complete evidence.
 
-There is no force overwrite, automatic discard, or universal rollback. Only a
+Tracked content at an installation target never blocks: the run replaces it, or
+removes it when the selection no longer installs the target, and the confirmed
+inspection lists each replacement or removal that discards content other than
+the target's installed baseline. Git keeps what it discards. Only ignored or
+untracked content, which Git cannot recover, blocks with
+`UNTRACKED_REPLACEMENT`. There is no universal rollback. Only a
 complete run advances last-complete state and new baselines. Every update
 leaves HEAD unchanged and its actual changes uncommitted for the project's
 normal workflow.
 
 Start requires the same content-derived inspection identity, an existing
 commit, clean index and working tree, no non-ignored untracked files, safe targets,
-recoverable replacement content, and unambiguous skill ownership. Git flags
+and recoverable replacement content. Git flags
 that hide changes and nested submodules block this initial journey. Existing
 exact files and skill directories whose complete inventory, bytes, and
-executable state match the supplied content are claimed without rewriting and
+executable state match the supplied content are matched without rewriting and
 recorded in the new baselines. This includes the reserved system skill when it
-matches the skill packaged with this exact CLI. A differing skill without an
-installed baseline conflicts; unrelated and excluded content remains outside the
-selection.
+matches the skill packaged with this exact CLI. A differing tracked file or
+skill, including the system skill, is replaced and listed among the discarded
+edits; unrelated and excluded content remains outside the selection.
 
 The identity binds what the run reads, not Git HEAD: a commit between
 inspection and start that touches no affected file, retained input, or durable
@@ -386,12 +394,12 @@ rm -rf .repo-standards             # ignored runtime, local, and cache content
 git commit -m "Remove Repository Standards product state"
 ```
 
-The new inspection claims exact files and skill directories that still match the
-selected source, and a system skill that matches the inspecting CLI's packaged
-skill, without rewriting them. A skill edited since installation, or a system
-skill installed by a different CLI version, still conflicts; reconcile or remove
-it before inspecting again. Evidence of the earlier adoption remains only in Git
-history.
+The new inspection matches exact files and skill directories that still match
+the selected source, and a system skill that matches the inspecting CLI's
+packaged skill, without rewriting them. It replaces tracked content that
+differs, such as a skill edited since installation or a system skill that a
+different CLI version installed, and lists each such replacement among the
+discarded edits. Evidence of the earlier adoption remains only in Git history.
 
 ## Adopt fresh from a retired format
 

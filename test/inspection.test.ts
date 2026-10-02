@@ -109,7 +109,7 @@ test('validation and inspection reject reserved skills and targets in an unselec
   assert.deepEqual(snapshot(project.root), before);
 });
 
-test('unsafe ancestors, skill ownership and ignored replacement content block start without following links', (t) => {
+test('unsafe ancestors and ignored replacement content block start without following links, and a differing tracked skill is replaced', (t) => {
   const remote = remoteFixture(simpleSource('linked/AGENTS.md') + '', { 'content.md': 'Expected' });
   const project = sourceFixture('', { '.gitignore': 'ignored.md\n', 'ignored.md': 'Ignored private content', '.agents/skills/review/SKILL.md': 'Unrelated skill' });
   t.after(() => { remote.close(); project.close(); });
@@ -130,7 +130,9 @@ test('unsafe ancestors, skill ownership and ignored replacement content block st
   const skillRemote = remoteFixture(skillSource, { 'skill/SKILL.md': 'Supplied skill' });
   t.after(() => skillRemote.close());
   const skillReport = JSON.parse(cli.run(inspectionArgs, project.root, skillRemote.env).stdout);
-  assert.ok(skillReport.start.blockers.some((b: { code: string }) => b.code === 'SKILL_CONFLICT'));
+  assert.ok(!skillReport.start.blockers.some((b: { path?: string }) => b.path?.startsWith('.agents/')), JSON.stringify(skillReport.start.blockers));
+  assert.equal(skillReport.exact[0].action, 'replace');
+  assert.deepEqual(skillReport.discardedEdits, ['.agents/skills/review']);
 
   const ignoredRemote = remoteFixture(simpleSource('ignored.md'), { 'content.md': 'New content' });
   t.after(() => ignoredRemote.close());
@@ -473,14 +475,16 @@ profiles:
   const project = sourceFixture('', { '.agents/skills/adopt-standards/SKILL.md': 'Unrelated system skill', '.agents/skills/review/SKILL.md': 'Unrelated review' });
   t.after(() => { remote.close(); project.close(); });
   commit(project.root);
+  writeFileSync(join(project.root, '.agents/skills/adopt-standards/local.md'), 'Untracked system resource');
   writeFileSync(join(project.root, '.agents/skills/review/local.md'), 'Untracked resource');
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.deepEqual(JSON.parse(result.stdout).start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), [
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), [
     { code: 'DIRTY_PROJECT', path: undefined },
     { code: 'DISCOVERY_REQUIRED', path: undefined },
-    { code: 'SYSTEM_SKILL_CONFLICT', path: '.agents/skills/adopt-standards' },
-    { code: 'SKILL_CONFLICT', path: '.agents/skills/review' },
+    { code: 'UNTRACKED_REPLACEMENT', path: '.agents/skills/adopt-standards/local.md' },
     { code: 'UNTRACKED_REPLACEMENT', path: '.agents/skills/review/local.md' },
   ]);
+  assert.deepEqual(report.discardedEdits, ['.agents/skills/adopt-standards', '.agents/skills/review']);
 });

@@ -4,7 +4,7 @@ import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, rmSync, syml
 import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { embeddedContent, installCli, sha256, snapshot, sourceFixture } from './installed-cli.ts';
+import { embeddedContent, installCli, installedTree, sha256, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
@@ -71,7 +71,8 @@ test('a fresh checkout restores the exact runtime and inspects retained standard
   assert.equal(report.selection.standards.commit, remote.sha);
   assert.equal(report.exact[0].action, 'match');
   assert.equal(report.retained, true);
-  assert.ok(!report.start.blockers.some((b: { code: string }) => b.code === 'SYSTEM_SKILL_CONFLICT'));
+  assert.equal(report.systemSkill.action, 'match');
+  assert.deepEqual(report.discardedEdits, []);
   assert.deepEqual(snapshot(checkout.root), before);
 });
 
@@ -189,14 +190,10 @@ test('start rejects every invalid initial project state without mutation', async
     { name: 'unsafe ancestor', code: 'UNSAFE_TARGET', source: yaml.replace('target: AGENTS.md', 'target: linked/AGENTS.md'), setup: root => { symlinkSync('folder', join(root, 'linked')); commit(root); } },
     { name: 'wrong target type', code: 'TARGET_TYPE', source: yaml.replace('target: AGENTS.md', 'target: folder') },
     { name: 'case conflict', code: 'CASE_CONFLICT', source: yaml.replace('target: AGENTS.md', 'target: agents.md') },
-    { name: 'skill with differing bytes', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Unrelated review' }, source: skillSource },
-    { name: 'skill with a differing mode', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Review' }, source: skillSource, setup: root => { chmodSync(join(root, '.agents/skills/review/SKILL.md'), 0o755); commit(root); } },
-    { name: 'skill with an additional resource', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Review', '.agents/skills/review/notes.md': 'Local' }, source: skillSource },
-    { name: 'skill missing a supplied resource', code: 'SKILL_CONFLICT', files: { '.agents/skills/review/SKILL.md': 'Review' }, source: skillSource, sourceFiles: { 'skill/notes.md': 'Supplied' } },
-    { name: 'reserved system skill', code: 'SYSTEM_SKILL_CONFLICT', files: { '.agents/skills/adopt-standards/SKILL.md': 'Unrelated' } },
-    { name: 'system skill with a differing mode', code: 'SYSTEM_SKILL_CONFLICT', files: { '.agents/skills/adopt-standards/SKILL.md': packagedSkill }, setup: root => { chmodSync(join(root, '.agents/skills/adopt-standards/SKILL.md'), 0o755); commit(root); } },
-    { name: 'system skill with an additional resource', code: 'SYSTEM_SKILL_CONFLICT', files: { '.agents/skills/adopt-standards/SKILL.md': packagedSkill, '.agents/skills/adopt-standards/notes.md': 'Local' } },
     { name: 'ignored matching system skill', code: 'UNTRACKED_REPLACEMENT', files: { '.gitignore': '/.agents/\n', '.agents/skills/adopt-standards/SKILL.md': packagedSkill } },
+    { name: 'untracked author skill resource', code: 'UNTRACKED_REPLACEMENT', files: { '.agents/skills/review/SKILL.md': 'Review' }, source: skillSource, setup: root => writeFileSync(join(root, '.agents/skills/review/notes.md'), 'Untracked') },
+    { name: 'ignored author skill', code: 'UNTRACKED_REPLACEMENT', files: { '.gitignore': '/.agents/skills/review/\n', '.agents/skills/review/SKILL.md': 'Unrelated review' }, source: skillSource },
+    { name: 'ignored system skill resource', code: 'UNTRACKED_REPLACEMENT', files: { '.gitignore': '/.agents/skills/adopt-standards/notes.md\n', '.agents/skills/adopt-standards/notes.md': 'Local' } },
     { name: 'existing product state', code: 'EXISTING_ADOPTION', files: { '.repo-standards/unknown': 'Unrelated' } },
     { name: 'hidden index flags', code: 'HIDDEN_INDEX_STATE', setup: root => git(root, 'update-index', '--assume-unchanged', 'AGENTS.md') },
     { name: 'skip-worktree flags', code: 'HIDDEN_INDEX_STATE', setup: root => git(root, 'update-index', '--skip-worktree', 'AGENTS.md') },
@@ -216,6 +213,54 @@ test('start rejects every invalid initial project state without mutation', async
     assert.equal(report.errors[0].code, 'START_BLOCKED');
     assert.ok(report.errors[0].details.some((b: { code: string }) => b.code === example.code));
     assert.deepEqual(snapshot(project.root), before);
+  });
+});
+
+test('initial adoption replaces differing tracked files, author skills, and the system skill, and lists each replacement', async t => {
+  const skillSource = yaml.replace('kind: file\n      target: AGENTS.md\n      exact: content.md', 'kind: skill\n      name: review\n      source: skill');
+  const packaged = join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/adopt-standards');
+  const packagedSkill = readFileSync(join(packaged, 'SKILL.md'), 'utf8');
+  const review = '.agents/skills/review';
+  const system = '.agents/skills/adopt-standards';
+  const cases: { name: string; files: Record<string, string>; source?: string; sourceFiles?: Record<string, string>; setup?: (root: string) => void; discarded: string[] }[] = [
+    { name: 'exact file with differing bytes', files: { 'AGENTS.md': 'Original' }, discarded: ['AGENTS.md'] },
+    { name: 'skill with differing bytes', files: { [`${review}/SKILL.md`]: 'Unrelated review' }, source: skillSource, discarded: [review] },
+    { name: 'skill with a differing mode', files: { [`${review}/SKILL.md`]: 'Review' }, source: skillSource, setup: root => chmodSync(join(root, review, 'SKILL.md'), 0o755), discarded: [review] },
+    { name: 'skill with an additional resource', files: { [`${review}/SKILL.md`]: 'Review', [`${review}/notes.md`]: 'Local' }, source: skillSource, discarded: [review] },
+    { name: 'skill missing a supplied resource', files: { [`${review}/SKILL.md`]: 'Review' }, source: skillSource, sourceFiles: { 'skill/notes.md': 'Supplied' }, discarded: [review] },
+    { name: 'reserved system skill', files: { [`${system}/SKILL.md`]: 'Unrelated' }, source: skillSource, discarded: [system] },
+    { name: 'system skill with a differing mode', files: { [`${system}/SKILL.md`]: packagedSkill }, source: skillSource, setup: root => chmodSync(join(root, system, 'SKILL.md'), 0o755), discarded: [system] },
+    { name: 'system skill with an additional resource', files: { [`${system}/SKILL.md`]: packagedSkill, [`${system}/notes.md`]: 'Local' }, source: skillSource, discarded: [system] },
+    { name: 'system skill and author skill together', files: { [`${system}/SKILL.md`]: 'Unrelated', [`${review}/SKILL.md`]: 'Unrelated review' }, source: skillSource, discarded: [system, review] },
+  ];
+  const registry = await registryFixture(cli.root);
+  t.after(() => registry.close());
+  for (const example of cases) await t.test(example.name, st => {
+    const sourceFiles = { 'content.md': 'Expected', 'skill/SKILL.md': 'Review', ...example.sourceFiles };
+    const remote = remoteFixture(example.source ?? yaml, sourceFiles);
+    const project = sourceFixture('', { 'README.md': 'Project', ...example.files });
+    st.after(() => { remote.close(); project.close(); });
+    example.setup?.(project.root);
+    commit(project.root);
+    const env = { ...remote.env, ...registry.env };
+    const inspected = cli.run(inspectionArgs, project.root, env);
+    assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
+    const inspection = JSON.parse(inspected.stdout);
+    assert.deepEqual(inspection.start.blockers, []);
+    assert.equal(inspection.start.eligible, true);
+    assert.deepEqual(inspection.discardedEdits, example.discarded);
+    const summary = cli.run(inspectionArgs.filter(argument => argument !== '--json').concat('--summary'), project.root, env);
+    assert.equal(summary.status, 0, summary.stdout + summary.stderr);
+    assert.ok(summary.stdout.includes(['## Discarded edits', '',
+      'Replacing or removing these targets discards content that is not their installed baseline:', '',
+      example.discarded.map(path => `- \`${path}\``).join('\n')].join('\n')), summary.stdout);
+    const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+    // Each replaced target now holds exactly its candidate: bytes, modes, and inventory.
+    if (example.source) assert.deepEqual(installedTree(join(project.root, review)), installedTree(join(remote.source.root, 'skill')));
+    else assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Expected');
+    assert.deepEqual(installedTree(join(project.root, system)), installedTree(packaged));
   });
 });
 
