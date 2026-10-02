@@ -28,9 +28,7 @@ export function observedChanges(before: WorkObservation, after: WorkObservation)
     if (JSON.stringify(previous) !== JSON.stringify(current)) changed.push(path);
   }
   for (const key of new Set([...Object.keys(before.ignores), ...Object.keys(after.ignores)])) {
-    if (key === 'global' || key === 'info') {
-      if (JSON.stringify(before.ignores[key]) !== JSON.stringify(after.ignores[key])) changed.push(`@ignore/${key}`);
-    } else if (JSON.stringify(before.ignores[key]?.state ?? { type: 'missing' }) !== JSON.stringify(after.ignores[key]?.state ?? { type: 'missing' })) changed.push(key);
+    if (JSON.stringify(before.ignores[key] ?? { type: 'missing' }) !== JSON.stringify(after.ignores[key] ?? { type: 'missing' })) changed.push(key === 'global' || key === 'info' ? `@ignore/${key}` : key);
   }
   if (JSON.stringify(before.settings) !== JSON.stringify(after.settings)) changed.push('@git/observation-settings');
   return [...new Set(changed)].sort();

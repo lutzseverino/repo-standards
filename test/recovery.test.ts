@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { spawn } from 'node:child_process';
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { stringify } from 'yaml';
 import { filesystemFault } from './adoption-faults.ts';
+import { assertNoMachineLocation, committedState } from './committed-evidence.ts';
 import { installCli, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
@@ -493,7 +495,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged'
   const retry = f.report(['resume', '--retry', '--json']).report;
   assert.equal(retry.phase, 'contextual');
   assert.equal(typeof retry.retryHistory[0].report, 'string');
-  assert.equal(readFileSync(join(f.project.root, retry.retryHistory[0].report), 'utf8'), 'Interrupted author evidence');
+  assert.equal(readFileSync(join(f.project.root, '.git', retry.retryHistory[0].report), 'utf8'), 'Interrupted author evidence');
 });
 
 test('abandoned operation logs remain readable after reconciliation and another adoption', async t => {
@@ -513,8 +515,8 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged'
   const second = JSON.parse(f.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], { ...f.env, RUN_MESSAGE: 'Second run' }).stdout);
   assert.equal(second.phase, 'contextual');
   const archived = f.report(['status', '--json']).report.abandoned[0].operations[0];
-  assert.equal(readFileSync(join(f.project.root, archived.stdout), 'utf8'), stdout);
-  assert.equal(readFileSync(join(f.project.root, archived.stderr), 'utf8'), stderr);
+  assert.equal(readFileSync(join(f.project.root, '.git', archived.stdout), 'utf8'), stdout);
+  assert.equal(readFileSync(join(f.project.root, '.git', archived.stderr), 'utf8'), stderr);
   assert.notEqual(archived.stdout, second.operations[0].stdout);
 });
 
@@ -570,7 +572,7 @@ fs.renameSync = function(from, to) {
   assert.equal(abandoned.operations.length, 0);
   assert.equal(typeof abandoned.archivedFiles?.[path], 'string');
   rmSync(join(f.project.root, '.repo-standards'), { recursive: true });
-  assert.equal(readFileSync(join(f.project.root, abandoned.archivedFiles[path]), 'utf8'), output);
+  assert.equal(readFileSync(join(f.project.root, '.git', abandoned.archivedFiles[path]), 'utf8'), output);
 });
 
 test('retry retains unrecorded operation output before reusing its log index', async t => {
@@ -590,10 +592,10 @@ fs.renameSync = function(from, to) {
   assert.equal(retry.phase, 'contextual');
   const archived = retry.retryHistory[0].archivedFiles?.[path];
   assert.equal(typeof archived, 'string');
-  assert.equal(readFileSync(join(f.project.root, archived), 'utf8'), original);
+  assert.equal(readFileSync(join(f.project.root, '.git', archived), 'utf8'), original);
   assert.notEqual(readFileSync(join(f.project.root, path), 'utf8'), original);
   assert.equal(f.report(['abandon', '--json']).report.abandoned, true);
-  assert.equal(readFileSync(join(f.project.root, archived), 'utf8'), original);
+  assert.equal(readFileSync(join(f.project.root, '.git', archived), 'utf8'), original);
 });
 
 test('failed abandonment archives leave the actual report, journal and logs available for recovery', async t => {
@@ -619,10 +621,35 @@ test('failed abandonment archives leave the actual report, journal and logs avai
   const retried = f.report(['resume', '--retry', '--json']);
   assert.equal(retried.report.phase, 'contextual', retried.result.stdout);
   assert.equal(retried.report.id, started.report.id);
-  assert.equal(readFileSync(join(f.project.root, retried.report.retryHistory[0].report), 'utf8'), 'Actual local report after interruption');
+  assert.equal(readFileSync(join(f.project.root, '.git', retried.report.retryHistory[0].report), 'utf8'), 'Actual local report after interruption');
   assert.equal(existsSync(`${journal}.workers`), false);
   assert.equal(f.report(['abandon', '--json']).report.abandoned, true);
   assert.equal(existsSync(journal), false);
   assert.equal(existsSync(`${journal}.workers`), false);
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
+});
+
+test('committed retry evidence in a linked worktree names no location outside the project', async t => {
+  const f = await fixture(t, { agents: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md', fixes: [operation('prepare')] } },
+    `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Prepared'}));`);
+  // The linked worktree's Git directory lives in the main checkout's.
+  const worktree = join(f.remote.support.root, 'linked');
+  git(f.project.root, 'worktree', 'add', '--quiet', '--detach', worktree);
+  const run = (args: string[], env: NodeJS.ProcessEnv = f.env) => cli.run(args, worktree, env);
+  const inspection = JSON.parse(run(inspectionArgs).stdout);
+  const env = filesystemFault(f.remote.support.root, f.env, 'fixes', `
+const rename = fs.renameSync;
+fs.renameSync = function(from, to) {
+  const result = rename.call(this, from, to);
+  if (String(to).endsWith('/operations/0.stdout')) process.kill(process.pid, 'SIGKILL');
+  return result;
+}; syncBuiltinESMExports();`);
+  assert.equal(run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], env).signal, 'SIGKILL');
+  const retried = run(['resume', '--retry', '--json']);
+  assert.equal(JSON.parse(retried.stdout).outcome, 'complete', retried.stdout);
+  const [retry] = committedState(worktree).retryHistory as { report?: string; archivedFiles: Record<string, string> }[];
+  const archived = retry!.archivedFiles['.repo-standards/local/operations/0.stdout']!;
+  assert.match(archived, /^repo-standards-reports\//);
+  assert.equal(existsSync(join(git(worktree, 'rev-parse', '--absolute-git-dir'), archived)), true);
+  assertNoMachineLocation(worktree, [worktree, f.project.root, f.remote.support.root, realpathSync(tmpdir())], [process.execPath]);
 });

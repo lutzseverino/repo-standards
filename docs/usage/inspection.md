@@ -133,7 +133,7 @@ described [below](#discover-contextual-file-scope):
 | `discardedEdits` | Each target whose replacement or removal discards content that is not its installed baseline, in the order of the target blockers. At initial adoption there is no baseline, so every replaced existing target is listed. |
 | `guidance` | Guidance by source-relative `source` path, SHA-256 and executable state, with its explicit project paths or directory trees. |
 | `operations` | Ordered fixes and checks, literal arguments, the script by path and hash, resource hash inventories, timeout, and declared prerequisite probe/range. |
-| `project` | Canonical project root and hash inventories of the affected targets, the reserved system skill, and the durable product state. Git HEAD, index, and status are not reported. |
+| `project` | Hash inventories of the affected targets, the reserved system skill, and the durable product state. The project root, Git HEAD, index, and status are not reported. |
 | `inputs`, `manifest` | Hash inventories of the selected source material, and the hash of the normalized single-profile metadata, that adoption retains. |
 | `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available. |
 | `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
@@ -204,21 +204,24 @@ appear by ID and operations retain their declared list order.
 Contextual content stays project-owned. All author prerequisites remain
 `not-checked`: inspection cannot establish them without running probes.
 
-Identity has no timestamp or random acquisition path. It binds what the run
-reads: the exact selection, resolved declarations and materials through their
-hashes, the project root, affected bytes and executable state through their
-hashes, the product-state inventory, blockers and safety observations, and,
-when discovery is active, the discovery observation and confirmed scope. Git
-HEAD, the index, and Git status are not bound, except through the start
-blockers they produce, such as a dirty tree. A commit that touches nothing the
-run reads leaves the identity unchanged, so a confirmation survives unrelated
-work between inspection and start; a change to an affected file's bytes or mode,
-a retained input, or the product-state inventory changes it. The discovery
-observation spans the tracked and non-ignored tree, so for a discovery-backed
-selection most commits change the identity. Start still requires a clean
-committed tree, and the run records HEAD at start for provenance. Repeated
-unchanged inspection has the same identity. `start --confirm` checks this
-identity after explicit maintainer confirmation.
+Identity has no timestamp, random acquisition path, or checkout location. It
+binds what the run reads: the exact selection, resolved declarations and
+materials through their hashes, affected bytes and executable state through
+their hashes, the product-state inventory, blockers and safety observations,
+and, when discovery is active, the discovery observation and confirmed scope.
+The project root, Git HEAD, the index, and Git status are not bound, except
+through the start blockers Git state produces, such as a dirty tree. The same
+content inspected from two clones with the same file and directory modes has
+one identity, so an inspection made in a throwaway clone confirms a start in
+the maintainer's checkout. A commit that
+touches nothing the run reads leaves the identity unchanged, so a confirmation
+survives unrelated work between inspection and start; a change to an affected
+file's bytes or mode, a retained input, or the product-state inventory changes
+it. The discovery observation spans the tracked and non-ignored tree, so for a
+discovery-backed selection most commits change the identity. Start still
+requires a clean committed tree, and the run records the project root and HEAD
+at start for provenance. Repeated unchanged inspection has the same identity.
+`start --confirm` checks this identity after explicit maintainer confirmation.
 
 Known blockers include missing commits, dirty Git state, symlink or non-directory
 ancestors, special files, case-folded existing-path conflicts, file/directory type
@@ -418,8 +421,15 @@ complete tracked and non-ignored project snapshot; HEAD and the index are not
 bound. Observation records file hashes/executable state,
 directory inventories and boundaries, effective Git observation settings, and
 consulted `.gitignore`, Git info/exclude, and global ignore inputs, including their
-absence. Configured ignore paths preserve significant whitespace; an explicitly
-empty `core.excludesFile` disables the default global ignore input. It retains relevant settings and ignore hashes, not unrelated Git
+absence. Ignore inputs are named by role, never by absolute location: `global`
+for the global excludes, `info` for the repository info exclude, and each
+`.gitignore` by its project-relative path, each with its content state. A
+symbolic `.gitignore` is recorded by the hash of its target, never the target
+itself; the bytes it points to are not bound, as Git 2.32 and later do not
+follow it. Changing an input's content changes the request; moving it with
+unchanged content does not. Configured ignore paths preserve significant whitespace when the input is
+read; an explicitly empty `core.excludesFile` disables the default global ignore
+input. It retains relevant settings and ignore hashes, not unrelated Git
 configuration, credentials, or external ignore-file contents. The final identity
 also binds the proposal, rationale, named targets, and their ancestors. Named
 paths remain observed even if ignored. Ignored untracked files cannot be used as

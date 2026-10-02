@@ -76,7 +76,7 @@ test('a retired state, scope evidence, or run record format is rejected with the
       plant: (format: string) => rewriteCommittedState(root, { ...state, format }) })),
     ...['v1', 'v2', 'v3'].map(version => ({ format: `repo-standards/scope-history/${version}`, current: 'repo-standards/scope-history/v4',
       plant: (format: string) => rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { ...scope, format }) })),
-    ...['v1', 'v2', 'v3', 'v4'].map(version => ({ format: `repo-standards/run/${version}`, current: 'repo-standards/run/v5',
+    ...['v1', 'v2', 'v3', 'v4', 'v5'].map(version => ({ format: `repo-standards/run/${version}`, current: 'repo-standards/run/v6',
       plant: (format: string) => writeFileSync(runRecord, JSON.stringify({ format, id: 'c0ffee00-0000-4000-8000-000000000000',
         selection: state, outcome: 'incomplete', phase: 'fixes' })) })),
   ];

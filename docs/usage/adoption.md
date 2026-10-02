@@ -149,14 +149,17 @@ matches the skill packaged with this exact CLI. A differing tracked file or
 skill, including the system skill, is replaced and listed among the discarded
 edits; unrelated and excluded content remains outside the selection.
 
-The identity binds what the run reads, not Git HEAD: a commit between
-inspection and start that touches no affected file, retained input, or durable
-product state leaves the confirmation valid. The run records HEAD at start in
-its `head` field for provenance, and completion records it in the state's
-`lastComplete.head`. HEAD and the index must then stay unchanged until the run
-completes. Inspection and run reports carry hash inventories and diffs rather
-than file bytes; start acquires the source again and installs only bytes that
-match the confirmed hashes. See [the inspection report](inspection.md#report-and-inspection-identity).
+The identity binds what the run reads, not Git HEAD or where the project is
+checked out: a commit between inspection and start that touches no affected
+file, retained input, or durable product state leaves the confirmation valid,
+and an inspection made in another clone of the same content confirms a start in
+this one. The run records the project root and HEAD at start in its `root` and
+`head` fields for provenance, and completion records only HEAD, in the state's
+`lastComplete.head`; the root is never committed. HEAD and the index must then
+stay unchanged until the run completes. Inspection and run reports carry hash
+inventories and diffs rather than file bytes; start acquires the source again
+and installs only bytes that match the confirmed hashes. See
+[the inspection report](inspection.md#report-and-inspection-identity).
 
 Before installation, start probes every declared prerequisite using its literal
 version arguments from the project root. It reports all missing executables,
@@ -231,7 +234,7 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Durable state, `.repo-standards/state.json` | `repo-standards/state/v6` |
 | Integrity lock, `.repo-standards/lock.json` | `repo-standards/lock/v1` |
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v4` |
-| Run record, local run report, and archived abandoned report | `repo-standards/run/v5` |
+| Run record, local run report, and archived abandoned report | `repo-standards/run/v6` |
 | `status` report | `repo-standards/status/v6` |
 | Inspection report | `repo-standards/inspection/v5` |
 | Work request and assessment | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
@@ -268,10 +271,12 @@ Neither dependencies nor run records belong in commits.
 
 ## Completion and incomplete results
 
-`start` prints a `repo-standards/run/v5` JSON report. Its fields include `id`,
-`inspection`, `selection`, `head`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
+`start` prints a `repo-standards/run/v6` JSON report. Its fields include `id`,
+`inspection`, `selection`, `root`, `head`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
 `uncertain`, `nextAction`, `prerequisites`, `operations`, `assessments`, and contextual
-`workRequest` when required. The report carries no file bytes: `affected` holds
+`workRequest` when required. `root` and `head` record the canonical project
+root and HEAD at start for provenance; the inspection identity binds neither,
+and neither is committed. The report carries no file bytes: `affected` holds
 the hash inventories of the targets at start, `completion` the hashes of the
 candidate lock and state, and the work request references guidance by path and
 hash. `installation.files` and `installation.runtime` record
@@ -279,7 +284,11 @@ confirmed installation progress; `uncertain` describes work whose result has not
 been verified and recorded. `retryHistory` preserves prior failure reasons,
 uncertainty, and assessment evidence. Its `report` path points to the local report
 bytes archived before retry, including any changes made by an interrupted author
-process. Archival failure blocks retry before the existing report is overwritten.
+process. Archived paths are relative to Git's directory for the working tree,
+which `git rev-parse --absolute-git-dir` prints, such as
+`repo-standards-reports/<run-id>/<name>`, so committed retry history records no
+checkout location. Archival failure blocks retry before the existing report is
+overwritten.
 Each retry's `archivedFiles` also retains operation logs, including unrecorded
 results. Archive names include content hashes so reusing an operation index
 cannot replace earlier evidence.
@@ -502,10 +511,11 @@ It archives the report under Git's `repo-standards-reports/<run-id>.json`; `stat
 returns these reports in `abandoned`. Operation logs and local report snapshots
 are copied alongside the archived report in a directory named for the run ID.
 Archived operations point to those copies, so later adoption and removal of the
-incomplete installation cannot overwrite their evidence. Paths are relative to
-the project root, including when Git metadata lives outside the working tree.
-`archivedFiles` maps original report and operation-log paths to their archived
-copies, including logs written before their operation result reached the journal.
+incomplete installation cannot overwrite their evidence. Archived paths are
+relative to Git's directory for the working tree, including when that directory
+lives outside the working tree, as in a linked worktree.
+`archivedFiles` maps original report and operation-log paths, which stay
+project-relative, to their archived copies, including logs written before their operation result reached the journal.
 Abandonment reports `outcome: incomplete` with `abandoned: true` and exit status 1;
 it does not assert successful adoption or replace last-complete evidence. The
 CLI releases the run only after preserving any candidate completion state and

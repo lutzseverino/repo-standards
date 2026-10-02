@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
-import { installCli, sourceFixture } from './installed-cli.ts';
+import { installCli, sha256, sourceFixture } from './installed-cli.ts';
 import { assertCompactRunRecord, assertCompactWorkEvidence, committedState, localRunReport } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
@@ -535,4 +535,24 @@ ${result}`);
   assert.equal(Object.hasOwn(status, 'history'), false);
   // A project that never discovered scope retains no scope evidence to report.
   assert.equal(Object.hasOwn(status, 'scopeChanges'), false);
+});
+
+test('v2 work evidence records an ignore input change by its role and content state, never its location', async t => {
+  const f = await fixture(t, `${prelude}
+if (input.operation.phase === 'fixes') writeFileSync('.git/info/exclude', '# changed by a fix\\n');
+${result}`);
+  const exclude = join(f.project.root, '.git/info/exclude');
+  const original = readFileSync(exclude);
+  // Git's template decides the input's mode; the fix rewrites only its bytes.
+  const executable = (statSync(exclude).mode & 0o111) !== 0;
+  const started = f.start();
+  assert.equal(started.result.status, 1, started.result.stdout);
+  assert.match(started.report.reason, /@ignore\/info/);
+  const interval = localRunReport(f.project.root).observations.find(entry => entry.changes && Object.hasOwn(entry.changes, '@ignore/info'));
+  assert.ok(interval, 'the run records the ignore input change');
+  assert.deepEqual(interval.changes!['@ignore/info'], {
+    before: { type: 'file', sha256: sha256(original), executable },
+    after: { type: 'file', sha256: sha256('# changed by a fix\n'), executable },
+  });
+  assert.ok(!JSON.stringify(interval).includes(f.project.root), 'the delta must not name a checkout location');
 });

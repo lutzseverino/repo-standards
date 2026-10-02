@@ -62,7 +62,7 @@ test('inspection reports the pinned complete profile without changing a dirty pr
   assert.deepEqual(report.project.affected['README.md'], { type: 'file', sha256: sha256('Uncommitted project README'), executable: false });
   assert.equal(report.start.eligible, false);
   assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'DIRTY_PROJECT'));
-  assert.deepEqual(Object.keys(report.project).sort(), ['affected', 'productState', 'root', 'systemSkill'], 'Git HEAD, index and status are not part of the report');
+  assert.deepEqual(Object.keys(report.project).sort(), ['affected', 'productState', 'systemSkill'], 'The project root, Git HEAD, index and status are not part of the report');
   assert.match(report.identity, /^sha256:[a-f0-9]{64}$/);
   assert.deepEqual(snapshot(project.root), before);
   git(project.root, 'add', '.');

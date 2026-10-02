@@ -29,7 +29,9 @@ export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: '
 export interface Run {
   format: typeof formats.run; id: string; inspection: string;
   selection: Inspection['selection'];
-  // HEAD at start, recorded for provenance; the inspection identity does not bind it.
+  // The canonical project root and HEAD at start, recorded for provenance; the
+  // inspection identity binds neither.
+  root: string;
   head: string | null;
   affected: Record<string, HashInventory>;
   prerequisites: PrerequisiteEvidence[]; operations: OperationEvidence[];
@@ -118,8 +120,13 @@ function saveRun(root: string, run: Run, localReportReady: boolean) {
   if (run.outcome !== 'complete') mirror();
 }
 
+// Archived evidence is named relative to Git's directory for this working tree,
+// which holds the archive. A project-relative name would climb out of a linked
+// worktree into the main checkout's Git directory and record the machine's
+// checkout layout in committed retry history.
 function archiveEvidence(root: string, run: Run, name: string, value: Content) {
-  const directory = join(dirname(lockPath(root)), 'repo-standards-reports', run.id);
+  const gitDirectory = dirname(lockPath(root));
+  const directory = join(gitDirectory, 'repo-standards-reports', run.id);
   const path = join(directory, name);
   mkdirSync(dirname(path), { recursive: true });
   const temporary = `${path}.${randomUUID()}.tmp`;
@@ -127,7 +134,7 @@ function archiveEvidence(root: string, run: Run, name: string, value: Content) {
     writeFileSync(temporary, Buffer.from(value.content, value.encoding), { flag: 'wx', mode: value.executable ? 0o755 : 0o644 });
     renameSync(temporary, path);
   } finally { rmSync(temporary, { force: true }); }
-  return relative(root, path);
+  return relative(gitDirectory, path);
 }
 
 function archiveLocalReport(root: string, run: Run) {
@@ -347,11 +354,11 @@ export class AdoptionRunSession {
   }
 
   // An update begins from the recorded adoption its inspection read.
-  begin(report: Inspection, head: string | null, confirmation: string, startInput: StartInput, previous?: RecordedAdoption) {
+  begin(report: Inspection, provenance: Pick<Run, 'root' | 'head'>, confirmation: string, startInput: StartInput, previous?: RecordedAdoption) {
     this.#assertOpen();
     const root = this.#root;
     const recovering = this.#run;
-    const run: Run = recovering ?? { format: formats.run, observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, head, startInput,
+    const run: Run = recovering ?? { format: formats.run, observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, ...provenance, startInput,
       ...(previous ? { previousComplete: { selection: previous.selection, lastComplete: previous.state.lastComplete } } : {}),
       affected: { ...report.project.affected, [systemTarget]: report.project.systemSkill }, outcome: 'incomplete',
       prerequisites: [], operations: [], assessments: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],

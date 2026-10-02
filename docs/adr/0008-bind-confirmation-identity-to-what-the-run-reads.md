@@ -10,3 +10,8 @@ observation. HEAD is recorded in the run for provenance but is not bound. Start
 still requires a clean tree. The trade-off is that an unrelated commit can sit
 between inspection and start; if it changes anything the run reads, the bound
 content changes and the identity with it.
+
+[ADR 0012](0012-bind-content-not-location.md) extends this decision: the
+identity no longer binds the project root either, which the run records for
+provenance like HEAD, and ignore inputs are bound by role and content rather
+than by location.

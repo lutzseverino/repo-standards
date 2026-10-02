@@ -300,7 +300,10 @@ Inspection identifies exact changes and the trusted author operations that
 adoption will execute. Its identity binds what the run reads: the selection,
 resolved materials, affected bytes and modes, the product-state inventory, and,
 when discovery is active, the discovery observation. It does not bind Git HEAD,
-the index, or status. Reports carry hash inventories and diffs, not file bytes.
+the index, status, or the project root, so an inspection made in any checkout of
+the same content confirms a start in another
+([ADR 0012](../adr/0012-bind-content-not-location.md)). Reports carry hash
+inventories and diffs, not file bytes.
 The system skill obtains explicit confirmation of that inspection;
 start rejects stale state before mutation.
 
@@ -319,7 +322,8 @@ report field and a summary input; it authorizes and decides nothing.
 
 Inspection works in a dirty Git checkout. Start requires an existing commit,
 a clean index and working tree with no untracked files, and the inspected
-project state; the run records HEAD at start for provenance. It also examines replacement targets for ignored content:
+project state; the run records the project root and HEAD at start for
+provenance. It also examines replacement targets for ignored content:
 a clean Git status alone does not prove that content is recoverable.
 
 Target ownership is one rule for every installation target, including author
@@ -473,7 +477,13 @@ the product state directory, commit the directory's removal, and adopt again.
 
 Committed evidence holds the current run only
 ([ADR 0011](../adr/0011-retain-only-the-current-run.md)); Git history keeps
-earlier runs. Durable state, `.repo-standards/state.json` in
+earlier runs. It records no location the product observes on the adopting
+machine ([ADR 0012](../adr/0012-bind-content-not-location.md)); the project
+root stays in the local run record, and retry history names archived evidence
+by its path within Git's directory for the working tree. An observation names
+each ignore input by role, with its content state: `global` for the global
+excludes, `info` for the repository info exclude, and each consulted
+`.gitignore` by its project-relative path. Durable state, `.repo-standards/state.json` in
 `repo-standards/state/v6`, is one object:
 
 | Field | Content |
