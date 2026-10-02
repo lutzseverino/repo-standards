@@ -101,8 +101,10 @@ export async function inspect(options: InspectOptions, cliVersion: string) {
 
 // Start reads the materials it installs from the same acquisition and
 // observation as the report whose identity was confirmed, so the report itself
-// needs no bytes. The Git state is recorded for provenance and for detecting
-// Git changes during the run; it is not part of the identity. An inspection of
+// needs no bytes. The project root and the Git state are recorded for
+// provenance, and the Git state for detecting Git changes during the run;
+// neither is part of the report or its identity, so an inspection made in any
+// checkout of the same content confirms a start in another. An inspection of
 // retained standards passes the recorded adoption it read them from.
 export async function inspectForStart(options: InspectOptions, cliVersion: string, retained?: RecordedAdoption) {
   if (process.versions.node.split('.')[0] !== '24') throw new ProductError('NODE_REQUIRED', 'Node.js 24 is required. Select Node.js 24 with your version manager or install it from https://nodejs.org/en/download, then retry.');
@@ -149,8 +151,8 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const scopeObservation = discoveryDeclarations.length ? observeScope(root) : undefined;
     // The request binds what discovery reads: the selection, the project
     // observation, and the durable product state it excludes from that
-    // observation. Git HEAD and the index are not bound.
-    const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, root, productState: hashInventory(productState), observation: scopeObservation }))}` : undefined;
+    // observation. Git HEAD, the index, and the project root are not bound.
+    const requestIdentity = scopeObservation ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, productState: hashInventory(productState), observation: scopeObservation }))}` : undefined;
     const scope = validateScope({ root, sourceResolved: profile, observation: scopeObservation, ...(options.scope ? { proposalPath: options.scope } : {}) });
     const { proposal, resolved, named, namedObservation, absence } = scope;
     blockers.push(...scope.blockers);
@@ -262,7 +264,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       source: validation.source, resolved, exact, guidance, operations,
       inputs: Object.fromEntries(Object.entries(inputs).map(([path, value]) => [path, hashInventory(value)])),
       manifest: { sha256: hash(normalized), executable: false },
-      project: { root, affected: Object.fromEntries(Object.entries(affected).map(([path, value]) => [path, hashInventory(value)])),
+      project: { affected: Object.fromEntries(Object.entries(affected).map(([path, value]) => [path, hashInventory(value)])),
         productState: hashInventory(productState), systemSkill: hashInventory(systemSkill) },
       systemSkill: { target: systemTarget, action: ownership.get(systemTarget)!.action! },
       ...(removed ? { removed } : {}),
@@ -283,6 +285,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     return {
       report: { ...report, identity: `sha256:${hash(JSON.stringify(report))}` },
       materials: { exact: desiredExact, inputs, manifest: normalized, systemSkill: systemCandidate },
+      root,
       git: { head: head.status === 0 ? head.stdout.trim() : null, index: hash(index.stdout), hidden },
       recorded: previous,
     };

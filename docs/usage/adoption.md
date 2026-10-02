@@ -231,7 +231,7 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Durable state, `.repo-standards/state.json` | `repo-standards/state/v6` |
 | Integrity lock, `.repo-standards/lock.json` | `repo-standards/lock/v1` |
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v4` |
-| Run record, local run report, and archived abandoned report | `repo-standards/run/v5` |
+| Run record, local run report, and archived abandoned report | `repo-standards/run/v6` |
 | `status` report | `repo-standards/status/v6` |
 | Inspection report | `repo-standards/inspection/v5` |
 | Work request and assessment | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
@@ -268,10 +268,12 @@ Neither dependencies nor run records belong in commits.
 
 ## Completion and incomplete results
 
-`start` prints a `repo-standards/run/v5` JSON report. Its fields include `id`,
-`inspection`, `selection`, `head`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
+`start` prints a `repo-standards/run/v6` JSON report. Its fields include `id`,
+`inspection`, `selection`, `root`, `head`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
 `uncertain`, `nextAction`, `prerequisites`, `operations`, `assessments`, and contextual
-`workRequest` when required. The report carries no file bytes: `affected` holds
+`workRequest` when required. `root` and `head` record the canonical project
+root and HEAD at start for provenance; the inspection identity binds neither,
+and neither is committed. The report carries no file bytes: `affected` holds
 the hash inventories of the targets at start, `completion` the hashes of the
 candidate lock and state, and the work request references guidance by path and
 hash. `installation.files` and `installation.runtime` record

@@ -103,12 +103,12 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
     }
   };
   const initial = await inspectSelection();
-  const root = initial.report.project.root;
+  const root = initial.root;
   verifyConfirmation(initial.report, confirmation);
   const proposalPath = input.kind === 'retained' ? input.scope : input.options.scope;
   const scope = proposalPath === undefined ? {} : { scope: realpathSync(resolve(proposalPath)) };
   const startInput: StartInput = input.kind === 'retained' ? { kind: 'retained', project: root, ...scope } : { kind: 'public', options: { ...input.options, project: root, ...scope } };
-  session.begin(initial.report, initial.git.head, confirmation, startInput, initial.recorded);
+  session.begin(initial.report, { root, head: initial.git.head }, confirmation, startInput, initial.recorded);
   const prerequisites = await session.prerequisites(onSpawn => preflight(root, initial.report.resolved, onSpawn));
   if (prerequisites.some(probe => probe.code)) throw new ProductError('PREREQUISITES_BLOCKED', 'Resolve the reported executable and version problems; prerequisites are never installed automatically.');
   // Initial adoption installs the runtime; an update replaces it only when

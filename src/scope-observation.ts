@@ -11,6 +11,9 @@ const limits = { paths: 20_000, fileBytes: 8 * 1024 * 1024, totalBytes: 64 * 102
 const reservedProductState = '.repo-standards';
 export interface Evidence { kind: 'file' | 'directory' | 'absence'; path: string; identity: string }
 export type FileState = { type: 'missing' } | { type: 'file'; sha256: string; executable: boolean } | { type: 'directory'; mode: number } | { type: 'symlink'; target: string };
+// An ignore input's content state; an explicitly empty global excludes setting
+// disables that input.
+export type IgnoreState = FileState | { type: 'disabled' };
 // The product's observation identity: a content-derived identity for any
 // observed value, shared by discovery evidence and committed work evidence.
 export const observationIdentity = (value: unknown) => `sha256:${hash(JSON.stringify(value))}`;
@@ -167,19 +170,23 @@ export function observeScope(root: string, named: string[] = [], options: { exec
     }
     if (targets[path]!.type !== 'file' && targets[path]!.type !== 'missing' && !(options.directories?.includes(path) && targets[path]!.type === 'directory')) throw new ProductError('UNSAFE_TARGET', `Discovered targets must be individual regular files or absent files: ${path}.`);
   }
-  const ignores: Record<string, { location: string; state: FileState | { type: 'disabled' } }> = Object.create(null);
-  for (const [key, path] of [['global', globalExclude ? resolve(root, globalExclude) : ''], ['info', infoExclude]]) {
-    if (path === '') { ignores[key!] = { location: '', state: { type: 'disabled' } }; continue; }
-    const state = file(path!);
+  // Ignore inputs are named by role: the global excludes, the repository's info
+  // exclude, and each consulted .gitignore by its project-relative path. Their
+  // content state is bound; where they are located is not, so the observation
+  // is the same from any checkout of the same content.
+  const ignores: Record<string, IgnoreState> = Object.create(null);
+  for (const [role, path] of [['global', globalExclude ? resolve(root, globalExclude) : ''], ['info', infoExclude]] as const) {
+    if (path === '') { ignores[role] = { type: 'disabled' }; continue; }
+    const state = file(path);
     if (state.type !== 'file' && state.type !== 'missing') throw new ProductError('OBSERVATION_UNSAFE', 'Ignore inputs must be regular files or absent.');
-    ignores[key!] = { location: path!, state };
+    ignores[role] = state;
   }
   for (const directory of [...new Set([...directories, ...Object.keys(boundaries).filter(path => boundaries[path]!.type === 'directory')])].sort()) {
     const path = directory === '.' ? '.gitignore' : `${directory}/.gitignore`;
     const state = file(join(root, path));
     // Git does not follow a symbolic .gitignore; record the link, not its referent.
     if (state.type === 'directory') throw new ProductError('OBSERVATION_UNSAFE', `Cannot read ignore input: ${path}.`);
-    ignores[path] = { location: path, state };
+    ignores[path] = state;
   }
   const inventories: Record<string, string[]> = Object.fromEntries([...directories].sort().map(directory => [directory, []]));
   for (const path of [...new Set([...paths, ...directories])].sort()) {

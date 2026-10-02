@@ -151,7 +151,7 @@ observations, not continuous monitoring or atomic filesystem snapshots. The
 apply; incomplete reads, unsafe boundaries, instability, or exhausted limits
 block progression and preserve incomplete work.
 
-`repo-standards/run/v5` records `observations` separately from `operations` and
+`repo-standards/run/v6` records `observations` separately from `operations` and
 `assessments`. Each interval has a phase (`fixes`, `checks`, or `agent`), its
 applicable declaration `scope`, and the `before` observation identity. Closed
 intervals add the `after` identity, `changes`, `boundaryChanges`, and

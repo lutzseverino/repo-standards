@@ -35,3 +35,7 @@ alternatives.
 - [Retain only the current run](0011-retain-only-the-current-run.md):
   committed state and scope evidence hold the current run only, with its scope
   change against the previous run, so they do not grow from run to run.
+- [Bind content, not location](0012-bind-content-not-location.md):
+  identities and committed evidence bind the content a run reads, never the
+  project root or another machine-local location, which the run records for
+  provenance only.

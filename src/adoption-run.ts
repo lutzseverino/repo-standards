@@ -29,7 +29,9 @@ export type StartInput = { kind: 'public'; options: InspectOptions } | { kind: '
 export interface Run {
   format: typeof formats.run; id: string; inspection: string;
   selection: Inspection['selection'];
-  // HEAD at start, recorded for provenance; the inspection identity does not bind it.
+  // The canonical project root and HEAD at start, recorded for provenance; the
+  // inspection identity binds neither.
+  root: string;
   head: string | null;
   affected: Record<string, HashInventory>;
   prerequisites: PrerequisiteEvidence[]; operations: OperationEvidence[];
@@ -347,11 +349,11 @@ export class AdoptionRunSession {
   }
 
   // An update begins from the recorded adoption its inspection read.
-  begin(report: Inspection, head: string | null, confirmation: string, startInput: StartInput, previous?: RecordedAdoption) {
+  begin(report: Inspection, provenance: Pick<Run, 'root' | 'head'>, confirmation: string, startInput: StartInput, previous?: RecordedAdoption) {
     this.#assertOpen();
     const root = this.#root;
     const recovering = this.#run;
-    const run: Run = recovering ?? { format: formats.run, observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, head, startInput,
+    const run: Run = recovering ?? { format: formats.run, observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, ...provenance, startInput,
       ...(previous ? { previousComplete: { selection: previous.selection, lastComplete: previous.state.lastComplete } } : {}),
       affected: { ...report.project.affected, [systemTarget]: report.project.systemSkill }, outcome: 'incomplete',
       prerequisites: [], operations: [], assessments: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],

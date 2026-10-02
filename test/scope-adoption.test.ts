@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { stringify } from 'yaml';
 import { installCli, sha256, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
-import { assertCompactRunRecord, assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeEvidence, committedState, localRunReport } from './committed-evidence.ts';
+import { assertCompactRunRecord, assertNoAbsolutePath, assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeEvidence, committedState, localRunReport } from './committed-evidence.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -404,4 +405,45 @@ syncBuiltinESMExports();`);
   assert.equal(report.phase, 'contextual', recovered.stdout);
   assert.equal(report.workRequest.scope.inspection, inspected.identity);
   assert.deepEqual(report.workRequest.scope.proposal, inspected.discovery.proposal);
+});
+
+test('an inspection made in another clone of the same content confirms a start in this checkout', async t => {
+  const f = await fixture(t);
+  const inspected = f.inspect().report;
+  const clone = join(f.remote.support.root, 'clone');
+  git(f.project.root, 'clone', '--quiet', f.project.root, clone);
+  const run = (args: string[]) => { const result = cli.run(args, clone, f.env); return { result, report: JSON.parse(result.stdout) }; };
+  // Neither the request nor the inspection binds where the project is checked out.
+  assert.equal(run(inspectionArgs).report.discovery.identity, f.request.discovery.identity);
+  assert.equal(run([...inspectionArgs, '--scope', f.scopeFile]).report.identity, inspected.identity);
+  const started = run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', inspected.identity]);
+  assert.equal(started.report.phase, 'contextual', started.result.stdout);
+  assert.equal(started.report.inspection, inspected.identity);
+  // The run records where it happened, for provenance only.
+  assert.equal(started.report.root, realpathSync(clone));
+  assert.equal(existsSync(join(f.project.root, '.repo-standards')), false);
+});
+
+test('committed evidence binds ignore inputs by role and content and records no absolute path', async t => {
+  const f = await fixture(t, 'fixtures/example', { 'fixtures/.gitignore': 'build/\n' });
+  const globalIgnore = join(f.remote.support.root, 'global-ignore');
+  writeFileSync(globalIgnore, '*.log\n');
+  git(f.project.root, 'config', 'core.excludesFile', globalIgnore);
+  f.proposal.request = f.run(inspectionArgs).report.discovery.identity;
+  const entry = f.proposal.declarations[0]!;
+  entry.paths = [];
+  entry.candidates = [{ path: 'fixtures/example', decision: 'exclude', reason: 'Fixture project; there are no maintained projects here.', evidence: entry.evidence }, entry.candidates[1]!];
+  entry.coverage = 'This repository contains test fixtures only; no maintained project requires documentation.';
+  const start = f.start(f.inspect().report.identity).report;
+  assert.equal(start.phase, 'contextual', JSON.stringify(start));
+  const completed = submit(f, assessment(start.workRequest));
+  assert.equal(completed.result.status, 0, completed.result.stdout);
+  assert.equal(completed.report.root, f.project.root);
+  assert.equal((localRunReport(f.project.root) as unknown as { root: string }).root, f.project.root);
+  const ignores = (committedScopeEvidence(f.project.root).discovery!.observation as { ignores: Record<string, unknown> }).ignores;
+  assert.deepEqual(ignores.global, { type: 'file', sha256: sha256('*.log\n'), executable: false });
+  assert.deepEqual(ignores['fixtures/.gitignore'], { type: 'file', sha256: sha256('build/\n'), executable: false });
+  assert.equal((ignores.info as { type: string }).type, 'file');
+  assert.deepEqual(ignores['.gitignore'], { type: 'missing' });
+  assertNoAbsolutePath(f.project.root, [f.project.root, f.remote.support.root, globalIgnore, realpathSync(tmpdir())], [process.execPath]);
 });

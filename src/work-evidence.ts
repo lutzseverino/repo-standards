@@ -62,7 +62,7 @@ function changedState(observation: WorkObservation, path: string): unknown {
   if (path === '@git/observation-settings') return observation.settings;
   if (path.startsWith('@ignore/')) return observation.ignores[path.slice('@ignore/'.length)] ?? null;
   if (Object.hasOwn(observation.files, path)) return observation.files[path];
-  if (Object.hasOwn(observation.ignores, path)) return observation.ignores[path]!.state;
+  if (Object.hasOwn(observation.ignores, path)) return observation.ignores[path];
   return { type: 'missing' };
 }
 

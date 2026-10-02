@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { isAbsolute, join } from 'node:path';
 
 export interface CommittedInterval {
   phase: string;
@@ -54,7 +55,7 @@ function assertCompactIntervals(label: string, observations: CommittedInterval[]
 // report or an archived report, has the single run format and records its
 // intervals in the committed shape, never with an observation map.
 export function assertCompactRunRecord(record: { format: string; observations: CommittedInterval[] }, label = 'run record') {
-  assert.equal(record.format, 'repo-standards/run/v5');
+  assert.equal(record.format, 'repo-standards/run/v6');
   assertCompactIntervals(label, record.observations);
 }
 
@@ -135,4 +136,31 @@ export function growCommittedState(root: string, bytes: number) {
   lock.state.sha256 = createHash('sha256').update(grown).digest('hex');
   writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
   return Buffer.byteLength(grown);
+}
+
+// Committed evidence binds content, not location: no file the adoption leaves
+// for the project's normal workflow to commit names an absolute path, as a JSON
+// key or string value, and none names a given machine location anywhere in its
+// text. Absolute paths the standards source itself declares, such as an
+// operation's executable, are retained source content and are passed as
+// authored.
+export function assertNoAbsolutePath(root: string, locations: string[], authored: string[] = []) {
+  const committed = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '.repo-standards'], { cwd: root, encoding: 'utf8' })
+    .split('\0').filter(Boolean);
+  assert.ok(committed.includes('.repo-standards/state.json'), 'the adoption leaves committed state');
+  const absolute: string[] = [];
+  function visit(path: string, value: unknown) {
+    if (typeof value === 'string' && isAbsolute(value) && !authored.includes(value)) absolute.push(`${path}: ${value}`);
+    else if (value && typeof value === 'object') for (const [key, child] of Object.entries(value)) {
+      if (isAbsolute(key)) absolute.push(`${path}: ${key}`);
+      visit(path, child);
+    }
+  }
+  for (const path of committed) {
+    const text = readFileSync(join(root, path), 'utf8');
+    for (const location of locations) if (text.includes(location)) absolute.push(`${path}: ${location}`);
+    if (path.endsWith('.json')) visit(path, JSON.parse(text));
+  }
+  assert.deepEqual(absolute, [], 'committed evidence must not record an absolute path');
+  return committed;
 }

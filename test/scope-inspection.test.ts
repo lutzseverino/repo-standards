@@ -425,3 +425,32 @@ test('excluded candidates require safe concrete syntax while allowing explanatio
     if (!safe) assert.equal(JSON.parse(result.stdout).errors[0].code, 'UNSAFE_PATH');
   }
 });
+
+test('ignore inputs bind their content by role, not their location, and reports name no checkout path', (t) => {
+  const remote = remoteFixture(source, material);
+  const project = sourceFixture('', { 'app/package.json': '{}' });
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const original = join(remote.support.root, 'original-ignore');
+  writeFileSync(original, '*.log\n');
+  git(project.root, 'config', 'core.excludesFile', original);
+  const request = () => {
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    return JSON.parse(result.stdout);
+  };
+  const first = request();
+  assert.deepEqual(first.discovery.observation.ignores.global, { type: 'file', sha256: sha256('*.log\n'), executable: false });
+  for (const location of [project.root, original]) assert.ok(!JSON.stringify(first).includes(location), `the report names ${location}`);
+  const moved = join(remote.support.root, 'elsewhere/ignore');
+  mkdirSync(join(remote.support.root, 'elsewhere'));
+  writeFileSync(moved, '*.log\n');
+  git(project.root, 'config', 'core.excludesFile', moved);
+  const relocated = request();
+  assert.equal(relocated.discovery.identity, first.discovery.identity);
+  assert.equal(relocated.identity, first.identity);
+  writeFileSync(moved, '*.log\n*.tmp\n');
+  const changed = request();
+  assert.notEqual(changed.discovery.identity, first.discovery.identity);
+  assert.notEqual(changed.identity, first.identity);
+});

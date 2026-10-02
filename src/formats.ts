@@ -8,7 +8,7 @@ export const formats = {
   state: 'repo-standards/state/v6',
   lock: 'repo-standards/lock/v1',
   scopeHistory: 'repo-standards/scope-history/v4',
-  run: 'repo-standards/run/v5',
+  run: 'repo-standards/run/v6',
   status: 'repo-standards/status/v6',
   inspection: 'repo-standards/inspection/v5',
   scope: 'repo-standards/scope/v2',
