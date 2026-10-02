@@ -377,8 +377,8 @@ The changed paths are the run's net change set, which completion keeps in
 durable state as `changeSet`, so the record renders from committed state alone,
 in any checkout. Each entry names a path whose state at completion differs from
 its state before the run, and the phases that changed it: `installation` for
-exact files and skill files, including the system skill's, that the run
-created, replaced, or removed; `fixes` and `agent` for the paths their intervals
+exact files and skill files, including the system skill's and a retired
+declaration's removed target, that the run created, replaced, or removed; `fixes` and `agent` for the paths their intervals
 recorded. A path that a later phase returned to its state before the run is not
 listed, verified restoration of installed content after an interruption keeps
 only the installation's attribution, and product state under `.repo-standards/`

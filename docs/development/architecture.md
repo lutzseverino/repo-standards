@@ -478,7 +478,7 @@ earlier runs. Durable state, `.repo-standards/state.json` in
 | `lastComplete` | The run ID, its confirmed inspection identity, completion time, and HEAD at start. |
 | `baselines`, `skills` | Installed baselines of exact content and complete skill inventories. |
 | `checks`, `assessments` | The run's final checks and accepted assessments. |
-| `changeSet` | The run's net change set: each path whose state at completion differs from its state before the run, once, sorted, with the phases that changed it: `installation`, `fixes`, or `agent`. Installation changes are the exact files and skill files, including the system skill's, that the run created, replaced, or removed; fix and agent changes are the paths their intervals name. Verified restoration of installed content after an interruption keeps only the installation's attribution. Product state is not listed. |
+| `changeSet` | The run's net change set: each path whose state at completion differs from its state before the run, once, sorted, with the phases that changed it: `installation`, `fixes`, or `agent`. Installation changes are the exact files and skill files, including the system skill's and a retired declaration's removed target, that the run created, replaced, or removed; fix and agent changes are the paths their intervals name. Verified restoration of installed content after an interruption keeps only the installation's attribution. Product state is not listed. |
 
 `status --summary` renders a complete run's changed paths from the stored change
 set alone, each path once, under the heading

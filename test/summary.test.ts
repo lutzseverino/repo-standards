@@ -234,6 +234,48 @@ test('the record of an update that only installs exact content lists every insta
   assert.equal(fresh.stdout, expected);
 });
 
+test('the record of an update lists a removed retired target and a replaced edited target once, as installation', async t => {
+  const manifest = (declarations: Record<string, unknown>) => stringify({ format: 'repo-standards/v2', name: 'exact-standards', description: 'Exact fixture',
+    requires: { 'repo-standards': '>=1' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: {} } } });
+  const instructions = { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' };
+  const remote = remoteFixture(manifest({ instructions, notes: { kind: 'file', target: 'NOTES.md', exact: 'notes.md' } }),
+    { 'agents.md': 'Pinned instructions\n', 'notes.md': 'Pinned notes\n' });
+  const project = sourceFixture('', { 'README.md': '# Project\n' });
+  commit(project.root);
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  const env = { ...remote.env, ...registry.env };
+  const run = (args: string[]) => cli.run(args, project.root, env);
+  const adopt = (version: string) => {
+    const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? version : argument);
+    const report = JSON.parse(run(args).stdout);
+    const started = run(['start', ...args.slice(1), '--confirm', report.identity]);
+    assert.equal(JSON.parse(started.stdout).outcome, 'complete', started.stdout);
+    commit(project.root);
+    return report;
+  };
+  adopt('v1.0.0');
+  // A committed local edit to an installed target, which the update replaces.
+  writeFileSync(join(project.root, 'AGENTS.md'), 'Locally edited instructions\n');
+  commit(project.root);
+  remote.addVersion('v1.1.0', manifest({ instructions }), {});
+  const report = adopt('v1.1.0');
+  assert.deepEqual(report.removed.map((entry: { target: string }) => entry.target), ['NOTES.md']);
+  assert.deepEqual(report.discardedEdits, ['AGENTS.md']);
+
+  const status = JSON.parse(run(['status', '--json']).stdout);
+  assert.deepEqual(status.changeSet, [
+    { path: 'AGENTS.md', phases: ['installation'] },
+    { path: 'NOTES.md', phases: ['installation'] },
+  ]);
+  const record = run(['status', '--summary']);
+  assert.equal(record.status, 0, record.stderr);
+  assert.equal(record.stdout, expectedRecord(status, 'No operations ran.', `| Path | Phases |
+| --- | --- |
+| \`AGENTS.md\` | installation |
+| \`NOTES.md\` | installation |`, 'No scope changes.'));
+});
+
 test('inspect --summary renders a deterministic update proposal with its class, and lists blockers', async t => {
   const f = await fixture(t);
   const args = f.propose(inspectionArgs);

@@ -242,12 +242,12 @@ export function exactContent(installation: Installation): Scope[string] {
 }
 
 // The project paths the installation plans, each with its state before the run
-// and as installed: exact files and every file of an installed or replaced
-// skill tree, including the system skill; the change set ignores those it
-// leaves unchanged. Product state under `.repo-standards/` is the product's
-// own, not a project path the run changes. Only the leaves of a tree are
-// compared: an empty directory has none, and as untracked content it never
-// reaches a start.
+// and as installed: exact files, every file of an installed or replaced skill
+// tree, including the system skill, and every file of a removed target. The
+// change set ignores those the installation leaves unchanged. Product state
+// under `.repo-standards/` is the product's own, not a project path the run
+// changes. Only the leaves of a tree are compared: an empty directory has
+// none, and as untracked content it never reaches a start.
 function installationDeltas(installation: Installation): Record<string, Delta> {
   const before: Record<string, HashInventory> = Object.create(null);
   const leaves = (path: string, value: HashInventory) => {
