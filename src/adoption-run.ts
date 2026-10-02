@@ -120,8 +120,13 @@ function saveRun(root: string, run: Run, localReportReady: boolean) {
   if (run.outcome !== 'complete') mirror();
 }
 
+// Archived evidence is named relative to Git's directory for this working tree,
+// which holds the archive. A project-relative name would climb out of a linked
+// worktree into the main checkout's Git directory and record the machine's
+// checkout layout in committed retry history.
 function archiveEvidence(root: string, run: Run, name: string, value: Content) {
-  const directory = join(dirname(lockPath(root)), 'repo-standards-reports', run.id);
+  const gitDirectory = dirname(lockPath(root));
+  const directory = join(gitDirectory, 'repo-standards-reports', run.id);
   const path = join(directory, name);
   mkdirSync(dirname(path), { recursive: true });
   const temporary = `${path}.${randomUUID()}.tmp`;
@@ -129,7 +134,7 @@ function archiveEvidence(root: string, run: Run, name: string, value: Content) {
     writeFileSync(temporary, Buffer.from(value.content, value.encoding), { flag: 'wx', mode: value.executable ? 0o755 : 0o644 });
     renameSync(temporary, path);
   } finally { rmSync(temporary, { force: true }); }
-  return relative(root, path);
+  return relative(gitDirectory, path);
 }
 
 function archiveLocalReport(root: string, run: Run) {

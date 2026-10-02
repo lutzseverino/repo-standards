@@ -479,7 +479,8 @@ Committed evidence holds the current run only
 ([ADR 0011](../adr/0011-retain-only-the-current-run.md)); Git history keeps
 earlier runs. It records no location the product observes on the adopting
 machine ([ADR 0012](../adr/0012-bind-content-not-location.md)); the project
-root stays in the local run record. An observation names each ignore input by
+root stays in the local run record, and retry history names archived evidence
+by its path within Git's directory for the working tree. An observation names each ignore input by
 role, with its content state: `global` for the global excludes, `info` for the
 repository info exclude, and each consulted `.gitignore` by its
 project-relative path. Durable state, `.repo-standards/state.json` in

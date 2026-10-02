@@ -284,7 +284,9 @@ confirmed installation progress; `uncertain` describes work whose result has not
 been verified and recorded. `retryHistory` preserves prior failure reasons,
 uncertainty, and assessment evidence. Its `report` path points to the local report
 bytes archived before retry, including any changes made by an interrupted author
-process. Archival failure blocks retry before the existing report is overwritten.
+process. Archived paths are relative to Git's directory for the working tree,
+such as `repo-standards-reports/<run-id>/<name>`, so committed retry history
+names no location outside the project. Archival failure blocks retry before the existing report is overwritten.
 Each retry's `archivedFiles` also retains operation logs, including unrecorded
 results. Archive names include content hashes so reusing an operation index
 cannot replace earlier evidence.
@@ -495,8 +497,9 @@ It archives the report under Git's `repo-standards-reports/<run-id>.json`; `stat
 returns these reports in `abandoned`. Operation logs and local report snapshots
 are copied alongside the archived report in a directory named for the run ID.
 Archived operations point to those copies, so later adoption and removal of the
-incomplete installation cannot overwrite their evidence. Paths are relative to
-the project root, including when Git metadata lives outside the working tree.
+incomplete installation cannot overwrite their evidence. Archived paths are
+relative to Git's directory for the working tree, including when that directory
+lives outside the working tree, as in a linked worktree.
 `archivedFiles` maps original report and operation-log paths to their archived
 copies, including logs written before their operation result reached the journal.
 Abandonment reports `outcome: incomplete` with `abandoned: true` and exit status 1;
