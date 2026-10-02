@@ -12,8 +12,9 @@ const reservedProductState = '.repo-standards';
 export interface Evidence { kind: 'file' | 'directory' | 'absence'; path: string; identity: string }
 export type FileState = { type: 'missing' } | { type: 'file'; sha256: string; executable: boolean } | { type: 'directory'; mode: number } | { type: 'symlink'; target: string };
 // An ignore input's content state; an explicitly empty global excludes setting
-// disables that input.
-export type IgnoreState = FileState | { type: 'disabled' };
+// disables that input. Git does not follow a symbolic .gitignore, so a link is
+// recorded without its target, which may name a machine-local location.
+export type IgnoreState = Exclude<FileState, { type: 'symlink' }> | { type: 'symlink' } | { type: 'disabled' };
 // The product's observation identity: a content-derived identity for any
 // observed value, shared by discovery evidence and committed work evidence.
 export const observationIdentity = (value: unknown) => `sha256:${hash(JSON.stringify(value))}`;
@@ -184,9 +185,10 @@ export function observeScope(root: string, named: string[] = [], options: { exec
   for (const directory of [...new Set([...directories, ...Object.keys(boundaries).filter(path => boundaries[path]!.type === 'directory')])].sort()) {
     const path = directory === '.' ? '.gitignore' : `${directory}/.gitignore`;
     const state = file(join(root, path));
-    // Git does not follow a symbolic .gitignore; record the link, not its referent.
+    // Git does not follow a symbolic .gitignore; record that it is a link, not
+    // its referent or its target.
     if (state.type === 'directory') throw new ProductError('OBSERVATION_UNSAFE', `Cannot read ignore input: ${path}.`);
-    ignores[path] = state;
+    ignores[path] = state.type === 'symlink' ? { type: 'symlink' } : state;
   }
   const inventories: Record<string, string[]> = Object.fromEntries([...directories].sort().map(directory => [directory, []]));
   for (const path of [...new Set([...paths, ...directories])].sort()) {

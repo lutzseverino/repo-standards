@@ -149,10 +149,13 @@ matches the skill packaged with this exact CLI. A differing tracked file or
 skill, including the system skill, is replaced and listed among the discarded
 edits; unrelated and excluded content remains outside the selection.
 
-The identity binds what the run reads, not Git HEAD: a commit between
-inspection and start that touches no affected file, retained input, or durable
-product state leaves the confirmation valid. The run records HEAD at start in
-its `head` field for provenance, and completion records it in the state's
+The identity binds what the run reads, not Git HEAD or where the project is
+checked out: a commit between inspection and start that touches no affected
+file, retained input, or durable product state leaves the confirmation valid,
+and an inspection made in another clone of the same content confirms a start in
+this one ([ADR 0012](../adr/0012-bind-content-not-location.md)). The run
+records the project root and HEAD at start in its `root` and `head` fields for
+provenance, and completion records HEAD, never the root, in the state's
 `lastComplete.head`. HEAD and the index must then stay unchanged until the run
 completes. Inspection and run reports carry hash inventories and diffs rather
 than file bytes; start acquires the source again and installs only bytes that

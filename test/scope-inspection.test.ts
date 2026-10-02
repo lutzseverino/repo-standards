@@ -453,4 +453,11 @@ test('ignore inputs bind their content by role, not their location, and reports 
   const changed = request();
   assert.notEqual(changed.discovery.identity, first.discovery.identity);
   assert.notEqual(changed.identity, first.identity);
+  // Git does not follow a symbolic .gitignore; an ignored one is recorded as a
+  // link without its machine-local target.
+  writeFileSync(join(project.root, '.git/info/exclude'), 'app/.gitignore\n');
+  symlinkSync(moved, join(project.root, 'app/.gitignore'));
+  const linked = request();
+  assert.deepEqual(linked.discovery.observation.ignores['app/.gitignore'], { type: 'symlink' });
+  assert.ok(!JSON.stringify(linked).includes(moved), 'the report names the link target');
 });

@@ -477,12 +477,12 @@ the product state directory, commit the directory's removal, and adopt again.
 
 Committed evidence holds the current run only
 ([ADR 0011](../adr/0011-retain-only-the-current-run.md)); Git history keeps
-earlier runs. It names no absolute, machine-local location
-([ADR 0012](../adr/0012-bind-content-not-location.md)): an observation names
-ignore inputs by role, as `global` for the global excludes, `info` for the
-repository info exclude, and each consulted `.gitignore` by its project-relative
-path, each with its content state, and the project root stays in the local run
-record. Durable state, `.repo-standards/state.json` in
+earlier runs. It records no location the product observes on the adopting
+machine ([ADR 0012](../adr/0012-bind-content-not-location.md)); the project
+root stays in the local run record. An observation names each ignore input by
+role, with its content state: `global` for the global excludes, `info` for the
+repository info exclude, and each consulted `.gitignore` by its
+project-relative path. Durable state, `.repo-standards/state.json` in
 `repo-standards/state/v6`, is one object:
 
 | Field | Content |

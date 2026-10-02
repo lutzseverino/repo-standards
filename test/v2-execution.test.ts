@@ -4,7 +4,7 @@ import type { TestContext } from 'node:test';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
-import { installCli, sourceFixture } from './installed-cli.ts';
+import { installCli, sha256, sourceFixture } from './installed-cli.ts';
 import { assertCompactRunRecord, assertCompactWorkEvidence, committedState, localRunReport } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
@@ -501,4 +501,17 @@ ${result}`);
   assert.equal(Object.hasOwn(status, 'history'), false);
   // A project that never discovered scope retains no scope evidence to report.
   assert.equal(Object.hasOwn(status, 'scopeChanges'), false);
+});
+
+test('v2 work evidence records an ignore input change by its role and content state, never its location', async t => {
+  const f = await fixture(t, `${prelude}
+if (input.operation.phase === 'fixes') writeFileSync('.git/info/exclude', '# changed by a fix\\n');
+${result}`);
+  const started = f.start();
+  assert.equal(started.result.status, 1, started.result.stdout);
+  assert.match(started.report.reason, /@ignore\/info/);
+  const interval = localRunReport(f.project.root).observations.find(entry => entry.changes && Object.hasOwn(entry.changes, '@ignore/info'))!;
+  assert.deepEqual(interval.changes!['@ignore/info']!.after, { type: 'file', sha256: sha256('# changed by a fix\n'), executable: false });
+  assert.equal(interval.changes!['@ignore/info']!.before.type, 'file');
+  assert.ok(!JSON.stringify(interval).includes(f.project.root), 'the delta names no checkout location');
 });

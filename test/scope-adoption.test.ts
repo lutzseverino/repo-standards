@@ -9,7 +9,7 @@ import { installCli, sha256, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
-import { assertCompactRunRecord, assertNoAbsolutePath, assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeEvidence, committedState, localRunReport } from './committed-evidence.ts';
+import { assertCompactRunRecord, assertCompactScopeEvidence, assertCompactWorkEvidence, assertNoAbsolutePath, committedScopeEvidence, committedState, localRunReport } from './committed-evidence.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -439,7 +439,7 @@ test('committed evidence binds ignore inputs by role and content and records no 
   const completed = submit(f, assessment(start.workRequest));
   assert.equal(completed.result.status, 0, completed.result.stdout);
   assert.equal(completed.report.root, f.project.root);
-  assert.equal((localRunReport(f.project.root) as unknown as { root: string }).root, f.project.root);
+  assert.equal(localRunReport(f.project.root).root, f.project.root);
   const ignores = (committedScopeEvidence(f.project.root).discovery!.observation as { ignores: Record<string, unknown> }).ignores;
   assert.deepEqual(ignores.global, { type: 'file', sha256: sha256('*.log\n'), executable: false });
   assert.deepEqual(ignores['fixtures/.gitignore'], { type: 'file', sha256: sha256('build/\n'), executable: false });

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
+import { git } from './remote-fixture.ts';
 
 export interface CommittedInterval {
   phase: string;
@@ -25,7 +25,7 @@ export function committedState(root: string) {
 }
 
 export function localRunReport(root: string) {
-  return JSON.parse(readFileSync(join(root, '.repo-standards/local/run.json'), 'utf8')) as { format: string; observations: CommittedInterval[] };
+  return JSON.parse(readFileSync(join(root, '.repo-standards/local/run.json'), 'utf8')) as { format: string; root: string; observations: CommittedInterval[] };
 }
 
 // Every interval, committed or in a run record, is identities plus delta.
@@ -145,8 +145,7 @@ export function growCommittedState(root: string, bytes: number) {
 // operation's executable, are retained source content and are passed as
 // authored.
 export function assertNoAbsolutePath(root: string, locations: string[], authored: string[] = []) {
-  const committed = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '.repo-standards'], { cwd: root, encoding: 'utf8' })
-    .split('\0').filter(Boolean);
+  const committed = git(root, 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '.repo-standards').split('\0').filter(Boolean);
   assert.ok(committed.includes('.repo-standards/state.json'), 'the adoption leaves committed state');
   const absolute: string[] = [];
   function visit(path: string, value: unknown) {
