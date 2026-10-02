@@ -214,6 +214,13 @@ test('missing, invalid, unresolved, stale and dirty discovery starts preserve th
   assert.equal(unfitAtInspection.code, 'INVALID_SCOPE');
   assert.match(unfitAtInspection.message, /discovery observation/);
   git(f.project.root, 'checkout', '--', f.member);
+  const target = join(f.project.root, dirname(f.member), 'README.md');
+  mkdirSync(target);
+  const replaced = f.start(inspection.identity).report;
+  reject(replaced, 'STALE_INSPECTION');
+  assert.match(replaced.errors[0].message, /fresh discovery evidence/);
+  assert.equal(f.inspect().report.errors[0].code, 'UNSAFE_TARGET');
+  rmSync(target, { recursive: true });
   // A proposal confirmed against an earlier observation is stale once the
   // project changes; start rejects it and asks for a fresh review.
   writeFileSync(join(f.project.root, '.git/info/exclude'), '# new observation input\n');

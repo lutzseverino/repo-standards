@@ -29,12 +29,17 @@ interface ScopeValidationInput {
 }
 function invalid(message: string): never { throw new ProductError('INVALID_SCOPE', message); }
 // A proposal rejection that depends on the observed project rather than on the
-// proposal's structure. A confirmed proposal passed these checks at its
-// inspection, so start reads one as a stale confirmation.
-export class ObservedScopeError extends ProductError {
-  constructor(message: string) { super('INVALID_SCOPE', message); }
+// proposal's structure, keeping the code inspection reports. A confirmed
+// proposal passed these checks at its inspection, so start reads one as a stale
+// confirmation.
+export class ObservedScopeError extends ProductError {}
+function unfit(message: string): never { throw new ObservedScopeError('INVALID_SCOPE', message); }
+function observeNamed(root: string, named: string[]) {
+  try { return observeScope(root, named); } catch (error) {
+    if (error instanceof ProductError) throw new ObservedScopeError(error.code, error.message, error.details);
+    throw error;
+  }
 }
-function unfit(message: string): never { throw new ObservedScopeError(message); }
 function object(value: unknown, keys: string[]): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) invalid('Expected a scope object.');
   const record = value as Record<string, unknown>;
@@ -155,7 +160,7 @@ export function validateScope(input: ScopeValidationInput) {
   const proposal = input.proposalPath ? readScope(input.proposalPath, input.root) : undefined;
   const resolved = materializeScope(input.root, input.sourceResolved, proposal);
   const named = proposal?.declarations.flatMap(included) ?? [];
-  const namedObservation = proposal ? observeScope(input.root, named) : undefined;
+  const namedObservation = proposal ? observeNamed(input.root, named) : undefined;
   // materializeScope rejected a proposal for a selection without discovery.
   const absence = proposal ? validateScopeEvidence(proposal, input.observation!, namedObservation!) : [];
   const blockers: ScopeBlocker[] = [];
