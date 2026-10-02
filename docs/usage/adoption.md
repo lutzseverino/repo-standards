@@ -153,11 +153,10 @@ The identity binds what the run reads, not Git HEAD or where the project is
 checked out: a commit between inspection and start that touches no affected
 file, retained input, or durable product state leaves the confirmation valid,
 and an inspection made in another clone of the same content confirms a start in
-this one ([ADR 0012](../adr/0012-bind-content-not-location.md)). The run
-records the project root and HEAD at start in its `root` and `head` fields for
-provenance, and completion records only HEAD, in the state's
-`lastComplete.head`; the root is never committed. HEAD and the index must then stay unchanged until the run
-completes. Inspection and run reports carry hash inventories and diffs rather
+this one. The run records the project root and HEAD at start in its `root` and
+`head` fields for provenance, and completion records only HEAD, in the state's
+`lastComplete.head`; the root is never committed. HEAD and the index must then
+stay unchanged until the run completes. Inspection and run reports carry hash inventories and diffs rather
 than file bytes; start acquires the source again and installs only bytes that
 match the confirmed hashes. See [the inspection report](inspection.md#report-and-inspection-identity).
 
