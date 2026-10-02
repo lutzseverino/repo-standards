@@ -18,7 +18,10 @@ provenance only, as it already records HEAD. Git ignore inputs are named by
 role: the global excludes, the repository info exclude, and each consulted
 `.gitignore` by its project-relative path. Each keeps its content state, so a
 change to what Git ignores still changes the identity, while moving an input
-with unchanged content does not. No absolute location is observed into an
+with unchanged content does not. A symbolic `.gitignore` is bound by a digest of
+its target, the content Git stores for a link, so retargeting it still changes
+the identity; the digest keeps the target out of the record but is not a
+privacy guarantee. No absolute location is observed into an
 identity or committed.
 
 The trade-off is that the identity no longer says where an inspection was made,

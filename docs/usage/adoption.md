@@ -156,9 +156,10 @@ and an inspection made in another clone of the same content confirms a start in
 this one. The run records the project root and HEAD at start in its `root` and
 `head` fields for provenance, and completion records only HEAD, in the state's
 `lastComplete.head`; the root is never committed. HEAD and the index must then
-stay unchanged until the run completes. Inspection and run reports carry hash inventories and diffs rather
-than file bytes; start acquires the source again and installs only bytes that
-match the confirmed hashes. See [the inspection report](inspection.md#report-and-inspection-identity).
+stay unchanged until the run completes. Inspection and run reports carry hash
+inventories and diffs rather than file bytes; start acquires the source again
+and installs only bytes that match the confirmed hashes. See
+[the inspection report](inspection.md#report-and-inspection-identity).
 
 Before installation, start probes every declared prerequisite using its literal
 version arguments from the project root. It reports all missing executables,

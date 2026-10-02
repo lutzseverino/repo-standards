@@ -462,5 +462,7 @@ test('ignore inputs bind their content by role, not their location, and reports 
   assert.ok(!JSON.stringify(linked).includes(moved), 'the report must not name the link target');
   unlinkSync(join(project.root, 'app/.gitignore'));
   symlinkSync(original, join(project.root, 'app/.gitignore'));
-  assert.notEqual(request().discovery.identity, linked.discovery.identity, 'retargeting the link changes the request');
+  const retargeted = request();
+  assert.notEqual(retargeted.discovery.identity, linked.discovery.identity, 'retargeting the link changes the request');
+  assert.notEqual(retargeted.identity, linked.identity, 'retargeting the link changes the inspection');
 });
