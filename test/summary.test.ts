@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { writeFileSync } from 'node:fs';
+import { rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
-import { installCli, sourceFixture } from './installed-cli.ts';
-import { commit, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+import { directoryFixture, installCli, sourceFixture } from './installed-cli.ts';
+import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 
 const cli = installCli();
@@ -95,9 +95,143 @@ test('status --summary renders the active run and then the record of the complet
   for (const heading of ['## Selection', '## Operations', '## Changed paths', '## Scope changes', '## Identities']) assert.ok(summary.includes(`\n${heading}\n`), heading);
   assert.ok(summary.includes('| fixes | `docs` | `prepare` | changed | prepare done |'), summary);
   assert.ok(summary.includes('| checks | `docs` | `verify` | passed | verify done |'), summary);
-  assert.ok(summary.includes('| `apps/a/README.md` | fixes | `docs/prepare` |'), summary);
+  assert.ok(summary.includes('| `apps/a/README.md` | fixes |'), summary);
   assert.ok(summary.includes('| `docs` | `apps/a/README.md` | none |'), summary);
   assert.ok(summary.includes(`\`${status.lastComplete.run}\``) && summary.includes(`\`${status.lastComplete.inspection}\``) && summary.includes(`\`${status.lastComplete.head}\``), summary);
+});
+
+// The complete-run record rendered from status --json, with the given operation
+// and changed-path sections between its fixed sections.
+function expectedRecord(status: { selection: { cli: { version: string }; standards: { repository: string; version: string; commit: string }; profile: string };
+  lastComplete: { run: string; inspection: string; head: string; completedAt: string } }, operations: string, changedPaths: string, scopeChanges: string) {
+  const { selection, lastComplete } = status;
+  return `# Repository Standards adoption record
+
+## Selection
+
+| Component | Value |
+| --- | --- |
+| CLI | \`${selection.cli.version}\` |
+| Standards source | \`${selection.standards.repository}\` |
+| Standards version | \`${selection.standards.version}\` |
+| Standards commit | \`${selection.standards.commit}\` |
+| Profile | \`${selection.profile}\` |
+
+## Operations
+
+${operations}
+
+## Changed paths
+
+${changedPaths}
+
+## Scope changes
+
+${scopeChanges}
+
+## Identities
+
+| Record | Value |
+| --- | --- |
+| Run | \`${lastComplete.run}\` |
+| Inspection | \`${lastComplete.inspection}\` |
+| HEAD at start | \`${lastComplete.head}\` |
+| Completed at | ${lastComplete.completedAt} |
+`;
+}
+
+test('the adoption record lists a path changed by fixes and agent work once, with both phases, beside the installed paths', async t => {
+  const f = await fixture(t);
+  const args = f.propose(inspectionArgs);
+  const inspection = f.json(args);
+  assert.equal(JSON.parse(f.run(['start', ...args.slice(1), '--confirm', inspection.identity]).stdout).phase, 'contextual');
+  writeFileSync(join(f.project.root, 'apps/a/README.md'), '# Project A\nPrepared.\nReviewed by the agent.\n');
+  const completed = f.assess();
+  assert.equal(completed.status, 0, completed.stdout);
+  commit(f.project.root);
+
+  const status = f.json(['status', '--json']);
+  assert.deepEqual(status.changeSet, [
+    { path: '.agents/skills/adopt-standards/SKILL.md', phases: ['installation'] },
+    { path: 'AGENTS.md', phases: ['installation'] },
+    { path: 'apps/a/README.md', phases: ['fixes', 'agent'] },
+  ]);
+  const record = f.run(['status', '--summary']);
+  assert.equal(record.status, 0, record.stderr);
+  assert.equal(record.stdout, expectedRecord(status, `| Phase | Declaration | Operation | Result | Message |
+| --- | --- | --- | --- | --- |
+| fixes | \`docs\` | \`prepare\` | changed | prepare done |
+| checks | \`docs\` | \`verify\` | passed | verify done |`, `| Path | Phases |
+| --- | --- |
+| \`.agents/skills/adopt-standards/SKILL.md\` | installation |
+| \`AGENTS.md\` | installation |
+| \`apps/a/README.md\` | fixes, agent |`, `| Declaration | Added | Removed |
+| --- | --- | --- |
+| \`docs\` | \`apps/a/README.md\` | none |`));
+});
+
+test('a path the agent returns to its content before the run is not a changed path', async t => {
+  const f = await fixture(t);
+  const args = f.propose(inspectionArgs);
+  const inspection = f.json(args);
+  assert.equal(JSON.parse(f.run(['start', ...args.slice(1), '--confirm', inspection.identity]).stdout).phase, 'contextual');
+  writeFileSync(join(f.project.root, 'apps/a/README.md'), '# Project A\n');
+  const completed = f.assess();
+  assert.equal(completed.status, 0, completed.stdout);
+
+  const status = f.json(['status', '--json']);
+  assert.deepEqual(status.observations.filter((interval: { changes?: object }) => interval.changes && 'apps/a/README.md' in interval.changes)
+    .map((interval: { phase: string }) => interval.phase), ['fixes', 'agent']);
+  assert.deepEqual(status.changeSet.map((entry: { path: string }) => entry.path), ['.agents/skills/adopt-standards/SKILL.md', 'AGENTS.md']);
+});
+
+test('the record of an update that only installs exact content lists every installed path, from durable state alone', async t => {
+  const exactManifest = (agents: string) => stringify({ format: 'repo-standards/v2', name: 'exact-standards', description: 'Exact fixture',
+    requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
+      instructions: { kind: 'file', target: 'AGENTS.md', exact: agents },
+      review: { kind: 'skill', name: 'review', source: 'review' },
+    } }, profiles: { work: { description: 'Work', declarations: {} } } });
+  const remote = remoteFixture(exactManifest('agents.md'), { 'agents.md': 'Pinned instructions\n', 'review/SKILL.md': '---\nname: review\ndescription: Review changes.\n---\nReview.\n', 'review/notes.md': 'Notes\n' });
+  const project = sourceFixture('', { 'README.md': '# Project\n' });
+  commit(project.root);
+  const clone = directoryFixture('repo-standards-clone-');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); clone.close(); });
+  const env = { ...remote.env, ...registry.env };
+  const run = (args: string[], root = project.root) => cli.run(args, root, env);
+  const adopt = (version: string) => {
+    const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? version : argument);
+    const report = JSON.parse(run(args).stdout);
+    const started = run(['start', ...args.slice(1), '--confirm', report.identity]);
+    assert.equal(JSON.parse(started.stdout).outcome, 'complete', started.stdout);
+    commit(project.root);
+  };
+  adopt('v1.0.0');
+  rmSync(join(remote.source.root, 'review/notes.md'));
+  remote.addVersion('v1.1.0', exactManifest('agents.md'), { 'agents.md': 'Revised instructions\n', 'review/SKILL.md': '---\nname: review\ndescription: Review changes carefully.\n---\nReview.\n' });
+  adopt('v1.1.0');
+
+  const status = JSON.parse(run(['status', '--json']).stdout);
+  assert.equal(status.selection.standards.version, 'v1.1.0');
+  assert.deepEqual(status.changeSet, [
+    { path: '.agents/skills/review/SKILL.md', phases: ['installation'] },
+    { path: '.agents/skills/review/notes.md', phases: ['installation'] },
+    { path: 'AGENTS.md', phases: ['installation'] },
+  ]);
+  const expected = expectedRecord(status, 'No operations ran.', `| Path | Phases |
+| --- | --- |
+| \`.agents/skills/review/SKILL.md\` | installation |
+| \`.agents/skills/review/notes.md\` | installation |
+| \`AGENTS.md\` | installation |`, 'No scope changes.');
+  const record = run(['status', '--summary']);
+  assert.equal(record.status, 0, record.stderr);
+  assert.equal(record.stdout, expected);
+
+  // A fresh checkout holds only the committed durable state, and renders the same record.
+  git(clone.root, 'clone', '--quiet', project.root, 'checkout');
+  const fresh = run(['status', '--summary'], join(clone.root, 'checkout'));
+  assert.equal(fresh.status, 0, fresh.stderr);
+  assert.equal(fresh.stdout, expected);
 });
 
 test('inspect --summary renders a deterministic update proposal with its class, and lists blockers', async t => {
