@@ -544,8 +544,8 @@ takes the pin from the active run when a run is active, otherwise from the last
 complete adoption; `outdated` takes it from the committed selection. Under
 another CLI version each exits 1 with `CLI_PIN_MISMATCH`, as `resume` and
 `abandon` do for an active run. The diagnostic names the pinned version and,
-when the runtime manifest and npm lock both pin it, the runtime reinstall
-command above; otherwise it names an exact CLI installed outside the project,
+when the runtime manifest and npm lock both pin it, the project root and the
+runtime reinstall command above; otherwise it names an exact CLI installed outside the project,
 as [recovery](#recover-or-abandon-an-interrupted-run) describes. Without a
 recorded pin, as before an initial adoption starts, any CLI reports. Only
 `inspect` and `start` accept a different exact CLI, as a candidate CLI pin
