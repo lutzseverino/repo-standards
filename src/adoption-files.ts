@@ -71,6 +71,32 @@ export function write(root: string, path: string, value: Content, installationId
   } finally { rmSync(temporary, { force: true }); }
 }
 
+// Whether reinstalling the project runtime from its manifest and npm lock
+// restores exactly this CLI. A run interrupted before or during installation
+// can leave the former pair, or a new manifest beside the former lock.
+function runtimeRestores(root: string, version: string) {
+  const read = (name: string) => {
+    const value = safe(root, `.repo-standards/runtime/${name}`);
+    return value.type === 'file' ? JSON.parse(Buffer.from(value.content, value.encoding).toString('utf8')) : undefined;
+  };
+  const cli = '@lutzseverino/repo-standards';
+  try {
+    const manifest = read('package.json');
+    const lock = read('package-lock.json');
+    return manifest?.dependencies?.[cli] === version && lock?.packages?.['']?.dependencies?.[cli] === version
+      && lock.packages[`node_modules/${cli}`]?.version === version;
+  } catch { return false; }
+}
+
+// Status, outdated, resume and abandon act only under the pinned CLI; a
+// different exact CLI is a candidate pin change only for inspect and start.
+export function requirePinnedCli(root: string, pinned: string, running: string) {
+  if (pinned === running) return;
+  throw new ProductError('CLI_PIN_MISMATCH', runtimeRestores(root, pinned)
+    ? `Use the project-pinned CLI ${pinned}, not ${running}. From the project root ${root}, reinstall the project runtime with npm ci --ignore-scripts --prefix .repo-standards/runtime and run .repo-standards/runtime/node_modules/.bin/repo-standards, or run an exact CLI ${pinned} installed elsewhere.`
+    : `Use the pinned CLI ${pinned}, not ${running}. The project runtime manifest and npm lock do not both pin it, so reinstalling the runtime cannot restore it; run an exact CLI ${pinned} installed outside the project; if a run is active, the one that started it.`);
+}
+
 export function projectRoot(project: string) {
   const result = git(resolve(project), ['rev-parse', '--show-toplevel']);
   if (result.status !== 0) throw new ProductError('GIT_REQUIRED', 'Use a Git working tree.');

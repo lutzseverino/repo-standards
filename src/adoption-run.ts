@@ -13,7 +13,7 @@ import { observe, type Content, type HashInventory, type Observation } from './o
 import { readRecordedAdoption, rejectRetiredRecords, type RecordedAdoption } from './recorded-state.js';
 import { committedEvidenceReport, compactIntervals, keptIdentity, memoryStore, WorkEvidenceJournal, type ObservationStore, type RecordedInterval } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
-import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, safe, systemTarget, verifyFiles, write } from './adoption-files.js';
+import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, requirePinnedCli, safe, systemTarget, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
 import { completionFiles, exactContent, restorePlannedLock, verifyInstallation, withdrawCompletionState, writeCompletion, type Installation } from './installation.js';
 
@@ -211,7 +211,7 @@ export function abandon(project: string, cliVersion: string) {
   try {
     if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to abandon.');
     const run = readRun(root, lock);
-    if (run.selection.cli.version !== cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
+    requirePinnedCli(root, run.selection.cli.version, cliVersion);
     if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before abandonment.`);
     if (run.outcome === 'complete') throw new ProductError('ALREADY_COMPLETE', 'This adoption completed before interruption. Use resume --retry to verify and release its remaining progress record.');
     try {
@@ -242,7 +242,9 @@ export function abandon(project: string, cliVersion: string) {
   } finally { release(); }
 }
 
-export function status(project: string) {
+// The recorded pin is the active run's, or else the last complete adoption's.
+// Without either, no pin is recorded and any CLI reports.
+export function status(project: string, cliVersion: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
   rejectRetiredRecords(root, lock);
@@ -250,6 +252,7 @@ export function status(project: string) {
   const active = existsSync(lock) ? readRun(root, lock) : null;
   const format = formats.status;
   if (active) {
+    requirePinnedCli(root, active.selection.cli.version, cliVersion);
     try { active.changes = actualChanges(root, active.affected); } catch { active.uncertain.push('Current project changes could not be fully read.'); }
     // Recovery needs the observation the last interval ends at; report its loss now, not at the next resume.
     if (active.observations.length) try { keptObservations(root).read(keptIdentity(active.observations)!); } catch (error) { active.uncertain.push((error as Error).message); }
@@ -261,6 +264,7 @@ export function status(project: string) {
     // Scope changes are the stored change of the last complete run against
     // the run before it.
     const { state, selection, scopeEvidence } = readRecordedAdoption(root)!;
+    requirePinnedCli(root, selection.cli.version, cliVersion);
     const changedScope = scopeEvidence?.scopeChanges;
     return { format, ...committedEvidenceReport(state),
       selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
@@ -551,7 +555,7 @@ export class AdoptionRunSession {
         if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to resume; resume and assessments apply only to an active run. Read status, and inspect and start an adoption if one is needed.');
         const run = readRun(root, lock);
         session.#run = run;
-        if (run.selection.cli.version !== resume.cliVersion) throw new ProductError('CLI_PIN_MISMATCH', `Use the project-pinned CLI ${run.selection.cli.version}.`);
+        requirePinnedCli(root, run.selection.cli.version, resume.cliVersion);
         if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before retry or abandonment.`);
         if (!resume.retry && !canResumeAssessment(run)) throw new ProductError('RESUME_UNAVAILABLE', 'Explicit recovery is required. Review status and use resume --retry, or abandon to preserve the incomplete work and report.');
         if (resume.retry && !run.continuation && run.startInput) session.#mode = 'start';

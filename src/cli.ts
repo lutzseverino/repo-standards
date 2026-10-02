@@ -23,12 +23,18 @@ if (args.length === 1 && args[0] === '--version') {
     else if (key === '--project' && !flags.has(key) && args[index + 1] && !args[index + 1]!.startsWith('--')) flags.set(key, args[++index]!);
     else flags.set('usage', key);
   }
-  if (flags.has('usage')) {
-    const diagnostic = { code: 'USAGE', message: 'Use repo-standards outdated [--project <directory>] [--json].' };
+  let diagnostic: { code: string; message: string; details?: unknown } | undefined;
+  if (flags.has('usage')) diagnostic = { code: 'USAGE', message: 'Use repo-standards outdated [--project <directory>] [--json].' };
+  else try { console.log(JSON.stringify(await outdated(flags.get('--project') ?? '.', version), null, 2)); }
+  catch (error) {
+    if (!(error instanceof ProductError)) throw error;
+    diagnostic = { code: error.code, message: error.message, ...(error.details === undefined ? {} : { details: error.details }) };
+  }
+  if (diagnostic) {
     if (flags.has('--json')) console.log(JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2));
     else console.error(`[${diagnostic.code}] ${diagnostic.message}`);
-    process.exitCode = 2;
-  } else console.log(JSON.stringify(await outdated(flags.get('--project') ?? '.'), null, 2));
+    process.exitCode = diagnostic.code === 'USAGE' ? 2 : 1;
+  }
 } else if (args[0] === 'inspect' || args[0] === 'start' || args[0] === 'status' || args[0] === 'resume' || args[0] === 'abandon') {
   try {
     const flags = new Map<string, string>();
@@ -46,7 +52,7 @@ if (args.length === 1 && args[0] === '--version') {
     if (['inspect', 'start'].includes(args[0]!) && selectionCount !== 0 && selectionCount !== selectionKeys.length) throw new ProductError('USAGE', 'Provide --source, --standards-version and --profile together, or omit all three to use retained standards.');
     if (args[0] === 'start' && !flags.has('--confirm')) throw new ProductError('CONFIRMATION_REQUIRED', 'Inspect the selection, review its changes, and pass its identity with --confirm <identity> after explicit maintainer confirmation.');
     const options = { source: flags.get('--source')!, standardsVersion: flags.get('--standards-version')!, profile: flags.get('--profile')!, project: flags.get('--project') ?? '.', ...(flags.has('--scope') ? { scope: flags.get('--scope')! } : {}) };
-    const report = args[0] === 'abandon' ? abandon(options.project, version) : args[0] === 'resume' ? await resume(options.project, version, flags.get('--assessment'), flags.has('--retry')) : args[0] === 'status' ? status(options.project) : args[0] === 'start' ? retained ? await startRetained(options.project, version, flags.get('--confirm')!, options.scope) : await start(options, version, flags.get('--confirm')!) : retained ? await inspectRetained(options.project, version, options.scope) : await inspect(options, version);
+    const report = args[0] === 'abandon' ? abandon(options.project, version) : args[0] === 'resume' ? await resume(options.project, version, flags.get('--assessment'), flags.has('--retry')) : args[0] === 'status' ? status(options.project, version) : args[0] === 'start' ? retained ? await startRetained(options.project, version, flags.get('--confirm')!, options.scope) : await start(options, version, flags.get('--confirm')!) : retained ? await inspectRetained(options.project, version, options.scope) : await inspect(options, version);
     if (flags.has('--summary')) process.stdout.write(args[0] === 'status' ? statusSummary(report as StatusRecord) : inspectionSummary(report as InspectionReport));
     else console.log(JSON.stringify(report, null, 2));
     if ('outcome' in report && report.outcome === 'incomplete') process.exitCode = 1;

@@ -424,8 +424,12 @@ cannot. Remove that record as well before adopting fresh. The locations are
 
 ## Recover or abandon an interrupted run
 
-Use the run's exact CLI version. If installation stopped before the project-local
-CLI became usable, use the externally installed CLI that started the run.
+Use the run's exact CLI version; `status`, `resume`, and `abandon` reject any
+other with `CLI_PIN_MISMATCH`. If installation stopped before the project-local
+CLI became usable, use the externally installed CLI that started the run. When
+the project runtime manifest and npm lock do not yet both pin the run's CLI, the
+diagnostic names that CLI instead of the runtime reinstall command, which could
+not restore it.
 
 ```sh
 repo-standards status --json
@@ -543,8 +547,18 @@ substitutes for them.
 
 `status` reports pins, active progress, and historical last-complete evidence
 without any network request; [`outdated`](available-updates.md) reports
-available CLI and standards updates.
-After an abandoned update, it still returns the archived report. If the
+available CLI and standards updates. Both require the pinned CLI. `status` takes
+the pin from the active run when a run is active, otherwise from the last
+complete adoption; `outdated` takes it from the committed selection. Under
+another CLI version each exits 1 with `CLI_PIN_MISMATCH`, as `resume` and
+`abandon` do for an active run. The diagnostic names the pinned version and,
+when the runtime manifest and npm lock both pin it, the project root and the
+runtime reinstall command above; otherwise it names an exact CLI installed
+outside the project, as [recovery](#recover-or-abandon-an-interrupted-run)
+describes. Without a recorded pin, as before an initial adoption starts, any CLI
+reports. Only `inspect` and `start` accept a different exact CLI, as a candidate
+CLI pin change.
+After an abandoned update, `status` still returns the archived report. If the
 preserved product files do not represent complete adoption, `stateError`
 describes that condition; historical evidence comes from the matching archived
 run and does not certify the candidate selection as complete.

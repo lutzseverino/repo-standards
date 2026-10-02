@@ -1,7 +1,7 @@
 import { compare, gt } from 'semver';
 import { parse } from 'yaml';
 import { githubHeaders, isStableVersion } from './acquisition.js';
-import { file, json, projectRoot, safe, write } from './adoption-files.js';
+import { file, json, projectRoot, requirePinnedCli, safe, write } from './adoption-files.js';
 import type { RecordedSelection } from './recorded-state.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
@@ -11,6 +11,7 @@ import type { Observation } from './observation.js';
 // Availability of a published CLI or standards version newer than each pin.
 // The command only reads the selection and writes its own ignored cache; any
 // failure to answer a pin degrades that pin to `unknown` instead of an error.
+// The one failure is a running CLI other than the recorded CLI pin.
 const packageName = '@lutzseverino/repo-standards';
 const cachePath = '.repo-standards/cache/outdated.json';
 const cacheValidity = 24 * 60 * 60 * 1000;
@@ -113,7 +114,10 @@ function writeCache(root: string, lookups: Record<string, Lookup>) {
   } catch { /* The answer stands without a cache. */ }
 }
 
-export async function outdated(project: string) {
+// Without a readable selection no pin is recorded, and both pins are unknown
+// under any CLI; a recorded CLI pin other than the running CLI fails before any
+// lookup.
+export async function outdated(project: string, cliVersion: string) {
   let root: string;
   let selection: RecordedSelection;
   try { ({ root, selection } = selectionOf(project)); }
@@ -122,6 +126,7 @@ export async function outdated(project: string) {
     return { format: formats.outdated, cli: { package: packageName, pinned: null, update: 'unknown', reason },
       standards: { repository: null, pinned: null, update: 'unknown', reason } };
   }
+  requirePinnedCli(root, selection.cli.version, cliVersion);
   const registry = process.env.npm_config_registry || 'https://registry.npmjs.org/';
   const cache = readCache(root);
   const now = Date.now();

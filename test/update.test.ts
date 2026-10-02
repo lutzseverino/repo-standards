@@ -876,6 +876,9 @@ async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standa
   const inspection = JSON.parse(run(args).stdout);
   return { remote, project, env, previous, head: git(project.root, 'rev-parse', 'HEAD'),
     startArgs: ['start', ...args.slice(1), '--confirm', inspection.identity],
+    // A candidate CLI only inspects and starts; the recorded adoption's status
+    // needs its pinned CLI until a run under the candidate begins.
+    pinned: (args: string[]) => cli.run(args, project.root, env),
     run };
 }
 
@@ -955,7 +958,7 @@ test('both update inspections reject unexpected durable product files before cre
       const rejected = f.run(['start', ...args.slice(1), '--confirm', inspection.identity]);
       assert.equal(rejected.status, 1);
       assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'START_BLOCKED');
-      const status = JSON.parse(f.run(['status', '--json']).stdout);
+      const status = JSON.parse(f.pinned(['status', '--json']).stdout);
       assert.equal(status.active, null);
       assert.equal(status.lastComplete.run, f.previous.lastComplete.run);
       assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
@@ -1019,7 +1022,7 @@ test('both updates validate excluded directory roots and reject changed boundari
             assert.notEqual(JSON.parse(f.run(args).stdout).identity, inspection.identity);
           } else if (type === 'fifo') assert.equal(lstatSync(target).isFIFO(), true);
           else assert.equal(readlinkSync(target), type === 'directory-link' ? f.remote.support.root : join(f.remote.support.root, 'missing'));
-          const status = JSON.parse(f.run(['status', '--json']).stdout);
+          const status = JSON.parse(f.pinned(['status', '--json']).stdout);
           assert.equal(status.active, null);
           assert.equal(status.lastComplete.run, f.previous.lastComplete.run);
           assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
@@ -1122,7 +1125,7 @@ test('update identities bind unexpected durable bytes while excluding local stat
     assert.notEqual(changed.identity, first.identity);
     const stale = f.run(['start', ...args.slice(1), '--confirm', first.identity]);
     assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_INSPECTION');
-    assert.equal(JSON.parse(f.run(['status', '--json']).stdout).active, null);
+    assert.equal(JSON.parse(f.pinned(['status', '--json']).stdout).active, null);
     assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
   });
 });
