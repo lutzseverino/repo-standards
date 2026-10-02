@@ -30,7 +30,8 @@ additional local tests to diagnose failures when needed.
 
 - [Architecture contracts](architecture.md): the product's purpose and release
   boundary, module responsibilities, formats, commands, adoption and update
-  behavior, acceptance criteria, exclusions, and the mechanisms removed in 2.0.0.
+  behavior, acceptance criteria, exclusions, and the mechanisms removed in
+  2.0.0 and 4.0.0.
 - [Release procedure](release.md): package contents, trusted publishing,
   release notes, recovery of a publication, and published and real-agent
   acceptance.

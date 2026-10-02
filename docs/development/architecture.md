@@ -1,6 +1,6 @@
 # Repository Standards — architecture contracts
 
-This document describes the current contracts of CLI 3.0.0; individual tickets
+This document describes the current contracts of CLI 4.0.0; individual tickets
 state implementation scope, and the [architecture decisions](../adr/README.md)
 record the rationale.
 
@@ -713,3 +713,42 @@ or run records use a retired format adopts fresh.
   ([ADR 0007](../adr/0007-write-and-read-one-evidence-format.md)).
 - Git HEAD, the index, and Git status in confirmation identity
   ([ADR 0008](../adr/0008-bind-confirmation-identity-to-what-the-run-reads.md)).
+
+## Removed in 4.0.0
+
+These mechanisms and outcomes are removed, not deprecated. An adopter whose
+committed state or run records use a retired format adopts fresh.
+
+- Ownership blockers for tracked content: `SKILL_CONFLICT`,
+  `SYSTEM_SKILL_CONFLICT`, and `INSTALLED_CONTENT_EDITED`, the established
+  system skill's exemption from the untracked-content check, and keeping the
+  project's copy of the system skill during an update that keeps the CLI pin.
+  Tracked content at any target is replaced and listed among the discarded
+  edits ([ADR 0010](../adr/0010-replace-tracked-content-block-only-untracked.md)).
+- Keeping the installed targets of retired and excluded declarations in place.
+  An update removes them, except within contextual scope or at or inside a
+  target the selection still installs.
+- Earlier runs in committed evidence and reports: durable state's and the
+  status report's `history`, retained scope evidence's `runs` and the
+  inspection report's `historicalScope.runs`, the scope change computed by
+  comparing two stored runs, and decoding the previous durable state at
+  completion, with its `FINAL_INTEGRITY` failure
+  ([ADR 0011](../adr/0011-retain-only-the-current-run.md)).
+- Checkout location in identities and committed evidence: the project root in
+  the inspection and discovery request identities, the inspection report's
+  `project.root`, ignore inputs' absolute `location`, and archived evidence
+  paths relative to the project root
+  ([ADR 0012](../adr/0012-bind-content-not-location.md)).
+- Mechanical scope proposal fields: `request`, `paths`, declaration-level
+  `evidence`, and evidence kinds and identities, with `STALE_SCOPE`. A proposal
+  that no longer fits the project fails start with `STALE_INSPECTION`.
+- Mechanical assessment fields: `run`, `selection`, `snapshot`, `scope`, and
+  per-declaration `changedPaths`, with `ASSESSMENT_MISMATCH`,
+  `ASSESSMENT_SCOPE_MISMATCH`, and `ASSESSMENT_PATHS`.
+- The adoption record's changed paths rebuilt from work intervals, one row per
+  interval, phase, and operation. The record renders the stored change set.
+- `status` and `outdated` under a CLI other than the recorded pin. They fail
+  with `CLI_PIN_MISMATCH`.
+- The formats `repo-standards/state/v5`, `scope-history/v3`, `status/v5`,
+  `inspection/v4`, `run/v5`, `scope/v1`, and `assessment/v2`
+  ([ADR 0007](../adr/0007-write-and-read-one-evidence-format.md)).
