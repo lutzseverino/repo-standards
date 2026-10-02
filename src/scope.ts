@@ -7,22 +7,44 @@ import { allowedTargets } from './execution.js';
 import type { ResolvedProfile, SourceProfile } from './model.js';
 import { Paths, type Target } from './paths.js';
 import { Fields, readYaml, type Diagnostic } from './yaml.js';
-import { observeScope, type Evidence } from './scope-observation.js';
+import { observeScope, type Evidence, type ScopeObservation } from './scope-observation.js';
 
-type Reference = Evidence | { kind: 'absence'; path: string };
-interface Candidate { path: string; decision: 'include' | 'exclude'; reason: string; evidence: Reference[] }
-interface Entry { id: string; paths: string[]; coverage: string; evidence: Reference[]; candidates: Candidate[]; unresolved: string[] }
-export interface ScopeProposal { format: typeof formats.scope; request: string; declarations: Entry[] }
+// A proposal holds only the agent's judgment: per active discovery
+// declaration, its candidates with their evidence paths, its coverage, and
+// unresolved questions. Everything mechanical is derived from the observation
+// the proposal is inspected against.
+interface Candidate { path: string; decision: 'include' | 'exclude'; reason: string; evidence: string[] }
+interface Entry { id: string; coverage: string; candidates: Candidate[]; unresolved: string[] }
+export interface ScopeProposal { format: typeof formats.scope; declarations: Entry[] }
 interface ScopeTargets { paths: string[]; directories: string[] }
 export type Scope = Record<string, ScopeTargets>;
 interface ScopeBlocker { code: string; message: string }
 interface ScopeValidationInput {
   root: string;
   sourceResolved: SourceProfile;
-  request: string | undefined;
+  // The discovery observation the proposal is inspected against; present
+  // whenever the selection has active discovery declarations.
+  observation?: ScopeObservation | undefined;
   proposalPath?: string;
 }
 function invalid(message: string): never { throw new ProductError('INVALID_SCOPE', message); }
+// A proposal rejection that depends on the observed project rather than on the
+// proposal's structure, keeping the code inspection reports. A confirmed
+// proposal passed these checks at its inspection, so start reads one as a stale
+// confirmation.
+export class ObservedScopeError extends ProductError {}
+function unfit(message: string): never { throw new ObservedScopeError('INVALID_SCOPE', message); }
+// Unsafe or conflicting named targets and their ancestors, unlike read
+// failures, limits and instability, which say nothing about whether the
+// project changed. The discovery observation, taken before this one, has
+// already rejected unsafety elsewhere in the project with its own code.
+const namedTargetCodes = ['UNSAFE_TARGET', 'CASE_CONFLICT', 'OBSERVATION_UNSAFE'];
+function observeNamed(root: string, named: string[]) {
+  try { return observeScope(root, named); } catch (error) {
+    if (error instanceof ProductError && namedTargetCodes.includes(error.code)) throw new ObservedScopeError(error.code, error.message, error.details);
+    throw error;
+  }
+}
 function object(value: unknown, keys: string[]): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) invalid('Expected a scope object.');
   const record = value as Record<string, unknown>;
@@ -36,18 +58,11 @@ function text(value: unknown): string {
 function list<T>(value: unknown, parse: (item: unknown) => T, key: (item: T) => string): T[] {
   if (!Array.isArray(value)) invalid('Expected a scope list.');
   const result = value.map(parse);
-  if (new Set(result.map(key)).size !== result.length) invalid('Duplicate scope entries or references are not allowed.');
+  if (new Set(result.map(key)).size !== result.length) invalid('Duplicate scope entries or evidence paths are not allowed.');
   return result.sort((a, b) => key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0);
 }
-function reference(value: unknown): Reference {
-  const absence = !!value && typeof value === 'object' && 'kind' in value && value.kind === 'absence';
-  const ref = object(value, absence ? ['kind', 'path'] : ['kind', 'path', 'identity']);
-  if (!['file', 'directory', 'absence'].includes(text(ref.kind))) invalid('Unsupported evidence kind.');
-  const path = text(ref.path);
-  return absence ? { kind: 'absence', path } : { kind: ref.kind as 'file' | 'directory', path, identity: text(ref.identity) };
-}
-const refKey = (ref: Reference) => `${ref.kind}:${ref.path}`;
-const refs = (value: unknown) => list(value, reference, refKey);
+const byPath = (a: { path: string }, b: { path: string }) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0;
+const included = (entry: Entry) => entry.candidates.filter(candidate => candidate.decision === 'include').map(candidate => candidate.path);
 
 function readScope(path: string, root: string): ScopeProposal {
   const location = realpathSync(resolve(path));
@@ -57,18 +72,20 @@ function readScope(path: string, root: string): ScopeProposal {
   const input = readFileSync(location, 'utf8');
   let value: unknown;
   try { value = JSON.parse(input); } catch { invalid('Scope proposal must be valid JSON.'); }
+  // The format is checked first: a retired proposal format is never read.
+  const format = value && typeof value === 'object' ? (value as { format?: unknown }).format : undefined;
+  if (format !== formats.scope) invalid(`Scope proposal format must be ${formats.scope}; other proposal formats are not read. Write the proposal again in this format.`);
   const diagnostics: Diagnostic[] = [];
   readYaml(input, 'scope.json', diagnostics);
   if (diagnostics.length) invalid('Scope proposal contains duplicate keys or invalid structure.');
-  const proposal = object(value, ['format', 'request', 'declarations']);
-  if (proposal.format !== formats.scope) invalid('Unsupported scope proposal format.');
-  return { format: proposal.format, request: text(proposal.request), declarations: list(proposal.declarations, value => {
-    const entry = object(value, ['id', 'paths', 'coverage', 'evidence', 'candidates', 'unresolved']);
-    return { id: text(entry.id), paths: list(entry.paths, text, text), coverage: text(entry.coverage), evidence: refs(entry.evidence),
+  const proposal = object(value, ['format', 'declarations']);
+  return { format: formats.scope, declarations: list(proposal.declarations, value => {
+    const entry = object(value, ['id', 'coverage', 'candidates', 'unresolved']);
+    return { id: text(entry.id), coverage: text(entry.coverage),
       candidates: list(entry.candidates, value => {
         const candidate = object(value, ['path', 'decision', 'reason', 'evidence']);
         if (candidate.decision !== 'include' && candidate.decision !== 'exclude') invalid('Candidate decision must be include or exclude.');
-        return { path: text(candidate.path), decision: candidate.decision, reason: text(candidate.reason), evidence: refs(candidate.evidence) };
+        return { path: text(candidate.path), decision: candidate.decision, reason: text(candidate.reason), evidence: list(candidate.evidence, text, text) };
       }, candidate => candidate.path), unresolved: list(entry.unresolved, text, text) };
   }, entry => entry.id) };
 }
@@ -76,8 +93,18 @@ function readScope(path: string, root: string): ScopeProposal {
 // Project scope reuses author target syntax/ownership validation; source
 // declarations themselves remain unchanged and are retained independently.
 function materializeScope(root: string, profile: SourceProfile, proposal?: ScopeProposal): ResolvedProfile {
-  const discoveries = profile.declarations.filter(declaration => 'discovery' in declaration);
-  if (proposal && JSON.stringify(proposal.declarations.map(entry => entry.id)) !== JSON.stringify(discoveries.map(declaration => declaration.id).sort())) invalid('Supply exactly one entry per active discovery declaration and none for explicit or excluded declarations.');
+  const discoveries = profile.declarations.filter(declaration => 'discovery' in declaration).map(declaration => declaration.id);
+  if (proposal && !discoveries.length) invalid('This selection has no active discovery declarations. Inspect it without --scope.');
+  if (proposal) {
+    const ids = proposal.declarations.map(entry => entry.id);
+    const missing = discoveries.filter(id => !ids.includes(id)).sort();
+    const unknown = ids.filter(id => !discoveries.includes(id));
+    if (missing.length || unknown.length) invalid([
+      ...missing.length ? [`Scope proposal is missing entries for the active discovery declarations: ${missing.join(', ')}.`] : [],
+      ...unknown.length ? [`Scope proposal has entries for declarations that are not active discovery declarations of this selection: ${unknown.join(', ')}.`] : [],
+      'Supply exactly one entry per active discovery declaration and none for explicit or excluded declarations.',
+    ].join(' '));
+  }
   const fields = new Fields((code, message) => { throw new ProductError(code, message); });
   const paths = new Paths(root, fields);
   for (const entry of proposal?.declarations ?? []) for (const candidate of entry.candidates) {
@@ -89,7 +116,7 @@ function materializeScope(root: string, profile: SourceProfile, proposal?: Scope
     const entry = proposal?.declarations.find(entry => entry.id === declaration.id);
     if (!entry) return [];
     const { discovery: _discovery, ...concrete } = declaration;
-    return [{ ...concrete, targets: { paths: entry.paths, directories: [] } }];
+    return [{ ...concrete, targets: { paths: included(entry), directories: [] } }];
   }) };
   for (const declaration of resolved.declarations) {
     const names = declaration.kind === 'repository' ? [...declaration.targets.paths, ...declaration.targets.directories] : [declaration.kind === 'skill' ? `.agents/skills/${declaration.name}` : declaration.target];
@@ -103,60 +130,44 @@ function materializeScope(root: string, profile: SourceProfile, proposal?: Scope
   return resolved;
 }
 
-function validateScopeEvidence(proposal: ScopeProposal, observation: ReturnType<typeof observeScope>) {
-  const eligible = new Map(observation.evidence.map(evidence => [refKey(evidence), evidence]));
+// Resolves every evidence path against the discovery observation presented to
+// the agent, and derives from the observation of the named targets the absence
+// evidence of each included target the project does not have yet.
+function validateScopeEvidence(proposal: ScopeProposal, observation: ScopeObservation, named: ScopeObservation) {
+  const eligible = new Map(observation.evidence.map(evidence => [evidence.path, evidence]));
   const absence: Evidence[] = [];
-  function validate(ref: Reference): Evidence {
-    if (ref.kind === 'absence') {
-      if (observation.targets[ref.path]?.type !== 'missing') invalid(`Absence evidence is not an observed absent target: ${ref.path}.`);
-      const derived: Evidence = { kind: 'absence', path: ref.path, identity: `sha256:${hash(JSON.stringify({ path: ref.path, state: observation.targets[ref.path], boundaries: observation.boundaries }))}` };
-      absence.push(derived);
-      return derived;
-    }
-    const actual = eligible.get(refKey(ref));
-    if (!actual || ref.identity !== actual.identity) invalid(`Unknown, stale, or ineligible evidence reference: ${ref.path}.`);
-    return actual;
-  }
-  for (const entry of proposal.declarations) {
-    if (!entry.evidence.length) invalid('Every declaration, including empty scope, requires eligible evidence.');
-    entry.evidence.forEach(validate);
-    for (const candidate of entry.candidates) {
-      if (!candidate.evidence.length) invalid('Every candidate requires eligible evidence.');
-      candidate.evidence.forEach(validate);
-      if ((candidate.decision === 'include') !== entry.paths.includes(candidate.path)) invalid('Included candidates must correspond exactly to concrete scope paths.');
-    }
-    for (const path of entry.paths) {
-      const candidate = entry.candidates.find(candidate => candidate.path === path && candidate.decision === 'include');
-      if (!candidate) invalid(`Explain inclusion of every concrete target: ${path}.`);
-      if (observation.targets[path]?.type === 'missing') {
-        if (!candidate.evidence.some(ref => ref.kind === 'absence' && ref.path === path)) invalid(`Missing target requires absence evidence: ${path}.`);
-        if (/^readme(?:\.[^/]*)?$/i.test(path.split('/').at(-1)!)) {
-          const parent = dirname(path);
-          const member = (file: string) => file !== path && (parent === '.' || file.startsWith(`${parent}/`));
-          if (!candidate.evidence.some(ref => ref.kind === 'file' ? member(ref.path) : ref.kind === 'directory' && (ref.path === parent || member(ref.path)) && Object.entries(observation.files).some(([file, state]) => state.type === 'file' && (ref.path === '.' || file.startsWith(`${ref.path}/`))))) invalid(`Missing project README requires positive membership evidence as well as absence: ${path}.`);
-        }
+  for (const entry of proposal.declarations) for (const candidate of entry.candidates) {
+    const evidence = candidate.evidence.map(path => {
+      const actual = eligible.get(path);
+      if (!actual) unfit(`Evidence path ${path} of candidate ${candidate.path} is not an eligible file or directory in the discovery observation. Cite a path from discovery.evidence, or inspect again if the project changed.`);
+      return actual;
+    });
+    if (candidate.decision === 'include' && named.targets[candidate.path]?.type === 'missing') {
+      const path = candidate.path;
+      absence.push({ kind: 'absence', path, identity: `sha256:${hash(JSON.stringify({ path, state: named.targets[path], boundaries: named.boundaries }))}` });
+      if (/^readme(?:\.[^/]*)?$/i.test(path.split('/').at(-1)!)) {
+        const parent = dirname(path);
+        const member = (file: string) => file !== path && (parent === '.' || file.startsWith(`${parent}/`));
+        if (!evidence.some(ref => ref.kind === 'file' ? member(ref.path) : ref.kind === 'directory' && (ref.path === parent || member(ref.path)) && Object.entries(observation.files).some(([file, state]) => state.type === 'file' && (ref.path === '.' || file.startsWith(`${ref.path}/`))))) unfit(`Missing project README requires positive membership evidence: cite a file or nonempty directory within its project directory: ${path}.`);
       }
-    }
+    } else if (!evidence.length) unfit(`Candidate ${candidate.path} requires at least one evidence path from the discovery observation.`);
   }
-  return [...new Map(absence.map(ref => [ref.path, ref])).values()].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+  return absence.sort(byPath);
 }
 
 export function concreteScope(resolved: ResolvedProfile): Scope {
   return Object.fromEntries(resolved.declarations.map(declaration => [declaration.id, allowedTargets(declaration)]));
 }
 
-// The caller owns the request identity and the freshness checks around this
-// result.
+// The caller derives the request identity from the observation it inspects
+// against and owns the freshness checks around this result.
 export function validateScope(input: ScopeValidationInput) {
   const proposal = input.proposalPath ? readScope(input.proposalPath, input.root) : undefined;
-  if (proposal && proposal.request !== input.request) {
-    throw new ProductError('STALE_SCOPE', 'Scope proposal does not match this discovery request. Inspect again and review fresh evidence.');
-  }
-
   const resolved = materializeScope(input.root, input.sourceResolved, proposal);
-  const named = proposal?.declarations.flatMap(entry => entry.paths) ?? [];
-  const namedObservation = proposal ? observeScope(input.root, named) : undefined;
-  const absence = proposal ? validateScopeEvidence(proposal, namedObservation!) : [];
+  const named = proposal?.declarations.flatMap(included) ?? [];
+  const namedObservation = proposal ? observeNamed(input.root, named) : undefined;
+  // materializeScope rejected a proposal for a selection without discovery.
+  const absence = proposal ? validateScopeEvidence(proposal, input.observation!, namedObservation!) : [];
   const blockers: ScopeBlocker[] = [];
   if (input.sourceResolved.declarations.some(declaration => 'discovery' in declaration)) {
     if (!proposal) blockers.push({ code: 'DISCOVERY_REQUIRED', message: `Interpret the discovery guidance and submit an evidence-backed ${formats.scope} proposal with inspect --scope.` });

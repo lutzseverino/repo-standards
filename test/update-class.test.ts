@@ -43,11 +43,9 @@ async function adopted(t: TestContext) {
   const scopeFile = join(remote.support.root, 'scope.json');
   // Inspect with a fresh proposal for the discovery request the first pass returns.
   function inspect(args: string[], paths = ['apps/a/README.md']) {
-    const request = run(args).report;
-    const evidence = paths.map(path => request.discovery.evidence.find((entry: { kind: string; path: string }) => entry.kind === 'file' && entry.path === path));
-    writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{
-      id: 'docs', paths, coverage: 'The maintained projects.', evidence,
-      candidates: paths.map((path, index) => ({ path, decision: 'include', reason: 'A maintained project README.', evidence: [evidence[index]] })), unresolved: [] }] }));
+    writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{
+      id: 'docs', coverage: 'The maintained projects.',
+      candidates: paths.map(path => ({ path, decision: 'include', reason: 'A maintained project README.', evidence: [path] })), unresolved: [] }] }));
     const result = run([...args, '--scope', scopeFile]);
     assert.equal(result.result.status, 0, result.result.stdout + result.result.stderr);
     return result.report;

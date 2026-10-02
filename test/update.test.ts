@@ -589,7 +589,7 @@ test('a confirmed inspection of the unchanged selection starts a run that re-app
   assert.equal(git(project.root, 'rev-parse', 'HEAD'), head);
 });
 
-test('an unchanged selection with active discovery requires a fresh proposal before it starts', async t => {
+test('an unchanged selection with active discovery requires a proposal confirmed against the current project before it starts', async t => {
   const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'discovered-docs', description: 'Maintained project documentation',
     requires: { 'repo-standards': '>=1.0.0' }, defaults: { declarations: { docs: { kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md' } } },
     profiles: { work: { description: 'Work', declarations: {} } } }), {
@@ -602,11 +602,10 @@ test('an unchanged selection with active discovery requires a fresh proposal bef
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[]) => cli.run(args, project.root, env);
   const scopeFile = join(remote.support.root, 'scope.json');
-  const propose = (request: { discovery: { identity: string; evidence: { kind: string; path: string }[] } }, path: string) => {
-    const evidence = request.discovery.evidence.find(entry => entry.kind === 'file' && entry.path === path);
-    writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v1', request: request.discovery.identity, declarations: [{ id: 'docs', paths: [path],
-      coverage: 'Every maintained project README is included.', evidence: [evidence],
-      candidates: [{ path, decision: 'include', reason: 'This is a maintained project README.', evidence: [evidence] }], unresolved: [] }] }));
+  const propose = (path: string) => {
+    writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{ id: 'docs',
+      coverage: 'Every maintained project README is included.',
+      candidates: [{ path, decision: 'include', reason: 'This is a maintained project README.', evidence: [path] }], unresolved: [] }] }));
   };
   const complete = () => {
     const review = { status: 'valid', explanation: 'The confirmed README still matches the discovery guidance.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
@@ -615,8 +614,7 @@ test('an unchanged selection with active discovery requires a fresh proposal bef
       declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The README already satisfies the guidance.', evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
     return run(['resume', '--assessment', assessmentFile, '--json']);
   };
-  const firstRequest = JSON.parse(run(inspectionArgs).stdout);
-  propose(firstRequest, 'apps/old/README.md');
+  propose('apps/old/README.md');
   const first = JSON.parse(run([...inspectionArgs, '--scope', scopeFile]).stdout);
   run(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', first.identity]);
   const firstComplete = complete();
@@ -630,10 +628,19 @@ test('an unchanged selection with active discovery requires a fresh proposal bef
   assert.deepEqual(request.update, []);
   assert.equal(request.start.eligible, false);
   assert.ok(request.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'), JSON.stringify(request.start.blockers));
-  const stale = run(['inspect', '--scope', scopeFile, '--json']);
+  // The earlier proposal is judged against the current observation. Once the
+  // project changes, the confirmation of that inspection is stale.
+  const reused = JSON.parse(run(['inspect', '--scope', scopeFile, '--json']).stdout);
+  assert.deepEqual(reused.start.blockers, []);
+  assert.notEqual(reused.identity, first.identity);
+  writeFileSync(join(project.root, 'apps/new/package.json'), '{"name":"new"}\n');
+  commit(project.root);
+  const stale = run(['start', '--scope', scopeFile, '--confirm', reused.identity, '--json']);
   assert.equal(stale.status, 1, stale.stdout + stale.stderr);
-  assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_SCOPE');
-  propose(request, 'apps/new/README.md');
+  assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_INSPECTION');
+  assert.match(JSON.parse(stale.stdout).errors[0].message, /review it against the fresh discovery evidence/);
+  assert.equal(JSON.parse(run(['status', '--json']).stdout).active, null);
+  propose('apps/new/README.md');
   const inspection = JSON.parse(run(['inspect', '--scope', scopeFile, '--json']).stdout);
   assert.deepEqual(inspection.start.blockers, []);
   assert.deepEqual(inspection.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);

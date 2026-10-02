@@ -194,8 +194,8 @@ Discovery adoption additionally retains `inputs/scope-history.json`, and every
 later run keeps writing it. It holds the current run only: its accepted
 inspection identity, resolved selection, and, when the run discovered scope, its
 source-resolved declarations, discovery guidance, proposal, rationale, evidence
-references and observation identities, together with the run's scope change
-against the previous run. This file is included in immutable input integrity.
+paths, derived absence and observation identities, together with the run's scope
+change against the previous run. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
 source availability, as `repo-standards/scope-history/v4` in the
 `repo-standards/inspection/v5` report, and `status` reports its scope change.

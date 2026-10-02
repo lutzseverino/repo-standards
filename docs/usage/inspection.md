@@ -345,38 +345,27 @@ repo-standards inspect \
   --scope /tmp/project-scope.json --json
 ```
 
-The proposal has exactly this structure (replace request and evidence identities
-with values from the first report):
+The proposal holds only your judgment and has exactly this structure:
 
 ```json
 {
-  "format": "repo-standards/scope/v1",
-  "request": "sha256:REQUEST_FROM_INSPECTION",
+  "format": "repo-standards/scope/v2",
   "declarations": [
     {
       "id": "project-docs",
-      "paths": ["apps/widget/README.md"],
       "coverage": "Widget is the only maintained project; the other candidates are fixtures.",
-      "evidence": [
-        {"kind": "directory", "path": ".", "identity": "sha256:ROOT_INVENTORY_IDENTITY"}
-      ],
       "candidates": [
         {
           "path": "apps/widget/README.md",
           "decision": "include",
           "reason": "The manifest and source establish project membership.",
-          "evidence": [
-            {"kind": "file", "path": "apps/widget/package.json", "identity": "sha256:FILE_IDENTITY"},
-            {"kind": "absence", "path": "apps/widget/README.md"}
-          ]
+          "evidence": ["apps/widget/package.json", "apps/widget/src"]
         },
         {
           "path": "fixtures/fake",
           "decision": "exclude",
           "reason": "This directory supplies test data, not a maintained project.",
-          "evidence": [
-            {"kind": "file", "path": "fixtures/fake/package.json", "identity": "sha256:FIXTURE_FILE_IDENTITY"}
-          ]
+          "evidence": ["fixtures/fake/package.json"]
         }
       ],
       "unresolved": []
@@ -386,30 +375,37 @@ with values from the first report):
 ```
 
 Supply exactly one entry per active discovery declaration, and none for explicit
-or excluded declarations. All fields shown are required; unknown fields,
-duplicate keys, duplicate list entries, unsupported formats, and invalid or stale
-evidence references fail. Lists are unordered and normalized; explanation text is
-preserved verbatim and changes the final inspection identity.
+or excluded declarations; the error names each missing or unknown declaration.
+All fields shown are required; unknown fields, duplicate keys, duplicate list
+entries, and any other proposal format fail. Lists are unordered and normalized;
+explanation text is preserved verbatim, and any change to the proposal's text
+changes the final inspection identity.
 
-`paths` contains individual repository-relative filenames, including intended
-new files. Every path needs an included candidate with a reason and evidence.
-Excluded candidates may describe directories or exact/reserved paths and must
-not be included in that entry's paths. Every candidate uses the shared safe,
-repository-relative explicit-path syntax; exclusions cannot use root, parent,
-absolute, backslash, or glob paths. Every entry needs a nonempty coverage explanation and evidence,
-even with empty `paths` and `candidates`. Empty scope retains the declaration,
-guidance, and its fixes/checks. Nonempty `unresolved` produces an inspectable
-report with `UNRESOLVED_SCOPE`, never a startable result.
+Each included candidate is an individual repository-relative filename, including
+an intended new file. Excluded candidates may describe directories or
+exact/reserved paths. Every candidate uses the shared safe, repository-relative
+explicit-path syntax; exclusions cannot use root, parent, absolute, backslash, or
+glob paths. Every entry needs a nonempty coverage explanation, even without
+candidates. Empty scope retains the declaration, guidance, and its fixes/checks.
+Nonempty `unresolved` produces an inspectable report with `UNRESOLVED_SCOPE`,
+never a startable result.
 
-Copy file and directory references from `discovery.evidence`. Directory inventories
-contain eligible immediate child paths, not all ignored siblings. Absence references
-have only `kind` and `path`: the CLI observes the named target and ancestors and
-returns the derived identity in `discovery.absence`. Every absent target requires
-absence evidence. A missing README additionally needs a file or nonempty directory
-inventory within its project directory as positive membership evidence. The CLI
-checks this structural support; the agent and adopter judge its meaning.
+A candidate's `evidence` lists the paths of files and directories from
+`discovery.evidence` that support its decision. A path the observation does not
+hold as eligible evidence fails, and the error names it. Directory inventories
+contain eligible immediate child paths, not all ignored siblings. Every candidate
+needs at least one evidence path, except an included file that does not exist
+yet, whose absence the CLI observes. A missing README still needs an evidence
+path for positive membership: a file or nonempty directory within its project
+directory. The CLI checks this structural support; the agent and adopter judge
+its meaning.
 
-Discovered paths reuse the shared target validation: no directories, globs, root
+The CLI derives every mechanical field from the observation it inspects against:
+the request binding, each evidence path's identity, the absence evidence of each
+missing included file, returned in `discovery.absence`, and the concrete scope
+from the included candidates.
+
+Included paths reuse the shared target validation: no directories, globs, root
 write scope, unsafe ancestors, symbolic links, special files, exact/reserved overlaps,
 duplicate ownership, or aliases under Unicode normalization and case folding.
 A valid proposal populates ordinary `targets.paths` with empty `targets.directories`
@@ -439,9 +435,10 @@ state, detected instability, or exceeded limits return a structured error withou
 a partial successful report. Each observation is bounded to 20,000 directory
 entries/file observations, 128 directory levels, 8 MiB per file, 64 MiB of file
 reads, and 30 seconds of traversal. Proposals are limited to 2 MiB. There is no
-continuous monitoring or atomic filesystem snapshot guarantee. After a stale
-request, run the first inspection again and review evidence before revising the
-proposal; changing only its request string is not a substitute for that review.
+continuous monitoring or atomic filesystem snapshot guarantee. A proposal is
+judged against the observation it is inspected with. When the project changes
+after confirmation, start rejects the confirmed identity: inspect again, review
+the proposal against the fresh evidence, and obtain a new confirmation.
 
 For initial adoption, obtain one confirmation of this complete inspection and
 pass the same external proposal file and identity to start:
@@ -462,8 +459,8 @@ Every update, including an unchanged selection, repeats this fresh discovery
 pass for every active discovery declaration: pass `--scope <file>` to the
 update commands described above and to the matching confirmed start. The
 selection, product-state inventory, and project observation are bound into the
-request and final inspection identities, so retained historical proposals cannot
-authorize the new run.
+request and final inspection identities, so neither a retained historical
+proposal nor an earlier confirmation authorizes the new run.
 
 After ordinary discovery completion, retained `inspect --json` remains
 `repo-standards/inspection/v5` and exposes `historicalScope` as
