@@ -752,6 +752,8 @@ committed state or run records use a retired format adopts fresh.
   interval, phase, and operation. The record renders the stored change set.
 - `status` and `outdated` under a CLI other than the recorded pin. They fail
   with `CLI_PIN_MISMATCH`.
-- The formats `repo-standards/state/v5`, `scope-history/v3`, `status/v5`,
-  `inspection/v4`, `run/v5`, `scope/v1`, and `assessment/v2`
+- The formats `repo-standards/state/v5`, `repo-standards/scope-history/v3`,
+  `repo-standards/status/v5`, `repo-standards/inspection/v4`,
+  `repo-standards/run/v5`, `repo-standards/scope/v1`, and
+  `repo-standards/assessment/v2`
   ([ADR 0007](../adr/0007-write-and-read-one-evidence-format.md)).
