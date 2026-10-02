@@ -93,7 +93,7 @@ function runtimeRestores(root: string, version: string) {
 export function requirePinnedCli(root: string, pinned: string, running: string) {
   if (pinned === running) return;
   throw new ProductError('CLI_PIN_MISMATCH', runtimeRestores(root, pinned)
-    ? `Use the project-pinned CLI ${pinned}, not ${running}. Reinstall the project runtime with npm ci --ignore-scripts --prefix .repo-standards/runtime and run .repo-standards/runtime/node_modules/.bin/repo-standards, or run an exact CLI ${pinned} installed elsewhere.`
+    ? `Use the project-pinned CLI ${pinned}, not ${running}. From the project root ${root}, reinstall the project runtime with npm ci --ignore-scripts --prefix .repo-standards/runtime and run .repo-standards/runtime/node_modules/.bin/repo-standards, or run an exact CLI ${pinned} installed elsewhere.`
     : `Use the pinned CLI ${pinned}, not ${running}. The project runtime manifest and npm lock do not both pin it, so reinstalling the runtime cannot restore it; run an exact CLI ${pinned} installed outside the project; if a run is active, the one that started it.`);
 }
 

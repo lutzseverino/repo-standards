@@ -34,7 +34,7 @@ async function fixture(t: TestContext, declarations: Record<string, unknown>, fi
   return {
     project, remote, env,
     pinned: (args: string[]) => cli.run(args, project.root, env),
-    candidate: (args: string[], environment: NodeJS.ProcessEnv = env) => spawnSync(candidateBin, args, { cwd: project.root, env: environment, encoding: 'utf8' }),
+    candidate: (args: string[], environment: NodeJS.ProcessEnv = env, cwd = project.root) => spawnSync(candidateBin, args, { cwd, env: environment, encoding: 'utf8' }),
     adopt() {
       const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
       return cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
@@ -72,6 +72,11 @@ test('status and outdated reject a CLI other than the pin, while inspect and sta
     assert.match(result.stderr, /^\[CLI_PIN_MISMATCH\] /);
     assert.ok(result.stderr.includes(` ${cli.version}`), result.stderr);
     assert.ok(result.stderr.includes(reinstall), result.stderr);
+  }
+  // The reinstall is anchored to the project root, wherever the CLI runs.
+  for (const command of ['status', 'outdated']) {
+    const message = rejected(f.candidate([command, '--project', f.project.root, '--json'], f.env, f.remote.support.root), cli.version);
+    assert.ok(message.includes(`From the project root ${f.project.root}, `), message);
   }
   assert.deepEqual(f.remote.requestLog().slice(requests), []);
   assert.equal(existsSync(join(f.project.root, '.repo-standards/cache')), false);

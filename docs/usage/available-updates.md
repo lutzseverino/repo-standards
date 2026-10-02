@@ -27,7 +27,8 @@ Run `outdated` with the CLI the selection pins. When the selection records a CLI
 pin and the running CLI is another version, `outdated` makes no lookup, writes
 no cache, and exits 1 with `CLI_PIN_MISMATCH`. The message names the pinned
 version and, when the committed runtime manifest and its npm lock both pin that
-version, the command that reinstalls the project runtime from them:
+version, the project root and the command that reinstalls the project runtime
+there from them:
 
 ```sh
 npm ci --ignore-scripts --prefix .repo-standards/runtime
