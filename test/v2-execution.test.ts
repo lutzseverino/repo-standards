@@ -507,11 +507,15 @@ test('v2 work evidence records an ignore input change by its role and content st
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'fixes') writeFileSync('.git/info/exclude', '# changed by a fix\\n');
 ${result}`);
+  const original = readFileSync(join(f.project.root, '.git/info/exclude'));
   const started = f.start();
   assert.equal(started.result.status, 1, started.result.stdout);
   assert.match(started.report.reason, /@ignore\/info/);
-  const interval = localRunReport(f.project.root).observations.find(entry => entry.changes && Object.hasOwn(entry.changes, '@ignore/info'))!;
-  assert.deepEqual(interval.changes!['@ignore/info']!.after, { type: 'file', sha256: sha256('# changed by a fix\n'), executable: false });
-  assert.equal(interval.changes!['@ignore/info']!.before.type, 'file');
-  assert.ok(!JSON.stringify(interval).includes(f.project.root), 'the delta names no checkout location');
+  const interval = localRunReport(f.project.root).observations.find(entry => entry.changes && Object.hasOwn(entry.changes, '@ignore/info'));
+  assert.ok(interval, 'the run records the ignore input change');
+  assert.deepEqual(interval.changes!['@ignore/info'], {
+    before: { type: 'file', sha256: sha256(original), executable: false },
+    after: { type: 'file', sha256: sha256('# changed by a fix\n'), executable: false },
+  });
+  assert.ok(!JSON.stringify(interval).includes(f.project.root), 'the delta must not name a checkout location');
 });

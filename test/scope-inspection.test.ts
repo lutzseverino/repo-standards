@@ -459,5 +459,5 @@ test('ignore inputs bind their content by role, not their location, and reports 
   symlinkSync(moved, join(project.root, 'app/.gitignore'));
   const linked = request();
   assert.deepEqual(linked.discovery.observation.ignores['app/.gitignore'], { type: 'symlink' });
-  assert.ok(!JSON.stringify(linked).includes(moved), 'the report names the link target');
+  assert.ok(!JSON.stringify(linked).includes(moved), 'the report must not name the link target');
 });

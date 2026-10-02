@@ -185,9 +185,8 @@ export function observeScope(root: string, named: string[] = [], options: { exec
   for (const directory of [...new Set([...directories, ...Object.keys(boundaries).filter(path => boundaries[path]!.type === 'directory')])].sort()) {
     const path = directory === '.' ? '.gitignore' : `${directory}/.gitignore`;
     const state = file(join(root, path));
-    // Git does not follow a symbolic .gitignore; record that it is a link, not
-    // its referent or its target.
     if (state.type === 'directory') throw new ProductError('OBSERVATION_UNSAFE', `Cannot read ignore input: ${path}.`);
+    // Git does not follow a symbolic .gitignore; record the link alone.
     ignores[path] = state.type === 'symlink' ? { type: 'symlink' } : state;
   }
   const inventories: Record<string, string[]> = Object.fromEntries([...directories].sort().map(directory => [directory, []]));

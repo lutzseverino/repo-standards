@@ -211,16 +211,17 @@ their hashes, the product-state inventory, blockers and safety observations,
 and, when discovery is active, the discovery observation and confirmed scope.
 The project root, Git HEAD, the index, and Git status are not bound, except
 through the start blockers Git state produces, such as a dirty tree. The same
-content inspected from two clones has one identity, so an inspection made in a
-throwaway clone confirms a start in the maintainer's checkout. A commit that
+content inspected from two clones with the same file and directory modes has
+one identity, so an inspection made in a throwaway clone confirms a start in
+the maintainer's checkout. A commit that
 touches nothing the run reads leaves the identity unchanged, so a confirmation
 survives unrelated work between inspection and start; a change to an affected
 file's bytes or mode, a retained input, or the product-state inventory changes
 it. The discovery observation spans the tracked and non-ignored tree, so for a
 discovery-backed selection most commits change the identity. Start still
 requires a clean committed tree, and the run records the project root and HEAD
-at start for provenance. Repeated unchanged inspection has the same identity. `start --confirm` checks this
-identity after explicit maintainer confirmation.
+at start for provenance. Repeated unchanged inspection has the same identity.
+`start --confirm` checks this identity after explicit maintainer confirmation.
 
 Known blockers include missing commits, dirty Git state, symlink or non-directory
 ancestors, special files, case-folded existing-path conflicts, file/directory type
@@ -422,9 +423,9 @@ directory inventories and boundaries, effective Git observation settings, and
 consulted `.gitignore`, Git info/exclude, and global ignore inputs, including their
 absence. Ignore inputs are named by role, never by absolute location: `global`
 for the global excludes, `info` for the repository info exclude, and each
-`.gitignore` by its project-relative path, each with its content state; Git does
-not follow a symbolic `.gitignore`, so one is recorded as a link without its
-target. Changing an input's content changes the request; moving it with
+`.gitignore` by its project-relative path, each with its content state. Git
+2.32 and later do not follow a symbolic `.gitignore`, so one is recorded as a
+link without its target. Changing an input's content changes the request; moving it with
 unchanged content does not. Configured ignore paths preserve significant whitespace when the input is
 read; an explicitly empty `core.excludesFile` disables the default global ignore
 input. It retains relevant settings and ignore hashes, not unrelated Git
