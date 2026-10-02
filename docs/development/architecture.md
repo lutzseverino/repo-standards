@@ -49,7 +49,7 @@ are product-owned system skill names reserved within the standards format.
 | Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, and status read an established adoption only through it; every command first rejects retired records in the product state and Git directories through it, which is all resume and abandon need while a run is active. `outdated` reads the selection leniently instead. |
 | Installation | A confirmed inspection produces one run's installation plan, not the adoption itself: the exact content, skills, retained inputs, durable product state, and runtime an adoption run installs, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module. |
 | Execution | Confirmed adoption progress advances through exact installation, literal process execution, checks, and final integrity. Final integrity is the run-time check of the run's planned installation, distinct from the recorded adoption reader's check of the committed baseline a run starts from. |
-| Work evidence | The work-evidence journal owns an adoption run's observation intervals: it opens one for a phase and scope after recording any unattributed gap as an agent interval, closes intervals with their violation checks, continues after an interruption by recording and saving without checking, so each caller requires authorization where it holds, and answers what the agent changed. It keeps the one observation its last interval ends at behind an observation store seam: a file store beside the run journal for runs, an in-memory store for abandonment. Intervals and operation outcomes produce the run's execution evidence as identities and deltas, in one shape shared by the run record, the local run report, and committed durable state, which holds the current run only. |
+| Work evidence | The work-evidence journal owns an adoption run's observation intervals: it opens one for a phase and scope after recording any unattributed gap as an agent interval, closes intervals with their violation checks, continues after an interruption by recording and saving without checking, so each caller requires authorization where it holds, and answers what the agent changed. It keeps the one observation its last interval ends at behind an observation store seam: a file store beside the run journal for runs, an in-memory store for abandonment. Intervals and operation outcomes produce the run's execution evidence as identities and deltas, in one shape shared by the run record, the local run report, and committed durable state, which holds the current run only. At completion, the installation's changes and the intervals produce the run's net change set. |
 | Scope evidence | A confirmed run and the recorded adoption it updates produce the retained scope evidence: the current run, with its project observation kept without derived evidence and its named observation as a delta, and its scope change against the previous run. The projected historical scope is rebuilt on read. |
 | Available updates | A selection and the newest published stable CLI and standards versions produce per-pin availability, cached in the ignored product cache. It never blocks and writes nothing else; it fails only under a CLI other than the selection's CLI pin, before any lookup. |
 | Summary renderer | An inspection report or a status record produces one deterministic Markdown document. It describes and never prescribes. |
@@ -252,9 +252,9 @@ usage error. One renderer module produces both summaries, and the same report
 or record renders the same bytes. An inspection summary lists the selection
 before and after, the update class, changed declarations and paths, operations,
 scope changes, retired declarations, blockers when present, and the identity. A
-status summary lists the selection, operations and their results, changed paths,
-scope changes, and identities, or an active run's phase, progress, and next
-action.
+status summary lists the selection, operations and their results, the run's net
+change set, scope changes, and identities, or an active run's phase, progress,
+and next action.
 
 `outdated` reads the selection and makes at most one npm registry lookup and one
 GitHub releases lookup, comparing the newest stable versions with each pin and
@@ -483,6 +483,12 @@ earlier runs. Durable state, `.repo-standards/state.json` in
 | `lastComplete` | The run ID, its confirmed inspection identity, completion time, and HEAD at start. |
 | `baselines`, `skills` | Installed baselines of exact content and complete skill inventories. |
 | `checks`, `assessments` | The run's final checks and accepted assessments. |
+| `changeSet` | The run's net change set: each path whose state at completion differs from its state before the run, once, sorted, with the phases that changed it: `installation`, `fixes`, or `agent`. Installation changes are the exact files and skill files, including the system skill's and a retired declaration's removed target, that the run created, replaced, or removed; fix and agent changes are the paths their intervals name. Verified restoration of installed content after an interruption keeps only the installation's attribution. Product state is not listed. |
+
+`status --summary` renders a complete run's changed paths from the stored change
+set alone, each path once, under the heading
+`# Repository Standards adoption record`, which Repo Canon's pull request
+validator recognizes.
 
 Retained scope evidence, `.repo-standards/inputs/scope-history.json` in
 `repo-standards/scope-history/v4`, is written by a run that discovers scope

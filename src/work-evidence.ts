@@ -11,17 +11,17 @@ import { changedBoundaries, observeWork, observedChanges, permits, type WorkObse
 // and continues intervals, records the gaps between them, checks their
 // violations, and answers what the agent changed. It owns the recorded interval
 // shape, which the run record and committed state share, and that slice of
-// durable state: what a completion commits and how its single format is
-// validated on read. Committed state holds the current run only; earlier runs
-// stay in Git history. An interval keeps observation identities and the delta
-// between them, never observation maps, so neither record grows with the
-// project and adoption pull requests remain reviewable. Full observations
-// are held in memory while a command observes; the journal keeps only the one
-// its last interval ends at, through an observation store, for the next
-// command to compare.
+// durable state: what a completion commits, including the run's net change
+// set, and how its single format is validated on read. Committed state holds
+// the current run only; earlier runs stay in Git history. An interval keeps
+// observation identities and the delta between them, never observation maps,
+// so neither record grows with the project and adoption pull requests remain
+// reviewable. Full observations are held in memory while a command observes;
+// the journal keeps only the one its last interval ends at, through an
+// observation store, for the next command to compare.
 
 type FileState = WorkObservation['files'][string];
-interface Delta { before: unknown; after: unknown }
+export interface Delta { before: unknown; after: unknown }
 type Operation = { declaration: string; phase: 'fixes' | 'checks'; id: string };
 
 // An interval as a command holds it in memory, with its full observations.
@@ -48,11 +48,21 @@ export interface RecordedInterval {
   interrupted?: boolean;
 }
 
+// The phases that change project paths in a complete run. Checks never do: a
+// check that changes content leaves the run incomplete.
+const changePhases = ['installation', 'fixes', 'agent'] as const;
+type ChangePhase = typeof changePhases[number];
+
+// One entry of a run's net change set: a path whose state the run changed, and
+// every phase that changed it.
+export interface ChangedPath { path: string; phases: ChangePhase[] }
+
 export interface ExecutionEvidence {
   format: typeof formats.state;
   observations: RecordedInterval[];
   operations: unknown[];
   retryHistory: unknown[];
+  changeSet: ChangedPath[];
 }
 
 // Changed paths name project files, but also the external ignore inputs and
@@ -284,21 +294,50 @@ export class WorkEvidenceJournal {
   }
 }
 
+// The run's net change set: each path whose state at the end of the run differs
+// from its state before it, once, with every phase that changed it. Installation
+// precedes the intervals, which are in order, so a path's first before and last
+// after bound the run. Verified restoration returns exact content to its
+// installed state, so it undoes every attribution but installation's.
+function changeSet(installed: Record<string, Delta>, intervals: RecordedInterval[]): ChangedPath[] {
+  const paths = new Map<string, { before: unknown; after: unknown; phases: Set<ChangePhase> }>();
+  const change = (path: string, delta: Delta, phase?: ChangePhase) => {
+    const entry = paths.get(path) ?? { before: delta.before, after: delta.after, phases: new Set<ChangePhase>() };
+    entry.after = delta.after;
+    if (phase) entry.phases.add(phase);
+    else entry.phases = new Set(entry.phases.has('installation') ? ['installation'] : []);
+    paths.set(path, entry);
+  };
+  const differs = (delta: Delta) => JSON.stringify(delta.before) !== JSON.stringify(delta.after);
+  for (const [path, delta] of Object.entries(installed)) if (differs(delta)) change(path, delta, 'installation');
+  for (const interval of intervals) {
+    if (interval.phase === 'checks') continue;
+    for (const [path, delta] of Object.entries(interval.changes ?? {})) change(path, delta, interval.restoredExact?.[path] ? undefined : interval.phase);
+  }
+  return [...paths].filter(([, entry]) => entry.phases.size && differs(entry))
+    .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+    .map(([path, entry]) => ({ path, phases: changePhases.filter(phase => entry.phases.has(phase)) }));
+}
+
 // The execution-evidence slice a completion writes: this run's evidence only.
 // The run already records its intervals in the committed shape, so they are
-// carried without transformation. Last-complete, installed baselines, skills,
-// checks and assessments stay with their own owners.
-export function completedEvidence(run: { observations: RecordedInterval[]; operations: unknown[]; retryHistory?: unknown[] }): ExecutionEvidence {
+// carried without transformation, together with the run's net change set over
+// the paths its installation plans, each with its state before and as
+// installed, and its intervals. Last-complete,
+// installed baselines, skills, checks and assessments stay with their own
+// owners.
+export function completedEvidence(run: { observations: RecordedInterval[]; operations: unknown[]; retryHistory?: unknown[] }, installed: Record<string, Delta>): ExecutionEvidence {
   return {
     format: formats.state,
     observations: structuredClone(run.observations),
     operations: structuredClone(run.operations), retryHistory: structuredClone(run.retryHistory ?? []),
+    changeSet: changeSet(installed, run.observations),
   };
 }
 
 // Status echoes the committed slice.
 export function committedEvidenceReport(state: ExecutionEvidence) {
-  return { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory };
+  return { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory, changeSet: state.changeSet };
 }
 
 // The recorded guarantee: no interval carries an observation map, and every
@@ -313,11 +352,25 @@ export function compactIntervals(observations: unknown[]) {
   });
 }
 
+// A change set holds one entry per path in path order, each with its phases in
+// phase order.
+function validChangeSet(value: unknown) {
+  return Array.isArray(value) && value.every((entry, index) => {
+    const changed = entry as Partial<ChangedPath> | null;
+    const previous = index ? (value[index - 1] as Partial<ChangedPath> | null)?.path : undefined;
+    return !!changed && typeof changed === 'object' && typeof changed.path === 'string' && changed.path !== ''
+      && (previous === undefined || (typeof previous === 'string' && previous < changed.path))
+      && Array.isArray(changed.phases) && changed.phases.length > 0
+      && changed.phases.every((phase, at) => changePhases.includes(phase)
+        && (at === 0 || changePhases.indexOf(changed.phases![at - 1]!) < changePhases.indexOf(phase)));
+  });
+}
+
 // The execution-evidence slice is read in its single committed format only,
 // and holds the current run alone: a carried earlier run fails validation.
 export function validExecutionEvidence(value: ExecutionEvidence) {
   const state = value as unknown as Record<string, unknown>;
   return state.format === formats.state && !Object.hasOwn(state, 'history')
     && Array.isArray(state.observations) && Array.isArray(state.operations) && Array.isArray(state.retryHistory)
-    && compactIntervals(state.observations);
+    && compactIntervals(state.observations) && validChangeSet(state.changeSet);
 }

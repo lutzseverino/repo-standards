@@ -34,7 +34,6 @@ interface OperationEvidence {
   operation: { declaration: string; phase: string; id: string };
   result: { status: string; message: string } | null; error: string | null;
 }
-interface Interval { phase: string; operation?: { declaration: string; id: string }; changes?: Record<string, unknown> }
 interface RunRecord {
   id: string; inspection: string; selection: Selection; head: string | null;
   outcome: string; phase: string; reason: string; operations: OperationEvidence[];
@@ -44,7 +43,7 @@ interface RunRecord {
 export interface StatusRecord {
   selection: Selection | null;
   lastComplete: { run: string; inspection: string; completedAt: string; head: string } | null;
-  operations?: OperationEvidence[]; observations?: Interval[]; scopeChanges?: ScopeChange[];
+  operations?: OperationEvidence[]; changeSet?: { path: string; phases: string[] }[]; scopeChanges?: ScopeChange[];
   active: RunRecord | null; execution?: string; abandoned: RunRecord[];
   stateError?: { code: string; message: string };
 }
@@ -186,12 +185,6 @@ export function inspectionSummary(report: InspectionReport) {
   return parts.join('\n\n') + '\n';
 }
 
-function changedPathRows(observations: Interval[]) {
-  return observations.flatMap(interval => Object.keys(interval.changes ?? {}).sort().map(path => [
-    code(path), interval.phase, interval.operation ? code(`${interval.operation.declaration}/${interval.operation.id}`) : 'none',
-  ]));
-}
-
 function activeSummary(run: RunRecord, execution: string | undefined) {
   return [
     '# Repository Standards adoption run',
@@ -216,12 +209,12 @@ export function statusSummary(record: StatusRecord) {
   if (record.active) parts = activeSummary(record.active, record.execution);
   else if (record.lastComplete && record.selection && !record.stateError) {
     const complete = record.lastComplete;
-    const changed = changedPathRows(record.observations ?? []);
+    const changed = (record.changeSet ?? []).map(entry => [code(entry.path), entry.phases.join(', ')]);
     parts = [
       '# Repository Standards adoption record',
       section('Selection', table(['Component', 'Value'], selectionRows(record.selection))),
       section('Operations', evidenceTable(record.operations ?? [])),
-      section('Changed paths', changed.length ? table(['Path', 'Phase', 'Operation'], changed) : 'No observed changes.'),
+      section('Changed paths', changed.length ? table(['Path', 'Phases'], changed) : 'No observed changes.'),
       section('Scope changes', record.scopeChanges?.length ? scopeTable(record.scopeChanges) : 'No scope changes.'),
       section('Identities', table(['Record', 'Value'], [
         ['Run', code(complete.run)], ['Inspection', code(complete.inspection)], ['HEAD at start', code(complete.head)], ['Completed at', complete.completedAt],

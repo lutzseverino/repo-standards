@@ -11,7 +11,7 @@ import { hiddenIndexPaths, observeProductState, productInventory, type inspectFo
 import { git, hashInventory, inventoryPaths, matchesInventory, observe, plannedInventory, type Content, type HashInventory, type Observation } from './observation.js';
 import { committedScopeEvidence, type ScopeRun } from './scope-evidence.js';
 import type { Scope } from './scope.js';
-import { completedEvidence } from './work-evidence.js';
+import { completedEvidence, type Delta } from './work-evidence.js';
 
 // Installation is the confirmed plan of an adoption run's exact content,
 // retained inputs, durable product state and runtime, planned from one
@@ -241,10 +241,30 @@ export function exactContent(installation: Installation): Scope[string] {
   return { paths: Object.keys(installation.exactBaselines), directories: Object.keys(installation.skills) };
 }
 
+// The project paths the installation plans, each with its state before the run
+// and as installed: exact files, every file of an installed or replaced skill
+// tree, including the system skill, and every file of a removed target. The
+// change set ignores those the installation leaves unchanged. Product state
+// under `.repo-standards/` is the product's own, not a project path the run
+// changes. Only the leaves of a tree are compared: an empty directory has
+// none, and as untracked content it never reaches a start.
+function installationDeltas(installation: Installation): Record<string, Delta> {
+  const before: Record<string, HashInventory> = Object.create(null);
+  const leaves = (path: string, value: HashInventory) => {
+    if (value.type === 'directory') for (const [name, child] of Object.entries(value.entries)) leaves(`${path}/${name}`, child);
+    else if (value.type !== 'missing') before[path] = value;
+  };
+  for (const [path, value] of Object.entries(installation.before)) leaves(path, value);
+  const after: Record<string, HashInventory> = Object.fromEntries(Object.entries(installation.files)
+    .map(([path, value]) => [path, { type: 'file', sha256: value.sha256, executable: value.executable }]));
+  return Object.fromEntries([...new Set([...Object.keys(before), ...Object.keys(after)])].filter(path => !path.startsWith('.repo-standards/'))
+    .map(path => [path, { before: before[path] ?? { type: 'missing' }, after: after[path] ?? { type: 'missing' } }]));
+}
+
 // The durable state and lock a completion writes. The state holds this run's
 // evidence only; the previous durable state it replaces is not read.
 export function completionFiles(installation: Installation, run: Run, operationStart: number) {
-  const state = file(json({ ...completedEvidence(run),
+  const state = file(json({ ...completedEvidence(run, installationDeltas(installation)),
     lastComplete: { run: run.id, inspection: run.inspection, completedAt: new Date().toISOString(), head: installation.git.head },
     baselines: installation.exactBaselines, skills: installation.skills,
     checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));

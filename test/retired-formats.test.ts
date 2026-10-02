@@ -125,6 +125,19 @@ test('the single committed formats are validated on read', async t => {
   rewriteCommittedState(root, { ...state, history: [] });
   assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
   assert.equal(f.run(['status', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
+  // The net change set holds one entry per path, in path order, each with its
+  // known phases in phase order.
+  const { changeSet, ...withoutChangeSet } = state;
+  for (const invalid of [withoutChangeSet, { ...state, changeSet: [{ path: 'AGENTS.md', phases: [] }] },
+    { ...state, changeSet: [{ path: 'AGENTS.md', phases: ['checks'] }] }, { ...state, changeSet: [{ path: 'AGENTS.md', phases: ['agent', 'fixes'] }] },
+    { ...state, changeSet: [{ path: 'b.md', phases: ['fixes'] }, { path: 'a.md', phases: ['fixes'] }] },
+    { ...state, changeSet: [{ path: 'a.md', phases: ['fixes'] }, { path: 'a.md', phases: ['agent'] }] }]) {
+    rewriteCommittedState(root, invalid);
+    const label = JSON.stringify((invalid as { changeSet?: unknown }).changeSet ?? 'missing');
+    assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY', label);
+    assert.equal(f.run(['status', '--json']).report.errors[0].code, 'STATE_INTEGRITY', label);
+  }
+  assert.ok(changeSet?.length, 'the adopted project records its changed paths');
   rewriteCommittedState(root, state);
   const { format, evidence, scopeChanges, ...run } = scope;
   rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { ...scope, runs: [run] });
