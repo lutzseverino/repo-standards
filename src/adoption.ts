@@ -35,7 +35,7 @@ function workRequest(root: string, run: Run, installation: Installation): WorkRe
         ...(discoveryGuidance ? { discovery: { ...discoveryGuidance, retained: `${retainedSource}/${discoveryGuidance.source}` } } : {}),
         allowedTargets: allowedTargets(report.resolved.declarations.find(declaration => declaration.id === guidance.id)!) };
     }),
-    requiredEvidence: ['status', 'explanation', 'changedPaths', 'evidence', ...(discovery ? ['scope', 'scopeValidity.afterFixes', 'scopeValidity.current'] : [])] };
+    requiredEvidence: ['status', 'explanation', 'evidence', ...(discovery ? ['scopeValidity.afterFixes', 'scopeValidity.current'] : [])] };
 }
 
 function workSnapshot(root: string, run: Run, resolved: Inspection['resolved']) {

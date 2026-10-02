@@ -73,9 +73,8 @@ test('discovery handoff requires versioned coverage review after fixes and at as
   assert.equal(sha256(readFileSync(join(f.project.root, discovery.retained))), discovery.sha256);
   const assessmentFile = join(f.remote.support.root, 'assessment.json');
   const review = { status: 'valid', explanation: 'After fixes the maintained project is still the only applicable project.', evidence: ['Reviewed the project manifest and excluded fixture.'], additionalPaths: [] };
-  const assessment = { format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
-    scope: { inspection: request.scope.inspection, afterFixes: request.scope.afterFixes },
-    declarations: [{ id: 'docs', status: 'satisfied', explanation: 'Reviewed guidance.', changedPaths: [], evidence: ['No content changes in this protocol exercise.'], scopeValidity: { afterFixes: review, current: review } }] };
+  const assessment = { format: 'repo-standards/assessment/v3',
+    declarations: [{ id: 'docs', status: 'satisfied', explanation: 'Reviewed guidance.', evidence: ['No content changes in this protocol exercise.'], scopeValidity: { afterFixes: review, current: review } }] };
   writeFileSync(assessmentFile, JSON.stringify(assessment));
   const complete = f.run(['resume', '--assessment', assessmentFile, '--json']);
   assert.equal(complete.result.status, 0, complete.result.stdout);
@@ -83,15 +82,11 @@ test('discovery handoff requires versioned coverage review after fixes and at as
   assert.equal(complete.report.operations.length, 2);
 });
 
-interface Request {
-  run: string; selection: string; snapshot: string; scope: { inspection: string; afterFixes: string };
-}
-function assessment(request: Request, changedPaths: string[] = []) {
+function assessment() {
   const review = { status: 'valid', explanation: 'The maintained project and migration files remain fully covered; exclusions still apply.',
     evidence: ['Reviewed project manifest, existing documentation, destinations, and links.'], additionalPaths: [] as string[] };
-  return { format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
-    scope: { inspection: request.scope.inspection, afterFixes: request.scope.afterFixes },
-    declarations: [{ id: 'docs', status: 'satisfied', explanation: 'Deleted legacy source and created the confirmed destination with its useful setup and recovery instructions preserved; repaired navigation.', changedPaths,
+  return { format: 'repo-standards/assessment/v3',
+    declarations: [{ id: 'docs', status: 'satisfied', explanation: 'Deleted legacy source and created the confirmed destination with its useful setup and recovery instructions preserved; repaired navigation.',
       evidence: ['Destination preserves setup and recovery instructions, and navigation links to it.'], scopeValidity: { afterFixes: structuredClone(review), current: structuredClone(review) } }] };
 }
 function submit(f: Awaited<ReturnType<typeof fixture>>, value: unknown) {
@@ -138,8 +133,11 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     const refreshed = f.run(['resume', '--json']).report.workRequest;
     assert.equal(refreshed.scope.afterFixes, before);
     assert.notEqual(refreshed.snapshot, before);
-    const completed = submit(f, assessment(refreshed, targets));
+    const completed = submit(f, assessment());
     assert.equal(completed.result.status, 0, completed.result.stdout);
+    // The migration's deletion, creations and link repairs are derived from the run's work evidence.
+    assert.deepEqual(completed.report.assessments[0].declarations[0].changedPaths, [...targets].sort());
+    assert.deepEqual(completed.report.assessments[0].scope, { inspection: refreshed.scope.inspection, afterFixes: refreshed.scope.afterFixes });
     assert.equal(readFileSync(join(f.project.root, 'docs/projects/operations.md'), 'utf8'), useful);
     assert.equal(existsSync(join(f.project.root, 'old/operations.md')), false);
     assert.equal(readFileSync(join(f.project.root, 'docs/config.json'), 'utf8'), '{"shared":true}\n');
@@ -224,22 +222,23 @@ test('explained empty discovery scope retains fixes, coverage assessment and che
   assert.equal(start.phase, 'contextual');
   assert.equal(start.workRequest.declarations.length, 1);
   assert.deepEqual(JSON.parse(start.operations[0].result.message), { paths: [], directories: [] });
-  const completed = submit(f, assessment(start.workRequest));
+  const completed = submit(f, assessment());
   assert.equal(completed.result.status, 0, completed.result.stdout);
   assert.deepEqual(completed.report.operations.map((op: { operation: { phase: string } }) => op.operation.phase), ['fixes', 'checks']);
   assert.deepEqual(JSON.parse(completed.report.operations[1].result.message), { paths: [], directories: [] });
 });
 
-test('scope-validity omissions, mismatched identities and additional file needs block checks without new authority', async t => {
+test('scope-validity omissions, copied identities and additional file needs block checks without new authority', async t => {
   const f = await fixture(t);
   const start = f.start(f.inspect().report.identity).report;
-  const valid = assessment(start.workRequest);
+  const valid = assessment();
   const retiredFormat = { ...valid, format: 'repo-standards/assessment/v1' };
   assert.match(submit(f, retiredFormat).report.reason, /ASSESSMENT_FORMAT/);
   const noReview = JSON.parse(JSON.stringify(valid));
   delete noReview.declarations[0].scopeValidity;
   assert.match(submit(f, noReview).report.reason, /ASSESSMENT_FORMAT/);
-  assert.match(submit(f, { ...valid, scope: { ...valid.scope, afterFixes: 'invented' } }).report.reason, /ASSESSMENT_SCOPE_MISMATCH/);
+  const { inspection, afterFixes } = start.workRequest.scope;
+  assert.match(submit(f, { ...valid, scope: { inspection, afterFixes } }).report.reason, /ASSESSMENT_FORMAT/);
   for (const phase of ['afterFixes', 'current'] as const) {
     const incomplete = structuredClone(valid);
     incomplete.declarations[0]!.scopeValidity[phase].status = 'blocked';
@@ -247,7 +246,9 @@ test('scope-validity omissions, mismatched identities and additional file needs 
     const blocked = submit(f, incomplete).report;
     assert.match(blocked.reason, /SCOPE_INCOMPLETE/);
     assert.match(blocked.nextAction, /Additional paths grant no authority/);
-    assert.deepEqual(blocked.assessments, [incomplete]);
+    const { run, selection, snapshot } = start.workRequest;
+    assert.deepEqual(blocked.assessments, [{ format: incomplete.format, scope: { inspection, afterFixes }, run, selection, snapshot,
+      declarations: incomplete.declarations.map(({ evidence, scopeValidity, ...judgment }) => ({ ...judgment, changedPaths: [], evidence, scopeValidity })) }]);
     assert.equal(blocked.operations.length, 1);
     assert.equal(existsSync(join(f.project.root, 'new-destination.md')), false);
   }
@@ -264,7 +265,7 @@ test('scope-validity omissions, mismatched identities and additional file needs 
 test('a blocked scope review is corrected by abandoning the run and adopting again with a new confirmed scope', async t => {
   const f = await fixture(t);
   const start = f.start(f.inspect().report.identity).report;
-  const needsMore = assessment(start.workRequest);
+  const needsMore = assessment();
   needsMore.declarations[0]!.scopeValidity.current.status = 'blocked';
   needsMore.declarations[0]!.scopeValidity.current.additionalPaths = ['new-destination.md'];
   const blocked = submit(f, needsMore);
@@ -295,19 +296,19 @@ test('a blocked scope review is corrected by abandoning the run and adopting aga
   assert.deepEqual(restarted.workRequest.declarations[0].allowedTargets.paths, ['components/odd/nested/README.md', 'new-destination.md']);
 });
 
-test('discovered contextual changes reject stale, omitted and false evidence before completing with fresh evidence', async t => {
+test('discovered contextual changes reject a stale assessment and complete with derived changed paths', async t => {
   const f = await fixture(t, 'apps/widget', { 'stable.md': 'Stable' });
   setScopeTargets(f, ['apps/widget/README.md', 'stable.md']);
   const start = f.start(f.inspect().report.identity).report;
   const target = f.proposal.declarations[0]!.paths[0]!;
   writeFileSync(join(f.project.root, target), '# Project\n\nRun node server.js.\n');
-  assert.match(submit(f, assessment(start.workRequest, [target])).report.reason, /STALE_ASSESSMENT/);
-  const refreshed = f.run(['resume', '--json']).report.workRequest;
-  assert.match(submit(f, assessment(refreshed)).report.reason, /ASSESSMENT_PATHS.*omitted/);
-  assert.match(submit(f, assessment(refreshed, [target, 'invented.md'])).report.reason, /ASSESSMENT_SCOPE/);
-  assert.match(submit(f, assessment(refreshed, [target, 'stable.md'])).report.reason, /ASSESSMENT_PATHS.*did not change/);
-  const complete = submit(f, assessment(refreshed, [target]));
+  assert.match(submit(f, assessment()).report.reason, /STALE_ASSESSMENT/);
+  assert.equal(start.workRequest.declarations[0].allowedTargets.paths.includes('stable.md'), true);
+  f.run(['resume', '--json']);
+  const complete = submit(f, assessment());
   assert.equal(complete.result.status, 0, complete.result.stdout);
+  // The unchanged confirmed target is not attributed.
+  assert.deepEqual(complete.report.assessments[0].declarations[0].changedPaths, [target]);
 });
 
 test('unconfirmed migration destinations and exact corruption preserve incomplete work and installed expectations', async t => {
@@ -317,7 +318,7 @@ test('unconfirmed migration destinations and exact corruption preserve incomplet
     const installedLock = readFileSync(join(f.project.root, '.repo-standards/lock.json'), 'utf8');
     writeFileSync(join(f.project.root, target), 'Preserve this failed work');
     const request = f.run(['resume', '--json']).report;
-    const rejected = target === 'invented.md' ? submit(f, assessment(request.workRequest)).report : request;
+    const rejected = target === 'invented.md' ? submit(f, assessment()).report : request;
     assert.match(rejected.reason, target === 'invented.md' ? /ASSESSMENT_SCOPE/ : /FINAL_INTEGRITY/);
     assert.equal(readFileSync(join(f.project.root, target), 'utf8'), 'Preserve this failed work');
     assert.equal(readFileSync(join(f.project.root, '.repo-standards/lock.json'), 'utf8'), installedLock);
@@ -330,7 +331,7 @@ test('discovered fixes and checks enforce confirmed files through the establishe
   for (const phase of ['fixes', 'checks']) await t.test(phase, async t => {
     const f = await fixture(t, 'apps/widget', {}, script.replace("console.log(JSON.stringify", `if (input.operation.phase === '${phase}') { const { writeFileSync } = await import('node:fs'); writeFileSync('outside.md', 'Operation violation'); }\nconsole.log(JSON.stringify`));
     const start = f.start(f.inspect().report.identity).report;
-    const failed = phase === 'fixes' ? start : submit(f, assessment(start.workRequest)).report;
+    const failed = phase === 'fixes' ? start : submit(f, assessment()).report;
     assert.match(failed.reason, phase === 'fixes' ? /OPERATION_SCOPE.*outside.md/ : /CHECK_MUTATION.*outside.md/);
     assert.equal(readFileSync(join(f.project.root, 'outside.md'), 'utf8'), 'Operation violation');
     assert.equal(failed.outcome, 'incomplete');
@@ -349,10 +350,11 @@ test('discovered scope survives retry with separate earlier agent evidence and r
   assert.equal(retried.workRequest.scope.inspection, oldRequest.scope.inspection);
   assert.notEqual(retried.workRequest.scope.afterFixes, oldRequest.scope.afterFixes);
   assert.equal(readFileSync(join(f.project.root, 'apps/widget/README.md'), 'utf8'), '# Prepared by fix');
-  assert.match(submit(f, assessment(oldRequest, ['apps/widget/README.md'])).report.reason, /ASSESSMENT_SCOPE_MISMATCH|STALE_ASSESSMENT/);
-  assert.match(submit(f, assessment(retried.workRequest)).report.reason, /ASSESSMENT_PATHS/);
-  const complete = submit(f, assessment(retried.workRequest, ['apps/widget/README.md']));
+  const complete = submit(f, assessment());
   assert.equal(complete.result.status, 0, complete.result.stdout);
+  // The earlier agent change replaced by the replayed fix stays attributed, under the renewed post-fix identity.
+  assert.deepEqual(complete.report.assessments[0].declarations[0].changedPaths, ['apps/widget/README.md']);
+  assert.equal(complete.report.assessments[0].scope.afterFixes, retried.workRequest.scope.afterFixes);
   const status = f.run(['status', '--json']).report;
   assert.deepEqual(status.observations.filter((entry: { changes: Record<string, unknown> }) => Object.hasOwn(entry.changes, 'apps/widget/README.md')).map((entry: { phase: string }) => entry.phase), ['fixes', 'agent', 'fixes']);
   assert.equal(status.retryHistory.length, 1);

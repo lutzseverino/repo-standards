@@ -30,10 +30,10 @@ async function fixture(t: TestContext, script: string, declarations: Record<stri
   const inspection = run(inspectionArgs).report;
   const startArgs = ['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity];
   return { project, remote, env, run, startArgs, head: git(project.root, 'rev-parse', 'HEAD'), start: () => run(startArgs),
-    assess(request: { run: string; selection: string; snapshot: string; declarations: { id: string }[] }, changes: Record<string, string[]> = {}) {
+    assess(request: { declarations: { id: string }[] }, status = 'satisfied') {
       const path = join(remote.support.root, 'assessment.json');
-      writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
-        declarations: request.declarations.map(({ id }) => ({ id, status: 'satisfied', explanation: 'Guidance applied.', changedPaths: changes[id] ?? [], evidence: ['Reviewed project content.'] })) }));
+      writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v3',
+        declarations: request.declarations.map(({ id }) => ({ id, status, explanation: 'Guidance applied.', evidence: ['Reviewed project content.'] })) }));
       return run(['resume', '--assessment', path, '--json']);
     },
   };
@@ -100,13 +100,12 @@ ${result}`, {
   writeFileSync(join(f.project.root, 'new.md'), 'Agent explanation');
   const refreshed = f.run(['resume', '--json']).report;
   assert.notEqual(refreshed.workRequest.snapshot, started.workRequest.snapshot);
-  const omitted = f.assess(refreshed.workRequest);
-  assert.match(omitted.report.reason, /ASSESSMENT_PATHS.*new.md/);
-  const complete = f.assess(refreshed.workRequest, { docs: ['new.md'] });
+  const complete = f.assess(refreshed.workRequest);
   assert.equal(complete.result.status, 0, complete.result.stdout);
+  assert.deepEqual(complete.report.assessments[0].declarations[0].changedPaths, ['new.md']);
 });
 
-test('v2 preserves same-file agent work across fix replay and requires renewed evidence', async t => {
+test('v2 preserves same-file agent work across fix replay and attributes it to its declaration', async t => {
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'fixes') writeFileSync('README.md', 'Prepared');
 ${result}`);
@@ -118,10 +117,10 @@ ${result}`);
   assert.equal(retried.phase, 'contextual');
   assert.equal(readFileSync(join(f.project.root, 'README.md'), 'utf8'), 'Prepared');
   assert.notEqual(retried.workRequest.snapshot, oldRequest.snapshot);
-  assert.match(f.assess(oldRequest, { readme: ['README.md'] }).report.reason, /STALE_ASSESSMENT/);
-  assert.match(f.assess(retried.workRequest).report.reason, /ASSESSMENT_PATHS.*README.md/);
-  const complete = f.assess(retried.workRequest, { readme: ['README.md'] });
+  const complete = f.assess(retried.workRequest);
   assert.equal(complete.result.status, 0, complete.result.stdout);
+  // The agent change replaced by the replayed fix is still attributed to its declaration.
+  assert.deepEqual(complete.report.assessments[0].declarations.map((entry: { changedPaths: string[] }) => entry.changedPaths), [[], ['README.md']]);
   const status = f.run(['status', '--json']).report;
   const intervals = status.observations as { phase: string; changes: Record<string, unknown>; scope: unknown }[];
   assert.deepEqual(intervals.filter(interval => Object.hasOwn(interval.changes, 'README.md')).map(interval => interval.phase), ['fixes', 'agent', 'fixes']);
@@ -162,8 +161,9 @@ ${result}`, {
   assert.deepEqual(Object.keys(started.observations[0].changes), ['docs/old.md', 'docs/sub/new.md', 'docs/tool.sh']);
   writeFileSync(join(f.project.root, 'docs/sub/new.md'), 'Agent documentation');
   const request = f.run(['resume', '--json']).report.workRequest;
-  const completed = f.assess(request, { docs: ['docs/sub/new.md'] });
+  const completed = f.assess(request);
   assert.equal(completed.result.status, 0, completed.result.stdout);
+  assert.deepEqual(completed.report.assessments[0].declarations[0].changedPaths, ['docs/sub/new.md']);
 });
 
 test('v2 checks remain read-only even for ignored named targets and keep operation outcomes separate', async t => {
@@ -251,13 +251,14 @@ test('v2 retry records agent edits after rejected evidence before replay can ove
 if (input.operation.phase === 'fixes') writeFileSync('README.md', 'Prepared');
 ${result}`);
   const started = f.start().report;
-  const rejected = f.assess(started.workRequest, { readme: ['README.md'] }).report;
-  assert.match(rejected.reason, /ASSESSMENT_PATHS/);
+  const rejected = f.assess(started.workRequest, 'blocked').report;
+  assert.match(rejected.reason, /ASSESSMENT_BLOCKED/);
   writeFileSync(join(f.project.root, 'README.md'), 'Agent change after rejection');
   const retried = f.run(['resume', '--retry', '--json']).report;
   assert.equal(retried.phase, 'contextual');
-  assert.match(f.assess(retried.workRequest).report.reason, /ASSESSMENT_PATHS.*README.md/);
-  assert.equal(f.assess(retried.workRequest, { readme: ['README.md'] }).result.status, 0);
+  const complete = f.assess(retried.workRequest);
+  assert.equal(complete.result.status, 0, complete.result.stdout);
+  assert.deepEqual(complete.report.assessments[0].declarations.map((entry: { changedPaths: string[] }) => entry.changedPaths), [[], ['README.md']]);
 });
 
 test('v2 refuses unsafe named ancestors and stale assessments after observation settings change', async t => {
@@ -319,8 +320,8 @@ ${result}`);
   assert.equal(started.phase, 'contextual');
   const path = join(f.remote.support.root, 'assessment.json');
   const request = started.workRequest;
-  writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
-    declarations: request.declarations.map(({ id }: { id: string }) => ({ id, status: 'satisfied', explanation: 'Guidance applied.', changedPaths: [], evidence: ['Reviewed project content.'] })) }));
+  writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v3',
+    declarations: request.declarations.map(({ id }: { id: string }) => ({ id, status: 'satisfied', explanation: 'Guidance applied.', evidence: ['Reviewed project content.'] })) }));
   assert.equal(cli.run(['resume', '--assessment', path, '--json'], f.project.root, f.env).signal, 'SIGKILL');
   const stopped = f.run(['status', '--json']).report.active;
   assert.equal(stopped.observations.at(-1).phase, 'checks');
@@ -462,7 +463,7 @@ ${result}`);
   writeFileSync(journal, recorded);
   writeFileSync(join(f.project.root, 'OTHER.md'), 'Agent documentation');
   const refreshed = f.run(['resume', '--json']).report;
-  const completed = f.assess(refreshed.workRequest, { other: ['OTHER.md'] });
+  const completed = f.assess(refreshed.workRequest);
   assert.equal(completed.result.status, 0, completed.result.stdout);
 
   const state = committedState(f.project.root);

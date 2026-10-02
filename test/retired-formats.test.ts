@@ -44,12 +44,10 @@ async function adoptedProject(t: import('node:test').TestContext) {
   const inspection = run([...inspectionArgs, '--scope', scopeFile]).report;
   const started = run(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', inspection.identity]).report;
   assert.equal(started.phase, 'contextual');
-  const work = started.workRequest;
   const review = { status: 'valid', explanation: 'The confirmed project still matches.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
   const assessment = join(remote.support.root, 'assessment.json');
-  writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v2', run: work.run, selection: work.selection, snapshot: work.snapshot,
-    scope: { inspection: work.scope.inspection, afterFixes: work.scope.afterFixes },
-    declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The README already satisfies the guidance.', changedPaths: [], evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
+  writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v3',
+    declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The README already satisfies the guidance.', evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
   const completed = run(['resume', '--assessment', assessment, '--json']);
   assert.equal(completed.result.status, 0, completed.result.stdout);
   commit(project.root);

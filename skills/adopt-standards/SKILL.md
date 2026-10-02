@@ -141,16 +141,14 @@ or submitting evidence. The handoff is expected incomplete adoption.
    Evidence must cite concrete project content or observed command outcomes.
    Separate agent judgments from CLI script results; passing a structural check
    alone does not establish contextual usefulness.
-3. After edits, run `resume --json` to obtain the current snapshot. Follow the
-   assessment protocol exactly: copy its run, selection and snapshot identities;
-   provide satisfied/blocked, explanation, every observed changed file since
-   fixes under its governing declaration, and supporting evidence. Installation
-   and fix changes are not contextual changes. Use an empty changed-path list
-   when no contextual changes were needed. For discovered declarations, review
-   coverage again at the refreshed snapshot and submit both scope-validity reviews
-   in assessment/v2, copying the confirmed scope and post-fix identities. Account
-   for migration deletion and creation separately and explain preservation of
-   useful content. Report observed agent changes across all retry intervals.
+3. After edits, run `resume --json` to refresh the request. Follow the
+   assessment protocol exactly: for each declaration provide only its ID,
+   satisfied/blocked, explanation, and supporting evidence, plus both
+   scope-validity reviews for a discovered declaration, after reviewing coverage
+   again at the refreshed snapshot. The CLI binds the assessment to the active
+   run and derives every changed path from the run's work evidence, across all
+   retry intervals; copy no identities or paths. For a migration, explain how
+   each destination preserves the useful content of its source.
 4. Store the submission outside the project or in `.repo-standards/local/` and
    run `resume --assessment <file> --json`. Keep content unchanged between refresh
    and submission. Stale evidence needs a refreshed request and reassessment of

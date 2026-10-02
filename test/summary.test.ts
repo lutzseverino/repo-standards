@@ -54,12 +54,11 @@ async function fixture(t: TestContext) {
     return [...args, '--scope', scopeFile];
   }
   function assess() {
-    const work = json(['resume', '--json']).workRequest;
+    json(['resume', '--json']);
     const review = { status: 'valid', explanation: 'The confirmed project still matches.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
     const assessment = join(remote.support.root, 'assessment.json');
-    writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v2', run: work.run, selection: work.selection, snapshot: work.snapshot,
-      scope: { inspection: work.scope.inspection, afterFixes: work.scope.afterFixes },
-      declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The prepared README satisfies the guidance.', changedPaths: [], evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
+    writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v3',
+      declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The prepared README satisfies the guidance.', evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
     return run(['resume', '--assessment', assessment, '--json']);
   }
   return { remote, project, run, json, propose, assess };

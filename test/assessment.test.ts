@@ -64,17 +64,18 @@ test('contextual handoff identifies the run, retained guidance, allowed targets 
     sha256: sha256('Describe setup and architecture.'), executable: false, retained: '.repo-standards/inputs/source/readme.md' });
   assert.equal(readFileSync(join(f.project.root, request.declarations[1].guidance.retained), 'utf8'), 'Describe setup and architecture.');
   assert.deepEqual(embeddedContent(f.run), [], 'The run record references guidance by path and hash');
-  assert.deepEqual(request.requiredEvidence, ['status', 'explanation', 'changedPaths', 'evidence']);
+  assert.deepEqual(request.requiredEvidence, ['status', 'explanation', 'evidence']);
   assert.equal(readFileSync(join(f.project.root, 'AGENTS.md'), 'utf8'), 'Work instructions');
   assert.equal(readFileSync(join(f.project.root, 'CONTRIBUTING.md'), 'utf8'), 'Employer policy');
   assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
 });
 
-function submission(request: { run: string; selection: string; snapshot: string }, changedPaths = ['README.md']) {
-  return { format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
+// The agent supplies only its judgment; the CLI binds the run and derives changed paths.
+function submission() {
+  return { format: 'repo-standards/assessment/v3',
     declarations: [
-      { id: 'layout', status: 'satisfied', explanation: 'Source responsibilities documented.', changedPaths: ['src/queue.ts'], evidence: ['Queue module identifies its responsibility.'] },
-      { id: 'readme', status: 'satisfied', explanation: 'README describes Bob’s service.', changedPaths, evidence: ['Setup and architecture explain the queue.'] },
+      { id: 'layout', status: 'satisfied', explanation: 'Source responsibilities documented.', evidence: ['Queue module identifies its responsibility.'] },
+      { id: 'readme', status: 'satisfied', explanation: 'README describes Bob’s service.', evidence: ['Setup and architecture explain the queue.'] },
     ] };
 }
 function contextualWork(root: string) {
@@ -88,14 +89,19 @@ test('scripted agent completes Alice work with separate assessment and check evi
   const refreshed = f.resume();
   assert.equal(refreshed.report.phase, 'contextual', refreshed.result.stdout);
   assert.notEqual(refreshed.report.workRequest.snapshot, f.run.workRequest.snapshot);
-  const { result, report } = f.resume(submission(refreshed.report.workRequest));
+  const { result, report } = f.resume(submission());
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(report.outcome, 'complete');
   assert.equal(report.operations[0].result.status, 'passed');
   const status = JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout);
   assert.equal(status.active, null);
-  assert.equal(status.assessments[0].snapshot, refreshed.report.workRequest.snapshot);
-  assert.equal(status.assessments[0].declarations.length, 2);
+  const request = refreshed.report.workRequest;
+  // The CLI binds the judgment to the active run and derives each declaration's changed paths.
+  assert.deepEqual(status.assessments, [{ format: 'repo-standards/assessment/v3', run: request.run, selection: request.selection, snapshot: request.snapshot,
+    declarations: [
+      { id: 'layout', status: 'satisfied', explanation: 'Source responsibilities documented.', changedPaths: ['src/queue.ts'], evidence: ['Queue module identifies its responsibility.'] },
+      { id: 'readme', status: 'satisfied', explanation: 'README describes Bob’s service.', changedPaths: ['README.md'], evidence: ['Setup and architecture explain the queue.'] },
+    ] }]);
   assert.equal(status.checks.length, 1);
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), head);
   assert.notEqual(git(f.project.root, 'status', '--porcelain'), '');
@@ -105,8 +111,8 @@ test('scripted agent completes Alice work with separate assessment and check evi
 test('blocked agent evidence is retained separately and prevents checks until renewed assessment', async t => {
   const f = await fixture(t);
   contextualWork(f.project.root);
-  const request = f.resume().report.workRequest;
-  const blocked = submission(request);
+  f.resume();
+  const blocked = submission();
   blocked.declarations[0]!.status = 'blocked';
   blocked.declarations[0]!.explanation = 'Queue ownership needs maintainer clarification.';
   const { result, report } = f.resume(blocked);
@@ -115,22 +121,21 @@ test('blocked agent evidence is retained separately and prevents checks until re
   assert.equal(report.operations.length, 0);
   assert.equal(report.assessments[0].declarations[0].status, 'blocked');
   assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
-  const renewed = f.resume(submission(request));
+  const renewed = f.resume(submission());
   assert.equal(renewed.result.status, 0, renewed.result.stdout);
 });
 
-test('malformed and mismatched assessments, missing declarations and inaccurate paths stay incomplete', async t => {
+test('malformed assessments, copied run fields, changed paths and missing declarations stay incomplete', async t => {
   const f = await fixture(t);
   contextualWork(f.project.root);
   const request = f.resume().report.workRequest;
-  const valid = submission(request);
+  const valid = submission();
   const examples: { name: string; code: string; change: (value: ReturnType<typeof submission>) => unknown }[] = [
     { name: 'invalid JSON', code: 'ASSESSMENT_FORMAT', change: () => '{' },
     { name: 'null', code: 'ASSESSMENT_FORMAT', change: () => null },
     { name: 'unknown field', code: 'ASSESSMENT_FORMAT', change: value => ({ ...value, unexpected: true }) },
-    { name: 'another run', code: 'ASSESSMENT_MISMATCH', change: value => ({ ...value, run: 'another' }) },
-    { name: 'another selection', code: 'ASSESSMENT_MISMATCH', change: value => ({ ...value, selection: 'another' }) },
-    { name: 'wrong snapshot', code: 'STALE_ASSESSMENT', change: value => ({ ...value, snapshot: 'another' }) },
+    { name: 'retired format', code: 'ASSESSMENT_FORMAT', change: value => ({ ...value, format: 'repo-standards/assessment/v2' }) },
+    { name: 'copied run fields', code: 'ASSESSMENT_FORMAT', change: value => ({ ...value, run: request.run, selection: request.selection, snapshot: request.snapshot }) },
     { name: 'missing declaration', code: 'ASSESSMENT_DECLARATIONS', change: value => ({ ...value, declarations: value.declarations.slice(1) }) },
     { name: 'duplicate declaration', code: 'ASSESSMENT_DECLARATIONS', change: value => ({ ...value, declarations: [value.declarations[0], value.declarations[0]] }) },
     { name: 'unknown declaration', code: 'ASSESSMENT_DECLARATIONS', change: value => { value.declarations[0]!.id = 'unknown'; return value; } },
@@ -138,11 +143,7 @@ test('malformed and mismatched assessments, missing declarations and inaccurate 
     { name: 'no evidence', code: 'ASSESSMENT_FORMAT', change: value => { value.declarations[0]!.evidence = []; return value; } },
     { name: 'array status', code: 'ASSESSMENT_FORMAT', change: value => ({ ...value, declarations: value.declarations.map(entry => ({ ...entry, status: ['satisfied'] })) }) },
     { name: 'invalid status', code: 'ASSESSMENT_FORMAT', change: value => { value.declarations[0]!.status = 'passed'; return value; } },
-    { name: 'missing changed path', code: 'ASSESSMENT_PATHS', change: value => { value.declarations[0]!.changedPaths = []; return value; } },
-    { name: 'extra unchanged path', code: 'ASSESSMENT_PATHS', change: value => { value.declarations[0]!.changedPaths.push('src/old.ts'); return value; } },
-    { name: 'path in wrong declaration', code: 'ASSESSMENT_SCOPE', change: value => { value.declarations[0]!.changedPaths.push('README.md'); return value; } },
-    { name: 'parent escape', code: 'ASSESSMENT_FORMAT', change: value => { value.declarations[0]!.changedPaths.push('../elsewhere'); return value; } },
-    { name: 'duplicate path', code: 'ASSESSMENT_FORMAT', change: value => { value.declarations[0]!.changedPaths.push('src/queue.ts'); return value; } },
+    { name: 'supplied changed paths', code: 'ASSESSMENT_FORMAT', change: value => ({ ...value, declarations: value.declarations.map(entry => ({ ...entry, changedPaths: ['src/queue.ts'] })) }) },
   ];
   for (const example of examples) await t.test(example.name, () => {
     const { result, report } = f.resume(example.change(structuredClone(valid)));
@@ -151,32 +152,45 @@ test('malformed and mismatched assessments, missing declarations and inaccurate 
     assert.equal(report.operations.length, 0);
     assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
   });
+  const missing = f.resume({ ...valid, declarations: valid.declarations.slice(1) }).report.reason;
+  assert.equal(missing, 'ASSESSMENT_DECLARATIONS: Submit evidence for every contextual declaration. Missing: layout.');
   assert.equal(f.resume(valid).result.status, 0);
 });
 
-test('unreported out-of-scope tracked and untracked changes block completion while ignored content is excluded', async t => {
+test('an assessment submitted for no active run is rejected with the next step', async t => {
+  const f = await fixture(t);
+  contextualWork(f.project.root);
+  f.resume();
+  assert.equal(f.resume(submission()).result.status, 0);
+  const { result, report } = f.resume(submission());
+  assert.equal(result.status, 1, result.stdout);
+  assert.deepEqual(report.errors, [{ code: 'NO_ACTIVE_RUN', message: 'No incomplete adoption is available to resume; resume and assessments apply only to an active run. Read status, and inspect and start an adoption if one is needed.' }]);
+});
+
+test('observed out-of-scope tracked and untracked changes block completion while ignored content is excluded', async t => {
   for (const path of ['CONTRIBUTING.md', 'unrelated.txt', 'src-other.txt']) await t.test(path, async st => {
     const f = await fixture(st);
     contextualWork(f.project.root);
     writeFileSync(join(f.project.root, path), 'Unrelated work');
-    const request = f.resume().report.workRequest;
-    const { report } = f.resume(submission(request));
+    f.resume();
+    const { report } = f.resume(submission());
     assert.ok(report.reason.startsWith('ASSESSMENT_SCOPE:') && report.reason.includes(path), report.reason);
     assert.equal(readFileSync(join(f.project.root, path), 'utf8'), 'Unrelated work');
   });
   const f = await fixture(t);
   contextualWork(f.project.root);
   mkdirSync(join(f.project.root, 'ignored'));
-  const request = f.resume().report.workRequest;
+  f.resume();
   writeFileSync(join(f.project.root, 'ignored/cache'), 'Ignored work');
-  assert.equal(f.resume(submission(request)).result.status, 0);
+  assert.equal(f.resume(submission()).result.status, 0);
 });
 
 test('changed content invalidates prior assessment and every check runs again after renewed evidence', async t => {
   const f = await fixture(t, `import { readFileSync } from 'node:fs';
 console.log(JSON.stringify({format:'repo-standards/result/v1',status:readFileSync('README.md','utf8').includes('Ready')?'passed':'failed',message:'Requires readiness'}));`);
   contextualWork(f.project.root);
-  const initial = submission(f.resume().report.workRequest);
+  f.resume();
+  const initial = submission();
   const failed = f.resume(initial);
   assert.match(failed.report.reason, /CHECKS_FAILED/);
   assert.equal(failed.report.assessments.length, 1);
@@ -185,7 +199,8 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:readFileSyn
   const stale = f.resume(initial);
   assert.match(stale.report.reason, /STALE_ASSESSMENT/);
   assert.equal(stale.report.operations.length, 1);
-  const complete = f.resume(submission(f.resume().report.workRequest));
+  f.resume();
+  const complete = f.resume(initial);
   assert.equal(complete.result.status, 0, complete.result.stdout);
   assert.deepEqual(complete.report.operations.map((o: { result: { status: string } }) => o.result.status), ['failed', 'passed']);
   const status = JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout);
@@ -196,7 +211,8 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:readFileSyn
 test('contextual work cannot corrupt installed exact content, full skills, inputs or product state', async t => {
   const f = await fixture(t);
   contextualWork(f.project.root);
-  const valid = submission(f.resume().report.workRequest);
+  f.resume();
+  const valid = submission();
   for (const path of ['AGENTS.md', '.agents/skills/review/SKILL.md', '.agents/skills/review/added.txt',
     '.repo-standards/inputs/source/readme.md', '.repo-standards/inputs/added.txt', '.repo-standards/selection.yaml',
     '.repo-standards/runtime/package.json', '.repo-standards/unexpected.txt']) await t.test(path, () => {
@@ -221,7 +237,8 @@ test('checks after assessment still reject mutation and exact-content corruption
 writeFileSync(${JSON.stringify(path)}, 'Changed during check');
 console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Reported success'}));`);
     contextualWork(f.project.root);
-    const { result, report } = f.resume(submission(f.resume().report.workRequest));
+    f.resume();
+    const { result, report } = f.resume(submission());
     assert.equal(result.status, 1);
     assert.ok(report.reason.startsWith(code + ':'), report.reason);
     assert.equal(report.assessments.length, 1);
@@ -234,7 +251,8 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',me
 test('content changing between assessment and final verification requires reassessment and fresh checks', async t => {
   const f = await fixture(t);
   contextualWork(f.project.root);
-  const valid = submission(f.resume().report.workRequest);
+  f.resume();
+  const valid = submission();
   const env = filesystemFault(f.remote.support.root, f.env, 'verification', `write.call(fs, 'README.md', '# Bob\\nChanged after assessment');`);
   const assessmentPath = join(f.remote.support.root, 'assessment.json');
   writeFileSync(assessmentPath, JSON.stringify(valid));
@@ -243,7 +261,8 @@ test('content changing between assessment and final verification requires reasse
   assert.equal(result.status, 1, result.stdout + result.stderr);
   assert.match(report.reason, /STALE_ASSESSMENT/);
   assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
-  const renewed = f.resume(submission(f.resume().report.workRequest));
+  f.resume();
+  const renewed = f.resume(valid);
   assert.equal(renewed.result.status, 0, renewed.result.stdout);
   assert.equal(renewed.report.operations.length, 2);
 });
@@ -278,25 +297,29 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status,message:'Se
   writeFileSync(join(project.root, 'runbooks/recovery.md'), 'Incident command: payments on-call. Replay failed payments using the queue.');
   const request = JSON.parse(cli.run(['resume', '--json'], project.root, env).stdout).workRequest;
   const path = join(remote.support.root, 'assessment.json');
-  writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v2', run: request.run, selection: request.selection, snapshot: request.snapshot,
-    declarations: [{ id: 'operations', status: 'satisfied', explanation: 'Owner recorded and payments recovery documented.', changedPaths: ['runbooks', 'runbooks/recovery.md'], evidence: ['service.json names payments; runbook gives the replay procedure.'] }] }));
+  assert.equal(request.declarations.length, 1);
+  writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v3',
+    declarations: [{ id: 'operations', status: 'satisfied', explanation: 'Owner recorded and payments recovery documented.', evidence: ['service.json names payments; runbook gives the replay procedure.'] }] }));
   const resumed = cli.run(['resume', '--assessment', path, '--json'], project.root, env);
   assert.equal(resumed.status, 0, resumed.stdout + resumed.stderr);
-  assert.deepEqual(JSON.parse(resumed.stdout).operations.map((o: { result: { status: string } }) => o.result.status), ['changed', 'passed']);
+  const completed = JSON.parse(resumed.stdout);
+  assert.deepEqual(completed.operations.map((o: { result: { status: string } }) => o.result.status), ['changed', 'passed']);
+  // The created directory target and its file are derived; the fix's own change is not contextual.
+  assert.deepEqual(completed.assessments[0].declarations[0].changedPaths, ['runbooks', 'runbooks/recovery.md']);
 });
 
 test('assessment accounts for deleted tracked files and executable changes', async t => {
   const f = await fixture(t);
   contextualWork(f.project.root);
-  const before = f.resume().report.workRequest;
+  f.resume();
   rmSync(join(f.project.root, 'src/old.ts'));
   chmodSync(join(f.project.root, 'src/queue.ts'), 0o755);
-  assert.match(f.resume(submission(before)).report.reason, /STALE_ASSESSMENT/);
-  const assessment = submission(f.resume().report.workRequest);
-  assessment.declarations[0]!.changedPaths.push('src/old.ts');
-  const { result } = f.resume(assessment);
+  assert.match(f.resume(submission()).report.reason, /STALE_ASSESSMENT/);
+  f.resume();
+  const { result, report } = f.resume(submission());
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(existsSync(join(f.project.root, 'src/old.ts')), false);
+  assert.deepEqual(report.assessments[0].declarations.map((entry: { changedPaths: string[] }) => entry.changedPaths), [['src/old.ts', 'src/queue.ts'], ['README.md']]);
 });
 
 test('only one resume can execute checks for an active contextual adoption', async t => {
@@ -304,7 +327,8 @@ test('only one resume can execute checks for an active contextual adoption', asy
 writeFileSync('.repo-standards/local/check-started', 'started');
 setTimeout(()=>console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Verified'})),1000);`);
   contextualWork(f.project.root);
-  const assessment = submission(f.resume().report.workRequest);
+  f.resume();
+  const assessment = submission();
   const path = join(f.remote.support.root, 'assessment.json');
   writeFileSync(path, JSON.stringify(assessment));
   const child = spawn(join(cli.root, 'node_modules/.bin/repo-standards'), ['resume', '--assessment', path, '--json'], { cwd: f.project.root, env: f.env });
@@ -335,7 +359,8 @@ const path = '.repo-standards/local/check-attempts';
 writeFileSync(path, String((existsSync(path) ? Number(readFileSync(path,'utf8')) : 0) + 1));
 ${script}`);
     contextualWork(f.project.root);
-    const assessment = submission(f.resume().report.workRequest);
+    f.resume();
+    const assessment = submission();
     const failed = f.resume(assessment);
     assert.ok(failed.report.reason.startsWith(code + ':'), failed.report.reason);
     assert.match(failed.report.nextAction, /Explicit recovery is required/);

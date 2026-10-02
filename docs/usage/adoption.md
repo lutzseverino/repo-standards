@@ -226,10 +226,13 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Run record, local run report, and archived abandoned report | `repo-standards/run/v5` |
 | `status` report | `repo-standards/status/v6` |
 | Inspection report | `repo-standards/inspection/v5` |
-| Work request and assessment | `repo-standards/work-request/v3`, `repo-standards/assessment/v2` |
+| Work request and assessment | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
 
 Earlier formats are retired: they are not read, converted, or compacted. A
-project that carries one [adopts fresh](#adopt-fresh-from-a-retired-format).
+project whose committed or recorded files carry one
+[adopts fresh](#adopt-fresh-from-a-retired-format). An agent's assessment
+submission is never committed: one in an earlier format is rejected with
+`ASSESSMENT_FORMAT`, and the agent writes it again in the current format.
 
 Discovery-backed updates, including an unchanged selection, use fresh
 proposals and record their scope change against the prior run. Retry repeats
@@ -451,7 +454,8 @@ requires the original confirmation to be fresh.
 Retry reruns repeat-safe fixes in declaration order, requests renewed contextual
 assessment where applicable, reruns checks, and verifies final integrity before
 recording completion. It retains earlier operation evidence and uncertainty as
-history. Old assessments cannot satisfy a retry, even if project bytes match.
+history. Retry discards the run's accepted assessment: a new submission against
+the retried request is required, even if project bytes match.
 Retry records separate
 fix and agent observation intervals, retaining earlier observed agent edits
 even when replayed fixes overwrite the same files. Retry cannot erase
