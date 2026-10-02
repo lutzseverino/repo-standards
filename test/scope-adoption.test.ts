@@ -429,10 +429,8 @@ test('committed evidence binds ignore inputs by role and content and records no 
   const globalIgnore = join(f.remote.support.root, 'global-ignore');
   writeFileSync(globalIgnore, '*.log\n');
   git(f.project.root, 'config', 'core.excludesFile', globalIgnore);
-  f.proposal.request = f.run(inspectionArgs).report.discovery.identity;
   const entry = f.proposal.declarations[0]!;
-  entry.paths = [];
-  entry.candidates = [{ path: 'fixtures/example', decision: 'exclude', reason: 'Fixture project; there are no maintained projects here.', evidence: entry.evidence }, entry.candidates[1]!];
+  entry.candidates = [{ path: 'fixtures/example', decision: 'exclude', reason: 'Fixture project; there are no maintained projects here.', evidence: [f.member, f.excluded] }, entry.candidates[1]!];
   entry.coverage = 'This repository contains test fixtures only; no maintained project requires documentation.';
   const start = f.start(f.inspect().report.identity).report;
   assert.equal(start.phase, 'contextual', JSON.stringify(start));
