@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { stringify } from 'yaml';
 import { filesystemFault } from './adoption-faults.ts';
-import { assertNoAbsolutePath, committedState } from './committed-evidence.ts';
+import { assertNoMachineLocation, committedState } from './committed-evidence.ts';
 import { installCli, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
@@ -651,5 +651,5 @@ fs.renameSync = function(from, to) {
   const archived = retry!.archivedFiles['.repo-standards/local/operations/0.stdout']!;
   assert.match(archived, /^repo-standards-reports\//);
   assert.equal(existsSync(join(git(worktree, 'rev-parse', '--absolute-git-dir'), archived)), true);
-  assertNoAbsolutePath(worktree, [worktree, f.project.root, f.remote.support.root, realpathSync(tmpdir())], [process.execPath]);
+  assertNoMachineLocation(worktree, [worktree, f.project.root, f.remote.support.root, realpathSync(tmpdir())], [process.execPath]);
 });

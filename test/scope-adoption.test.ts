@@ -9,7 +9,7 @@ import { installCli, sha256, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
-import { assertCompactRunRecord, assertCompactScopeEvidence, assertCompactWorkEvidence, assertNoAbsolutePath, committedScopeEvidence, committedState, localRunReport } from './committed-evidence.ts';
+import { assertCompactRunRecord, assertCompactScopeEvidence, assertCompactWorkEvidence, assertNoMachineLocation, committedScopeEvidence, committedState, localRunReport } from './committed-evidence.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -443,5 +443,5 @@ test('committed evidence binds ignore inputs by role and content and records no 
   assert.deepEqual(ignores['fixtures/.gitignore'], { type: 'file', sha256: sha256('build/\n'), executable: false });
   assert.equal((ignores.info as { type: string }).type, 'file');
   assert.deepEqual(ignores['.gitignore'], { type: 'missing' });
-  assertNoAbsolutePath(f.project.root, [f.project.root, f.remote.support.root, globalIgnore, realpathSync(tmpdir())], [process.execPath]);
+  assertNoMachineLocation(f.project.root, [f.project.root, f.remote.support.root, globalIgnore, realpathSync(tmpdir())], [process.execPath]);
 });

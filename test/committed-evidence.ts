@@ -140,27 +140,28 @@ export function growCommittedState(root: string, bytes: number) {
 
 // Committed evidence binds content, not location: no file the adoption leaves
 // for the project's normal workflow to commit names an absolute path or a
-// relative path that leaves the project, as a JSON key or string value, and none
-// names a given machine location anywhere in its text. Absolute paths the standards source itself declares, such as an
-// operation's executable, are retained source content and are passed as
-// authored.
-export function assertNoAbsolutePath(root: string, locations: string[], authored: string[] = []) {
+// relative path with a parent segment, as a JSON key or string value, and none
+// names a given machine location anywhere in its text. The parent-segment check
+// is deliberately strict: the product writes only normalized paths. Absolute
+// paths the standards source itself declares, such as an operation's
+// executable, are retained source content and are passed as authored.
+export function assertNoMachineLocation(root: string, locations: string[], authored: string[] = []) {
   const committed = git(root, 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '.repo-standards').split('\0').filter(Boolean);
   assert.ok(committed.includes('.repo-standards/state.json'), 'the adoption leaves committed state');
-  const absolute: string[] = [];
-  const located = (value: string) => isAbsolute(value) || /^\.\.(?:\/|$)/.test(value) || value.includes('/../');
+  const located: string[] = [];
+  const location = (value: string) => isAbsolute(value) || value.split('/').includes('..');
   function visit(path: string, value: unknown) {
-    if (typeof value === 'string' && located(value) && !authored.includes(value)) absolute.push(`${path}: ${value}`);
+    if (typeof value === 'string' && location(value) && !authored.includes(value)) located.push(`${path}: ${value}`);
     else if (value && typeof value === 'object') for (const [key, child] of Object.entries(value)) {
-      if (located(key)) absolute.push(`${path}: ${key}`);
+      if (location(key)) located.push(`${path}: ${key}`);
       visit(path, child);
     }
   }
   for (const path of committed) {
     const text = readFileSync(join(root, path), 'utf8');
-    for (const location of locations) if (text.includes(location)) absolute.push(`${path}: ${location}`);
+    for (const machine of locations) if (text.includes(machine)) located.push(`${path}: ${machine}`);
     if (path.endsWith('.json')) visit(path, JSON.parse(text));
   }
-  assert.deepEqual(absolute, [], 'committed evidence must not record an absolute path or a path outside the project');
+  assert.deepEqual(located, [], 'committed evidence must not record an absolute path or a path outside the project');
   return committed;
 }
