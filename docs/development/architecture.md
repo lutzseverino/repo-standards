@@ -723,8 +723,10 @@ committed state or run records use a retired format adopts fresh.
   `SYSTEM_SKILL_CONFLICT`, and `INSTALLED_CONTENT_EDITED`, the established
   system skill's exemption from the untracked-content check, and keeping the
   project's copy of the system skill during an update that keeps the CLI pin.
-  Tracked content at any target is replaced and listed among the discarded
-  edits ([ADR 0010](../adr/0010-replace-tracked-content-block-only-untracked.md)).
+  Tracked content that differs from the candidate is replaced at any target,
+  and a replacement that discards content other than the installed baseline is
+  listed among the discarded edits
+  ([ADR 0010](../adr/0010-replace-tracked-content-block-only-untracked.md)).
 - Keeping the installed targets of retired and excluded declarations in place.
   An update removes them, except within contextual scope or at or inside a
   target the selection still installs.
@@ -741,10 +743,11 @@ committed state or run records use a retired format adopts fresh.
   ([ADR 0012](../adr/0012-bind-content-not-location.md)).
 - Mechanical scope proposal fields: `request`, `paths`, declaration-level
   `evidence`, and evidence kinds and identities, with `STALE_SCOPE`. A proposal
-  that no longer fits the project fails start with `STALE_INSPECTION`.
+  that no longer fits the project fails `start` with `STALE_INSPECTION`.
 - Mechanical assessment fields: `run`, `selection`, `snapshot`, `scope`, and
   per-declaration `changedPaths`, with `ASSESSMENT_MISMATCH`,
-  `ASSESSMENT_SCOPE_MISMATCH`, and `ASSESSMENT_PATHS`.
+  `ASSESSMENT_SCOPE_MISMATCH`, `ASSESSMENT_PATHS`, and the `STALE_ASSESSMENT`
+  rejection of a submission that carries an earlier snapshot.
 - The adoption record's changed paths rebuilt from work intervals, one row per
   interval, phase, and operation. The record renders the stored change set.
 - `status` and `outdated` under a CLI other than the recorded pin. They fail
