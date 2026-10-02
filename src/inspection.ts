@@ -240,7 +240,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         });
       }
     }
-    const changedScope = previous && (!discoveryDeclarations.length || proposal) ? scopeChanges(previous.scopeHistory?.at(-1), { sourceResolved: profile, resolved }) : undefined;
+    const changedScope = previous && (!discoveryDeclarations.length || proposal) ? scopeChanges(previous.scopeEvidence, { sourceResolved: profile, resolved }) : undefined;
     const report = {
       format: formats.inspection,
       ...(discovery ? { discovery, sourceResolved: profile } : {}),

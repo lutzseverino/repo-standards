@@ -175,35 +175,35 @@ Review and commit these files through the adopting project's normal workflow:
 | --- | --- |
 | `.repo-standards/selection.yaml` | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile. |
 | `.repo-standards/lock.json` | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state. |
-| `.repo-standards/state.json` | Last-complete run, HEAD at start, completion time, exact baselines, full skill file inventories, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this and each prior complete run. |
+| `.repo-standards/state.json` | Last-complete run, HEAD at start, completion time, exact baselines, full skill file inventories, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this run only. |
 | `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
 | `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
 | `.agents/skills/adopt-standards/` | The product-owned system skill from this exact CLI version. |
 | Exact targets and `.agents/skills/<author skill>/` | The selected author-owned content and complete skill resources. |
 
-Discovery adoption additionally retains `inputs/scope-history.json`. Its ordered
-run records mark every later complete lifecycle point; entries with discovery
-preserve the accepted inspection identity, source-resolved declarations, concrete
-resolved selection, discovery guidance, proposal, rationale, evidence references
-and observation identities. This file is included in immutable input integrity.
+Discovery adoption additionally retains `inputs/scope-history.json`, and every
+later run keeps writing it. It holds the current run only: its accepted
+inspection identity, resolved selection, and, when the run discovered scope, its
+source-resolved declarations, discovery guidance, proposal, rationale, evidence
+references and observation identities, together with the run's scope change
+against the previous run. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
-source availability, as `repo-standards/scope-history/v3` in the
-`repo-standards/inspection/v4` report.
+source availability, as `repo-standards/scope-history/v4` in the
+`repo-standards/inspection/v5` report, and `status` reports its scope change.
 
-Retained runs are scope evidence: each discovery run is stored once, as its
-accepted inspection identity, resolved selection, source-resolved profile, and
-discovery identity, proposal, absence, declarations and project observation
-without the evidence array that observation implies. The named observation is
-stored as its delta from that project observation: the confirmed targets and any
-boundary entry naming them adds. Evidence arrays and the full named observation
-are rebuilt whenever the file is read, so the historical scope a report exposes
-is unchanged. The file does not repeat the newest run at its top level. Work
-intervals and final scope-validity assessments are committed in
-`repo-standards/state/v5`. Each later complete run moves the prior run's
-interval, operation, retry, check and assessment evidence into the state's
-ordered `history` unchanged, so earlier authorized work remains explainable in a
-fresh checkout.
+Retained scope evidence stores the run's discovery once: its identity, proposal,
+absence, declarations and project observation without the evidence array that
+observation implies. The named observation is stored as its delta from that
+project observation: the confirmed targets and any boundary entry naming them
+adds. Evidence arrays and the full named observation are rebuilt whenever the
+file is read. The scope change lists, for each discovery declaration whose
+discovered paths changed, the paths added and removed against the previous
+run's confirmed scope; it is computed when the run is planned and stored with
+it. Work intervals and final scope-validity assessments are committed in
+`repo-standards/state/v6`, which holds the current run's evidence only. Neither
+file carries an earlier run, so neither grows with the number of runs; Git
+history keeps the evidence of earlier runs.
 
 Committed intervals are
 [work evidence](script-protocol.md#observed-adoption-scope): the
@@ -211,7 +211,7 @@ identities of the observations a run held and the delta between them, not the
 observations themselves. Each interval keeps its phase, scope, operation
 reference, changed paths with their before and after file state, boundary
 changes, violations and restoration evidence, so an adoption pull request stays
-reviewable and a later run adds only its own evidence. The run record and the
+reviewable and each run commits only its own evidence. The run record and the
 uncommitted local run report record intervals in this same shape, so completion
 carries them into state unchanged and neither record grows with the project.
 Historical evidence makes no current-coverage claim.
@@ -220,21 +220,21 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 
 | Artifact | Format |
 | --- | --- |
-| Durable state, `.repo-standards/state.json` | `repo-standards/state/v5` |
+| Durable state, `.repo-standards/state.json` | `repo-standards/state/v6` |
 | Integrity lock, `.repo-standards/lock.json` | `repo-standards/lock/v1` |
-| Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v3` |
+| Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v4` |
 | Run record, local run report, and archived abandoned report | `repo-standards/run/v5` |
-| `status` report | `repo-standards/status/v5` |
-| Inspection report | `repo-standards/inspection/v4` |
+| `status` report | `repo-standards/status/v6` |
+| Inspection report | `repo-standards/inspection/v5` |
 | Work request and assessment | `repo-standards/work-request/v3`, `repo-standards/assessment/v2` |
 
 Earlier formats are retired: they are not read, converted, or compacted. A
 project that carries one [adopts fresh](#adopt-fresh-from-a-retired-format).
 
 Discovery-backed updates, including an unchanged selection, use fresh
-proposals and preserve prior run evidence. Retry repeats fixes under the
-confirmed scope and cannot authorize additional files; a scope that needs to
-change is [corrected by adopting again](#correct-a-confirmed-scope).
+proposals and record their scope change against the prior run. Retry repeats
+fixes under the confirmed scope and cannot authorize additional files; a scope
+that needs to change is [corrected by adopting again](#correct-a-confirmed-scope).
 
 The normalized manifest is separate from retained source files, so an author
 may legitimately select their original `standards.yaml` as exact content.
@@ -398,7 +398,7 @@ format, `inspect`, `start`, `status`, `resume`, and `abandon` all fail with
 the record, its retired format, and the format this CLI reads, for example:
 
 ```text
-[RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v4; this CLI reads only repo-standards/state/v5. Adopt fresh: remove the .repo-standards directory, commit, and adopt again.
+[RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v5; this CLI reads only repo-standards/state/v6. Adopt fresh: remove the .repo-standards directory, commit, and adopt again.
 ```
 
 Nothing is converted. Adopt fresh as described in

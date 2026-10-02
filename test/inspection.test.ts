@@ -45,7 +45,7 @@ test('inspection reports the pinned complete profile without changing a dirty pr
   assert.deepEqual(report.selection.standards, { repository: 'https://github.com/alice/standards', version: 'v1.0.0', commit: remote.sha });
   assert.equal(report.selection.profile, 'work');
   assert.deepEqual(report.resolved.declarations.map((d: { id: string }) => d.id), ['agent-guidance', 'readme', 'review-skill', 'source-layout']);
-  assert.equal(report.format, 'repo-standards/inspection/v4');
+  assert.equal(report.format, 'repo-standards/inspection/v5');
   assert.deepEqual(embeddedContent(report), [], 'Reports reference content by hash and carry changes as diffs');
   const agents = report.exact.find((d: { id: string }) => d.id === 'agent-guidance');
   assert.equal(agents.action, 'replace');

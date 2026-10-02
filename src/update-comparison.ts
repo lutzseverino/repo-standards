@@ -134,7 +134,7 @@ export function compareUpdate(recorded: RecordedAdoption, candidate: UpdateCandi
   // Retirement compares source declarations: an active discovery declaration
   // awaiting its scope proposal is still declared.
   const retired = recorded.resolved.declarations.filter(old => !candidate.declarations.some(declaration => declaration.id === old.id));
-  const discovery: Record<string, string> = Object.fromEntries((recorded.scopeHistory?.at(-1)?.sourceResolved?.declarations ?? [])
+  const discovery: Record<string, string> = Object.fromEntries((recorded.scopeEvidence?.sourceResolved?.declarations ?? [])
     .flatMap(declaration => declaration.discovery ? [[declaration.id, declaration.discovery]] : []));
   const contextualChanges: DeclarationChanges[] = [
     ...[...new Set(retired.map(({ id }) => id))].map((id): DeclarationChanges => ({ id, changes: ['retired'] })),

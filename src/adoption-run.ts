@@ -8,7 +8,6 @@ import type { Assessment, ScopeConfirmation } from './assessment.js';
 import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { ProductError } from './errors.js';
 import { formats, recordPath, requireFormat } from './formats.js';
-import { latestScopeChanges } from './scope-evidence.js';
 import type { InspectOptions, inspect } from './inspection.js';
 import { observe, type Content, type HashInventory, type Observation } from './observation.js';
 import { readRecordedAdoption, rejectRetiredRecords, type RecordedAdoption } from './recorded-state.js';
@@ -259,8 +258,10 @@ export function status(project: string) {
   }
   if (!existsSync(join(root, '.repo-standards/state.json'))) return { format, selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
   try {
-    const { state, selection, scopeHistory } = readRecordedAdoption(root)!;
-    const changedScope = scopeHistory && latestScopeChanges(scopeHistory);
+    // Scope changes are the stored change of the last complete run against
+    // the run before it.
+    const { state, selection, scopeEvidence } = readRecordedAdoption(root)!;
+    const changedScope = scopeEvidence?.scopeChanges;
     return { format, ...committedEvidenceReport(state),
       selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
       checks: state.checks, assessments: state.assessments, ...(changedScope ? { scopeChanges: changedScope } : {}), active, abandoned, evidence: 'historical' };

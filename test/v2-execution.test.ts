@@ -466,7 +466,7 @@ ${result}`);
   assert.equal(completed.result.status, 0, completed.result.stdout);
 
   const state = committedState(f.project.root);
-  assert.equal(state.format, 'repo-standards/state/v5');
+  assert.equal(state.format, 'repo-standards/state/v6');
   assertCompactWorkEvidence(state);
   const intervals = state.observations!;
   assert.deepEqual(intervals.filter(interval => interval.operation)
@@ -494,7 +494,9 @@ ${result}`);
   assert.deepEqual(observations(), []);
 
   const status = f.run(['status', '--json']).report;
-  assert.equal(status.format, 'repo-standards/status/v5');
+  assert.equal(status.format, 'repo-standards/status/v6');
   assert.deepEqual(status.observations, intervals);
-  assert.deepEqual(status.history, []);
+  assert.equal(Object.hasOwn(status, 'history'), false);
+  // A project that never discovered scope retains no scope evidence to report.
+  assert.equal(Object.hasOwn(status, 'scopeChanges'), false);
 });

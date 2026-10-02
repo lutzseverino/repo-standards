@@ -46,11 +46,11 @@ are product-owned system skill names reserved within the standards format.
 | Resolver | A source and profile produce one validated source-resolved selection, or structured errors. Discovery references remain distinct from executable targets until project scope is confirmed. This is the sole interpreter of the author format. |
 | Repository state | A resolved selection and observed project produce an inspection, its update comparison and class, freshness identities, and durable adoption progress. The update comparison takes the verified recorded adoption, the candidate selection and materials, and the project's observed product state. It rejects a recorded tag that now resolves to a different commit, and returns the whole update part of an inspection, which is the changed selection components, the previous selection, the retired declarations, the update class and contextual changes, and the product-state-integrity blocker. Scope changes stay with inspection, which holds the scope proposal. |
 | Target ownership | Each installation target's current content, its installed baseline when one exists, its candidate content when one exists, whether that content is tracked, and whether an adoption is established produce its target ownership: the action a run would take on it (match, create, or replace; none for a target with only a baseline) and its ownership blockers: skill and system-skill conflicts, edited installed content, and untracked replacement content. Inspection observes each target once and is its only caller. |
-| Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, resolved declarations, retained source, scope history, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, and status read an established adoption only through it; every command first rejects retired records in the product state and Git directories through it, which is all resume and abandon need while a run is active. `outdated` reads the selection leniently instead. |
-| Installation | A confirmed inspection produces one run's installation plan, not the adoption itself: the exact content, skills, retained inputs, durable product state, and runtime an adoption run installs, and, for an update, the last complete adoption's durable state, kept in place until completion. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes, decoding the carried durable state once, as the recorded adoption reader decodes committed state. The run session saves it with the run and leaves interpreting the plan to this module. |
+| Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, and status read an established adoption only through it; every command first rejects retired records in the product state and Git directories through it, which is all resume and abandon need while a run is active. `outdated` reads the selection leniently instead. |
+| Installation | A confirmed inspection produces one run's installation plan, not the adoption itself: the exact content, skills, retained inputs, durable product state, and runtime an adoption run installs, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module. |
 | Execution | Confirmed adoption progress advances through exact installation, literal process execution, checks, and final integrity. Final integrity is the run-time check of the run's planned installation, distinct from the recorded adoption reader's check of the committed baseline a run starts from. |
-| Work evidence | The work-evidence journal owns an adoption run's observation intervals: it opens one for a phase and scope after recording any unattributed gap as an agent interval, closes intervals with their violation checks, continues after an interruption by recording and saving without checking, so each caller requires authorization where it holds, and answers what the agent changed. It keeps the one observation its last interval ends at behind an observation store seam: a file store beside the run journal for runs, an in-memory store for abandonment. Intervals and operation outcomes produce the run's execution evidence as identities and deltas, in one shape shared by the run record, the local run report, and committed durable state. Prior complete runs are carried forward in the same form. |
-| Scope evidence | Confirmed discovery runs produce the retained scope history, each run stored once with its project observation kept without derived evidence and its named observation as a delta. The projected historical scope is rebuilt on read. |
+| Work evidence | The work-evidence journal owns an adoption run's observation intervals: it opens one for a phase and scope after recording any unattributed gap as an agent interval, closes intervals with their violation checks, continues after an interruption by recording and saving without checking, so each caller requires authorization where it holds, and answers what the agent changed. It keeps the one observation its last interval ends at behind an observation store seam: a file store beside the run journal for runs, an in-memory store for abandonment. Intervals and operation outcomes produce the run's execution evidence as identities and deltas, in one shape shared by the run record, the local run report, and committed durable state, which holds the current run only. |
+| Scope evidence | A confirmed run and the recorded adoption it updates produce the retained scope evidence: the current run, with its project observation kept without derived evidence and its named observation as a delta, and its scope change against the previous run. The projected historical scope is rebuilt on read. |
 | Available updates | A selection and the newest published stable CLI and standards versions produce per-pin availability, cached in the ignored product cache. It never blocks and writes nothing else. |
 | Summary renderer | An inspection report or a status record produces one deterministic Markdown document. It describes and never prescribes. |
 | Adoption orchestration | The system skill reads available updates, presents inspection and its summary, obtains confirmation, performs requested contextual work, and submits evidence through the CLI. |
@@ -189,7 +189,7 @@ adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
 scope is missing. Initial start receives the same valid proposal and confirmed
 complete inspection identity and reconstructs inspection before mutation. Inspection accepts
 `repo-standards/scope/v1` proposals through `--scope`, returns explicitly versioned
-`repo-standards/inspection/v4` reports, and binds a complete eligible project
+`repo-standards/inspection/v5` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
 The [inspection contract](../usage/inspection.md#discover-contextual-file-scope)
 defines evidence references, strict proposal validation, observation limits, and
@@ -420,7 +420,7 @@ cannot silently redefine installation baselines.
 - The lock records exact CLI resolution, source commit, selection identity, and
   input hashes. The npm runtime lock owns dependency resolution details.
 - State records the last complete adoption, exact-content baselines, checks,
-  and assessment identities.
+  and assessment identities, and that run's work evidence.
 - Inputs retain normalized source metadata, resolved selection, source license,
   exact content, guidance, scripts, and declared resources. Other profiles and
   unrelated source files are omitted.
@@ -444,6 +444,41 @@ maps. Reading a retired format fails with `RETIRED_FORMAT` before anything else
 is read or written; nothing is converted. Its diagnostic names the one path
 forward, fresh adoption: remove any retired run record in Git's directory and
 the product state directory, commit the directory's removal, and adopt again.
+
+### Committed evidence
+
+Committed evidence holds the current run only
+([ADR 0011](../adr/0011-retain-only-the-current-run.md)); Git history keeps
+earlier runs. Durable state, `.repo-standards/state.json` in
+`repo-standards/state/v6`, is one object:
+
+| Field | Content |
+| --- | --- |
+| `format` | `repo-standards/state/v6`. |
+| `observations`, `operations`, `retryHistory` | The run's work evidence: its intervals as identities and deltas, its operation outcomes, and its retry history. |
+| `lastComplete` | The run ID, its confirmed inspection identity, completion time, and HEAD at start. |
+| `baselines`, `skills` | Installed baselines of exact content and complete skill inventories. |
+| `checks`, `assessments` | The run's final checks and accepted assessments. |
+
+Retained scope evidence, `.repo-standards/inputs/scope-history.json` in
+`repo-standards/scope-history/v4`, is written by a run that discovers scope
+and by every later run, and is one object:
+
+| Field | Content |
+| --- | --- |
+| `format`, `evidence` | `repo-standards/scope-history/v4` and `historical`. |
+| `inspection` | The run's confirmed inspection identity. |
+| `resolved` | The run's resolved selection, with discovered scope materialized as concrete targets. |
+| `sourceResolved`, `discovery` | Present when the run discovered scope: the source-resolved declarations, and the discovery identity, proposal, absence, declarations, project observation without derived evidence, and named observation as a delta. |
+| `scopeChanges` | Each discovery declaration whose discovered paths changed against the previous run's confirmed scope, with the paths added and removed. A first discovery adds every path. |
+
+The scope change is computed when the run is planned, from the confirmed
+inspection and the recorded adoption it updates, and is stored with the run.
+`status` reports the stored change; retained inspection exposes the file as
+`historicalScope`, rebuilding derived evidence. State that carries an earlier
+run's `history`, or scope evidence with any other field or another `evidence`
+marker, fails state integrity; nothing reads an earlier run from committed
+evidence.
 
 ## Updates, interruption, and retirement
 
@@ -591,9 +626,9 @@ authority. Exact content is protected throughout.
 
 Retained inputs include both guidance files, selected source declarations,
 materialized scope and accepted discovery evidence. Committed interval records
-and assessments explain the authorized work in a fresh checkout. Each later
-complete run retains the prior run's interval, operation, retry, check and
-assessment evidence in the ordered state history. Committed intervals are work
+and assessments explain the authorized work in a fresh checkout. Committed
+state holds the current run's interval, operation, retry, check and assessment
+evidence only; earlier runs stay in Git history. Committed intervals are work
 evidence: observation identities and the delta between them, never the
 observation maps. The run record keeps its intervals in the same shape, so
 completion carries them unchanged; only the observation its last interval ends
@@ -601,7 +636,8 @@ at is kept beside the journal for recovery. Historical scope is not evidence of
 current coverage. Every later update, including one that applies an unchanged
 selection again, recomputes every active discovery declaration from fresh
 evidence, reports additions and removals against the prior complete scope, and
-retains each complete proposal and its evidence. Removed paths stay
+retains its own proposal and evidence with that scope change, replacing the
+previous run's. Removed paths stay
 project-owned content; removal, exclusion and retirement never imply deletion.
 
 ## Removed in 2.0.0

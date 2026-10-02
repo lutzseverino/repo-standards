@@ -19,7 +19,6 @@ export interface CommittedInterval {
 export function committedState(root: string) {
   return JSON.parse(readFileSync(join(root, '.repo-standards/state.json'), 'utf8')) as {
     format: string; observations?: CommittedInterval[]; operations?: unknown[]; retryHistory?: unknown[];
-    history?: { lastComplete: { run: string; inspection: string }; observations: CommittedInterval[] }[];
     lastComplete: { run: string; inspection: string; completedAt: string; head: string };
   };
 }
@@ -59,15 +58,13 @@ export function assertCompactRunRecord(record: { format: string; observations: C
   assertCompactIntervals(label, record.observations);
 }
 
-// Structural regression guard: committed state has the single state format, no
-// committed interval may carry an observation map, and every closed interval
-// must carry both observation identities.
+// Structural regression guard: committed state has the single state format and
+// holds the current run only, no committed interval may carry an observation
+// map, and every closed interval must carry both observation identities.
 export function assertCompactWorkEvidence(state: ReturnType<typeof committedState>) {
-  assert.equal(state.format, 'repo-standards/state/v5');
-  assert.ok(Array.isArray(state.history), 'committed state must retain its ordered history');
-  const runs = [{ label: 'current', observations: state.observations! },
-    ...state.history!.map((run, index) => ({ label: `history[${index}]`, observations: run.observations }))];
-  for (const run of runs) assertCompactIntervals(run.label, run.observations);
+  assert.equal(state.format, 'repo-standards/state/v6');
+  assert.equal(Object.hasOwn(state, 'history'), false, 'committed state must not carry earlier runs');
+  assertCompactIntervals('current', state.observations!);
 }
 
 interface CommittedScopeRun {
@@ -79,29 +76,28 @@ interface CommittedScopeRun {
     observation?: { boundaries?: Record<string, unknown> } };
 }
 
-export function committedScopeHistory(root: string) {
-  return JSON.parse(readFileSync(join(root, '.repo-standards/inputs/scope-history.json'), 'utf8')) as {
-    format: string; evidence: string; runs: CommittedScopeRun[] };
+export function committedScopeEvidence(root: string) {
+  return JSON.parse(readFileSync(join(root, '.repo-standards/inputs/scope-history.json'), 'utf8')) as CommittedScopeRun & {
+    format: string; evidence: string; scopeChanges: { id: string; additions: string[]; removals: string[] }[] };
 }
 
-// Structural regression guard: the retained file holds its ordered runs and
-// nothing else, each discovery run appears once without the evidence arrays or
-// the full named observation its stored observation already implies.
-export function assertCompactScopeEvidence(history: ReturnType<typeof committedScopeHistory>) {
-  assert.equal(history.format, 'repo-standards/scope-history/v3');
-  assert.deepEqual(Object.keys(history), ['format', 'evidence', 'runs'], 'the newest run must not be spread over the file');
-  assert.equal(new Set(history.runs.map(run => run.inspection)).size, history.runs.length, 'each run is stored once');
-  for (const [index, run] of history.runs.entries()) {
-    const where = `run ${index}`;
-    assert.deepEqual(Object.keys(run).filter(key => !['inspection', 'resolved', 'sourceResolved', 'discovery'].includes(key)), [], `${where} fields`);
-    const discovery = run.discovery;
-    if (!discovery) continue;
-    assert.equal(Object.hasOwn(discovery, 'evidence'), false, `${where} must not carry a derived evidence array`);
-    assert.equal(Object.hasOwn(discovery, 'namedObservation'), false, `${where} must store the named observation as a delta`);
-    assert.ok(discovery.observation, `${where} must retain its project observation`);
-    assert.equal(Object.hasOwn(discovery.observation!, 'evidence'), false, `${where} observation must not carry a derived evidence array`);
-    if (discovery.named) assert.deepEqual(Object.keys(discovery.named).filter(key => !['targets', 'boundaries'].includes(key)), [], `${where} named delta fields`);
-  }
+// Structural regression guard: the retained file holds the current run and its
+// scope change against the previous run, and nothing else; its discovery
+// carries neither the evidence arrays nor the full named observation its stored
+// observation already implies.
+export function assertCompactScopeEvidence(scope: ReturnType<typeof committedScopeEvidence>) {
+  assert.equal(scope.format, 'repo-standards/scope-history/v4');
+  assert.deepEqual(Object.keys(scope).filter(key => !['format', 'evidence', 'inspection', 'resolved', 'sourceResolved', 'discovery', 'scopeChanges'].includes(key)), [],
+    'scope evidence must hold only the current run and its scope change');
+  assert.equal(typeof scope.inspection, 'string');
+  assert.ok(Array.isArray(scope.scopeChanges), 'scope evidence must record its scope change');
+  const discovery = scope.discovery;
+  if (!discovery) return;
+  assert.equal(Object.hasOwn(discovery, 'evidence'), false, 'discovery must not carry a derived evidence array');
+  assert.equal(Object.hasOwn(discovery, 'namedObservation'), false, 'discovery must store the named observation as a delta');
+  assert.ok(discovery.observation, 'discovery must retain its project observation');
+  assert.equal(Object.hasOwn(discovery.observation!, 'evidence'), false, 'the observation must not carry a derived evidence array');
+  if (discovery.named) assert.deepEqual(Object.keys(discovery.named).filter(key => !['targets', 'boundaries'].includes(key)), [], 'named delta fields');
 }
 
 // Replace a retained input with other bytes and rebind the integrity lock to

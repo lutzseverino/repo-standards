@@ -196,5 +196,6 @@ adoption run.
 _Avoid_: Snapshot, log
 
 **Scope evidence**:
-The retained discovery observations behind each confirmed scope.
+The retained discovery observations behind the current confirmed scope, with its
+scope change against the previous run.
 _Avoid_: History, cache

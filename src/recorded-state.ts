@@ -6,7 +6,7 @@ import { ProductError } from './errors.js';
 import { formats, recordPath, requireFormat } from './formats.js';
 import type { Declaration } from './model.js';
 import { targetObservation, type Blocker, type Content, type Observation } from './observation.js';
-import { retainedScopeRuns, type ScopeHistoryRun } from './scope-evidence.js';
+import { retainedScopeEvidence, type RetainedScopeEvidence } from './scope-evidence.js';
 import { validExecutionEvidence, type ExecutionEvidence } from './work-evidence.js';
 
 // The one reader of a recorded adoption: everything the last complete adoption
@@ -50,8 +50,9 @@ export interface RecordedAdoption {
   // The verified bytes of durable state, which an update keeps until it completes.
   stateFile: RecordedFile;
   resolved: { declarations: Declaration[] };
-  // Every retained discovery run, oldest first, when the adoption retains any.
-  scopeHistory?: ScopeHistoryRun[];
+  // The retained scope evidence of the last complete run, when the adoption
+  // retains any.
+  scopeEvidence?: RetainedScopeEvidence;
   // The retained inputs as a standards source. It fails when the inputs
   // directory holds files the lock does not record.
   source(): RetainedSource;
@@ -62,7 +63,7 @@ const stateFile = '.repo-standards/state.json';
 const inputs = '.repo-standards/inputs';
 const retainedSource = `${inputs}/source`;
 const resolvedFile = `${inputs}/resolved.json`;
-const historyFile = `${inputs}/scope-history.json`;
+const scopeFile = `${inputs}/scope-history.json`;
 const manifestFile = `${inputs}/standards.yaml`;
 
 function unreadable(): never {
@@ -77,9 +78,8 @@ function text(value: Pick<Content, 'content' | 'encoding'>) {
   return Buffer.from(value.content, value.encoding).toString('utf8');
 }
 
-// Decodes durable state in its single committed format. Completion decodes
-// the durable state an update carries the same way.
-export function decodeState(value: Pick<Content, 'content' | 'encoding'>): RecordedState {
+// Decodes durable state in its single committed format.
+function decodeState(value: Pick<Content, 'content' | 'encoding'>): RecordedState {
   let state: RecordedState;
   try { state = JSON.parse(text(value)); }
   catch { unreadable(); }
@@ -131,11 +131,11 @@ function recordedResolution(value: RecordedFile | undefined) {
   return resolved;
 }
 
-function recordedScopeHistory(value: RecordedFile) {
-  try { return retainedScopeRuns(JSON.parse(text(value))); }
+function recordedScopeEvidence(value: RecordedFile) {
+  try { return retainedScopeEvidence(JSON.parse(text(value))); }
   catch (error) {
     // The scope-evidence module reports its own integrity failures; only a
-    // file this reader cannot parse becomes an unreadable history.
+    // file this reader cannot parse becomes unreadable scope evidence.
     if (error instanceof ProductError) throw error;
     throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.');
   }
@@ -153,7 +153,7 @@ function unverifiedRecord(path: string): unknown {
 // the active run record, or a run report archived beside it by abandonment.
 // Records that cannot be read are left to their owners.
 export function rejectRetiredRecords(root: string, runRecord: string) {
-  for (const [path, format] of [[stateFile, formats.state], [historyFile, formats.scopeHistory]] as const) {
+  for (const [path, format] of [[stateFile, formats.state], [scopeFile, formats.scopeHistory]] as const) {
     requireFormat(path, unverifiedRecord(join(root, path)), format);
   }
   const archive = join(dirname(runRecord), 'repo-standards-reports');
@@ -173,10 +173,10 @@ export function readRecordedAdoption(root: string): RecordedAdoption | undefined
   const { pinned } = decoded;
   const verified = verifiedProductFiles(root, pinned.files);
   const resolved = recordedResolution(verified[resolvedFile]);
-  const history = verified[historyFile];
+  const scope = verified[scopeFile];
   return {
     selection: pinned.selection, files: pinned.files, state: decoded.state, stateFile: decoded.stateFile, resolved,
-    ...(history ? { scopeHistory: recordedScopeHistory(history) } : {}),
+    ...(scope ? { scopeEvidence: recordedScopeEvidence(scope) } : {}),
     source() {
       const recorded = Object.keys(pinned.files).filter(path => path.startsWith(`${inputs}/`));
       if (json(inventory(root, inputs)) !== json(recorded.map(path => path.slice(inputs.length + 1)).sort())) throw new ProductError('STATE_INTEGRITY', 'Retained input inventory changed.');
