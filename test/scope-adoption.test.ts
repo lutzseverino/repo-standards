@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { stringify } from 'yaml';
 import { installCli, sha256, sourceFixture } from './installed-cli.ts';
@@ -214,13 +214,16 @@ test('missing, invalid, unresolved, stale and dirty discovery starts preserve th
   assert.equal(unfitAtInspection.code, 'INVALID_SCOPE');
   assert.match(unfitAtInspection.message, /discovery observation/);
   git(f.project.root, 'checkout', '--', f.member);
+  // So is a confirmed target that is now a directory or a symbolic link.
   const target = join(f.project.root, dirname(f.member), 'README.md');
-  mkdirSync(target);
-  const replaced = f.start(inspection.identity).report;
-  reject(replaced, 'STALE_INSPECTION');
-  assert.match(replaced.errors[0].message, /fresh discovery evidence/);
-  assert.equal(f.inspect().report.errors[0].code, 'UNSAFE_TARGET');
-  rmSync(target, { recursive: true });
+  for (const replace of [() => mkdirSync(target), () => symlinkSync('package.json', target)]) {
+    replace();
+    const replaced = f.start(inspection.identity).report;
+    reject(replaced, 'STALE_INSPECTION');
+    assert.match(replaced.errors[0].message, /fresh discovery evidence/);
+    assert.equal(f.inspect().report.errors[0].code, 'UNSAFE_TARGET');
+    rmSync(target, { recursive: true });
+  }
   // A proposal confirmed against an earlier observation is stale once the
   // project changes; start rejects it and asks for a fresh review.
   writeFileSync(join(f.project.root, '.git/info/exclude'), '# new observation input\n');

@@ -34,9 +34,12 @@ function invalid(message: string): never { throw new ProductError('INVALID_SCOPE
 // confirmation.
 export class ObservedScopeError extends ProductError {}
 function unfit(message: string): never { throw new ObservedScopeError('INVALID_SCOPE', message); }
+// What a named target now is, unlike read failures, limits and instability,
+// which say nothing about whether the project changed.
+const namedTargetCodes = ['UNSAFE_TARGET', 'CASE_CONFLICT', 'OBSERVATION_UNSAFE'];
 function observeNamed(root: string, named: string[]) {
   try { return observeScope(root, named); } catch (error) {
-    if (error instanceof ProductError) throw new ObservedScopeError(error.code, error.message, error.details);
+    if (error instanceof ProductError && namedTargetCodes.includes(error.code)) throw new ObservedScopeError(error.code, error.message, error.details);
     throw error;
   }
 }

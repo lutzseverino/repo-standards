@@ -98,7 +98,7 @@ async function startRun(input: StartInput, cliVersion: string, confirmation: str
       return await (input.kind === 'retained' ? retainedInspection(input.project, cliVersion, input.scope) : inspectForStart(input.options, cliVersion));
     } catch (error) {
       // The confirmed proposal fit the project it was inspected against.
-      if (error instanceof ObservedScopeError) throw new ProductError('STALE_INSPECTION', `${staleDiscovery} ${error.message}`);
+      if (error instanceof ObservedScopeError) throw new ProductError('STALE_INSPECTION', `${staleDiscovery} ${error.message}`, error.details);
       throw error;
     }
   };
