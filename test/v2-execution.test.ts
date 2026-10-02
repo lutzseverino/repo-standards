@@ -366,6 +366,31 @@ ${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fix
   assert.equal(retry.report.observations[1].restoredExact['AGENTS.md'].type, 'file');
 });
 
+test('verified restoration of an exact file leaves only its installation in the change set', async t => {
+  const f = await fixture(t, `${prelude}
+const marker = '.repo-standards/local/attempt';
+if (!existsSync(marker)) { writeFileSync(marker, 'attempted'); writeFileSync('AGENTS.md', 'Corrupted'); }
+${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fixes: [operation('prepare')] } });
+  const restoreAndRetry = (started: { report: { reason: string } }) => {
+    assert.match(started.report.reason, /FINAL_INTEGRITY/);
+    writeFileSync(join(f.project.root, 'AGENTS.md'), 'Expected instructions');
+    const retry = f.run(['resume', '--retry', '--json']);
+    assert.equal(retry.result.status, 0, retry.result.stdout);
+    assert.ok(retry.report.observations.some((interval: { restoredExact?: object }) => interval.restoredExact && 'AGENTS.md' in interval.restoredExact));
+    return f.run(['status', '--json']).report.changeSet;
+  };
+  // Initial adoption installs the file; the corrupting fix it undid is not listed.
+  assert.deepEqual(restoreAndRetry(f.start()), [
+    { path: '.agents/skills/adopt-standards/SKILL.md', phases: ['installation'] },
+    { path: 'AGENTS.md', phases: ['installation'] },
+  ]);
+  commit(f.project.root);
+  // An update that leaves the file as installed lists nothing for it.
+  rmSync(join(f.project.root, '.repo-standards/local/attempt'));
+  const update = f.run(inspectionArgs).report;
+  assert.deepEqual(restoreAndRetry(f.run(['start', ...inspectionArgs.slice(1), '--confirm', update.identity])), []);
+});
+
 test('v2 retry restores complete exact skill inventories and their necessary directories', async t => {
   for (const mode of ['removed', 'added']) await t.test(mode, async st => {
     const mutation = mode === 'removed' ? "rmSync('.agents/skills/review', {recursive:true});"

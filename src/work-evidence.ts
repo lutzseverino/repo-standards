@@ -297,21 +297,24 @@ export class WorkEvidenceJournal {
 // The run's net change set: each path whose state at the end of the run differs
 // from its state before it, once, with every phase that changed it. Installation
 // precedes the intervals, which are in order, so a path's first before and last
-// after bound the run. Verified restoration of installed content is not a
-// change of its own.
+// after bound the run. Verified restoration returns exact content to its
+// installed state, so it undoes every attribution but installation's.
 function changeSet(installed: Record<string, Delta>, intervals: RecordedInterval[]): ChangedPath[] {
   const paths = new Map<string, { before: unknown; after: unknown; phases: Set<ChangePhase> }>();
-  const change = (path: string, delta: Delta, phase: ChangePhase) => {
-    const entry = paths.get(path);
-    if (entry) { entry.after = delta.after; entry.phases.add(phase); }
-    else paths.set(path, { before: delta.before, after: delta.after, phases: new Set([phase]) });
+  const change = (path: string, delta: Delta, phase?: ChangePhase) => {
+    const entry = paths.get(path) ?? { before: delta.before, after: delta.after, phases: new Set<ChangePhase>() };
+    entry.after = delta.after;
+    if (phase) entry.phases.add(phase);
+    else entry.phases = new Set(entry.phases.has('installation') ? ['installation'] : []);
+    paths.set(path, entry);
   };
-  for (const [path, delta] of Object.entries(installed)) change(path, delta, 'installation');
+  const differs = (delta: Delta) => JSON.stringify(delta.before) !== JSON.stringify(delta.after);
+  for (const [path, delta] of Object.entries(installed)) if (differs(delta)) change(path, delta, 'installation');
   for (const interval of intervals) {
     if (interval.phase === 'checks') continue;
-    for (const [path, delta] of Object.entries(interval.changes ?? {})) if (!interval.restoredExact?.[path]) change(path, delta, interval.phase);
+    for (const [path, delta] of Object.entries(interval.changes ?? {})) change(path, delta, interval.restoredExact?.[path] ? undefined : interval.phase);
   }
-  return [...paths].filter(([, entry]) => JSON.stringify(entry.before) !== JSON.stringify(entry.after))
+  return [...paths].filter(([, entry]) => entry.phases.size && differs(entry))
     .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
     .map(([path, entry]) => ({ path, phases: changePhases.filter(phase => entry.phases.has(phase)) }));
 }
@@ -319,7 +322,7 @@ function changeSet(installed: Record<string, Delta>, intervals: RecordedInterval
 // The execution-evidence slice a completion writes: this run's evidence only.
 // The run already records its intervals in the committed shape, so they are
 // carried without transformation, together with the run's net change set over
-// the paths its installation changed and its intervals. Last-complete,
+// the paths its installation plans and its intervals. Last-complete,
 // installed baselines, skills, checks and assessments stay with their own
 // owners.
 export function completedEvidence(run: { observations: RecordedInterval[]; operations: unknown[]; retryHistory?: unknown[] }, installed: Record<string, Delta>): ExecutionEvidence {
@@ -348,11 +351,17 @@ export function compactIntervals(observations: unknown[]) {
   });
 }
 
+// A change set holds one entry per path in path order, each with its phases in
+// phase order.
 function validChangeSet(value: unknown) {
-  return Array.isArray(value) && value.every(entry => {
+  return Array.isArray(value) && value.every((entry, index) => {
     const changed = entry as Partial<ChangedPath> | null;
-    return !!changed && typeof changed === 'object' && typeof changed.path === 'string'
-      && Array.isArray(changed.phases) && changed.phases.length > 0 && changed.phases.every(phase => changePhases.includes(phase));
+    const previous = index ? (value[index - 1] as Partial<ChangedPath> | null)?.path : undefined;
+    return !!changed && typeof changed === 'object' && typeof changed.path === 'string' && changed.path !== ''
+      && (previous === undefined || (typeof previous === 'string' && previous < changed.path))
+      && Array.isArray(changed.phases) && changed.phases.length > 0
+      && changed.phases.every((phase, at) => changePhases.includes(phase)
+        && (at === 0 || changePhases.indexOf(changed.phases![at - 1]!) < changePhases.indexOf(phase)));
   });
 }
 

@@ -193,13 +193,13 @@ verified skill inventory; it never exempts changes to existing directory modes.
 This grants no new contextual scope.
 Durable `repo-standards/state/v6` and `repo-standards/status/v6` retain work
 evidence: the run's intervals, operation history, retry history, final checks and
-assessments, and the run's net change set, `changeSet`. Completion commits the run record's intervals unchanged. A recorded
-interval is identities plus delta, never an observation
-map. It keeps `before` and `after` observation identities, `changes` mapping each
-changed path to its before and after file state, `boundaryChanges` mapping each
-changed boundary to its before and after state, `violations`, any `restoredExact`
-and `restoredBoundaries` evidence, its phase, `scope`, operation reference,
-`operationIndex`, and `interrupted`. Identities are the product's observation
+assessments, and the run's net change set, `changeSet`. Completion commits the
+run record's intervals unchanged. A recorded interval is identities plus delta,
+never an observation map. It keeps `before` and `after` observation identities,
+`changes` mapping each changed path to its before and after file state,
+`boundaryChanges` mapping each changed boundary to its before and after state,
+`violations`, any `restoredExact` and `restoredBoundaries` evidence, its phase,
+`scope`, operation reference, `operationIndex`, and `interrupted`. Identities are the product's observation
 identity, `sha256:` over the observation the run held, so the recorded delta
 stays tamper-evident without the full maps.
 

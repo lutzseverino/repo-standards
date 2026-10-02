@@ -195,6 +195,11 @@ The durable record of observation intervals and operation outcomes for one
 adoption run.
 _Avoid_: Snapshot, log
 
+**Change set**:
+The paths one adoption run changed, each recorded once at completion with the
+phases that changed it: installation, fixes, or agent work.
+_Avoid_: Diff, changed-path log
+
 **Scope evidence**:
 The retained discovery observations behind the current confirmed scope, with its
 scope change against the previous run.
