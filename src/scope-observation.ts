@@ -12,9 +12,10 @@ const reservedProductState = '.repo-standards';
 export interface Evidence { kind: 'file' | 'directory' | 'absence'; path: string; identity: string }
 export type FileState = { type: 'missing' } | { type: 'file'; sha256: string; executable: boolean } | { type: 'directory'; mode: number } | { type: 'symlink'; target: string };
 // An ignore input's content state; an explicitly empty global excludes setting
-// disables that input. Git does not follow a symbolic .gitignore, so a link is
-// recorded without its target, which may name a machine-local location.
-export type IgnoreState = Exclude<FileState, { type: 'symlink' }> | { type: 'symlink' } | { type: 'disabled' };
+// disables that input. A symbolic .gitignore is bound by the hash of its
+// target, the content Git stores for a link, because the target itself may name
+// a machine-local location.
+export type IgnoreState = Exclude<FileState, { type: 'symlink' }> | { type: 'symlink'; sha256: string } | { type: 'disabled' };
 // The product's observation identity: a content-derived identity for any
 // observed value, shared by discovery evidence and committed work evidence.
 export const observationIdentity = (value: unknown) => `sha256:${hash(JSON.stringify(value))}`;
@@ -186,8 +187,7 @@ export function observeScope(root: string, named: string[] = [], options: { exec
     const path = directory === '.' ? '.gitignore' : `${directory}/.gitignore`;
     const state = file(join(root, path));
     if (state.type === 'directory') throw new ProductError('OBSERVATION_UNSAFE', `Cannot read ignore input: ${path}.`);
-    // Git does not follow a symbolic .gitignore; record the link alone.
-    ignores[path] = state.type === 'symlink' ? { type: 'symlink' } : state;
+    ignores[path] = state.type === 'symlink' ? { type: 'symlink', sha256: hash(state.target) } : state;
   }
   const inventories: Record<string, string[]> = Object.fromEntries([...directories].sort().map(directory => [directory, []]));
   for (const path of [...new Set([...paths, ...directories])].sort()) {

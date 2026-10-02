@@ -423,9 +423,9 @@ directory inventories and boundaries, effective Git observation settings, and
 consulted `.gitignore`, Git info/exclude, and global ignore inputs, including their
 absence. Ignore inputs are named by role, never by absolute location: `global`
 for the global excludes, `info` for the repository info exclude, and each
-`.gitignore` by its project-relative path, each with its content state. Git
-2.32 and later do not follow a symbolic `.gitignore`, so one is recorded as a
-link without its target. Changing an input's content changes the request; moving it with
+`.gitignore` by its project-relative path, each with its content state. A
+symbolic `.gitignore` is recorded by the hash of its target, never the target
+itself. Changing an input's content changes the request; moving it with
 unchanged content does not. Configured ignore paths preserve significant whitespace when the input is
 read; an explicitly empty `core.excludesFile` disables the default global ignore
 input. It retains relevant settings and ignore hashes, not unrelated Git
