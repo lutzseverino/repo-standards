@@ -70,12 +70,14 @@ export function git(project: string, args: string[], input?: string, timeout?: n
 
 // Older Git follows symbolic .gitignore files, whose referent discovery does
 // not bind. Gate commands before they can observe repository state.
-export function requireSupportedGit() {
+export function requireSupportedGit(command?: 'resume') {
   const result = spawnSync('git', ['--version'], { encoding: 'utf8', timeout: 10_000 });
   const version = result.stdout?.trim().match(/^git version ((\d+)\.(\d+)(?:\.[^\s]+)?)/);
   if (result.error || result.status !== 0 || !version) throw new ProductError('GIT_REQUIRED', 'Git 2.32 or newer is required. Install Git and ensure it is on PATH.');
   if (Number(version[2]) < 2 || (Number(version[2]) === 2 && Number(version[3]) < 32)) {
-    throw new ProductError('GIT_VERSION_UNSUPPORTED', `Installed Git ${version[1]} is unsupported; inspect and start require Git 2.32 or newer. Upgrade Git and inspect again.`);
+    const requirement = command === 'resume' ? 'resume requires' : 'inspect and start require';
+    const recovery = command === 'resume' ? 'rerun the resume command' : 'inspect again';
+    throw new ProductError('GIT_VERSION_UNSUPPORTED', `Installed Git ${version[1]} is unsupported; ${requirement} Git 2.32 or newer. Upgrade Git and ${recovery}.`);
   }
 }
 

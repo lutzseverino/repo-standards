@@ -115,6 +115,7 @@ test('inspect and start reject Git older than 2.32 before observing public or re
     assert.equal(error.code, 'GIT_VERSION_UNSUPPORTED');
     assert.match(error.message, /2\.31\.8/);
     assert.match(error.message, /2\.32/);
+    assert.equal(error.message, 'Installed Git 2.31.8 is unsupported; inspect and start require Git 2.32 or newer. Upgrade Git and inspect again.');
   }
   assert.equal(lstatSync(unexpected, { throwIfNoEntry: false }), undefined, 'Only the Git version probe may run');
   assert.deepEqual(remote.requests(), []);
@@ -151,6 +152,8 @@ test('resume rejects Git older than 2.32 before reading records or observing wor
       assert.equal(error?.code, 'GIT_VERSION_UNSUPPORTED', result.stdout);
       assert.match(error.message, /2\.31\.8/);
       assert.match(error.message, /2\.32/);
+      assert.match(error.message, /resume requires Git/);
+      assert.match(error.message, /Upgrade Git and rerun the resume command/);
       assert.deepEqual(snapshot(project.root), before);
     }
   }

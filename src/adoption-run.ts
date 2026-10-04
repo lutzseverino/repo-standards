@@ -569,7 +569,7 @@ export class AdoptionRunSession {
     const lock = lockPath(root);
     if (resume) {
       requireRecordedCli(root, lock, resume.cliVersion);
-      requireSupportedGit();
+      requireSupportedGit('resume');
     }
     rejectUnsupportedRecords(root, lock);
     const release = acquireWorker(lock);
