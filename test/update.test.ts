@@ -260,7 +260,7 @@ test('the first update of an adoption made without skill links creates them as e
   const links = Object.fromEntries(['adopt-standards', 'review', 'standards-updates'].map(name => [`.claude/skills/${name}`, `../../.agents/skills/${name}`]));
   for (const [path, text] of Object.entries(links)) assert.equal(readlinkSync(join(project.root, path)), text);
   const updated = JSON.parse(readFileSync(statePath, 'utf8'));
-  assert.deepEqual(Object.fromEntries(Object.entries(updated.links).sort()), links);
+  assert.deepEqual(Object.fromEntries(Object.entries(updated.links).sort(([a], [b]) => a.localeCompare(b))), links);
   assert.deepEqual(git(project.root, 'status', '--porcelain', '--untracked-files=all', '--', '.agents', '.claude').split('\n').sort(),
     Object.keys(links).map(path => `?? ${path}`));
 });

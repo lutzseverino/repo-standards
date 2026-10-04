@@ -285,8 +285,8 @@ function installationDeltas(installation: Installation): Record<string, Delta> {
   };
   for (const [path, value] of Object.entries(installation.before)) leaves(path, value);
   const after: Record<string, HashInventory> = Object.fromEntries([...Object.entries(installation.files)
-    .map(([path, value]) => [path, { type: 'file', sha256: value.sha256, executable: value.executable }]),
-    ...Object.entries(installation.links).map(([path, target]) => [path, { type: 'symlink', target }])]);
+    .map(([path, value]): [string, HashInventory] => [path, { type: 'file', sha256: value.sha256, executable: value.executable }]),
+    ...Object.entries(installation.links).map(([path, target]): [string, HashInventory] => [path, { type: 'symlink', target }])]);
   return Object.fromEntries([...new Set([...Object.keys(before), ...Object.keys(after)])].filter(path => !path.startsWith('.repo-standards/'))
     .map(path => [path, { before: before[path] ?? { type: 'missing' }, after: after[path] ?? { type: 'missing' } }]));
 }

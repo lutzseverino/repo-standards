@@ -145,7 +145,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     }
     const systemSkills = Object.fromEntries(installedSystemSkills.map(({ target }) => [target, observeTarget(target)]));
     // The skill link of every installed skill, system or author, by path.
-    const skillLinks: Record<string, Observation> = Object.create(null);
+    const skillLinks: Record<string, Observation> = dictionary();
     const observeLink = (path: string) => { skillLinks[path] = observeTarget(path, linkTextAt(path)); };
     for (const { link } of installedSystemSkills) observeLink(link);
     if (!previous && productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
