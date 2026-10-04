@@ -9,16 +9,19 @@ Use TypeScript, ESM, Node.js 24 and pnpm at the versions in `.node-version` and
 `package.json`, with npm and Git 2.32 or newer on `PATH`. Run `pnpm install --frozen-lockfile`; npm registry access or
 cached dependencies are required.
 
-During development, run `pnpm typecheck` and `pnpm build`, then focused tests
-covering the changed behavior, such as
+During development, run `pnpm typecheck`, `pnpm lint` and `pnpm build`, then
+focused tests covering the changed behavior, such as
 `node --test --test-name-pattern='description' test/source-validation.test.ts`.
+`pnpm lint` runs oxlint with type-aware rules, configured in `.oxlintrc.json`;
+any finding, warning or error, fails it. Run `pnpm lint path ...` to lint
+particular files, or `pnpm lint --fix` to apply its safe fixes.
 Include observable acceptance tests with the behavior they validate. Tests
 install current `dist/` output; rebuild after changing product code.
 
 ### Continuous integration
 
 CI runs `pnpm validate` on macOS and Linux for every PR: typechecking,
-rejecting any runtime cycle of static imports among the source modules
+linting, rejecting any runtime cycle of static imports among the source modules
 (type-only imports are exempt), building, packing, and installing the npm
 package into temporary directories, then testing the installed public CLI
 against temporary Git repositories.

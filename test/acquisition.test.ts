@@ -102,6 +102,27 @@ test('private, missing, truncated, linked and corrupt remote snapshots are rejec
   assert.equal(readFileSync(`${project.root}/standards.yaml`, 'utf8'), '');
 });
 
+test('malformed GitHub responses are rejected as source errors', (t) => {
+  const project = sourceFixture('');
+  t.after(() => project.close());
+  const cases: [string, (remote: ReturnType<typeof remoteFixture>) => void][] = [
+    ['UNSUPPORTED_SOURCE', remote => { remote.responses[remote.prefix] = { body: null }; }],
+    ['INVALID_SOURCE', remote => { remote.responses[`${remote.prefix}/git/commits/${remote.sha}`] = { body: null }; }],
+    ['UNSAFE_SOURCE', remote => {
+      (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as { tree: unknown[] }).tree.push({ type: 'tree', mode: '040000', path: 'docs', sha: 42 });
+    }],
+  ];
+  for (const [code, mutate] of cases) {
+    const remote = remoteFixture(yaml, { 'readme.md': 'README' });
+    t.after(() => remote.close());
+    mutate(remote);
+    remote.save();
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 1);
+    assert.equal(JSON.parse(result.stdout).errors[0].code, code, result.stdout);
+  }
+});
+
 test('inspection rejects a GitHub tree listing that substitutes another reachable blob under the observed tree identity', (t) => {
   const remote = remoteFixture(yaml, { 'readme.md': 'README', 'other.md': 'Other reachable bytes' });
   const project = sourceFixture('');
