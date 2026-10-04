@@ -195,7 +195,8 @@ test('start rejects every invalid initial project state without mutation', async
     { name: 'unsafe ancestor', code: 'UNSAFE_TARGET', source: yaml.replace('target: AGENTS.md', 'target: linked/AGENTS.md'), setup: root => { symlinkSync('folder', join(root, 'linked')); commit(root); } },
     { name: 'wrong target type', code: 'TARGET_TYPE', source: yaml.replace('target: AGENTS.md', 'target: folder') },
     { name: 'case conflict', code: 'CASE_CONFLICT', source: yaml.replace('target: AGENTS.md', 'target: agents.md') },
-    { name: 'ignored matching system skill', code: 'UNTRACKED_REPLACEMENT', files: { '.gitignore': '/.agents/\n', '.agents/skills/adopt-standards/SKILL.md': packagedSkill } },
+    { name: 'ignored matching system skill', code: 'UNTRACKED_REPLACEMENT', files: { '.gitignore': '/.agents/\n', '.agents/skills/adopt-standards/SKILL.md': packagedSkill },
+      setup: root => cpSync(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/adopt-standards'), join(root, '.agents/skills/adopt-standards'), { recursive: true }) },
     { name: 'untracked author skill resource', code: 'UNTRACKED_REPLACEMENT', files: { '.agents/skills/review/SKILL.md': 'Review' }, source: skillSource, setup: root => writeFileSync(join(root, '.agents/skills/review/notes.md'), 'Untracked') },
     { name: 'ignored author skill', code: 'UNTRACKED_REPLACEMENT', files: { '.gitignore': '/.agents/skills/review/\n', '.agents/skills/review/SKILL.md': 'Unrelated review' }, source: skillSource },
     { name: 'ignored system skill resource', code: 'UNTRACKED_REPLACEMENT', files: { '.gitignore': '/.agents/skills/adopt-standards/notes.md\n', '.agents/skills/adopt-standards/notes.md': 'Local' } },
@@ -234,8 +235,10 @@ test('initial adoption replaces differing tracked files, author skills, and the 
     { name: 'skill with an additional resource', files: { [`${review}/SKILL.md`]: 'Review', [`${review}/notes.md`]: 'Local' }, source: skillSource, discarded: [review] },
     { name: 'skill missing a supplied resource', files: { [`${review}/SKILL.md`]: 'Review' }, source: skillSource, sourceFiles: { 'skill/notes.md': 'Supplied' }, discarded: [review] },
     { name: 'reserved system skill', files: { [`${system}/SKILL.md`]: 'Unrelated' }, source: skillSource, discarded: [system] },
-    { name: 'system skill with a differing mode', files: { [`${system}/SKILL.md`]: packagedSkill }, source: skillSource, setup: root => chmodSync(join(root, system, 'SKILL.md'), 0o755), discarded: [system] },
-    { name: 'system skill with an additional resource', files: { [`${system}/SKILL.md`]: packagedSkill, [`${system}/notes.md`]: 'Local' }, source: skillSource, discarded: [system] },
+    { name: 'system skill with a differing mode', files: { [`${system}/SKILL.md`]: packagedSkill }, source: skillSource,
+      setup: root => { cpSync(packaged, join(root, system), { recursive: true }); chmodSync(join(root, system, 'SKILL.md'), 0o755); }, discarded: [system] },
+    { name: 'system skill with an additional resource', files: { [`${system}/SKILL.md`]: packagedSkill, [`${system}/notes.md`]: 'Local' }, source: skillSource,
+      setup: root => cpSync(packaged, join(root, system), { recursive: true }), discarded: [system] },
     { name: 'system skill and author skill together', files: { [`${system}/SKILL.md`]: 'Unrelated', [`${review}/SKILL.md`]: 'Unrelated review' }, source: skillSource, discarded: [system, review] },
   ];
   const registry = await registryFixture(cli.root);
