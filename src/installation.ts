@@ -2,7 +2,7 @@ import { cpSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
 import { hash } from './acquisition.js';
-import { baselines, file, flatten, ignore, inventory, json, lockPath, safe, safeDirectory, stagedFiles, systemTarget, verifyFiles, write } from './adoption-files.js';
+import { baselines, file, flatten, ignore, inventory, json, lockPath, safe, safeDirectory, stagedFiles, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
 import type { AdoptionRunSession, Run } from './adoption-run.js';
 import { ProductError } from './errors.js';
@@ -11,6 +11,7 @@ import { hiddenIndexPaths, observeProductState, productInventory, type inspectFo
 import { git, hashInventory, inventoryPaths, matchesInventory, observe, plannedInventory, type Content, type HashInventory, type Observation } from './observation.js';
 import { committedScopeEvidence, type ScopeRun } from './scope-evidence.js';
 import type { Scope } from './scope.js';
+import { adoptionSkill, skillTarget } from './targets.js';
 import { completedEvidence, type Delta } from './work-evidence.js';
 
 // Installation is the confirmed plan of an adoption run's exact content,
@@ -51,12 +52,9 @@ export function planInstallation(root: string, inspected: StartInspection, confi
   const skills: Record<string, string[]> = Object.create(null);
   const installedRuntime = runtime ? observe(join(runtime.directory, 'node_modules')) : safeDirectory(root, '.repo-standards/runtime/node_modules');
   for (const [target, desired] of Object.entries(materials.exact)) if (desired.type !== 'missing') flatten(target, desired, files);
-  flatten(systemTarget, runtime?.skill ?? materials.systemSkill, files);
-  for (const declaration of report.resolved.declarations) if (declaration.kind === 'skill') {
-    const target = `.agents/skills/${declaration.name}`;
-    skills[target] = Object.keys(files).filter(path => path.startsWith(target + '/')).map(path => path.slice(target.length + 1)).sort();
-  }
-  skills[systemTarget] = Object.keys(files).filter(path => path.startsWith(systemTarget + '/')).map(path => path.slice(systemTarget.length + 1)).sort();
+  flatten(adoptionSkill.target, runtime?.skill ?? materials.systemSkill, files);
+  const skillTargets = [...report.resolved.declarations.flatMap(declaration => declaration.kind === 'skill' ? [skillTarget(declaration.name)] : []), adoptionSkill.target];
+  for (const target of skillTargets) skills[target] = Object.keys(files).filter(path => path.startsWith(target + '/')).map(path => path.slice(target.length + 1)).sort();
   const exactBaselines = baselines(files);
   const inputs: Files = Object.create(null);
   for (const [path, value] of Object.entries(materials.inputs)) flatten(`${retainedSource}/${path}`, value, inputs);
@@ -86,9 +84,8 @@ export function planInstallation(root: string, inspected: StartInspection, confi
   // An update replaces its retained inputs as a whole tree. A replaced skill,
   // including the system skill, is replaced as a whole tree, removing
   // resources the candidate lacks, and a removed target is removed whole.
-  const skillTargets = new Set(Object.keys(skills));
   const replaceTrees = [...report.update !== undefined ? ['.repo-standards/inputs'] : [],
-    ...[...report.exact, report.systemSkill].filter(({ target, action }) => action === 'replace' && skillTargets.has(target)).map(({ target }) => target),
+    ...[...report.exact, report.systemSkill].filter(({ target, action }) => action === 'replace' && skillTargets.includes(target)).map(({ target }) => target),
     ...(report.removed ?? []).map(({ target }) => target)];
   return { report, git: inspected.git, files, skills, exactBaselines, durable, runtimeHash: hash(json(installedRuntime)), replaceTrees,
     ...(recorded ? { previousState: recorded.stateFile } : {}),

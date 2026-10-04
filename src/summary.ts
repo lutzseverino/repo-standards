@@ -1,5 +1,7 @@
+import type { Declaration } from './model.js';
 import type { Blocker, HashInventory } from './observation.js';
 import type { ScopeChange } from './scope-evidence.js';
+import { adoptionSkill, declarationTargets, installationTarget } from './targets.js';
 
 // One renderer turns an inspection report or a status record into a Markdown
 // summary. It is a pure function of that input, so the same input renders the
@@ -13,19 +15,18 @@ interface OperationDefinition {
   prerequisite: { 'version-arguments': string[]; version: string };
 }
 interface ChangedFile { path: string; before: HashInventory; after: HashInventory }
-type TargetedDeclaration = { id: string; kind: string; target?: string; name?: string; targets?: { paths?: string[]; directories?: string[] } };
 
 export interface InspectionReport {
   selection: Selection; previousSelection?: Selection; update?: string[];
   updateClass?: 'exact' | 'contextual'; contextualChanges?: { id: string; changes: string[] }[];
-  resolved: { declarations: TargetedDeclaration[] };
+  resolved: { declarations: Declaration[] };
   exact: { id: string; target: string; action: string; files: ChangedFile[] }[];
   guidance: { id: string; targets: string[]; discoveryRequired?: boolean }[];
   operations: OperationDefinition[];
   systemSkill: { target: string; action: string };
   removed?: { id: string; target: string; files: ChangedFile[] }[]; discardedEdits: string[];
   discovery?: { declarations: { id: string }[]; proposal?: unknown };
-  scopeChanges?: ScopeChange[]; retired?: TargetedDeclaration[];
+  scopeChanges?: ScopeChange[]; retired?: Declaration[];
   start: { eligible: boolean | null; blockers: Blocker[] };
   identity: string;
 }
@@ -90,10 +91,11 @@ function selectionRows(selection: Selection) {
   ];
 }
 
-function declarationTarget(declaration: TargetedDeclaration) {
-  if (declaration.kind === 'skill') return code(`.agents/skills/${declaration.name}`);
-  if (declaration.target !== undefined) return code(declaration.target);
-  return list([...declaration.targets?.paths ?? [], ...(declaration.targets?.directories ?? []).map(path => `${path}/`)].map(code), 'none');
+function declarationTarget(declaration: Declaration) {
+  const installed = installationTarget(declaration);
+  if (installed !== undefined) return code(installed);
+  const { paths, directories } = declarationTargets(declaration);
+  return list([...paths, ...directories.map(path => `${path}/`)].map(code), 'none');
 }
 
 // A changed file's before and after hash inventories name its change.
@@ -141,7 +143,7 @@ export function inspectionSummary(report: InspectionReport) {
     const change = fileChange(file);
     return change ? [[code(entry.id), code(file.path), change]] : [];
   }));
-  if (report.systemSkill.action !== 'match') exactRows.push([code('adopt-standards'), code(report.systemSkill.target), report.systemSkill.action === 'create' ? 'created' : 'replaced']);
+  if (report.systemSkill.action !== 'match') exactRows.push([code(adoptionSkill.name), code(report.systemSkill.target), report.systemSkill.action === 'create' ? 'created' : 'replaced']);
   const changedGuidance = new Map((report.contextualChanges ?? []).map(change => [change.id, change.changes]));
   const guidanceRows = report.guidance
     .filter(entry => !update || changedGuidance.has(entry.id))
@@ -168,7 +170,7 @@ export function inspectionSummary(report: InspectionReport) {
   if (discovered.length && !report.discovery!.proposal) scope = 'Discovery scope is not confirmed.';
   else if (!update) {
     const confirmed = report.resolved.declarations.filter(declaration => discovered.includes(declaration.id))
-      .map(declaration => ({ id: declaration.id, additions: [...declaration.targets?.paths ?? []].sort(), removals: [] }));
+      .map(declaration => ({ id: declaration.id, additions: [...declarationTargets(declaration).paths].sort(), removals: [] }));
     scope = confirmed.length ? scopeTable(confirmed) : 'No discovered scope.';
   } else scope = report.scopeChanges?.length ? scopeTable(report.scopeChanges) : 'No scope changes.';
   parts.push(section('Scope changes', scope));

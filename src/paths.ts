@@ -1,6 +1,7 @@
 import { closeSync, lstatSync, openSync, readdirSync, readSync } from 'node:fs';
 import { join } from 'node:path';
 import { caseFold } from 'unicode-case-folding';
+import { systemSkills } from './targets.js';
 import type { Fields, Value } from './yaml.js';
 
 export interface Target { path: string; location: Value }
@@ -48,7 +49,7 @@ export class Paths {
   target(value: Value): Target | undefined {
     const path = this.explicit(value);
     if (path === undefined) return undefined;
-    if (['.repo-standards', '.agents/skills/adopt-standards', '.agents/skills/author-standards', '.git'].some(reserved => overlaps(foldPath(path), reserved))) {
+    if (['.repo-standards', ...systemSkills.map(skill => skill.target), '.git'].some(reserved => overlaps(foldPath(path), reserved))) {
       this.fields.error('RESERVED_TARGET', 'Target overlaps product-owned state, a system skill, or Git metadata.', value);
     }
     return { path, location: value };

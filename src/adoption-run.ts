@@ -13,8 +13,9 @@ import { observe, type Content, type HashInventory, type Observation } from './o
 import { readRecordedAdoption, rejectRetiredRecords, type RecordedAdoption } from './recorded-state.js';
 import { committedEvidenceReport, compactIntervals, keptIdentity, memoryStore, WorkEvidenceJournal, type ObservationStore, type RecordedInterval } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
-import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, requirePinnedCli, safe, systemTarget, verifyFiles, write } from './adoption-files.js';
+import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, requirePinnedCli, safe, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
+import { adoptionSkill } from './targets.js';
 import { completionFiles, exactContent, restorePlannedLock, verifyInstallation, withdrawCompletionState, writeCompletion, type Installation } from './installation.js';
 
 // Persisted labels are shared by several producers. Keep their serialized
@@ -360,7 +361,7 @@ export class AdoptionRunSession {
     const recovering = this.#run;
     const run: Run = recovering ?? { format: formats.run, observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, ...provenance, startInput,
       ...(previous ? { previousComplete: { selection: previous.selection, lastComplete: previous.state.lastComplete } } : {}),
-      affected: { ...report.project.affected, [systemTarget]: report.project.systemSkill }, outcome: 'incomplete',
+      affected: { ...report.project.affected, [adoptionSkill.target]: report.project.systemSkill }, outcome: 'incomplete',
       prerequisites: [], operations: [], assessments: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],
       nextAction: 'Read status, review actual changes, stop any surviving author process, then use resume --retry to recover this incomplete adoption, or abandon to preserve its work and report.' };
     try { if (recovering) saveRun(root, run, false); else writeFileSync(lockPath(root), json(run), { flag: 'wx' }); }

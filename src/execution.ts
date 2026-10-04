@@ -3,7 +3,8 @@ import { formats } from './formats.js';
 import { join } from 'node:path';
 import semver from 'semver';
 import { processGroupAlive } from './run-lock.js';
-import type { Declaration, ResolvedProfile } from './model.js';
+import type { ResolvedProfile } from './model.js';
+import { declarationTargets } from './targets.js';
 
 export function operations(resolved: ResolvedProfile, phase: 'fixes' | 'checks') {
   return resolved.declarations.flatMap(declaration => declaration[phase].map(operation => ({ declaration: declaration.id, phase, operation })));
@@ -36,11 +37,6 @@ export async function preflight(root: string, resolved: ResolvedProfile, onSpawn
   return evidence;
 }
 
-export function allowedTargets(declaration: Declaration) {
-  return declaration.kind === 'repository' ? declaration.targets
-    : declaration.kind === 'skill' ? { paths: [], directories: [`.agents/skills/${declaration.name}`] }
-    : { paths: [declaration.target], directories: [] };
-}
 export interface OperationEvidence {
   operation: { declaration: string; phase: 'fixes' | 'checks'; id: string };
   process: { exitCode: number | null; signal: string | null; error: string | null; timedOut: boolean };
@@ -52,7 +48,7 @@ export async function execute(root: string, selected: SelectedOperation, selecti
   const identity = { declaration, phase, id: operation.id };
   const input = { format: formats.operation, operation: identity, projectRoot: root,
     standards: selection.standards, profile: selection.profile, declarations: resolved.declarations,
-    allowedTargets: allowedTargets(resolved.declarations.find(item => item.id === declaration)!) };
+    allowedTargets: declarationTargets(resolved.declarations.find(item => item.id === declaration)!) };
   const process = await invoke(operation.run.executable, [join(root, '.repo-standards/inputs/source', operation.run.script), ...operation.run.arguments], root, operation['timeout-seconds'], JSON.stringify(input) + '\n', onSpawn);
   const evidence: OperationEvidence = { operation: identity, process: process.outcome, result: null,
     error: process.outcome.timedOut ? 'TIMEOUT' : process.outcome.error ? 'PROCESS_ERROR' : process.outcome.signal ? 'SIGNAL' : process.outcome.exitCode !== 0 ? 'NONZERO_EXIT' : null,
