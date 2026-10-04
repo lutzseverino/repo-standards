@@ -235,7 +235,7 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Integrity lock, `.repo-standards/lock.json` | `repo-standards/lock/v1` |
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v4` |
 | Run record, local run report, and archived abandoned report | `repo-standards/run/v6` |
-| `status` report | `repo-standards/status/v6` |
+| `status` report | `repo-standards/status/v7` |
 | Inspection report | `repo-standards/inspection/v5` |
 | Work request and assessment | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
 
@@ -398,6 +398,21 @@ The JSON status record of a complete discovery-backed adoption includes
 `scopeChanges`: the additions and removals by declaration that its last complete
 run made relative to the run before it, read from the retained scope evidence,
 or every confirmed path for the first discovery-backed run.
+
+Every `status --json` report uses `repo-standards/status/v7` and includes
+`scopeProposal`: the last complete run's confirmed proposal, in the public
+`repo-standards/scope/v2` format, or null when that run had no confirmed proposal
+or no adoption has completed. It preserves the confirmed candidates, decisions,
+reasons, evidence paths, coverage, and unresolved questions, with the list order
+normalized at inspection. It carries no inspection or discovery identity.
+
+The field reads only retained committed evidence and works in a fresh checkout,
+offline, independently of the source flags used for inspection or an update.
+During an incomplete or abandoned update, it reads the last complete adoption's
+evidence from the clean commit at that run's start; the candidate proposal does
+not become the last complete proposal. Carrying decisions into a later draft
+still requires fresh evidence and confirmation. `status --summary` is unchanged
+and does not render the proposal.
 
 ## Adopt afresh over installed content
 

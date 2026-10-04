@@ -397,11 +397,10 @@ A candidate's `evidence` lists the paths of files and directories from
 `discovery.evidence` that support its decision. A path the observation does not
 hold as eligible evidence fails, and the error names it. Directory inventories
 contain eligible immediate child paths, not all ignored siblings. Every candidate
-needs at least one evidence path, except an included file that does not exist
-yet, whose absence the CLI observes. A missing README still needs an evidence
-path for positive membership: a file or nonempty directory within its project
-directory. The CLI checks this structural support; the agent and adopter judge
-its meaning.
+needs at least one evidence path, including an intended file that does not exist
+yet. Evidence may come from outside the candidate's directory, including for a
+missing `README` or `README.*`. The CLI checks this structural support; the
+author's discovery guidance, agent, and adopter determine its meaning.
 
 The CLI derives every mechanical field from the observation it inspects against:
 the request binding, each evidence path's identity, the absence evidence of each
@@ -493,7 +492,7 @@ derivation. Scope-history v4 is the only format written and read.
 Retained inspection reads the committed durable state, which is
 `repo-standards/state/v6`, the only state format, with the last complete run's
 [work evidence](script-protocol.md#observed-adoption-scope) as
-identities and deltas; `status` echoes it as `repo-standards/status/v6`.
+identities and deltas; `status` echoes it as `repo-standards/status/v7`.
 Inspection rejects a committed state, retained scope history, or run record in
 an older format with `RETIRED_FORMAT` before reading anything else; nothing is
 converted. [Adopt fresh](adoption.md#adopt-fresh-from-a-retired-format) to

@@ -541,6 +541,14 @@ run's `history`, or scope evidence with any other field or another `evidence`
 marker, fails state integrity; nothing reads an earlier run from committed
 evidence.
 
+`status --json`, in `repo-standards/status/v7`, also reports `scopeProposal`: the
+last complete run's confirmed `repo-standards/scope/v2` proposal, or null when
+there is none. It reads committed scope evidence, carries no identity, and is
+available independently of source flags and checkout location. While an update
+is incomplete or abandoned, its clean HEAD at start supplies the last complete
+proposal, verified against that commit's lock; its candidate proposal is never
+reported as complete. The status summary remains unchanged.
+
 ## Updates, interruption, and retirement
 
 An update moves an adopting project from its current selection to a confirmed

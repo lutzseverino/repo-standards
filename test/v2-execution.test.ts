@@ -532,7 +532,7 @@ ${result}`);
   assert.deepEqual(observations(), []);
 
   const status = f.run(['status', '--json']).report;
-  assert.equal(status.format, 'repo-standards/status/v6');
+  assert.equal(status.format, 'repo-standards/status/v7');
   assert.deepEqual(status.observations, intervals);
   assert.equal(Object.hasOwn(status, 'history'), false);
   // A project that never discovered scope retains no scope evidence to report.

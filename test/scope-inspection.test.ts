@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { embeddedContent, installCli, sha256, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+import { registryFixture } from './registry-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -29,6 +30,33 @@ profiles:
     declarations: {}
 `;
 const material = { 'guidance.md': 'Document each maintained project.', 'discovery.md': 'Use project membership evidence; exclude fixtures, generated output, and organizational directories.', 'exact.md': 'Exact instructions' };
+
+test('a missing documentation README can cite evidence outside its empty directory and be confirmed', async t => {
+  const remote = remoteFixture(source, material);
+  const project = sourceFixture('', { 'package.json': '{"name":"documentation-project"}' });
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  mkdirSync(join(project.root, 'docs'));
+  commit(project.root);
+  const proposal = { format: 'repo-standards/scope/v2', declarations: [{
+    id: 'project-docs', coverage: 'The project needs a documentation index.',
+    candidates: [{ path: 'docs/README.md', decision: 'include', reason: 'The root manifest establishes the project.', evidence: ['package.json'] }], unresolved: [],
+  }] };
+  const proposalFile = join(remote.support.root, 'scope.json');
+  writeFileSync(proposalFile, JSON.stringify(proposal));
+  const env = { ...remote.env, ...registry.env };
+  const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.start.blockers, []);
+  assert.deepEqual(report.discovery.proposal, proposal);
+  assert.equal(report.discovery.absence[0].path, 'docs/README.md');
+  const started = cli.run(['start', ...inspectionArgs.slice(1), '--scope', proposalFile, '--confirm', report.identity], project.root, env);
+  assert.equal(started.status, 1, started.stdout + started.stderr);
+  const run = JSON.parse(started.stdout);
+  assert.equal(run.phase, 'contextual', started.stdout);
+  assert.deepEqual(run.workRequest.scope.proposal, proposal);
+});
 
 test('discovery inspection requests eligible evidence without changing the project or executing author code', (t) => {
   const remote = remoteFixture(source, material);
@@ -174,6 +202,9 @@ test('a proposal is rejected with actionable errors for a retired format, missin
   rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['app/missing.json']; }, /app\/missing\.json.*discovery observation/);
   rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['ignored.txt']; }, /ignored\.txt.*discovery observation/);
   rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['app/README.md']; }, /app\/README\.md.*discovery observation/);
+  for (const [path, decision] of [['app/README.md', 'include'], ['app/notes.md', 'include'], ['app/package.json', 'include'], ['app', 'exclude']] as const) {
+    rejected(p => { p.declarations[0]!.candidates[0] = { path, decision, reason: 'Needs evidence.', evidence: [] }; }, /requires at least one evidence path/);
+  }
   // Naming an ignored file as a target does not make it evidence.
   rejected(p => { p.declarations[0]!.candidates[0] = { path: 'ignored.txt', decision: 'include', reason: 'Named.', evidence: ['ignored.txt'] }; }, /ignored\.txt.*discovery observation/);
   writeFileSync(proposalFile, JSON.stringify({ ...original, format: 'repo-standards/scope/v1' }).replace('"coverage":', '"coverage":"Duplicate","coverage":'));

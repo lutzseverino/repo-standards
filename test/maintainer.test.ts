@@ -4,8 +4,43 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import test from 'node:test';
+import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
+import { installCli, sourceFixture } from './installed-cli.ts';
+import { commit, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+import { registryFixture } from './registry-fixture.ts';
+
+const cli = installCli();
+after(() => cli.close());
+
+test('status returns a null scope proposal before adoption and after an adoption without discovery', async t => {
+  const project = sourceFixture('');
+  const remote = remoteFixture(`format: repo-standards/v2
+name: exact-standards
+description: Exact instructions only
+requires: {repo-standards: ">=1"}
+defaults:
+  declarations:
+    instructions: {kind: file, target: AGENTS.md, exact: agents.md}
+profiles:
+  work: {description: Work, declarations: {}}
+`, { 'agents.md': 'Project instructions\n' });
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const run = (args: string[]) => {
+    const result = cli.run(args, project.root, env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    return JSON.parse(result.stdout);
+  };
+  const fresh = run(['status', '--json']);
+  assert.equal(fresh.format, 'repo-standards/status/v7');
+  assert.equal(fresh.scopeProposal, null);
+  const inspection = run(inspectionArgs);
+  run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity]);
+  assert.equal(run(['status', '--json']).scopeProposal, null);
+});
 
 // Exercise maintainer commands, replacing only external executables, HTTP and,
 // where a test depends on time, the clock.

@@ -1,11 +1,11 @@
 import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import type { acquireSource } from './acquisition.js';
+import { hash, type acquireSource } from './acquisition.js';
 import { inventory, json, lockPath, relativePath, requirePinnedCli } from './adoption-files.js';
 import { ProductError } from './errors.js';
 import { formats, recordPath, requireFormat } from './formats.js';
 import type { Declaration } from './model.js';
-import { targetObservation, type Blocker, type Content, type Observation } from './observation.js';
+import { git, targetObservation, type Blocker, type Content, type Observation } from './observation.js';
 import { retainedScopeEvidence, type RetainedScopeEvidence } from './scope-evidence.js';
 import { validExecutionEvidence, type ExecutionEvidence } from './work-evidence.js';
 
@@ -202,4 +202,32 @@ export function readRecordedAdoption(root: string): RecordedAdoption | undefined
       return { root: join(root, existsSync(join(root, retainedSource)) ? retainedSource : inputs), identity: pinned.selection.standards, paths, manifest: text(manifest), close() {} };
     },
   };
+}
+
+// An incomplete update may have replaced the retained inputs and lock already.
+// Its clean HEAD at start still holds the last complete adoption's committed
+// evidence. Read only that proposal, verified against that commit's lock;
+// neither the active proposal nor an archived run supplies it.
+export function readCommittedScopeProposal(root: string, head: string | null, inspection: string | undefined) {
+  if (!inspection) return null;
+  if (!head) invalid();
+  const read = (path: string) => {
+    const result = git(root, ['show', `${head}:${path}`]);
+    if (result.status !== 0) unreadable();
+    return result.stdout;
+  };
+  let lock: RecordedLock;
+  try { lock = JSON.parse(read(lockFile)); }
+  catch { unreadable(); }
+  if (lock?.format !== formats.lock || lock.inspection !== inspection || !lock.files) invalid();
+  const expected = lock.files[scopeFile];
+  if (!expected) return null;
+  const bytes = read(scopeFile);
+  if (hash(bytes) !== expected.sha256) invalid();
+  let value: unknown;
+  try { value = JSON.parse(bytes); }
+  catch { unreadable(); }
+  const evidence = retainedScopeEvidence(value);
+  if (evidence.inspection !== inspection) invalid();
+  return evidence.discovery?.proposal ?? null;
 }
