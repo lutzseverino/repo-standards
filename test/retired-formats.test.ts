@@ -111,6 +111,46 @@ test('a retired state, scope evidence, or run record format is rejected with the
   }
 });
 
+test('newer record formats require the pinned CLI without fresh-adoption advice or writes', async t => {
+  const { project, run } = await adoptedProject(t);
+  const root = project.root;
+  const runRecord = join(root, git(root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
+  const reports = join(runRecord, '../repo-standards-reports');
+  mkdirSync(reports, { recursive: true });
+  const archived = join(reports, 'c0ffee00-0000-4000-8000-000000000000.json');
+  const records = [
+    { path: join(root, '.repo-standards/state.json'), format: 'repo-standards/state/v7', expected: 'repo-standards/state/v6' },
+    { path: join(root, '.repo-standards/state.json'), format: 'repo-standards/state/v10', expected: 'repo-standards/state/v6' },
+    { path: join(root, '.repo-standards/inputs/scope-history.json'), format: 'repo-standards/scope-history/v5', expected: 'repo-standards/scope-history/v4' },
+    { path: runRecord, format: 'repo-standards/run/v7', expected: 'repo-standards/run/v6' },
+    { path: archived, format: 'repo-standards/run/v7', expected: 'repo-standards/run/v6' },
+    { path: join(root, '.repo-standards/lock.json'), format: 'repo-standards/lock/v2', expected: 'repo-standards/lock/v1' },
+  ];
+  for (const { path, format, expected } of records) {
+    const original = [runRecord, archived].includes(path) ? undefined : readFileSync(path);
+    // A future schema need not carry the pin at any location this CLI knows.
+    // Only the format can be interpreted, even for the pin-bearing records.
+    writeFileSync(path, JSON.stringify({ format, futureSelection: {} }));
+    const before = snapshot(root);
+    for (const command of [['inspect'], ['start', '--confirm', 'sha256:unreadable'], ['status'], ['resume'], ['abandon']]) {
+      const rejected = run([...command, '--json']);
+      assert.equal(rejected.result.status, 1, rejected.result.stdout + rejected.result.stderr);
+      assert.equal(rejected.report.errors.length, 1);
+      const [diagnostic] = rejected.report.errors;
+      assert.equal(diagnostic.code, 'NEWER_FORMAT', `${format} ${command[0]}`);
+      assert.ok(diagnostic.message.includes(format), diagnostic.message);
+      assert.ok(diagnostic.message.includes(expected), diagnostic.message);
+      assert.match(diagnostic.message, /Use the (?:project-)?pinned CLI/);
+      assert.doesNotMatch(diagnostic.message, /remove|removal|fresh|adopt again/i);
+      assert.deepEqual(diagnostic.details, { path: path.startsWith(root + '/') ? path.slice(root.length + 1) : path, format, expected });
+      assert.deepEqual(snapshot(root), before, `${format} ${command[0]} must not write`);
+    }
+    if (original) writeFileSync(path, original);
+    else rmSync(path);
+  }
+  assert.equal(run(['status', '--json']).result.status, 0);
+});
+
 test('the single committed formats are validated on read', async t => {
   const f = await adoptedProject(t);
   const root = f.project.root;
