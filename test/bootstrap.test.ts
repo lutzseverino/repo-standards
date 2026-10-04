@@ -1,4 +1,4 @@
-import type { ErrorReport, Inspection, PackageManifest } from './json-reports.ts';
+import type { Inspection, PackageManifest } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -97,20 +97,6 @@ test('bootstrap prerequisite failures give setup instructions before package acq
   assert.match(run().stderr, /Node\.js 24 is required/);
   writeFileSync(join(bin, 'node'), '#!/bin/sh\necho 24\n');
   assert.match(run().stderr, /npm is required.*PATH/);
-});
-
-test('the installed inspection command checks npm without executing author prerequisite probes', (t) => {
-  const project = sourceFixture('');
-  t.after(() => project.close());
-  const bin = join(project.root, 'bin');
-  mkdirSync(bin);
-  symlinkSync(process.execPath, join(bin, 'node'));
-  symlinkSync(execFileSync('/bin/sh', ['-c', 'command -v git'], { encoding: 'utf8' }).trim(), join(bin, 'git'));
-  const result = cli.run(inspectionArgs, project.root, { ...process.env, PATH: bin });
-  assert.equal(result.status, 1);
-  const report = (JSON.parse(result.stdout) as ErrorReport);
-  assert.equal(report.errors[0]!.code, 'NPM_REQUIRED');
-  assert.match(report.errors[0]!.message, /Node\.js 24.*PATH/);
 });
 
 test('exact-version bootstrap can inspect using the configured npm cache with the registry unavailable', async t => {

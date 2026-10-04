@@ -127,8 +127,14 @@ export function manifest(declarations: object, profiles: Record<string, object> 
     defaults: { declarations }, profiles: Object.fromEntries(Object.entries(profiles).map(([profile, declarations]) => [profile, { description: profile, declarations }])) });
 }
 
-// A trusted operation run by Node.js, whose prerequisite the test process satisfies.
-export function operation(id: string, overrides: { script?: string; resources?: string[]; arguments?: string[]; prerequisite?: { 'version-arguments': string[]; version: string }; 'timeout-seconds'?: number } = {}) {
-  const { script = 'run.mjs', resources = [], arguments: args = [], prerequisite = { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': timeout = 5 } = overrides;
-  return { id, run: { executable: process.execPath, script, resources, arguments: args }, prerequisite, 'timeout-seconds': timeout };
+// A trusted operation, run by Node.js unless another executable is named,
+// whose prerequisite the test process satisfies.
+export interface OperationOptions {
+  executable?: string; script?: string; resources?: string[]; arguments?: string[];
+  prerequisite?: { 'version-arguments': string[]; version: string }; 'timeout-seconds'?: number;
+}
+export function operation(id: string, options: OperationOptions = {}) {
+  const { executable = process.execPath, script = 'run.mjs', resources = [], arguments: args = [],
+    prerequisite = { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': timeout = 5 } = options;
+  return { id, run: { executable, script, resources, arguments: args }, prerequisite, 'timeout-seconds': timeout };
 }

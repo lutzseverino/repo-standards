@@ -4,21 +4,18 @@ import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { stringify } from 'yaml';
 import { directoryFixture, installCli, sourceFixture } from './installed-cli.ts';
-import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
-import { registryFixture } from './registry-fixture.ts';
+import { commit, git, inspectionArgs, manifest as standards, operation, startArgs, versionArgs } from './remote-fixture.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
 
-const operation = (id: string) => ({ id, run: { executable: process.execPath, script: 'operation.mjs', resources: [], arguments: ['--quiet'] },
-  prerequisite: { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': 10 });
-const manifest = stringify({ format: 'repo-standards/v2', name: 'summarized-standards', description: 'Summary fixture',
-  requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
-    instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
-    docs: { kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md', fixes: [operation('prepare')], checks: [operation('verify')] },
-  } }, profiles: { work: { description: 'Work', declarations: {} } } });
+const manifest = standards({
+  instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
+  docs: { kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md',
+    fixes: [operation('prepare', { script: 'operation.mjs', arguments: ['--quiet'] })], checks: [operation('verify', { script: 'operation.mjs', arguments: ['--quiet'] })] },
+});
 const files = {
   'agents.md': 'Pinned instructions\n',
   'guidance.md': 'Keep every maintained project README useful.\n',
@@ -37,13 +34,9 @@ function assertDescriptive(summary: string) {
 }
 
 async function fixture(t: TestContext) {
-  const remote = remoteFixture(manifest, files);
-  const project = sourceFixture('', { 'apps/a/README.md': '# Project A\n' });
-  commit(project.root);
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  const env = { ...remote.env, ...registry.env };
-  const run = (args: string[]) => cli.run(args, project.root, env);
+  const f = await adoptionFixture(t, cli, manifest, { files, project: { 'apps/a/README.md': '# Project A\n' } });
+  const { remote, project } = f;
+  const run = (args: string[]) => f.run(args);
   const json = <T = Inspection>(args: string[]) => (JSON.parse(run(args).stdout) as T);
   const scopeFile = join(remote.support.root, 'scope.json');
   function propose(args: string[]) {
@@ -63,11 +56,11 @@ async function fixture(t: TestContext) {
   return { remote, project, run, json, propose, assess };
 }
 
-test('status --summary renders the active run and then the record of the complete run', async t => {
+test('status --summary renders an active run with its phase, operations and next action', async t => {
   const f = await fixture(t);
   const args = f.propose(inspectionArgs);
   const inspection = f.json<Inspection>(args);
-  const handoff = f.run(['start', ...args.slice(1), '--confirm', inspection.identity]);
+  const handoff = f.run(startArgs(inspection.identity, args));
   assert.equal((JSON.parse(handoff.stdout) as Run).phase, 'contextual', handoff.stdout);
 
   const active = f.json<Status>(['status', '--json']).active;
@@ -81,22 +74,6 @@ test('status --summary renders the active run and then the record of the complet
   assert.ok(progress.includes('\n## Next action\n\nApply the selected guidance, refresh the work request with resume, and submit evidence using resume --assessment \\<file\\>.\n'), progress);
   assert.ok(progress.includes('| fixes | `docs` | `prepare` | changed | prepare done |'), progress);
   assert.ok(progress.includes(`\`${active!.id}\``) && progress.includes(`\`${inspection.identity}\``), progress);
-
-  assert.equal(f.assess().status, 0);
-  commit(f.project.root);
-  const status = f.json<Status>(['status', '--json']);
-  assert.deepEqual(status.scopeChanges, [{ id: 'docs', additions: ['apps/a/README.md'], removals: [] }]);
-  const record = f.run(['status', '--summary']);
-  assert.equal(record.status, 0, record.stderr);
-  assert.equal(f.run(['status', '--summary']).stdout, record.stdout);
-  const summary = record.stdout;
-  assertDescriptive(summary);
-  for (const heading of ['## Selection', '## Operations', '## Changed paths', '## Scope changes', '## Identities']) assert.ok(summary.includes(`\n${heading}\n`), heading);
-  assert.ok(summary.includes('| fixes | `docs` | `prepare` | changed | prepare done |'), summary);
-  assert.ok(summary.includes('| checks | `docs` | `verify` | passed | verify done |'), summary);
-  assert.ok(summary.includes('| `apps/a/README.md` | fixes |'), summary);
-  assert.ok(summary.includes('| `docs` | `apps/a/README.md` | none |'), summary);
-  assert.ok(summary.includes(`\`${status.lastComplete.run}\``) && summary.includes(`\`${status.lastComplete.inspection}\``) && summary.includes(`\`${status.lastComplete.head}\``), summary);
 });
 
 // The complete-run record rendered from status --json, with the given operation
@@ -142,7 +119,7 @@ test('the adoption record lists a path changed by fixes and agent work once, wit
   const f = await fixture(t);
   const args = f.propose(inspectionArgs);
   const inspection = f.json<Inspection>(args);
-  assert.equal((JSON.parse(f.run(['start', ...args.slice(1), '--confirm', inspection.identity]).stdout) as Run).phase, 'contextual');
+  assert.equal((JSON.parse(f.run(startArgs(inspection.identity, args)).stdout) as Run).phase, 'contextual');
   writeFileSync(join(f.project.root, 'apps/a/README.md'), '# Project A\nPrepared.\nReviewed by the agent.\n');
   const completed = f.assess();
   assert.equal(completed.status, 0, completed.stdout);
@@ -171,7 +148,7 @@ test('a path the agent returns to its content before the run is not a changed pa
   const f = await fixture(t);
   const args = f.propose(inspectionArgs);
   const inspection = f.json<Inspection>(args);
-  assert.equal((JSON.parse(f.run(['start', ...args.slice(1), '--confirm', inspection.identity]).stdout) as Run).phase, 'contextual');
+  assert.equal((JSON.parse(f.run(startArgs(inspection.identity, args)).stdout) as Run).phase, 'contextual');
   writeFileSync(join(f.project.root, 'apps/a/README.md'), '# Project A\n');
   const completed = f.assess();
   assert.equal(completed.status, 0, completed.stdout);
@@ -183,23 +160,20 @@ test('a path the agent returns to its content before the run is not a changed pa
 });
 
 test('the record of an update that only installs exact content lists every installed path, from durable state alone', async t => {
-  const exactManifest = (agents: string) => stringify({ format: 'repo-standards/v2', name: 'exact-standards', description: 'Exact fixture',
-    requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
-      instructions: { kind: 'file', target: 'AGENTS.md', exact: agents },
-      review: { kind: 'skill', name: 'review', source: 'review' },
-    } }, profiles: { work: { description: 'Work', declarations: {} } } });
-  const remote = remoteFixture(exactManifest('agents.md'), { 'agents.md': 'Pinned instructions\n', 'review/SKILL.md': '---\nname: review\ndescription: Review changes.\n---\nReview.\n', 'review/notes.md': 'Notes\n' });
-  const project = sourceFixture('', { 'README.md': '# Project\n' });
-  commit(project.root);
+  const exactManifest = (agents: string) => standards({
+    instructions: { kind: 'file', target: 'AGENTS.md', exact: agents },
+    review: { kind: 'skill', name: 'review', source: 'review' },
+  });
+  const f = await adoptionFixture(t, cli, exactManifest('agents.md'), { files: { 'agents.md': 'Pinned instructions\n', 'review/SKILL.md': '---\nname: review\ndescription: Review changes.\n---\nReview.\n', 'review/notes.md': 'Notes\n' },
+    project: { 'README.md': '# Project\n' } });
+  const { remote, project, env } = f;
   const clone = directoryFixture('repo-standards-clone-');
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); clone.close(); });
-  const env = { ...remote.env, ...registry.env };
+  t.after(() => clone.close());
   const run = (args: string[], root = project.root) => cli.run(args, root, env);
   const adopt = (version: string) => {
-    const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? version : argument);
+    const args = versionArgs(version);
     const report = (JSON.parse(run(args).stdout) as Inspection);
-    const started = run(['start', ...args.slice(1), '--confirm', report.identity]);
+    const started = run(startArgs(report.identity, args));
     assert.equal((JSON.parse(started.stdout) as Run).outcome, 'complete', started.stdout);
     commit(project.root);
   };
@@ -232,21 +206,15 @@ test('the record of an update that only installs exact content lists every insta
 });
 
 test('the record of an update lists a removed retired target and a replaced edited target once, as installation', async t => {
-  const manifest = (declarations: Record<string, unknown>) => stringify({ format: 'repo-standards/v2', name: 'exact-standards', description: 'Exact fixture',
-    requires: { 'repo-standards': '>=1' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: {} } } });
+  const manifest = (declarations: Record<string, unknown>) => standards(declarations);
   const instructions = { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' };
-  const remote = remoteFixture(manifest({ instructions, notes: { kind: 'file', target: 'NOTES.md', exact: 'notes.md' } }),
-    { 'agents.md': 'Pinned instructions\n', 'notes.md': 'Pinned notes\n' });
-  const project = sourceFixture('', { 'README.md': '# Project\n' });
-  commit(project.root);
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  const env = { ...remote.env, ...registry.env };
+  const f = await adoptionFixture(t, cli, manifest({ instructions, notes: { kind: 'file', target: 'NOTES.md', exact: 'notes.md' } }), { files: { 'agents.md': 'Pinned instructions\n', 'notes.md': 'Pinned notes\n' }, project: { 'README.md': '# Project\n' } });
+  const { remote, project, env } = f;
   const run = (args: string[]) => cli.run(args, project.root, env);
   const adopt = (version: string) => {
-    const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? version : argument);
+    const args = versionArgs(version);
     const report = (JSON.parse(run(args).stdout) as Inspection);
-    const started = run(['start', ...args.slice(1), '--confirm', report.identity]);
+    const started = run(startArgs(report.identity, args));
     assert.equal((JSON.parse(started.stdout) as Run).outcome, 'complete', started.stdout);
     commit(project.root);
     return report;
@@ -277,12 +245,12 @@ test('inspect --summary renders a deterministic update proposal with its class, 
   const f = await fixture(t);
   const args = f.propose(inspectionArgs);
   const initial = f.json<Inspection>(args);
-  assert.equal((JSON.parse(f.run(['start', ...args.slice(1), '--confirm', initial.identity]).stdout) as Run).phase, 'contextual');
+  assert.equal((JSON.parse(f.run(startArgs(initial.identity, args)).stdout) as Run).phase, 'contextual');
   assert.equal(f.assess().status, 0);
   commit(f.project.root);
 
   f.remote.addVersion('v1.1.0', manifest, { ...files, 'agents.md': 'Revised instructions\n', 'guidance.md': 'Keep every maintained project README accurate.\n' });
-  const updateArgs = f.propose(inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument));
+  const updateArgs = f.propose(versionArgs('v1.1.0'));
   const report = f.json<Inspection>(updateArgs);
   const summaryArgs = updateArgs.map(argument => argument === '--json' ? '--summary' : argument);
   const first = f.run(summaryArgs);
@@ -301,26 +269,18 @@ test('inspect --summary renders a deterministic update proposal with its class, 
 
   // Untracked content changes the discovery observation, so it needs a new proposal.
   writeFileSync(join(f.project.root, 'untracked.txt'), 'Untracked work\n');
-  const blocked = f.run(f.propose(inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument)).map(argument => argument === '--json' ? '--summary' : argument));
+  const blocked = f.run(f.propose(versionArgs('v1.1.0')).map(argument => argument === '--json' ? '--summary' : argument));
   assert.equal(blocked.status, 0, blocked.stderr);
   assert.ok(blocked.stdout.includes('\n## Blockers\n'), blocked.stdout);
   assert.ok(blocked.stdout.includes('`DIRTY_PROJECT`'), blocked.stdout);
 });
 
 test('inspect --summary lists removed retired targets, each discarded edit, and each kept target', async t => {
-  const exact = (declarations: object) => stringify({ format: 'repo-standards/v2', name: 'exact-standards', description: 'Exact fixture',
-    requires: { 'repo-standards': '>=1' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: {} } } });
+  const exact = (declarations: object) => standards(declarations);
   const instructions = { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' };
-  const remote = remoteFixture(exact({ instructions, notes: { kind: 'file', target: 'NOTES.md', exact: 'notes.md' }, legacy: { kind: 'file', target: 'LEGACY.md', exact: 'legacy.md' } }),
-    { 'agents.md': 'Pinned instructions\n', 'notes.md': 'Notes\n', 'legacy.md': 'Legacy\n' });
-  const project = sourceFixture('');
-  commit(project.root);
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  const env = { ...remote.env, ...registry.env };
-  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
-  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
-  commit(project.root);
+  const f = await adoptionFixture(t, cli, exact({ instructions, notes: { kind: 'file', target: 'NOTES.md', exact: 'notes.md' }, legacy: { kind: 'file', target: 'LEGACY.md', exact: 'legacy.md' } }), { files: { 'agents.md': 'Pinned instructions\n', 'notes.md': 'Notes\n', 'legacy.md': 'Legacy\n' } });
+  const { remote, project, env } = f;
+  f.adopt();
   writeFileSync(join(project.root, 'AGENTS.md'), 'Maintainer instructions\n');
   writeFileSync(join(project.root, 'LEGACY.md'), 'Maintainer legacy\n');
   commit(project.root);

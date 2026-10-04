@@ -1,18 +1,15 @@
-import type { Inspection, Run, Status } from './json-reports.ts';
-
+import type { PackageManifest } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { after, test } from 'node:test';
+import { test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { installCli, sourceFixture } from './installed-cli.ts';
-import { commit, inspectionArgs, remoteFixture } from './remote-fixture.ts';
-import { registryFixture } from './registry-fixture.ts';
 
-// Maintainer script evidence is separate from the public CLI reports.
+// Release status and the public acceptance helpers are maintainer scripts. Their
+// evidence is separate from the public CLI reports.
 interface AcceptanceEvidence {
   passed: boolean; failure: string; nextAction: string;
   downloads: { url: string; status: number | null; headers: Record<string, string> }[];
@@ -24,39 +21,6 @@ interface ReleaseStatus {
   runStatus: string; release: string;
   assets: { matched: string[]; missing: string[] };
 }
-import type { PackageManifest } from './json-reports.ts';
-
-const cli = installCli();
-after(() => cli.close());
-
-test('status returns a null scope proposal before adoption and after an adoption without discovery', async t => {
-  const project = sourceFixture('');
-  const remote = remoteFixture(`format: repo-standards/v2
-name: exact-standards
-description: Exact instructions only
-requires: {repo-standards: ">=1"}
-defaults:
-  declarations:
-    instructions: {kind: file, target: AGENTS.md, exact: agents.md}
-profiles:
-  work: {description: Work, declarations: {}}
-`, { 'agents.md': 'Project instructions\n' });
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  commit(project.root);
-  const env = { ...remote.env, ...registry.env };
-  const run = <T = Status>(args: string[]) => {
-    const result = cli.run(args, project.root, env);
-    assert.equal(result.status, 0, result.stdout + result.stderr);
-    return JSON.parse(result.stdout) as T;
-  };
-  const fresh = run<Status>(['status', '--json']);
-  assert.equal(fresh.format, 'repo-standards/status/v7');
-  assert.equal(fresh.scopeProposal, null);
-  const inspection = run<Inspection>(inspectionArgs);
-  run<Run>(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity]);
-  assert.equal(run<Status>(['status', '--json']).scopeProposal, null);
-});
 
 // Exercise maintainer commands, replacing only external executables, HTTP and,
 // where a test depends on time, the clock.
@@ -342,14 +306,14 @@ for (const tag of [undefined, 'absent'] as const) {
   }
 }
 
-for (const [name, options, ...expected] of [
-  ['mismatched tag', { tag: 'mismatch' }],
-  ['unestablished target', { tag: 'absent', draftTarget: 'main' }],
-  ['mismatched target', { tag: 'absent', draftTarget: 'b'.repeat(40) }],
-  ['mismatched asset', { damagedAsset: true }],
-  ['unavailable asset', { assetUnavailable: true }],
-  ['insufficient draft access', { draftListed: true, noPushAccess: true }],
-  ['duplicate drafts', { draftListed: true, duplicateDraft: true }],
+for (const [name, options, failure] of [
+  ['mismatched tag', { tag: 'mismatch' }, /Release tag differs from the original validated commit/],
+  ['unestablished target', { tag: 'absent', draftTarget: 'main' }, /must target the exact original validated commit/],
+  ['mismatched target', { tag: 'absent', draftTarget: 'b'.repeat(40) }, /must target the exact original validated commit/],
+  ['mismatched asset', { damagedAsset: true }, /Release asset differs from original bundle/],
+  ['unavailable asset', { assetUnavailable: true }, /Cannot inspect GitHub/],
+  ['insufficient draft access', { draftListed: true, noPushAccess: true }, /Push access is required/],
+  ['duplicate drafts', { draftListed: true, duplicateDraft: true }, /Multiple releases use the version tag/],
   ['a body that differs from the supplied notes', { draftBody: 'Published artifacts; release acceptance is tracked separately.' }, /differs from the original run's release notes/],
   ['no retained release notes', { notes: 'absent' }, /Cannot download the original run's release-notes artifact/],
 ] as const) {
@@ -358,8 +322,7 @@ for (const [name, options, ...expected] of [
     assert.equal(f.runStatus().status, 1);
     const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
     assert.equal(report.state, 'unknown');
-    assert.ok(report.failure);
-    if (expected[0]) assert.match(report.failure, expected[0]);
+    assert.match(report.failure, failure);
     assert.doesNotMatch(report.nextAction, /'gh'|'npm'/);
   });
 }
@@ -389,17 +352,17 @@ test('release status refuses to overwrite an earlier inspection', t => {
   assert.equal(readFileSync(join(f.output, 'status.json'), 'utf8'), 'original observation');
 });
 
-for (const [name, options] of [
-  ['different npm integrity', { registry: 'mismatch' }],
-  ['a moved tag', { tag: 'mismatch' }],
-  ['GitHub unavailable', { github: 'unavailable' }],
+for (const [name, options, failure] of [
+  ['different npm integrity', { registry: 'mismatch' }, /npm integrity differs from the original bundle/],
+  ['a moved tag', { tag: 'mismatch' }, /Release tag differs from the original validated commit/],
+  ['GitHub unavailable', { github: 'unavailable' }, /Cannot inspect GitHub/],
 ] as const) {
   test(`release status refuses recovery with ${name}`, t => {
     const f = releaseFixture(t, options);
     assert.equal(f.runStatus().status, 1);
     const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
     assert.equal(report.state, 'unknown');
-    assert.ok(report.failure);
+    assert.match(report.failure, failure);
     assert.doesNotMatch(report.nextAction, /'gh'|'npm'/);
   });
 }

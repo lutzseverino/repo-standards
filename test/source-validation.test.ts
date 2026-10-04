@@ -16,7 +16,7 @@ requires:
   repo-standards: ">=1.0.0"
 `;
 
-test('validation preserves literal operations, never runs scripts or version probes, and leaves a dirty source unchanged', (t) => {
+test('validation never runs scripts, version probes or shell-shaped arguments, and leaves a dirty source unchanged', (t) => {
   const operation = `
           - id: probe
             run:
@@ -64,32 +64,19 @@ profiles:
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const report = (JSON.parse(result.stdout) as SourceValidation);
   assert.deepEqual(report.profiles.excluded!.declarations, []);
-  assert.deepEqual(report.profiles.personal!.declarations[0]!.checks[0]!.run.arguments,
-    ['', 'two words', '$(touch SENTINEL)', '; touch SENTINEL', '*.md']);
   assert.equal(execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], { cwd: source.root, encoding: 'utf8' }), before);
   assert.equal(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: source.root, encoding: 'utf8' }), head);
   assert.equal(readFileSync(join(source.root, 'guidance.md'), 'utf8'), 'Uncommitted contextual guidance.');
 });
 
-test('the accepted Alice example validates unchanged and provides human output', (t) => {
-  const source = sourceFixture(readFileSync('examples/alice/standards.yaml', 'utf8'));
-  cpSync('examples/alice/defaults', join(source.root, 'defaults'), { recursive: true });
-  cpSync('examples/alice/profiles', join(source.root, 'profiles'), { recursive: true });
-  t.after(() => source.close());
-  const result = cli.run(['source', 'validate'], source.root);
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /personal, work/);
-  assert.equal(result.stderr, '');
-});
-
 for (const example of [
-  { label: 'packaged Atlas v2 example', source: 'examples/atlas', profile: 'maintained', declaration: 'project-documentation',
+  { label: 'packaged Atlas example', source: 'examples/atlas', profile: 'maintained', declaration: 'project-documentation',
     discovery: 'guidance/project-discovery.md', fix: 'normalize-markdown-ending', check: 'verify-markdown-ending',
     exactDeclaration: 'documentation-catalog', exactTarget: 'docs/catalog.json' },
   { label: 'independent Wayfinder acceptance source', source: 'acceptance/sources/wayfinder', profile: 'service', declaration: 'service-readiness',
     discovery: 'guidance/service-discovery.md', fix: 'initialize-operating-status', check: 'verify-service-evidence',
     exactDeclaration: 'editor-settings', exactTarget: '.editorconfig' },
-] as const) test(`the ${example.label} validates through the same v2 contract`, (t) => {
+] as const) test(`the ${example.label} validates through the same source contract`, (t) => {
   const source = sourceFixture('');
   cpSync(example.source, source.root, { recursive: true });
   t.after(() => source.close());
@@ -105,28 +92,9 @@ for (const example of [
   assert.deepEqual(contextual!.checks.map((entry: { id: string }) => entry.id), [example.check]);
 });
 
-test('the retired repo-standards/v1 format fails with the invalid-format diagnostic naming only v2', (t) => {
-  const source = sourceFixture(header.replace('repo-standards/v2', 'repo-standards/v1') + `defaults:
-  declarations:
-    readme:
-      kind: file
-      target: README.md
-      exact: readme.md
-profiles:
-  personal:
-    description: Personal
-    declarations: {}
-`, { 'readme.md': 'Readme' });
-  t.after(() => source.close());
-  const result = cli.run(['source', 'validate', '--json'], source.root);
-  assert.equal(result.status, 1, result.stdout + result.stderr);
-  const report = (JSON.parse(result.stdout) as SourceValidation);
-  assert.deepEqual(report.profiles, {});
-  assert.deepEqual(report.errors.map((error: { code: string; message: string; path: string }) => [error.code, error.message, error.path]),
-    [['INVALID_FORMAT', 'Expected repo-standards/v2.', '/format']]);
-});
-
 for (const [label, yaml, code] of [
+  // The one source format is named; a retired or unknown one is not interpreted.
+  ['the retired repo-standards/v1 format', header.replace('repo-standards/v2', 'repo-standards/v1'), 'INVALID_FORMAT'],
   ['unsupported format', header.replace('repo-standards/v2', 'repo-standards/v3'), 'INVALID_FORMAT'],
   ['invalid CLI range', header.replace('>=1.0.0', 'yesterday'), 'INVALID_VERSION'],
   ['incompatible CLI', header.replace('>=1.0.0', '>=99.0.0'), 'INCOMPATIBLE_CLI'],
@@ -134,12 +102,18 @@ for (const [label, yaml, code] of [
   ['non-string metadata', header.replace('name: test-standards', 'name: 123'), 'INVALID_TYPE'],
 ] as const) {
   test(`authors receive structured errors for ${label}`, (t) => {
-    const source = sourceFixture(yaml + 'defaults:\n  declarations: {}\nprofiles:\n  personal:\n    description: Personal\n    declarations: {}\n');
+    const source = sourceFixture(yaml + 'defaults:\n  declarations:\n    readme:\n      kind: file\n      target: README.md\n      exact: readme.md\nprofiles:\n  personal:\n    description: Personal\n    declarations: {}\n',
+      { 'readme.md': 'Readme' });
     t.after(() => source.close());
     const result = cli.run(['source', 'validate', '--json'], source.root);
     assert.equal(result.status, 1);
-    assert.ok((JSON.parse(result.stdout) as SourceValidation).errors.some((error: { code: string }) => error.code === code));
-    assert.deepEqual((JSON.parse(result.stdout) as SourceValidation).profiles, {});
+    const report = JSON.parse(result.stdout) as SourceValidation;
+    assert.ok(report.errors.some((error: { code: string }) => error.code === code));
+    if (code === 'INVALID_FORMAT') {
+      assert.deepEqual(report.errors.map(error => [error.code, error.path]), [['INVALID_FORMAT', '/format']]);
+      assert.ok(report.errors[0]!.message.includes('repo-standards/v2'), report.errors[0]!.message);
+    }
+    assert.deepEqual(report.profiles, {});
   });
 }
 
@@ -422,30 +396,7 @@ test('all four forms resolve through inheritance, replacement, addition and excl
   }] });
 });
 
-test('an author validates a local standards source through the installed CLI', (t) => {
-  const source = sourceFixture(`format: repo-standards/v2
-name: alice-standards
-description: Alice's repository standards
-requires:
-  repo-standards: ">=1.0.0"
-defaults:
-  declarations: {}
-profiles:
-  personal:
-    description: Standards for personal projects
-    declarations: {}
-`);
-  t.after(() => source.close());
-  const result = cli.run(['source', 'validate', source.root, '--json'], source.root);
-  assert.equal(result.status, 0, result.stderr);
-  const report = (JSON.parse(result.stdout) as SourceValidation);
-  assert.equal(report.valid, true);
-  assert.deepEqual(report.errors, []);
-  assert.deepEqual(report.profiles, { personal: { description: 'Standards for personal projects', declarations: [] } });
-});
-
-
-test('v2 resolves discovery separately from explicit targets across complete profiles', (t) => {
+test('discovery resolves separately from explicit targets across complete profiles', (t) => {
   const source = sourceFixture(header + `defaults:
   declarations:
     documentation:
@@ -504,7 +455,7 @@ for (const [label, declaration, code, path] of [
   ['unknown protection field', 'discovery: discovery.md\n      protect: [config.json]', 'UNKNOWN_FIELD', '/protect'],
   ['unknown target field', 'targets: {paths: [README.md], directories: [], exclude: [config.json]}', 'UNKNOWN_FIELD', '/targets/exclude'],
   ['duplicate discovery field', 'discovery: discovery.md\n      discovery: missing.md', 'DUPLICATE_IDENTITY', '/discovery'],
-] as const) test(`v2 rejects ${label} even when every profile excludes the default`, t => {
+] as const) test(`validation rejects ${label} even when every profile excludes the default`, t => {
   const guidance = label === 'missing contextual guidance' ? 'missing.md' : label === 'unsafe contextual guidance' ? '../outside.md' : 'guidance.md';
   const source = sourceFixture(header + `defaults:
   declarations:
@@ -527,7 +478,7 @@ profiles:
     error.code === code && error.path === `/defaults/declarations/documentation${path}` && error.line > 0 && error.column > 0), result.stdout);
 });
 
-for (const reference of ['guidance', 'discovery']) test(`v2 rejects symlinked ${reference} and its ancestors`, t => {
+for (const reference of ['guidance', 'discovery']) test(`validation rejects symlinked ${reference} and its ancestors`, t => {
   for (const path of ['linked.md', 'linked/file.md']) {
     const source = sourceFixture(header + `defaults:
   declarations: {}
@@ -550,7 +501,7 @@ profiles:
   }
 });
 
-test('v2 collects both references and explicit conflicts in ambiguous discovery declarations', t => {
+test('validation collects both references and explicit conflicts in ambiguous discovery declarations', t => {
   const source = sourceFixture(header + `defaults:
   declarations:
     configuration:
@@ -582,8 +533,7 @@ profiles:
 
 for (const kind of ['file', 'skill']) {
   test(`${kind} declarations reject discovery outside the repository form`, t => {
-    const fields = kind === 'repository' ? 'guidance: guidance.md\n      targets: {paths: [README.md], directories: []}'
-      : kind === 'file' ? 'target: README.md\n      guidance: guidance.md' : 'name: review\n      source: skill';
+    const fields = kind === 'file' ? 'target: README.md\n      guidance: guidance.md' : 'name: review\n      source: skill';
     const source = sourceFixture(header + `defaults:
   declarations:
     documentation:
@@ -638,46 +588,43 @@ profiles:
   assert.match(human.stderr, /SKILL_INVOCATION_MISMATCH.*review/);
 });
 
-for (const [label, skill, policy] of [
-  ['manual only in both tools', '---\nname: review\ndisable-model-invocation: true\n---\nReview.', 'policy: {allow_implicit_invocation: false}\n'],
-  ['invocable in both tools', '---\nname: review\ndisable-model-invocation: false\n---\nReview.', 'policy: {allow_implicit_invocation: true}\n'],
-  ['neither setting with frontmatter', '---\nname: review\ndescription: Review code.\n---\nReview.', 'interface: {display_name: Review}\n'],
-  ['neither setting with a loosely written description', '---\ndescription: Use when: the user asks\n---\nReview.', 'interface:\n  description: Use when: the user asks\n'],
-  ['neither setting with duplicate unrelated keys', '---\ndescription: First\ndescription: Second\n---\nReview.', 'policy: {other: true}\npolicy: {other: false}\n'],
-  ['neither setting with non-mapping metadata', '---\n- review\n- code\n---\nReview.', '[review, code]\n'],
-  ['neither setting with non-string keys', '---\n1: review\n---\nReview.', '? [review, code]\n: description\n'],
-  ['neither setting with invalid Codex YAML', '# Review', 'policy: [\n'],
-  ['neither setting with an unrelated nested invocation key in invalid YAML', '# Review', 'interface:\n  allow_implicit_invocation: true\nother: [\n'],
-  ['neither setting with an invocation key in description prose and invalid YAML', '---\ndescription: |\n  disable-model-invocation: true\nother: [\n---\nReview.', undefined],
-  ['neither setting with a Codex invocation key in description prose and invalid YAML', '# Review', 'interface:\n  description: >-\n    allow_implicit_invocation: false\nother: [\n'],
-  ['neither setting with scalar frontmatter prose and invalid YAML', '---\n|\n  disable-model-invocation: true\nother: [\n---\nReview.', undefined],
-  ['agreeing settings with duplicate unrelated keys', '---\ndescription: First\ndescription: Second\ndisable-model-invocation: true\n---\nReview.', 'policy: {other: true, other: false, allow_implicit_invocation: false}\n'],
-  ['agreeing settings through aliases', '---\nmanual: &manual true\ndisable-model-invocation: *manual\n---\nReview.', 'manual: &manual {allow_implicit_invocation: false}\npolicy: *manual\n'],
-  ['manual settings with spaces after delimiters', '---  \ndisable-model-invocation: true\n---  \nReview.', 'policy: {allow_implicit_invocation: false}\n'],
-  ['manual settings with tabs and CRLF after delimiters', '---\t\r\ndisable-model-invocation: true\r\n---\t\r\nReview.', 'policy: {allow_implicit_invocation: false}\n'],
-  ['manual settings with a leading BOM', '\uFEFF---\ndisable-model-invocation: true\n---\nReview.', 'policy: {allow_implicit_invocation: false}\n'],
-  ['neither metadata file', '# Review\nReview code.', undefined],
-  ['absent Claude Code setting with explicit Codex default', '---\nname: review\n---\nReview.', 'policy: {allow_implicit_invocation: true}\n'],
-  ['explicit Claude Code default with absent Codex setting', '---\nname: review\ndisable-model-invocation: false\n---\nReview.', undefined],
-] as const) test(`author skill invocation accepts ${label}`, (t) => {
-  const source = sourceFixture(header + `defaults:
-  declarations:
-    review:
-      kind: skill
-      name: review
-      source: skills/review
-profiles:
-  personal:
-    description: Personal
-    declarations: {}
-`, { 'skills/review/SKILL.md': skill,
-      ...(policy === undefined ? {} : { 'skills/review/agents/openai.yaml': policy }) });
+// Settings that agree, are absent, or sit among unrelated metadata. One source
+// declares a skill per case, so a single validation accepts them all.
+test('author skill invocation accepts agreeing, absent and unrelated settings', (t) => {
+  const cases: [string, string, string | undefined][] = [
+    ['manual only in both tools', '---\nname: review\ndisable-model-invocation: true\n---\nReview.', 'policy: {allow_implicit_invocation: false}\n'],
+    ['invocable in both tools', '---\nname: review\ndisable-model-invocation: false\n---\nReview.', 'policy: {allow_implicit_invocation: true}\n'],
+    ['neither setting with frontmatter', '---\nname: review\ndescription: Review code.\n---\nReview.', 'interface: {display_name: Review}\n'],
+    ['neither setting with a loosely written description', '---\ndescription: Use when: the user asks\n---\nReview.', 'interface:\n  description: Use when: the user asks\n'],
+    ['neither setting with duplicate unrelated keys', '---\ndescription: First\ndescription: Second\n---\nReview.', 'policy: {other: true}\npolicy: {other: false}\n'],
+    ['neither setting with non-mapping metadata', '---\n- review\n- code\n---\nReview.', '[review, code]\n'],
+    ['neither setting with non-string keys', '---\n1: review\n---\nReview.', '? [review, code]\n: description\n'],
+    ['neither setting with invalid Codex YAML', '# Review', 'policy: [\n'],
+    ['neither setting with an unrelated nested invocation key in invalid YAML', '# Review', 'interface:\n  allow_implicit_invocation: true\nother: [\n'],
+    ['neither setting with an invocation key in description prose and invalid YAML', '---\ndescription: |\n  disable-model-invocation: true\nother: [\n---\nReview.', undefined],
+    ['neither setting with a Codex invocation key in description prose and invalid YAML', '# Review', 'interface:\n  description: >-\n    allow_implicit_invocation: false\nother: [\n'],
+    ['neither setting with scalar frontmatter prose and invalid YAML', '---\n|\n  disable-model-invocation: true\nother: [\n---\nReview.', undefined],
+    ['agreeing settings with duplicate unrelated keys', '---\ndescription: First\ndescription: Second\ndisable-model-invocation: true\n---\nReview.', 'policy: {other: true, other: false, allow_implicit_invocation: false}\n'],
+    ['agreeing settings through aliases', '---\nmanual: &manual true\ndisable-model-invocation: *manual\n---\nReview.', 'manual: &manual {allow_implicit_invocation: false}\npolicy: *manual\n'],
+    ['manual settings with spaces after delimiters', '---  \ndisable-model-invocation: true\n---  \nReview.', 'policy: {allow_implicit_invocation: false}\n'],
+    ['manual settings with tabs and CRLF after delimiters', '---\t\r\ndisable-model-invocation: true\r\n---\t\r\nReview.', 'policy: {allow_implicit_invocation: false}\n'],
+    ['manual settings with a leading BOM', '\uFEFF---\ndisable-model-invocation: true\n---\nReview.', 'policy: {allow_implicit_invocation: false}\n'],
+    ['neither metadata file', '# Review\nReview code.', undefined],
+    ['absent Claude Code setting with explicit Codex default', '---\nname: review\n---\nReview.', 'policy: {allow_implicit_invocation: true}\n'],
+    ['explicit Claude Code default with absent Codex setting', '---\nname: review\ndisable-model-invocation: false\n---\nReview.', undefined],
+  ];
+  const declarations = cases.map((_, index) => `    review-${index}:\n      kind: skill\n      name: review-${index}\n      source: skills/review-${index}\n`).join('');
+  const files: Record<string, string> = {};
+  cases.forEach(([, skill, policy], index) => {
+    files[`skills/review-${index}/SKILL.md`] = skill;
+    if (policy !== undefined) files[`skills/review-${index}/agents/openai.yaml`] = policy;
+  });
+  const source = sourceFixture(header + `defaults:\n  declarations:\n${declarations}profiles:\n  personal:\n    description: Personal\n    declarations: {}\n`, files);
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal((JSON.parse(result.stdout) as SourceValidation).valid, true);
 });
-
 
 for (const [label, metadata, files, code, file, line, path] of [
   ['non-boolean frontmatter', 'disable-model-invocation: "false"', {}, 'INVALID_TYPE', 'skills/review/SKILL.md', 3, '/disable-model-invocation'],

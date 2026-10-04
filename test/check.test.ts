@@ -1,23 +1,23 @@
-import type { CheckErrorDetails, CheckReport, ErrorReport, Inspection, Lock, OperationLog, Run } from './json-reports.ts';
+import type { CheckErrorDetails, CheckReport, ErrorReport, Lock, OperationLog, Run } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { chmodSync, existsSync, lstatSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
-import { stringify } from 'yaml';
-import { directoryFixture, installCli, snapshot, sourceFixture } from './installed-cli.ts';
+import { directoryFixture, installCli, snapshot } from './installed-cli.ts';
 import { registryFixture } from './registry-fixture.ts';
-import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+import { commit, git, inspectionArgs, manifest, operation, startArgs } from './remote-fixture.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
 
 const cli = installCli();
 const registry = await registryFixture(cli.root);
 after(() => { registry.close(); cli.close(); });
 
-function operation(id: string, overrides = {}) {
-  return { id, run: { executable: process.execPath, script: 'scripts/run.mjs', resources: [], arguments: ['literal argument'] },
-    prerequisite: { 'version-arguments': ['-e', 'eval(process.env.PROBE_MUTATION ?? ""); console.log(process.env.FIXTURE_VERSION ?? process.version)'], version: '>=24.0.0' }, 'timeout-seconds': 5, ...overrides };
-}
+// Each check runs the source's script with a literal argument, and its probe
+// can run the code in PROBE_MUTATION and report FIXTURE_VERSION.
+const scripted = { script: 'scripts/run.mjs', arguments: ['literal argument'],
+  prerequisite: { 'version-arguments': ['-e', 'eval(process.env.PROBE_MUTATION ?? ""); console.log(process.env.FIXTURE_VERSION ?? process.version)'], version: '>=24.0.0' } };
 
 // Each check reports the status CHECK_MODES names for its ID, passing by
 // default, and runs the code in CHECK_MUTATION first. Fixes record that they ran in an
@@ -37,32 +37,31 @@ if (input.operation.phase === 'fixes') {
   if (mode === 'malformed') console.log('not json');
   else if (mode === 'exit') process.exit(3);
   else if (mode === 'multiline') result('failed', 'first line\\npassed  zulu/forged: second line\\r\\nthird line');
+  else if (mode === 'multiple results') console.log('{}\\n{}');
+  else if (mode === 'wrong version') console.log(JSON.stringify({ format: 'v2', status: 'passed', message: '' }));
+  else if (mode === 'wrong status') result('unchanged', 'A fix status');
   else result(mode, \`\${input.operation.id} \${mode}\`);
 }
 `;
 
-function adopted(t: TestContext, profile = 'work') {
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'check-standards', description: 'Checks on demand',
-    requires: { 'repo-standards': '>=1.0.0' }, defaults: { declarations: {
-      instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md', fixes: [operation('fix')], checks: [operation('first'), operation('second')] },
-      zulu: { kind: 'skill', name: 'review', source: 'skill', checks: [operation('third')] },
-    } }, profiles: { [profile]: { description: 'Work', declarations: {} } } }),
-  { 'agents.md': 'Instructions', 'scripts/run.mjs': script, 'skill/SKILL.md': '# Review' });
-  const project = sourceFixture('', { 'README.md': 'Project', '.gitignore': 'ignored/\n' });
-  t.after(() => { remote.close(); project.close(); });
-  commit(project.root);
-  const env = { ...remote.env, ...registry.env };
-  const run = (args: string[], extra: NodeJS.ProcessEnv = {}) => cli.run(args, project.root, { ...env, ...extra });
+async function adopted(t: TestContext, profile = 'work') {
+  const f = await adoptionFixture(t, cli, manifest({
+    instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md', fixes: [operation('fix', scripted)], checks: [operation('first', scripted), operation('second', scripted)] },
+    zulu: { kind: 'skill', name: 'review', source: 'skill', checks: [operation('third', scripted)] },
+  }, { [profile]: {} }), { files: { 'agents.md': 'Instructions', 'scripts/run.mjs': script, 'skill/SKILL.md': '# Review' },
+    project: { 'README.md': 'Project', '.gitignore': 'ignored/\n' }, registry });
+  const { project, env } = f;
+  const run = (args: string[], extra: NodeJS.ProcessEnv = {}) => f.run(args, { ...env, ...extra });
   const args = inspectionArgs.map(arg => arg === 'work' ? profile : arg);
   return { project, env, run, adopt(extra: NodeJS.ProcessEnv = {}) {
-    const inspection = (JSON.parse(run(args).stdout) as Inspection);
-    const started = run(['start', ...args.slice(1), '--confirm', inspection.identity], extra);
+    const inspection = f.inspect(args);
+    const started = run(startArgs(inspection.identity, args), extra);
     return { started, report: (JSON.parse(started.stdout) as Run), inspection };
   } };
 }
 
-test('check runs every retained check with a run\'s inputs, reports each result, and changes nothing', t => {
-  const f = adopted(t);
+test('check runs every retained check with a run\'s inputs, reports each result, and changes nothing', async t => {
+  const f = await adopted(t);
   const { started, inspection } = f.adopt();
   assert.equal(started.status, 0, started.stdout + started.stderr);
   commit(f.project.root);
@@ -110,13 +109,15 @@ test('check runs every retained check with a run\'s inputs, reports each result,
 });
 
 test('check fails when any check fails, is blocked, or returns a malformed result, and still runs every check', async t => {
-  const f = adopted(t);
+  const f = await adopted(t);
   assert.equal(f.adopt().started.status, 0);
   commit(f.project.root);
   const cases = [
     { modes: { first: 'failed' }, statuses: ['failed', 'passed', 'passed'], errors: [null, null, null] },
     { modes: { second: 'blocked' }, statuses: ['passed', 'blocked', 'passed'], errors: [null, null, null] },
     { modes: { first: 'malformed', third: 'exit' }, statuses: ['error', 'passed', 'error'], errors: ['PROTOCOL_ERROR', null, 'NONZERO_EXIT'] },
+    // Every way to break the result protocol is a protocol error.
+    { modes: { first: 'multiple results', second: 'wrong version', third: 'wrong status' }, statuses: ['error', 'error', 'error'], errors: ['PROTOCOL_ERROR', 'PROTOCOL_ERROR', 'PROTOCOL_ERROR'] },
   ];
   for (const example of cases) await t.test(JSON.stringify(example.modes), () => {
     const result = cli.run(['check', '--json'], f.project.root, { ...process.env, CHECK_MODES: JSON.stringify(example.modes) });
@@ -126,16 +127,20 @@ test('check fails when any check fails, is blocked, or returns a malformed resul
     assert.deepEqual(report.checks.map((check: { status: string }) => check.status), example.statuses);
     assert.deepEqual(report.checks.map((check: { error: string | null }) => check.error), example.errors);
   });
+  // The readable summary counts the outcomes and gives each check a line
+  // naming its outcome, any error code, and the logs to read.
   const summary = cli.run(['check'], f.project.root, { ...process.env, CHECK_MODES: JSON.stringify({ first: 'failed', third: 'malformed' }) });
   assert.equal(summary.status, 1);
-  assert.equal(summary.stdout, 'Checks of https://github.com/alice/standards v1.0.0, profile work: 1 passed, 1 failed, 1 error.\n'
-    + 'failed  instructions/first: first failed Output: .repo-standards/local/checks/0.stdout, .repo-standards/local/checks/0.stderr\n'
-    + 'passed  instructions/second: second passed\n'
-    + 'error   zulu/third: The check did not return a successful process and protocol result (PROTOCOL_ERROR). Read its logs. Output: .repo-standards/local/checks/2.stdout, .repo-standards/local/checks/2.stderr\n');
+  const [heading, ...lines] = summary.stdout.trimEnd().split('\n');
+  assert.ok(heading!.endsWith(': 1 passed, 1 failed, 1 error.'), heading);
+  assert.equal(lines.length, 3);
+  assert.ok(lines[0]!.startsWith('failed  instructions/first: ') && lines[0]!.includes('.repo-standards/local/checks/0.stdout, .repo-standards/local/checks/0.stderr'), lines[0]);
+  assert.ok(lines[1]!.startsWith('passed  instructions/second: '), lines[1]);
+  assert.ok(lines[2]!.startsWith('error   zulu/third: ') && lines[2]!.includes('PROTOCOL_ERROR') && lines[2]!.includes('.repo-standards/local/checks/2.stdout, .repo-standards/local/checks/2.stderr'), lines[2]);
 });
 
-test('the readable summary keeps each check on one line while JSON keeps its message', t => {
-  const f = adopted(t);
+test('the readable summary keeps each check on one line while JSON keeps its message', async t => {
+  const f = await adopted(t);
   assert.equal(f.adopt().started.status, 0);
   commit(f.project.root);
   const env = { ...process.env, CHECK_MODES: JSON.stringify({ second: 'multiline' }) };
@@ -149,9 +154,9 @@ test('the readable summary keeps each check on one line while JSON keeps its mes
   assert.equal(readable.stdout.split('\n').length, 5);
 });
 
-test('the readable summary keeps the profile on one line while JSON keeps it', t => {
+test('the readable summary keeps the profile on one line while JSON keeps it', async t => {
   const profile = 'work\npassed  zulu/forged: injected';
-  const f = adopted(t, profile);
+  const f = await adopted(t, profile);
   const { started } = f.adopt();
   assert.equal(started.status, 0, started.stdout + started.stderr);
   commit(f.project.root);
@@ -165,8 +170,8 @@ test('the readable summary keeps the profile on one line while JSON keeps it', t
   assert.equal(lines.length, 5);
 });
 
-test('check probes the checks\' prerequisites as a run does', t => {
-  const f = adopted(t);
+test('check probes the checks\' prerequisites as a run does', async t => {
+  const f = await adopted(t);
   assert.equal(f.adopt().started.status, 0);
   commit(f.project.root);
   const result = cli.run(['check', '--json'], f.project.root, { ...process.env, FIXTURE_VERSION: '23.0.0' });
@@ -179,7 +184,7 @@ test('check probes the checks\' prerequisites as a run does', t => {
 });
 
 test('a check that changes the working tree, product state, HEAD or the index fails check and names the changes', async t => {
-  const f = adopted(t);
+  const f = await adopted(t);
   assert.equal(f.adopt().started.status, 0);
   commit(f.project.root);
   const cases = [
@@ -213,7 +218,7 @@ test('a check that changes the working tree, product state, HEAD or the index fa
 });
 
 test('a check that leaves the project unsafe or unreadable to observe fails check with a mutation diagnostic', async t => {
-  const f = adopted(t);
+  const f = await adopted(t);
   assert.equal(f.adopt().started.status, 0);
   commit(f.project.root);
   const index = join(f.project.root, '.git/index');
@@ -264,7 +269,8 @@ test('a check that leaves the project unsafe or unreadable to observe fails chec
     const result = cli.run(['check', '--json'], f.project.root, process.env);
     writeFileSync(index, saved);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.notEqual((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'CHECK_MUTATION');
+    // Before any check runs, an unreadable project is a read failure, not a mutation.
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'PROJECT_READ');
   });
   await t.test('initial unsafe product state', () => {
     const cache = join(f.project.root, '.repo-standards/cache');
@@ -279,7 +285,7 @@ test('a check that leaves the project unsafe or unreadable to observe fails chec
 });
 
 test('a prerequisite probe that writes, or a check that leaves its process group running, fails check', async t => {
-  const f = adopted(t);
+  const f = await adopted(t);
   assert.equal(f.adopt().started.status, 0);
   commit(f.project.root);
   await t.test('probe', () => {
@@ -305,9 +311,13 @@ test('a prerequisite probe that writes, or a check that leaves its process group
     assert.equal((error!.details as CheckErrorDetails).cause.code, 'EACCES');
     assert.equal(existsSync(join(f.project.root, '.repo-standards/local/checks/0.stderr')), false, 'no check runs');
   });
-  await t.test('surviving process', () => {
+  await t.test('surviving process', st => {
+    // The process the check leaves behind lives until the test releases it.
+    const release = join(directoryFixture('repo-standards-release-').root, 'release');
+    st.after(() => { writeFileSync(release, ''); rmSync(join(release, '..'), { recursive: true, force: true }); });
+    const survivor = `const { existsSync } = require('node:fs'); const wait = setInterval(() => { if (existsSync(${JSON.stringify(release)})) clearInterval(wait); }, 10);`;
     const result = cli.run(['check', '--json'], f.project.root, { ...process.env,
-      CHECK_MUTATION: `if (input.operation.id === 'first') spawn(process.execPath, ['-e', 'setTimeout(() => {}, 2000)'], { stdio: 'ignore' }).unref();` });
+      CHECK_MUTATION: `if (input.operation.id === 'first') spawn(process.execPath, ['-e', ${JSON.stringify(survivor)}], { stdio: 'ignore' }).unref();` });
     assert.equal(result.status, 1, result.stdout + result.stderr);
     const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
     assert.equal(error!.code, 'AUTHOR_PROCESS_ACTIVE');
@@ -317,7 +327,7 @@ test('a prerequisite probe that writes, or a check that leaves its process group
 });
 
 test('check fails with the existing diagnostics without a complete adoption, during a run, under another CLI, or with changed retained inputs', async t => {
-  const f = adopted(t);
+  const f = await adopted(t);
   const check = () => {
     const result = cli.run(['check', '--json'], f.project.root, { ...process.env, CHECK_MODES: JSON.stringify({ first: 'failed' }) });
     assert.equal(result.status, 1, result.stdout + result.stderr);

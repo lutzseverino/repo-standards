@@ -1161,18 +1161,11 @@ test('updates preserve incomplete work when excluded roots become invalid during
       const f = await pendingUpdate(t, kind);
       const target = join(f.project.root, path);
       const saved = join(f.remote.support.root, 'saved-directory');
-      const env = filesystemFault(f.remote.support.root, f.env, phase, `
-const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  const result = rename.call(this, from, to);
-  fs.renameSync = rename;
-  const target = ${JSON.stringify(target)};
-  if (fs.existsSync(target)) rename(target, ${JSON.stringify(saved)});
-  write(target, 'Preserve invalid root');
-  ${kill}
-  return result;
-};
-syncBuiltinESMExports();`);
+      // At the phase's first rename, the root becomes a file.
+      const env = filesystemFault(f.remote.support.root, f.env, phase, killAfterRename('', { before: `
+const target = ${JSON.stringify(target)};
+if (fs.existsSync(target)) rename(target, ${JSON.stringify(saved)});
+write(target, 'Preserve invalid root');` }));
       assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
       assert.equal((JSON.parse(f.run(['status', '--json']).stdout) as Status).active!.phase, phase);
       const tracked = git(f.project.root, 'diff', '--binary');

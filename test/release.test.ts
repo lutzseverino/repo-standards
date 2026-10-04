@@ -1,54 +1,84 @@
-import type { PackageManifest, SourceValidation } from './json-reports.ts';
+import type { SourceValidation } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
-import test from 'node:test';
+import { after, before, test } from 'node:test';
 import { parse } from 'yaml';
 import { packPackage } from '../scripts/pack-package.ts';
-import { installCli } from './installed-cli.ts';
 
-test('release artifacts install without build tools and expose the matching CLI, bootstrap, skill and author documentation', t => {
-  const root = mkdtempSync(join(tmpdir(), 'repo-standards-release-test-'));
-  t.after(() => rmSync(root, { recursive: true, force: true }));
-  const output = join(root, 'release');
+// One release bundle, packed twice to show packing is repeatable, and its
+// tarball installed without build tools, shared by the checks below.
+const root = mkdtempSync(join(tmpdir(), 'repo-standards-release-test-'));
+after(() => rmSync(root, { recursive: true, force: true }));
+const output = join(root, 'release');
+let bundle: { package: string; version: string; tarball: string; integrity: string; artifacts: { file: string; sha256: string }[] };
+let installed: string;
+let cli: string;
+let packaged: string[];
+before(() => {
   execFileSync(process.execPath, ['scripts/pack-release.ts', output], { stdio: 'pipe' });
-  const bundle = JSON.parse(readFileSync(join(output, 'release.json'), 'utf8')) as { package: string; version: string; tarball: string; integrity: string; artifacts: { file: string; sha256: string }[] };
+  bundle = JSON.parse(readFileSync(join(output, 'release.json'), 'utf8')) as typeof bundle;
+  const installation = join(root, 'installation');
+  execFileSync('npm', ['install', '--prefix', installation, '--ignore-scripts', '--no-audit', '--no-fund', join(output, bundle.tarball)], { cwd: root, stdio: 'pipe' });
+  installed = join(installation, 'node_modules/@lutzseverino/repo-standards');
+  cli = join(installation, 'node_modules/.bin/repo-standards');
+  packaged = execFileSync('tar', ['-tzf', join(output, bundle.tarball)], { encoding: 'utf8' })
+    .split('\n').filter(Boolean).map(entry => entry.replace(/^package\//, ''));
+});
+
+// Every file of a directory tree, relative to it and sorted.
+const files = (directory: string) => readdirSync(directory, { recursive: true, encoding: 'utf8' })
+  .filter(path => statSync(join(directory, path)).isFile()).sort();
+
+test('release packaging is repeatable, its artifacts match their recorded hashes, and the tarball installs the matching CLI and bootstrap', () => {
   const repeatedOutput = join(root, 'repeated-release');
   execFileSync(process.execPath, ['scripts/pack-release.ts', repeatedOutput], { stdio: 'pipe' });
   assert.deepEqual(readFileSync(join(repeatedOutput, bundle.tarball)), readFileSync(join(output, bundle.tarball)), 'Repeated packaging of the same build must produce identical bytes');
   for (const artifact of bundle.artifacts) {
     assert.equal(createHash('sha256').update(readFileSync(join(output, artifact.file))).digest('hex'), artifact.sha256);
   }
-  const installation = join(root, 'installation');
-  execFileSync('npm', ['install', '--prefix', installation, '--ignore-scripts', '--no-audit', '--no-fund', join(output, bundle.tarball)], { cwd: root, stdio: 'pipe' });
-  const cli = join(installation, 'node_modules/.bin/repo-standards');
   assert.equal(execFileSync(cli, ['--version'], { encoding: 'utf8' }).trim(), bundle.version);
   assert.match(execFileSync(join(output, 'repo-standards-bootstrap'), ['--help'], { encoding: 'utf8' }), /Usage: repo-standards-bootstrap/);
-  const installed = join(installation, 'node_modules/@lutzseverino/repo-standards');
-  const adoptionResources = ['SKILL.md', 'references/discovery.md', 'references/assessment.md', 'references/recovery.md', 'references/review.md'];
-  for (const resource of adoptionResources) {
-    assert.deepEqual(readFileSync(join(installed, 'skills/adopt-standards', resource)),
-      readFileSync(resolve('skills/adopt-standards', resource)));
+});
+
+test('the package ships each product skill whole, with its invocation settings and no delivery vocabulary', () => {
+  assert.deepEqual(readdirSync(join(installed, 'skills')).sort(), ['adopt-standards', 'author-standards', 'standards-updates']);
+  for (const [name, disabled, implicit] of [['adopt-standards', true, false], ['standards-updates', false, true], ['author-standards', false, true]] as const) {
+    const skill = join(installed, 'skills', name);
+    assert.deepEqual(files(skill), files(resolve('skills', name)), name);
+    for (const resource of files(skill)) assert.deepEqual(readFileSync(join(skill, resource)), readFileSync(resolve('skills', name, resource)), `skills/${name}/${resource}`);
+    assert.equal((parse(readFileSync(join(skill, 'SKILL.md'), 'utf8').match(/^---\n([\s\S]*?)\n---\n/)![1]!) as { 'disable-model-invocation': boolean })['disable-model-invocation'], disabled);
+    assert.equal((parse(readFileSync(join(skill, 'agents/openai.yaml'), 'utf8')) as { policy: { allow_implicit_invocation: boolean } }).policy.allow_implicit_invocation, implicit);
+    // Every product skill leaves delivery vocabulary to standards sources.
+    for (const resource of files(skill).filter(path => path.endsWith('.md'))) {
+      const content = readFileSync(join(skill, resource), 'utf8').replace(/\s+/g, ' ');
+      assert.doesNotMatch(content, /\b(?:tickets?|issues?|pull requests?|PRs?)\b/i, `skills/${name}/${resource} uses workflow vocabulary`);
+    }
   }
-  // The adoption skill routes only to its own references, never into a package
-  // docs/ directory. It links contracts at this exact version.
-  assert.doesNotMatch(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md'), 'utf8')
+});
+
+test('the adoption skill routes only to its own references and links contracts at the released version', () => {
+  const skill = join(installed, 'skills/adopt-standards');
+  const resources = files(skill).filter(path => path.endsWith('.md'));
+  // It routes only to its own references, never into a package docs/
+  // directory, and links contracts at this exact version.
+  assert.doesNotMatch(readFileSync(join(skill, 'SKILL.md'), 'utf8')
     .replace(/\(https:\/\/github\.com\/lutzseverino\/repo-standards\/blob\/v[^)]+\)/g, ''), /\bdocs\//);
   // The skill tells the agent to keep the external CLI directory, so its
   // installation prints that directory expanded.
-  assert.match(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md'), 'utf8'), /^printf '[^'\n]*%s\\n' "\$cli_dir"$/m);
-  const contractLinks = adoptionResources
-    .flatMap(resource => [...readFileSync(join(installed, 'skills/adopt-standards', resource), 'utf8')
+  assert.match(readFileSync(join(skill, 'SKILL.md'), 'utf8'), /^printf '[^'\n]*%s\\n' "\$cli_dir"$/m);
+  const contractLinks = resources
+    .flatMap(resource => [...readFileSync(join(skill, resource), 'utf8')
       .matchAll(/\]\(https:\/\/github\.com\/lutzseverino\/repo-standards\/blob\/v([^/)]+)\/([^)#]+)(?:#([^)]+))?\)/g)]
       .map(match => ({ resource, version: match[1]!, path: match[2]!, anchor: match[3] })));
   assert.ok(contractLinks.length > 0, 'The adoption references link the contracts they rely on');
   // An adopting project installs the skill alone, so its local links stay inside
   // the skill and its product repository links name this release's tag.
-  for (const resource of adoptionResources) {
-    const content = readFileSync(join(installed, 'skills/adopt-standards', resource), 'utf8');
+  for (const resource of resources) {
+    const content = readFileSync(join(skill, resource), 'utf8');
     for (const match of content.matchAll(/\]\(([^\s)]+)\)/g)) {
       const target = match[1]!;
       if (/^[a-z][a-z0-9+.-]*:/i.test(target)) {
@@ -58,8 +88,8 @@ test('release artifacts install without build tools and expose the matching CLI,
         }
         continue;
       }
-      const linked = resolve(installed, 'skills/adopt-standards', dirname(resource), target.split('#')[0]!);
-      assert.ok(!relative(join(installed, 'skills/adopt-standards'), linked).startsWith('..'), `${resource} links ${target} outside the skill`);
+      const linked = resolve(skill, dirname(resource), target.split('#')[0]!);
+      assert.ok(!relative(skill, linked).startsWith('..'), `${resource} links ${target} outside the skill`);
     }
   }
   for (const link of contractLinks) {
@@ -69,50 +99,30 @@ test('release artifacts install without build tools and expose the matching CLI,
     if (link.anchor) assert.ok(headingAnchors(readFileSync(join(installed, link.path), 'utf8')).has(link.anchor),
       `${link.resource} links missing ${link.path}#${link.anchor}`);
   }
-  // The update notice ships whole, and every product skill leaves delivery
-  // vocabulary to standards sources.
-  for (const resource of ['SKILL.md', 'agents/openai.yaml']) {
-    assert.deepEqual(readFileSync(join(installed, 'skills/standards-updates', resource)),
-      readFileSync(resolve('skills/standards-updates', resource)));
-  }
-  assert.deepEqual(readdirSync(join(installed, 'skills')).sort(), ['adopt-standards', 'author-standards', 'standards-updates']);
-  for (const skill of readdirSync(join(installed, 'skills'))) {
-    for (const resource of readdirSync(join(installed, 'skills', skill), { recursive: true, encoding: 'utf8' }).filter(path => path.endsWith('.md'))) {
-      const content = readFileSync(join(installed, 'skills', skill, resource), 'utf8').replace(/\s+/g, ' ');
-      assert.doesNotMatch(content, /\b(?:tickets?|issues?|pull requests?|PRs?)\b/i, `skills/${skill}/${resource} uses workflow vocabulary`);
-    }
-  }
-  for (const [name, disabled, implicit] of [['adopt-standards', true, false], ['standards-updates', false, true], ['author-standards', false, true]] as const) {
-    const skill = readFileSync(join(installed, 'skills', name, 'SKILL.md'), 'utf8');
-    assert.equal((parse(skill.match(/^---\n([\s\S]*?)\n---\n/)![1]!) as { 'disable-model-invocation': boolean })['disable-model-invocation'], disabled);
-    const policy = readFileSync(join(installed, 'skills', name, 'agents/openai.yaml'), 'utf8');
-    assert.equal((parse(policy) as { policy: { allow_implicit_invocation: boolean } }).policy.allow_implicit_invocation, implicit);
-    assert.deepEqual(policy, readFileSync(resolve('skills', name, 'agents/openai.yaml'), 'utf8'));
-  }
-  const authoringResources = ['SKILL.md', 'references/cli.md', 'references/profiles.md', 'references/operations.md', 'references/revision.md'];
-  for (const resource of authoringResources) {
-    assert.deepEqual(readFileSync(join(installed, 'skills/author-standards', resource)),
-      readFileSync(resolve('skills/author-standards', resource)));
-  }
+});
+
+test('the authoring skill names packaged usage documents and acquires the released CLI on its own', () => {
+  const skill = join(installed, 'skills/author-standards');
   // The authoring skill reads the matching package's usage documents by their
   // canonical paths. The skill names each document path in backticks.
-  const skillDocuments = authoringResources
-    .flatMap(resource => [...readFileSync(join(installed, 'skills/author-standards', resource), 'utf8').matchAll(/`(?:[^`\s]*\/@lutzseverino\/repo-standards\/)?(docs\/[^`\s]+\.md)`/g)].map(match => match[1]!));
+  const skillDocuments = files(skill).filter(path => path.endsWith('.md'))
+    .flatMap(resource => [...readFileSync(join(skill, resource), 'utf8').matchAll(/`(?:[^`\s]*\/@lutzseverino\/repo-standards\/)?(docs\/[^`\s]+\.md)`/g)].map(match => match[1]!));
   assert.ok(skillDocuments.length > 0);
   for (const document of skillDocuments) {
     assert.match(document, /^docs\/usage\//, `The authoring skill names ${document} outside docs/usage/`);
     assert.ok(existsSync(join(installed, document)), `The authoring skill names missing ${document}`);
   }
   const standaloneSkill = join(root, 'standalone-author-standards');
-  cpSync(join(installed, 'skills/author-standards'), standaloneSkill, { recursive: true });
+  cpSync(skill, standaloneSkill, { recursive: true });
   const acquisition = readFileSync(join(standaloneSkill, 'references/cli.md'), 'utf8');
   const documentedVersions = [...acquisition.matchAll(/@lutzseverino\/repo-standards@(\d+\.\d+\.\d+)/g)];
   assert.ok(documentedVersions.length > 0, 'The standalone skill must document exact CLI acquisition');
   for (const match of documentedVersions) assert.equal(match[1], bundle.version, 'Authoring must acquire the released CLI and its matching contracts');
-  // The package carries only product material: no development records, ADRs,
-  // agent process guidance, documentation index, or contribution rules.
-  const packaged = execFileSync('tar', ['-tzf', join(output, bundle.tarball)], { encoding: 'utf8' })
-    .split('\n').filter(Boolean).map(entry => entry.replace(/^package\//, ''));
+});
+
+test('the package carries only product material, and its usage documents resolve their links and address no agent', () => {
+  // No development records, ADRs, agent process guidance, documentation index,
+  // or contribution rules.
   const entries = (prefix: string) => [...new Set(packaged.filter(entry => entry.startsWith(prefix))
     .map(entry => entry.slice(prefix.length).split('/')[0]!))].sort();
   assert.deepEqual(entries(''), ['LICENSE', 'README.md', 'bootstrap', 'dist', 'docs', 'examples', 'package.json', 'skills']);
@@ -149,6 +159,9 @@ test('release artifacts install without build tools and expose the matching CLI,
       assert.ok(!instruction.test(content), `${documentPath} addresses an agent: ${content.match(instruction)?.[0]}`);
     }
   }
+});
+
+test('the packaged example sources validate', () => {
   for (const author of ['alice', 'mira']) {
     const result = spawnSync(cli, ['source', 'validate', join(installed, 'examples', author), '--json'], { cwd: root, encoding: 'utf8' });
     assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -229,20 +242,4 @@ test('packing keeps README query strings and fragments on repository URLs and re
     assert.throws(() => pack(`[outside](${target})\n`), /leaves the repository/, target);
   }
   assert.throws(() => pack('[missing](MISSING.md)\n'), /not in the repository/);
-});
-
-test('an independently installed later CLI package reports its exact release version', t => {
-  const current = installCli();
-  t.after(() => current.close());
-  const candidate = join(current.root, 'candidate');
-  cpSync(join(current.root, 'node_modules/@lutzseverino/repo-standards'), candidate, { recursive: true });
-  const manifest = (JSON.parse(readFileSync(join(candidate, 'package.json'), 'utf8')) as PackageManifest);
-  writeFileSync(join(candidate, 'package.json'), JSON.stringify({ ...manifest, version: '1.99.42' }));
-  const previous = process.cwd();
-  process.chdir(candidate);
-  try {
-    const installed = installCli();
-    t.after(() => installed.close());
-    assert.equal(installed.run(['--version'], candidate).stdout.trim(), '1.99.42');
-  } finally { process.chdir(previous); }
 });

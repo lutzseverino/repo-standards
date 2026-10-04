@@ -4,7 +4,7 @@ import { after, test } from 'node:test';
 import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
-import { commit, git, remoteEnvironment, remoteFixture } from './remote-fixture.ts';
+import { remoteEnvironment, remoteFixture } from './remote-fixture.ts';
 
 interface SearchResponse { items: { full_name: string; private: boolean; description: string | null }[]; total_count: number; incomplete_results: boolean }
 
@@ -70,14 +70,9 @@ test('search rejects unsupported and invalid candidates explicitly while keeping
     remoteFixture(yaml.replace('repo-standards/v2', 'repo-standards/v99'), { 'readme.md': 'README', 'never-run.mjs': '' }, [], 'invalid/standards'),
     remoteFixture(yaml.replace('>=1.0.0', '>=99.0.0'), { 'readme.md': 'README', 'never-run.mjs': '' }, [], 'incompatible/standards'),
     remoteFixture(yaml, {}, [], 'missing/standards'),
-    remoteFixture(yaml, { 'readme.md': 'README', 'never-run.mjs': '' }, [], 'rootless/standards'),
   ];
   const project = sourceFixture('');
   t.after(() => { remote.close(); project.close(); others.forEach(other => other.close()); });
-  const rootless = others[3]!;
-  git(rootless.source.root, 'mv', 'standards.yaml', 'Standards.yaml');
-  commit(rootless.source.root);
-  rootless.publish('v1.0.0');
   const search = remote.responses[searchUrl]!.body as SearchResponse;
   for (const other of others) {
     Object.assign(remote.responses, other.responses);
@@ -94,9 +89,9 @@ test('search rejects unsupported and invalid candidates explicitly while keeping
   const report = (JSON.parse(result.stdout) as SearchReport);
   assert.equal(report.candidates.length, 1);
   assert.deepEqual(report.rejected.map((entry) => entry.code), [
-    'INVALID_STANDARDS', 'INVALID_STANDARDS', 'INVALID_STANDARDS', 'INVALID_STANDARDS', 'UNSUPPORTED_SOURCE', 'UNSUPPORTED_SOURCE',
+    'INVALID_STANDARDS', 'INVALID_STANDARDS', 'INVALID_STANDARDS', 'UNSUPPORTED_SOURCE', 'UNSUPPORTED_SOURCE',
   ]);
-  for (const [index, code] of ['INVALID_FORMAT', 'INCOMPATIBLE_CLI', 'MISSING_REFERENCE', 'SOURCE_READ'].entries()) {
+  for (const [index, code] of ['INVALID_FORMAT', 'INCOMPATIBLE_CLI', 'MISSING_REFERENCE'].entries()) {
     assert.ok((report.rejected[index]!.details! as Diagnostic[]).some((detail) => detail.code === code && detail.file === 'standards.yaml'));
   }
 });

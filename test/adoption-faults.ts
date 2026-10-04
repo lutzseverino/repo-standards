@@ -32,13 +32,23 @@ syncBuiltinESMExports();
 // on and stops the process at the first call on a path ending in `suffix`.
 export const kill = `process.kill(process.pid, 'SIGKILL');`;
 
-// Stops right after a staged file is renamed into place.
-export function killAfterRename(suffix: string) {
+// Stops right after a file is renamed into place at a path ending in any of
+// the suffixes, when `when` holds. Both `when` and `before`, which runs ahead of
+// the stop, see the renamed file as `record` when it holds JSON, and the
+// original `rename`.
+export function killAfterRename(suffix: string | string[], options: { when?: string; before?: string } = {}) {
   return `
 const rename = fs.renameSync;
 fs.renameSync = function(from, to, ...args) {
   const result = rename.call(this, from, to, ...args);
-  if (String(to).endsWith(${JSON.stringify(suffix)})) ${kill}
+  if (${JSON.stringify([suffix].flat())}.some(suffix => String(to).endsWith(suffix))) {
+    let record;
+    try { record = JSON.parse(fs.readFileSync(to, 'utf8')); } catch {}
+    if (${options.when ?? 'true'}) {
+      ${options.before ?? ''}
+      ${kill}
+    }
+  }
   return result;
 };
 syncBuiltinESMExports();`;

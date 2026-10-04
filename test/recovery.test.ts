@@ -357,18 +357,9 @@ test('live process ownership is authoritative before any mirror of a running ope
   const f = await fixture(t, { readme: { kind: 'file', target: 'README.md', guidance: 'guide.md', fixes: [operation('wait')] } },
     'setInterval(() => {}, 1000);');
   const groupFile = join(f.remote.support.root, 'interrupted-group');
-  const env = filesystemFault(f.remote.support.root, f.env, 'fixes', `
-const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  let report;
-  try { report = JSON.parse(fs.readFileSync(from, 'utf8')); } catch { /* The faulted process may already have exited. */ }
-  const result = rename.call(this, from, to);
-  if ((String(to).endsWith('/.repo-standards/local/run.json') || String(to).endsWith('/repo-standards-run.lock')) && report?.processGroup) {
-    write(${JSON.stringify(groupFile)}, String(report.processGroup));
-    ${kill}
-  }
-  return result;
-}; syncBuiltinESMExports();`);
+  // Stop once a record of the run names the operation's process group.
+  const env = filesystemFault(f.remote.support.root, f.env, 'fixes', killAfterRename(['/.repo-standards/local/run.json', '/repo-standards-run.lock'],
+    { when: 'record?.processGroup', before: `write(${JSON.stringify(groupFile)}, String(record.processGroup));` }));
   assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
   const group = Number(readFileSync(groupFile, 'utf8'));
   t.after(() => { try { process.kill(-group, 'SIGKILL'); } catch { /* The faulted process may already have exited. */ } });
@@ -629,7 +620,7 @@ test('a final report persistence failure retains incomplete evidence and recover
   assert.equal(result.status, 1, result.stdout + result.stderr);
   assert.equal(report.outcome, 'incomplete');
   assert.equal(report.phase, 'completion');
-  console.error('PROBE-UNCERTAIN', JSON.stringify(report.uncertain)); assert.ok(report.uncertain.length > 0);
+  assert.ok(report.uncertain.some(message => message.includes('final run-report persistence')), String(report.uncertain));
   assert.match(report.nextAction, /incomplete adoption/);
   assert.equal(existsSync(join(f.root, '.repo-standards/state.json')), false);
   assert.equal(existsSync(join(f.root, '.repo-standards/local/incomplete-state.json')), true);
