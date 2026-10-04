@@ -17,8 +17,10 @@ Read `status --json` and its `active` record: `phase`, `reason`, `changes`,
   running. Wait for it to finish. Stop it only on the maintainer's
   instruction.
 - An ordinary contextual handoff continues with [assessment](assessment.md).
-- An ordinary `CHECKS_FAILED` result continues with a renewed
-  [assessment](assessment.md#submit-the-assessment), not a retry.
+- In a run with contextual work, an ordinary `CHECKS_FAILED` result continues
+  with a renewed [assessment](assessment.md#submit-the-assessment), not a
+  retry. Without contextual work there is no assessment to renew, and
+  `CHECKS_FAILED` needs the decision below.
 - Interrupted installation, other failed or uncertain operations, and failed
   completion need a decision between retry and abandonment. Explain the phase,
   reason, actual changes, completed and uncertain work, and the safe next
