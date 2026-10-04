@@ -159,8 +159,14 @@ outside that profile's governance.
 
 Validation rejects unknown fields, duplicate identities, missing references,
 invalid versions, malformed operations, invalid exclusions, reserved skill
-names, and any profile that cannot resolve. It reports all determinable errors
-with stable codes and precise YAML locations.
+names, inconsistent skill invocation settings, and any profile that cannot
+resolve. It reports all determinable errors with stable codes and precise YAML
+locations.
+
+Author skills' `SKILL.md` frontmatter `disable-model-invocation` and
+`agents/openai.yaml` `policy.allow_implicit_invocation` must agree; an absent
+setting means model-invocable. Product skills state both settings explicitly:
+`adopt-standards` is manual only and `author-standards` is model-invocable.
 
 Source and target paths are repository-relative and cannot escape their roots.
 Selected sources cannot contain symbolic links. Targets and their ancestors

@@ -151,6 +151,7 @@ test('the adoption record lists a path changed by fixes and agent work once, wit
   const status = f.json(['status', '--json']);
   assert.deepEqual(status.changeSet, [
     { path: '.agents/skills/adopt-standards/SKILL.md', phases: ['installation'] },
+    { path: '.agents/skills/adopt-standards/agents/openai.yaml', phases: ['installation'] },
     { path: 'AGENTS.md', phases: ['installation'] },
     { path: 'apps/a/README.md', phases: ['fixes', 'agent'] },
   ]);
@@ -162,6 +163,7 @@ test('the adoption record lists a path changed by fixes and agent work once, wit
 | checks | \`docs\` | \`verify\` | passed | verify done |`, `| Path | Phases |
 | --- | --- |
 | \`.agents/skills/adopt-standards/SKILL.md\` | installation |
+| \`.agents/skills/adopt-standards/agents/openai.yaml\` | installation |
 | \`AGENTS.md\` | installation |
 | \`apps/a/README.md\` | fixes, agent |`, `| Declaration | Added | Removed |
 | --- | --- | --- |
@@ -180,7 +182,7 @@ test('a path the agent returns to its content before the run is not a changed pa
   const status = f.json(['status', '--json']);
   assert.deepEqual(status.observations.filter((interval: { changes?: object }) => interval.changes && 'apps/a/README.md' in interval.changes)
     .map((interval: { phase: string }) => interval.phase), ['fixes', 'agent']);
-  assert.deepEqual(status.changeSet.map((entry: { path: string }) => entry.path), ['.agents/skills/adopt-standards/SKILL.md', 'AGENTS.md']);
+  assert.deepEqual(status.changeSet.map((entry: { path: string }) => entry.path), ['.agents/skills/adopt-standards/SKILL.md', '.agents/skills/adopt-standards/agents/openai.yaml', 'AGENTS.md']);
 });
 
 test('the record of an update that only installs exact content lists every installed path, from durable state alone', async t => {

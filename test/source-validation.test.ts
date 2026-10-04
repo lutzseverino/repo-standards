@@ -488,7 +488,6 @@ profiles:
   assert.match(human.stdout, /concrete scope safety.*semantic completeness/i);
 });
 
-
 for (const [label, declaration, code, path] of [
   ['both scope modes', 'discovery: discovery.md\n      targets: {paths: [README.md], directories: []}', 'INVALID_DECLARATION', ''],
   ['neither scope mode', '', 'INVALID_DECLARATION', ''],
@@ -603,8 +602,12 @@ profiles:
   });
 }
 
-
-test('author skill invocation must agree across Claude Code and Codex', (t) => {
+for (const [label, frontmatter, policy, disabled, implicit] of [
+  ['manual only in Claude Code', 'disable-model-invocation: true', undefined, true, true],
+  ['manual only in Codex', '', 'policy:\n  allow_implicit_invocation: false\n', false, false],
+  ['explicitly invocable only in Codex', 'disable-model-invocation: true', 'policy: {allow_implicit_invocation: true}\n', true, true],
+  ['explicitly invocable only in Claude Code', 'disable-model-invocation: false', 'policy: {allow_implicit_invocation: false}\n', false, false],
+] as const) test(`author skill invocation rejects ${label}`, (t) => {
   const source = sourceFixture(header + `defaults:
   declarations:
     review:
@@ -615,7 +618,8 @@ profiles:
   personal:
     description: Personal
     declarations: {}
-`, { 'skills/review/SKILL.md': '---\nname: review\ndisable-model-invocation: true\n---\nReview code.\n' });
+`, { 'skills/review/SKILL.md': `---\nname: review\n${frontmatter}\n---\nReview code.\n`,
+    ...(policy === undefined ? {} : { 'skills/review/agents/openai.yaml': policy }) });
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout + result.stderr);
@@ -624,6 +628,92 @@ profiles:
   const diagnostic = report.errors.find((error: { code: string }) => error.code === 'SKILL_INVOCATION_MISMATCH');
   assert.ok(diagnostic, result.stdout);
   assert.match(diagnostic.message, /review/);
-  assert.match(diagnostic.message, /disable-model-invocation: true/);
-  assert.match(diagnostic.message, /policy.allow_implicit_invocation: true/);
+  assert.ok(diagnostic.message.includes(`disable-model-invocation: ${disabled}`));
+  assert.ok(diagnostic.message.includes(`policy.allow_implicit_invocation: ${implicit}`));
+  assert.equal(diagnostic.path, '/defaults/declarations/review/source');
+  assert.equal(result.stderr, '');
+  const human = cli.run(['source', 'validate'], source.root);
+  assert.equal(human.status, 1);
+  assert.match(human.stderr, /SKILL_INVOCATION_MISMATCH.*review/);
+});
+
+for (const [label, skill, policy] of [
+  ['manual only in both tools', '---\nname: review\ndisable-model-invocation: true\n---\nReview.', 'policy: {allow_implicit_invocation: false}\n'],
+  ['invocable in both tools', '---\nname: review\ndisable-model-invocation: false\n---\nReview.', 'policy: {allow_implicit_invocation: true}\n'],
+  ['neither setting with frontmatter', '---\nname: review\ndescription: Review code.\n---\nReview.', 'interface: {display_name: Review}\n'],
+  ['neither metadata file', '# Review\nReview code.', undefined],
+  ['absent Claude Code setting with explicit Codex default', '---\nname: review\n---\nReview.', 'policy: {allow_implicit_invocation: true}\n'],
+  ['explicit Claude Code default with absent Codex setting', '---\nname: review\ndisable-model-invocation: false\n---\nReview.', undefined],
+] as const) test(`author skill invocation accepts ${label}`, (t) => {
+  const source = sourceFixture(header + `defaults:
+  declarations:
+    review:
+      kind: skill
+      name: review
+      source: skills/review
+profiles:
+  personal:
+    description: Personal
+    declarations: {}
+`, { 'skills/review/SKILL.md': skill,
+      ...(policy === undefined ? {} : { 'skills/review/agents/openai.yaml': policy }) });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(JSON.parse(result.stdout).valid, true);
+});
+
+
+for (const [label, metadata, files, code, file, line, path] of [
+  ['non-boolean frontmatter', 'disable-model-invocation: "false"', {}, 'INVALID_TYPE', 'skills/review/SKILL.md', 3, '/disable-model-invocation'],
+  ['non-boolean Codex setting', '', { 'skills/review/agents/openai.yaml': 'policy:\n  allow_implicit_invocation: "true"\n' }, 'INVALID_TYPE', 'skills/review/agents/openai.yaml', 2, '/policy/allow_implicit_invocation'],
+  ['invalid Codex YAML', '', { 'skills/review/agents/openai.yaml': 'policy: [\n' }, 'YAML_SYNTAX', 'skills/review/agents/openai.yaml', 2, ''],
+] as const) test(`author skill invocation reports ${label} at its metadata location`, (t) => {
+  const source = sourceFixture(header + `defaults:
+  declarations:
+    review:
+      kind: skill
+      name: review
+      source: skills/review
+profiles:
+  personal:
+    description: Personal
+    declarations: {}
+`, { 'skills/review/SKILL.md': `---\nname: review\n${metadata}\n---\nReview code.\n`, ...files });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string; file: string; line: number; path: string }) =>
+    error.code === code && error.file === join(source.root, file) && error.line === line && error.path === path), result.stdout);
+});
+
+test('author skill invocation validates excluded defaults and unselected profiles', (t) => {
+  const source = sourceFixture(header + `defaults:
+  declarations:
+    review:
+      kind: skill
+      name: review
+      source: skills/review
+profiles:
+  personal:
+    description: Personal
+    declarations:
+      review: {exclude: true}
+  work:
+    description: Work
+    declarations:
+      review:
+        kind: skill
+        name: work-review
+        source: skills/work-review
+`, {
+    'skills/review/SKILL.md': '---\ndisable-model-invocation: true\n---\nReview.',
+    'skills/work-review/SKILL.md': '# Review',
+    'skills/work-review/agents/openai.yaml': 'policy: {allow_implicit_invocation: false}\n',
+  });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout).errors.filter((error: { code: string }) => error.code === 'SKILL_INVOCATION_MISMATCH')
+    .map((error: { path: string }) => error.path), ['/defaults/declarations/review/source', '/profiles/work/declarations/review/source']);
 });

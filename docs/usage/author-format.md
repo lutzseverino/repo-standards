@@ -92,9 +92,24 @@ requires exactly one of `targets` or `discovery`, and explicit targets need at
 least one path or directory. Exact skills target
 `.agents/skills/<name>` as a whole. `adopt-standards` and `author-standards` are
 product-owned system skill names reserved against author skills. Author skill
-content remains ordinary Agent Skill material; source
-validation verifies its directory and `SKILL.md` references, not prose quality
-or skill behavior.
+content remains ordinary Agent Skill material; source validation verifies its
+directory, `SKILL.md` references, and invocation agreement, not prose quality or
+skill behavior.
+
+### Skill invocation
+
+Claude Code reads `disable-model-invocation` from the YAML frontmatter in
+`SKILL.md`. Codex reads `policy.allow_implicit_invocation` from the skill's
+`agents/openai.yaml`. These settings must agree: manual-only skills use `true`
+and `false`, respectively; model-invocable skills use `false` and `true`.
+An absent setting means model-invocable, including absent frontmatter or an
+absent `agents/openai.yaml`. A skill that states neither passes unchanged.
+Present invocation settings must be YAML booleans. Other skill metadata is
+outside the author schema.
+
+`source validate` checks every declared skill, including replaced or excluded
+defaults and skills in unselected profiles. A disagreement produces
+`SKILL_INVOCATION_MISMATCH`, naming the skill and both effective values.
 
 ### Discovery guidance
 
@@ -265,6 +280,7 @@ structurally invalid YAML may limit what can be determined.
 | `EMPTY_PROFILES` | No complete named profile |
 | `INVALID_ID` | Declaration, skill, or operation identity is malformed |
 | `INVALID_DECLARATION` | Unknown kind, file without exactly one content mode, or repository guidance without exactly one scope mode |
+| `SKILL_INVOCATION_MISMATCH` | Skill's Claude Code and Codex invocation settings disagree; message names the skill and both effective values |
 | `INVALID_EXCLUSION` | Invalid exclusion value, level, or default identity |
 | `INVALID_EXECUTABLE` | Executable violates the documented name/path syntax |
 | `INVALID_TIMEOUT` | Timeout is not a positive safe integer |

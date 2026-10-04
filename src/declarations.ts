@@ -16,7 +16,8 @@ function validExecutable(executable: string): boolean {
 
 export class Declarations {
   readonly locations = new WeakMap<SourceDeclaration, Target[]>();
-  constructor(private readonly fields: Fields, private readonly paths: Paths) {}
+  constructor(private readonly fields: Fields, private readonly paths: Paths,
+    private readonly validateSkill: (name: string, source: Value) => void) {}
 
   private id(value: Value): string | undefined {
     const name = this.fields.string(value);
@@ -103,7 +104,7 @@ export class Declarations {
         targetPath({ ...nameValue, data: `.agents/skills/${name}` });
         const sourceValue = f.get(declaration, 'source');
         const source = this.paths.reference(sourceValue, 'directory');
-        if (source) this.paths.reference({ ...sourceValue, data: `${source}/SKILL.md` }, 'file');
+        if (source) this.validateSkill(name, sourceValue);
         declarations.set(id, { ...base, kind, name, source });
       } else if (kind === 'repository') {
         f.map(declaration, ['kind', 'guidance', 'targets', 'checks', 'fixes', 'discovery']);

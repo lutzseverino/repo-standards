@@ -5,6 +5,7 @@ import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, sta
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import test from 'node:test';
+import { parse } from 'yaml';
 import { packPackage } from '../scripts/pack-package.ts';
 import { installCli } from './installed-cli.ts';
 
@@ -27,6 +28,13 @@ test('release artifacts install without build tools and expose the matching CLI,
   assert.match(execFileSync(join(output, 'repo-standards-bootstrap'), ['--help'], { encoding: 'utf8' }), /Usage: repo-standards-bootstrap/);
   const installed = join(installation, 'node_modules/@lutzseverino/repo-standards');
   assert.deepEqual(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md')), readFileSync(resolve('skills/adopt-standards/SKILL.md')));
+  for (const [name, disabled, implicit] of [['adopt-standards', true, false], ['author-standards', false, true]] as const) {
+    const skill = readFileSync(join(installed, 'skills', name, 'SKILL.md'), 'utf8');
+    assert.equal(parse(skill.match(/^---\n([\s\S]*?)\n---\n/)![1]!)['disable-model-invocation'], disabled);
+    const policy = readFileSync(join(installed, 'skills', name, 'agents/openai.yaml'), 'utf8');
+    assert.equal(parse(policy).policy.allow_implicit_invocation, implicit);
+    assert.deepEqual(policy, readFileSync(resolve('skills', name, 'agents/openai.yaml'), 'utf8'));
+  }
   const authoringResources = ['SKILL.md', 'references/cli.md', 'references/profiles.md', 'references/operations.md', 'references/revision.md'];
   for (const resource of authoringResources) {
     assert.deepEqual(readFileSync(join(installed, 'skills/author-standards', resource)),
