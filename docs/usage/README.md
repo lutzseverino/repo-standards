@@ -15,6 +15,8 @@ Repository Standards, and defines its public formats and protocols.
   state, completion, status summaries, recovery commands, and fresh adoption.
 - [Available updates](available-updates.md): the read-only `outdated` report
   of newer CLI and standards versions and its cache.
+- [Adopted checks](check.md): running the adopted checks on demand with
+  `check`, its report, and how it detects checks that write.
 - [Author format](author-format.md): the `repo-standards/v2` source format,
   its declarations, profiles, checks and fixes, and validation errors.
 - [Script protocol](script-protocol.md): how trusted checks and fixes run,

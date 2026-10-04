@@ -7,6 +7,7 @@ import { ProductError } from './errors.js';
 import { requireSupportedGit } from './observation.js';
 import { abandon, inspectRetained, resume, start, startRetained, status } from './adoption.js';
 import { outdated } from './outdated.js';
+import { check, checkSummary } from './check.js';
 import { inspectionSummary, statusSummary } from './summary.js';
 import type { InspectionReport, StatusRecord } from './summary.js';
 
@@ -15,8 +16,9 @@ const args = process.argv.slice(2);
 if (args.length === 1 && args[0] === '--version') {
   console.log(version);
 } else if (args.length === 0 || (args.length === 1 && args[0] === '--help')) {
-  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json | --summary]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json | --summary]\n       repo-standards outdated [--project <directory>] [--json]\n\nAn update is one confirmed run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project. --summary renders an inspection or status as Markdown instead of JSON.');
-} else if (args[0] === 'outdated') {
+  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json | --summary]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json | --summary]\n       repo-standards outdated [--project <directory>] [--json]\n       repo-standards check [--project <directory>] [--json]\n\nAn update is one confirmed run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project. Check runs the adopted checks against the working tree and fails when any does not pass. --summary renders an inspection or status as Markdown instead of JSON.');
+} else if (args[0] === 'outdated' || args[0] === 'check') {
+  const command = args[0];
   const flags = new Map<string, string>();
   for (let index = 1; index < args.length; index++) {
     const key = args[index]!;
@@ -25,11 +27,22 @@ if (args.length === 1 && args[0] === '--version') {
     else flags.set('usage', key);
   }
   let diagnostic: { code: string; message: string; details?: unknown } | undefined;
-  if (flags.has('usage')) diagnostic = { code: 'USAGE', message: 'Use repo-standards outdated [--project <directory>] [--json].' };
-  else try { console.log(JSON.stringify(await outdated(flags.get('--project') ?? '.', version), null, 2)); }
-  catch (error) {
-    if (!(error instanceof ProductError)) throw error;
-    diagnostic = { code: error.code, message: error.message, ...(error.details === undefined ? {} : { details: error.details }) };
+  if (flags.has('usage')) diagnostic = { code: 'USAGE', message: `Use repo-standards ${command} [--project <directory>] [--json].` };
+  else try {
+    const project = flags.get('--project') ?? '.';
+    if (command === 'outdated') console.log(JSON.stringify(await outdated(project, version), null, 2));
+    else {
+      const report = await check(project, version);
+      if (flags.has('--json')) console.log(JSON.stringify(report, null, 2));
+      else process.stdout.write(checkSummary(report));
+      if (report.outcome !== 'passed') process.exitCode = 1;
+    }
+  } catch (error) {
+    // An unexpected check failure, such as a filesystem error before any check
+    // runs, is still reported as a diagnostic.
+    if (!(error instanceof ProductError) && command !== 'check') throw error;
+    diagnostic = error instanceof ProductError ? { code: error.code, message: error.message, ...(error.details === undefined ? {} : { details: error.details }) }
+      : { code: 'CHECK_FAILED', message: (error as Error).message };
   }
   if (diagnostic) {
     if (flags.has('--json')) console.log(JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2));

@@ -26,6 +26,7 @@ authoring skill, and fresh-checkout restoration.
 - Adopt through confirmed operations and agent assessments, retaining evidence.
 - Update any pin, the source, or the profile in one confirmed run.
 - Report available updates and render inspections and runs as Markdown summaries.
+- Run the adopted checks on demand against the working tree.
 - Discover sources by topic without automatically selecting or adopting them.
 
 ## Usage

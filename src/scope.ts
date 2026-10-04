@@ -152,7 +152,7 @@ function validateScopeEvidence(proposal: ScopeProposal, observation: ScopeObserv
   return absence.sort(byPath);
 }
 
-export function concreteScope(resolved: ResolvedProfile): Scope {
+export function concreteScope(resolved: Pick<ResolvedProfile, 'declarations'>): Scope {
   return Object.fromEntries(resolved.declarations.map(declaration => [declaration.id, declarationTargets(declaration)]));
 }
 

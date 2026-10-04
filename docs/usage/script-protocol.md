@@ -118,6 +118,9 @@ that can conceal later edits from Git status. Unexpected changes are preserved a
 they cannot redefine the installed baseline. Altered local run-report bytes are
 preserved beside the operation logs before the incomplete report is saved.
 
+Between runs, [`check`](check.md) runs the adopted checks on demand with the
+same input and prerequisites, and fails when a check changes the project.
+
 Use `status --json` and the incomplete report to review actual changes and
 successful, failed or uncertain work. Follow the recovery instructions in
 [Adoption](adoption.md#completion-and-incomplete-results). No process error,
