@@ -1,6 +1,6 @@
 # Repository Standards — architecture contracts
 
-This document describes the current contracts of CLI 4.0.0; individual tickets
+This document describes the current contracts of CLI 5.0.0; individual tickets
 state implementation scope, and the [architecture decisions](../adr/README.md)
 record the rationale.
 
@@ -541,8 +541,10 @@ resumes on retry; until it is removed, the run, not the retired state, is what
 status, resume, and abandon read, and what blocks check, and abandonment
 archives none of the earlier CLI's local reports as the run's. Every other
 read of retired committed state, including retained inspection, fails with
-`RETIRED_FORMAT`, naming that fresh-adoption path. Malformed or unrelated format identities fail the
-record's integrity validation.
+`RETIRED_FORMAT`, naming that fresh-adoption path. Malformed or unrelated
+format identities, including a same-prefix version that is not `vN` such as
+`repo-standards/state/vnext`, are not classified as retired or newer. They
+fail integrity validation when a command reads that record.
 
 A format's version rises when its keys change: a key is added, removed,
 renamed, or changes type. Changed values under the same keys, such as embedded
@@ -860,4 +862,71 @@ committed state or run records use a retired format adopts fresh.
   `repo-standards/status/v5`, `repo-standards/inspection/v4`,
   `repo-standards/run/v5`, `repo-standards/scope/v1`, and
   `repo-standards/assessment/v2`
+  ([ADR 0007](../adr/0007-write-and-read-one-evidence-format.md)).
+
+## Removed in 5.0.0
+
+These mechanisms and outcomes are removed, not deprecated. A project adopted
+with 4.0.0 adopts fresh over retired committed state through a source-flag
+inspection and its confirmed start; it does not update in place and has no
+update class.
+
+- Git older than 2.32 for `inspect`, `start`, `resume` (including `--retry`
+  and `--assessment`), and `check`. Git is checked before project observation;
+  `resume` checks its CLI pin first. Git prerequisite diagnostics precede the
+  npm and Node diagnostics when several prerequisites fail.
+- Directory modes in discovery observations and confirmation identities.
+  Different clone umasks and directory `chmod` no longer invalidate a
+  confirmation; file executable bits remain bound
+  ([ADR 0012](../adr/0012-bind-content-not-location.md)).
+- Reading formats before the CLI pin in `status`, `resume`, and `abandon`,
+  including their no-active-run cases. A different CLI reports
+  `CLI_PIN_MISMATCH` first, rather than a format, integrity, or
+  `NO_ACTIVE_RUN` error.
+- Treating every same-prefix noncurrent format as retired. A higher numeric
+  version reports `NEWER_FORMAT`, including in `lock.json`. Malformed or
+  unrelated format identities, including a same-prefix version that is not
+  `vN`, are not classified as retired or newer. They fail integrity validation
+  when a command reads that record. Newer formats take precedence over retired
+  records and never advise removal.
+- Requiring removal and a separate commit before inspecting retired committed
+  product state. A source-flag inspection previews its removal, and the
+  confirmed start removes the whole `.repo-standards` tree under its lock.
+  Every committed record present must carry its own artifact's current or
+  retired format, or `STATE_INTEGRITY` prevents removal. The final observation
+  before removal must match the confirmed inventory, or an unchanged subset
+  after interrupted removal, or `INSTALLATION_CHANGED` prevents removal.
+- Advising fresh adoption for a retired active run. `RETIRED_RUN` calls for
+  the earlier pinned CLI's retry or abandonment before any record-reading
+  command proceeds; `outdated` is the exception. It takes precedence over
+  retired committed records. This CLI's own active run can read, retry, or
+  abandon before removing retired committed state, and `check` then reports
+  `ACTIVE_RUN`. Retry and abandonment before removal archive none of the
+  earlier CLI's local reports. Retired archived reports still block and must
+  be moved out of Git's directory; retained inspection still rejects retired
+  committed state with `RETIRED_FORMAT`.
+- Removing every edited target that leaves the selection. Safely observed
+  tracked edits are kept as project-owned content, no longer recorded in
+  baselines or removed by later runs. A skill stays whole with its link;
+  an independently edited link can stay after its unedited skill is removed.
+  Contextual overlap and containment by a still-installed target retain their
+  existing exceptions; a retired target containing a still-installed target
+  is removed even when edited
+  ([ADR 0016](../adr/0016-keep-edited-content-that-leaves-the-selection.md)).
+- The README evidence rule: an included missing `README` or `README.*` no
+  longer needs evidence inside its directory. Every included file that does
+  not exist yet keeps its exemption from supplying evidence paths; existing
+  and excluded candidates still need eligible evidence.
+- Author skills with disagreeing invocation settings, and author declarations
+  using `standards-updates` or a reserved system-skill link path under
+  `.claude/skills/`. Validation reads only the two invocation settings; it
+  does not impose metadata hygiene on unrelated skill frontmatter.
+- Agent procedures in the usage documents and the duplicate of
+  `author-standards` in `authoring.md`. Procedures live with their skill;
+  `adopt-standards` uses its own references with release-pinned contract links.
+- The formats `repo-standards/state/v6`, `repo-standards/scope-history/v4`,
+  `repo-standards/status/v6`, and `repo-standards/inspection/v5`. Their current
+  versions are `state/v7` (skill-link baselines), `scope-history/v5` (directory
+  entries without modes), `status/v7` (`scopeProposal`), and `inspection/v6`
+  (`systemSkills`, skill links, `kept`, and `retiredState`)
   ([ADR 0007](../adr/0007-write-and-read-one-evidence-format.md)).

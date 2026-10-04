@@ -134,7 +134,11 @@ index.
   observing the project, so Git never follows a symbolic `.gitignore` whose
   referent the observation does not bind. Before it, Git only locates the
   project root and the run record.
-- `RETIRED_FORMAT`, `RETIRED_RUN`, or `NEWER_FORMAT` for product records in another format.
+- `RETIRED_FORMAT` for older committed records or archived reports,
+  `RETIRED_RUN` for an older active run record, or `NEWER_FORMAT` for a higher
+  version of a known record format. Malformed format identities in committed
+  records `check` reads fail integrity validation, including a same-prefix
+  version that is not `vN`.
 - `ACTIVE_RUN` while an adoption run is active or incomplete, or another
   adoption command is executing. Complete or abandon the run first.
 - `NO_SELECTION` when no complete adoption is recorded.

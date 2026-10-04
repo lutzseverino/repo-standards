@@ -524,8 +524,10 @@ CLI pinned by the project or active run. A newer format never takes the
 fresh-adoption path, and takes precedence over any retired record. The three
 format diagnostics include `details.path`, `details.format`, and
 `details.expected` in JSON output; `RETIRED_RUN` adds `details.cli` when the
-run record names its CLI. Malformed or unrelated format identities fail the
-record's integrity validation instead.
+run record names its CLI. Malformed or unrelated format identities, including
+a same-prefix version that is not `vN` such as `repo-standards/state/vnext`,
+are not classified as retired or newer. They fail integrity validation when
+a command reads that record.
 
 ## Recover or abandon an interrupted run
 

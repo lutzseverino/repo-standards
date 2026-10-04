@@ -3,7 +3,7 @@
 A run report with `phase: contextual` and a `workRequest` is the expected
 incomplete handoff after installation and fixes. The request, the submission
 format, freshness, and the diagnostics are defined by the
-[assessment protocol](https://github.com/lutzseverino/repo-standards/blob/v4.0.0/docs/usage/assessment-protocol.md).
+[assessment protocol](https://github.com/lutzseverino/repo-standards/blob/v5.0.0/docs/usage/assessment-protocol.md).
 
 ## Do the work
 
