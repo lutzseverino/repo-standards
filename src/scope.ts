@@ -143,11 +143,10 @@ function validateScopeEvidence(proposal: ScopeProposal, observation: ScopeObserv
       if (!actual) unfit(`Evidence path ${path} of candidate ${candidate.path} is not an eligible file or directory in the discovery observation. Cite a path from discovery.evidence, or inspect again if the project changed.`);
       return actual;
     });
-    if (!evidence.length) unfit(`Candidate ${candidate.path} requires at least one evidence path from the discovery observation.`);
     if (candidate.decision === 'include' && named.targets[candidate.path]?.type === 'missing') {
       const path = candidate.path;
       absence.push({ kind: 'absence', path, identity: `sha256:${hash(JSON.stringify({ path, state: named.targets[path], boundaries: named.boundaries }))}` });
-    }
+    } else if (!evidence.length) unfit(`Candidate ${candidate.path} requires at least one evidence path from the discovery observation.`);
   }
   return absence.sort(byPath);
 }
