@@ -31,6 +31,29 @@ profiles:
 `;
 const material = { 'guidance.md': 'Document each maintained project.', 'discovery.md': 'Use project membership evidence; exclude fixtures, generated output, and organizational directories.', 'exact.md': 'Exact instructions' };
 
+test('an included missing file needs no evidence paths and inspection records its absence', (t) => {
+  const remote = remoteFixture(source, material);
+  const project = sourceFixture('', { 'app/package.json': '{}' });
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const proposal = { format: 'repo-standards/scope/v2', declarations: [{
+    id: 'project-docs', coverage: 'The app needs a planned documentation file.',
+    candidates: [{ path: 'app/notes.md', decision: 'include', reason: 'Document the app.', evidence: [] }], unresolved: [],
+  }] };
+  const proposalFile = join(remote.support.root, 'scope.json');
+  writeFileSync(proposalFile, JSON.stringify(proposal));
+  const before = snapshot(project.root);
+  const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.start.blockers, []);
+  assert.deepEqual(report.discovery.proposal, proposal);
+  assert.deepEqual(report.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs').targets, { paths: ['app/notes.md'], directories: [] });
+  assert.deepEqual(report.discovery.absence.map((ref: { kind: string; path: string }) => [ref.kind, ref.path]), [['absence', 'app/notes.md']]);
+  assert.match(report.discovery.absence[0].identity, /^sha256:[a-f0-9]{64}$/);
+  assert.deepEqual(snapshot(project.root), before);
+});
+
 test('a missing documentation README can cite evidence outside its empty directory and be confirmed', async t => {
   const remote = remoteFixture(source, material);
   const project = sourceFixture('', { 'package.json': '{"name":"documentation-project"}' });
