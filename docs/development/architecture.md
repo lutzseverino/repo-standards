@@ -49,7 +49,7 @@ standards format.
 | Resolver | A source and profile produce one validated source-resolved selection, or structured errors. Discovery references remain distinct from executable targets until project scope is confirmed. This is the sole interpreter of the author format. |
 | Repository state | A resolved selection and observed project produce an inspection, its update comparison and class, freshness identities, and durable adoption progress. The update comparison takes the verified recorded adoption, the candidate selection and materials, and the project's observed product state. It rejects a recorded tag that now resolves to a different commit, and returns the whole update part of an inspection, which is the changed selection components, the previous selection, the retired declarations, the update class and contextual changes, and the product-state-integrity blocker. Scope changes stay with inspection, which holds the scope proposal. |
 | Declaration targets | A resolved declaration produces the targets it applies to, as paths and directory trees: an exact file's or skill's one installation target, or contextual guidance's targets. It also produces each skill's link and the text the product writes there, and holds the system skills: each reserved name, target, and link, and the ones adoption installs. Every other module asks it rather than deriving a skill's target or link, a declaration's targets, or the system skills itself. |
-| Target ownership | Each installation target's current content, its installed baseline when one exists, its candidate content when one exists, and whether that content is tracked produce its target ownership: the action a run would take on it (match, create, or replace; a recorded target the selection no longer installs has a missing candidate, so its removal is a replacement, unless it overlaps contextual scope or lies at or inside a target the selection still installs, where it has no candidate and no action), whether that action discards content other than the installed baseline, and its one ownership blocker, untracked replacement content. The rule is the same for every target kind in every run. Inspection observes each target once and is its only caller. |
+| Target ownership | Each installation target's current content, its installed baseline when one exists, its candidate content when one exists, and whether that content is tracked produce its target ownership: the action a run would take on it (match, create, or replace; a recorded target the selection no longer installs has a missing candidate, so its removal is a replacement, unless it overlaps contextual scope or lies at or inside a target the selection still installs, where it has no candidate and no action), whether that action discards content other than the installed baseline, whether the target is kept, and its one ownership blocker, untracked replacement content. A recorded target the selection no longer installs is kept, with no action and no blocker, when its safely observed, tracked content is not its installed baseline, unless it contains a target the selection still installs; a skill directory is judged whole, and a kept skill keeps its link. The rule is the same for every target kind in every run. Inspection observes each target once and is its only caller. |
 | Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, skill links, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, status, and check read an established adoption only through it; every command first rejects retired records in the product state and Git directories through it, which is all resume and abandon need while a run is active. `outdated` reads the selection leniently instead. |
 | Installation | A confirmed inspection produces one run's installation plan, not the adoption itself: the exact content, skills, skill links, retained inputs, durable product state, and runtime an adoption run installs, the links it removes, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module. |
 | Execution | Confirmed adoption progress advances through exact installation, literal process execution, checks, and final integrity. Final integrity is the run-time check of the run's planned installation, distinct from the recorded adoption reader's check of the committed baseline a run starts from. `check` runs the recorded adoption's checks through the same prerequisite probes and process execution outside any run, observing that each leaves the project unchanged. |
@@ -360,7 +360,8 @@ the inspection identity binds it, and durable state records it. A `.claude` or
 does a link at a skill-link path with any other text. The product never writes
 `.claude/skills` as a whole and links only the skills it installs; a skill the
 project wrote itself under `.agents/skills/` gets no link. A retired skill's
-link is removed with the skill. Links are exact content, so they never make an
+link is removed with the skill, and kept with it when an edited skill is kept.
+Links are exact content, so they never make an
 update contextual.
 
 Target ownership is one rule for every installation target, including author
@@ -594,17 +595,32 @@ selection, requires a fresh confirmed scope for each active discovery
 declaration.
 
 Edits to installed content do not block an update. The update replaces an
-edited target, or matches it when it already holds the candidate content, and
-the inspection lists each replacement that discards an edit. Installed bytes
-that already equal the candidate are matched without rewriting.
+edited target that stays in the selection, or matches it when it already holds
+the candidate content, and the inspection lists each replacement that discards
+an edit. Installed bytes that already equal the candidate are matched without
+rewriting.
 
 Retiring a declaration, including one that a changed source or profile no
-longer declares or that the profile excludes, relinquishes governance and
-removes its installed targets; an edited one is listed among the discarded
-edits. An installed target within contextual scope, as a contextual target or
-inside or containing one, is not removed and stays in place as project content,
-and one at or inside a target the selection still installs is left to that
-target's own action. Updating a still-declared skill replaces the whole
+longer declares or that the profile excludes, relinquishes governance. The run
+removes each installed target that still matches its installed baseline, and
+keeps each edited one
+([ADR 0016](../adr/0016-keep-edited-content-that-leaves-the-selection.md)):
+the inspection lists it in `kept`, as now owned by the project, the run leaves
+it in place, durable state drops it, and later runs neither track nor remove
+it. An edit is tracked content, which Git records, so ignored or other
+untracked content alone keeps nothing, and content observed as unsafe is never
+kept, so its blockers stand. A skill directory is judged whole, so a skill with
+any added, removed, or changed tracked file stays whole, and a kept skill keeps
+its link. A link is otherwise
+judged on its own: a skill link the project replaced is kept even when its
+unedited skill is removed. An edited target is listed as kept, never among the
+discarded edits; an edited target that stays in the selection is still
+replaced and listed as ADR 0010 says. An installed target within contextual
+scope, as a contextual target or inside or containing one, is not removed and
+stays in place as project content, and one at or inside a target the selection
+still installs is left to that target's own action. One that contains such a
+target is removed even when edited, and the run then installs the contained
+target. Updating a still-declared skill replaces the whole
 directory, including removal of resources absent from the new version.
 Exclusion removes only installed targets outside contextual scope and never
 deletes project-owned content.
@@ -665,8 +681,10 @@ The product is complete only when all of these pass:
    mutation. Replace local edits to installed content, including added skill
    resources, and list each one in the confirmed inspection; remove obsolete
    resources on an unchanged skill update.
-10. Retire a declaration by removing its installed targets, including a
-    skill's link, and relinquishing ownership, listing each removed edit.
+10. Retire a declaration by removing its unedited installed targets,
+    including a skill's link, and relinquishing ownership, keeping each edited
+    target, a skill whole with its link, as project content that later runs
+    neither track nor remove.
 11. Recover from interrupted installation and fixes through recorded progress
     and explicit retry. Prevent concurrent runs; preserve abandoned work.
 12. Pass the same product behavior on macOS and Linux through the published
@@ -785,7 +803,8 @@ committed state or run records use a retired format adopts fresh.
   ([ADR 0010](../adr/0010-replace-tracked-content-block-only-untracked.md)).
 - Keeping the installed targets of retired and excluded declarations in place.
   An update removes them, except within contextual scope or at or inside a
-  target the selection still installs.
+  target the selection still installs. Since 5.0.0 an edited one is kept
+  ([ADR 0016](../adr/0016-keep-edited-content-that-leaves-the-selection.md)).
 - Earlier runs in committed evidence and reports: durable state's and the
   status report's `history`, retained scope evidence's `runs` and the
   inspection report's `historicalScope.runs`, the scope change computed by

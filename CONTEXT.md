@@ -204,7 +204,8 @@ _Avoid_: Skill copy, mirror
 The product's standing over an installation target: the action a run would
 take on it (match, create, or replace) and any ownership blockers that leave it
 to the maintainer. The product may replace any tracked content, which Git can
-recover; only untracked content leaves a target to the maintainer.
+recover; only untracked content leaves a target to the maintainer. An edited
+target that leaves the selection is kept, and the project owns it from then on.
 _Avoid_: Writeability, write permission
 
 **Work evidence**:

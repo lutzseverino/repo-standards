@@ -388,14 +388,6 @@ test('update inspections match candidate-equal content and list each discarded e
   const system = '.agents/skills/adopt-standards';
   const untracked = (path: string) => ({ code: 'UNTRACKED_REPLACEMENT', path });
   for (const { name, mutate, blockers = [], discarded, actions } of [
-    { name: 'an edited retired exact file', mutate: (root: string) => writeFileSync(join(root, 'RETIRED.md'), 'Maintainer edit'),
-      discarded: ['RETIRED.md'] },
-    { name: 'an edited retired skill', mutate: (root: string) => writeFileSync(join(root, '.agents/skills/legacy/notes.md'), 'Maintainer notes'),
-      discarded: ['.agents/skills/legacy'] },
-    { name: 'an ignored resource in a retired skill', mutate: (root: string) => {
-      writeFileSync(join(root, '.gitignore'), '/.agents/skills/legacy/local.md\n');
-      writeFileSync(join(root, '.agents/skills/legacy/local.md'), 'Ignored notes');
-    }, blockers: [untracked('.agents/skills/legacy/local.md')], discarded: ['.agents/skills/legacy'] },
     { name: 'an ignored retired exact file', mutate: (root: string) => {
       writeFileSync(join(root, '.gitignore'), '/RETIRED.md\n');
       git(root, 'rm', '--cached', '--quiet', 'RETIRED.md');
@@ -410,8 +402,6 @@ test('update inspections match candidate-equal content and list each discarded e
       discarded: ['.agents/skills/review'] },
     { name: 'a skill link replaced by a copy', mutate: (root: string) => { unlinkSync(join(root, '.claude/skills/review')); writeFileSync(join(root, '.claude/skills/review'), '# Review v1'); },
       discarded: ['.claude/skills/review'] },
-    { name: 'a retired skill link replaced by a copy', mutate: (root: string) => { unlinkSync(join(root, '.claude/skills/legacy')); writeFileSync(join(root, '.claude/skills/legacy'), '# Legacy'); },
-      discarded: ['.claude/skills/legacy'] },
   ]) await t.test(name, () => {
     const remote = remoteFixture(source('v1', declarations + retired), v1Files);
     const project = sourceFixture('');
@@ -432,6 +422,7 @@ test('update inspections match candidate-equal content and list each discarded e
     assert.deepEqual(inspection.discardedEdits, discarded);
     assert.deepEqual(inspection.removed.map(({ id, target }: { id: string; target: string }) => ({ id, target })), [
       { id: 'legacy', target: '.agents/skills/legacy' }, { id: 'legacy', target: '.claude/skills/legacy' }, { id: 'retired', target: 'RETIRED.md' }]);
+    assert.deepEqual(inspection.kept, []);
     if (actions) assert.deepEqual(Object.fromEntries(inspection.exact.map(({ id, action }: { id: string; action: string }) => [id, action])), actions);
     const started = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
     if (blockers.length) {
@@ -452,7 +443,7 @@ test('update inspections match candidate-equal content and list each discarded e
   });
 });
 
-test('update inspections report each declared target block and discarded edit before baseline-only targets sorted by path', async t => {
+test('update inspections report each declared target block before baseline-only targets, and kept targets, sorted by path', async t => {
   const instructions = `    instructions:
       kind: file
       target: AGENTS.md
@@ -465,7 +456,15 @@ test('update inspections report each declared target block and discarded edit be
     beta:
       kind: file
       target: A-RETIRED.md
-      exact: a.md`), { 'agents.md': 'Version one', 'z.md': 'Retired Z', 'a.md': 'Retired A' });
+      exact: a.md
+    delta:
+      kind: file
+      target: Y-KEPT.md
+      exact: y.md
+    gamma:
+      kind: file
+      target: B-KEPT.md
+      exact: b.md`), { 'agents.md': 'Version one', 'z.md': 'Retired Z', 'a.md': 'Retired A', 'y.md': 'Kept Y', 'b.md': 'Kept B' });
   const project = sourceFixture('', { 'README.md': 'Project README' });
   const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
@@ -476,10 +475,15 @@ test('update inspections report each declared target block and discarded edit be
   commit(project.root);
   const baselines = Object.keys(JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8')).baselines);
   assert.ok(baselines.indexOf('Z-RETIRED.md') < baselines.indexOf('A-RETIRED.md'), JSON.stringify(baselines));
+  assert.ok(baselines.indexOf('Y-KEPT.md') < baselines.indexOf('B-KEPT.md'), JSON.stringify(baselines));
   rmSync(join(project.root, 'AGENTS.md'));
   symlinkSync('README.md', join(project.root, 'AGENTS.md'));
-  writeFileSync(join(project.root, 'Z-RETIRED.md'), 'Maintainer edit');
-  writeFileSync(join(project.root, 'A-RETIRED.md'), 'Maintainer edit');
+  // Unedited retired targets that Git no longer tracks block their removal;
+  // edited ones stay.
+  writeFileSync(join(project.root, '.gitignore'), '/Z-RETIRED.md\n/A-RETIRED.md\n');
+  git(project.root, 'rm', '--cached', '--quiet', 'Z-RETIRED.md', 'A-RETIRED.md');
+  writeFileSync(join(project.root, 'Y-KEPT.md'), 'Maintainer edit');
+  writeFileSync(join(project.root, 'B-KEPT.md'), 'Maintainer edit');
   commit(project.root);
   remote.addVersion('v1.1.0', source('v2', instructions), { 'agents.md': 'Version two' });
   const result = cli.run(inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument), project.root, env);
@@ -487,8 +491,196 @@ test('update inspections report each declared target block and discarded edit be
   const inspection = JSON.parse(result.stdout);
   assert.deepEqual(inspection.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), [
     { code: 'UNSAFE_TARGET', path: 'AGENTS.md' },
+    { code: 'UNTRACKED_REPLACEMENT', path: 'A-RETIRED.md' },
+    { code: 'UNTRACKED_REPLACEMENT', path: 'Z-RETIRED.md' },
   ]);
-  assert.deepEqual(inspection.discardedEdits, ['AGENTS.md', 'A-RETIRED.md', 'Z-RETIRED.md']);
+  assert.deepEqual(inspection.discardedEdits, ['AGENTS.md']);
+  assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['A-RETIRED.md', 'Z-RETIRED.md']);
+  assert.deepEqual(inspection.kept, [{ id: 'gamma', target: 'B-KEPT.md' }, { id: 'delta', target: 'Y-KEPT.md' }]);
+});
+
+// Declarations that leave the selection: an edited and an unedited exact file,
+// and an edited and an unedited skill.
+const leaving = {
+  retired: { kind: 'file', target: 'RETIRED.md', exact: 'retired.md' },
+  unedited: { kind: 'file', target: 'UNEDITED.md', exact: 'unedited.md' },
+  legacy: { kind: 'skill', name: 'legacy', source: 'legacy' },
+  plain: { kind: 'skill', name: 'plain', source: 'plain' },
+};
+const leavingFiles = { 'agents.md': 'Instructions', 'retired.md': 'Retired', 'unedited.md': 'Unedited', 'legacy/SKILL.md': '# Legacy', 'legacy/notes.md': 'Legacy notes', 'plain/SKILL.md': '# Plain' };
+const manifest = (defaults: object, profiles: Record<string, object> = { work: {} }) => stringify({ format: 'repo-standards/v2', name: 'update-standards',
+  description: 'Update fixture', requires: { 'repo-standards': '>=1.0.0' }, defaults: { declarations: defaults },
+  profiles: Object.fromEntries(Object.entries(profiles).map(([name, declarations]) => [name, { description: name, declarations }])) });
+
+test('an update keeps each edited target that leaves the selection as project content that later runs neither track nor remove', async t => {
+  const registry = await registryFixture(cli.root);
+  t.after(() => registry.close());
+  const instructions = { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' };
+  const withVersion = (version: string) => inspectionArgs.map(argument => argument === 'v1.0.0' ? version : argument);
+  for (const { name, initial, update } of [
+    { name: 'a dropped declaration', initial: manifest({ instructions, ...leaving }),
+      update: (remote: ReturnType<typeof remoteFixture>) => { remote.addVersion('v1.1.0', manifest({ instructions })); return { args: withVersion('v1.1.0'), env: remote.env }; } },
+    { name: 'a profile exclusion', initial: manifest({ instructions, ...leaving }),
+      update: (remote: ReturnType<typeof remoteFixture>) => {
+        remote.addVersion('v1.1.0', manifest({ instructions, ...leaving }, { work: Object.fromEntries(Object.keys(leaving).map(id => [id, { exclude: true }])) }));
+        return { args: withVersion('v1.1.0'), env: remote.env };
+      } },
+    { name: 'a profile change', initial: manifest({ instructions }, { work: leaving, lean: {} }),
+      update: (remote: ReturnType<typeof remoteFixture>) => ({ args: inspectionArgs.map(argument => argument === 'work' ? 'lean' : argument), env: remote.env }) },
+    { name: 'a source change', initial: manifest({ instructions, ...leaving }),
+      update: () => {
+        const other = remoteFixture(manifest({ instructions }), { 'agents.md': 'Other instructions' }, [], 'bob/standards');
+        t.after(() => other.close());
+        return { args: inspectionArgs.map(argument => argument === 'https://github.com/alice/standards' ? 'https://github.com/bob/standards' : argument), env: other.env };
+      } },
+  ]) await t.test(name, () => {
+    const remote = remoteFixture(initial, leavingFiles);
+    const project = sourceFixture('');
+    t.after(() => { remote.close(); project.close(); });
+    commit(project.root);
+    const run = (args: string[], env: NodeJS.ProcessEnv) => cli.run(args, project.root, { ...env, ...registry.env });
+    const adopted = JSON.parse(run(inspectionArgs, remote.env).stdout);
+    assert.equal(adopted.kept, undefined);
+    assert.equal(run(['start', ...inspectionArgs.slice(1), '--confirm', adopted.identity], remote.env).status, 0);
+    commit(project.root);
+    writeFileSync(join(project.root, 'RETIRED.md'), 'Maintainer edit');
+    writeFileSync(join(project.root, '.agents/skills/legacy/notes.md'), 'Maintainer notes');
+    commit(project.root);
+
+    const { args, env } = update(remote);
+    const result = run(args, env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    const inspection = JSON.parse(result.stdout);
+    assert.deepEqual(inspection.start.blockers, []);
+    assert.deepEqual(inspection.retired.map(({ id }: { id: string }) => id), ['legacy', 'plain', 'retired', 'unedited']);
+    assert.deepEqual(inspection.removed.map(({ id, target }: { id: string; target: string }) => ({ id, target })), [
+      { id: 'plain', target: '.agents/skills/plain' }, { id: 'plain', target: '.claude/skills/plain' }, { id: 'unedited', target: 'UNEDITED.md' }]);
+    assert.deepEqual(inspection.kept, [
+      { id: 'legacy', target: '.agents/skills/legacy' }, { id: 'legacy', target: '.claude/skills/legacy' }, { id: 'retired', target: 'RETIRED.md' }]);
+    assert.deepEqual(inspection.discardedEdits, []);
+    const summary = run(args.filter(argument => argument !== '--json').concat('--summary'), env).stdout;
+    assert.ok(summary.includes(`## Kept targets
+
+These targets leave the selection with edits. They stay in place, and the project now owns them:
+
+| Declaration | Path |
+| --- | --- |
+| \`legacy\` | \`.agents/skills/legacy\` |
+| \`legacy\` | \`.claude/skills/legacy\` |
+| \`retired\` | \`RETIRED.md\` |
+`), summary);
+    assert.ok(!summary.includes('## Discarded edits'), summary);
+    assert.ok(!/\| `(?:legacy|retired)` \| `[^`]*` \| deleted \|/.test(summary), summary);
+
+    const started = run(['start', ...args.slice(1), '--confirm', inspection.identity], env);
+    assert.equal(started.status, 0, started.stdout + started.stderr);
+    assert.equal(JSON.parse(started.stdout).outcome, 'complete');
+    assert.equal(readFileSync(join(project.root, 'RETIRED.md'), 'utf8'), 'Maintainer edit');
+    assert.deepEqual(installedTree(join(project.root, '.agents/skills/legacy')).map(([path, bytes]) => [path, Buffer.from(bytes, 'base64').toString()]),
+      [['SKILL.md', '# Legacy'], ['notes.md', 'Maintainer notes']]);
+    assert.equal(readlinkSync(join(project.root, '.claude/skills/legacy')), '../../.agents/skills/legacy');
+    assert.equal(existsSync(join(project.root, 'UNEDITED.md')), false);
+    assert.equal(existsSync(join(project.root, '.agents/skills/plain')), false);
+    assert.equal(lstatSync(join(project.root, '.claude/skills/plain'), { throwIfNoEntry: false }), undefined);
+    const keptPaths = ['RETIRED.md', '.agents/skills/legacy', '.claude/skills/legacy'];
+    assert.equal(git(project.root, 'status', '--porcelain', '--', ...keptPaths), '');
+    const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
+    assert.deepEqual(Object.keys(state.baselines).filter(path => keptPaths.some(kept => path === kept || path.startsWith(kept + '/'))), []);
+    assert.equal(state.skills['.agents/skills/legacy'], undefined);
+    assert.equal(state.links['.claude/skills/legacy'], undefined);
+    assert.deepEqual(state.changeSet.filter(({ path }: { path: string }) => keptPaths.some(kept => path === kept || path.startsWith(kept + '/'))), []);
+    commit(project.root);
+
+    // A later run neither lists nor removes the project's content, even edited again.
+    writeFileSync(join(project.root, 'RETIRED.md'), 'Later edit');
+    rmSync(join(project.root, '.agents/skills/legacy/SKILL.md'));
+    commit(project.root);
+    const later = JSON.parse(run(['inspect', '--json'], env).stdout);
+    assert.deepEqual(later.start.blockers, []);
+    assert.deepEqual(later.removed, []);
+    assert.deepEqual(later.kept, []);
+    assert.deepEqual(later.discardedEdits, []);
+    const again = run(['start', '--confirm', later.identity, '--json'], env);
+    assert.equal(JSON.parse(again.stdout).outcome, 'complete', again.stdout + again.stderr);
+    assert.equal(readFileSync(join(project.root, 'RETIRED.md'), 'utf8'), 'Later edit');
+    assert.equal(readFileSync(join(project.root, '.agents/skills/legacy/notes.md'), 'utf8'), 'Maintainer notes');
+    assert.equal(readlinkSync(join(project.root, '.claude/skills/legacy')), '../../.agents/skills/legacy');
+  });
+});
+
+test('an edited skill that leaves the selection is judged whole and keeps its link', async t => {
+  const registry = await registryFixture(cli.root);
+  t.after(() => registry.close());
+  const skill = '.agents/skills/legacy';
+  const link = '.claude/skills/legacy';
+  const copy = (root: string) => { unlinkSync(join(root, link)); writeFileSync(join(root, link), '# Legacy'); };
+  const ignore = (root: string) => {
+    writeFileSync(join(root, '.gitignore'), `/${skill}/local.md\n`);
+    writeFileSync(join(root, skill, 'local.md'), 'Ignored notes');
+  };
+  for (const { name, mutate, kept, removed, blockers = [] } of [
+    { name: 'an added file', mutate: (root: string) => writeFileSync(join(root, skill, 'local.md'), 'Local notes'), kept: [skill, link], removed: [] },
+    { name: 'a removed file', mutate: (root: string) => rmSync(join(root, skill, 'notes.md')), kept: [skill, link], removed: [] },
+    { name: 'a changed mode', mutate: (root: string) => chmodSync(join(root, skill, 'notes.md'), 0o755), kept: [skill, link], removed: [] },
+    // The run never removes the edited skill, so ignored content inside it doesn't block.
+    { name: 'an edited skill with an ignored file', mutate: (root: string) => { ignore(root); writeFileSync(join(root, skill, 'notes.md'), 'Edited'); }, kept: [skill, link], removed: [] },
+    // Only tracked content is an edit: ignored content alone leaves the skill to removal, which it blocks.
+    { name: 'an unedited skill with an ignored file', mutate: ignore, kept: [], removed: [skill, link],
+      blockers: [{ code: 'UNTRACKED_REPLACEMENT', path: `${skill}/local.md` }] },
+    { name: 'an edited skill whose link was removed', mutate: (root: string) => { writeFileSync(join(root, skill, 'notes.md'), 'Edited'); unlinkSync(join(root, link)); }, kept: [skill], removed: [] },
+    // A safe link follows its kept skill even when Git no longer tracks it.
+    { name: 'an edited skill whose link is untracked', mutate: (root: string) => {
+      writeFileSync(join(root, skill, 'notes.md'), 'Edited');
+      writeFileSync(join(root, '.gitignore'), `/${link}\n`);
+      git(root, 'rm', '--cached', '--quiet', link);
+    }, kept: [skill, link], removed: [] },
+    { name: 'an edited skill whose link was replaced by a copy', mutate: (root: string) => { writeFileSync(join(root, skill, 'notes.md'), 'Edited'); copy(root); }, kept: [skill, link], removed: [] },
+    // An unedited skill goes; a copy in its link's place is the project's edit and stays.
+    { name: 'an unedited skill whose link was replaced by a copy', mutate: copy, kept: [link], removed: [skill] },
+    { name: 'an unedited skill whose link was removed', mutate: (root: string) => unlinkSync(join(root, link)), kept: [], removed: [skill] },
+    // Unsafe content is never kept: its removal blocks.
+    { name: 'an edited skill whose link points elsewhere', mutate: (root: string) => {
+      writeFileSync(join(root, skill, 'notes.md'), 'Edited');
+      unlinkSync(join(root, link));
+      symlinkSync('../../.agents/skills/other', join(root, link));
+    }, kept: [skill], removed: [link], blockers: [{ code: 'UNSAFE_TARGET', path: link }] },
+  ]) await t.test(name, () => {
+    const remote = remoteFixture(manifest({ legacy: leaving.legacy }), leavingFiles);
+    const project = sourceFixture('');
+    t.after(() => { remote.close(); project.close(); });
+    commit(project.root);
+    const env = { ...remote.env, ...registry.env };
+    const adopted = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+    assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', adopted.identity], project.root, env).status, 0);
+    commit(project.root);
+    mutate(project.root);
+    commit(project.root);
+    const before = existsSync(join(project.root, skill)) ? installedTree(join(project.root, skill)) : undefined;
+    const linkContent = () => {
+      const stat = lstatSync(join(project.root, link), { throwIfNoEntry: false });
+      return stat?.isSymbolicLink() ? `link ${readlinkSync(join(project.root, link))}` : stat ? readFileSync(join(project.root, link), 'utf8') : undefined;
+    };
+    const linkBefore = linkContent();
+    remote.addVersion('v1.1.0', manifest({}));
+    const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
+    const inspection = JSON.parse(cli.run(args, project.root, env).stdout);
+    assert.deepEqual(inspection.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), blockers);
+    assert.deepEqual(inspection.kept.map(({ target }: { target: string }) => target), kept);
+    assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), removed);
+    const started = cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env);
+    if (blockers.length) {
+      assert.equal(JSON.parse(started.stdout).errors[0].code, 'START_BLOCKED', started.stdout + started.stderr);
+      return;
+    }
+    assert.deepEqual(inspection.discardedEdits, []);
+    assert.equal(JSON.parse(started.stdout).outcome, 'complete', started.stdout + started.stderr);
+    if (kept.includes(skill)) assert.deepEqual(installedTree(join(project.root, skill)), before);
+    else assert.equal(existsSync(join(project.root, skill)), false);
+    assert.equal(linkContent(), kept.includes(link) ? linkBefore : undefined);
+    const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
+    assert.equal(state.skills[skill], undefined);
+    assert.equal(state.links[link], undefined);
+  });
 });
 
 test('an update keeps a retired installed target that lies within contextual scope', async t => {
@@ -563,6 +755,34 @@ test('an update leaves a retired installed target inside a still-installed skill
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(JSON.parse(result.stdout).outcome, 'complete');
   assert.deepEqual(installedTree(join(project.root, '.agents/skills/review')), installedTree(join(remote.source.root, 'review')));
+});
+
+test('an update removes the link path of a kept skill when it contains a newly installed target, and then installs it', async t => {
+  const remote = remoteFixture(manifest({ legacy: leaving.legacy }), leavingFiles);
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const adopted = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', adopted.identity], project.root, env).status, 0);
+  commit(project.root);
+  writeFileSync(join(project.root, '.agents/skills/legacy/notes.md'), 'Maintainer notes');
+  unlinkSync(join(project.root, '.claude/skills/legacy'));
+  mkdirSync(join(project.root, '.claude/skills/legacy'));
+  writeFileSync(join(project.root, '.claude/skills/legacy/old.md'), 'Old');
+  commit(project.root);
+  remote.addVersion('v1.1.0', manifest({ guide: { kind: 'file', target: '.claude/skills/legacy/new.md', exact: 'new.md' } }), { 'new.md': 'New' });
+  const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
+  const inspection = JSON.parse(cli.run(args, project.root, env).stdout);
+  assert.deepEqual(inspection.start.blockers, []);
+  assert.deepEqual(inspection.kept.map(({ target }: { target: string }) => target), ['.agents/skills/legacy']);
+  assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.claude/skills/legacy']);
+  assert.deepEqual(inspection.discardedEdits, ['.claude/skills/legacy']);
+  const started = cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env);
+  assert.equal(JSON.parse(started.stdout).outcome, 'complete', started.stdout + started.stderr);
+  assert.deepEqual(installedTree(join(project.root, '.claude/skills/legacy')), [['new.md', Buffer.from('New').toString('base64'), false]]);
+  assert.equal(readFileSync(join(project.root, '.agents/skills/legacy/notes.md'), 'utf8'), 'Maintainer notes');
 });
 
 test('an update removes a retired target beside contextual scope and one that contains a newly installed target', async t => {

@@ -307,7 +307,7 @@ test('inspect --summary renders a deterministic update proposal with its class, 
   assert.ok(blocked.stdout.includes('`DIRTY_PROJECT`'), blocked.stdout);
 });
 
-test('inspect --summary lists removed retired targets and each discarded edit', async t => {
+test('inspect --summary lists removed retired targets, each discarded edit, and each kept target', async t => {
   const exact = (declarations: object) => stringify({ format: 'repo-standards/v2', name: 'exact-standards', description: 'Exact fixture',
     requires: { 'repo-standards': '>=1' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: {} } } });
   const instructions = { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' };
@@ -337,7 +337,6 @@ Exact content:
 | Declaration | Path | Change |
 | --- | --- | --- |
 | \`instructions\` | \`AGENTS.md\` | modified |
-| \`legacy\` | \`LEGACY.md\` | deleted |
 | \`notes\` | \`NOTES.md\` | deleted |
 `), summary);
   assert.ok(summary.includes(`## Discarded edits
@@ -345,7 +344,14 @@ Exact content:
 Replacing or removing these targets discards content that is not their installed baseline:
 
 - \`AGENTS.md\`
-- \`LEGACY.md\`
+
+## Kept targets
+
+These targets leave the selection with edits. They stay in place, and the project now owns them:
+
+| Declaration | Path |
+| --- | --- |
+| \`legacy\` | \`LEGACY.md\` |
 
 ## Operations`), summary);
   assert.ok(!summary.includes('\n## Blockers\n'), summary);
