@@ -171,14 +171,17 @@ test('the first update of an adoption made without the update notice installs st
   const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   // An adoption by a CLI that installed no update notice records no skill,
-  // baseline, or lock entry for it.
+  // link, baseline, or lock entry for it.
   const notice = '.agents/skills/standards-updates';
+  const noticeLink = '.claude/skills/standards-updates';
   rmSync(join(project.root, notice), { recursive: true });
+  unlinkSync(join(project.root, noticeLink));
   const statePath = join(project.root, '.repo-standards/state.json');
   const lockPath = join(project.root, '.repo-standards/lock.json');
   const state = JSON.parse(readFileSync(statePath, 'utf8'));
   const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
   delete state.skills[notice];
+  delete state.links[noticeLink];
   for (const record of [state.baselines, lock.files]) for (const path of Object.keys(record)) if (path.startsWith(`${notice}/`)) delete record[path];
   const stateText = `${JSON.stringify(state, null, 2)}\n`;
   writeFileSync(statePath, stateText);
@@ -192,7 +195,7 @@ test('the first update of an adoption made without the update notice installs st
   assert.equal(inspection.updateClass, 'exact');
   assert.deepEqual(inspection.systemSkills, [
     { name: 'adopt-standards', target: '.agents/skills/adopt-standards', action: 'match', link: { target: '.claude/skills/adopt-standards', action: 'match' } },
-    { name: 'standards-updates', target: notice, action: 'create', link: { target: '.claude/skills/standards-updates', action: 'match' } }]);
+    { name: 'standards-updates', target: notice, action: 'create', link: { target: noticeLink, action: 'create' } }]);
   assert.deepEqual(inspection.start.blockers, []);
   assert.deepEqual(inspection.discardedEdits, []);
   const summary = cli.run(['inspect', '--summary'], project.root, env);
@@ -204,8 +207,8 @@ test('the first update of an adoption made without the update notice installs st
   assert.equal(JSON.parse(started.stdout).outcome, 'complete');
   assert.deepEqual(installedTree(join(project.root, notice)), installedTree(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/standards-updates')));
   assert.deepEqual(JSON.parse(readFileSync(statePath, 'utf8')).skills[notice], ['SKILL.md', 'agents/openai.yaml']);
-  assert.deepEqual(git(project.root, 'status', '--porcelain', '--untracked-files=all', '--', '.agents').split('\n').sort(),
-    [`?? ${notice}/SKILL.md`, `?? ${notice}/agents/openai.yaml`]);
+  assert.deepEqual(git(project.root, 'status', '--porcelain', '--untracked-files=all', '--', '.agents', '.claude').split('\n').sort(),
+    [`?? ${notice}/SKILL.md`, `?? ${notice}/agents/openai.yaml`, `?? ${noticeLink}`]);
 });
 
 test('the first update of an adoption made without skill links creates them as exact content', async t => {

@@ -223,7 +223,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const systemCandidates = packagedSystemSkills();
     for (const { target } of installedSystemSkills) ownedTargets.set(target, { path: target, kind: 'system-skill', current: systemSkills[target]!, candidate: systemCandidates[target]! });
     for (const { target, kind } of installed) ownedTargets.set(target, { path: target, kind, current: affected[target]!, candidate: desiredExact[target]! });
-    for (const [path, current] of Object.entries(skillLinks)) ownedTargets.set(path, { path, kind: 'link', current, candidate: { type: 'symlink', target: linkTextAt(path)! } });
+    for (const [path, current] of Object.entries(skillLinks)) ownedTargets.set(path, { path, kind: 'skill-link', current, candidate: { type: 'symlink', target: linkTextAt(path)! } });
     const recordedTargets: { path: string; kind: TargetKind; baseline: NonNullable<OwnedTarget['baseline']> }[] = [];
     if (previous) {
       const { baselines, skills, links } = previous.state;
@@ -231,7 +231,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       for (const directory of directories) recordedTargets.push({ path: directory, kind: installedSystemSkills.some(({ target }) => target === directory) ? 'system-skill' : 'skill',
         baseline: { files: Object.fromEntries(Object.entries(baselines).filter(([path]) => path.startsWith(directory + '/'))), inventory: skills[directory]! } });
       for (const [path, value] of Object.entries(baselines)) if (!directories.some(directory => path.startsWith(directory + '/'))) recordedTargets.push({ path, kind: 'file', baseline: { files: { [path]: value } } });
-      for (const [path, link] of Object.entries(links)) recordedTargets.push({ path, kind: 'link', baseline: { files: {}, link } });
+      for (const [path, link] of Object.entries(links)) recordedTargets.push({ path, kind: 'skill-link', baseline: { files: {}, link } });
     }
     const baselineOnly = recordedTargets.filter(({ path }) => !ownedTargets.has(path)).map(({ path }) => path).sort();
     for (const { path, kind, baseline } of recordedTargets) {

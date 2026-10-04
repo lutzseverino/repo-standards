@@ -186,7 +186,7 @@ most agents read. Claude Code reads only `.claude/skills/`, so for each skill a
 run installs, system or author, the run also installs a skill link at
 `.claude/skills/<skill>`: a relative symbolic link whose text is
 `../../.agents/skills/<skill>`
-([ADR 0013](../adr/0013-expose-installed-skills-through-skill-links.md)).
+([ADR 0013](https://github.com/lutzseverino/repo-standards/blob/main/docs/adr/0013-expose-installed-skills-through-skill-links.md)).
 Standards authors declare nothing for it.
 
 A skill link is an ordinary installation target. A link with the same text is

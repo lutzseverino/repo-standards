@@ -19,7 +19,7 @@ import { matchesInventory, type Blocker, type Observation } from './observation.
 // own action covers it. One that contains such a target is removed, and the
 // run then installs the contained target.
 
-export type TargetKind = 'file' | 'skill' | 'system-skill' | 'link';
+export type TargetKind = 'file' | 'skill' | 'system-skill' | 'skill-link';
 
 export interface OwnedTarget {
   path: string; kind: TargetKind;
