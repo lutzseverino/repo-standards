@@ -2,6 +2,7 @@ name: Validate
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
@@ -13,11 +14,30 @@ concurrency:
 
 jobs:
   validate:
+    if: github.event_name == 'pull_request'
+    name: validate (linux, ${{ matrix.part }}/3)
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+        part: [1, 2, 3]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+      - run: npm install --global pnpm@11.20.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: node --experimental-vm-modules --disable-warning=ExperimentalWarning scripts/check-import-cycles.ts
+      - run: pnpm build
+      - run: node --test --test-shard=${{ matrix.part }}/3 test/*.test.ts
+
+  validate-macos:
+    if: github.event_name == 'push'
+    name: validate (macos)
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
