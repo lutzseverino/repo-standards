@@ -164,7 +164,7 @@ export function requireRecordedCli(root: string, runRecord: string, running: str
 // the command would have read first: committed state, retained scope evidence,
 // the integrity lock, active run record, or a run report archived by abandonment.
 // Records that cannot be read are left to their owners.
-export function rejectRetiredRecords(root: string, runRecord: string) {
+export function rejectUnsupportedRecords(root: string, runRecord: string) {
   for (const [path, format] of [[lockFile, formats.lock], [stateFile, formats.state], [scopeFile, formats.scopeHistory]] as const) {
     requireFormat(path, unverifiedRecord(join(root, path)), format);
   }
@@ -177,7 +177,7 @@ export function rejectRetiredRecords(root: string, runRecord: string) {
 // Reads the recorded adoption of the project at root, or nothing when neither
 // the lock nor durable state exists. Unsupported record formats are rejected first.
 export function readRecordedAdoption(root: string): RecordedAdoption | undefined {
-  rejectRetiredRecords(root, lockPath(root));
+  rejectUnsupportedRecords(root, lockPath(root));
   const lock = targetObservation(root, lockFile, []);
   const state = targetObservation(root, stateFile, []);
   if (lock.type === 'missing' && state.type === 'missing') return undefined;

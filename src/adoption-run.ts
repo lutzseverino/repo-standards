@@ -10,7 +10,7 @@ import { ProductError } from './errors.js';
 import { formats, recordPath, requireFormat } from './formats.js';
 import type { InspectOptions, inspect } from './inspection.js';
 import { observe, type Content, type HashInventory, type Observation } from './observation.js';
-import { readRecordedAdoption, rejectRetiredRecords, requireRecordedCli, type RecordedAdoption } from './recorded-state.js';
+import { readRecordedAdoption, rejectUnsupportedRecords, requireRecordedCli, type RecordedAdoption } from './recorded-state.js';
 import { committedEvidenceReport, compactIntervals, keptIdentity, memoryStore, WorkEvidenceJournal, type ObservationStore, type RecordedInterval } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, requirePinnedCli, safe, systemTarget, verifyFiles, write } from './adoption-files.js';
@@ -214,7 +214,7 @@ export function abandon(project: string, cliVersion: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
   requireRecordedCli(root, lock, cliVersion);
-  rejectRetiredRecords(root, lock);
+  rejectUnsupportedRecords(root, lock);
   const release = acquireWorker(lock);
   try {
     if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to abandon.');
@@ -256,7 +256,7 @@ export function status(project: string, cliVersion: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
   requireRecordedCli(root, lock, cliVersion);
-  rejectRetiredRecords(root, lock);
+  rejectUnsupportedRecords(root, lock);
   const abandoned = abandonedReports(root, lock);
   const active = existsSync(lock) ? readRun(root, lock) : null;
   const format = formats.status;
@@ -555,7 +555,7 @@ export class AdoptionRunSession {
     resume?: { cliVersion: string; retry: boolean }) {
     const lock = lockPath(root);
     if (resume) requireRecordedCli(root, lock, resume.cliVersion);
-    rejectRetiredRecords(root, lock);
+    rejectUnsupportedRecords(root, lock);
     const release = acquireWorker(lock);
     const session = new AdoptionRunSession(root, mode);
     try {
