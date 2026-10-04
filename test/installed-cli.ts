@@ -45,6 +45,10 @@ export function installCli() {
     return {
       root,
       version: packed.version as string,
+      // The project paths of the packaged system skill's files, which adoption
+      // installs as a whole.
+      systemSkillFiles: installedTree(join(root, 'node_modules/@lutzseverino/repo-standards/skills/adopt-standards'))
+        .map(([path]) => `.agents/skills/adopt-standards/${path}`),
       run(args: string[], cwd: string, env: NodeJS.ProcessEnv = process.env) {
         // A report carries the observed product state, which an established
         // adopter grows well past Node's default 1 MiB capture buffer.

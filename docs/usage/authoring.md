@@ -1,79 +1,28 @@
 # Author a standards source
 
-For guided creation, revision, or resumption, install the standalone
-[`author-standards` skill](installation.md#install-the-authoring-skill).
-Describe preferences in ordinary language, refine small drafts, then review the
-whole source. The skill starts with one profile and adds complete profiles
-only for meaningful context differences you confirm. It puts shared declarations
-in defaults and reviews each replacement, exclusion, addition, and ownership
-choice with you. Each profile is a complete selection an adopting project will
-receive. It creates configuration, guidance, and checks, fixes, or ordinary-work
-author skills whose behavior and prerequisites you accept before inclusion.
-It supplies all referenced material and
-concise `authoring-notes.md` covering accepted
-decisions and rationale, non-preferences, skipped topics, and open questions.
-Notes support authorship and do not govern adoption. No confirmed standards is a
-valid outcome: it produces no invented source and no claim of validation.
-
-For an existing source, the skill first reads current declarations,
-referenced material, relevant notes, and existing work. An explicit changed
-preference applies to its stated scope; it shows conflicting rules and asks
-when affected profiles or paths are unclear. Shared references are traced before
-editing so a profile-specific change preserves other complete selections and
-unrelated tracked and untracked work.
-
-To resume, point the agent at the source and its notes and choose which unfinished
-decisions to revisit. Current source content governs policy. If a manual edit
-contradicts an old note, the agent surfaces the disagreement and establishes
-intent before changing that policy, then reconciles the notes. Notes alone cannot
-restore a removed rule. Completion includes whole-source review, validation of
-every profile, and resolution or explicit deferral of chosen questions.
-
-The guided journey ends at author-reviewed, validated local material. The
-publication steps below are a separate workflow; the skill does not provision,
-commit, tag, release, or adopt, and a local directory is not yet adoptable.
-
 A standards repository supplies ordinary content, complete profiles and trusted
-operations. The product owns adoption. Start with the four declaration forms in
-[Author format](author-format.md); the [Alice example](../../examples/alice/standards.yaml)
+operations. The product owns adoption. The
+[`author-standards` skill](installation.md#install-the-authoring-skill) guides
+creation, revision, and resumption of a source, and ends at author-reviewed,
+validated local material; it does not provision, commit, tag, release, or
+adopt, and a local directory is not yet adoptable. Publication, below, is
+separate work.
+
+[Author format](author-format.md) defines the four declaration forms, complete
+profiles, and discovery; the [Alice example](../../examples/alice/standards.yaml)
 shows defaults, a complete work replacement and an employer-content exclusion.
 The [Mira example](../../examples/mira/standards.yaml) uses operational guidance,
-a repeat-safe fix and a different check.
+a repeat-safe fix and a different check. Guidance should give an agent
+observable goals, useful evidence requirements and boundaries, while letting it
+describe the actual project; generic replacement prose discards project facts.
+Operations follow the [script protocol](script-protocol.md); document the tools
+they require so adopters can install them deliberately before adoption.
 
 A published working source is [repo-standards-example](https://github.com/lutzseverino/repo-standards-example),
 based on synthetic Mira material. It was published with the same validation and
 discovery commands below.
 
-## Choose ownership and write guidance
-
-Use exact files or whole author-skill directories for material you intend to
-own byte-for-byte. Use contextual file guidance for project-owned documentation
-and repository guidance for explicit paths or directory trees. Every source uses
-the one `repo-standards/v2` format. Choose discovery when the author wants
-project-specific scope: supply separate contextual-work guidance (how to
-assess or adapt content) and discovery guidance (where it applies). Review
-membership criteria, missing files, and exclusions without inventing an adopting
-project's layout. See the [format identity and current implementation limits](author-format.md#format-identity). Guidance should
-give an agent observable goals, useful evidence requirements and boundaries,
-while letting it describe the actual project. Avoid generic replacement prose
-that discards project facts. Authors cannot replace `adopt-standards` or add
-adoption hooks; author skills support ordinary work after installation.
-
-Give declarations stable lower-case kebab-case IDs. A profile inherits omitted
-IDs, replaces a same-ID declaration in full, excludes a default declaration
-with `exclude: true`, or adds a new ID. Replacement must restate its checks and
-fixes. Exclusion removes associated operations as well as guidance/content.
-Publish complete profiles: adopters select one profile without filtering it.
-
-## Implement and validate operations
-
-Read [Script protocol](script-protocol.md). Declare literal invocation arguments,
-all retained resources, executable version probes/ranges and timeouts. Read the
-resolved selection and allowed targets from versioned stdin JSON. Return one
-result on stdout and human logs on stderr. Respect scope and exclusions; make
-fixes safe to repeat and checks read-only. Resources are retention declarations,
-not restrictions on host or network access. Document required tools so adopters
-can install them deliberately before adoption.
+## Validate
 
 Validate all profiles with an installed compatible CLI:
 
@@ -83,25 +32,12 @@ repo-standards source validate /path/to/standards --json
 
 Validation checks declarations and references; it executes neither operations
 nor probes and does not assess guidance or author-skill quality, concrete scope
-safety, or semantic completeness in an unfamiliar project. Read the per-profile
-discovery requirements: valid references are not confirmed project targets. During authoring,
-exercise generated operations with a concrete selection through the versioned
-script protocol in
-disposable directories, with only selected scripts and declared resources copied
-to a separate source layout. The standalone skill's
-[exercise guide](../../skills/author-standards/references/operations.md) describes
-resolved requests, separate prerequisite probes, read-only failing/passing checks,
-repeat-safe fixes, literal arguments, scope and exclusion preservation, and
-recorded process/results evidence. These exercises require no Git repository or
-adoption. Missing tools leave affected behavior unverified; review that limitation
-with the author. Review or exercise author skills separately as ordinary agent
-work, accurately distinguishing content review from demonstrated usefulness.
-
-The separate [confirmed adoption workflow](adoption.md) exercises integration
-against published sources and disposable committed adopting projects. Product
-acceptance reuses the installed-CLI fixtures for this integration; it does not
-make provisioning, publication, or adoption part of the authoring skill.
-Record scripted checks separately from the agent's contextual evidence.
+safety, or semantic completeness in an unfamiliar project. The skill's
+[exercise guide](../../skills/author-standards/references/operations.md) runs
+operations against disposable directories through the script protocol, without
+a Git repository or adoption. The separate [confirmed adoption workflow](adoption.md)
+exercises integration against published sources and committed adopting
+projects.
 
 ## Publish and evolve
 

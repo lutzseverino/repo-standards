@@ -25,11 +25,11 @@ a discovery request identity, and a `DISCOVERY_REQUIRED` start blocker.
 `inspect --scope` validates an evidence-backed `repo-standards/scope/v2` proposal
 and presents concrete paths in the complete inspection. Initial adoption passes
 the same proposal to `start --scope` with that inspection’s confirmed identity.
-The agent rechecks coverage after fixes and during contextual assessment. Empty
-scope retains the declaration and its operations. Source validation alone proves
-neither project-specific safety nor semantic coverage. An active run cannot change
-its confirmed scope; when contextual work needs other paths, the adopter abandons
-the run, commits or discards its changes, and
+Contextual assessment reviews coverage again after fixes and before
+submission. Empty scope retains the declaration and its operations. Source
+validation alone proves neither project-specific safety nor semantic coverage.
+An active run cannot change its confirmed scope; when contextual work needs
+other paths, a new run
 [adopts again with a new confirmed scope](adoption.md#correct-a-confirmed-scope).
 Fresh discovery proposals also apply during every update, including one that
 applies an unchanged selection again. Between complete runs, scope can add or remove

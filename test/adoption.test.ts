@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
-import { chmodSync, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -111,6 +111,8 @@ profiles:`).replace('    declarations: {}', '    declarations: {employer: {exclu
   assert.match(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8'), /name: adopt-standards/);
   assert.equal(readFileSync(join(project.root, '.agents/skills/adopt-standards/agents/openai.yaml'), 'utf8'),
     'policy:\n  allow_implicit_invocation: false\n');
+  assert.deepEqual(readdirSync(join(project.root, '.agents/skills/adopt-standards/references')).sort(),
+    ['assessment.md', 'discovery.md', 'recovery.md', 'review.md']);
   assert.equal(existsSync(join(project.root, '.agents/skills/author-standards')), false);
   const manifest = JSON.parse(readFileSync(join(project.root, '.repo-standards/runtime/package.json'), 'utf8'));
   assert.deepEqual(manifest.dependencies, { '@lutzseverino/repo-standards': cli.version });
@@ -163,8 +165,7 @@ profiles:`), { 'content.md': 'Expected', 'skills/review/SKILL.md': '# Review\nRe
   assert.equal(inspection.start.eligible, true);
   assert.equal(inspection.exact.find((entry: { id: string }) => entry.id === 'review').action, 'match');
   assert.equal(inspection.systemSkill.action, 'match');
-  const claimed = ['.agents/skills/review/SKILL.md', '.agents/skills/review/scripts/run.sh',
-    '.agents/skills/adopt-standards/SKILL.md', '.agents/skills/adopt-standards/agents/openai.yaml'];
+  const claimed = ['.agents/skills/review/SKILL.md', '.agents/skills/review/scripts/run.sh', ...cli.systemSkillFiles];
   const before = Object.fromEntries(claimed.map(path => [path, lstatSync(join(project.root, path))]));
   const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -177,7 +178,7 @@ profiles:`), { 'content.md': 'Expected', 'skills/review/SKILL.md': '# Review\nRe
   assert.equal(git(project.root, 'status', '--porcelain', '--', '.agents', 'AGENTS.md'), '');
   const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
   assert.deepEqual(state.skills['.agents/skills/review'], ['SKILL.md', 'scripts/run.sh']);
-  assert.deepEqual(state.skills['.agents/skills/adopt-standards'], ['SKILL.md', 'agents/openai.yaml']);
+  assert.deepEqual(state.skills['.agents/skills/adopt-standards'], cli.systemSkillFiles.map(path => path.slice('.agents/skills/adopt-standards/'.length)));
   assert.equal(state.baselines['.agents/skills/review/scripts/run.sh'].executable, true);
   assert.ok(state.baselines['.agents/skills/adopt-standards/SKILL.md']);
 });
