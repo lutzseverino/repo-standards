@@ -641,6 +641,7 @@ for (const [label, skill, policy] of [
   ['manual only in both tools', '---\nname: review\ndisable-model-invocation: true\n---\nReview.', 'policy: {allow_implicit_invocation: false}\n'],
   ['invocable in both tools', '---\nname: review\ndisable-model-invocation: false\n---\nReview.', 'policy: {allow_implicit_invocation: true}\n'],
   ['neither setting with frontmatter', '---\nname: review\ndescription: Review code.\n---\nReview.', 'interface: {display_name: Review}\n'],
+  ['neither setting with a loosely written description', '---\ndescription: Use when: the user asks\n---\nReview.', 'interface:\n  description: Use when: the user asks\n'],
   ['neither metadata file', '# Review\nReview code.', undefined],
   ['absent Claude Code setting with explicit Codex default', '---\nname: review\n---\nReview.', 'policy: {allow_implicit_invocation: true}\n'],
   ['explicit Claude Code default with absent Codex setting', '---\nname: review\ndisable-model-invocation: false\n---\nReview.', undefined],
