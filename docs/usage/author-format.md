@@ -109,6 +109,13 @@ absent `agents/openai.yaml`. A skill that states neither passes unchanged.
 Present invocation settings must be YAML booleans. Other skill metadata is
 outside the author schema.
 
+Unrelated duplicate keys, invalid YAML, or non-mapping metadata with no
+invocation setting use the setting's default without a diagnostic. A duplicated
+invocation key, a non-boolean setting, or an unparseable document containing a
+line for that setting produces a diagnostic naming its metadata file.
+Frontmatter delimiters accept trailing spaces or tabs and a leading byte-order
+mark before the opening delimiter.
+
 `source validate` checks every declared skill, including replaced or excluded
 defaults and skills in unselected profiles. A disagreement produces
 `SKILL_INVOCATION_MISMATCH`, naming the skill and both effective values.

@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
+import { relative } from 'node:path';
 import { acquireSource, github, isStableVersion } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { validateSource } from './resolver.js';
@@ -42,7 +43,7 @@ export async function searchSources(cliVersion: string, page: number) {
       const source = await acquireSource(repository!, release.version, project);
       try {
         const validation = validateSource(source.root, cliVersion, source.paths);
-        if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The released source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
+        if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The released source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: relative(source.root, error.file) })));
         candidates.push({ repository: source.identity.repository, description: item.description, commit: source.identity.commit,
           release,
           source: { name: validation.source!.name, description: validation.source!.description, requires: validation.source!.requires },

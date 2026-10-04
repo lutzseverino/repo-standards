@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { readdirSync, realpathSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 import { acquireSource, hash } from './acquisition.js';
@@ -150,7 +150,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     for (const { link } of installedSystemSkills) observeLink(link);
     if (!previous && productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
     const validation = validateSource(source.root, cliVersion, source.paths, retainedSource?.manifest);
-    if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
+    if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: relative(source.root, error.file) })));
     const profile = validation.profiles[options.profile];
     if (!profile) throw new ProductError('UNKNOWN_PROFILE', `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(', ')}.`);
     const discoveryDeclarations = profile.declarations.filter(declaration => 'discovery' in declaration);
