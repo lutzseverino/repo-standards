@@ -266,7 +266,9 @@ export function status(project: string, cliVersion: string) {
     try { active.changes = actualChanges(root, active.affected); } catch { active.uncertain.push('Current project changes could not be fully read.'); }
     // Recovery needs the observation the last interval ends at; report its loss now, not at the next resume.
     if (active.observations.length) try { keptObservations(root).read(keptIdentity(active.observations)!); } catch (error) { active.uncertain.push((error as Error).message); }
-    const scopeProposal = readCommittedScopeProposal(root, active.head, active.previousComplete?.lastComplete.inspection);
+    const scopeProposal = active.outcome === 'complete'
+      ? readRecordedAdoption(root)?.scopeEvidence?.discovery?.proposal ?? null
+      : readCommittedScopeProposal(root, active.head, active.previousComplete?.lastComplete.inspection);
     return { format, scopeProposal, selection: active.selection, lastComplete: active.previousComplete?.lastComplete ?? null, active,
       execution: executing(lock) || (active.processGroup && processGroupAlive(active.processGroup, active.processGroupIdentity)) ? 'active' : 'interrupted', abandoned, evidence: 'historical' };
   }

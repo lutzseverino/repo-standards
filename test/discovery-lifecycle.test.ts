@@ -10,6 +10,7 @@ import { installCli, sourceFixture } from './installed-cli.ts';
 import { assertCompactScopeEvidence, assertCompactWorkEvidence, committedScopeEvidence, committedState, growCommittedState } from './committed-evidence.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
+import { filesystemFault } from './adoption-faults.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -172,6 +173,35 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assertCompactWorkEvidence(checkoutState);
   assert.equal(checkoutState.lastComplete.inspection, checkoutInspection.identity);
   assert.equal(JSON.stringify(checkoutState).includes(secondState.lastComplete.run), false);
+});
+
+test('a completed discovery run reports its proposal even when cleanup was interrupted', async t => {
+  const f = await fixture(t);
+  for (const [round, args] of [inspectionArgs, ['inspect', '--json']].entries()) {
+    f.proposal('apps/old/README.md');
+    const proposal = JSON.parse(readFileSync(f.scopeFile, 'utf8'));
+    proposal.declarations[0].coverage += ` Completion ${round + 1}.`;
+    writeFileSync(f.scopeFile, JSON.stringify(proposal));
+    const inspection = f.run([...args, '--scope', f.scopeFile]).report;
+    f.run(['start', ...args.slice(1), '--scope', f.scopeFile, '--confirm', inspection.identity]);
+    const env = filesystemFault(f.remote.support.root, f.env, 'complete', `
+const rename = fs.renameSync;
+fs.renameSync = function(from, to) {
+  const result = rename.call(this, from, to);
+  if (String(to).endsWith('/repo-standards-run.lock')) process.kill(process.pid, 'SIGKILL');
+  return result;
+}; syncBuiltinESMExports();`);
+    const completed = f.complete(args => {
+      const result = cli.run(args, f.project.root, env);
+      return { result, report: result.stdout ? JSON.parse(result.stdout) : null };
+    });
+    assert.equal(completed.result.signal, 'SIGKILL');
+    const status = f.run(['status', '--json']).report;
+    assert.equal(status.active.outcome, 'complete');
+    assert.deepEqual(status.scopeProposal, inspection.discovery.proposal);
+    assert.equal(f.run(['resume', '--retry', '--json']).result.status, 0);
+    commit(f.project.root);
+  }
 });
 
 test('an incomplete or abandoned standards update keeps the last complete proposal', async t => {
