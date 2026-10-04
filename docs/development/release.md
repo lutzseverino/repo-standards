@@ -335,7 +335,7 @@ It acquires the skill through the public release-tag URL documented in
 npm package; then obtains the compatible public CLI/docs in an external directory.
 Retain those JSON artifacts alongside existing public CLI smoke evidence.
 
-Fresh real-agent creation, revision, and resumption remain separate acceptance
-work. Record direct installation independently of dated skills.sh observations.
+When the parent specification names them, fresh real-agent creation, revision,
+and resumption remain separate acceptance work. Record direct installation independently of dated skills.sh observations.
 A ready PR, candidate test run, or public Git branch alone does not complete
 the authoring acceptance.
