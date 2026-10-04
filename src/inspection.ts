@@ -4,13 +4,14 @@ import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homedir } from 'node:os';
 import { acquireSource, hash } from './acquisition.js';
+import { lockPath } from './adoption-files.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
 import { content, git, hashInventory, inventoryPaths, observe, targetBoundaryObservation, targetObservation } from './observation.js';
 import type { Blocker, HashInventory, Observation } from './observation.js';
 import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
-import { readRecordedAdoption, type RecordedAdoption } from './recorded-state.js';
+import { readRecordedAdoption, rejectUnsupportedRecords, type RecordedAdoption } from './recorded-state.js';
 import { scopeChanges } from './scope-evidence.js';
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
@@ -106,7 +107,9 @@ export async function inspect(options: InspectOptions, cliVersion: string) {
 // provenance, and the Git state for detecting Git changes during the run;
 // neither is part of the report or its identity, so an inspection made in any
 // checkout of the same content confirms a start in another. An inspection of
-// retained standards passes the recorded adoption it read them from.
+// retained standards passes the recorded adoption it read them from. Committed
+// product state in a retired format is not read: the inspection is a fresh
+// adoption whose run removes that state, bound like an update's product state.
 export async function inspectForStart(options: InspectOptions, cliVersion: string, retained?: RecordedAdoption) {
   if (process.versions.node.split('.')[0] !== '24') throw new ProductError('NODE_REQUIRED', 'Node.js 24 is required. Select Node.js 24 with your version manager or install it from https://nodejs.org/en/download, then retry.');
   const npm = spawnSync('npm', ['--version'], { cwd: homedir(), encoding: 'utf8', timeout: 10_000 });
@@ -114,7 +117,8 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
   const location = git(resolve(options.project), ['rev-parse', '--show-toplevel']);
   if (location.status !== 0) throw new ProductError('GIT_REQUIRED', 'Inspection requires a Git working tree. Run git init in your project first.');
   const root = realpathSync(location.stdout.trim());
-  const previous = retained ?? readRecordedAdoption(root);
+  const retiredRecords = retained ? [] : rejectUnsupportedRecords(root, lockPath(root), { retiredState: true });
+  const previous = retained ?? (retiredRecords.length ? undefined : readRecordedAdoption(root));
   const retainedSource = retained?.source();
   const source = retainedSource ?? await acquireSource(options.source, options.standardsVersion, root);
   try {
@@ -130,7 +134,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     for (const path of hidden) blockers.push({ code: 'HIDDEN_INDEX_STATE', path, message: 'Clear assume-unchanged or skip-worktree flags and reconcile local content before adoption; Git status may hide changes.' });
     const tracked = new Set(index.stdout.split('\0').filter(Boolean).map(entry => entry.slice(entry.indexOf('\t') + 1)));
     for (const entry of index.stdout.split('\0').filter(entry => entry.startsWith('160000 '))) blockers.push({ code: 'SUBMODULE_STATE', path: entry.slice(entry.indexOf('\t') + 1), message: 'Initial inspection cannot establish clean nested submodule state without running nested Git behavior.' });
-    const productState = previous ? productStateObservation(root, blockers) : targetObservation(root, '.repo-standards', blockers);
+    const productState = previous || retiredRecords.length ? productStateObservation(root, blockers) : targetObservation(root, '.repo-standards', blockers);
     // Each target is observed once, keeping its safety blockers for its block;
     // a skill link is observed as a link with the text the product writes there.
     const observed = new Map<string, { value: Observation; safety: Blocker[] }>();
@@ -148,7 +152,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const skillLinks: Record<string, Observation> = dictionary();
     const observeLink = (path: string) => { skillLinks[path] = observeTarget(path, linkTextAt(path)); };
     for (const { link } of installedSystemSkills) observeLink(link);
-    if (!previous && productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
+    if (!previous && !retiredRecords.length && productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
     const validation = validateSource(source.root, cliVersion, source.paths, retainedSource?.manifest);
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: relative(source.root, error.file) })));
     const profile = validation.profiles[options.profile];
@@ -290,6 +294,9 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         skillLinks: Object.fromEntries(Object.entries(skillLinks).map(([path, value]) => [path, hashInventory(value)])) },
       systemSkills: installedSystemSkills.map(({ name, target, link }) => ({ name, target, action: ownership.get(target)!.action!, link: linkAction(link) })),
       ...(removed ? { removed, kept } : {}),
+      // The run removes the retired product state directory whole, including
+      // its ignored generated content, which the identity does not bind.
+      ...(retiredRecords.length ? { retiredState: { target: '.repo-standards', records: retiredRecords, files: inventoryPaths(productState).filter(path => !path.endsWith('/')).map(path => `.repo-standards/${path}`) } } : {}),
       discardedEdits,
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
       ...comparison?.report,

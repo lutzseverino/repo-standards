@@ -282,8 +282,9 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Work request and assessment | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
 
 Earlier formats are retired: they are not read, converted, or compacted. A
-project whose committed or recorded files carry one
-[adopts fresh](#adopt-fresh-from-a-retired-format). An agent's assessment
+project whose committed files carry one
+[adopts fresh](#adopt-fresh-from-a-retired-format), and a run record in one
+calls for the CLI that wrote it. An agent's assessment
 submission is never committed: one in an earlier format is rejected with
 `ASSESSMENT_FORMAT` until it is written again in the current format.
 
@@ -422,11 +423,13 @@ and does not render the proposal.
 
 ## Adopt afresh over installed content
 
-Initial adoption never takes over existing product state: an established
-adoption inspects as an update, and any other `.repo-standards/` content is an
-`EXISTING_ADOPTION` blocker. Giving up retained state therefore remains a
-deliberate change visible in Git. To adopt afresh over content that an earlier
-adoption installed, finish or abandon any active run, remove the product state
+Initial adoption never takes over existing product state in the current
+formats: an established adoption inspects as an update, and any other
+`.repo-standards/` content that is not
+[retired](#adopt-fresh-from-a-retired-format) is an `EXISTING_ADOPTION`
+blocker. Giving up readable retained state therefore remains a deliberate
+change visible in Git. To adopt afresh over content that such an adoption
+installed, finish or abandon any active run, remove the product state
 directory, commit that removal through the project's normal workflow, and
 inspect the selection again:
 
@@ -450,25 +453,58 @@ check the active run's CLI pin, or otherwise the recorded adoption's pin,
 before checking any record format. A different CLI fails with
 `CLI_PIN_MISMATCH` first, without changing anything.
 
-When committed state, the integrity lock, retained scope evidence, or a run
-record carries an older format, `inspect`, `start`, `status`, `resume`, and
-`abandon` fail with `RETIRED_FORMAT` after any required pin check and before
-reading further records or writing anything. The diagnostic names the record,
-its retired format, and the format this CLI reads, for example:
+When committed state, the integrity lock, or retained scope evidence carries an
+older format, inspecting with `--source`, `--standards-version`, and
+`--profile` previews a fresh adoption without anything removed or committed
+first. Nothing in the retired state is read or converted, and the selection is
+inspected as an initial adoption:
+
+- `retiredState` in the report, and **Retired product state** in its summary,
+  list the retired records and every file of the `.repo-standards` directory
+  as content the run removes. The directory is removed whole, including its
+  ignored runtime dependencies, local reports, and cache, which the identity
+  doesn't bind and the report doesn't list. Local content worth keeping, such
+  as a candidate state an earlier CLI preserved in
+  `local/incomplete-state.json`, is copied elsewhere before `start`. The
+  inspection identity binds the rest, so changing it after the inspection
+  fails `start` with `STALE_INSPECTION`.
+- Exact files, skills, and system skills are matched or replaced as at any
+  initial adoption: without an installed baseline, every replaced target is
+  listed among the discarded edits. Content that an earlier adoption installed
+  and the selection no longer declares stays in place as project content.
+- Confirming the inspection confirms the removal. Under its lock, `start`
+  observes the same retired directory again, removes it, and then installs. The
+  removal is left uncommitted with the run's other changes; HEAD and the index
+  don't change. An interrupted removal is recovered with `resume --retry` like
+  any interrupted installation. While the run is active, `status`, `resume`,
+  and `abandon` read it rather than the retired state.
+
+Every other command that would read a retired committed record, including
+`inspect` and `start` without source flags, which inspect retained standards,
+fails with `RETIRED_FORMAT` after any required pin check and before reading
+further records or writing anything. The diagnostic names the record, its
+retired format, and the format this CLI reads, for example:
 
 ```text
-[RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v6; this CLI reads only repo-standards/state/v7. Adopt fresh: remove the .repo-standards directory, commit, and adopt again.
+[RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v6; this CLI reads only repo-standards/state/v7. Adopt fresh: inspect with --source, --standards-version and --profile, and confirm that inspection; its start removes the retired .repo-standards directory.
 ```
 
-Nothing is converted. A fresh adoption proceeds as in
-[Adopt afresh over installed content](#adopt-afresh-over-installed-content):
-the `.repo-standards` directory is removed, the removal committed, and the
-selection inspected, confirmed, and started again. When the diagnostic names a
-run record, an active run or an archived abandoned report in Git's directory,
-its earlier pinned CLI can still resume or abandon it; this CLI cannot. Fresh
-adoption also requires removing that record. The locations are
-`git rev-parse --git-path repo-standards-run.lock` and the
-`repo-standards-reports/` directory beside it.
+Run records live in Git's directory: the active run at
+`git rev-parse --git-path repo-standards-run.lock`, and abandoned runs' reports
+in the `repo-standards-reports/` directory beside it. An active run record in a
+retired format may hold unfinished work, so every command, including the
+fresh-adoption preview and its start, fails with `RETIRED_RUN` and removes
+nothing. The diagnostic names the earlier pinned CLI when the record carries
+one, and its `resume --retry` and `abandon`, which can still continue or end
+the run; this CLI can't:
+
+```text
+[RETIRED_RUN] The active adoption run record .git/repo-standards-run.lock carries the retired format repo-standards/run/v5; this CLI reads only repo-standards/run/v6. It may hold unfinished work: with the earlier pinned CLI 3.2.0, resume it with resume --retry or end it with abandon, then inspect again.
+```
+
+An archived report in a retired format fails with `RETIRED_FORMAT` and names
+that report: only the CLI that wrote it reads its evidence, so it is moved out
+of Git's directory before this CLI continues.
 
 A higher version of the same record format fails with `NEWER_FORMAT`, including
 when a future schema no longer exposes the CLI pin where this CLI expects it:
@@ -479,9 +515,11 @@ when a future schema no longer exposes the CLI pin where this CLI expects it:
 
 This diagnostic exits 1, reads no further records, and changes nothing. Use the
 CLI pinned by the project or active run. A newer format never takes the
-fresh-adoption path. Both format diagnostics include `details.path`,
-`details.format`, and `details.expected` in JSON output. Malformed or unrelated
-format identities fail the record's integrity validation instead.
+fresh-adoption path, and takes precedence over any retired record. The three
+format diagnostics include `details.path`, `details.format`, and
+`details.expected` in JSON output; `RETIRED_RUN` adds `details.cli` when the
+run record names its CLI. Malformed or unrelated format identities fail the
+record's integrity validation instead.
 
 ## Recover or abandon an interrupted run
 
@@ -569,9 +607,9 @@ archiving its report. Failed preservation blocks abandonment and keeps the run
 active for reconciliation. Preserved changes stay in the working tree for the
 project's normal workflow. A new initial adoption still requires a clean
 project without conflicting product state and a fresh confirmed inspection.
-A durable run record is removed only when it carries a
+An archived run report is moved out of Git's directory only when it carries a
 [retired format](#adopt-fresh-from-a-retired-format), because this CLI cannot
-recover it.
+read it.
 
 ## Correct a confirmed scope
 

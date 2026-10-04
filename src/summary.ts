@@ -26,6 +26,7 @@ export interface InspectionReport {
   operations: OperationDefinition[];
   systemSkills: { name: string; target: string; action: string; link: SkillLink }[];
   removed?: { id: string; target: string; files: ChangedFile[] }[]; kept?: { id: string; target: string }[]; discardedEdits: string[];
+  retiredState?: { target: string; records: { path: string; format: string; expected: string }[]; files: string[] };
   discovery?: { declarations: { id: string }[]; proposal?: unknown };
   scopeChanges?: ScopeChange[]; retired?: Declaration[];
   start: { eligible: boolean | null; blockers: Blocker[] };
@@ -129,7 +130,7 @@ export function inspectionSummary(report: InspectionReport) {
   const before = previous ? selectionRows(previous) : undefined;
   parts.push(section('Selection', [
     table(['Component', 'Before', 'After'], selectionRows(report.selection).map(([name, value], index) => [name!, before ? before[index]![1]! : 'none', value!])),
-    update ? `Changed components: ${list(report.update!, 'none')}.` : 'Initial adoption.',
+    update ? `Changed components: ${list(report.update!, 'none')}.` : report.retiredState ? 'Initial adoption over retired product state.' : 'Initial adoption.',
   ].join('\n\n')));
 
   if (update) {
@@ -166,6 +167,13 @@ export function inspectionSummary(report: InspectionReport) {
   if (report.kept?.length) parts.push(section('Kept targets', [
     'These targets leave the selection with edits. They stay in place, and the project now owns them:',
     table(['Declaration', 'Path'], report.kept.map(entry => [code(entry.id), code(entry.target)])),
+  ].join('\n\n')));
+
+  const retired = report.retiredState;
+  if (retired) parts.push(section('Retired product state', [
+    `The run removes the ${code(retired.target)} directory whole, including its ignored generated content. This CLI does not read its records:`,
+    table(['Record', 'Format', 'Current format'], retired.records.map(record => [code(record.path), code(record.format), code(record.expected)])),
+    `Removed files:\n\n${retired.files.map(path => `- ${code(path)}`).join('\n')}`,
   ].join('\n\n')));
 
   parts.push(section('Operations', report.operations.length ? table(['Phase', 'Declaration', 'Operation', 'Command', 'Prerequisite', 'Timeout'], report.operations.map(operation => [

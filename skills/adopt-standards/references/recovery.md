@@ -64,19 +64,22 @@ stays incomplete with `SCOPE_INCOMPLETE`. Then adopt again:
 ## Adopt fresh from a retired format
 
 `RETIRED_FORMAT` means the CLI does not read a record the project carries.
-Nothing is converted, and the only way forward is a fresh adoption.
+Nothing is converted, and nothing needs removing or committing first.
 
-1. When the diagnostic names a run record in Git's directory, the CLI that the
-   project pinned before can still resume or abandon that run and so preserve
-   its work. Offer that first; this CLI cannot.
-2. The maintainer removes any such record, at
-   `git rev-parse --git-path repo-standards-run.lock` and the
-   `repo-standards-reports/` directory beside it, and the product state:
-
-   ```sh
-   git rm -r --quiet .repo-standards  # tracked product state
-   rm -rf .repo-standards             # ignored runtime, local, and cache content
-   ```
-
-3. The maintainer commits that removal through their normal workflow.
-4. Continue with an initial adoption using an externally installed exact CLI.
+1. `RETIRED_RUN` names an active run record in a retired format. It may hold
+   unfinished work, and only the earlier CLI it names can resume or abandon it.
+   Offer that first; until it is done, this CLI changes nothing.
+2. When `RETIRED_FORMAT` names an archived report in Git's directory, only the
+   CLI that wrote it reads its evidence. With the maintainer's instruction,
+   move it out of the `repo-standards-reports/` directory, keeping a copy if
+   the maintainer wants its evidence.
+3. When it names committed product state, continue with an initial adoption
+   using an externally installed exact CLI and the source flags. Its inspection
+   lists the retired `.repo-standards` directory under **Retired product
+   state**, and `retiredState` in the report. Present that removal with the
+   rest of the inspection: the run removes the whole directory, including its
+   unlisted ignored `local/` content, such as an earlier abandoned run's
+   `incomplete-state.json`, which the maintainer may want to copy first.
+   Content that the earlier adoption installed and the selection no longer
+   declares stays as project content. Confirming the inspection confirms the removal,
+   which `start` leaves uncommitted with the run's other changes.

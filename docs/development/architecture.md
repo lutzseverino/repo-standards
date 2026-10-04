@@ -50,8 +50,8 @@ standards format.
 | Repository state | A resolved selection and observed project produce an inspection, its update comparison and class, freshness identities, and durable adoption progress. The update comparison takes the verified recorded adoption, the candidate selection and materials, and the project's observed product state. It rejects a recorded tag that now resolves to a different commit, and returns the whole update part of an inspection, which is the changed selection components, the previous selection, the retired declarations, the update class and contextual changes, and the product-state-integrity blocker. Scope changes stay with inspection, which holds the scope proposal. |
 | Declaration targets | A resolved declaration produces the targets it applies to, as paths and directory trees: an exact file's or skill's one installation target, or contextual guidance's targets. It also produces each skill's link and the text the product writes there, and holds the system skills: each reserved name, target, and link, and the ones adoption installs. Every other module asks it rather than deriving a skill's target or link, a declaration's targets, or the system skills itself. |
 | Target ownership | Each installation target's current content, its installed baseline when one exists, its candidate content when one exists, and whether that content is tracked produce its target ownership: the action a run would take on it (match, create, or replace; a recorded target the selection no longer installs has a missing candidate, so its removal is a replacement, unless it overlaps contextual scope or lies at or inside a target the selection still installs, where it has no candidate and no action), whether that action discards content other than the installed baseline, whether the target is kept, and its one ownership blocker, untracked replacement content. A recorded target the selection no longer installs is kept, with no action and no blocker, when its safely observed, tracked content is not its installed baseline, unless it contains a target the selection still installs; a skill directory is judged whole, and a kept skill keeps its link. The rule is the same for every target kind in every run. Inspection observes each target once and is its only caller. |
-| Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, skill links, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, status, and check read an established adoption only through it; every command first rejects retired records in the product state and Git directories through it, which is all resume and abandon need while a run is active. `outdated` reads the selection leniently instead. |
-| Installation | A confirmed inspection produces one run's installation plan, not the adoption itself: the exact content, skills, skill links, retained inputs, durable product state, and runtime an adoption run installs, the links it removes, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module. |
+| Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, skill links, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, status, and check read an established adoption only through it; every command first runs its format gate over the records in the product state and Git directories, which is all resume and abandon need while a run is active. The gate rejects newer and retired records, except that it returns retired committed records to a public inspection or start, which adopts fresh over them, and to status, resume, abandon, and check while a run of this CLI is active. `outdated` reads the selection leniently instead. |
+| Installation | A confirmed inspection produces one run's installation plan, not the adoption itself: the exact content, skills, skill links, retained inputs, durable product state, and runtime an adoption run installs, the links it removes, retired product state it removes whole, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module. |
 | Execution | Confirmed adoption progress advances through exact installation, literal process execution, checks, and final integrity. Final integrity is the run-time check of the run's planned installation, distinct from the recorded adoption reader's check of the committed baseline a run starts from. `check` runs the recorded adoption's checks through the same prerequisite probes and process execution outside any run, observing that each leaves the project unchanged. |
 | Work evidence | The work-evidence journal owns an adoption run's observation intervals: it opens one for a phase and scope after recording any unattributed gap as an agent interval, closes intervals with their violation checks, continues after an interruption by recording and saving without checking, so each caller requires authorization where it holds, and answers what the agent changed. It keeps the one observation its last interval ends at behind an observation store seam: a file store beside the run journal for runs, an in-memory store for abandonment. Intervals and operation outcomes produce the run's execution evidence as identities and deltas, in one shape shared by the run record, the local run report, and committed durable state, which holds the current run only. At completion, the installation's changes and the intervals produce the run's net change set. |
 | Scope evidence | A confirmed run and the recorded adoption it updates produce the retained scope evidence: the current run, with its project observation kept without derived evidence and its named observation as a delta, and its scope change against the previous run. The projected historical scope is rebuilt on read. |
@@ -374,7 +374,8 @@ whole, and so is whatever a skill link replaces. Ignored or otherwise untracked 
 content, including an empty directory, blocks mutation. The inspection lists
 each replacement that discards content other than the target's installed
 baseline; at initial adoption there is no baseline, so every replacement of
-existing content is listed. Existing product state blocks initial adoption.
+existing content is listed. Existing product state blocks initial adoption,
+unless its committed records use a retired format, when the run removes it.
 [ADR 0010](../adr/0010-replace-tracked-content-block-only-untracked.md) records
 the decision.
 
@@ -507,16 +508,33 @@ state, the integrity lock, retained scope evidence, the run record and local run
 report, the status record, the inspection report, and the work request and
 assessment. Reports and records carry hash inventories, unified diffs for
 changed text, and hashes for binary content, never file bytes or observation
-maps. After any required CLI pin check, reading an older format fails with
-`RETIRED_FORMAT` before further records are read or anything is written;
-nothing is converted. Its diagnostic names the one path
-forward, fresh adoption: remove any retired run record in Git's directory and
-the product state directory, commit the directory's removal, and adopt again.
-A newer version of a known record format fails with `NEWER_FORMAT` and names
-using the pinned CLI, including when the record holding the pin has changed
-schema. It never advises removal or fresh adoption. The format gate checks the
-integrity lock, durable state, retained scope evidence, and active and archived
-run records. Malformed or unrelated format identities remain integrity failures.
+maps. After any required CLI pin check, the format gate checks the integrity
+lock, durable state, retained scope evidence, and active and archived run
+records before further records are read or anything is written; nothing is
+converted. A newer version of a known record format anywhere fails with
+`NEWER_FORMAT` and names using the pinned CLI, including when the record
+holding the pin has changed schema. It never advises removal or fresh
+adoption. An active run record in an older format may hold unfinished work: it
+fails every command with `RETIRED_RUN`, naming the earlier pinned CLI's
+`resume --retry` and `abandon`, and nothing is removed. An archived report in
+an older format fails with `RETIRED_FORMAT`, naming that report, which only
+the CLI that wrote it reads.
+
+Committed product state in an older format is never read. An inspection with
+source flags treats the selection as a fresh adoption: its report's
+`retiredState` lists the retired records and every file of the
+`.repo-standards` directory as content the run removes, and the identity binds
+that directory as it binds an update's product state, without its generated
+directories. Under its lock, `start` observes the same directory again,
+removes it whole, generated directories included, as its first installation
+step, and then installs, leaving the removal uncommitted with the run's other
+changes. Its removal is tracked like any replaced tree, so an interrupted one
+resumes on retry; until it is removed, the run, not the retired state, is what
+status, resume, and abandon read, and what blocks check, and abandonment
+archives none of the earlier CLI's local reports as the run's. Every other read of retired committed state,
+including retained inspection, fails with `RETIRED_FORMAT`, naming that
+fresh-adoption path. Malformed or unrelated format identities fail the
+record's integrity validation.
 
 A format's version rises when its keys change: a key is added, removed,
 renamed, or changes type. Changed values under the same keys, such as embedded
@@ -642,8 +660,9 @@ preserved; the adopter abandons it, commits or discards its changes, and adopts
 again with a new confirmed scope. Initial adoption matches existing exact files
 and skill directories, including the system skills, whose complete inventory,
 bytes, and modes match, and replaces tracked ones that differ, while existing
-product state blocks it. Fresh adoption over previously installed content
-therefore needs only the committed removal of the product state directory; an
+product state blocks it, unless that state is retired. Fresh adoption over
+previously installed content therefore needs only the committed removal of
+product state in the current formats, and nothing first over retired state; an
 existing system skill that a different CLI version installed is replaced like
 any other tracked target.
 
@@ -693,9 +712,11 @@ The product is complete only when all of these pass:
     lookup fails, through `outdated` and the update notice that relays it to
     an agent, and classify every update as exact or contextual with
     deterministic Markdown summaries of inspections and runs.
-14. Reject retired formats with the fresh-adoption diagnostic, and adopt fresh
-    over previously installed content after removing the product state,
-    replacing any differing tracked system skill without an ownership blocker.
+14. Preview and complete a fresh adoption over retired committed product
+    state, removing it in the confirmed run and replacing any differing tracked
+    system skill without an ownership blocker; block on a retired active run
+    record; and reject other reads of retired formats with the fresh-adoption
+    diagnostic.
 
 ## Implementation choices
 
