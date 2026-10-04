@@ -32,7 +32,15 @@ function gh(args: string[], allowMissing = false) {
   }
   return result.stdout;
 }
-function github(path: string, allowMissing = false): any {
+// The parts of GitHub and release responses this inspection reads.
+interface GitObject { type: string; sha: string }
+interface Release {
+  tag_name: string; draft: boolean; prerelease: boolean; target_commitish: string; body: string | null;
+  assets: { id: number; name: string }[];
+}
+interface Bundle { package: string; version: string; tarball: string; integrity: string; artifacts: { file: string; sha256: string }[] }
+
+function github(path: string, allowMissing = false): unknown {
   const bytes = gh(['api', `repos/${repository}${path ? `/${path}` : ''}`], allowMissing);
   return bytes === undefined ? undefined : JSON.parse(bytes.toString('utf8'));
 }
@@ -58,7 +66,7 @@ function originalNotes(runId: string) {
 }
 
 async function inspect(runId: string) {
-  const run = github(`actions/runs/${runId}`);
+  const run = github(`actions/runs/${runId}`) as { path: string; head_sha: string; status: string };
   assert.equal(run.path, '.github/workflows/release.yml', 'The original run must use release.yml');
   assert.match(run.head_sha, /^[a-f0-9]{40}$/, 'The original run must identify its commit');
   if (run.status !== 'completed') {
@@ -68,26 +76,26 @@ async function inspect(runId: string) {
     report.nextAction = `Wait for the run to finish, for example with ${command(['gh', 'run', 'watch', runId, '--repo', repository])}, then rerun release-status with a fresh output directory. Do not publish, upload or dispatch while the run is in progress.`;
     return;
   }
-  const { jobs } = github(`actions/runs/${runId}/jobs?per_page=100`);
+  const { jobs } = github(`actions/runs/${runId}/jobs?per_page=100`) as { jobs: { name: string; conclusion: string }[] };
   for (const name of ['validate (ubuntu-latest)', 'validate (macos-latest)']) {
-    assert.ok(jobs.some((job: { name: string; conclusion: string }) => job.name === name && job.conclusion === 'success'),
+    assert.ok(jobs.some(job => job.name === name && job.conclusion === 'success'),
       `Original ${name} must have passed; verification-only runs cannot supply a validated bundle`);
   }
   report.commit = run.head_sha;
   gh(['run', 'download', runId, '--name', 'release-bundle', '--dir', bundleDirectory]);
-  const bundle = JSON.parse(readFileSync(join(bundleDirectory, 'release.json'), 'utf8'));
+  const bundle = JSON.parse(readFileSync(join(bundleDirectory, 'release.json'), 'utf8')) as Bundle;
   assert.equal(bundle.package, packageName);
   assert.match(bundle.version, /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
   assert.equal(bundle.tarball, `lutzseverino-repo-standards-${bundle.version}.tgz`);
   const files = [bundle.tarball, 'repo-standards-bootstrap', 'SHA256SUMS', 'release.json'];
   assert.deepEqual(readdirSync(bundleDirectory).sort(), [...files].sort(), 'The original bundle must contain exactly four release files');
-  assert.deepEqual(bundle.artifacts.map((a: { file: string }) => a.file).sort(), [bundle.tarball, 'repo-standards-bootstrap'].sort());
+  assert.deepEqual(bundle.artifacts.map(a => a.file).sort(), [bundle.tarball, 'repo-standards-bootstrap'].sort());
   for (const artifact of bundle.artifacts) {
     assert.equal(createHash('sha256').update(readFileSync(join(bundleDirectory, artifact.file))).digest('hex'), artifact.sha256,
       `Original bundle hash mismatch: ${artifact.file}`);
   }
   assert.equal(readFileSync(join(bundleDirectory, 'SHA256SUMS'), 'utf8'),
-    bundle.artifacts.map((a: { file: string; sha256: string }) => `${a.sha256}  ${a.file}\n`).join(''));
+    bundle.artifacts.map(a => `${a.sha256}  ${a.file}\n`).join(''));
   assert.equal(`sha512-${createHash('sha512').update(readFileSync(join(bundleDirectory, bundle.tarball))).digest('base64')}`, bundle.integrity,
     'Original tarball does not match its npm integrity');
   report.version = bundle.version;
@@ -97,28 +105,28 @@ async function inspect(runId: string) {
   const registry = await request(`https://registry.npmjs.org/@lutzseverino%2Frepo-standards/${bundle.version}`);
   assert.ok([200, 404].includes(registry.status), `npm returned HTTP ${registry.status}; publication state is unknown`);
   if (registry.status === 200) {
-    assert.equal((await registry.json()).dist?.integrity, bundle.integrity, 'Published npm integrity differs from the original bundle');
+    assert.equal((await registry.json() as { dist?: { integrity?: string } }).dist?.integrity, bundle.integrity, 'Published npm integrity differs from the original bundle');
   }
   report.npm = registry.status === 200 ? 'matches' : 'absent';
   const tag = `v${bundle.version}`;
-  const ref = github(`git/ref/tags/${tag}`, true);
+  const ref = github(`git/ref/tags/${tag}`, true) as { object?: GitObject } | undefined;
   let object = ref?.object;
   for (let depth = 0; object?.type === 'tag' && depth < 10; depth++) {
     assert.match(object.sha, /^[a-f0-9]{40}$/);
-    object = github(`git/tags/${object.sha}`).object;
+    object = (github(`git/tags/${object.sha}`) as { object?: GitObject }).object;
   }
   if (ref) {
     assert.equal(object?.type, 'commit', 'Release tag must resolve to a commit');
-    assert.equal(object.sha, run.head_sha, 'Release tag differs from the original validated commit');
+    assert.equal(object?.sha, run.head_sha, 'Release tag differs from the original validated commit');
   }
   report.tag = ref ? 'matches' : 'absent';
-  let release = github(`releases/tags/${tag}`, true);
+  let release = github(`releases/tags/${tag}`, true) as Release | undefined;
   if (!release) {
     // The tag endpoint describes published releases. Check the authenticated
     // listing as well before treating a possibly unfinished draft as absent.
-    assert.equal(github('').permissions?.push, true, 'Push access is required to establish whether a draft release exists');
-    const pages = JSON.parse(gh(['api', `repos/${repository}/releases?per_page=100`, '--paginate', '--slurp'])!.toString('utf8'));
-    const matches = pages.flat().filter((candidate: { tag_name: string }) => candidate.tag_name === tag);
+    assert.equal((github('') as { permissions?: { push?: boolean } }).permissions?.push, true, 'Push access is required to establish whether a draft release exists');
+    const pages = JSON.parse(gh(['api', `repos/${repository}/releases?per_page=100`, '--paginate', '--slurp'])!.toString('utf8')) as Release[][];
+    const matches = pages.flat().filter(candidate => candidate.tag_name === tag);
     assert.ok(matches.length <= 1, 'Multiple releases use the version tag; resolve the ambiguous publication state');
     release = matches[0];
   }
@@ -151,7 +159,7 @@ async function inspect(runId: string) {
     const matched: string[] = [];
     const missing: string[] = [];
     for (const file of files) {
-      const assets = release.assets.filter((asset: { name: string }) => asset.name === file);
+      const assets = release.assets.filter(asset => asset.name === file);
       assert.ok(assets.length <= 1, `Multiple release assets use the same name: ${file}`);
       const asset = assets[0];
       if (!asset) {

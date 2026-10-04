@@ -5,7 +5,7 @@ import { chmodSync, copyFileSync, mkdirSync, readFileSync, writeFileSync } from 
 import { join, resolve } from 'node:path';
 
 const output = resolve(process.argv[2] ?? 'release');
-const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
+const manifest = JSON.parse(readFileSync('package.json', 'utf8')) as { name: string; version: string };
 if (manifest.name !== '@lutzseverino/repo-standards' || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(manifest.version)) {
   throw new Error('Release requires the agreed package name and an exact stable version.');
 }

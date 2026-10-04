@@ -1090,7 +1090,7 @@ async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standa
     const candidate = sourceFixture('');
     t.after(() => candidate.close());
     execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
-    run = (args, environment = env) => spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env: environment, encoding: 'utf8' });
+    run = (args, environment?: NodeJS.ProcessEnv) => spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env: environment ?? env, encoding: 'utf8' });
     for (const key of Object.keys(remote.responses)) delete remote.responses[key];
     remote.save();
     args = ['inspect', '--json'];

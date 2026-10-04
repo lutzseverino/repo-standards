@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const [sessionPath, ...args] = process.argv.slice(2);
-const session = JSON.parse(readFileSync(sessionPath!, 'utf8'));
+const session = JSON.parse(readFileSync(sessionPath!, 'utf8')) as { project: string; cli: string; env: Record<string, string> };
 const executable = args[0] === '--local'
   ? (args.shift(), join(session.project, '.repo-standards/runtime/node_modules/.bin/repo-standards'))
   : session.cli;
