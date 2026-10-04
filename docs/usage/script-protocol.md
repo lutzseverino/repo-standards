@@ -216,6 +216,9 @@ validation. A state, run record, or scope
 history in a retired format is rejected with `RETIRED_FORMAT` and never
 converted; the project
 [adopts fresh](adoption.md#adopt-fresh-from-a-retired-format).
+A newer version of these records fails with `NEWER_FORMAT`, requiring the
+pinned CLI without changing anything. `status`, `resume`, and `abandon` reject
+a different CLI with `CLI_PIN_MISMATCH` before checking record formats.
 Retained inspection also checks exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
 empty-directory edits block updates before mutation.

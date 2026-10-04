@@ -1,7 +1,7 @@
 import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { acquireSource } from './acquisition.js';
-import { inventory, json, lockPath, relativePath } from './adoption-files.js';
+import { inventory, json, lockPath, relativePath, requirePinnedCli } from './adoption-files.js';
 import { ProductError } from './errors.js';
 import { formats, recordPath, requireFormat } from './formats.js';
 import type { Declaration } from './model.js';
@@ -11,12 +11,12 @@ import { validExecutionEvidence, type ExecutionEvidence } from './work-evidence.
 
 // The one reader of a recorded adoption: everything the last complete adoption
 // left under the product state directory, read and verified together, after the
-// retired-record gate over those records and the run records in Git's
+// format gate over those records and the run records in Git's
 // directory. The lock binds the durable state and every retained product file
 // by hash, so nothing recorded is interpreted before it matches, and any
 // mismatch fails once with the state-integrity diagnostic whichever command is
 // reading. Commands that act on an active run, whose recorded adoption an
-// update may be replacing, run the retired-record gate alone.
+// update may be replacing, run the format gate alone after checking the pin.
 
 export interface RecordedSelection {
   cli: { package: string; version: string };
@@ -141,19 +141,31 @@ function recordedScopeEvidence(value: RecordedFile) {
   }
 }
 
-// A record's JSON, read without verification, for its format alone.
+// A record's JSON, read without verification, for its pin or format alone.
 function unverifiedRecord(path: string): unknown {
   try { return lstatSync(path, { throwIfNoEntry: false })?.isFile() ? JSON.parse(readFileSync(path, 'utf8')) : undefined; }
   catch { return undefined; }
 }
 
-// Every command that reads product records rejects a retired one before it
-// reads or writes anything else, so the diagnostic is the same whichever record
+// Read only the pin before checking any record's format or contents. An active
+// run owns the pin, even while updating an adoption whose lock still names the
+// former CLI. If a future schema no longer exposes this field, the format gate
+// supplies the pinned-CLI diagnostic instead.
+export function requireRecordedCli(root: string, runRecord: string, running: string) {
+  const record = unverifiedRecord(existsSync(runRecord) ? runRecord : join(root, lockFile)) as
+    { selection?: { cli?: { version?: unknown } } } | undefined;
+  const pinned = record?.selection?.cli?.version;
+  if (typeof pinned === 'string') requirePinnedCli(root, pinned, running);
+}
+
+// After any required pin check, every command that reads product records
+// rejects an older or newer format before further reads or writes, so the
+// diagnostic is the same whichever record
 // the command would have read first: committed state, retained scope evidence,
-// the active run record, or a run report archived beside it by abandonment.
+// the integrity lock, active run record, or a run report archived by abandonment.
 // Records that cannot be read are left to their owners.
 export function rejectRetiredRecords(root: string, runRecord: string) {
-  for (const [path, format] of [[stateFile, formats.state], [scopeFile, formats.scopeHistory]] as const) {
+  for (const [path, format] of [[lockFile, formats.lock], [stateFile, formats.state], [scopeFile, formats.scopeHistory]] as const) {
     requireFormat(path, unverifiedRecord(join(root, path)), format);
   }
   const archive = join(dirname(runRecord), 'repo-standards-reports');
@@ -163,7 +175,7 @@ export function rejectRetiredRecords(root: string, runRecord: string) {
 }
 
 // Reads the recorded adoption of the project at root, or nothing when neither
-// the lock nor durable state exists. Retired record formats are rejected first.
+// the lock nor durable state exists. Unsupported record formats are rejected first.
 export function readRecordedAdoption(root: string): RecordedAdoption | undefined {
   rejectRetiredRecords(root, lockPath(root));
   const lock = targetObservation(root, lockFile, []);

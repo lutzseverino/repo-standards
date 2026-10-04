@@ -10,7 +10,7 @@ import { ProductError } from './errors.js';
 import { formats, recordPath, requireFormat } from './formats.js';
 import type { InspectOptions, inspect } from './inspection.js';
 import { observe, type Content, type HashInventory, type Observation } from './observation.js';
-import { readRecordedAdoption, rejectRetiredRecords, type RecordedAdoption } from './recorded-state.js';
+import { readRecordedAdoption, rejectRetiredRecords, requireRecordedCli, type RecordedAdoption } from './recorded-state.js';
 import { committedEvidenceReport, compactIntervals, keptIdentity, memoryStore, WorkEvidenceJournal, type ObservationStore, type RecordedInterval } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, requirePinnedCli, safe, systemTarget, verifyFiles, write } from './adoption-files.js';
@@ -213,6 +213,7 @@ function abandonedReports(root: string, lock: string): Run[] {
 export function abandon(project: string, cliVersion: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
+  requireRecordedCli(root, lock, cliVersion);
   rejectRetiredRecords(root, lock);
   const release = acquireWorker(lock);
   try {
@@ -254,6 +255,7 @@ export function abandon(project: string, cliVersion: string) {
 export function status(project: string, cliVersion: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
+  requireRecordedCli(root, lock, cliVersion);
   rejectRetiredRecords(root, lock);
   const abandoned = abandonedReports(root, lock);
   const active = existsSync(lock) ? readRun(root, lock) : null;
@@ -552,6 +554,7 @@ export class AdoptionRunSession {
   static async scope(root: string, mode: 'start' | 'resume', callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>,
     resume?: { cliVersion: string; retry: boolean }) {
     const lock = lockPath(root);
+    if (resume) requireRecordedCli(root, lock, resume.cliVersion);
     rejectRetiredRecords(root, lock);
     const release = acquireWorker(lock);
     const session = new AdoptionRunSession(root, mode);

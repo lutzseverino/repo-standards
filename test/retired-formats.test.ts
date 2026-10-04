@@ -72,6 +72,8 @@ test('a retired state, scope evidence, or run record format is rejected with the
     rmSync(runRecord, { force: true });
   };
   const retired = [
+    { format: 'repo-standards/lock/v0', current: 'repo-standards/lock/v1',
+      plant: (format: string) => writeFileSync(join(root, '.repo-standards/lock.json'), JSON.stringify({ format })) },
     ...['v1', 'v2', 'v3', 'v4', 'v5'].map(version => ({ format: `repo-standards/state/${version}`, current: 'repo-standards/state/v6',
       plant: (format: string) => rewriteCommittedState(root, { ...state, format }) })),
     ...['v1', 'v2', 'v3'].map(version => ({ format: `repo-standards/scope-history/${version}`, current: 'repo-standards/scope-history/v4',
@@ -156,6 +158,14 @@ test('the single committed formats are validated on read', async t => {
   const root = f.project.root;
   const state = committedState(root);
   const scope = committedScopeEvidence(root);
+  for (const format of ['repo-standards/state/vnext', 'repo-standards/state/v7-extra', 'repo-standards/state/v-1', 'repo-standards/unrelated/v1']) {
+    rewriteCommittedState(root, { ...state, format });
+    for (const command of ['inspect', 'status']) {
+      const before = snapshot(root);
+      assert.equal(f.run([command, '--json']).report.errors[0].code, 'STATE_INTEGRITY', format);
+      assert.deepEqual(snapshot(root), before);
+    }
+  }
   // Work evidence carries observation identities, never observation maps.
   rewriteCommittedState(root, { ...state, observations: state.observations!.map(interval => ({ ...interval, before: { files: {} } })) });
   assert.equal(f.run(['inspect', '--json']).report.errors[0].code, 'STATE_INTEGRITY');
