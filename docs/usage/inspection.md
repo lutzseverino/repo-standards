@@ -153,7 +153,8 @@ matches its installed baseline is listed in `removed`, and the run removes it.
 Each edited one is listed in `kept`, never in `discardedEdits`: the run leaves
 it in place, durable state no longer records it, and later runs neither list
 nor remove it. A skill directory is judged whole, so a skill with any added,
-removed, or changed file is kept whole, together with its link. A skill link
+removed, or changed file is kept whole, together with its link whenever the
+link is there and safe, tracked or not. A skill link
 is otherwise judged on its own, so a link the project replaced with its own
 content is kept even when its unedited skill is removed. Only tracked content
 is an edit, so ignored or other untracked content alone keeps nothing and still

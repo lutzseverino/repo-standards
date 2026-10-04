@@ -628,6 +628,12 @@ test('an edited skill that leaves the selection is judged whole and keeps its li
     { name: 'an unedited skill with an ignored file', mutate: ignore, kept: [], removed: [skill, link],
       blockers: [{ code: 'UNTRACKED_REPLACEMENT', path: `${skill}/local.md` }] },
     { name: 'an edited skill whose link was removed', mutate: (root: string) => { writeFileSync(join(root, skill, 'notes.md'), 'Edited'); unlinkSync(join(root, link)); }, kept: [skill], removed: [] },
+    // A safe link follows its kept skill even when Git no longer tracks it.
+    { name: 'an edited skill whose link is untracked', mutate: (root: string) => {
+      writeFileSync(join(root, skill, 'notes.md'), 'Edited');
+      writeFileSync(join(root, '.gitignore'), `/${link}\n`);
+      git(root, 'rm', '--cached', '--quiet', link);
+    }, kept: [skill, link], removed: [] },
     { name: 'an edited skill whose link was replaced by a copy', mutate: (root: string) => { writeFileSync(join(root, skill, 'notes.md'), 'Edited'); copy(root); }, kept: [skill, link], removed: [] },
     // An unedited skill goes; a copy in its link's place is the project's edit and stays.
     { name: 'an unedited skill whose link was replaced by a copy', mutate: copy, kept: [link], removed: [skill] },

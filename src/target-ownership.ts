@@ -109,8 +109,9 @@ export function judgeTargetOwnership(input: { tracked: ReadonlySet<string>; cont
   const containsInstalled = (path: string) => installed.some(other => within(other, path));
   const edited = new Set([...leaving].filter(target => trackedPart(target).type !== 'missing' && !containsInstalled(target.path)
     && !isBaseline(target.path, trackedPart(target), target.baseline)).map(({ path }) => path));
-  const keeps = (target: OwnedTarget) => trackedPart(target).type !== 'missing'
-    && (edited.has(target.path) || (target.kind === 'skill-link' && edited.has(linkedSkillTarget(target.path)!)));
+  // A link that follows its kept skill needs only to be there and safe.
+  const keeps = (target: OwnedTarget) => edited.has(target.path)
+    || (target.kind === 'skill-link' && edited.has(linkedSkillTarget(target.path)!) && !target.unsafe && target.current.type !== 'missing');
   return input.targets.map(target => !leaving.has(target) ? judge(target, input.tracked)
     : keeps(target) ? { ...judge(target, input.tracked), kept: true }
     : judge({ ...target, candidate: { type: 'missing' } }, input.tracked));
