@@ -69,7 +69,7 @@ export function git(project: string, args: string[], input?: string, timeout?: n
 }
 
 // Older Git follows symbolic .gitignore files, whose referent discovery does
-// not bind. Gate inspect and start before either can observe repository state.
+// not bind. Gate commands before they can observe repository state.
 export function requireSupportedGit() {
   const result = spawnSync('git', ['--version'], { encoding: 'utf8', timeout: 10_000 });
   const version = result.stdout?.trim().match(/^git version ((\d+)\.(\d+)(?:\.[^\s]+)?)/);

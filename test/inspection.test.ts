@@ -147,8 +147,8 @@ test('resume rejects Git older than 2.32 before reading records or observing wor
     for (const args of commands) {
       const result = cli.run(args, project.root, { ...env, ...gitEnv });
       assert.equal(result.status, 1, result.stdout + result.stderr);
-      const error = JSON.parse(result.stdout).errors[0];
-      assert.equal(error.code, 'GIT_VERSION_UNSUPPORTED');
+      const error = JSON.parse(result.stdout).errors?.[0];
+      assert.equal(error?.code, 'GIT_VERSION_UNSUPPORTED', result.stdout);
       assert.match(error.message, /2\.31\.8/);
       assert.match(error.message, /2\.32/);
       assert.deepEqual(snapshot(project.root), before);
@@ -158,7 +158,28 @@ test('resume rejects Git older than 2.32 before reading records or observing wor
   assert.deepEqual(remote.requestLog().slice(requests), []);
 });
 
-test('Git 2.32 and newer versions including vendor suffixes permit inspection', t => {
+test('resume rejects a CLI other than the pin before rejecting old Git or record formats', t => {
+  const project = sourceFixture('', { '.repo-standards/state.json': 'Unreadable product state' });
+  const support = sourceFixture('');
+  t.after(() => { project.close(); support.close(); });
+  const { env, unexpected } = oldGitEnv(support.root, true);
+  const runRecord = join(project.root, git(project.root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
+  for (const path of [join(project.root, '.repo-standards/lock.json'), runRecord]) {
+    writeFileSync(path, JSON.stringify({ format: 'repo-standards/unknown/v999', selection: { cli: { version: '99.0.0' } } }));
+    const before = snapshot(project.root);
+    for (const args of [['resume', '--json'], ['resume', '--retry', '--json'], ['resume', '--assessment', '/unread/assessment.json', '--json']]) {
+      const result = cli.run(args, project.root, env);
+      assert.equal(result.status, 1, result.stdout + result.stderr);
+      const error = JSON.parse(result.stdout).errors[0];
+      assert.equal(error.code, 'CLI_PIN_MISMATCH');
+      assert.match(error.message, /99\.0\.0/);
+      assert.deepEqual(snapshot(project.root), before);
+    }
+  }
+  assert.equal(lstatSync(unexpected, { throwIfNoEntry: false }), undefined, 'Pin rejection must not observe project work');
+});
+
+test('Git 2.32 and newer versions including vendor suffixes permit inspection and resume', t => {
   const remote = remoteFixture(simpleSource(), { 'content.md': 'Instructions' });
   const project = sourceFixture('');
   t.after(() => { remote.close(); project.close(); });
@@ -172,6 +193,9 @@ test('Git 2.32 and newer versions including vendor suffixes permit inspection', 
     const result = cli.run(inspectionArgs, project.root, { ...remote.env, PATH: `${bin}:${process.env.PATH}` });
     assert.equal(result.status, 0, result.stdout + result.stderr);
     assert.deepEqual(JSON.parse(result.stdout).start.blockers, []);
+    const resumed = cli.run(['resume', '--json'], project.root, { ...remote.env, PATH: `${bin}:${process.env.PATH}` });
+    assert.equal(resumed.status, 1, resumed.stdout + resumed.stderr);
+    assert.equal(JSON.parse(resumed.stdout).errors[0].code, 'NO_ACTIVE_RUN');
   }
 });
 

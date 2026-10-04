@@ -9,7 +9,7 @@ import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
 import { ProductError } from './errors.js';
 import { formats, recordPath, requireFormat } from './formats.js';
 import type { InspectOptions, inspect } from './inspection.js';
-import { observe, type Content, type HashInventory, type Observation } from './observation.js';
+import { observe, requireSupportedGit, type Content, type HashInventory, type Observation } from './observation.js';
 import { readCommittedScopeProposal, readRecordedAdoption, rejectUnsupportedRecords, requireRecordedCli, type RecordedAdoption } from './recorded-state.js';
 import { committedEvidenceReport, compactIntervals, keptIdentity, memoryStore, WorkEvidenceJournal, type ObservationStore, type RecordedInterval } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
@@ -567,7 +567,10 @@ export class AdoptionRunSession {
   static async scope(root: string, mode: 'start' | 'resume', callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>,
     resume?: { cliVersion: string; retry: boolean }) {
     const lock = lockPath(root);
-    if (resume) requireRecordedCli(root, lock, resume.cliVersion);
+    if (resume) {
+      requireRecordedCli(root, lock, resume.cliVersion);
+      requireSupportedGit();
+    }
     rejectUnsupportedRecords(root, lock);
     const release = acquireWorker(lock);
     const session = new AdoptionRunSession(root, mode);

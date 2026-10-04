@@ -484,6 +484,12 @@ the project runtime manifest and npm lock do not yet both pin the run's CLI, the
 diagnostic names that CLI instead of the runtime reinstall command, which could
 not restore it.
 
+`resume`, including `--retry` and `--assessment`, requires Git 2.32 or newer,
+as `inspect` and `start` do. After the CLI pin check and before reading records
+or observing project work, it checks the Git version. Older Git fails with
+`GIT_VERSION_UNSUPPORTED`, naming the installed and minimum versions, and
+changes nothing. `CLI_PIN_MISMATCH` still takes precedence under another CLI.
+
 ```sh
 repo-standards status --json
 repo-standards resume --retry --json
