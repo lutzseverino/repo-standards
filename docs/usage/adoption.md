@@ -9,10 +9,10 @@ explicit retry and abandonment as described below.
 ## Inspect, confirm, and start
 
 Use Node.js 24, npm, Git, and an [externally installed exact CLI](inspection.md#keep-the-disclosed-cli-for-start-and-recovery).
-Before first adoption, have the agent read that package's
-`skills/adopt-standards/SKILL.md`. After installation, use the matching
-repository-local `.agents/skills/adopt-standards/SKILL.md`. First inspect the
-public GitHub selection:
+An agent adopts through the `adopt-standards` skill: before first adoption, the
+one in that package's `skills/adopt-standards/`, and afterwards the matching
+repository-local `.agents/skills/adopt-standards/` that adoption installs. First
+inspect the public GitHub selection:
 
 ```sh
 repo-standards inspect --source https://github.com/OWNER/STANDARDS \
@@ -190,7 +190,7 @@ Review and commit these files through the adopting project's normal workflow:
 | `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
 | `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
-| `.agents/skills/adopt-standards/` | The product-owned system skill from this exact CLI version. |
+| `.agents/skills/adopt-standards/` | The product-owned system skill from this exact CLI version, with its references. |
 | Exact targets and `.agents/skills/<author skill>/` | The selected author-owned content and complete skill resources. |
 
 Discovery adoption additionally retains `inputs/scope-history.json`, and every
@@ -243,7 +243,7 @@ Earlier formats are retired: they are not read, converted, or compacted. A
 project whose committed or recorded files carry one
 [adopts fresh](#adopt-fresh-from-a-retired-format). An agent's assessment
 submission is never committed: one in an earlier format is rejected with
-`ASSESSMENT_FORMAT`, and the agent writes it again in the current format.
+`ASSESSMENT_FORMAT` until it is written again in the current format.
 
 Discovery-backed updates, including an unchanged selection, use fresh
 proposals and record their scope change against the prior run. Retry repeats
@@ -305,7 +305,10 @@ unchanged HEAD and index. Exact and durable outputs must also be visible to
 Git's normal add workflow; ignore rules hiding new adoption outputs make the
 run incomplete. Verification uses the original expected installation
 values; unexpected changes cannot become new baselines. Completion leaves all
-changes uncommitted and releases the lock.
+changes uncommitted and releases the lock. Those changes include new untracked
+files, which `git diff` omits; the `adopt-standards` skill's
+[review reference](../../skills/adopt-standards/references/review.md)
+describes a review of every output.
 
 Fixes run serially before contextual work. Checks run after fixes for profiles
 without contextual declarations; otherwise they wait for a satisfied, current agent assessment. Ordinary failed checks allow subsequent checks to collect evidence.
@@ -328,45 +331,6 @@ phase with explicit uncertainty and recovery guidance. Candidate state is
 preserved as ignored `.repo-standards/local/incomplete-state.json` when possible,
 instead of asserting a last-complete adoption. If preserving that candidate also
 fails, the report identifies the uncertainty for manual recovery.
-
-## Review completed outputs
-
-Complete adoption leaves changes uncommitted. Review their contents before the
-maintainer's normal commit workflow; a list of filenames or hashes is not a
-content review. This applies to initial adoption and updates, including newly
-added files alongside modified, deleted and mode-changed tracked files.
-
-From the project root, obtain a tracked diff and a complete new-file inventory:
-
-```sh
-git --no-optional-locks diff --no-ext-diff --no-textconv --binary --
-git --no-optional-locks ls-files --others --exclude-standard -z
-```
-
-Consume the second command's NUL-delimited paths without shell word splitting;
-paths may contain spaces, newlines or leading dashes. For each path, read its
-complete content and executable state, or invoke this argument vector directly
-with the literal path substituted for `<path>`:
-
-```text
-["git", "--no-optional-locks", "diff", "--no-index", "--no-ext-diff",
- "--no-textconv", "--binary", "--", "/dev/null", "<path>"]
-```
-
-For `--no-index`, exit 1 means differences were found; treat other failures as
-an incomplete review. Binary patches retain bytes and mode changes, but still
-use a suitable viewer or explicit binary-aware inspection when evaluating
-non-text content. Account for every enumerated path, including hidden files:
-exact targets, every installed skill file, retained inputs, selection/lock/state,
-`.repo-standards/.gitignore`, and runtime package manifest and lockfile. The
-ordinary ignore rules exclude dependencies, caches and local execution logs;
-review script outcomes from the run report separately.
-
-Save review artifacts outside the adopting project, so they do not become new
-outputs themselves. Do not stage files (including intent-to-add) to expose their
-contents. Confirm HEAD, index entries and the working files remain unchanged
-across review, and report any unreadable or unreviewed output explicitly. Only
-the maintainer's normal workflow stages or commits the completed adoption.
 
 ## Summarize status
 
@@ -454,13 +418,13 @@ its retired format, and the format this CLI reads, for example:
 [RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v5; this CLI reads only repo-standards/state/v6. Adopt fresh: remove the .repo-standards directory, commit, and adopt again.
 ```
 
-Nothing is converted. Adopt fresh as described in
+Nothing is converted. A fresh adoption proceeds as in
 [Adopt afresh over installed content](#adopt-afresh-over-installed-content):
-remove the `.repo-standards` directory, commit the removal, and inspect,
-confirm, and start the selection again. When the diagnostic names a run record,
-an active run or an archived abandoned report in Git's directory, its earlier
-pinned CLI can still resume or abandon it to preserve its work; this CLI
-cannot. Remove that record as well before adopting fresh. The locations are
+the `.repo-standards` directory is removed, the removal committed, and the
+selection inspected, confirmed, and started again. When the diagnostic names a
+run record, an active run or an archived abandoned report in Git's directory,
+its earlier pinned CLI can still resume or abandon it; this CLI cannot. Fresh
+adoption also requires removing that record. The locations are
 `git rev-parse --git-path repo-standards-run.lock` and the
 `repo-standards-reports/` directory beside it.
 
@@ -491,13 +455,13 @@ repo-standards status --json
 repo-standards resume --retry --json
 ```
 
-Review `active.phase`, `reason`, `changes`, `completed`, `uncertain`, and
-`nextAction` first. `execution: active` means a command or recorded author
-process group is still running; wait for it to finish or deliberately stop it
-before recovery. Background members keep the group active even after a fix or
-prerequisite probe returns. Recorded leader start identities distinguish an
-unrelated live leader that reuses a process-group number; a leaderless group is
-still treated conservatively as active while it has surviving members.
+`status --json` reports the active run's `phase`, `reason`, `changes`,
+`completed`, `uncertain`, `nextAction`, and `execution`. `execution: active`
+means a command or recorded author process group is still running. Background
+members keep the group active even after a fix or prerequisite probe returns.
+Recorded leader start identities distinguish an unrelated live leader that
+reuses a process-group number; a leaderless group is still treated
+conservatively as active while it has surviving members.
 `execution: interrupted` means durable incomplete progress
 remains without live execution. A normal contextual handoff also has no live
 execution. A second start is blocked until the run is resumed or abandoned.
@@ -533,7 +497,7 @@ recorded scope violations or create scope authority; see the
 uncertain process outcomes. A failed completion write remains incomplete until
 its candidate state is verified and recovery finishes.
 
-To end an incomplete run while keeping its work:
+`abandon` ends an incomplete run while keeping its work:
 
 ```sh
 repo-standards abandon --json
@@ -554,32 +518,25 @@ Abandonment reports `outcome: incomplete` with `abandoned: true` and exit status
 it does not assert successful adoption or replace last-complete evidence. The
 CLI releases the run only after preserving any candidate completion state and
 archiving its report. Failed preservation blocks abandonment and keeps the run
-active for reconciliation. Reconcile preserved changes
-through the project's normal workflow. A new initial adoption still requires a
-clean project without conflicting product state and a fresh confirmed inspection.
-Never remove durable run records to bypass recovery checks; only a record in a
-[retired format](#adopt-fresh-from-a-retired-format) is removed, because this CLI
-cannot recover it.
+active for reconciliation. Preserved changes stay in the working tree for the
+project's normal workflow. A new initial adoption still requires a clean
+project without conflicting product state and a fresh confirmed inspection.
+A durable run record is removed only when it carries a
+[retired format](#adopt-fresh-from-a-retired-format), because this CLI cannot
+recover it.
 
 ## Correct a confirmed scope
 
-A run's confirmed scope never changes while the run is active. When contextual
-review finds that coverage needs files outside it, or that a confirmed target is
-mistaken, submit the blocked scope review without writing those files. The run
-stays incomplete with `SCOPE_INCOMPLETE`; reported additional paths grant no
-authority. Correct the scope by adopting again:
-
-1. Preserve the work worth keeping.
-2. Abandon the run with `abandon --json`. Its changes and report are retained.
-3. Resolve its changes through the project's normal workflow. Commit or discard
-   contextual work on project-owned files. Discard what the run installed by
-   restoring `.repo-standards/`, exact content and skills to their committed
-   state: the new run installs them again, and an abandoned run's product state
-   is not a complete adoption. The next start requires a clean committed project.
-4. Inspect again with a new discovery proposal, obtain explicit confirmation of
-   the new inspection, and start it with the same proposal.
-
-Retry repeats work under the confirmed scope and cannot correct it.
+A run's confirmed scope never changes while the run is active, and retry
+repeats work under it. A structurally valid blocked scope review, reporting that
+coverage needs files outside the scope or that a confirmed target is mistaken,
+leaves the run incomplete with `SCOPE_INCOMPLETE`; its additional paths grant no
+authority. A different scope takes a new run: `abandon` ends the current one and
+keeps its changes, the next `start` requires a clean committed project, and the
+new run's inspection, with a new discovery proposal, needs its own explicit
+confirmation. Content the abandoned run installed, once restored to its
+committed state, is installed again by the new run; an abandoned run's product
+state is not a complete adoption.
 
 ## Fresh checkout and source disappearance
 

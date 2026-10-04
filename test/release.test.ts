@@ -27,7 +27,47 @@ test('release artifacts install without build tools and expose the matching CLI,
   assert.equal(execFileSync(cli, ['--version'], { encoding: 'utf8' }).trim(), bundle.version);
   assert.match(execFileSync(join(output, 'repo-standards-bootstrap'), ['--help'], { encoding: 'utf8' }), /Usage: repo-standards-bootstrap/);
   const installed = join(installation, 'node_modules/@lutzseverino/repo-standards');
-  assert.deepEqual(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md')), readFileSync(resolve('skills/adopt-standards/SKILL.md')));
+  const adoptionResources = ['SKILL.md', 'references/discovery.md', 'references/assessment.md', 'references/recovery.md', 'references/review.md'];
+  for (const resource of adoptionResources) {
+    assert.deepEqual(readFileSync(join(installed, 'skills/adopt-standards', resource)),
+      readFileSync(resolve('skills/adopt-standards', resource)));
+  }
+  // The adoption skill routes only to its own references, never into a package
+  // docs/ directory. It links contracts at this exact version.
+  assert.doesNotMatch(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md'), 'utf8')
+    .replace(/\(https:\/\/github\.com\/lutzseverino\/repo-standards\/blob\/v[^)]+\)/g, ''), /\bdocs\//);
+  // The skill tells the agent to keep the external CLI directory, so its
+  // installation prints that directory expanded.
+  assert.match(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md'), 'utf8'), /^printf '[^'\n]*%s\\n' "\$cli_dir"$/m);
+  const contractLinks = adoptionResources
+    .flatMap(resource => [...readFileSync(join(installed, 'skills/adopt-standards', resource), 'utf8')
+      .matchAll(/\]\(https:\/\/github\.com\/lutzseverino\/repo-standards\/blob\/v([^/)]+)\/([^)#]+)(?:#([^)]+))?\)/g)]
+      .map(match => ({ resource, version: match[1]!, path: match[2]!, anchor: match[3] })));
+  assert.ok(contractLinks.length > 0, 'The adoption references link the contracts they rely on');
+  // An adopting project installs the skill alone, so its local links stay inside
+  // the skill and its product repository links name this release's tag.
+  for (const resource of adoptionResources) {
+    const content = readFileSync(join(installed, 'skills/adopt-standards', resource), 'utf8');
+    for (const match of content.matchAll(/\]\(([^\s)]+)\)/g)) {
+      const target = match[1]!;
+      if (/^[a-z][a-z0-9+.-]*:/i.test(target)) {
+        if (target.startsWith('https://github.com/lutzseverino/repo-standards/')) {
+          assert.match(target, new RegExp(`^https://github\\.com/lutzseverino/repo-standards/blob/v${bundle.version.replaceAll('.', '\\.')}/`),
+            `${resource} links ${target} at a moving or other revision`);
+        }
+        continue;
+      }
+      const linked = resolve(installed, 'skills/adopt-standards', dirname(resource), target.split('#')[0]!);
+      assert.ok(!relative(join(installed, 'skills/adopt-standards'), linked).startsWith('..'), `${resource} links ${target} outside the skill`);
+    }
+  }
+  for (const link of contractLinks) {
+    assert.equal(link.version, bundle.version, `${link.resource} links a contract at another version`);
+    assert.match(link.path, /^docs\/usage\//, `${link.resource} links ${link.path}, which is not a contract`);
+    assert.ok(existsSync(join(installed, link.path)), `${link.resource} links missing ${link.path}`);
+    if (link.anchor) assert.ok(headingAnchors(readFileSync(join(installed, link.path), 'utf8')).has(link.anchor),
+      `${link.resource} links missing ${link.path}#${link.anchor}`);
+  }
   for (const [name, disabled, implicit] of [['adopt-standards', true, false], ['author-standards', false, true]] as const) {
     const skill = readFileSync(join(installed, 'skills', name, 'SKILL.md'), 'utf8');
     assert.equal(parse(skill.match(/^---\n([\s\S]*?)\n---\n/)![1]!)['disable-model-invocation'], disabled);
@@ -72,14 +112,27 @@ test('release artifacts install without build tools and expose the matching CLI,
     const legacy = [...content.matchAll(/\bdocs\/([\w-]+\.md)/g)].filter(match => usageDocuments.has(match[1]!));
     assert.deepEqual(legacy.map(match => match[0]), [], `${documentPath} names a legacy usage document path`);
   }
-  // Every packaged document must resolve its own local links inside the package.
+  // Every packaged document must resolve its own local links, and their
+  // section anchors, inside the package.
   for (const documentPath of packaged.filter(entry => entry.endsWith('.md'))) {
     const content = readFileSync(join(installed, documentPath), 'utf8');
     for (const match of content.matchAll(/\]\(([^\s)]+)\)/g)) {
-      const target = match[1]!.split('#')[0]!.split('?')[0]!;
-      if (!target || /^[a-z][a-z0-9+.-]*:/i.test(target)) continue;
-      const linked = resolve(installed, dirname(documentPath), target);
-      assert.ok(!relative(installed, linked).startsWith('..') && existsSync(linked), `${documentPath} links to missing ${target}`);
+      const [path, anchor] = match[1]!.split('?')[0]!.split('#') as [string, string | undefined];
+      if (/^[a-z][a-z0-9+.-]*:/i.test(path)) continue;
+      const linked = path ? resolve(installed, dirname(documentPath), path) : join(installed, documentPath);
+      assert.ok(!relative(installed, linked).startsWith('..') && existsSync(linked), `${documentPath} links to missing ${path}`);
+      if (anchor && linked.endsWith('.md')) assert.ok(headingAnchors(readFileSync(linked, 'utf8')).has(anchor),
+        `${documentPath} links to missing ${match[1]}`);
+    }
+  }
+  // Usage documents hold contracts and human how-to. Instructions to an agent
+  // live in the adoption skill's references.
+  for (const documentPath of packaged.filter(entry => entry.startsWith('docs/usage/'))) {
+    const content = readFileSync(join(installed, documentPath), 'utf8').replace(/\s+/g, ' ');
+    for (const instruction of [/\bthe agent (?:must|should|rechecks|writes|reads)\b/i, /\b(?:have|ask) the agent\b/i,
+      /\byour (?:judgment|evidence|last edit)\b/i, /\bshow the maintainer\b/i, /\bpreserve the work\b/i,
+      /\bobtain (?:an )?explicit (?:retry|abandonment)\b/i]) {
+      assert.ok(!instruction.test(content), `${documentPath} addresses an agent: ${content.match(instruction)?.[0]}`);
     }
   }
   for (const author of ['alice', 'mira']) {
@@ -88,6 +141,12 @@ test('release artifacts install without build tools and expose the matching CLI,
     assert.equal(JSON.parse(result.stdout).valid, true);
   }
 });
+
+// The anchors GitHub derives from a Markdown document's headings.
+function headingAnchors(markdown: string) {
+  return new Set([...markdown.replace(/^```[\s\S]*?^```/gm, '').matchAll(/^#{1,6}\s+(.+?)\s*$/gm)]
+    .map(match => match[1]!.toLowerCase().replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s/g, '-')));
+}
 
 test('the packed README reaches repository documents outside the package through absolute repository URLs', t => {
   const links = (markdown: string) => [...markdown.matchAll(/\]\(([^\s)]+)\)/g)].map(match => match[1]!);

@@ -139,8 +139,8 @@ into a public-source session.
 Save the full report outside the adopting project, disclose the pins, exact
 content, contextual scope and trusted operations, and obtain maintainer
 confirmation of its identity. Follow the skill to start that same selection.
-After installation, read the matching project-local skill and its packaged
-assessment protocol, then use `--local` before the public CLI arguments:
+After installation, read the matching project-local skill and its assessment
+reference, then use `--local` before the public CLI arguments:
 
 ```sh
 node acceptance/cli.ts SESSION --local status --json
@@ -165,7 +165,7 @@ submitted assessment, final report, status evidence, project diff (including
 new files), and command outputs supporting contextual claims. Compare employer
 contribution bytes, initial/final HEAD and index; capture the uncommitted Git
 status.
-Follow [Review completed outputs](../docs/usage/adoption.md#review-completed-outputs):
+Follow [the review reference](../skills/adopt-standards/references/review.md):
 include tracked changes and every non-ignored untracked file in content diffs
 or explicit content inspection, preserving binary bytes and executable state.
 Verify coverage against `git ls-files --others --exclude-standard -z`; contextual

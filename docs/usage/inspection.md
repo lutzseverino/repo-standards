@@ -64,9 +64,9 @@ mkdir -p "$adoption_cli"
 ```
 
 Use that executable from the project root for inspection and confirmed start.
-Before initial adoption, ask the agent to read the packaged skill at
-`$adoption_cli/node_modules/@lutzseverino/repo-standards/skills/adopt-standards/SKILL.md`.
-After installation, invoke the matching repository-local `adopt-standards` skill.
+Before initial adoption, an agent uses the packaged skill at
+`$adoption_cli/node_modules/@lutzseverino/repo-standards/skills/adopt-standards/`.
+After installation, it uses the matching repository-local `adopt-standards` skill.
 Keep the external runtime available until completion for interrupted-installation
 recovery. The [adoption workflow](adoption.md) documents start and continuation.
 
@@ -332,14 +332,16 @@ The report still includes exact changes, contextual guidance, and all operations
 Unresolved declarations remain in `sourceResolved`; they do not manufacture
 executable targets in `resolved`.
 
-Read each declaration's discovery guidance and inspect the eligible files to
-explain which candidates meet the author's criteria. Inventory and hash evidence
-establish what was observed; they do not prove that a candidate is a maintained
-project. Explain exclusions such as fixtures, generated output, and organizational
-directories, and disclose unresolved questions. The adopter reviews semantic
-coverage together with the complete inspection.
+A proposal answers the request with judgment: which candidates meet each
+declaration's discovery guidance, with reasons, supporting evidence, a coverage
+explanation, and unresolved questions. Inventory and hash evidence establish
+what was observed; they do not prove that a candidate is a maintained project.
+The adopter reviews semantic coverage together with the complete inspection.
+The `adopt-standards` skill's
+[discovery reference](../../skills/adopt-standards/references/discovery.md)
+describes building one.
 
-Write a JSON proposal **outside the adopting project**, then inspect it:
+Write the JSON proposal **outside the adopting project**, then inspect it:
 
 ```sh
 repo-standards inspect \
@@ -348,7 +350,7 @@ repo-standards inspect \
   --scope /tmp/project-scope.json --json
 ```
 
-The proposal holds only your judgment and has exactly this structure:
+The proposal holds only judgment and has exactly this structure:
 
 ```json
 {
@@ -445,12 +447,13 @@ a partial successful report. Each observation is bounded to 20,000 directory
 entries/file observations, 128 directory levels, 8 MiB per file, 64 MiB of file
 reads, and 30 seconds of traversal. Proposals are limited to 2 MiB. There is no
 continuous monitoring or atomic filesystem snapshot guarantee. A proposal is
-judged against the observation it is inspected with. When the project changes
-after confirmation, start rejects the confirmed identity: inspect again, review
-the proposal against the fresh evidence, and obtain a new confirmation.
+judged against the observation it is inspected with. When a change after
+confirmation alters the [inspection identity](#report-and-inspection-identity),
+start rejects the confirmed identity, and only a new inspection with its own
+confirmation can start.
 
-For initial adoption, obtain one confirmation of this complete inspection and
-pass the same external proposal file and identity to start:
+For initial adoption, one confirmation covers this complete inspection, and
+start takes the same external proposal file and identity:
 
 ```sh
 repo-standards start --source https://github.com/OWNER/STANDARDS \
@@ -500,6 +503,6 @@ continue. A newer version fails with `NEWER_FORMAT` and names using the pinned
 CLI; it never calls for fresh adoption. The integrity lock is checked too.
 
 A confirmed scope never changes during a run. When contextual work needs files
-outside it, or a confirmed target is mistaken, preserve the work, abandon the
-run, commit or discard its changes, and inspect again with a new proposal; see
+outside it, or a confirmed target is mistaken, a different scope takes a new
+run with a new proposal; see
 [Correct a confirmed scope](adoption.md#correct-a-confirmed-scope).

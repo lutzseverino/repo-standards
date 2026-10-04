@@ -26,9 +26,12 @@ The request contains:
 - `requiredEvidence`: the fields the agent supplies for each declaration:
   `status`, `explanation`, and `evidence`.
 
-Read the selected guidance and apply it to the adopting project's actual content.
-Exact files and skills remain author-owned; excluded and unrelated content
-remains outside the contextual scope. Preserve work and report blockers honestly.
+Contextual work applies the selected guidance to the adopting project's actual
+content within the allowed targets. Exact files and skills remain author-owned;
+excluded and unrelated content remains outside the contextual scope. The
+`adopt-standards` skill's
+[assessment reference](../../skills/adopt-standards/references/assessment.md)
+describes doing and judging this work.
 
 After contextual edits, refresh the request from the project root:
 
@@ -39,8 +42,8 @@ repo-standards resume --json
 This verifies installed integrity and returns another expected incomplete
 handoff with the current snapshot. It runs neither fixes nor checks. Refreshing
 does not reset the post-fix comparison baseline or excuse out-of-scope edits.
-Keep the project content unchanged between refreshing and submitting; the
-assessment is bound to that snapshot.
+The assessment is bound to that snapshot, so a change between refreshing and
+submitting makes it stale.
 
 ## Assessment submission
 
@@ -94,12 +97,12 @@ every declaration's allowed targets, or an unsafe target, blocks completion.
 
 The CLI binds an accepted assessment to the active run: its run, selection,
 and current work-request snapshot. A submission when no adoption run is active
-is rejected with `NO_ACTIVE_RUN`. Refresh the request after your last edit; a
-project that changed since the current work request is rejected with
-`STALE_ASSESSMENT`. The submission carries no identity of its own, so the CLI
-cannot tell whether it was written for the current request: after further
-edits or a retry, refresh, reassess all contextual declarations, and submit
-renewed evidence. Blocked assessments remain in the incomplete run report
+is rejected with `NO_ACTIVE_RUN`. A project that changed since the current
+work request is rejected with `STALE_ASSESSMENT`. The submission carries no
+identity of its own, so the CLI cannot tell whether it was written for the
+current request: after further edits or a retry, only a refreshed request and
+renewed evidence for every contextual declaration describe the current
+project. Blocked assessments remain in the incomplete run report
 separately from script results and prevent checks from starting.
 
 A satisfied assessment advances to checks in declaration and list order, then
@@ -128,9 +131,10 @@ renewed assessment after ordinary `CHECKS_FAILED` results. A timeout, signal,
 nonzero exit, malformed protocol result, blocked check, detected check mutation,
 or post-check integrity failure is preserved and rejected with
 `RESUME_UNAVAILABLE`. Neither refreshing a request nor submitting another
-assessment authorizes repeating these operations. Use explicit `resume --retry`
-to recover interrupted work and repeat fixes, or `abandon` to preserve its work
-and report; see [Recovery commands](adoption.md#recover-or-abandon-an-interrupted-run).
+assessment authorizes repeating these operations. Explicit `resume --retry`
+recovers interrupted work and repeats fixes, and `abandon` ends the run while
+preserving its work and report; see
+[Recovery commands](adoption.md#recover-or-abandon-an-interrupted-run).
 Retry discards the accepted assessment and requires a new submission against
 the retried request even when project bytes are unchanged, and retains
 separate intervals as described below. Updates use this same assessment interface. The [real-agent acceptance journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) evaluates contextual
@@ -181,11 +185,11 @@ across refreshes, and is renewed by explicit retry; the ordinary `snapshot` bind
 the current project state and retry attempt. Expected adoption writes are allowed
 under their phase's concrete scope, not treated as stale pre-start observations.
 
-Before editing, re-evaluate the discovery criteria against the post-fix project
-and retain your evidence. During final assessment, evaluate coverage again against
-the refreshed current project. Review included and excluded candidates, missing
-READMEs, intended destinations and links, and explained empty scope. These are
-agent judgments; the CLI checks their structure and identity, not semantic truth.
+The `afterFixes` scope-validity review judges coverage against the post-fix
+project, and the `current` review judges it against the refreshed current
+project: included and excluded candidates, missing READMEs, intended
+destinations and links, and explained empty scope. These are agent judgments;
+the CLI checks their structure and identity, not semantic truth.
 
 Submit `repo-standards/assessment/v3` with the ordinary fields. The CLI binds
 the accepted assessment to the request's confirmed `scope.inspection` and
@@ -204,24 +208,22 @@ Each review uses:
 
 Both reviews need nonempty explanation and a nonempty list of distinct evidence
 statements. `additionalPaths` is a list of distinct repository-relative filenames.
-If coverage needs more files, use `status: blocked` and list them; unresolved
-membership or a target that must be withdrawn also requires blocked status, with
-an explanation. `valid` requires an empty additional-path list. Every discovery
-declaration needs both reviews, including empty scope. Explicit contextual
-declarations keep their ordinary entry fields. Missing reviews and a
+`status: blocked` reports, with its explanation, that coverage needs the files
+listed in `additionalPaths`, that membership is unresolved, or that a target
+must be withdrawn. `valid` requires an empty additional-path list. Every
+discovery declaration needs both reviews, including empty scope. Explicit
+contextual declarations keep their ordinary entry fields. Missing reviews and a
 submission in another format are rejected.
 
 A structurally valid blocked review is retained as `SCOPE_INCOMPLETE` before checks.
 It grants no authority, and an active run cannot change its confirmed scope.
-When coverage needs additional files or a target must be withdrawn, preserve the
-work, abandon the run, commit or discard its changes, and adopt again with a new
-confirmed scope, as described in
+A different scope takes a new run with a new confirmed scope, as described in
 [Correct a confirmed scope](adoption.md#correct-a-confirmed-scope).
 
 For migrations, the CLI attributes old source deletion and destination creation
 as separate changed paths, along with introductions and every link-repair file.
-Explain which useful content each destination preserves. All must already be
-confirmed; there is no rename protocol or deletion authority implied by
-exclusions. Out-of-scope changes, stale assessments and exact corruption prevent
-completion and preserve work and installation expectations. Successful
-state retains the reviews and separate fix/agent observation intervals.
+All must already be confirmed; there is no rename protocol or deletion
+authority implied by exclusions. Out-of-scope changes, stale assessments and
+exact corruption prevent completion and preserve work and installation
+expectations. Successful state retains the reviews and separate fix/agent
+observation intervals.

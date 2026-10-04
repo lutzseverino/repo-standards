@@ -14,7 +14,7 @@ Choose the row that matches the observed state:
 | State | Next action |
 | --- | --- |
 | A `Release` run is still queued or running | Wait for it to finish before inspecting or retrying anything. The status helper below reports this as `in-progress` with a wait action. |
-| New version, no publication attempted | Complete the trusted-publisher setup below, update the package and standalone authoring guide to the same exact version, write the release notes, then dispatch `Release` at the reviewed commit with them. |
+| New version, no publication attempted | Complete the trusted-publisher setup below, update the package, the standalone authoring guide, and the adoption skill's contract links to the same exact version, write the release notes, then dispatch `Release` at the reviewed commit with them. |
 | A publication attempt failed or its outcome is uncertain | Follow **Recover a publication** below before dispatching another publishing run. |
 | npm and the matching GitHub assets are already published | Dispatch `Release` with `verify_published: true` and the exact published version. |
 | Public acceptance failed | Inspect that job's evidence and failure output. Follow **Retry public acceptance** below; preserve the failed attempt. |
@@ -63,8 +63,8 @@ The output directory `release/` must not exist. The bundle contains the npm
 tarball, executable standalone bootstrap, `SHA256SUMS`, and `release.json`
 (package/version, npm integrity, and SHA-256 artifact hashes). The package
 carries only product material: the compiled CLI, the bootstrap, the system
-skills, the Alice, Mira, and Atlas author examples, the usage documents under
-`docs/usage/`, the package README, and the license. Development documents, ADRs,
+skills with their references, the Alice, Mira, and Atlas author examples, the
+usage documents under `docs/usage/`, the package README, and the license. Development documents, ADRs,
 agent guidance, the documentation index, `AGENTS.md`, `CONTRIBUTING.md`, and
 `CONTEXT.md` stay in the repository. Pack once and publish that same tarball.
 `pnpm validate` installs a release bundle with scripts disabled and exercises its
@@ -74,7 +74,10 @@ executables and supplied author material alongside owning behavior tests.
 
 `pnpm release:pack` stages the distributable package outside the checkout, with
 the usage documents at their canonical `docs/usage/` paths. A packaged document
-reaches unpackaged material through absolute repository URLs. The source README links
+reaches unpackaged material through absolute repository URLs. An adopting
+project installs `adopt-standards` without the package's documents, so its
+references link the contracts they rely on through absolute repository URLs at
+the release's `v<version>` tag. The source README links
 repository documents relatively, and staging rewrites each of its links that
 leaves the package into an absolute repository URL on `main`; links inside the
 package stay relative. A README link that leaves the repository or names
@@ -320,13 +323,13 @@ the parent names, or any parent criterion remains unverified. The parent remains
 
 ## Authoring skill release
 
-Each release carries both system skills, the standalone authoring references,
-and the matching author and protocol documentation. Before packaging another
-version, update the standalone authoring guide
-(`skills/author-standards/references/cli.md`) and the public installation
-commands in [installation](../usage/installation.md) to its exact version; the
-release test checks the bundled guide against the installed executable's
-package version.
+Each release carries both system skills, their references, and the matching
+author and protocol documentation. Before packaging another version, update the
+standalone authoring guide (`skills/author-standards/references/cli.md`), the
+version-pinned contract links in `skills/adopt-standards/references/`, and the
+public installation commands in [installation](../usage/installation.md) to its
+exact version; the release test checks the bundled guide and the contract links
+against the installed executable's package version.
 
 After publication, the workflow also runs
 `node acceptance/prepare-author.ts <version> <evidence.json>` on macOS and Linux.
