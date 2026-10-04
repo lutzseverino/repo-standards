@@ -31,14 +31,14 @@ profiles:
 `;
 const material = { 'guidance.md': 'Document each maintained project.', 'discovery.md': 'Use project membership evidence; exclude fixtures, generated output, and organizational directories.', 'exact.md': 'Exact instructions' };
 
-test('an included missing file needs no evidence paths and inspection records its absence', (t) => {
+for (const path of ['app/notes.md', 'app/README', 'app/README.md', 'docs/README.md']) test(`included missing ${path} needs no evidence paths and inspection records its absence`, (t) => {
   const remote = remoteFixture(source, material);
   const project = sourceFixture('', { 'app/package.json': '{}' });
   t.after(() => { remote.close(); project.close(); });
   commit(project.root);
   const proposal = { format: 'repo-standards/scope/v2', declarations: [{
     id: 'project-docs', coverage: 'The app needs a planned documentation file.',
-    candidates: [{ path: 'app/notes.md', decision: 'include', reason: 'Document the app.', evidence: [] }], unresolved: [],
+    candidates: [{ path, decision: 'include', reason: 'Document the app.', evidence: [] }], unresolved: [],
   }] };
   const proposalFile = join(remote.support.root, 'scope.json');
   writeFileSync(proposalFile, JSON.stringify(proposal));
@@ -48,8 +48,9 @@ test('an included missing file needs no evidence paths and inspection records it
   const report = JSON.parse(result.stdout);
   assert.deepEqual(report.start.blockers, []);
   assert.deepEqual(report.discovery.proposal, proposal);
-  assert.deepEqual(report.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs').targets, { paths: ['app/notes.md'], directories: [] });
-  assert.deepEqual(report.discovery.absence.map((ref: { kind: string; path: string }) => [ref.kind, ref.path]), [['absence', 'app/notes.md']]);
+  assert.deepEqual(report.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs').targets, { paths: [path], directories: [] });
+  assert.deepEqual(report.discovery.namedObservation.targets[path], { type: 'missing' });
+  assert.deepEqual(report.discovery.absence.map((ref: { kind: string; path: string }) => [ref.kind, ref.path]), [['absence', path]]);
   assert.match(report.discovery.absence[0].identity, /^sha256:[a-f0-9]{64}$/);
   assert.deepEqual(snapshot(project.root), before);
 });
@@ -225,7 +226,7 @@ test('a proposal is rejected with actionable errors for a retired format, missin
   rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['app/missing.json']; }, /app\/missing\.json.*discovery observation/);
   rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['ignored.txt']; }, /ignored\.txt.*discovery observation/);
   rejected(p => { p.declarations[0]!.candidates[0]!.evidence = ['app/README.md']; }, /app\/README\.md.*discovery observation/);
-  for (const [path, decision] of [['app/README.md', 'include'], ['app/notes.md', 'include'], ['app/package.json', 'include'], ['app', 'exclude']] as const) {
+  for (const [path, decision] of [['app/package.json', 'include'], ['app/package.json', 'exclude'], ['app', 'exclude'], ['app/notes.md', 'exclude'], ['app/README.md', 'exclude']] as const) {
     rejected(p => { p.declarations[0]!.candidates[0] = { path, decision, reason: 'Needs evidence.', evidence: [] }; }, /requires at least one evidence path/);
   }
   // Naming an ignored file as a target does not make it evidence.
@@ -311,7 +312,7 @@ test('scope rejects malformed proposals, invalid evidence, and unsafe or overlap
     (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence.push(member); },
     (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence = ['ignored.txt']; },
     (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence = ['app/README.md']; },
-    (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence = []; },
+    (p: typeof original) => { p.declarations[0]!.candidates[0]!.path = member; p.declarations[0]!.candidates[0]!.evidence = []; },
     (p: typeof original) => { p.declarations[0]!.candidates[0]!.evidence = [{ kind: 'file', path: member } as unknown as string]; },
     (p: typeof original) => { p.declarations[0]!.candidates[0]!.decision = 'maybe'; },
     (p: typeof original) => { p.declarations[0]!.candidates[0]!.decision = 'exclude'; p.declarations[0]!.candidates[0]!.evidence = []; },

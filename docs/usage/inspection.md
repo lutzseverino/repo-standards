@@ -403,7 +403,7 @@ A candidate's `evidence` lists the paths of files and directories from
 `discovery.evidence` that support its decision. A path the observation does not
 hold as eligible evidence fails, and the error names it. Directory inventories
 contain eligible immediate child paths, not all ignored siblings. Every candidate
-needs at least one evidence path, including an intended file that does not exist
+needs at least one evidence path, except an included file that does not exist
 yet. Evidence may come from outside the candidate's directory, including for a
 missing `README` or `README.*`. The CLI checks this structural support; the
 author's discovery guidance, agent, and adopter determine its meaning.
