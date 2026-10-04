@@ -216,9 +216,9 @@ State v7 is the only state format written and read. A committed v7 state whose
 intervals carry observation maps, whose closed interval is missing either
 identity, or that carries an earlier run's `history`, fails state integrity
 validation. A state, run record, or scope
-history in a retired format is rejected with `RETIRED_FORMAT` and never
-converted; the project
-[adopts fresh](adoption.md#adopt-fresh-from-a-retired-format).
+history in a retired format is never read or converted; the project
+[adopts fresh](adoption.md#adopt-fresh-from-a-retired-format), and a run record
+calls for the CLI that wrote it.
 A newer version of these records fails with `NEWER_FORMAT`, requiring the
 pinned CLI without changing anything. `status`, `resume`, and `abandon` reject
 a different CLI with `CLI_PIN_MISMATCH` before checking record formats.

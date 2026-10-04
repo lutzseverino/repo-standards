@@ -7,7 +7,7 @@ import { execute, operations, preflight } from './execution.js';
 import { formats } from './formats.js';
 import { hiddenIndexPaths, observeProductState } from './inspection.js';
 import { git, hashInventory, requireSupportedGit, type HashInventory } from './observation.js';
-import { readRecordedAdoption, rejectUnsupportedRecords, requireRecordedCli, type RecordedSelection } from './recorded-state.js';
+import { activeRunExemption, readRecordedAdoption, rejectUnsupportedRecords, requireRecordedCli, type RecordedSelection } from './recorded-state.js';
 import { record } from './records.js';
 import { acquireWorker } from './run-lock.js';
 import { concreteScope, type Scope } from './scope.js';
@@ -86,7 +86,9 @@ export async function check(project: string, cliVersion: string): Promise<CheckR
   // The pin takes priority, as for status; the Git gate still precedes reading
   // records or observing the project.
   requireSupportedGit();
-  rejectUnsupportedRecords(root, lock);
+  // An active fresh adoption may not have removed retired state yet; the run
+  // is what blocks a check.
+  rejectUnsupportedRecords(root, lock, activeRunExemption(lock));
   const release = acquireWorker(lock);
   try {
     if (existsSync(lock)) throw new ProductError('ACTIVE_RUN', 'An adoption run is active or incomplete. Read status, and complete or abandon the run before checking.');

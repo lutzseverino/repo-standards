@@ -134,6 +134,7 @@ described [below](#discover-contextual-file-scope):
 | `exact` | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. A skill also has its `link`: the [skill link](adoption.md#skill-links) `.claude/skills/<name>` as `target`, with its own `create`, `replace`, or `match` `action`. |
 | `systemSkills` | Each system skill adoption installs, `adopt-standards` and then `standards-updates`, by `name` and reserved `.agents/skills/<name>` `target`, with `create`, `replace`, or `match` against the copy packaged with the inspecting exact CLI, and its `link` as in `exact`. |
 | `removed` | For an update, each installed target the selection no longer installs and the run removes, including a retired skill's link, with the declaration that installed it and each file's or link's before and after hash inventories and diff, as in `exact`. |
+| `retiredState` | For a fresh adoption over [retired](adoption.md#adopt-fresh-from-a-retired-format) committed product state, the `target` `.repo-standards`, which the run removes whole; its retired `records`, each by `path`, retired `format`, and the `expected` format this CLI reads; and the project path of each of its `files`, sorted, without its ignored generated directories. |
 | `kept` | For an update, each edited installed target the selection no longer installs and the run keeps, including the link of a kept skill, by `id` of the declaration that installed it and `target`, sorted by path. The project owns it from then on. |
 | `discardedEdits` | Each target whose replacement or removal discards content that is not its installed baseline, in the order of the target blockers. At initial adoption there is no baseline, so every replaced existing target is listed. |
 | `guidance` | Guidance by source-relative `source` path, SHA-256 and executable state, with its explicit project paths or directory trees. |
@@ -256,7 +257,8 @@ replaced whole. Content that is ignored or untracked, including an empty
 directory, blocks with `UNTRACKED_REPLACEMENT`. `discardedEdits` lists each
 replacement that discards content other than the target's installed baseline,
 so confirming the inspection confirms each such overwrite. Existing product
-state blocks initial adoption with `EXISTING_ADOPTION`; see
+state blocks initial adoption with `EXISTING_ADOPTION`, unless it is retired,
+when the run removes it; see
 [adopting afresh over installed content](adoption.md#adopt-afresh-over-installed-content).
 Established projects can use `inspect --json` with their pinned CLI to inspect
 the unchanged selection from retained material. Confirming that inspection
@@ -518,11 +520,14 @@ Retained inspection reads the committed durable state, which is
 `repo-standards/state/v7`, the only state format, with the last complete run's
 [work evidence](script-protocol.md#observed-adoption-scope) as
 identities and deltas; `status` echoes it as `repo-standards/status/v7`.
-Inspection rejects a committed state, retained scope history, or run record in
-an older format with `RETIRED_FORMAT` before reading anything else; nothing is
-converted. [Adopt fresh](adoption.md#adopt-fresh-from-a-retired-format) to
-continue. A newer version fails with `NEWER_FORMAT` and names using the pinned
-CLI; it never calls for fresh adoption. The integrity lock is checked too.
+Retained inspection rejects a committed state, retained scope history, or
+integrity lock in an older format with `RETIRED_FORMAT` before reading anything
+else; nothing is converted. Inspecting a source instead previews a
+[fresh adoption](adoption.md#adopt-fresh-from-a-retired-format) that removes the
+retired product state. An active run record in an older format fails every
+inspection with `RETIRED_RUN`, and an archived one with `RETIRED_FORMAT`. A
+newer version of any of them fails with `NEWER_FORMAT` and names using the
+pinned CLI; it never calls for fresh adoption.
 
 A confirmed scope never changes during a run. When contextual work needs files
 outside it, or a confirmed target is mistaken, a different scope takes a new

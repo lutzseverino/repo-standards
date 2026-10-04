@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { hash, type acquireSource } from './acquisition.js';
 import { inventory, json, lockPath, relativePath, requirePinnedCli } from './adoption-files.js';
 import { ProductError } from './errors.js';
-import { formats, recordPath, requireFormat } from './formats.js';
+import { formatAge, formats, newerFormat, recordPath, requireFormat, retiredFormat, retiredRun } from './formats.js';
 import type { Declaration } from './model.js';
 import { git, targetObservation, type Blocker, type Content, type Observation } from './observation.js';
 import { retainedScopeEvidence, type RetainedScopeEvidence } from './scope-evidence.js';
@@ -169,20 +169,56 @@ export function requireRecordedCli(root: string, runRecord: string, running: str
   if (typeof pinned === 'string') requirePinnedCli(root, pinned, running);
 }
 
+// A committed product record in a retired format, which a fresh adoption removes
+// with the rest of the product state directory.
+export interface RetiredRecord { path: string; format: string; expected: string }
+
 // After any required pin check, every command that reads product records
-// rejects an older or newer format before further reads or writes, so the
-// diagnostic is the same whichever record
-// the command would have read first: committed state, retained scope evidence,
-// the integrity lock, active run record, or a run report archived by abandonment.
-// Records that cannot be read are left to their owners.
-export function rejectUnsupportedRecords(root: string, runRecord: string) {
-  for (const [path, format] of [[lockFile, formats.lock], [stateFile, formats.state], [scopeFile, formats.scopeHistory]] as const) {
-    requireFormat(path, unverifiedRecord(join(root, path)), format);
-  }
+// rejects an unsupported format before further reads or writes, so the
+// diagnostic is the same whichever record the command would have read first:
+// committed state, retained scope evidence, the integrity lock, the active run
+// record, or a run report archived by abandonment. A newer format anywhere
+// requires the pinned CLI. A retired active run record may hold unfinished
+// work, so it blocks everything else. Retired committed records are returned
+// to a caller that adopts fresh over them, or that continues the run doing so,
+// and rejected otherwise; every committed record present must then carry its
+// artifact's current or retired format. Otherwise records that cannot be read
+// are left to their owners.
+export function rejectUnsupportedRecords(root: string, runRecord: string, { retiredState = false } = {}): RetiredRecord[] {
   const archive = join(dirname(runRecord), 'repo-standards-reports');
   const archived = lstatSync(archive, { throwIfNoEntry: false })?.isDirectory()
     ? readdirSync(archive).sort().filter(name => name.endsWith('.json')).map(name => join(archive, name)) : [];
-  for (const path of [runRecord, ...archived]) requireFormat(recordPath(root, path), unverifiedRecord(path), formats.run);
+  const records = [
+    ...([[lockFile, formats.lock], [stateFile, formats.state], [scopeFile, formats.scopeHistory]] as const)
+      .map(([path, format]) => ({ where: path, value: unverifiedRecord(join(root, path)), format, kind: 'committed' as const })),
+    ...[runRecord, ...archived].map((path, index) => ({ where: recordPath(root, path), value: unverifiedRecord(path), format: formats.run, kind: index ? 'archived' as const : 'active' as const })),
+  ].map(record => ({ ...record, age: formatAge(record.value, record.format) }));
+  const newer = records.find(({ age }) => age === 'newer');
+  if (newer) throw newerFormat(newer.where, newer.value, newer.format);
+  const retired = records.filter(({ age }) => age === 'retired');
+  const active = retired.find(({ kind }) => kind === 'active');
+  if (active) throw retiredRun(active.where, active.value, active.format);
+  const committed = retired.filter(({ kind }) => kind === 'committed');
+  const rejected = retiredState ? retired.find(({ kind }) => kind === 'archived') : retired[0];
+  if (rejected) throw retiredFormat(rejected.where, rejected.value, rejected.format);
+  // Removing retired product state is confirmed only when every committed
+  // record present is one of its own artifact, current or retired. Any other
+  // file there fails integrity, as a malformed format does everywhere else.
+  if (committed.length) for (const { where, value, format, kind, age } of records) {
+    if (kind !== 'committed' || age || !lstatSync(join(root, where), { throwIfNoEntry: false })) continue;
+    if ((value as { format?: unknown } | undefined)?.format !== format) {
+      throw new ProductError('STATE_INTEGRITY', `${where} is not a readable ${format} record or a retired version of it, so the retired product state cannot be removed. Restore the committed product state.`, { path: where });
+    }
+  }
+  return committed.map(({ where, value, format }) => ({ path: where, format: (value as { format: string }).format, expected: format }));
+}
+
+// An active run in the current format, which the pin check has matched with
+// this CLI, may be a fresh adoption that has not yet removed the retired
+// product state it confirmed. Commands that act on that run read the run,
+// never that state.
+export function activeRunExemption(runRecord: string) {
+  return { retiredState: existsSync(runRecord) };
 }
 
 // Reads the recorded adoption of the project at root, or nothing when neither

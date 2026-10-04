@@ -27,7 +27,7 @@ cache, needs no clean tree, and reports `unknown` with a reason when a lookup
 fails. It states availability only. Whether to update is the maintainer's
 decision; the `standards-updates` skill reports available updates without
 starting one.
-If any command fails with `RETIRED_FORMAT`, follow
+If any command fails with `RETIRED_FORMAT` or `RETIRED_RUN`, follow
 [Recovery](references/recovery.md#adopt-fresh-from-a-retired-format).
 
 For initial adoption, and to change the CLI pin, use an exact CLI installed

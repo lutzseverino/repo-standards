@@ -29,6 +29,7 @@ const retainedSource = '.repo-standards/inputs/source';
 const lockFile = '.repo-standards/lock.json';
 const stateFile = '.repo-standards/state.json';
 const incompleteState = '.repo-standards/local/incomplete-state.json';
+const productState = '.repo-standards';
 
 export interface Installation {
   report: StartInspection['report']; git: StartInspection['git']; files: Files; skills: Record<string, string[]>;
@@ -38,8 +39,9 @@ export interface Installation {
   exactBaselines: Record<string, Baseline>; durable: Record<string, Baseline>;
   runtimeHash: string; scopeAfterFixes?: string; before: Record<string, HashInventory>;
   // Paths the run removes whole before installing the planned files under
-  // them: an update's retained inputs, each skill or skill link the inspection
-  // replaces, and each target it removes, which may be a single file or link.
+  // them: the retired product state directory, an update's retained inputs,
+  // each skill or skill link the inspection replaces, and each target it
+  // removes, which may be a single file or link.
   replaceTrees: string[];
   // The durable state of the last complete adoption, which an update keeps in
   // place until its completion replaces it.
@@ -92,20 +94,43 @@ export function planInstallation(root: string, inspected: StartInspection, confi
   // An update replaces its retained inputs as a whole tree. A replaced skill,
   // including a system skill, is replaced as a whole tree, removing
   // resources the candidate lacks, and so is whatever a replaced skill link
-  // replaces. A removed target is removed whole.
-  const replaceTrees = [...report.update !== undefined ? ['.repo-standards/inputs'] : [],
+  // replaces. A removed target is removed whole, and so is retired product
+  // state.
+  const replaceTrees = [...report.retiredState ? [productState] : [], ...report.update !== undefined ? ['.repo-standards/inputs'] : [],
     ...[...report.exact, ...report.systemSkills].filter(({ target, action }) => action === 'replace' && skillTargets.includes(target)).map(({ target }) => target),
     ...linked.filter(({ action }) => action === 'replace').map(({ target }) => target),
     ...(report.removed ?? []).map(({ target }) => target)];
   return { report, git: inspected.git, files, skills, links, removedLinks, exactBaselines, durable, runtimeHash: hash(json(installedRuntime)), replaceTrees,
     ...(recorded ? { previousState: recorded.stateFile } : {}),
     before: Object.fromEntries([...new Set([...Object.keys(files).filter(path => !replaceTrees.some(tree => path.startsWith(tree + '/'))), ...replaceTrees, ...Object.keys(links)])]
-      .map(path => [path, hashInventory(safe(root, path, links[path] ?? removedLinks[path]))])) };
+      .map(path => [path, hashInventory(safePlanned(root, { links, removedLinks }, path))])) };
 }
 
-// A planned path observed safely, as the skill link the plan installs or removes there.
-function safePlanned(root: string, installation: Installation, path: string) {
-  return safe(root, path, installation.links[path] ?? installation.removedLinks[path]);
+// A planned path observed safely, as the skill link the plan installs or removes
+// there. Retired product state is observed as inspection bound it, without its
+// generated directories.
+function safePlanned(root: string, installation: Pick<Installation, 'links' | 'removedLinks'>, path: string) {
+  return path === productState ? observeProductState(root) : safe(root, path, installation.links[path] ?? installation.removedLinks[path]);
+}
+
+// Whether an observed tree is the confirmed one, or, after an interrupted
+// removal, part of it: every remaining file unchanged and no entry added.
+function confirmedRemainder(actual: Observation, confirmed: HashInventory, partial: boolean) {
+  if (!partial) return json(hashInventory(actual)) === json(confirmed);
+  if (actual.type === 'missing') return true;
+  const remaining: Files = dictionary();
+  const expected: Record<string, Baseline> = dictionary();
+  flatten('', actual, remaining);
+  if (confirmed.type !== 'missing') flatten('', confirmed, expected);
+  const paths = new Set(inventoryPaths(confirmed));
+  return inventoryPaths(actual).every(path => paths.has(path))
+    && Object.entries(remaining).every(([path, value]) => expected[path]?.sha256 === value.sha256 && expected[path].executable === value.executable);
+}
+
+// Whether the run has yet to remove the retired product state, which holds the
+// earlier CLI's local reports rather than this run's.
+export function retiredStatePending(installation: Installation, trees: Record<string, 'removing' | 'installing'> = {}) {
+  return installation.replaceTrees.includes(productState) && trees[productState] !== 'installing';
 }
 
 // The files the product state holds while the run installs and verifies.
@@ -192,20 +217,31 @@ export function install(root: string, session: Pick<AdoptionRunSession, 'record'
   } else {
     const staged = observe(`${lockPath(root)}.runtime`);
     if (hash(json(staged)) !== installation.runtimeHash) throw new ProductError('STATE_INTEGRITY', 'The saved runtime installation changed. Preserve the run and restore its recorded runtime.');
-    if (report.update === undefined && !partial(runtime, staged)) throw new ProductError('INSTALLATION_CHANGED', 'Runtime content changed. Reconcile it before retry.');
+    // A runtime in retired product state goes with it.
+    if (report.update === undefined && !retiredStatePending(installation, treeProgress) && !partial(runtime, staged)) throw new ProductError('INSTALLATION_CHANGED', 'Runtime content changed. Reconcile it before retry.');
   }
   for (const path of temporaries) { safe(root, path); rmSync(join(root, path)); }
   session.record({ type: 'installation-writing' });
+  const removeTree = (tree: string) => {
+    if (treeProgress[tree] === 'installing') return;
+    session.record({ type: 'tree-removing', path: tree });
+    const current = safePlanned(root, installation, tree);
+    // Retired product state is removed only as confirmed, observed once more
+    // after its removal is recorded: unchanged, or after an interrupted
+    // removal, what remains of it.
+    if (tree === productState && !confirmedRemainder(current, before[tree]!, treeProgress[tree] === 'removing')) {
+      throw new ProductError('INSTALLATION_CHANGED', `Retired product state changed before removal: ${tree}. Nothing was removed. Restore its committed content and remove additions before retry, or abandon the run.`);
+    }
+    remove(join(root, tree));
+    session.record({ type: 'tree-installing', path: tree });
+  };
+  // Retired product state goes first, so that the run's own product files,
+  // from the ignore file on, are written into a new directory.
+  if (replaceTrees.includes(productState)) removeTree(productState);
   const ignorePath = '.repo-standards/.gitignore';
   write(root, ignorePath, files[ignorePath]!, run.id);
   session.record({ type: 'file-installed', path: ignorePath });
-  for (const tree of replaceTrees) {
-    if (treeProgress[tree] === 'installing') continue;
-    session.record({ type: 'tree-removing', path: tree });
-    safePlanned(root, installation, tree);
-    remove(join(root, tree));
-    session.record({ type: 'tree-installing', path: tree });
-  }
+  for (const tree of replaceTrees) if (tree !== productState) removeTree(tree);
   for (const [path, value] of Object.entries(files)) {
     if (progress().files.includes(path)) continue;
     write(root, path, value, run.id);

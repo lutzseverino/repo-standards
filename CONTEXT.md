@@ -170,7 +170,8 @@ _Avoid_: Cache, working copy
 
 **Retired format**:
 A record format older than the one the running CLI writes. The CLI does not
-read it, and the project adopts fresh. A newer format is not retired: it calls
+read it: a fresh adoption replaces retired product state, and a retired run
+record calls for the CLI that wrote it. A newer format is not retired: it calls
 for the pinned CLI.
 _Avoid_: Unknown format, legacy state
 

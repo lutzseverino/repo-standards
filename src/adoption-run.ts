@@ -10,12 +10,12 @@ import { ProductError } from './errors.js';
 import { formats, recordPath, requireFormat } from './formats.js';
 import type { InspectOptions, inspect } from './inspection.js';
 import { observe, requireSupportedGit, type Content, type HashInventory, type Observation } from './observation.js';
-import { readCommittedScopeProposal, readRecordedAdoption, rejectUnsupportedRecords, requireRecordedCli, type RecordedAdoption } from './recorded-state.js';
+import { activeRunExemption, readCommittedScopeProposal, readRecordedAdoption, rejectUnsupportedRecords, requireRecordedCli, type RecordedAdoption } from './recorded-state.js';
 import { committedEvidenceReport, compactIntervals, keptIdentity, memoryStore, WorkEvidenceJournal, type ObservationStore, type RecordedInterval } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, requirePinnedCli, safe, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
-import { completionFiles, exactContent, restorePlannedLock, verifyInstallation, withdrawCompletionState, writeCompletion, type Installation } from './installation.js';
+import { completionFiles, exactContent, restorePlannedLock, retiredStatePending, verifyInstallation, withdrawCompletionState, writeCompletion, type Installation } from './installation.js';
 import { dictionary, record } from './records.js';
 
 // Persisted labels are shared by several producers. Keep their serialized
@@ -194,12 +194,12 @@ function canResumeAssessment(run: Run) {
 
 // Run records, active or archived after abandonment, are read in their single
 // format only.
-function readRun(root: string, path: string): Run {
+function readRun(root: string, path: string, active: boolean): Run {
   const where = recordPath(root, path);
   let run: unknown;
   try { run = JSON.parse(readFileSync(path, 'utf8')); }
   catch { throw new ProductError('STATE_INTEGRITY', `The adoption run record ${where} cannot be read. Restore the recorded run.`); }
-  requireFormat(where, run, formats.run);
+  requireFormat(where, run, formats.run, active);
   const recorded = run as Partial<Run> | null;
   if (recorded?.format !== formats.run || !Array.isArray(recorded.observations) || !compactIntervals(recorded.observations)) throw new ProductError('STATE_INTEGRITY', `The adoption run record ${where} failed integrity validation. Restore the recorded run.`);
   return run as Run;
@@ -208,28 +208,32 @@ function readRun(root: string, path: string): Run {
 function abandonedReports(root: string, lock: string): Run[] {
   const directory = join(dirname(lock), 'repo-standards-reports');
   if (!existsSync(directory)) return [];
-  return readdirSync(directory).sort().filter(name => name.endsWith('.json')).map(name => readRun(root, join(directory, name)));
+  return readdirSync(directory).sort().filter(name => name.endsWith('.json')).map(name => readRun(root, join(directory, name), false));
 }
 
 export function abandon(project: string, cliVersion: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
   requireRecordedCli(root, lock, cliVersion);
-  rejectUnsupportedRecords(root, lock);
+  const retired = rejectUnsupportedRecords(root, lock, activeRunExemption(lock));
   const release = acquireWorker(lock);
   try {
     if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to abandon.');
-    const run = readRun(root, lock);
+    const run = readRun(root, lock, true);
     requirePinnedCli(root, run.selection.cli.version, cliVersion);
     if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before abandonment.`);
     if (run.outcome === 'complete') throw new ProductError('ALREADY_COMPLETE', 'This adoption completed before interruption. Use resume --retry to verify and release its remaining progress record.');
+    let installation: Installation | undefined;
     try {
       // The archived report is never continued, so the journal keeps its final
       // observation in memory and neither saves nor checks it.
-      const { resolved } = readInstallation(root, run).report;
-      new WorkEvidenceJournal(root, resolved, run, memoryStore(keptObservations(root))).continueInterrupted();
+      installation = readInstallation(root, run);
+      new WorkEvidenceJournal(root, installation.report.resolved, run, memoryStore(keptObservations(root))).continueInterrupted();
     } catch { run.uncertain.push('The final abandoned observation could not be completed; earlier interval evidence is preserved.'); }
-    run.archivedFiles = archiveRunEvidence(root, run);
+    // Local reports in retired product state the run has not removed are the
+    // earlier CLI's, not this run's.
+    const earlierReports = installation ? retiredStatePending(installation, run.installation?.trees) : retired.length > 0;
+    run.archivedFiles = earlierReports ? {} : archiveRunEvidence(root, run);
     for (const operation of run.operations) for (const stream of ['stdout', 'stderr'] as const) {
       const archived = run.archivedFiles[operation[stream]];
       if (!archived) throw new ProductError('RECOVERY_BLOCKED', `Cannot archive operation evidence: ${operation[stream]}. Restore the log before abandonment.`);
@@ -257,9 +261,9 @@ export function status(project: string, cliVersion: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
   requireRecordedCli(root, lock, cliVersion);
-  rejectUnsupportedRecords(root, lock);
+  rejectUnsupportedRecords(root, lock, activeRunExemption(lock));
   const abandoned = abandonedReports(root, lock);
-  const active = existsSync(lock) ? readRun(root, lock) : null;
+  const active = existsSync(lock) ? readRun(root, lock, true) : null;
   const format = formats.status;
   if (active) {
     requirePinnedCli(root, active.selection.cli.version, cliVersion);
@@ -571,7 +575,8 @@ export class AdoptionRunSession {
       requireRecordedCli(root, lock, resume.cliVersion);
       requireSupportedGit('resume');
     }
-    rejectUnsupportedRecords(root, lock);
+    // A start may adopt fresh over retired product state.
+    rejectUnsupportedRecords(root, lock, resume ? activeRunExemption(lock) : { retiredState: true });
     const release = acquireWorker(lock);
     const session = new AdoptionRunSession(root, mode);
     try {
@@ -579,7 +584,7 @@ export class AdoptionRunSession {
       let archivedFiles: Record<string, string> = {};
       if (resume) {
         if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to resume; resume and assessments apply only to an active run. Read status, and inspect and start an adoption if one is needed.');
-        const run = readRun(root, lock);
+        const run = readRun(root, lock, true);
         session.#run = run;
         requirePinnedCli(root, run.selection.cli.version, resume.cliVersion);
         if (run.processGroup && processGroupAlive(run.processGroup, run.processGroupIdentity)) throw new ProductError('ACTIVE_RUN', `Author process group ${run.processGroup} is still running. Stop it before retry or abandonment.`);
@@ -589,7 +594,7 @@ export class AdoptionRunSession {
           installation = readInstallation(root, run);
           session.#openJournal(installation);
           const ignoreFile = safe(root, '.repo-standards/.gitignore');
-          session.#localReady = ignoreFile.type === 'file' && ignoreFile.sha256 === hash(ignore);
+          session.#localReady = ignoreFile.type === 'file' && ignoreFile.sha256 === hash(ignore) && !retiredStatePending(installation, run.installation?.trees);
           // Archive before enabling catch-path persistence: a failed archive
           // must leave the authoritative journal and actual report untouched.
           archivedFiles = resume.retry && session.#localReady ? archiveRunEvidence(root, run) : {};
