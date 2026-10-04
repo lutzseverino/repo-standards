@@ -1,8 +1,7 @@
 import { compare, gt } from 'semver';
 import { parse } from 'yaml';
-import { githubHeaders, isStableVersion } from './acquisition.js';
+import { githubHeaders, isStableVersion, record } from './acquisition.js';
 import { file, json, projectRoot, requirePinnedCli, safe, write } from './adoption-files.js';
-import type { RecordedSelection } from './recorded-state.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
 import { git } from './observation.js';
@@ -31,14 +30,16 @@ function selectionOf(project: string) {
   try { observed = safe(root, '.repo-standards/selection.yaml'); }
   catch { throw new ProductError('INVALID_SELECTION', 'The adoption selection path .repo-standards/selection.yaml is unsafe to read. Restore the committed product state.'); }
   if (observed.type === 'missing') throw new ProductError('NO_SELECTION', 'The project has no adoption selection at .repo-standards/selection.yaml.');
-  let selection: RecordedSelection | undefined;
-  try { if (observed.type === 'file') selection = parse(Buffer.from(observed.content, observed.encoding).toString('utf8')); }
+  let parsed: unknown;
+  try { if (observed.type === 'file') parsed = parse(Buffer.from(observed.content, observed.encoding).toString('utf8')); }
   catch { /* Rejected below with every other unreadable selection. */ }
-  if (selection?.cli?.package !== packageName || !isStableVersion(selection.cli.version)
-    || typeof selection.standards?.repository !== 'string' || !githubRepository(selection.standards.repository) || !isStableVersion(selection.standards.version)) {
+  const cli = record(record(parsed).cli);
+  const standards = record(record(parsed).standards);
+  if (cli.package !== packageName || !isStableVersion(cli.version)
+    || typeof standards.repository !== 'string' || !githubRepository(standards.repository) || !isStableVersion(standards.version)) {
     throw new ProductError('INVALID_SELECTION', 'The adoption selection at .repo-standards/selection.yaml cannot be read. Restore the committed product state.');
   }
-  return { root, selection };
+  return { root, selection: { cli: { version: cli.version }, standards: { repository: standards.repository, version: standards.version } } };
 }
 
 function githubRepository(repository: string) {
@@ -55,8 +56,8 @@ async function registryVersions(registry: string) {
   const url = `${registry.endsWith('/') ? registry : `${registry}/`}${packageName.replace('/', '%2f')}`;
   const response = await request(url, { Accept: 'application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8' }, 'REGISTRY_UNAVAILABLE', 'the npm registry');
   if (!response.ok) throw new ProductError('REGISTRY_UNAVAILABLE', `The npm registry returned HTTP ${response.status} for ${packageName}.`);
-  const document = await response.json().catch(() => undefined);
-  if (typeof document?.versions !== 'object' || document.versions === null) throw new ProductError('REGISTRY_UNAVAILABLE', `The npm registry did not return the published versions of ${packageName}.`);
+  const document = record(await response.json().catch(() => undefined));
+  if (typeof document.versions !== 'object' || document.versions === null) throw new ProductError('REGISTRY_UNAVAILABLE', `The npm registry did not return the published versions of ${packageName}.`);
   return Object.keys(document.versions);
 }
 
@@ -68,26 +69,27 @@ async function releaseVersions(repository: string) {
     throw new ProductError('QUOTA_EXHAUSTED', 'The GitHub API quota is exhausted. Retry later, or provide a token in GH_TOKEN or GITHUB_TOKEN.');
   }
   if (!response.ok) throw new ProductError('SOURCE_UNAVAILABLE', `Public GitHub returned HTTP ${response.status} for the releases of ${repository}.`);
-  const releases = await response.json().catch(() => undefined);
+  const releases: unknown = await response.json().catch(() => undefined);
   if (!Array.isArray(releases)) throw new ProductError('SOURCE_UNAVAILABLE', `Public GitHub did not return a release list for ${repository}.`);
-  return releases.filter(release => release?.draft === false && release.prerelease === false).map(release => release.tag_name);
+  return releases.map(record).filter(release => release.draft === false && release.prerelease === false).map(release => release.tag_name);
 }
 
-function readCache(root: string): Record<string, Lookup> {
+function readCache(root: string): Record<string, unknown> {
   try {
     const observed = safe(root, cachePath);
     if (observed.type !== 'file') return {};
-    const cache = JSON.parse(Buffer.from(observed.content, observed.encoding).toString('utf8'));
-    return cache?.format === formats.outdatedCache && typeof cache.lookups === 'object' && cache.lookups !== null ? cache.lookups : {};
+    const cache = record(JSON.parse(Buffer.from(observed.content, observed.encoding).toString('utf8')));
+    return cache.format === formats.outdatedCache ? record(cache.lookups) : {};
   } catch { return {}; }
 }
 
-function fresh(lookup: Lookup | undefined, key: string, now: number): lookup is Lookup {
-  const age = now - Date.parse(lookup?.checkedAt ?? '');
-  return lookup?.key === key && Array.isArray(lookup.versions) && lookup.versions.every(isStableVersion) && age >= 0 && age < cacheValidity;
+function fresh(lookup: unknown, key: string, now: number): lookup is Lookup {
+  const { key: lookupKey, checkedAt, versions } = record(lookup);
+  const age = now - Date.parse(typeof checkedAt === 'string' ? checkedAt : '');
+  return lookupKey === key && Array.isArray(versions) && versions.every(isStableVersion) && age >= 0 && age < cacheValidity;
 }
 
-async function answer(cached: Lookup | undefined, key: string, now: number, lookup: () => Promise<string[]>): Promise<Answer> {
+async function answer(cached: unknown, key: string, now: number, lookup: () => Promise<unknown[]>): Promise<Answer> {
   if (fresh(cached, key, now)) return { lookup: cached, cached: true };
   try {
     const versions = [...new Set((await lookup()).filter(isStableVersion))].sort(compare);
@@ -119,7 +121,7 @@ function writeCache(root: string, lookups: Record<string, Lookup>) {
 // lookup.
 export async function outdated(project: string, cliVersion: string) {
   let root: string;
-  let selection: RecordedSelection;
+  let selection: ReturnType<typeof selectionOf>['selection'];
   try { ({ root, selection } = selectionOf(project)); }
   catch (error) {
     const reason = error instanceof ProductError ? { code: error.code, message: error.message } : { code: 'INVALID_SELECTION', message: (error as Error).message };

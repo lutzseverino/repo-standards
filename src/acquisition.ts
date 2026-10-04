@@ -42,7 +42,11 @@ export function externalPath(path: string, project?: string): string {
 
 export const githubHeaders = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'repo-standards' };
 
-export async function github(path: string): Promise<any> {
+// The properties of a JSON object, or none for any other JSON value.
+export function record(value: unknown): Record<string, unknown> { return isRecord(value) ? value : {}; }
+function isRecord(value: unknown): value is Record<string, unknown> { return typeof value === 'object' && value !== null; }
+
+export async function github(path: string): Promise<unknown> {
   let response: Response;
   try {
     response = await fetch(`https://api.github.com${path}`, {
@@ -98,18 +102,18 @@ export async function acquireSource(repository: string, version: string, project
   if (!isStableVersion(version)) {
     throw new ProductError('INVALID_STANDARDS_VERSION', 'Choose an exact stable SemVer tag, such as v1.2.3. Branches, ranges, and prereleases are unsupported.');
   }
-  const metadata = await github(`/repos/${match[1]}/${match[2]}`);
-  if (metadata.private !== false || !/^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/.test(metadata.full_name)) throw new ProductError('UNSUPPORTED_SOURCE', 'The standards repository must be public on GitHub.');
+  const metadata = record(await github(`/repos/${match[1]}/${match[2]}`));
+  if (metadata.private !== false || typeof metadata.full_name !== 'string' || !/^[A-Za-z0-9-]+\/[A-Za-z0-9_.-]+$/.test(metadata.full_name)) throw new ProductError('UNSUPPORTED_SOURCE', 'The standards repository must be public on GitHub.');
   const canonical = `https://github.com/${metadata.full_name}`;
   const api = `/repos/${metadata.full_name}`;
-  const ref = await github(`${api}/git/ref/tags/${encodeURIComponent(version)}`);
+  const ref = record(await github(`${api}/git/ref/tags/${encodeURIComponent(version)}`));
   if (ref.ref !== `refs/tags/${version}`) throw new ProductError('INVALID_SOURCE', 'GitHub did not return the requested exact tag.');
-  let object = ref.object;
-  for (let depth = 0; object?.type === 'tag' && depth < 10; depth++) {
-    if (!shaPattern.test(object.sha)) throw new ProductError('INVALID_SOURCE', 'Invalid annotated tag identity.');
-    object = (await github(`${api}/git/tags/${object.sha}`)).object;
+  let object = record(ref.object);
+  for (let depth = 0; object.type === 'tag' && depth < 10; depth++) {
+    if (typeof object.sha !== 'string' || !shaPattern.test(object.sha)) throw new ProductError('INVALID_SOURCE', 'Invalid annotated tag identity.');
+    object = record(record(await github(`${api}/git/tags/${object.sha}`)).object);
   }
-  if (object?.type !== 'commit' || !shaPattern.test(object.sha)) throw new ProductError('INVALID_SOURCE', 'The stable version tag must identify a Git commit.');
+  if (object.type !== 'commit' || typeof object.sha !== 'string' || !shaPattern.test(object.sha)) throw new ProductError('INVALID_SOURCE', 'The stable version tag must identify a Git commit.');
   const identity: StandardsIdentity = { repository: canonical, version, commit: object.sha };
   const cache = externalPath(join(process.env.XDG_CACHE_HOME || join(homedir(), '.cache'), 'repo-standards', 'tags'), project);
   mkdirSync(cache, { recursive: true });
@@ -122,10 +126,12 @@ export async function acquireSource(repository: string, version: string, project
     catch { throw new ProductError('INVALID_OBSERVATION', 'Cannot read the previously observed tag identity; restore the external observation cache.'); }
     if (previous.commit !== identity.commit) throw new ProductError('MOVED_TAG', `Previously observed ${canonical} ${version} at ${previous.commit}; it now resolves to ${identity.commit}. Choose a new immutable version.`);
   }
-  const commit = await github(`${api}/git/commits/${identity.commit}`);
-  if (commit.sha !== identity.commit || !shaPattern.test(commit.tree?.sha)) throw new ProductError('INVALID_SOURCE', 'Invalid Git commit response.');
-  const tree = await github(`${api}/git/trees/${commit.tree.sha}?recursive=1`);
-  if (tree.sha !== commit.tree.sha || tree.truncated !== false || !Array.isArray(tree.tree)) throw new ProductError('INVALID_SOURCE', 'GitHub must provide a complete source tree.');
+  const commit = record(await github(`${api}/git/commits/${identity.commit}`));
+  const treeSha = record(commit.tree).sha;
+  if (commit.sha !== identity.commit || typeof treeSha !== 'string' || !shaPattern.test(treeSha)) throw new ProductError('INVALID_SOURCE', 'Invalid Git commit response.');
+  const tree = record(await github(`${api}/git/trees/${treeSha}?recursive=1`));
+  const listing = tree.tree;
+  if (tree.sha !== treeSha || tree.truncated !== false || !Array.isArray(listing)) throw new ProductError('INVALID_SOURCE', 'GitHub must provide a complete source tree.');
   const temporary = mkdtempSync(join(externalPath(tmpdir(), project), 'repo-standards-source-'));
   const root = join(temporary, 'snapshot');
   const objects = join(temporary, 'objects');
@@ -136,16 +142,19 @@ export async function acquireSource(repository: string, version: string, project
       `+refs/tags/${version}:refs/tags/${version}`]);
     const fetchedCommit = String(git(objects, ['rev-parse', '--verify', `refs/tags/${version}^{commit}`])).trim();
     const fetchedTree = String(git(objects, ['rev-parse', '--verify', `${identity.commit}^{tree}`])).trim();
-    if (fetchedCommit !== identity.commit || fetchedTree !== commit.tree.sha) {
+    if (fetchedCommit !== identity.commit || fetchedTree !== treeSha) {
       throw new ProductError('INVALID_SOURCE', 'The fetched Git tag does not match its observed commit and tree identity.');
     }
     const paths = new Set<string>();
     const spellings = new Map<string, string>();
-    for (const entry of tree.tree) {
+    const listed = [];
+    for (const value of listing) {
+      const entry = record(value);
       if (typeof entry.path !== 'string' || /[\\\p{Cc}]/u.test(entry.path) || /^[A-Za-z]:/.test(entry.path) ||
-          entry.path.split('/').some((part: string) => !part || part === '.' || part === '..' || part.toLowerCase() === '.git')) {
+          entry.path.split('/').some(part => !part || part === '.' || part === '..' || part.toLowerCase() === '.git')) {
         throw new ProductError('UNSAFE_SOURCE', 'The source tree contains an unsafe path.');
       }
+      listed.push({ mode: entry.mode, type: entry.type, sha: entry.sha, path: entry.path });
       const parts = entry.path.split('/');
       for (let length = 1; length <= parts.length; length++) {
         const path = parts.slice(0, length).join('/');
@@ -156,14 +165,18 @@ export async function acquireSource(repository: string, version: string, project
         paths.add(path);
       }
     }
-    for (const entry of tree.tree) {
-      if (entry.type === 'tree' && entry.mode === '040000') continue;
-      if (entry.mode === '120000') throw new ProductError('SOURCE_SYMLINK', `The selected source contains a symbolic link: ${entry.path}.`);
-      if (entry.type !== 'blob' || !['100644', '100755'].includes(entry.mode) || !shaPattern.test(entry.sha)) throw new ProductError('UNSAFE_SOURCE', `Unsupported source entry: ${entry.path}. Submodules and special files are unsupported.`);
+    const advertisedEntries: GitTreeEntry[] = [];
+    for (const { mode, type, sha, path } of listed) {
+      if (mode === '120000') throw new ProductError('SOURCE_SYMLINK', `The selected source contains a symbolic link: ${path}.`);
+      if (typeof mode !== 'string' || typeof type !== 'string' || typeof sha !== 'string' ||
+          !(type === 'tree' && mode === '040000') && (type !== 'blob' || !['100644', '100755'].includes(mode) || !shaPattern.test(sha))) {
+        throw new ProductError('UNSAFE_SOURCE', `Unsupported source entry: ${path}. Submodules and special files are unsupported.`);
+      }
+      advertisedEntries.push({ mode, type, sha, path });
     }
     const fetchedEntries = gitTree(objects, identity.commit);
     const comparable = (entry: GitTreeEntry) => `${entry.mode} ${entry.type} ${entry.sha}\t${entry.path}`;
-    const advertised = tree.tree.map((entry: GitTreeEntry) => comparable(entry)).sort();
+    const advertised = advertisedEntries.map(comparable).sort();
     const fetched = fetchedEntries.map(comparable).sort();
     if (JSON.stringify(advertised) !== JSON.stringify(fetched)) {
       throw new ProductError('SOURCE_INTEGRITY', 'The GitHub tree listing does not match the fetched commit tree.');
