@@ -10,6 +10,25 @@ import { registryFixture } from './registry-fixture.ts';
 const cli = installCli();
 after(() => cli.close());
 
+function oldGitEnv(directory: string, locateProject = false) {
+  const realGit = execFileSync('which', ['git'], { encoding: 'utf8' }).trim();
+  const bin = join(directory, 'bin');
+  mkdirSync(bin);
+  const unexpected = join(directory, 'unexpected-git-access');
+  writeFileSync(join(bin, 'git'), `#!${process.execPath}
+import { writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+const args = process.argv.slice(2);
+if (args.join(' ') === '--version') console.log('git version 2.31.8');
+else if (${locateProject} && (args.slice(-2).join(' ') === 'rev-parse --show-toplevel' || args.slice(-3).join(' ') === 'rev-parse --git-path repo-standards-run.lock')) {
+  const result = spawnSync(${JSON.stringify(realGit)}, args, { stdio: 'inherit' });
+  process.exit(result.status ?? 1);
+} else { writeFileSync(${JSON.stringify(unexpected)}, 'Repository accessed'); process.exit(99); }
+`);
+  chmodSync(join(bin, 'git'), 0o755);
+  return { env: { ...process.env, PATH: `${bin}:${process.env.PATH}` }, unexpected };
+}
+
 const simpleSource = (target = 'AGENTS.md') => `format: repo-standards/v2
 name: test-standards
 description: Inspection fixture
@@ -86,12 +105,8 @@ test('inspect and start reject Git older than 2.32 before observing public or re
   const project = sourceFixture('', { '.repo-standards/state.json': 'Unreadable product state' });
   t.after(() => { remote.close(); project.close(); });
   symlinkSync('/unbound/ignore-rules', join(project.root, '.gitignore'));
-  const bin = join(remote.support.root, 'bin');
-  mkdirSync(bin);
-  const unexpected = join(remote.support.root, 'unexpected-git-access');
-  writeFileSync(join(bin, 'git'), `#!${process.execPath}\nimport { writeFileSync } from 'node:fs';\nif (process.argv.slice(2).join(' ') === '--version') console.log('git version 2.31.8');\nelse { writeFileSync(${JSON.stringify(unexpected)}, 'Repository accessed'); process.exit(99); }\n`);
-  chmodSync(join(bin, 'git'), 0o755);
-  const env = { ...remote.env, PATH: `${bin}:${process.env.PATH}` };
+  const { env: gitEnv, unexpected } = oldGitEnv(remote.support.root);
+  const env = { ...remote.env, ...gitEnv };
   const before = snapshot(project.root);
   for (const args of [inspectionArgs, ['inspect', '--json'], ['start', ...inspectionArgs.slice(1), '--confirm', 'sha256:unobserved'], ['start', '--json', '--confirm', 'sha256:unobserved']]) {
     const result = cli.run(args, project.root, env);
@@ -104,6 +119,43 @@ test('inspect and start reject Git older than 2.32 before observing public or re
   assert.equal(lstatSync(unexpected, { throwIfNoEntry: false }), undefined, 'Only the Git version probe may run');
   assert.deepEqual(remote.requests(), []);
   assert.deepEqual(snapshot(project.root), before);
+});
+
+test('resume rejects Git older than 2.32 before reading records or observing work', async t => {
+  const remote = remoteFixture(simpleSource().replace('exact: content.md', 'guidance: content.md'), { 'content.md': 'Maintain instructions.' });
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const inspected = cli.run(inspectionArgs, project.root, env);
+  assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
+  const started = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', JSON.parse(inspected.stdout).identity], project.root, env);
+  assert.equal(started.status, 1, started.stdout + started.stderr);
+  assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout);
+  const runRecord = join(project.root, git(project.root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
+  const run = JSON.parse(readFileSync(runRecord, 'utf8'));
+  const { env: gitEnv, unexpected } = oldGitEnv(remote.support.root, true);
+  const requests = remote.requestLog().length;
+  const commands = [['resume', '--json'], ['resume', '--retry', '--json'], ['resume', '--assessment', '/unread/assessment.json', '--json']];
+  for (const corruptRecords of [false, true]) {
+    if (corruptRecords) {
+      writeFileSync(runRecord, JSON.stringify({ ...run, format: 'repo-standards/run/v999' }));
+      writeFileSync(join(project.root, '.repo-standards/state.json'), 'Unreadable product state');
+    }
+    const before = snapshot(project.root);
+    for (const args of commands) {
+      const result = cli.run(args, project.root, { ...env, ...gitEnv });
+      assert.equal(result.status, 1, result.stdout + result.stderr);
+      const error = JSON.parse(result.stdout).errors[0];
+      assert.equal(error.code, 'GIT_VERSION_UNSUPPORTED');
+      assert.match(error.message, /2\.31\.8/);
+      assert.match(error.message, /2\.32/);
+      assert.deepEqual(snapshot(project.root), before);
+    }
+  }
+  assert.equal(lstatSync(unexpected, { throwIfNoEntry: false }), undefined, 'Only the version and project-location probes may run');
+  assert.deepEqual(remote.requestLog().slice(requests), []);
 });
 
 test('Git 2.32 and newer versions including vendor suffixes permit inspection', t => {
