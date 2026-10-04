@@ -21,7 +21,8 @@ Choose the row that matches the observed state:
 
 Publication and acceptance are separate states. A successful upload or OIDC
 probe does not establish complete release acceptance. The workflow does not run
-the real-agent journeys; their evidence remains a separate completion requirement.
+the real-agent journeys; when the parent specification names one, its evidence
+remains a separate completion requirement.
 
 ## Trusted-publisher setup
 
