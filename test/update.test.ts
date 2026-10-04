@@ -6,7 +6,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { parse, stringify } from 'yaml';
-import { installCli, installedTree, sourceFixture } from './installed-cli.ts';
+import { installCli, installedTree, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
@@ -888,6 +888,49 @@ async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standa
     pinned: (args: string[]) => cli.run(args, project.root, env),
     run };
 }
+
+test('a CLI pin-change retry completes after process death during runtime staging', async t => {
+  const f = await pendingUpdate(t, 'cli');
+  const lock = join(f.project.root, git(f.project.root, 'rev-parse', '--git-dir'), 'repo-standards-run.lock');
+  const installed = join(f.project.root, '.repo-standards/runtime/node_modules');
+  const previousRuntime = snapshot(installed);
+  const env = filesystemFault(f.remote.support.root, f.env, 'runtime', `
+const copy = fs.cpSync;
+fs.cpSync = function(from, to, options) {
+  if (String(to).endsWith('/repo-standards-run.lock.runtime')) {
+    return copy.call(this, from, to, { ...options, filter(source, target) {
+      if (fs.lstatSync(String(to) + '/.bin/repo-standards', { throwIfNoEntry: false })?.isSymbolicLink()) {
+        process.kill(process.pid, 'SIGKILL');
+      }
+      return true;
+    } });
+  }
+  return copy.call(this, from, to, options);
+};
+syncBuiltinESMExports();`);
+  assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
+  const interrupted = JSON.parse(readFileSync(lock, 'utf8'));
+  assert.equal(interrupted.phase, 'runtime');
+  assert.equal(interrupted.continuation, undefined);
+  assert.equal(lstatSync(`${lock}.runtime/.bin/repo-standards`).isSymbolicLink(), true);
+  assert.deepEqual(snapshot(installed), previousRuntime);
+
+  // Keep the runtime bound to the recorded plan before retry installs it.
+  // Completion performs the CLI's runtimeHash verification; the tree comparison
+  // also checks every installed byte, mode and symbolic link against that stage.
+  const recordedRuntime = join(f.remote.support.root, 'recorded-runtime');
+  const retryEnv = filesystemFault(f.remote.support.root, f.env, 'installation', `
+fs.cpSync(${JSON.stringify(`${lock}.runtime`)}, ${JSON.stringify(recordedRuntime)}, { recursive: true, verbatimSymlinks: true });`);
+  const result = f.run(['resume', '--retry', '--json'], retryEnv);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const completed = JSON.parse(result.stdout);
+  assert.equal(completed.id, interrupted.id);
+  assert.equal(completed.outcome, 'complete');
+  assert.equal(completed.selection.cli.version, candidateVersion);
+  assert.deepEqual(snapshot(installed), snapshot(recordedRuntime));
+  assert.equal(JSON.parse(f.run(['status', '--json']).stdout).lastComplete.run, completed.id);
+  assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
+});
 
 test('a standards update resumes interrupted whole-skill installation while retaining its runtime', async t => {
   const f = await pendingUpdate(t);
