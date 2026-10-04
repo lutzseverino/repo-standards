@@ -89,13 +89,16 @@ test('unreadable selected files are reported for every reference kind', (t) => {
   }
 });
 
-test('all file and repository guidance forms reject system-skill targets and overlapping paths', async t => {
+test('all file and repository guidance forms reject system-skill targets, their links, and overlapping paths', async t => {
   for (const name of ['adopt-standards', 'standards-updates', 'author-standards']) {
     for (const target of [
       `.agents/skills/${name}`, '.agents', '.agents/skills',
       `.agents/skills/${name}/SKILL.md`,
       `.AGENTS/SKILLS/${name.toUpperCase()}/SKILL.md`,
       `.agents/ſkills/${name}/cafe\u0301.md`,
+      `.claude/skills/${name}`, '.claude', '.claude/skills',
+      `.claude/skills/${name}/SKILL.md`,
+      `.CLAUDE/SKILLS/${name.toUpperCase()}`,
     ]) {
       for (const form of ['exact', 'contextual', 'paths', 'directories']) {
         await t.test(`${form}: ${target}`, st => {
@@ -112,7 +115,7 @@ test('all file and repository guidance forms reject system-skill targets and ove
           assert.deepEqual(report.profiles, {});
           assert.deepEqual(report.errors, [{
             code: 'RESERVED_TARGET',
-            message: 'Target overlaps product-owned state, a system skill, or Git metadata.',
+            message: 'Target overlaps product-owned state, a system skill or its link, or Git metadata.',
             file: join(source.root, 'standards.yaml'),
             line: file ? 9 : form === 'paths' ? 11 : 12,
             column: file ? 15 : form === 'paths' ? 17 : 23,
@@ -267,7 +270,33 @@ test('whole skills collide with files and other skill declarations after case fo
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1);
-  assert.equal(JSON.parse(result.stdout).errors.filter((error: { code: string }) => error.code === 'TARGET_OVERLAP').length, 3);
+  // The duplicate skill collides with the first skill's directory and link,
+  // and the file with both skill directories.
+  assert.equal(JSON.parse(result.stdout).errors.filter((error: { code: string }) => error.code === 'TARGET_OVERLAP').length, 4);
+});
+
+test('an author skill\'s link collides with any target overlapping it', (t) => {
+  const source = sourceFixture(header + `defaults:
+  declarations:
+    skill:
+      kind: skill
+      name: review
+      source: skill
+    copy:
+      kind: file
+      target: .claude/skills/review/SKILL.md
+      exact: content.md
+    unrelated:
+      kind: file
+      target: .claude/skills/other/SKILL.md
+      exact: content.md
+` + profile, { 'skill/SKILL.md': 'Skill', 'content.md': 'content' });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 1);
+  assert.deepEqual(JSON.parse(result.stdout).errors.filter((error: { code: string }) => error.code === 'TARGET_OVERLAP').map(({ path, message }: { path: string; message: string }) => ({ path, message })), [
+    { path: '/defaults/declarations/copy/target', message: 'Profile personal: target .claude/skills/review/SKILL.md overlaps .claude/skills/review (/defaults/declarations/skill/name).' },
+  ]);
 });
 
 test('replaced and excluded targets are absent from overlap validation', (t) => {

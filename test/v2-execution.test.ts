@@ -502,7 +502,7 @@ ${result}`);
   assert.equal(completed.result.status, 0, completed.result.stdout);
 
   const state = committedState(f.project.root);
-  assert.equal(state.format, 'repo-standards/state/v6');
+  assert.equal(state.format, 'repo-standards/state/v7');
   assertCompactWorkEvidence(state);
   const intervals = state.observations!;
   assert.deepEqual(intervals.filter(interval => interval.operation)

@@ -179,6 +179,37 @@ the immutable source and repeats all freshness and safety checks under an
 exclusive run lock. Each write checks target ancestors again. Failed preflight
 or acquisition leaves project content untouched.
 
+## Skill links
+
+Every installed skill lives once, in `.agents/skills/<skill>/`, which Codex and
+most agents read. Claude Code reads only `.claude/skills/`, so for each skill a
+run installs, system or author, the run also installs a skill link at
+`.claude/skills/<skill>`: a relative symbolic link whose text is
+`../../.agents/skills/<skill>`
+([ADR 0013](../adr/0013-expose-installed-skills-through-skill-links.md)).
+Standards authors declare nothing for it.
+
+A skill link is an ordinary installation target. A link with the same text is
+matched, a missing one is created, and tracked content of any other kind, such
+as a hand-made copy of the skill, is replaced and listed among the discarded
+edits. Untracked content at the path blocks with `UNTRACKED_REPLACEMENT` and
+is left alone. A `.claude` or `.claude/skills` that is itself a symbolic link,
+or a link at the path with any other text, blocks with `UNSAFE_TARGET`; the
+product never writes through a link it did not create. The inspection lists
+each link with its skill and action, its identity binds the link without
+following it, and durable state records each link's text. A link changed after
+confirmation makes `start` fail as stale.
+
+The product links only the skills it installs and never writes
+`.claude/skills` as a whole: a skill the project wrote itself under
+`.agents/skills/` gets no link, and other content in `.claude/skills/` stays
+untouched. A retired skill's link is removed with the skill. Links are exact
+content, so they never make an update contextual. Git records each link as a
+symbolic link; a checkout with `core.symlinks=false` has a small text file
+there instead, and Claude Code does not see that skill. Commit the links with
+the run's other changes; a link that Git ignores fails completion with
+`IGNORED_OUTPUT`, like any other adoption output.
+
 ## Durable and local state
 
 Review and commit these files through the adopting project's normal workflow:
@@ -187,13 +218,14 @@ Review and commit these files through the adopting project's normal workflow:
 | --- | --- |
 | `.repo-standards/selection.yaml` | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile. |
 | `.repo-standards/lock.json` | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state. |
-| `.repo-standards/state.json` | Last-complete run, HEAD at start, completion time, exact baselines, full skill file inventories, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this run only. |
+| `.repo-standards/state.json` | Last-complete run, HEAD at start, completion time, exact baselines, full skill file inventories, skill links, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this run only. |
 | `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
 | `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
 | `.agents/skills/adopt-standards/` | The product-owned adoption skill from this exact CLI version, with its references. |
 | `.agents/skills/standards-updates/` | The product-owned update notice from this exact CLI version, which reports [available updates](available-updates.md) to an agent. |
 | Exact targets and `.agents/skills/<author skill>/` | The selected author-owned content and complete skill resources. |
+| `.claude/skills/<skill>` | A skill link for every skill above, system or author: a relative symbolic link to `../../.agents/skills/<skill>`. |
 
 Discovery adoption additionally retains `inputs/scope-history.json`, and every
 later run keeps writing it. It holds the current run only: its accepted
@@ -214,7 +246,7 @@ file is read. The scope change lists, for each discovery declaration whose
 discovered paths changed, the paths added and removed against the previous
 run's confirmed scope; it is computed when the run is planned and stored with
 it. Work intervals and final scope-validity assessments are committed in
-`repo-standards/state/v6`, which holds the current run's evidence only. Neither
+`repo-standards/state/v7`, which holds the current run's evidence only. Neither
 file carries an earlier run, so neither grows with the number of runs; Git
 history keeps the evidence of earlier runs.
 
@@ -233,7 +265,7 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 
 | Artifact | Format |
 | --- | --- |
-| Durable state, `.repo-standards/state.json` | `repo-standards/state/v6` |
+| Durable state, `.repo-standards/state.json` | `repo-standards/state/v7` |
 | Integrity lock, `.repo-standards/lock.json` | `repo-standards/lock/v1` |
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v5` |
 | Run record, local run report, and archived abandoned report | `repo-standards/run/v6` |
@@ -417,7 +449,7 @@ reading further records or writing anything. The diagnostic names the record,
 its retired format, and the format this CLI reads, for example:
 
 ```text
-[RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v5; this CLI reads only repo-standards/state/v6. Adopt fresh: remove the .repo-standards directory, commit, and adopt again.
+[RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v6; this CLI reads only repo-standards/state/v7. Adopt fresh: remove the .repo-standards directory, commit, and adopt again.
 ```
 
 Nothing is converted. A fresh adoption proceeds as in
@@ -434,7 +466,7 @@ A higher version of the same record format fails with `NEWER_FORMAT`, including
 when a future schema no longer exposes the CLI pin where this CLI expects it:
 
 ```text
-[NEWER_FORMAT] .repo-standards/state.json carries the newer format repo-standards/state/v7; this CLI reads only repo-standards/state/v6. Use the pinned CLI to read this record.
+[NEWER_FORMAT] .repo-standards/state.json carries the newer format repo-standards/state/v8; this CLI reads only repo-standards/state/v7. Use the pinned CLI to read this record.
 ```
 
 This diagnostic exits 1, reads no further records, and changes nothing. Use the

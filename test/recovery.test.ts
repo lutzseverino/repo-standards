@@ -372,7 +372,7 @@ fs.writeFileSync = function(path, data, ...args) {
   const result = originalWrite.call(this, path, data, ...args);
   let value;
   try { value = JSON.parse(String(data)); } catch {}
-  if (String(path).endsWith('.tmp') && value?.format === 'repo-standards/state/v6') process.kill(process.pid, 'SIGKILL');
+  if (String(path).endsWith('.tmp') && value?.format === 'repo-standards/state/v7') process.kill(process.pid, 'SIGKILL');
   return result;
 }; syncBuiltinESMExports();`);
   assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');

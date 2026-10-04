@@ -64,7 +64,7 @@ export function assertCompactRunRecord(record: { format: string; observations: C
 // holds the current run only, no committed interval may carry an observation
 // map, and every closed interval must carry both observation identities.
 export function assertCompactWorkEvidence(state: ReturnType<typeof committedState>) {
-  assert.equal(state.format, 'repo-standards/state/v6');
+  assert.equal(state.format, 'repo-standards/state/v7');
   assert.equal(Object.hasOwn(state, 'history'), false, 'committed state must not carry earlier runs');
   assertCompactIntervals('current', state.observations!);
 }

@@ -57,7 +57,7 @@ test('a retired state, scope evidence, or run record format is rejected with the
   const root = f.project.root;
   const state = committedState(root);
   const scope = committedScopeEvidence(root);
-  assert.equal(state.format, 'repo-standards/state/v6');
+  assert.equal(state.format, 'repo-standards/state/v7');
   assert.equal(scope.format, 'repo-standards/scope-history/v5');
   assert.equal(f.run(['status', '--json']).report.format, 'repo-standards/status/v7');
   const retainedInspection = f.run(['inspect', '--json']).report;
@@ -74,7 +74,7 @@ test('a retired state, scope evidence, or run record format is rejected with the
   const retired = [
     { format: 'repo-standards/lock/v0', current: 'repo-standards/lock/v1',
       plant: (format: string) => writeFileSync(join(root, '.repo-standards/lock.json'), JSON.stringify({ format })) },
-    ...['v1', 'v2', 'v3', 'v4', 'v5'].map(version => ({ format: `repo-standards/state/${version}`, current: 'repo-standards/state/v6',
+    ...['v1', 'v2', 'v3', 'v4', 'v5', 'v6'].map(version => ({ format: `repo-standards/state/${version}`, current: 'repo-standards/state/v7',
       plant: (format: string) => rewriteCommittedState(root, { ...state, format }) })),
     ...['v1', 'v2', 'v3', 'v4'].map(version => ({ format: `repo-standards/scope-history/${version}`, current: 'repo-standards/scope-history/v5',
       plant: (format: string) => rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { ...scope, format }) })),
@@ -121,8 +121,8 @@ test('newer record formats require the pinned CLI without fresh-adoption advice 
   mkdirSync(reports, { recursive: true });
   const archived = join(reports, 'c0ffee00-0000-4000-8000-000000000000.json');
   const records = [
-    { path: join(root, '.repo-standards/state.json'), format: 'repo-standards/state/v7', expected: 'repo-standards/state/v6' },
-    { path: join(root, '.repo-standards/state.json'), format: 'repo-standards/state/v10', expected: 'repo-standards/state/v6' },
+    { path: join(root, '.repo-standards/state.json'), format: 'repo-standards/state/v8', expected: 'repo-standards/state/v7' },
+    { path: join(root, '.repo-standards/state.json'), format: 'repo-standards/state/v10', expected: 'repo-standards/state/v7' },
     { path: join(root, '.repo-standards/inputs/scope-history.json'), format: 'repo-standards/scope-history/v6', expected: 'repo-standards/scope-history/v5' },
     { path: runRecord, format: 'repo-standards/run/v7', expected: 'repo-standards/run/v6' },
     { path: archived, format: 'repo-standards/run/v7', expected: 'repo-standards/run/v6' },
@@ -158,7 +158,7 @@ test('the single committed formats are validated on read', async t => {
   const root = f.project.root;
   const state = committedState(root);
   const scope = committedScopeEvidence(root);
-  for (const format of ['repo-standards/state/vnext', 'repo-standards/state/v7-extra', 'repo-standards/state/v-1', 'repo-standards/unrelated/v1']) {
+  for (const format of ['repo-standards/state/vnext', 'repo-standards/state/v8-extra', 'repo-standards/state/v-1', 'repo-standards/unrelated/v1']) {
     rewriteCommittedState(root, { ...state, format });
     for (const command of ['inspect', 'status']) {
       const before = snapshot(root);
@@ -230,7 +230,7 @@ test('a project on a retired format completes remove, commit, and adopt again wi
   commit(project.root);
   // An earlier CLI wrote a retired state format and its own system skill, and
   // the maintainer edited the installed author skill since.
-  rewriteCommittedState(project.root, { ...committedState(project.root), format: 'repo-standards/state/v5' });
+  rewriteCommittedState(project.root, { ...committedState(project.root), format: 'repo-standards/state/v6' });
   writeFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), '# System skill of an earlier CLI\n');
   writeFileSync(join(project.root, '.agents/skills/adopt-standards/earlier.md'), 'Earlier resource\n');
   writeFileSync(join(project.root, '.agents/skills/review/SKILL.md'), '# Review, edited\n');
@@ -250,5 +250,5 @@ test('a project on a retired format completes remove, commit, and adopt again wi
   assert.equal(started.report.outcome, 'complete');
   assert.deepEqual(installedTree(join(project.root, '.agents/skills/adopt-standards')), installedTree(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/adopt-standards')));
   assert.equal(readFileSync(join(project.root, '.agents/skills/review/SKILL.md'), 'utf8'), '# Review\n');
-  assert.equal(committedState(project.root).format, 'repo-standards/state/v6');
+  assert.equal(committedState(project.root).format, 'repo-standards/state/v7');
 });

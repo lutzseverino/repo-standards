@@ -130,13 +130,13 @@ described [below](#discover-contextual-file-scope):
 | --- | --- |
 | `selection` | Exact CLI package/version, canonical standards URL, version tag, commit SHA, and profile. |
 | `source`, `resolved` | Validated metadata and the resolver's complete active profile. |
-| `exact` | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. |
-| `systemSkills` | Each system skill adoption installs, `adopt-standards` and then `standards-updates`, by `name` and reserved `.agents/skills/<name>` `target`, with `create`, `replace`, or `match` against the copy packaged with the inspecting exact CLI. |
-| `removed` | For an update, each installed target the selection no longer installs and the run removes, with the declaration that installed it and each file's before and after hash inventories and diff, as in `exact`. |
+| `exact` | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. A skill also has its `link`: the [skill link](adoption.md#skill-links) `.claude/skills/<name>` as `target`, with its own `create`, `replace`, or `match` `action`. |
+| `systemSkills` | Each system skill adoption installs, `adopt-standards` and then `standards-updates`, by `name` and reserved `.agents/skills/<name>` `target`, with `create`, `replace`, or `match` against the copy packaged with the inspecting exact CLI, and its `link` as in `exact`. |
+| `removed` | For an update, each installed target the selection no longer installs and the run removes, including a retired skill's link, with the declaration that installed it and each file's or link's before and after hash inventories and diff, as in `exact`. |
 | `discardedEdits` | Each target whose replacement or removal discards content that is not its installed baseline, in the order of the target blockers. At initial adoption there is no baseline, so every replaced existing target is listed. |
 | `guidance` | Guidance by source-relative `source` path, SHA-256 and executable state, with its explicit project paths or directory trees. |
 | `operations` | Ordered fixes and checks, literal arguments, the script by path and hash, resource hash inventories, timeout, and declared prerequisite probe/range. |
-| `project` | Hash inventories of the affected targets, of each system skill target in `systemSkills` by path, and of the durable product state. The project root, Git HEAD, index, and status are not reported. |
+| `project` | Hash inventories of the affected targets, of each system skill target in `systemSkills` by path, of each installed skill's link in `skillLinks` by path, and of the durable product state. The project root, Git HEAD, index, and status are not reported. |
 | `inputs`, `manifest` | Hash inventories of the selected source material, and the hash of the normalized single-profile metadata, that adoption retains. |
 | `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available. |
 | `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
@@ -302,9 +302,10 @@ of JSON. It has these sections, in order:
 - **Update class**: for an update, whether it is an exact or a contextual
   update, and each declaration that makes it contextual.
 - **Changed declarations**: exact content by declaration and path, created,
-  modified, deleted, or mode changed, including removed targets and each system
-  skill the run creates or replaces; and contextual declarations with their
-  targets and what changed.
+  modified, deleted, or mode changed, including removed targets, each system
+  skill the run creates or replaces, and each skill link the run creates or
+  replaces, after its skill; and contextual declarations with their targets and
+  what changed.
 - **Discarded edits**: present only when a replacement or removal discards
   content that is not the target's installed baseline, listing each such
   target.
@@ -498,7 +499,7 @@ naming them adds. Both are rebuilt on read with the product's existing
 derivation. Scope-history v5 is the only format written and read.
 
 Retained inspection reads the committed durable state, which is
-`repo-standards/state/v6`, the only state format, with the last complete run's
+`repo-standards/state/v7`, the only state format, with the last complete run's
 [work evidence](script-protocol.md#observed-adoption-scope) as
 identities and deltas; `status` echoes it as `repo-standards/status/v7`.
 Inspection rejects a committed state, retained scope history, or run record in
