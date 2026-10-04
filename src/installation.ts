@@ -2,7 +2,7 @@ import { cpSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
 import { hash } from './acquisition.js';
-import { baselines, file, flatten, ignore, inventory, json, lockPath, safe, safeDirectory, stagedFiles, verifyFiles, write, writeLink } from './adoption-files.js';
+import { baselines, file, flatten, ignore, inventory, json, lockPath, remove, safe, safeDirectory, stagedFiles, verifyFiles, write, writeLink } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
 import type { AdoptionRunSession, Run } from './adoption-run.js';
 import { ProductError } from './errors.js';
@@ -202,7 +202,7 @@ export function install(root: string, session: Pick<AdoptionRunSession, 'record'
     if (treeProgress[tree] === 'installing') continue;
     session.record({ type: 'tree-removing', path: tree });
     safePlanned(root, installation, tree);
-    rmSync(join(root, tree), { recursive: true, force: true });
+    remove(join(root, tree));
     session.record({ type: 'tree-installing', path: tree });
   }
   for (const [path, value] of Object.entries(files)) {

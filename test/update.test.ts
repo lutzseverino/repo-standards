@@ -1585,15 +1585,18 @@ syncBuiltinESMExports();`);
 test('retry resumes an interrupted removal of retired targets and an interrupted initial skill or skill link replacement', async t => {
   const registry = await registryFixture(cli.root);
   t.after(() => registry.close());
+  // A link is removed by unlinking it, a tree by removing it recursively.
   const kill = (suffix: string, before?: string) => `
 const remove = fs.rmSync;
-fs.rmSync = function(path, ...args) {
+const unlink = fs.unlinkSync;
+const fault = path => {
   if (String(path).endsWith(${JSON.stringify(suffix)})) {
-    ${before ? `remove.call(this, String(path) + ${JSON.stringify(before)});` : ''}
+    ${before ? `remove.call(fs, String(path) + ${JSON.stringify(before)});` : ''}
     process.kill(process.pid, 'SIGKILL');
   }
-  return remove.call(this, path, ...args);
 };
+fs.rmSync = function(path, ...args) { fault(path); return remove.call(this, path, ...args); };
+fs.unlinkSync = function(path, ...args) { fault(path); return unlink.call(this, path, ...args); };
 syncBuiltinESMExports();`;
   const declarations = `    review:
       kind: skill

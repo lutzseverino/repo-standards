@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { chmodSync, lstatSync, mkdirSync, readdirSync, readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, lstatSync, mkdirSync, readdirSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
@@ -54,6 +54,15 @@ export function stagedPath(path: string, installationId?: string) {
   return join(dirname(path), `.repo-standards-${installationId ? `${installationId}-${hash(path)}` : randomUUID()}.tmp`);
 }
 
+// Removes an entry, a whole tree, or a link without following it. rmSync in
+// the pinned Node.js follows a symbolic link: it refuses one to a directory and
+// leaves a dangling one in place.
+export function remove(path: string) {
+  const stat = lstatSync(path, { throwIfNoEntry: false });
+  if (stat?.isSymbolicLink()) unlinkSync(path);
+  else if (stat) rmSync(path, { recursive: true, force: true });
+}
+
 // Rename a new inode so replacing a tracked hard link never overwrites its
 // other names. Recheck target ancestors immediately before each mutation.
 function place(root: string, path: string, temporary: string, create: (temporary: string) => void, link?: string) {
@@ -63,7 +72,7 @@ function place(root: string, path: string, temporary: string, create: (temporary
     create(temporary);
     safe(root, path, link);
     renameSync(temporary, join(root, path));
-  } finally { rmSync(temporary, { force: true }); }
+  } finally { remove(temporary); }
 }
 
 export function write(root: string, path: string, value: Content, installationId?: string) {
@@ -86,7 +95,7 @@ export function writeLink(root: string, path: string, text: string, installation
   const stat = lstatSync(join(root, staged), { throwIfNoEntry: false });
   if (stat && !(stat.isSymbolicLink() && readlinkSync(join(root, staged)) === text)) throw new ProductError('INSTALLATION_CHANGED', `Staged installation content changed: ${staged}. Preserve and reconcile it before retry.`);
   place(root, path, join(root, staged), temporary => {
-    rmSync(temporary, { force: true });
+    remove(temporary);
     symlinkSync(text, temporary);
   }, text);
 }
