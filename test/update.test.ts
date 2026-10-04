@@ -614,23 +614,30 @@ test('an edited skill that leaves the selection is judged whole and keeps its li
   const skill = '.agents/skills/legacy';
   const link = '.claude/skills/legacy';
   const copy = (root: string) => { unlinkSync(join(root, link)); writeFileSync(join(root, link), '# Legacy'); };
-  for (const { name, mutate, kept, removed } of [
+  const ignore = (root: string) => {
+    writeFileSync(join(root, '.gitignore'), `/${skill}/local.md\n`);
+    writeFileSync(join(root, skill, 'local.md'), 'Ignored notes');
+  };
+  for (const { name, mutate, kept, removed, blockers = [] } of [
     { name: 'an added file', mutate: (root: string) => writeFileSync(join(root, skill, 'local.md'), 'Local notes'), kept: [skill, link], removed: [] },
     { name: 'a removed file', mutate: (root: string) => rmSync(join(root, skill, 'notes.md')), kept: [skill, link], removed: [] },
     { name: 'a changed mode', mutate: (root: string) => chmodSync(join(root, skill, 'notes.md'), 0o755), kept: [skill, link], removed: [] },
     // The run never removes the edited skill, so ignored content inside it doesn't block.
-    { name: 'an ignored file', mutate: (root: string) => {
-      writeFileSync(join(root, '.gitignore'), `/${skill}/local.md\n`);
-      writeFileSync(join(root, skill, 'local.md'), 'Ignored notes');
-    }, kept: [skill, link], removed: [] },
+    { name: 'an edited skill with an ignored file', mutate: (root: string) => { ignore(root); writeFileSync(join(root, skill, 'notes.md'), 'Edited'); }, kept: [skill, link], removed: [] },
+    // Only tracked content is an edit: ignored content alone leaves the skill to removal, which it blocks.
+    { name: 'an unedited skill with an ignored file', mutate: ignore, kept: [], removed: [skill, link],
+      blockers: [{ code: 'UNTRACKED_REPLACEMENT', path: `${skill}/local.md` }] },
     { name: 'an edited skill whose link was removed', mutate: (root: string) => { writeFileSync(join(root, skill, 'notes.md'), 'Edited'); unlinkSync(join(root, link)); }, kept: [skill], removed: [] },
     { name: 'an edited skill whose link was replaced by a copy', mutate: (root: string) => { writeFileSync(join(root, skill, 'notes.md'), 'Edited'); copy(root); }, kept: [skill, link], removed: [] },
     // An unedited skill goes; a copy in its link's place is the project's edit and stays.
     { name: 'an unedited skill whose link was replaced by a copy', mutate: copy, kept: [link], removed: [skill] },
     { name: 'an unedited skill whose link was removed', mutate: (root: string) => unlinkSync(join(root, link)), kept: [], removed: [skill] },
-    // The run never writes through the re-pointed link, so it doesn't block.
-    { name: 'an unedited skill whose link points elsewhere', mutate: (root: string) => { unlinkSync(join(root, link)); symlinkSync('../../.agents/skills/other', join(root, link)); },
-      kept: [link], removed: [skill] },
+    // Unsafe content is never kept: its removal blocks.
+    { name: 'an edited skill whose link points elsewhere', mutate: (root: string) => {
+      writeFileSync(join(root, skill, 'notes.md'), 'Edited');
+      unlinkSync(join(root, link));
+      symlinkSync('../../.agents/skills/other', join(root, link));
+    }, kept: [skill], removed: [link], blockers: [{ code: 'UNSAFE_TARGET', path: link }] },
   ]) await t.test(name, () => {
     const remote = remoteFixture(manifest({ legacy: leaving.legacy }), leavingFiles);
     const project = sourceFixture('');
@@ -651,11 +658,15 @@ test('an edited skill that leaves the selection is judged whole and keeps its li
     remote.addVersion('v1.1.0', manifest({}));
     const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
     const inspection = JSON.parse(cli.run(args, project.root, env).stdout);
-    assert.deepEqual(inspection.start.blockers, []);
+    assert.deepEqual(inspection.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), blockers);
     assert.deepEqual(inspection.kept.map(({ target }: { target: string }) => target), kept);
     assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), removed);
-    assert.deepEqual(inspection.discardedEdits, []);
     const started = cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env);
+    if (blockers.length) {
+      assert.equal(JSON.parse(started.stdout).errors[0].code, 'START_BLOCKED', started.stdout + started.stderr);
+      return;
+    }
+    assert.deepEqual(inspection.discardedEdits, []);
     assert.equal(JSON.parse(started.stdout).outcome, 'complete', started.stdout + started.stderr);
     if (kept.includes(skill)) assert.deepEqual(installedTree(join(project.root, skill)), before);
     else assert.equal(existsSync(join(project.root, skill)), false);

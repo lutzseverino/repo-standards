@@ -238,21 +238,20 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     for (const { path, kind, baseline } of recordedTargets) {
       const target = ownedTargets.get(path);
       if (target) target.baseline = baseline;
-      else ownedTargets.set(path, { path, kind, current: observeTarget(path, baseline.link), baseline });
+      else ownedTargets.set(path, { path, kind, current: observeTarget(path, baseline.link), baseline, unsafe: observed.get(path)!.safety.length > 0 });
     }
     const contextual = declared.filter(({ owned }) => !owned).map(({ path }) => path);
     const ownership = new Map(judgeTargetOwnership({ tracked, contextual, targets: [...ownedTargets.values()] }).map(verdict => [verdict.path, verdict]));
     // One block per target: its safety blockers, reported once for its path,
-    // then its type blockers and its ownership blockers. A kept target has
-    // none: the run neither reads nor writes it.
+    // then its type blockers and its ownership blockers.
     // The targets whose replacement or removal discards edits are listed in
     // the same order.
     const reported = new Set<string>();
     const discardedEdits: string[] = [];
     for (const { path, typeBlockers, owned } of [...installedSystemSkills.flatMap(({ target, link }) => [target, link].map(path => ({ path, typeBlockers: [], owned: true }))), ...declared,
       ...baselineOnly.map(path => ({ path, typeBlockers: [], owned: true }))]) {
+      if (!reported.has(path)) blockers.push(...observed.get(path)!.safety);
       const verdict = owned ? ownership.get(path) : undefined;
-      if (!reported.has(path) && !verdict?.kept) blockers.push(...observed.get(path)!.safety);
       if (verdict?.discardsEdits && !reported.has(path)) discardedEdits.push(path);
       reported.add(path);
       blockers.push(...typeBlockers, ...verdict?.blockers ?? []);

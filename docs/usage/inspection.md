@@ -155,8 +155,11 @@ it in place, durable state no longer records it, and later runs neither list
 nor remove it. A skill directory is judged whole, so a skill with any added,
 removed, or changed file is kept whole, together with its link. A skill link
 is otherwise judged on its own, so a link the project replaced with its own
-content is kept even when its unedited skill is removed. A kept target has no
-start blockers, since the run neither reads nor writes it. An installed target within contextual scope, as a contextual target or
+content is kept even when its unedited skill is removed. Only tracked content
+is an edit, so ignored or other untracked content alone keeps nothing and still
+blocks removal with `UNTRACKED_REPLACEMENT`. A target observed as unsafe, such
+as a re-pointed link, is never kept: it is listed in `removed` and its safety
+blockers stand. An installed target within contextual scope, as a contextual target or
 inside or containing one, is not removed and stays in place as project content.
 Nor is one at or inside a target the selection still installs, whose own action
 covers it. One that contains such a target is removed, even when edited, and
