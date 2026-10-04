@@ -66,6 +66,7 @@ export function remove(path: string) {
 // Rename a new inode so replacing a tracked hard link never overwrites its
 // other names. Recheck target ancestors immediately before each mutation.
 function place(root: string, path: string, temporary: string, create: (temporary: string) => void, link?: string) {
+  safe(root, path, link);
   mkdirSync(dirname(join(root, path)), { recursive: true });
   safe(root, path, link);
   try {
