@@ -150,7 +150,7 @@ test('the adoption record lists a path changed by fixes and agent work once, wit
 
   const status = f.json(['status', '--json']);
   assert.deepEqual(status.changeSet, [
-    ...cli.systemSkillFiles.map(path => ({ path, phases: ['installation'] })),
+    ...[...cli.systemSkillFiles, ...cli.systemSkillLinks].map(path => ({ path, phases: ['installation'] })),
     { path: 'AGENTS.md', phases: ['installation'] },
     { path: 'apps/a/README.md', phases: ['fixes', 'agent'] },
   ]);
@@ -161,7 +161,7 @@ test('the adoption record lists a path changed by fixes and agent work once, wit
 | fixes | \`docs\` | \`prepare\` | changed | prepare done |
 | checks | \`docs\` | \`verify\` | passed | verify done |`, `| Path | Phases |
 | --- | --- |
-${cli.systemSkillFiles.map(path => `| \`${path}\` | installation |\n`).join('')}| \`AGENTS.md\` | installation |
+${[...cli.systemSkillFiles, ...cli.systemSkillLinks].map(path => `| \`${path}\` | installation |\n`).join('')}| \`AGENTS.md\` | installation |
 | \`apps/a/README.md\` | fixes, agent |`, `| Declaration | Added | Removed |
 | --- | --- | --- |
 | \`docs\` | \`apps/a/README.md\` | none |`));
@@ -179,7 +179,7 @@ test('a path the agent returns to its content before the run is not a changed pa
   const status = f.json(['status', '--json']);
   assert.deepEqual(status.observations.filter((interval: { changes?: object }) => interval.changes && 'apps/a/README.md' in interval.changes)
     .map((interval: { phase: string }) => interval.phase), ['fixes', 'agent']);
-  assert.deepEqual(status.changeSet.map((entry: { path: string }) => entry.path), [...cli.systemSkillFiles, 'AGENTS.md']);
+  assert.deepEqual(status.changeSet.map((entry: { path: string }) => entry.path), [...cli.systemSkillFiles, ...cli.systemSkillLinks, 'AGENTS.md']);
 });
 
 test('the record of an update that only installs exact content lists every installed path, from durable state alone', async t => {

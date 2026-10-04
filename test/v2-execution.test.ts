@@ -381,7 +381,7 @@ ${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fix
   };
   // Initial adoption installs the file; the corrupting fix it undid is not listed.
   assert.deepEqual(restoreAndRetry(f.start()), [
-    ...cli.systemSkillFiles.map(path => ({ path, phases: ['installation'] })),
+    ...[...cli.systemSkillFiles, ...cli.systemSkillLinks].map(path => ({ path, phases: ['installation'] })),
     { path: 'AGENTS.md', phases: ['installation'] },
   ]);
   // An update that leaves the file as installed lists nothing for it.
@@ -416,7 +416,7 @@ ${result}`, { review: { kind: 'skill', name: 'review', source: 'skill', fixes: [
     assert.ok(Object.keys(retry.report.observations[1].restoredBoundaries).includes(mode === 'removed' ? '.agents/skills/review' : '.agents/skills/review/unexpected'));
     // Restored and removed resources leave only the installed skill in the change set.
     assert.deepEqual(f.run(['status', '--json']).report.changeSet.map((entry: { path: string; phases: string[] }) => `${entry.path} ${entry.phases}`),
-      [...cli.systemSkillFiles, '.agents/skills/review/SKILL.md'].sort().map(path => `${path} installation`));
+      [...cli.systemSkillFiles, ...cli.systemSkillLinks, '.agents/skills/review/SKILL.md', '.claude/skills/review'].sort().map(path => `${path} installation`));
   });
 });
 

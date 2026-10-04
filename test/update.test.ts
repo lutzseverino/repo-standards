@@ -3,7 +3,7 @@ import { inc } from 'semver';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { parse, stringify } from 'yaml';
 import { installCli, installedTree, sha256, snapshot, sourceFixture } from './installed-cli.ts';
@@ -1551,7 +1551,7 @@ syncBuiltinESMExports();`);
   });
 });
 
-test('retry resumes an interrupted removal of retired targets and an interrupted initial skill replacement', async t => {
+test('retry resumes an interrupted removal of retired targets and an interrupted initial skill or skill link replacement', async t => {
   const registry = await registryFixture(cli.root);
   t.after(() => registry.close());
   const kill = (suffix: string, before?: string) => `
@@ -1568,11 +1568,23 @@ syncBuiltinESMExports();`;
       kind: skill
       name: review
       source: review`;
-  for (const { name, fault, initialFiles } of [
+  // A staged link left before its rename.
+  const killBeforeRename = (suffix: string) => `
+const rename = fs.renameSync;
+fs.renameSync = function(from, to, ...args) {
+  if (String(to).endsWith(${JSON.stringify(suffix)})) process.kill(process.pid, 'SIGKILL');
+  return rename.call(this, from, to, ...args);
+};
+syncBuiltinESMExports();`;
+  const copy = { '.claude/skills/review/SKILL.md': '# Local copy', '.claude/skills/review/local.md': 'Local notes' };
+  for (const { name, fault, initialFiles, discarded } of [
     { name: 'a retired exact file', fault: kill('/RETIRED.md') },
     { name: 'a retired skill', fault: kill('/.agents/skills/legacy', '/notes.md') },
+    { name: 'a retired skill link', fault: kill('/.claude/skills/legacy') },
     { name: 'an initial replacement of a differing tracked skill', fault: kill('/.agents/skills/review', '/local.md'),
-      initialFiles: { '.agents/skills/review/SKILL.md': '# Local review', '.agents/skills/review/local.md': 'Local notes' } },
+      initialFiles: { '.agents/skills/review/SKILL.md': '# Local review', '.agents/skills/review/local.md': 'Local notes' }, discarded: ['.agents/skills/review'] },
+    { name: 'an initial replacement of a tracked copy at a skill link', fault: kill('/.claude/skills/review', '/local.md'), initialFiles: copy, discarded: ['.claude/skills/review'] },
+    { name: 'a staged skill link replacing a tracked copy', fault: killBeforeRename('/.claude/skills/review'), initialFiles: copy, discarded: ['.claude/skills/review'] },
   ]) await t.test(name, () => {
     const remote = remoteFixture(source('v1', `${declarations}
     retired:
@@ -1596,14 +1608,16 @@ syncBuiltinESMExports();`;
       remote.addVersion('v1.1.0', source('v2', declarations), {});
       const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
       const inspection = JSON.parse(run(updateArgs).stdout);
-      assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', 'RETIRED.md']);
+      assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', '.claude/skills/legacy', 'RETIRED.md']);
       startArgs = ['start', ...updateArgs.slice(1), '--confirm', inspection.identity];
-    } else assert.deepEqual(initial.discardedEdits, ['.agents/skills/review']);
+    } else assert.deepEqual(initial.discardedEdits, discarded);
     assert.equal(run(startArgs, filesystemFault(remote.support.root, env, 'installation', fault)).signal, 'SIGKILL');
     const result = run(['resume', '--retry', '--json']);
     assert.equal(result.status, 0, result.stdout + result.stderr);
     assert.equal(JSON.parse(result.stdout).outcome, 'complete');
     assert.deepEqual(installedTree(join(project.root, '.agents/skills/review')), installedTree(join(remote.source.root, 'review')));
+    assert.equal(readlinkSync(join(project.root, '.claude/skills/review')), '../../.agents/skills/review');
+    assert.deepEqual(readdirSync(join(project.root, '.claude/skills')).sort(), ['adopt-standards', ...initialFiles ? ['legacy'] : [], 'review', 'standards-updates']);
     if (!initialFiles) {
       assert.equal(existsSync(join(project.root, 'RETIRED.md')), false);
       assert.equal(existsSync(join(project.root, '.agents/skills/legacy')), false);
