@@ -642,6 +642,15 @@ for (const [label, skill, policy] of [
   ['invocable in both tools', '---\nname: review\ndisable-model-invocation: false\n---\nReview.', 'policy: {allow_implicit_invocation: true}\n'],
   ['neither setting with frontmatter', '---\nname: review\ndescription: Review code.\n---\nReview.', 'interface: {display_name: Review}\n'],
   ['neither setting with a loosely written description', '---\ndescription: Use when: the user asks\n---\nReview.', 'interface:\n  description: Use when: the user asks\n'],
+  ['neither setting with duplicate unrelated keys', '---\ndescription: First\ndescription: Second\n---\nReview.', 'policy: {other: true}\npolicy: {other: false}\n'],
+  ['neither setting with non-mapping metadata', '---\n- review\n- code\n---\nReview.', '[review, code]\n'],
+  ['neither setting with non-string keys', '---\n1: review\n---\nReview.', '? [review, code]\n: description\n'],
+  ['neither setting with invalid Codex YAML', '# Review', 'policy: [\n'],
+  ['agreeing settings with duplicate unrelated keys', '---\ndescription: First\ndescription: Second\ndisable-model-invocation: true\n---\nReview.', 'policy: {other: true, other: false, allow_implicit_invocation: false}\n'],
+  ['agreeing settings through aliases', '---\nmanual: &manual true\ndisable-model-invocation: *manual\n---\nReview.', 'manual: &manual {allow_implicit_invocation: false}\npolicy: *manual\n'],
+  ['manual settings with spaces after delimiters', '---  \ndisable-model-invocation: true\n---  \nReview.', 'policy: {allow_implicit_invocation: false}\n'],
+  ['manual settings with tabs and CRLF after delimiters', '---\t\r\ndisable-model-invocation: true\r\n---\t\r\nReview.', 'policy: {allow_implicit_invocation: false}\n'],
+  ['manual settings with a leading BOM', '\uFEFF---\ndisable-model-invocation: true\n---\nReview.', 'policy: {allow_implicit_invocation: false}\n'],
   ['neither metadata file', '# Review\nReview code.', undefined],
   ['absent Claude Code setting with explicit Codex default', '---\nname: review\n---\nReview.', 'policy: {allow_implicit_invocation: true}\n'],
   ['explicit Claude Code default with absent Codex setting', '---\nname: review\ndisable-model-invocation: false\n---\nReview.', undefined],
@@ -668,7 +677,12 @@ profiles:
 for (const [label, metadata, files, code, file, line, path] of [
   ['non-boolean frontmatter', 'disable-model-invocation: "false"', {}, 'INVALID_TYPE', 'skills/review/SKILL.md', 3, '/disable-model-invocation'],
   ['non-boolean Codex setting', '', { 'skills/review/agents/openai.yaml': 'policy:\n  allow_implicit_invocation: "true"\n' }, 'INVALID_TYPE', 'skills/review/agents/openai.yaml', 2, '/policy/allow_implicit_invocation'],
-  ['invalid Codex YAML', '', { 'skills/review/agents/openai.yaml': 'policy: [\n' }, 'YAML_SYNTAX', 'skills/review/agents/openai.yaml', 2, ''],
+  ['duplicated frontmatter setting', 'disable-model-invocation: false\ndisable-model-invocation: false', {}, 'DUPLICATE_IDENTITY', 'skills/review/SKILL.md', 4, '/disable-model-invocation'],
+  ['duplicated Codex setting', '', { 'skills/review/agents/openai.yaml': 'policy:\n  allow_implicit_invocation: true\n  allow_implicit_invocation: true\n' }, 'DUPLICATE_IDENTITY', 'skills/review/agents/openai.yaml', 3, '/policy/allow_implicit_invocation'],
+  ['duplicated invocation policy', '', { 'skills/review/agents/openai.yaml': 'policy: {allow_implicit_invocation: true}\npolicy: {allow_implicit_invocation: false}\n' }, 'DUPLICATE_IDENTITY', 'skills/review/agents/openai.yaml', 2, '/policy'],
+  ['unparseable frontmatter containing a setting', 'disable-model-invocation: false\ndescription: Use when: the user asks', {}, 'YAML_SYNTAX', 'skills/review/SKILL.md', 4, ''],
+  ['unparseable Codex YAML containing a setting', '', { 'skills/review/agents/openai.yaml': 'policy:\n  allow_implicit_invocation: true\ninterface: [\n' }, 'YAML_SYNTAX', 'skills/review/agents/openai.yaml', 4, ''],
+  ['unresolved setting alias', 'disable-model-invocation: *missing', {}, 'YAML_STRUCTURE', 'skills/review/SKILL.md', 3, '/disable-model-invocation'],
 ] as const) test(`author skill invocation reports ${label} at its metadata location`, (t) => {
   const source = sourceFixture(header + `defaults:
   declarations:

@@ -98,6 +98,27 @@ test('search rejects unsupported and invalid candidates explicitly while keeping
   }
 });
 
+test('search reports invalid invocation settings under their skill metadata paths', t => {
+  const remote = discoverable();
+  const project = sourceFixture('');
+  t.after(() => { remote.close(); project.close(); });
+  remote.addVersion('v2.0.0', yaml.replace('    readme:', '    review:\n      kind: skill\n      name: review\n      source: skills/review\n    readme:'), {
+    'skills/review/SKILL.md': '---\ndisable-model-invocation: "false"\n---\nReview.',
+    'skills/review/agents/openai.yaml': 'policy: {allow_implicit_invocation: "true"}\n',
+  });
+  remote.responses[`${remote.prefix}/releases?per_page=100&page=1`] = { body: [{ ...release, tag_name: 'v2.0.0' }] };
+  remote.save();
+  const result = cli.run(['source', 'search', '--json'], project.root, remote.env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.candidates, []);
+  assert.equal(report.rejected[0].code, 'INVALID_STANDARDS');
+  assert.deepEqual(report.rejected[0].details.map(({ code, file }: { code: string; file: string }) => ({ code, file })), [
+    { code: 'INVALID_TYPE', file: 'skills/review/SKILL.md' },
+    { code: 'INVALID_TYPE', file: 'skills/review/agents/openai.yaml' },
+  ]);
+});
+
 test('search finds stable published releases across pages and reports sources without one', (t) => {
   const remote = discoverable();
   const project = sourceFixture('');

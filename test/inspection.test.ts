@@ -26,6 +26,29 @@ profiles:
     declarations: {}
 `;
 
+test('inspection reports invalid invocation settings under their skill metadata paths', t => {
+  const yaml = simpleSource().replace('      kind: file\n      target: AGENTS.md\n      exact: content.md', '      kind: skill\n      name: review\n      source: skills/review');
+  const remote = remoteFixture(yaml, {
+    'skills/review/SKILL.md': '---\ndisable-model-invocation: "false"\n---\nReview.',
+    'skills/review/agents/openai.yaml': 'policy:\n  allow_implicit_invocation: "true"\n',
+  });
+  const project = sourceFixture('');
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const before = snapshot(project.root);
+  const result = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const error = JSON.parse(result.stdout).errors[0];
+  assert.equal(error.code, 'INVALID_STANDARDS');
+  assert.deepEqual(error.details.map(({ code, file, line, column, path }: {
+    code: string; file: string; line: number; column: number; path: string;
+  }) => ({ code, file, line, column, path })), [
+    { code: 'INVALID_TYPE', file: 'skills/review/SKILL.md', line: 2, column: 27, path: '/disable-model-invocation' },
+    { code: 'INVALID_TYPE', file: 'skills/review/agents/openai.yaml', line: 2, column: 30, path: '/policy/allow_implicit_invocation' },
+  ]);
+  assert.deepEqual(snapshot(project.root), before);
+});
+
 test('inspection identity and confirmation carry between clones made under different umasks', async t => {
   const yaml = simpleSource().replace('    instructions:', '    docs:\n      kind: repository\n      guidance: guidance.md\n      discovery: discovery.md\n    instructions:');
   const remote = remoteFixture(yaml, { 'content.md': 'Instructions', 'guidance.md': 'Document maintained projects.', 'discovery.md': 'Identify maintained projects.' });
