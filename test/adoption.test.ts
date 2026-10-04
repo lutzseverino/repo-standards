@@ -609,6 +609,36 @@ test('unsafe targets introduced during installation are rechecked before each wr
   assert.deepEqual(snapshot(remote.source.root), before);
 });
 
+test('a link ancestor replaced just before a skill link is written is caught before any directory is created through it', async t => {
+  const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
+  const project = sourceFixture('');
+  const elsewhere = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); elsewhere.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  // The last filesystem call before a link's parent directories are created
+  // probes its staged link; at that moment .claude becomes a link elsewhere.
+  const fault = filesystemFault(remote.support.root, env, 'installation', `
+const lstat = fs.lstatSync;
+let swapped = false;
+fs.lstatSync = function(path, ...args) {
+  if (!swapped && String(path).startsWith(${JSON.stringify(join(project.root, '.claude/skills/.repo-standards-'))})) {
+    swapped = true;
+    fs.symlinkSync(${JSON.stringify(elsewhere.root)}, ${JSON.stringify(join(project.root, '.claude'))});
+  }
+  return lstat.call(this, path, ...args);
+};
+syncBuiltinESMExports();`);
+  const before = snapshot(elsewhere.root);
+  const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, fault);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.match(JSON.parse(result.stdout).reason, /UNSAFE_TARGET/);
+  assert.ok(lstatSync(join(project.root, '.claude')).isSymbolicLink());
+  assert.deepEqual(snapshot(elsewhere.root), before);
+});
+
 test('missing npm and unavailable exact runtime packages leave project content untouched', async t => {
   const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
   const project = sourceFixture('');
