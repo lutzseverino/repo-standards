@@ -279,7 +279,7 @@ export function status(project: string, cliVersion: string) {
     requirePinnedCli(root, selection.cli.version, cliVersion);
     const changedScope = scopeEvidence?.scopeChanges;
     return { format, scopeProposal: scopeEvidence?.discovery?.proposal ?? null, ...committedEvidenceReport(state),
-      selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
+      selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills, links: state.links,
       checks: state.checks, assessments: state.assessments, ...(changedScope ? { scopeChanges: changedScope } : {}), active, abandoned, evidence: 'historical' };
   } catch (error) {
     if (!(error instanceof ProductError) || error.code !== 'STATE_INTEGRITY' || !abandoned.length) throw error;
@@ -307,6 +307,7 @@ type Progress =
   | { type: 'installation-verification' }
   | { type: 'installation-writing' }
   | { type: 'file-installed'; path: string }
+  | { type: 'link-installed'; path: string }
   | { type: 'tree-removing'; path: string }
   | { type: 'tree-installing'; path: string }
   | { type: 'runtime-installed' }
@@ -366,7 +367,7 @@ export class AdoptionRunSession {
     const recovering = this.#run;
     const run: Run = recovering ?? { format: formats.run, observations: [], id: randomUUID(), inspection: confirmation, selection: report.selection, ...provenance, startInput,
       ...(previous ? { previousComplete: { selection: previous.selection, lastComplete: previous.state.lastComplete } } : {}),
-      affected: { ...report.project.affected, ...report.project.systemSkills }, outcome: 'incomplete',
+      affected: { ...report.project.affected, ...report.project.systemSkills, ...report.project.skillLinks }, outcome: 'incomplete',
       prerequisites: [], operations: [], assessments: [], phase: 'prerequisites', reason: 'Run in progress or interrupted.', changes: [], completed: [], uncertain: ['prerequisite probes'],
       nextAction: 'Read status, review actual changes, stop any surviving author process, then use resume --retry to recover this incomplete adoption, or abandon to preserve its work and report.' };
     try { if (recovering) saveRun(root, run, false); else writeFileSync(lockPath(root), json(run), { flag: 'wx' }); }
@@ -390,6 +391,7 @@ export class AdoptionRunSession {
         return;
       case 'installation-writing': run.phase = 'installation'; run.uncertain = ['exact content and durable product state installation']; break;
       case 'file-installed':
+      case 'link-installed':
         if (event.path === '.repo-standards/.gitignore') this.#localReady = true;
         if (!run.installation!.files.includes(event.path)) {
           run.installation!.files.push(event.path);

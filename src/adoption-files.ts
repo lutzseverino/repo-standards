@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { chmodSync, lstatSync, mkdirSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, lstatSync, mkdirSync, readdirSync, readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
@@ -65,6 +65,27 @@ export function write(root: string, path: string, value: Content, installationId
   try {
     writeFileSync(temporary, Buffer.from(value.content, value.encoding), { flag: 'wx', mode: value.executable ? 0o755 : 0o644 });
     chmodSync(temporary, value.executable ? 0o755 : 0o644);
+    safe(root, path);
+    renameSync(temporary, join(root, path));
+  } finally { rmSync(temporary, { force: true }); }
+}
+
+// Installs a skill link the same way: a new link renamed into place, with the
+// target ancestors rechecked before each mutation. The link is never followed.
+// A staged link an interrupted write left behind is removed when it holds the
+// same text.
+export function writeLink(root: string, path: string, text: string, installationId: string) {
+  const before = safe(root, path);
+  if (before.type === 'symlink' && before.target === text) return;
+  if (before.type !== 'missing') throw new ProductError('TARGET_TYPE', `Expected no entry at ${path}.`);
+  mkdirSync(dirname(join(root, path)), { recursive: true });
+  safe(root, path);
+  const temporary = join(root, stagedPath(path, installationId));
+  const staged = lstatSync(temporary, { throwIfNoEntry: false });
+  if (staged && !(staged.isSymbolicLink() && readlinkSync(temporary) === text)) throw new ProductError('INSTALLATION_CHANGED', `Staged installation content changed: ${stagedPath(path, installationId)}. Preserve and reconcile it before retry.`);
+  try {
+    rmSync(temporary, { force: true });
+    symlinkSync(text, temporary);
     safe(root, path);
     renameSync(temporary, join(root, path));
   } finally { rmSync(temporary, { force: true }); }

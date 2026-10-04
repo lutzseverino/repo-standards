@@ -7,6 +7,7 @@ import { formats, recordPath, requireFormat } from './formats.js';
 import type { Declaration } from './model.js';
 import { git, targetObservation, type Blocker, type Content, type Observation } from './observation.js';
 import { retainedScopeEvidence, type RetainedScopeEvidence } from './scope-evidence.js';
+import { linkTextAt } from './targets.js';
 import { validExecutionEvidence, type ExecutionEvidence } from './work-evidence.js';
 
 // The one reader of a recorded adoption: everything the last complete adoption
@@ -33,6 +34,8 @@ interface RecordedLock {
 interface RecordedState extends ExecutionEvidence {
   lastComplete: { run: string; inspection: string; completedAt: string; head: string };
   baselines: Record<string, Baseline>; skills: Record<string, string[]>;
+  // Each installed skill link's text, by path.
+  links: Record<string, string>;
   checks: unknown[]; assessments: unknown[];
 }
 type RecordedFile = Extract<Observation, { type: 'file' }>;
@@ -78,13 +81,18 @@ function text(value: Pick<Content, 'content' | 'encoding'>) {
   return Buffer.from(value.content, value.encoding).toString('utf8');
 }
 
+// Every recorded link is a skill link with the text the product writes there.
+function validLinks(links: unknown) {
+  return !!links && typeof links === 'object' && !Array.isArray(links) && Object.entries(links).every(([path, text]) => linkTextAt(path) === text);
+}
+
 // Decodes durable state in its single committed format.
 function decodeState(value: Pick<Content, 'content' | 'encoding'>): RecordedState {
   let state: RecordedState;
   try { state = JSON.parse(text(value)); }
   catch { unreadable(); }
   requireFormat(stateFile, state, formats.state);
-  if (!state?.lastComplete || !state.baselines || !state.skills
+  if (!state?.lastComplete || !state.baselines || !state.skills || !validLinks(state.links)
     || !Array.isArray(state.checks) || !Array.isArray(state.assessments)
     || !validExecutionEvidence(state)) {
     invalid();

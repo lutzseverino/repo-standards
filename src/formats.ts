@@ -5,7 +5,7 @@ import { ProductError } from './errors.js';
 // and reads. Retired formats are neither converted nor read: a record carrying
 // one is rejected with the fresh-adoption procedure as the only path forward.
 export const formats = {
-  state: 'repo-standards/state/v6',
+  state: 'repo-standards/state/v7',
   lock: 'repo-standards/lock/v1',
   scopeHistory: 'repo-standards/scope-history/v5',
   run: 'repo-standards/run/v6',
