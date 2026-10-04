@@ -543,8 +543,8 @@ archives none of the earlier CLI's local reports as the run's. Every other
 read of retired committed state, including retained inspection, fails with
 `RETIRED_FORMAT`, naming that fresh-adoption path. Malformed or unrelated
 format identities, including a same-prefix version that is not `vN` such as
-`repo-standards/state/vnext`, fail the record's integrity validation instead
-of reporting `RETIRED_FORMAT`.
+`repo-standards/state/vnext`, are not classified as retired or newer. They
+fail integrity validation when a command reads that record.
 
 A format's version rises when its keys change: a key is added, removed,
 renamed, or changes type. Changed values under the same keys, such as embedded
@@ -884,9 +884,11 @@ update class.
   `CLI_PIN_MISMATCH` first, rather than a format, integrity, or
   `NO_ACTIVE_RUN` error.
 - Treating every same-prefix noncurrent format as retired. A higher numeric
-  version reports `NEWER_FORMAT`, including in `lock.json`; a version that
-  is not `vN` fails record integrity validation. Newer formats take precedence
-  over retired records and never advise removal.
+  version reports `NEWER_FORMAT`, including in `lock.json`. Malformed or
+  unrelated format identities, including a same-prefix version that is not
+  `vN`, are not classified as retired or newer. They fail integrity validation
+  when a command reads that record. Newer formats take precedence over retired
+  records and never advise removal.
 - Requiring removal and a separate commit before inspecting retired committed
   product state. A source-flag inspection previews its removal, and the
   confirmed start removes the whole `.repo-standards` tree under its lock.

@@ -529,8 +529,9 @@ inspection with `RETIRED_RUN`, and an archived one with `RETIRED_FORMAT`. A
 newer version of any of them fails with `NEWER_FORMAT` and names using the
 pinned CLI; it never calls for fresh adoption.
 Malformed or unrelated format identities, including a same-prefix version
-that is not `vN` such as `repo-standards/state/vnext`, fail record integrity
-validation instead of reporting `RETIRED_FORMAT`.
+that is not `vN` such as `repo-standards/state/vnext`, are not classified as
+retired or newer. They fail integrity validation when a command reads that
+record.
 
 A confirmed scope never changes during a run. When contextual work needs files
 outside it, or a confirmed target is mistaken, a different scope takes a new

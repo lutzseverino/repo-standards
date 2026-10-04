@@ -526,7 +526,8 @@ format diagnostics include `details.path`, `details.format`, and
 `details.expected` in JSON output; `RETIRED_RUN` adds `details.cli` when the
 run record names its CLI. Malformed or unrelated format identities, including
 a same-prefix version that is not `vN` such as `repo-standards/state/vnext`,
-fail the record's integrity validation instead of reporting `RETIRED_FORMAT`.
+are not classified as retired or newer. They fail integrity validation when
+a command reads that record.
 
 ## Recover or abandon an interrupted run
 
