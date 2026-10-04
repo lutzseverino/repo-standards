@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
-import { chmodSync, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -119,8 +119,21 @@ profiles:`).replace('    declarations: {}', '    declarations: {employer: {exclu
       `policy:\n  allow_implicit_invocation: ${!manual}\n`);
   }
   assert.deepEqual(inspection.systemSkills, [
-    { name: 'adopt-standards', target: '.agents/skills/adopt-standards', action: 'create' },
-    { name: 'standards-updates', target: '.agents/skills/standards-updates', action: 'create' }]);
+    { name: 'adopt-standards', target: '.agents/skills/adopt-standards', action: 'create', link: { target: '.claude/skills/adopt-standards', action: 'create' } },
+    { name: 'standards-updates', target: '.agents/skills/standards-updates', action: 'create', link: { target: '.claude/skills/standards-updates', action: 'create' } }]);
+  assert.deepEqual(inspection.exact.find((entry: { id: string }) => entry.id === 'review').link, { target: '.claude/skills/review', action: 'create' });
+  assert.equal(inspection.exact.find((entry: { id: string }) => entry.id === 'instructions').link, undefined);
+  // Every installed skill, system and author, gets a relative link that
+  // resolves to its directory; nothing else is linked.
+  const links = { '.claude/skills/adopt-standards': '../../.agents/skills/adopt-standards', '.claude/skills/review': '../../.agents/skills/review',
+    '.claude/skills/standards-updates': '../../.agents/skills/standards-updates' };
+  assert.deepEqual(readdirSync(join(project.root, '.claude/skills')).sort(), ['adopt-standards', 'review', 'standards-updates']);
+  for (const [path, text] of Object.entries(links)) {
+    assert.ok(lstatSync(join(project.root, path)).isSymbolicLink(), path);
+    assert.equal(readlinkSync(join(project.root, path)), text);
+    assert.equal(realpathSync(join(project.root, path)), realpathSync(join(project.root, path.replace('.claude/skills', '.agents/skills'))));
+  }
+  assert.deepEqual(report.changes.filter((path: string) => path.startsWith('.claude/')), Object.keys(links));
   assert.deepEqual(readdirSync(join(project.root, '.agents/skills/adopt-standards/references')).sort(),
     ['assessment.md', 'discovery.md', 'recovery.md', 'review.md']);
   assert.equal(existsSync(join(project.root, '.agents/skills/author-standards')), false);
@@ -133,6 +146,9 @@ profiles:`).replace('    declarations: {}', '    declarations: {employer: {exclu
   assert.deepEqual(state.skills['.agents/skills/review'], ['SKILL.md', 'resources/check.txt']);
   assert.deepEqual(state.skills['.agents/skills/standards-updates'], ['SKILL.md', 'agents/openai.yaml']);
   assert.equal(state.skills['.agents/skills/author-standards'], undefined);
+  assert.equal(state.format, 'repo-standards/state/v7');
+  assert.deepEqual(state.links, links);
+  assert.deepEqual(state.changeSet.filter(({ path }: { path: string }) => path.startsWith('.claude/')), Object.keys(links).map(path => ({ path, phases: ['installation'] })));
   assert.equal(readFileSync(join(project.root, '.repo-standards/inputs/source/LICENSE'), 'utf8'), 'Source license');
   assert.equal(existsSync(join(project.root, '.repo-standards/inputs/source/unrelated.txt')), false);
   assert.equal(existsSync(join(project.root, '.repo-standards/inputs/source/excluded.md')), false);
@@ -140,6 +156,10 @@ profiles:`).replace('    declarations: {}', '    declarations: {employer: {exclu
   assert.equal(status.selection.cli.version, cli.version);
   assert.equal(status.lastComplete.inspection, inspection.identity);
   assert.equal(status.evidence, 'historical');
+  assert.deepEqual(status.links, links);
+  // Git records each link as a symbolic link, so a clone exposes the skills too.
+  commit(project.root);
+  for (const path of Object.keys(links)) assert.match(git(project.root, 'ls-files', '--stage', path), /^120000 /);
 });
 
 test('fresh adoption over previously installed content claims byte-identical skills once product state is removed', async t => {
@@ -155,6 +175,10 @@ profiles:`), { 'content.md': 'Expected', 'skills/review/SKILL.md': '# Review\nRe
   for (const name of ['adopt-standards', 'standards-updates']) cpSync(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills', name),
     join(project.root, '.agents/skills', name), { recursive: true });
   chmodSync(join(project.root, '.agents/skills/review/scripts/run.sh'), 0o755);
+  // The earlier adoption also left a skill link for each installed skill.
+  const links = ['adopt-standards', 'review', 'standards-updates'].map(name => `.claude/skills/${name}`);
+  mkdirSync(join(project.root, '.claude/skills'), { recursive: true });
+  for (const link of links) symlinkSync(`../../.agents/skills/${link.slice('.claude/skills/'.length)}`, join(project.root, link));
   const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
@@ -167,8 +191,10 @@ profiles:`), { 'content.md': 'Expected', 'skills/review/SKILL.md': '# Review\nRe
   const blocked = inspect();
   assert.deepEqual(blocked.start.blockers.map((b: { code: string }) => b.code), ['EXISTING_ADOPTION']);
   assert.equal(blocked.exact.find((entry: { id: string }) => entry.id === 'review').action, 'match');
-  assert.deepEqual(blocked.systemSkills, [{ name: 'adopt-standards', target: '.agents/skills/adopt-standards', action: 'match' },
-    { name: 'standards-updates', target: '.agents/skills/standards-updates', action: 'match' }]);
+  assert.deepEqual(blocked.systemSkills, [
+    { name: 'adopt-standards', target: '.agents/skills/adopt-standards', action: 'match', link: { target: '.claude/skills/adopt-standards', action: 'match' } },
+    { name: 'standards-updates', target: '.agents/skills/standards-updates', action: 'match', link: { target: '.claude/skills/standards-updates', action: 'match' } }]);
+  assert.deepEqual(blocked.exact.find((entry: { id: string }) => entry.id === 'review').link, { target: '.claude/skills/review', action: 'match' });
 
   rmSync(join(project.root, '.repo-standards'), { recursive: true });
   commit(project.root);
@@ -177,7 +203,7 @@ profiles:`), { 'content.md': 'Expected', 'skills/review/SKILL.md': '# Review\nRe
   assert.equal(inspection.start.eligible, true);
   assert.equal(inspection.exact.find((entry: { id: string }) => entry.id === 'review').action, 'match');
   assert.deepEqual(inspection.systemSkills.map(({ action }: { action: string }) => action), ['match', 'match']);
-  const claimed = ['.agents/skills/review/SKILL.md', '.agents/skills/review/scripts/run.sh', ...cli.systemSkillFiles];
+  const claimed = ['.agents/skills/review/SKILL.md', '.agents/skills/review/scripts/run.sh', ...cli.systemSkillFiles, ...links];
   const before = Object.fromEntries(claimed.map(path => [path, lstatSync(join(project.root, path))]));
   const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -187,7 +213,7 @@ profiles:`), { 'content.md': 'Expected', 'skills/review/SKILL.md': '# Review\nRe
     assert.equal(stat.ino, before[path]!.ino, path);
     assert.equal(stat.mtimeMs, before[path]!.mtimeMs, path);
   }
-  assert.equal(git(project.root, 'status', '--porcelain', '--', '.agents', 'AGENTS.md'), '');
+  assert.equal(git(project.root, 'status', '--porcelain', '--', '.agents', '.claude', 'AGENTS.md'), '');
   const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
   assert.deepEqual(state.skills['.agents/skills/review'], ['SKILL.md', 'scripts/run.sh']);
   for (const system of ['.agents/skills/adopt-standards', '.agents/skills/standards-updates']) {
@@ -207,6 +233,10 @@ test('start rejects every invalid initial project state without mutation', async
     { name: 'untracked content', code: 'DIRTY_PROJECT', setup: root => writeFileSync(join(root, 'untracked'), 'Local') },
     { name: 'ignored replacement', code: 'UNTRACKED_REPLACEMENT', files: { '.gitignore': 'ignored.md\n', 'ignored.md': 'Local' }, source: yaml.replace('target: AGENTS.md', 'target: ignored.md') },
     { name: 'unsafe target', code: 'UNSAFE_TARGET', setup: root => { rmSync(join(root, 'AGENTS.md')); symlinkSync('README.md', join(root, 'AGENTS.md')); commit(root); } },
+    // Only a skill link the product would install is accepted as a link; one
+    // shaped like it at an author target is not.
+    { name: 'link at a target shaped like a skill link', code: 'UNSAFE_TARGET', source: yaml.replace('target: AGENTS.md', 'target: .claude/skills/notes'),
+      setup: root => { mkdirSync(join(root, '.claude/skills'), { recursive: true }); symlinkSync('../../.agents/skills/notes', join(root, '.claude/skills/notes')); commit(root); } },
     { name: 'unsafe ancestor', code: 'UNSAFE_TARGET', source: yaml.replace('target: AGENTS.md', 'target: linked/AGENTS.md'), setup: root => { symlinkSync('folder', join(root, 'linked')); commit(root); } },
     { name: 'wrong target type', code: 'TARGET_TYPE', source: yaml.replace('target: AGENTS.md', 'target: folder') },
     { name: 'case conflict', code: 'CASE_CONFLICT', source: yaml.replace('target: AGENTS.md', 'target: agents.md') },
@@ -284,6 +314,76 @@ test('initial adoption replaces differing tracked files, author skills, and the 
     if (example.source) assert.deepEqual(installedTree(join(project.root, review)), installedTree(join(remote.source.root, 'skill')));
     else assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Expected');
     assert.deepEqual(installedTree(join(project.root, system)), installedTree(packaged));
+  });
+});
+
+test('skill links follow target ownership and leave the project its own skills', async t => {
+  const skillSource = yaml.replace('kind: file\n      target: AGENTS.md\n      exact: content.md', 'kind: skill\n      name: review\n      source: skill');
+  const link = '.claude/skills/review';
+  const linkTo = (root: string, path: string, text: string) => { mkdirSync(join(root, path, '..'), { recursive: true }); symlinkSync(text, join(root, path)); };
+  // A linked ancestor makes each link unsafe, and, as for any target behind
+  // one, leaves nothing tracked at its path.
+  const behindLink = ['adopt-standards', 'standards-updates', 'review'].flatMap(name => ['UNSAFE_TARGET', 'UNTRACKED_REPLACEMENT'].map(code => ({ code, path: `.claude/skills/${name}` })));
+  const blocked: { name: string; blockers: { code: string; path: string }[]; files?: Record<string, string>; setup: (root: string) => void }[] = [
+    { name: 'untracked link', blockers: [{ code: 'DIRTY_PROJECT', path: '' }, { code: 'UNTRACKED_REPLACEMENT', path: link }],
+      setup: root => linkTo(root, link, '../../.agents/skills/review') },
+    { name: 'ignored file', files: { '.gitignore': `/${link}\n` }, blockers: [{ code: 'UNTRACKED_REPLACEMENT', path: link }],
+      setup: root => { mkdirSync(join(root, '.claude/skills'), { recursive: true }); writeFileSync(join(root, link), 'Local'); } },
+    { name: 'ignored copy', files: { '.gitignore': '/.claude/\n' }, blockers: [{ code: 'UNTRACKED_REPLACEMENT', path: `${link}/SKILL.md` }],
+      setup: root => { mkdirSync(join(root, link), { recursive: true }); writeFileSync(join(root, link, 'SKILL.md'), 'Review'); } },
+    { name: 'linked .claude', blockers: behindLink,
+      files: { 'elsewhere/skills/notes.md': 'Elsewhere' }, setup: root => { symlinkSync('elsewhere', join(root, '.claude')); commit(root); } },
+    { name: 'linked .claude/skills', blockers: behindLink,
+      files: { 'elsewhere/notes.md': 'Elsewhere' }, setup: root => { linkTo(root, '.claude/skills', '../elsewhere'); commit(root); } },
+    { name: 'link with other text', blockers: [{ code: 'UNSAFE_TARGET', path: link }],
+      setup: root => { linkTo(root, link, '../../elsewhere'); commit(root); } },
+  ];
+  const registry = await registryFixture(cli.root);
+  t.after(() => registry.close());
+  for (const example of blocked) await t.test(example.name, st => {
+    const remote = remoteFixture(skillSource, { 'skill/SKILL.md': 'Review' });
+    const project = sourceFixture('', { 'README.md': 'Project', ...example.files });
+    st.after(() => { remote.close(); project.close(); });
+    commit(project.root);
+    example.setup(project.root);
+    const env = { ...remote.env, ...registry.env };
+    const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+    assert.deepEqual(inspection.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path: path ?? '' })), example.blockers);
+    const before = snapshot(project.root);
+    const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(JSON.parse(result.stdout).errors[0].code, 'START_BLOCKED');
+    assert.deepEqual(snapshot(project.root), before);
+  });
+
+  await t.test('tracked content is replaced and listed, and the project keeps its own skills', st => {
+    const remote = remoteFixture(skillSource, { 'skill/SKILL.md': 'Review' });
+    const project = sourceFixture('', { 'README.md': 'Project', [`${link}/SKILL.md`]: 'Hand-made copy', '.claude/skills/adopt-standards': 'Placeholder',
+      '.agents/skills/mine/SKILL.md': 'Mine', '.claude/skills/notes.md': 'Notes', '.claude/settings.json': '{}\n' });
+    st.after(() => { remote.close(); project.close(); });
+    commit(project.root);
+    const env = { ...remote.env, ...registry.env };
+    const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+    assert.deepEqual(inspection.start.blockers, []);
+    assert.deepEqual(inspection.systemSkills.map(({ link }: { link: unknown }) => link), [
+      { target: '.claude/skills/adopt-standards', action: 'replace' }, { target: '.claude/skills/standards-updates', action: 'create' }]);
+    assert.deepEqual(inspection.exact[0].link, { target: link, action: 'replace' });
+    assert.deepEqual(inspection.discardedEdits, ['.claude/skills/adopt-standards', link]);
+    const summary = cli.run(inspectionArgs.filter(argument => argument !== '--json').concat('--summary'), project.root, env).stdout;
+    for (const row of ['| `instructions` | `.agents/skills/review/SKILL.md` | created |\n| `instructions` | `.claude/skills/review` | replaced |',
+      '| `adopt-standards` | `.claude/skills/adopt-standards` | replaced |', '| `standards-updates` | `.claude/skills/standards-updates` | created |']) assert.ok(summary.includes(row), summary);
+    const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+    for (const name of ['adopt-standards', 'review', 'standards-updates']) assert.equal(readlinkSync(join(project.root, `.claude/skills/${name}`)), `../../.agents/skills/${name}`);
+    assert.deepEqual(readdirSync(join(project.root, '.claude/skills')).sort(), ['adopt-standards', 'notes.md', 'review', 'standards-updates']);
+    assert.equal(readFileSync(join(project.root, '.claude/skills/notes.md'), 'utf8'), 'Notes');
+    assert.equal(readFileSync(join(project.root, '.agents/skills/mine/SKILL.md'), 'utf8'), 'Mine');
+    const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
+    assert.deepEqual(Object.keys(state.links), ['.claude/skills/adopt-standards', '.claude/skills/standards-updates', link]);
+    assert.deepEqual(state.changeSet.map(({ path }: { path: string }) => path).filter((path: string) => path.startsWith('.claude/')),
+      ['.claude/skills/adopt-standards', '.claude/skills/review', '.claude/skills/review/SKILL.md', '.claude/skills/standards-updates']);
+    assert.equal(git(project.root, 'status', '--porcelain', '--', '.claude/settings.json', '.claude/skills/notes.md', '.agents/skills/mine'), '');
   });
 });
 
@@ -507,6 +607,36 @@ test('unsafe targets introduced during installation are rechecked before each wr
   assert.equal(result.status, 1, result.stdout + result.stderr);
   assert.match(JSON.parse(result.stdout).reason, /UNSAFE_TARGET/);
   assert.deepEqual(snapshot(remote.source.root), before);
+});
+
+test('a link ancestor replaced just before a skill link is written is caught before any directory is created through it', async t => {
+  const remote = remoteFixture(yaml, { 'content.md': 'Expected' });
+  const project = sourceFixture('');
+  const elsewhere = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); elsewhere.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  // The last filesystem call before a link's parent directories are created
+  // probes its staged link; at that moment .claude becomes a link elsewhere.
+  const fault = filesystemFault(remote.support.root, env, 'installation', `
+const lstat = fs.lstatSync;
+let swapped = false;
+fs.lstatSync = function(path, ...args) {
+  if (!swapped && String(path).startsWith(${JSON.stringify(join(project.root, '.claude/skills/.repo-standards-'))})) {
+    swapped = true;
+    fs.symlinkSync(${JSON.stringify(elsewhere.root)}, ${JSON.stringify(join(project.root, '.claude'))});
+  }
+  return lstat.call(this, path, ...args);
+};
+syncBuiltinESMExports();`);
+  const before = snapshot(elsewhere.root);
+  const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, fault);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.match(JSON.parse(result.stdout).reason, /UNSAFE_TARGET/);
+  assert.ok(lstatSync(join(project.root, '.claude')).isSymbolicLink());
+  assert.deepEqual(snapshot(elsewhere.root), before);
 });
 
 test('missing npm and unavailable exact runtime packages leave project content untouched', async t => {

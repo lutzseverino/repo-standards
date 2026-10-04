@@ -372,7 +372,7 @@ fs.writeFileSync = function(path, data, ...args) {
   const result = originalWrite.call(this, path, data, ...args);
   let value;
   try { value = JSON.parse(String(data)); } catch {}
-  if (String(path).endsWith('.tmp') && value?.format === 'repo-standards/state/v6') process.kill(process.pid, 'SIGKILL');
+  if (String(path).endsWith('.tmp') && value?.format === 'repo-standards/state/v7') process.kill(process.pid, 'SIGKILL');
   return result;
 }; syncBuiltinESMExports();`);
   assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
@@ -510,7 +510,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged'
   const stderr = readFileSync(join(f.project.root, original.stderr), 'utf8');
   assert.equal(f.report(['abandon', '--json']).report.abandoned, true);
   // The maintainer removes the incomplete installation before a new inspection.
-  for (const path of ['.repo-standards', '.agents', 'AGENTS.md']) rmSync(join(f.project.root, path), { recursive: true, force: true });
+  for (const path of ['.repo-standards', '.agents', '.claude', 'AGENTS.md']) rmSync(join(f.project.root, path), { recursive: true, force: true });
   const inspection = f.report(inspectionArgs).report;
   const second = JSON.parse(f.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], { ...f.env, RUN_MESSAGE: 'Second run' }).stdout);
   assert.equal(second.phase, 'contextual');

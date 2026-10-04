@@ -136,7 +136,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.deepEqual(retained.discovery.proposal, inspected.discovery.proposal);
   assert.deepEqual(retained.scopeChanges, inspected.scopeChanges);
   const secondState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(secondState.format, 'repo-standards/state/v6');
+  assert.equal(secondState.format, 'repo-standards/state/v7');
   // A later completion keeps only its own run's compact evidence.
   assertCompactWorkEvidence(committedState(f.project.root));
   assert.equal(secondState.lastComplete.inspection, inspected.identity);
@@ -347,7 +347,7 @@ test('compatible standards updates preserve discovery evidence through discovery
   assert.equal(retired.result.status, 0, retired.result.stdout + retired.result.stderr);
   commit(f.project.root);
   const retiredState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(retiredState.format, 'repo-standards/state/v6');
+  assert.equal(retiredState.format, 'repo-standards/state/v7');
   assert.ok(Array.isArray(retiredState.observations));
   assertCompactWorkEvidence(retiredState);
   const retiredStatus = f.run(['status', '--json']).report;
@@ -374,7 +374,7 @@ test('compatible standards updates preserve discovery evidence through discovery
   f.run(['start', ...reintroducedArgs.slice(1), '--scope', f.scopeFile, '--confirm', reintroduced.identity]);
   assert.equal(f.complete().result.status, 0);
   const reintroducedState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
-  assert.equal(reintroducedState.format, 'repo-standards/state/v6');
+  assert.equal(reintroducedState.format, 'repo-standards/state/v7');
   assertCompactWorkEvidence(reintroducedState);
   assert.deepEqual(f.run(['status', '--json']).report.scopeChanges, reintroduced.scopeChanges);
 });

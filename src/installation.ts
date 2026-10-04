@@ -2,7 +2,7 @@ import { cpSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { stringify } from 'yaml';
 import { hash } from './acquisition.js';
-import { baselines, file, flatten, ignore, inventory, json, lockPath, safe, safeDirectory, stagedFiles, verifyFiles, write } from './adoption-files.js';
+import { baselines, file, flatten, ignore, inventory, json, lockPath, remove, safe, safeDirectory, stagedFiles, verifyFiles, write, writeLink } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
 import type { AdoptionRunSession, Run } from './adoption-run.js';
 import { ProductError } from './errors.js';
@@ -11,7 +11,7 @@ import { hiddenIndexPaths, observeProductState, productInventory, type inspectFo
 import { git, hashInventory, inventoryPaths, matchesInventory, observe, plannedInventory, type Content, type HashInventory, type Observation } from './observation.js';
 import { committedScopeEvidence, type ScopeRun } from './scope-evidence.js';
 import type { Scope } from './scope.js';
-import { installedSystemSkills, skillTarget } from './targets.js';
+import { installedSystemSkills, linkTextAt, skillTarget } from './targets.js';
 import { completedEvidence, type Delta } from './work-evidence.js';
 
 // Installation is the confirmed plan of an adoption run's exact content,
@@ -31,11 +31,14 @@ const incompleteState = '.repo-standards/local/incomplete-state.json';
 
 export interface Installation {
   report: StartInspection['report']; git: StartInspection['git']; files: Files; skills: Record<string, string[]>;
+  // The skill link of every installed skill, and each recorded link the run
+  // removes, by path, with its text.
+  links: Record<string, string>; removedLinks: Record<string, string>;
   exactBaselines: Record<string, Baseline>; durable: Record<string, Baseline>;
   runtimeHash: string; scopeAfterFixes?: string; before: Record<string, HashInventory>;
   // Paths the run removes whole before installing the planned files under
-  // them: an update's retained inputs, each skill the inspection replaces, and
-  // each target it removes, which may be a single file.
+  // them: an update's retained inputs, each skill or skill link the inspection
+  // replaces, and each target it removes, which may be a single file or link.
   replaceTrees: string[];
   // The durable state of the last complete adoption, which an update keeps in
   // place until its completion replaces it.
@@ -55,6 +58,10 @@ export function planInstallation(root: string, inspected: StartInspection, confi
   for (const { target } of installedSystemSkills) flatten(target, (runtime?.skills ?? materials.systemSkills)[target]!, files);
   const skillTargets = [...report.resolved.declarations.flatMap(declaration => declaration.kind === 'skill' ? [skillTarget(declaration.name)] : []), ...installedSystemSkills.map(({ target }) => target)];
   for (const target of skillTargets) skills[target] = Object.keys(files).filter(path => path.startsWith(target + '/')).map(path => path.slice(target.length + 1)).sort();
+  const linked = [...report.systemSkills, ...report.exact].flatMap(entry => 'link' in entry && entry.link ? [entry.link] : []);
+  const links: Record<string, string> = Object.fromEntries(linked.map(({ target }) => [target, linkTextAt(target)!]));
+  const recordedLinks = recorded?.state.links ?? {};
+  const removedLinks: Record<string, string> = Object.fromEntries((report.removed ?? []).flatMap(({ target }) => Object.hasOwn(recordedLinks, target) ? [[target, recordedLinks[target]!]] : []));
   const exactBaselines = baselines(files);
   const inputs: Files = Object.create(null);
   for (const [path, value] of Object.entries(materials.inputs)) flatten(`${retainedSource}/${path}`, value, inputs);
@@ -83,13 +90,21 @@ export function planInstallation(root: string, inspected: StartInspection, confi
   files[lockFile] = file(json({ format: formats.lock, selection: report.selection, inspection: confirmation, files: durable }));
   // An update replaces its retained inputs as a whole tree. A replaced skill,
   // including a system skill, is replaced as a whole tree, removing
-  // resources the candidate lacks, and a removed target is removed whole.
+  // resources the candidate lacks, and so is whatever a replaced skill link
+  // replaces. A removed target is removed whole.
   const replaceTrees = [...report.update !== undefined ? ['.repo-standards/inputs'] : [],
     ...[...report.exact, ...report.systemSkills].filter(({ target, action }) => action === 'replace' && skillTargets.includes(target)).map(({ target }) => target),
+    ...linked.filter(({ action }) => action === 'replace').map(({ target }) => target),
     ...(report.removed ?? []).map(({ target }) => target)];
-  return { report, git: inspected.git, files, skills, exactBaselines, durable, runtimeHash: hash(json(installedRuntime)), replaceTrees,
+  return { report, git: inspected.git, files, skills, links, removedLinks, exactBaselines, durable, runtimeHash: hash(json(installedRuntime)), replaceTrees,
     ...(recorded ? { previousState: recorded.stateFile } : {}),
-    before: Object.fromEntries([...Object.keys(files).filter(path => !replaceTrees.some(tree => path.startsWith(tree + '/'))), ...replaceTrees].map(path => [path, hashInventory(safe(root, path))])) };
+    before: Object.fromEntries([...new Set([...Object.keys(files).filter(path => !replaceTrees.some(tree => path.startsWith(tree + '/'))), ...replaceTrees, ...Object.keys(links)])]
+      .map(path => [path, hashInventory(safe(root, path, links[path] ?? removedLinks[path]))])) };
+}
+
+// A planned path observed safely, as the skill link the plan installs or removes there.
+function safePlanned(root: string, installation: Installation, path: string) {
+  return safe(root, path, installation.links[path] ?? installation.removedLinks[path]);
 }
 
 // The files the product state holds while the run installs and verifies.
@@ -120,14 +135,15 @@ export function install(root: string, session: Pick<AdoptionRunSession, 'record'
   const { files, before, report, replaceTrees } = installation;
   const treeProgress = progress().trees!;
   verifyGit(root, installation.git);
-  const observedTrees = Object.fromEntries(replaceTrees.map(tree => [tree, safe(root, tree)]));
+  const observedTrees = Object.fromEntries(replaceTrees.map(tree => [tree, safePlanned(root, installation, tree)]));
   const unchangedTrees = replaceTrees.filter(tree => json(hashInventory(observedTrees[tree]!)) === json(before[tree]));
   const temporaries = stagedFiles(root, Object.fromEntries(Object.entries(files).filter(([path]) => !replaceTrees.some(tree => path.startsWith(tree + '/') && treeProgress[tree] !== 'installing'))), run.id);
   for (const tree of replaceTrees) {
     const actual = observedTrees[tree]!;
     if (unchangedTrees.includes(tree)) continue;
     if (!treeProgress[tree]) throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed before replacement: ${tree}. Reconcile it before retry.`);
-    if (actual.type === 'missing') continue;
+    // A replaced skill link may already be installed in the tree's place.
+    if (actual.type === 'missing' || (actual.type === 'symlink' && treeProgress[tree] === 'installing' && actual.target === installation.links[tree])) continue;
     const observed: Files = Object.create(null);
     flatten(tree, actual, observed);
     const expected: Record<string, Baseline> = treeProgress[tree] === 'removing' ? Object.create(null) : files;
@@ -149,6 +165,11 @@ export function install(root: string, session: Pick<AdoptionRunSession, 'record'
     const actual = safe(root, path);
     const matches = actual.type === 'file' && actual.sha256 === expected.sha256 && actual.executable === expected.executable;
     if (!matches && (progress().files.includes(path) || json(hashInventory(actual)) !== json(before[path]))) throw new ProductError('INSTALLATION_CHANGED', `Installed or pending content changed: ${path}. Reconcile it before retry; recovery will not overwrite edits.`);
+  }
+  for (const [path, text] of Object.entries(installation.links)) {
+    if (replaceTrees.includes(path) && !progress().files.includes(path)) continue;
+    const actual = safe(root, path, text);
+    if (actual.type !== 'symlink' && (progress().files.includes(path) || json(hashInventory(actual)) !== json(before[path]))) throw new ProductError('INSTALLATION_CHANGED', `Installed or pending skill link changed: ${path}. Reconcile it before retry; recovery will not overwrite edits.`);
   }
   const plannedPaths = plannedInventory([...Object.keys(files), ...temporaries]);
   for (const skill of Object.keys(installation.skills).filter(skill => !replaceTrees.includes(skill))) {
@@ -180,14 +201,19 @@ export function install(root: string, session: Pick<AdoptionRunSession, 'record'
   for (const tree of replaceTrees) {
     if (treeProgress[tree] === 'installing') continue;
     session.record({ type: 'tree-removing', path: tree });
-    safe(root, tree);
-    rmSync(join(root, tree), { recursive: true, force: true });
+    safePlanned(root, installation, tree);
+    remove(join(root, tree));
     session.record({ type: 'tree-installing', path: tree });
   }
   for (const [path, value] of Object.entries(files)) {
     if (progress().files.includes(path)) continue;
     write(root, path, value, run.id);
     session.record({ type: 'file-installed', path });
+  }
+  for (const [path, text] of Object.entries(installation.links)) {
+    if (progress().files.includes(path)) continue;
+    writeLink(root, path, text, run.id);
+    session.record({ type: 'link-installed', path });
   }
   if (!progress().runtime) {
     safeDirectory(root, runtimePath);
@@ -204,8 +230,9 @@ export function install(root: string, session: Pick<AdoptionRunSession, 'record'
   session.record({ type: 'installation-finished' });
 }
 
-// Final integrity: the installed content, runtime, product state and skill
-// inventories, retained inputs and Git state still match the plan. Verifying
+// Final integrity: the installed content and skill links, runtime, product
+// state and skill inventories, retained inputs and Git state still match the
+// plan. Verifying
 // after an interrupted completion also accepts its files wherever the
 // completion wrote them, including their staged temporaries, which are then
 // removed.
@@ -223,24 +250,28 @@ export function verifyInstallation(root: string, installation: Installation, com
     }
   }
   verifyFiles(root, expectedFiles);
+  for (const [path, text] of Object.entries(installation.links)) {
+    if (safe(root, path, text).type !== 'symlink') throw new ProductError('FINAL_INTEGRITY', `Expected skill link changed: ${path}.`);
+  }
   if (hash(json(safeDirectory(root, '.repo-standards/runtime/node_modules'))) !== runtimeHash) throw new ProductError('FINAL_INTEGRITY', 'The installed runtime dependencies changed.');
   if (!matchesInventory(observeProductState(root), Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/')).map(path => path.slice('.repo-standards/'.length)))) throw new ProductError('FINAL_INTEGRITY', 'The product state inventory changed.');
   for (const [path, expected] of Object.entries(skills)) if (!matchesInventory(safe(root, path), expected)) throw new ProductError('FINAL_INTEGRITY', `Skill inventory changed: ${path}.`);
   if (json(inventory(root, '.repo-standards/inputs')) !== json(Object.keys(expectedFiles).filter(path => path.startsWith('.repo-standards/inputs/')).map(path => path.slice('.repo-standards/inputs/'.length)).sort())) throw new ProductError('FINAL_INTEGRITY', 'Retained input inventory changed.');
   verifyGit(root, installation.git);
-  verifyCommittable(root, [...Object.keys(files), stateFile]);
+  verifyCommittable(root, [...Object.keys(files), ...Object.keys(installation.links), stateFile]);
   for (const path of temporaries) { safe(root, path); rmSync(join(root, path)); }
 }
 
-// The installed exact content, which verified recovery may restore without
-// the restoration counting as agent work.
+// The installed exact content and skill links, which verified recovery may
+// restore without the restoration counting as agent work.
 export function exactContent(installation: Installation): Scope[string] {
-  return { paths: Object.keys(installation.exactBaselines), directories: Object.keys(installation.skills) };
+  return { paths: [...Object.keys(installation.exactBaselines), ...Object.keys(installation.links)], directories: Object.keys(installation.skills) };
 }
 
 // The project paths the installation plans, each with its state before the run
 // and as installed: exact files, every file of an installed or replaced skill
-// tree, including the system skills, and every file of a removed target. The
+// tree, including the system skills, each skill link and what it replaces, and
+// every file of a removed target. The
 // change set ignores those the installation leaves unchanged. Product state
 // under `.repo-standards/` is the product's own, not a project path the run
 // changes. Only the leaves of a tree are compared: an empty directory has
@@ -252,8 +283,9 @@ function installationDeltas(installation: Installation): Record<string, Delta> {
     else if (value.type !== 'missing') before[path] = value;
   };
   for (const [path, value] of Object.entries(installation.before)) leaves(path, value);
-  const after: Record<string, HashInventory> = Object.fromEntries(Object.entries(installation.files)
-    .map(([path, value]) => [path, { type: 'file', sha256: value.sha256, executable: value.executable }]));
+  const after: Record<string, HashInventory> = Object.fromEntries([...Object.entries(installation.files)
+    .map(([path, value]) => [path, { type: 'file', sha256: value.sha256, executable: value.executable }]),
+    ...Object.entries(installation.links).map(([path, target]) => [path, { type: 'symlink', target }])]);
   return Object.fromEntries([...new Set([...Object.keys(before), ...Object.keys(after)])].filter(path => !path.startsWith('.repo-standards/'))
     .map(path => [path, { before: before[path] ?? { type: 'missing' }, after: after[path] ?? { type: 'missing' } }]));
 }
@@ -263,7 +295,7 @@ function installationDeltas(installation: Installation): Record<string, Delta> {
 export function completionFiles(installation: Installation, run: Run, operationStart: number) {
   const state = file(json({ ...completedEvidence(run, installationDeltas(installation)),
     lastComplete: { run: run.id, inspection: run.inspection, completedAt: new Date().toISOString(), head: installation.git.head },
-    baselines: installation.exactBaselines, skills: installation.skills,
+    baselines: installation.exactBaselines, skills: installation.skills, links: installation.links,
     checks: run.operations.slice(operationStart).filter(evidence => evidence.operation.phase === 'checks'), assessments: run.assessments }));
   const lock = file(json({ format: formats.lock, selection: installation.report.selection, inspection: run.inspection, files: installation.durable, state: { sha256: state.sha256, executable: state.executable } }));
   return { state, lock };

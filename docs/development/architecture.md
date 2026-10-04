@@ -48,10 +48,10 @@ standards format.
 | Source acquisition | A public GitHub identity and stable version produce an immutable source snapshot and provenance. Search provides candidates without establishing trust. |
 | Resolver | A source and profile produce one validated source-resolved selection, or structured errors. Discovery references remain distinct from executable targets until project scope is confirmed. This is the sole interpreter of the author format. |
 | Repository state | A resolved selection and observed project produce an inspection, its update comparison and class, freshness identities, and durable adoption progress. The update comparison takes the verified recorded adoption, the candidate selection and materials, and the project's observed product state. It rejects a recorded tag that now resolves to a different commit, and returns the whole update part of an inspection, which is the changed selection components, the previous selection, the retired declarations, the update class and contextual changes, and the product-state-integrity blocker. Scope changes stay with inspection, which holds the scope proposal. |
-| Declaration targets | A resolved declaration produces the targets it applies to, as paths and directory trees: an exact file's or skill's one installation target, or contextual guidance's targets. It also holds the system skills: each reserved name and target, and the ones adoption installs. Every other module asks it rather than deriving a skill's target, a declaration's targets, or the system skills itself. |
+| Declaration targets | A resolved declaration produces the targets it applies to, as paths and directory trees: an exact file's or skill's one installation target, or contextual guidance's targets. It also produces each skill's link and the text the product writes there, and holds the system skills: each reserved name, target, and link, and the ones adoption installs. Every other module asks it rather than deriving a skill's target or link, a declaration's targets, or the system skills itself. |
 | Target ownership | Each installation target's current content, its installed baseline when one exists, its candidate content when one exists, and whether that content is tracked produce its target ownership: the action a run would take on it (match, create, or replace; a recorded target the selection no longer installs has a missing candidate, so its removal is a replacement, unless it overlaps contextual scope or lies at or inside a target the selection still installs, where it has no candidate and no action), whether that action discards content other than the installed baseline, and its one ownership blocker, untracked replacement content. The rule is the same for every target kind in every run. Inspection observes each target once and is its only caller. |
-| Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, and status read an established adoption only through it; every command first rejects retired records in the product state and Git directories through it, which is all resume and abandon need while a run is active. `outdated` reads the selection leniently instead. |
-| Installation | A confirmed inspection produces one run's installation plan, not the adoption itself: the exact content, skills, retained inputs, durable product state, and runtime an adoption run installs, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module. |
+| Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, skill links, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, and status read an established adoption only through it; every command first rejects retired records in the product state and Git directories through it, which is all resume and abandon need while a run is active. `outdated` reads the selection leniently instead. |
+| Installation | A confirmed inspection produces one run's installation plan, not the adoption itself: the exact content, skills, skill links, retained inputs, durable product state, and runtime an adoption run installs, the links it removes, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module. |
 | Execution | Confirmed adoption progress advances through exact installation, literal process execution, checks, and final integrity. Final integrity is the run-time check of the run's planned installation, distinct from the recorded adoption reader's check of the committed baseline a run starts from. |
 | Work evidence | The work-evidence journal owns an adoption run's observation intervals: it opens one for a phase and scope after recording any unattributed gap as an agent interval, closes intervals with their violation checks, continues after an interruption by recording and saving without checking, so each caller requires authorization where it holds, and answers what the agent changed. It keeps the one observation its last interval ends at behind an observation store seam: a file store beside the run journal for runs, an in-memory store for abandonment. Intervals and operation outcomes produce the run's execution evidence as identities and deltas, in one shape shared by the run record, the local run report, and committed durable state, which holds the current run only. At completion, the installation's changes and the intervals produce the run's net change set. |
 | Scope evidence | A confirmed run and the recorded adoption it updates produce the retained scope evidence: the current run, with its project observation kept without derived evidence and its named observation as a delta, and its scope change against the previous run. The projected historical scope is rebuilt on read. |
@@ -176,10 +176,13 @@ are model-invocable.
 
 Source and target paths are repository-relative and cannot escape their roots.
 Selected sources cannot contain symbolic links. Targets and their ancestors
-cannot be symbolic links during adoption. Concrete targets cannot overlap,
-including case-folded collisions. Product-owned state and every system-skill
-path (`.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, and
-`.agents/skills/author-standards`) are reserved, including equal paths,
+cannot be symbolic links during adoption, with one exception: a skill link
+holding exactly the text the product writes at its path. Concrete targets,
+including the skill link of each declared skill, cannot overlap, including
+case-folded collisions. Product-owned state, every system-skill path
+(`.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, and
+`.agents/skills/author-standards`), and each system skill's link path
+(`.claude/skills/<name>`) are reserved, including equal paths,
 ancestors, descendants, and collisions under the same case-folded and
 Unicode-normalized comparison. This applies to
 exact files, contextual files, and repository guidance as well as author skills,
@@ -344,12 +347,27 @@ project state; the run records the project root and HEAD at start for
 provenance. It also examines replacement targets for ignored content:
 a clean Git status alone does not prove that content is recoverable.
 
+Every skill a run installs, system or author, also gets a skill link
+([ADR 0013](../adr/0013-expose-installed-skills-through-skill-links.md)): a
+relative symbolic link at `.claude/skills/<name>` whose text is
+`../../.agents/skills/<name>`, so that Claude Code, which reads only its own
+skill location, sees the skill. A skill link is an installation target whose
+baseline is its text. Its observation records the link without following it,
+the inspection identity binds it, and durable state records it. A `.claude` or
+`.claude/skills` that is itself a symbolic link blocks with `UNSAFE_TARGET`, as
+does a link at a skill-link path with any other text. The product never writes
+`.claude/skills` as a whole and links only the skills it installs; a skill the
+project wrote itself under `.agents/skills/` gets no link. A retired skill's
+link is removed with the skill. Links are exact content, so they never make an
+update contextual.
+
 Target ownership is one rule for every installation target, including author
-skills and the system skills, in every run. An existing exact file or skill
-directory whose complete inventory, bytes, and modes match the supplied content
-is matched without rewriting. Tracked content that differs is replaced, as
-shown in the confirmed inspection, because Git can recover it; a replaced skill
-directory is replaced whole. Ignored or otherwise untracked replacement
+skills, the system skills, and skill links, in every run. An existing exact
+file or skill directory whose complete inventory, bytes, and modes match the
+supplied content is matched without rewriting, and so is a skill link with the
+same text. Tracked content that differs is replaced, as shown in the confirmed
+inspection, because Git can recover it; a replaced skill directory is replaced
+whole, and so is whatever a skill link replaces. Ignored or otherwise untracked replacement
 content, including an empty directory, blocks mutation. The inspection lists
 each replacement that discards content other than the target's installed
 baseline; at initial adoption there is no baseline, so every replacement of
@@ -413,7 +431,7 @@ and [assessment](../usage/assessment-protocol.md#observation-and-replay) protoco
 ## Adoption sequence and agent interface
 
 1. Verify confirmation freshness and all prerequisites.
-2. Install exact content, runtime state, and pinned system skills.
+2. Install exact content, runtime state, pinned system skills, and skill links.
 3. Run declared fixes serially.
 4. Return a contextual work request if required.
 5. Validate the submitted agent assessment and observed changes, binding it to
@@ -514,16 +532,16 @@ by its path within Git's directory for the working tree. An observation names
 each ignore input by role, with its content state: `global` for the global
 excludes, `info` for the repository info exclude, and each consulted
 `.gitignore` by its project-relative path. Durable state, `.repo-standards/state.json` in
-`repo-standards/state/v6`, is one object:
+`repo-standards/state/v7`, is one object:
 
 | Field | Content |
 | --- | --- |
-| `format` | `repo-standards/state/v6`. |
+| `format` | `repo-standards/state/v7`. |
 | `observations`, `operations`, `retryHistory` | The run's work evidence: its intervals as identities and deltas, its operation outcomes, and its retry history. |
 | `lastComplete` | The run ID, its confirmed inspection identity, completion time, and HEAD at start. |
-| `baselines`, `skills` | Installed baselines of exact content and complete skill inventories. |
+| `baselines`, `skills`, `links` | Installed baselines of exact content, complete skill inventories, and each skill link's text by path. |
 | `checks`, `assessments` | The run's final checks and accepted assessments. |
-| `changeSet` | The run's net change set: each path whose state at completion differs from its state before the run, once, sorted, with the phases that changed it: `installation`, `fixes`, or `agent`. Installation changes are the exact files and skill files, including the system skills' and a retired declaration's removed target, that the run created, replaced, or removed; fix and agent changes are the paths their intervals name. Verified restoration of installed content after an interruption keeps only the installation's attribution. Product state is not listed. |
+| `changeSet` | The run's net change set: each path whose state at completion differs from its state before the run, once, sorted, with the phases that changed it: `installation`, `fixes`, or `agent`. Installation changes are the exact files, skill files, and skill links, including the system skills' and a retired declaration's removed target, that the run created, replaced, or removed; fix and agent changes are the paths their intervals name. Verified restoration of installed content after an interruption keeps only the installation's attribution. Product state is not listed. |
 
 `status --summary` renders a complete run's changed paths from the stored change
 set alone, each path once, under the heading
@@ -629,7 +647,8 @@ The product is complete only when all of these pass:
 4. Reject stale confirmation, invalid Git state, unsafe targets, ignored
    replacement content, and missing prerequisites before project mutation.
 5. Adopt Alice's work profile: install the correct exact content and skill,
-   improve Bob's real README, and leave employer contribution content alone.
+   with a skill link for every installed skill, improve Bob's real README, and
+   leave employer contribution content alone.
 6. Support a second independently authored source with materially different
    guidance and scripts through the same interfaces.
 7. Collect script and agent evidence separately. Detect blocked assessments,
@@ -644,8 +663,8 @@ The product is complete only when all of these pass:
    mutation. Replace local edits to installed content, including added skill
    resources, and list each one in the confirmed inspection; remove obsolete
    resources on an unchanged skill update.
-10. Retire a declaration by removing its installed targets and relinquishing
-    ownership, listing each removed edit.
+10. Retire a declaration by removing its installed targets, including a
+    skill's link, and relinquishing ownership, listing each removed edit.
 11. Recover from interrupted installation and fixes through recorded progress
     and explicit retry. Prevent concurrent runs; preserve abandoned work.
 12. Pass the same product behavior on macOS and Linux through the published

@@ -49,6 +49,8 @@ export function installCli() {
       // adoption installs as whole skills.
       systemSkillFiles: ['adopt-standards', 'standards-updates'].flatMap(name => installedTree(join(root, 'node_modules/@lutzseverino/repo-standards/skills', name))
         .map(([path]) => `.agents/skills/${name}/${path}`)),
+      // The skill links adoption installs for the system skills, sorted.
+      systemSkillLinks: ['adopt-standards', 'standards-updates'].map(name => `.claude/skills/${name}`),
       run(args: string[], cwd: string, env: NodeJS.ProcessEnv = process.env) {
         // A report carries the observed product state, which an established
         // adopter grows well past Node's default 1 MiB capture buffer.

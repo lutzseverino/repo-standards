@@ -19,14 +19,14 @@ import { matchesInventory, type Blocker, type Observation } from './observation.
 // own action covers it. One that contains such a target is removed, and the
 // run then installs the contained target.
 
-export type TargetKind = 'file' | 'skill' | 'system-skill';
+export type TargetKind = 'file' | 'skill' | 'system-skill' | 'skill-link';
 
 export interface OwnedTarget {
   path: string; kind: TargetKind;
   current: Observation; candidate?: Observation;
-  // The recorded file baselines at or under the target, and a skill's recorded
-  // inventory relative to it.
-  baseline?: { files: Record<string, Baseline>; inventory?: string[] };
+  // The recorded file baselines at or under the target, a skill's recorded
+  // inventory relative to it, and a skill link's recorded text.
+  baseline?: { files: Record<string, Baseline>; inventory?: string[]; link?: string };
 }
 
 // A replacement discards edits
@@ -52,9 +52,11 @@ function entryAt(value: Observation, relative: string): Observation {
 }
 
 // Whether the target's current content is exactly its installed baseline:
-// every recorded file's bytes and mode and, for a skill, its inventory.
+// every recorded file's bytes and mode and, for a skill, its inventory, or a
+// skill link's text.
 function isBaseline(path: string, current: Observation, baseline: OwnedTarget['baseline']) {
   if (!baseline) return false;
+  if (baseline.link !== undefined) return current.type === 'symlink' && current.target === baseline.link;
   const filesMatch = Object.entries(baseline.files).every(([file, expected]) => {
     const actual = entryAt(current, file === path ? '' : file.slice(path.length + 1));
     return actual.type === 'file' && actual.sha256 === expected.sha256 && actual.executable === expected.executable;

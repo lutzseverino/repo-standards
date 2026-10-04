@@ -3,13 +3,14 @@ import { inc } from 'semver';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { parse, stringify } from 'yaml';
 import { installCli, installedTree, sha256, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
+import { committedState, rewriteCommittedState } from './committed-evidence.ts';
 
 const cli = installCli();
 const candidateVersion = inc(cli.version, 'minor')!;
@@ -170,14 +171,17 @@ test('the first update of an adoption made without the update notice installs st
   const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   // An adoption by a CLI that installed no update notice records no skill,
-  // baseline, or lock entry for it.
+  // link, baseline, or lock entry for it.
   const notice = '.agents/skills/standards-updates';
+  const noticeLink = '.claude/skills/standards-updates';
   rmSync(join(project.root, notice), { recursive: true });
+  unlinkSync(join(project.root, noticeLink));
   const statePath = join(project.root, '.repo-standards/state.json');
   const lockPath = join(project.root, '.repo-standards/lock.json');
   const state = JSON.parse(readFileSync(statePath, 'utf8'));
   const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
   delete state.skills[notice];
+  delete state.links[noticeLink];
   for (const record of [state.baselines, lock.files]) for (const path of Object.keys(record)) if (path.startsWith(`${notice}/`)) delete record[path];
   const stateText = `${JSON.stringify(state, null, 2)}\n`;
   writeFileSync(statePath, stateText);
@@ -190,8 +194,8 @@ test('the first update of an adoption made without the update notice installs st
   const inspection = JSON.parse(inspected.stdout);
   assert.equal(inspection.updateClass, 'exact');
   assert.deepEqual(inspection.systemSkills, [
-    { name: 'adopt-standards', target: '.agents/skills/adopt-standards', action: 'match' },
-    { name: 'standards-updates', target: notice, action: 'create' }]);
+    { name: 'adopt-standards', target: '.agents/skills/adopt-standards', action: 'match', link: { target: '.claude/skills/adopt-standards', action: 'match' } },
+    { name: 'standards-updates', target: notice, action: 'create', link: { target: noticeLink, action: 'create' } }]);
   assert.deepEqual(inspection.start.blockers, []);
   assert.deepEqual(inspection.discardedEdits, []);
   const summary = cli.run(['inspect', '--summary'], project.root, env);
@@ -203,8 +207,160 @@ test('the first update of an adoption made without the update notice installs st
   assert.equal(JSON.parse(started.stdout).outcome, 'complete');
   assert.deepEqual(installedTree(join(project.root, notice)), installedTree(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/standards-updates')));
   assert.deepEqual(JSON.parse(readFileSync(statePath, 'utf8')).skills[notice], ['SKILL.md', 'agents/openai.yaml']);
-  assert.deepEqual(git(project.root, 'status', '--porcelain', '--untracked-files=all', '--', '.agents').split('\n').sort(),
-    [`?? ${notice}/SKILL.md`, `?? ${notice}/agents/openai.yaml`]);
+  assert.deepEqual(git(project.root, 'status', '--porcelain', '--untracked-files=all', '--', '.agents', '.claude').split('\n').sort(),
+    [`?? ${notice}/SKILL.md`, `?? ${notice}/agents/openai.yaml`, `?? ${noticeLink}`]);
+});
+
+test('the first update of an adoption made without skill links creates them as exact content', async t => {
+  const remote = remoteFixture(source('v1', `    review:
+      kind: skill
+      name: review
+      source: skills/review`), { 'skills/review/SKILL.md': 'Review' });
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
+  // An adoption by a CLI that installed no skill links records none.
+  rmSync(join(project.root, '.claude'), { recursive: true });
+  const statePath = join(project.root, '.repo-standards/state.json');
+  const lockPath = join(project.root, '.repo-standards/lock.json');
+  const state = JSON.parse(readFileSync(statePath, 'utf8'));
+  const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
+  state.links = {};
+  state.changeSet = state.changeSet.filter(({ path }: { path: string }) => !path.startsWith('.claude/'));
+  const stateText = `${JSON.stringify(state, null, 2)}\n`;
+  writeFileSync(statePath, stateText);
+  lock.state.sha256 = sha256(stateText);
+  writeFileSync(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
+  commit(project.root);
+
+  const inspected = cli.run(['inspect', '--json'], project.root, env);
+  assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
+  const inspection = JSON.parse(inspected.stdout);
+  assert.equal(inspection.updateClass, 'exact');
+  assert.deepEqual(inspection.contextualChanges, []);
+  assert.deepEqual(inspection.systemSkills.map(({ action, link }: { action: string; link: unknown }) => ({ action, link })), [
+    { action: 'match', link: { target: '.claude/skills/adopt-standards', action: 'create' } },
+    { action: 'match', link: { target: '.claude/skills/standards-updates', action: 'create' } }]);
+  assert.deepEqual(inspection.exact.map(({ action, link }: { action: string; link: unknown }) => ({ action, link })), [{ action: 'match', link: { target: '.claude/skills/review', action: 'create' } }]);
+  assert.deepEqual(inspection.start.blockers, []);
+  assert.deepEqual(inspection.discardedEdits, []);
+  const summary = cli.run(['inspect', '--summary'], project.root, env);
+  assert.equal(summary.status, 0, summary.stdout + summary.stderr);
+  assert.match(summary.stdout, /^Exact update: /m);
+  for (const [owner, name] of [['adopt-standards', 'adopt-standards'], ['review', 'review'], ['standards-updates', 'standards-updates']]) {
+    assert.match(summary.stdout, new RegExp(`^\\| \`${owner}\` \\| \`\\.claude/skills/${name}\` \\| created \\|$`, 'm'));
+  }
+  const started = cli.run(['start', '--confirm', inspection.identity, '--json'], project.root, env);
+  assert.equal(started.status, 0, started.stdout + started.stderr);
+  assert.equal(JSON.parse(started.stdout).outcome, 'complete');
+  const links = Object.fromEntries(['adopt-standards', 'review', 'standards-updates'].map(name => [`.claude/skills/${name}`, `../../.agents/skills/${name}`]));
+  for (const [path, text] of Object.entries(links)) assert.equal(readlinkSync(join(project.root, path)), text);
+  const updated = JSON.parse(readFileSync(statePath, 'utf8'));
+  assert.deepEqual(Object.fromEntries(Object.entries(updated.links).sort()), links);
+  assert.deepEqual(git(project.root, 'status', '--porcelain', '--untracked-files=all', '--', '.agents', '.claude').split('\n').sort(),
+    Object.keys(links).map(path => `?? ${path}`));
+});
+
+test('durable state records only the skill link of a recorded skill', async t => {
+  const remote = remoteFixture(source('v1', `    review:
+      kind: skill
+      name: review
+      source: skills/review`), { 'skills/review/SKILL.md': 'Review' });
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
+  commit(project.root);
+  const state = committedState(project.root) as unknown as { links: Record<string, string> };
+  for (const links of [{ '.claude/skills/..': '../../.agents/skills/..' }, { '.claude/skills/ghost': '../../.agents/skills/ghost' },
+    { '.claude/skills/review': '../../.agents/skills/other' }, { '.claude/review': '../.agents/skills/review' }]) {
+    rewriteCommittedState(project.root, { ...state, links: { ...state.links, ...links } });
+    const before = snapshot(project.root);
+    for (const command of ['inspect', 'status']) {
+      const result = cli.run([command, '--json'], project.root, env);
+      assert.equal(result.status, 1, result.stdout + result.stderr);
+      assert.equal(JSON.parse(result.stdout).errors[0].code, 'STATE_INTEGRITY', JSON.stringify(links));
+    }
+    assert.deepEqual(snapshot(project.root), before);
+  }
+});
+
+test('retiring a skill removes its link, and an update leaves the project its own skills', async t => {
+  const review = `    review:
+      kind: skill
+      name: review
+      source: skills/review`;
+  const instructions = `    instructions:
+      kind: file
+      target: AGENTS.md
+      exact: agents.md`;
+  const remote = remoteFixture(source('v1', `${review}\n${instructions}`), { 'skills/review/SKILL.md': 'Review', 'agents.md': 'Agents' });
+  const project = sourceFixture('', { '.agents/skills/mine/SKILL.md': 'Mine', '.claude/skills/notes.md': 'Notes' });
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
+  commit(project.root);
+  remote.addVersion('v2.0.0', source('v2', instructions));
+  const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v2.0.0' : argument);
+  const inspection = JSON.parse(cli.run(args, project.root, env).stdout);
+  assert.deepEqual(inspection.start.blockers, []);
+  assert.deepEqual(inspection.removed.map(({ id, target, files }: { id: string; target: string; files: { path: string; after: unknown }[] }) => ({ id, target, files: files.map(({ path, after }) => ({ path, after })) })), [
+    { id: 'review', target: '.agents/skills/review', files: [{ path: '.agents/skills/review/SKILL.md', after: { type: 'missing' } }] },
+    { id: 'review', target: '.claude/skills/review', files: [{ path: '.claude/skills/review', after: { type: 'missing' } }] }]);
+  assert.deepEqual(inspection.removed[1].files[0].before, { type: 'symlink', target: '../../.agents/skills/review' });
+  assert.deepEqual(inspection.discardedEdits, []);
+  const summary = cli.run(args.filter(argument => argument !== '--json').concat('--summary'), project.root, env).stdout;
+  assert.match(summary, /^\| `review` \| `\.agents\/skills\/review\/SKILL\.md` \| deleted \|\n\| `review` \| `\.claude\/skills\/review` \| deleted \|$/m);
+  const started = cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env);
+  assert.equal(started.status, 0, started.stdout + started.stderr);
+  assert.equal(existsSync(join(project.root, '.agents/skills/review')), false);
+  assert.equal(lstatSync(join(project.root, '.claude/skills/review'), { throwIfNoEntry: false }), undefined);
+  const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
+  assert.deepEqual(Object.keys(state.links).sort(), ['.claude/skills/adopt-standards', '.claude/skills/standards-updates']);
+  assert.ok(state.changeSet.some(({ path }: { path: string }) => path === '.claude/skills/review'));
+  assert.equal(lstatSync(join(project.root, '.claude/skills/mine'), { throwIfNoEntry: false }), undefined);
+  assert.equal(git(project.root, 'status', '--porcelain', '--', '.agents/skills/mine', '.claude/skills/notes.md'), '');
+});
+
+test('a skill link changed after confirmation makes start stale', async t => {
+  const remote = remoteFixture(source('v1', `    review:
+      kind: skill
+      name: review
+      source: skills/review`), { 'skills/review/SKILL.md': 'Review' });
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
+  commit(project.root);
+  const inspection = JSON.parse(cli.run(['inspect', '--json'], project.root, env).stdout);
+  assert.equal(inspection.exact[0].link.action, 'match');
+  // A committed hand-made copy in the link's place is tracked and clean, so
+  // only the identity can tell.
+  unlinkSync(join(project.root, '.claude/skills/review'));
+  mkdirSync(join(project.root, '.claude/skills/review'));
+  writeFileSync(join(project.root, '.claude/skills/review/SKILL.md'), 'Review');
+  commit(project.root);
+  const before = snapshot(project.root);
+  const started = cli.run(['start', '--confirm', inspection.identity, '--json'], project.root, env);
+  assert.equal(started.status, 1, started.stdout + started.stderr);
+  assert.equal(JSON.parse(started.stdout).errors[0].code, 'STALE_INSPECTION');
+  assert.deepEqual(snapshot(project.root), before);
+  const renewed = JSON.parse(cli.run(['inspect', '--json'], project.root, env).stdout);
+  assert.deepEqual(renewed.exact[0].link, { target: '.claude/skills/review', action: 'replace' });
+  assert.deepEqual(renewed.discardedEdits, ['.claude/skills/review']);
 });
 
 test('update inspections match candidate-equal content and list each discarded edit, including a retired target they remove', async t => {
@@ -252,6 +408,10 @@ test('update inspections match candidate-equal content and list each discarded e
       discarded: [system] },
     { name: 'a removed skill file', mutate: (root: string) => rmSync(join(root, '.agents/skills/review/resource.txt')),
       discarded: ['.agents/skills/review'] },
+    { name: 'a skill link replaced by a copy', mutate: (root: string) => { unlinkSync(join(root, '.claude/skills/review')); writeFileSync(join(root, '.claude/skills/review'), '# Review v1'); },
+      discarded: ['.claude/skills/review'] },
+    { name: 'a retired skill link replaced by a copy', mutate: (root: string) => { unlinkSync(join(root, '.claude/skills/legacy')); writeFileSync(join(root, '.claude/skills/legacy'), '# Legacy'); },
+      discarded: ['.claude/skills/legacy'] },
   ]) await t.test(name, () => {
     const remote = remoteFixture(source('v1', declarations + retired), v1Files);
     const project = sourceFixture('');
@@ -271,7 +431,7 @@ test('update inspections match candidate-equal content and list each discarded e
     assert.deepEqual(inspection.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), blockers);
     assert.deepEqual(inspection.discardedEdits, discarded);
     assert.deepEqual(inspection.removed.map(({ id, target }: { id: string; target: string }) => ({ id, target })), [
-      { id: 'legacy', target: '.agents/skills/legacy' }, { id: 'retired', target: 'RETIRED.md' }]);
+      { id: 'legacy', target: '.agents/skills/legacy' }, { id: 'legacy', target: '.claude/skills/legacy' }, { id: 'retired', target: 'RETIRED.md' }]);
     if (actions) assert.deepEqual(Object.fromEntries(inspection.exact.map(({ id, action }: { id: string; action: string }) => [id, action])), actions);
     const started = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
     if (blockers.length) {
@@ -284,6 +444,8 @@ test('update inspections match candidate-equal content and list each discarded e
     assert.equal(JSON.parse(started.stdout).outcome, 'complete');
     assert.equal(existsSync(join(project.root, 'RETIRED.md')), false);
     assert.equal(existsSync(join(project.root, '.agents/skills/legacy')), false);
+    assert.equal(lstatSync(join(project.root, '.claude/skills/legacy'), { throwIfNoEntry: false }), undefined);
+    assert.equal(readlinkSync(join(project.root, '.claude/skills/review')), '../../.agents/skills/review');
     assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version two');
     assert.equal(readFileSync(join(project.root, '.agents/skills/review/SKILL.md'), 'utf8'), '# Review v2');
     assert.deepEqual(installedTree(join(project.root, system)), installedTree(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/adopt-standards')));
@@ -432,12 +594,15 @@ test('an update removes a retired target beside contextual scope and one that co
   remote.addVersion('v1.1.0', v2, { 'docs-guide.md': 'Keep the documentation current.', 'readme.md': 'Read me' });
   const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
   const inspection = JSON.parse(cli.run(updateArgs, project.root, env).stdout);
-  assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', 'docs-old.md']);
+  // The retired skill's link goes with it: a file installed into its old
+  // directory is no skill to link.
+  assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', '.claude/skills/legacy', 'docs-old.md']);
   assert.deepEqual(inspection.discardedEdits, []);
   assert.deepEqual(inspection.start.blockers, []);
   const started = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
   assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout + started.stderr);
   assert.equal(existsSync(join(project.root, 'docs-old.md')), false);
+  assert.equal(lstatSync(join(project.root, '.claude/skills/legacy'), { throwIfNoEntry: false }), undefined);
   assert.deepEqual(installedTree(join(project.root, '.agents/skills/legacy')), [['README.md', Buffer.from('Read me').toString('base64'), false]]);
   assert.equal(readFileSync(join(project.root, 'docs/guide.md'), 'utf8'), 'Guide');
 });
@@ -1417,28 +1582,43 @@ syncBuiltinESMExports();`);
   });
 });
 
-test('retry resumes an interrupted removal of retired targets and an interrupted initial skill replacement', async t => {
+test('retry resumes an interrupted removal of retired targets and an interrupted initial skill or skill link replacement', async t => {
   const registry = await registryFixture(cli.root);
   t.after(() => registry.close());
+  // A link is removed by unlinking it, a tree by removing it recursively.
   const kill = (suffix: string, before?: string) => `
 const remove = fs.rmSync;
-fs.rmSync = function(path, ...args) {
+const unlink = fs.unlinkSync;
+const fault = path => {
   if (String(path).endsWith(${JSON.stringify(suffix)})) {
-    ${before ? `remove.call(this, String(path) + ${JSON.stringify(before)});` : ''}
+    ${before ? `remove.call(fs, String(path) + ${JSON.stringify(before)});` : ''}
     process.kill(process.pid, 'SIGKILL');
   }
-  return remove.call(this, path, ...args);
 };
+fs.rmSync = function(path, ...args) { fault(path); return remove.call(this, path, ...args); };
+fs.unlinkSync = function(path, ...args) { fault(path); return unlink.call(this, path, ...args); };
 syncBuiltinESMExports();`;
   const declarations = `    review:
       kind: skill
       name: review
       source: review`;
-  for (const { name, fault, initialFiles } of [
+  // A staged link left before its rename.
+  const killBeforeRename = (suffix: string) => `
+const rename = fs.renameSync;
+fs.renameSync = function(from, to, ...args) {
+  if (String(to).endsWith(${JSON.stringify(suffix)})) process.kill(process.pid, 'SIGKILL');
+  return rename.call(this, from, to, ...args);
+};
+syncBuiltinESMExports();`;
+  const copy = { '.claude/skills/review/SKILL.md': '# Local copy', '.claude/skills/review/local.md': 'Local notes' };
+  for (const { name, fault, initialFiles, discarded } of [
     { name: 'a retired exact file', fault: kill('/RETIRED.md') },
     { name: 'a retired skill', fault: kill('/.agents/skills/legacy', '/notes.md') },
+    { name: 'a retired skill link', fault: kill('/.claude/skills/legacy') },
     { name: 'an initial replacement of a differing tracked skill', fault: kill('/.agents/skills/review', '/local.md'),
-      initialFiles: { '.agents/skills/review/SKILL.md': '# Local review', '.agents/skills/review/local.md': 'Local notes' } },
+      initialFiles: { '.agents/skills/review/SKILL.md': '# Local review', '.agents/skills/review/local.md': 'Local notes' }, discarded: ['.agents/skills/review'] },
+    { name: 'an initial replacement of a tracked copy at a skill link', fault: kill('/.claude/skills/review', '/local.md'), initialFiles: copy, discarded: ['.claude/skills/review'] },
+    { name: 'a staged skill link replacing a tracked copy', fault: killBeforeRename('/.claude/skills/review'), initialFiles: copy, discarded: ['.claude/skills/review'] },
   ]) await t.test(name, () => {
     const remote = remoteFixture(source('v1', `${declarations}
     retired:
@@ -1462,14 +1642,16 @@ syncBuiltinESMExports();`;
       remote.addVersion('v1.1.0', source('v2', declarations), {});
       const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
       const inspection = JSON.parse(run(updateArgs).stdout);
-      assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', 'RETIRED.md']);
+      assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', '.claude/skills/legacy', 'RETIRED.md']);
       startArgs = ['start', ...updateArgs.slice(1), '--confirm', inspection.identity];
-    } else assert.deepEqual(initial.discardedEdits, ['.agents/skills/review']);
+    } else assert.deepEqual(initial.discardedEdits, discarded);
     assert.equal(run(startArgs, filesystemFault(remote.support.root, env, 'installation', fault)).signal, 'SIGKILL');
     const result = run(['resume', '--retry', '--json']);
     assert.equal(result.status, 0, result.stdout + result.stderr);
     assert.equal(JSON.parse(result.stdout).outcome, 'complete');
     assert.deepEqual(installedTree(join(project.root, '.agents/skills/review')), installedTree(join(remote.source.root, 'review')));
+    assert.equal(readlinkSync(join(project.root, '.claude/skills/review')), '../../.agents/skills/review');
+    assert.deepEqual(readdirSync(join(project.root, '.claude/skills')).sort(), ['adopt-standards', ...initialFiles ? ['legacy'] : [], 'review', 'standards-updates']);
     if (!initialFiles) {
       assert.equal(existsSync(join(project.root, 'RETIRED.md')), false);
       assert.equal(existsSync(join(project.root, '.agents/skills/legacy')), false);

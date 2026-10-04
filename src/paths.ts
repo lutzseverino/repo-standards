@@ -49,8 +49,8 @@ export class Paths {
   target(value: Value): Target | undefined {
     const path = this.explicit(value);
     if (path === undefined) return undefined;
-    if (['.repo-standards', ...systemSkills.map(skill => skill.target), '.git'].some(reserved => overlaps(foldPath(path), reserved))) {
-      this.fields.error('RESERVED_TARGET', 'Target overlaps product-owned state, a system skill, or Git metadata.', value);
+    if (['.repo-standards', ...systemSkills.flatMap(skill => [skill.target, skill.link]), '.git'].some(reserved => overlaps(foldPath(path), reserved))) {
+      this.fields.error('RESERVED_TARGET', 'Target overlaps product-owned state, a system skill or its link, or Git metadata.', value);
     }
     return { path, location: value };
   }

@@ -90,8 +90,10 @@ resolve to empty lists. Their remaining fields are:
 A file must have exactly one of `exact` or `guidance`. Repository guidance
 requires exactly one of `targets` or `discovery`, and explicit targets need at
 least one path or directory. Exact skills target
-`.agents/skills/<name>` as a whole. `adopt-standards`, `standards-updates`, and
-`author-standards` are product-owned system skill names reserved against author
+`.agents/skills/<name>` as a whole, and adoption also installs the skill's
+[skill link](adoption.md#skill-links) at `.claude/skills/<name>`, which is a
+target of the skill too: no other target may overlap it. `adopt-standards`,
+`standards-updates`, and `author-standards` are product-owned system skill names reserved against author
 skills. Author skill content remains ordinary Agent Skill material; source
 validation verifies its directory, `SKILL.md` references, and invocation agreement, not prose quality or
 skill behavior.
@@ -167,8 +169,8 @@ by another target, including two entries of one repository declaration.
 Comparison also catches case-insensitive and Unicode-normalized collisions.
 Product state (`.repo-standards`), every system skill target
 (`.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, and
-`.agents/skills/author-standards`), Git
-metadata (`.git`), and their ancestors and descendants are reserved targets.
+`.agents/skills/author-standards`) and its skill link
+(`.claude/skills/<name>`), Git metadata (`.git`), and their ancestors and descendants are reserved targets.
 These restrictions apply to exact files, contextual files, and repository
 guidance as well as skills, using the same case-folded and Unicode-normalized
 comparison. Validation checks defaults and every profile, including profiles

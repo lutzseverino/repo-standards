@@ -206,7 +206,7 @@ test('a CLI pin change interrupted before its runtime is installed sends the for
   writeFileSync(runRecord, JSON.stringify({ ...run, format: 'repo-standards/run/v7' }));
   const statePath = join(f.project.root, '.repo-standards/state.json');
   const state = readFileSync(statePath);
-  writeFileSync(statePath, JSON.stringify({ format: 'repo-standards/state/v5' }));
+  writeFileSync(statePath, JSON.stringify({ format: 'repo-standards/state/v6' }));
   const before = snapshot(f.project.root);
   for (const command of ['status', 'resume', 'abandon']) {
     const result = f.pinned([command, '--json']);

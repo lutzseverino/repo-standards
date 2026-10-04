@@ -3,7 +3,7 @@ import type { SourceDeclaration, Operation } from './model.js';
 import { Fields } from './yaml.js';
 import type { Value } from './yaml.js';
 import type { Paths, Target } from './paths.js';
-import { skillTarget, systemSkills } from './targets.js';
+import { skillLinkTarget, skillTarget, systemSkills } from './targets.js';
 
 const identity = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -99,10 +99,11 @@ export class Declarations {
         f.map(declaration, ['kind', 'name', 'source', 'checks', 'fixes']);
         const nameValue = f.get(declaration, 'name');
         const name = this.id(nameValue) ?? '';
-        if (systemSkills.some(skill => skill.name === name.toLowerCase())) {
-          f.error('RESERVED_NAME', `${name.toLowerCase()} is a product-owned system skill.`, nameValue);
-        }
+        const reserved = systemSkills.some(skill => skill.name === name.toLowerCase());
+        if (reserved) f.error('RESERVED_NAME', `${name.toLowerCase()} is a product-owned system skill.`, nameValue);
         targetPath({ ...nameValue, data: skillTarget(name) });
+        // The skill's link is a target too, so no other target may overlap it.
+        if (!reserved) targetPath({ ...nameValue, data: skillLinkTarget(name) });
         const sourceValue = f.get(declaration, 'source');
         const source = this.paths.reference(sourceValue, 'directory');
         if (source) this.validateSkill(name, sourceValue);

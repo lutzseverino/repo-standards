@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { existsSync, mkdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
 import { stringify } from 'yaml';
@@ -148,6 +148,10 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     assert.deepEqual([...new Set(local.observations.map(interval => interval.phase))].sort(), ['agent', 'checks', 'fixes']);
     assertCompactWorkEvidence(committedState(f.project.root));
     assert.deepEqual(committedState(f.project.root).observations, local.observations);
+    // Each system skill's link is installation's alone: agent work beside it
+    // neither changes nor claims it.
+    const links = ['adopt-standards', 'standards-updates'].map(name => [`.claude/skills/${name}`, `../../.agents/skills/${name}`] as const);
+    assert.deepEqual(committedState(f.project.root).changeSet!.filter(({ path }) => path.startsWith('.claude/')), links.map(([path]) => ({ path, phases: ['installation'] })));
     const status = f.run(['status', '--json']).report;
     // The committed interval keeps each changed path's before and after state.
     const migration = status.observations.find((entry: { phase: string; changes: Record<string, unknown> }) => entry.phase === 'agent' && Object.hasOwn(entry.changes, 'old/operations.md'));
@@ -172,6 +176,9 @@ test('two unfamiliar layouts complete a useful migration around exact configurat
     assert.deepEqual(retained.report.historicalScope.discovery.absence, inspected.discovery.absence);
     assert.deepEqual(retained.report.historicalScope.sourceResolved, inspected.sourceResolved);
     assert.equal(retained.report.start.eligible, false);
+    // A clone carries the links, which the retained inspection matches.
+    for (const [path, text] of links) assert.equal(readlinkSync(join(checkout, path)), text);
+    assert.deepEqual(retained.report.systemSkills.map(({ link }: { link: { action: string } }) => link.action), ['match', 'match']);
     // The committed run keeps its named observation as the delta of the
     // confirmed targets and the boundaries naming them added.
     const scope = committedScopeEvidence(checkout);
@@ -235,6 +242,17 @@ test('missing, invalid, unresolved, stale and dirty discovery starts preserve th
   const dirty = f.inspect().report;
   reject(f.start(dirty.identity).report, 'START_BLOCKED');
   assert.equal(readFileSync(join(f.project.root, 'unrelated.txt'), 'utf8'), 'Uncommitted');
+});
+
+test('a scope proposal cannot claim a system skill link path', async t => {
+  const f = await fixture(t);
+  for (const path of ['.claude/skills/adopt-standards', '.claude/skills/standards-updates/README.md', '.claude']) {
+    setScopeTargets(f, [path]);
+    const inspected = f.inspect();
+    assert.equal(inspected.result.status, 1, inspected.result.stdout);
+    assert.deepEqual(inspected.report.errors, [{ code: 'RESERVED_TARGET', message: 'Target overlaps product-owned state, a system skill or its link, or Git metadata.' }]);
+  }
+  assert.equal(lstatSync(join(f.project.root, '.claude'), { throwIfNoEntry: false }), undefined);
 });
 
 test('explained empty discovery scope retains fixes, coverage assessment and checks', async t => {

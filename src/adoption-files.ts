@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { chmodSync, lstatSync, mkdirSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, lstatSync, mkdirSync, readdirSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
@@ -26,10 +26,11 @@ export function relativePath(path: string) {
   if (path.split('/').some(part => !part || part === '.' || part === '..') || /[\\\p{Cc}]/u.test(path)) throw new ProductError('STATE_INTEGRITY', `Invalid repository-relative product path: ${path}.`);
 }
 
-export function safe(root: string, path: string) {
+// A target observed safely, as a skill link with the given text when one is passed.
+export function safe(root: string, path: string, link?: string) {
   relativePath(path);
   const blockers: Blocker[] = [];
-  const value = targetObservation(root, path, blockers);
+  const value = targetObservation(root, path, blockers, undefined, link);
   if (blockers.length) throw new ProductError('UNSAFE_TARGET', `Target is no longer safe: ${path}.`, blockers);
   return value;
 }
@@ -53,21 +54,51 @@ export function stagedPath(path: string, installationId?: string) {
   return join(dirname(path), `.repo-standards-${installationId ? `${installationId}-${hash(path)}` : randomUUID()}.tmp`);
 }
 
+// Removes an entry, a whole tree, or a link without following it. rmSync in
+// the pinned Node.js follows a symbolic link: it refuses one to a directory and
+// leaves a dangling one in place.
+export function remove(path: string) {
+  const stat = lstatSync(path, { throwIfNoEntry: false });
+  if (stat?.isSymbolicLink()) unlinkSync(path);
+  else if (stat) rmSync(path, { recursive: true, force: true });
+}
+
 // Rename a new inode so replacing a tracked hard link never overwrites its
 // other names. Recheck target ancestors immediately before each mutation.
+function place(root: string, path: string, temporary: string, create: (temporary: string) => void, link?: string) {
+  safe(root, path, link);
+  mkdirSync(dirname(join(root, path)), { recursive: true });
+  safe(root, path, link);
+  try {
+    create(temporary);
+    safe(root, path, link);
+    renameSync(temporary, join(root, path));
+  } finally { remove(temporary); }
+}
+
 export function write(root: string, path: string, value: Content, installationId?: string) {
   const before = safe(root, path);
   if (before.type === 'file' && before.sha256 === value.sha256 && before.executable === value.executable) return;
   if (!['file', 'missing'].includes(before.type)) throw new ProductError('TARGET_TYPE', `Expected a regular file at ${path}.`);
-  mkdirSync(dirname(join(root, path)), { recursive: true });
-  safe(root, path);
-  const temporary = join(root, stagedPath(path, installationId));
-  try {
+  place(root, path, join(root, stagedPath(path, installationId)), temporary => {
     writeFileSync(temporary, Buffer.from(value.content, value.encoding), { flag: 'wx', mode: value.executable ? 0o755 : 0o644 });
     chmodSync(temporary, value.executable ? 0o755 : 0o644);
-    safe(root, path);
-    renameSync(temporary, join(root, path));
-  } finally { rmSync(temporary, { force: true }); }
+  });
+}
+
+// Installs a skill link the same way, never following it. A staged link an
+// interrupted write left behind is replaced when it holds the same text.
+export function writeLink(root: string, path: string, text: string, installationId: string) {
+  const before = safe(root, path, text);
+  if (before.type === 'symlink') return;
+  if (before.type !== 'missing') throw new ProductError('TARGET_TYPE', `Expected no entry at ${path}.`);
+  const staged = stagedPath(path, installationId);
+  const stat = lstatSync(join(root, staged), { throwIfNoEntry: false });
+  if (stat && !(stat.isSymbolicLink() && readlinkSync(join(root, staged)) === text)) throw new ProductError('INSTALLATION_CHANGED', `Staged installation content changed: ${staged}. Preserve and reconcile it before retry.`);
+  place(root, path, join(root, staged), temporary => {
+    remove(temporary);
+    symlinkSync(text, temporary);
+  }, text);
 }
 
 // Whether reinstalling the project runtime from its manifest and npm lock
@@ -144,7 +175,8 @@ export function actualChanges(root: string, affected: Record<string, HashInvento
   for (const [path, before] of Object.entries(affected)) {
     relativePath(path);
     const blockers: Blocker[] = [];
-    if (json(hashInventory(targetObservation(root, path, blockers))) !== json(before)) {
+    // Only a skill link was ever observed as a link; it is observed as one again.
+    if (json(hashInventory(targetObservation(root, path, blockers, undefined, before.type === 'symlink' ? before.target : undefined))) !== json(before)) {
       paths.add(path);
       if (blockers.length === 0) collect(path);
     }

@@ -15,7 +15,7 @@ import { scopeChanges } from './scope-evidence.js';
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
 import { judgeTargetOwnership, type OwnedTarget, type TargetKind } from './target-ownership.js';
-import { declarationTargets, installationTarget, installedSystemSkills } from './targets.js';
+import { declarationLink, declarationTargets, installationTarget, installedSystemSkills, linkTextAt } from './targets.js';
 import { unifiedDiff } from './unified-diff.js';
 import { compareUpdate } from './update-comparison.js';
 
@@ -130,18 +130,23 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const tracked = new Set(index.stdout.split('\0').filter(Boolean).map(entry => entry.slice(entry.indexOf('\t') + 1)));
     for (const entry of index.stdout.split('\0').filter(entry => entry.startsWith('160000 '))) blockers.push({ code: 'SUBMODULE_STATE', path: entry.slice(entry.indexOf('\t') + 1), message: 'Initial inspection cannot establish clean nested submodule state without running nested Git behavior.' });
     const productState = previous ? productStateObservation(root, blockers) : targetObservation(root, '.repo-standards', blockers);
-    // Each target is observed once, keeping its safety blockers for its block.
+    // Each target is observed once, keeping its safety blockers for its block;
+    // a skill link is observed as a link with the text the product writes there.
     const observed = new Map<string, { value: Observation; safety: Blocker[] }>();
-    function observeTarget(path: string) {
+    function observeTarget(path: string, link?: string) {
       let target = observed.get(path);
       if (!target) {
         const safety: Blocker[] = [];
-        target = { value: targetObservation(root, path, safety), safety };
+        target = { value: targetObservation(root, path, safety, undefined, link), safety };
         observed.set(path, target);
       }
       return target.value;
     }
     const systemSkills = Object.fromEntries(installedSystemSkills.map(({ target }) => [target, observeTarget(target)]));
+    // The skill link of every installed skill, system or author, by path.
+    const skillLinks: Record<string, Observation> = Object.create(null);
+    const observeLink = (path: string) => { skillLinks[path] = observeTarget(path, linkTextAt(path)); };
+    for (const { link } of installedSystemSkills) observeLink(link);
     if (!previous && productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
     const validation = validateSource(source.root, cliVersion, source.paths, retainedSource?.manifest);
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
@@ -185,12 +190,14 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const desiredExact: Record<string, Observation> = Object.create(null);
     // Each declared target's type blockers, in resolved-declaration order.
     // Guidance targets are not installation targets and have no ownership.
+    // A skill's link follows its skill.
     const declared: { path: string; typeBlockers: Blocker[]; owned: boolean }[] = [];
-    const installed: { id: string; target: string; kind: 'file' | 'skill' }[] = [];
+    const installed: { id: string; target: string; kind: 'file' | 'skill'; link?: string }[] = [];
     for (const declaration of resolved.declarations) {
       const { paths, directories } = declarationTargets(declaration);
       const targets = [...paths, ...directories];
       const installationPath = installationTarget(declaration);
+      const link = declarationLink(declaration);
       for (const target of targets) {
         const current = observeTarget(target);
         affected[target] = current;
@@ -199,32 +206,38 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
           typeBlockers: (expectsDirectory && current.type === 'file') || (!expectsDirectory && current.type === 'directory')
             ? [{ code: 'TARGET_TYPE', path: target, message: `This declaration requires a ${expectsDirectory ? 'directory' : 'file'} at its target.` }] : [] });
       }
+      if (link) {
+        observeLink(link);
+        declared.push({ path: link, owned: true, typeBlockers: [] });
+      }
       if (declaration.kind === 'skill' || 'exact' in declaration) {
         desiredExact[installationPath!] = observe(join(source.root, declaration.kind === 'skill' ? declaration.source : declaration.exact));
-        installed.push({ id: declaration.id, target: installationPath!, kind: declaration.kind === 'skill' ? 'skill' : 'file' });
+        installed.push({ id: declaration.id, target: installationPath!, kind: declaration.kind === 'skill' ? 'skill' : 'file', ...link ? { link } : {} });
       } else guidance.push({ id: declaration.id, targets, source: declaration.guidance, ...fileReference(join(source.root, declaration.guidance)) });
     }
     // Installation targets: the system skills, each exact file and skill the
-    // selection declares, and each recorded target, merged by path. Target
-    // ownership decides what happens to a recorded target the selection no
-    // longer installs.
+    // selection declares, the skill link of each of those skills, and each
+    // recorded target, merged by path. Target ownership decides what happens to
+    // a recorded target the selection no longer installs.
     const ownedTargets = new Map<string, OwnedTarget>();
     const systemCandidates = packagedSystemSkills();
     for (const { target } of installedSystemSkills) ownedTargets.set(target, { path: target, kind: 'system-skill', current: systemSkills[target]!, candidate: systemCandidates[target]! });
     for (const { target, kind } of installed) ownedTargets.set(target, { path: target, kind, current: affected[target]!, candidate: desiredExact[target]! });
+    for (const [path, current] of Object.entries(skillLinks)) ownedTargets.set(path, { path, kind: 'skill-link', current, candidate: { type: 'symlink', target: linkTextAt(path)! } });
     const recordedTargets: { path: string; kind: TargetKind; baseline: NonNullable<OwnedTarget['baseline']> }[] = [];
     if (previous) {
-      const { baselines, skills } = previous.state;
+      const { baselines, skills, links } = previous.state;
       const directories = Object.keys(skills);
       for (const directory of directories) recordedTargets.push({ path: directory, kind: installedSystemSkills.some(({ target }) => target === directory) ? 'system-skill' : 'skill',
         baseline: { files: Object.fromEntries(Object.entries(baselines).filter(([path]) => path.startsWith(directory + '/'))), inventory: skills[directory]! } });
       for (const [path, value] of Object.entries(baselines)) if (!directories.some(directory => path.startsWith(directory + '/'))) recordedTargets.push({ path, kind: 'file', baseline: { files: { [path]: value } } });
+      for (const [path, link] of Object.entries(links)) recordedTargets.push({ path, kind: 'skill-link', baseline: { files: {}, link } });
     }
     const baselineOnly = recordedTargets.filter(({ path }) => !ownedTargets.has(path)).map(({ path }) => path).sort();
     for (const { path, kind, baseline } of recordedTargets) {
       const target = ownedTargets.get(path);
       if (target) target.baseline = baseline;
-      else ownedTargets.set(path, { path, kind, current: observeTarget(path), baseline });
+      else ownedTargets.set(path, { path, kind, current: observeTarget(path, baseline.link), baseline });
     }
     const contextual = declared.filter(({ owned }) => !owned).map(({ path }) => path);
     const ownership = new Map(judgeTargetOwnership({ tracked, contextual, targets: [...ownedTargets.values()] }).map(verdict => [verdict.path, verdict]));
@@ -234,7 +247,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     // the same order.
     const reported = new Set<string>();
     const discardedEdits: string[] = [];
-    for (const { path, typeBlockers, owned } of [...installedSystemSkills.map(({ target }) => ({ path: target, typeBlockers: [], owned: true })), ...declared,
+    for (const { path, typeBlockers, owned } of [...installedSystemSkills.flatMap(({ target, link }) => [target, link].map(path => ({ path, typeBlockers: [], owned: true }))), ...declared,
       ...baselineOnly.map(path => ({ path, typeBlockers: [], owned: true }))]) {
       if (!reported.has(path)) blockers.push(...observed.get(path)!.safety);
       const verdict = owned ? ownership.get(path) : undefined;
@@ -242,10 +255,13 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       reported.add(path);
       blockers.push(...typeBlockers, ...verdict?.blockers ?? []);
     }
-    const exact = installed.map(({ id, target }) => ({ id, target, action: ownership.get(target)!.action!, files: changedFiles(target, affected[target]!, desiredExact[target]!) }));
-    // Each removed target is attributed to the declaration that installed it.
+    // Each skill's link is listed with its skill, by path and action.
+    const linkAction = (link: string) => ({ target: link, action: ownership.get(link)!.action! });
+    const exact = installed.map(({ id, target, link }) => ({ id, target, action: ownership.get(target)!.action!, files: changedFiles(target, affected[target]!, desiredExact[target]!), ...link ? { link: linkAction(link) } : {} }));
+    // Each removed target, including a skill link, is attributed to the
+    // declaration that installed it.
     const removed = previous ? baselineOnly.filter(path => ownership.get(path)!.action === 'replace').map(target => ({
-      id: previous.resolved.declarations.find(declaration => installationTarget(declaration) === target)!.id,
+      id: previous.resolved.declarations.find(declaration => installationTarget(declaration) === target || declarationLink(declaration) === target)!.id,
       target, files: changedFiles(target, observed.get(target)!.value, { type: 'missing' }),
     })) : undefined;
     if (!proposal) for (const declaration of discoveryDeclarations) guidance.push({ id: declaration.id, targets: [], discoveryRequired: true, source: declaration.guidance, ...fileReference(join(source.root, declaration.guidance)) });
@@ -268,8 +284,9 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       manifest: { sha256: hash(normalized), executable: false },
       project: { affected: Object.fromEntries(Object.entries(affected).map(([path, value]) => [path, hashInventory(value)])),
         productState: hashInventory(productState),
-        systemSkills: Object.fromEntries(Object.entries(systemSkills).map(([path, value]) => [path, hashInventory(value)])) },
-      systemSkills: installedSystemSkills.map(({ name, target }) => ({ name, target, action: ownership.get(target)!.action! })),
+        systemSkills: Object.fromEntries(Object.entries(systemSkills).map(([path, value]) => [path, hashInventory(value)])),
+        skillLinks: Object.fromEntries(Object.entries(skillLinks).map(([path, value]) => [path, hashInventory(value)])) },
+      systemSkills: installedSystemSkills.map(({ name, target, link }) => ({ name, target, action: ownership.get(target)!.action!, link: linkAction(link) })),
       ...(removed ? { removed } : {}),
       discardedEdits,
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },

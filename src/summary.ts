@@ -15,15 +15,16 @@ interface OperationDefinition {
   prerequisite: { 'version-arguments': string[]; version: string };
 }
 interface ChangedFile { path: string; before: HashInventory; after: HashInventory }
+interface SkillLink { target: string; action: string }
 
 export interface InspectionReport {
   selection: Selection; previousSelection?: Selection; update?: string[];
   updateClass?: 'exact' | 'contextual'; contextualChanges?: { id: string; changes: string[] }[];
   resolved: { declarations: Declaration[] };
-  exact: { id: string; target: string; action: string; files: ChangedFile[] }[];
+  exact: { id: string; target: string; action: string; files: ChangedFile[]; link?: SkillLink }[];
   guidance: { id: string; targets: string[]; discoveryRequired?: boolean }[];
   operations: OperationDefinition[];
-  systemSkills: { name: string; target: string; action: string }[];
+  systemSkills: { name: string; target: string; action: string; link: SkillLink }[];
   removed?: { id: string; target: string; files: ChangedFile[] }[]; discardedEdits: string[];
   discovery?: { declarations: { id: string }[]; proposal?: unknown };
   scopeChanges?: ScopeChange[]; retired?: Declaration[];
@@ -139,11 +140,15 @@ export function inspectionSummary(report: InspectionReport) {
         table(['Declaration', 'Changes'], changes.map(change => [code(change.id), change.changes.join(', ')]))].join('\n\n')));
   }
 
-  const exactRows = [...report.exact, ...report.removed ?? []].flatMap(entry => entry.files.flatMap(file => {
+  // Each changed file, then the skill's link when it changes, alongside it.
+  const installed = (owner: string, target: string, action: string) => action === 'match' ? [] : [[code(owner), code(target), action === 'create' ? 'created' : 'replaced']];
+  const fileRows = (entry: { id: string; files: ChangedFile[] }) => entry.files.flatMap(file => {
     const change = fileChange(file);
     return change ? [[code(entry.id), code(file.path), change]] : [];
-  }));
-  for (const skill of report.systemSkills) if (skill.action !== 'match') exactRows.push([code(skill.name), code(skill.target), skill.action === 'create' ? 'created' : 'replaced']);
+  });
+  const exactRows = [...report.exact.flatMap(entry => [...fileRows(entry), ...entry.link ? installed(entry.id, entry.link.target, entry.link.action) : []]),
+    ...(report.removed ?? []).flatMap(fileRows),
+    ...report.systemSkills.flatMap(skill => [...installed(skill.name, skill.target, skill.action), ...installed(skill.name, skill.link.target, skill.link.action)])];
   const changedGuidance = new Map((report.contextualChanges ?? []).map(change => [change.id, change.changes]));
   const guidanceRows = report.guidance
     .filter(entry => !update || changedGuidance.has(entry.id))

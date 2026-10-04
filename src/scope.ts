@@ -3,7 +3,7 @@ import { isAbsolute, relative, resolve } from 'node:path';
 import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
-import { declarationTargets } from './targets.js';
+import { declarationLink, declarationTargets } from './targets.js';
 import type { ResolvedProfile, SourceProfile } from './model.js';
 import { Paths, type Target } from './paths.js';
 import { Fields, readYaml, type Diagnostic } from './yaml.js';
@@ -120,7 +120,8 @@ function materializeScope(root: string, profile: SourceProfile, proposal?: Scope
   }) };
   for (const declaration of resolved.declarations) {
     const { paths: declaredPaths, directories } = declarationTargets(declaration);
-    for (const name of [...declaredPaths, ...directories]) {
+    const link = declarationLink(declaration);
+    for (const name of [...declaredPaths, ...directories, ...link ? [link] : []]) {
       const target = paths.target({ data: name, offset: 0, path: declaration.id });
       if (!target) invalid('Invalid discovered target.');
       targets.push(target);

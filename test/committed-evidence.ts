@@ -64,7 +64,7 @@ export function assertCompactRunRecord(record: { format: string; observations: C
 // holds the current run only, no committed interval may carry an observation
 // map, and every closed interval must carry both observation identities.
 export function assertCompactWorkEvidence(state: ReturnType<typeof committedState>) {
-  assert.equal(state.format, 'repo-standards/state/v6');
+  assert.equal(state.format, 'repo-standards/state/v7');
   assert.equal(Object.hasOwn(state, 'history'), false, 'committed state must not carry earlier runs');
   assertCompactIntervals('current', state.observations!);
 }
@@ -143,14 +143,18 @@ export function growCommittedState(root: string, bytes: number) {
 // for the project's normal workflow to commit names an absolute path or a
 // relative path with a parent segment, as a JSON key or string value, and none
 // names a given machine location anywhere in its text. The parent-segment check
-// is deliberately strict: the product writes only normalized paths. Absolute
+// is deliberately strict: the product writes only normalized paths, and a skill
+// link's text, which resolves inside the project. Absolute
 // paths the standards source itself declares, such as an operation's
 // executable, are retained source content and are passed as authored.
 export function assertNoMachineLocation(root: string, locations: string[], authored: string[] = []) {
   const committed = git(root, 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '.repo-standards').split('\0').filter(Boolean);
   assert.ok(committed.includes('.repo-standards/state.json'), 'the adoption leaves committed state');
   const located: string[] = [];
-  const location = (value: string) => isAbsolute(value) || value.split('/').includes('..');
+  // A skill link's text climbs from .claude/skills/<name> back into the
+  // project, so it names no location outside it.
+  const skillLinkText = /^\.\.\/\.\.\/\.agents\/skills\/[^/]+$/;
+  const location = (value: string) => isAbsolute(value) || (value.split('/').includes('..') && !skillLinkText.test(value));
   function visit(path: string, value: unknown) {
     if (typeof value === 'string' && location(value) && !authored.includes(value)) located.push(`${path}: ${value}`);
     else if (value && typeof value === 'object') for (const [key, child] of Object.entries(value)) {
