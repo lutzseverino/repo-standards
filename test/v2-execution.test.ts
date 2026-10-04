@@ -1,3 +1,4 @@
+import type { ErrorReport, FileObservation, FileState, Inspection, Run, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
@@ -26,15 +27,15 @@ async function fixture(t: TestContext, script: string, declarations: Record<stri
   const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
-  const run = (args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: JSON.parse(result.stdout) }; };
-  const inspection = run(inspectionArgs).report;
+  const run = <T = Run>(args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: (JSON.parse(result.stdout) as T) }; };
+  const inspection = run<Inspection>(inspectionArgs).report;
   const startArgs = ['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity];
-  return { project, remote, env, run, startArgs, head: git(project.root, 'rev-parse', 'HEAD'), start: () => run(startArgs),
+  return { project, remote, env, run, startArgs, head: git(project.root, 'rev-parse', 'HEAD'), start: () => run<Run>(startArgs),
     assess(request: { declarations: { id: string }[] }, status = 'satisfied') {
       const path = join(remote.support.root, 'assessment.json');
       writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v3',
         declarations: request.declarations.map(({ id }) => ({ id, status, explanation: 'Guidance applied.', evidence: ['Reviewed project content.'] })) }));
-      return run(['resume', '--assessment', path, '--json']);
+      return run<Run>(['resume', '--assessment', path, '--json']);
     },
   };
 }
@@ -59,13 +60,13 @@ syncBuiltinESMExports();`);
     assert.equal(cli.run(f.startArgs, f.project.root, env).signal, 'SIGKILL');
     assert.equal(existsSync(join(f.project.root, 'Z-LAST.md')), false);
     mkdirSync(join(f.project.root, addition), { recursive: true });
-    const rejected = f.run(['resume', '--retry', '--json']);
+    const rejected = f.run<Run>(['resume', '--retry', '--json']);
     assert.equal(rejected.result.status, 1, rejected.result.stdout);
     assert.match(rejected.report.reason, /INSTALLATION_CHANGED.*inventory/);
     assert.equal(existsSync(join(f.project.root, 'Z-LAST.md')), false);
     assert.equal(existsSync(join(f.project.root, addition)), true);
     rmSync(join(f.project.root, addition), { recursive: true });
-    const recovered = f.run(['resume', '--retry', '--json']);
+    const recovered = f.run<Run>(['resume', '--retry', '--json']);
     assert.equal(recovered.result.status, 0, recovered.result.stdout);
     assert.equal(recovered.report.outcome, 'complete');
   });
@@ -78,12 +79,12 @@ ${result}`);
   const started = f.start();
   assert.equal(started.result.status, 1);
   assert.match(started.report.reason, /OPERATION_SCOPE.*readme\/prepare.*OTHER.md/);
-  assert.equal(started.report.operations[0].result.status, 'changed');
+  assert.equal(started.report.operations[0]!.result!.status, 'changed');
   assert.equal(readFileSync(join(f.project.root, 'OTHER.md'), 'utf8'), 'Wrong declaration');
-  const abandoned = f.run(['abandon', '--json']).report;
+  const abandoned = f.run<Run>(['abandon', '--json']).report;
   assert.equal(abandoned.abandoned, true);
   assert.equal(readFileSync(join(f.project.root, 'OTHER.md'), 'utf8'), 'Wrong declaration');
-  assert.equal(f.run(['status', '--json']).report.lastComplete, null);
+  assert.equal(f.run<Status>(['status', '--json']).report.lastComplete, null);
 });
 
 test('v2 keeps named targets observable when fixes make them ignored', async t => {
@@ -98,11 +99,11 @@ ${result}`, {
   const started = f.start().report;
   assert.equal(started.phase, 'contextual');
   writeFileSync(join(f.project.root, 'new.md'), 'Agent explanation');
-  const refreshed = f.run(['resume', '--json']).report;
-  assert.notEqual(refreshed.workRequest.snapshot, started.workRequest.snapshot);
-  const complete = f.assess(refreshed.workRequest);
+  const refreshed = f.run<Run>(['resume', '--json']).report;
+  assert.notEqual(refreshed.workRequest!.snapshot, started.workRequest!.snapshot);
+  const complete = f.assess(refreshed.workRequest!);
   assert.equal(complete.result.status, 0, complete.result.stdout);
-  assert.deepEqual(complete.report.assessments[0].declarations[0].changedPaths, ['new.md']);
+  assert.deepEqual(complete.report.assessments[0]!.declarations[0]!.changedPaths, ['new.md']);
 });
 
 test('v2 preserves same-file agent work across fix replay and attributes it to its declaration', async t => {
@@ -112,20 +113,20 @@ ${result}`);
   const started = f.start().report;
   assert.equal(started.phase, 'contextual');
   writeFileSync(join(f.project.root, 'README.md'), 'Agent documentation');
-  const oldRequest = f.run(['resume', '--json']).report.workRequest;
-  const retried = f.run(['resume', '--retry', '--json']).report;
+  const oldRequest = f.run<Run>(['resume', '--json']).report.workRequest;
+  const retried = f.run<Run>(['resume', '--retry', '--json']).report;
   assert.equal(retried.phase, 'contextual');
   assert.equal(readFileSync(join(f.project.root, 'README.md'), 'utf8'), 'Prepared');
-  assert.notEqual(retried.workRequest.snapshot, oldRequest.snapshot);
-  const complete = f.assess(retried.workRequest);
+  assert.notEqual(retried.workRequest!.snapshot, oldRequest!.snapshot);
+  const complete = f.assess(retried.workRequest!);
   assert.equal(complete.result.status, 0, complete.result.stdout);
   // The agent change replaced by the replayed fix is still attributed to its declaration.
-  assert.deepEqual(complete.report.assessments[0].declarations.map((entry: { changedPaths: string[] }) => entry.changedPaths), [[], ['README.md']]);
-  const status = f.run(['status', '--json']).report;
+  assert.deepEqual(complete.report.assessments[0]!.declarations.map((entry: { changedPaths: string[] }) => entry.changedPaths), [[], ['README.md']]);
+  const status = f.run<Status>(['status', '--json']).report;
   const intervals = status.observations as { phase: string; changes: Record<string, unknown>; scope: unknown }[];
   assert.deepEqual(intervals.filter(interval => Object.hasOwn(interval.changes, 'README.md')).map(interval => interval.phase), ['fixes', 'agent', 'fixes']);
   assert.ok(intervals.every(interval => interval.scope));
-  assert.equal(status.checks.length, 1);
+  assert.equal(status.checks!.length, 1);
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
   assert.notEqual(git(f.project.root, 'status', '--porcelain'), '');
 });
@@ -136,10 +137,10 @@ if (input.operation.phase === 'fixes') { writeFileSync('added.txt', 'Added'); rm
 ${result}`, undefined, { 'tool.sh': '#!/bin/sh\n' });
   const failed = f.start().report;
   assert.match(failed.reason, /OPERATION_SCOPE/);
-  assert.deepEqual(failed.observations[0].violations, ['OTHER.md', 'added.txt', 'tool.sh']);
-  assert.deepEqual(failed.operations[0].process, { exitCode: 0, signal: null, error: null, timedOut: false });
+  assert.deepEqual(failed.observations[0]!.violations, ['OTHER.md', 'added.txt', 'tool.sh']);
+  assert.deepEqual(failed.operations[0]!.process, { exitCode: 0, signal: null, error: null, timedOut: false });
   assert.equal(failed.uncertain.length, 0);
-  const retried = f.run(['resume', '--retry', '--json']).report;
+  const retried = f.run<Run>(['resume', '--retry', '--json']).report;
   assert.match(retried.reason, /OPERATION_SCOPE/);
   assert.equal(retried.operations.length, 1);
 });
@@ -158,12 +159,12 @@ ${result}`, {
   mkdirSync(join(f.project.root, 'ignored'));
   const started = f.start().report;
   assert.equal(started.phase, 'contextual', started.reason);
-  assert.deepEqual(Object.keys(started.observations[0].changes), ['docs/old.md', 'docs/sub/new.md', 'docs/tool.sh']);
+  assert.deepEqual(Object.keys(started.observations[0]!.changes!), ['docs/old.md', 'docs/sub/new.md', 'docs/tool.sh']);
   writeFileSync(join(f.project.root, 'docs/sub/new.md'), 'Agent documentation');
-  const request = f.run(['resume', '--json']).report.workRequest;
-  const completed = f.assess(request);
+  const request = f.run<Run>(['resume', '--json']).report.workRequest;
+  const completed = f.assess(request!);
   assert.equal(completed.result.status, 0, completed.result.stdout);
-  assert.deepEqual(completed.report.assessments[0].declarations[0].changedPaths, ['docs/sub/new.md']);
+  assert.deepEqual(completed.report.assessments[0]!.declarations[0]!.changedPaths, ['docs/sub/new.md']);
 });
 
 test('v2 checks remain read-only even for ignored named targets and keep operation outcomes separate', async t => {
@@ -174,11 +175,11 @@ ${result}`, {
     docs: { kind: 'repository', guidance: 'guide.md', targets: { paths: ['new.md', '.gitignore'], directories: [] }, fixes: [operation('prepare')], checks: [operation('verify')] },
   }, { '.gitignore': '' });
   const started = f.start().report;
-  const failed = f.assess(started.workRequest).report;
+  const failed = f.assess(started.workRequest!).report;
   assert.match(failed.reason, /CHECK_MUTATION.*docs\/verify.*new.md/);
-  assert.equal(failed.assessments[0].declarations[0].status, 'satisfied');
-  assert.equal(failed.operations[1].result.status, 'passed');
-  assert.deepEqual(failed.observations.at(-1).violations, ['new.md']);
+  assert.equal(failed.assessments[0]!.declarations[0]!.status, 'satisfied');
+  assert.equal(failed.operations[1]!.result!.status, 'passed');
+  assert.deepEqual(failed.observations.at(-1)!.violations, ['new.md']);
   assert.equal(readFileSync(join(f.project.root, 'new.md'), 'utf8'), 'checks');
 });
 
@@ -191,12 +192,12 @@ test('v2 exact declarations cannot redefine bytes, executable state or complete 
     const f = await fixture(st, `${prelude}\n${mutation}\n${result}`, { exact: { ...declaration, fixes: [operation('prepare')] } });
     const failed = f.start().report;
     assert.match(failed.reason, /FINAL_INTEGRITY/);
-    assert.equal(failed.operations[0].result.status, 'changed');
-    assert.deepEqual(failed.observations[0].violations, []);
-    const retry = f.run(['resume', '--retry', '--json']).report;
+    assert.equal(failed.operations[0]!.result!.status, 'changed');
+    assert.deepEqual(failed.observations[0]!.violations, []);
+    const retry = f.run<Run>(['resume', '--retry', '--json']).report;
     assert.match(retry.reason, /FINAL_INTEGRITY/);
     assert.equal(retry.operations.length, 1);
-    assert.equal(f.run(['status', '--json']).report.lastComplete, null);
+    assert.equal(f.run<Status>(['status', '--json']).report.lastComplete, null);
   });
 });
 
@@ -206,16 +207,16 @@ if (input.operation.phase === 'fixes') writeFileSync('README.md', Buffer.alloc(8
 ${result}`);
   const failed = f.start().report;
   assert.match(failed.reason, /OBSERVATION_LIMIT/);
-  assert.equal(failed.operations[0].result.status, 'changed');
-  assert.equal(failed.observations[0].after, undefined);
-  assert.match(f.run(['resume', '--retry', '--json']).report.reason, /OBSERVATION_LIMIT/);
+  assert.equal(failed.operations[0]!.result!.status, 'changed');
+  assert.equal(failed.observations[0]!.after, undefined);
+  assert.match(f.run<Run>(['resume', '--retry', '--json']).report.reason, /OBSERVATION_LIMIT/);
   writeFileSync(join(f.project.root, 'README.md'), 'Reconciled');
-  const retry = f.run(['resume', '--retry', '--json']).report;
+  const retry = f.run<Run>(['resume', '--retry', '--json']).report;
   assert.match(retry.reason, /OBSERVATION_LIMIT/);
-  assert.equal(retry.observations[0].interrupted, undefined);
-  assert.equal(retry.observations[0].operationIndex, 0);
-  assert.equal(retry.operations[0].result.status, 'changed');
-  const abandoned = f.run(['abandon', '--json']).report;
+  assert.equal(retry.observations[0]!.interrupted, undefined);
+  assert.equal(retry.observations[0]!.operationIndex, 0);
+  assert.equal(retry.operations[0]!.result!.status, 'changed');
+  const abandoned = f.run<Run>(['abandon', '--json']).report;
   assert.equal(abandoned.abandoned, true);
   assert.ok(abandoned.uncertain.some((message: string) => message.includes('observation')));
 });
@@ -230,20 +231,20 @@ if (input.operation.phase === 'fixes') {
 ${result}`);
   const killed = cli.run(f.startArgs, f.project.root, f.env);
   assert.equal(killed.signal, 'SIGKILL');
-  const stopped = f.run(['status', '--json']).report.active;
-  assert.equal(stopped.operations.length, 0);
-  assert.equal(stopped.observations[0].after, undefined);
-  assert.equal(f.run(['resume', '--json']).report.errors[0].code, 'RESUME_UNAVAILABLE');
-  const retry = f.run(['resume', '--retry', '--json']).report;
+  const stopped = f.run<Status>(['status', '--json']).report.active;
+  assert.equal(stopped!.operations.length, 0);
+  assert.equal(stopped!.observations[0]!.after, undefined);
+  assert.equal(f.run<ErrorReport>(['resume', '--json']).report.errors[0]!.code, 'RESUME_UNAVAILABLE');
+  const retry = f.run<Run>(['resume', '--retry', '--json']).report;
   assert.equal(retry.phase, 'contextual', retry.reason);
-  assert.equal(retry.observations[0].interrupted, true);
-  assert.deepEqual(Object.keys(retry.observations[0].changes), ['README.md']);
-  assert.equal(retry.observations[0].phase, 'fixes');
-  assert.equal(retry.retryHistory[0].phase, 'fixes');
-  assert.ok(retry.retryHistory[0].uncertain.length);
-  const completed = f.assess(retry.workRequest);
+  assert.equal(retry.observations[0]!.interrupted, true);
+  assert.deepEqual(Object.keys(retry.observations[0]!.changes!), ['README.md']);
+  assert.equal(retry.observations[0]!.phase, 'fixes');
+  assert.equal(retry.retryHistory![0]!.phase, 'fixes');
+  assert.ok(retry.retryHistory![0]!.uncertain.length);
+  const completed = f.assess(retry.workRequest!);
   assert.equal(completed.result.status, 0, completed.result.stdout);
-  assert.equal(f.run(['status', '--json']).report.observations[0].interrupted, true);
+  assert.equal(f.run<Status>(['status', '--json']).report.observations![0]!.interrupted, true);
 });
 
 test('v2 retry records agent edits after rejected evidence before replay can overwrite them', async t => {
@@ -251,14 +252,14 @@ test('v2 retry records agent edits after rejected evidence before replay can ove
 if (input.operation.phase === 'fixes') writeFileSync('README.md', 'Prepared');
 ${result}`);
   const started = f.start().report;
-  const rejected = f.assess(started.workRequest, 'blocked').report;
+  const rejected = f.assess(started.workRequest!, 'blocked').report;
   assert.match(rejected.reason, /ASSESSMENT_BLOCKED/);
   writeFileSync(join(f.project.root, 'README.md'), 'Agent change after rejection');
-  const retried = f.run(['resume', '--retry', '--json']).report;
+  const retried = f.run<Run>(['resume', '--retry', '--json']).report;
   assert.equal(retried.phase, 'contextual');
-  const complete = f.assess(retried.workRequest);
+  const complete = f.assess(retried.workRequest!);
   assert.equal(complete.result.status, 0, complete.result.stdout);
-  assert.deepEqual(complete.report.assessments[0].declarations.map((entry: { changedPaths: string[] }) => entry.changedPaths), [[], ['README.md']]);
+  assert.deepEqual(complete.report.assessments[0]!.declarations.map((entry: { changedPaths: string[] }) => entry.changedPaths), [[], ['README.md']]);
 });
 
 test('v2 refuses unsafe named ancestors and stale assessments after observation settings change', async t => {
@@ -267,11 +268,11 @@ test('v2 refuses unsafe named ancestors and stale assessments after observation 
   });
   const started = f.start().report;
   writeFileSync(join(f.project.root, 'docs'), 'Unsafe non-directory ancestor');
-  assert.match(f.run(['resume', '--json']).report.reason, /OBSERVATION_UNSAFE/);
+  assert.match(f.run<Run>(['resume', '--json']).report.reason, /OBSERVATION_UNSAFE/);
   rmSync(join(f.project.root, 'docs'));
   git(f.project.root, 'config', 'core.filemode', 'false');
-  assert.match(f.assess(started.workRequest).report.reason, /STALE_ASSESSMENT/);
-  assert.equal(f.run(['status', '--json']).report.lastComplete, null);
+  assert.match(f.assess(started.workRequest!).report.reason, /STALE_ASSESSMENT/);
+  assert.equal(f.run<Status>(['status', '--json']).report.lastComplete, null);
 });
 
 
@@ -291,20 +292,20 @@ fs.writeFileSync = function(path, data, ...args) {
   return result;
 };
 syncBuiltinESMExports();`);
-  const started = JSON.parse(cli.run(f.startArgs, f.project.root, env).stdout);
+  const started = (JSON.parse(cli.run(f.startArgs, f.project.root, env).stdout) as Run);
   assert.match(started.reason, /ASSESSMENT_SCOPE.*OTHER.md/);
   assert.equal(started.operations.length, 1);
   assert.equal(readFileSync(join(f.project.root, 'OTHER.md'), 'utf8'), 'Changed between operations');
   // The recorded gap chains to the fix before it and preserves its delta and violation.
-  const recorded = f.run(['status', '--json']).report.active.observations;
+  const recorded = f.run<Status>(['status', '--json']).report.active!.observations;
   assert.deepEqual(recorded.map((interval: { phase: string }) => interval.phase), ['fixes', 'agent']);
   const [fix, gap] = recorded;
-  assert.equal(gap.before, fix.after);
-  assert.notEqual(gap.after, gap.before);
-  assert.deepEqual(Object.keys(gap.changes), ['OTHER.md']);
-  assert.notEqual(gap.changes['OTHER.md'].before.sha256, gap.changes['OTHER.md'].after.sha256);
-  assert.deepEqual(gap.violations, ['OTHER.md']);
-  const retried = f.run(['resume', '--retry', '--json']).report;
+  assert.equal(gap!.before, fix!.after);
+  assert.notEqual(gap!.after, gap!.before);
+  assert.deepEqual(Object.keys(gap!.changes!), ['OTHER.md']);
+  assert.notEqual((gap!.changes!['OTHER.md']!.before as FileObservation).sha256, (gap!.changes!['OTHER.md']!.after as FileObservation).sha256);
+  assert.deepEqual(gap!.violations, ['OTHER.md']);
+  const retried = f.run<Run>(['resume', '--retry', '--json']).report;
   assert.match(retried.reason, /ASSESSMENT_SCOPE.*OTHER.md/);
   assert.deepEqual(retried.observations[1], gap);
 });
@@ -321,18 +322,18 @@ ${result}`);
   const path = join(f.remote.support.root, 'assessment.json');
   const request = started.workRequest;
   writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v3',
-    declarations: request.declarations.map(({ id }: { id: string }) => ({ id, status: 'satisfied', explanation: 'Guidance applied.', evidence: ['Reviewed project content.'] })) }));
+    declarations: request!.declarations.map(({ id }: { id: string }) => ({ id, status: 'satisfied', explanation: 'Guidance applied.', evidence: ['Reviewed project content.'] })) }));
   assert.equal(cli.run(['resume', '--assessment', path, '--json'], f.project.root, f.env).signal, 'SIGKILL');
-  const stopped = f.run(['status', '--json']).report.active;
-  assert.equal(stopped.observations.at(-1).phase, 'checks');
-  assert.equal(stopped.observations.at(-1).after, undefined);
-  const retry = f.run(['resume', '--retry', '--json']).report;
+  const stopped = f.run<Status>(['status', '--json']).report.active;
+  assert.equal(stopped!.observations.at(-1)!.phase, 'checks');
+  assert.equal(stopped!.observations.at(-1)!.after, undefined);
+  const retry = f.run<Run>(['resume', '--retry', '--json']).report;
   assert.match(retry.reason, /CHECK_MUTATION.*readme\/verify.*OTHER.md/);
   const check = retry.observations.find((interval: { phase: string }) => interval.phase === 'checks');
-  assert.equal(check.interrupted, true);
-  assert.equal(check.before, stopped.observations.at(-1).before);
-  assert.deepEqual(Object.keys(check.changes), ['OTHER.md']);
-  assert.deepEqual(check.violations, ['OTHER.md']);
+  assert.equal(check!.interrupted, true);
+  assert.equal(check!.before, stopped!.observations.at(-1)!.before);
+  assert.deepEqual(Object.keys(check!.changes!), ['OTHER.md']);
+  assert.deepEqual(check!.violations, ['OTHER.md']);
   assert.equal(readFileSync(join(f.project.root, 'OTHER.md'), 'utf8'), 'Written by a check');
 });
 
@@ -341,14 +342,14 @@ test('v2 observes named ancestor deletion, root mode changes, and empty director
     ['ancestor', "rmSync('docs', {recursive:true});", 'fixes', 'OPERATION_SCOPE'],
     ['root', "chmodSync('.', 0o755);", 'fixes', 'OPERATION_SCOPE'],
     ['empty directory', "mkdirSync('unrelated');", 'checks', 'CHECK_MUTATION'],
-  ]) await t.test(name!, async st => {
+  ]) await t.test(name, async st => {
     const f = await fixture(st, `${prelude}\nif (input.operation.phase === '${phase}') { ${mutation} }\n${result}`, {
       docs: { kind: 'repository', guidance: 'guide.md', targets: { paths: ['docs/new.md'], directories: [] },
         fixes: [operation('prepare')], checks: [operation('verify')] },
     });
     mkdirSync(join(f.project.root, 'docs'));
     const started = f.start().report;
-    const failed = phase === 'checks' ? f.assess(started.workRequest).report : started;
+    const failed = phase === 'checks' ? f.assess(started.workRequest!).report : started;
     assert.match(failed.reason, new RegExp(code!));
   });
 });
@@ -360,10 +361,10 @@ if (!existsSync(marker)) { writeFileSync(marker, 'attempted'); writeFileSync('AG
 ${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fixes: [operation('prepare')] } });
   assert.match(f.start().report.reason, /FINAL_INTEGRITY/);
   writeFileSync(join(f.project.root, 'AGENTS.md'), 'Expected instructions');
-  const retry = f.run(['resume', '--retry', '--json']);
+  const retry = f.run<Run>(['resume', '--retry', '--json']);
   assert.equal(retry.result.status, 0, retry.result.stdout);
   assert.equal(readFileSync(join(f.project.root, 'AGENTS.md'), 'utf8'), 'Expected instructions');
-  assert.equal(retry.report.observations[1].restoredExact['AGENTS.md'].type, 'file');
+  assert.equal(retry.report.observations[1]!.restoredExact!['AGENTS.md']!.type, 'file');
 });
 
 test('verified restoration of an exact file leaves only its installation in the change set', async t => {
@@ -374,10 +375,10 @@ ${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fix
   const restoreAndRetry = (started: { report: { reason: string } }, installed = 'Expected instructions') => {
     assert.match(started.report.reason, /FINAL_INTEGRITY/);
     writeFileSync(join(f.project.root, 'AGENTS.md'), installed);
-    const retry = f.run(['resume', '--retry', '--json']);
+    const retry = f.run<Run>(['resume', '--retry', '--json']);
     assert.equal(retry.result.status, 0, retry.result.stdout);
     assert.ok(retry.report.observations.some((interval: { restoredExact?: object }) => interval.restoredExact && 'AGENTS.md' in interval.restoredExact));
-    return f.run(['status', '--json']).report.changeSet;
+    return f.run<Status>(['status', '--json']).report.changeSet;
   };
   // Initial adoption installs the file; the corrupting fix it undid is not listed.
   assert.deepEqual(restoreAndRetry(f.start()), [
@@ -389,7 +390,7 @@ ${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fix
     commit(f.project.root);
     rmSync(join(f.project.root, '.repo-standards/local/attempt'));
     const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? version : argument);
-    return f.run(['start', ...args.slice(1), '--confirm', f.run(args).report.identity]);
+    return f.run<Run>(['start', ...args.slice(1), '--confirm', f.run<Inspection>(args).report.identity]);
   };
   assert.deepEqual(restoreAndRetry(update('v1.0.0')), []);
   // An update that installs new content lists it as installed only.
@@ -410,12 +411,12 @@ ${result}`, { review: { kind: 'skill', name: 'review', source: 'skill', fixes: [
       mkdirSync(join(f.project.root, '.agents/skills/review'));
       writeFileSync(join(f.project.root, '.agents/skills/review/SKILL.md'), '# Review');
     } else rmSync(join(f.project.root, '.agents/skills/review/unexpected'), { recursive: true });
-    const retry = f.run(['resume', '--retry', '--json']);
+    const retry = f.run<Run>(['resume', '--retry', '--json']);
     assert.equal(retry.result.status, 0, retry.report.reason);
     assert.equal(readFileSync(join(f.project.root, '.agents/skills/review/SKILL.md'), 'utf8'), '# Review');
-    assert.ok(Object.keys(retry.report.observations[1].restoredBoundaries).includes(mode === 'removed' ? '.agents/skills/review' : '.agents/skills/review/unexpected'));
+    assert.ok(Object.keys(retry.report.observations[1]!.restoredBoundaries!).includes(mode === 'removed' ? '.agents/skills/review' : '.agents/skills/review/unexpected'));
     // Restored and removed resources leave only the installed skill in the change set.
-    assert.deepEqual(f.run(['status', '--json']).report.changeSet.map((entry: { path: string; phases: string[] }) => `${entry.path} ${entry.phases.join(',')}`),
+    assert.deepEqual(f.run<Status>(['status', '--json']).report.changeSet!.map((entry: { path: string; phases: string[] }) => `${entry.path} ${entry.phases.join(',')}`),
       [...cli.systemSkillFiles, ...cli.systemSkillLinks, '.agents/skills/review/SKILL.md', '.claude/skills/review'].sort().map(path => `${path} installation`));
   });
 });
@@ -427,15 +428,15 @@ if (!existsSync(marker)) { writeFileSync(marker, 'attempted'); mkdirSync('.agent
 ${result}`, { review: { kind: 'skill', name: 'review', source: 'skill', fixes: [operation('prepare')] } });
   const failed = f.start().report;
   assert.match(failed.reason, /FINAL_INTEGRITY.*Skill inventory/);
-  assert.equal(failed.operations[0].result.status, 'changed');
-  assert.deepEqual(failed.observations[0].violations, []);
-  assert.match(f.run(['resume', '--retry', '--json']).report.reason, /FINAL_INTEGRITY/);
+  assert.equal(failed.operations[0]!.result!.status, 'changed');
+  assert.deepEqual(failed.observations[0]!.violations, []);
+  assert.match(f.run<Run>(['resume', '--retry', '--json']).report.reason, /FINAL_INTEGRITY/);
   rmSync(join(f.project.root, '.agents/skills/review/empty'), { recursive: true });
-  const recovered = f.run(['resume', '--retry', '--json']);
+  const recovered = f.run<Run>(['resume', '--retry', '--json']);
   assert.equal(recovered.result.status, 0, recovered.result.stdout);
   mkdirSync(join(f.project.root, '.agents/skills/review/another-empty'));
-  const retained = f.run(['inspect', '--json']).report;
-  assert.ok(retained.start.blockers.some((blocker: { code: string; path: string }) => blocker.code === 'UNTRACKED_REPLACEMENT' && blocker.path === '.agents/skills/review/another-empty'));
+  const retained = f.run<Inspection>(['inspect', '--json']).report;
+  assert.ok(retained.start.blockers.some((blocker) => blocker.code === 'UNTRACKED_REPLACEMENT' && blocker.path === '.agents/skills/review/another-empty'));
   assert.deepEqual(retained.discardedEdits, ['.agents/skills/review']);
 });
 
@@ -451,17 +452,17 @@ if (input.operation.phase === '${phase}' && !existsSync(marker)) {
 }
 ${result}`);
     const started = f.start().report;
-    const failed = phase === 'checks' ? f.assess(started.workRequest).report : started;
+    const failed = phase === 'checks' ? f.assess(started.workRequest!).report : started;
     assert.match(failed.reason, /FINAL_INTEGRITY.*product state inventory/);
-    assert.equal(failed.operations.at(-1).result.status, phase === 'checks' ? 'passed' : 'changed');
-    assert.match(f.run(['resume', '--retry', '--json']).report.reason, /FINAL_INTEGRITY/);
+    assert.equal(failed.operations.at(-1)!.result!.status, phase === 'checks' ? 'passed' : 'changed');
+    assert.match(f.run<Run>(['resume', '--retry', '--json']).report.reason, /FINAL_INTEGRITY/);
     rmSync(join(f.project.root, '.repo-standards', target), { recursive: true });
-    const retry = f.run(['resume', '--retry', '--json']).report;
+    const retry = f.run<Run>(['resume', '--retry', '--json']).report;
     assert.equal(retry.phase, 'contextual', retry.reason);
-    assert.equal(f.assess(retry.workRequest).result.status, 0);
+    assert.equal(f.assess(retry.workRequest!).result.status, 0);
     mkdirSync(join(f.project.root, '.repo-standards', target));
-    const retained = f.run(['inspect', '--json']).report;
-    assert.ok(retained.start.blockers.some((blocker: { code: string; path: string }) => blocker.code === 'STATE_INTEGRITY' && blocker.path === '.repo-standards'));
+    const retained = f.run<Inspection>(['inspect', '--json']).report;
+    assert.ok(retained.start.blockers.some((blocker) => blocker.code === 'STATE_INTEGRITY' && blocker.path === '.repo-standards'));
   });
 });
 
@@ -475,30 +476,30 @@ ${result}`);
   // A run record that carries an observation map fails integrity validation.
   const journal = join(f.project.root, '.git/repo-standards-run.lock');
   const recorded = readFileSync(journal, 'utf8');
-  const record = JSON.parse(recorded);
+  const record = (JSON.parse(recorded) as Run);
   assertCompactRunRecord(record, 'journal');
   // Beside the journal, the run keeps only the one observation its last interval ends at.
   const observations = () => readdirSync(join(f.project.root, '.git')).filter(name => name.startsWith('repo-standards-run.lock.observation.'));
-  assert.deepEqual(observations(), [`repo-standards-run.lock.observation.${record.observations.at(-1).before.slice('sha256:'.length)}`]);
+  assert.deepEqual(observations(), [`repo-standards-run.lock.observation.${record.observations.at(-1)!.before.slice('sha256:'.length)}`]);
   // Losing that observation is reported by status and blocks recovery until it is restored.
   const kept = join(f.project.root, '.git', observations()[0]!);
   const keptBytes = readFileSync(kept);
   const mirror = join(f.project.root, '.repo-standards/local/run.json');
   const mirrored = readFileSync(mirror);
   writeFileSync(kept, '{}');
-  assert.ok(f.run(['status', '--json']).report.active.uncertain.some((message: string) => message.includes('observation the run last recorded changed')));
+  assert.ok(f.run<Status>(['status', '--json']).report.active!.uncertain.some((message: string) => message.includes('observation the run last recorded changed')));
   rmSync(kept);
-  assert.ok(f.run(['status', '--json']).report.active.uncertain.some((message: string) => message.includes('observation the run last recorded cannot be read')));
-  assert.match(f.run(['resume', '--json']).report.reason, /STATE_INTEGRITY.*observation the run last recorded cannot be read/);
+  assert.ok(f.run<Status>(['status', '--json']).report.active!.uncertain.some((message: string) => message.includes('observation the run last recorded cannot be read')));
+  assert.match(f.run<Run>(['resume', '--json']).report.reason, /STATE_INTEGRITY.*observation the run last recorded cannot be read/);
   writeFileSync(kept, keptBytes);
   writeFileSync(journal, recorded);
   writeFileSync(mirror, mirrored);
   writeFileSync(journal, JSON.stringify({ ...record, observations: record.observations.map((interval: object) => ({ ...interval, before: { files: {} } })) }));
-  for (const command of [['status'], ['resume']]) assert.equal(f.run([...command, '--json']).report.errors[0].code, 'STATE_INTEGRITY', command[0]);
+  for (const command of [['status'], ['resume']]) assert.equal(f.run<ErrorReport>([...command, '--json']).report.errors[0]!.code, 'STATE_INTEGRITY', command[0]);
   writeFileSync(journal, recorded);
   writeFileSync(join(f.project.root, 'OTHER.md'), 'Agent documentation');
-  const refreshed = f.run(['resume', '--json']).report;
-  const completed = f.assess(refreshed.workRequest);
+  const refreshed = f.run<Run>(['resume', '--json']).report;
+  const completed = f.assess(refreshed.workRequest!);
   assert.equal(completed.result.status, 0, completed.result.stdout);
 
   const state = committedState(f.project.root);
@@ -511,14 +512,14 @@ ${result}`);
   assert.ok(intervals.some(interval => interval.phase === 'agent'));
   const fix = intervals.find(interval => interval.operation?.id === 'prepare')!;
   assert.deepEqual(Object.keys(fix.changes!), ['README.md']);
-  assert.equal(fix.changes!['README.md']!.before.type, 'file');
-  assert.equal(fix.changes!['README.md']!.after.type, 'file');
-  assert.notEqual(fix.changes!['README.md']!.before.sha256, fix.changes!['README.md']!.after.sha256);
+  assert.equal((fix.changes!['README.md']!.before as FileState).type, 'file');
+  assert.equal((fix.changes!['README.md']!.after as FileState).type, 'file');
+  assert.notEqual((fix.changes!['README.md']!.before as FileObservation).sha256, (fix.changes!['README.md']!.after as FileObservation).sha256);
   assert.deepEqual(fix.boundaryChanges, {});
   assert.deepEqual(fix.violations, []);
   assert.deepEqual(fix.scope, { readme: { paths: ['README.md'], directories: [] } });
   const agent = intervals.find(interval => interval.phase === 'agent' && Object.hasOwn(interval.changes ?? {}, 'OTHER.md'))!;
-  assert.equal(agent.changes!['OTHER.md']!.after.type, 'file');
+  assert.equal((agent.changes!['OTHER.md']!.after as FileState).type, 'file');
   // Adjacent intervals chain, so the committed identities remain tamper-evident.
   for (const [index, interval] of intervals.entries()) if (index) assert.equal(interval.before, intervals[index - 1]!.after);
 
@@ -529,7 +530,7 @@ ${result}`);
   assert.equal(existsSync(journal), false);
   assert.deepEqual(observations(), []);
 
-  const status = f.run(['status', '--json']).report;
+  const status = f.run<Status>(['status', '--json']).report;
   assert.equal(status.format, 'repo-standards/status/v7');
   assert.deepEqual(status.observations, intervals);
   assert.equal(Object.hasOwn(status, 'history'), false);

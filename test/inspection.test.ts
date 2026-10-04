@@ -1,3 +1,4 @@
+import type { Diagnostic, DirectoryInventory, ErrorReport, FileInventory, Inspection, Run, SourceValidation, UnsafeInventory } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { readFileSync, readdirSync, lstatSync, writeFileSync, mkdirSync, symlinkSync, chmodSync, utimesSync, unlinkSync } from 'node:fs';
@@ -57,9 +58,9 @@ test('inspection reports invalid invocation settings under their skill metadata 
   const before = snapshot(project.root);
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  const error = JSON.parse(result.stdout).errors[0];
-  assert.equal(error.code, 'INVALID_STANDARDS');
-  assert.deepEqual(error.details.map(({ code, file, line, column, path }: {
+  const error = (JSON.parse(result.stdout) as ErrorReport).errors[0];
+  assert.equal(error!.code, 'INVALID_STANDARDS');
+  assert.deepEqual((error!.details as Diagnostic[]).map(({ code, file, line, column, path }: {
     code: string; file: string; line: number; column: number; path: string;
   }) => ({ code, file, line, column, path })), [
     { code: 'INVALID_TYPE', file: 'skills/review/SKILL.md', line: 2, column: 27, path: '/disable-model-invocation' },
@@ -87,17 +88,17 @@ test('inspection identity and confirmation carry between clones made under diffe
   const reports = checkouts.map(checkout => {
     const result = cli.run(args, checkout, remote.env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    return JSON.parse(result.stdout);
+    return (JSON.parse(result.stdout) as Inspection);
   });
-  assert.equal(reports[0].identity, reports[1].identity);
-  assert.deepEqual(reports[0].start.blockers, []);
+  assert.equal(reports[0]!.identity, reports[1]!.identity);
+  assert.deepEqual(reports[0]!.start.blockers, []);
   const registry = await registryFixture(cli.root);
   t.after(() => registry.close());
-  const started = cli.run(['start', ...args.slice(1), '--confirm', reports[0].identity], checkouts[1]!, { ...remote.env, ...registry.env });
+  const started = cli.run(['start', ...args.slice(1), '--confirm', reports[0]!.identity], checkouts[1]!, { ...remote.env, ...registry.env });
   assert.equal(started.status, 1, started.stdout + started.stderr);
-  const run = JSON.parse(started.stdout);
+  const run = (JSON.parse(started.stdout) as Run);
   assert.equal(run.phase, 'contextual', started.stdout);
-  assert.equal(run.inspection, reports[0].identity);
+  assert.equal(run.inspection, reports[0]!.identity);
 });
 
 test('inspect and start reject Git older than 2.32 before observing public or retained selections', t => {
@@ -111,11 +112,11 @@ test('inspect and start reject Git older than 2.32 before observing public or re
   for (const args of [inspectionArgs, ['inspect', '--json'], ['start', ...inspectionArgs.slice(1), '--confirm', 'sha256:unobserved'], ['start', '--json', '--confirm', 'sha256:unobserved']]) {
     const result = cli.run(args, project.root, env);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const error = JSON.parse(result.stdout).errors[0];
-    assert.equal(error.code, 'GIT_VERSION_UNSUPPORTED');
-    assert.match(error.message, /2\.31\.8/);
-    assert.match(error.message, /2\.32/);
-    assert.equal(error.message, 'Installed Git 2.31.8 is unsupported; inspect and start require Git 2.32 or newer. Upgrade Git and inspect again.');
+    const error = (JSON.parse(result.stdout) as ErrorReport).errors[0];
+    assert.equal(error!.code, 'GIT_VERSION_UNSUPPORTED');
+    assert.match(error!.message, /2\.31\.8/);
+    assert.match(error!.message, /2\.32/);
+    assert.equal(error!.message, 'Installed Git 2.31.8 is unsupported; inspect and start require Git 2.32 or newer. Upgrade Git and inspect again.');
   }
   assert.equal(lstatSync(unexpected, { throwIfNoEntry: false }), undefined, 'Only the Git version probe may run');
   assert.deepEqual(remote.requests(), []);
@@ -131,11 +132,11 @@ test('resume rejects Git older than 2.32 before reading records or observing wor
   const env = { ...remote.env, ...registry.env };
   const inspected = cli.run(inspectionArgs, project.root, env);
   assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
-  const started = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', JSON.parse(inspected.stdout).identity], project.root, env);
+  const started = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', (JSON.parse(inspected.stdout) as Inspection).identity], project.root, env);
   assert.equal(started.status, 1, started.stdout + started.stderr);
-  assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout);
+  assert.equal((JSON.parse(started.stdout) as Run).phase, 'contextual', started.stdout);
   const runRecord = join(project.root, git(project.root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
-  const run = JSON.parse(readFileSync(runRecord, 'utf8'));
+  const run = (JSON.parse(readFileSync(runRecord, 'utf8')) as Run);
   const { env: gitEnv, unexpected } = oldGitEnv(remote.support.root, true);
   const requests = remote.requestLog().length;
   const commands = [['resume', '--json'], ['resume', '--retry', '--json'], ['resume', '--assessment', '/unread/assessment.json', '--json']];
@@ -148,7 +149,7 @@ test('resume rejects Git older than 2.32 before reading records or observing wor
     for (const args of commands) {
       const result = cli.run(args, project.root, { ...env, ...gitEnv });
       assert.equal(result.status, 1, result.stdout + result.stderr);
-      const error = JSON.parse(result.stdout).errors?.[0];
+      const error = (JSON.parse(result.stdout) as ErrorReport).errors?.[0];
       assert.equal(error?.code, 'GIT_VERSION_UNSUPPORTED', result.stdout);
       assert.match(error.message, /2\.31\.8/);
       assert.match(error.message, /2\.32/);
@@ -173,9 +174,9 @@ test('resume rejects a CLI other than the pin before rejecting old Git or record
     for (const args of [['resume', '--json'], ['resume', '--retry', '--json'], ['resume', '--assessment', '/unread/assessment.json', '--json']]) {
       const result = cli.run(args, project.root, env);
       assert.equal(result.status, 1, result.stdout + result.stderr);
-      const error = JSON.parse(result.stdout).errors[0];
-      assert.equal(error.code, 'CLI_PIN_MISMATCH');
-      assert.match(error.message, /99\.0\.0/);
+      const error = (JSON.parse(result.stdout) as ErrorReport).errors[0];
+      assert.equal(error!.code, 'CLI_PIN_MISMATCH');
+      assert.match(error!.message, /99\.0\.0/);
       assert.deepEqual(snapshot(project.root), before);
     }
   }
@@ -195,10 +196,10 @@ test('Git 2.32 and newer versions including vendor suffixes permit inspection an
     chmodSync(join(bin, 'git'), 0o755);
     const result = cli.run(inspectionArgs, project.root, { ...remote.env, PATH: `${bin}:${process.env.PATH}` });
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    assert.deepEqual(JSON.parse(result.stdout).start.blockers, []);
+    assert.deepEqual((JSON.parse(result.stdout) as Inspection).start.blockers, []);
     const resumed = cli.run(['resume', '--json'], project.root, { ...remote.env, PATH: `${bin}:${process.env.PATH}` });
     assert.equal(resumed.status, 1, resumed.stdout + resumed.stderr);
-    assert.equal(JSON.parse(resumed.stdout).errors[0].code, 'NO_ACTIVE_RUN');
+    assert.equal((JSON.parse(resumed.stdout) as ErrorReport).errors[0]!.code, 'NO_ACTIVE_RUN');
   }
 });
 
@@ -212,7 +213,7 @@ test('discovery identity ignores directory permissions but still binds a committ
   const inspect = () => {
     const result = cli.run(inspectionArgs, project.root, remote.env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    return JSON.parse(result.stdout);
+    return (JSON.parse(result.stdout) as Inspection);
   };
   const initial = inspect();
   chmodSync(join(project.root, 'scripts'), 0o700);
@@ -221,7 +222,7 @@ test('discovery identity ignores directory permissions but still binds a committ
   commit(project.root);
   const executable = inspect();
   assert.notEqual(executable.identity, initial.identity);
-  assert.notEqual(executable.discovery.identity, initial.discovery.identity);
+  assert.notEqual(executable.discovery!.identity, initial.discovery!.identity);
   assert.ok(!executable.start.blockers.some((blocker: { code: string }) => blocker.code === 'DIRTY_PROJECT'));
 });
 
@@ -241,7 +242,7 @@ test('inspection reports the pinned complete profile without changing a dirty pr
   const before = snapshot(project.root);
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as Inspection);
   assert.equal(report.selection.cli.version, cli.version);
   assert.deepEqual(report.selection.standards, { repository: 'https://github.com/alice/standards', version: 'v1.0.0', commit: remote.sha });
   assert.equal(report.selection.profile, 'work');
@@ -249,17 +250,17 @@ test('inspection reports the pinned complete profile without changing a dirty pr
   assert.equal(report.format, 'repo-standards/inspection/v6');
   assert.deepEqual(embeddedContent(report), [], 'Reports reference content by hash and carry changes as diffs');
   const agents = report.exact.find((d: { id: string }) => d.id === 'agent-guidance');
-  assert.equal(agents.action, 'replace');
-  assert.deepEqual(agents.files[0].before, { type: 'file', sha256: sha256('Old guidance'), executable: false });
-  assert.deepEqual(agents.files[0].after, { type: 'file', sha256: sha256(files['profiles/work/files/AGENTS.md']!), executable: false });
-  assert.match(agents.files[0].diff, /^--- a\/AGENTS\.md\n\+\+\+ b\/AGENTS\.md\n@@ -1 \+1(,\d+)? @@\n-Old guidance\n\\ No newline at end of file\n\+/);
+  assert.equal(agents!.action, 'replace');
+  assert.deepEqual(agents!.files[0]!.before, { type: 'file', sha256: sha256('Old guidance'), executable: false });
+  assert.deepEqual(agents!.files[0]!.after, { type: 'file', sha256: sha256(files['profiles/work/files/AGENTS.md']!), executable: false });
+  assert.match(agents!.files[0]!.diff!, /^--- a\/AGENTS\.md\n\+\+\+ b\/AGENTS\.md\n@@ -1 \+1(,\d+)? @@\n-Old guidance\n\\ No newline at end of file\n\+/);
   assert.deepEqual(report.guidance[0], { id: 'readme', targets: ['README.md'], source: 'defaults/guidance/readme.md', sha256: sha256(files['defaults/guidance/readme.md']!), executable: false });
-  assert.equal(report.operations[0].run.executable, './probe');
-  assert.equal(report.operations[0].prerequisite.status, 'not-checked');
-  assert.deepEqual(report.operations[0].script, { path: 'defaults/checks/readme.py', sha256: sha256(files['defaults/checks/readme.py']!), executable: false });
-  assert.deepEqual(report.operations[0].resources[0], { path: 'payload.json', type: 'file', sha256: sha256(files['payload.json']!), executable: false });
-  assert.equal(report.operations[0].resources[1].entries['support.txt'].sha256, sha256(files['resources/support.txt']!));
-  assert.equal(report.inputs['payload.json'].sha256, sha256(files['payload.json']!));
+  assert.equal(report.operations[0]!.run.executable, './probe');
+  assert.equal(report.operations[0]!.prerequisite.status, 'not-checked');
+  assert.deepEqual(report.operations[0]!.script, { path: 'defaults/checks/readme.py', sha256: sha256(files['defaults/checks/readme.py']!), executable: false });
+  assert.deepEqual(report.operations[0]!.resources[0], { path: 'payload.json', type: 'file', sha256: sha256(files['payload.json']!), executable: false });
+  assert.equal(((report.operations[0]!.resources[1]! as DirectoryInventory).entries['support.txt']! as FileInventory).sha256, sha256(files['resources/support.txt']!));
+  assert.equal((report.inputs['payload.json']! as FileInventory).sha256, sha256(files['payload.json']!));
   assert.deepEqual(report.project.affected['README.md'], { type: 'file', sha256: sha256('Uncommitted project README'), executable: false });
   assert.equal(report.start.eligible, false);
   assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'DIRTY_PROJECT'));
@@ -268,7 +269,7 @@ test('inspection reports the pinned complete profile without changing a dirty pr
   assert.deepEqual(snapshot(project.root), before);
   git(project.root, 'add', '.');
   commit(project.root);
-  const pending = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+  const pending = (JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout) as Inspection);
   assert.equal(pending.start.eligible, null, 'Author prerequisites remain unverified even in a clean project');
 });
 
@@ -291,13 +292,13 @@ test('validation and inspection reject reserved skills and targets in an unselec
   const before = snapshot(project.root);
   const validation = cli.run(['source', 'validate', '--json'], remote.source.root);
   assert.equal(validation.status, 1, validation.stdout + validation.stderr);
-  const report = JSON.parse(validation.stdout);
+  const report = (JSON.parse(validation.stdout) as SourceValidation);
   assert.deepEqual(report.profiles, {});
   const inspection = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(inspection.status, 1, inspection.stdout + inspection.stderr);
-  const error = JSON.parse(inspection.stdout).errors[0];
-  assert.equal(error.code, 'INVALID_STANDARDS');
-  for (const errors of [report.errors, error.details]) {
+  const error = (JSON.parse(inspection.stdout) as ErrorReport).errors[0];
+  assert.equal(error!.code, 'INVALID_STANDARDS');
+  for (const errors of [report.errors, (error!.details as Diagnostic[])]) {
     assert.deepEqual(errors.map(({ code, path, line, column, profile }: {
       code: string; path: string; line: number; column: number; profile?: string;
     }) => ({ code, path, line, column, profile })), [
@@ -319,25 +320,25 @@ test('unsafe ancestors and ignored replacement content block start without follo
   const before = snapshot(project.root);
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as Inspection);
   assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'UNSAFE_TARGET'), result.stdout);
-  assert.equal(report.project.affected['linked/AGENTS.md'].type, 'unsafe');
+  assert.equal(report.project.affected['linked/AGENTS.md']!.type, 'unsafe');
   assert.deepEqual(snapshot(project.root), before);
   unlinkSync(join(project.root, 'linked'));
   symlinkSync(remote.support.root, join(project.root, 'linked'));
-  assert.notEqual(JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout).identity, report.identity);
+  assert.notEqual((JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout) as Inspection).identity, report.identity);
 
   const skillSource = simpleSource().replace('kind: file\n      target: AGENTS.md\n      exact: content.md', 'kind: skill\n      name: review\n      source: skill');
   const skillRemote = remoteFixture(skillSource, { 'skill/SKILL.md': 'Supplied skill' });
   t.after(() => skillRemote.close());
-  const skillReport = JSON.parse(cli.run(inspectionArgs, project.root, skillRemote.env).stdout);
+  const skillReport = (JSON.parse(cli.run(inspectionArgs, project.root, skillRemote.env).stdout) as Inspection);
   assert.ok(!skillReport.start.blockers.some((b: { path?: string }) => b.path?.startsWith('.agents/')), JSON.stringify(skillReport.start.blockers));
-  assert.equal(skillReport.exact[0].action, 'replace');
+  assert.equal(skillReport.exact[0]!.action, 'replace');
   assert.deepEqual(skillReport.discardedEdits, ['.agents/skills/review']);
 
   const ignoredRemote = remoteFixture(simpleSource('ignored.md'), { 'content.md': 'New content' });
   t.after(() => ignoredRemote.close());
-  const ignoredReport = JSON.parse(cli.run(inspectionArgs, project.root, ignoredRemote.env).stdout);
+  const ignoredReport = (JSON.parse(cli.run(inspectionArgs, project.root, ignoredRemote.env).stdout) as Inspection);
   assert.ok(ignoredReport.start.blockers.some((b: { code: string }) => b.code === 'UNTRACKED_REPLACEMENT'));
 });
 
@@ -349,11 +350,11 @@ test('inspection identity binds affected bytes, executable state and profile, no
   const inspect = (args = inspectionArgs) => {
     const result = cli.run(args, project.root, remote.env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    return JSON.parse(result.stdout);
+    return (JSON.parse(result.stdout) as Inspection);
   };
   const first = inspect();
   assert.equal(first.start.eligible, true);
-  assert.equal(first.exact[0].action, 'match');
+  assert.equal(first.exact[0]!.action, 'match');
   assert.equal(inspect().identity, first.identity);
   assert.notEqual(inspect(inspectionArgs.map(arg => arg === 'work' ? 'other' : arg)).identity, first.identity);
   writeFileSync(join(project.root, 'AGENTS.md'), 'Changed once');
@@ -364,7 +365,7 @@ test('inspection identity binds affected bytes, executable state and profile, no
   assert.notEqual(twice.identity, changed.identity);
   chmodSync(join(project.root, 'AGENTS.md'), 0o755);
   const executable = inspect();
-  assert.equal(executable.exact[0].files[0].before.executable, true);
+  assert.equal((executable.exact[0]!.files[0]!.before as FileInventory).executable, true);
   assert.notEqual(executable.identity, twice.identity);
   // Staging the same working bytes changes only the index, which the run
   // does not read: the dirty tree still blocks start either way.
@@ -395,14 +396,14 @@ test('inspection reports unborn Git state and type, case, reserved-state and unt
   const remote = remoteFixture(simpleSource('agents.md'), { 'content.md': 'Expected' });
   const project = sourceFixture('', { 'AGENTS.md': 'Existing' });
   t.after(() => { remote.close(); project.close(); });
-  const report = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+  const report = (JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout) as Inspection);
   assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'NO_COMMIT'));
   assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'CASE_CONFLICT'));
   const directoryRemote = remoteFixture(simpleSource('folder'), { 'content.md': 'Expected' });
   t.after(() => directoryRemote.close());
   mkdirSync(join(project.root, 'folder'));
   mkdirSync(join(project.root, '.repo-standards'));
-  const directoryReport = JSON.parse(cli.run(inspectionArgs, project.root, directoryRemote.env).stdout);
+  const directoryReport = (JSON.parse(cli.run(inspectionArgs, project.root, directoryRemote.env).stdout) as Inspection);
   for (const code of ['TARGET_TYPE', 'UNTRACKED_REPLACEMENT', 'EXISTING_ADOPTION']) assert.ok(directoryReport.start.blockers.some((b: { code: string }) => b.code === code));
 });
 
@@ -416,7 +417,7 @@ test('Git flags that hide local changes cannot make an unsafe replacement start-
   assert.equal(git(project.root, 'status', '--porcelain'), '');
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as Inspection);
   assert.equal(report.start.eligible, false);
   assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'HIDDEN_INDEX_STATE'));
 });
@@ -428,9 +429,9 @@ test('contextual path names cannot disappear from the inspection identity', (t) 
   writeFileSync(join(project.root, '__proto__'), 'First');
   commit(project.root);
   writeFileSync(join(project.root, '__proto__'), 'Dirty content one');
-  const first = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+  const first = (JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout) as Inspection);
   writeFileSync(join(project.root, '__proto__'), 'Dirty content two');
-  const second = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+  const second = (JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout) as Inspection);
   assert.notEqual(first.identity, second.identity);
 });
 
@@ -460,7 +461,7 @@ test('contextual files and repository directory trees reject incompatible existi
   ]) {
     const remote = remoteFixture(simpleSource().replace('kind: file\n      target: AGENTS.md\n      exact: content.md', declaration), { 'content.md': 'Guidance' });
     t.after(() => remote.close());
-    const report = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+    const report = (JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout) as Inspection);
     assert.equal(report.start.eligible, false);
     assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'TARGET_TYPE'));
   }
@@ -490,7 +491,7 @@ ${operation('a-check')}`;
   const before = snapshot(project.root);
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as Inspection);
   assert.deepEqual(report.operations.map((op: {phase: string; declaration: string; id: string}) => `${op.phase}:${op.declaration}:${op.id}`), [
     'fixes:alpha:z-fix', 'fixes:alpha:a-fix', 'fixes:beta:z-fix', 'fixes:beta:a-fix',
     'checks:alpha:z-check', 'checks:alpha:a-check', 'checks:beta:z-check', 'checks:beta:a-check',
@@ -523,8 +524,8 @@ profiles:`);
   commit(project.root);
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
-  const files = (id: string) => report.exact.find((entry: { id: string }) => entry.id === id).files;
+  const report = (JSON.parse(result.stdout) as Inspection);
+  const files = (id: string) => report.exact.find((entry: { id: string }) => entry.id === id)!.files;
   const text = (value: string) => ({ type: 'file', sha256: sha256(value), executable: false });
   assert.deepEqual(files('instructions'), [{ path: 'AGENTS.md', before: text('one\ntwo\nthree\n'), after: text('one\n2\nthree\nfour'),
     diff: '--- a/AGENTS.md\n+++ b/AGENTS.md\n@@ -1,3 +1,4 @@\n one\n-two\n+2\n three\n+four\n\\ No newline at end of file\n' }]);
@@ -548,11 +549,11 @@ test('exact replacements preserve both root observations when files and director
   const inspect = (remote: ReturnType<typeof remoteFixture>) => {
     const result = cli.run(inspectionArgs, project.root, remote.env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    const report = JSON.parse(result.stdout);
+    const report = (JSON.parse(result.stdout) as Inspection);
     assert.equal(report.start.eligible, false);
     assert.ok(report.start.blockers.some((blocker: {code: string}) => blocker.code === 'TARGET_TYPE'));
-    assert.equal(report.exact[0].action, 'replace');
-    return report.exact[0].files;
+    assert.equal(report.exact[0]!.action, 'replace');
+    return report.exact[0]!.files;
   };
   const file = inspect(fileRemote).find((entry: {path: string}) => entry.path === 'AGENTS.md');
   assert.ok(file, 'The exact replacement must retain the root directory and desired file');
@@ -564,7 +565,7 @@ test('exact replacements preserve both root observations when files and director
   assert.ok(skill, 'The exact replacement must retain the existing file and desired skill directory');
   assert.deepEqual(skill.before, { type: 'file', sha256: sha256('Existing file'), executable: false });
   assert.equal(skill.after.type, 'directory');
-  assert.equal(skill.after.entries['SKILL.md'].sha256, sha256('Desired skill'));
+  assert.equal((skill.after.entries['SKILL.md']! as FileInventory).sha256, sha256('Desired skill'));
   assert.deepEqual(snapshot(project.root), before);
 });
 
@@ -587,16 +588,16 @@ test('case conflicts retain the exact target hashes and bind them into inspectio
     const inspect = () => {
       const result = cli.run(inspectionArgs, project.root, remote.env);
       assert.equal(result.status, 0, result.stdout + result.stderr);
-      return JSON.parse(result.stdout);
+      return (JSON.parse(result.stdout) as Inspection);
     };
     const first = inspect();
     assert.deepEqual(snapshot(project.root), before);
     assert.equal(first.start.eligible, false);
     assert.ok(first.start.blockers.some((blocker: {code: string}) => blocker.code === 'CASE_CONFLICT'));
-    const obstacles = first.project.affected[target].obstacles;
-    assert.ok(obstacles.foo, 'The exact component must be observed alongside its aliases');
-    assert.equal(nested ? obstacles.foo.entries['AGENTS.md'].sha256 : obstacles.foo.sha256, sha256('Dirty exact bytes one'));
-    assert.equal(nested ? obstacles.FOO.entries['AGENTS.md'].sha256 : obstacles.FOO.sha256, sha256('Alias bytes'));
+    const obstacles = (first.project.affected[target]! as UnsafeInventory).obstacles;
+    assert.ok(obstacles!.foo, 'The exact component must be observed alongside its aliases');
+    assert.equal(nested ? ((obstacles!.foo as DirectoryInventory).entries['AGENTS.md']! as FileInventory).sha256 : (obstacles!.foo as FileInventory).sha256, sha256('Dirty exact bytes one'));
+    assert.equal(nested ? ((obstacles!.FOO! as DirectoryInventory).entries['AGENTS.md']! as FileInventory).sha256 : (obstacles!.FOO! as FileInventory).sha256, sha256('Alias bytes'));
     writeFileSync(join(project.root, target), 'Dirty exact bytes two');
     const second = inspect();
     assert.notEqual(second.identity, first.identity);
@@ -635,7 +636,7 @@ profiles:`) + `  explicit:
   const before = snapshot(project.root);
   const discoveryResult = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(discoveryResult.status, 0, discoveryResult.stdout + discoveryResult.stderr);
-  const discoveryReport = JSON.parse(discoveryResult.stdout);
+  const discoveryReport = (JSON.parse(discoveryResult.stdout) as Inspection);
   assert.equal(discoveryReport.start.eligible, false);
   assert.ok(discoveryReport.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'));
   const startResult = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', discoveryReport.identity], project.root, remote.env);
@@ -644,8 +645,8 @@ profiles:`) + `  explicit:
   for (const profile of ['explicit', 'replacement']) {
     const result = cli.run(inspectionArgs.map(arg => arg === 'work' ? profile : arg), project.root, remote.env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    const report = JSON.parse(result.stdout);
-    assert.equal(report.source.format, 'repo-standards/v2');
+    const report = (JSON.parse(result.stdout) as Inspection);
+    assert.equal(report.source!.format, 'repo-standards/v2');
     assert.equal(report.start.eligible, true);
     assert.deepEqual(report.operations, [], 'Excluding or replacing discovery removes its fixes');
     assert.deepEqual(snapshot(project.root), before);
@@ -680,7 +681,7 @@ profiles:
   writeFileSync(join(project.root, '.agents/skills/review/local.md'), 'Untracked resource');
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as Inspection);
   assert.deepEqual(report.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), [
     { code: 'DIRTY_PROJECT', path: undefined },
     { code: 'DISCOVERY_REQUIRED', path: undefined },

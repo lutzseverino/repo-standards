@@ -1,3 +1,4 @@
+import type { Declaration, ErrorReport, FileInventory, Inspection, Run, SourceDeclaration } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { chmodSync, mkdirSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
@@ -45,13 +46,13 @@ for (const path of ['app/notes.md', 'app/README', 'app/README.md', 'docs/README.
   const before = snapshot(project.root);
   const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as Inspection);
   assert.deepEqual(report.start.blockers, []);
-  assert.deepEqual(report.discovery.proposal, proposal);
-  assert.deepEqual(report.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs').targets, { paths: [path], directories: [] });
-  assert.deepEqual(report.discovery.namedObservation.targets[path], { type: 'missing' });
-  assert.deepEqual(report.discovery.absence.map((ref: { kind: string; path: string }) => [ref.kind, ref.path]), [['absence', path]]);
-  assert.match(report.discovery.absence[0].identity, /^sha256:[a-f0-9]{64}$/);
+  assert.deepEqual(report.discovery!.proposal, proposal);
+  assert.deepEqual((report.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs')! as Extract<Declaration, { kind: 'repository' }>).targets, { paths: [path], directories: [] });
+  assert.deepEqual(report.discovery!.namedObservation!.targets[path], { type: 'missing' });
+  assert.deepEqual(report.discovery!.absence!.map((ref: { kind: string; path: string }) => [ref.kind, ref.path]), [['absence', path]]);
+  assert.match(report.discovery!.absence![0]!.identity, /^sha256:[a-f0-9]{64}$/);
   assert.deepEqual(snapshot(project.root), before);
 });
 
@@ -71,15 +72,15 @@ test('a missing documentation README can cite evidence outside its empty directo
   const env = { ...remote.env, ...registry.env };
   const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as Inspection);
   assert.deepEqual(report.start.blockers, []);
-  assert.deepEqual(report.discovery.proposal, proposal);
-  assert.equal(report.discovery.absence[0].path, 'docs/README.md');
+  assert.deepEqual(report.discovery!.proposal, proposal);
+  assert.equal(report.discovery!.absence![0]!.path, 'docs/README.md');
   const started = cli.run(['start', ...inspectionArgs.slice(1), '--scope', proposalFile, '--confirm', report.identity], project.root, env);
   assert.equal(started.status, 1, started.stdout + started.stderr);
-  const run = JSON.parse(started.stdout);
+  const run = (JSON.parse(started.stdout) as Run);
   assert.equal(run.phase, 'contextual', started.stdout);
-  assert.deepEqual(run.workRequest.scope.proposal, proposal);
+  assert.deepEqual(run.workRequest!.scope!.proposal, proposal);
 });
 
 test('discovery inspection requests eligible evidence without changing the project or executing author code', (t) => {
@@ -90,14 +91,14 @@ test('discovery inspection requests eligible evidence without changing the proje
   const before = snapshot(project.root);
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as Inspection);
   assert.equal(report.format, 'repo-standards/inspection/v6');
   assert.equal(report.start.eligible, false);
   assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'DISCOVERY_REQUIRED'));
-  assert.match(report.discovery.identity, /^sha256:[a-f0-9]{64}$/);
-  assert.deepEqual(report.discovery.declarations[0], { id: 'project-docs', source: 'discovery.md', sha256: sha256(material['discovery.md']), executable: false });
+  assert.match(report.discovery!.identity, /^sha256:[a-f0-9]{64}$/);
+  assert.deepEqual(report.discovery!.declarations[0], { id: 'project-docs', source: 'discovery.md', sha256: sha256(material['discovery.md']), executable: false });
   assert.deepEqual(embeddedContent(report), []);
-  assert.ok(report.discovery.evidence.some((e: { kind: string; path: string }) => e.kind === 'file' && e.path === 'apps/widget/package.json'));
+  assert.ok(report.discovery!.evidence.some((e: { kind: string; path: string }) => e.kind === 'file' && e.path === 'apps/widget/package.json'));
   assert.ok(!JSON.stringify(report.discovery).includes('private/token'));
   assert.deepEqual(snapshot(project.root), before);
 });
@@ -123,15 +124,15 @@ test('two unfamiliar layouts produce complete normalized scope reports including
       writeFileSync(proposalFile, JSON.stringify(proposal));
       const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
       assert.equal(result.status, 0, result.stdout + result.stderr);
-      return JSON.parse(result.stdout);
+      return (JSON.parse(result.stdout) as Inspection);
     };
     const before = snapshot(project.root);
     const report = inspect();
-    assert.deepEqual(report.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs').targets, { paths: [`${base}/README.md`], directories: [] });
-    assert.equal(report.sourceResolved.declarations.find((d: { id: string }) => d.id === 'project-docs').discovery, 'discovery.md');
+    assert.deepEqual((report.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs')! as Extract<Declaration, { kind: 'repository' }>).targets, { paths: [`${base}/README.md`], directories: [] });
+    assert.equal((report.sourceResolved!.declarations.find((d: { id: string }) => d.id === 'project-docs')! as Extract<SourceDeclaration, { kind: 'repository'; discovery: string }>).discovery, 'discovery.md');
     assert.match(report.manifest.sha256, /^[a-f0-9]{64}$/);
-    assert.equal(report.guidance.find((d: { id: string }) => d.id === 'project-docs').sha256, sha256(material['guidance.md']));
-    assert.equal(report.exact[0].files[0].after.sha256, sha256(material['exact.md']));
+    assert.equal(report.guidance.find((d: { id: string }) => d.id === 'project-docs')!.sha256, sha256(material['guidance.md']));
+    assert.equal((report.exact[0]!.files[0]!.after as FileInventory).sha256, sha256(material['exact.md']));
     assert.deepEqual(report.start.blockers, []);
     proposal.declarations[0]!.candidates[0]!.evidence.reverse();
     proposal.declarations[0]!.candidates.reverse();
@@ -147,7 +148,7 @@ test('a proposal holding only the agent judgment is accepted, and the CLI derive
   const project = sourceFixture('', { 'apps/widget/package.json': '{"name":"widget"}', 'apps/docs/README.md': '# Docs\n', 'fixtures/fake/package.json': '{}' });
   t.after(() => { remote.close(); project.close(); });
   commit(project.root);
-  const request = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+  const request = (JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout) as Inspection);
   const proposal = { format: 'repo-standards/scope/v2', declarations: [{
     id: 'project-docs', coverage: 'Widget and docs are the maintained projects; the fixture is test data.',
     candidates: [
@@ -161,21 +162,21 @@ test('a proposal holding only the agent judgment is accepted, and the CLI derive
     writeFileSync(proposalFile, JSON.stringify(proposal));
     const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    return JSON.parse(result.stdout);
+    return (JSON.parse(result.stdout) as Inspection);
   };
   const before = snapshot(project.root);
   const report = inspect();
   assert.deepEqual(report.start.blockers, []);
-  assert.equal(report.discovery.identity, request.discovery.identity);
-  assert.deepEqual(report.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs').targets, { paths: ['apps/docs/README.md', 'apps/widget/README.md'], directories: [] });
-  assert.deepEqual(report.discovery.absence.map((ref: { kind: string; path: string }) => [ref.kind, ref.path]), [['absence', 'apps/widget/README.md']]);
-  assert.match(report.discovery.absence[0].identity, /^sha256:[a-f0-9]{64}$/);
-  const candidates = report.discovery.proposal.declarations[0].candidates;
+  assert.equal(report.discovery!.identity, request.discovery!.identity);
+  assert.deepEqual((report.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs')! as Extract<Declaration, { kind: 'repository' }>).targets, { paths: ['apps/docs/README.md', 'apps/widget/README.md'], directories: [] });
+  assert.deepEqual(report.discovery!.absence!.map((ref: { kind: string; path: string }) => [ref.kind, ref.path]), [['absence', 'apps/widget/README.md']]);
+  assert.match(report.discovery!.absence![0]!.identity, /^sha256:[a-f0-9]{64}$/);
+  const candidates = report.discovery!.proposal!.declarations[0]!.candidates;
   assert.deepEqual(candidates.map((c: { path: string }) => c.path), ['apps/docs/README.md', 'apps/widget/README.md', 'fixtures/fake']);
-  assert.deepEqual(candidates[1].evidence, ['apps/widget', 'apps/widget/package.json']);
-  assert.deepEqual(Object.keys(report.discovery.proposal.declarations[0]).sort(), ['candidates', 'coverage', 'id', 'unresolved']);
+  assert.deepEqual(candidates[1]!.evidence, ['apps/widget', 'apps/widget/package.json']);
+  assert.deepEqual(Object.keys(report.discovery!.proposal!.declarations[0]!).sort(), ['candidates', 'coverage', 'id', 'unresolved']);
   for (const path of ['apps/widget/package.json', 'apps/widget', 'fixtures/fake/package.json', 'apps/docs/README.md']) {
-    assert.ok(report.discovery.evidence.some((e: { path: string; identity: string }) => e.path === path && e.identity.startsWith('sha256:')), path);
+    assert.ok(report.discovery!.evidence.some((e: { path: string; identity: string }) => e.path === path && e.identity.startsWith('sha256:')), path);
   }
 
   // Order is normalized; every piece of proposal text feeds the identity.
@@ -205,7 +206,7 @@ test('a proposal is rejected with actionable errors for a retired format, missin
   const project = sourceFixture('', { 'app/package.json': '{}', '.gitignore': 'ignored.txt\n', 'ignored.txt': 'private' });
   t.after(() => { remote.close(); project.close(); });
   commit(project.root);
-  const request = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
+  const request = (JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout) as Inspection);
   const original = { format: 'repo-standards/scope/v2', declarations: [{ id: 'project-docs', coverage: 'One maintained app.',
     candidates: [{ path: 'app/README.md', decision: 'include', reason: 'App manifest.', evidence: ['app/package.json'] }], unresolved: [] as string[] }] };
   const proposalFile = join(remote.support.root, 'scope.json');
@@ -215,11 +216,11 @@ test('a proposal is rejected with actionable errors for a retired format, missin
     writeFileSync(proposalFile, JSON.stringify(proposal));
     const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const error = JSON.parse(result.stdout).errors[0];
-    assert.equal(error.code, 'INVALID_SCOPE', result.stdout);
-    assert.match(error.message, message);
+    const error = (JSON.parse(result.stdout) as ErrorReport).errors[0];
+    assert.equal(error!.code, 'INVALID_SCOPE', result.stdout);
+    assert.match(error!.message, message);
   }
-  rejected(p => { p.format = 'repo-standards/scope/v1'; Object.assign(p, { request: request.discovery.identity }); }, /repo-standards\/scope\/v2/);
+  rejected(p => { p.format = 'repo-standards/scope/v1'; Object.assign(p, { request: request.discovery!.identity }); }, /repo-standards\/scope\/v2/);
   rejected(p => { p.declarations = []; }, /missing.*project-docs/i);
   rejected(p => { p.declarations.push({ ...p.declarations[0]!, id: 'instructions' }); }, /not active discovery declarations.*instructions/i);
   rejected(p => { p.declarations[0]!.id = 'unknown'; }, /project-docs[\s\S]*unknown|unknown[\s\S]*project-docs/);
@@ -232,10 +233,10 @@ test('a proposal is rejected with actionable errors for a retired format, missin
   // Naming an ignored file as a target does not make it evidence.
   rejected(p => { p.declarations[0]!.candidates[0] = { path: 'ignored.txt', decision: 'include', reason: 'Named.', evidence: ['ignored.txt'] }; }, /ignored\.txt.*discovery observation/);
   writeFileSync(proposalFile, JSON.stringify({ ...original, format: 'repo-standards/scope/v1' }).replace('"coverage":', '"coverage":"Duplicate","coverage":'));
-  const retired = JSON.parse(cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env).stdout).errors[0];
-  assert.equal(retired.code, 'INVALID_SCOPE');
-  assert.match(retired.message, /repo-standards\/scope\/v2/);
-  rejected(p => { Object.assign(p, { request: request.discovery.identity }); }, /format, declarations/);
+  const retired = (JSON.parse(cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env).stdout) as ErrorReport).errors[0];
+  assert.equal(retired!.code, 'INVALID_SCOPE');
+  assert.match(retired!.message, /repo-standards\/scope\/v2/);
+  rejected(p => { Object.assign(p, { request: request.discovery!.identity }); }, /format, declarations/);
   for (const field of ['paths', 'evidence']) rejected(p => { Object.assign(p.declarations[0]!, { [field]: [] }); }, /id, coverage, candidates, unresolved/);
 });
 
@@ -248,9 +249,9 @@ test('a proposal for a selection without active discovery declarations is reject
   writeFileSync(proposalFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [] }));
   const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  const error = JSON.parse(result.stdout).errors[0];
-  assert.equal(error.code, 'INVALID_SCOPE');
-  assert.match(error.message, /no active discovery declarations.*without --scope/);
+  const error = (JSON.parse(result.stdout) as ErrorReport).errors[0];
+  assert.equal(error!.code, 'INVALID_SCOPE');
+  assert.match(error!.message, /no active discovery declarations.*without --scope/);
 });
 
 test('empty scope retains declarations and operations while unresolved scope blocks adoption', (t) => {
@@ -264,20 +265,20 @@ test('empty scope retains declarations and operations while unresolved scope blo
   const project = sourceFixture('', { 'README.md': 'An organizational repository with no maintained projects.' });
   t.after(() => { remote.close(); project.close(); });
   commit(project.root);
-  const request = JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout);
-  assert.equal(request.operations[0].id, 'verify');
+  const request = (JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout) as Inspection);
+  assert.equal(request.operations[0]!.id, 'verify');
   const proposal = { format: 'repo-standards/scope/v2', declarations: [{ id: 'project-docs', coverage: 'No maintained projects exist here.', candidates: [], unresolved: [] as string[] }] };
   const proposalFile = join(remote.support.root, 'scope.json');
   const inspect = () => {
     writeFileSync(proposalFile, JSON.stringify(proposal));
     const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    return JSON.parse(result.stdout);
+    return (JSON.parse(result.stdout) as Inspection);
   };
   const empty = inspect();
-  assert.deepEqual(empty.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs').targets, { paths: [], directories: [] });
-  assert.equal(empty.operations[0].id, 'verify');
-  assert.equal(empty.guidance.find((g: { id: string }) => g.id === 'project-docs').sha256, sha256(material['guidance.md']));
+  assert.deepEqual((empty.resolved.declarations.find((d: { id: string }) => d.id === 'project-docs')! as Extract<Declaration, { kind: 'repository' }>).targets, { paths: [], directories: [] });
+  assert.equal(empty.operations[0]!.id, 'verify');
+  assert.equal(empty.guidance.find((g: { id: string }) => g.id === 'project-docs')!.sha256, sha256(material['guidance.md']));
   proposal.declarations[0]!.unresolved.push('Is the archived component still maintained?');
   const unresolved = inspect();
   assert.equal(unresolved.start.eligible, false);
@@ -300,7 +301,7 @@ test('scope rejects malformed proposals, invalid evidence, and unsafe or overlap
     writeFileSync(proposalFile, JSON.stringify(proposal));
     const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, code, result.stdout);
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, code, result.stdout);
   }
   for (const mutate of [
     (p: typeof original) => { p.format = 'repo-standards/scope/v99'; },
@@ -329,7 +330,7 @@ test('scope rejects malformed proposals, invalid evidence, and unsafe or overlap
   }
   const duplicateKeys = JSON.stringify(original).replace('"coverage":', '"coverage":"Duplicate","coverage":');
   writeFileSync(proposalFile, duplicateKeys);
-  assert.equal(JSON.parse(cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env).stdout).errors[0].code, 'INVALID_SCOPE');
+  assert.equal((JSON.parse(cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env).stdout) as ErrorReport).errors[0]!.code, 'INVALID_SCOPE');
 });
 
 test('discovery requests become stale after project, selection, and consulted ignore inputs change', (t) => {
@@ -341,7 +342,7 @@ test('discovery requests become stale after project, selection, and consulted ig
   const request = () => {
     const result = cli.run(inspectionArgs, project.root, remote.env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    return JSON.parse(result.stdout);
+    return (JSON.parse(result.stdout) as Inspection);
   };
   const first = request();
   assert.equal(request().identity, first.identity);
@@ -349,32 +350,32 @@ test('discovery requests become stale after project, selection, and consulted ig
   assert.equal(request().identity, first.identity);
   const proposalFile = join(remote.support.root, 'scope.json');
   writeFileSync(proposalFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{ id: 'project-docs', coverage: 'No maintained projects.', candidates: [], unresolved: [] }] }));
-  const proposed = () => JSON.parse(cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env).stdout).identity;
+  const proposed = () => (JSON.parse(cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env).stdout) as Inspection).identity;
   const confirmed = proposed();
   writeFileSync(join(project.root, 'app/package.json'), '{"name":"changed"}');
   const second = request();
-  assert.notEqual(second.discovery.identity, first.discovery.identity);
+  assert.notEqual(second.discovery!.identity, first.discovery!.identity);
   // The same proposal inspected against the changed project is a new inspection.
   assert.notEqual(proposed(), confirmed);
   writeFileSync(join(project.root, '.git/info/exclude'), '# no classification change\n');
   const third = request();
-  assert.notEqual(third.discovery.identity, second.discovery.identity);
+  assert.notEqual(third.discovery!.identity, second.discovery!.identity);
   const ignore = join(remote.support.root, 'global-ignore');
   git(project.root, 'config', 'core.excludesFile', ignore);
   const missingIgnore = request();
   writeFileSync(ignore, '');
   const emptyIgnore = request();
-  assert.notEqual(emptyIgnore.discovery.identity, missingIgnore.discovery.identity);
+  assert.notEqual(emptyIgnore.discovery!.identity, missingIgnore.discovery!.identity);
   writeFileSync(ignore, '# a changed consulted input\n');
   const changedIgnore = request();
-  assert.notEqual(changedIgnore.discovery.identity, emptyIgnore.discovery.identity);
+  assert.notEqual(changedIgnore.discovery!.identity, emptyIgnore.discovery!.identity);
   git(project.root, 'config', 'credential.test-secret', 'MUST-NOT-BE-RETAINED');
   assert.equal(request().identity, changedIgnore.identity);
   assert.ok(!JSON.stringify(request()).includes('MUST-NOT-BE-RETAINED'));
   git(project.root, 'config', 'core.ignorecase', 'true');
-  assert.notEqual(request().discovery.identity, changedIgnore.discovery.identity);
-  const other = JSON.parse(cli.run(inspectionArgs.map(arg => arg === 'work' ? 'other' : arg), project.root, remote.env).stdout);
-  assert.notEqual(other.discovery.identity, request().discovery.identity);
+  assert.notEqual(request().discovery!.identity, changedIgnore.discovery!.identity);
+  const other = (JSON.parse(cli.run(inspectionArgs.map(arg => arg === 'work' ? 'other' : arg), project.root, remote.env).stdout) as Inspection);
+  assert.notEqual(other.discovery!.identity, request().discovery!.identity);
 });
 
 test('discovery fails closed on unreadable evidence, unsafe named ancestors, aliases, and observation limits', (t) => {
@@ -385,11 +386,11 @@ test('discovery fails closed on unreadable evidence, unsafe named ancestors, ali
   const request = () => cli.run(inspectionArgs, project.root, remote.env);
   const memberFile = join(project.root, 'app/package.json');
   chmodSync(memberFile, 0);
-  assert.equal(JSON.parse(request().stdout).errors[0].code, 'OBSERVATION_READ');
+  assert.equal((JSON.parse(request().stdout) as ErrorReport).errors[0]!.code, 'OBSERVATION_READ');
   chmodSync(memberFile, 0o644);
   const large = join(project.root, 'large.bin');
   writeFileSync(large, Buffer.alloc(8 * 1024 * 1024 + 1));
-  assert.equal(JSON.parse(request().stdout).errors[0].code, 'OBSERVATION_LIMIT');
+  assert.equal((JSON.parse(request().stdout) as ErrorReport).errors[0]!.code, 'OBSERVATION_LIMIT');
   unlinkSync(large);
   symlinkSync(remote.support.root, join(project.root, 'linked'));
   assert.equal(request().status, 0);
@@ -399,15 +400,15 @@ test('discovery fails closed on unreadable evidence, unsafe named ancestors, ali
     writeFileSync(proposalFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{ id: 'project-docs', coverage: 'Review the named file.', candidates: [{ path, decision: 'include', reason: 'Candidate.', evidence: [member] }], unresolved: [] }] }));
     const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, code, result.stdout);
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, code, result.stdout);
   }
   unlinkSync(join(project.root, 'linked'));
   execFileSync('mkfifo', [join(project.root, 'special')]);
-  assert.equal(JSON.parse(request().stdout).errors[0].code, 'OBSERVATION_UNSAFE');
+  assert.equal((JSON.parse(request().stdout) as ErrorReport).errors[0]!.code, 'OBSERVATION_UNSAFE');
   unlinkSync(join(project.root, 'special'));
   const inside = join(project.root, 'scope.json');
   writeFileSync(inside, '{}');
-  assert.equal(JSON.parse(cli.run([...inspectionArgs, '--scope', inside], project.root, remote.env).stdout).errors[0].code, 'INVALID_SCOPE');
+  assert.equal((JSON.parse(cli.run([...inspectionArgs, '--scope', inside], project.root, remote.env).stdout) as ErrorReport).errors[0]!.code, 'INVALID_SCOPE');
 });
 
 test('detected changes during observation fail instead of issuing a partial discovery request', (t) => {
@@ -433,7 +434,7 @@ syncBuiltinESMExports();
 `);
   const result = cli.run(inspectionArgs, project.root, { ...remote.env, NODE_OPTIONS: `${remote.env.NODE_OPTIONS} --import=${pathToFileURL(loader).href}` });
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).errors[0].code, 'OBSERVATION_UNSTABLE');
+  assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'OBSERVATION_UNSTABLE');
 });
 
 test('ignore input paths preserve significant whitespace and an empty override disables the default input', (t) => {
@@ -447,7 +448,7 @@ test('ignore input paths preserve significant whitespace and an empty override d
   const request = (env = remote.env) => {
     const result = cli.run(inspectionArgs, project.root, env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    return JSON.parse(result.stdout).discovery.identity;
+    return (JSON.parse(result.stdout) as Inspection).discovery!.identity;
   };
   const first = request();
   writeFileSync(ignore, '# changed without changing classification\n');
@@ -477,7 +478,7 @@ test('excluded candidates require safe concrete syntax while allowing explanatio
     }] }));
     const result = cli.run([...inspectionArgs, '--scope', proposalFile], project.root, remote.env);
     assert.equal(result.status, safe ? 0 : 1, result.stdout + result.stderr);
-    if (!safe) assert.equal(JSON.parse(result.stdout).errors[0].code, 'UNSAFE_PATH');
+    if (!safe) assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'UNSAFE_PATH');
   }
 });
 
@@ -492,32 +493,32 @@ test('ignore inputs bind their content by role, not their location, and reports 
   const request = () => {
     const result = cli.run(inspectionArgs, project.root, remote.env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    return JSON.parse(result.stdout);
+    return (JSON.parse(result.stdout) as Inspection);
   };
   const first = request();
-  assert.deepEqual(first.discovery.observation.ignores.global, { type: 'file', sha256: sha256('*.log\n'), executable: false });
+  assert.deepEqual(first.discovery!.observation.ignores.global, { type: 'file', sha256: sha256('*.log\n'), executable: false });
   for (const location of [project.root, original]) assert.ok(!JSON.stringify(first).includes(location), `the report names ${location}`);
   const moved = join(remote.support.root, 'elsewhere/ignore');
   mkdirSync(join(remote.support.root, 'elsewhere'));
   writeFileSync(moved, '*.log\n');
   git(project.root, 'config', 'core.excludesFile', moved);
   const relocated = request();
-  assert.equal(relocated.discovery.identity, first.discovery.identity);
+  assert.equal(relocated.discovery!.identity, first.discovery!.identity);
   assert.equal(relocated.identity, first.identity);
   writeFileSync(moved, '*.log\n*.tmp\n');
   const changed = request();
-  assert.notEqual(changed.discovery.identity, first.discovery.identity);
+  assert.notEqual(changed.discovery!.identity, first.discovery!.identity);
   assert.notEqual(changed.identity, first.identity);
   // An ignored symbolic .gitignore is bound by the hash of its target, never
   // the machine-local target itself.
   writeFileSync(join(project.root, '.git/info/exclude'), 'app/.gitignore\n');
   symlinkSync(moved, join(project.root, 'app/.gitignore'));
   const linked = request();
-  assert.deepEqual(linked.discovery.observation.ignores['app/.gitignore'], { type: 'symlink', sha256: sha256(moved) });
+  assert.deepEqual(linked.discovery!.observation.ignores['app/.gitignore'], { type: 'symlink', sha256: sha256(moved) });
   assert.ok(!JSON.stringify(linked).includes(moved), 'the report must not name the link target');
   unlinkSync(join(project.root, 'app/.gitignore'));
   symlinkSync(original, join(project.root, 'app/.gitignore'));
   const retargeted = request();
-  assert.notEqual(retargeted.discovery.identity, linked.discovery.identity, 'retargeting the link changes the request');
+  assert.notEqual(retargeted.discovery!.identity, linked.discovery!.identity, 'retargeting the link changes the request');
   assert.notEqual(retargeted.identity, linked.identity, 'retargeting the link changes the inspection');
 });

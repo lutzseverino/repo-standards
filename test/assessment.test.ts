@@ -1,3 +1,4 @@
+import type { ErrorReport, Inspection, Run, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { setTimeout } from 'node:timers/promises';
@@ -32,11 +33,11 @@ async function fixture(t: TestContext, script = `console.log(JSON.stringify({for
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const inspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
-  const run = JSON.parse(result.stdout);
+  const run = (JSON.parse(result.stdout) as Run);
   assert.equal(run.phase, 'contextual', result.stdout + result.stderr);
-  return { project, remote, env, run, resume(assessment?: unknown) {
+  return { project, remote, env, run, resume<T = Run>(assessment?: unknown) {
     const args = ['resume', '--json'];
     if (assessment !== undefined) {
       const path = join(remote.support.root, 'assessment.json');
@@ -44,7 +45,7 @@ async function fixture(t: TestContext, script = `console.log(JSON.stringify({for
       args.push('--assessment', path);
     }
     const result = cli.run(args, project.root, env);
-    return { result, report: JSON.parse(result.stdout) };
+    return { result, report: (JSON.parse(result.stdout) as T) };
   } };
 }
 
@@ -53,18 +54,18 @@ test('contextual handoff identifies the run, retained guidance, allowed targets 
   assert.equal(f.run.outcome, 'incomplete');
   assert.equal(f.run.operations.length, 0);
   const request = f.run.workRequest;
-  assert.equal(request.format, 'repo-standards/work-request/v3');
-  assert.equal('scope' in request, false);
-  assert.equal(request.run, f.run.id);
-  assert.match(request.selection, /^sha256:/);
-  assert.match(request.snapshot, /^sha256:/);
-  assert.deepEqual(request.declarations.map((d: { id: string }) => d.id), ['layout', 'readme']);
-  assert.deepEqual(request.declarations[0].allowedTargets, { paths: ['config.json'], directories: ['src'] });
-  assert.deepEqual(request.declarations[1].guidance, { id: 'readme', targets: ['README.md'], source: 'readme.md',
+  assert.equal(request!.format, 'repo-standards/work-request/v3');
+  assert.equal('scope' in request!, false);
+  assert.equal(request!.run, f.run.id);
+  assert.match(request!.selection, /^sha256:/);
+  assert.match(request!.snapshot, /^sha256:/);
+  assert.deepEqual(request!.declarations.map((d: { id: string }) => d.id), ['layout', 'readme']);
+  assert.deepEqual(request!.declarations[0]!.allowedTargets, { paths: ['config.json'], directories: ['src'] });
+  assert.deepEqual(request!.declarations[1]!.guidance, { id: 'readme', targets: ['README.md'], source: 'readme.md',
     sha256: sha256('Describe setup and architecture.'), executable: false, retained: '.repo-standards/inputs/source/readme.md' });
-  assert.equal(readFileSync(join(f.project.root, request.declarations[1].guidance.retained), 'utf8'), 'Describe setup and architecture.');
+  assert.equal(readFileSync(join(f.project.root, request!.declarations[1]!.guidance.retained), 'utf8'), 'Describe setup and architecture.');
   assert.deepEqual(embeddedContent(f.run), [], 'The run record references guidance by path and hash');
-  assert.deepEqual(request.requiredEvidence, ['status', 'explanation', 'evidence']);
+  assert.deepEqual(request!.requiredEvidence, ['status', 'explanation', 'evidence']);
   assert.equal(readFileSync(join(f.project.root, 'AGENTS.md'), 'utf8'), 'Work instructions');
   assert.equal(readFileSync(join(f.project.root, 'CONTRIBUTING.md'), 'utf8'), 'Employer policy');
   assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
@@ -88,21 +89,21 @@ test('scripted agent completes Alice work with separate assessment and check evi
   contextualWork(f.project.root);
   const refreshed = f.resume();
   assert.equal(refreshed.report.phase, 'contextual', refreshed.result.stdout);
-  assert.notEqual(refreshed.report.workRequest.snapshot, f.run.workRequest.snapshot);
+  assert.notEqual(refreshed.report.workRequest!.snapshot, f.run.workRequest!.snapshot);
   const { result, report } = f.resume(submission());
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(report.outcome, 'complete');
-  assert.equal(report.operations[0].result.status, 'passed');
-  const status = JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout);
+  assert.equal(report.operations[0]!.result!.status, 'passed');
+  const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout) as Status);
   assert.equal(status.active, null);
   const request = refreshed.report.workRequest;
   // The CLI binds the judgment to the active run and derives each declaration's changed paths.
-  assert.deepEqual(status.assessments, [{ format: 'repo-standards/assessment/v3', run: request.run, selection: request.selection, snapshot: request.snapshot,
+  assert.deepEqual(status.assessments, [{ format: 'repo-standards/assessment/v3', run: request!.run, selection: request!.selection, snapshot: request!.snapshot,
     declarations: [
       { id: 'layout', status: 'satisfied', explanation: 'Source responsibilities documented.', changedPaths: ['src/queue.ts'], evidence: ['Queue module identifies its responsibility.'] },
       { id: 'readme', status: 'satisfied', explanation: 'README describes Bob’s service.', changedPaths: ['README.md'], evidence: ['Setup and architecture explain the queue.'] },
     ] }]);
-  assert.equal(status.checks.length, 1);
+  assert.equal(status.checks!.length, 1);
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), head);
   assert.notEqual(git(f.project.root, 'status', '--porcelain'), '');
   assert.equal(readFileSync(join(f.project.root, 'CONTRIBUTING.md'), 'utf8'), 'Employer policy');
@@ -119,7 +120,7 @@ test('blocked agent evidence is retained separately and prevents checks until re
   assert.equal(result.status, 1);
   assert.match(report.reason, /ASSESSMENT_BLOCKED/);
   assert.equal(report.operations.length, 0);
-  assert.equal(report.assessments[0].declarations[0].status, 'blocked');
+  assert.equal(report.assessments[0]!.declarations[0]!.status, 'blocked');
   assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
   const renewed = f.resume(submission());
   assert.equal(renewed.result.status, 0, renewed.result.stdout);
@@ -135,7 +136,7 @@ test('malformed assessments, copied run fields, changed paths and missing declar
     { name: 'null', code: 'ASSESSMENT_FORMAT', change: () => null },
     { name: 'unknown field', code: 'ASSESSMENT_FORMAT', change: value => ({ ...value, unexpected: true }) },
     { name: 'retired format', code: 'ASSESSMENT_FORMAT', change: value => ({ ...value, format: 'repo-standards/assessment/v2' }) },
-    { name: 'copied run fields', code: 'ASSESSMENT_FORMAT', change: value => ({ ...value, run: request.run, selection: request.selection, snapshot: request.snapshot }) },
+    { name: 'copied run fields', code: 'ASSESSMENT_FORMAT', change: value => ({ ...value, run: request!.run, selection: request!.selection, snapshot: request!.snapshot }) },
     { name: 'missing declaration', code: 'ASSESSMENT_DECLARATIONS', change: value => ({ ...value, declarations: value.declarations.slice(1) }) },
     { name: 'duplicate declaration', code: 'ASSESSMENT_DECLARATIONS', change: value => ({ ...value, declarations: [value.declarations[0], value.declarations[0]] }) },
     { name: 'unknown declaration', code: 'ASSESSMENT_DECLARATIONS', change: value => { value.declarations[0]!.id = 'unknown'; return value; } },
@@ -162,7 +163,7 @@ test('an assessment submitted for no active run is rejected with the next step',
   contextualWork(f.project.root);
   f.resume();
   assert.equal(f.resume(submission()).result.status, 0);
-  const { result, report } = f.resume(submission());
+  const { result, report } = f.resume<ErrorReport>(submission());
   assert.equal(result.status, 1, result.stdout);
   assert.deepEqual(report.errors, [{ code: 'NO_ACTIVE_RUN', message: 'No incomplete adoption is available to resume; resume and assessments apply only to an active run. Read status, and inspect and start an adoption if one is needed.' }]);
 });
@@ -202,10 +203,10 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:readFileSyn
   f.resume();
   const complete = f.resume(initial);
   assert.equal(complete.result.status, 0, complete.result.stdout);
-  assert.deepEqual(complete.report.operations.map((o: { result: { status: string } }) => o.result.status), ['failed', 'passed']);
-  const status = JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout);
-  assert.equal(status.checks.length, 1);
-  assert.equal(status.checks[0].result.status, 'passed');
+  assert.deepEqual(complete.report.operations.map((o) => o.result!.status), ['failed', 'passed']);
+  const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout) as Status);
+  assert.equal(status.checks!.length, 1);
+  assert.equal(status.checks![0]!.result!.status, 'passed');
 });
 
 test('contextual work cannot corrupt installed exact content, full skills, inputs or product state', async t => {
@@ -232,7 +233,7 @@ test('contextual work cannot corrupt installed exact content, full skills, input
 });
 
 test('checks after assessment still reject mutation and exact-content corruption', async t => {
-  for (const [path, code] of [['README.md', 'CHECK_MUTATION'], ['.agents/skills/review/added.txt', 'FINAL_INTEGRITY']]) await t.test(path!, async st => {
+  for (const [path, code] of [['README.md', 'CHECK_MUTATION'], ['.agents/skills/review/added.txt', 'FINAL_INTEGRITY']]) await t.test(path, async st => {
     const f = await fixture(st, `import { writeFileSync } from 'node:fs';
 writeFileSync(${JSON.stringify(path)}, 'Changed during check');
 console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Reported success'}));`);
@@ -257,7 +258,7 @@ test('content changing between assessment and final verification requires reasse
   const assessmentPath = join(f.remote.support.root, 'assessment.json');
   writeFileSync(assessmentPath, JSON.stringify(valid));
   const result = cli.run(['resume', '--assessment', assessmentPath, '--json'], f.project.root, env);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as Run);
   assert.equal(result.status, 1, result.stdout + result.stderr);
   assert.match(report.reason, /STALE_ASSESSMENT/);
   assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
@@ -287,25 +288,25 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status,message:'Se
   const env = { ...remote.env, ...registry.env };
   const args = inspectionArgs.map(arg => arg === 'https://github.com/alice/standards' ? 'https://github.com/charlie/operations' : arg);
   const inspected = cli.run(args, project.root, env);
-  const inspection = JSON.parse(inspected.stdout);
+  const inspection = (JSON.parse(inspected.stdout) as Inspection);
   assert.equal(inspected.status, 0, inspected.stdout);
-  const started = JSON.parse(cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env).stdout);
+  const started = (JSON.parse(cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env).stdout) as Run);
   assert.equal(started.phase, 'contextual');
-  assert.equal(started.operations[0].result.status, 'changed');
+  assert.equal(started.operations[0]!.result!.status, 'changed');
   assert.equal(readFileSync(join(project.root, 'service.json'), 'utf8'), '{"owner":"payments"}');
   mkdirSync(join(project.root, 'runbooks'));
   writeFileSync(join(project.root, 'runbooks/recovery.md'), 'Incident command: payments on-call. Replay failed payments using the queue.');
-  const request = JSON.parse(cli.run(['resume', '--json'], project.root, env).stdout).workRequest;
+  const request = (JSON.parse(cli.run(['resume', '--json'], project.root, env).stdout) as Run).workRequest;
   const path = join(remote.support.root, 'assessment.json');
-  assert.equal(request.declarations.length, 1);
+  assert.equal(request!.declarations.length, 1);
   writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v3',
     declarations: [{ id: 'operations', status: 'satisfied', explanation: 'Owner recorded and payments recovery documented.', evidence: ['service.json names payments; runbook gives the replay procedure.'] }] }));
   const resumed = cli.run(['resume', '--assessment', path, '--json'], project.root, env);
   assert.equal(resumed.status, 0, resumed.stdout + resumed.stderr);
-  const completed = JSON.parse(resumed.stdout);
-  assert.deepEqual(completed.operations.map((o: { result: { status: string } }) => o.result.status), ['changed', 'passed']);
+  const completed = (JSON.parse(resumed.stdout) as Run);
+  assert.deepEqual(completed.operations.map((o) => o.result!.status), ['changed', 'passed']);
   // The created directory target and its file are derived; the fix's own change is not contextual.
-  assert.deepEqual(completed.assessments[0].declarations[0].changedPaths, ['runbooks', 'runbooks/recovery.md']);
+  assert.deepEqual(completed.assessments[0]!.declarations[0]!.changedPaths, ['runbooks', 'runbooks/recovery.md']);
 });
 
 test('assessment accounts for deleted tracked files and executable changes', async t => {
@@ -319,7 +320,7 @@ test('assessment accounts for deleted tracked files and executable changes', asy
   const { result, report } = f.resume(submission());
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(existsSync(join(f.project.root, 'src/old.ts')), false);
-  assert.deepEqual(report.assessments[0].declarations.map((entry: { changedPaths: string[] }) => entry.changedPaths), [['src/old.ts', 'src/queue.ts'], ['README.md']]);
+  assert.deepEqual(report.assessments[0]!.declarations.map((entry: { changedPaths: string[] }) => entry.changedPaths), [['src/old.ts', 'src/queue.ts'], ['README.md']]);
 });
 
 test('only one resume can execute checks for an active contextual adoption', async t => {
@@ -342,9 +343,9 @@ setTimeout(()=>console.log(JSON.stringify({format:'repo-standards/result/v1',sta
   assert.equal(existsSync(join(f.project.root, '.repo-standards/local/check-started')), true, output);
   const concurrent = cli.run(['resume', '--assessment', path, '--json'], f.project.root, f.env);
   assert.equal(concurrent.status, 1, concurrent.stdout);
-  assert.equal(JSON.parse(concurrent.stdout).errors[0].code, 'ACTIVE_RUN');
+  assert.equal((JSON.parse(concurrent.stdout) as ErrorReport).errors[0]!.code, 'ACTIVE_RUN');
   assert.equal(await finished, 0, output);
-  assert.equal(JSON.parse(output).operations.length, 1);
+  assert.equal((JSON.parse(output) as Run).operations.length, 1);
 });
 
 test('uncertain check outcomes cannot be retried through contextual resume', async t => {
@@ -353,7 +354,7 @@ test('uncertain check outcomes cannot be retried through contextual resume', asy
     ['SIGNAL', "process.kill(process.pid, 'SIGTERM');"],
     ['TIMEOUT', 'setInterval(() => {}, 1000);'],
     ['PROTOCOL_ERROR', "console.log('not a result');"],
-  ]) await t.test(code!, async st => {
+  ]) await t.test(code, async st => {
     const f = await fixture(st, `import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 const path = '.repo-standards/local/check-attempts';
 writeFileSync(path, String((existsSync(path) ? Number(readFileSync(path,'utf8')) : 0) + 1));
@@ -365,13 +366,13 @@ ${script}`);
     assert.ok(failed.report.reason.startsWith(code + ':'), failed.report.reason);
     assert.match(failed.report.nextAction, /Explicit recovery is required/);
     for (const input of [undefined, assessment]) {
-      const retry = f.resume(input);
+      const retry = f.resume<ErrorReport>(input);
       assert.equal(retry.result.status, 1, retry.result.stdout);
-      assert.equal(retry.report.errors?.[0].code, 'RESUME_UNAVAILABLE', retry.result.stdout);
+      assert.equal(retry.report.errors?.[0]!.code, 'RESUME_UNAVAILABLE', retry.result.stdout);
     }
-    const status = JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout);
-    assert.equal(status.active.reason, failed.report.reason);
-    assert.equal(status.active.operations.length, 1);
+    const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout) as Status);
+    assert.equal(status.active!.reason, failed.report.reason);
+    assert.equal(status.active!.operations.length, 1);
     assert.equal(readFileSync(join(f.project.root, '.repo-standards/local/check-attempts'), 'utf8'), '1');
     assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
   });

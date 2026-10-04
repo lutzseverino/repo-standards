@@ -1,3 +1,4 @@
+import type { ErrorReport, Inspection, OutdatedReport, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
@@ -40,7 +41,7 @@ before(async () => {
   // The registry offers a prerelease above every stable version it publishes.
   registry = await registryFixture(cli.root, [cli.version, patch, minor, candidate]);
   const env = { ...remote.env, ...registry.env };
-  const inspection = JSON.parse(cli.run(inspectionArgs, adopted.root, env).stdout);
+  const inspection = (JSON.parse(cli.run(inspectionArgs, adopted.root, env).stdout) as Inspection);
   const started = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], adopted.root, env);
   assert.equal(started.status, 0, started.stdout + started.stderr);
   commit(adopted.root);
@@ -78,7 +79,7 @@ async function closedPort() {
 function outdated(root: string, env: NodeJS.ProcessEnv) {
   const logged = remote.requestLog().length;
   const result = cli.run(['outdated', '--json'], root, env);
-  return { result, report: JSON.parse(result.stdout), requests: remote.requestLog().slice(logged) };
+  return { result, report: (JSON.parse(result.stdout) as OutdatedReport), requests: remote.requestLog().slice(logged) };
 }
 
 function gitStatus(root: string) {
@@ -95,7 +96,7 @@ test('outdated reports the newest stable CLI and standards versions and the stab
     update: 'available', newest: minor, newerStableReleases: 2, cached: false, checkedAt: undefined });
   assert.deepEqual({ ...report.standards, checkedAt: undefined }, { repository: 'https://github.com/alice/standards', pinned: 'v1.0.0',
     update: 'available', newest: 'v1.1.0', newerStableReleases: 2, cached: false, checkedAt: undefined });
-  assert.ok(Number.isFinite(Date.parse(report.cli.checkedAt)));
+  assert.ok(Number.isFinite(Date.parse(report.cli.checkedAt!)));
   assert.equal(requests.filter(request => request.url.startsWith(registry.env.npm_config_registry)).length, 1);
   assert.deepEqual(requests.filter(request => request.url.startsWith('https://api.github.com/')).map(request => request.url), [releasesUrl]);
 });
@@ -137,8 +138,8 @@ test('an unreachable registry leaves the CLI pin unknown and still answers the s
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(report.cli.pinned, cli.version);
   assert.equal(report.cli.update, 'unknown');
-  assert.equal(report.cli.reason.code, 'REGISTRY_UNAVAILABLE');
-  assert.equal(typeof report.cli.reason.message, 'string');
+  assert.equal(report.cli.reason!.code, 'REGISTRY_UNAVAILABLE');
+  assert.equal(typeof report.cli.reason!.message, 'string');
   assert.equal(report.standards.update, 'available');
   assert.equal(report.standards.newest, 'v1.1.0');
   const credentialed = outdated(root, environment({ npm_config_registry: `http://agent:registry-secret@127.0.0.1:${await closedPort()}/` }));
@@ -154,7 +155,7 @@ test('an unreachable remote leaves the standards pin unknown and still answers t
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(report.standards.pinned, 'v1.0.0');
   assert.equal(report.standards.update, 'unknown');
-  assert.equal(report.standards.reason.code, 'SOURCE_UNAVAILABLE');
+  assert.equal(report.standards.reason!.code, 'SOURCE_UNAVAILABLE');
   assert.equal(report.cli.update, 'available');
   assert.equal(report.cli.newest, minor);
 });
@@ -165,8 +166,8 @@ test('exhausted GitHub quota leaves the standards pin unknown with exit status 0
   const { result, report } = outdated(root, environment());
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(report.standards.update, 'unknown');
-  assert.equal(report.standards.reason.code, 'QUOTA_EXHAUSTED');
-  assert.match(report.standards.reason.message, /GH_TOKEN|GITHUB_TOKEN/);
+  assert.equal(report.standards.reason!.code, 'QUOTA_EXHAUSTED');
+  assert.match(report.standards.reason!.message, /GH_TOKEN|GITHUB_TOKEN/);
   assert.equal(report.cli.update, 'available');
 });
 
@@ -195,7 +196,7 @@ test('a project without a selection reports both pins unknown and changes nothin
     for (const pin of [report.cli, report.standards]) {
       assert.equal(pin.update, 'unknown');
       assert.equal(pin.pinned, null);
-      assert.equal(pin.reason.code, 'NO_SELECTION');
+      assert.equal(pin.reason!.code, 'NO_SELECTION');
     }
     assert.deepEqual(requests, []);
     assert.deepEqual(snapshot(root), before);
@@ -222,7 +223,7 @@ test('status makes no network request', t => {
   const logged = remote.requestLog().length;
   const result = cli.run(['status', '--json'], root, environment());
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).selection.standards.version, 'v1.0.0');
+  assert.equal((JSON.parse(result.stdout) as Status).selection!.standards.version, 'v1.0.0');
   assert.deepEqual(remote.requestLog().slice(logged), []);
 });
 
@@ -231,6 +232,6 @@ test('invalid outdated usage exits 2 with a structured diagnostic', t => {
   for (const args of [['outdated', '--json', '--source', 'x'], ['outdated', '--json', '--project'], ['outdated', '--json', '--json']]) {
     const result = cli.run(args, root, environment());
     assert.equal(result.status, 2, result.stdout + result.stderr);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, 'USAGE');
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'USAGE');
   }
 });

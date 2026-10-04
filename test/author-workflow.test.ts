@@ -1,3 +1,4 @@
+import type { Inspection, Run } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -18,9 +19,9 @@ test('Alice author example checks actual README headings through installed adopt
   commit(project.root);
   const head = git(project.root, 'rev-parse', 'HEAD');
   const env = { ...remote.env, ...registry.env };
-  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const inspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   const started = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
-  assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout);
+  assert.equal((JSON.parse(started.stdout) as Run).phase, 'contextual', started.stdout);
   const assessment = () => ({
     format: 'repo-standards/assessment/v3',
     declarations: [
@@ -31,17 +32,17 @@ test('Alice author example checks actual README headings through installed adopt
   const submission = join(remote.support.root, 'assessment.json');
   writeFileSync(submission, JSON.stringify(assessment()));
   const failed = cli.run(['resume', '--assessment', submission, '--json'], project.root, env);
-  const report = JSON.parse(failed.stdout);
+  const report = (JSON.parse(failed.stdout) as Run);
   assert.equal(failed.status, 1, failed.stdout);
   assert.match(report.reason, /CHECKS_FAILED/);
-  assert.equal(report.operations.at(-1).result.status, 'failed');
+  assert.equal(report.operations.at(-1)!.result!.status, 'failed');
 
   writeFileSync(join(project.root, 'README.md'), '# Bob\nA delivery queue.\n## Setup\nUse Node.js 24.\n## Usage\nRun the worker.\n## Development\nRun the queue tests.\n');
   cli.run(['resume', '--json'], project.root, env);
   writeFileSync(submission, JSON.stringify(assessment()));
   const completed = cli.run(['resume', '--assessment', submission, '--json'], project.root, env);
   assert.equal(completed.status, 0, completed.stdout + completed.stderr);
-  assert.equal(JSON.parse(completed.stdout).operations.at(-1).result.status, 'passed');
+  assert.equal((JSON.parse(completed.stdout) as Run).operations.at(-1)!.result!.status, 'passed');
   assert.equal(readFileSync(join(project.root, 'CONTRIBUTING.md'), 'utf8'), 'Employer review policy\n');
   assert.equal(git(project.root, 'rev-parse', 'HEAD'), head);
   assert.notEqual(git(project.root, 'status', '--porcelain'), '');
@@ -56,13 +57,13 @@ test('Mira service source retains check resources and preserves fix output on ex
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
   const args = ['--source', 'https://github.com/mira/standards', '--standards-version', 'v1.0.0', '--profile', 'service', '--json'];
-  const inspection = JSON.parse(cli.run(['inspect', ...args], project.root, env).stdout);
-  const started = JSON.parse(cli.run(['start', ...args, '--confirm', inspection.identity], project.root, env).stdout);
+  const inspection = (JSON.parse(cli.run(['inspect', ...args], project.root, env).stdout) as Inspection);
+  const started = (JSON.parse(cli.run(['start', ...args, '--confirm', inspection.identity], project.root, env).stdout) as Run);
   assert.equal(started.phase, 'contextual');
-  assert.equal(started.operations[0].result.status, 'changed');
-  const retry = JSON.parse(cli.run(['resume', '--retry', '--json'], project.root, env).stdout);
+  assert.equal(started.operations[0]!.result!.status, 'changed');
+  const retry = (JSON.parse(cli.run(['resume', '--retry', '--json'], project.root, env).stdout) as Run);
   assert.equal(retry.phase, 'contextual');
-  assert.equal(retry.operations.at(-1).result.status, 'unchanged');
+  assert.equal(retry.operations.at(-1)!.result!.status, 'unchanged');
   assert.equal(readFileSync(join(project.root, 'docs/operating-status.json'), 'utf8'), '{\n  "status": "unverified"\n}\n');
   writeFileSync(join(project.root, 'docs/operations.md'), '# Harbor\n## Startup\nStart the service.\n## Health\nProbe loopback.\n## Recovery\nRestart loses in-memory state.\n');
   cli.run(['resume', '--json'], project.root, env);
@@ -72,7 +73,7 @@ test('Mira service source retains check resources and preserves fix output on ex
       evidence: ['Startup, Health and Recovery sections present.'] }] }));
   const result = cli.run(['resume', '--assessment', assessment, '--json'], project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).operations.at(-1).result.status, 'passed');
+  assert.equal((JSON.parse(result.stdout) as Run).operations.at(-1)!.result!.status, 'passed');
   const packageRoot = join(project.root, '.repo-standards/runtime/node_modules/@lutzseverino/repo-standards');
   for (const path of ['docs/usage/authoring.md', 'docs/usage/assessment-protocol.md', 'docs/usage/adoption.md', 'examples/mira/standards.yaml']) {
     assert.ok(readFileSync(join(packageRoot, path), 'utf8').length);

@@ -1,3 +1,4 @@
+import type { PackageManifest } from './json-reports.ts';
 import { createHash } from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
 import { cpSync, readFileSync, writeFileSync } from 'node:fs';
@@ -11,11 +12,11 @@ import { sourceFixture } from './installed-cli.ts';
 export async function registryFixture(cliRoot: string, versions?: string[]) {
   const support = sourceFixture('');
   const installedPackage = join(cliRoot, 'node_modules/@lutzseverino/repo-standards');
-  const baseManifest = JSON.parse(readFileSync(join(installedPackage, 'package.json'), 'utf8'));
+  const baseManifest = (JSON.parse(readFileSync(join(installedPackage, 'package.json'), 'utf8')) as PackageManifest);
   const packages: Record<string, { manifest: unknown; tarball: string; integrity: string }> = {};
   for (const version of versions ?? [baseManifest.version]) {
     let tarball = join(cliRoot, `lutzseverino-repo-standards-${version}.tgz`);
-    let manifest = { ...baseManifest, version };
+    const manifest = { ...baseManifest, version };
     if (version !== baseManifest.version) {
       const directory = join(support.root, `package-${version}`);
       cpSync(installedPackage, directory, { recursive: true });

@@ -1,3 +1,4 @@
+import type { ErrorReport, Inspection, Lock, OutdatedReport, PackageManifest, Run, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -36,7 +37,7 @@ async function fixture(t: TestContext, declarations: Record<string, unknown>, fi
     pinned: (args: string[]) => cli.run(args, project.root, env),
     candidate: (args: string[], environment: NodeJS.ProcessEnv = env, cwd = project.root) => spawnSync(candidateBin, args, { cwd, env: environment, encoding: 'utf8' }),
     adopt() {
-      const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+      const inspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
       return cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
     },
   };
@@ -44,11 +45,11 @@ async function fixture(t: TestContext, declarations: Record<string, unknown>, fi
 
 function rejected(result: ReturnType<typeof spawnSync>, pinned: string) {
   assert.equal(result.status, 1, `${String(result.stdout)}${String(result.stderr)}`);
-  const [error] = JSON.parse(String(result.stdout)).errors;
-  assert.equal(error.code, 'CLI_PIN_MISMATCH');
-  assert.ok(error.message.includes(` ${pinned}`), error.message);
-  assert.ok(error.message.includes(reinstall), error.message);
-  return error.message as string;
+  const [error] = (JSON.parse(String(result.stdout)) as ErrorReport).errors;
+  assert.equal(error!.code, 'CLI_PIN_MISMATCH');
+  assert.ok(error!.message.includes(` ${pinned}`), error!.message);
+  assert.ok(error!.message.includes(reinstall), error!.message);
+  return error!.message;
 }
 
 test('status and outdated reject a CLI other than the pin, while inspect and start take it as a CLI pin change', async t => {
@@ -85,22 +86,22 @@ test('status and outdated reject a CLI other than the pin, while inspect and sta
   // The same candidate still inspects and starts a CLI pin change.
   const inspected = f.candidate(['inspect', '--json']);
   assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
-  const inspection = JSON.parse(inspected.stdout);
+  const inspection = (JSON.parse(inspected.stdout) as Inspection);
   assert.deepEqual(inspection.update, ['cli']);
   assert.equal(inspection.selection.cli.version, candidateVersion);
   assert.equal(inspection.start.eligible, true, JSON.stringify(inspection.start.blockers));
   const started = f.candidate(['start', '--confirm', inspection.identity, '--json']);
   assert.equal(started.status, 0, started.stdout + started.stderr);
-  assert.equal(JSON.parse(started.stdout).outcome, 'complete');
+  assert.equal((JSON.parse(started.stdout) as Run).outcome, 'complete');
   commit(f.project.root);
 
   // The candidate is now the pin, and the former CLI is the stale one.
   const status = f.candidate(['status', '--json']);
   assert.equal(status.status, 0, status.stdout + status.stderr);
-  assert.equal(JSON.parse(status.stdout).selection.cli.version, candidateVersion);
+  assert.equal((JSON.parse(status.stdout) as Status).selection!.cli.version, candidateVersion);
   const outdated = f.candidate(['outdated', '--json']);
   assert.equal(outdated.status, 0, outdated.stdout + outdated.stderr);
-  assert.equal(JSON.parse(outdated.stdout).cli.pinned, candidateVersion);
+  assert.equal((JSON.parse(outdated.stdout) as OutdatedReport).cli.pinned, candidateVersion);
   for (const args of [['status', '--json'], ['outdated', '--json']]) rejected(f.pinned(args), candidateVersion);
   assert.equal(execFileSync(join(f.project.root, '.repo-standards/runtime/node_modules/.bin/repo-standards'), ['--version'], { encoding: 'utf8' }).trim(), candidateVersion);
 });
@@ -108,7 +109,7 @@ test('status and outdated reject a CLI other than the pin, while inspect and sta
 test('status, resume and abandon of an active run require the run\'s pinned CLI', async t => {
   const f = await fixture(t, { readme: { kind: 'file', target: 'README.md', guidance: 'readme.md' } }, { 'readme.md': 'Describe the project.' });
   const started = f.adopt();
-  assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout + started.stderr);
+  assert.equal((JSON.parse(started.stdout) as Run).phase, 'contextual', started.stdout + started.stderr);
   const head = git(f.project.root, 'rev-parse', 'HEAD');
   const before = snapshot(f.project.root);
   for (const args of [['status', '--json'], ['resume', '--json'], ['abandon', '--json']]) rejected(f.candidate(args), cli.version);
@@ -116,17 +117,17 @@ test('status, resume and abandon of an active run require the run\'s pinned CLI'
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), head);
   const status = f.pinned(['status', '--json']);
   assert.equal(status.status, 0, status.stdout + status.stderr);
-  assert.equal(JSON.parse(status.stdout).active.phase, 'contextual');
+  assert.equal((JSON.parse(status.stdout) as Status).active!.phase, 'contextual');
 });
 
 test('an older CLI rejects the pin before record formats or integrity for status, resume and abandon', async t => {
   const f = await fixture(t, { instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' } }, { 'agents.md': 'Instructions' });
-  const inspection = JSON.parse(f.candidate(inspectionArgs).stdout);
+  const inspection = (JSON.parse(f.candidate(inspectionArgs).stdout) as Inspection);
   const started = f.candidate(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity]);
   assert.equal(started.status, 0, started.stdout + started.stderr);
   commit(f.project.root);
   const root = f.project.root;
-  const lock = JSON.parse(readFileSync(join(root, '.repo-standards/lock.json'), 'utf8'));
+  const lock = (JSON.parse(readFileSync(join(root, '.repo-standards/lock.json'), 'utf8')) as Lock);
   const runRecord = join(root, git(root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
   const reports = join(runRecord, '../repo-standards-reports');
   mkdirSync(reports, { recursive: true });
@@ -166,12 +167,12 @@ test('a CLI pin change interrupted before its runtime is installed sends the for
   const f = await fixture(t, { instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' } }, { 'agents.md': 'Instructions' });
   assert.equal(f.adopt().status, 0);
   commit(f.project.root);
-  const inspection = JSON.parse(f.candidate(['inspect', '--json']).stdout);
+  const inspection = (JSON.parse(f.candidate(['inspect', '--json']).stdout) as Inspection);
   assert.deepEqual(inspection.update, ['cli']);
   const env = filesystemFault(f.remote.support.root, f.env, 'installation', `process.kill(process.pid, 'SIGKILL');`);
   const started = f.candidate(['start', '--confirm', inspection.identity, '--json'], env);
   assert.equal(started.signal, 'SIGKILL', started.stdout + started.stderr);
-  const runtime = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/runtime/package.json'), 'utf8'));
+  const runtime = (JSON.parse(readFileSync(join(f.project.root, '.repo-standards/runtime/package.json'), 'utf8')) as PackageManifest);
   assert.equal(runtime.dependencies['@lutzseverino/repo-standards'], cli.version);
 
   // The committed runtime still installs the former CLI, so the former CLI is
@@ -179,11 +180,11 @@ test('a CLI pin change interrupted before its runtime is installed sends the for
   for (const args of [['status', '--json'], ['resume', '--json'], ['abandon', '--json']]) {
     const result = f.pinned(args);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const [error] = JSON.parse(result.stdout).errors;
-    assert.equal(error.code, 'CLI_PIN_MISMATCH');
-    assert.ok(error.message.includes(` ${candidateVersion}`), error.message);
-    assert.ok(error.message.includes('installed outside the project'), error.message);
-    assert.ok(!error.message.includes(reinstall), error.message);
+    const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+    assert.equal(error!.code, 'CLI_PIN_MISMATCH');
+    assert.ok(error!.message.includes(` ${candidateVersion}`), error!.message);
+    assert.ok(error!.message.includes('installed outside the project'), error!.message);
+    assert.ok(!error!.message.includes(reinstall), error!.message);
   }
   // Installation writes the runtime manifest and its npm lock separately; a new
   // manifest beside the former lock cannot be reinstalled either.
@@ -191,18 +192,18 @@ test('a CLI pin change interrupted before its runtime is installed sends the for
   writeFileSync(manifest, JSON.stringify({ ...runtime, dependencies: { '@lutzseverino/repo-standards': candidateVersion } }));
   const rejectedPartial = f.pinned(['status', '--json']);
   assert.equal(rejectedPartial.status, 1, rejectedPartial.stdout + rejectedPartial.stderr);
-  const partial = JSON.parse(rejectedPartial.stdout).errors[0];
-  assert.equal(partial.code, 'CLI_PIN_MISMATCH');
-  assert.ok(partial.message.includes('installed outside the project'), partial.message);
-  assert.ok(!partial.message.includes(reinstall), partial.message);
+  const partial = (JSON.parse(rejectedPartial.stdout) as ErrorReport).errors[0];
+  assert.equal(partial!.code, 'CLI_PIN_MISMATCH');
+  assert.ok(partial!.message.includes('installed outside the project'), partial!.message);
+  assert.ok(!partial!.message.includes(reinstall), partial!.message);
   const status = f.candidate(['status', '--json']);
   assert.equal(status.status, 0, status.stdout + status.stderr);
-  assert.equal(JSON.parse(status.stdout).active.selection.cli.version, candidateVersion);
+  assert.equal((JSON.parse(status.stdout) as Status).active!.selection.cli.version, candidateVersion);
 
   // Even with unreadable formats, the active run's candidate pin takes
   // precedence over the former adoption's pin in the committed lock.
   const runRecord = join(f.project.root, git(f.project.root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
-  const run = JSON.parse(readFileSync(runRecord, 'utf8'));
+  const run = (JSON.parse(readFileSync(runRecord, 'utf8')) as Run);
   writeFileSync(runRecord, JSON.stringify({ ...run, format: 'repo-standards/run/v7' }));
   const statePath = join(f.project.root, '.repo-standards/state.json');
   const state = readFileSync(statePath);
@@ -210,10 +211,10 @@ test('a CLI pin change interrupted before its runtime is installed sends the for
   const before = snapshot(f.project.root);
   for (const command of ['status', 'resume', 'abandon']) {
     const result = f.pinned([command, '--json']);
-    const error = JSON.parse(result.stdout).errors[0];
+    const error = (JSON.parse(result.stdout) as ErrorReport).errors[0];
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.equal(error.code, 'CLI_PIN_MISMATCH');
-    assert.ok(error.message.includes(` ${candidateVersion}`), error.message);
+    assert.equal(error!.code, 'CLI_PIN_MISMATCH');
+    assert.ok(error!.message.includes(` ${candidateVersion}`), error!.message);
     assert.deepEqual(snapshot(f.project.root), before, `${command} must not write`);
   }
   writeFileSync(statePath, state);
@@ -221,7 +222,7 @@ test('a CLI pin change interrupted before its runtime is installed sends the for
   for (const command of ['status', 'resume', 'abandon']) {
     const result = f.candidate([command, '--json']);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, 'NEWER_FORMAT');
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'NEWER_FORMAT');
     assert.deepEqual(snapshot(f.project.root), newerRun, `${command} must not write`);
   }
 });
@@ -230,12 +231,12 @@ test('without a recorded pin, status and outdated answer under any CLI', async t
   const f = await fixture(t, { instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' } }, { 'agents.md': 'Instructions' });
   const status = f.candidate(['status', '--json']);
   assert.equal(status.status, 0, status.stdout + status.stderr);
-  assert.equal(JSON.parse(status.stdout).selection, null);
+  assert.equal((JSON.parse(status.stdout) as Status).selection, null);
   const outdated = f.candidate(['outdated', '--json']);
   assert.equal(outdated.status, 0, outdated.stdout + outdated.stderr);
-  const report = JSON.parse(outdated.stdout);
+  const report = (JSON.parse(outdated.stdout) as OutdatedReport);
   for (const pin of [report.cli, report.standards]) {
     assert.equal(pin.pinned, null);
-    assert.equal(pin.reason.code, 'NO_SELECTION');
+    assert.equal(pin.reason!.code, 'NO_SELECTION');
   }
 });

@@ -1,3 +1,4 @@
+import type { PackageManifest, SourceValidation } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -14,7 +15,7 @@ test('release artifacts install without build tools and expose the matching CLI,
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const output = join(root, 'release');
   execFileSync(process.execPath, ['scripts/pack-release.ts', output], { stdio: 'pipe' });
-  const bundle = JSON.parse(readFileSync(join(output, 'release.json'), 'utf8'));
+  const bundle = JSON.parse(readFileSync(join(output, 'release.json'), 'utf8')) as { package: string; version: string; tarball: string; integrity: string; artifacts: { file: string; sha256: string }[] };
   const repeatedOutput = join(root, 'repeated-release');
   execFileSync(process.execPath, ['scripts/pack-release.ts', repeatedOutput], { stdio: 'pipe' });
   assert.deepEqual(readFileSync(join(repeatedOutput, bundle.tarball)), readFileSync(join(output, bundle.tarball)), 'Repeated packaging of the same build must produce identical bytes');
@@ -83,9 +84,9 @@ test('release artifacts install without build tools and expose the matching CLI,
   }
   for (const [name, disabled, implicit] of [['adopt-standards', true, false], ['standards-updates', false, true], ['author-standards', false, true]] as const) {
     const skill = readFileSync(join(installed, 'skills', name, 'SKILL.md'), 'utf8');
-    assert.equal(parse(skill.match(/^---\n([\s\S]*?)\n---\n/)![1]!)['disable-model-invocation'], disabled);
+    assert.equal((parse(skill.match(/^---\n([\s\S]*?)\n---\n/)![1]!) as { 'disable-model-invocation': boolean })['disable-model-invocation'], disabled);
     const policy = readFileSync(join(installed, 'skills', name, 'agents/openai.yaml'), 'utf8');
-    assert.equal(parse(policy).policy.allow_implicit_invocation, implicit);
+    assert.equal((parse(policy) as { policy: { allow_implicit_invocation: boolean } }).policy.allow_implicit_invocation, implicit);
     assert.deepEqual(policy, readFileSync(resolve('skills', name, 'agents/openai.yaml'), 'utf8'));
   }
   const authoringResources = ['SKILL.md', 'references/cli.md', 'references/profiles.md', 'references/operations.md', 'references/revision.md'];
@@ -151,7 +152,7 @@ test('release artifacts install without build tools and expose the matching CLI,
   for (const author of ['alice', 'mira']) {
     const result = spawnSync(cli, ['source', 'validate', join(installed, 'examples', author), '--json'], { cwd: root, encoding: 'utf8' });
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    assert.equal(JSON.parse(result.stdout).valid, true);
+    assert.equal((JSON.parse(result.stdout) as SourceValidation).valid, true);
   }
 });
 
@@ -235,7 +236,7 @@ test('an independently installed later CLI package reports its exact release ver
   t.after(() => current.close());
   const candidate = join(current.root, 'candidate');
   cpSync(join(current.root, 'node_modules/@lutzseverino/repo-standards'), candidate, { recursive: true });
-  const manifest = JSON.parse(readFileSync(join(candidate, 'package.json'), 'utf8'));
+  const manifest = (JSON.parse(readFileSync(join(candidate, 'package.json'), 'utf8')) as PackageManifest);
   writeFileSync(join(candidate, 'package.json'), JSON.stringify({ ...manifest, version: '1.99.42' }));
   const previous = process.cwd();
   process.chdir(candidate);

@@ -1,3 +1,4 @@
+import type { Diagnostic, ErrorReport, Inspection, Lock, PackageManifest, Run, State, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { inc } from 'semver';
 import { after, test } from 'node:test';
@@ -67,7 +68,7 @@ test('a confirmed standards update advances only the standards pin, replaces who
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initialInspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initialInspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   const initial = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env);
   assert.equal(initial.status, 0, initial.stdout + initial.stderr);
   commit(project.root);
@@ -83,27 +84,27 @@ test('a confirmed standards update advances only the standards pin, replaces who
   const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
   const inspectionResult = cli.run(updateArgs, project.root, env);
   assert.equal(inspectionResult.status, 0, inspectionResult.stdout + inspectionResult.stderr);
-  const inspection = JSON.parse(inspectionResult.stdout);
+  const inspection = (JSON.parse(inspectionResult.stdout) as Inspection);
   assert.deepEqual(inspection.update, ['standards']);
   assert.equal(inspection.selection.cli.version, cli.version);
   assert.equal(inspection.selection.standards.commit, published.sha);
-  assert.deepEqual(inspection.retired.map((entry: { id: string }) => entry.id), ['excluded', 'retired']);
-  assert.deepEqual(inspection.removed.map(({ id, target }: { id: string; target: string }) => ({ id, target })), [
+  assert.deepEqual(inspection.retired!.map((entry: { id: string }) => entry.id), ['excluded', 'retired']);
+  assert.deepEqual(inspection.removed!.map(({ id, target }: { id: string; target: string }) => ({ id, target })), [
     { id: 'excluded', target: 'EXCLUDED.md' }, { id: 'retired', target: 'RETIRED.md' }]);
   assert.deepEqual(inspection.discardedEdits, []);
 
   const result = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+  assert.equal((JSON.parse(result.stdout) as Run).outcome, 'complete');
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version two');
   assert.equal(readFileSync(join(project.root, '.agents/skills/review/current.txt'), 'utf8'), 'current');
   assert.equal(existsSync(join(project.root, '.agents/skills/review/obsolete.txt')), false);
   assert.equal(existsSync(join(project.root, 'RETIRED.md')), false);
   assert.equal(existsSync(join(project.root, 'EXCLUDED.md')), false);
-  const selection = parse(readFileSync(join(project.root, '.repo-standards/selection.yaml'), 'utf8'));
+  const selection = parse(readFileSync(join(project.root, '.repo-standards/selection.yaml'), 'utf8')) as Inspection['selection'];
   assert.equal(selection.standards.version, 'v1.1.0');
   assert.equal(selection.cli.version, cli.version);
-  const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
+  const state = (JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8')) as State);
   assert.equal(state.baselines['RETIRED.md'], undefined);
   assert.equal(state.baselines['EXCLUDED.md'], undefined);
   assert.deepEqual(runtimePaths.map(path => readFileSync(join(project.root, path), 'utf8')), originalRuntime);
@@ -137,7 +138,7 @@ test('an update replaces each committed edit to installed content and lists it a
     t.after(() => { remote.close(); project.close(); });
     commit(project.root);
     const env = { ...remote.env, ...registry.env };
-    const initialInspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+    const initialInspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
     assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).status, 0);
     commit(project.root);
     mutate(project.root);
@@ -146,12 +147,12 @@ test('an update replaces each committed edit to installed content and lists it a
       'agents.md': 'Version two', 'review/SKILL.md': '# Review v2', 'review/resource.txt': 'New resource',
     });
     const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
-    const inspection = JSON.parse(cli.run(updateArgs, project.root, env).stdout);
+    const inspection = (JSON.parse(cli.run(updateArgs, project.root, env).stdout) as Inspection);
     assert.deepEqual(inspection.start.blockers, []);
     assert.deepEqual(inspection.discardedEdits, [target]);
     const result = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+    assert.equal((JSON.parse(result.stdout) as Run).outcome, 'complete');
     assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version two');
     assert.equal(lstatSync(join(project.root, 'AGENTS.md')).mode & 0o111, 0);
     assert.deepEqual(installedTree(join(project.root, '.agents/skills/review')), installedTree(join(remote.source.root, 'review')));
@@ -168,7 +169,7 @@ test('the first update of an adoption made without the update notice installs st
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   // An adoption by a CLI that installed no update notice records no skill,
   // link, baseline, or lock entry for it.
@@ -178,8 +179,8 @@ test('the first update of an adoption made without the update notice installs st
   unlinkSync(join(project.root, noticeLink));
   const statePath = join(project.root, '.repo-standards/state.json');
   const lockPath = join(project.root, '.repo-standards/lock.json');
-  const state = JSON.parse(readFileSync(statePath, 'utf8'));
-  const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
+  const state = (JSON.parse(readFileSync(statePath, 'utf8')) as State);
+  const lock = (JSON.parse(readFileSync(lockPath, 'utf8')) as Lock);
   delete state.skills[notice];
   delete state.links[noticeLink];
   for (const record of [state.baselines, lock.files]) for (const path of Object.keys(record)) if (path.startsWith(`${notice}/`)) delete record[path];
@@ -191,7 +192,7 @@ test('the first update of an adoption made without the update notice installs st
 
   const inspected = cli.run(['inspect', '--json'], project.root, env);
   assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
-  const inspection = JSON.parse(inspected.stdout);
+  const inspection = (JSON.parse(inspected.stdout) as Inspection);
   assert.equal(inspection.updateClass, 'exact');
   assert.deepEqual(inspection.systemSkills, [
     { name: 'adopt-standards', target: '.agents/skills/adopt-standards', action: 'match', link: { target: '.claude/skills/adopt-standards', action: 'match' } },
@@ -204,9 +205,9 @@ test('the first update of an adoption made without the update notice installs st
   assert.doesNotMatch(summary.stdout, /`adopt-standards` \|/);
   const started = cli.run(['start', '--confirm', inspection.identity, '--json'], project.root, env);
   assert.equal(started.status, 0, started.stdout + started.stderr);
-  assert.equal(JSON.parse(started.stdout).outcome, 'complete');
+  assert.equal((JSON.parse(started.stdout) as Run).outcome, 'complete');
   assert.deepEqual(installedTree(join(project.root, notice)), installedTree(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/standards-updates')));
-  assert.deepEqual(JSON.parse(readFileSync(statePath, 'utf8')).skills[notice], ['SKILL.md', 'agents/openai.yaml']);
+  assert.deepEqual((JSON.parse(readFileSync(statePath, 'utf8')) as State).skills[notice], ['SKILL.md', 'agents/openai.yaml']);
   assert.deepEqual(git(project.root, 'status', '--porcelain', '--untracked-files=all', '--', '.agents', '.claude').split('\n').sort(),
     [`?? ${notice}/SKILL.md`, `?? ${notice}/agents/openai.yaml`, `?? ${noticeLink}`]);
 });
@@ -221,14 +222,14 @@ test('the first update of an adoption made without skill links creates them as e
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   // An adoption by a CLI that installed no skill links records none.
   rmSync(join(project.root, '.claude'), { recursive: true });
   const statePath = join(project.root, '.repo-standards/state.json');
   const lockPath = join(project.root, '.repo-standards/lock.json');
-  const state = JSON.parse(readFileSync(statePath, 'utf8'));
-  const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
+  const state = (JSON.parse(readFileSync(statePath, 'utf8')) as State);
+  const lock = (JSON.parse(readFileSync(lockPath, 'utf8')) as Lock);
   state.links = {};
   state.changeSet = state.changeSet.filter(({ path }: { path: string }) => !path.startsWith('.claude/'));
   const stateText = `${JSON.stringify(state, null, 2)}\n`;
@@ -239,13 +240,13 @@ test('the first update of an adoption made without skill links creates them as e
 
   const inspected = cli.run(['inspect', '--json'], project.root, env);
   assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
-  const inspection = JSON.parse(inspected.stdout);
+  const inspection = (JSON.parse(inspected.stdout) as Inspection);
   assert.equal(inspection.updateClass, 'exact');
   assert.deepEqual(inspection.contextualChanges, []);
   assert.deepEqual(inspection.systemSkills.map(({ action, link }: { action: string; link: unknown }) => ({ action, link })), [
     { action: 'match', link: { target: '.claude/skills/adopt-standards', action: 'create' } },
     { action: 'match', link: { target: '.claude/skills/standards-updates', action: 'create' } }]);
-  assert.deepEqual(inspection.exact.map(({ action, link }: { action: string; link: unknown }) => ({ action, link })), [{ action: 'match', link: { target: '.claude/skills/review', action: 'create' } }]);
+  assert.deepEqual(inspection.exact.map(({ action, link }) => ({ action, link })), [{ action: 'match', link: { target: '.claude/skills/review', action: 'create' } }]);
   assert.deepEqual(inspection.start.blockers, []);
   assert.deepEqual(inspection.discardedEdits, []);
   const summary = cli.run(['inspect', '--summary'], project.root, env);
@@ -256,10 +257,10 @@ test('the first update of an adoption made without skill links creates them as e
   }
   const started = cli.run(['start', '--confirm', inspection.identity, '--json'], project.root, env);
   assert.equal(started.status, 0, started.stdout + started.stderr);
-  assert.equal(JSON.parse(started.stdout).outcome, 'complete');
+  assert.equal((JSON.parse(started.stdout) as Run).outcome, 'complete');
   const links = Object.fromEntries(['adopt-standards', 'review', 'standards-updates'].map(name => [`.claude/skills/${name}`, `../../.agents/skills/${name}`]));
   for (const [path, text] of Object.entries(links)) assert.equal(readlinkSync(join(project.root, path)), text);
-  const updated = JSON.parse(readFileSync(statePath, 'utf8'));
+  const updated = (JSON.parse(readFileSync(statePath, 'utf8')) as State);
   assert.deepEqual(Object.fromEntries(Object.entries(updated.links).sort(([a], [b]) => a.localeCompare(b))), links);
   assert.deepEqual(git(project.root, 'status', '--porcelain', '--untracked-files=all', '--', '.agents', '.claude').split('\n').sort(),
     Object.keys(links).map(path => `?? ${path}`));
@@ -275,7 +276,7 @@ test('durable state records only the skill link of a recorded skill', async t =>
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   commit(project.root);
   const state = committedState(project.root) as unknown as { links: Record<string, string> };
@@ -286,7 +287,7 @@ test('durable state records only the skill link of a recorded skill', async t =>
     for (const command of ['inspect', 'status']) {
       const result = cli.run([command, '--json'], project.root, env);
       assert.equal(result.status, 1, result.stdout + result.stderr);
-      assert.equal(JSON.parse(result.stdout).errors[0].code, 'STATE_INTEGRITY', JSON.stringify(links));
+      assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'STATE_INTEGRITY', JSON.stringify(links));
     }
     assert.deepEqual(snapshot(project.root), before);
   }
@@ -307,17 +308,17 @@ test('retiring a skill removes its link, and an update leaves the project its ow
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   commit(project.root);
   remote.addVersion('v2.0.0', source('v2', instructions));
   const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v2.0.0' : argument);
-  const inspection = JSON.parse(cli.run(args, project.root, env).stdout);
+  const inspection = (JSON.parse(cli.run(args, project.root, env).stdout) as Inspection);
   assert.deepEqual(inspection.start.blockers, []);
-  assert.deepEqual(inspection.removed.map(({ id, target, files }: { id: string; target: string; files: { path: string; after: unknown }[] }) => ({ id, target, files: files.map(({ path, after }) => ({ path, after })) })), [
+  assert.deepEqual(inspection.removed!.map(({ id, target, files }: { id: string; target: string; files: { path: string; after: unknown }[] }) => ({ id, target, files: files.map(({ path, after }) => ({ path, after })) })), [
     { id: 'review', target: '.agents/skills/review', files: [{ path: '.agents/skills/review/SKILL.md', after: { type: 'missing' } }] },
     { id: 'review', target: '.claude/skills/review', files: [{ path: '.claude/skills/review', after: { type: 'missing' } }] }]);
-  assert.deepEqual(inspection.removed[1].files[0].before, { type: 'symlink', target: '../../.agents/skills/review' });
+  assert.deepEqual(inspection.removed![1]!.files[0]!.before, { type: 'symlink', target: '../../.agents/skills/review' });
   assert.deepEqual(inspection.discardedEdits, []);
   const summary = cli.run(args.filter(argument => argument !== '--json').concat('--summary'), project.root, env).stdout;
   assert.match(summary, /^\| `review` \| `\.agents\/skills\/review\/SKILL\.md` \| deleted \|\n\| `review` \| `\.claude\/skills\/review` \| deleted \|$/m);
@@ -325,7 +326,7 @@ test('retiring a skill removes its link, and an update leaves the project its ow
   assert.equal(started.status, 0, started.stdout + started.stderr);
   assert.equal(existsSync(join(project.root, '.agents/skills/review')), false);
   assert.equal(lstatSync(join(project.root, '.claude/skills/review'), { throwIfNoEntry: false }), undefined);
-  const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
+  const state = (JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8')) as State);
   assert.deepEqual(Object.keys(state.links).sort(), ['.claude/skills/adopt-standards', '.claude/skills/standards-updates']);
   assert.ok(state.changeSet.some(({ path }: { path: string }) => path === '.claude/skills/review'));
   assert.equal(lstatSync(join(project.root, '.claude/skills/mine'), { throwIfNoEntry: false }), undefined);
@@ -342,11 +343,11 @@ test('a skill link changed after confirmation makes start stale', async t => {
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   commit(project.root);
-  const inspection = JSON.parse(cli.run(['inspect', '--json'], project.root, env).stdout);
-  assert.equal(inspection.exact[0].link.action, 'match');
+  const inspection = (JSON.parse(cli.run(['inspect', '--json'], project.root, env).stdout) as Inspection);
+  assert.equal(inspection.exact[0]!.link!.action, 'match');
   // A committed hand-made copy in the link's place is tracked and clean, so
   // only the identity can tell.
   unlinkSync(join(project.root, '.claude/skills/review'));
@@ -356,10 +357,10 @@ test('a skill link changed after confirmation makes start stale', async t => {
   const before = snapshot(project.root);
   const started = cli.run(['start', '--confirm', inspection.identity, '--json'], project.root, env);
   assert.equal(started.status, 1, started.stdout + started.stderr);
-  assert.equal(JSON.parse(started.stdout).errors[0].code, 'STALE_INSPECTION');
+  assert.equal((JSON.parse(started.stdout) as ErrorReport).errors[0]!.code, 'STALE_INSPECTION');
   assert.deepEqual(snapshot(project.root), before);
-  const renewed = JSON.parse(cli.run(['inspect', '--json'], project.root, env).stdout);
-  assert.deepEqual(renewed.exact[0].link, { target: '.claude/skills/review', action: 'replace' });
+  const renewed = (JSON.parse(cli.run(['inspect', '--json'], project.root, env).stdout) as Inspection);
+  assert.deepEqual(renewed.exact[0]!.link, { target: '.claude/skills/review', action: 'replace' });
   assert.deepEqual(renewed.discardedEdits, ['.claude/skills/review']);
 });
 
@@ -408,7 +409,7 @@ test('update inspections match candidate-equal content and list each discarded e
     t.after(() => { remote.close(); project.close(); });
     commit(project.root);
     const env = { ...remote.env, ...registry.env };
-    const initialInspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+    const initialInspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
     assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).status, 0);
     commit(project.root);
     mutate(project.root);
@@ -417,22 +418,22 @@ test('update inspections match candidate-equal content and list each discarded e
     const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
     const result = cli.run(updateArgs, project.root, env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    const inspection = JSON.parse(result.stdout);
+    const inspection = (JSON.parse(result.stdout) as Inspection);
     assert.deepEqual(inspection.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), blockers);
     assert.deepEqual(inspection.discardedEdits, discarded);
-    assert.deepEqual(inspection.removed.map(({ id, target }: { id: string; target: string }) => ({ id, target })), [
+    assert.deepEqual(inspection.removed!.map(({ id, target }: { id: string; target: string }) => ({ id, target })), [
       { id: 'legacy', target: '.agents/skills/legacy' }, { id: 'legacy', target: '.claude/skills/legacy' }, { id: 'retired', target: 'RETIRED.md' }]);
     assert.deepEqual(inspection.kept, []);
     if (actions) assert.deepEqual(Object.fromEntries(inspection.exact.map(({ id, action }: { id: string; action: string }) => [id, action])), actions);
     const started = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
     if (blockers.length) {
       assert.equal(started.status, 1, started.stdout + started.stderr);
-      assert.equal(JSON.parse(started.stdout).errors[0].code, 'START_BLOCKED');
+      assert.equal((JSON.parse(started.stdout) as ErrorReport).errors[0]!.code, 'START_BLOCKED');
       for (const { path } of blockers) assert.ok(existsSync(join(project.root, path)), path);
       return;
     }
     assert.equal(started.status, 0, started.stdout + started.stderr);
-    assert.equal(JSON.parse(started.stdout).outcome, 'complete');
+    assert.equal((JSON.parse(started.stdout) as Run).outcome, 'complete');
     assert.equal(existsSync(join(project.root, 'RETIRED.md')), false);
     assert.equal(existsSync(join(project.root, '.agents/skills/legacy')), false);
     assert.equal(lstatSync(join(project.root, '.claude/skills/legacy'), { throwIfNoEntry: false }), undefined);
@@ -470,10 +471,10 @@ test('update inspections report each declared target block before baseline-only 
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initialInspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initialInspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).status, 0);
   commit(project.root);
-  const baselines = Object.keys(JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8')).baselines);
+  const baselines = Object.keys((JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8')) as State).baselines);
   assert.ok(baselines.indexOf('Z-RETIRED.md') < baselines.indexOf('A-RETIRED.md'), JSON.stringify(baselines));
   assert.ok(baselines.indexOf('Y-KEPT.md') < baselines.indexOf('B-KEPT.md'), JSON.stringify(baselines));
   rmSync(join(project.root, 'AGENTS.md'));
@@ -488,14 +489,14 @@ test('update inspections report each declared target block before baseline-only 
   remote.addVersion('v1.1.0', source('v2', instructions), { 'agents.md': 'Version two' });
   const result = cli.run(inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument), project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const inspection = JSON.parse(result.stdout);
+  const inspection = (JSON.parse(result.stdout) as Inspection);
   assert.deepEqual(inspection.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), [
     { code: 'UNSAFE_TARGET', path: 'AGENTS.md' },
     { code: 'UNTRACKED_REPLACEMENT', path: 'A-RETIRED.md' },
     { code: 'UNTRACKED_REPLACEMENT', path: 'Z-RETIRED.md' },
   ]);
   assert.deepEqual(inspection.discardedEdits, ['AGENTS.md']);
-  assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['A-RETIRED.md', 'Z-RETIRED.md']);
+  assert.deepEqual(inspection.removed!.map(({ target }: { target: string }) => target), ['A-RETIRED.md', 'Z-RETIRED.md']);
   assert.deepEqual(inspection.kept, [{ id: 'gamma', target: 'B-KEPT.md' }, { id: 'delta', target: 'Y-KEPT.md' }]);
 });
 
@@ -539,7 +540,7 @@ test('an update keeps each edited target that leaves the selection as project co
     t.after(() => { remote.close(); project.close(); });
     commit(project.root);
     const run = (args: string[], env: NodeJS.ProcessEnv) => cli.run(args, project.root, { ...env, ...registry.env });
-    const adopted = JSON.parse(run(inspectionArgs, remote.env).stdout);
+    const adopted = (JSON.parse(run(inspectionArgs, remote.env).stdout) as Inspection);
     assert.equal(adopted.kept, undefined);
     assert.equal(run(['start', ...inspectionArgs.slice(1), '--confirm', adopted.identity], remote.env).status, 0);
     commit(project.root);
@@ -550,10 +551,10 @@ test('an update keeps each edited target that leaves the selection as project co
     const { args, env } = update(remote);
     const result = run(args, env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    const inspection = JSON.parse(result.stdout);
+    const inspection = (JSON.parse(result.stdout) as Inspection);
     assert.deepEqual(inspection.start.blockers, []);
-    assert.deepEqual(inspection.retired.map(({ id }: { id: string }) => id), ['legacy', 'plain', 'retired', 'unedited']);
-    assert.deepEqual(inspection.removed.map(({ id, target }: { id: string; target: string }) => ({ id, target })), [
+    assert.deepEqual(inspection.retired!.map(({ id }: { id: string }) => id), ['legacy', 'plain', 'retired', 'unedited']);
+    assert.deepEqual(inspection.removed!.map(({ id, target }: { id: string; target: string }) => ({ id, target })), [
       { id: 'plain', target: '.agents/skills/plain' }, { id: 'plain', target: '.claude/skills/plain' }, { id: 'unedited', target: 'UNEDITED.md' }]);
     assert.deepEqual(inspection.kept, [
       { id: 'legacy', target: '.agents/skills/legacy' }, { id: 'legacy', target: '.claude/skills/legacy' }, { id: 'retired', target: 'RETIRED.md' }]);
@@ -574,7 +575,7 @@ These targets leave the selection with edits. They stay in place, and the projec
 
     const started = run(['start', ...args.slice(1), '--confirm', inspection.identity], env);
     assert.equal(started.status, 0, started.stdout + started.stderr);
-    assert.equal(JSON.parse(started.stdout).outcome, 'complete');
+    assert.equal((JSON.parse(started.stdout) as Run).outcome, 'complete');
     assert.equal(readFileSync(join(project.root, 'RETIRED.md'), 'utf8'), 'Maintainer edit');
     assert.deepEqual(installedTree(join(project.root, '.agents/skills/legacy')).map(([path, bytes]) => [path, Buffer.from(bytes, 'base64').toString()]),
       [['SKILL.md', '# Legacy'], ['notes.md', 'Maintainer notes']]);
@@ -584,7 +585,7 @@ These targets leave the selection with edits. They stay in place, and the projec
     assert.equal(lstatSync(join(project.root, '.claude/skills/plain'), { throwIfNoEntry: false }), undefined);
     const keptPaths = ['RETIRED.md', '.agents/skills/legacy', '.claude/skills/legacy'];
     assert.equal(git(project.root, 'status', '--porcelain', '--', ...keptPaths), '');
-    const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
+    const state = (JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8')) as State);
     assert.deepEqual(Object.keys(state.baselines).filter(path => keptPaths.some(kept => path === kept || path.startsWith(kept + '/'))), []);
     assert.equal(state.skills['.agents/skills/legacy'], undefined);
     assert.equal(state.links['.claude/skills/legacy'], undefined);
@@ -595,13 +596,13 @@ These targets leave the selection with edits. They stay in place, and the projec
     writeFileSync(join(project.root, 'RETIRED.md'), 'Later edit');
     rmSync(join(project.root, '.agents/skills/legacy/SKILL.md'));
     commit(project.root);
-    const later = JSON.parse(run(['inspect', '--json'], env).stdout);
+    const later = (JSON.parse(run(['inspect', '--json'], env).stdout) as Inspection);
     assert.deepEqual(later.start.blockers, []);
     assert.deepEqual(later.removed, []);
     assert.deepEqual(later.kept, []);
     assert.deepEqual(later.discardedEdits, []);
     const again = run(['start', '--confirm', later.identity, '--json'], env);
-    assert.equal(JSON.parse(again.stdout).outcome, 'complete', again.stdout + again.stderr);
+    assert.equal((JSON.parse(again.stdout) as Run).outcome, 'complete', again.stdout + again.stderr);
     assert.equal(readFileSync(join(project.root, 'RETIRED.md'), 'utf8'), 'Later edit');
     assert.equal(readFileSync(join(project.root, '.agents/skills/legacy/notes.md'), 'utf8'), 'Maintainer notes');
     assert.equal(readlinkSync(join(project.root, '.claude/skills/legacy')), '../../.agents/skills/legacy');
@@ -650,7 +651,7 @@ test('an edited skill that leaves the selection is judged whole and keeps its li
     t.after(() => { remote.close(); project.close(); });
     commit(project.root);
     const env = { ...remote.env, ...registry.env };
-    const adopted = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+    const adopted = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
     assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', adopted.identity], project.root, env).status, 0);
     commit(project.root);
     mutate(project.root);
@@ -663,21 +664,21 @@ test('an edited skill that leaves the selection is judged whole and keeps its li
     const linkBefore = linkContent();
     remote.addVersion('v1.1.0', manifest({}));
     const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
-    const inspection = JSON.parse(cli.run(args, project.root, env).stdout);
+    const inspection = (JSON.parse(cli.run(args, project.root, env).stdout) as Inspection);
     assert.deepEqual(inspection.start.blockers.map(({ code, path }: { code: string; path?: string }) => ({ code, path })), blockers);
-    assert.deepEqual(inspection.kept.map(({ target }: { target: string }) => target), kept);
-    assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), removed);
+    assert.deepEqual(inspection.kept!.map(({ target }: { target: string }) => target), kept);
+    assert.deepEqual(inspection.removed!.map(({ target }: { target: string }) => target), removed);
     const started = cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env);
     if (blockers.length) {
-      assert.equal(JSON.parse(started.stdout).errors[0].code, 'START_BLOCKED', started.stdout + started.stderr);
+      assert.equal((JSON.parse(started.stdout) as ErrorReport).errors[0]!.code, 'START_BLOCKED', started.stdout + started.stderr);
       return;
     }
     assert.deepEqual(inspection.discardedEdits, []);
-    assert.equal(JSON.parse(started.stdout).outcome, 'complete', started.stdout + started.stderr);
+    assert.equal((JSON.parse(started.stdout) as Run).outcome, 'complete', started.stdout + started.stderr);
     if (kept.includes(skill)) assert.deepEqual(installedTree(join(project.root, skill)), before);
     else assert.equal(existsSync(join(project.root, skill)), false);
     assert.equal(linkContent(), kept.includes(link) ? linkBefore : undefined);
-    const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
+    const state = (JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8')) as State);
     assert.equal(state.skills[skill], undefined);
     assert.equal(state.links[link], undefined);
   });
@@ -706,7 +707,7 @@ test('an update keeps a retired installed target that lies within contextual sco
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   commit(project.root);
   writeFileSync(join(project.root, 'docs/policy.md'), 'Maintainer policy');
@@ -715,13 +716,13 @@ test('an update keeps a retired installed target that lies within contextual sco
   const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
   const result = cli.run(updateArgs, project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const inspection = JSON.parse(result.stdout);
-  assert.deepEqual(inspection.retired.map((entry: { id: string }) => entry.id), ['policy']);
+  const inspection = (JSON.parse(result.stdout) as Inspection);
+  assert.deepEqual(inspection.retired!.map((entry: { id: string }) => entry.id), ['policy']);
   assert.deepEqual(inspection.removed, []);
   assert.deepEqual(inspection.discardedEdits, []);
   assert.deepEqual(inspection.start.blockers, []);
   const started = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
-  assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout + started.stderr);
+  assert.equal((JSON.parse(started.stdout) as Run).phase, 'contextual', started.stdout + started.stderr);
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Pinned instructions');
   assert.equal(readFileSync(join(project.root, 'docs/policy.md'), 'utf8'), 'Maintainer policy');
 });
@@ -741,19 +742,19 @@ test('an update leaves a retired installed target inside a still-installed skill
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   commit(project.root);
   remote.addVersion('v1.1.0', v2, { 'review/SKILL.md': '# Review v2', 'review/notes.md': 'Notes' });
   const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
-  const inspection = JSON.parse(cli.run(updateArgs, project.root, env).stdout);
-  assert.deepEqual(inspection.retired.map((entry: { id: string }) => entry.id), ['instructions']);
+  const inspection = (JSON.parse(cli.run(updateArgs, project.root, env).stdout) as Inspection);
+  assert.deepEqual(inspection.retired!.map((entry: { id: string }) => entry.id), ['instructions']);
   assert.deepEqual(inspection.removed, []);
   assert.deepEqual(inspection.start.blockers, []);
-  assert.equal(inspection.exact[0].action, 'replace');
+  assert.equal(inspection.exact[0]!.action, 'replace');
   const result = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+  assert.equal((JSON.parse(result.stdout) as Run).outcome, 'complete');
   assert.deepEqual(installedTree(join(project.root, '.agents/skills/review')), installedTree(join(remote.source.root, 'review')));
 });
 
@@ -764,7 +765,7 @@ test('an update removes the link path of a kept skill when it contains a newly i
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const adopted = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const adopted = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', adopted.identity], project.root, env).status, 0);
   commit(project.root);
   writeFileSync(join(project.root, '.agents/skills/legacy/notes.md'), 'Maintainer notes');
@@ -774,13 +775,13 @@ test('an update removes the link path of a kept skill when it contains a newly i
   commit(project.root);
   remote.addVersion('v1.1.0', manifest({ guide: { kind: 'file', target: '.claude/skills/legacy/new.md', exact: 'new.md' } }), { 'new.md': 'New' });
   const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
-  const inspection = JSON.parse(cli.run(args, project.root, env).stdout);
+  const inspection = (JSON.parse(cli.run(args, project.root, env).stdout) as Inspection);
   assert.deepEqual(inspection.start.blockers, []);
-  assert.deepEqual(inspection.kept.map(({ target }: { target: string }) => target), ['.agents/skills/legacy']);
-  assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.claude/skills/legacy']);
+  assert.deepEqual(inspection.kept!.map(({ target }: { target: string }) => target), ['.agents/skills/legacy']);
+  assert.deepEqual(inspection.removed!.map(({ target }: { target: string }) => target), ['.claude/skills/legacy']);
   assert.deepEqual(inspection.discardedEdits, ['.claude/skills/legacy']);
   const started = cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env);
-  assert.equal(JSON.parse(started.stdout).outcome, 'complete', started.stdout + started.stderr);
+  assert.equal((JSON.parse(started.stdout) as Run).outcome, 'complete', started.stdout + started.stderr);
   assert.deepEqual(installedTree(join(project.root, '.claude/skills/legacy')), [['new.md', Buffer.from('New').toString('base64'), false]]);
   assert.equal(readFileSync(join(project.root, '.agents/skills/legacy/notes.md'), 'utf8'), 'Maintainer notes');
 });
@@ -808,19 +809,19 @@ test('an update removes a retired target beside contextual scope and one that co
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   commit(project.root);
   remote.addVersion('v1.1.0', v2, { 'docs-guide.md': 'Keep the documentation current.', 'readme.md': 'Read me' });
   const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
-  const inspection = JSON.parse(cli.run(updateArgs, project.root, env).stdout);
+  const inspection = (JSON.parse(cli.run(updateArgs, project.root, env).stdout) as Inspection);
   // The retired skill's link goes with it: a file installed into its old
   // directory is no skill to link.
-  assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', '.claude/skills/legacy', 'docs-old.md']);
+  assert.deepEqual(inspection.removed!.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', '.claude/skills/legacy', 'docs-old.md']);
   assert.deepEqual(inspection.discardedEdits, []);
   assert.deepEqual(inspection.start.blockers, []);
   const started = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
-  assert.equal(JSON.parse(started.stdout).phase, 'contextual', started.stdout + started.stderr);
+  assert.equal((JSON.parse(started.stdout) as Run).phase, 'contextual', started.stdout + started.stderr);
   assert.equal(existsSync(join(project.root, 'docs-old.md')), false);
   assert.equal(lstatSync(join(project.root, '.claude/skills/legacy'), { throwIfNoEntry: false }), undefined);
   assert.deepEqual(installedTree(join(project.root, '.agents/skills/legacy')), [['README.md', Buffer.from('Read me').toString('base64'), false]]);
@@ -839,10 +840,10 @@ test('a candidate CLI updates only the exact runtime pin from retained standards
   t.after(() => { registry.close(); remote.close(); project.close(); checkout.close(); candidate.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initialInspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initialInspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).status, 0);
   commit(project.root);
-  const originalSelection = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout).selection;
+  const originalSelection = (JSON.parse(cli.run(['status', '--json'], project.root, env).stdout) as Status).selection;
   execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
   const candidateBin = join(candidate.root, 'node_modules/.bin/repo-standards');
   const runCandidate = (args: string[], cwd = project.root) => spawnSync(candidateBin, args, { cwd, env, encoding: 'utf8' });
@@ -851,18 +852,18 @@ test('a candidate CLI updates only the exact runtime pin from retained standards
 
   const inspectionResult = runCandidate(['inspect', '--json']);
   assert.equal(inspectionResult.status, 0, inspectionResult.stdout + inspectionResult.stderr);
-  const inspection = JSON.parse(inspectionResult.stdout);
+  const inspection = (JSON.parse(inspectionResult.stdout) as Inspection);
   assert.deepEqual(inspection.update, ['cli']);
   assert.equal(inspection.retained, true);
   assert.equal(inspection.selection.cli.version, candidateVersion);
-  assert.deepEqual(inspection.selection.standards, originalSelection.standards);
-  assert.equal(inspection.selection.profile, originalSelection.profile);
+  assert.deepEqual(inspection.selection.standards, originalSelection!.standards);
+  assert.equal(inspection.selection.profile, originalSelection!.profile);
   const oldHead = git(project.root, 'rev-parse', 'HEAD');
   const result = runCandidate(['start', '--confirm', inspection.identity, '--json']);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+  assert.equal((JSON.parse(result.stdout) as Run).outcome, 'complete');
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Pinned standards');
-  assert.equal(JSON.parse(readFileSync(join(project.root, '.repo-standards/runtime/package.json'), 'utf8')).dependencies['@lutzseverino/repo-standards'], candidateVersion);
+  assert.equal((JSON.parse(readFileSync(join(project.root, '.repo-standards/runtime/package.json'), 'utf8')) as PackageManifest).dependencies['@lutzseverino/repo-standards'], candidateVersion);
   assert.ok(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8').includes(`Fixture CLI ${candidateVersion}.`));
   assert.equal(existsSync(join(project.root, '.agents/skills/author-standards')), false);
   assert.equal(git(project.root, 'rev-parse', 'HEAD'), oldHead);
@@ -874,9 +875,9 @@ test('a candidate CLI updates only the exact runtime pin from retained standards
   const restored = join(checkout.root, '.repo-standards/runtime/node_modules/.bin/repo-standards');
   assert.equal(execFileSync(restored, ['--version'], { cwd: checkout.root, encoding: 'utf8' }).trim(), candidateVersion);
   assert.ok(readFileSync(join(checkout.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8').includes(`Fixture CLI ${candidateVersion}.`));
-  const status = JSON.parse(spawnSync(restored, ['status', '--json'], { cwd: checkout.root, env, encoding: 'utf8' }).stdout);
-  assert.equal(status.selection.cli.version, candidateVersion);
-  assert.deepEqual(status.selection.standards, originalSelection.standards);
+  const status = (JSON.parse(spawnSync(restored, ['status', '--json'], { cwd: checkout.root, env, encoding: 'utf8' }).stdout) as Status);
+  assert.equal(status.selection!.cli.version, candidateVersion);
+  assert.deepEqual(status.selection!.standards, originalSelection!.standards);
 });
 
 test('a candidate CLI updates retained standards whose manifest range excludes it', async t => {
@@ -891,26 +892,26 @@ test('a candidate CLI updates retained standards whose manifest range excludes i
   t.after(() => { registry.close(); remote.close(); project.close(); candidate.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const inspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const inspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env).status, 0);
   commit(project.root);
-  const previous = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  const previous = (JSON.parse(cli.run(['status', '--json'], project.root, env).stdout) as Status);
   execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
   for (const key of Object.keys(remote.responses)) delete remote.responses[key];
   remote.save();
   const runCandidate = (args: string[]) => spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env, encoding: 'utf8' });
   const inspected = runCandidate(['inspect', '--json']);
   assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
-  const update = JSON.parse(inspected.stdout);
+  const update = (JSON.parse(inspected.stdout) as Inspection);
   assert.deepEqual(update.update, ['cli']);
-  assert.equal(update.source.requires['repo-standards'], `>=1.0.0 <${candidateVersion}`);
+  assert.equal(update.source!.requires['repo-standards'], `>=1.0.0 <${candidateVersion}`);
   assert.equal(update.start.eligible, true, JSON.stringify(update.start.blockers));
   const result = runCandidate(['start', '--confirm', update.identity, '--json']);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
-  const status = JSON.parse(runCandidate(['status', '--json']).stdout);
-  assert.equal(status.selection.cli.version, candidateVersion);
-  assert.deepEqual(status.selection.standards, previous.selection.standards);
+  assert.equal((JSON.parse(result.stdout) as Run).outcome, 'complete');
+  const status = (JSON.parse(runCandidate(['status', '--json']).stdout) as Status);
+  assert.equal(status.selection!.cli.version, candidateVersion);
+  assert.deepEqual(status.selection!.standards, previous.selection!.standards);
 });
 
 test('an update failure preserves actual work and the previous last-complete evidence', async t => {
@@ -933,34 +934,34 @@ test('an update failure preserves actual work and the previous last-complete evi
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initialInspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
-  const initial = JSON.parse(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).stdout);
+  const initialInspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
+  const initial = (JSON.parse(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).stdout) as Run);
   commit(project.root);
   remote.addVersion('v1.1.0', v2, { 'agents.md': 'Version two', 'check.mjs': `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'failed',message:'Not ready'}));` });
   const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
-  const inspection = JSON.parse(cli.run(updateArgs, project.root, env).stdout);
+  const inspection = (JSON.parse(cli.run(updateArgs, project.root, env).stdout) as Inspection);
   const result = cli.run(['start', ...updateArgs.slice(1), '--confirm', inspection.identity], project.root, env);
   assert.equal(result.status, 1);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as Run);
   assert.equal(report.outcome, 'incomplete');
   assert.match(report.reason, /CHECKS_FAILED/);
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version two');
   assert.ok(report.changes.includes('AGENTS.md'));
-  const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
+  const state = (JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8')) as State);
   assert.equal(state.lastComplete.run, initial.id);
-  const status = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
-  assert.equal(status.active.id, report.id);
+  const status = (JSON.parse(cli.run(['status', '--json'], project.root, env).stdout) as Status);
+  assert.equal(status.active!.id, report.id);
   assert.equal(status.lastComplete.run, initial.id);
-  assert.equal(status.selection.standards.version, 'v1.1.0');
+  assert.equal(status.selection!.standards.version, 'v1.1.0');
   const abandoned = cli.run(['abandon', '--json'], project.root, env);
-  assert.equal(JSON.parse(abandoned.stdout).abandoned, true);
+  assert.equal((JSON.parse(abandoned.stdout) as Run).abandoned, true);
   const afterAbandon = cli.run(['status', '--json'], project.root, env);
   assert.equal(afterAbandon.status, 0, afterAbandon.stdout + afterAbandon.stderr);
-  const history = JSON.parse(afterAbandon.stdout);
+  const history = (JSON.parse(afterAbandon.stdout) as Status);
   assert.equal(history.active, null);
   assert.equal(history.lastComplete.run, initial.id);
-  assert.equal(history.abandoned[0].id, report.id);
-  assert.equal(history.abandoned[0].outcome, 'incomplete');
+  assert.equal(history.abandoned[0]!.id, report.id);
+  assert.equal(history.abandoned[0]!.outcome, 'incomplete');
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version two');
 });
 
@@ -982,11 +983,11 @@ test('a confirmed inspection of the unchanged selection starts a run that re-app
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   const adopted = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env);
   assert.equal(adopted.status, 0, adopted.stdout + adopted.stderr);
   commit(project.root);
-  const previous = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  const previous = (JSON.parse(cli.run(['status', '--json'], project.root, env).stdout) as Status);
   const runtimePaths = ['.repo-standards/runtime/package.json', '.repo-standards/runtime/package-lock.json', '.agents/skills/adopt-standards/SKILL.md'];
   const runtime = runtimePaths.map(path => readFileSync(join(project.root, path), 'utf8'));
   const head = git(project.root, 'rev-parse', 'HEAD');
@@ -999,11 +1000,11 @@ test('a confirmed inspection of the unchanged selection starts a run that re-app
   for (const command of ['inspect', 'start']) {
     const rejected = cli.run([command, '--readopt', '--json'], project.root, env);
     assert.equal(rejected.status, 2, rejected.stdout + rejected.stderr);
-    assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'USAGE');
+    assert.equal((JSON.parse(rejected.stdout) as ErrorReport).errors[0]!.code, 'USAGE');
   }
   const inspectionResult = cli.run(['inspect', '--json'], project.root, env);
   assert.equal(inspectionResult.status, 0, inspectionResult.stdout + inspectionResult.stderr);
-  const inspection = JSON.parse(inspectionResult.stdout);
+  const inspection = (JSON.parse(inspectionResult.stdout) as Inspection);
   assert.deepEqual(inspection.update, []);
   assert.deepEqual(inspection.previousSelection, previous.selection);
   assert.deepEqual(inspection.selection, previous.selection);
@@ -1012,11 +1013,11 @@ test('a confirmed inspection of the unchanged selection starts a run that re-app
 
   const result = cli.run(['start', '--confirm', inspection.identity, '--json'], project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const completed = JSON.parse(result.stdout);
+  const completed = (JSON.parse(result.stdout) as Run);
   assert.equal(completed.outcome, 'complete');
-  assert.equal(completed.previousComplete.lastComplete.run, previous.lastComplete.run);
-  assert.deepEqual(completed.operations.map((entry: { operation: { id: string }; result: { status: string } }) => [entry.operation.id, entry.result.status]), [['verify', 'passed']]);
-  const current = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  assert.equal(completed.previousComplete!.lastComplete.run, previous.lastComplete.run);
+  assert.deepEqual(completed.operations.map((entry) => [entry.operation.id, entry.result!.status]), [['verify', 'passed']]);
+  const current = (JSON.parse(cli.run(['status', '--json'], project.root, env).stdout) as Status);
   assert.equal(current.lastComplete.run, completed.id);
   assert.deepEqual(current.selection, previous.selection);
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Pinned standards');
@@ -1050,7 +1051,7 @@ test('an unchanged selection with active discovery requires a proposal confirmed
     return run(['resume', '--assessment', assessmentFile, '--json']);
   };
   propose('apps/old/README.md');
-  const first = JSON.parse(run([...inspectionArgs, '--scope', scopeFile]).stdout);
+  const first = (JSON.parse(run([...inspectionArgs, '--scope', scopeFile]).stdout) as Inspection);
   run(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', first.identity]);
   const firstComplete = complete();
   assert.equal(firstComplete.status, 0, firstComplete.stdout + firstComplete.stderr);
@@ -1059,31 +1060,31 @@ test('an unchanged selection with active discovery requires a proposal confirmed
   writeFileSync(join(project.root, 'apps/new/README.md'), '# New project\n');
   commit(project.root);
 
-  const request = JSON.parse(run(['inspect', '--json']).stdout);
+  const request = (JSON.parse(run(['inspect', '--json']).stdout) as Inspection);
   assert.deepEqual(request.update, []);
   assert.equal(request.start.eligible, false);
   assert.ok(request.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'), JSON.stringify(request.start.blockers));
   // The earlier proposal is judged against the current observation. Once the
   // project changes, the confirmation of that inspection is stale.
-  const reused = JSON.parse(run(['inspect', '--scope', scopeFile, '--json']).stdout);
+  const reused = (JSON.parse(run(['inspect', '--scope', scopeFile, '--json']).stdout) as Inspection);
   assert.deepEqual(reused.start.blockers, []);
   assert.notEqual(reused.identity, first.identity);
   writeFileSync(join(project.root, 'apps/new/package.json'), '{"name":"new"}\n');
   commit(project.root);
   const stale = run(['start', '--scope', scopeFile, '--confirm', reused.identity, '--json']);
   assert.equal(stale.status, 1, stale.stdout + stale.stderr);
-  assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_INSPECTION');
-  assert.match(JSON.parse(stale.stdout).errors[0].message, /review it against the fresh discovery evidence/);
-  assert.equal(JSON.parse(run(['status', '--json']).stdout).active, null);
+  assert.equal((JSON.parse(stale.stdout) as ErrorReport).errors[0]!.code, 'STALE_INSPECTION');
+  assert.match((JSON.parse(stale.stdout) as ErrorReport).errors[0]!.message, /review it against the fresh discovery evidence/);
+  assert.equal((JSON.parse(run(['status', '--json']).stdout) as Status).active, null);
   propose('apps/new/README.md');
-  const inspection = JSON.parse(run(['inspect', '--scope', scopeFile, '--json']).stdout);
+  const inspection = (JSON.parse(run(['inspect', '--scope', scopeFile, '--json']).stdout) as Inspection);
   assert.deepEqual(inspection.start.blockers, []);
   assert.deepEqual(inspection.scopeChanges, [{ id: 'docs', additions: ['apps/new/README.md'], removals: ['apps/old/README.md'] }]);
-  const started = JSON.parse(run(['start', '--scope', scopeFile, '--confirm', inspection.identity, '--json']).stdout);
+  const started = (JSON.parse(run(['start', '--scope', scopeFile, '--confirm', inspection.identity, '--json']).stdout) as Run);
   assert.equal(started.phase, 'contextual');
   const completed = complete();
   assert.equal(completed.status, 0, completed.stdout + completed.stderr);
-  assert.equal(JSON.parse(completed.stdout).previousComplete.lastComplete.run, JSON.parse(firstComplete.stdout).id);
+  assert.equal((JSON.parse(completed.stdout) as Run).previousComplete!.lastComplete.run, (JSON.parse(firstComplete.stdout) as Run).id);
   assert.equal(readFileSync(join(project.root, 'apps/old/README.md'), 'utf8'), '# Old project\n');
 });
 
@@ -1103,10 +1104,10 @@ test('a coordinated update changes the CLI and standards pins in one confirmed r
   t.after(() => { registry.close(); remote.close(); project.close(); candidate.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   commit(project.root);
-  const previous = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  const previous = (JSON.parse(cli.run(['status', '--json'], project.root, env).stdout) as Status);
   const head = git(project.root, 'rev-parse', 'HEAD');
   remote.addVersion('v1.1.0', source('v2', declarations).replace('>=1.0.0', `>=${candidateVersion}`),
     { 'agents.md': 'Version two', 'review/SKILL.md': '# Review v2' });
@@ -1115,18 +1116,18 @@ test('a coordinated update changes the CLI and standards pins in one confirmed r
   // The author's range still gates selecting that version from its source.
   const pinned = cli.run(updateArgs, project.root, env);
   assert.equal(pinned.status, 1, pinned.stdout + pinned.stderr);
-  const error = JSON.parse(pinned.stdout).errors[0];
-  assert.equal(error.code, 'INVALID_STANDARDS');
-  const incompatible = error.details.find((detail: { code: string }) => detail.code === 'INCOMPATIBLE_CLI');
-  assert.match(incompatible.message, /open-ended minimum/);
-  assert.match(incompatible.message, />=1\.3\.0/);
+  const error = (JSON.parse(pinned.stdout) as ErrorReport).errors[0];
+  assert.equal(error!.code, 'INVALID_STANDARDS');
+  const incompatible = (error!.details as Diagnostic[]).find((detail: { code: string }) => detail.code === 'INCOMPATIBLE_CLI');
+  assert.match(incompatible!.message, /open-ended minimum/);
+  assert.match(incompatible!.message, />=1\.3\.0/);
   assert.equal(git(project.root, 'status', '--porcelain=v1'), '');
 
   execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
   const runCandidate = (args: string[]) => spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env, encoding: 'utf8' });
   const inspectionResult = runCandidate(updateArgs);
   assert.equal(inspectionResult.status, 0, inspectionResult.stdout + inspectionResult.stderr);
-  const inspection = JSON.parse(inspectionResult.stdout);
+  const inspection = (JSON.parse(inspectionResult.stdout) as Inspection);
   assert.deepEqual(inspection.update, ['cli', 'standards']);
   assert.deepEqual(inspection.previousSelection, previous.selection);
   assert.equal(inspection.selection.cli.version, candidateVersion);
@@ -1135,15 +1136,15 @@ test('a coordinated update changes the CLI and standards pins in one confirmed r
 
   const result = runCandidate(['start', ...updateArgs.slice(1), '--confirm', inspection.identity]);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
-  const selection = parse(readFileSync(join(project.root, '.repo-standards/selection.yaml'), 'utf8'));
+  assert.equal((JSON.parse(result.stdout) as Run).outcome, 'complete');
+  const selection = parse(readFileSync(join(project.root, '.repo-standards/selection.yaml'), 'utf8')) as Inspection['selection'];
   assert.equal(selection.cli.version, candidateVersion);
   assert.equal(selection.standards.version, 'v1.1.0');
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version two');
   assert.equal(readFileSync(join(project.root, '.agents/skills/review/SKILL.md'), 'utf8'), '# Review v2');
-  assert.equal(JSON.parse(readFileSync(join(project.root, '.repo-standards/runtime/package.json'), 'utf8')).dependencies['@lutzseverino/repo-standards'], candidateVersion);
+  assert.equal((JSON.parse(readFileSync(join(project.root, '.repo-standards/runtime/package.json'), 'utf8')) as PackageManifest).dependencies['@lutzseverino/repo-standards'], candidateVersion);
   assert.ok(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8').includes(`Fixture CLI ${candidateVersion}.`));
-  assert.equal(JSON.parse(runCandidate(['status', '--json']).stdout).lastComplete.run, JSON.parse(result.stdout).id);
+  assert.equal((JSON.parse(runCandidate(['status', '--json']).stdout) as Status).lastComplete.run, (JSON.parse(result.stdout) as Run).id);
   assert.equal(git(project.root, 'rev-parse', 'HEAD'), head);
 });
 
@@ -1178,26 +1179,26 @@ test('source and profile switches are updates that remove the installed content 
   t.after(() => { registry.close(); alice.close(); bob.close(); project.close(); candidate.close(); });
   commit(project.root);
   const env = { ...alice.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   commit(project.root);
-  const adopted = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  const adopted = (JSON.parse(cli.run(['status', '--json'], project.root, env).stdout) as Status);
   const runtimePaths = ['.repo-standards/runtime/package.json', '.repo-standards/runtime/package-lock.json', '.agents/skills/adopt-standards/SKILL.md'];
   const runtime = runtimePaths.map(path => readFileSync(join(project.root, path), 'utf8'));
 
   // A profile switch with the pinned CLI keeps the runtime.
   const profileArgs = inspectionArgs.map(argument => argument === 'work' ? 'lean' : argument);
-  const profileSwitch = JSON.parse(cli.run(profileArgs, project.root, env).stdout);
+  const profileSwitch = (JSON.parse(cli.run(profileArgs, project.root, env).stdout) as Inspection);
   assert.deepEqual(profileSwitch.update, ['profile']);
   assert.deepEqual(profileSwitch.previousSelection, adopted.selection);
-  assert.deepEqual(profileSwitch.retired.map((entry: { id: string }) => entry.id), ['legacy']);
+  assert.deepEqual(profileSwitch.retired!.map((entry: { id: string }) => entry.id), ['legacy']);
   assert.equal(profileSwitch.start.eligible, true, JSON.stringify(profileSwitch.start.blockers));
   const switched = cli.run(['start', ...profileArgs.slice(1), '--confirm', profileSwitch.identity], project.root, env);
   assert.equal(switched.status, 0, switched.stdout + switched.stderr);
   assert.equal(existsSync(join(project.root, 'LEGACY.md')), false);
-  let status = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
-  assert.equal(status.selection.profile, 'lean');
-  assert.equal(status.baselines['LEGACY.md'], undefined);
+  let status = (JSON.parse(cli.run(['status', '--json'], project.root, env).stdout) as Status);
+  assert.equal(status.selection!.profile, 'lean');
+  assert.equal(status.baselines!['LEGACY.md'], undefined);
   assert.deepEqual(runtimePaths.map(path => readFileSync(join(project.root, path), 'utf8')), runtime);
   commit(project.root);
 
@@ -1208,24 +1209,24 @@ test('source and profile switches are updates that remove the installed content 
   const sourceArgs = inspectionArgs.map(argument => argument === 'https://github.com/alice/standards' ? 'https://github.com/bob/standards' : argument === 'work' ? 'team' : argument);
   const sourceResult = runCandidate(sourceArgs);
   assert.equal(sourceResult.status, 0, sourceResult.stdout + sourceResult.stderr);
-  const sourceSwitch = JSON.parse(sourceResult.stdout);
+  const sourceSwitch = (JSON.parse(sourceResult.stdout) as Inspection);
   assert.deepEqual(sourceSwitch.update, ['cli', 'standards', 'source', 'profile']);
   assert.deepEqual(sourceSwitch.previousSelection, status.selection);
-  assert.deepEqual(sourceSwitch.retired.map((entry: { id: string }) => entry.id), ['review']);
+  assert.deepEqual(sourceSwitch.retired!.map((entry: { id: string }) => entry.id), ['review']);
   assert.equal(sourceSwitch.start.eligible, true, JSON.stringify(sourceSwitch.start.blockers));
   const result = runCandidate(['start', ...sourceArgs.slice(1), '--confirm', sourceSwitch.identity]);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+  assert.equal((JSON.parse(result.stdout) as Run).outcome, 'complete');
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Bob instructions');
   assert.equal(readFileSync(join(project.root, '.agents/skills/lint/SKILL.md'), 'utf8'), '# Bob lint');
   assert.equal(existsSync(join(project.root, '.agents/skills/review')), false);
   assert.equal(existsSync(join(project.root, 'LEGACY.md')), false);
   assert.ok(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8').includes(`Fixture CLI ${candidateVersion}.`));
-  status = JSON.parse(runCandidate(['status', '--json']).stdout);
-  assert.equal(status.selection.standards.repository, 'https://github.com/bob/standards');
-  assert.equal(status.selection.profile, 'team');
-  assert.equal(status.selection.cli.version, candidateVersion);
-  assert.equal(status.skills['.agents/skills/review'], undefined);
+  status = (JSON.parse(runCandidate(['status', '--json']).stdout) as Status);
+  assert.equal(status.selection!.standards.repository, 'https://github.com/bob/standards');
+  assert.equal(status.selection!.profile, 'team');
+  assert.equal(status.selection!.cli.version, candidateVersion);
+  assert.equal(status.skills!['.agents/skills/review'], undefined);
   assert.equal(existsSync(join(project.root, '.repo-standards/inputs/source/legacy.md')), false);
   assert.equal(existsSync(join(project.root, '.repo-standards/inputs/source/review/SKILL.md')), false);
 });
@@ -1241,7 +1242,7 @@ test('an established selection rejects its moved current tag even without the ex
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initialInspection = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initialInspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initialInspection.identity], project.root, env).status, 0);
   commit(project.root);
   const moved = remote.addVersion('v1.1.0', v1, { 'agents.md': 'Moved tag content' });
@@ -1249,7 +1250,7 @@ test('an established selection rejects its moved current tag even without the ex
   rmSync(join(remote.support.root, 'cache/repo-standards/tags'), { recursive: true, force: true });
   const result = cli.run(inspectionArgs, project.root, env);
   assert.equal(result.status, 1);
-  assert.equal(JSON.parse(result.stdout).errors[0].code, 'MOVED_TAG');
+  assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'MOVED_TAG');
   assert.equal(readFileSync(join(project.root, 'AGENTS.md'), 'utf8'), 'Version one');
   assert.equal(git(project.root, 'status', '--porcelain=v1'), '');
 });
@@ -1267,7 +1268,7 @@ test('whole-skill updates allow resources to change between files and directorie
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   commit(project.root);
   const head = git(project.root, 'rev-parse', 'HEAD');
@@ -1275,7 +1276,7 @@ test('whole-skill updates allow resources to change between files and directorie
   rmSync(join(remote.source.root, 'review/collapse'), { recursive: true });
   remote.addVersion('v1.1.0', yaml, { 'review/expand/new.txt': 'New directory resource', 'review/collapse': 'New file' });
   const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
-  const inspection = JSON.parse(cli.run(args, project.root, env).stdout);
+  const inspection = (JSON.parse(cli.run(args, project.root, env).stdout) as Inspection);
   assert.deepEqual(inspection.start.blockers, []);
   const result = cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -1295,11 +1296,11 @@ async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standa
   t.after(() => { registry.close(); remote.close(); project.close(); });
   commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   const adopted = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env);
   assert.equal(adopted.status, 0, adopted.stdout + adopted.stderr);
   commit(project.root);
-  const previous = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
+  const previous = (JSON.parse(cli.run(['status', '--json'], project.root, env).stdout) as Status);
   let run = (args: string[], environment: NodeJS.ProcessEnv = env) => cli.run(args, project.root, environment);
   let args: string[];
   if (kind === 'standards') {
@@ -1315,7 +1316,7 @@ async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standa
     remote.save();
     args = ['inspect', '--json'];
   }
-  const inspection = JSON.parse(run(args).stdout);
+  const inspection = (JSON.parse(run(args).stdout) as Inspection);
   return { remote, project, env, previous, head: git(project.root, 'rev-parse', 'HEAD'),
     startArgs: ['start', ...args.slice(1), '--confirm', inspection.identity],
     // A candidate CLI only inspects and starts; the recorded adoption's status
@@ -1344,7 +1345,7 @@ fs.cpSync = function(from, to, options) {
 };
 syncBuiltinESMExports();`);
   assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
-  const interrupted = JSON.parse(readFileSync(lock, 'utf8'));
+  const interrupted = (JSON.parse(readFileSync(lock, 'utf8')) as Run);
   assert.equal(interrupted.phase, 'runtime');
   assert.equal(interrupted.continuation, undefined);
   assert.equal(lstatSync(`${lock}.runtime/.bin/repo-standards`).isSymbolicLink(), true);
@@ -1358,12 +1359,12 @@ syncBuiltinESMExports();`);
 fs.cpSync(${JSON.stringify(`${lock}.runtime`)}, ${JSON.stringify(recordedRuntime)}, { recursive: true, verbatimSymlinks: true });`);
   const result = f.run(['resume', '--retry', '--json'], retryEnv);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const completed = JSON.parse(result.stdout);
+  const completed = (JSON.parse(result.stdout) as Run);
   assert.equal(completed.id, interrupted.id);
   assert.equal(completed.outcome, 'complete');
   assert.equal(completed.selection.cli.version, candidateVersion);
   assert.deepEqual(snapshot(installed), snapshot(recordedRuntime));
-  assert.equal(JSON.parse(f.run(['status', '--json']).stdout).lastComplete.run, completed.id);
+  assert.equal((JSON.parse(f.run(['status', '--json']).stdout) as Status).lastComplete.run, completed.id);
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
 });
 
@@ -1378,11 +1379,11 @@ fs.renameSync = function(from, to) {
 };
 syncBuiltinESMExports();`);
   assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
-  const interrupted = JSON.parse(f.run(['status', '--json']).stdout);
+  const interrupted = (JSON.parse(f.run(['status', '--json']).stdout) as Status);
   assert.equal(interrupted.lastComplete.run, f.previous.lastComplete.run);
   const result = f.run(['resume', '--retry', '--json']);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+  assert.equal((JSON.parse(result.stdout) as Run).outcome, 'complete');
   assert.equal(readFileSync(join(f.project.root, '.agents/skills/review/current.txt'), 'utf8'), 'New resource');
   assert.equal(existsSync(join(f.project.root, '.agents/skills/review/obsolete.txt')), false);
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
@@ -1401,9 +1402,9 @@ fs.renameSync = function(from, to) {
 syncBuiltinESMExports();`);
     assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
     const lock = join(f.project.root, git(f.project.root, 'rev-parse', '--git-dir'), 'repo-standards-run.lock');
-    const interrupted = JSON.parse(readFileSync(lock, 'utf8'));
+    const interrupted = (JSON.parse(readFileSync(lock, 'utf8')) as Run);
     assert.ok(interrupted.continuation);
-    assert.equal(interrupted.installation.runtime, point === 'installed');
+    assert.equal(interrupted.installation!.runtime, point === 'installed');
     const installed = join(f.project.root, '.repo-standards/runtime/node_modules');
     const target = join(point === 'staged' ? `${lock}.runtime` : installed, '@lutzseverino/repo-standards/package.json');
     const original = readFileSync(target);
@@ -1411,13 +1412,13 @@ syncBuiltinESMExports();`);
     const preservedRuntime = snapshot(installed);
     const rejected = f.run(['resume', '--retry', '--json']);
     assert.equal(rejected.status, 1, rejected.stdout + rejected.stderr);
-    assert.match(JSON.parse(rejected.stdout).reason, point === 'staged' ? /STATE_INTEGRITY.*saved runtime installation changed/ : /INSTALLATION_CHANGED.*Runtime content changed/);
+    assert.match((JSON.parse(rejected.stdout) as Run).reason, point === 'staged' ? /STATE_INTEGRITY.*saved runtime installation changed/ : /INSTALLATION_CHANGED.*Runtime content changed/);
     assert.equal(readFileSync(target, 'utf8'), 'Maintainer runtime edit');
     assert.deepEqual(snapshot(installed), preservedRuntime);
     writeFileSync(target, original);
     const recovered = f.run(['resume', '--retry', '--json']);
     assert.equal(recovered.status, 0, recovered.stdout + recovered.stderr);
-    assert.equal(JSON.parse(recovered.stdout).outcome, 'complete');
+    assert.equal((JSON.parse(recovered.stdout) as Run).outcome, 'complete');
   });
 });
 
@@ -1433,13 +1434,13 @@ fs.renameSync = function(from, to) {
 };
 syncBuiltinESMExports();`);
     assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
-    const status = JSON.parse(f.run(['status', '--json']).stdout);
+    const status = (JSON.parse(f.run(['status', '--json']).stdout) as Status);
     assert.equal(status.lastComplete.run, f.previous.lastComplete.run);
-    assert.equal(status.active.phase, 'completion');
+    assert.equal(status.active!.phase, 'completion');
     const result = f.run(['resume', '--retry', '--json']);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    const completed = JSON.parse(f.run(['status', '--json']).stdout);
-    assert.equal(completed.lastComplete.run, status.active.id);
+    const completed = (JSON.parse(f.run(['status', '--json']).stdout) as Status);
+    assert.equal(completed.lastComplete.run, status.active!.id);
     assert.equal(completed.active, null);
     assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
   });
@@ -1451,11 +1452,11 @@ test('a standards update rejects added retained inputs before discarding any mat
   writeFileSync(added, 'Preserve this added material');
   commit(f.project.root);
   const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
-  const inspection = JSON.parse(f.run(args).stdout);
+  const inspection = (JSON.parse(f.run(args).stdout) as Inspection);
   assert.ok(inspection.start.blockers.some((blocker: { code: string }) => blocker.code === 'STATE_INTEGRITY'));
   const result = f.run(['start', ...args.slice(1), '--confirm', inspection.identity]);
   assert.equal(result.status, 1);
-  assert.equal(JSON.parse(result.stdout).errors[0].code, 'START_BLOCKED');
+  assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'START_BLOCKED');
   assert.equal(readFileSync(added, 'utf8'), 'Preserve this added material');
   assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
 });
@@ -1470,13 +1471,13 @@ test('both update inspections reject unexpected durable product files before cre
       commit(f.project.root);
       const result = f.run(args);
       assert.equal(result.status, 0, result.stdout + result.stderr);
-      const inspection = JSON.parse(result.stdout);
+      const inspection = (JSON.parse(result.stdout) as Inspection);
       assert.equal(inspection.start.eligible, false, path);
       assert.ok(inspection.start.blockers.some((blocker: { code: string }) => blocker.code === 'STATE_INTEGRITY'));
       const rejected = f.run(['start', ...args.slice(1), '--confirm', inspection.identity]);
       assert.equal(rejected.status, 1);
-      assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'START_BLOCKED');
-      const status = JSON.parse(f.pinned(['status', '--json']).stdout);
+      assert.equal((JSON.parse(rejected.stdout) as ErrorReport).errors[0]!.code, 'START_BLOCKED');
+      const status = (JSON.parse(f.pinned(['status', '--json']).stdout) as Status);
       assert.equal(status.active, null);
       assert.equal(status.lastComplete.run, f.previous.lastComplete.run);
       assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
@@ -1493,11 +1494,11 @@ test('an update rejects a committed file at the excluded local directory before 
   writeFileSync(local, 'Preserve this file');
   commit(f.project.root);
   const args = ['inspect', ...f.startArgs.slice(1, -2)];
-  const inspection = JSON.parse(f.run(args).stdout);
+  const inspection = (JSON.parse(f.run(args).stdout) as Inspection);
   const rejected = f.run(['start', ...args.slice(1), '--confirm', inspection.identity]);
-  const status = JSON.parse(f.run(['status', '--json']).stdout);
+  const status = (JSON.parse(f.run(['status', '--json']).stdout) as Status);
   assert.equal(inspection.start.eligible, false);
-  assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'START_BLOCKED');
+  assert.equal((JSON.parse(rejected.stdout) as ErrorReport).errors[0]!.code, 'START_BLOCKED');
   assert.equal(status.active, null);
   assert.equal(status.lastComplete.run, f.previous.lastComplete.run);
   assert.equal(readFileSync(local, 'utf8'), 'Preserve this file');
@@ -1517,7 +1518,7 @@ test('both updates validate excluded directory roots and reject changed boundari
       const saved = join(f.remote.support.root, 'saved-directory');
       const hadDirectory = existsSync(target);
       if (hadDirectory) renameSync(target, saved);
-      const before = JSON.parse(f.run(args).stdout);
+      const before = (JSON.parse(f.run(args).stdout) as Inspection);
       assert.equal(before.start.eligible, true, path);
       for (const type of ['file', 'directory-link', 'dangling-link', 'fifo']) await t.test(`${path}: ${type}`, () => {
         if (type === 'file') writeFileSync(target, 'Preserve this file');
@@ -1526,21 +1527,21 @@ test('both updates validate excluded directory roots and reject changed boundari
         try {
           const result = f.run(args);
           assert.equal(result.status, 0, result.stdout + result.stderr);
-          const inspection = JSON.parse(result.stdout);
+          const inspection = (JSON.parse(result.stdout) as Inspection);
           assert.equal(inspection.start.eligible, false);
           assert.ok(inspection.start.blockers.some((blocker: { code: string }) => blocker.code === (type === 'file' ? 'TARGET_TYPE' : 'UNSAFE_TARGET')));
           assert.notEqual(inspection.identity, before.identity);
           const stale = f.run(['start', ...args.slice(1), '--confirm', before.identity]);
-          assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_INSPECTION');
+          assert.equal((JSON.parse(stale.stdout) as ErrorReport).errors[0]!.code, 'STALE_INSPECTION');
           const rejected = f.run(['start', ...args.slice(1), '--confirm', inspection.identity]);
-          assert.equal(JSON.parse(rejected.stdout).errors[0].code, 'START_BLOCKED');
+          assert.equal((JSON.parse(rejected.stdout) as ErrorReport).errors[0]!.code, 'START_BLOCKED');
           if (type === 'file') {
             assert.equal(readFileSync(target, 'utf8'), 'Preserve this file');
             writeFileSync(target, 'Changed file bytes');
-            assert.notEqual(JSON.parse(f.run(args).stdout).identity, inspection.identity);
+            assert.notEqual((JSON.parse(f.run(args).stdout) as Inspection).identity, inspection.identity);
           } else if (type === 'fifo') assert.equal(lstatSync(target).isFIFO(), true);
           else assert.equal(readlinkSync(target), type === 'directory-link' ? f.remote.support.root : join(f.remote.support.root, 'missing'));
-          const status = JSON.parse(f.pinned(['status', '--json']).stdout);
+          const status = (JSON.parse(f.pinned(['status', '--json']).stdout) as Status);
           assert.equal(status.active, null);
           assert.equal(status.lastComplete.run, f.previous.lastComplete.run);
           assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
@@ -1556,10 +1557,10 @@ test('both updates allow absent excluded directories and ignore safe generated d
   for (const kind of ['standards', 'cli'] as const) await t.test(kind, async t => {
     const f = await pendingUpdate(t, kind);
     const args = ['inspect', ...f.startArgs.slice(1, -2)];
-    const before = JSON.parse(f.run(args).stdout);
+    const before = (JSON.parse(f.run(args).stdout) as Inspection);
     const paths = ['.repo-standards/local', '.repo-standards/cache', '.repo-standards/runtime/node_modules'];
     for (const path of paths) rmSync(join(f.project.root, path), { recursive: true, force: true });
-    const absent = JSON.parse(f.run(args).stdout);
+    const absent = (JSON.parse(f.run(args).stdout) as Inspection);
     assert.equal(absent.start.eligible, true);
     assert.equal(absent.identity, before.identity);
     for (const path of paths) {
@@ -1568,13 +1569,13 @@ test('both updates allow absent excluded directories and ignore safe generated d
       writeFileSync(join(target, 'noise'), 'Generated bytes');
       symlinkSync('missing-generated-target', join(target, 'generated-link'));
     }
-    const generated = JSON.parse(f.run(args).stdout);
+    const generated = (JSON.parse(f.run(args).stdout) as Inspection);
     assert.equal(generated.start.eligible, true);
     assert.equal(generated.identity, before.identity);
     for (const path of paths) rmSync(join(f.project.root, path), { recursive: true });
     const result = f.run(f.startArgs);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+    assert.equal((JSON.parse(result.stdout) as Run).outcome, 'complete');
     assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
   });
 });
@@ -1598,21 +1599,21 @@ fs.renameSync = function(from, to) {
 };
 syncBuiltinESMExports();`);
       assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
-      assert.equal(JSON.parse(f.run(['status', '--json']).stdout).active.phase, phase);
+      assert.equal((JSON.parse(f.run(['status', '--json']).stdout) as Status).active!.phase, phase);
       const tracked = git(f.project.root, 'diff', '--binary');
       const rejected = f.run(['resume', '--retry', '--json']);
       assert.equal(rejected.status, 1, rejected.stdout + rejected.stderr);
       assert.match(rejected.stdout, /UNSAFE_TARGET|FINAL_INTEGRITY/);
       assert.equal(readFileSync(target, 'utf8'), 'Preserve invalid root');
       assert.equal(git(f.project.root, 'diff', '--binary'), tracked);
-      const status = JSON.parse(f.run(['status', '--json']).stdout);
+      const status = (JSON.parse(f.run(['status', '--json']).stdout) as Status);
       assert.ok(status.active);
       assert.equal(status.lastComplete.run, f.previous.lastComplete.run);
       unlinkSync(target);
       if (existsSync(saved)) renameSync(saved, target);
       const resumed = f.run(['resume', '--retry', '--json']);
       assert.equal(resumed.status, 0, resumed.stdout + resumed.stderr);
-      assert.equal(JSON.parse(resumed.stdout).outcome, 'complete');
+      assert.equal((JSON.parse(resumed.stdout) as Run).outcome, 'complete');
       assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
     });
   }
@@ -1622,12 +1623,12 @@ test('update identities bind unexpected durable bytes while excluding local stat
   for (const kind of ['standards', 'cli'] as const) await t.test(kind, async t => {
     const f = await pendingUpdate(t, kind);
     const args = ['inspect', ...f.startArgs.slice(1, -2)];
-    const before = JSON.parse(f.run(args).stdout);
+    const before = (JSON.parse(f.run(args).stdout) as Inspection);
     for (const path of ['.repo-standards/local/noise.txt', '.repo-standards/cache/noise.txt', '.repo-standards/runtime/node_modules/noise.txt']) {
       mkdirSync(dirname(join(f.project.root, path)), { recursive: true });
       writeFileSync(join(f.project.root, path), 'Generated local material');
     }
-    const ignored = JSON.parse(f.run(args).stdout);
+    const ignored = (JSON.parse(f.run(args).stdout) as Inspection);
     assert.equal(ignored.start.eligible, true);
     assert.equal(ignored.identity, before.identity);
 
@@ -1636,14 +1637,14 @@ test('update identities bind unexpected durable bytes while excluding local stat
     writeFileSync(join(f.project.root, '.git/info/exclude'), '.repo-standards/runtime/extra.txt\n');
     const extra = join(f.project.root, '.repo-standards/runtime/extra.txt');
     writeFileSync(extra, 'First unexpected bytes');
-    const first = JSON.parse(f.run(args).stdout);
+    const first = (JSON.parse(f.run(args).stdout) as Inspection);
     assert.equal(first.start.eligible, false);
     writeFileSync(extra, 'Changed unexpected bytes');
-    const changed = JSON.parse(f.run(args).stdout);
+    const changed = (JSON.parse(f.run(args).stdout) as Inspection);
     assert.notEqual(changed.identity, first.identity);
     const stale = f.run(['start', ...args.slice(1), '--confirm', first.identity]);
-    assert.equal(JSON.parse(stale.stdout).errors[0].code, 'STALE_INSPECTION');
-    assert.equal(JSON.parse(f.pinned(['status', '--json']).stdout).active, null);
+    assert.equal((JSON.parse(stale.stdout) as ErrorReport).errors[0]!.code, 'STALE_INSPECTION');
+    assert.equal((JSON.parse(f.pinned(['status', '--json']).stdout) as Status).active, null);
     assert.equal(git(f.project.root, 'status', '--porcelain=v1'), '');
   });
 });
@@ -1682,12 +1683,12 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status, message:
         declarations: [{ id: 'readme', status: 'satisfied', explanation: 'Documented the queue worker.', evidence: ['Usage explains how to process jobs.'] }] }));
       return run(['resume', '--assessment', path, '--json']);
     };
-    const initial = JSON.parse(run(inspectionArgs).stdout);
-    assert.equal(JSON.parse(run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity]).stdout).phase, 'contextual');
+    const initial = (JSON.parse(run(inspectionArgs).stdout) as Inspection);
+    assert.equal((JSON.parse(run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity]).stdout) as Run).phase, 'contextual');
     const adopted = assess();
     assert.equal(adopted.status, 0, adopted.stdout + adopted.stderr);
     commit(project.root);
-    const previous = JSON.parse(run(['status', '--json']).stdout);
+    const previous = (JSON.parse(run(['status', '--json']).stdout) as Status);
     const head = git(project.root, 'rev-parse', 'HEAD');
     let args: string[];
     if (kind === 'standards') {
@@ -1700,23 +1701,23 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status, message:
       remote.save();
       args = ['inspect', '--json'];
     }
-    const inspection = JSON.parse(run(args).stdout);
-    const handoff = JSON.parse(run(['start', ...args.slice(1), '--confirm', inspection.identity]).stdout);
+    const inspection = (JSON.parse(run(args).stdout) as Inspection);
+    const handoff = (JSON.parse(run(['start', ...args.slice(1), '--confirm', inspection.identity]).stdout) as Run);
     assert.equal(handoff.phase, 'contextual');
-    assert.equal(handoff.operations[0].result.status, 'changed');
+    assert.equal(handoff.operations[0]!.result!.status, 'changed');
     assert.equal(readFileSync(join(project.root, 'README.md'), 'utf8'), '# Prepared README');
-    assert.equal(JSON.parse(run(['status', '--json']).stdout).lastComplete.run, previous.lastComplete.run);
+    assert.equal((JSON.parse(run(['status', '--json']).stdout) as Status).lastComplete.run, previous.lastComplete.run);
     const result = assess();
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    const report = JSON.parse(result.stdout);
+    const report = (JSON.parse(result.stdout) as Run);
     assert.equal(report.outcome, 'complete');
     assert.deepEqual(report.operations.map((entry: { operation: { id: string } }) => entry.operation.id),
       kind === 'standards' ? ['prepare', 'verify'] : ['prepare', 'old-fix', 'verify', 'old-check']);
-    const status = JSON.parse(run(['status', '--json']).stdout);
-    assert.equal(status.assessments.length, 1);
+    const status = (JSON.parse(run(['status', '--json']).stdout) as Status);
+    assert.equal(status.assessments!.length, 1);
     assert.equal(status.lastComplete.run, report.id);
     if (kind === 'standards') {
-      assert.equal(status.baselines['RETIRED.md'], undefined);
+      assert.equal(status.baselines!['RETIRED.md'], undefined);
       assert.equal(existsSync(join(project.root, 'RETIRED.md')), false);
     } else assert.equal(readFileSync(join(project.root, 'RETIRED.md'), 'utf8'), 'Preserve retired content');
     assert.equal(readFileSync(join(project.root, 'package.json'), 'utf8'), '{"private":true}\n');
@@ -1742,7 +1743,7 @@ syncBuiltinESMExports();`);
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(readFileSync(join(f.project.root, '.agents/skills/review/SKILL.md'), 'utf8'), '# Review v2');
   assert.equal(readFileSync(join(f.project.root, '.agents/skills/review/current.txt'), 'utf8'), 'New resource');
-  assert.deepEqual(JSON.parse(f.run(['status', '--json']).stdout).skills['.agents/skills/review'], ['SKILL.md', 'current.txt']);
+  assert.deepEqual((JSON.parse(f.run(['status', '--json']).stdout) as Status).skills!['.agents/skills/review'], ['SKILL.md', 'current.txt']);
 });
 
 test('retry preserves a maintainer deletion of a confirmed installed skill resource', async t => {
@@ -1760,7 +1761,7 @@ syncBuiltinESMExports();`);
   rmSync(path);
   const result = f.run(['resume', '--retry', '--json']);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  assert.match(JSON.parse(result.stdout).reason, /INSTALLATION_CHANGED/);
+  assert.match((JSON.parse(result.stdout) as Run).reason, /INSTALLATION_CHANGED/);
   assert.equal(existsSync(path), false);
   writeFileSync(path, '# Review v2');
   const reconciled = f.run(['resume', '--retry', '--json']);
@@ -1792,13 +1793,13 @@ syncBuiltinESMExports();`);
     mkdirSync(addition);
     const rejected = f.run(['resume', '--retry', '--json']);
     assert.equal(rejected.status, 1, rejected.stdout);
-    assert.match(JSON.parse(rejected.stdout).reason, /INSTALLATION_CHANGED.*inventory/);
+    assert.match((JSON.parse(rejected.stdout) as Run).reason, /INSTALLATION_CHANGED.*inventory/);
     assert.equal(existsSync(addition), true);
     assert.equal(existsSync(join(f.project.root, '.agents/skills/review/current.txt')), false);
     rmSync(addition, { recursive: true });
     const recovered = f.run(['resume', '--retry', '--json']);
     assert.equal(recovered.status, 0, recovered.stdout + recovered.stderr);
-    assert.equal(JSON.parse(recovered.stdout).outcome, 'complete');
+    assert.equal((JSON.parse(recovered.stdout) as Run).outcome, 'complete');
   });
 });
 
@@ -1854,21 +1855,21 @@ syncBuiltinESMExports();`;
     commit(project.root);
     const env = { ...remote.env, ...registry.env };
     const run = (args: string[], environment: NodeJS.ProcessEnv = env) => cli.run(args, project.root, environment);
-    const initial = JSON.parse(run(inspectionArgs).stdout);
+    const initial = (JSON.parse(run(inspectionArgs).stdout) as Inspection);
     let startArgs = ['start', ...inspectionArgs.slice(1), '--confirm', initial.identity];
     if (!initialFiles) {
       assert.equal(run(startArgs).status, 0);
       commit(project.root);
       remote.addVersion('v1.1.0', source('v2', declarations), {});
       const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
-      const inspection = JSON.parse(run(updateArgs).stdout);
-      assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', '.claude/skills/legacy', 'RETIRED.md']);
+      const inspection = (JSON.parse(run(updateArgs).stdout) as Inspection);
+      assert.deepEqual(inspection.removed!.map(({ target }: { target: string }) => target), ['.agents/skills/legacy', '.claude/skills/legacy', 'RETIRED.md']);
       startArgs = ['start', ...updateArgs.slice(1), '--confirm', inspection.identity];
     } else assert.deepEqual(initial.discardedEdits, discarded);
     assert.equal(run(startArgs, filesystemFault(remote.support.root, env, 'installation', fault)).signal, 'SIGKILL');
     const result = run(['resume', '--retry', '--json']);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    assert.equal(JSON.parse(result.stdout).outcome, 'complete');
+    assert.equal((JSON.parse(result.stdout) as Run).outcome, 'complete');
     assert.deepEqual(installedTree(join(project.root, '.agents/skills/review')), installedTree(join(remote.source.root, 'review')));
     assert.equal(readlinkSync(join(project.root, '.claude/skills/review')), '../../.agents/skills/review');
     assert.deepEqual(readdirSync(join(project.root, '.claude/skills')).sort(), ['adopt-standards', ...initialFiles ? ['legacy'] : [], 'review', 'standards-updates']);

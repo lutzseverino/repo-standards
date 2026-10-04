@@ -1,8 +1,11 @@
+import type { Diagnostic, ErrorReport, Inspection } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { installCli, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+
+interface GitTree { truncated: boolean; tree: { type: string; mode: string; path: string; sha: string }[] }
 
 const cli = installCli();
 after(() => cli.close());
@@ -34,12 +37,12 @@ test('direct inspection resolves annotated tags and canonical repository identit
   remote.save();
   const result = cli.run(inspectionArgs.map(arg => arg === 'https://github.com/alice/standards' ? 'https://github.com/Alice/Standards.git/' : arg), project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.deepEqual(JSON.parse(result.stdout).selection.standards, { repository: 'https://github.com/alice/standards', version: 'v1.0.0', commit: remote.sha });
+  assert.deepEqual((JSON.parse(result.stdout) as Inspection).selection.standards, { repository: 'https://github.com/alice/standards', version: 'v1.0.0', commit: remote.sha });
   remote.responses[`${remote.prefix}/git/tags/${annotation}`] = { body: { object: { type: 'commit', sha: 'b'.repeat(40) } } };
   remote.save();
   const moved = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(moved.status, 1);
-  assert.equal(JSON.parse(moved.stdout).errors[0].code, 'MOVED_TAG');
+  assert.equal((JSON.parse(moved.stdout) as ErrorReport).errors[0]!.code, 'MOVED_TAG');
 });
 
 test('public inspection acquires a source larger than the anonymous API allowance without per-blob requests', (t) => {
@@ -51,7 +54,7 @@ test('public inspection acquires a source larger than the anonymous API allowanc
 
   const result = cli.run(inspectionArgs, project.root, { ...remote.env, GIT_DEFAULT_HASH: 'sha256' });
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).selection.standards.commit, remote.sha);
+  assert.equal((JSON.parse(result.stdout) as Inspection).selection.standards.commit, remote.sha);
   assert.equal(remote.requests().filter(url => url.includes('/git/blobs/')).length, 0);
   assert.ok(remote.requests().length <= 5, `Expected bounded API requests, observed ${remote.requests().length}`);
 });
@@ -62,18 +65,18 @@ test('inspection rejects unsupported sources, floating references and incompatib
   t.after(() => { remote.close(); project.close(); });
   for (const source of [remote.source.root, 'git@github.com:alice/standards.git', 'https://gitlab.com/alice/standards', 'https://github.com/alice/standards/tree/main', 'https://github.com/alice/standards?ref=v1.0.0']) {
     const result = cli.run(inspectionArgs.map(arg => arg === 'https://github.com/alice/standards' ? source : arg), project.root, remote.env);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, 'UNSUPPORTED_SOURCE', result.stdout);
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'UNSUPPORTED_SOURCE', result.stdout);
   }
   for (const version of ['main', 'latest', '^1.0.0', 'v1.0.0-beta.1', '01.0.0', remote.sha]) {
     const result = cli.run(inspectionArgs.map(arg => arg === 'v1.0.0' ? version : arg), project.root, remote.env);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, 'INVALID_STANDARDS_VERSION');
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'INVALID_STANDARDS_VERSION');
   }
   const missing = cli.run(inspectionArgs.map(arg => arg === 'work' ? 'missing' : arg), project.root, remote.env);
-  assert.equal(JSON.parse(missing.stdout).errors[0].code, 'UNKNOWN_PROFILE');
+  assert.equal((JSON.parse(missing.stdout) as ErrorReport).errors[0]!.code, 'UNKNOWN_PROFILE');
   const incompatible = remoteFixture(yaml.replace('>=1.0.0', '>=99.0.0'), { 'readme.md': 'README' });
   t.after(() => incompatible.close());
   const result = cli.run(inspectionArgs, project.root, incompatible.env);
-  assert.equal(JSON.parse(result.stdout).errors[0].details[0].code, 'INCOMPATIBLE_CLI');
+  assert.equal(((JSON.parse(result.stdout) as ErrorReport).errors[0]!.details as Diagnostic[])[0]!.code, 'INCOMPATIBLE_CLI');
 });
 
 test('private, missing, truncated, linked and corrupt remote snapshots are rejected', (t) => {
@@ -82,12 +85,12 @@ test('private, missing, truncated, linked and corrupt remote snapshots are rejec
   const cases: [string, (remote: ReturnType<typeof remoteFixture>) => void][] = [
     ['UNSUPPORTED_SOURCE', remote => { remote.responses[remote.prefix] = { body: { private: true, full_name: 'alice/standards' } }; }],
     ['SOURCE_UNAVAILABLE', remote => { remote.responses[remote.prefix] = { status: 404, body: {} }; }],
-    ['INVALID_SOURCE', remote => { (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as any).truncated = true; }],
-    ['SOURCE_SYMLINK', remote => { (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as any).tree.push({ type: 'blob', mode: '120000', path: 'unreferenced-link', sha: 'a'.repeat(40) }); }],
-    ['UNSAFE_SOURCE', remote => { (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as any).tree.push({ type: 'blob', mode: '100644', path: '../escape', sha: 'a'.repeat(40) }); }],
+    ['INVALID_SOURCE', remote => { (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as GitTree).truncated = true; }],
+    ['SOURCE_SYMLINK', remote => { (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as GitTree).tree.push({ type: 'blob', mode: '120000', path: 'unreferenced-link', sha: 'a'.repeat(40) }); }],
+    ['UNSAFE_SOURCE', remote => { (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as GitTree).tree.push({ type: 'blob', mode: '100644', path: '../escape', sha: 'a'.repeat(40) }); }],
     ['SOURCE_INTEGRITY', remote => {
-      const entries = (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as any).tree;
-      entries.find((entry: {path: string}) => entry.path === 'readme.md').sha = 'f'.repeat(40);
+      const entries = (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as GitTree).tree;
+      entries.find((entry: {path: string}) => entry.path === 'readme.md')!.sha = 'f'.repeat(40);
     }],
   ];
   for (const [code, mutate] of cases) {
@@ -97,7 +100,7 @@ test('private, missing, truncated, linked and corrupt remote snapshots are rejec
     remote.save();
     const result = cli.run(inspectionArgs, project.root, remote.env);
     assert.equal(result.status, 1);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, code, result.stdout);
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, code, result.stdout);
   }
   assert.equal(readFileSync(`${project.root}/standards.yaml`, 'utf8'), '');
 });
@@ -119,7 +122,7 @@ test('malformed GitHub responses are rejected as source errors', (t) => {
     remote.save();
     const result = cli.run(inspectionArgs, project.root, remote.env);
     assert.equal(result.status, 1);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, code, result.stdout);
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, code, result.stdout);
   }
 });
 
@@ -128,14 +131,14 @@ test('inspection rejects a GitHub tree listing that substitutes another reachabl
   const project = sourceFixture('');
   t.after(() => { remote.close(); project.close(); });
   commit(project.root);
-  const entries = (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as any).tree;
-  entries.find((entry: {path: string}) => entry.path === 'readme.md').sha =
-    entries.find((entry: {path: string}) => entry.path === 'other.md').sha;
+  const entries = (remote.responses[`${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`]!.body as GitTree).tree;
+  entries.find((entry: {path: string}) => entry.path === 'readme.md')!.sha =
+    entries.find((entry: {path: string}) => entry.path === 'other.md')!.sha;
   remote.save();
 
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).errors[0].code, 'SOURCE_INTEGRITY');
+  assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'SOURCE_INTEGRITY');
 });
 
 test('remote source references require exact Git path spelling for every material kind', (t) => {
@@ -163,13 +166,13 @@ test('remote source references require exact Git path spelling for every materia
   commit(project.root);
   for (const scenario of cases) {
     const source = yaml.replace('kind: file\n      target: README.md\n      exact: readme.md', scenario.declaration);
-    const remote = remoteFixture(source, scenario.files as Record<string, string>);
+    const remote = remoteFixture(source, scenario.files);
     t.after(() => remote.close());
     const result = cli.run(inspectionArgs, project.root, remote.env);
     assert.equal(result.status, 1, `${scenario.location}: ${result.stdout}${result.stderr}`);
-    const error = JSON.parse(result.stdout).errors[0];
-    assert.equal(error.code, 'INVALID_STANDARDS');
-    assert.ok(error.details.some((detail: {code: string; path: string; line: number}) =>
+    const error = (JSON.parse(result.stdout) as ErrorReport).errors[0];
+    assert.equal(error!.code, 'INVALID_STANDARDS');
+    assert.ok((error!.details as Diagnostic[]).some((detail: {code: string; path: string; line: number}) =>
       detail.code === 'MISSING_REFERENCE' && detail.path === `/defaults/declarations/readme${scenario.location}` && detail.line > 0), result.stdout);
   }
 });
@@ -186,7 +189,7 @@ test('remote snapshots reject path aliases before host extraction can conflate d
     remote.save();
     const result = cli.run(inspectionArgs, project.root, remote.env);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, 'UNSAFE_SOURCE', result.stdout);
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'UNSAFE_SOURCE', result.stdout);
   }
 });
 
@@ -199,7 +202,7 @@ test('the remote root entry point must be spelled standards.yaml in Git', (t) =>
   remote.publish('v1.0.0');
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  const error = JSON.parse(result.stdout).errors[0];
-  assert.equal(error.code, 'INVALID_STANDARDS');
-  assert.equal(error.details[0].code, 'SOURCE_READ');
+  const error = (JSON.parse(result.stdout) as ErrorReport).errors[0];
+  assert.equal(error!.code, 'INVALID_STANDARDS');
+  assert.equal((error!.details as Diagnostic[])[0]!.code, 'SOURCE_READ');
 });

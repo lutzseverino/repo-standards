@@ -1,3 +1,4 @@
+import type { ErrorReport, Inspection, Run, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
@@ -43,7 +44,7 @@ async function fixture(t: TestContext) {
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[]) => cli.run(args, project.root, env);
-  const json = (args: string[]) => JSON.parse(run(args).stdout);
+  const json = <T = Inspection>(args: string[]) => (JSON.parse(run(args).stdout) as T);
   const scopeFile = join(remote.support.root, 'scope.json');
   function propose(args: string[]) {
     writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{
@@ -52,7 +53,7 @@ async function fixture(t: TestContext) {
     return [...args, '--scope', scopeFile];
   }
   function assess() {
-    json(['resume', '--json']);
+    json<Run>(['resume', '--json']);
     const review = { status: 'valid', explanation: 'The confirmed project still matches.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
     const assessment = join(remote.support.root, 'assessment.json');
     writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v3',
@@ -65,25 +66,25 @@ async function fixture(t: TestContext) {
 test('status --summary renders the active run and then the record of the complete run', async t => {
   const f = await fixture(t);
   const args = f.propose(inspectionArgs);
-  const inspection = f.json(args);
+  const inspection = f.json<Inspection>(args);
   const handoff = f.run(['start', ...args.slice(1), '--confirm', inspection.identity]);
-  assert.equal(JSON.parse(handoff.stdout).phase, 'contextual', handoff.stdout);
+  assert.equal((JSON.parse(handoff.stdout) as Run).phase, 'contextual', handoff.stdout);
 
-  const active = f.json(['status', '--json']).active;
+  const active = f.json<Status>(['status', '--json']).active;
   const running = f.run(['status', '--summary']);
   assert.equal(running.status, 0, running.stderr);
   const progress = running.stdout;
   assertDescriptive(progress);
   for (const heading of ['## Selection', '## Progress', '## Operations', '## Changed paths', '## Next action', '## Identities']) assert.ok(progress.includes(`\n${heading}\n`), heading);
   assert.ok(progress.includes('| Phase | contextual |'), progress);
-  assert.ok(active.nextAction.endsWith('resume --assessment <file>.'), active.nextAction);
+  assert.ok(active!.nextAction.endsWith('resume --assessment <file>.'), active!.nextAction);
   assert.ok(progress.includes('\n## Next action\n\nApply the selected guidance, refresh the work request with resume, and submit evidence using resume --assessment \\<file\\>.\n'), progress);
   assert.ok(progress.includes('| fixes | `docs` | `prepare` | changed | prepare done |'), progress);
-  assert.ok(progress.includes(`\`${active.id}\``) && progress.includes(`\`${inspection.identity}\``), progress);
+  assert.ok(progress.includes(`\`${active!.id}\``) && progress.includes(`\`${inspection.identity}\``), progress);
 
   assert.equal(f.assess().status, 0);
   commit(f.project.root);
-  const status = f.json(['status', '--json']);
+  const status = f.json<Status>(['status', '--json']);
   assert.deepEqual(status.scopeChanges, [{ id: 'docs', additions: ['apps/a/README.md'], removals: [] }]);
   const record = f.run(['status', '--summary']);
   assert.equal(record.status, 0, record.stderr);
@@ -100,8 +101,7 @@ test('status --summary renders the active run and then the record of the complet
 
 // The complete-run record rendered from status --json, with the given operation
 // and changed-path sections between its fixed sections.
-function expectedRecord(status: { selection: { cli: { version: string }; standards: { repository: string; version: string; commit: string }; profile: string };
-  lastComplete: { run: string; inspection: string; head: string; completedAt: string } }, operations: string, changedPaths: string, scopeChanges: string) {
+function expectedRecord(status: Pick<Status, 'selection' | 'lastComplete'>, operations: string, changedPaths: string, scopeChanges: string) {
   const { selection, lastComplete } = status;
   return `# Repository Standards adoption record
 
@@ -109,11 +109,11 @@ function expectedRecord(status: { selection: { cli: { version: string }; standar
 
 | Component | Value |
 | --- | --- |
-| CLI | \`${selection.cli.version}\` |
-| Standards source | \`${selection.standards.repository}\` |
-| Standards version | \`${selection.standards.version}\` |
-| Standards commit | \`${selection.standards.commit}\` |
-| Profile | \`${selection.profile}\` |
+| CLI | \`${selection!.cli.version}\` |
+| Standards source | \`${selection!.standards.repository}\` |
+| Standards version | \`${selection!.standards.version}\` |
+| Standards commit | \`${selection!.standards.commit}\` |
+| Profile | \`${selection!.profile}\` |
 
 ## Operations
 
@@ -141,14 +141,14 @@ ${scopeChanges}
 test('the adoption record lists a path changed by fixes and agent work once, with both phases, beside the installed paths', async t => {
   const f = await fixture(t);
   const args = f.propose(inspectionArgs);
-  const inspection = f.json(args);
-  assert.equal(JSON.parse(f.run(['start', ...args.slice(1), '--confirm', inspection.identity]).stdout).phase, 'contextual');
+  const inspection = f.json<Inspection>(args);
+  assert.equal((JSON.parse(f.run(['start', ...args.slice(1), '--confirm', inspection.identity]).stdout) as Run).phase, 'contextual');
   writeFileSync(join(f.project.root, 'apps/a/README.md'), '# Project A\nPrepared.\nReviewed by the agent.\n');
   const completed = f.assess();
   assert.equal(completed.status, 0, completed.stdout);
   commit(f.project.root);
 
-  const status = f.json(['status', '--json']);
+  const status = f.json<Status>(['status', '--json']);
   assert.deepEqual(status.changeSet, [
     ...[...cli.systemSkillFiles, ...cli.systemSkillLinks].map(path => ({ path, phases: ['installation'] })),
     { path: 'AGENTS.md', phases: ['installation'] },
@@ -170,16 +170,16 @@ ${[...cli.systemSkillFiles, ...cli.systemSkillLinks].map(path => `| \`${path}\` 
 test('a path the agent returns to its content before the run is not a changed path', async t => {
   const f = await fixture(t);
   const args = f.propose(inspectionArgs);
-  const inspection = f.json(args);
-  assert.equal(JSON.parse(f.run(['start', ...args.slice(1), '--confirm', inspection.identity]).stdout).phase, 'contextual');
+  const inspection = f.json<Inspection>(args);
+  assert.equal((JSON.parse(f.run(['start', ...args.slice(1), '--confirm', inspection.identity]).stdout) as Run).phase, 'contextual');
   writeFileSync(join(f.project.root, 'apps/a/README.md'), '# Project A\n');
   const completed = f.assess();
   assert.equal(completed.status, 0, completed.stdout);
 
-  const status = f.json(['status', '--json']);
-  assert.deepEqual(status.observations.filter((interval: { changes?: object }) => interval.changes && 'apps/a/README.md' in interval.changes)
+  const status = f.json<Status>(['status', '--json']);
+  assert.deepEqual(status.observations!.filter((interval: { changes?: object }) => interval.changes && 'apps/a/README.md' in interval.changes)
     .map((interval: { phase: string }) => interval.phase), ['fixes', 'agent']);
-  assert.deepEqual(status.changeSet.map((entry: { path: string }) => entry.path), [...cli.systemSkillFiles, ...cli.systemSkillLinks, 'AGENTS.md']);
+  assert.deepEqual(status.changeSet!.map((entry: { path: string }) => entry.path), [...cli.systemSkillFiles, ...cli.systemSkillLinks, 'AGENTS.md']);
 });
 
 test('the record of an update that only installs exact content lists every installed path, from durable state alone', async t => {
@@ -198,9 +198,9 @@ test('the record of an update that only installs exact content lists every insta
   const run = (args: string[], root = project.root) => cli.run(args, root, env);
   const adopt = (version: string) => {
     const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? version : argument);
-    const report = JSON.parse(run(args).stdout);
+    const report = (JSON.parse(run(args).stdout) as Inspection);
     const started = run(['start', ...args.slice(1), '--confirm', report.identity]);
-    assert.equal(JSON.parse(started.stdout).outcome, 'complete', started.stdout);
+    assert.equal((JSON.parse(started.stdout) as Run).outcome, 'complete', started.stdout);
     commit(project.root);
   };
   adopt('v1.0.0');
@@ -208,8 +208,8 @@ test('the record of an update that only installs exact content lists every insta
   remote.addVersion('v1.1.0', exactManifest('agents.md'), { 'agents.md': 'Revised instructions\n', 'review/SKILL.md': '---\nname: review\ndescription: Review changes carefully.\n---\nReview.\n' });
   adopt('v1.1.0');
 
-  const status = JSON.parse(run(['status', '--json']).stdout);
-  assert.equal(status.selection.standards.version, 'v1.1.0');
+  const status = (JSON.parse(run(['status', '--json']).stdout) as Status);
+  assert.equal(status.selection!.standards.version, 'v1.1.0');
   assert.deepEqual(status.changeSet, [
     { path: '.agents/skills/review/SKILL.md', phases: ['installation'] },
     { path: '.agents/skills/review/notes.md', phases: ['installation'] },
@@ -245,9 +245,9 @@ test('the record of an update lists a removed retired target and a replaced edit
   const run = (args: string[]) => cli.run(args, project.root, env);
   const adopt = (version: string) => {
     const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? version : argument);
-    const report = JSON.parse(run(args).stdout);
+    const report = (JSON.parse(run(args).stdout) as Inspection);
     const started = run(['start', ...args.slice(1), '--confirm', report.identity]);
-    assert.equal(JSON.parse(started.stdout).outcome, 'complete', started.stdout);
+    assert.equal((JSON.parse(started.stdout) as Run).outcome, 'complete', started.stdout);
     commit(project.root);
     return report;
   };
@@ -257,10 +257,10 @@ test('the record of an update lists a removed retired target and a replaced edit
   commit(project.root);
   remote.addVersion('v1.1.0', manifest({ instructions }), {});
   const report = adopt('v1.1.0');
-  assert.deepEqual(report.removed.map((entry: { target: string }) => entry.target), ['NOTES.md']);
+  assert.deepEqual(report.removed!.map((entry: { target: string }) => entry.target), ['NOTES.md']);
   assert.deepEqual(report.discardedEdits, ['AGENTS.md']);
 
-  const status = JSON.parse(run(['status', '--json']).stdout);
+  const status = (JSON.parse(run(['status', '--json']).stdout) as Status);
   assert.deepEqual(status.changeSet, [
     { path: 'AGENTS.md', phases: ['installation'] },
     { path: 'NOTES.md', phases: ['installation'] },
@@ -276,14 +276,14 @@ test('the record of an update lists a removed retired target and a replaced edit
 test('inspect --summary renders a deterministic update proposal with its class, and lists blockers', async t => {
   const f = await fixture(t);
   const args = f.propose(inspectionArgs);
-  const initial = f.json(args);
-  assert.equal(JSON.parse(f.run(['start', ...args.slice(1), '--confirm', initial.identity]).stdout).phase, 'contextual');
+  const initial = f.json<Inspection>(args);
+  assert.equal((JSON.parse(f.run(['start', ...args.slice(1), '--confirm', initial.identity]).stdout) as Run).phase, 'contextual');
   assert.equal(f.assess().status, 0);
   commit(f.project.root);
 
   f.remote.addVersion('v1.1.0', manifest, { ...files, 'agents.md': 'Revised instructions\n', 'guidance.md': 'Keep every maintained project README accurate.\n' });
   const updateArgs = f.propose(inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument));
-  const report = f.json(updateArgs);
+  const report = f.json<Inspection>(updateArgs);
   const summaryArgs = updateArgs.map(argument => argument === '--json' ? '--summary' : argument);
   const first = f.run(summaryArgs);
   assert.equal(first.status, 0, first.stderr);
@@ -318,7 +318,7 @@ test('inspect --summary lists removed retired targets, each discarded edit, and 
   const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
-  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  const initial = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
   assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
   commit(project.root);
   writeFileSync(join(project.root, 'AGENTS.md'), 'Maintainer instructions\n');
@@ -357,14 +357,14 @@ These targets leave the selection with edits. They stay in place, and the projec
   assert.ok(!summary.includes('\n## Blockers\n'), summary);
 });
 
-test('--summary and --json together are a usage error', async t => {
+test('--summary and --json together are a usage error', t => {
   const project = sourceFixture('');
   t.after(() => project.close());
   commit(project.root);
   for (const args of [['inspect', '--summary', '--json'], ['status', '--json', '--summary'], [...inspectionArgs, '--summary']]) {
     const result = cli.run(args, project.root);
     assert.equal(result.status, 2, `${args.join(' ')}: ${result.stdout}${result.stderr}`);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, 'USAGE');
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'USAGE');
   }
   const plain = cli.run(['status', '--summary', '--summary'], project.root);
   assert.equal(plain.status, 2);

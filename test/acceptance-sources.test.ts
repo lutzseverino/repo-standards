@@ -1,3 +1,4 @@
+import type { OperationResult } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -20,13 +21,13 @@ test('Wayfinder service evidence handles repository-root and nested targets', (t
       encoding: 'utf8',
     });
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    return JSON.parse(result.stdout);
+    return (JSON.parse(result.stdout) as OperationResult);
   }
 
   const fixed = run('fixes');
   assert.equal(fixed.status, 'changed');
   for (const path of ['operating-status.json', 'services/relay/operating-status.json']) {
-    assert.equal(JSON.parse(readFileSync(join(root, path), 'utf8')).startup, 'unverified');
+    assert.equal((JSON.parse(readFileSync(join(root, path), 'utf8')) as { startup: string }).startup, 'unverified');
   }
 
   const runbook = '# Operations\n\n## Startup\nCommand.\n\n## Health\nProbe.\n\n## Recovery\nRestart.\n\n## Known limitations\nLocal only.\n';

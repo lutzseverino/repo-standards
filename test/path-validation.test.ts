@@ -1,3 +1,4 @@
+import type { SourceValidation } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { chmodSync, mkdirSync, renameSync, symlinkSync } from 'node:fs';
@@ -25,7 +26,7 @@ for (const name of ['adopt-standards', 'standards-updates', 'author-standards'])
     t.after(() => source.close());
     const result = cli.run(['source', 'validate', '--json'], source.root);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const report = JSON.parse(result.stdout);
+    const report = (JSON.parse(result.stdout) as SourceValidation);
     assert.deepEqual(report.profiles, {});
     const diagnostic = report.errors.find((error: { code: string }) => error.code === 'RESERVED_NAME');
     assert.deepEqual(diagnostic, {
@@ -81,7 +82,7 @@ test('unreadable selected files are reported for every reference kind', (t) => {
   for (const path of files) chmodSync(join(source.root, path), 0);
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as SourceValidation);
   assert.deepEqual(report.profiles, {});
   for (const path of files) {
     assert.ok(report.errors.some((error: { code: string; message: string }) =>
@@ -111,7 +112,7 @@ test('all file and repository guidance forms reject system-skill targets, their 
           st.after(() => source.close());
           const result = cli.run(['source', 'validate', '--json'], source.root);
           assert.equal(result.status, 1, result.stdout + result.stderr);
-          const report = JSON.parse(result.stdout);
+          const report = (JSON.parse(result.stdout) as SourceValidation);
           assert.deepEqual(report.profiles, {});
           assert.deepEqual(report.errors, [{
             code: 'RESERVED_TARGET',
@@ -139,7 +140,7 @@ for (const codePoint of ['0001', '007f', '0080', '0085', '009f']) {
     t.after(() => source.close());
     const result = cli.run(['source', 'validate', '--json'], source.root);
     assert.equal(result.status, 1, result.stdout);
-    const errors = JSON.parse(result.stdout).errors;
+    const errors = (JSON.parse(result.stdout) as SourceValidation).errors;
     for (const field of ['target', 'exact']) assert.ok(errors.some((error: { code: string; path: string }) =>
       error.code === 'UNSAFE_PATH' && error.path === `/defaults/declarations/file/${field}`), result.stdout);
   });
@@ -167,7 +168,7 @@ test('whole skill and resource trees reject control characters in nested source 
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout);
-  const errors = JSON.parse(result.stdout).errors;
+  const errors = (JSON.parse(result.stdout) as SourceValidation).errors;
   for (const path of ['/defaults/declarations/skill/source', '/defaults/declarations/skill/checks/0/run/resources/0']) {
     assert.ok(errors.some((error: { code: string; path: string }) => error.code === 'UNSAFE_PATH' && error.path === path), result.stdout);
   }
@@ -178,7 +179,7 @@ test('empty profile names are rejected', (t) => {
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout);
-  assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string }) => error.code === 'INVALID_TYPE'));
+  assert.ok((JSON.parse(result.stdout) as SourceValidation).errors.some((error: { code: string }) => error.code === 'INVALID_TYPE'));
 });
 
 for (const path of ['/absolute', 'C:/outside', '../outside', 'a/../../outside', './file', 'a//file', 'a\\file', 'src/*.ts']) {
@@ -193,7 +194,7 @@ for (const path of ['/absolute', 'C:/outside', '../outside', 'a/../../outside', 
     t.after(() => source.close());
     const result = cli.run(['source', 'validate', '--json'], source.root);
     assert.equal(result.status, 1, result.stdout);
-    assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string; path: string }) => error.code === 'UNSAFE_PATH' && error.path.endsWith('/target')));
+    assert.ok((JSON.parse(result.stdout) as SourceValidation).errors.some((error: { code: string; path: string }) => error.code === 'UNSAFE_PATH' && error.path.endsWith('/target')));
   });
 }
 
@@ -209,12 +210,12 @@ test('source symlinks are rejected at the document and source ancestor boundarie
   symlinkSync('actual', join(source.root, 'linked'));
   let result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1);
-  assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string }) => error.code === 'SOURCE_SYMLINK'));
+  assert.ok((JSON.parse(result.stdout) as SourceValidation).errors.some((error: { code: string }) => error.code === 'SOURCE_SYMLINK'));
   renameSync(join(source.root, 'standards.yaml'), join(source.root, 'actual.yaml'));
   symlinkSync('actual.yaml', join(source.root, 'standards.yaml'));
   result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1);
-  assert.equal(JSON.parse(result.stdout).errors[0].code, 'SOURCE_SYMLINK');
+  assert.equal((JSON.parse(result.stdout) as SourceValidation).errors[0]!.code, 'SOURCE_SYMLINK');
 });
 
 test('source directories must not be symlinks even with a trailing slash', (t) => {
@@ -223,7 +224,7 @@ test('source directories must not be symlinks even with a trailing slash', (t) =
   symlinkSync('.', join(source.root, 'alias'));
   const result = cli.run(['source', 'validate', `${source.root}/alias/`, '--json'], source.root);
   assert.equal(result.status, 1, result.stdout);
-  assert.equal(JSON.parse(result.stdout).errors[0].code, 'SOURCE_SYMLINK');
+  assert.equal((JSON.parse(result.stdout) as SourceValidation).errors[0]!.code, 'SOURCE_SYMLINK');
 });
 
 test('references must have the declared filesystem type and skills require SKILL.md', (t) => {
@@ -246,7 +247,7 @@ test('references must have the declared filesystem type and skills require SKILL
   mkdirSync(join(source.root, 'directory'));
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1);
-  const errors = JSON.parse(result.stdout).errors;
+  const errors = (JSON.parse(result.stdout) as SourceValidation).errors;
   assert.ok(errors.some((error: { code: string }) => error.code === 'REFERENCE_TYPE'));
   assert.ok(errors.some((error: { code: string; message: string }) => error.code === 'MISSING_REFERENCE' && error.message.includes('directory/SKILL.md')));
 });
@@ -272,7 +273,7 @@ test('whole skills collide with files and other skill declarations after case fo
   assert.equal(result.status, 1);
   // The duplicate skill collides with the first skill's directory and link,
   // and the file with both skill directories.
-  assert.equal(JSON.parse(result.stdout).errors.filter((error: { code: string }) => error.code === 'TARGET_OVERLAP').length, 4);
+  assert.equal((JSON.parse(result.stdout) as SourceValidation).errors.filter((error: { code: string }) => error.code === 'TARGET_OVERLAP').length, 4);
 });
 
 test('an author skill\'s link collides with any target overlapping it', (t) => {
@@ -294,7 +295,7 @@ test('an author skill\'s link collides with any target overlapping it', (t) => {
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1);
-  assert.deepEqual(JSON.parse(result.stdout).errors.filter((error: { code: string }) => error.code === 'TARGET_OVERLAP').map(({ path, message }: { path: string; message: string }) => ({ path, message })), [
+  assert.deepEqual((JSON.parse(result.stdout) as SourceValidation).errors.filter((error: { code: string }) => error.code === 'TARGET_OVERLAP').map(({ path, message }: { path: string; message: string }) => ({ path, message })), [
     { path: '/defaults/declarations/copy/target', message: 'Profile personal: target .claude/skills/review/SKILL.md overlaps .claude/skills/review (/defaults/declarations/skill/name).' },
   ]);
 });
@@ -344,7 +345,7 @@ test('Unicode case-folded target collisions include capital and small sharp S', 
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout);
-  assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string }) => error.code === 'TARGET_OVERLAP'));
+  assert.ok((JSON.parse(result.stdout) as SourceValidation).errors.some((error: { code: string }) => error.code === 'TARGET_OVERLAP'));
 });
 
 test('distinct Unicode targets are not conflated by uppercasing', (t) => {

@@ -1,3 +1,4 @@
+import type { SourceDeclaration, SourceValidation } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { cpSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
@@ -61,9 +62,9 @@ profiles:
   const before = execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], { cwd: source.root, encoding: 'utf8' });
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
-  assert.deepEqual(report.profiles.excluded.declarations, []);
-  assert.deepEqual(report.profiles.personal.declarations[0].checks[0].run.arguments,
+  const report = (JSON.parse(result.stdout) as SourceValidation);
+  assert.deepEqual(report.profiles.excluded!.declarations, []);
+  assert.deepEqual(report.profiles.personal!.declarations[0]!.checks[0]!.run.arguments,
     ['', 'two words', '$(touch SENTINEL)', '; touch SENTINEL', '*.md']);
   assert.equal(execFileSync('git', ['status', '--porcelain=v1', '--untracked-files=all'], { cwd: source.root, encoding: 'utf8' }), before);
   assert.equal(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: source.root, encoding: 'utf8' }), head);
@@ -94,14 +95,14 @@ for (const example of [
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
-  assert.deepEqual(report.scope.discoveryRequired, { [example.profile]: [example.declaration] });
-  const declarations = report.profiles[example.profile].declarations;
-  assert.equal(declarations.find((entry: { id: string }) => entry.id === example.exactDeclaration).target, example.exactTarget);
+  const report = (JSON.parse(result.stdout) as SourceValidation);
+  assert.deepEqual(report.scope!.discoveryRequired, { [example.profile]: [example.declaration] });
+  const declarations = report.profiles[example.profile]!.declarations;
+  assert.equal((declarations.find((entry: { id: string }) => entry.id === example.exactDeclaration)! as Extract<SourceDeclaration, { kind: 'file' }>).target, example.exactTarget);
   const contextual = declarations.find((entry: { id: string }) => entry.id === example.declaration);
-  assert.equal(contextual.discovery, example.discovery);
-  assert.deepEqual(contextual.fixes.map((entry: { id: string }) => entry.id), [example.fix]);
-  assert.deepEqual(contextual.checks.map((entry: { id: string }) => entry.id), [example.check]);
+  assert.equal((contextual! as Extract<SourceDeclaration, { kind: 'repository'; discovery: string }>).discovery, example.discovery);
+  assert.deepEqual(contextual!.fixes.map((entry: { id: string }) => entry.id), [example.fix]);
+  assert.deepEqual(contextual!.checks.map((entry: { id: string }) => entry.id), [example.check]);
 });
 
 test('the retired repo-standards/v1 format fails with the invalid-format diagnostic naming only v2', (t) => {
@@ -119,7 +120,7 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as SourceValidation);
   assert.deepEqual(report.profiles, {});
   assert.deepEqual(report.errors.map((error: { code: string; message: string; path: string }) => [error.code, error.message, error.path]),
     [['INVALID_FORMAT', 'Expected repo-standards/v2.', '/format']]);
@@ -137,8 +138,8 @@ for (const [label, yaml, code] of [
     t.after(() => source.close());
     const result = cli.run(['source', 'validate', '--json'], source.root);
     assert.equal(result.status, 1);
-    assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string }) => error.code === code));
-    assert.deepEqual(JSON.parse(result.stdout).profiles, {});
+    assert.ok((JSON.parse(result.stdout) as SourceValidation).errors.some((error: { code: string }) => error.code === code));
+    assert.deepEqual((JSON.parse(result.stdout) as SourceValidation).profiles, {});
   });
 }
 
@@ -154,7 +155,7 @@ for (const [label, yaml, code] of [
     t.after(() => source.close());
     const result = cli.run(['source', 'validate', '--json'], source.root);
     assert.equal(result.status, 1, result.stderr);
-    assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string }) => error.code === code), result.stdout);
+    assert.ok((JSON.parse(result.stdout) as SourceValidation).errors.some((error: { code: string }) => error.code === code), result.stdout);
   });
 }
 
@@ -187,7 +188,7 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1);
-  const errors = JSON.parse(result.stdout).errors;
+  const errors = (JSON.parse(result.stdout) as SourceValidation).errors;
   assert.equal(errors.filter((error: { code: string }) => error.code === 'DUPLICATE_IDENTITY').length, 1);
   assert.equal(errors.filter((error: { code: string }) => error.code === 'MISSING_REFERENCE').length, 2);
 });
@@ -218,7 +219,7 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1);
-  const errors = JSON.parse(result.stdout).errors;
+  const errors = (JSON.parse(result.stdout) as SourceValidation).errors;
   assert.equal(errors.filter((error: { code: string }) => error.code === 'DUPLICATE_IDENTITY').length, 3);
   assert.equal(errors.filter((error: { code: string }) => error.code === 'MISSING_REFERENCE').length, 2);
 });
@@ -237,7 +238,7 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1);
-  assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string }) => error.code === 'UNKNOWN_FIELD'));
+  assert.ok((JSON.parse(result.stdout) as SourceValidation).errors.some((error: { code: string }) => error.code === 'UNKNOWN_FIELD'));
 });
 
 test('unsafe references and conflicting targets are rejected even in an unselected profile', (t) => {
@@ -304,12 +305,12 @@ profiles:
   symlinkSync('../content.md', join(source.root, 'resources/linked'));
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout);
-  const { errors } = JSON.parse(result.stdout);
+  const { errors } = (JSON.parse(result.stdout) as SourceValidation);
   for (const code of ['MISSING_REFERENCE', 'UNSAFE_PATH', 'RESERVED_TARGET', 'SOURCE_SYMLINK', 'TARGET_OVERLAP']) {
     assert.ok(errors.some((error: { code: string }) => error.code === code), `Missing ${code}: ${result.stdout}`);
   }
   assert.equal(errors.filter((error: { code: string }) => error.code === 'SOURCE_SYMLINK').length, 3);
-  assert.ok(errors.some((error: { code: string; profile: string; path: string }) =>
+  assert.ok(errors.some((error) =>
     error.code === 'TARGET_OVERLAP' && error.profile === 'bad' && error.path === '/profiles/bad/declarations/collision/target'));
   assert.ok(errors.some((error: { code: string; path: string }) =>
     error.code === 'MISSING_REFERENCE' && error.path.endsWith('/run/script')));
@@ -372,7 +373,7 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1);
-  const { errors, valid } = JSON.parse(result.stdout);
+  const { errors, valid } = (JSON.parse(result.stdout) as SourceValidation);
   assert.equal(valid, false);
   const codes = new Set(errors.map((error: { code: string }) => error.code));
   for (const code of ['UNKNOWN_FIELD', 'INVALID_ID', 'INVALID_DECLARATION', 'INVALID_EXECUTABLE', 'INVALID_TYPE', 'INVALID_VERSION', 'INVALID_TIMEOUT', 'DUPLICATE_IDENTITY', 'REQUIRED_FIELD', 'INVALID_EXCLUSION', 'EMPTY_TARGETS', 'RESERVED_NAME']) {
@@ -405,14 +406,14 @@ test('all four forms resolve through inheritance, replacement, addition and excl
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
-  assert.deepEqual(report.profiles.work.declarations, [
+  const report = (JSON.parse(result.stdout) as SourceValidation);
+  assert.deepEqual(report.profiles.work!.declarations, [
     { id: 'agent-guidance', kind: 'file', target: 'AGENTS.md', exact: 'profiles/work/files/AGENTS.md', checks: [], fixes: [] },
     { id: 'readme', kind: 'file', target: 'README.md', exact: 'defaults/files/AGENTS.md', checks: [], fixes: [] },
     { id: 'review-skill', kind: 'skill', name: 'review', source: 'defaults/skills/review', checks: [], fixes: [] },
     { id: 'source-layout', kind: 'repository', guidance: 'defaults/guidance/source-layout.md', targets: { paths: [], directories: ['src'] }, checks: [], fixes: [] },
   ]);
-  const personal = report.profiles.personal.declarations;
+  const personal = report.profiles.personal!.declarations;
   assert.deepEqual(personal.map((declaration: { id: string }) => declaration.id),
     ['agent-guidance', 'contribution-guidance', 'extra-file', 'readme', 'review-skill', 'source-layout']);
   assert.deepEqual(personal[3], { id: 'readme', kind: 'file', target: 'README.md', guidance: 'defaults/guidance/readme.md', fixes: [], checks: [{
@@ -437,7 +438,7 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', source.root, '--json'], source.root);
   assert.equal(result.status, 0, result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as SourceValidation);
   assert.equal(report.valid, true);
   assert.deepEqual(report.errors, []);
   assert.deepEqual(report.profiles, { personal: { description: 'Standards for personal projects', declarations: [] } });
@@ -470,18 +471,18 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
-  assert.equal(report.source.format, 'repo-standards/v2');
-  assert.deepEqual(report.profiles.inherited.declarations, [{
+  const report = (JSON.parse(result.stdout) as SourceValidation);
+  assert.equal(report.source!.format, 'repo-standards/v2');
+  assert.deepEqual(report.profiles.inherited!.declarations, [{
     id: 'documentation', kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md', checks: [], fixes: [],
   }]);
-  assert.deepEqual(report.profiles.explicit.declarations, [{
+  assert.deepEqual(report.profiles.explicit!.declarations, [{
     id: 'documentation', kind: 'repository', guidance: 'guidance.md', targets: { paths: ['README.md'], directories: ['docs'] }, checks: [], fixes: [],
   }]);
-  assert.deepEqual(report.profiles.excluded.declarations, []);
-  assert.deepEqual(report.scope.discoveryRequired, { inherited: ['documentation'], explicit: [], excluded: [] });
-  assert.match(report.scope.verified, /all profiles.*references.*operations.*explicit.target conflicts/i);
-  assert.match(report.scope.limitations, /concrete scope safety.*semantic completeness/i);
+  assert.deepEqual(report.profiles.excluded!.declarations, []);
+  assert.deepEqual(report.scope!.discoveryRequired, { inherited: ['documentation'], explicit: [], excluded: [] });
+  assert.match(report.scope!.verified, /all profiles.*references.*operations.*explicit.target conflicts/i);
+  assert.match(report.scope!.limitations, /concrete scope safety.*semantic completeness/i);
   const human = cli.run(['source', 'validate'], source.root);
   assert.equal(human.status, 0, human.stderr);
   assert.match(human.stdout, /discovery.*inherited.*documentation/i);
@@ -520,7 +521,7 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as SourceValidation);
   assert.deepEqual(report.profiles, {});
   assert.ok(report.errors.some((error: { code: string; path: string; line: number; column: number }) =>
     error.code === code && error.path === `/defaults/declarations/documentation${path}` && error.line > 0 && error.column > 0), result.stdout);
@@ -544,7 +545,7 @@ profiles:
     symlinkSync('resources', join(source.root, 'linked'));
     const result = cli.run(['source', 'validate', '--json'], source.root);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string; path: string }) =>
+    assert.ok((JSON.parse(result.stdout) as SourceValidation).errors.some((error: { code: string; path: string }) =>
       error.code === 'SOURCE_SYMLINK' && error.path === `/profiles/work/declarations/documentation/${reference}`), result.stdout);
   }
 });
@@ -572,7 +573,7 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as SourceValidation);
   assert.deepEqual(report.profiles, {});
   for (const field of ['guidance', 'discovery']) assert.ok(report.errors.some((error: { code: string; path: string }) =>
     error.code === 'MISSING_REFERENCE' && error.path === `/profiles/other/declarations/documentation/${field}`), result.stdout);
@@ -597,7 +598,7 @@ profiles:
     t.after(() => source.close());
     const result = cli.run(['source', 'validate', '--json'], source.root);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string; path: string }) =>
+    assert.ok((JSON.parse(result.stdout) as SourceValidation).errors.some((error: { code: string; path: string }) =>
       error.code === 'UNKNOWN_FIELD' && error.path === '/defaults/declarations/documentation/discovery'), result.stdout);
   });
 }
@@ -623,7 +624,7 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as SourceValidation);
   assert.deepEqual(report.profiles, {});
   const diagnostic = report.errors.find((error: { code: string }) => error.code === 'SKILL_INVOCATION_MISMATCH');
   assert.ok(diagnostic, result.stdout);
@@ -674,7 +675,7 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).valid, true);
+  assert.equal((JSON.parse(result.stdout) as SourceValidation).valid, true);
 });
 
 
@@ -704,7 +705,7 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  assert.ok(JSON.parse(result.stdout).errors.some((error: { code: string; file: string; line: number; path: string }) =>
+  assert.ok((JSON.parse(result.stdout) as SourceValidation).errors.some((error: { code: string; file: string; line: number; path: string }) =>
     error.code === code && error.file === join(source.root, file) && error.line === line && error.path === path), result.stdout);
 });
 
@@ -735,6 +736,6 @@ profiles:
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  assert.deepEqual(JSON.parse(result.stdout).errors.filter((error: { code: string }) => error.code === 'SKILL_INVOCATION_MISMATCH')
+  assert.deepEqual((JSON.parse(result.stdout) as SourceValidation).errors.filter((error: { code: string }) => error.code === 'SKILL_INVOCATION_MISMATCH')
     .map((error: { path: string }) => error.path), ['/defaults/declarations/review/source', '/profiles/work/declarations/review/source']);
 });

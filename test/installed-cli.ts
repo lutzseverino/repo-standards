@@ -44,7 +44,7 @@ export function installCli() {
       join(root, packed.filename)], { stdio: 'pipe' });
     return {
       root,
-      version: packed.version as string,
+      version: packed.version,
       // The project paths of the packaged system skills' files, sorted, which
       // adoption installs as whole skills.
       systemSkillFiles: ['adopt-standards', 'standards-updates'].flatMap(name => installedTree(join(root, 'node_modules/@lutzseverino/repo-standards/skills', name))
