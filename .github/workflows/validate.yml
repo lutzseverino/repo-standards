@@ -32,7 +32,7 @@ jobs:
       - run: pnpm lint
       - run: node --experimental-vm-modules --disable-warning=ExperimentalWarning scripts/check-import-cycles.ts
       - run: pnpm build
-      - run: node --test --test-shard=${{ matrix.part }}/3 test/*.test.ts
+      - run: node --test --test-concurrency=6 --test-shard=${{ matrix.part }}/3 test/*.test.ts
 
   validate-macos:
     if: github.event_name == 'push'

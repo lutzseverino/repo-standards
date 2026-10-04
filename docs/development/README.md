@@ -20,8 +20,9 @@ install current `dist/` output; rebuild after changing product code.
 
 ### Continuous integration
 
-Each PR runs three parallel Linux test parts using Node's `--test-shard` over
-the same files as `pnpm test`, with every file in exactly one part. The required
+Each PR runs three parallel Linux test parts using Node's `--test-shard` and
+`--test-concurrency=6` over the same files as `pnpm test`, with every file in
+exactly one part. The required
 checks are `validate (linux, 1/3)`, `validate (linux, 2/3)` and
 `validate (linux, 3/3)`. Each part runs typechecking, linting, rejecting any
 runtime cycle of static imports among the source modules (type-only imports
