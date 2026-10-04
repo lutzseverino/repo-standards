@@ -7,7 +7,6 @@ import { git, hashInventory, targetBoundaryObservation, targetObservation } from
 import type { Blocker, Content, HashInventory, Observation } from './observation.js';
 export type Baseline = Pick<Content, 'sha256' | 'executable'>;
 export type Files = Record<string, Content>;
-export const systemTarget = '.agents/skills/adopt-standards';
 export const ignore = '/runtime/node_modules/\n/local/\n/cache/\n';
 
 export function json(value: unknown) { return JSON.stringify(value, null, 2) + '\n'; }

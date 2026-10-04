@@ -1,5 +1,5 @@
 import { ProductError } from './errors.js';
-import { allowedTargets } from './execution.js';
+import { declarationTargets } from './targets.js';
 import { formats } from './formats.js';
 import type { ResolvedProfile } from './model.js';
 import { concreteScope, type Scope } from './scope.js';
@@ -216,7 +216,7 @@ export class WorkEvidenceJournal {
     }
     const interval: WorkInterval = operation
       ? { phase: operation.phase, operation, operationIndex: this.#run.operations.length, before,
-        scope: { [operation.declaration]: allowedTargets(this.#resolved.declarations.find(declaration => declaration.id === operation.declaration)!) } }
+        scope: { [operation.declaration]: declarationTargets(this.#resolved.declarations.find(declaration => declaration.id === operation.declaration)!) } }
       : { phase: 'agent', scope: agentScope, before };
     this.#record([...this.#run.observations, recordedInterval(interval)], before);
     this.#save();

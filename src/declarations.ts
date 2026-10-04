@@ -3,6 +3,7 @@ import type { SourceDeclaration, Operation } from './model.js';
 import { Fields } from './yaml.js';
 import type { Value } from './yaml.js';
 import type { Paths, Target } from './paths.js';
+import { skillTarget, systemSkills } from './targets.js';
 
 const identity = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -97,10 +98,10 @@ export class Declarations {
         f.map(declaration, ['kind', 'name', 'source', 'checks', 'fixes']);
         const nameValue = f.get(declaration, 'name');
         const name = this.id(nameValue) ?? '';
-        if (['adopt-standards', 'author-standards'].includes(name.toLowerCase())) {
+        if (systemSkills.some(skill => skill.name === name.toLowerCase())) {
           f.error('RESERVED_NAME', `${name.toLowerCase()} is a product-owned system skill.`, nameValue);
         }
-        targetPath({ ...nameValue, data: `.agents/skills/${name}` });
+        targetPath({ ...nameValue, data: skillTarget(name) });
         const sourceValue = f.get(declaration, 'source');
         const source = this.paths.reference(sourceValue, 'directory');
         if (source) this.paths.reference({ ...sourceValue, data: `${source}/SKILL.md` }, 'file');

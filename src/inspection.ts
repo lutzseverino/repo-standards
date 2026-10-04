@@ -10,12 +10,12 @@ import { content, git, hashInventory, inventoryPaths, observe, targetBoundaryObs
 import type { Blocker, HashInventory, Observation } from './observation.js';
 import { validateSource } from './resolver.js';
 import { stringify } from 'yaml';
-import { systemTarget } from './adoption-files.js';
 import { readRecordedAdoption, type RecordedAdoption } from './recorded-state.js';
 import { scopeChanges } from './scope-evidence.js';
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
 import { judgeTargetOwnership, type OwnedTarget, type TargetKind } from './target-ownership.js';
+import { adoptionSkill, declarationTargets, installationTarget } from './targets.js';
 import { unifiedDiff } from './unified-diff.js';
 import { compareUpdate } from './update-comparison.js';
 
@@ -67,7 +67,7 @@ export function hiddenIndexPaths(root: string) {
 // The system skill this exact CLI installs. Start verifies that the acquired
 // runtime package carries the same inventory.
 export function packagedSystemSkill() {
-  return observe(fileURLToPath(new URL('../skills/adopt-standards', import.meta.url)));
+  return observe(fileURLToPath(new URL(`../skills/${adoptionSkill.name}`, import.meta.url)));
 }
 
 export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string; scope?: string }
@@ -141,7 +141,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       }
       return target.value;
     }
-    const systemSkill = observeTarget(systemTarget);
+    const systemSkill = observeTarget(adoptionSkill.target);
     if (!previous && productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
     const validation = validateSource(source.root, cliVersion, source.paths, retainedSource?.manifest);
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
@@ -188,18 +188,20 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const declared: { path: string; typeBlockers: Blocker[]; owned: boolean }[] = [];
     const installed: { id: string; target: string; kind: 'file' | 'skill' }[] = [];
     for (const declaration of resolved.declarations) {
-      const targets = declaration.kind === 'repository' ? [...declaration.targets.paths, ...declaration.targets.directories] : [declaration.kind === 'skill' ? `.agents/skills/${declaration.name}` : declaration.target];
+      const { paths, directories } = declarationTargets(declaration);
+      const targets = [...paths, ...directories];
+      const installationPath = installationTarget(declaration);
       for (const target of targets) {
         const current = observeTarget(target);
         affected[target] = current;
-        const expectsDirectory = declaration.kind === 'skill' || (declaration.kind === 'repository' && declaration.targets.directories.includes(target));
-        declared.push({ path: target, owned: declaration.kind === 'skill' || 'exact' in declaration,
+        const expectsDirectory = directories.includes(target);
+        declared.push({ path: target, owned: installationPath !== undefined,
           typeBlockers: (expectsDirectory && current.type === 'file') || (!expectsDirectory && current.type === 'directory')
             ? [{ code: 'TARGET_TYPE', path: target, message: `This declaration requires a ${expectsDirectory ? 'directory' : 'file'} at its target.` }] : [] });
       }
       if (declaration.kind === 'skill' || 'exact' in declaration) {
-        desiredExact[targets[0]!] = observe(join(source.root, declaration.kind === 'skill' ? declaration.source : declaration.exact));
-        installed.push({ id: declaration.id, target: targets[0]!, kind: declaration.kind === 'skill' ? 'skill' : 'file' });
+        desiredExact[installationPath!] = observe(join(source.root, declaration.kind === 'skill' ? declaration.source : declaration.exact));
+        installed.push({ id: declaration.id, target: installationPath!, kind: declaration.kind === 'skill' ? 'skill' : 'file' });
       } else guidance.push({ id: declaration.id, targets, source: declaration.guidance, ...fileReference(join(source.root, declaration.guidance)) });
     }
     // Installation targets: the system skill, each exact file and skill the
@@ -208,13 +210,13 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     // longer installs.
     const ownedTargets = new Map<string, OwnedTarget>();
     const systemCandidate = packagedSystemSkill();
-    ownedTargets.set(systemTarget, { path: systemTarget, kind: 'system-skill', current: systemSkill, candidate: systemCandidate });
+    ownedTargets.set(adoptionSkill.target, { path: adoptionSkill.target, kind: 'system-skill', current: systemSkill, candidate: systemCandidate });
     for (const { target, kind } of installed) ownedTargets.set(target, { path: target, kind, current: affected[target]!, candidate: desiredExact[target]! });
     const recordedTargets: { path: string; kind: TargetKind; baseline: NonNullable<OwnedTarget['baseline']> }[] = [];
     if (previous) {
       const { baselines, skills } = previous.state;
       const directories = Object.keys(skills);
-      for (const directory of directories) recordedTargets.push({ path: directory, kind: directory === systemTarget ? 'system-skill' : 'skill',
+      for (const directory of directories) recordedTargets.push({ path: directory, kind: directory === adoptionSkill.target ? 'system-skill' : 'skill',
         baseline: { files: Object.fromEntries(Object.entries(baselines).filter(([path]) => path.startsWith(directory + '/'))), inventory: skills[directory]! } });
       for (const [path, value] of Object.entries(baselines)) if (!directories.some(directory => path.startsWith(directory + '/'))) recordedTargets.push({ path, kind: 'file', baseline: { files: { [path]: value } } });
     }
@@ -232,7 +234,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     // the same order.
     const reported = new Set<string>();
     const discardedEdits: string[] = [];
-    for (const { path, typeBlockers, owned } of [{ path: systemTarget, typeBlockers: [], owned: true }, ...declared,
+    for (const { path, typeBlockers, owned } of [{ path: adoptionSkill.target, typeBlockers: [], owned: true }, ...declared,
       ...baselineOnly.map(path => ({ path, typeBlockers: [], owned: true }))]) {
       if (!reported.has(path)) blockers.push(...observed.get(path)!.safety);
       const verdict = owned ? ownership.get(path) : undefined;
@@ -243,7 +245,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const exact = installed.map(({ id, target }) => ({ id, target, action: ownership.get(target)!.action!, files: changedFiles(target, affected[target]!, desiredExact[target]!) }));
     // Each removed target is attributed to the declaration that installed it.
     const removed = previous ? baselineOnly.filter(path => ownership.get(path)!.action === 'replace').map(target => ({
-      id: previous.resolved.declarations.find(declaration => (declaration.kind === 'skill' ? `.agents/skills/${declaration.name}` : 'exact' in declaration ? declaration.target : undefined) === target)!.id,
+      id: previous.resolved.declarations.find(declaration => installationTarget(declaration) === target)!.id,
       target, files: changedFiles(target, observed.get(target)!.value, { type: 'missing' }),
     })) : undefined;
     if (!proposal) for (const declaration of discoveryDeclarations) guidance.push({ id: declaration.id, targets: [], discoveryRequired: true, source: declaration.guidance, ...fileReference(join(source.root, declaration.guidance)) });
@@ -266,7 +268,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       manifest: { sha256: hash(normalized), executable: false },
       project: { affected: Object.fromEntries(Object.entries(affected).map(([path, value]) => [path, hashInventory(value)])),
         productState: hashInventory(productState), systemSkill: hashInventory(systemSkill) },
-      systemSkill: { target: systemTarget, action: ownership.get(systemTarget)!.action! },
+      systemSkill: { target: adoptionSkill.target, action: ownership.get(adoptionSkill.target)!.action! },
       ...(removed ? { removed } : {}),
       discardedEdits,
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },

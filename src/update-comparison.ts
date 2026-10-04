@@ -2,6 +2,7 @@ import { ProductError } from './errors.js';
 import type { Declaration, Operation, SourceDeclaration } from './model.js';
 import { matchesInventory, type Blocker, type Observation } from './observation.js';
 import type { RecordedAdoption, RecordedSelection } from './recorded-state.js';
+import { declarationTargets, type Targets } from './targets.js';
 
 // The update comparison: what inspecting a candidate against an established
 // adoption changes. It takes the verified recorded adoption, the candidate
@@ -21,7 +22,6 @@ type ContextualChange = 'guidance' | 'discovery' | 'operations' | 'scope' | 'ret
 interface DeclarationChanges { id: string; changes: ContextualChange[] }
 
 type FileHashes = Record<string, { sha256: string; executable: boolean }>;
-type Targets = { paths: string[]; directories: string[] };
 
 // What the candidate would adopt: its selection, its source-resolved
 // declarations, the declarations whose scope is confirmed, and each referenced
@@ -86,8 +86,7 @@ function material(declaration: { guidance?: string; fixes?: Operation[]; checks?
 }
 
 function targets(declaration: Declaration | undefined): Targets | undefined {
-  if (!declaration || !('guidance' in declaration)) return undefined;
-  return declaration.kind === 'repository' ? declaration.targets : { paths: [declaration.target], directories: [] };
+  return declaration && 'guidance' in declaration ? declarationTargets(declaration) : undefined;
 }
 
 // The contextual changes of one declaration the candidate declares, against

@@ -3,7 +3,7 @@ import { dirname, isAbsolute, relative, resolve } from 'node:path';
 import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
-import { allowedTargets } from './execution.js';
+import { declarationTargets } from './targets.js';
 import type { ResolvedProfile, SourceProfile } from './model.js';
 import { Paths, type Target } from './paths.js';
 import { Fields, readYaml, type Diagnostic } from './yaml.js';
@@ -119,8 +119,8 @@ function materializeScope(root: string, profile: SourceProfile, proposal?: Scope
     return [{ ...concrete, targets: { paths: included(entry), directories: [] } }];
   }) };
   for (const declaration of resolved.declarations) {
-    const names = declaration.kind === 'repository' ? [...declaration.targets.paths, ...declaration.targets.directories] : [declaration.kind === 'skill' ? `.agents/skills/${declaration.name}` : declaration.target];
-    for (const name of names) {
+    const { paths: declaredPaths, directories } = declarationTargets(declaration);
+    for (const name of [...declaredPaths, ...directories]) {
       const target = paths.target({ data: name, offset: 0, path: declaration.id });
       if (!target) invalid('Invalid discovered target.');
       targets.push(target);
@@ -156,7 +156,7 @@ function validateScopeEvidence(proposal: ScopeProposal, observation: ScopeObserv
 }
 
 export function concreteScope(resolved: ResolvedProfile): Scope {
-  return Object.fromEntries(resolved.declarations.map(declaration => [declaration.id, allowedTargets(declaration)]));
+  return Object.fromEntries(resolved.declarations.map(declaration => [declaration.id, declarationTargets(declaration)]));
 }
 
 // The caller derives the request identity from the observation it inspects
