@@ -757,6 +757,34 @@ test('an update leaves a retired installed target inside a still-installed skill
   assert.deepEqual(installedTree(join(project.root, '.agents/skills/review')), installedTree(join(remote.source.root, 'review')));
 });
 
+test('an update removes the link path of a kept skill when it contains a newly installed target, and then installs it', async t => {
+  const remote = remoteFixture(manifest({ legacy: leaving.legacy }), leavingFiles);
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const adopted = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', adopted.identity], project.root, env).status, 0);
+  commit(project.root);
+  writeFileSync(join(project.root, '.agents/skills/legacy/notes.md'), 'Maintainer notes');
+  unlinkSync(join(project.root, '.claude/skills/legacy'));
+  mkdirSync(join(project.root, '.claude/skills/legacy'));
+  writeFileSync(join(project.root, '.claude/skills/legacy/old.md'), 'Old');
+  commit(project.root);
+  remote.addVersion('v1.1.0', manifest({ guide: { kind: 'file', target: '.claude/skills/legacy/new.md', exact: 'new.md' } }), { 'new.md': 'New' });
+  const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
+  const inspection = JSON.parse(cli.run(args, project.root, env).stdout);
+  assert.deepEqual(inspection.start.blockers, []);
+  assert.deepEqual(inspection.kept.map(({ target }: { target: string }) => target), ['.agents/skills/legacy']);
+  assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), ['.claude/skills/legacy']);
+  assert.deepEqual(inspection.discardedEdits, ['.claude/skills/legacy']);
+  const started = cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env);
+  assert.equal(JSON.parse(started.stdout).outcome, 'complete', started.stdout + started.stderr);
+  assert.deepEqual(installedTree(join(project.root, '.claude/skills/legacy')), [['new.md', Buffer.from('New').toString('base64'), false]]);
+  assert.equal(readFileSync(join(project.root, '.agents/skills/legacy/notes.md'), 'utf8'), 'Maintainer notes');
+});
+
 test('an update removes a retired target beside contextual scope and one that contains a newly installed target', async t => {
   const v1 = source('v1', `    old-docs:
       kind: file

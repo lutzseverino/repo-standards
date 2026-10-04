@@ -209,7 +209,9 @@ The product links only the skills it installs and never writes
 `.claude/skills` as a whole: a skill the project wrote itself under
 `.agents/skills/` gets no link, and other content in `.claude/skills/` stays
 untouched. A retired skill's link is removed with the skill, and stays with it
-when an edited skill is kept. Links are exact
+when an edited skill is kept. A link the maintainer edited on its own, such as
+one replaced by a committed file, is kept even when its unedited skill is
+removed. Links are exact
 content, so they never make an update contextual. Git records each link as a
 symbolic link; a checkout with `core.symlinks=false` has a small text file
 there instead, and Claude Code does not see that skill. Commit the links with
