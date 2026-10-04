@@ -1,9 +1,9 @@
 import type { PackageManifest } from './json-reports.ts';
 import { createHash } from 'node:crypto';
-import { execFileSync, spawn } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { cpSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { sourceFixture } from './installed-cli.ts';
+import { directoryFixture, sourceFixture } from './installed-cli.ts';
 
 // A real npm registry boundary: npm resolves an exact package, installs its
 // dependencies, and writes a portable lock using an HTTP tarball and integrity.
@@ -58,4 +58,19 @@ process.stdin.on('end', () => process.exit()).resume();
     server.once('exit', code => reject(new Error(`Registry exited: ${code}`)));
   });
   return { env: { npm_config_registry: `http://127.0.0.1:${port}` }, close() { server.kill(); support.close(); } };
+}
+
+// Installs a candidate exact CLI from a registry fixture that serves it,
+// outside any project, as a maintainer does before a CLI pin change.
+export function installCandidate(version: string, env: NodeJS.ProcessEnv) {
+  const candidate = directoryFixture('repo-standards-candidate-');
+  try {
+    execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${version}`], { cwd: candidate.root, env, stdio: 'pipe' });
+  } catch (error) {
+    candidate.close();
+    throw error;
+  }
+  const bin = join(candidate.root, 'node_modules/.bin/repo-standards');
+  return { root: candidate.root, bin, close() { candidate.close(); },
+    run(args: string[], cwd: string, environment: NodeJS.ProcessEnv = env) { return spawnSync(bin, args, { cwd, env: environment, encoding: 'utf8' }); } };
 }

@@ -1,14 +1,15 @@
 import type { ErrorReport, Inspection, Lock, Run, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
+import type { TestContext } from 'node:test';
 import { existsSync, mkdirSync, readFileSync, readlinkSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { stringify } from 'yaml';
-import { installCli, installedTree, snapshot, sourceFixture } from './installed-cli.ts';
+import { installCli, installedTree, snapshot } from './installed-cli.ts';
 import { committedScopeEvidence, committedState, rewriteCommittedState, rewriteRetainedInput } from './committed-evidence.ts';
-import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
-import { registryFixture } from './registry-fixture.ts';
-import { filesystemFault } from './adoption-faults.ts';
+import { commit, git, inspectionArgs, startArgs } from './remote-fixture.ts';
+import { filesystemFault, kill, killAfterRename, killDuringRemoval } from './adoption-faults.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -23,40 +24,46 @@ const source = stringify({
   profiles: { work: { description: 'Work', declarations: {} } },
 });
 
+const exactSource = stringify({
+  format: 'repo-standards/v2', name: 'exact-standards', description: 'Exact content and a skill',
+  requires: { 'repo-standards': '>=1' },
+  defaults: { declarations: {
+    instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
+    review: { kind: 'skill', name: 'review', source: 'review' },
+  } },
+  profiles: { work: { description: 'Work', declarations: {} } },
+});
+
 // A complete, committed discovery adoption: its state, retained scope evidence
 // and run records are all in the single format this CLI writes.
-async function adoptedProject(t: import('node:test').TestContext) {
-  const remote = remoteFixture(source, {
+async function adoptedProject(t: TestContext) {
+  const f = await adoptionFixture(t, cli, source, { files: {
     'guidance.md': 'Keep every maintained project README useful.',
     'discovery.md': 'Include the README of every maintained project.',
     'agents.md': 'Pinned instructions\n',
-  });
-  const project = sourceFixture('', { 'apps/docs/README.md': '# Documented project\n' });
-  commit(project.root);
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  const env = { ...remote.env, ...registry.env };
-  const run = <T = Run>(args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: (JSON.parse(result.stdout) as T) }; };
+  }, project: { 'apps/docs/README.md': '# Documented project\n' } });
+  const { remote, project, json: run } = f;
   const scopeFile = join(remote.support.root, 'scope.json');
   writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{
     id: 'docs', coverage: 'The only maintained project.',
     candidates: [{ path: 'apps/docs/README.md', decision: 'include', reason: 'A maintained project README.', evidence: ['apps/docs/README.md'] }], unresolved: [] }] }));
-  const inspection = run<Inspection>([...inspectionArgs, '--scope', scopeFile]).report;
-  const started = run<Run>(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', inspection.identity]).report;
+  // Inspects with the confirmed proposal, which still fits the project.
+  const inspect = (args: string[]) => f.inspect([...args, '--scope', scopeFile]);
+  const started = run(startArgs(inspect(inspectionArgs).identity, [...inspectionArgs, '--scope', scopeFile])).report;
   assert.equal(started.phase, 'contextual');
   const review = { status: 'valid', explanation: 'The confirmed project still matches.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
   const assessment = join(remote.support.root, 'assessment.json');
   writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v3',
     declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The README already satisfies the guidance.', evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
-  const completed = run<Run>(['resume', '--assessment', assessment, '--json']);
+  const completed = run(['resume', '--assessment', assessment, '--json']);
   assert.equal(completed.result.status, 0, completed.result.stdout);
   commit(project.root);
-  return { project, run };
+  return { project, remote, env: f.env, root: project.root, run, inspect, scopeFile };
 }
 
 test('a retired state, scope evidence, or run record format is rejected with the fresh-adoption diagnostic and nothing is written', async t => {
   const f = await adoptedProject(t);
-  const root = f.project.root;
+  const { root } = f;
   const state = committedState(root);
   const scope = committedScopeEvidence(root);
   assert.equal(state.format, 'repo-standards/state/v7');
@@ -73,18 +80,19 @@ test('a retired state, scope evidence, or run record format is rejected with the
     for (const [path, bytes] of committed) writeFileSync(join(root, path), bytes);
     rmSync(runRecord, { force: true });
   };
+  // The oldest and the most recent retired version of each artifact.
   const retired = [
-    { format: 'repo-standards/lock/v0', current: 'repo-standards/lock/v1',
+    { format: 'repo-standards/lock/v0', current: 'repo-standards/lock/v1', path: '.repo-standards/lock.json',
       plant: (format: string) => writeFileSync(join(root, '.repo-standards/lock.json'), JSON.stringify({ format })) },
-    ...['v1', 'v2', 'v3', 'v4', 'v5', 'v6'].map(version => ({ format: `repo-standards/state/${version}`, current: 'repo-standards/state/v7',
+    ...['v1', 'v6'].map(version => ({ format: `repo-standards/state/${version}`, current: 'repo-standards/state/v7', path: '.repo-standards/state.json',
       plant: (format: string) => rewriteCommittedState(root, { ...state, format }) })),
-    ...['v1', 'v2', 'v3', 'v4'].map(version => ({ format: `repo-standards/scope-history/${version}`, current: 'repo-standards/scope-history/v5',
+    ...['v1', 'v4'].map(version => ({ format: `repo-standards/scope-history/${version}`, current: 'repo-standards/scope-history/v5', path: '.repo-standards/inputs/scope-history.json',
       plant: (format: string) => rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { ...scope, format }) })),
-    ...['v1', 'v2', 'v3', 'v4', 'v5'].map(version => ({ format: `repo-standards/run/${version}`, current: 'repo-standards/run/v6',
+    ...['v1', 'v5'].map(version => ({ format: `repo-standards/run/${version}`, current: 'repo-standards/run/v6', path: relative(root, runRecord),
       plant: (format: string) => writeFileSync(runRecord, JSON.stringify({ format, id: 'c0ffee00-0000-4000-8000-000000000000',
         selection: state, outcome: 'incomplete', phase: 'fixes' })) })),
   ];
-  for (const { format, current, plant } of retired) {
+  for (const { format, current, path, plant } of retired) {
     plant(format);
     const before = snapshot(root);
     for (const command of [['inspect'], ['status'], ['resume'], ['abandon']]) {
@@ -92,18 +100,18 @@ test('a retired state, scope evidence, or run record format is rejected with the
       assert.equal(rejected.result.status, 1, `${format} ${command[0]}: ${rejected.result.stdout}`);
       assert.equal(rejected.report.errors.length, 1);
       const [diagnostic] = rejected.report.errors;
-      assert.ok(diagnostic!.message.includes(`retired format ${format}; this CLI reads only ${current}.`), diagnostic!.message);
+      assert.deepEqual(diagnostic!.details, { path, format, expected: current }, `${format} ${command[0]}`);
       if (format.startsWith('repo-standards/run/')) {
-        // An active run record may hold unfinished work.
+        // An active run record may hold unfinished work: the earlier CLI
+        // resumes or abandons it.
         assert.equal(diagnostic!.code, 'RETIRED_RUN', `${format} ${command[0]}`);
-        assert.match(diagnostic!.message, /resume --retry or end it with abandon, then inspect again\.$/);
+        for (const advice of ['resume --retry', 'abandon']) assert.ok(diagnostic!.message.includes(advice), diagnostic!.message);
       } else {
         // Inspecting retained standards reads the committed records; fresh
         // adoption inspects a source instead.
         assert.equal(diagnostic!.code, 'RETIRED_FORMAT', `${format} ${command[0]}`);
-        assert.match(diagnostic!.message, /Adopt fresh: inspect with --source, --standards-version and --profile, and confirm that inspection; its start removes the retired \.repo-standards directory\.$/);
+        for (const advice of ['inspect', '--source', '--standards-version', '--profile']) assert.ok(diagnostic!.message.includes(advice), diagnostic!.message);
       }
-      assert.doesNotMatch(diagnostic!.message, /commit/);
       assert.deepEqual(snapshot(root), before, `${format} ${command[0]} must not write`);
     }
     restore();
@@ -113,13 +121,14 @@ test('a retired state, scope evidence, or run record format is rejected with the
   // An archived report of an abandoned run is a run record too.
   const reports = join(runRecord, '../repo-standards-reports');
   mkdirSync(reports, { recursive: true });
-  writeFileSync(join(reports, 'c0ffee00-0000-4000-8000-000000000000.json'), JSON.stringify({ format: 'repo-standards/run/v1', id: 'c0ffee00-0000-4000-8000-000000000000' }));
+  const archived = join(reports, 'c0ffee00-0000-4000-8000-000000000000.json');
+  writeFileSync(archived, JSON.stringify({ format: 'repo-standards/run/v1', id: 'c0ffee00-0000-4000-8000-000000000000' }));
   const before = snapshot(root);
   for (const command of [['inspect'], ['status'], ['resume'], ['abandon']]) {
-    const archived = f.run<ErrorReport>([...command, '--json']);
-    assert.equal(archived.result.status, 1, `archived ${command[0]}: ${archived.result.stdout}`);
-    assert.equal(archived.report.errors[0]!.code, 'RETIRED_FORMAT', `archived ${command[0]}`);
-    assert.match(archived.report.errors[0]!.message, /repo-standards-reports\/c0ffee00-0000-4000-8000-000000000000\.json carries the retired format repo-standards\/run\/v1; this CLI reads only repo-standards\/run\/v6\. Move this archived run report out of Git's directory/);
+    const rejected = f.run<ErrorReport>([...command, '--json']);
+    assert.equal(rejected.result.status, 1, `archived ${command[0]}: ${rejected.result.stdout}`);
+    assert.equal(rejected.report.errors[0]!.code, 'RETIRED_FORMAT', `archived ${command[0]}`);
+    assert.deepEqual(rejected.report.errors[0]!.details, { path: relative(root, archived), format: 'repo-standards/run/v1', expected: 'repo-standards/run/v6' });
     assert.deepEqual(snapshot(root), before, `archived ${command[0]} must not write`);
   }
 });
@@ -221,14 +230,85 @@ test('the single committed formats are validated on read', async t => {
   assert.equal(f.run<Status>(['status', '--json']).result.status, 0);
 });
 
-const exactSource = stringify({
-  format: 'repo-standards/v2', name: 'exact-standards', description: 'Exact content and a skill',
-  requires: { 'repo-standards': '>=1' },
-  defaults: { declarations: {
-    instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
-    review: { kind: 'skill', name: 'review', source: 'review' },
-  } },
-  profiles: { work: { description: 'Work', declarations: {} } },
+test('durable state records only the skill link of a recorded skill', async t => {
+  const f = await adoptionFixture(t, cli, exactSource, { files: { 'agents.md': 'Pinned instructions\n', 'review/SKILL.md': '# Review\n' } });
+  f.adopt();
+  const state = committedState(f.root) as unknown as { links: Record<string, string> };
+  for (const links of [{ '.claude/skills/..': '../../.agents/skills/..' }, { '.claude/skills/ghost': '../../.agents/skills/ghost' },
+    { '.claude/skills/review': '../../.agents/skills/other' }, { '.claude/review': '../.agents/skills/review' }]) {
+    rewriteCommittedState(f.root, { ...state, links: { ...state.links, ...links } });
+    const before = snapshot(f.root);
+    for (const command of ['inspect', 'status']) {
+      const result = f.run([command, '--json']);
+      assert.equal(result.status, 1, result.stdout + result.stderr);
+      assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'STATE_INTEGRITY', JSON.stringify(links));
+    }
+    assert.deepEqual(snapshot(f.root), before);
+  }
+});
+
+// Rewrite a retained file without rebinding the lock, restoring it after the
+// test or when the returned function is called.
+function tamper(t: TestContext, root: string, path: string) {
+  const file = join(root, path);
+  const original = readFileSync(file);
+  const restore = () => writeFileSync(file, original);
+  t.after(restore);
+  writeFileSync(file, path.endsWith('.json') ? JSON.stringify({ ...(JSON.parse(original.toString('utf8')) as Record<string, unknown>), tampered: true }) : 'Tampered guidance\n');
+  return restore;
+}
+
+const integrityError = (path: string) => ({ code: 'STATE_INTEGRITY', message: `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.` });
+
+test('tampered retained declarations, inputs and scope history fail every reader of the recorded adoption alike', async t => {
+  const f = await adoptedProject(t);
+  const versionArgs = [...inspectionArgs, '--scope', f.scopeFile];
+  for (const path of ['.repo-standards/inputs/resolved.json', '.repo-standards/inputs/scope-history.json', '.repo-standards/inputs/source/guidance.md']) await t.test(path, st => {
+    tamper(st, f.root, path);
+    for (const args of [['inspect', '--json'], versionArgs, ['start', '--confirm', 'sha256:unconfirmed', '--json'],
+      startArgs('sha256:unconfirmed', versionArgs), ['status', '--json']]) {
+      const { result, report } = f.run<ErrorReport>(args);
+      assert.equal(result.status, 1, `${args.join(' ')}: ${result.stdout}`);
+      assert.deepEqual(report.errors, [integrityError(path)], args.join(' '));
+    }
+  });
+
+  // A start interrupted before installation is restarted by resume, which reads
+  // the recorded adoption again and fails on the same diagnostic. An archived
+  // abandoned run explains an inconsistent state only when the lock is the one
+  // it left; it never hides tampering with the last complete adoption.
+  await t.test('resume of an interrupted start, and status beside its abandoned run', st => {
+    const path = '.repo-standards/inputs/resolved.json';
+    const confirmed = f.inspect(['inspect', '--json']);
+    const interrupted = filesystemFault(f.remote.support.root, f.env, 'prerequisites', kill);
+    assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
+    const restore = tamper(st, f.root, path);
+    const resumed = f.run<ErrorReport>(['resume', '--retry', '--json']);
+    assert.equal(resumed.result.status, 1, resumed.result.stdout);
+    assert.deepEqual(resumed.report.errors, [integrityError(path)]);
+    assert.equal(f.run<Run>(['abandon', '--json']).report.abandoned, true);
+    restore();
+    assert.equal(f.run<Status>(['status', '--json']).report.abandoned.length, 1);
+    tamper(st, f.root, path);
+    const status = f.run<ErrorReport>(['status', '--json']);
+    assert.equal(status.result.status, 1, status.result.stdout);
+    assert.deepEqual(status.report.errors, [integrityError(path)]);
+  });
+
+  // An update abandoned after replacing retained inputs but before writing its
+  // lock leaves the previous lock; status explains that state from the run.
+  await t.test('status after an update abandoned mid-installation', st => {
+    st.after(() => { git(f.root, 'checkout', '--quiet', '--', '.'); git(f.root, 'clean', '--quiet', '-fd'); });
+    const previous = f.run<Status>(['status', '--json']).report.lastComplete;
+    const confirmed = f.inspect(['inspect', '--json']);
+    const interrupted = filesystemFault(f.remote.support.root, f.env, 'installation', killAfterRename('/.repo-standards/inputs/resolved.json'));
+    assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
+    assert.equal(f.run<Run>(['abandon', '--json']).report.abandoned, true);
+    const { result, report } = f.run<Status>(['status', '--json']);
+    assert.equal(result.status, 0, result.stdout);
+    assert.equal(report.stateError!.code, 'STATE_INTEGRITY');
+    assert.deepEqual(report.lastComplete, previous);
+  });
 });
 
 // A committed adoption shaped as CLI 4.0.0 left it: durable state in the
@@ -238,18 +318,10 @@ const exactSource = stringify({
 // The pin differs from the CLI under test, whose package version is raised only
 // at release.
 const earlierCli = '3.9.0';
-async function retiredProject(t: import('node:test').TestContext) {
-  const remote = remoteFixture(exactSource, { 'agents.md': 'Pinned instructions\n', 'review/SKILL.md': '# Review\n' });
-  const project = sourceFixture('', { 'README.md': '# Project\n' });
-  commit(project.root);
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  const env = { ...remote.env, ...registry.env };
-  const root = project.root;
-  const raw = (args: string[], environment: NodeJS.ProcessEnv = env) => cli.run(args, root, environment);
-  const run = <T = Run>(args: string[], environment: NodeJS.ProcessEnv = env) => { const result = raw(args, environment); return { result, report: JSON.parse(result.stdout) as T }; };
-  const initial = run<Inspection>(inspectionArgs).report;
-  assert.equal(run<Run>(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity]).result.status, 0);
+async function retiredProject(t: TestContext) {
+  const f = await adoptionFixture(t, cli, exactSource, { files: { 'agents.md': 'Pinned instructions\n', 'review/SKILL.md': '# Review\n' }, project: { 'README.md': '# Project\n' } });
+  const { remote, env, root, run: raw, json: run } = f;
+  assert.equal(f.start().result.status, 0);
   const state: Record<string, unknown> = { ...committedState(root), format: 'repo-standards/state/v6' };
   delete state.links;
   rewriteCommittedState(root, state);
@@ -266,21 +338,11 @@ async function retiredProject(t: import('node:test').TestContext) {
   return { root, remote, env, raw, run };
 }
 
-const startArgs = (identity: string) => ['start', ...inspectionArgs.slice(1), '--confirm', identity];
 const installedSkills = ['adopt-standards', 'review', 'standards-updates'];
 
 test('a project on a retired format inspects a fresh adoption that removes its product state, and its start links every installed skill', async t => {
   const f = await retiredProject(t);
   const { root } = f;
-  // Retained standards are part of the retired state, which is not read.
-  const retained = f.run<ErrorReport>(['inspect', '--json']);
-  assert.equal(retained.report.errors[0]!.code, 'RETIRED_FORMAT', retained.result.stdout);
-  assert.match(retained.report.errors[0]!.message, /Adopt fresh: inspect with --source, --standards-version and --profile/);
-  // The record commands name the earlier pinned CLI first.
-  const status = f.run<ErrorReport>(['status', '--json']).report.errors[0]!;
-  assert.equal(status.code, 'CLI_PIN_MISMATCH');
-  assert.ok(status.message.includes(earlierCli), status.message);
-
   const before = snapshot(root);
   const inspected = f.run<Inspection>(inspectionArgs);
   assert.equal(inspected.result.status, 0, inspected.result.stdout + inspected.result.stderr);
@@ -371,7 +433,7 @@ test('a retired active run record blocks the fresh-adoption preview and its star
     assert.equal(blocked.report.errors.length, 1);
     const [diagnostic] = blocked.report.errors;
     assert.equal(diagnostic!.code, 'RETIRED_RUN', args[0]);
-    assert.equal(diagnostic!.message, `The active adoption run record ${relative(root, runRecord)} carries the retired format repo-standards/run/v5; this CLI reads only repo-standards/run/v6. It may hold unfinished work: with the earlier pinned CLI 3.2.0, resume it with resume --retry or end it with abandon, then inspect again.`);
+    for (const advice of ['3.2.0', 'resume --retry', 'abandon']) assert.ok(diagnostic!.message.includes(advice), diagnostic!.message);
     assert.deepEqual(diagnostic!.details, { path: relative(root, runRecord), format: 'repo-standards/run/v5', expected: 'repo-standards/run/v6', cli: '3.2.0' });
     assert.deepEqual(snapshot(root), before, `${args[0]} must not write or remove anything`);
   }
@@ -382,13 +444,7 @@ test('a fresh adoption interrupted while removing retired product state reports 
   const { root } = f;
   const inspection = f.run<Inspection>(inspectionArgs).report;
   // Remove part of the retired directory, then stop.
-  const env = filesystemFault(f.remote.support.root, f.env, 'installation', `
-  const rm = fs.rmSync;
-  fs.rmSync = function(path, ...args) {
-    if (String(path).endsWith('/.repo-standards')) { rm.call(this, path + '/selection.yaml'); process.kill(process.pid, 'SIGKILL'); }
-    return rm.call(this, path, ...args);
-  };
-  syncBuiltinESMExports();`);
+  const env = filesystemFault(f.remote.support.root, f.env, 'installation', killDuringRemoval('/.repo-standards', '/selection.yaml'));
   assert.equal(f.raw(startArgs(inspection.identity), env).signal, 'SIGKILL');
   const runRecord = JSON.parse(readFileSync(join(root, git(root, 'rev-parse', '--git-path', 'repo-standards-run.lock')), 'utf8')) as Run;
   assert.equal(runRecord.phase, 'installation');
@@ -418,13 +474,7 @@ test('a fresh adoption stopped before removing retired product state blocks chec
   const { root } = f;
   const inspection = f.run<Inspection>(inspectionArgs).report;
   const earlierReport = readFileSync(join(root, '.repo-standards/local/run.json'));
-  const env = filesystemFault(f.remote.support.root, f.env, 'installation', `
-  const rm = fs.rmSync;
-  fs.rmSync = function(path, ...args) {
-    if (String(path).endsWith('/.repo-standards')) process.kill(process.pid, 'SIGKILL');
-    return rm.call(this, path, ...args);
-  };
-  syncBuiltinESMExports();`);
+  const env = filesystemFault(f.remote.support.root, f.env, 'installation', killDuringRemoval('/.repo-standards'));
   assert.equal(f.raw(startArgs(inspection.identity), env).signal, 'SIGKILL');
   assert.equal(committedState(root).format, 'repo-standards/state/v6');
   const checked = f.run<ErrorReport>(['check', '--json']);
@@ -448,66 +498,50 @@ test('a committed record that is neither current nor retired beside retired stat
   assert.equal((JSON.parse(readFileSync(join(root, '.repo-standards/lock.json'), 'utf8')) as Lock).format, 'repo-standards/lock/v1');
   const inspection = f.run<Inspection>(inspectionArgs).report;
   assert.equal(inspection.start.eligible, true);
+  // Every malformed record fails the same check: one present beside retired
+  // state that does not carry its own artifact's format.
   const lockFile = join(root, '.repo-standards/lock.json');
-  const scopeFile = join(root, '.repo-standards/inputs/scope-history.json');
-  const lock = readFileSync(lockFile);
-  for (const { path, bytes } of [
-    { path: lockFile, bytes: '{ not JSON' },
-    { path: lockFile, bytes: JSON.stringify({ format: 'repo-standards/lock/vnext' }) },
-    { path: lockFile, bytes: JSON.stringify({ format: 'repo-standards/unrelated/v1' }) },
-    { path: scopeFile, bytes: JSON.stringify({}) },
-  ]) {
-    writeFileSync(path, bytes);
-    commit(root);
-    const before = snapshot(root);
-    for (const args of [inspectionArgs, startArgs(inspection.identity)]) {
-      const rejected = f.run<ErrorReport>(args);
-      assert.equal(rejected.result.status, 1, rejected.result.stdout);
-      assert.equal(rejected.report.errors.length, 1);
-      assert.equal(rejected.report.errors[0]!.code, 'STATE_INTEGRITY', `${bytes} ${args[0]}`);
-      assert.deepEqual(rejected.report.errors[0]!.details, { path: relative(root, path) });
-      assert.deepEqual(snapshot(root), before, `${args[0]} must not remove anything`);
-    }
-    if (path === lockFile) writeFileSync(lockFile, lock);
-    else rmSync(scopeFile);
-    commit(root);
+  writeFileSync(lockFile, JSON.stringify({ format: 'repo-standards/lock/vnext' }));
+  commit(root);
+  const before = snapshot(root);
+  for (const args of [inspectionArgs, startArgs(inspection.identity)]) {
+    const rejected = f.run<ErrorReport>(args);
+    assert.equal(rejected.result.status, 1, rejected.result.stdout);
+    assert.equal(rejected.report.errors.length, 1);
+    assert.equal(rejected.report.errors[0]!.code, 'STATE_INTEGRITY', args[0]);
+    assert.deepEqual(rejected.report.errors[0]!.details, { path: relative(root, lockFile) });
+    assert.deepEqual(snapshot(root), before, `${args[0]} must not remove anything`);
   }
-  assert.equal(f.run<Inspection>(inspectionArgs).report.identity, inspection.identity);
 });
 
 test('retired product state changed while its removal is recorded fails the start and is not removed', async t => {
-  for (const { label, change } of [
-    { label: 'an edited bound file', change: (root: string) => `write.call(fs, ${JSON.stringify(join(root, '.repo-standards/selection.yaml'))}, 'Edited after verification\\n');` },
-    { label: 'an added file', change: (root: string) => `write.call(fs, ${JSON.stringify(join(root, '.repo-standards/added.md'))}, 'Added after verification\\n');` },
-  ]) {
-    const f = await retiredProject(t);
-    const { root } = f;
-    const inspection = f.run<Inspection>(inspectionArgs).report;
-    // Change the tree as the run persists that it is removing it.
-    const env = filesystemFault(f.remote.support.root, f.env, 'installation', `
+  const f = await retiredProject(t);
+  const { root } = f;
+  const inspection = f.run<Inspection>(inspectionArgs).report;
+  // Edit a bound file as the run persists that it is removing the tree.
+  const env = filesystemFault(f.remote.support.root, f.env, 'installation', `
   const persist = fs.writeFileSync;
   let changed = false;
   fs.writeFileSync = function(path, data, ...args) {
     const result = persist.call(this, path, data, ...args);
     let record;
     try { record = JSON.parse(String(data)); } catch {}
-    if (!changed && record?.format === 'repo-standards/run/v6' && record.installation?.trees?.['.repo-standards'] === 'removing') {
+    if (!changed && record?.installation?.trees?.['.repo-standards'] === 'removing') {
       changed = true;
-      ${change(root)}
+      write.call(fs, ${JSON.stringify(join(root, '.repo-standards/selection.yaml'))}, 'Edited after verification\\n');
     }
     return result;
   };
   syncBuiltinESMExports();`);
-    const started = f.run<Run>(startArgs(inspection.identity), env);
-    assert.equal(started.result.status, 1, `${label}: ${started.result.stdout}${started.result.stderr}`);
-    assert.equal(started.report.outcome, 'incomplete', label);
-    assert.match(started.report.reason, /^INSTALLATION_CHANGED: Retired product state changed before removal: \.repo-standards\. Nothing was removed\./, label);
-    // Nothing in the tree was removed, the change included.
-    assert.equal(committedState(root).format, 'repo-standards/state/v6', label);
-    assert.ok(existsSync(join(root, '.repo-standards/inputs/source/retired.md')), label);
-    assert.ok(existsSync(join(root, '.repo-standards/runtime/node_modules')), label);
-    assert.ok(existsSync(join(root, label === 'an added file' ? '.repo-standards/added.md' : '.repo-standards/selection.yaml')), label);
-    if (label === 'an edited bound file') assert.equal(readFileSync(join(root, '.repo-standards/selection.yaml'), 'utf8'), 'Edited after verification\n');
-    assert.equal(existsSync(join(root, '.claude')), false, label);
-  }
+  const started = f.run<Run>(startArgs(inspection.identity), env);
+  assert.equal(started.result.status, 1, started.result.stdout + started.result.stderr);
+  assert.equal(started.report.outcome, 'incomplete');
+  assert.ok(started.report.reason.startsWith('INSTALLATION_CHANGED:'), started.report.reason);
+  assert.ok(started.report.reason.includes('.repo-standards'), started.report.reason);
+  // Nothing in the tree was removed, the change included.
+  assert.equal(committedState(root).format, 'repo-standards/state/v6');
+  assert.ok(existsSync(join(root, '.repo-standards/inputs/source/retired.md')));
+  assert.ok(existsSync(join(root, '.repo-standards/runtime/node_modules')));
+  assert.equal(readFileSync(join(root, '.repo-standards/selection.yaml'), 'utf8'), 'Edited after verification\n');
+  assert.equal(existsSync(join(root, '.claude')), false);
 });

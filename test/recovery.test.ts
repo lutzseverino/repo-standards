@@ -7,46 +7,28 @@ import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSy
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
-import { stringify } from 'yaml';
-import { filesystemFault } from './adoption-faults.ts';
+import { failWrite, filesystemFault, kill, killAfterRename, killAfterWrite } from './adoption-faults.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
 import { assertNoMachineLocation, committedState } from './committed-evidence.ts';
-import { installCli, sourceFixture } from './installed-cli.ts';
-import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
-import { registryFixture } from './registry-fixture.ts';
+import { installCli, snapshot } from './installed-cli.ts';
+import { git, inspectionArgs, manifest, operation, startArgs } from './remote-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
 
-async function fixture(t: TestContext, declarations: Record<string, unknown> = {}, script = '') {
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'recovery', description: 'Recovery standards',
-    requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
-      agents: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' }, ...declarations,
-    } }, profiles: { work: { description: 'Work', declarations: {} } } }), {
-    'agents.md': 'Expected instructions', 'guide.md': 'Explain this project.', 'run.mjs': script,
-  });
-  const project = sourceFixture('', { 'README.md': 'Original project' });
-  commit(project.root);
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  const env = { ...remote.env, ...registry.env };
-  const inspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
-  const startArgs = ['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity];
-  return { remote, project, env, startArgs, head: git(project.root, 'rev-parse', 'HEAD'),
-    run(args: string[], environment: NodeJS.ProcessEnv = env) { return cli.run(args, project.root, environment); },
-    report<T = Run>(args: string[]) { const result = cli.run(args, project.root, env); return { result, report: (JSON.parse(result.stdout) as T) }; },
+async function fixture(t: TestContext, declarations: Record<string, unknown> = {}, script = '', files: Record<string, string> = {}) {
+  const f = await adoptionFixture(t, cli, manifest({ agents: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' }, ...declarations }), {
+    files: { 'agents.md': 'Expected instructions', 'guide.md': 'Explain this project.', 'run.mjs': script, ...files }, project: { 'README.md': 'Original project' } });
+  const inspection = f.inspect();
+  return { remote: f.remote, project: f.project, env: f.env, startArgs: startArgs(inspection.identity), head: git(f.root, 'rev-parse', 'HEAD'),
+    run: f.run,
+    report<T = Run>(args: string[]) { const result = f.run(args); return { result, report: (JSON.parse(result.stdout) as T) }; },
   };
 }
 
 test('explicit retry recovers installation after process death and verifies confirmed files before writing', async t => {
   const f = await fixture(t);
-  const env = filesystemFault(f.remote.support.root, f.env, 'installation', `
-const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  const result = rename.call(this, from, to);
-  if (String(to).endsWith('/AGENTS.md')) process.kill(process.pid, 'SIGKILL');
-  return result;
-};
-syncBuiltinESMExports();`);
+  const env = filesystemFault(f.remote.support.root, f.env, 'installation', killAfterRename('/AGENTS.md'));
   assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
   const interrupted = f.report<Status>(['status', '--json']).report;
   assert.equal(interrupted.active!.outcome, 'incomplete');
@@ -66,12 +48,7 @@ syncBuiltinESMExports();`);
   assert.equal(f.report<Status>(['status', '--json']).report.lastComplete.run, retried.report.id);
 });
 
-function operation(id: string) {
-  return { id, run: { executable: process.execPath, script: 'run.mjs', resources: [], arguments: [] },
-    prerequisite: { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': 10 };
-}
-
-test('uncertain fixes require explicit retry, rerun fixes, renew contextual evidence and rerun checks', async t => {
+test('uncertain fixes require explicit retry, keep their interrupted interval, rerun fixes, renew contextual evidence and rerun checks', async t => {
   const f = await fixture(t, { readme: { kind: 'file', target: 'README.md', guidance: 'guide.md',
     fixes: [operation('prepare')], checks: [operation('verify')] } }, `
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -88,6 +65,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.opera
   const stopped = f.report<Status>(['status', '--json']).report.active;
   assert.equal(stopped!.phase, 'fixes');
   assert.equal(stopped!.operations.length, 0);
+  assert.equal(stopped!.observations[0]!.after, undefined);
   assert.match(stopped!.uncertain.join(' '), /readme\/prepare.*uncertain/);
   assert.ok(stopped!.completed.includes('AGENTS.md'));
   assert.ok(stopped!.changes.includes('README.md'));
@@ -96,6 +74,10 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.opera
   const retry = f.report<Run>(['resume', '--retry', '--json']).report;
   assert.equal(retry.phase, 'contextual');
   assert.equal(retry.operations.length, 1);
+  // Retry closes the interrupted interval with its changes before replay.
+  assert.equal(retry.observations[0]!.phase, 'fixes');
+  assert.equal(retry.observations[0]!.interrupted, true);
+  assert.deepEqual(Object.keys(retry.observations[0]!.changes!), ['README.md']);
   assert.equal(retry.retryHistory![0]!.phase, 'fixes');
   assert.ok(retry.retryHistory![0]!.uncertain.length);
   assert.equal(readFileSync(join(f.project.root, '.repo-standards/local/fix-attempts'), 'utf8'), '2');
@@ -108,6 +90,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.opera
   const complete = f.report<Run>(['resume', '--assessment', path, '--json']);
   assert.equal(complete.result.status, 0, complete.result.stdout);
   assert.deepEqual(complete.report.operations.map((entry: { operation: { phase: string } }) => entry.operation.phase), ['fixes', 'checks']);
+  assert.equal(f.report<Status>(['status', '--json']).report.observations![0]!.interrupted, true);
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
 });
 
@@ -149,7 +132,9 @@ test('abandon preserves actual work, historical evidence and an accessible repor
   assert.equal(status.abandoned[0]!.id, started.id);
   assert.deepEqual(status.abandoned[0]!.completed, started.completed);
   assert.equal(f.report<ErrorReport>(['resume', '--retry', '--json']).report.errors[0]!.code, 'NO_ACTIVE_RUN');
-  assert.notEqual(f.report<ErrorReport>(f.startArgs).report.errors[0]!.code, 'ACTIVE_RUN');
+  // The abandoned run no longer holds the project; its uncommitted product
+  // state does, until it is reconciled.
+  assert.equal(f.report<ErrorReport>(f.startArgs).report.errors[0]!.code, 'STATE_INTEGRITY');
 });
 
 test('abandon closes the last interval in its archived report and keeps no observation beside the journal', async t => {
@@ -182,7 +167,7 @@ test('abandon without the kept observation preserves earlier interval evidence a
   writeFileSync(join(f.project.root, 'README.md'), 'Unfinished contextual work');
   const abandoned = f.report<Run>(['abandon', '--json']).report;
   assert.equal(abandoned.abandoned, true);
-  assert.ok(abandoned.uncertain.includes('The final abandoned observation could not be completed; earlier interval evidence is preserved.'), String(abandoned.uncertain));
+  assert.ok(abandoned.uncertain.some(message => message.includes('final abandoned observation')), String(abandoned.uncertain));
   assert.deepEqual(abandoned.observations, open);
   assert.equal(readFileSync(join(f.project.root, 'README.md'), 'utf8'), 'Unfinished contextual work');
 });
@@ -223,14 +208,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status,message:'Ch
 
 test('retry recovers an interrupted completion without trusting its candidate state', async t => {
   const f = await fixture(t);
-  const env = filesystemFault(f.remote.support.root, f.env, 'verification', `
-const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  const result = rename.call(this, from, to);
-  if (String(to).endsWith('/.repo-standards/state.json')) process.kill(process.pid, 'SIGKILL');
-  return result;
-};
-syncBuiltinESMExports();`);
+  const env = filesystemFault(f.remote.support.root, f.env, 'verification', killAfterRename('/.repo-standards/state.json'));
   assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
   const stopped = f.report<Status>(['status', '--json']).report;
   assert.equal(stopped.lastComplete, null);
@@ -246,14 +224,14 @@ test('retry recovers before installation and from partial runtime copying withou
   for (const phase of ['runtime', 'runtime-copy']) await t.test(phase, async st => {
     const f = await fixture(st);
     const env = filesystemFault(f.remote.support.root, f.env, phase === 'runtime' ? 'runtime' : 'installation', phase === 'runtime'
-      ? `process.kill(process.pid, 'SIGKILL');`
+      ? kill
       : `const copy = fs.cpSync;
 fs.cpSync = function(from, to, options) {
   if (String(to).endsWith('/.repo-standards/local/runtime-stage')) {
     fs.mkdirSync(to, {recursive:true});
     fs.mkdirSync(String(to) + '/semver');
     fs.writeFileSync(String(to) + '/semver/package.json', '{');
-    process.kill(process.pid, 'SIGKILL');
+    ${kill}
   }
   return copy.call(this, from, to, options);
 }; syncBuiltinESMExports();`);
@@ -265,46 +243,51 @@ fs.cpSync = function(from, to, options) {
   });
 });
 
-test('retry recovers a file staged before rename and blocks added skill resources before further installation', async t => {
-  for (const changed of [false, true]) await t.test(changed ? 'added skill file' : 'staged exact file', async st => {
-    const f = await fixture(st, { later: { kind: 'file', target: 'LATER.md', exact: 'agents.md' } });
-    const env = filesystemFault(f.remote.support.root, f.env, 'installation', `
-const originalWrite = fs.writeFileSync;
-fs.writeFileSync = function(path, data, ...args) {
-  const result = originalWrite.call(this, path, data, ...args);
-  if (String(path).endsWith('.tmp') && String(data) === 'Expected instructions') process.kill(process.pid, 'SIGKILL');
-  return result;
-}; syncBuiltinESMExports();`);
-    assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
-    assert.equal(existsSync(join(f.project.root, 'AGENTS.md')), false);
-    if (changed) {
-      mkdirSync(join(f.project.root, '.agents/skills/adopt-standards'), { recursive: true });
-      writeFileSync(join(f.project.root, '.agents/skills/adopt-standards/extra.txt'), 'Maintainer resource');
+test('retry recovers interrupted installation, and blocks content added since before further installation', async t => {
+  const staged = killAfterWrite(`String(path).endsWith('.tmp') && String(data) === 'Expected instructions'`);
+  const renamed = killAfterRename('/review/SKILL.md');
+  // Installation follows declaration IDs, so Z-LAST.md is installed last.
+  for (const { name, fault, addition, directory = false } of [
+    { name: 'a file staged before its rename', fault: staged },
+    { name: 'an added skill file', fault: staged, addition: '.agents/skills/adopt-standards/extra.txt' },
+    { name: 'an added skill directory', fault: renamed, addition: '.agents/skills/review/unexpected', directory: true },
+    { name: 'an added retained input directory', fault: renamed, addition: '.repo-standards/inputs/unexpected', directory: true },
+  ]) await t.test(name, async st => {
+    const f = await fixture(st, { review: { kind: 'skill', name: 'review', source: 'skill' }, zlast: { kind: 'file', target: 'Z-LAST.md', exact: 'agents.md' } },
+      '', { 'skill/SKILL.md': '# Review' });
+    assert.equal(f.run(f.startArgs, filesystemFault(f.remote.support.root, f.env, 'installation', fault)).signal, 'SIGKILL');
+    if (fault === staged) assert.equal(existsSync(join(f.project.root, 'AGENTS.md')), false);
+    assert.equal(existsSync(join(f.project.root, 'Z-LAST.md')), false);
+    if (addition) {
+      mkdirSync(join(f.project.root, directory ? addition : join(addition, '..')), { recursive: true });
+      if (!directory) writeFileSync(join(f.project.root, addition), 'Maintainer resource');
+      const rejected = f.report<Run>(['resume', '--retry', '--json']);
+      assert.equal(rejected.result.status, 1, rejected.result.stdout);
+      assert.match(rejected.report.reason, /INSTALLATION_CHANGED.*inventory/);
+      assert.equal(existsSync(join(f.project.root, 'Z-LAST.md')), false);
+      assert.equal(existsSync(join(f.project.root, addition)), true);
+      rmSync(join(f.project.root, addition), { recursive: true });
     }
     const retry = f.report<Run>(['resume', '--retry', '--json']);
-    if (changed) {
-      assert.equal(retry.result.status, 1);
-      assert.match(retry.report.reason, /INSTALLATION_CHANGED/);
-      assert.equal(existsSync(join(f.project.root, 'LATER.md')), false);
-    } else {
-      assert.equal(retry.result.status, 0, retry.result.stdout);
-      assert.equal(git(f.project.root, 'ls-files', '--others', '--exclude-standard').includes('.tmp'), false);
-    }
+    assert.equal(retry.result.status, 0, retry.result.stdout);
+    assert.equal(retry.report.outcome, 'complete');
+    assert.equal(git(f.project.root, 'ls-files', '--others', '--exclude-standard').includes('.tmp'), false);
   });
 });
 
-test('active start blocks retry and abandonment, and completed state cannot be abandoned', async t => {
+test('an active start blocks a competing start, retry and abandonment, and completed state cannot be abandoned', async t => {
   const f = await fixture(t);
   const path = join(f.remote.support.root, 'concurrent.json');
   const env = filesystemFault(f.remote.support.root, f.env, 'runtime', `
-const results = [['resume', '--retry', '--json'], ['abandon', '--json']].map(args => {
-  const result = spawnSync(${JSON.stringify(join(cli.root, 'node_modules/.bin/repo-standards'))}, args, {encoding:'utf8'});
-  return JSON.parse(result.stdout).errors[0].code;
+const results = ${JSON.stringify([f.startArgs, ['resume', '--retry', '--json'], ['abandon', '--json']])}.map(args => {
+  const result = spawnSync(${JSON.stringify(join(cli.root, 'node_modules/.bin/repo-standards'))}, args, {cwd: ${JSON.stringify(f.project.root)}, env: process.env, encoding: 'utf8'});
+  return [result.status, JSON.parse(result.stdout).errors[0].code];
 });
 write(${JSON.stringify(path)}, JSON.stringify(results));`);
   const complete = f.run(f.startArgs, env);
   assert.equal(complete.status, 0, complete.stdout);
-  assert.deepEqual((JSON.parse(readFileSync(path, 'utf8')) as string[]), ['ACTIVE_RUN', 'ACTIVE_RUN']);
+  assert.deepEqual((JSON.parse(readFileSync(path, 'utf8')) as unknown), [[1, 'ACTIVE_RUN'], [1, 'ACTIVE_RUN'], [1, 'ACTIVE_RUN']]);
+  assert.equal(f.report<Status>(['status', '--json']).report.active, null);
   const state = readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8');
   assert.equal(f.report<ErrorReport>(['abandon', '--json']).report.errors[0]!.code, 'NO_ACTIVE_RUN');
   assert.equal(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'), state);
@@ -313,13 +296,7 @@ write(${JSON.stringify(path)}, JSON.stringify(results));`);
 
 test('abandoning an interrupted completion preserves its candidate without claiming last-complete evidence', async t => {
   const f = await fixture(t);
-  const env = filesystemFault(f.remote.support.root, f.env, 'completion', `
-const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  const result = rename.call(this, from, to);
-  if (String(to).endsWith('/.repo-standards/state.json')) process.kill(process.pid, 'SIGKILL');
-  return result;
-}; syncBuiltinESMExports();`);
+  const env = filesystemFault(f.remote.support.root, f.env, 'completion', killAfterRename('/.repo-standards/state.json'));
   assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
   const candidate = readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8');
   const destination = join(f.project.root, '.repo-standards/local/incomplete-state.json');
@@ -367,15 +344,8 @@ writeFileSync(process.env.RECOVERY_GROUP_FILE, String(process.pid));`;
 
 test('retry recovers completion files interrupted between staging and rename', async t => {
   const f = await fixture(t);
-  const env = filesystemFault(f.remote.support.root, f.env, 'completion', `
-const originalWrite = fs.writeFileSync;
-fs.writeFileSync = function(path, data, ...args) {
-  const result = originalWrite.call(this, path, data, ...args);
-  let value;
-  try { value = JSON.parse(String(data)); } catch { /* The faulted process may already have exited. */ }
-  if (String(path).endsWith('.tmp') && value?.format === 'repo-standards/state/v7') process.kill(process.pid, 'SIGKILL');
-  return result;
-}; syncBuiltinESMExports();`);
+  // Durable state is the staged record that carries the last complete run.
+  const env = filesystemFault(f.remote.support.root, f.env, 'completion', killAfterWrite(`String(path).endsWith('.tmp') && record?.lastComplete !== undefined`));
   assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
   const retry = f.report<Run>(['resume', '--retry', '--json']);
   assert.equal(retry.result.status, 0, retry.result.stdout);
@@ -395,7 +365,7 @@ fs.renameSync = function(from, to) {
   const result = rename.call(this, from, to);
   if ((String(to).endsWith('/.repo-standards/local/run.json') || String(to).endsWith('/repo-standards-run.lock')) && report?.processGroup) {
     write(${JSON.stringify(groupFile)}, String(report.processGroup));
-    process.kill(process.pid, 'SIGKILL');
+    ${kill}
   }
   return result;
 }; syncBuiltinESMExports();`);
@@ -413,17 +383,11 @@ fs.renameSync = function(from, to) {
 test('retry accepts expected npm symlinks in runtime staging and unrecorded runtime installation', async t => {
   for (const point of ['staged runtime', 'installed runtime', 'linked stage root']) await t.test(point, async st => {
     const f = await fixture(st);
-    const env = filesystemFault(f.remote.support.root, f.env, 'installation', point === 'installed runtime' ? `
-const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  const result = rename.call(this, from, to);
-  if (String(to).endsWith('/.repo-standards/runtime/node_modules')) process.kill(process.pid, 'SIGKILL');
-  return result;
-}; syncBuiltinESMExports();` : `
+    const env = filesystemFault(f.remote.support.root, f.env, 'installation', point === 'installed runtime' ? killAfterRename('/.repo-standards/runtime/node_modules') : `
 const copy = fs.cpSync;
 fs.cpSync = function(from, to, options) {
   const result = copy.call(this, from, to, options);
-  if (String(to).endsWith('/.repo-standards/local/runtime-stage')) process.kill(process.pid, 'SIGKILL');
+  if (String(to).endsWith('/.repo-standards/local/runtime-stage')) ${kill}
   return result;
 }; syncBuiltinESMExports();`);
     assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
@@ -513,7 +477,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged'
   // The maintainer removes the incomplete installation before a new inspection.
   for (const path of ['.repo-standards', '.agents', '.claude', 'AGENTS.md']) rmSync(join(f.project.root, path), { recursive: true, force: true });
   const inspection = f.report<Inspection>(inspectionArgs).report;
-  const second = (JSON.parse(f.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], { ...f.env, RUN_MESSAGE: 'Second run' }).stdout) as Run);
+  const second = (JSON.parse(f.run(startArgs(inspection.identity), { ...f.env, RUN_MESSAGE: 'Second run' }).stdout) as Run);
   assert.equal(second.phase, 'contextual');
   const archived = f.report<Status>(['status', '--json']).report.abandoned[0]!.operations[0];
   assert.equal(readFileSync(join(f.project.root, '.git', archived!.stdout), 'utf8'), stdout);
@@ -554,49 +518,36 @@ cp.spawnSync = function(command, args, ...options) {
   assert.doesNotThrow(() => process.kill(unrelated.pid!, 0));
 });
 
-test('abandon archives operation output written before its result reached the journal', async t => {
-  const f = await fixture(t, { readme: { kind: 'file', target: 'README.md', guidance: 'guide.md', fixes: [operation('prepare')] } },
-    `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Unrecorded output'}));`);
-  const env = filesystemFault(f.remote.support.root, f.env, 'fixes', `
-const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  const result = rename.call(this, from, to);
-  if (String(to).endsWith('/operations/0.stdout')) process.kill(process.pid, 'SIGKILL');
-  return result;
-}; syncBuiltinESMExports();`);
-  assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
+test('operation output written before its result reached the journal is kept by abandonment and before retry reuses its log index', async t => {
   const path = '.repo-standards/local/operations/0.stdout';
-  const output = readFileSync(join(f.project.root, path), 'utf8');
-  assert.equal(f.report<Status>(['status', '--json']).report.active!.operations.length, 0);
-  const abandoned = f.report<Run>(['abandon', '--json']).report;
-  assert.equal(abandoned.abandoned, true);
-  assert.equal(abandoned.operations.length, 0);
-  assert.equal(typeof abandoned.archivedFiles?.[path], 'string');
-  rmSync(join(f.project.root, '.repo-standards'), { recursive: true });
-  assert.equal(readFileSync(join(f.project.root, '.git', abandoned.archivedFiles![path]!), 'utf8'), output);
-});
-
-test('retry retains unrecorded operation output before reusing its log index', async t => {
-  const f = await fixture(t, { readme: { kind: 'file', target: 'README.md', guidance: 'guide.md', fixes: [operation('prepare')] } },
-    `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:process.env.RUN_MESSAGE}));`);
-  const env = filesystemFault(f.remote.support.root, { ...f.env, RUN_MESSAGE: 'Before interruption' }, 'fixes', `
-const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  const result = rename.call(this, from, to);
-  if (String(to).endsWith('/operations/0.stdout')) process.kill(process.pid, 'SIGKILL');
-  return result;
-}; syncBuiltinESMExports();`);
-  assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
-  const path = '.repo-standards/local/operations/0.stdout';
-  const original = readFileSync(join(f.project.root, path), 'utf8');
-  const retry = (JSON.parse(f.run(['resume', '--retry', '--json'], { ...f.env, RUN_MESSAGE: 'Retried output' }).stdout) as Run);
-  assert.equal(retry.phase, 'contextual');
-  const archived = retry.retryHistory![0]!.archivedFiles?.[path];
-  assert.equal(typeof archived, 'string');
-  assert.equal(readFileSync(join(f.project.root, '.git', archived!), 'utf8'), original);
-  assert.notEqual(readFileSync(join(f.project.root, path), 'utf8'), original);
-  assert.equal(f.report<Run>(['abandon', '--json']).report.abandoned, true);
-  assert.equal(readFileSync(join(f.project.root, '.git', archived!), 'utf8'), original);
+  const interrupted = async (st: TestContext) => {
+    const f = await fixture(st, { readme: { kind: 'file', target: 'README.md', guidance: 'guide.md', fixes: [operation('prepare')] } },
+      `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:process.env.RUN_MESSAGE}));`);
+    const env = filesystemFault(f.remote.support.root, { ...f.env, RUN_MESSAGE: 'Before interruption' }, 'fixes', killAfterRename('/operations/0.stdout'));
+    assert.equal(f.run(f.startArgs, env).signal, 'SIGKILL');
+    return { f, output: readFileSync(join(f.project.root, path), 'utf8') };
+  };
+  await t.test('abandonment', async st => {
+    const { f, output } = await interrupted(st);
+    assert.equal(f.report<Status>(['status', '--json']).report.active!.operations.length, 0);
+    const abandoned = f.report<Run>(['abandon', '--json']).report;
+    assert.equal(abandoned.abandoned, true);
+    assert.equal(abandoned.operations.length, 0);
+    assert.equal(typeof abandoned.archivedFiles?.[path], 'string');
+    rmSync(join(f.project.root, '.repo-standards'), { recursive: true });
+    assert.equal(readFileSync(join(f.project.root, '.git', abandoned.archivedFiles![path]!), 'utf8'), output);
+  });
+  await t.test('retry', async st => {
+    const { f, output } = await interrupted(st);
+    const retry = (JSON.parse(f.run(['resume', '--retry', '--json'], { ...f.env, RUN_MESSAGE: 'Retried output' }).stdout) as Run);
+    assert.equal(retry.phase, 'contextual');
+    const archived = retry.retryHistory![0]!.archivedFiles?.[path];
+    assert.equal(typeof archived, 'string');
+    assert.equal(readFileSync(join(f.project.root, '.git', archived!), 'utf8'), output);
+    assert.notEqual(readFileSync(join(f.project.root, path), 'utf8'), output);
+    assert.equal(f.report<Run>(['abandon', '--json']).report.abandoned, true);
+    assert.equal(readFileSync(join(f.project.root, '.git', archived!), 'utf8'), output);
+  });
 });
 
 test('failed abandonment archives leave the actual report, journal and logs available for recovery', async t => {
@@ -638,14 +589,8 @@ test('committed retry evidence in a linked worktree names no location outside th
   git(f.project.root, 'worktree', 'add', '--quiet', '--detach', worktree);
   const run = (args: string[], env: NodeJS.ProcessEnv = f.env) => cli.run(args, worktree, env);
   const inspection = (JSON.parse(run(inspectionArgs).stdout) as Inspection);
-  const env = filesystemFault(f.remote.support.root, f.env, 'fixes', `
-const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  const result = rename.call(this, from, to);
-  if (String(to).endsWith('/operations/0.stdout')) process.kill(process.pid, 'SIGKILL');
-  return result;
-}; syncBuiltinESMExports();`);
-  assert.equal(run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], env).signal, 'SIGKILL');
+  const env = filesystemFault(f.remote.support.root, f.env, 'fixes', killAfterRename('/operations/0.stdout'));
+  assert.equal(run(startArgs(inspection.identity), env).signal, 'SIGKILL');
   const retried = run(['resume', '--retry', '--json']);
   assert.equal((JSON.parse(retried.stdout) as Run).outcome, 'complete', retried.stdout);
   const [retry] = committedState(worktree).retryHistory as { report?: string; archivedFiles: Record<string, string> }[];
@@ -653,4 +598,66 @@ fs.renameSync = function(from, to) {
   assert.match(archived, /^repo-standards-reports\//);
   assert.equal(existsSync(join(git(worktree, 'rev-parse', '--absolute-git-dir'), archived)), true);
   assertNoMachineLocation(worktree, [worktree, f.project.root, f.remote.support.root, realpathSync(tmpdir())], [process.execPath]);
+});
+
+// An exact adoption of AGENTS.md, interrupted or failing before it completes.
+const exactSource = (declarations: Record<string, unknown> = {}) => manifest({ instructions: { kind: 'file', target: 'AGENTS.md', exact: 'content.md' }, ...declarations });
+
+test('incomplete status retains ignored exact files and complete author and system skill changes', async t => {
+  const f = await adoptionFixture(t, cli, exactSource({ review: { kind: 'skill', name: 'review', source: 'skill' } }), {
+    files: { 'content.md': 'Expected', 'skill/SKILL.md': '# Review', 'skill/resources/check.txt': 'Resource' }, project: { '.gitignore': 'AGENTS.md\n.agents/\n' } });
+  const { result, report } = f.start();
+  assert.equal(result.status, 1);
+  assert.match(report.reason, /IGNORED_OUTPUT/);
+  const expected = ['AGENTS.md', '.agents/skills/review/SKILL.md', '.agents/skills/review/resources/check.txt', ...cli.systemSkillFiles];
+  for (const path of expected) assert.ok(report.changes.includes(path), `start must report ${path}`);
+  writeFileSync(join(f.root, '.agents/skills/review/resources/added.txt'), 'Added after interruption');
+  const before = snapshot(f.root);
+  const status = f.json<Status>(['status', '--json']).report;
+  for (const path of [...expected, '.agents/skills/review/resources/added.txt']) assert.ok(status.active!.changes.includes(path), `status must report ${path}`);
+  assert.deepEqual(snapshot(f.root), before);
+  rmSync(join(f.root, 'AGENTS.md'));
+  const reconciled = f.json<Status>(['status', '--json']).report;
+  assert.ok(!reconciled.active!.changes.includes('AGENTS.md'), 'status must observe reconciliation rather than repeat stale path names');
+});
+
+test('a final report persistence failure retains incomplete evidence and recovery guidance', async t => {
+  const f = await adoptionFixture(t, cli, exactSource(), { files: { 'content.md': 'Expected' } });
+  const env = filesystemFault(f.remote.support.root, f.env, 'completion',
+    failWrite(`String(path).includes('/.repo-standards/local/') && record?.outcome === 'complete'`));
+  const { result, report } = f.start(inspectionArgs, env);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.equal(report.outcome, 'incomplete');
+  assert.equal(report.phase, 'completion');
+  console.error('PROBE-UNCERTAIN', JSON.stringify(report.uncertain)); assert.ok(report.uncertain.length > 0);
+  assert.match(report.nextAction, /incomplete adoption/);
+  assert.equal(existsSync(join(f.root, '.repo-standards/state.json')), false);
+  assert.equal(existsSync(join(f.root, '.repo-standards/local/incomplete-state.json')), true);
+  assert.equal(readFileSync(join(f.root, 'AGENTS.md'), 'utf8'), 'Expected');
+  const status = f.json<Status>(['status', '--json']).report;
+  assert.equal(status.lastComplete, null);
+  assert.equal(status.active!.outcome, 'incomplete');
+});
+
+test('a failed initial ignore-file write preserves the run without exposing local reports to Git', async t => {
+  const f = await adoptionFixture(t, cli, exactSource(), { files: { 'content.md': 'Expected' } });
+  const env = filesystemFault(f.remote.support.root, f.env, 'installation',
+    failWrite(`String(path).includes('/.repo-standards/') && String(data).startsWith('/runtime/node_modules/')`));
+  const { result, report } = f.start(inspectionArgs, env);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.equal(report.outcome, 'incomplete');
+  assert.equal(existsSync(join(f.root, '.repo-standards/local/run.json')), false);
+  assert.equal(f.json<Status>(['status', '--json']).report.active!.id, report.id);
+});
+
+test('status recovers ignored installed targets after the adoption process is interrupted', async t => {
+  const f = await adoptionFixture(t, cli, exactSource(), { files: { 'content.md': 'Expected' }, project: { '.gitignore': 'AGENTS.md\n.agents/\n' } });
+  const fault = filesystemFault(f.remote.support.root, { ...f.env, TMPDIR: f.remote.support.root }, 'verification', kill);
+  assert.equal(f.run(startArgs(f.inspect().identity), fault).signal, 'SIGKILL');
+  const before = snapshot(f.root);
+  const status = f.json<Status>(['status', '--json']).report;
+  assert.equal(status.lastComplete, null);
+  assert.equal(status.active!.outcome, 'incomplete');
+  for (const path of ['AGENTS.md', ...cli.systemSkillFiles]) assert.ok(status.active!.changes.includes(path), path);
+  assert.deepEqual(snapshot(f.root), before);
 });

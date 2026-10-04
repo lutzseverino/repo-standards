@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { chmodSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { stringify } from 'yaml';
 import { directoryFixture, sourceFixture } from './installed-cli.ts';
 
 export function git(root: string, ...args: string[]) {
@@ -109,3 +110,25 @@ export function remoteEnvironment(...remotes: { source: {root: string}; reposito
 }
 
 export const inspectionArgs = ['inspect', '--source', 'https://github.com/alice/standards', '--standards-version', 'v1.0.0', '--profile', 'work', '--json'];
+
+// The inspection arguments for another standards version of the same source.
+export function versionArgs(tag: string, args = inspectionArgs) {
+  return args.map(argument => argument === 'v1.0.0' ? tag : argument);
+}
+
+// The start that confirms an inspection made with the given arguments.
+export function startArgs(identity: string, args = inspectionArgs) {
+  return ['start', ...args.slice(1), '--confirm', identity];
+}
+
+// A standards source declaring the given defaults and profiles.
+export function manifest(declarations: object, profiles: Record<string, object> = { work: {} }, name = 'test-standards') {
+  return stringify({ format: 'repo-standards/v2', name, description: 'Test standards', requires: { 'repo-standards': '>=1.0.0' },
+    defaults: { declarations }, profiles: Object.fromEntries(Object.entries(profiles).map(([profile, declarations]) => [profile, { description: profile, declarations }])) });
+}
+
+// A trusted operation run by Node.js, whose prerequisite the test process satisfies.
+export function operation(id: string, overrides: { script?: string; resources?: string[]; arguments?: string[]; prerequisite?: { 'version-arguments': string[]; version: string }; 'timeout-seconds'?: number } = {}) {
+  const { script = 'run.mjs', resources = [], arguments: args = [], prerequisite = { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': timeout = 5 } = overrides;
+  return { id, run: { executable: process.execPath, script, resources, arguments: args }, prerequisite, 'timeout-seconds': timeout };
+}

@@ -1,27 +1,23 @@
-import type { ErrorReport, Inspection, Run, Status } from './json-reports.ts';
+import type { Inspection, Run } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { stringify } from 'yaml';
-import { installCli, sourceFixture } from './installed-cli.ts';
-import { commit, inspectionArgs, remoteFixture } from './remote-fixture.ts';
-import { registryFixture } from './registry-fixture.ts';
-import { filesystemFault } from './adoption-faults.ts';
+import { installCli } from './installed-cli.ts';
+import { commit, inspectionArgs, manifest as standards, operation, startArgs, versionArgs } from './remote-fixture.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
 
-const check = (args: string[]) => ({ id: 'verify', run: { executable: process.execPath, script: 'check.mjs', resources: ['rules'], arguments: args },
-  prerequisite: { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': 10 });
+const check = (args: string[]) => operation('verify', { script: 'check.mjs', resources: ['rules'], arguments: args });
 const declarations = {
   instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' },
   legacy: { kind: 'file', target: 'LEGACY.md', exact: 'legacy.md' },
   docs: { kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md', checks: [check(['--strict'])] },
 };
-const manifest = (active: object = declarations) => stringify({ format: 'repo-standards/v2', name: 'classified-updates', description: 'Update class fixture',
-  requires: { 'repo-standards': '>=1' }, defaults: { declarations: active }, profiles: { work: { description: 'Work', declarations: {} } } });
+const manifest = (active: object = declarations) => standards(active);
 const files = {
   'agents.md': 'Pinned instructions\n',
   'legacy.md': 'Legacy notes\n',
@@ -34,38 +30,29 @@ const files = {
 // A complete discovery-backed adoption of v1.0.0 whose confirmed scope is the
 // first project README, committed through the project's workflow.
 async function adopted(t: TestContext) {
-  const remote = remoteFixture(manifest(), files);
-  const project = sourceFixture('', { 'apps/a/README.md': '# Project A\n', 'apps/b/README.md': '# Project B\n' });
-  commit(project.root);
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  const env = { ...remote.env, ...registry.env };
-  const run = <T = Inspection>(args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: (JSON.parse(result.stdout) as T) }; };
+  const f = await adoptionFixture(t, cli, manifest(), { files, project: { 'apps/a/README.md': '# Project A\n', 'apps/b/README.md': '# Project B\n' } });
+  const { remote, project } = f;
   const scopeFile = join(remote.support.root, 'scope.json');
   // Inspect with a fresh proposal for the discovery request the first pass returns.
   function inspect(args: string[], paths = ['apps/a/README.md']) {
     writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{
       id: 'docs', coverage: 'The maintained projects.',
       candidates: paths.map(path => ({ path, decision: 'include', reason: 'A maintained project README.', evidence: [path] })), unresolved: [] }] }));
-    const result = run([...args, '--scope', scopeFile]);
-    assert.equal(result.result.status, 0, result.result.stdout + result.result.stderr);
-    return result.report;
+    return f.inspect([...args, '--scope', scopeFile]);
   }
   const inspection = inspect(inspectionArgs);
   assert.equal(inspection.updateClass, undefined);
-  const started = run<Run>(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', inspection.identity]).report;
+  const started = f.json(startArgs(inspection.identity, [...inspectionArgs, '--scope', scopeFile])).report;
   assert.equal(started.phase, 'contextual', JSON.stringify(started));
   const review = { status: 'valid', explanation: 'The confirmed project still matches.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
   const assessment = join(remote.support.root, 'assessment.json');
   writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v3',
     declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The README already satisfies the guidance.', evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
-  const completed = run<Run>(['resume', '--assessment', assessment, '--json']);
+  const completed = f.json<Run>(['resume', '--assessment', assessment, '--json']);
   assert.equal(completed.result.status, 0, completed.result.stdout);
   commit(project.root);
-  return { remote, run, inspect, root: project.root, env, scopeFile };
+  return { remote, run: f.json, inspect };
 }
-
-const versionArgs = (tag: string) => inspectionArgs.map(argument => argument === 'v1.0.0' ? tag : argument);
 
 test('an update is exact when only exact content or the selection changes, including an unchanged selection', async t => {
   const f = await adopted(t);
@@ -130,74 +117,5 @@ test('each change to guidance, discovery guidance, operations, retired declarati
     assert.deepEqual(report.scopeChanges, [{ id: 'docs', additions: ['apps/b/README.md'], removals: [] }]);
     assert.equal(report.updateClass, 'contextual');
     assert.deepEqual(report.contextualChanges, [{ id: 'docs', changes: ['scope'] }]);
-  });
-});
-
-// Rewrite a retained file without rebinding the lock, restoring it after the test.
-function tamper(t: TestContext, root: string, path: string) {
-  const file = join(root, path);
-  const original = readFileSync(file);
-  t.after(() => writeFileSync(file, original));
-  writeFileSync(file, path.endsWith('.json') ? JSON.stringify({ ...(JSON.parse(original.toString('utf8')) as Record<string, unknown>), tampered: true }) : 'Tampered guidance\n');
-}
-
-const integrityError = (path: string) => ({ code: 'STATE_INTEGRITY', message: `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.` });
-
-test('tampered retained declarations, inputs and scope history fail every reader of the recorded adoption alike', async t => {
-  const f = await adopted(t);
-  for (const path of ['.repo-standards/inputs/resolved.json', '.repo-standards/inputs/scope-history.json', '.repo-standards/inputs/source/guidance.md']) await t.test(path, st => {
-    tamper(st, f.root, path);
-    for (const args of [['inspect', '--json'], versionArgs('v1.0.0'), ['start', '--confirm', 'sha256:unconfirmed', '--json'],
-      ['start', ...versionArgs('v1.0.0').slice(1), '--confirm', 'sha256:unconfirmed'], ['status', '--json']]) {
-      const { result, report } = f.run<ErrorReport>(args);
-      assert.equal(result.status, 1, `${args.join(' ')}: ${result.stdout}`);
-      assert.deepEqual(report.errors, [integrityError(path)], args.join(' '));
-    }
-  });
-
-  // A start interrupted before installation is restarted by resume, which reads
-  // the recorded adoption again and fails on the same diagnostic.
-  await t.test('resume of an interrupted start', st => {
-    const path = '.repo-standards/inputs/resolved.json';
-    const confirmed = f.inspect(['inspect', '--json']);
-    const interrupted = filesystemFault(f.remote.support.root, f.env, 'prerequisites', `process.kill(process.pid, 'SIGKILL');`);
-    assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
-    tamper(st, f.root, path);
-    const { result, report } = f.run<ErrorReport>(['resume', '--retry', '--json']);
-    assert.equal(result.status, 1, result.stdout);
-    assert.deepEqual(report.errors, [integrityError(path)]);
-    assert.equal(f.run<Run>(['abandon', '--json']).report.abandoned, true);
-  });
-
-  // An archived abandoned run explains an inconsistent state only when the lock
-  // is the one it left; it never hides tampering with the last complete adoption.
-  await t.test('status beside an abandoned run', st => {
-    assert.equal(f.run<Status>(['status', '--json']).report.abandoned.length, 1);
-    const path = '.repo-standards/inputs/resolved.json';
-    tamper(st, f.root, path);
-    const { result, report } = f.run<ErrorReport>(['status', '--json']);
-    assert.equal(result.status, 1, result.stdout);
-    assert.deepEqual(report.errors, [integrityError(path)]);
-  });
-
-  // An update abandoned after replacing retained inputs but before writing its
-  // lock leaves the previous lock; status explains that state from the run. It
-  // runs last because it leaves the adoption inconsistent.
-  await t.test('status after an update abandoned mid-installation', () => {
-    const previous = f.run<Status>(['status', '--json']).report.lastComplete;
-    const confirmed = f.inspect(['inspect', '--json']);
-    const interrupted = filesystemFault(f.remote.support.root, f.env, 'installation', `const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  const result = rename.call(this, from, to);
-  if (String(to).endsWith('/.repo-standards/inputs/resolved.json')) process.kill(process.pid, 'SIGKILL');
-  return result;
-};
-syncBuiltinESMExports();`);
-    assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
-    assert.equal(f.run<Run>(['abandon', '--json']).report.abandoned, true);
-    const { result, report } = f.run<Status>(['status', '--json']);
-    assert.equal(result.status, 0, result.stdout);
-    assert.equal(report.stateError!.code, 'STATE_INTEGRITY');
-    assert.deepEqual(report.lastComplete, previous);
   });
 });
