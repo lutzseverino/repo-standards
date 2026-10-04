@@ -123,8 +123,9 @@ operations, and the run removes their installed targets. An installed target
 within contextual scope, as a contextual target or inside or containing one, is
 not removed and stays in place as project content. Only a changed CLI pin
 replaces the isolated runtime manifests, npm lock, dependencies, and matching
-product-owned system skill; otherwise the existing runtime remains, and the
-system skill is matched or replaced with the one the pinned CLI packages.
+product-owned system skills; otherwise the existing runtime remains, and each
+system skill is matched, created, or replaced with the one the pinned CLI
+packages.
 Project dependency manifests and package-manager choices remain outside that
 runtime. An incomplete run retains the prior last-complete evidence.
 
@@ -144,9 +145,9 @@ and recoverable replacement content. Git flags
 that hide changes and nested submodules block this initial journey. Existing
 exact files and skill directories whose complete inventory, bytes, and
 executable state match the supplied content are matched without rewriting and
-recorded in the new baselines. This includes the reserved system skill when it
-matches the skill packaged with this exact CLI. A differing tracked file or
-skill, including the system skill, is replaced and listed among the discarded
+recorded in the new baselines. This includes a system skill when it matches
+the skill packaged with this exact CLI. A differing tracked file or skill,
+including a system skill, is replaced and listed among the discarded
 edits; unrelated and excluded content remains outside the selection.
 
 The identity binds what the run reads, not Git HEAD or where the project is
@@ -190,7 +191,8 @@ Review and commit these files through the adopting project's normal workflow:
 | `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
 | `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
-| `.agents/skills/adopt-standards/` | The product-owned system skill from this exact CLI version, with its references. |
+| `.agents/skills/adopt-standards/` | The product-owned adoption skill from this exact CLI version, with its references. |
+| `.agents/skills/standards-updates/` | The product-owned update notice from this exact CLI version, which reports [available updates](available-updates.md) to an agent. |
 | Exact targets and `.agents/skills/<author skill>/` | The selected author-owned content and complete skill resources. |
 
 Discovery adoption additionally retains `inputs/scope-history.json`, and every
@@ -320,7 +322,7 @@ with no last-complete state. Apply its guidance, refresh the snapshot with
 An incomplete adoption preserves changes and its lock. Its change report
 observes actual Git changes and ignored product storage, including unexpected
 additions; runtime dependencies are listed as one directory. The persisted
-`affected` observations include author targets and the reserved system skill,
+`affected` observations include author targets and the system skills,
 so subsequent `status` calls also find ignored files and skill resources added
 after interruption, and reflect paths reconciled since the run stopped.
 Until the initial ignore-file write succeeds, the Git-directory lock remains
@@ -350,7 +352,7 @@ The changed paths are the run's net change set, which completion keeps in
 durable state as `changeSet`, so the record renders from committed state alone,
 in any checkout. Each entry names a path whose state at completion differs from
 its state before the run, and the phases that changed it: `installation` for
-exact files and skill files, including the system skill's and a retired
+exact files and skill files, including the system skills' and a retired
 declaration's removed target, that the run created, replaced, or removed; `fixes` and `agent` for the paths their intervals
 recorded. A path that a later phase returned to its state before the run is not
 listed, verified restoration of installed content after an interruption keeps
@@ -395,7 +397,7 @@ git commit -m "Remove Repository Standards product state"
 ```
 
 The new inspection matches exact files and skill directories that still match
-the selected source, and a system skill that matches the inspecting CLI's
+the selected source, and each system skill that matches the inspecting CLI's
 packaged skill, without rewriting them. It replaces tracked content that
 differs, such as a skill edited since installation or a system skill that a
 different CLI version installed, and lists each such replacement among the

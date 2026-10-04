@@ -68,7 +68,20 @@ test('release artifacts install without build tools and expose the matching CLI,
     if (link.anchor) assert.ok(headingAnchors(readFileSync(join(installed, link.path), 'utf8')).has(link.anchor),
       `${link.resource} links missing ${link.path}#${link.anchor}`);
   }
-  for (const [name, disabled, implicit] of [['adopt-standards', true, false], ['author-standards', false, true]] as const) {
+  // The update notice ships whole, and every product skill leaves delivery
+  // vocabulary to standards sources.
+  for (const resource of ['SKILL.md', 'agents/openai.yaml']) {
+    assert.deepEqual(readFileSync(join(installed, 'skills/standards-updates', resource)),
+      readFileSync(resolve('skills/standards-updates', resource)));
+  }
+  assert.deepEqual(readdirSync(join(installed, 'skills')).sort(), ['adopt-standards', 'author-standards', 'standards-updates']);
+  for (const skill of readdirSync(join(installed, 'skills'))) {
+    for (const resource of readdirSync(join(installed, 'skills', skill), { recursive: true, encoding: 'utf8' }).filter(path => path.endsWith('.md'))) {
+      const content = readFileSync(join(installed, 'skills', skill, resource), 'utf8').replace(/\s+/g, ' ');
+      assert.doesNotMatch(content, /\b(?:tickets?|issues?|pull requests?|PRs?)\b/i, `skills/${skill}/${resource} uses workflow vocabulary`);
+    }
+  }
+  for (const [name, disabled, implicit] of [['adopt-standards', true, false], ['standards-updates', false, true], ['author-standards', false, true]] as const) {
     const skill = readFileSync(join(installed, 'skills', name, 'SKILL.md'), 'utf8');
     assert.equal(parse(skill.match(/^---\n([\s\S]*?)\n---\n/)![1]!)['disable-model-invocation'], disabled);
     const policy = readFileSync(join(installed, 'skills', name, 'agents/openai.yaml'), 'utf8');
