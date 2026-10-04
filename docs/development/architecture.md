@@ -473,6 +473,12 @@ is read or written; nothing is converted. Its diagnostic names the one path
 forward, fresh adoption: remove any retired run record in Git's directory and
 the product state directory, commit the directory's removal, and adopt again.
 
+A format's version rises when its keys change: a key is added, removed,
+renamed, or changes type. Changed values under the same keys, such as embedded
+content or digests, keep the version. Raise each format at most once per
+release; a branch that rebases onto a merge that already raised a format keeps
+that raise and does not raise it again.
+
 ### Committed evidence
 
 Committed evidence holds the current run only

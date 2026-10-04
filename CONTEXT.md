@@ -153,6 +153,11 @@ A published CLI or standards version newer than the corresponding pin of an
 adopting project's selection.
 _Avoid_: Drift, outdated adoption, stale pin
 
+**Update notice**:
+A system skill's report of available updates to an agent before other work.
+It states availability; every update stays the maintainer's decision.
+_Avoid_: Update rule, update routing
+
 **Drift**:
 Divergence of project content or remote state from what the last complete
 adoption established, detectable only by running checks or fixes.
@@ -162,6 +167,12 @@ _Avoid_: Available update, staleness
 The selected standards material and provenance committed by an adopting project
 so its pinned standards remain inspectable independently of source availability.
 _Avoid_: Cache, working copy
+
+**Retired format**:
+A record format older than the one the running CLI writes. The CLI does not
+read it, and the project adopts fresh. A newer format is not retired: it calls
+for the pinned CLI.
+_Avoid_: Unknown format, legacy state
 
 **Selection**:
 The current CLI version, standards source, published standards version, and
@@ -179,9 +190,15 @@ complete adoption.
 _Avoid_: Contextual assessment, source copy
 
 **Installation target**:
-A project path into which an adoption run installs an exact file or a whole
-skill directory, including the system skill.
+A project path into which an adoption run installs an exact file, a whole
+skill directory, or a skill link, including the system skills.
 _Avoid_: Destination, output file
+
+**Skill link**:
+A product-installed link that exposes one installed skill at an agent's own
+skill location, for an agent that does not read the shared skill directory.
+Every skill an adoption run installs, system or author, gets one.
+_Avoid_: Skill copy, mirror
 
 **Target ownership**:
 The product's standing over an installation target: the action a run would
