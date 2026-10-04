@@ -6,7 +6,7 @@ Repository Standards product.
 ## Setup and validation
 
 Use TypeScript, ESM, Node.js 24 and pnpm at the versions in `.node-version` and
-`package.json`. Run `pnpm install --frozen-lockfile`; npm registry access or
+`package.json`, with npm and Git 2.32 or newer on `PATH`. Run `pnpm install --frozen-lockfile`; npm registry access or
 cached dependencies are required.
 
 During development, run `pnpm typecheck` and `pnpm build`, then focused tests

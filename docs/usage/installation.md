@@ -5,7 +5,7 @@ carries its release notes, and its assets carry the publication identities. The
 commands below require the named version to have been published to public npm;
 a release bundle alone is not publication.
 
-Use macOS or Linux with Node.js 24, npm, and Git on `PATH`. Install Node.js 24
+Use macOS or Linux with Node.js 24, npm, and Git 2.32 or newer on `PATH`. Install Node.js 24
 from <https://nodejs.org/en/download> or select it with your version manager.
 Author operations may require additional executables and versions; inspection
 discloses these, and start checks them before changing the project.

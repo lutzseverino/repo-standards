@@ -104,6 +104,7 @@ test('the installed inspection command checks npm without executing author prere
   const bin = join(project.root, 'bin');
   mkdirSync(bin);
   symlinkSync(process.execPath, join(bin, 'node'));
+  symlinkSync(execFileSync('/bin/sh', ['-c', 'command -v git'], { encoding: 'utf8' }).trim(), join(bin, 'git'));
   const result = cli.run(inspectionArgs, project.root, { ...process.env, PATH: bin });
   assert.equal(result.status, 1);
   const report = JSON.parse(result.stdout);

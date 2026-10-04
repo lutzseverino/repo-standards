@@ -126,9 +126,9 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(git(f.project.root, 'show', 'HEAD:apps/old/README.md'), '# Old project');
   commit(f.project.root);
   const retainedInspection = f.run(['inspect', '--json']).report;
-  assert.equal(retainedInspection.format, 'repo-standards/inspection/v5');
+  assert.equal(retainedInspection.format, 'repo-standards/inspection/v6');
   const retained = retainedInspection.historicalScope;
-  assert.equal(retained.format, 'repo-standards/scope-history/v4');
+  assert.equal(retained.format, 'repo-standards/scope-history/v5');
   assertCompactScopeEvidence(committedScopeEvidence(f.project.root));
   // Retained scope evidence holds the current run and its change against the previous one.
   assert.equal(retained.inspection, inspected.identity);
@@ -160,7 +160,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
     return { result, report: JSON.parse(result.stdout) };
   };
   const checkoutRetainedInspection = runCheckout(['inspect', '--json']).report;
-  assert.equal(checkoutRetainedInspection.format, 'repo-standards/inspection/v5');
+  assert.equal(checkoutRetainedInspection.format, 'repo-standards/inspection/v6');
   assert.deepEqual(checkoutRetainedInspection.historicalScope, retained);
   assert.deepEqual(runCheckout(['status', '--json']).report, secondStatus);
   f.proposal('apps/new/README.md', 'apps/old/README.md');
@@ -299,7 +299,7 @@ test('a discovery completion stores its run once with the named observation as a
   assert.deepEqual(Object.keys(stored.named!.targets!), ['apps/old/README.md']);
   assert.deepEqual(stored.proposal, firstInspection.discovery.proposal);
   const projection = f.run(['inspect', '--json']).report.historicalScope;
-  assert.equal(projection.format, 'repo-standards/scope-history/v4');
+  assert.equal(projection.format, 'repo-standards/scope-history/v5');
   assert.equal(projection.inspection, firstInspection.identity);
   assert.deepEqual(projection.discovery.namedObservation, firstInspection.discovery.namedObservation);
 });
@@ -444,7 +444,7 @@ test('durable product state over the per-file limit leaves discovery inspectable
   for (const args of [['inspect', '--json'], inspectionArgs, updateArgs]) {
     const inspection = f.run(args);
     assert.equal(inspection.result.status, 0, inspection.result.stdout + inspection.result.stderr);
-    assert.equal(inspection.report.format, 'repo-standards/inspection/v5');
+    assert.equal(inspection.report.format, 'repo-standards/inspection/v6');
     const { evidence, observation } = inspection.report.discovery;
     assert.ok(evidence.some((entry: { path: string }) => entry.path === 'apps/old/README.md'));
     assert.deepEqual(evidence.filter((entry: { path: string }) => reserved(entry.path)), []);

@@ -67,7 +67,7 @@ test('discovery inspection requests eligible evidence without changing the proje
   const result = cli.run(inspectionArgs, project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const report = JSON.parse(result.stdout);
-  assert.equal(report.format, 'repo-standards/inspection/v5');
+  assert.equal(report.format, 'repo-standards/inspection/v6');
   assert.equal(report.start.eligible, false);
   assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'DISCOVERY_REQUIRED'));
   assert.match(report.discovery.identity, /^sha256:[a-f0-9]{64}$/);

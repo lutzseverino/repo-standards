@@ -6,9 +6,12 @@ retained inspection. Public release status is recorded in the product repository
 
 ## Obtain the CLI outside the adopting project
 
-Use macOS or Linux with Node.js 24, npm, and Git on `PATH`. Node.js 24 installers
+Use macOS or Linux with Node.js 24, npm, and Git 2.32 or newer on `PATH`. Node.js 24 installers
 at <https://nodejs.org/en/download> include npm. Missing prerequisites produce
-actionable setup instructions. Git is needed to observe the adopting project.
+actionable setup instructions. Before observing project state, `inspect` and
+`start` check the Git version. An older Git fails with `GIT_VERSION_UNSUPPORTED`,
+which names the installed version and the minimum, 2.32. This minimum ensures
+Git does not follow symbolic `.gitignore` files whose referent is not bound.
 
 The executable `bootstrap/repo-standards` is a standalone POSIX shell file with
 an embedded Node.js program. It needs no product checkout, pnpm, or installed
@@ -119,7 +122,7 @@ the tag-cache location must resolve outside the project, including via symlinks.
 
 ## Report and inspection identity
 
-Every report has the single format `repo-standards/inspection/v5`. A profile
+Every report has the single format `repo-standards/inspection/v6`. A profile
 with discovery declarations adds the `discovery` and `sourceResolved` fields
 described [below](#discover-contextual-file-scope):
 
@@ -211,12 +214,12 @@ their hashes, the product-state inventory, blockers and safety observations,
 and, when discovery is active, the discovery observation and confirmed scope.
 The project root, Git HEAD, the index, and Git status are not bound, except
 through the start blockers Git state produces, such as a dirty tree. The same
-content inspected from two clones with the same file and directory modes has
+content inspected from two clones with the same file executable bits has
 one identity, so an inspection made in a throwaway clone confirms a start in
 the maintainer's checkout. A commit that
 touches nothing the run reads leaves the identity unchanged, so a confirmation
 survives unrelated work between inspection and start; a change to an affected
-file's bytes or mode, a retained input, or the product-state inventory changes
+file's bytes or executable bit, a retained input, or the product-state inventory changes
 it. The discovery observation spans the tracked and non-ignored tree, so for a
 discovery-backed selection most commits change the identity. Start still
 requires a clean committed tree, and the run records the project root and HEAD
@@ -326,7 +329,7 @@ record the same way.
 
 A selected repository declaration with `discovery` uses two read-only inspections.
 The first invocation uses the same source, version, profile and project flags
-shown above. Its `repo-standards/inspection/v5` report adds discovery instructions,
+shown above. Its `repo-standards/inspection/v6` report adds discovery instructions,
 eligible evidence, a request identity, and `DISCOVERY_REQUIRED` in `start.blockers`.
 The report still includes exact changes, contextual guidance, and all operations.
 Unresolved declarations remain in `sourceResolved`; they do not manufacture
@@ -422,7 +425,9 @@ complete tracked and non-ignored project snapshot; HEAD and the index are not
 bound. Observation records file hashes/executable state,
 directory inventories and boundaries, effective Git observation settings, and
 consulted `.gitignore`, Git info/exclude, and global ignore inputs, including their
-absence. Ignore inputs are named by role, never by absolute location: `global`
+absence. Directory permissions are not bound: they depend on the checkout's
+umask and Git does not track them. File executable bits remain bound.
+Ignore inputs are named by role, never by absolute location: `global`
 for the global excludes, `info` for the repository info exclude, and each
 `.gitignore` by its project-relative path, each with its content state. A
 symbolic `.gitignore` is recorded by the hash of its target, never the target
@@ -475,8 +480,8 @@ request and final inspection identities, so neither a retained historical
 proposal nor an earlier confirmation authorizes the new run.
 
 After ordinary discovery completion, retained `inspect --json` remains
-`repo-standards/inspection/v5` and exposes `historicalScope` as
-`repo-standards/scope-history/v4`: the last complete run's accepted inspection
+`repo-standards/inspection/v6` and exposes `historicalScope` as
+`repo-standards/scope-history/v5`: the last complete run's accepted inspection
 identity, materialized concrete selection, and, when that run discovered scope,
 its source-resolved declarations and discovery proposal, rationale, guidance,
 references, and observation identities, with `scopeChanges`, the paths that run
@@ -490,7 +495,7 @@ The committed file holds that one run only; earlier runs stay in Git history. It
 stores the project observation without the evidence array it implies, and the
 named observation as the delta of the confirmed targets and any boundary entry
 naming them adds. Both are rebuilt on read with the product's existing
-derivation. Scope-history v4 is the only format written and read.
+derivation. Scope-history v5 is the only format written and read.
 
 Retained inspection reads the committed durable state, which is
 `repo-standards/state/v6`, the only state format, with the last complete run's
