@@ -4,6 +4,7 @@ import { searchSources } from './discovery.js';
 import { validateSource } from './resolver.js';
 import { inspect } from './inspection.js';
 import { ProductError } from './errors.js';
+import { requireSupportedGit } from './observation.js';
 import { abandon, inspectRetained, resume, start, startRetained, status } from './adoption.js';
 import { outdated } from './outdated.js';
 import { inspectionSummary, statusSummary } from './summary.js';
@@ -51,6 +52,7 @@ if (args.length === 1 && args[0] === '--version') {
     const retained = ['inspect', 'start'].includes(args[0]!) && selectionCount === 0;
     if (['inspect', 'start'].includes(args[0]!) && selectionCount !== 0 && selectionCount !== selectionKeys.length) throw new ProductError('USAGE', 'Provide --source, --standards-version and --profile together, or omit all three to use retained standards.');
     if (args[0] === 'start' && !flags.has('--confirm')) throw new ProductError('CONFIRMATION_REQUIRED', 'Inspect the selection, review its changes, and pass its identity with --confirm <identity> after explicit maintainer confirmation.');
+    if (args[0] === 'inspect' || args[0] === 'start') requireSupportedGit();
     const options = { source: flags.get('--source')!, standardsVersion: flags.get('--standards-version')!, profile: flags.get('--profile')!, project: flags.get('--project') ?? '.', ...(flags.has('--scope') ? { scope: flags.get('--scope')! } : {}) };
     const report = args[0] === 'abandon' ? abandon(options.project, version) : args[0] === 'resume' ? await resume(options.project, version, flags.get('--assessment'), flags.has('--retry')) : args[0] === 'status' ? status(options.project, version) : args[0] === 'start' ? retained ? await startRetained(options.project, version, flags.get('--confirm')!, options.scope) : await start(options, version, flags.get('--confirm')!) : retained ? await inspectRetained(options.project, version, options.scope) : await inspect(options, version);
     if (flags.has('--summary')) process.stdout.write(args[0] === 'status' ? statusSummary(report as StatusRecord) : inspectionSummary(report as InspectionReport));

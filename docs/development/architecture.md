@@ -12,7 +12,9 @@ and agent-guided workflows.
 The product is Repository Standards, its GitHub repository is
 `lutzseverino/repo-standards`, and its CLI is `repo-standards`. The repository is
 public and MIT-licensed. Implementation uses TypeScript, ESM, Node.js 24, and
-pnpm. The product supports macOS and Linux.
+pnpm. Inspection and start require Git 2.32 or newer, checked before observing
+project state, so Git never follows a symbolic `.gitignore` whose referent the
+identity does not bind. The product supports macOS and Linux.
 
 The product supports both journeys:
 
@@ -196,7 +198,7 @@ adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
 scope is missing. Initial start receives the same valid proposal and confirmed
 complete inspection identity and reconstructs inspection before mutation. Inspection accepts
 `repo-standards/scope/v2` proposals through `--scope`, returns explicitly versioned
-`repo-standards/inspection/v5` reports, and binds a complete eligible project
+`repo-standards/inspection/v6` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
 A proposal carries only the agent's judgment per active discovery declaration:
 candidates with their decisions, reasons and evidence paths, coverage, and
@@ -522,12 +524,12 @@ set alone, each path once, under the heading
 validator recognizes.
 
 Retained scope evidence, `.repo-standards/inputs/scope-history.json` in
-`repo-standards/scope-history/v4`, is written by a run that discovers scope
+`repo-standards/scope-history/v5`, is written by a run that discovers scope
 and by every later run, and is one object:
 
 | Field | Content |
 | --- | --- |
-| `format`, `evidence` | `repo-standards/scope-history/v4` and `historical`. |
+| `format`, `evidence` | `repo-standards/scope-history/v5` and `historical`. |
 | `inspection` | The run's confirmed inspection identity. |
 | `resolved` | The run's resolved selection, with discovered scope materialized as concrete targets. |
 | `sourceResolved`, `discovery` | Present when the run discovered scope: the source-resolved declarations, and the discovery identity, proposal, absence, declarations, project observation without derived evidence, and named observation as a delta. |

@@ -10,7 +10,9 @@ const limits = { paths: 20_000, fileBytes: 8 * 1024 * 1024, totalBytes: 64 * 102
 // The reserved durable product-state directory, excluded from every observation.
 const reservedProductState = '.repo-standards';
 export interface Evidence { kind: 'file' | 'directory' | 'absence'; path: string; identity: string }
-export type FileState = { type: 'missing' } | { type: 'file'; sha256: string; executable: boolean } | { type: 'directory'; mode: number } | { type: 'symlink'; target: string };
+// Discovery binds directory existence only; execution also observes permissions
+// so an operation cannot change an existing boundary outside its authority.
+export type FileState = { type: 'missing' } | { type: 'file'; sha256: string; executable: boolean } | { type: 'directory'; mode?: number } | { type: 'symlink'; target: string };
 // An ignore input's content state; an explicitly empty global excludes setting
 // disables that input. A symbolic .gitignore is bound by the hash of its
 // target, the content Git stores for a link, because the target itself may name
@@ -44,7 +46,7 @@ export function observeScope(root: string, named: string[] = [], options: { exec
       const before = lstatSync(path);
       present = true;
       if (before.isSymbolicLink()) return { type: 'symlink', target: readlinkSync(path) };
-      if (before.isDirectory()) return { type: 'directory', mode: before.mode & 0o777 };
+      if (before.isDirectory()) return { type: 'directory', ...(options.execution ? { mode: before.mode & 0o777 } : {}) };
       if (!before.isFile()) throw new ProductError('OBSERVATION_UNSAFE', 'Discovery encountered a special file.');
       if (before.size > limits.fileBytes || (bytes += before.size) > limits.totalBytes) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeds the byte limit.');
       const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);

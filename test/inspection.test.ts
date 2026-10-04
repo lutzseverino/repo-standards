@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { readFileSync, readdirSync, lstatSync, writeFileSync, mkdirSync, symlinkSync, chmodSync, utimesSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { embeddedContent, installCli, sha256, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
@@ -58,6 +58,71 @@ test('inspection identity and confirmation carry between clones made under diffe
   assert.equal(run.inspection, reports[0].identity);
 });
 
+test('inspect and start reject Git older than 2.32 before observing public or retained selections', t => {
+  const remote = remoteFixture(simpleSource(), { 'content.md': 'Instructions' }, [], 'alice/standards', true);
+  const project = sourceFixture('', { '.repo-standards/state.json': 'Unreadable product state' });
+  t.after(() => { remote.close(); project.close(); });
+  symlinkSync('/unbound/ignore-rules', join(project.root, '.gitignore'));
+  const bin = join(remote.support.root, 'bin');
+  mkdirSync(bin);
+  const unexpected = join(remote.support.root, 'unexpected-git-access');
+  writeFileSync(join(bin, 'git'), `#!${process.execPath}\nimport { writeFileSync } from 'node:fs';\nif (process.argv.slice(2).join(' ') === '--version') console.log('git version 2.31.8');\nelse { writeFileSync(${JSON.stringify(unexpected)}, 'Repository accessed'); process.exit(99); }\n`);
+  chmodSync(join(bin, 'git'), 0o755);
+  const env = { ...remote.env, PATH: `${bin}:${process.env.PATH}` };
+  const before = snapshot(project.root);
+  for (const args of [inspectionArgs, ['inspect', '--json'], ['start', ...inspectionArgs.slice(1), '--confirm', 'sha256:unobserved'], ['start', '--json', '--confirm', 'sha256:unobserved']]) {
+    const result = cli.run(args, project.root, env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    const error = JSON.parse(result.stdout).errors[0];
+    assert.equal(error.code, 'GIT_VERSION_UNSUPPORTED');
+    assert.match(error.message, /2\.31\.8/);
+    assert.match(error.message, /2\.32/);
+  }
+  assert.equal(lstatSync(unexpected, { throwIfNoEntry: false }), undefined, 'Only the Git version probe may run');
+  assert.deepEqual(remote.requests(), []);
+  assert.deepEqual(snapshot(project.root), before);
+});
+
+test('Git 2.32 and newer versions including vendor suffixes permit inspection', t => {
+  const remote = remoteFixture(simpleSource(), { 'content.md': 'Instructions' });
+  const project = sourceFixture('');
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const realGit = execFileSync('which', ['git'], { encoding: 'utf8' }).trim();
+  const bin = join(remote.support.root, 'bin');
+  mkdirSync(bin);
+  for (const version of ['2.32.0', '2.32.1 (Apple Git-132)', '3.0.0']) {
+    writeFileSync(join(bin, 'git'), `#!${process.execPath}\nimport { spawnSync } from 'node:child_process';\nconst args = process.argv.slice(2);\nif (args.join(' ') === '--version') console.log(${JSON.stringify(`git version ${version}`)});\nelse { const result = spawnSync(${JSON.stringify(realGit)}, args, { stdio: 'inherit' }); process.exit(result.status ?? 1); }\n`);
+    chmodSync(join(bin, 'git'), 0o755);
+    const result = cli.run(inspectionArgs, project.root, { ...remote.env, PATH: `${bin}:${process.env.PATH}` });
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout).start.blockers, []);
+  }
+});
+
+test('discovery identity ignores directory permissions but still binds a committed executable-bit change', t => {
+  const yaml = simpleSource().replace('    instructions:', '    docs:\n      kind: repository\n      guidance: guidance.md\n      discovery: discovery.md\n    instructions:');
+  const remote = remoteFixture(yaml, { 'content.md': 'Instructions', 'guidance.md': 'Document maintained projects.', 'discovery.md': 'Identify maintained projects.' });
+  const project = sourceFixture('', { 'scripts/check': '#!/bin/sh\nexit 0\n' });
+  t.after(() => { remote.close(); project.close(); });
+  chmodSync(join(project.root, 'scripts/check'), 0o644);
+  commit(project.root);
+  const inspect = () => {
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    return JSON.parse(result.stdout);
+  };
+  const initial = inspect();
+  chmodSync(join(project.root, 'scripts'), 0o700);
+  assert.equal(inspect().identity, initial.identity);
+  chmodSync(join(project.root, 'scripts/check'), 0o755);
+  commit(project.root);
+  const executable = inspect();
+  assert.notEqual(executable.identity, initial.identity);
+  assert.notEqual(executable.discovery.identity, initial.discovery.identity);
+  assert.ok(!executable.start.blockers.some((blocker: { code: string }) => blocker.code === 'DIRTY_PROJECT'));
+});
+
 test('inspection reports the pinned complete profile without changing a dirty project or executing author code', (t) => {
   const yaml = readFileSync('examples/alice/standards.yaml', 'utf8').replace('executable: python3', 'executable: ./probe').replace('resources: []', 'resources: [payload.json, resources]');
   const files: Record<string, string> = { 'payload.json': '{"key": 42}', 'resources/support.txt': 'Operation resource' };
@@ -79,7 +144,7 @@ test('inspection reports the pinned complete profile without changing a dirty pr
   assert.deepEqual(report.selection.standards, { repository: 'https://github.com/alice/standards', version: 'v1.0.0', commit: remote.sha });
   assert.equal(report.selection.profile, 'work');
   assert.deepEqual(report.resolved.declarations.map((d: { id: string }) => d.id), ['agent-guidance', 'readme', 'review-skill', 'source-layout']);
-  assert.equal(report.format, 'repo-standards/inspection/v5');
+  assert.equal(report.format, 'repo-standards/inspection/v6');
   assert.deepEqual(embeddedContent(report), [], 'Reports reference content by hash and carry changes as diffs');
   const agents = report.exact.find((d: { id: string }) => d.id === 'agent-guidance');
   assert.equal(agents.action, 'replace');

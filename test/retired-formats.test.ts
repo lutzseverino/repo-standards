@@ -58,11 +58,11 @@ test('a retired state, scope evidence, or run record format is rejected with the
   const state = committedState(root);
   const scope = committedScopeEvidence(root);
   assert.equal(state.format, 'repo-standards/state/v6');
-  assert.equal(scope.format, 'repo-standards/scope-history/v4');
+  assert.equal(scope.format, 'repo-standards/scope-history/v5');
   assert.equal(f.run(['status', '--json']).report.format, 'repo-standards/status/v7');
   const retainedInspection = f.run(['inspect', '--json']).report;
-  assert.equal(retainedInspection.format, 'repo-standards/inspection/v5');
-  assert.equal(retainedInspection.historicalScope.format, 'repo-standards/scope-history/v4');
+  assert.equal(retainedInspection.format, 'repo-standards/inspection/v6');
+  assert.equal(retainedInspection.historicalScope.format, 'repo-standards/scope-history/v5');
 
   const runRecord = join(root, git(root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
   const committed = ['.repo-standards/state.json', '.repo-standards/lock.json', '.repo-standards/inputs/scope-history.json']
@@ -76,7 +76,7 @@ test('a retired state, scope evidence, or run record format is rejected with the
       plant: (format: string) => writeFileSync(join(root, '.repo-standards/lock.json'), JSON.stringify({ format })) },
     ...['v1', 'v2', 'v3', 'v4', 'v5'].map(version => ({ format: `repo-standards/state/${version}`, current: 'repo-standards/state/v6',
       plant: (format: string) => rewriteCommittedState(root, { ...state, format }) })),
-    ...['v1', 'v2', 'v3'].map(version => ({ format: `repo-standards/scope-history/${version}`, current: 'repo-standards/scope-history/v4',
+    ...['v1', 'v2', 'v3', 'v4'].map(version => ({ format: `repo-standards/scope-history/${version}`, current: 'repo-standards/scope-history/v5',
       plant: (format: string) => rewriteRetainedInput(root, '.repo-standards/inputs/scope-history.json', { ...scope, format }) })),
     ...['v1', 'v2', 'v3', 'v4', 'v5'].map(version => ({ format: `repo-standards/run/${version}`, current: 'repo-standards/run/v6',
       plant: (format: string) => writeFileSync(runRecord, JSON.stringify({ format, id: 'c0ffee00-0000-4000-8000-000000000000',
@@ -123,7 +123,7 @@ test('newer record formats require the pinned CLI without fresh-adoption advice 
   const records = [
     { path: join(root, '.repo-standards/state.json'), format: 'repo-standards/state/v7', expected: 'repo-standards/state/v6' },
     { path: join(root, '.repo-standards/state.json'), format: 'repo-standards/state/v10', expected: 'repo-standards/state/v6' },
-    { path: join(root, '.repo-standards/inputs/scope-history.json'), format: 'repo-standards/scope-history/v5', expected: 'repo-standards/scope-history/v4' },
+    { path: join(root, '.repo-standards/inputs/scope-history.json'), format: 'repo-standards/scope-history/v6', expected: 'repo-standards/scope-history/v5' },
     { path: runRecord, format: 'repo-standards/run/v7', expected: 'repo-standards/run/v6' },
     { path: archived, format: 'repo-standards/run/v7', expected: 'repo-standards/run/v6' },
     { path: join(root, '.repo-standards/lock.json'), format: 'repo-standards/lock/v2', expected: 'repo-standards/lock/v1' },

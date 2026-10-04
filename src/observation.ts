@@ -68,6 +68,17 @@ export function git(project: string, args: string[], input?: string, timeout?: n
   return result;
 }
 
+// Older Git follows symbolic .gitignore files, whose referent discovery does
+// not bind. Gate inspect and start before either can observe repository state.
+export function requireSupportedGit() {
+  const result = spawnSync('git', ['--version'], { encoding: 'utf8', timeout: 10_000 });
+  const version = result.stdout?.trim().match(/^git version ((\d+)\.(\d+)(?:\.[^\s]+)?)/);
+  if (result.error || result.status !== 0 || !version) throw new ProductError('GIT_REQUIRED', 'Git 2.32 or newer is required. Install Git and ensure it is on PATH.');
+  if (Number(version[2]) < 2 || (Number(version[2]) === 2 && Number(version[3]) < 32)) {
+    throw new ProductError('GIT_VERSION_UNSUPPORTED', `Installed Git ${version[1]} is unsupported; inspect and start require Git 2.32 or newer. Upgrade Git and inspect again.`);
+  }
+}
+
 // Validate the target and its ancestors while observing descendants without
 // following their links. Owned runtime trees validate those descendants against
 // npm's recorded inventory instead of the author-target no-symlink contract.

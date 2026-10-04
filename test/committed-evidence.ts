@@ -88,7 +88,7 @@ export function committedScopeEvidence(root: string) {
 // carries neither the evidence arrays nor the full named observation its stored
 // observation already implies.
 export function assertCompactScopeEvidence(scope: ReturnType<typeof committedScopeEvidence>) {
-  assert.equal(scope.format, 'repo-standards/scope-history/v4');
+  assert.equal(scope.format, 'repo-standards/scope-history/v5');
   assert.deepEqual(Object.keys(scope).filter(key => !['format', 'evidence', 'inspection', 'resolved', 'sourceResolved', 'discovery', 'scopeChanges'].includes(key)), [],
     'scope evidence must hold only the current run and its scope change');
   assert.equal(typeof scope.inspection, 'string');
