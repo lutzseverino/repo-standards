@@ -8,8 +8,8 @@ retained inspection. Public release status is recorded in the product repository
 
 Use macOS or Linux with Node.js 24, npm, and Git 2.32 or newer on `PATH`. Node.js 24 installers
 at <https://nodejs.org/en/download> include npm. Missing prerequisites produce
-actionable setup instructions. Before observing project state, `inspect` and
-`start` check the Git version. An older Git fails with `GIT_VERSION_UNSUPPORTED`,
+actionable setup instructions. Before observing project state, `inspect`,
+`start`, and [`check`](check.md) check the Git version. An older Git fails with `GIT_VERSION_UNSUPPORTED`,
 which names the installed version and the minimum, 2.32. This minimum ensures
 Git does not follow symbolic `.gitignore` files whose referent is not bound.
 

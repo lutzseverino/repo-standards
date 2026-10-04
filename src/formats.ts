@@ -18,6 +18,7 @@ export const formats = {
   result: 'repo-standards/result/v1',
   outdated: 'repo-standards/outdated/v1',
   outdatedCache: 'repo-standards/outdated-cache/v1',
+  check: 'repo-standards/check/v1',
 } as const;
 
 type RecordFormat = typeof formats.state | typeof formats.lock | typeof formats.scopeHistory | typeof formats.run;

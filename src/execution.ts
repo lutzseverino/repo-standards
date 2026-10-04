@@ -6,7 +6,7 @@ import { processGroupAlive } from './run-lock.js';
 import type { ResolvedProfile } from './model.js';
 import { declarationTargets } from './targets.js';
 
-export function operations(resolved: ResolvedProfile, phase: 'fixes' | 'checks') {
+export function operations(resolved: Pick<ResolvedProfile, 'declarations'>, phase: 'fixes' | 'checks') {
   return resolved.declarations.flatMap(declaration => declaration[phase].map(operation => ({ declaration: declaration.id, phase, operation })));
 }
 type SelectedOperation = ReturnType<typeof operations>[number];
@@ -14,9 +14,9 @@ export interface PrerequisiteEvidence {
   declaration: string; phase: 'fixes' | 'checks'; operation: string; executable: string;
   version: string | null; code: string | null; process: OperationEvidence['process'];
 }
-export async function preflight(root: string, resolved: ResolvedProfile, onSpawn?: (group: number) => void): Promise<PrerequisiteEvidence[]> {
+export async function preflight(root: string, resolved: Pick<ResolvedProfile, 'declarations'>, onSpawn?: (group: number) => void, phases: ('fixes' | 'checks')[] = ['fixes', 'checks']): Promise<PrerequisiteEvidence[]> {
   const evidence: PrerequisiteEvidence[] = [];
-  for (const { declaration, phase, operation } of [...operations(resolved, 'fixes'), ...operations(resolved, 'checks')]) {
+  for (const { declaration, phase, operation } of phases.flatMap(phase => operations(resolved, phase))) {
     const result = await invoke(operation.run.executable, operation.prerequisite['version-arguments'], root, operation['timeout-seconds'], '', onSpawn);
     const candidates = (['stdout', 'stderr'] as const).flatMap(stream => {
       const token = result[stream].match(/(?<![\w.])v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)(?![\w.])/);
@@ -43,7 +43,7 @@ export interface OperationEvidence {
   result: { format: typeof formats.result; status: string; message: string } | null;
   error: string | null; stdout: string; stderr: string;
 }
-export async function execute(root: string, selected: SelectedOperation, selection: { standards: unknown; profile: string }, resolved: ResolvedProfile, onSpawn?: (group: number) => void) {
+export async function execute(root: string, selected: SelectedOperation, selection: { standards: unknown; profile: string }, resolved: Pick<ResolvedProfile, 'declarations'>, onSpawn?: (group: number) => void) {
   const { declaration, phase, operation } = selected;
   const identity = { declaration, phase, id: operation.id };
   const input = { format: formats.operation, operation: identity, projectRoot: root,
