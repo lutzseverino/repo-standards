@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { readFileSync, readdirSync, lstatSync, writeFileSync, mkdirSync, symlinkSync, chmodSync, utimesSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { embeddedContent, installCli, sha256, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+import { registryFixture } from './registry-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -23,6 +25,38 @@ profiles:
     description: Work
     declarations: {}
 `;
+
+test('inspection identity and confirmation carry between clones made under different umasks', async t => {
+  const yaml = simpleSource().replace('    instructions:', '    docs:\n      kind: repository\n      guidance: guidance.md\n      discovery: discovery.md\n    instructions:');
+  const remote = remoteFixture(yaml, { 'content.md': 'Instructions', 'guidance.md': 'Document maintained projects.', 'discovery.md': 'Identify maintained projects.' });
+  const project = sourceFixture('', { 'apps/widget/package.json': '{}' });
+  t.after(() => { remote.close(); project.close(); });
+  commit(project.root);
+  const checkouts = ['022', '077'].map(mask => {
+    const checkout = join(remote.support.root, `clone-${mask}`);
+    const cloned = spawnSync('/bin/sh', ['-c', 'umask "$1"; exec git clone --quiet "$2" "$3"', 'clone', mask, project.root, checkout], { encoding: 'utf8' });
+    assert.equal(cloned.status, 0, cloned.stderr);
+    return checkout;
+  });
+  assert.notEqual(lstatSync(join(checkouts[0]!, 'apps/widget')).mode & 0o777, lstatSync(join(checkouts[1]!, 'apps/widget')).mode & 0o777);
+  const scopeFile = join(remote.support.root, 'scope.json');
+  writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{ id: 'docs', coverage: 'No maintained documentation targets.', candidates: [], unresolved: [] }] }));
+  const args = [...inspectionArgs, '--scope', scopeFile];
+  const reports = checkouts.map(checkout => {
+    const result = cli.run(args, checkout, remote.env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    return JSON.parse(result.stdout);
+  });
+  assert.equal(reports[0].identity, reports[1].identity);
+  assert.deepEqual(reports[0].start.blockers, []);
+  const registry = await registryFixture(cli.root);
+  t.after(() => registry.close());
+  const started = cli.run(['start', ...args.slice(1), '--confirm', reports[0].identity], checkouts[1]!, { ...remote.env, ...registry.env });
+  assert.equal(started.status, 1, started.stdout + started.stderr);
+  const run = JSON.parse(started.stdout);
+  assert.equal(run.phase, 'contextual', started.stdout);
+  assert.equal(run.inspection, reports[0].identity);
+});
 
 test('inspection reports the pinned complete profile without changing a dirty project or executing author code', (t) => {
   const yaml = readFileSync('examples/alice/standards.yaml', 'utf8').replace('executable: python3', 'executable: ./probe').replace('resources: []', 'resources: [payload.json, resources]');
