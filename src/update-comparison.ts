@@ -142,12 +142,13 @@ export function compareUpdate(recorded: RecordedAdoption, candidate: UpdateCandi
       return changes.length ? [{ id: declaration.id, changes }] : [];
     }),
   ].sort((a, b) => codeUnitOrder(a.id, b.id));
+  const updateClass: UpdateClass = contextualChanges.length ? 'contextual' : 'exact';
   return {
     report: {
       update: selectionComponents.filter(component => changed[component]),
       previousSelection: recorded.selection,
       retired,
-      updateClass: (contextualChanges.length ? 'contextual' : 'exact') as UpdateClass,
+      updateClass,
       contextualChanges,
     },
     blockers,

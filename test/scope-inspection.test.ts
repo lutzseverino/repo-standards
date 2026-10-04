@@ -151,7 +151,7 @@ test('a proposal holding only the agent judgment is accepted, and the CLI derive
   assert.deepEqual(candidates[1].evidence, ['apps/widget', 'apps/widget/package.json']);
   assert.deepEqual(Object.keys(report.discovery.proposal.declarations[0]).sort(), ['candidates', 'coverage', 'id', 'unresolved']);
   for (const path of ['apps/widget/package.json', 'apps/widget', 'fixtures/fake/package.json', 'apps/docs/README.md']) {
-    assert.ok(report.discovery.evidence.some((e: { path: string; identity: string }) => e.path === path && /^sha256:/.test(e.identity)), path);
+    assert.ok(report.discovery.evidence.some((e: { path: string; identity: string }) => e.path === path && e.identity.startsWith('sha256:')), path);
   }
 
   // Order is normalized; every piece of proposal text feeds the identity.

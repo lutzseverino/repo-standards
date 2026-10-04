@@ -140,8 +140,8 @@ export function observeScope(root: string, named: string[] = [], options: { exec
   }
   const paths = [...known].sort();
   if (paths.length + named.length > limits.paths) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeds the path limit.');
-  const files: Record<string, FileState> = Object.create(null);
-  const boundaries: Record<string, FileState> = Object.create(null);
+  const files = Object.create(null) as Record<string, FileState>;
+  const boundaries = Object.create(null) as Record<string, FileState>;
   // Execution-phase observations additionally bind the observed root itself.
   if (options.execution) boundaries['.'] = file(root);
   function observePath(path: string, eligible: boolean) {
@@ -158,10 +158,10 @@ export function observeScope(root: string, named: string[] = [], options: { exec
   }
   for (const directory of [...directories].filter(path => path !== '.').sort()) {
     boundaries[directory] = file(join(root, directory));
-    if (boundaries[directory]!.type !== 'directory') throw new ProductError('OBSERVATION_UNSTABLE', 'A discovery directory boundary changed.');
+    if (boundaries[directory].type !== 'directory') throw new ProductError('OBSERVATION_UNSTABLE', 'A discovery directory boundary changed.');
   }
   for (const path of paths) files[path] = observePath(path, true);
-  const targets: Record<string, FileState> = Object.create(null);
+  const targets = Object.create(null) as Record<string, FileState>;
   for (const path of [...new Set([...named, ...options.directories ?? []])].sort()) {
     targets[path] = observePath(path, false);
     // Check spelling at every named boundary without reading sibling contents.
@@ -172,13 +172,13 @@ export function observeScope(root: string, named: string[] = [], options: { exec
       const matches = names(join(root, parent)).filter(name => foldPath(name) === foldPath(parts[length]!));
       if (matches.some(name => name !== parts[length])) throw new ProductError('CASE_CONFLICT', `Named scope path has a case-folded or Unicode alias: ${path}.`);
     }
-    if (targets[path]!.type !== 'file' && targets[path]!.type !== 'missing' && !(options.directories?.includes(path) && targets[path]!.type === 'directory')) throw new ProductError('UNSAFE_TARGET', `Discovered targets must be individual regular files or absent files: ${path}.`);
+    if (targets[path].type !== 'file' && targets[path].type !== 'missing' && !(options.directories?.includes(path) && targets[path].type === 'directory')) throw new ProductError('UNSAFE_TARGET', `Discovered targets must be individual regular files or absent files: ${path}.`);
   }
   // Ignore inputs are named by role: the global excludes, the repository's info
   // exclude, and each consulted .gitignore by its project-relative path. Their
   // content state is bound; where they are located is not, so the observation
   // is the same from any checkout of the same content.
-  const ignores: Record<string, IgnoreState> = Object.create(null);
+  const ignores = Object.create(null) as Record<string, IgnoreState>;
   for (const [role, path] of [['global', globalExclude ? resolve(root, globalExclude) : ''], ['info', infoExclude]] as const) {
     if (path === '') { ignores[role] = { type: 'disabled' }; continue; }
     const state = file(path);

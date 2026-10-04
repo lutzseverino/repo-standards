@@ -22,7 +22,7 @@ function setting(text: string, file: string, keys: string[], fallback: boolean, 
   return result;
 }
 
-export function validateSkillInvocation(directory: string, name: string, source: Value, paths: Paths, fields: Fields, errors: Diagnostic[]) {
+export function validateSkillInvocation(directory: string, name: string, source: Value & { data: string }, paths: Paths, fields: Fields, errors: Diagnostic[]) {
   const skillPath = `${source.data}/SKILL.md`;
   const skill = paths.readFile({ ...source, data: skillPath });
   const policyPath = `${source.data}/agents/openai.yaml`;

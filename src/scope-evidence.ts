@@ -135,7 +135,7 @@ export function retainedScopeEvidence(value: unknown): RetainedScopeEvidence {
   return {
     inspection: evidence.inspection as string,
     resolved: evidence.resolved as RetainedProfile,
-    ...(evidence.sourceResolved ? { sourceResolved: evidence.sourceResolved as RetainedProfile } : {}),
+    ...(evidence.sourceResolved ? { sourceResolved: evidence.sourceResolved } : {}),
     ...(evidence.discovery ? { discovery: retainedDiscovery(evidence.discovery) } : {}),
     scopeChanges: evidence.scopeChanges as ScopeChange[],
   };

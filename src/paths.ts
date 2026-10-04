@@ -39,7 +39,7 @@ export class Paths {
   explicit(value: Value): string | undefined {
     const path = this.relative(value);
     if (path === undefined) return undefined;
-    if (/[*?\[\]{}]/u.test(path)) {
+    if (/[*?[\]{}]/u.test(path)) {
       this.fields.error('UNSAFE_PATH', 'Targets must be explicit paths, without glob patterns.', value);
       return undefined;
     }

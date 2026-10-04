@@ -91,7 +91,7 @@ function validLinks(links: unknown, skills: Record<string, string[]>) {
 // Decodes durable state in its single committed format.
 function decodeState(value: Pick<Content, 'content' | 'encoding'>): RecordedState {
   let state: RecordedState;
-  try { state = JSON.parse(text(value)); }
+  try { state = JSON.parse(text(value)) as RecordedState; }
   catch { unreadable(); }
   requireFormat(stateFile, state, formats.state);
   if (!state?.lastComplete || !state.baselines || !state.skills || !validLinks(state.links, state.skills)
@@ -105,7 +105,7 @@ function decodeState(value: Pick<Content, 'content' | 'encoding'>): RecordedStat
 function decode(lock: Observation, observed: Observation) {
   if (lock.type !== 'file' || observed.type !== 'file') throw new ProductError('STATE_INTEGRITY', 'Complete adoption state or integrity lock is missing.');
   let pinned: RecordedLock;
-  try { pinned = JSON.parse(text(lock)); }
+  try { pinned = JSON.parse(text(lock)) as RecordedLock; }
   catch { unreadable(); }
   const state = decodeState(observed);
   if (pinned?.format !== formats.lock
@@ -119,7 +119,7 @@ function decode(lock: Observation, observed: Observation) {
 // Every product file the lock records, observed without following links and
 // matched against its recorded hash and mode before anything reads it.
 function verifiedProductFiles(root: string, files: Record<string, Baseline>) {
-  const verified: Record<string, RecordedFile> = Object.create(null);
+  const verified = Object.create(null) as Record<string, RecordedFile>;
   for (const [path, expected] of Object.entries(files).filter(([path]) => path.startsWith('.repo-standards/'))) {
     relativePath(path);
     const blockers: Blocker[] = [];
@@ -135,7 +135,7 @@ function verifiedProductFiles(root: string, files: Record<string, Baseline>) {
 function recordedResolution(value: RecordedFile | undefined) {
   if (!value) unreadable();
   let resolved: { declarations: Declaration[] };
-  try { resolved = JSON.parse(text(value)); }
+  try { resolved = JSON.parse(text(value)) as { declarations: Declaration[] }; }
   catch { unreadable(); }
   if (!Array.isArray(resolved?.declarations)) invalid();
   return resolved;
@@ -227,7 +227,7 @@ export function readCommittedScopeProposal(root: string, head: string | null, in
     return result.stdout;
   };
   let lock: RecordedLock;
-  try { lock = JSON.parse(read(lockFile)); }
+  try { lock = JSON.parse(read(lockFile)) as RecordedLock; }
   catch { unreadable(); }
   if (lock?.format !== formats.lock || lock.inspection !== inspection || !lock.files) invalid();
   const expected = lock.files[scopeFile];

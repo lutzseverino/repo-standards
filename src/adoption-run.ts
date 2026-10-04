@@ -2,7 +2,7 @@ import type { WorkObservation } from './work-observation.js';
 import { randomUUID } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
-import { externalPath, hash } from './acquisition.js';
+import { externalPath, hash, record } from './acquisition.js';
 import { tmpdir } from 'node:os';
 import type { Assessment, ScopeConfirmation } from './assessment.js';
 import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
@@ -151,7 +151,7 @@ function archiveRunEvidence(root: string, run: Run) {
   const logsPath = '.repo-standards/local/operations';
   const logs = safe(root, logsPath);
   if (logs.type !== 'missing') {
-    const files: Files = Object.create(null);
+    const files = Object.create(null) as Files;
     flatten(logsPath, logs, files);
     for (const [path, value] of Object.entries(files)) {
       // An interrupted result may reuse its index on retry. Keep each distinct
@@ -285,7 +285,7 @@ export function status(project: string, cliVersion: string) {
     if (!(error instanceof ProductError) || error.code !== 'STATE_INTEGRITY' || !abandoned.length) throw error;
     const lockFile = safe(root, '.repo-standards/lock.json');
     let inspection: unknown;
-    try { if (lockFile.type === 'file') inspection = JSON.parse(Buffer.from(lockFile.content, lockFile.encoding).toString('utf8'))?.inspection; }
+    try { if (lockFile.type === 'file') inspection = record(JSON.parse(Buffer.from(lockFile.content, lockFile.encoding).toString('utf8'))).inspection; }
     catch { /* Archived reports remain available even if current state cannot be decoded. */ }
     // Only an abandoned run explains the failure: one whose installation or
     // completion wrote the lock, or one that began installing over the last

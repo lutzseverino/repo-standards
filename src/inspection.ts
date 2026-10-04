@@ -171,7 +171,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const selection = { cli: { package: '@lutzseverino/repo-standards', version: cliVersion }, standards: source.identity, profile: options.profile };
     // Retain a normalized source with only the selected profile. The resolver
     // remains the sole interpreter when this source is used in a fresh checkout.
-    const inputs: Record<string, Observation> = Object.create(null);
+    const inputs = Object.create(null) as Record<string, Observation>;
     const normalized = stringify({ ...validation.source, defaults: { declarations: {} }, profiles: {
       [options.profile]: { description: profile.description, declarations: Object.fromEntries(profile.declarations.map(({ id, ...declaration }) => [id, declaration])) },
     } });
@@ -186,8 +186,8 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     if (comparison) blockers.push(...comparison.blockers);
     const guidance = [];
     const operations = [];
-    const affected: Record<string, Observation> = Object.create(null);
-    const desiredExact: Record<string, Observation> = Object.create(null);
+    const affected = Object.create(null) as Record<string, Observation>;
+    const desiredExact = Object.create(null) as Record<string, Observation>;
     // Each declared target's type blockers, in resolved-declaration order.
     // Guidance targets are not installation targets and have no ownership.
     // A skill's link follows its skill.

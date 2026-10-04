@@ -4,7 +4,7 @@ import { validateAssessment } from './assessment.js';
 import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
-import { externalPath, hash } from './acquisition.js';
+import { externalPath, hash, record } from './acquisition.js';
 import { execute, operations, preflight } from './execution.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
@@ -77,7 +77,7 @@ function prepareRuntime(directory: string, version: string, project: string) {
   const result = spawnSync('npm', ['install', '--prefix', directory, '--ignore-scripts', '--no-audit', '--no-fund', '--cache', cache, '--logs-dir', join(directory, 'npm-logs'), '--update-notifier=false'],
     { cwd: directory, encoding: 'utf8', timeout: 120_000, maxBuffer: 8 * 1024 * 1024 });
   if (result.error || result.status !== 0) throw new ProductError('RUNTIME_INSTALL', 'Cannot install the exact CLI runtime. Check npm registry or cache availability and retry after a new inspection.', result.stderr);
-  const installed = JSON.parse(readFileSync(join(directory, 'node_modules', packageName, 'package.json'), 'utf8'));
+  const installed = record(JSON.parse(readFileSync(join(directory, 'node_modules', packageName, 'package.json'), 'utf8')));
   if (installed.name !== packageName || installed.version !== version) throw new ProductError('RUNTIME_IDENTITY', 'The runtime package does not match the confirmed exact CLI version.');
   const expectedSkills = packagedSystemSkills();
   return Object.fromEntries(installedSystemSkills.map(({ name, target }) => {
@@ -153,7 +153,8 @@ async function advance(root: string, session: AdoptionRunSession, installation: 
     session.journal.requireAuthorized();
   }
   const operationStart = session.observation.operations.length;
-  for (const phase of (resumed ? ['checks'] : ['fixes', 'checks']) as ('fixes' | 'checks')[]) {
+  const phases: ('fixes' | 'checks')[] = resumed ? ['checks'] : ['fixes', 'checks'];
+  for (const phase of phases) {
     for (const selected of operations(report.resolved, phase)) {
       const evidence = await session.authorProcess({ phase, declaration: selected.declaration, id: selected.operation.id },
         onSpawn => execute(root, selected, report.selection, report.resolved, onSpawn), verifyInstalled);
