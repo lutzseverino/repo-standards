@@ -1,4 +1,4 @@
-import { closeSync, lstatSync, openSync, readdirSync, readSync } from 'node:fs';
+import { closeSync, lstatSync, openSync, readdirSync, readFileSync, readSync } from 'node:fs';
 import { join } from 'node:path';
 import { caseFold } from 'unicode-case-folding';
 import { systemSkills } from './targets.js';
@@ -65,6 +65,29 @@ export class Paths {
     }
     this.inspect(path, kind, value, true);
     return path;
+  }
+
+  readFile(value: Value, optional = false): string | undefined {
+    const path = this.relative(value);
+    if (path === undefined) return undefined;
+    const parts = path.split('/');
+    // Optional metadata may have no agents directory. Existing entries still
+    // obey the same exact-path, type, and symlink rules as other source files.
+    for (let length = 1; length <= parts.length; length++) {
+      const current = parts.slice(0, length).join('/');
+      if (optional) {
+        try { lstatSync(join(this.root, current)); }
+        catch (error) {
+          if ((error as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
+        }
+      }
+      if (!this.inspect(current, length === parts.length ? 'file' : 'directory', value, false)) return undefined;
+    }
+    try { return readFileSync(join(this.root, path), 'utf8'); }
+    catch {
+      this.fields.error('SOURCE_READ', `Cannot read source reference: ${path}.`, value);
+      return undefined;
+    }
   }
 
   private inspect(path: string, kind: 'file' | 'directory' | 'resource', value: Value, recurse: boolean): boolean {
