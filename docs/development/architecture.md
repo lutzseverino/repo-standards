@@ -473,6 +473,12 @@ is read or written; nothing is converted. Its diagnostic names the one path
 forward, fresh adoption: remove any retired run record in Git's directory and
 the product state directory, commit the directory's removal, and adopt again.
 
+A format's version rises when its keys change: a key is added, removed,
+renamed, or changes type. Changed values under the same keys, such as embedded
+content or digests, keep the version. Raise each format at most once per
+release; a branch that rebases onto a merge that already raised a format keeps
+that raise and does not raise it again.
+
 ### Committed evidence
 
 Committed evidence holds the current run only
@@ -618,10 +624,6 @@ The product is complete only when all of these pass:
 14. Reject retired formats with the fresh-adoption diagnostic, and adopt fresh
     over previously installed content after removing the product state,
     replacing any differing tracked system skill without an ownership blocker.
-
-Release 2.0.0 is accepted through the fresh adoption of this repository with the
-published 2.0.0 CLI against the current Repo Canon release, recorded as
-identities and the CLI's summary.
 
 ## Implementation choices
 

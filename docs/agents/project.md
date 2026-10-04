@@ -12,7 +12,7 @@ The product itself remains neutral for independently authored standards.
 Create a focused branch from `main` for each implementation ticket, and
 validate it as [the development guide](../development/README.md) describes.
 The release is complete only when every acceptance criterion in its parent
-specification passes, including published installation and real-agent journeys,
-recorded with their pull request, release, or workflow run and on the parent
-specification, as [the acceptance guide](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md#acceptance-records)
+specification passes, including the evidence that specification names, such as
+published installation and real-agent journeys, recorded with their pull
+request, release, or workflow run and on the parent specification, as [the acceptance guide](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md#acceptance-records)
 describes.
