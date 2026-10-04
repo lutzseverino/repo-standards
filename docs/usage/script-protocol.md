@@ -191,7 +191,7 @@ separately from contextual work. `restoredBoundaries` covers only recreated
 parents of restored exact files or removal of extra directories inside a
 verified skill inventory; it never exempts changes to existing directory modes.
 This grants no new contextual scope.
-Durable `repo-standards/state/v6` and `repo-standards/status/v6` retain work
+Durable `repo-standards/state/v6` and `repo-standards/status/v7` retain work
 evidence: the run's intervals, operation history, retry history, final checks and
 assessments, and the run's net change set, `changeSet`. Completion commits the
 run record's intervals unchanged. A recorded interval is identities plus delta,

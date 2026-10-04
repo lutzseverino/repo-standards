@@ -77,6 +77,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(firstStartResult.result.status, 1, firstStartResult.result.stdout + firstStartResult.result.stderr);
   const firstStart = firstStartResult.report;
   assert.equal(firstStart.phase, 'contextual', firstStartResult.result.stdout);
+  assert.equal(f.run(['status', '--json']).report.scopeProposal, null);
   const firstComplete = f.complete();
   assert.equal(firstComplete.result.status, 0);
   const firstStatus = f.run(['status', '--json']).report;
@@ -118,6 +119,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   const started = f.run(['start', '--scope', f.scopeFile, '--confirm', inspected.identity, '--json']).report;
   assert.equal(started.phase, 'contextual');
   assert.equal(started.previousComplete.lastComplete.run, firstComplete.report.id);
+  assert.deepEqual(f.run(['status', '--json']).report.scopeProposal, firstInspection.discovery.proposal);
   assert.equal(JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8')).lastComplete.run, firstComplete.report.id);
   assert.equal(f.complete().result.status, 0);
   assert.equal(git(f.project.root, 'show', 'HEAD:apps/old/README.md'), '# Old project');
@@ -170,6 +172,32 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assertCompactWorkEvidence(checkoutState);
   assert.equal(checkoutState.lastComplete.inspection, checkoutInspection.identity);
   assert.equal(JSON.stringify(checkoutState).includes(secondState.lastComplete.run), false);
+});
+
+test('an incomplete or abandoned standards update keeps the last complete proposal', async t => {
+  const f = await fixture(t);
+  f.proposal('apps/old/README.md');
+  const first = f.run([...inspectionArgs, '--scope', f.scopeFile]).report;
+  f.run(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', first.identity]);
+  assert.equal(f.complete().result.status, 0);
+  commit(f.project.root);
+  const summary = cli.run(['status', '--summary'], f.project.root, f.env).stdout;
+
+  f.remote.addVersion('v1.1.0', source, { 'guidance.md': 'Review documentation against the new standards.' });
+  const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
+  f.proposal([], 'apps/old/README.md');
+  const update = f.run([...updateArgs, '--scope', f.scopeFile]).report;
+  assert.notDeepEqual(update.discovery.proposal, first.discovery.proposal);
+  assert.deepEqual(f.run(['status', '--json']).report.scopeProposal, first.discovery.proposal);
+  assert.equal(cli.run(['status', '--summary'], f.project.root, f.env).stdout, summary);
+  const started = f.run(['start', ...updateArgs.slice(1), '--scope', f.scopeFile, '--confirm', update.identity]);
+  assert.equal(started.report.phase, 'contextual', started.result.stdout);
+  assert.deepEqual(f.run(['status', '--json']).report.scopeProposal, first.discovery.proposal);
+  assert.equal(f.run(['abandon', '--json']).report.abandoned, true);
+  const abandoned = f.run(['status', '--json']);
+  assert.equal(abandoned.result.status, 0, abandoned.result.stdout);
+  assert.equal(abandoned.report.stateError.code, 'STATE_INTEGRITY');
+  assert.deepEqual(abandoned.report.scopeProposal, first.discovery.proposal);
 });
 
 test('repeated updates retain only the current run without growing, and status reports its scope change', async t => {
@@ -260,6 +288,7 @@ test('compatible standards updates preserve discovery evidence through discovery
   f.remote.addVersion('v1.1.0', source, { 'guidance.md': 'Keep every maintained project README useful after this standards update.' });
   const updateArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
   const request = f.run(updateArgs).report;
+  assert.deepEqual(f.run(['status', '--json']).report.scopeProposal, firstInspection.discovery.proposal);
   assert.deepEqual(request.update, ['standards']);
   assert.ok(request.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'));
   f.proposal('apps/new/README.md', 'apps/old/README.md');
@@ -271,6 +300,7 @@ test('compatible standards updates preserve discovery evidence through discovery
   assert.equal(f.complete().result.status, 0);
   assert.equal(readFileSync(join(f.project.root, 'apps/old/README.md'), 'utf8'), '# Old project\n');
   assert.equal(f.run(['status', '--json']).report.selection.standards.version, 'v1.1.0');
+  assert.deepEqual(f.run(['status', '--json']).report.scopeProposal, inspected.discovery.proposal);
   commit(f.project.root);
 
   const withoutDiscovery = stringify({
@@ -291,7 +321,8 @@ test('compatible standards updates preserve discovery evidence through discovery
   assert.ok(Array.isArray(retiredState.observations));
   assertCompactWorkEvidence(retiredState);
   const retiredStatus = f.run(['status', '--json']).report;
-  assert.equal(retiredStatus.format, 'repo-standards/status/v6');
+  assert.equal(retiredStatus.format, 'repo-standards/status/v7');
+  assert.equal(retiredStatus.scopeProposal, null);
   // Retiring discovery keeps the stored removal against the previous run.
   assert.deepEqual(retiredStatus.scopeChanges, retirement.scopeChanges);
   const noDiscoveryScope = f.run(['inspect', '--json']).report.historicalScope;

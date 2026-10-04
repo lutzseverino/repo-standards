@@ -10,7 +10,7 @@ import { ProductError } from './errors.js';
 import { formats, recordPath, requireFormat } from './formats.js';
 import type { InspectOptions, inspect } from './inspection.js';
 import { observe, type Content, type HashInventory, type Observation } from './observation.js';
-import { readRecordedAdoption, rejectUnsupportedRecords, requireRecordedCli, type RecordedAdoption } from './recorded-state.js';
+import { readCommittedScopeProposal, readRecordedAdoption, rejectUnsupportedRecords, requireRecordedCli, type RecordedAdoption } from './recorded-state.js';
 import { committedEvidenceReport, compactIntervals, keptIdentity, memoryStore, WorkEvidenceJournal, type ObservationStore, type RecordedInterval } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, requirePinnedCli, safe, verifyFiles, write } from './adoption-files.js';
@@ -266,17 +266,18 @@ export function status(project: string, cliVersion: string) {
     try { active.changes = actualChanges(root, active.affected); } catch { active.uncertain.push('Current project changes could not be fully read.'); }
     // Recovery needs the observation the last interval ends at; report its loss now, not at the next resume.
     if (active.observations.length) try { keptObservations(root).read(keptIdentity(active.observations)!); } catch (error) { active.uncertain.push((error as Error).message); }
-    return { format, selection: active.selection, lastComplete: active.previousComplete?.lastComplete ?? null, active,
+    const scopeProposal = readCommittedScopeProposal(root, active.head, active.previousComplete?.lastComplete.inspection);
+    return { format, scopeProposal, selection: active.selection, lastComplete: active.previousComplete?.lastComplete ?? null, active,
       execution: executing(lock) || (active.processGroup && processGroupAlive(active.processGroup, active.processGroupIdentity)) ? 'active' : 'interrupted', abandoned, evidence: 'historical' };
   }
-  if (!existsSync(join(root, '.repo-standards/state.json'))) return { format, selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
+  if (!existsSync(join(root, '.repo-standards/state.json'))) return { format, scopeProposal: null, selection: null, lastComplete: null, active, abandoned, evidence: 'historical' };
   try {
     // Scope changes are the stored change of the last complete run against
     // the run before it.
     const { state, selection, scopeEvidence } = readRecordedAdoption(root)!;
     requirePinnedCli(root, selection.cli.version, cliVersion);
     const changedScope = scopeEvidence?.scopeChanges;
-    return { format, ...committedEvidenceReport(state),
+    return { format, scopeProposal: scopeEvidence?.discovery?.proposal ?? null, ...committedEvidenceReport(state),
       selection, lastComplete: state.lastComplete, baselines: state.baselines as Record<string, Baseline>, skills: state.skills,
       checks: state.checks, assessments: state.assessments, ...(changedScope ? { scopeChanges: changedScope } : {}), active, abandoned, evidence: 'historical' };
   } catch (error) {
@@ -292,7 +293,8 @@ export function status(project: string, cliVersion: string) {
     const incomplete = typeof inspection === 'string' ? abandoned.find(run => run.inspection === inspection
       || (run.installation && run.previousComplete?.lastComplete.inspection === inspection)) : undefined;
     if (!incomplete) throw error;
-    return { format, selection: incomplete.selection,
+    const scopeProposal = readCommittedScopeProposal(root, incomplete.head, incomplete.previousComplete?.lastComplete.inspection);
+    return { format, scopeProposal, selection: incomplete.selection,
       lastComplete: incomplete.previousComplete?.lastComplete ?? null, active, abandoned, evidence: 'historical',
       stateError: { code: error.code, message: error.message } };
   }
