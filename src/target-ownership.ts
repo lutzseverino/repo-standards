@@ -1,5 +1,6 @@
 import type { Baseline } from './adoption-files.js';
 import { matchesInventory, type Blocker, type Observation } from './observation.js';
+import { linkedSkillTarget } from './targets.js';
 
 // Target ownership: the product's standing over each installation target. From
 // a target's one current observation, its installed baseline when one exists,
@@ -11,13 +12,16 @@ import { matchesInventory, type Blocker, type Observation } from './observation.
 //
 // One rule holds for every target kind in every run: the product may replace
 // tracked content, which Git can recover, and only untracked content blocks.
-// A recorded target without a candidate, such as a retired declaration's, is
+// A recorded target without a candidate, such as a retired declaration's,
+// leaves the selection. One that still matches its installed baseline is
 // removed: its candidate is missing, so removing it is replacing it with
-// nothing. One that overlaps contextual scope, at, under, or containing a
-// contextual target, stays as project content and has no action, and so does
-// one at or inside an installation target the selection still installs, whose
-// own action covers it. One that contains such a target is removed, and the
-// run then installs the contained target.
+// nothing. An edited one is kept: it stays in place with no action, and the
+// project now owns it. A skill directory is judged whole, and a kept skill
+// keeps its link. One that overlaps contextual scope, at, under, or containing
+// a contextual target, stays as project content and has no action, and so
+// does one at or inside an installation target the selection still installs,
+// whose own action covers it. One that contains such a target is removed, even
+// when edited, and the run then installs the contained target.
 
 export type TargetKind = 'file' | 'skill' | 'system-skill' | 'skill-link';
 
@@ -32,8 +36,8 @@ export interface OwnedTarget {
 // A replacement discards edits
 // when the target's current content is not its installed baseline; without a
 // baseline, as at an initial adoption, every replacement of existing content
-// does.
-export interface TargetOwnership { path: string; kind: TargetKind; action?: 'match' | 'create' | 'replace'; discardsEdits: boolean; blockers: Blocker[] }
+// does. A kept target is edited content that leaves the selection.
+export interface TargetOwnership { path: string; kind: TargetKind; action?: 'match' | 'create' | 'replace'; discardsEdits: boolean; kept: boolean; blockers: Blocker[] }
 
 // An existing target whose complete observation (inventory, bytes and modes)
 // equals the candidate is matched without rewriting.
@@ -76,12 +80,23 @@ function judge(target: OwnedTarget, tracked: ReadonlySet<string>): TargetOwnersh
     } else if (value.type !== 'missing' && !tracked.has(at)) blockers.push({ code: 'UNTRACKED_REPLACEMENT', path: at, message: 'Existing replacement content is ignored or untracked. Commit or reconcile it before adoption.' });
   }
   if (candidate) checkTracked(path, current);
-  return { path, kind, ...(action ? { action } : {}), discardsEdits: action === 'replace' && !isBaseline(path, current, baseline), blockers };
+  return { path, kind, ...(action ? { action } : {}), discardsEdits: action === 'replace' && !isBaseline(path, current, baseline), kept: false, blockers };
 }
 
 export function judgeTargetOwnership(input: { tracked: ReadonlySet<string>; contextual: readonly string[]; targets: OwnedTarget[] }): TargetOwnership[] {
   const within = (path: string, other: string) => other === path || path.startsWith(other + '/');
   const installed = input.targets.filter(target => target.candidate).map(target => target.path);
-  const kept = (path: string) => input.contextual.some(other => within(path, other) || within(other, path)) || installed.some(other => within(path, other));
-  return input.targets.map(target => judge(target.candidate || !target.baseline || kept(target.path) ? target : { ...target, candidate: { type: 'missing' } }, input.tracked));
+  const covered = (path: string) => input.contextual.some(other => within(path, other) || within(other, path)) || installed.some(other => within(path, other));
+  // Recorded targets that leave the selection. An existing one that is not its
+  // installed baseline is kept, unless it contains a target the selection
+  // still installs, and a kept skill keeps its link.
+  const leaving = input.targets.filter(target => !target.candidate && target.baseline && !covered(target.path));
+  const containsInstalled = (path: string) => installed.some(other => within(other, path));
+  const kept = new Set(leaving.filter(({ path, current, baseline }) => current.type !== 'missing' && !containsInstalled(path) && !isBaseline(path, current, baseline)).map(({ path }) => path));
+  const keeps = (target: OwnedTarget) => target.current.type !== 'missing' && (kept.has(target.path) || (target.kind === 'skill-link' && kept.has(linkedSkillTarget(target.path)!)));
+  return input.targets.map(target => {
+    if (!leaving.includes(target)) return judge(target, input.tracked);
+    if (keeps(target)) return { path: target.path, kind: target.kind, discardsEdits: false, kept: true, blockers: [] };
+    return judge({ ...target, candidate: { type: 'missing' } }, input.tracked);
+  });
 }

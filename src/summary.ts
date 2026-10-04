@@ -25,7 +25,7 @@ export interface InspectionReport {
   guidance: { id: string; targets: string[]; discoveryRequired?: boolean }[];
   operations: OperationDefinition[];
   systemSkills: { name: string; target: string; action: string; link: SkillLink }[];
-  removed?: { id: string; target: string; files: ChangedFile[] }[]; discardedEdits: string[];
+  removed?: { id: string; target: string; files: ChangedFile[] }[]; kept?: { id: string; target: string }[]; discardedEdits: string[];
   discovery?: { declarations: { id: string }[]; proposal?: unknown };
   scopeChanges?: ScopeChange[]; retired?: Declaration[];
   start: { eligible: boolean | null; blockers: Blocker[] };
@@ -161,6 +161,11 @@ export function inspectionSummary(report: InspectionReport) {
   if (report.discardedEdits.length) parts.push(section('Discarded edits', [
     'Replacing or removing these targets discards content that is not their installed baseline:',
     report.discardedEdits.map(path => `- ${code(path)}`).join('\n'),
+  ].join('\n\n')));
+
+  if (report.kept?.length) parts.push(section('Kept targets', [
+    'These targets leave the selection with edits. They stay in place, and the project now owns them:',
+    table(['Declaration', 'Path'], report.kept.map(entry => [code(entry.id), code(entry.target)])),
   ].join('\n\n')));
 
   parts.push(section('Operations', report.operations.length ? table(['Phase', 'Declaration', 'Operation', 'Command', 'Prerequisite', 'Timeout'], report.operations.map(operation => [

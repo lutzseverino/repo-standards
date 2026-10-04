@@ -133,6 +133,7 @@ described [below](#discover-contextual-file-scope):
 | `exact` | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. A skill also has its `link`: the [skill link](adoption.md#skill-links) `.claude/skills/<name>` as `target`, with its own `create`, `replace`, or `match` `action`. |
 | `systemSkills` | Each system skill adoption installs, `adopt-standards` and then `standards-updates`, by `name` and reserved `.agents/skills/<name>` `target`, with `create`, `replace`, or `match` against the copy packaged with the inspecting exact CLI, and its `link` as in `exact`. |
 | `removed` | For an update, each installed target the selection no longer installs and the run removes, including a retired skill's link, with the declaration that installed it and each file's or link's before and after hash inventories and diff, as in `exact`. |
+| `kept` | For an update, each edited installed target the selection no longer installs and the run keeps, including the link of a kept skill, by `id` of the declaration that installed it and `target`, sorted by path. The project owns it from then on. |
 | `discardedEdits` | Each target whose replacement or removal discards content that is not its installed baseline, in the order of the target blockers. At initial adoption there is no baseline, so every replaced existing target is listed. |
 | `guidance` | Guidance by source-relative `source` path, SHA-256 and executable state, with its explicit project paths or directory trees. |
 | `operations` | Ordered fixes and checks, literal arguments, the script by path and hash, resource hash inventories, timeout, and declared prerequisite probe/range. |
@@ -147,11 +148,19 @@ changed selection component, in the order `cli`, `standards`, `source`, and
 changes with the version tag or its commit. `previousSelection` records the
 current selection, and `retired` lists declarations that will leave governance.
 The installed targets of retired declarations, and any other installed target
-the selection no longer installs, are listed in `removed`, and the run removes
-them. An installed target within contextual scope, as a contextual target or
+the selection no longer installs, leave the selection. Each one that still
+matches its installed baseline is listed in `removed`, and the run removes it.
+Each edited one is listed in `kept`, never in `discardedEdits`: the run leaves
+it in place, durable state no longer records it, and later runs neither list
+nor remove it. A skill directory is judged whole, so a skill with any added,
+removed, or changed file is kept whole, together with its link. A skill link
+is otherwise judged on its own, so a link the project replaced with its own
+content is kept even when its unedited skill is removed. A kept target has no
+start blockers, since the run neither reads nor writes it. An installed target within contextual scope, as a contextual target or
 inside or containing one, is not removed and stays in place as project content.
 Nor is one at or inside a target the selection still installs, whose own action
-covers it. Initial adoption omits these fields. Any update can be confirmed and
+covers it. One that contains such a target is removed, even when edited, and
+the run then installs the contained target. Initial adoption omits these fields. Any update can be confirmed and
 started; an unchanged selection is applied again. A complete discovery-backed
 update also includes `scopeChanges`, listing individual additions and removals
 by declaration relative to the prior complete adoption. Removed contextual
@@ -309,13 +318,15 @@ of JSON. It has these sections, in order:
 - **Discarded edits**: present only when a replacement or removal discards
   content that is not the target's installed baseline, listing each such
   target.
+- **Kept targets**: present only when an update keeps edited targets that leave
+  the selection, listing each with its declaration as now owned by the project.
 - **Operations**: every fix and check with its literal argument vector,
   prerequisite probe and range, and timeout.
 - **Scope changes**: discovered-scope additions and removals by declaration,
   the confirmed discovered scope of an initial adoption, or that discovery
   scope is not confirmed yet.
 - **Retired declarations**: for an update, the declarations that leave
-  governance and whose installed targets are removed.
+  governance and whose unedited installed targets are removed.
 - **Blockers**: present only when the report has start blockers.
 - **Identity**: the inspection identity and start eligibility.
 

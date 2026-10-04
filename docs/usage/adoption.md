@@ -119,7 +119,11 @@ abandonment behavior. It replaces the retained inputs and still-declared exact
 content and whole skills, including removal of obsolete skill resources.
 Retired and excluded declarations, including those a changed source or profile
 no longer declares, leave the new baselines and no longer contribute
-operations, and the run removes their installed targets. An installed target
+operations. The run removes each of their installed targets that still matches
+its installed baseline. An edited one stays in place and the project owns it:
+the inspection lists it in `kept`, durable state no longer records it, and
+later runs neither track nor remove it. A skill with any edited file stays
+whole, with its link. An installed target
 within contextual scope, as a contextual target or inside or containing one, is
 not removed and stays in place as project content. Only a changed CLI pin
 replaces the isolated runtime manifests, npm lock, dependencies, and matching
@@ -130,7 +134,8 @@ Project dependency manifests and package-manager choices remain outside that
 runtime. An incomplete run retains the prior last-complete evidence.
 
 Tracked content at an installation target never blocks: the run replaces it, or
-removes it when the selection no longer installs the target, and the confirmed
+removes it when the selection no longer installs the target and the project
+has not edited it, and the confirmed
 inspection lists each replacement or removal that discards content other than
 the target's installed baseline. Git keeps what it discards. Only ignored or
 untracked content, which Git cannot recover, blocks with
@@ -203,7 +208,8 @@ confirmation makes `start` fail as stale.
 The product links only the skills it installs and never writes
 `.claude/skills` as a whole: a skill the project wrote itself under
 `.agents/skills/` gets no link, and other content in `.claude/skills/` stays
-untouched. A retired skill's link is removed with the skill. Links are exact
+untouched. A retired skill's link is removed with the skill, and stays with it
+when an edited skill is kept. Links are exact
 content, so they never make an update contextual. Git records each link as a
 symbolic link; a checkout with `core.symlinks=false` has a small text file
 there instead, and Claude Code does not see that skill. Commit the links with

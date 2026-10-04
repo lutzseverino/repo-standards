@@ -628,6 +628,9 @@ test('an edited skill that leaves the selection is judged whole and keeps its li
     // An unedited skill goes; a copy in its link's place is the project's edit and stays.
     { name: 'an unedited skill whose link was replaced by a copy', mutate: copy, kept: [link], removed: [skill] },
     { name: 'an unedited skill whose link was removed', mutate: (root: string) => unlinkSync(join(root, link)), kept: [], removed: [skill] },
+    // The run never writes through the re-pointed link, so it doesn't block.
+    { name: 'an unedited skill whose link points elsewhere', mutate: (root: string) => { unlinkSync(join(root, link)); symlinkSync('../../.agents/skills/other', join(root, link)); },
+      kept: [link], removed: [skill] },
   ]) await t.test(name, () => {
     const remote = remoteFixture(manifest({ legacy: leaving.legacy }), leavingFiles);
     const project = sourceFixture('');
@@ -640,7 +643,11 @@ test('an edited skill that leaves the selection is judged whole and keeps its li
     mutate(project.root);
     commit(project.root);
     const before = existsSync(join(project.root, skill)) ? installedTree(join(project.root, skill)) : undefined;
-    const linkBefore = lstatSync(join(project.root, link), { throwIfNoEntry: false });
+    const linkContent = () => {
+      const stat = lstatSync(join(project.root, link), { throwIfNoEntry: false });
+      return stat?.isSymbolicLink() ? `link ${readlinkSync(join(project.root, link))}` : stat ? readFileSync(join(project.root, link), 'utf8') : undefined;
+    };
+    const linkBefore = linkContent();
     remote.addVersion('v1.1.0', manifest({}));
     const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument);
     const inspection = JSON.parse(cli.run(args, project.root, env).stdout);
@@ -648,14 +655,11 @@ test('an edited skill that leaves the selection is judged whole and keeps its li
     assert.deepEqual(inspection.kept.map(({ target }: { target: string }) => target), kept);
     assert.deepEqual(inspection.removed.map(({ target }: { target: string }) => target), removed);
     assert.deepEqual(inspection.discardedEdits, []);
-    const started = cli.run(['start', ...args.slice(1), '--confirm', inspection.identity, '--json'], project.root, env);
+    const started = cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env);
     assert.equal(JSON.parse(started.stdout).outcome, 'complete', started.stdout + started.stderr);
     if (kept.includes(skill)) assert.deepEqual(installedTree(join(project.root, skill)), before);
     else assert.equal(existsSync(join(project.root, skill)), false);
-    const linkAfter = lstatSync(join(project.root, link), { throwIfNoEntry: false });
-    if (kept.includes(link)) assert.equal(linkAfter?.isSymbolicLink() ? readlinkSync(join(project.root, link)) : readFileSync(join(project.root, link), 'utf8'),
-      linkBefore!.isSymbolicLink() ? '../../.agents/skills/legacy' : '# Legacy');
-    else assert.equal(linkAfter, undefined);
+    assert.equal(linkContent(), kept.includes(link) ? linkBefore : undefined);
     const state = JSON.parse(readFileSync(join(project.root, '.repo-standards/state.json'), 'utf8'));
     assert.equal(state.skills[skill], undefined);
     assert.equal(state.links[link], undefined);

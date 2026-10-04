@@ -93,7 +93,8 @@ only; keep this installation for `start` and recovery until the run completes.
    that its identity matches the report. Show exact creates, replacements and matches,
    the targets an update removes, each target in `discardedEdits` (its
    replacement or removal discards content other than its installed
-   baseline), whole-skill inventories, discovery rationale and candidate exclusions,
+   baseline), each target in `kept` (edited content that leaves the selection
+   stays in place, and the project owns it from then on), whole-skill inventories, discovery rationale and candidate exclusions,
    contextual guidance and allowed targets, resolved exclusions, and ownership changes. Make the full inspection available
    for review, including its diffs against existing content and the hashes of supplied material.
 3. Disclose every declared fix/check, its script and resources, literal argument

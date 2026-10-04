@@ -101,10 +101,11 @@ Acquire the executable and its matching documentation through
 Keep published tags immutable: an observed moved tag is rejected. For an update,
 publish another stable tag and describe replacements, retired declarations,
 changed scripts/prerequisites and CLI compatibility. Removing/excluding an ID
-relinquishes governance and removes its installed content. Renaming an ID
+relinquishes governance and removes its installed content, except content the
+adopter edited, which stays as the adopter's own. Renaming an ID
 retires one and adds another. A still-declared skill replaces its whole
 directory, removing obsolete resources. Adopters inspect and confirm each
 update; the inspection lists each local exact-content edit that the update
-replaces or removes. One update can change their CLI
+replaces, and each edited target that leaves the selection and stays. One update can change their CLI
 pin, standards version, source, and profile together; your declared range gates
 only which CLI versions can select a standards version.

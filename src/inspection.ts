@@ -243,15 +243,16 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const contextual = declared.filter(({ owned }) => !owned).map(({ path }) => path);
     const ownership = new Map(judgeTargetOwnership({ tracked, contextual, targets: [...ownedTargets.values()] }).map(verdict => [verdict.path, verdict]));
     // One block per target: its safety blockers, reported once for its path,
-    // then its type blockers and its ownership blockers.
+    // then its type blockers and its ownership blockers. A kept target has
+    // none: the run neither reads nor writes it.
     // The targets whose replacement or removal discards edits are listed in
     // the same order.
     const reported = new Set<string>();
     const discardedEdits: string[] = [];
     for (const { path, typeBlockers, owned } of [...installedSystemSkills.flatMap(({ target, link }) => [target, link].map(path => ({ path, typeBlockers: [], owned: true }))), ...declared,
       ...baselineOnly.map(path => ({ path, typeBlockers: [], owned: true }))]) {
-      if (!reported.has(path)) blockers.push(...observed.get(path)!.safety);
       const verdict = owned ? ownership.get(path) : undefined;
+      if (!reported.has(path) && !verdict?.kept) blockers.push(...observed.get(path)!.safety);
       if (verdict?.discardsEdits && !reported.has(path)) discardedEdits.push(path);
       reported.add(path);
       blockers.push(...typeBlockers, ...verdict?.blockers ?? []);
@@ -259,12 +260,13 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     // Each skill's link is listed with its skill, by path and action.
     const linkAction = (link: string) => ({ target: link, action: ownership.get(link)!.action! });
     const exact = installed.map(({ id, target, link }) => ({ id, target, action: ownership.get(target)!.action!, files: changedFiles(target, affected[target]!, desiredExact[target]!), ...link ? { link: linkAction(link) } : {} }));
-    // Each removed target, including a skill link, is attributed to the
-    // declaration that installed it.
+    // Each removed and each kept target, including a skill link, is
+    // attributed to the declaration that installed it.
+    const installer = (target: string) => previous!.resolved.declarations.find(declaration => installationTarget(declaration) === target || declarationLink(declaration) === target)!.id;
     const removed = previous ? baselineOnly.filter(path => ownership.get(path)!.action === 'replace').map(target => ({
-      id: previous.resolved.declarations.find(declaration => installationTarget(declaration) === target || declarationLink(declaration) === target)!.id,
-      target, files: changedFiles(target, observed.get(target)!.value, { type: 'missing' }),
+      id: installer(target), target, files: changedFiles(target, observed.get(target)!.value, { type: 'missing' }),
     })) : undefined;
+    const kept = previous ? baselineOnly.filter(path => ownership.get(path)!.kept).map(target => ({ id: installer(target), target })) : undefined;
     if (!proposal) for (const declaration of discoveryDeclarations) guidance.push({ id: declaration.id, targets: [], discoveryRequired: true, source: declaration.guidance, ...fileReference(join(source.root, declaration.guidance)) });
     for (const phase of ['fixes', 'checks'] as const) for (const declaration of profile.declarations) {
       for (const operation of declaration[phase]) {
@@ -288,7 +290,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         systemSkills: Object.fromEntries(Object.entries(systemSkills).map(([path, value]) => [path, hashInventory(value)])),
         skillLinks: Object.fromEntries(Object.entries(skillLinks).map(([path, value]) => [path, hashInventory(value)])) },
       systemSkills: installedSystemSkills.map(({ name, target, link }) => ({ name, target, action: ownership.get(target)!.action!, link: linkAction(link) })),
-      ...(removed ? { removed } : {}),
+      ...(removed ? { removed, kept } : {}),
       discardedEdits,
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
       ...comparison?.report,
