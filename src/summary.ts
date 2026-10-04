@@ -1,7 +1,7 @@
 import type { Declaration } from './model.js';
 import type { Blocker, HashInventory } from './observation.js';
 import type { ScopeChange } from './scope-evidence.js';
-import { adoptionSkill, declarationTargets, installationTarget } from './targets.js';
+import { declarationTargets, installationTarget } from './targets.js';
 
 // One renderer turns an inspection report or a status record into a Markdown
 // summary. It is a pure function of that input, so the same input renders the
@@ -23,7 +23,7 @@ export interface InspectionReport {
   exact: { id: string; target: string; action: string; files: ChangedFile[] }[];
   guidance: { id: string; targets: string[]; discoveryRequired?: boolean }[];
   operations: OperationDefinition[];
-  systemSkill: { target: string; action: string };
+  systemSkills: { name: string; target: string; action: string }[];
   removed?: { id: string; target: string; files: ChangedFile[] }[]; discardedEdits: string[];
   discovery?: { declarations: { id: string }[]; proposal?: unknown };
   scopeChanges?: ScopeChange[]; retired?: Declaration[];
@@ -143,7 +143,7 @@ export function inspectionSummary(report: InspectionReport) {
     const change = fileChange(file);
     return change ? [[code(entry.id), code(file.path), change]] : [];
   }));
-  if (report.systemSkill.action !== 'match') exactRows.push([code(adoptionSkill.name), code(report.systemSkill.target), report.systemSkill.action === 'create' ? 'created' : 'replaced']);
+  for (const skill of report.systemSkills) if (skill.action !== 'match') exactRows.push([code(skill.name), code(skill.target), skill.action === 'create' ? 'created' : 'replaced']);
   const changedGuidance = new Map((report.contextualChanges ?? []).map(change => [change.id, change.changes]));
   const guidanceRows = report.guidance
     .filter(entry => !update || changedGuidance.has(entry.id))

@@ -11,12 +11,13 @@ export interface SystemSkill { name: string; target: string }
 // The shared skill location every installed skill, system or author, lives in.
 export function skillTarget(name: string) { return `.agents/skills/${name}`; }
 
-// The system skill adoption installs, from this CLI's packaged copy.
-export const adoptionSkill: SystemSkill = { name: 'adopt-standards', target: skillTarget('adopt-standards') };
+// The system skills adoption installs, each from this CLI's packaged copy:
+// the adoption skill and the update notice, in name order.
+export const installedSystemSkills: readonly SystemSkill[] = ['adopt-standards', 'standards-updates'].map(name => ({ name, target: skillTarget(name) }));
 
 // Every system skill: no author skill may take its name, and no declared
-// target may overlap its target. Adoption installs only the adoption skill.
-export const systemSkills: readonly SystemSkill[] = [adoptionSkill, { name: 'author-standards', target: skillTarget('author-standards') }];
+// target may overlap its target. Adoption installs all but author-standards.
+export const systemSkills: readonly SystemSkill[] = [...installedSystemSkills, { name: 'author-standards', target: skillTarget('author-standards') }];
 
 // The one installation target of an exact file or skill, or none for
 // contextual guidance.

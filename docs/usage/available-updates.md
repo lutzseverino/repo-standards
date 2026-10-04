@@ -17,8 +17,10 @@ without `--json`; the flag also makes invalid usage and the
 another Git working tree.
 
 The report states availability only. It updates nothing and does not recommend
-an update; what to do with one belongs to the adopted standards' own guidance.
-Apply an update through inspection and confirmation as described in
+an update; whether to update is the maintainer's decision. Adoption installs the
+model-invocable `standards-updates` system skill, which reports this result to
+an agent and starts no update; `outdated` remains the complete interface without
+an agent. Apply an update through inspection and confirmation as described in
 [Confirmed adoption](adoption.md).
 
 ## Pinned CLI

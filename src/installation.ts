@@ -11,7 +11,7 @@ import { hiddenIndexPaths, observeProductState, productInventory, type inspectFo
 import { git, hashInventory, inventoryPaths, matchesInventory, observe, plannedInventory, type Content, type HashInventory, type Observation } from './observation.js';
 import { committedScopeEvidence, type ScopeRun } from './scope-evidence.js';
 import type { Scope } from './scope.js';
-import { adoptionSkill, skillTarget } from './targets.js';
+import { installedSystemSkills, skillTarget } from './targets.js';
 import { completedEvidence, type Delta } from './work-evidence.js';
 
 // Installation is the confirmed plan of an adoption run's exact content,
@@ -43,17 +43,17 @@ export interface Installation {
 }
 
 // Plans the installation of a confirmed inspection. A replaced runtime was
-// prepared in its directory, with the system skill it packages; otherwise the
-// installed runtime is kept, and the system skill is the one the inspecting
-// CLI, which is the pinned one, packages.
-export function planInstallation(root: string, inspected: StartInspection, confirmation: string, runtime?: { directory: string; skill: Observation }): Installation {
+// prepared in its directory, with the system skills it packages, by target;
+// otherwise the installed runtime is kept, and the system skills are the ones
+// the inspecting CLI, which is the pinned one, packages.
+export function planInstallation(root: string, inspected: StartInspection, confirmation: string, runtime?: { directory: string; skills: Record<string, Observation> }): Installation {
   const { report, materials, recorded } = inspected;
   const files: Files = Object.create(null);
   const skills: Record<string, string[]> = Object.create(null);
   const installedRuntime = runtime ? observe(join(runtime.directory, 'node_modules')) : safeDirectory(root, '.repo-standards/runtime/node_modules');
   for (const [target, desired] of Object.entries(materials.exact)) if (desired.type !== 'missing') flatten(target, desired, files);
-  flatten(adoptionSkill.target, runtime?.skill ?? materials.systemSkill, files);
-  const skillTargets = [...report.resolved.declarations.flatMap(declaration => declaration.kind === 'skill' ? [skillTarget(declaration.name)] : []), adoptionSkill.target];
+  for (const { target } of installedSystemSkills) flatten(target, (runtime?.skills ?? materials.systemSkills)[target]!, files);
+  const skillTargets = [...report.resolved.declarations.flatMap(declaration => declaration.kind === 'skill' ? [skillTarget(declaration.name)] : []), ...installedSystemSkills.map(({ target }) => target)];
   for (const target of skillTargets) skills[target] = Object.keys(files).filter(path => path.startsWith(target + '/')).map(path => path.slice(target.length + 1)).sort();
   const exactBaselines = baselines(files);
   const inputs: Files = Object.create(null);
@@ -82,10 +82,10 @@ export function planInstallation(root: string, inspected: StartInspection, confi
   const durable = baselines(files);
   files[lockFile] = file(json({ format: formats.lock, selection: report.selection, inspection: confirmation, files: durable }));
   // An update replaces its retained inputs as a whole tree. A replaced skill,
-  // including the system skill, is replaced as a whole tree, removing
+  // including a system skill, is replaced as a whole tree, removing
   // resources the candidate lacks, and a removed target is removed whole.
   const replaceTrees = [...report.update !== undefined ? ['.repo-standards/inputs'] : [],
-    ...[...report.exact, report.systemSkill].filter(({ target, action }) => action === 'replace' && skillTargets.includes(target)).map(({ target }) => target),
+    ...[...report.exact, ...report.systemSkills].filter(({ target, action }) => action === 'replace' && skillTargets.includes(target)).map(({ target }) => target),
     ...(report.removed ?? []).map(({ target }) => target)];
   return { report, git: inspected.git, files, skills, exactBaselines, durable, runtimeHash: hash(json(installedRuntime)), replaceTrees,
     ...(recorded ? { previousState: recorded.stateFile } : {}),
@@ -240,7 +240,7 @@ export function exactContent(installation: Installation): Scope[string] {
 
 // The project paths the installation plans, each with its state before the run
 // and as installed: exact files, every file of an installed or replaced skill
-// tree, including the system skill, and every file of a removed target. The
+// tree, including the system skills, and every file of a removed target. The
 // change set ignores those the installation leaves unchanged. Product state
 // under `.repo-standards/` is the product's own, not a project path the run
 // changes. Only the leaves of a tree are compared: an empty directory has

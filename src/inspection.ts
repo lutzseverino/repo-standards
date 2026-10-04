@@ -15,7 +15,7 @@ import { scopeChanges } from './scope-evidence.js';
 import { observeScope } from './scope-observation.js';
 import { validateScope } from './scope.js';
 import { judgeTargetOwnership, type OwnedTarget, type TargetKind } from './target-ownership.js';
-import { adoptionSkill, declarationTargets, installationTarget } from './targets.js';
+import { declarationTargets, installationTarget, installedSystemSkills } from './targets.js';
 import { unifiedDiff } from './unified-diff.js';
 import { compareUpdate } from './update-comparison.js';
 
@@ -64,10 +64,10 @@ export function hiddenIndexPaths(root: string) {
   return flags.stdout.split('\0').filter(entry => /^[a-zS] /.test(entry)).map(entry => entry.slice(2));
 }
 
-// The system skill this exact CLI installs. Start verifies that the acquired
-// runtime package carries the same inventory.
-export function packagedSystemSkill() {
-  return observe(fileURLToPath(new URL(`../skills/${adoptionSkill.name}`, import.meta.url)));
+// The system skills this exact CLI installs, by target. Start verifies that
+// the acquired runtime package carries the same inventories.
+export function packagedSystemSkills(): Record<string, Observation> {
+  return Object.fromEntries(installedSystemSkills.map(({ name, target }) => [target, observe(fileURLToPath(new URL(`../skills/${name}`, import.meta.url)))]));
 }
 
 export interface InspectOptions { source: string; standardsVersion: string; profile: string; project: string; scope?: string }
@@ -141,7 +141,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       }
       return target.value;
     }
-    const systemSkill = observeTarget(adoptionSkill.target);
+    const systemSkills = Object.fromEntries(installedSystemSkills.map(({ target }) => [target, observeTarget(target)]));
     if (!previous && productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
     const validation = validateSource(source.root, cliVersion, source.paths, retainedSource?.manifest);
     if (!validation.valid) throw new ProductError('INVALID_STANDARDS', 'The standards source is invalid or incompatible with this CLI.', validation.errors.map(error => ({ ...error, file: 'standards.yaml' })));
@@ -204,19 +204,19 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         installed.push({ id: declaration.id, target: installationPath!, kind: declaration.kind === 'skill' ? 'skill' : 'file' });
       } else guidance.push({ id: declaration.id, targets, source: declaration.guidance, ...fileReference(join(source.root, declaration.guidance)) });
     }
-    // Installation targets: the system skill, each exact file and skill the
+    // Installation targets: the system skills, each exact file and skill the
     // selection declares, and each recorded target, merged by path. Target
     // ownership decides what happens to a recorded target the selection no
     // longer installs.
     const ownedTargets = new Map<string, OwnedTarget>();
-    const systemCandidate = packagedSystemSkill();
-    ownedTargets.set(adoptionSkill.target, { path: adoptionSkill.target, kind: 'system-skill', current: systemSkill, candidate: systemCandidate });
+    const systemCandidates = packagedSystemSkills();
+    for (const { target } of installedSystemSkills) ownedTargets.set(target, { path: target, kind: 'system-skill', current: systemSkills[target]!, candidate: systemCandidates[target]! });
     for (const { target, kind } of installed) ownedTargets.set(target, { path: target, kind, current: affected[target]!, candidate: desiredExact[target]! });
     const recordedTargets: { path: string; kind: TargetKind; baseline: NonNullable<OwnedTarget['baseline']> }[] = [];
     if (previous) {
       const { baselines, skills } = previous.state;
       const directories = Object.keys(skills);
-      for (const directory of directories) recordedTargets.push({ path: directory, kind: directory === adoptionSkill.target ? 'system-skill' : 'skill',
+      for (const directory of directories) recordedTargets.push({ path: directory, kind: installedSystemSkills.some(({ target }) => target === directory) ? 'system-skill' : 'skill',
         baseline: { files: Object.fromEntries(Object.entries(baselines).filter(([path]) => path.startsWith(directory + '/'))), inventory: skills[directory]! } });
       for (const [path, value] of Object.entries(baselines)) if (!directories.some(directory => path.startsWith(directory + '/'))) recordedTargets.push({ path, kind: 'file', baseline: { files: { [path]: value } } });
     }
@@ -234,7 +234,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     // the same order.
     const reported = new Set<string>();
     const discardedEdits: string[] = [];
-    for (const { path, typeBlockers, owned } of [{ path: adoptionSkill.target, typeBlockers: [], owned: true }, ...declared,
+    for (const { path, typeBlockers, owned } of [...installedSystemSkills.map(({ target }) => ({ path: target, typeBlockers: [], owned: true })), ...declared,
       ...baselineOnly.map(path => ({ path, typeBlockers: [], owned: true }))]) {
       if (!reported.has(path)) blockers.push(...observed.get(path)!.safety);
       const verdict = owned ? ownership.get(path) : undefined;
@@ -267,8 +267,9 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
       inputs: Object.fromEntries(Object.entries(inputs).map(([path, value]) => [path, hashInventory(value)])),
       manifest: { sha256: hash(normalized), executable: false },
       project: { affected: Object.fromEntries(Object.entries(affected).map(([path, value]) => [path, hashInventory(value)])),
-        productState: hashInventory(productState), systemSkill: hashInventory(systemSkill) },
-      systemSkill: { target: adoptionSkill.target, action: ownership.get(adoptionSkill.target)!.action! },
+        productState: hashInventory(productState),
+        systemSkills: Object.fromEntries(Object.entries(systemSkills).map(([path, value]) => [path, hashInventory(value)])) },
+      systemSkills: installedSystemSkills.map(({ name, target }) => ({ name, target, action: ownership.get(target)!.action! })),
       ...(removed ? { removed } : {}),
       discardedEdits,
       start: { eligible: blockers.length ? false : operations.length ? null : true, blockers, prerequisites: operations.length ? 'not-checked' : 'none' },
@@ -286,7 +287,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     if (namedObservation && JSON.stringify(namedObservation) !== JSON.stringify(observeScope(root, named))) throw new ProductError('OBSERVATION_UNSTABLE', 'Named scope observations changed during inspection. Inspect again.');
     return {
       report: { ...report, identity: `sha256:${hash(JSON.stringify(report))}` },
-      materials: { exact: desiredExact, inputs, manifest: normalized, systemSkill: systemCandidate },
+      materials: { exact: desiredExact, inputs, manifest: normalized, systemSkills: systemCandidates },
       root,
       git: { head: head.status === 0 ? head.stdout.trim() : null, index: hash(index.stdout), hidden },
       recorded: previous,

@@ -8,11 +8,11 @@ import { externalPath, hash } from './acquisition.js';
 import { execute, operations, preflight } from './execution.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
-import { inspect, inspectForStart, packagedSystemSkill } from './inspection.js';
+import { inspect, inspectForStart, packagedSystemSkills } from './inspection.js';
 import type { InspectOptions } from './inspection.js';
 import { observe } from './observation.js';
 import { json, projectRoot } from './adoption-files.js';
-import { adoptionSkill, declarationTargets } from './targets.js';
+import { declarationTargets, installedSystemSkills } from './targets.js';
 import { withStartRun, withResumedRun } from './adoption-run.js';
 import { install, planInstallation, verifyInstallation, type Installation } from './installation.js';
 import { readRecordedAdoption } from './recorded-state.js';
@@ -79,10 +79,12 @@ function prepareRuntime(directory: string, version: string, project: string) {
   if (result.error || result.status !== 0) throw new ProductError('RUNTIME_INSTALL', 'Cannot install the exact CLI runtime. Check npm registry or cache availability and retry after a new inspection.', result.stderr);
   const installed = JSON.parse(readFileSync(join(directory, 'node_modules', packageName, 'package.json'), 'utf8'));
   if (installed.name !== packageName || installed.version !== version) throw new ProductError('RUNTIME_IDENTITY', 'The runtime package does not match the confirmed exact CLI version.');
-  const expectedSkill = packagedSystemSkill();
-  const installedSkill = observe(join(directory, 'node_modules', packageName, 'skills', adoptionSkill.name));
-  if (expectedSkill.type !== 'directory' || JSON.stringify(installedSkill) !== JSON.stringify(expectedSkill)) throw new ProductError('RUNTIME_IDENTITY', 'The installed runtime does not contain the matching adoption skill.');
-  return installedSkill;
+  const expectedSkills = packagedSystemSkills();
+  return Object.fromEntries(installedSystemSkills.map(({ name, target }) => {
+    const installedSkill = observe(join(directory, 'node_modules', packageName, 'skills', name));
+    if (expectedSkills[target]!.type !== 'directory' || JSON.stringify(installedSkill) !== JSON.stringify(expectedSkills[target])) throw new ProductError('RUNTIME_IDENTITY', `The installed runtime does not contain the matching ${name} system skill.`);
+    return [target, installedSkill];
+  }));
 }
 
 export async function start(options: InspectOptions, cliVersion: string, confirmation: string) {
