@@ -4,7 +4,6 @@ import { join } from 'node:path';
 import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { foldPath } from './paths.js';
-import { linkTextAt } from './targets.js';
 
 // Read-only observation of the project: files and trees observed without
 // following links, target boundaries validated on the way down, and Git run
@@ -83,10 +82,10 @@ export function requireSupportedGit() {
 // Validate the target and its ancestors while observing descendants without
 // following their links. Owned runtime trees validate those descendants against
 // npm's recorded inventory instead of the author-target no-symlink contract.
-// The one link a target may be is a skill link: the target itself, at a
-// skill-link path, holding exactly the text the product writes there. It is
+// The one link a target may be is the skill link a caller observes as one: the
+// target itself, holding exactly the link text the caller passes. It is
 // observed as a link, never followed, and its ancestors stay directories.
-export function targetBoundaryObservation(root: string, target: string, blockers: Blocker[], excluded?: ReadonlySet<string>): Observation {
+export function targetBoundaryObservation(root: string, target: string, blockers: Blocker[], excluded?: ReadonlySet<string>, link?: string): Observation {
   let parent = root;
   const parts = target.split('/');
   for (const [index, part] of parts.entries()) {
@@ -99,7 +98,7 @@ export function targetBoundaryObservation(root: string, target: string, blockers
       }
       parent = join(parent, part);
       const stat = lstatSync(parent);
-      const skillLink = index === parts.length - 1 && stat.isSymbolicLink() && readlinkSync(parent) === linkTextAt(target);
+      const skillLink = link !== undefined && index === parts.length - 1 && stat.isSymbolicLink() && readlinkSync(parent) === link;
       if (!skillLink && (stat.isSymbolicLink() || (!stat.isDirectory() && index < parts.length - 1) || (!stat.isDirectory() && !stat.isFile()))) {
         blockers.push({ code: 'UNSAFE_TARGET', path: target, message: 'A target or ancestor is a symbolic link, special file, or non-directory ancestor.' });
         return { type: 'unsafe', obstacles: { [parts.slice(0, index + 1).join('/')]: observe(parent) } };
@@ -112,8 +111,8 @@ export function targetBoundaryObservation(root: string, target: string, blockers
   return observe(parent, excluded);
 }
 
-export function targetObservation(root: string, target: string, blockers: Blocker[], excluded?: ReadonlySet<string>): Observation {
-  const observed = targetBoundaryObservation(root, target, blockers, excluded);
+export function targetObservation(root: string, target: string, blockers: Blocker[], excluded?: ReadonlySet<string>, link?: string): Observation {
+  const observed = targetBoundaryObservation(root, target, blockers, excluded, link);
   // The boundary returns a link only for an accepted skill link.
   if (observed.type === 'unsafe' || observed.type === 'missing' || observed.type === 'symlink') return observed;
   function unsafe(value: Observation): boolean {

@@ -13,18 +13,28 @@ export interface SystemSkill { name: string; target: string; link: string }
 export function skillTarget(name: string) { return `.agents/skills/${name}`; }
 
 // The skill link that exposes an installed skill to Claude Code, which reads
-// only its own skill location: a relative symbolic link to the skill's
-// directory in the shared location.
+// only its own skill location: a relative symbolic link from that location
+// back to the skill's directory in the shared one.
 const linkLocation = '.claude/skills/';
 export function skillLinkTarget(name: string) { return `${linkLocation}${name}`; }
-export function skillLinkText(name: string) { return `../../${skillTarget(name)}`; }
+function skillLinkText(name: string) { return `${'../'.repeat(linkLocation.split('/').length - 1)}${skillTarget(name)}`; }
 
-// The text the product writes at a skill-link path, or none for any other
-// path. A symbolic link with exactly this text is the one link an observation
-// accepts at an installation target.
-export function linkTextAt(path: string): string | undefined {
+// The skill a skill-link path links, or none for any other path.
+function linkedName(path: string) {
   const name = path.startsWith(linkLocation) ? path.slice(linkLocation.length) : '';
-  return name && !name.includes('/') ? skillLinkText(name) : undefined;
+  return name && name !== '.' && name !== '..' && !name.includes('/') ? name : undefined;
+}
+
+// The text the product writes at a skill-link path, or none for any other path.
+export function linkTextAt(path: string): string | undefined {
+  const name = linkedName(path);
+  return name === undefined ? undefined : skillLinkText(name);
+}
+
+// The skill target a skill-link path exposes, or none for any other path.
+export function linkedSkillTarget(path: string): string | undefined {
+  const name = linkedName(path);
+  return name === undefined ? undefined : skillTarget(name);
 }
 
 function systemSkill(name: string): SystemSkill { return { name, target: skillTarget(name), link: skillLinkTarget(name) }; }

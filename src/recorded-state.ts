@@ -7,7 +7,7 @@ import { formats, recordPath, requireFormat } from './formats.js';
 import type { Declaration } from './model.js';
 import { git, targetObservation, type Blocker, type Content, type Observation } from './observation.js';
 import { retainedScopeEvidence, type RetainedScopeEvidence } from './scope-evidence.js';
-import { linkTextAt } from './targets.js';
+import { linkTextAt, linkedSkillTarget } from './targets.js';
 import { validExecutionEvidence, type ExecutionEvidence } from './work-evidence.js';
 
 // The one reader of a recorded adoption: everything the last complete adoption
@@ -81,9 +81,11 @@ function text(value: Pick<Content, 'content' | 'encoding'>) {
   return Buffer.from(value.content, value.encoding).toString('utf8');
 }
 
-// Every recorded link is a skill link with the text the product writes there.
-function validLinks(links: unknown) {
-  return !!links && typeof links === 'object' && !Array.isArray(links) && Object.entries(links).every(([path, text]) => linkTextAt(path) === text);
+// Every recorded link is the skill link of a recorded skill, with the text the
+// product writes there.
+function validLinks(links: unknown, skills: Record<string, string[]>) {
+  return !!links && typeof links === 'object' && !Array.isArray(links)
+    && Object.entries(links).every(([path, text]) => linkTextAt(path) === text && Object.hasOwn(skills, linkedSkillTarget(path)!));
 }
 
 // Decodes durable state in its single committed format.
@@ -92,7 +94,7 @@ function decodeState(value: Pick<Content, 'content' | 'encoding'>): RecordedStat
   try { state = JSON.parse(text(value)); }
   catch { unreadable(); }
   requireFormat(stateFile, state, formats.state);
-  if (!state?.lastComplete || !state.baselines || !state.skills || !validLinks(state.links)
+  if (!state?.lastComplete || !state.baselines || !state.skills || !validLinks(state.links, state.skills)
     || !Array.isArray(state.checks) || !Array.isArray(state.assessments)
     || !validExecutionEvidence(state)) {
     invalid();

@@ -130,13 +130,14 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const tracked = new Set(index.stdout.split('\0').filter(Boolean).map(entry => entry.slice(entry.indexOf('\t') + 1)));
     for (const entry of index.stdout.split('\0').filter(entry => entry.startsWith('160000 '))) blockers.push({ code: 'SUBMODULE_STATE', path: entry.slice(entry.indexOf('\t') + 1), message: 'Initial inspection cannot establish clean nested submodule state without running nested Git behavior.' });
     const productState = previous ? productStateObservation(root, blockers) : targetObservation(root, '.repo-standards', blockers);
-    // Each target is observed once, keeping its safety blockers for its block.
+    // Each target is observed once, keeping its safety blockers for its block;
+    // a skill link is observed as a link with the text the product writes there.
     const observed = new Map<string, { value: Observation; safety: Blocker[] }>();
-    function observeTarget(path: string) {
+    function observeTarget(path: string, link?: string) {
       let target = observed.get(path);
       if (!target) {
         const safety: Blocker[] = [];
-        target = { value: targetObservation(root, path, safety), safety };
+        target = { value: targetObservation(root, path, safety, undefined, link), safety };
         observed.set(path, target);
       }
       return target.value;
@@ -144,7 +145,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const systemSkills = Object.fromEntries(installedSystemSkills.map(({ target }) => [target, observeTarget(target)]));
     // The skill link of every installed skill, system or author, by path.
     const skillLinks: Record<string, Observation> = Object.create(null);
-    const observeLink = (path: string) => { skillLinks[path] = observeTarget(path); };
+    const observeLink = (path: string) => { skillLinks[path] = observeTarget(path, linkTextAt(path)); };
     for (const { link } of installedSystemSkills) observeLink(link);
     if (!previous && productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
     const validation = validateSource(source.root, cliVersion, source.paths, retainedSource?.manifest);
@@ -202,8 +203,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
         affected[target] = current;
         const expectsDirectory = directories.includes(target);
         declared.push({ path: target, owned: installationPath !== undefined,
-          // The one link an observation accepts, a skill link, is no declared target's type.
-          typeBlockers: current.type === 'symlink' || (expectsDirectory ? current.type === 'file' : current.type === 'directory')
+          typeBlockers: (expectsDirectory && current.type === 'file') || (!expectsDirectory && current.type === 'directory')
             ? [{ code: 'TARGET_TYPE', path: target, message: `This declaration requires a ${expectsDirectory ? 'directory' : 'file'} at its target.` }] : [] });
       }
       if (link) {
@@ -237,7 +237,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     for (const { path, kind, baseline } of recordedTargets) {
       const target = ownedTargets.get(path);
       if (target) target.baseline = baseline;
-      else ownedTargets.set(path, { path, kind, current: observeTarget(path), baseline });
+      else ownedTargets.set(path, { path, kind, current: observeTarget(path, baseline.link), baseline });
     }
     const contextual = declared.filter(({ owned }) => !owned).map(({ path }) => path);
     const ownership = new Map(judgeTargetOwnership({ tracked, contextual, targets: [...ownedTargets.values()] }).map(verdict => [verdict.path, verdict]));

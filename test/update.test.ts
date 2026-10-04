@@ -10,6 +10,7 @@ import { installCli, installedTree, sha256, snapshot, sourceFixture } from './in
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
+import { committedState, rewriteCommittedState } from './committed-evidence.ts';
 
 const cli = installCli();
 const candidateVersion = inc(cli.version, 'minor')!;
@@ -259,6 +260,33 @@ test('the first update of an adoption made without skill links creates them as e
   assert.deepEqual(Object.fromEntries(Object.entries(updated.links).sort()), links);
   assert.deepEqual(git(project.root, 'status', '--porcelain', '--untracked-files=all', '--', '.agents', '.claude').split('\n').sort(),
     Object.keys(links).map(path => `?? ${path}`));
+});
+
+test('durable state records only the skill link of a recorded skill', async t => {
+  const remote = remoteFixture(source('v1', `    review:
+      kind: skill
+      name: review
+      source: skills/review`), { 'skills/review/SKILL.md': 'Review' });
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
+  commit(project.root);
+  const state = committedState(project.root) as unknown as { links: Record<string, string> };
+  for (const links of [{ '.claude/skills/..': '../../.agents/skills/..' }, { '.claude/skills/ghost': '../../.agents/skills/ghost' },
+    { '.claude/skills/review': '../../.agents/skills/other' }, { '.claude/review': '../.agents/skills/review' }]) {
+    rewriteCommittedState(project.root, { ...state, links: { ...state.links, ...links } });
+    const before = snapshot(project.root);
+    for (const command of ['inspect', 'status']) {
+      const result = cli.run([command, '--json'], project.root, env);
+      assert.equal(result.status, 1, result.stdout + result.stderr);
+      assert.equal(JSON.parse(result.stdout).errors[0].code, 'STATE_INTEGRITY', JSON.stringify(links));
+    }
+    assert.deepEqual(snapshot(project.root), before);
+  }
 });
 
 test('retiring a skill removes its link, and an update leaves the project its own skills', async t => {

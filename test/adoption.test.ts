@@ -233,6 +233,10 @@ test('start rejects every invalid initial project state without mutation', async
     { name: 'untracked content', code: 'DIRTY_PROJECT', setup: root => writeFileSync(join(root, 'untracked'), 'Local') },
     { name: 'ignored replacement', code: 'UNTRACKED_REPLACEMENT', files: { '.gitignore': 'ignored.md\n', 'ignored.md': 'Local' }, source: yaml.replace('target: AGENTS.md', 'target: ignored.md') },
     { name: 'unsafe target', code: 'UNSAFE_TARGET', setup: root => { rmSync(join(root, 'AGENTS.md')); symlinkSync('README.md', join(root, 'AGENTS.md')); commit(root); } },
+    // Only a skill link the product would install is accepted as a link; one
+    // shaped like it at an author target is not.
+    { name: 'link at a target shaped like a skill link', code: 'UNSAFE_TARGET', source: yaml.replace('target: AGENTS.md', 'target: .claude/skills/notes'),
+      setup: root => { mkdirSync(join(root, '.claude/skills'), { recursive: true }); symlinkSync('../../.agents/skills/notes', join(root, '.claude/skills/notes')); commit(root); } },
     { name: 'unsafe ancestor', code: 'UNSAFE_TARGET', source: yaml.replace('target: AGENTS.md', 'target: linked/AGENTS.md'), setup: root => { symlinkSync('folder', join(root, 'linked')); commit(root); } },
     { name: 'wrong target type', code: 'TARGET_TYPE', source: yaml.replace('target: AGENTS.md', 'target: folder') },
     { name: 'case conflict', code: 'CASE_CONFLICT', source: yaml.replace('target: AGENTS.md', 'target: agents.md') },

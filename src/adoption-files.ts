@@ -26,10 +26,11 @@ export function relativePath(path: string) {
   if (path.split('/').some(part => !part || part === '.' || part === '..') || /[\\\p{Cc}]/u.test(path)) throw new ProductError('STATE_INTEGRITY', `Invalid repository-relative product path: ${path}.`);
 }
 
-export function safe(root: string, path: string) {
+// A target observed safely, as a skill link with the given text when one is passed.
+export function safe(root: string, path: string, link?: string) {
   relativePath(path);
   const blockers: Blocker[] = [];
-  const value = targetObservation(root, path, blockers);
+  const value = targetObservation(root, path, blockers, undefined, link);
   if (blockers.length) throw new ProductError('UNSAFE_TARGET', `Target is no longer safe: ${path}.`, blockers);
   return value;
 }
@@ -55,40 +56,39 @@ export function stagedPath(path: string, installationId?: string) {
 
 // Rename a new inode so replacing a tracked hard link never overwrites its
 // other names. Recheck target ancestors immediately before each mutation.
-export function write(root: string, path: string, value: Content, installationId?: string) {
-  const before = safe(root, path);
-  if (before.type === 'file' && before.sha256 === value.sha256 && before.executable === value.executable) return;
-  if (!['file', 'missing'].includes(before.type)) throw new ProductError('TARGET_TYPE', `Expected a regular file at ${path}.`);
+function place(root: string, path: string, temporary: string, create: (temporary: string) => void, link?: string) {
   mkdirSync(dirname(join(root, path)), { recursive: true });
-  safe(root, path);
-  const temporary = join(root, stagedPath(path, installationId));
+  safe(root, path, link);
   try {
-    writeFileSync(temporary, Buffer.from(value.content, value.encoding), { flag: 'wx', mode: value.executable ? 0o755 : 0o644 });
-    chmodSync(temporary, value.executable ? 0o755 : 0o644);
-    safe(root, path);
+    create(temporary);
+    safe(root, path, link);
     renameSync(temporary, join(root, path));
   } finally { rmSync(temporary, { force: true }); }
 }
 
-// Installs a skill link the same way: a new link renamed into place, with the
-// target ancestors rechecked before each mutation. The link is never followed.
-// A staged link an interrupted write left behind is removed when it holds the
-// same text.
-export function writeLink(root: string, path: string, text: string, installationId: string) {
+export function write(root: string, path: string, value: Content, installationId?: string) {
   const before = safe(root, path);
-  if (before.type === 'symlink' && before.target === text) return;
+  if (before.type === 'file' && before.sha256 === value.sha256 && before.executable === value.executable) return;
+  if (!['file', 'missing'].includes(before.type)) throw new ProductError('TARGET_TYPE', `Expected a regular file at ${path}.`);
+  place(root, path, join(root, stagedPath(path, installationId)), temporary => {
+    writeFileSync(temporary, Buffer.from(value.content, value.encoding), { flag: 'wx', mode: value.executable ? 0o755 : 0o644 });
+    chmodSync(temporary, value.executable ? 0o755 : 0o644);
+  });
+}
+
+// Installs a skill link the same way, never following it. A staged link an
+// interrupted write left behind is replaced when it holds the same text.
+export function writeLink(root: string, path: string, text: string, installationId: string) {
+  const before = safe(root, path, text);
+  if (before.type === 'symlink') return;
   if (before.type !== 'missing') throw new ProductError('TARGET_TYPE', `Expected no entry at ${path}.`);
-  mkdirSync(dirname(join(root, path)), { recursive: true });
-  safe(root, path);
-  const temporary = join(root, stagedPath(path, installationId));
-  const staged = lstatSync(temporary, { throwIfNoEntry: false });
-  if (staged && !(staged.isSymbolicLink() && readlinkSync(temporary) === text)) throw new ProductError('INSTALLATION_CHANGED', `Staged installation content changed: ${stagedPath(path, installationId)}. Preserve and reconcile it before retry.`);
-  try {
+  const staged = stagedPath(path, installationId);
+  const stat = lstatSync(join(root, staged), { throwIfNoEntry: false });
+  if (stat && !(stat.isSymbolicLink() && readlinkSync(join(root, staged)) === text)) throw new ProductError('INSTALLATION_CHANGED', `Staged installation content changed: ${staged}. Preserve and reconcile it before retry.`);
+  place(root, path, join(root, staged), temporary => {
     rmSync(temporary, { force: true });
     symlinkSync(text, temporary);
-    safe(root, path);
-    renameSync(temporary, join(root, path));
-  } finally { rmSync(temporary, { force: true }); }
+  }, text);
 }
 
 // Whether reinstalling the project runtime from its manifest and npm lock
@@ -165,7 +165,8 @@ export function actualChanges(root: string, affected: Record<string, HashInvento
   for (const [path, before] of Object.entries(affected)) {
     relativePath(path);
     const blockers: Blocker[] = [];
-    if (json(hashInventory(targetObservation(root, path, blockers))) !== json(before)) {
+    // Only a skill link was ever observed as a link; it is observed as one again.
+    if (json(hashInventory(targetObservation(root, path, blockers, undefined, before.type === 'symlink' ? before.target : undefined))) !== json(before)) {
       paths.add(path);
       if (blockers.length === 0) collect(path);
     }
