@@ -163,8 +163,8 @@ out-of-scope change into valid completion. Replaying fixes requires a new
 submission against the retried request, and fresh checks, even when the current
 bytes happen to match an earlier snapshot.
 
-Run records and state v6 store each interval's applicable concrete scope
-separately from operation outcomes and assessment submissions. State v6 holds
+Run records and state v7 store each interval's applicable concrete scope
+separately from operation outcomes and assessment submissions. State v7 holds
 the last complete run's interval, operation, retry, check and assessment
 evidence only; a completion does not carry the preceding run's evidence. A
 recorded out-of-scope interval remains an incomplete result; abandon and

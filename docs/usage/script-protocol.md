@@ -203,13 +203,13 @@ never an observation map. It keeps `before` and `after` observation identities,
 are the product's observation identity, `sha256:` over the observation the run
 held, so the recorded delta stays tamper-evident without the full maps.
 
-State v6 holds the last complete run's evidence only, with its `lastComplete`
+State v7 holds the last complete run's evidence only, with its `lastComplete`
 record; a completion replaces the previous run's evidence rather than carrying
 it, and Git history keeps earlier runs. Detailed logs remain local; the
 recorded outcomes and interval evidence survive a fresh checkout. The integrity
 lock remains `repo-standards/lock/v1` and binds the new state bytes.
 
-State v6 is the only state format written and read. A committed v6 state whose
+State v7 is the only state format written and read. A committed v7 state whose
 intervals carry observation maps, whose closed interval is missing either
 identity, or that carries an earlier run's `history`, fails state integrity
 validation. A state, run record, or scope
