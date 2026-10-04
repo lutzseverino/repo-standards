@@ -97,7 +97,7 @@ installation's matching `docs/usage/author-format.md` and
 Node.js 24, npm, and registry access are required. Installing the skill does not
 install its CLI, change an adopting project's runtime pin, or install authoring
 into adopting projects. Adoption continues to manage its matching local
-`adopt-standards` skill independently.
+`adopt-standards` and `standards-updates` skills independently.
 
 Direct installation is independent of the
 [skills.sh directory](https://skills.sh/lutzseverino/repo-standards/author-standards).

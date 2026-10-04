@@ -179,8 +179,9 @@ Selected sources cannot contain symbolic links. Targets and their ancestors
 cannot be symbolic links during adoption. Concrete targets cannot overlap,
 including case-folded collisions. Product-owned state and every system-skill
 path (`.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, and
-`.agents/skills/author-standards`) are reserved, including equal paths, ancestors, descendants, and collisions
-under the same case-folded and Unicode-normalized comparison. This applies to
+`.agents/skills/author-standards`) are reserved, including equal paths,
+ancestors, descendants, and collisions under the same case-folded and
+Unicode-normalized comparison. This applies to
 exact files, contextual files, and repository guidance as well as author skills,
 across defaults and all profiles, including those not selected for inspection.
 Reserving `author-standards` does not change the schema or the two-level
@@ -289,7 +290,9 @@ before any lookup. Without a recorded pin they report under any CLI. Only
 `inspect` and `start` treat a different exact CLI as a candidate CLI pin change.
 `outdated`, the update class, and both summaries describe. Whether to take an
 available update is the maintainer's decision: the update notice reports it and
-starts nothing, and the product prescribes no delivery workflow.
+starts nothing, and a requested update is a change of its own. How any change
+is delivered belongs to standards content; the product prescribes no delivery
+workflow.
 
 The thin user-installed bootstrap obtains one exact CLI version outside the
 project for first inspection. An omitted version selects the latest stable

@@ -302,9 +302,9 @@ of JSON. It has these sections, in order:
 - **Update class**: for an update, whether it is an exact or a contextual
   update, and each declaration that makes it contextual.
 - **Changed declarations**: exact content by declaration and path, created,
-  modified, deleted, or mode changed, including each system skill the run
-  creates or replaces and removed targets; and contextual declarations with their targets and what
-  changed.
+  modified, deleted, or mode changed, including removed targets and each system
+  skill the run creates or replaces; and contextual declarations with their
+  targets and what changed.
 - **Discarded edits**: present only when a replacement or removal discards
   content that is not the target's installed baseline, listing each such
   target.

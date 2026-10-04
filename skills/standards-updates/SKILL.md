@@ -41,7 +41,7 @@ For each pin, `cli` and `standards`:
 ## After reporting
 
 Without the maintainer's instruction, mention the available updates and
-continue the current work as planned. Don't inspect or start an update.
+continue the current work as planned. Do not inspect or start an update.
 
 When the maintainer asks for an update, carry it through `adopt-standards` as a
 change separate from the current work, never mixed with the current work's

@@ -92,9 +92,8 @@ requires exactly one of `targets` or `discovery`, and explicit targets need at
 least one path or directory. Exact skills target
 `.agents/skills/<name>` as a whole. `adopt-standards`, `standards-updates`, and
 `author-standards` are product-owned system skill names reserved against author
-skills. Author skill
-content remains ordinary Agent Skill material; source validation verifies its
-directory, `SKILL.md` references, and invocation agreement, not prose quality or
+skills. Author skill content remains ordinary Agent Skill material; source
+validation verifies its directory, `SKILL.md` references, and invocation agreement, not prose quality or
 skill behavior.
 
 ### Skill invocation
@@ -177,9 +176,9 @@ other than the one selected for inspection.
 
 Reservation applies within the standards format; it does not manage unrelated
 global skill installations. Adoption installs the `adopt-standards` and
-`standards-updates` system skills matched to the project's exact CLI pin. It does not automatically install
-`author-standards` or change runtime ownership, integrity baselines, or update
-behavior.
+`standards-updates` system skills matched to the project's exact CLI pin. It
+does not automatically install `author-standards` or change runtime ownership,
+integrity baselines, or update behavior.
 
 ## Checks and fixes
 
