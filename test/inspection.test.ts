@@ -122,7 +122,7 @@ test('inspect and start reject Git older than 2.32 before observing public or re
 });
 
 test('resume rejects Git older than 2.32 before reading records or observing work', async t => {
-  const remote = remoteFixture(simpleSource().replace('exact: content.md', 'guidance: content.md'), { 'content.md': 'Maintain instructions.' });
+  const remote = remoteFixture(simpleSource().replace('exact: content.md', 'guidance: content.md'), { 'content.md': 'Maintain instructions.' }, [], 'alice/standards', true);
   const project = sourceFixture('');
   const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
