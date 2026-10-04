@@ -657,7 +657,7 @@ profiles:`), { 'content.md': 'Expected', 'skill/SKILL.md': '# Review', 'skill/re
   assert.equal(result.status, 1);
   const report = JSON.parse(result.stdout);
   assert.match(report.reason, /IGNORED_OUTPUT/);
-  const expected = ['AGENTS.md', '.agents/skills/review/SKILL.md', '.agents/skills/review/resources/check.txt', '.agents/skills/adopt-standards/SKILL.md'];
+  const expected = ['AGENTS.md', '.agents/skills/review/SKILL.md', '.agents/skills/review/resources/check.txt', ...cli.systemSkillFiles];
   for (const path of expected) assert.ok(report.changes.includes(path), `start must report ${path}`);
   writeFileSync(join(project.root, '.agents/skills/review/resources/added.txt'), 'Added after interruption');
   const before = snapshot(project.root);
@@ -806,6 +806,6 @@ test('status recovers ignored installed targets after the adoption process is in
   const status = JSON.parse(cli.run(['status', '--json'], project.root, env).stdout);
   assert.equal(status.lastComplete, null);
   assert.equal(status.active.outcome, 'incomplete');
-  for (const path of ['AGENTS.md', '.agents/skills/adopt-standards/SKILL.md']) assert.ok(status.active.changes.includes(path));
+  for (const path of ['AGENTS.md', ...cli.systemSkillFiles]) assert.ok(status.active.changes.includes(path), path);
   assert.deepEqual(snapshot(project.root), before);
 });
