@@ -4,6 +4,30 @@ import { Fields } from './yaml.js';
 import type { Diagnostic, Value } from './yaml.js';
 import type { Paths } from './paths.js';
 
+// Recover only a setting's block-mapping path when malformed YAML hides its
+// node. Indented prose in literal/folded scalars is never a setting line.
+function hasSettingLine(text: string, keys: string[]): boolean {
+  const parents: { key: string; indent: number }[] = [];
+  const blockScalar = /^(?:[!&]\S+[ \t]+)*[|>][0-9+-]*[ \t]*(?:#.*)?$/;
+  let proseIndent: number | undefined;
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim() || line.trimStart().startsWith('#')) continue;
+    const indent = line.match(/^[ \t]*/)![0].length;
+    if (proseIndent !== undefined && indent > proseIndent) continue;
+    proseIndent = undefined;
+    if (blockScalar.test(line.trim().replace(/^-[ \t]+/, ''))) { proseIndent = indent; continue; }
+    const match = line.match(/^[ \t]*("[^"]*"|'[^']*'|[^:#]+):(?:[ \t]|$)(.*)$/);
+    if (!match) continue;
+    const key = match[1]!.trim().replace(/^(["'])(.*)\1$/, '$2');
+    while (parents.length && parents.at(-1)!.indent >= indent) parents.pop();
+    const path = [...parents.map(parent => parent.key), key];
+    if (path.length === keys.length && path.every((part, index) => part === keys[index])) return true;
+    parents.push({ key, indent });
+    if (blockScalar.test(match[2]!.trim())) proseIndent = indent;
+  }
+  return false;
+}
+
 // Skill metadata has its own open schema; interpret only invocation settings.
 function setting(text: string, file: string, keys: string[], fallback: boolean, errors: Diagnostic[]): boolean | undefined {
   const lines = new LineCounter();
@@ -14,9 +38,9 @@ function setting(text: string, file: string, keys: string[], fallback: boolean, 
     problems.push({ code, message, file, line, column, path });
   }
   const active = new Set<unknown>();
-  function find(node: unknown, index: number, offset = 0): boolean[] {
+  function find(node: unknown, index: number, offset = 0, referenceOffset?: number): boolean[] {
     const path = '/' + keys.slice(0, index).join('/');
-    if (isNode(node)) offset = node.range?.[0] ?? offset;
+    if (isNode(node)) offset = referenceOffset ?? node.range?.[0] ?? offset;
     if (isAlias(node)) {
       const resolved = node.resolve(document);
       if (!resolved || active.has(node) || active.size > 100) {
@@ -24,7 +48,7 @@ function setting(text: string, file: string, keys: string[], fallback: boolean, 
         return [];
       }
       active.add(node);
-      const values = find(resolved, index, offset);
+      const values = find(resolved, index, offset, offset);
       active.delete(node);
       return values;
     }
@@ -47,8 +71,7 @@ function setting(text: string, file: string, keys: string[], fallback: boolean, 
   const values = find(document.contents, 0);
   // A broken document may hide the node. A setting line still prevents
   // silently treating an indeterminate invocation policy as absent.
-  const settingLine = new RegExp(`^[ \\t]*(?:${keys.at(-1)}|"${keys.at(-1)}"|'${keys.at(-1)}')[ \\t]*:`, 'm');
-  if (values.length || problems.length || settingLine.test(text)) {
+  if (values.length || problems.length || hasSettingLine(text, keys)) {
     for (const problem of document.errors) error('YAML_SYNTAX', problem.message, problem.pos[0], '');
   }
   errors.push(...problems);

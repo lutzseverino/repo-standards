@@ -646,6 +646,10 @@ for (const [label, skill, policy] of [
   ['neither setting with non-mapping metadata', '---\n- review\n- code\n---\nReview.', '[review, code]\n'],
   ['neither setting with non-string keys', '---\n1: review\n---\nReview.', '? [review, code]\n: description\n'],
   ['neither setting with invalid Codex YAML', '# Review', 'policy: [\n'],
+  ['neither setting with an unrelated nested invocation key in invalid YAML', '# Review', 'interface:\n  allow_implicit_invocation: true\nother: [\n'],
+  ['neither setting with an invocation key in description prose and invalid YAML', '---\ndescription: |\n  disable-model-invocation: true\nother: [\n---\nReview.', undefined],
+  ['neither setting with a Codex invocation key in description prose and invalid YAML', '# Review', 'interface:\n  description: >-\n    allow_implicit_invocation: false\nother: [\n'],
+  ['neither setting with scalar frontmatter prose and invalid YAML', '---\n|\n  disable-model-invocation: true\nother: [\n---\nReview.', undefined],
   ['agreeing settings with duplicate unrelated keys', '---\ndescription: First\ndescription: Second\ndisable-model-invocation: true\n---\nReview.', 'policy: {other: true, other: false, allow_implicit_invocation: false}\n'],
   ['agreeing settings through aliases', '---\nmanual: &manual true\ndisable-model-invocation: *manual\n---\nReview.', 'manual: &manual {allow_implicit_invocation: false}\npolicy: *manual\n'],
   ['manual settings with spaces after delimiters', '---  \ndisable-model-invocation: true\n---  \nReview.', 'policy: {allow_implicit_invocation: false}\n'],
@@ -683,6 +687,8 @@ for (const [label, metadata, files, code, file, line, path] of [
   ['unparseable frontmatter containing a setting', 'disable-model-invocation: false\ndescription: Use when: the user asks', {}, 'YAML_SYNTAX', 'skills/review/SKILL.md', 4, ''],
   ['unparseable Codex YAML containing a setting', '', { 'skills/review/agents/openai.yaml': 'policy:\n  allow_implicit_invocation: true\ninterface: [\n' }, 'YAML_SYNTAX', 'skills/review/agents/openai.yaml', 4, ''],
   ['unresolved setting alias', 'disable-model-invocation: *missing', {}, 'YAML_STRUCTURE', 'skills/review/SKILL.md', 3, '/disable-model-invocation'],
+  ['non-boolean setting alias', 'other: &other "false"\ndisable-model-invocation: *other', {}, 'INVALID_TYPE', 'skills/review/SKILL.md', 4, '/disable-model-invocation'],
+  ['a setting hidden by an unterminated scalar', 'description: "unterminated\ndisable-model-invocation: false', {}, 'YAML_SYNTAX', 'skills/review/SKILL.md', 4, ''],
 ] as const) test(`author skill invocation reports ${label} at its metadata location`, (t) => {
   const source = sourceFixture(header + `defaults:
   declarations:
