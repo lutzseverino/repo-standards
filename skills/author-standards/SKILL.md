@@ -88,9 +88,9 @@ Choose stable lower-case kebab-case declaration IDs that describe the accepted
 intent. For confirmed context differences, follow [Complete profiles](references/profiles.md)
 to review the shared selection and each difference. Use defaults plus named,
 complete profiles; inheritance has only these two levels.
-Keep targets disjoint. Product state, Git metadata, and the `adopt-standards`
-and `author-standards` skill targets are reserved, including their ancestors and
-descendants. Follow the matching format document for path and reference rules.
+Keep targets disjoint, including from each skill's link at
+`.claude/skills/<name>`. Product state, Git metadata, and the system skills'
+targets and links are reserved, including their ancestors and descendants. Follow the matching format document for path and reference rules.
 
 Create the chosen local directory and every referenced file, script, resource,
 and whole author-skill directory. Preserve unrelated existing files; clarify a
