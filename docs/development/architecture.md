@@ -12,7 +12,7 @@ and agent-guided workflows.
 The product is Repository Standards, its GitHub repository is
 `lutzseverino/repo-standards`, and its CLI is `repo-standards`. The repository is
 public and MIT-licensed. Implementation uses TypeScript, ESM, Node.js 24, and
-pnpm. Inspection, start, and check require Git 2.32 or newer, checked before
+pnpm. Inspection, start, resume, and check require Git 2.32 or newer, checked before
 observing project state, so Git never follows a symbolic `.gitignore` whose
 referent the identity does not bind. The product supports macOS and Linux.
 
