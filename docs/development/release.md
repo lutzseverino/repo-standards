@@ -295,7 +295,8 @@ checkout and records the checkout commit and source tree identity; this is
 public-package/local-source validation, not live public-source acquisition. Keep
 these automated checks separate from real-agent evidence.
 
-Then perform the [real-agent journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) with public npm
+When the parent specification names a real-agent journey, perform the
+[real-agent journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) with public npm
 installations. Use the public learning source for live publication, discovery
 and direct-source evidence. Independent temporary Git-source fixtures may cover
 materially different authors through the same CLI and real installed skill;
@@ -307,16 +308,14 @@ adoption output, unchanged HEAD/index, normal project commits, fresh-checkout
 restoration with scripts disabled, and retained inspection without source access.
 Exercise standards and CLI updates, separately and together, using actual
 published versions; a rewritten fixture manifest is not public update evidence.
-Record each OS and each source independently. Release 2.0.0 is accepted
-through this repository's own fresh adoption of the current Repo Canon release
-with the published CLI, recorded as identities and the CLI's summary.
+Record each OS and each source independently.
 
 Once published acceptance passes, add a short verification paragraph to the
 GitHub release body: the release and verification workflow run IDs, the
 systems checked, and the outcome. Keep the notes above it unchanged.
 
-Do not label the release complete while publication, either OS, real-agent work,
-or any parent criterion remains unverified. The parent remains open and unchanged.
+Do not label the release complete while publication, either OS, real-agent work
+the parent names, or any parent criterion remains unverified. The parent remains open and unchanged.
 
 ## Authoring skill release
 

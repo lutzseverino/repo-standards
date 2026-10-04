@@ -625,10 +625,6 @@ The product is complete only when all of these pass:
     over previously installed content after removing the product state,
     replacing any differing tracked system skill without an ownership blocker.
 
-Release 2.0.0 is accepted through the fresh adoption of this repository with the
-published 2.0.0 CLI against the current Repo Canon release, recorded as
-identities and the CLI's summary.
-
 ## Implementation choices
 
 Internal library choices, function names, file organization, and serialization
