@@ -440,3 +440,74 @@ test('a fresh adoption stopped before removing retired product state blocks chec
   assert.equal(committedState(root).format, 'repo-standards/state/v6');
   assert.equal(f.run<Inspection>(inspectionArgs).report.identity, inspection.identity);
 });
+
+test('a committed record that is neither current nor retired beside retired state fails integrity, and nothing is removed', async t => {
+  const f = await retiredProject(t);
+  const { root } = f;
+  // A real 4.0.0 tree keeps the current lock/v1 beside its retired state.
+  assert.equal((JSON.parse(readFileSync(join(root, '.repo-standards/lock.json'), 'utf8')) as Lock).format, 'repo-standards/lock/v1');
+  const inspection = f.run<Inspection>(inspectionArgs).report;
+  assert.equal(inspection.start.eligible, true);
+  const lockFile = join(root, '.repo-standards/lock.json');
+  const scopeFile = join(root, '.repo-standards/inputs/scope-history.json');
+  const lock = readFileSync(lockFile);
+  for (const { path, bytes } of [
+    { path: lockFile, bytes: '{ not JSON' },
+    { path: lockFile, bytes: JSON.stringify({ format: 'repo-standards/lock/vnext' }) },
+    { path: lockFile, bytes: JSON.stringify({ format: 'repo-standards/unrelated/v1' }) },
+    { path: scopeFile, bytes: JSON.stringify({}) },
+  ]) {
+    writeFileSync(path, bytes);
+    commit(root);
+    const before = snapshot(root);
+    for (const args of [inspectionArgs, startArgs(inspection.identity)]) {
+      const rejected = f.run<ErrorReport>(args);
+      assert.equal(rejected.result.status, 1, rejected.result.stdout);
+      assert.equal(rejected.report.errors.length, 1);
+      assert.equal(rejected.report.errors[0]!.code, 'STATE_INTEGRITY', `${bytes} ${args[0]}`);
+      assert.deepEqual(rejected.report.errors[0]!.details, { path: relative(root, path) });
+      assert.deepEqual(snapshot(root), before, `${args[0]} must not remove anything`);
+    }
+    if (path === lockFile) writeFileSync(lockFile, lock);
+    else rmSync(scopeFile);
+    commit(root);
+  }
+  assert.equal(f.run<Inspection>(inspectionArgs).report.identity, inspection.identity);
+});
+
+test('retired product state changed while its removal is recorded fails the start and is not removed', async t => {
+  for (const { label, change } of [
+    { label: 'an edited bound file', change: (root: string) => `write.call(fs, ${JSON.stringify(join(root, '.repo-standards/selection.yaml'))}, 'Edited after verification\\n');` },
+    { label: 'an added file', change: (root: string) => `write.call(fs, ${JSON.stringify(join(root, '.repo-standards/added.md'))}, 'Added after verification\\n');` },
+  ]) {
+    const f = await retiredProject(t);
+    const { root } = f;
+    const inspection = f.run<Inspection>(inspectionArgs).report;
+    // Change the tree as the run persists that it is removing it.
+    const env = filesystemFault(f.remote.support.root, f.env, 'installation', `
+  const persist = fs.writeFileSync;
+  let changed = false;
+  fs.writeFileSync = function(path, data, ...args) {
+    const result = persist.call(this, path, data, ...args);
+    let record;
+    try { record = JSON.parse(String(data)); } catch {}
+    if (!changed && record?.format === 'repo-standards/run/v6' && record.installation?.trees?.['.repo-standards'] === 'removing') {
+      changed = true;
+      ${change(root)}
+    }
+    return result;
+  };
+  syncBuiltinESMExports();`);
+    const started = f.run<Run>(startArgs(inspection.identity), env);
+    assert.equal(started.result.status, 1, `${label}: ${started.result.stdout}${started.result.stderr}`);
+    assert.equal(started.report.outcome, 'incomplete', label);
+    assert.match(started.report.reason, /^INSTALLATION_CHANGED: Retired product state changed before removal: \.repo-standards\. Nothing was removed\./, label);
+    // Nothing in the tree was removed, the change included.
+    assert.equal(committedState(root).format, 'repo-standards/state/v6', label);
+    assert.ok(existsSync(join(root, '.repo-standards/inputs/source/retired.md')), label);
+    assert.ok(existsSync(join(root, '.repo-standards/runtime/node_modules')), label);
+    assert.ok(existsSync(join(root, label === 'an added file' ? '.repo-standards/added.md' : '.repo-standards/selection.yaml')), label);
+    if (label === 'an edited bound file') assert.equal(readFileSync(join(root, '.repo-standards/selection.yaml'), 'utf8'), 'Edited after verification\n');
+    assert.equal(existsSync(join(root, '.claude')), false, label);
+  }
+});

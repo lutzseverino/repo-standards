@@ -515,25 +515,33 @@ converted. A newer version of a known record format anywhere fails with
 `NEWER_FORMAT` and names using the pinned CLI, including when the record
 holding the pin has changed schema. It never advises removal or fresh
 adoption. An active run record in an older format may hold unfinished work: it
-fails every command with `RETIRED_RUN`, naming the earlier pinned CLI's
-`resume --retry` and `abandon`, and nothing is removed. An archived report in
+fails every command that runs the format gate with `RETIRED_RUN`, naming the
+earlier pinned CLI's `resume --retry` and `abandon`, and nothing is removed.
+`outdated`, which reads only the pinned selection and writes only its ignored
+cache, runs no format gate. An archived report in
 an older format fails with `RETIRED_FORMAT`, naming that report, which only
 the CLI that wrote it reads.
 
-Committed product state in an older format is never read. An inspection with
-source flags treats the selection as a fresh adoption: its report's
-`retiredState` lists the retired records and every file of the
+Committed product state in an older format is never read. When every committed
+record present carries its own artifact's current or retired format, an
+inspection with source flags treats the selection as a fresh adoption; any
+other committed record there fails with `STATE_INTEGRITY`, so nothing malformed
+is removed. Its report's `retiredState` lists the retired records and every file of the
 `.repo-standards` directory as content the run removes, and the identity binds
 that directory as it binds an update's product state, without its generated
 directories. Under its lock, `start` observes the same directory again,
 removes it whole, generated directories included, as its first installation
 step, and then installs, leaving the removal uncommitted with the run's other
-changes. Its removal is tracked like any replaced tree, so an interrupted one
+changes. Once its removal is recorded, the run observes the directory a last
+time and removes it only when it still matches the confirmed inventory, or,
+after an interrupted removal, when every remaining file does and nothing was
+added; otherwise it fails with `INSTALLATION_CHANGED` and removes nothing.
+Its removal is tracked like any replaced tree, so an interrupted one
 resumes on retry; until it is removed, the run, not the retired state, is what
 status, resume, and abandon read, and what blocks check, and abandonment
-archives none of the earlier CLI's local reports as the run's. Every other read of retired committed state,
-including retained inspection, fails with `RETIRED_FORMAT`, naming that
-fresh-adoption path. Malformed or unrelated format identities fail the
+archives none of the earlier CLI's local reports as the run's. Every other
+read of retired committed state, including retained inspection, fails with
+`RETIRED_FORMAT`, naming that fresh-adoption path. Malformed or unrelated format identities fail the
 record's integrity validation.
 
 A format's version rises when its keys change: a key is added, removed,

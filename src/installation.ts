@@ -113,6 +113,20 @@ function safePlanned(root: string, installation: Pick<Installation, 'links' | 'r
   return path === productState ? observeProductState(root) : safe(root, path, installation.links[path] ?? installation.removedLinks[path]);
 }
 
+// Whether an observed tree is the confirmed one, or, after an interrupted
+// removal, part of it: every remaining file unchanged and no entry added.
+function confirmedRemainder(actual: Observation, confirmed: HashInventory, partial: boolean) {
+  if (!partial) return json(hashInventory(actual)) === json(confirmed);
+  if (actual.type === 'missing') return true;
+  const remaining: Files = dictionary();
+  const expected: Record<string, Baseline> = dictionary();
+  flatten('', actual, remaining);
+  if (confirmed.type !== 'missing') flatten('', confirmed, expected);
+  const paths = new Set(inventoryPaths(confirmed));
+  return inventoryPaths(actual).every(path => paths.has(path))
+    && Object.entries(remaining).every(([path, value]) => expected[path]?.sha256 === value.sha256 && expected[path].executable === value.executable);
+}
+
 // Whether the run has yet to remove the retired product state, which holds the
 // earlier CLI's local reports rather than this run's.
 export function retiredStatePending(installation: Installation, trees: Record<string, 'removing' | 'installing'> = {}) {
@@ -211,7 +225,13 @@ export function install(root: string, session: Pick<AdoptionRunSession, 'record'
   const removeTree = (tree: string) => {
     if (treeProgress[tree] === 'installing') return;
     session.record({ type: 'tree-removing', path: tree });
-    safePlanned(root, installation, tree);
+    const current = safePlanned(root, installation, tree);
+    // Retired product state is removed only as confirmed, observed once more
+    // after its removal is recorded: unchanged, or after an interrupted
+    // removal, what remains of it.
+    if (tree === productState && !confirmedRemainder(current, before[tree]!, treeProgress[tree] === 'removing')) {
+      throw new ProductError('INSTALLATION_CHANGED', `Retired product state changed before removal: ${tree}. Nothing was removed. Restore its committed content and remove additions before retry, or abandon the run.`);
+    }
     remove(join(root, tree));
     session.record({ type: 'tree-installing', path: tree });
   };

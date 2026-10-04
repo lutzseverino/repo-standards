@@ -181,7 +181,9 @@ export interface RetiredRecord { path: string; format: string; expected: string 
 // requires the pinned CLI. A retired active run record may hold unfinished
 // work, so it blocks everything else. Retired committed records are returned
 // to a caller that adopts fresh over them, or that continues the run doing so,
-// and rejected otherwise. Records that cannot be read are left to their owners.
+// and rejected otherwise; every committed record present must then carry its
+// artifact's current or retired format. Otherwise records that cannot be read
+// are left to their owners.
 export function rejectUnsupportedRecords(root: string, runRecord: string, { retiredState = false } = {}): RetiredRecord[] {
   const archive = join(dirname(runRecord), 'repo-standards-reports');
   const archived = lstatSync(archive, { throwIfNoEntry: false })?.isDirectory()
@@ -199,6 +201,15 @@ export function rejectUnsupportedRecords(root: string, runRecord: string, { reti
   const committed = retired.filter(({ kind }) => kind === 'committed');
   const rejected = retiredState ? retired.find(({ kind }) => kind === 'archived') : retired[0];
   if (rejected) throw retiredFormat(rejected.where, rejected.value, rejected.format);
+  // Removing retired product state is confirmed only when every committed
+  // record present is one of its own artifact, current or retired. Any other
+  // file there fails integrity, as a malformed format does everywhere else.
+  if (committed.length) for (const { where, value, format, kind, age } of records) {
+    if (kind !== 'committed' || age || !lstatSync(join(root, where), { throwIfNoEntry: false })) continue;
+    if ((value as { format?: unknown } | undefined)?.format !== format) {
+      throw new ProductError('STATE_INTEGRITY', `${where} is not a readable ${format} record or a retired version of it, so the retired product state cannot be removed. Restore the committed product state.`, { path: where });
+    }
+  }
   return committed.map(({ where, value, format }) => ({ path: where, format: (value as { format: string }).format, expected: format }));
 }
 

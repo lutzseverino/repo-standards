@@ -457,7 +457,10 @@ When committed state, the integrity lock, or retained scope evidence carries an
 older format, inspecting with `--source`, `--standards-version`, and
 `--profile` previews a fresh adoption without anything removed or committed
 first. Nothing in the retired state is read or converted, and the selection is
-inspected as an initial adoption:
+inspected as an initial adoption. Each of those records that is present must
+still carry its own artifact's current or retired format, as a
+`repo-standards/lock/v1` lock beside retired state does; any other content
+there fails with `STATE_INTEGRITY`, and nothing is removed:
 
 - `retiredState` in the report, and **Retired product state** in its summary,
   list the retired records and every file of the `.repo-standards` directory
@@ -475,8 +478,10 @@ inspected as an initial adoption:
 - Confirming the inspection confirms the removal. Under its lock, `start`
   observes the same retired directory again, removes it, and then installs. The
   removal is left uncommitted with the run's other changes; HEAD and the index
-  don't change. An interrupted removal is recovered with `resume --retry` like
-  any interrupted installation. While the run is active, `status`, `resume`,
+  don't change. A directory that no longer matches the inspection when its
+  removal begins fails the run with `INSTALLATION_CHANGED`, and nothing is
+  removed. An interrupted removal is recovered with `resume --retry` like any
+  interrupted installation. While the run is active, `status`, `resume`,
   and `abandon` read it rather than the retired state.
 
 Every other command that would read a retired committed record, including
@@ -492,9 +497,10 @@ retired format, and the format this CLI reads, for example:
 Run records live in Git's directory: the active run at
 `git rev-parse --git-path repo-standards-run.lock`, and abandoned runs' reports
 in the `repo-standards-reports/` directory beside it. An active run record in a
-retired format may hold unfinished work, so every command, including the
-fresh-adoption preview and its start, fails with `RETIRED_RUN` and removes
-nothing. The diagnostic names the earlier pinned CLI when the record carries
+retired format may hold unfinished work, so every command that reads product
+records, including the fresh-adoption preview and its start, fails with
+`RETIRED_RUN` and removes nothing. `outdated` is the exception: it reads only
+the pinned selection and writes only its ignored cache. The diagnostic names the earlier pinned CLI when the record carries
 one, and its `resume --retry` and `abandon`, which can still continue or end
 the run; this CLI can't:
 
