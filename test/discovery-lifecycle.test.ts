@@ -79,6 +79,9 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(firstStart.phase, 'contextual', firstStartResult.result.stdout);
   const firstComplete = f.complete();
   assert.equal(firstComplete.result.status, 0);
+  const firstStatus = f.run(['status', '--json']).report;
+  assert.equal(firstStatus.format, 'repo-standards/status/v7');
+  assert.deepEqual(firstStatus.scopeProposal, firstInspection.discovery.proposal);
   const firstState = JSON.parse(readFileSync(join(f.project.root, '.repo-standards/state.json'), 'utf8'));
   commit(f.project.root);
 
@@ -136,6 +139,7 @@ test('an unchanged v2 selection recomputes retained discovery and reports scope 
   assert.equal(secondState.lastComplete.inspection, inspected.identity);
   assert.notEqual(secondState.lastComplete.run, firstState.lastComplete.run);
   const secondStatus = f.run(['status', '--json']).report;
+  assert.deepEqual(secondStatus.scopeProposal, inspected.discovery.proposal);
   assert.equal(Object.hasOwn(secondStatus, 'history'), false);
   assert.deepEqual(secondStatus.observations, secondState.observations);
   assert.deepEqual(secondStatus.scopeChanges, inspected.scopeChanges);
