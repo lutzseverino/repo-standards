@@ -501,6 +501,7 @@ test('a committed record that is neither current nor retired beside retired stat
   // Every malformed record fails the same check: one present beside retired
   // state that does not carry its own artifact's format.
   const lockFile = join(root, '.repo-standards/lock.json');
+  const lock = readFileSync(lockFile);
   writeFileSync(lockFile, JSON.stringify({ format: 'repo-standards/lock/vnext' }));
   commit(root);
   const before = snapshot(root);
@@ -512,6 +513,10 @@ test('a committed record that is neither current nor retired beside retired stat
     assert.deepEqual(rejected.report.errors[0]!.details, { path: relative(root, lockFile) });
     assert.deepEqual(snapshot(root), before, `${args[0]} must not remove anything`);
   }
+  // The confirmed inspection holds again once the record is restored.
+  writeFileSync(lockFile, lock);
+  commit(root);
+  assert.equal(f.run<Inspection>(inspectionArgs).report.identity, inspection.identity);
 });
 
 test('retired product state changed while its removal is recorded fails the start and is not removed', async t => {

@@ -39,10 +39,15 @@ export async function adoptionFixture(t: TestContext, cli: InstalledCli, yaml: s
   if (options.commit ?? true) commit(project.root);
   const env = { ...remote.env, ...registry.env };
   const run = (args: string[], environment: NodeJS.ProcessEnv = env) => cli.run(args, project.root, environment);
-  // A command's JSON report, with the result it came from.
+  // A command's JSON report, with the result it came from. Output that is not
+  // JSON fails with the command's whole output.
   const json = <T = Run>(args: string[], environment: NodeJS.ProcessEnv = env) => {
     const result = run(args, environment);
-    return { result, report: JSON.parse(result.stdout) as T };
+    try {
+      return { result, report: JSON.parse(result.stdout) as T };
+    } catch {
+      assert.fail(`${args.join(' ')} exited ${result.status ?? result.signal} without a JSON report:\n${result.stdout}${result.stderr}`);
+    }
   };
   const inspect = (args = inspectionArgs) => {
     const { result, report } = json<Inspection>(args);

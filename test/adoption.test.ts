@@ -479,6 +479,7 @@ test('final integrity failures preserve work and report an incomplete locked run
   for (const { branch, target, mutation = write, named, added = false } of [
     { branch: 'exact bytes', target: 'AGENTS.md', named: 'AGENTS.md' },
     { branch: 'executable bit', target: 'AGENTS.md', mutation: (path: string) => `fs.chmodSync(${JSON.stringify(path)}, 0o755);`, named: 'AGENTS.md' },
+    { branch: 'skill link', target: '.claude/skills/adopt-standards', mutation: (path: string) => `fs.rmSync(${JSON.stringify(path)}); write(${JSON.stringify(path)}, 'Unexpected');`, named: '.claude/skills/adopt-standards' },
     { branch: 'skill inventory', target: '.agents/skills/adopt-standards/added.txt', named: '.agents/skills/adopt-standards', added: true },
     { branch: 'product inventory', target: '.repo-standards/unexpected.txt', named: 'product state inventory', added: true },
     { branch: 'runtime dependencies', target: '.repo-standards/runtime/node_modules/@lutzseverino/repo-standards/dist/cli.js', named: 'runtime dependencies' },

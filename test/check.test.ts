@@ -312,10 +312,11 @@ test('a prerequisite probe that writes, or a check that leaves its process group
     assert.equal(existsSync(join(f.project.root, '.repo-standards/local/checks/0.stderr')), false, 'no check runs');
   });
   await t.test('surviving process', st => {
-    // The process the check leaves behind lives until the test releases it.
-    const release = join(directoryFixture('repo-standards-release-').root, 'release');
-    st.after(() => { writeFileSync(release, ''); rmSync(join(release, '..'), { recursive: true, force: true }); });
-    const survivor = `const { existsSync } = require('node:fs'); const wait = setInterval(() => { if (existsSync(${JSON.stringify(release)})) clearInterval(wait); }, 10);`;
+    // The process the check leaves behind lives until the test removes the
+    // directory it watches.
+    const held = directoryFixture('repo-standards-held-');
+    st.after(() => held.close());
+    const survivor = `const { existsSync } = require('node:fs'); const wait = setInterval(() => { if (!existsSync(${JSON.stringify(held.root)})) clearInterval(wait); }, 10);`;
     const result = cli.run(['check', '--json'], f.project.root, { ...process.env,
       CHECK_MUTATION: `if (input.operation.id === 'first') spawn(process.execPath, ['-e', ${JSON.stringify(survivor)}], { stdio: 'ignore' }).unref();` });
     assert.equal(result.status, 1, result.stdout + result.stderr);

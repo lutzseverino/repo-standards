@@ -283,6 +283,9 @@ test('inspect --summary lists removed retired targets, each discarded edit, and 
   f.adopt();
   writeFileSync(join(project.root, 'AGENTS.md'), 'Maintainer instructions\n');
   writeFileSync(join(project.root, 'LEGACY.md'), 'Maintainer legacy\n');
+  // A copy in a system skill's link place is replaced and listed like any target.
+  rmSync(join(project.root, '.claude/skills/adopt-standards'));
+  writeFileSync(join(project.root, '.claude/skills/adopt-standards'), 'Copy\n');
   commit(project.root);
   remote.addVersion('v1.1.0', exact({ instructions }), { 'agents.md': 'Revised instructions\n' });
   const summaryArgs = inspectionArgs.map(argument => argument === 'v1.0.0' ? 'v1.1.0' : argument === '--json' ? '--summary' : argument);
@@ -303,6 +306,7 @@ Exact content:
 
 Replacing or removing these targets discards content that is not their installed baseline:
 
+- \`.claude/skills/adopt-standards\`
 - \`AGENTS.md\`
 
 ## Kept targets
@@ -315,6 +319,9 @@ These targets leave the selection with edits. They stay in place, and the projec
 
 ## Operations`), summary);
   assert.ok(!summary.includes('\n## Blockers\n'), summary);
+  // A system skill has a row only when it or its link changes.
+  assert.ok(summary.includes('| `adopt-standards` | `.claude/skills/adopt-standards` | replaced |\n'), summary);
+  assert.ok(!summary.includes('| `standards-updates` |'), summary);
 });
 
 test('--summary and --json together are a usage error', t => {
