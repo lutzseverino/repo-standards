@@ -43,7 +43,7 @@ async function fixture(t: TestContext, declarations: Record<string, unknown>, fi
 }
 
 function rejected(result: ReturnType<typeof spawnSync>, pinned: string) {
-  assert.equal(result.status, 1, `${result.stdout}${result.stderr}`);
+  assert.equal(result.status, 1, `${String(result.stdout)}${String(result.stderr)}`);
   const [error] = JSON.parse(String(result.stdout)).errors;
   assert.equal(error.code, 'CLI_PIN_MISMATCH');
   assert.ok(error.message.includes(` ${pinned}`), error.message);

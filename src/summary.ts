@@ -62,7 +62,7 @@ function code(value: string) {
 // on one line: inline markup is escaped, and so is a leading marker that would
 // start a heading, list, or quote.
 function text(value: string) {
-  return value.replace(/\r?\n/g, ' ').replace(/[\\`*_<>\[\]~&]/g, character => `\\${character}`)
+  return value.replace(/\r?\n/g, ' ').replace(/[\\`*_<>[\]~&]/g, character => `\\${character}`)
     .replace(/^([#+=-])/, '\\$1').replace(/^(\d+)([.)])/, '$1\\$2');
 }
 

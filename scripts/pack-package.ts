@@ -13,15 +13,15 @@ export function packPackage(output: string) {
   const destination = resolve(output);
   const staging = mkdtempSync(join(tmpdir(), 'repo-standards-package-'));
   try {
-    const manifest = JSON.parse(readFileSync(join(project, 'package.json'), 'utf8'));
-    const files: string[] = manifest.files;
+    const manifest = JSON.parse(readFileSync(join(project, 'package.json'), 'utf8')) as { files: string[]; repository: { url: string } };
+    const { files } = manifest;
     for (const path of new Set(['package.json', 'README.md', 'LICENSE', ...files])) {
       cpSync(join(project, path), join(staging, path), { recursive: true });
     }
     rewriteReadmeLinks(project, staging, manifest.repository.url);
     const [packed] = JSON.parse(execFileSync('npm', ['pack', '--ignore-scripts', '--json',
-      '--pack-destination', destination], { cwd: staging, encoding: 'utf8' }));
-    return packed as { filename: string; version: string; integrity: string };
+      '--pack-destination', destination], { cwd: staging, encoding: 'utf8' })) as [{ filename: string; version: string; integrity: string }];
+    return packed;
   } finally {
     rmSync(staging, { recursive: true, force: true });
   }

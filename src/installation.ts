@@ -13,6 +13,7 @@ import { committedScopeEvidence, type ScopeRun } from './scope-evidence.js';
 import type { Scope } from './scope.js';
 import { installedSystemSkills, linkTextAt, skillTarget } from './targets.js';
 import { completedEvidence, type Delta } from './work-evidence.js';
+import { dictionary, record } from './records.js';
 
 // Installation is the confirmed plan of an adoption run's exact content,
 // retained inputs, durable product state and runtime, planned from one
@@ -51,8 +52,8 @@ export interface Installation {
 // the inspecting CLI, which is the pinned one, packages.
 export function planInstallation(root: string, inspected: StartInspection, confirmation: string, runtime?: { directory: string; skills: Record<string, Observation> }): Installation {
   const { report, materials, recorded } = inspected;
-  const files: Files = Object.create(null);
-  const skills: Record<string, string[]> = Object.create(null);
+  const files: Files = dictionary();
+  const skills: Record<string, string[]> = dictionary();
   const installedRuntime = runtime ? observe(join(runtime.directory, 'node_modules')) : safeDirectory(root, '.repo-standards/runtime/node_modules');
   for (const [target, desired] of Object.entries(materials.exact)) if (desired.type !== 'missing') flatten(target, desired, files);
   for (const { target } of installedSystemSkills) flatten(target, (runtime?.skills ?? materials.systemSkills)[target]!, files);
@@ -63,7 +64,7 @@ export function planInstallation(root: string, inspected: StartInspection, confi
   const recordedLinks = recorded?.state.links ?? {};
   const removedLinks: Record<string, string> = Object.fromEntries((report.removed ?? []).flatMap(({ target }) => Object.hasOwn(recordedLinks, target) ? [[target, recordedLinks[target]!]] : []));
   const exactBaselines = baselines(files);
-  const inputs: Files = Object.create(null);
+  const inputs: Files = dictionary();
   for (const [path, value] of Object.entries(materials.inputs)) flatten(`${retainedSource}/${path}`, value, inputs);
   inputs['.repo-standards/inputs/standards.yaml'] = file(materials.manifest);
   inputs['.repo-standards/inputs/metadata.json'] = file(json(report.source));
@@ -144,9 +145,9 @@ export function install(root: string, session: Pick<AdoptionRunSession, 'record'
     if (!treeProgress[tree]) throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed before replacement: ${tree}. Reconcile it before retry.`);
     // A replaced skill link may already be installed in the tree's place.
     if (actual.type === 'missing' || (actual.type === 'symlink' && treeProgress[tree] === 'installing' && actual.target === installation.links[tree])) continue;
-    const observed: Files = Object.create(null);
+    const observed: Files = dictionary();
     flatten(tree, actual, observed);
-    const expected: Record<string, Baseline> = treeProgress[tree] === 'removing' ? Object.create(null) : files;
+    const expected: Record<string, Baseline> = treeProgress[tree] === 'removing' ? dictionary() : files;
     if (treeProgress[tree] === 'removing' && before[tree]?.type !== 'missing') flatten(tree, before[tree]!, expected);
     if (Object.entries(observed).some(([path, value]) => !temporaries.includes(path) && (expected[path]?.sha256 !== value.sha256 || expected[path]?.executable !== value.executable))) {
       throw new ProductError('INSTALLATION_CHANGED', `Owned tree changed during replacement: ${tree}. Preserve and reconcile added or modified resources before retry.`);
@@ -183,7 +184,7 @@ export function install(root: string, session: Pick<AdoptionRunSession, 'record'
   const runtime = safeDirectory(root, runtimePath);
   function partial(actual: Observation, expected: Observation): boolean {
     if (actual.type === 'missing') return true;
-    if (actual.type === 'directory' && expected.type === 'directory') return Object.entries(actual.entries).every(([name, child]) => expected.entries[name] !== undefined && partial(child, expected.entries[name]!));
+    if (actual.type === 'directory' && expected.type === 'directory') return Object.entries(actual.entries).every(([name, child]) => expected.entries[name] !== undefined && partial(child, expected.entries[name]));
     return json(actual) === json(expected);
   }
   if (progress().runtime) {
@@ -277,15 +278,15 @@ export function exactContent(installation: Installation): Scope[string] {
 // changes. Only the leaves of a tree are compared: an empty directory has
 // none, and as untracked content it never reaches a start.
 function installationDeltas(installation: Installation): Record<string, Delta> {
-  const before: Record<string, HashInventory> = Object.create(null);
+  const before: Record<string, HashInventory> = dictionary();
   const leaves = (path: string, value: HashInventory) => {
     if (value.type === 'directory') for (const [name, child] of Object.entries(value.entries)) leaves(`${path}/${name}`, child);
     else if (value.type !== 'missing') before[path] = value;
   };
   for (const [path, value] of Object.entries(installation.before)) leaves(path, value);
   const after: Record<string, HashInventory> = Object.fromEntries([...Object.entries(installation.files)
-    .map(([path, value]) => [path, { type: 'file', sha256: value.sha256, executable: value.executable }]),
-    ...Object.entries(installation.links).map(([path, target]) => [path, { type: 'symlink', target }])]);
+    .map(([path, value]): [string, HashInventory] => [path, { type: 'file', sha256: value.sha256, executable: value.executable }]),
+    ...Object.entries(installation.links).map(([path, target]): [string, HashInventory] => [path, { type: 'symlink', target }])]);
   return Object.fromEntries([...new Set([...Object.keys(before), ...Object.keys(after)])].filter(path => !path.startsWith('.repo-standards/'))
     .map(path => [path, { before: before[path] ?? { type: 'missing' }, after: after[path] ?? { type: 'missing' } }]));
 }
@@ -314,7 +315,7 @@ export function writeCompletion(root: string, installation: Installation, comple
 // kept in place. The installation is read only when there is a candidate to move.
 export function withdrawCompletionState(root: string, runId: string, installation: () => Installation) {
   const state = safe(root, stateFile);
-  if (state.type !== 'file' || JSON.parse(Buffer.from(state.content, state.encoding).toString('utf8')).lastComplete?.run !== runId) return;
+  if (state.type !== 'file' || record(record(JSON.parse(Buffer.from(state.content, state.encoding).toString('utf8'))).lastComplete).run !== runId) return;
   safe(root, incompleteState);
   const previous = installation().previousState;
   if (previous) {

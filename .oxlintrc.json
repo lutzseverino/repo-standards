@@ -1,0 +1,101 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // Oxlint's defaults with type-aware linting, plus the rules of ESLint's
+  // `recommended` (@eslint/js 10.0.1) and typescript-eslint's
+  // `recommendedTypeChecked` (typescript-eslint 8.71.0) presets that oxlint
+  // doesn't enable by default and implements.
+  "options": {
+    "typeAware": true,
+    "denyWarnings": true
+  },
+  "ignorePatterns": ["vendor/**", ".repo-standards/**", ".agents/skills/**"],
+  "rules": {
+    "typescript/no-floating-promises": [
+      "warn",
+      {
+        "allowForKnownSafeCalls": [
+          {
+            "from": "package",
+            "package": "node:test",
+            "name": ["test", "describe", "suite"]
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      // ESLint `recommended`, without oxlint's type-aware defaults.
+      "files": ["**/*.js", "**/*.mjs", "**/*.cjs"],
+      "env": { "node": true },
+      "rules": {
+        "typescript/await-thenable": "off",
+        "typescript/no-array-delete": "off",
+        "typescript/no-base-to-string": "off",
+        "typescript/no-duplicate-type-constituents": "off",
+        "typescript/no-floating-promises": "off",
+        "typescript/no-for-in-array": "off",
+        "typescript/no-implied-eval": "off",
+        "typescript/no-meaningless-void-operator": "off",
+        "typescript/no-misused-spread": "off",
+        "typescript/no-redundant-type-constituents": "off",
+        "typescript/no-unsafe-unary-minus": "off",
+        "typescript/no-useless-default-assignment": "off",
+        "typescript/require-array-sort-compare": "off",
+        "typescript/restrict-template-expressions": "off",
+        "typescript/unbound-method": "off",
+        "no-case-declarations": "error",
+        "no-empty": "error",
+        "no-fallthrough": "error",
+        "no-prototype-builtins": "error",
+        "no-redeclare": "error",
+        "no-regex-spaces": "error",
+        "no-undef": "error",
+        "no-unexpected-multiline": "error",
+        "no-useless-assignment": "error",
+        "preserve-caught-error": "error"
+      }
+    },
+    {
+      // ESLint `recommended` and typescript-eslint `recommendedTypeChecked`,
+      // after typescript-eslint's `eslint-recommended` overrides.
+      "files": ["**/*.ts", "**/*.mts", "**/*.cts"],
+      // Tests keep oxlint's defaults until #182 lints them with these rules.
+      "excludeFiles": ["test/**"],
+      "rules": {
+        "no-array-constructor": "error",
+        "no-case-declarations": "error",
+        "no-empty": "error",
+        "no-fallthrough": "error",
+        "no-prototype-builtins": "error",
+        "no-regex-spaces": "error",
+        "no-unexpected-multiline": "error",
+        "no-useless-assignment": "error",
+        "no-var": "error",
+        "prefer-const": "error",
+        "prefer-rest-params": "error",
+        "prefer-spread": "error",
+        "preserve-caught-error": "error",
+        "typescript/ban-ts-comment": "error",
+        "typescript/no-empty-object-type": "error",
+        "typescript/no-explicit-any": "error",
+        "typescript/no-misused-promises": "error",
+        "typescript/no-namespace": "error",
+        "typescript/no-require-imports": "error",
+        "typescript/no-unnecessary-type-assertion": "error",
+        "typescript/no-unnecessary-type-constraint": "error",
+        "typescript/no-unsafe-argument": "error",
+        "typescript/no-unsafe-assignment": "error",
+        "typescript/no-unsafe-call": "error",
+        "typescript/no-unsafe-enum-comparison": "error",
+        "typescript/no-unsafe-function-type": "error",
+        "typescript/no-unsafe-member-access": "error",
+        "typescript/no-unsafe-return": "error",
+        "typescript/only-throw-error": "error",
+        "typescript/prefer-promise-reject-errors": "error",
+        "typescript/require-await": "error",
+        "typescript/restrict-plus-operands": "error"
+      }
+    }
+  ]
+}

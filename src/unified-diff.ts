@@ -42,7 +42,7 @@ function backtrack(a: string[], b: string[], trace: Int32Array[]): Edit[] {
     const previousK = k === -d || (k !== d && at(k - 1) < at(k + 1)) ? k + 1 : k - 1;
     const previousX = at(previousK), previousY = previousX - previousK;
     while (x > previousX && y > previousY) { edits.push({ kind: ' ', line: a[--x]! }); y--; }
-    if (d > 0) edits.push(x === previousX ? { kind: '+', line: b[--y]! } : { kind: '-', line: a[--x]! });
+    if (d > 0) edits.push(x === previousX ? { kind: '+', line: b[y - 1]! } : { kind: '-', line: a[x - 1]! });
     x = previousX; y = previousY;
   }
   return edits.reverse();

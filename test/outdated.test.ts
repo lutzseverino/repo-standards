@@ -210,7 +210,7 @@ test('a GitHub token from the environment is sent as authorization only to GitHu
     const { result, requests } = outdated(root, env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
     // The two lookups run concurrently, so their logged order is not fixed.
-    return requests.map(request => [request.url.startsWith('https://api.github.com/') ? 'github' : 'registry', request.authorization]).sort();
+    return requests.map(request => [request.url.startsWith('https://api.github.com/') ? 'github' : 'registry', request.authorization] as const).sort(([a], [b]) => a.localeCompare(b));
   };
   assert.deepEqual(lookups(environment()), [['github', null], ['registry', null]]);
   assert.deepEqual(lookups(environment({ GITHUB_TOKEN: 'actions-token' })), [['github', 'Bearer actions-token'], ['registry', null]]);

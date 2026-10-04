@@ -8,6 +8,7 @@ import { formats } from './formats.js';
 import { hiddenIndexPaths, observeProductState } from './inspection.js';
 import { git, hashInventory, requireSupportedGit, type HashInventory } from './observation.js';
 import { readRecordedAdoption, rejectUnsupportedRecords, requireRecordedCli, type RecordedSelection } from './recorded-state.js';
+import { record } from './records.js';
 import { acquireWorker } from './run-lock.js';
 import { concreteScope, type Scope } from './scope.js';
 import { changedBoundaries, observedChanges, observeWork } from './work-observation.js';
@@ -61,7 +62,7 @@ type Unchanged = ReturnType<typeof observeUnchanged>;
 function failedPaths(error: ProductError) {
   const details = error.details;
   const entries = Array.isArray(details) ? details : details && typeof details === 'object' ? [details] : [];
-  return [...new Set(entries.flatMap(entry => typeof entry?.path === 'string' ? [entry.path as string] : []))].sort();
+  return [...new Set(entries.map(record).flatMap(({ path }) => typeof path === 'string' ? [path] : []))].sort();
 }
 
 function treeChanges(path: string, before: HashInventory, after: HashInventory): string[] {

@@ -31,7 +31,10 @@ const downloads: { url: string; status: number; sha256: string }[] = [];
 const propagation = { intervalMs: 10_000, boundMs: 300_000,
   attempts: [] as { subject: string; at: string; elapsedMs: number; result: string }[] };
 let propagationStarted: number | undefined;
-async function awaitPublished<T>(subject: string, observe: () => Promise<{ value?: T; result: string }>): Promise<T> {
+// The parts of an inspection report this smoke test reads.
+interface InspectionIdentity { selection: { cli: { version: string } }; identity: unknown }
+
+async function awaitPublished<T>(subject: string, observe: () => { value?: T; result: string } | Promise<{ value?: T; result: string }>): Promise<T> {
   propagationStarted ??= Date.now();
   for (;;) {
     const { value, result } = await observe();
@@ -65,16 +68,16 @@ try {
     return result.stdout.trim();
   }
   run('npm', ['--version']);
-  assert.equal(JSON.parse(readFileSync(join(checkout, 'package.json'), 'utf8')).version, version);
+  assert.equal((JSON.parse(readFileSync(join(checkout, 'package.json'), 'utf8')) as { version: string }).version, version);
   const checkoutCommit = run('git', ['rev-parse', 'HEAD'], checkout);
   const wayfinderTree = run('git', ['rev-parse', 'HEAD:acceptance/sources/wayfinder'], checkout);
   assert.equal(run('git', ['status', '--porcelain=v1', '--untracked-files=all', '--', 'acceptance/sources/wayfinder'], checkout), '');
-  const distribution = await awaitPublished(`@lutzseverino/repo-standards@${version} on the npm registry`, async () => {
+  const distribution = await awaitPublished(`@lutzseverino/repo-standards@${version} on the npm registry`, () => {
     // Cap each observation like a download, so an attempt started at the bound ends within a minute.
     const result = execute('npm', ['view', `@lutzseverino/repo-standards@${version}`, 'dist', '--json', '--prefer-online'], root, 60_000);
     if (result.status !== 0 && /\bE404\b/.test(result.stdout + result.stderr)) return { result: 'E404' };
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    return { value: JSON.parse(result.stdout), result: 'available' };
+    return { value: JSON.parse(result.stdout) as { integrity: string }, result: 'available' };
   });
   async function download(file: string) {
     const url = `https://github.com/lutzseverino/repo-standards/releases/download/v${version}/${file}`;
@@ -94,25 +97,25 @@ try {
   const cli = join(installation, 'node_modules/.bin/repo-standards');
   const installed = join(installation, 'node_modules/@lutzseverino/repo-standards');
   assert.equal(run(cli, ['--version']), version);
-  const lock = JSON.parse(readFileSync(join(installation, 'package-lock.json'), 'utf8'));
+  const lock = JSON.parse(readFileSync(join(installation, 'package-lock.json'), 'utf8')) as { packages: { 'node_modules/@lutzseverino/repo-standards': { integrity: string } } };
   assert.equal(lock.packages['node_modules/@lutzseverino/repo-standards'].integrity, distribution.integrity);
-  const bundle = JSON.parse(bundleBytes.toString('utf8'));
+  const bundle = JSON.parse(bundleBytes.toString('utf8')) as { version: string; package: string; integrity: string; artifacts: { file: string; sha256: string }[] };
   assert.equal(bundle.version, version);
   assert.equal(bundle.package, '@lutzseverino/repo-standards');
   assert.equal(bundle.integrity, distribution.integrity);
-  assert.equal(createHash('sha256').update(bootstrapBytes).digest('hex'), bundle.artifacts.find((artifact: { file: string }) => artifact.file === 'repo-standards-bootstrap').sha256);
+  assert.equal(createHash('sha256').update(bootstrapBytes).digest('hex'), bundle.artifacts.find(artifact => artifact.file === 'repo-standards-bootstrap')?.sha256);
   assert.deepEqual(bootstrapBytes, readFileSync(join(installed, 'bootstrap/repo-standards')));
   const bootstrap = join(root, 'repo-standards-bootstrap');
   writeFileSync(bootstrap, bootstrapBytes);
   chmodSync(bootstrap, 0o755);
   run(join(installation, 'node_modules/.bin/repo-standards-bootstrap'), ['--help']);
   for (const author of ['alice', 'mira', 'atlas']) {
-    assert.equal(JSON.parse(run(cli, ['source', 'validate', join(installed, 'examples', author), '--json'])).valid, true);
+    assert.equal((JSON.parse(run(cli, ['source', 'validate', join(installed, 'examples', author), '--json'])) as { valid: boolean }).valid, true);
   }
-  assert.equal(JSON.parse(run(cli, ['source', 'validate', join(checkout, 'acceptance/sources/wayfinder'), '--json'])).valid, true);
+  assert.equal((JSON.parse(run(cli, ['source', 'validate', join(checkout, 'acceptance/sources/wayfinder'), '--json'])) as { valid: boolean }).valid, true);
   const source = 'https://github.com/lutzseverino/repo-standards-example';
-  const search = JSON.parse(run(cli, ['source', 'search', '--json']));
-  assert.ok(search.candidates.some((candidate: { repository: string }) => candidate.repository === source), 'Public learning source must be discoverable');
+  const search = JSON.parse(run(cli, ['source', 'search', '--json'])) as { candidates: { repository: string }[] };
+  assert.ok(search.candidates.some(candidate => candidate.repository === source), 'Public learning source must be discoverable');
   run('git', ['init', '--quiet'], project);
   run('git', ['config', 'maintenance.auto', 'false'], project);
   writeFileSync(join(project, 'README.md'), '# Public installation smoke project\n');
@@ -120,10 +123,10 @@ try {
   run('git', ['-c', 'user.name=Release acceptance', '-c', 'user.email=release@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '--quiet', '-m', 'test: initialize disposable project'], project);
   const before = snapshot(project);
   const args = ['inspect', '--source', source, '--standards-version', 'v2.0.0', '--profile', 'service', '--json'];
-  const explicit = JSON.parse(run(bootstrap, ['--cli-version', version, ...args], project));
+  const explicit = JSON.parse(run(bootstrap, ['--cli-version', version, ...args], project)) as InspectionIdentity;
   assert.equal(explicit.selection.cli.version, version);
   assert.deepEqual(snapshot(project), before);
-  const latest = JSON.parse(run(bootstrap, args, project));
+  const latest = JSON.parse(run(bootstrap, args, project)) as InspectionIdentity;
   assert.match(latest.selection.cli.version, /^\d+\.\d+\.\d+$/);
   assert.ok(commands.at(-1)!.stderr.includes(`CLI ${latest.selection.cli.version} `));
   assert.deepEqual(snapshot(project), before);

@@ -7,6 +7,7 @@ import { Declarations } from './declarations.js';
 import type { SourceProfile } from './model.js';
 import { Paths } from './paths.js';
 import { validateSkillInvocation } from './skill-invocation.js';
+import { dictionary } from './records.js';
 
 export function validateSource(directory: string, cliVersion: string, sourcePaths?: ReadonlySet<string>, retainedManifest?: string) {
   const errors: Diagnostic[] = [];
@@ -29,12 +30,12 @@ export function validateSource(directory: string, cliVersion: string, sourcePath
   let result: ReturnType<typeof resolveDocument> | undefined;
   // The author's range gates selecting a standards version from its source
   // only. Retained inputs are validated against this CLI's formats alone.
-  const validateSkill = (name: string, source: Value) => validateSkillInvocation(resolve(directory), name, source, paths, fields, errors);
+  const validateSkill = (name: string, source: Value & { data: string }) => validateSkillInvocation(resolve(directory), name, source, paths, fields, errors);
   for (const root of roots) result = resolveDocument(root, fields, paths, validateSkill, retainedManifest === undefined ? cliVersion : undefined);
   return { valid: errors.length === 0, errors, ...(errors.length ? {} : { source: result?.source, scope: result?.scope }), profiles: errors.length ? {} : result?.profiles ?? {} };
 }
 
-function resolveDocument(root: Value, fields: Fields, paths: Paths, validateSkill: (name: string, source: Value) => void, cliVersion: string | undefined) {
+function resolveDocument(root: Value, fields: Fields, paths: Paths, validateSkill: (name: string, source: Value & { data: string }) => void, cliVersion: string | undefined) {
   const error = fields.error;
   fields.map(root, ['format', 'name', 'description', 'requires', 'defaults', 'profiles']);
   const format = fields.get(root, 'format');
@@ -53,7 +54,7 @@ function resolveDocument(root: Value, fields: Fields, paths: Paths, validateSkil
   const declarations = new Declarations(fields, paths, validateSkill);
   const inherited = declarations.read(fields.get(defaults, 'declarations'));
   const profilesValue = fields.get(root, 'profiles');
-  const profiles: Record<string, SourceProfile> = Object.create(null);
+  const profiles: Record<string, SourceProfile> = dictionary();
   const entries = fields.map(profilesValue);
   if (entries.size === 0) error('EMPTY_PROFILES', 'At least one named profile is required.', profilesValue);
   for (const [id, profile] of entries) {

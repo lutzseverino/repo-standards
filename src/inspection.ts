@@ -18,6 +18,7 @@ import { judgeTargetOwnership, type OwnedTarget, type TargetKind } from './targe
 import { declarationLink, declarationTargets, installationTarget, installedSystemSkills, linkTextAt } from './targets.js';
 import { unifiedDiff } from './unified-diff.js';
 import { compareUpdate } from './update-comparison.js';
+import { dictionary } from './records.js';
 
 // Guidance, discovery guidance and scripts are referenced by path and hash.
 function fileReference(path: string) {
@@ -144,7 +145,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     }
     const systemSkills = Object.fromEntries(installedSystemSkills.map(({ target }) => [target, observeTarget(target)]));
     // The skill link of every installed skill, system or author, by path.
-    const skillLinks: Record<string, Observation> = Object.create(null);
+    const skillLinks: Record<string, Observation> = dictionary();
     const observeLink = (path: string) => { skillLinks[path] = observeTarget(path, linkTextAt(path)); };
     for (const { link } of installedSystemSkills) observeLink(link);
     if (!previous && productState.type !== 'missing') blockers.push({ code: 'EXISTING_ADOPTION', path: '.repo-standards', message: 'Existing product state blocks initial adoption. Inspect the current selection with the project-pinned CLI and no source flags.' });
@@ -171,7 +172,7 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     const selection = { cli: { package: '@lutzseverino/repo-standards', version: cliVersion }, standards: source.identity, profile: options.profile };
     // Retain a normalized source with only the selected profile. The resolver
     // remains the sole interpreter when this source is used in a fresh checkout.
-    const inputs: Record<string, Observation> = Object.create(null);
+    const inputs: Record<string, Observation> = dictionary();
     const normalized = stringify({ ...validation.source, defaults: { declarations: {} }, profiles: {
       [options.profile]: { description: profile.description, declarations: Object.fromEntries(profile.declarations.map(({ id, ...declaration }) => [id, declaration])) },
     } });
@@ -186,8 +187,8 @@ export async function inspectForStart(options: InspectOptions, cliVersion: strin
     if (comparison) blockers.push(...comparison.blockers);
     const guidance = [];
     const operations = [];
-    const affected: Record<string, Observation> = Object.create(null);
-    const desiredExact: Record<string, Observation> = Object.create(null);
+    const affected: Record<string, Observation> = dictionary();
+    const desiredExact: Record<string, Observation> = dictionary();
     // Each declared target's type blockers, in resolved-declaration order.
     // Guidance targets are not installation targets and have no ownership.
     // A skill's link follows its skill.

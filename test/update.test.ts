@@ -260,7 +260,7 @@ test('the first update of an adoption made without skill links creates them as e
   const links = Object.fromEntries(['adopt-standards', 'review', 'standards-updates'].map(name => [`.claude/skills/${name}`, `../../.agents/skills/${name}`]));
   for (const [path, text] of Object.entries(links)) assert.equal(readlinkSync(join(project.root, path)), text);
   const updated = JSON.parse(readFileSync(statePath, 'utf8'));
-  assert.deepEqual(Object.fromEntries(Object.entries(updated.links).sort()), links);
+  assert.deepEqual(Object.fromEntries(Object.entries(updated.links).sort(([a], [b]) => a.localeCompare(b))), links);
   assert.deepEqual(git(project.root, 'status', '--porcelain', '--untracked-files=all', '--', '.agents', '.claude').split('\n').sort(),
     Object.keys(links).map(path => `?? ${path}`));
 });
@@ -1090,7 +1090,7 @@ async function pendingUpdate(t: TestContext, kind: 'standards' | 'cli' = 'standa
     const candidate = sourceFixture('');
     t.after(() => candidate.close());
     execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
-    run = (args, environment = env) => spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env: environment, encoding: 'utf8' });
+    run = (args, environment?: NodeJS.ProcessEnv) => spawnSync(join(candidate.root, 'node_modules/.bin/repo-standards'), args, { cwd: project.root, env: environment ?? env, encoding: 'utf8' });
     for (const key of Object.keys(remote.responses)) delete remote.responses[key];
     remote.save();
     args = ['inspect', '--json'];

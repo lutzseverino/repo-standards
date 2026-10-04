@@ -54,16 +54,16 @@ if (args.length === 1 && args[0] === '--version') {
     const flags = new Map<string, string>();
     for (let index = 1; index < args.length; index++) {
       const key = args[index]!;
-      if ((key === '--json' || (key === '--retry' && args[0] === 'resume') || (key === '--summary' && ['inspect', 'status'].includes(args[0]!))) && !flags.has(key)) { flags.set(key, 'true'); continue; }
-      if (!['--project', ...(['status', 'resume', 'abandon'].includes(args[0]!) ? [] : ['--source', '--standards-version', '--profile']), ...(['inspect', 'start'].includes(args[0]!) ? ['--scope'] : []), ...(args[0] === 'start' ? ['--confirm'] : []), ...(args[0] === 'resume' ? ['--assessment'] : [])].includes(key) || flags.has(key) || !args[index + 1] || args[index + 1]!.startsWith('--')) throw new ProductError('USAGE', `Unknown, duplicate, or incomplete option: ${key}. Use --help.`);
+      if ((key === '--json' || (key === '--retry' && args[0] === 'resume') || (key === '--summary' && ['inspect', 'status'].includes(args[0]))) && !flags.has(key)) { flags.set(key, 'true'); continue; }
+      if (!['--project', ...(['status', 'resume', 'abandon'].includes(args[0]) ? [] : ['--source', '--standards-version', '--profile']), ...(['inspect', 'start'].includes(args[0]) ? ['--scope'] : []), ...(args[0] === 'start' ? ['--confirm'] : []), ...(args[0] === 'resume' ? ['--assessment'] : [])].includes(key) || flags.has(key) || !args[index + 1] || args[index + 1]!.startsWith('--')) throw new ProductError('USAGE', `Unknown, duplicate, or incomplete option: ${key}. Use --help.`);
       flags.set(key, args[++index]!);
     }
     if (flags.has('--summary') && flags.has('--json')) throw new ProductError('USAGE', 'Use either --summary or --json, not both.');
     if (flags.has('--retry') && flags.has('--assessment')) throw new ProductError('USAGE', 'Retry requests renewed contextual work; submit assessment separately after retry.');
     const selectionKeys = ['--source', '--standards-version', '--profile'];
     const selectionCount = selectionKeys.filter(key => flags.has(key)).length;
-    const retained = ['inspect', 'start'].includes(args[0]!) && selectionCount === 0;
-    if (['inspect', 'start'].includes(args[0]!) && selectionCount !== 0 && selectionCount !== selectionKeys.length) throw new ProductError('USAGE', 'Provide --source, --standards-version and --profile together, or omit all three to use retained standards.');
+    const retained = ['inspect', 'start'].includes(args[0]) && selectionCount === 0;
+    if (['inspect', 'start'].includes(args[0]) && selectionCount !== 0 && selectionCount !== selectionKeys.length) throw new ProductError('USAGE', 'Provide --source, --standards-version and --profile together, or omit all three to use retained standards.');
     if (args[0] === 'start' && !flags.has('--confirm')) throw new ProductError('CONFIRMATION_REQUIRED', 'Inspect the selection, review its changes, and pass its identity with --confirm <identity> after explicit maintainer confirmation.');
     if (args[0] === 'inspect' || args[0] === 'start') requireSupportedGit();
     const options = { source: flags.get('--source')!, standardsVersion: flags.get('--standards-version')!, profile: flags.get('--profile')!, project: flags.get('--project') ?? '.', ...(flags.has('--scope') ? { scope: flags.get('--scope')! } : {}) };

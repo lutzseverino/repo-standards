@@ -46,7 +46,7 @@ writeFileSync(session, JSON.stringify({
   standardsVersion, profile, head: git(project.root, 'rev-parse', 'HEAD'),
   acquisition: remote ? 'Public npm; explicit GitHub-response fixture backed by an independent Git source' : 'Public npm and GitHub; no remote fixtures',
   ...(remote ? { fixtureSource: remote.source.root, fixtureCommit: remote.sha } : {}),
-  runtimeLock: JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8')),
+  runtimeLock: JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8')) as unknown,
   env: { npm_config_registry: env.npm_config_registry, npm_config_userconfig: configuration, npm_config_globalconfig: globalConfiguration, npm_config_cache: env.npm_config_cache, XDG_CACHE_HOME: env.XDG_CACHE_HOME, ...(remote ? { NODE_OPTIONS: remote.env.NODE_OPTIONS } : {}) },
 }, null, 2) + '\n');
 console.log(session);

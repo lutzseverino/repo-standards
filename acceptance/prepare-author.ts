@@ -83,7 +83,7 @@ async function downloadJson(url: string) {
   }
   const bytes = Buffer.from(await response.arrayBuffer());
   download.sha256 = createHash('sha256').update(bytes).digest('hex');
-  return JSON.parse(bytes.toString('utf8'));
+  return JSON.parse(bytes.toString('utf8')) as unknown;
 }
 const skill = join(isolatedHome, '.agents/skills/author-standards');
 const source = version
@@ -107,7 +107,7 @@ try {
       `refs/tags/v${version}`, `refs/tags/v${version}^{}`]);
     skillRevision = tags.trim().split('\n').at(-1)?.split(/\s/)[0];
     assert.match(skillRevision ?? '', /^[a-f0-9]{40}$/, 'The published skill tag must resolve');
-    const releaseInfo = await downloadJson(`https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v${version}`);
+    const releaseInfo = await downloadJson(`https://api.github.com/repos/lutzseverino/repo-standards/releases/tags/v${version}`) as { draft: boolean; prerelease: boolean };
     assert.equal(releaseInfo.draft, false);
     assert.equal(releaseInfo.prerelease, false);
   } else {
@@ -128,16 +128,16 @@ try {
     const compatibleVersion = /@lutzseverino\/repo-standards@(\d+\.\d+\.\d+)/.exec(guide)?.[1];
     assert.equal(compatibleVersion, version, 'The guide must acquire this release and matching contracts');
     const installation = join(root, 'cli');
-    const metadata = JSON.parse(run('npm', ['view', `@lutzseverino/repo-standards@${version}`, 'dist', '--json']));
+    const metadata = JSON.parse(run('npm', ['view', `@lutzseverino/repo-standards@${version}`, 'dist', '--json'])) as { integrity: string };
     distribution = metadata;
     run('npm', ['install', '--prefix', installation, '--ignore-scripts', '--no-audit', '--no-fund', '--save-exact',
       `@lutzseverino/repo-standards@${compatibleVersion}`]);
     cli = join(installation, 'node_modules/.bin/repo-standards');
     assert.equal(run(cli, ['--version']), version);
     const installed = join(installation, 'node_modules/@lutzseverino/repo-standards');
-    const lock = JSON.parse(readFileSync(join(installation, 'package-lock.json'), 'utf8'));
+    const lock = JSON.parse(readFileSync(join(installation, 'package-lock.json'), 'utf8')) as { packages: { 'node_modules/@lutzseverino/repo-standards': { integrity: string } } };
     assert.equal(lock.packages['node_modules/@lutzseverino/repo-standards'].integrity, metadata.integrity);
-    const bundle = await downloadJson(`https://github.com/lutzseverino/repo-standards/releases/download/v${version}/release.json`);
+    const bundle = await downloadJson(`https://github.com/lutzseverino/repo-standards/releases/download/v${version}/release.json`) as { version: string; integrity: string };
     assert.equal(bundle.version, version);
     assert.equal(bundle.integrity, metadata.integrity);
     assert.deepEqual(inventory(skill), inventory(join(installed, 'skills/author-standards')),
@@ -147,7 +147,7 @@ try {
     }
     documents = inventory(join(installed, 'docs'));
     for (const author of ['alice', 'mira']) {
-      assert.equal(JSON.parse(run(cli, ['source', 'validate', join(installed, 'examples', author), '--json'])).valid, true);
+      assert.equal((JSON.parse(run(cli, ['source', 'validate', join(installed, 'examples', author), '--json'])) as { valid: boolean }).valid, true);
     }
     const tags = run('git', ['ls-remote', 'https://github.com/lutzseverino/repo-standards.git',
       `refs/tags/v${version}`, `refs/tags/v${version}^{}`]);

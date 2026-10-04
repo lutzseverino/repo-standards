@@ -5,6 +5,7 @@ import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { git, hashInventory, targetBoundaryObservation, targetObservation } from './observation.js';
 import type { Blocker, Content, HashInventory, Observation } from './observation.js';
+import { dictionary, record } from './records.js';
 export type Baseline = Pick<Content, 'sha256' | 'executable'>;
 export type Files = Record<string, Content>;
 export const ignore = '/runtime/node_modules/\n/local/\n/cache/\n';
@@ -18,7 +19,7 @@ export function flatten(path: string, value: Observation, files: Files): void;
 export function flatten(path: string, value: HashInventory, files: Record<string, Baseline>): void;
 export function flatten(path: string, value: Observation | HashInventory, files: Record<string, Baseline>) {
   if (value.type === 'file') files[path] = value;
-  else if (value.type === 'directory') for (const [name, child] of Object.entries<Observation | HashInventory>(value.entries)) flatten(`${path}/${name}`, child as HashInventory, files);
+  else if (value.type === 'directory') for (const [name, child] of Object.entries<Observation | HashInventory>(value.entries)) flatten(`${path}/${name}`, child, files);
   else throw new ProductError('UNSAFE_CONTENT', `Expected regular source material at ${path}.`);
 }
 
@@ -45,7 +46,7 @@ export function safeDirectory(root: string, path: string) {
 
 // The files of a product tree, relative to it.
 export function inventory(root: string, path: string) {
-  const files: Files = Object.create(null);
+  const files: Files = dictionary();
   flatten(path, safe(root, path), files);
   return Object.keys(files).map(name => name.slice(path.length + 1)).sort();
 }
@@ -107,14 +108,15 @@ export function writeLink(root: string, path: string, text: string, installation
 function runtimeRestores(root: string, version: string) {
   const read = (name: string) => {
     const value = safe(root, `.repo-standards/runtime/${name}`);
-    return value.type === 'file' ? JSON.parse(Buffer.from(value.content, value.encoding).toString('utf8')) : undefined;
+    return record(value.type === 'file' ? JSON.parse(Buffer.from(value.content, value.encoding).toString('utf8')) : undefined);
   };
   const cli = '@lutzseverino/repo-standards';
   try {
     const manifest = read('package.json');
     const lock = read('package-lock.json');
-    return manifest?.dependencies?.[cli] === version && lock?.packages?.['']?.dependencies?.[cli] === version
-      && lock.packages[`node_modules/${cli}`]?.version === version;
+    const packages = record(lock.packages);
+    return record(manifest.dependencies)[cli] === version && record(record(packages['']).dependencies)[cli] === version
+      && record(packages[`node_modules/${cli}`]).version === version;
   } catch { return false; }
 }
 

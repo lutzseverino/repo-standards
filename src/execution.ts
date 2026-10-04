@@ -5,6 +5,7 @@ import semver from 'semver';
 import { processGroupAlive } from './run-lock.js';
 import type { ResolvedProfile } from './model.js';
 import { declarationTargets } from './targets.js';
+import { record } from './records.js';
 
 export function operations(resolved: Pick<ResolvedProfile, 'declarations'>, phase: 'fixes' | 'checks') {
   return resolved.declarations.flatMap(declaration => declaration[phase].map(operation => ({ declaration: declaration.id, phase, operation })));
@@ -55,12 +56,14 @@ export async function execute(root: string, selected: SelectedOperation, selecti
     stdout: process.stdout, stderr: process.stderr };
   if (!evidence.error) {
     try {
-      const result = JSON.parse(process.stdout);
+      const result = record(JSON.parse(process.stdout));
+      const { format, status, message } = result;
       const statuses = phase === 'fixes' ? ['unchanged', 'changed', 'blocked'] : ['passed', 'failed', 'blocked'];
-      if (!result || typeof result !== 'object' || Array.isArray(result) || result.format !== formats.result
-        || !statuses.includes(result.status) || typeof result.message !== 'string'
+      if (format !== formats.result
+        || typeof status !== 'string' || !statuses.includes(status) || typeof message !== 'string'
         || Object.keys(result).some(key => !['format', 'status', 'message'].includes(key))) throw new Error('Invalid result');
-      evidence.result = result;
+      // Spreading the result first keeps the author's key order.
+      evidence.result = { ...result, format, status, message };
     } catch { evidence.error = 'PROTOCOL_ERROR'; }
   }
   return evidence;
