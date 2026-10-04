@@ -1,3 +1,4 @@
+import type { SourceValidation } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { stringify } from 'yaml';
@@ -30,7 +31,7 @@ test('executable syntax accepts command names and paths without resolving or rew
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const checks = JSON.parse(result.stdout).profiles.personal.declarations[0].checks;
+  const checks = (JSON.parse(result.stdout) as SourceValidation).profiles.personal!.declarations[0]!.checks;
   assert.deepEqual(checks.map((check: { run: { executable: string } }) => check.run.executable), names);
 });
 
@@ -43,7 +44,7 @@ test('executable syntax rejects shell expressions, controls and malformed execut
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as SourceValidation);
   assert.deepEqual(report.profiles, {});
   for (let index = 0; index < names.length; index++) {
     assert.ok(report.errors.some((error: { code: string; path: string }) =>
@@ -58,5 +59,5 @@ test('executable character restrictions do not apply to literal arguments', (t) 
   t.after(() => source.close());
   const result = cli.run(['source', 'validate', '--json'], source.root);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.deepEqual(JSON.parse(result.stdout).profiles.personal.declarations[0].checks[0].run.arguments, arguments_);
+  assert.deepEqual((JSON.parse(result.stdout) as SourceValidation).profiles.personal!.declarations[0]!.checks[0]!.run.arguments, arguments_);
 });

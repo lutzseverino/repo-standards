@@ -1,21 +1,11 @@
+import type { RecordedInterval } from '../src/work-evidence.ts';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
 import { git } from './remote-fixture.ts';
 
-export interface CommittedInterval {
-  phase: string;
-  scope: Record<string, { paths: string[]; directories: string[] }>;
-  operation?: { declaration: string; phase: string; id: string };
-  operationIndex?: number;
-  before: unknown;
-  after?: unknown;
-  changes?: Record<string, { before: { type: string; sha256?: string }; after: { type: string; sha256?: string } }>;
-  boundaryChanges?: Record<string, { before: { type: string }; after: { type: string } }>;
-  violations?: string[];
-  interrupted?: boolean;
-}
+export type CommittedInterval = Omit<RecordedInterval, 'before' | 'after'> & { before: unknown; after?: unknown };
 
 export function committedState(root: string) {
   return JSON.parse(readFileSync(join(root, '.repo-standards/state.json'), 'utf8')) as {
@@ -98,7 +88,7 @@ export function assertCompactScopeEvidence(scope: ReturnType<typeof committedSco
   assert.equal(Object.hasOwn(discovery, 'evidence'), false, 'discovery must not carry a derived evidence array');
   assert.equal(Object.hasOwn(discovery, 'namedObservation'), false, 'discovery must store the named observation as a delta');
   assert.ok(discovery.observation, 'discovery must retain its project observation');
-  assert.equal(Object.hasOwn(discovery.observation!, 'evidence'), false, 'the observation must not carry a derived evidence array');
+  assert.equal(Object.hasOwn(discovery.observation, 'evidence'), false, 'the observation must not carry a derived evidence array');
   if (discovery.named) assert.deepEqual(Object.keys(discovery.named).filter(key => !['targets', 'boundaries'].includes(key)), [], 'named delta fields');
 }
 
@@ -165,7 +155,7 @@ export function assertNoMachineLocation(root: string, locations: string[], autho
   for (const path of committed) {
     const text = readFileSync(join(root, path), 'utf8');
     for (const machine of locations) if (text.includes(machine)) located.push(`${path}: ${machine}`);
-    if (path.endsWith('.json')) visit(path, JSON.parse(text));
+    if (path.endsWith('.json')) visit(path, JSON.parse(text) as unknown);
   }
   assert.deepEqual(located, [], 'committed evidence must not record an absolute path or a path outside the project');
   return committed;

@@ -1,3 +1,4 @@
+import type { CheckErrorDetails, CheckReport, ErrorReport, Inspection, Lock, OperationLog, Run } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
@@ -54,9 +55,9 @@ function adopted(t: TestContext, profile = 'work') {
   const run = (args: string[], extra: NodeJS.ProcessEnv = {}) => cli.run(args, project.root, { ...env, ...extra });
   const args = inspectionArgs.map(arg => arg === 'work' ? profile : arg);
   return { project, env, run, adopt(extra: NodeJS.ProcessEnv = {}) {
-    const inspection = JSON.parse(run(args).stdout);
+    const inspection = (JSON.parse(run(args).stdout) as Inspection);
     const started = run(['start', ...args.slice(1), '--confirm', inspection.identity], extra);
-    return { started, report: JSON.parse(started.stdout), inspection };
+    return { started, report: (JSON.parse(started.stdout) as Run), inspection };
   } };
 }
 
@@ -75,14 +76,14 @@ test('check runs every retained check with a run\'s inputs, reports each result,
   // The checks were confirmed at adoption: no confirmation, source, or registry is needed.
   const passed = cli.run(['check', '--json'], f.project.root, process.env);
   assert.equal(passed.status, 0, passed.stdout + passed.stderr);
-  const report = JSON.parse(passed.stdout);
+  const report = (JSON.parse(passed.stdout) as CheckReport);
   assert.equal(report.format, 'repo-standards/check/v1');
   assert.equal(report.outcome, 'passed');
   assert.deepEqual(report.selection, inspection.selection);
   assert.deepEqual(report.checks.map((result: { declaration: string; id: string; status: string; message: string; error: string | null }) =>
     [result.declaration, result.id, result.status, result.message, result.error]),
   [['instructions', 'first', 'passed', 'first passed', null], ['instructions', 'second', 'passed', 'second passed', null], ['zulu', 'third', 'passed', 'third passed', null]]);
-  const evidence = JSON.parse(readFileSync(join(f.project.root, report.checks[0].stderr), 'utf8'));
+  const evidence = (JSON.parse(readFileSync(join(f.project.root, report.checks[0]!.stderr), 'utf8')) as OperationLog);
   assert.equal(evidence.cwd, f.project.root);
   assert.deepEqual(evidence.args, ['literal argument']);
   assert.equal(evidence.input.format, 'repo-standards/operation/v1');
@@ -92,7 +93,7 @@ test('check runs every retained check with a run\'s inputs, reports each result,
   assert.equal(evidence.input.profile, 'work');
   assert.deepEqual(evidence.input.declarations, inspection.resolved.declarations);
   assert.deepEqual(evidence.input.allowedTargets, { paths: ['AGENTS.md'], directories: [] });
-  assert.deepEqual(JSON.parse(readFileSync(join(f.project.root, report.checks[2].stderr), 'utf8')).input.allowedTargets, { paths: [], directories: ['.agents/skills/review'] });
+  assert.deepEqual((JSON.parse(readFileSync(join(f.project.root, report.checks[2]!.stderr), 'utf8')) as OperationLog).input.allowedTargets, { paths: [], directories: ['.agents/skills/review'] });
   assert.equal(readFileSync(join(f.project.root, 'ignored/fixes.log'), 'utf8'), fixes, 'no fix runs');
 
   // Only the ignored local logs differ; committed state, HEAD and the index do not.
@@ -120,7 +121,7 @@ test('check fails when any check fails, is blocked, or returns a malformed resul
   for (const example of cases) await t.test(JSON.stringify(example.modes), () => {
     const result = cli.run(['check', '--json'], f.project.root, { ...process.env, CHECK_MODES: JSON.stringify(example.modes) });
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const report = JSON.parse(result.stdout);
+    const report = (JSON.parse(result.stdout) as CheckReport);
     assert.equal(report.outcome, 'failed');
     assert.deepEqual(report.checks.map((check: { status: string }) => check.status), example.statuses);
     assert.deepEqual(report.checks.map((check: { error: string | null }) => check.error), example.errors);
@@ -140,7 +141,7 @@ test('the readable summary keeps each check on one line while JSON keeps its mes
   const env = { ...process.env, CHECK_MODES: JSON.stringify({ second: 'multiline' }) };
   const json = cli.run(['check', '--json'], f.project.root, env);
   assert.equal(json.status, 1);
-  assert.equal(JSON.parse(json.stdout).checks[1].message, 'first line\npassed  zulu/forged: second line\r\nthird line');
+  assert.equal((JSON.parse(json.stdout) as CheckReport).checks[1]!.message, 'first line\npassed  zulu/forged: second line\r\nthird line');
   const readable = cli.run(['check'], f.project.root, env);
   assert.equal(readable.status, 1);
   assert.equal(readable.stdout.split('\n')[2], 'failed  instructions/second: first line passed  zulu/forged: second line third line'
@@ -156,7 +157,7 @@ test('the readable summary keeps the profile on one line while JSON keeps it', t
   commit(f.project.root);
   const json = cli.run(['check', '--json'], f.project.root, process.env);
   assert.equal(json.status, 0, json.stdout + json.stderr);
-  assert.equal(JSON.parse(json.stdout).selection.profile, profile);
+  assert.equal((JSON.parse(json.stdout) as CheckReport).selection.profile, profile);
   const readable = cli.run(['check'], f.project.root, process.env);
   assert.equal(readable.status, 0, readable.stderr);
   const lines = readable.stdout.split('\n');
@@ -170,9 +171,9 @@ test('check probes the checks\' prerequisites as a run does', t => {
   commit(f.project.root);
   const result = cli.run(['check', '--json'], f.project.root, { ...process.env, FIXTURE_VERSION: '23.0.0' });
   assert.equal(result.status, 1, result.stdout + result.stderr);
-  const [error] = JSON.parse(result.stdout).errors;
-  assert.equal(error.code, 'PREREQUISITES_BLOCKED');
-  assert.deepEqual(error.details.map((probe: { phase: string; operation: string; code: string }) => [probe.phase, probe.operation, probe.code]),
+  const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+  assert.equal(error!.code, 'PREREQUISITES_BLOCKED');
+  assert.deepEqual((error!.details as { phase: string; operation: string; code: string }[]).map((probe: { phase: string; operation: string; code: string }) => [probe.phase, probe.operation, probe.code]),
     [['checks', 'first', 'VERSION_INCOMPATIBLE'], ['checks', 'second', 'VERSION_INCOMPATIBLE'], ['checks', 'third', 'VERSION_INCOMPATIBLE']]);
   assert.equal(existsSync(join(f.project.root, '.repo-standards/local/checks')), false);
 });
@@ -197,11 +198,11 @@ test('a check that changes the working tree, product state, HEAD or the index fa
     };
     const result = cli.run(['check', '--json'], f.project.root, env);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const [error] = JSON.parse(result.stdout).errors;
-    assert.equal(error.code, 'CHECK_MUTATION');
-    assert.match(error.message, /^Check instructions\/second changed the project: /);
-    assert.deepEqual(error.details.paths, paths);
-    for (const path of paths) assert.ok(error.message.includes(path), error.message);
+    const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+    assert.equal(error!.code, 'CHECK_MUTATION');
+    assert.match(error!.message, /^Check instructions\/second changed the project: /);
+    assert.deepEqual((error!.details as CheckErrorDetails).paths, paths);
+    for (const path of paths) assert.ok(error!.message.includes(path), error!.message);
     assert.equal(existsSync(join(f.project.root, '.repo-standards/local/checks/2.stderr')), false, 'later checks do not run');
     restore();
     const readable = cli.run(['check'], f.project.root, env);
@@ -230,12 +231,12 @@ test('a check that leaves the project unsafe or unreadable to observe fails chec
     for (const path of ['.agents/skills/review/.git', '.repo-standards/cache', '.repo-standards/local']) rmSync(join(f.project.root, path), { recursive: true, force: true });
     git(f.project.root, 'reset', '--quiet', '--hard');
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const [error] = JSON.parse(result.stdout).errors;
-    assert.equal(error.code, 'CHECK_MUTATION');
-    assert.match(error.message, /^Check instructions\/second left the project unsafe or unreadable/);
-    assert.equal(error.details.cause.code, cause);
-    assert.deepEqual(error.details.paths, paths);
-    assert.ok(error.message.includes(named), error.message);
+    const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+    assert.equal(error!.code, 'CHECK_MUTATION');
+    assert.match(error!.message, /^Check instructions\/second left the project unsafe or unreadable/);
+    assert.equal((error!.details as CheckErrorDetails).cause.code, cause);
+    assert.deepEqual((error!.details as CheckErrorDetails).paths, paths);
+    assert.ok(error!.message.includes(named), error!.message);
     assert.equal(existsSync(join(f.project.root, '.repo-standards/local/checks/2.stderr')), false, 'later checks do not run');
   });
   // A non-root process cannot read a directory without permissions, and the
@@ -252,18 +253,18 @@ test('a check that leaves the project unsafe or unreadable to observe fails chec
       rmSync(join(f.project.root, '.repo-standards/local/checks'), { recursive: true, force: true });
     }
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const [error] = JSON.parse(result.stdout).errors;
-    assert.equal(error.code, 'CHECK_MUTATION');
-    assert.match(error.message, /^Check instructions\/second left the project unsafe or unreadable/);
-    assert.equal(error.details.cause.code, 'EACCES');
-    assert.match(error.details.cause.message, /EACCES/);
+    const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+    assert.equal(error!.code, 'CHECK_MUTATION');
+    assert.match(error!.message, /^Check instructions\/second left the project unsafe or unreadable/);
+    assert.equal((error!.details as CheckErrorDetails).cause.code, 'EACCES');
+    assert.match((error!.details as CheckErrorDetails).cause.message, /EACCES/);
   });
   await t.test('initial observation', () => {
     writeFileSync(index, 'corrupted');
     const result = cli.run(['check', '--json'], f.project.root, process.env);
     writeFileSync(index, saved);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.notEqual(JSON.parse(result.stdout).errors[0].code, 'CHECK_MUTATION');
+    assert.notEqual((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'CHECK_MUTATION');
   });
   await t.test('initial unsafe product state', () => {
     const cache = join(f.project.root, '.repo-standards/cache');
@@ -271,8 +272,8 @@ test('a check that leaves the project unsafe or unreadable to observe fails chec
     const result = cli.run(['check', '--json'], f.project.root, process.env);
     rmSync(cache);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const [error] = JSON.parse(result.stdout).errors;
-    assert.equal(error.code, 'FINAL_INTEGRITY');
+    const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+    assert.equal(error!.code, 'FINAL_INTEGRITY');
     assert.equal(existsSync(join(f.project.root, '.repo-standards/local/checks/0.stderr')), false, 'no check runs');
   });
 });
@@ -284,9 +285,9 @@ test('a prerequisite probe that writes, or a check that leaves its process group
   await t.test('probe', () => {
     const result = cli.run(['check', '--json'], f.project.root, { ...process.env, PROBE_MUTATION: `require('node:fs').writeFileSync('PROBED.txt', 'Probe')` });
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const [error] = JSON.parse(result.stdout).errors;
-    assert.equal(error.code, 'CHECK_MUTATION');
-    assert.match(error.message, /^A prerequisite probe changed the project: PROBED\.txt\./);
+    const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+    assert.equal(error!.code, 'CHECK_MUTATION');
+    assert.match(error!.message, /^A prerequisite probe changed the project: PROBED\.txt\./);
     assert.equal(existsSync(join(f.project.root, '.repo-standards/local/checks')), false, 'no check runs');
     rmSync(join(f.project.root, 'PROBED.txt'));
   });
@@ -298,19 +299,19 @@ test('a prerequisite probe that writes, or a check that leaves its process group
       result = cli.run(['check', '--json'], f.project.root, { ...process.env, PROBE_MUTATION: `require('node:fs').chmodSync('.agents/skills/review', 0o000)` });
     } finally { chmodSync(skill, mode); }
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const [error] = JSON.parse(result.stdout).errors;
-    assert.equal(error.code, 'CHECK_MUTATION');
-    assert.match(error.message, /^A prerequisite probe left the project unsafe or unreadable/);
-    assert.equal(error.details.cause.code, 'EACCES');
+    const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+    assert.equal(error!.code, 'CHECK_MUTATION');
+    assert.match(error!.message, /^A prerequisite probe left the project unsafe or unreadable/);
+    assert.equal((error!.details as CheckErrorDetails).cause.code, 'EACCES');
     assert.equal(existsSync(join(f.project.root, '.repo-standards/local/checks/0.stderr')), false, 'no check runs');
   });
   await t.test('surviving process', () => {
     const result = cli.run(['check', '--json'], f.project.root, { ...process.env,
       CHECK_MUTATION: `if (input.operation.id === 'first') spawn(process.execPath, ['-e', 'setTimeout(() => {}, 2000)'], { stdio: 'ignore' }).unref();` });
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const [error] = JSON.parse(result.stdout).errors;
-    assert.equal(error.code, 'AUTHOR_PROCESS_ACTIVE');
-    assert.match(error.message, /^Check instructions\/first left author process group \d+ with live processes/);
+    const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+    assert.equal(error!.code, 'AUTHOR_PROCESS_ACTIVE');
+    assert.match(error!.message, /^Check instructions\/first left author process group \d+ with live processes/);
     assert.equal(existsSync(join(f.project.root, '.repo-standards/local/checks/1.stderr')), false, 'later checks do not run');
   });
 });
@@ -320,7 +321,7 @@ test('check fails with the existing diagnostics without a complete adoption, dur
   const check = () => {
     const result = cli.run(['check', '--json'], f.project.root, { ...process.env, CHECK_MODES: JSON.stringify({ first: 'failed' }) });
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    return JSON.parse(result.stdout).errors[0] as { code: string; message: string };
+    return (JSON.parse(result.stdout) as ErrorReport).errors[0] as { code: string; message: string };
   };
   await t.test('no adoption', () => assert.equal(check().code, 'NO_SELECTION'));
   await t.test('active run', () => {
@@ -330,7 +331,7 @@ test('check fails with the existing diagnostics without a complete adoption, dur
     const active = snapshot(f.project.root);
     assert.equal(check().code, 'ACTIVE_RUN');
     assert.deepEqual(snapshot(f.project.root), active);
-    assert.equal(JSON.parse(f.run(['abandon', '--json']).stdout).abandoned, true);
+    assert.equal((JSON.parse(f.run(['abandon', '--json']).stdout) as Run).abandoned, true);
     git(f.project.root, 'clean', '--quiet', '-fdx', '--exclude=ignored');
   });
   assert.equal(f.adopt().started.status, 0);
@@ -338,7 +339,7 @@ test('check fails with the existing diagnostics without a complete adoption, dur
   await t.test('another CLI', () => {
     const lock = join(f.project.root, '.repo-standards/lock.json');
     const original = readFileSync(lock, 'utf8');
-    const value = JSON.parse(original);
+    const value = (JSON.parse(original) as Lock);
     value.selection.cli.version = '0.0.1';
     writeFileSync(lock, JSON.stringify(value));
     const error = check();
@@ -367,8 +368,8 @@ else { appendFileSync(${JSON.stringify(unexpected)}, args.join(' ') + '\\n'); pr
       for (const json of [true, false]) {
         const result = cli.run(['check', ...(json ? ['--json'] : [])], f.project.root, { ...process.env, PATH: `${bin.root}:${process.env.PATH}` });
         assert.equal(result.status, 1, result.stdout + result.stderr);
-        const message = json ? JSON.parse(result.stdout).errors[0].message : result.stderr;
-        if (json) assert.equal(JSON.parse(result.stdout).errors[0].code, 'GIT_VERSION_UNSUPPORTED');
+        const message = json ? (JSON.parse(result.stdout) as ErrorReport).errors[0]!.message : result.stderr;
+        if (json) assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'GIT_VERSION_UNSUPPORTED');
         else assert.match(result.stderr, /^\[GIT_VERSION_UNSUPPORTED\] /);
         assert.match(message, /2\.31\.8.*2\.32/);
       }
@@ -382,16 +383,16 @@ else { appendFileSync(${JSON.stringify(unexpected)}, args.join(' ') + '\\n'); pr
     fakeGit(bin.root, unexpected);
     const lock = join(f.project.root, '.repo-standards/lock.json');
     const original = readFileSync(lock, 'utf8');
-    const value = JSON.parse(original);
+    const value = (JSON.parse(original) as Lock);
     value.selection.cli.version = '0.0.1';
     writeFileSync(lock, JSON.stringify(value));
     let result;
     try { result = cli.run(['check', '--json'], f.project.root, { ...process.env, PATH: `${bin.root}:${process.env.PATH}` }); }
     finally { writeFileSync(lock, original); bin.close(); }
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    const [error] = JSON.parse(result.stdout).errors;
-    assert.equal(error.code, 'CLI_PIN_MISMATCH');
-    assert.match(error.message, / 0\.0\.1/);
+    const [error] = (JSON.parse(result.stdout) as ErrorReport).errors;
+    assert.equal(error!.code, 'CLI_PIN_MISMATCH');
+    assert.match(error!.message, / 0\.0\.1/);
   });
   // A non-root process cannot register in a Git directory without write access.
   await t.test('unwritable Git directory', { skip: process.getuid?.() === 0 }, () => {
@@ -403,10 +404,10 @@ else { appendFileSync(${JSON.stringify(unexpected)}, args.join(' ') + '\\n'); pr
       readable = cli.run(['check'], f.project.root, process.env);
     } finally { chmodSync(gitDirectory, 0o755); }
     assert.equal(json.status, 1, json.stdout + json.stderr);
-    const report = JSON.parse(json.stdout);
+    const report = (JSON.parse(json.stdout) as ErrorReport);
     assert.equal(report.valid, false);
-    assert.equal(report.errors[0].code, 'CHECK_FAILED');
-    assert.match(report.errors[0].message, /EACCES/);
+    assert.equal(report.errors[0]!.code, 'CHECK_FAILED');
+    assert.match(report.errors[0]!.message, /EACCES/);
     assert.equal(json.stderr, '');
     assert.equal(readable.status, 1);
     assert.match(readable.stderr, /^\[CHECK_FAILED\] .*EACCES/);

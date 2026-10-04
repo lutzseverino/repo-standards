@@ -1,3 +1,4 @@
+import type { ErrorReport, Inspection, Run, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
@@ -39,7 +40,7 @@ async function adopted(t: TestContext) {
   const registry = await registryFixture(cli.root);
   t.after(() => { registry.close(); remote.close(); project.close(); });
   const env = { ...remote.env, ...registry.env };
-  const run = (args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: JSON.parse(result.stdout) }; };
+  const run = <T = Inspection>(args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: (JSON.parse(result.stdout) as T) }; };
   const scopeFile = join(remote.support.root, 'scope.json');
   // Inspect with a fresh proposal for the discovery request the first pass returns.
   function inspect(args: string[], paths = ['apps/a/README.md']) {
@@ -52,13 +53,13 @@ async function adopted(t: TestContext) {
   }
   const inspection = inspect(inspectionArgs);
   assert.equal(inspection.updateClass, undefined);
-  const started = run(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', inspection.identity]).report;
+  const started = run<Run>(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', inspection.identity]).report;
   assert.equal(started.phase, 'contextual', JSON.stringify(started));
   const review = { status: 'valid', explanation: 'The confirmed project still matches.', evidence: ['Reviewed the project files.'], additionalPaths: [] };
   const assessment = join(remote.support.root, 'assessment.json');
   writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v3',
     declarations: [{ id: 'docs', status: 'satisfied', explanation: 'The README already satisfies the guidance.', evidence: ['Reviewed the README.'], scopeValidity: { afterFixes: review, current: review } }] }));
-  const completed = run(['resume', '--assessment', assessment, '--json']);
+  const completed = run<Run>(['resume', '--assessment', assessment, '--json']);
   assert.equal(completed.result.status, 0, completed.result.stdout);
   commit(project.root);
   return { remote, run, inspect, root: project.root, env, scopeFile };
@@ -82,7 +83,7 @@ test('an update is exact when only exact content or the selection changes, inclu
 
   f.remote.addVersion('v1.1.0', manifest(), { ...files, 'agents.md': 'Revised instructions\n' });
   const exactContent = f.inspect(versionArgs('v1.1.0'));
-  assert.equal(exactContent.exact.find((entry: { id: string }) => entry.id === 'instructions').action, 'replace');
+  assert.equal(exactContent.exact.find((entry: { id: string }) => entry.id === 'instructions')!.action, 'replace');
   assert.equal(exactContent.updateClass, 'exact');
   assert.deepEqual(exactContent.contextualChanges, []);
 });
@@ -91,7 +92,7 @@ test('each change to guidance, discovery guidance, operations, retired declarati
   const f = await adopted(t);
   // An active discovery declaration without a confirmed proposal has no scope
   // that can equal the retained one yet.
-  const unconfirmed = f.run(['inspect', '--json']).report;
+  const unconfirmed = f.run<Inspection>(['inspect', '--json']).report;
   assert.ok(unconfirmed.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'));
   assert.equal(unconfirmed.updateClass, 'contextual');
   assert.deepEqual(unconfirmed.contextualChanges, [{ id: 'docs', changes: ['scope'] }]);
@@ -118,7 +119,7 @@ test('each change to guidance, discovery guidance, operations, retired declarati
     const { legacy: _legacy, ...remaining } = declarations;
     f.remote.addVersion('v2.0.0', manifest(remaining), files);
     const report = f.inspect(versionArgs('v2.0.0'));
-    assert.deepEqual(report.retired.map((entry: { id: string }) => entry.id), ['legacy']);
+    assert.deepEqual(report.retired!.map((entry: { id: string }) => entry.id), ['legacy']);
     assert.equal(report.updateClass, 'contextual');
     assert.deepEqual(report.contextualChanges, [{ id: 'legacy', changes: ['retired'] }]);
   });
@@ -137,7 +138,7 @@ function tamper(t: TestContext, root: string, path: string) {
   const file = join(root, path);
   const original = readFileSync(file);
   t.after(() => writeFileSync(file, original));
-  writeFileSync(file, path.endsWith('.json') ? JSON.stringify({ ...JSON.parse(original.toString('utf8')), tampered: true }) : 'Tampered guidance\n');
+  writeFileSync(file, path.endsWith('.json') ? JSON.stringify({ ...(JSON.parse(original.toString('utf8')) as Record<string, unknown>), tampered: true }) : 'Tampered guidance\n');
 }
 
 const integrityError = (path: string) => ({ code: 'STATE_INTEGRITY', message: `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.` });
@@ -148,7 +149,7 @@ test('tampered retained declarations, inputs and scope history fail every reader
     tamper(st, f.root, path);
     for (const args of [['inspect', '--json'], versionArgs('v1.0.0'), ['start', '--confirm', 'sha256:unconfirmed', '--json'],
       ['start', ...versionArgs('v1.0.0').slice(1), '--confirm', 'sha256:unconfirmed'], ['status', '--json']]) {
-      const { result, report } = f.run(args);
+      const { result, report } = f.run<ErrorReport>(args);
       assert.equal(result.status, 1, `${args.join(' ')}: ${result.stdout}`);
       assert.deepEqual(report.errors, [integrityError(path)], args.join(' '));
     }
@@ -162,19 +163,19 @@ test('tampered retained declarations, inputs and scope history fail every reader
     const interrupted = filesystemFault(f.remote.support.root, f.env, 'prerequisites', `process.kill(process.pid, 'SIGKILL');`);
     assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
     tamper(st, f.root, path);
-    const { result, report } = f.run(['resume', '--retry', '--json']);
+    const { result, report } = f.run<ErrorReport>(['resume', '--retry', '--json']);
     assert.equal(result.status, 1, result.stdout);
     assert.deepEqual(report.errors, [integrityError(path)]);
-    assert.equal(f.run(['abandon', '--json']).report.abandoned, true);
+    assert.equal(f.run<Run>(['abandon', '--json']).report.abandoned, true);
   });
 
   // An archived abandoned run explains an inconsistent state only when the lock
   // is the one it left; it never hides tampering with the last complete adoption.
   await t.test('status beside an abandoned run', st => {
-    assert.equal(f.run(['status', '--json']).report.abandoned.length, 1);
+    assert.equal(f.run<Status>(['status', '--json']).report.abandoned.length, 1);
     const path = '.repo-standards/inputs/resolved.json';
     tamper(st, f.root, path);
-    const { result, report } = f.run(['status', '--json']);
+    const { result, report } = f.run<ErrorReport>(['status', '--json']);
     assert.equal(result.status, 1, result.stdout);
     assert.deepEqual(report.errors, [integrityError(path)]);
   });
@@ -183,7 +184,7 @@ test('tampered retained declarations, inputs and scope history fail every reader
   // lock leaves the previous lock; status explains that state from the run. It
   // runs last because it leaves the adoption inconsistent.
   await t.test('status after an update abandoned mid-installation', () => {
-    const previous = f.run(['status', '--json']).report.lastComplete;
+    const previous = f.run<Status>(['status', '--json']).report.lastComplete;
     const confirmed = f.inspect(['inspect', '--json']);
     const interrupted = filesystemFault(f.remote.support.root, f.env, 'installation', `const rename = fs.renameSync;
 fs.renameSync = function(from, to) {
@@ -193,10 +194,10 @@ fs.renameSync = function(from, to) {
 };
 syncBuiltinESMExports();`);
     assert.equal(cli.run(['start', '--scope', f.scopeFile, '--confirm', confirmed.identity, '--json'], f.root, interrupted).signal, 'SIGKILL');
-    assert.equal(f.run(['abandon', '--json']).report.abandoned, true);
-    const { result, report } = f.run(['status', '--json']);
+    assert.equal(f.run<Run>(['abandon', '--json']).report.abandoned, true);
+    const { result, report } = f.run<Status>(['status', '--json']);
     assert.equal(result.status, 0, result.stdout);
-    assert.equal(report.stateError.code, 'STATE_INTEGRITY');
+    assert.equal(report.stateError!.code, 'STATE_INTEGRITY');
     assert.deepEqual(report.lastComplete, previous);
   });
 });

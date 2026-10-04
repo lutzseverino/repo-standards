@@ -1,3 +1,4 @@
+import type { ErrorReport, Inspection, PackageManifest } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -32,7 +33,7 @@ profiles:
   writeFileSync(versions, JSON.stringify(['1.0.0', '1.1.0', '2.0.0-beta.1']));
   const packageDirectory = join(support.root, 'package');
   cpSync(join(cli.root, 'node_modules/@lutzseverino/repo-standards'), packageDirectory, { recursive: true });
-  const manifest = JSON.parse(readFileSync(join(packageDirectory, 'package.json'), 'utf8'));
+  const manifest = (JSON.parse(readFileSync(join(packageDirectory, 'package.json'), 'utf8')) as PackageManifest);
   for (const version of ['1.0.0', '1.1.0']) {
     writeFileSync(join(packageDirectory, 'package.json'), JSON.stringify({ ...manifest, version, scripts: { postinstall: `node -e 'require("node:fs").writeFileSync(${JSON.stringify(join(support.root, 'AUTHOR_CODE_RAN'))}, "ran")'` } }));
     execFileSync('npm', ['pack', '--ignore-scripts', '--pack-destination', support.root], { cwd: packageDirectory, stdio: 'pipe' });
@@ -61,17 +62,17 @@ if (args[0] === 'view') {
   const before = snapshot(project.root);
   const explicit = spawnSync(bootstrap, ['--cli-version', '1.0.0', ...inspectionArgs, '--project', relative(support.root, project.root)], { cwd: support.root, env, encoding: 'utf8' });
   assert.equal(explicit.status, 0, explicit.stderr + explicit.stdout);
-  assert.equal(JSON.parse(explicit.stdout).selection.cli.version, '1.0.0');
+  assert.equal((JSON.parse(explicit.stdout) as Inspection).selection.cli.version, '1.0.0');
   assert.match(explicit.stderr, /CLI 1\.0\.0/);
-  let calls = readFileSync(log, 'utf8').trim().split('\n').map(line => JSON.parse(line));
+  let calls = readFileSync(log, 'utf8').trim().split('\n').map(line => JSON.parse(line) as { args: string[]; cwd: string });
   assert.equal(calls.filter(call => call.args[0] === 'view').length, 0);
   const latest = spawnSync(bootstrap, inspectionArgs, { cwd: project.root, env, encoding: 'utf8' });
   assert.equal(latest.status, 0, latest.stderr + latest.stdout);
-  assert.equal(JSON.parse(latest.stdout).selection.cli.version, '1.1.0');
+  assert.equal((JSON.parse(latest.stdout) as Inspection).selection.cli.version, '1.1.0');
   assert.match(latest.stderr, /CLI 1\.1\.0/);
-  assert.notEqual(JSON.parse(latest.stdout).identity, JSON.parse(explicit.stdout).identity);
+  assert.notEqual((JSON.parse(latest.stdout) as Inspection).identity, (JSON.parse(explicit.stdout) as Inspection).identity);
   assert.equal(existsSync(join(support.root, 'AUTHOR_CODE_RAN')), false);
-  calls = readFileSync(log, 'utf8').trim().split('\n').map(line => JSON.parse(line));
+  calls = readFileSync(log, 'utf8').trim().split('\n').map(line => JSON.parse(line) as { args: string[]; cwd: string });
   assert.equal(calls.filter(call => call.args[0] === 'view').length, 1);
   for (const call of calls.filter(call => call.args[0] === 'install')) {
     assert.notEqual(call.cwd, project.root);
@@ -107,9 +108,9 @@ test('the installed inspection command checks npm without executing author prere
   symlinkSync(execFileSync('/bin/sh', ['-c', 'command -v git'], { encoding: 'utf8' }).trim(), join(bin, 'git'));
   const result = cli.run(inspectionArgs, project.root, { ...process.env, PATH: bin });
   assert.equal(result.status, 1);
-  const report = JSON.parse(result.stdout);
-  assert.equal(report.errors[0].code, 'NPM_REQUIRED');
-  assert.match(report.errors[0].message, /Node\.js 24.*PATH/);
+  const report = (JSON.parse(result.stdout) as ErrorReport);
+  assert.equal(report.errors[0]!.code, 'NPM_REQUIRED');
+  assert.match(report.errors[0]!.message, /Node\.js 24.*PATH/);
 });
 
 test('exact-version bootstrap can inspect using the configured npm cache with the registry unavailable', async t => {
@@ -132,7 +133,7 @@ profiles: {work: {description: Work, declarations: {}}}
   const before = snapshot(project.root);
   const result = spawnSync(bootstrap, ['--cli-version', '1.0.0', ...inspectionArgs], { cwd: project.root, env: { ...env, npm_config_offline: 'true' }, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).selection.cli.version, '1.0.0');
+  assert.equal((JSON.parse(result.stdout) as Inspection).selection.cli.version, '1.0.0');
   assert.deepEqual(snapshot(project.root), before);
   rmSync(join(env.npm_config_cache, '_logs'), { recursive: true, force: true });
   symlinkSync(project.root, join(env.npm_config_cache, '_logs'));

@@ -1,9 +1,12 @@
+import type { Diagnostic, ErrorReport, Inspection, SearchReport } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, remoteEnvironment, remoteFixture } from './remote-fixture.ts';
+
+interface SearchResponse { items: { full_name: string; private: boolean; description: string | null }[]; total_count: number; incomplete_results: boolean }
 
 const cli = installCli();
 after(() => cli.close());
@@ -47,7 +50,7 @@ test('source search returns validated public release candidates without selectin
   const before = snapshot(project.root);
   const result = cli.run(['source', 'search', '--json'], project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as SearchReport);
   assert.deepEqual(report.candidates, [{
     repository: 'https://github.com/alice/standards', description: 'Alice’s standards', commit: remote.sha,
     release: { version: 'v1.0.0', name: 'First stable', url: release.html_url, publishedAt: release.published_at },
@@ -56,7 +59,7 @@ test('source search returns validated public release candidates without selectin
   }]);
   assert.deepEqual(report.rejected, []);
   assert.match(report.notice, /not.*endorsement/i);
-  assert.equal(report.selection, undefined);
+  assert.equal((report as SearchReport & { selection?: unknown }).selection, undefined);
   assert.equal(report.nextPage, null);
   assert.deepEqual(snapshot(project.root), before);
 });
@@ -75,10 +78,10 @@ test('search rejects unsupported and invalid candidates explicitly while keeping
   git(rootless.source.root, 'mv', 'standards.yaml', 'Standards.yaml');
   commit(rootless.source.root);
   rootless.publish('v1.0.0');
-  const search = remote.responses[searchUrl]!.body as any;
+  const search = remote.responses[searchUrl]!.body as SearchResponse;
   for (const other of others) {
     Object.assign(remote.responses, other.responses);
-    const repository = (other.responses[other.prefix]!.body as any).full_name;
+    const repository = (other.responses[other.prefix]!.body as { full_name: string }).full_name;
     search.items.push({ full_name: repository, private: false, description: null });
     remote.responses[`${other.prefix}/releases?per_page=100&page=1`] = { body: [{ ...release, html_url: `https://github.com/${repository}/releases/tag/v1.0.0` }] };
   }
@@ -88,13 +91,13 @@ test('search rejects unsupported and invalid candidates explicitly while keeping
   remote.save();
   const result = cli.run(['source', 'search', '--json'], project.root, remoteEnvironment(remote, ...others));
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as SearchReport);
   assert.equal(report.candidates.length, 1);
-  assert.deepEqual(report.rejected.map((entry: any) => entry.code), [
+  assert.deepEqual(report.rejected.map((entry) => entry.code), [
     'INVALID_STANDARDS', 'INVALID_STANDARDS', 'INVALID_STANDARDS', 'INVALID_STANDARDS', 'UNSUPPORTED_SOURCE', 'UNSUPPORTED_SOURCE',
   ]);
   for (const [index, code] of ['INVALID_FORMAT', 'INCOMPATIBLE_CLI', 'MISSING_REFERENCE', 'SOURCE_READ'].entries()) {
-    assert.ok(report.rejected[index].details.some((detail: any) => detail.code === code && detail.file === 'standards.yaml'));
+    assert.ok((report.rejected[index]!.details! as Diagnostic[]).some((detail) => detail.code === code && detail.file === 'standards.yaml'));
   }
 });
 
@@ -110,10 +113,10 @@ test('search reports invalid invocation settings under their skill metadata path
   remote.save();
   const result = cli.run(['source', 'search', '--json'], project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as SearchReport);
   assert.deepEqual(report.candidates, []);
-  assert.equal(report.rejected[0].code, 'INVALID_STANDARDS');
-  assert.deepEqual(report.rejected[0].details.map(({ code, file }: { code: string; file: string }) => ({ code, file })), [
+  assert.equal(report.rejected[0]!.code, 'INVALID_STANDARDS');
+  assert.deepEqual((report.rejected[0]!.details! as Diagnostic[]).map(({ code, file }: { code: string; file: string }) => ({ code, file })), [
     { code: 'INVALID_TYPE', file: 'skills/review/SKILL.md' },
     { code: 'INVALID_TYPE', file: 'skills/review/agents/openai.yaml' },
   ]);
@@ -132,39 +135,39 @@ test('search finds stable published releases across pages and reports sources wi
   remote.save();
   const result = cli.run(['source', 'search', '--json'], project.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).candidates[0].release.version, 'v1.0.0');
+  assert.equal((JSON.parse(result.stdout) as SearchReport).candidates[0]!.release.version, 'v1.0.0');
   remote.responses[`${remote.prefix}/releases?per_page=100&page=1`] = { body: unstable };
   remote.save();
-  const absent = JSON.parse(cli.run(['source', 'search', '--json'], project.root, remote.env).stdout);
+  const absent = (JSON.parse(cli.run(['source', 'search', '--json'], project.root, remote.env).stdout) as SearchReport);
   assert.deepEqual(absent.candidates, []);
-  assert.equal(absent.rejected[0].code, 'NO_STABLE_RELEASE');
+  assert.equal(absent.rejected[0]!.code, 'NO_STABLE_RELEASE');
 });
 
 test('search paginates candidates and discloses incomplete GitHub results and the search cap', (t) => {
   const remote = discoverable();
   const project = sourceFixture('');
   t.after(() => { remote.close(); project.close(); });
-  (remote.responses[searchUrl]!.body as any).total_count = 45;
-  (remote.responses[searchUrl]!.body as any).incomplete_results = true;
+  (remote.responses[searchUrl]!.body as SearchResponse).total_count = 45;
+  (remote.responses[searchUrl]!.body as SearchResponse).incomplete_results = true;
   remote.responses[searchUrl.replace('page=1', 'page=2')] = { body: { total_count: 45, incomplete_results: false, items: [] } };
   remote.responses[searchUrl.replace('page=1', 'page=34')] = { body: { total_count: 1200, incomplete_results: false, items: [] } };
   remote.save();
-  const first = JSON.parse(cli.run(['source', 'search', '--json'], project.root, remote.env).stdout);
+  const first = (JSON.parse(cli.run(['source', 'search', '--json'], project.root, remote.env).stdout) as SearchReport);
   assert.equal(first.page, 1);
   assert.equal(first.totalCount, 45);
   assert.equal(first.incompleteResults, true);
   assert.equal(first.nextPage, 2);
   const second = cli.run(['source', 'search', '--page', '2', '--json'], project.root, remote.env);
   assert.equal(second.status, 0, second.stdout + second.stderr);
-  assert.equal(JSON.parse(second.stdout).page, 2);
-  assert.equal(JSON.parse(second.stdout).nextPage, null);
-  const capped = JSON.parse(cli.run(['source', 'search', '--page', '34', '--json'], project.root, remote.env).stdout);
+  assert.equal((JSON.parse(second.stdout) as SearchReport).page, 2);
+  assert.equal((JSON.parse(second.stdout) as SearchReport).nextPage, null);
+  const capped = (JSON.parse(cli.run(['source', 'search', '--page', '34', '--json'], project.root, remote.env).stdout) as SearchReport);
   assert.equal(capped.searchLimitReached, true);
   assert.equal(capped.nextPage, null);
   for (const flags of [['--page', '0'], ['--page', '35'], ['--page', '1.5'], ['--page'], ['--page', '1', '--page', '2'], ['--json', '--json'], ['--profile', 'work']]) {
     const invalid = cli.run(['source', 'search', ...flags, ...(flags.includes('--json') ? [] : ['--json'])], project.root, remote.env);
     assert.equal(invalid.status, 2, invalid.stdout + invalid.stderr);
-    assert.equal(JSON.parse(invalid.stdout).errors[0].code, 'USAGE');
+    assert.equal((JSON.parse(invalid.stdout) as ErrorReport).errors[0]!.code, 'USAGE');
   }
 });
 
@@ -182,12 +185,12 @@ test('discovery outages and malformed responses are explicit and do not prevent 
     remote.save();
     const result = cli.run(['source', 'search', '--json'], project.root, remote.env);
     assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.equal(JSON.parse(result.stdout).errors[0].code, 'status' in response ? 'SOURCE_UNAVAILABLE' : 'INVALID_SEARCH_RESPONSE');
+    assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'status' in response ? 'SOURCE_UNAVAILABLE' : 'INVALID_SEARCH_RESPONSE');
   }
   const before = snapshot(project.root);
   const direct = cli.run(['inspect', '--source', 'https://github.com/alice/standards', '--standards-version', 'v1.0.0', '--profile', 'work', '--json'], project.root, remote.env);
   assert.equal(direct.status, 0, direct.stdout + direct.stderr);
-  assert.equal(JSON.parse(direct.stdout).selection.standards.commit, remote.sha);
+  assert.equal((JSON.parse(direct.stdout) as Inspection).selection.standards.commit, remote.sha);
   assert.deepEqual(snapshot(project.root), before);
 });
 
@@ -198,10 +201,10 @@ test('candidate failures remain explicit without falling back from an invalid ne
   remote.addVersion('v2.0.0', yaml.replace('repo-standards/v2', 'repo-standards/v99'));
   remote.responses[`${remote.prefix}/releases?per_page=100&page=1`] = { body: [{ ...release, tag_name: 'v2.0.0' }, release] };
   remote.save();
-  const invalid = JSON.parse(cli.run(['source', 'search', '--json'], project.root, remote.env).stdout);
+  const invalid = (JSON.parse(cli.run(['source', 'search', '--json'], project.root, remote.env).stdout) as SearchReport);
   assert.deepEqual(invalid.candidates, []);
-  assert.equal(invalid.rejected[0].code, 'INVALID_STANDARDS');
-  assert.equal(invalid.rejected[0].release.version, 'v2.0.0');
+  assert.equal(invalid.rejected[0]!.code, 'INVALID_STANDARDS');
+  assert.equal(invalid.rejected[0]!.release!.version, 'v2.0.0');
   for (const [response, code] of [
     [{ status: 429, body: {} }, 'SOURCE_UNAVAILABLE'],
     [{ body: {} }, 'INVALID_SOURCE'],
@@ -211,9 +214,9 @@ test('candidate failures remain explicit without falling back from an invalid ne
     remote.save();
     const result = cli.run(['source', 'search', '--json'], project.root, remote.env);
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    const report = JSON.parse(result.stdout);
+    const report = (JSON.parse(result.stdout) as SearchReport);
     assert.deepEqual(report.candidates, []);
-    assert.equal(report.rejected[0].code, code);
+    assert.equal(report.rejected[0]!.code, code);
   }
 });
 
@@ -221,13 +224,13 @@ test('search works outside a Git project with a cache beneath its current direct
   const remote = discoverable();
   t.after(() => remote.close());
   const before = snapshot(remote.support.root);
-  const protectedProject = JSON.parse(cli.run(['source', 'search', '--json'], remote.support.root, remote.env).stdout);
-  assert.equal(protectedProject.rejected[0].code, 'UNSAFE_CACHE');
+  const protectedProject = (JSON.parse(cli.run(['source', 'search', '--json'], remote.support.root, remote.env).stdout) as SearchReport);
+  assert.equal(protectedProject.rejected[0]!.code, 'UNSAFE_CACHE');
   assert.deepEqual(snapshot(remote.support.root), before);
   rmSync(join(remote.support.root, '.git'), { recursive: true });
   const result = cli.run(['source', 'search', '--json'], remote.support.root, remote.env);
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = JSON.parse(result.stdout);
+  const report = (JSON.parse(result.stdout) as SearchReport);
   assert.equal(report.candidates.length, 1, result.stdout);
   assert.deepEqual(report.rejected, []);
 });

@@ -1,3 +1,4 @@
+import type { Inspection, OperationLog, Run, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
@@ -24,9 +25,9 @@ function fixture(t: TestContext, declarations: Record<string, unknown>, script =
   return { remote, project, start(env = remote.env) {
     const inspected = cli.run(inspectionArgs, project.root, env);
     assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
-    const inspection = JSON.parse(inspected.stdout);
+    const inspection = (JSON.parse(inspected.stdout) as Inspection);
     const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
-    return { result, report: JSON.parse(result.stdout), inspection };
+    return { result, report: (JSON.parse(result.stdout) as Run), inspection };
   } };
 }
 const exact = { kind: 'file', target: 'AGENTS.md', exact: 'content.md' };
@@ -45,7 +46,7 @@ test('every prerequisite is probed before mutation and all failures are reported
   assert.match(report.reason, /PREREQUISITES_BLOCKED/);
   assert.deepEqual(report.prerequisites.map((p: { code: string | null }) => p.code),
     ['EXECUTABLE_MISSING', 'PROBE_FAILED', 'VERSION_UNREADABLE', 'VERSION_INCOMPATIBLE', null]);
-  assert.equal(report.prerequisites[3].version, '1.2.3');
+  assert.equal(report.prerequisites[3]!.version, '1.2.3');
   assert.deepEqual(snapshot(f.project.root), before);
 });
 
@@ -68,7 +69,7 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status: input.op
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(report.outcome, 'complete');
   assert.deepEqual(report.operations.map((o: { operation: { id: string } }) => o.operation.id), ['first', 'second', 'z-fix', 'first-check', 'second-check', 'z-check']);
-  const evidence = JSON.parse(readFileSync(join(f.project.root, report.operations[0].stderr), 'utf8'));
+  const evidence = (JSON.parse(readFileSync(join(f.project.root, report.operations[0]!.stderr), 'utf8')) as OperationLog & { resource: string });
   assert.deepEqual(evidence.args, args);
   assert.equal(evidence.resource, 'Resource');
   assert.equal(evidence.cwd, f.project.root);
@@ -82,8 +83,8 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status: input.op
   assert.equal(existsSync(join(f.project.root, 'SHELL_RAN')), false);
   assert.equal(existsSync(join(f.project.root, 'EXCLUDED')), false);
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), head);
-  const status = JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout);
-  assert.deepEqual(status.checks.map((o: { result: { status: string } }) => o.result.status), ['passed', 'passed', 'passed']);
+  const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout) as Status);
+  assert.deepEqual(status.checks!.map((o) => o.result!.status), ['passed', 'passed', 'passed']);
   assert.deepEqual(status.assessments, []);
 });
 
@@ -133,17 +134,17 @@ else console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.
     if (example.code) assert.ok(report.reason.startsWith(example.code + ':'), report.reason);
     assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), !example.code);
     if (example.name === 'nonzero') {
-      assert.equal(report.operations[0].process.exitCode, 7);
-      assert.equal(report.operations[0].result, null);
-      assert.match(readFileSync(join(f.project.root, report.operations[0].stderr), 'utf8'), /Problem/);
+      assert.equal(report.operations[0]!.process.exitCode, 7);
+      assert.equal(report.operations[0]!.result, null);
+      assert.match(readFileSync(join(f.project.root, report.operations[0]!.stderr), 'utf8'), /Problem/);
     }
-    if (example.name === 'signal') assert.equal(report.operations[0].process.signal, 'SIGTERM');
-    if (example.name === 'timeout') assert.equal(report.operations[0].process.timedOut, true);
+    if (example.name === 'signal') assert.equal(report.operations[0]!.process.signal, 'SIGTERM');
+    if (example.name === 'timeout') assert.equal(report.operations[0]!.process.timedOut, true);
     if (example.name === 'failed check') {
-      assert.equal(report.operations[0].error, null);
-      assert.equal(report.operations[0].result.status, 'failed');
-      const status = JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout);
-      assert.equal(status.active.operations[1].result.status, 'passed');
+      assert.equal(report.operations[0]!.error, null);
+      assert.equal(report.operations[0]!.result!.status, 'failed');
+      const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout) as Status);
+      assert.equal(status.active!.operations[1]!.result!.status, 'passed');
     }
   });
 });
@@ -183,7 +184,7 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',m
     assert.equal(report.operations.length, 1);
     assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
     if (!path.includes('/local/')) assert.equal(readFileSync(join(f.project.root, path), 'utf8'), 'Corrupted');
-    assert.equal(JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout).active.outcome, 'incomplete');
+    assert.equal((JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout) as Status).active!.outcome, 'incomplete');
   });
 });
 
@@ -208,8 +209,8 @@ test('the first observed version wins across probe streams and long valid timeou
   })] } });
   const before = snapshot(f.project.root);
   const { report } = f.start();
-  assert.equal(report.prerequisites[0].version, '1.2.3');
-  assert.equal(report.prerequisites[0].code, 'VERSION_INCOMPATIBLE');
+  assert.equal(report.prerequisites[0]!.version, '1.2.3');
+  assert.equal(report.prerequisites[0]!.code, 'VERSION_INCOMPATIBLE');
   assert.deepEqual(snapshot(f.project.root), before);
   const long = fixture(t, { instructions: { ...exact, fixes: [operation('long-timeout', { 'timeout-seconds': 2147484 })] } },
     `setTimeout(()=>console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Finished'})),50);`);
@@ -223,8 +224,8 @@ test('version probes cannot fabricate a version by joining stdout and stderr fra
   })] } });
   const before = snapshot(f.project.root);
   const { report } = f.start();
-  assert.equal(report.prerequisites[0].version, null);
-  assert.equal(report.prerequisites[0].code, 'VERSION_UNREADABLE');
+  assert.equal(report.prerequisites[0]!.version, null);
+  assert.equal(report.prerequisites[0]!.code, 'VERSION_UNREADABLE');
   assert.match(report.reason, /PREREQUISITES_BLOCKED/);
   assert.deepEqual(snapshot(f.project.root), before);
 });
@@ -247,8 +248,8 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:${JSON.stri
     assert.match(report.reason, /FINAL_INTEGRITY:.*hidden index/);
     assert.equal(report.operations.length, 1);
     assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
-    const status = JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout);
+    const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout) as Status);
     assert.equal(status.lastComplete, null);
-    assert.equal(status.active.outcome, 'incomplete');
+    assert.equal(status.active!.outcome, 'incomplete');
   });
 });
