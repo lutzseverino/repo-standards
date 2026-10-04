@@ -6,6 +6,7 @@ import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { valid, prerelease } from 'semver';
 import { foldPath } from './paths.js';
 import { ProductError } from './errors.js';
+import { record } from './records.js';
 
 export interface StandardsIdentity { repository: string; version: string; commit: string }
 export function isStableVersion(version: unknown): version is string {
@@ -41,10 +42,6 @@ export function externalPath(path: string, project?: string): string {
 }
 
 export const githubHeaders = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'repo-standards' };
-
-// The properties of a JSON object, or none for any other JSON value.
-export function record(value: unknown): Record<string, unknown> { return isRecord(value) ? value : {}; }
-function isRecord(value: unknown): value is Record<string, unknown> { return typeof value === 'object' && value !== null; }
 
 export async function github(path: string): Promise<unknown> {
   let response: Response;

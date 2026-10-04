@@ -5,6 +5,7 @@ import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { git } from './observation.js';
 import { foldPath } from './paths.js';
+import { dictionary } from './records.js';
 
 const limits = { paths: 20_000, fileBytes: 8 * 1024 * 1024, totalBytes: 64 * 1024 * 1024, depth: 128 };
 // The reserved durable product-state directory, excluded from every observation.
@@ -140,8 +141,8 @@ export function observeScope(root: string, named: string[] = [], options: { exec
   }
   const paths = [...known].sort();
   if (paths.length + named.length > limits.paths) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeds the path limit.');
-  const files = Object.create(null) as Record<string, FileState>;
-  const boundaries = Object.create(null) as Record<string, FileState>;
+  const files: Record<string, FileState> = dictionary();
+  const boundaries: Record<string, FileState> = dictionary();
   // Execution-phase observations additionally bind the observed root itself.
   if (options.execution) boundaries['.'] = file(root);
   function observePath(path: string, eligible: boolean) {
@@ -161,7 +162,7 @@ export function observeScope(root: string, named: string[] = [], options: { exec
     if (boundaries[directory].type !== 'directory') throw new ProductError('OBSERVATION_UNSTABLE', 'A discovery directory boundary changed.');
   }
   for (const path of paths) files[path] = observePath(path, true);
-  const targets = Object.create(null) as Record<string, FileState>;
+  const targets: Record<string, FileState> = dictionary();
   for (const path of [...new Set([...named, ...options.directories ?? []])].sort()) {
     targets[path] = observePath(path, false);
     // Check spelling at every named boundary without reading sibling contents.
@@ -178,7 +179,7 @@ export function observeScope(root: string, named: string[] = [], options: { exec
   // exclude, and each consulted .gitignore by its project-relative path. Their
   // content state is bound; where they are located is not, so the observation
   // is the same from any checkout of the same content.
-  const ignores = Object.create(null) as Record<string, IgnoreState>;
+  const ignores: Record<string, IgnoreState> = dictionary();
   for (const [role, path] of [['global', globalExclude ? resolve(root, globalExclude) : ''], ['info', infoExclude]] as const) {
     if (path === '') { ignores[role] = { type: 'disabled' }; continue; }
     const state = file(path);

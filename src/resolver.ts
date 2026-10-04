@@ -7,6 +7,7 @@ import { Declarations } from './declarations.js';
 import type { SourceProfile } from './model.js';
 import { Paths } from './paths.js';
 import { validateSkillInvocation } from './skill-invocation.js';
+import { dictionary } from './records.js';
 
 export function validateSource(directory: string, cliVersion: string, sourcePaths?: ReadonlySet<string>, retainedManifest?: string) {
   const errors: Diagnostic[] = [];
@@ -53,7 +54,7 @@ function resolveDocument(root: Value, fields: Fields, paths: Paths, validateSkil
   const declarations = new Declarations(fields, paths, validateSkill);
   const inherited = declarations.read(fields.get(defaults, 'declarations'));
   const profilesValue = fields.get(root, 'profiles');
-  const profiles = Object.create(null) as Record<string, SourceProfile>;
+  const profiles: Record<string, SourceProfile> = dictionary();
   const entries = fields.map(profilesValue);
   if (entries.size === 0) error('EMPTY_PROFILES', 'At least one named profile is required.', profilesValue);
   for (const [id, profile] of entries) {

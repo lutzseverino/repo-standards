@@ -9,6 +9,7 @@ import { git, targetObservation, type Blocker, type Content, type Observation } 
 import { retainedScopeEvidence, type RetainedScopeEvidence } from './scope-evidence.js';
 import { linkTextAt, linkedSkillTarget } from './targets.js';
 import { validExecutionEvidence, type ExecutionEvidence } from './work-evidence.js';
+import { dictionary } from './records.js';
 
 // The one reader of a recorded adoption: everything the last complete adoption
 // left under the product state directory, read and verified together, after the
@@ -119,7 +120,7 @@ function decode(lock: Observation, observed: Observation) {
 // Every product file the lock records, observed without following links and
 // matched against its recorded hash and mode before anything reads it.
 function verifiedProductFiles(root: string, files: Record<string, Baseline>) {
-  const verified = Object.create(null) as Record<string, RecordedFile>;
+  const verified: Record<string, RecordedFile> = dictionary();
   for (const [path, expected] of Object.entries(files).filter(([path]) => path.startsWith('.repo-standards/'))) {
     relativePath(path);
     const blockers: Blocker[] = [];

@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { chmodSync, lstatSync, mkdirSync, readdirSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { hash, record } from './acquisition.js';
+import { hash } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { git, hashInventory, targetBoundaryObservation, targetObservation } from './observation.js';
 import type { Blocker, Content, HashInventory, Observation } from './observation.js';
+import { dictionary, record } from './records.js';
 export type Baseline = Pick<Content, 'sha256' | 'executable'>;
 export type Files = Record<string, Content>;
 export const ignore = '/runtime/node_modules/\n/local/\n/cache/\n';
@@ -45,7 +46,7 @@ export function safeDirectory(root: string, path: string) {
 
 // The files of a product tree, relative to it.
 export function inventory(root: string, path: string) {
-  const files = Object.create(null) as Files;
+  const files: Files = dictionary();
   flatten(path, safe(root, path), files);
   return Object.keys(files).map(name => name.slice(path.length + 1)).sort();
 }

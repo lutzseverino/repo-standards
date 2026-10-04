@@ -1,11 +1,12 @@
 import { compare, gt } from 'semver';
 import { parse } from 'yaml';
-import { githubHeaders, isStableVersion, record } from './acquisition.js';
+import { githubHeaders, isStableVersion } from './acquisition.js';
 import { file, json, projectRoot, requirePinnedCli, safe, write } from './adoption-files.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
 import { git } from './observation.js';
 import type { Observation } from './observation.js';
+import { record } from './records.js';
 
 // Availability of a published CLI or standards version newer than each pin.
 // The command only reads the selection and writes its own ignored cache; any
@@ -21,8 +22,10 @@ interface Reason { code: string; message: string }
 // source repository, and when it was read.
 interface Lookup { key: string; checkedAt: string; versions: string[] }
 type Answer = { lookup: Lookup; cached: boolean } | { reason: Reason };
+// The pins of an adoption selection.
+interface Pins { cli: { version: string }; standards: { repository: string; version: string } }
 
-function selectionOf(project: string) {
+function selectionOf(project: string): { root: string; selection: Pins } {
   let root: string;
   try { root = projectRoot(project); }
   catch { throw new ProductError('NO_SELECTION', 'The project is not a Git working tree, so it has no adoption selection.'); }
@@ -121,7 +124,7 @@ function writeCache(root: string, lookups: Record<string, Lookup>) {
 // lookup.
 export async function outdated(project: string, cliVersion: string) {
   let root: string;
-  let selection: ReturnType<typeof selectionOf>['selection'];
+  let selection: Pins;
   try { ({ root, selection } = selectionOf(project)); }
   catch (error) {
     const reason = error instanceof ProductError ? { code: error.code, message: error.message } : { code: 'INVALID_SELECTION', message: (error as Error).message };

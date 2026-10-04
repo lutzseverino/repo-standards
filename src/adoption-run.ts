@@ -2,7 +2,7 @@ import type { WorkObservation } from './work-observation.js';
 import { randomUUID } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, relative } from 'node:path';
-import { externalPath, hash, record } from './acquisition.js';
+import { externalPath, hash } from './acquisition.js';
 import { tmpdir } from 'node:os';
 import type { Assessment, ScopeConfirmation } from './assessment.js';
 import type { OperationEvidence, PrerequisiteEvidence } from './execution.js';
@@ -16,6 +16,7 @@ import { acquireWorker, executing, processGroupAlive, processIdentity } from './
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, requirePinnedCli, safe, verifyFiles, write } from './adoption-files.js';
 import type { Baseline, Files } from './adoption-files.js';
 import { completionFiles, exactContent, restorePlannedLock, verifyInstallation, withdrawCompletionState, writeCompletion, type Installation } from './installation.js';
+import { dictionary, record } from './records.js';
 
 // Persisted labels are shared by several producers. Keep their serialized
 // values stable so existing incomplete runs remain readable.
@@ -151,7 +152,7 @@ function archiveRunEvidence(root: string, run: Run) {
   const logsPath = '.repo-standards/local/operations';
   const logs = safe(root, logsPath);
   if (logs.type !== 'missing') {
-    const files = Object.create(null) as Files;
+    const files: Files = dictionary();
     flatten(logsPath, logs, files);
     for (const [path, value] of Object.entries(files)) {
       // An interrupted result may reuse its index on retry. Keep each distinct

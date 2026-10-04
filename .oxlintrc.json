@@ -60,6 +60,7 @@
       // ESLint `recommended` and typescript-eslint `recommendedTypeChecked`,
       // after typescript-eslint's `eslint-recommended` overrides.
       "files": ["**/*.ts", "**/*.mts", "**/*.cts"],
+      // Tests keep oxlint's defaults until #182 lints them with these rules.
       "excludeFiles": ["test/**"],
       "rules": {
         "no-array-constructor": "error",

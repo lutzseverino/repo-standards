@@ -4,7 +4,7 @@ import { validateAssessment } from './assessment.js';
 import { spawnSync } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
-import { externalPath, hash, record } from './acquisition.js';
+import { externalPath, hash } from './acquisition.js';
 import { execute, operations, preflight } from './execution.js';
 import { ProductError } from './errors.js';
 import { formats } from './formats.js';
@@ -18,6 +18,7 @@ import { install, planInstallation, verifyInstallation, type Installation } from
 import { readRecordedAdoption } from './recorded-state.js';
 import { retainedScopeProjection } from './scope-evidence.js';
 import type { AdoptionRunSession, Run, StartInput, WorkRequest } from './adoption-run.js';
+import { record } from './records.js';
 export { abandon, status } from './adoption-run.js';
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 const retainedSource = '.repo-standards/inputs/source';

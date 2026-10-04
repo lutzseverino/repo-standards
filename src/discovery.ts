@@ -1,8 +1,9 @@
 import { spawnSync } from 'node:child_process';
 import { realpathSync } from 'node:fs';
-import { acquireSource, github, isStableVersion, record } from './acquisition.js';
+import { acquireSource, github, isStableVersion } from './acquisition.js';
 import { ProductError } from './errors.js';
 import { validateSource } from './resolver.js';
+import { record } from './records.js';
 
 async function stableRelease(repository: string) {
   for (let page = 1; ; page++) {

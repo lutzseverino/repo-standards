@@ -1,11 +1,11 @@
 import { spawn } from 'node:child_process';
-import { record } from './acquisition.js';
 import { formats } from './formats.js';
 import { join } from 'node:path';
 import semver from 'semver';
 import { processGroupAlive } from './run-lock.js';
 import type { ResolvedProfile } from './model.js';
 import { declarationTargets } from './targets.js';
+import { record } from './records.js';
 
 export function operations(resolved: Pick<ResolvedProfile, 'declarations'>, phase: 'fixes' | 'checks') {
   return resolved.declarations.flatMap(declaration => declaration[phase].map(operation => ({ declaration: declaration.id, phase, operation })));
@@ -56,14 +56,14 @@ export async function execute(root: string, selected: SelectedOperation, selecti
     stdout: process.stdout, stderr: process.stderr };
   if (!evidence.error) {
     try {
-      const parsed: unknown = JSON.parse(process.stdout);
-      const result = record(parsed);
+      const result = record(JSON.parse(process.stdout));
       const { format, status, message } = result;
       const statuses = phase === 'fixes' ? ['unchanged', 'changed', 'blocked'] : ['passed', 'failed', 'blocked'];
-      if (Array.isArray(parsed) || format !== formats.result
+      if (format !== formats.result
         || typeof status !== 'string' || !statuses.includes(status) || typeof message !== 'string'
         || Object.keys(result).some(key => !['format', 'status', 'message'].includes(key))) throw new Error('Invalid result');
-      evidence.result = { format, status, message };
+      // Spreading the result first keeps the author's key order.
+      evidence.result = { ...result, format, status, message };
     } catch { evidence.error = 'PROTOCOL_ERROR'; }
   }
   return evidence;
