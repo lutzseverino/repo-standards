@@ -9,7 +9,7 @@
 
 ## Installation
 
-On macOS or Linux, use Node.js 24 and npm:
+On macOS or Linux, use Node.js 24, npm, and Git 2.32 or newer:
 
 ```sh
 npm install --global --ignore-scripts @lutzseverino/repo-standards

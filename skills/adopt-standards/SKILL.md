@@ -75,7 +75,7 @@ only; keep this installation for `start` and recovery until the run completes.
    selection again, run the pinned project's `inspect --json` without source
    flags.
    Store reports outside the project. The
-   [report contract](https://github.com/lutzseverino/repo-standards/blob/v4.0.0/docs/usage/inspection.md#report-and-inspection-identity)
+   [report contract](https://github.com/lutzseverino/repo-standards/blob/v5.0.0/docs/usage/inspection.md#report-and-inspection-identity)
    defines its fields and blockers. If the report returns `discovery`, build
    the proposal as [Discovery](references/discovery.md) describes and rerun
    `inspect --scope <file>` until one complete inspection is reviewable.
