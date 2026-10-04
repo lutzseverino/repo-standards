@@ -24,9 +24,9 @@ makes no network request. `outdated --json` reports, for the CLI pin and the
 standards pin, whether a newer stable version is published and how many stable
 releases separate it from the pin. It is read-only apart from its ignored
 cache, needs no clean tree, and reports `unknown` with a reason when a lookup
-fails. It states availability only. What to do with an available update is
-decided by the adopted standards' own guidance and the maintainer, not by this
-skill.
+fails. It states availability only. Whether to update is the maintainer's
+decision; the `standards-updates` skill reports available updates without
+starting one.
 If any command fails with `RETIRED_FORMAT`, follow
 [Recovery](references/recovery.md#adopt-fresh-from-a-retired-format).
 

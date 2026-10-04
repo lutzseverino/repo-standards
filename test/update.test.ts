@@ -6,7 +6,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { parse, stringify } from 'yaml';
-import { installCli, installedTree, snapshot, sourceFixture } from './installed-cli.ts';
+import { installCli, installedTree, sha256, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
 import { registryFixture } from './registry-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
@@ -155,6 +155,56 @@ test('an update replaces each committed edit to installed content and lists it a
     assert.equal(lstatSync(join(project.root, 'AGENTS.md')).mode & 0o111, 0);
     assert.deepEqual(installedTree(join(project.root, '.agents/skills/review')), installedTree(join(remote.source.root, 'review')));
   });
+});
+
+test('the first update of an adoption made without the update notice installs standards-updates as exact content', async t => {
+  const remote = remoteFixture(source('v1', `    instructions:
+      kind: file
+      target: AGENTS.md
+      exact: agents.md`), { 'agents.md': 'Version one' });
+  const project = sourceFixture('');
+  const registry = await registryFixture(cli.root);
+  t.after(() => { registry.close(); remote.close(); project.close(); });
+  commit(project.root);
+  const env = { ...remote.env, ...registry.env };
+  const initial = JSON.parse(cli.run(inspectionArgs, project.root, env).stdout);
+  assert.equal(cli.run(['start', ...inspectionArgs.slice(1), '--confirm', initial.identity], project.root, env).status, 0);
+  // An adoption by a CLI that installed no update notice records no skill,
+  // baseline, or lock entry for it.
+  const notice = '.agents/skills/standards-updates';
+  rmSync(join(project.root, notice), { recursive: true });
+  const statePath = join(project.root, '.repo-standards/state.json');
+  const lockPath = join(project.root, '.repo-standards/lock.json');
+  const state = JSON.parse(readFileSync(statePath, 'utf8'));
+  const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
+  delete state.skills[notice];
+  for (const record of [state.baselines, lock.files]) for (const path of Object.keys(record)) if (path.startsWith(`${notice}/`)) delete record[path];
+  const stateText = `${JSON.stringify(state, null, 2)}\n`;
+  writeFileSync(statePath, stateText);
+  lock.state.sha256 = sha256(stateText);
+  writeFileSync(lockPath, `${JSON.stringify(lock, null, 2)}\n`);
+  commit(project.root);
+
+  const inspected = cli.run(['inspect', '--json'], project.root, env);
+  assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
+  const inspection = JSON.parse(inspected.stdout);
+  assert.equal(inspection.updateClass, 'exact');
+  assert.deepEqual(inspection.systemSkills, [
+    { name: 'adopt-standards', target: '.agents/skills/adopt-standards', action: 'match' },
+    { name: 'standards-updates', target: notice, action: 'create' }]);
+  assert.deepEqual(inspection.start.blockers, []);
+  assert.deepEqual(inspection.discardedEdits, []);
+  const summary = cli.run(['inspect', '--summary'], project.root, env);
+  assert.equal(summary.status, 0, summary.stdout + summary.stderr);
+  assert.match(summary.stdout, /^\| `standards-updates` \| `\.agents\/skills\/standards-updates` \| created \|$/m);
+  assert.doesNotMatch(summary.stdout, /`adopt-standards` \|/);
+  const started = cli.run(['start', '--confirm', inspection.identity, '--json'], project.root, env);
+  assert.equal(started.status, 0, started.stdout + started.stderr);
+  assert.equal(JSON.parse(started.stdout).outcome, 'complete');
+  assert.deepEqual(installedTree(join(project.root, notice)), installedTree(join(cli.root, 'node_modules/@lutzseverino/repo-standards/skills/standards-updates')));
+  assert.deepEqual(JSON.parse(readFileSync(statePath, 'utf8')).skills[notice], ['SKILL.md', 'agents/openai.yaml']);
+  assert.deepEqual(git(project.root, 'status', '--porcelain', '--untracked-files=all', '--', '.agents').split('\n').sort(),
+    [`?? ${notice}/SKILL.md`, `?? ${notice}/agents/openai.yaml`]);
 });
 
 test('update inspections match candidate-equal content and list each discarded edit, including a retired target they remove', async t => {

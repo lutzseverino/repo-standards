@@ -323,7 +323,8 @@ the parent names, or any parent criterion remains unverified. The parent remains
 
 ## Authoring skill release
 
-Each release carries both system skills, their references, and the matching
+Each release carries the `adopt-standards`, `standards-updates`, and
+`author-standards` skills, their references, and the matching
 author and protocol documentation. Before packaging another version, update the
 standalone authoring guide (`skills/author-standards/references/cli.md`), the
 version-pinned contract links in `skills/adopt-standards/references/`, and the

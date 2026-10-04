@@ -131,12 +131,12 @@ described [below](#discover-contextual-file-scope):
 | `selection` | Exact CLI package/version, canonical standards URL, version tag, commit SHA, and profile. |
 | `source`, `resolved` | Validated metadata and the resolver's complete active profile. |
 | `exact` | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. |
-| `systemSkill` | The reserved `.agents/skills/adopt-standards` target and `create`, `replace`, or `match` against the system skill packaged with the inspecting exact CLI. |
+| `systemSkills` | Each system skill adoption installs, `adopt-standards` and then `standards-updates`, by `name` and reserved `.agents/skills/<name>` `target`, with `create`, `replace`, or `match` against the copy packaged with the inspecting exact CLI. |
 | `removed` | For an update, each installed target the selection no longer installs and the run removes, with the declaration that installed it and each file's before and after hash inventories and diff, as in `exact`. |
 | `discardedEdits` | Each target whose replacement or removal discards content that is not its installed baseline, in the order of the target blockers. At initial adoption there is no baseline, so every replaced existing target is listed. |
 | `guidance` | Guidance by source-relative `source` path, SHA-256 and executable state, with its explicit project paths or directory trees. |
 | `operations` | Ordered fixes and checks, literal arguments, the script by path and hash, resource hash inventories, timeout, and declared prerequisite probe/range. |
-| `project` | Hash inventories of the affected targets, the reserved system skill, and the durable product state. The project root, Git HEAD, index, and status are not reported. |
+| `project` | Hash inventories of the affected targets, of each system skill target in `systemSkills` by path, and of the durable product state. The project root, Git HEAD, index, and status are not reported. |
 | `inputs`, `manifest` | Hash inventories of the selected source material, and the hash of the normalized single-profile metadata, that adoption retains. |
 | `start` | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available. |
 | `identity` | SHA-256 of deterministic report content, prefixed with `sha256:`. |
@@ -234,7 +234,7 @@ changes to either remain visible and change the inspection identity.
 Git assume-unchanged or skip-worktree flags also block eligibility because they
 can hide working-tree changes; clear those flags and reconcile content first.
 One ownership rule holds for every installation target, including author
-skills and the reserved system skill, at initial adoption and at update. An
+skills and the system skills, at initial adoption and at update. An
 existing target whose complete inventory, bytes, and executable state equal the
 candidate is matched without rewriting. Tracked content that differs is
 replaced, because Git can recover it, and a replaced skill directory is
@@ -249,7 +249,7 @@ the unchanged selection from retained material. Confirming that inspection
 starts a run that applies the selection again. It requires a complete prior
 adoption and a clean committed project, and reuses retained source material
 when the original source is unavailable. The resolver
-rejects targets overlapping `.git`, `.repo-standards`, or `adopt-standards`.
+rejects targets overlapping `.git`, `.repo-standards`, or a system skill.
 
 ## Inspect updates
 
@@ -302,9 +302,9 @@ of JSON. It has these sections, in order:
 - **Update class**: for an update, whether it is an exact or a contextual
   update, and each declaration that makes it contextual.
 - **Changed declarations**: exact content by declaration and path, created,
-  modified, deleted, or mode changed, including the reserved system skill and
-  removed targets; and contextual declarations with their targets and what
-  changed.
+  modified, deleted, or mode changed, including removed targets and each system
+  skill the run creates or replaces; and contextual declarations with their
+  targets and what changed.
 - **Discarded edits**: present only when a replacement or removal discards
   content that is not the target's installed baseline, listing each such
   target.

@@ -416,7 +416,7 @@ ${result}`, { review: { kind: 'skill', name: 'review', source: 'skill', fixes: [
     assert.ok(Object.keys(retry.report.observations[1].restoredBoundaries).includes(mode === 'removed' ? '.agents/skills/review' : '.agents/skills/review/unexpected'));
     // Restored and removed resources leave only the installed skill in the change set.
     assert.deepEqual(f.run(['status', '--json']).report.changeSet.map((entry: { path: string; phases: string[] }) => `${entry.path} ${entry.phases}`),
-      [...cli.systemSkillFiles.map(path => `${path} installation`), '.agents/skills/review/SKILL.md installation']);
+      [...cli.systemSkillFiles, '.agents/skills/review/SKILL.md'].sort().map(path => `${path} installation`));
   });
 });
 

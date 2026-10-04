@@ -90,10 +90,10 @@ resolve to empty lists. Their remaining fields are:
 A file must have exactly one of `exact` or `guidance`. Repository guidance
 requires exactly one of `targets` or `discovery`, and explicit targets need at
 least one path or directory. Exact skills target
-`.agents/skills/<name>` as a whole. `adopt-standards` and `author-standards` are
-product-owned system skill names reserved against author skills. Author skill
-content remains ordinary Agent Skill material; source validation verifies its
-directory, `SKILL.md` references, and invocation agreement, not prose quality or
+`.agents/skills/<name>` as a whole. `adopt-standards`, `standards-updates`, and
+`author-standards` are product-owned system skill names reserved against author
+skills. Author skill content remains ordinary Agent Skill material; source
+validation verifies its directory, `SKILL.md` references, and invocation agreement, not prose quality or
 skill behavior.
 
 ### Skill invocation
@@ -165,8 +165,9 @@ ownership checks belong to inspection and adoption.
 Within each resolved profile, no explicit target can equal, contain, or be contained
 by another target, including two entries of one repository declaration.
 Comparison also catches case-insensitive and Unicode-normalized collisions.
-Product state (`.repo-standards`), both system skill targets
-(`.agents/skills/adopt-standards` and `.agents/skills/author-standards`), Git
+Product state (`.repo-standards`), every system skill target
+(`.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, and
+`.agents/skills/author-standards`), Git
 metadata (`.git`), and their ancestors and descendants are reserved targets.
 These restrictions apply to exact files, contextual files, and repository
 guidance as well as skills, using the same case-folded and Unicode-normalized
@@ -174,10 +175,10 @@ comparison. Validation checks defaults and every profile, including profiles
 other than the one selected for inspection.
 
 Reservation applies within the standards format; it does not manage unrelated
-global skill installations. Adoption installs only the `adopt-standards` system
-skill matched to the project's exact CLI pin. It does not automatically install
-`author-standards` or change runtime ownership, integrity baselines, or update
-behavior.
+global skill installations. Adoption installs the `adopt-standards` and
+`standards-updates` system skills matched to the project's exact CLI pin. It
+does not automatically install `author-standards` or change runtime ownership,
+integrity baselines, or update behavior.
 
 ## Checks and fixes
 

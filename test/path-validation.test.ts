@@ -13,7 +13,7 @@ requires: {repo-standards: ">=1.0.0"}
 `;
 const profile = 'profiles:\n  personal:\n    description: Personal\n    declarations: {}\n';
 
-for (const name of ['adopt-standards', 'author-standards']) {
+for (const name of ['adopt-standards', 'standards-updates', 'author-standards']) {
   test(`authors cannot supply the product-owned ${name} skill`, (t) => {
     const source = sourceFixture(header + `defaults:
   declarations:
@@ -90,7 +90,7 @@ test('unreadable selected files are reported for every reference kind', (t) => {
 });
 
 test('all file and repository guidance forms reject system-skill targets and overlapping paths', async t => {
-  for (const name of ['adopt-standards', 'author-standards']) {
+  for (const name of ['adopt-standards', 'standards-updates', 'author-standards']) {
     for (const target of [
       `.agents/skills/${name}`, '.agents', '.agents/skills',
       `.agents/skills/${name}/SKILL.md`,

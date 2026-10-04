@@ -30,15 +30,16 @@ product remains neutral for independently authored standards.
 
 ## Roles and responsibility
 
-- The product repository owns the format, CLI, bootstrap, and system skill.
+- The product repository owns the format, CLI, bootstrap, and system skills.
 - A standards repository owns its standards, complete profiles, ordinary
   content, contextual guidance, author skills, and trusted checks and fixes.
 - An adopting project owns its project content and normal change workflow.
 
 The product does not implement an author's adoption procedure. All authors use
 the same resolution and adoption interfaces. Authors cannot replace system
-skills or provide adoption hooks. Both `adopt-standards` and `author-standards`
-are product-owned system skill names reserved within the standards format.
+skills or provide adoption hooks. `adopt-standards`, `standards-updates`, and
+`author-standards` are product-owned system skill names reserved within the
+standards format.
 
 ## Deep modules
 
@@ -47,7 +48,7 @@ are product-owned system skill names reserved within the standards format.
 | Source acquisition | A public GitHub identity and stable version produce an immutable source snapshot and provenance. Search provides candidates without establishing trust. |
 | Resolver | A source and profile produce one validated source-resolved selection, or structured errors. Discovery references remain distinct from executable targets until project scope is confirmed. This is the sole interpreter of the author format. |
 | Repository state | A resolved selection and observed project produce an inspection, its update comparison and class, freshness identities, and durable adoption progress. The update comparison takes the verified recorded adoption, the candidate selection and materials, and the project's observed product state. It rejects a recorded tag that now resolves to a different commit, and returns the whole update part of an inspection, which is the changed selection components, the previous selection, the retired declarations, the update class and contextual changes, and the product-state-integrity blocker. Scope changes stay with inspection, which holds the scope proposal. |
-| Declaration targets | A resolved declaration produces the targets it applies to, as paths and directory trees: an exact file's or skill's one installation target, or contextual guidance's targets. It also holds the system skills: each reserved name and target, and the one adoption installs. Every other module asks it rather than deriving a skill's target, a declaration's targets, or the system skills itself. |
+| Declaration targets | A resolved declaration produces the targets it applies to, as paths and directory trees: an exact file's or skill's one installation target, or contextual guidance's targets. It also holds the system skills: each reserved name and target, and the ones adoption installs. Every other module asks it rather than deriving a skill's target, a declaration's targets, or the system skills itself. |
 | Target ownership | Each installation target's current content, its installed baseline when one exists, its candidate content when one exists, and whether that content is tracked produce its target ownership: the action a run would take on it (match, create, or replace; a recorded target the selection no longer installs has a missing candidate, so its removal is a replacement, unless it overlaps contextual scope or lies at or inside a target the selection still installs, where it has no candidate and no action), whether that action discards content other than the installed baseline, and its one ownership blocker, untracked replacement content. The rule is the same for every target kind in every run. Inspection observes each target once and is its only caller. |
 | Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, and status read an established adoption only through it; every command first rejects retired records in the product state and Git directories through it, which is all resume and abandon need while a run is active. `outdated` reads the selection leniently instead. |
 | Installation | A confirmed inspection produces one run's installation plan, not the adoption itself: the exact content, skills, retained inputs, durable product state, and runtime an adoption run installs, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module. |
@@ -56,7 +57,8 @@ are product-owned system skill names reserved within the standards format.
 | Scope evidence | A confirmed run and the recorded adoption it updates produce the retained scope evidence: the current run, with its project observation kept without derived evidence and its named observation as a delta, and its scope change against the previous run. The projected historical scope is rebuilt on read. |
 | Available updates | A selection and the newest published stable CLI and standards versions produce per-pin availability, cached in the ignored product cache. It never blocks and writes nothing else; it fails only under a CLI other than the selection's CLI pin, before any lookup. |
 | Summary renderer | An inspection report or a status record produces one deterministic Markdown document. It describes and never prescribes. |
-| Adoption orchestration | The system skill reads available updates, presents inspection and its summary, obtains confirmation, performs requested contextual work, and submits evidence through the CLI. |
+| Update notice | The `standards-updates` system skill runs `outdated` with the project runtime, reinstalling the pinned runtime once when it is missing or reports `CLI_PIN_MISMATCH`, and reports each available update to the agent. It starts no update: one starts only on the maintainer's instruction, through adoption orchestration, as a change separate from the current work. |
+| Adoption orchestration | The `adopt-standards` system skill presents inspection and its summary, obtains confirmation, performs requested contextual work, and submits evidence through the CLI. |
 
 These responsibilities do not mandate separate packages or class hierarchies.
 They share the resolver's result. Other modules do not independently interpret
@@ -169,15 +171,17 @@ locations.
 Author skills' `SKILL.md` frontmatter `disable-model-invocation` and
 `agents/openai.yaml` `policy.allow_implicit_invocation` must agree; an absent
 setting means model-invocable. Product skills state both settings explicitly:
-`adopt-standards` is manual only and `author-standards` is model-invocable.
+`adopt-standards` is manual only, and `standards-updates` and `author-standards`
+are model-invocable.
 
 Source and target paths are repository-relative and cannot escape their roots.
 Selected sources cannot contain symbolic links. Targets and their ancestors
 cannot be symbolic links during adoption. Concrete targets cannot overlap,
-including case-folded collisions. Product-owned state and both system-skill
-paths (`.agents/skills/adopt-standards` and `.agents/skills/author-standards`)
-are reserved, including equal paths, ancestors, descendants, and collisions
-under the same case-folded and Unicode-normalized comparison. This applies to
+including case-folded collisions. Product-owned state and every system-skill
+path (`.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, and
+`.agents/skills/author-standards`) are reserved, including equal paths,
+ancestors, descendants, and collisions under the same case-folded and
+Unicode-normalized comparison. This applies to
 exact files, contextual files, and repository guidance as well as author skills,
 across defaults and all profiles, including those not selected for inspection.
 Reserving `author-standards` does not change the schema or the two-level
@@ -284,14 +288,17 @@ otherwise they name an exact CLI installed outside the project. `status`,
 validation, and before acquiring a worker lock. `outdated` fails
 before any lookup. Without a recorded pin they report under any CLI. Only
 `inspect` and `start` treat a different exact CLI as a candidate CLI pin change.
-`outdated`, the update class, and both summaries describe; what to do with an
-available or classified update belongs to standards content, and the product
-prescribes no workflow.
+`outdated`, the update class, and both summaries describe. Whether to take an
+available update is the maintainer's decision: the update notice reports it and
+starts nothing, and a requested update is a change of its own. How any change
+is delivered belongs to standards content; the product prescribes no delivery
+workflow.
 
 The thin user-installed bootstrap obtains one exact CLI version outside the
 project for first inspection. An omitted version selects the latest stable
 once and discloses it. Confirmed adoption installs that version and the matching
-repository-local `adopt-standards` skill. Existing projects use their own pin.
+repository-local `adopt-standards` and `standards-updates` skills. Existing
+projects use their own pin.
 Adoption does not automatically install `author-standards`; reserving that
 identity does not manage unrelated global skill installations or change
 adoption runtime pins, system-skill installation, integrity baselines, or
@@ -315,7 +322,7 @@ the index, status, or the project root, so an inspection made in any checkout of
 the same content confirms a start in another
 ([ADR 0012](../adr/0012-bind-content-not-location.md)). Reports carry hash
 inventories and diffs, not file bytes.
-The system skill obtains explicit confirmation of that inspection;
+The `adopt-standards` skill obtains explicit confirmation of that inspection;
 start rejects stale state before mutation.
 
 For an established adoption, inspection is an update. It reports every changed
@@ -338,7 +345,7 @@ provenance. It also examines replacement targets for ignored content:
 a clean Git status alone does not prove that content is recoverable.
 
 Target ownership is one rule for every installation target, including author
-skills and the system skill, in every run. An existing exact file or skill
+skills and the system skills, in every run. An existing exact file or skill
 directory whose complete inventory, bytes, and modes match the supplied content
 is matched without rewriting. Tracked content that differs is replaced, as
 shown in the confirmed inspection, because Git can recover it; a replaced skill
@@ -516,7 +523,7 @@ excludes, `info` for the repository info exclude, and each consulted
 | `lastComplete` | The run ID, its confirmed inspection identity, completion time, and HEAD at start. |
 | `baselines`, `skills` | Installed baselines of exact content and complete skill inventories. |
 | `checks`, `assessments` | The run's final checks and accepted assessments. |
-| `changeSet` | The run's net change set: each path whose state at completion differs from its state before the run, once, sorted, with the phases that changed it: `installation`, `fixes`, or `agent`. Installation changes are the exact files and skill files, including the system skill's and a retired declaration's removed target, that the run created, replaced, or removed; fix and agent changes are the paths their intervals name. Verified restoration of installed content after an interruption keeps only the installation's attribution. Product state is not listed. |
+| `changeSet` | The run's net change set: each path whose state at completion differs from its state before the run, once, sorted, with the phases that changed it: `installation`, `fixes`, or `agent`. Installation changes are the exact files and skill files, including the system skills' and a retired declaration's removed target, that the run created, replaced, or removed; fix and agent changes are the paths their intervals name. Verified restoration of installed content after an interruption keeps only the installation's attribution. Product state is not listed. |
 
 `status --summary` renders a complete run's changed paths from the stored change
 set alone, each path once, under the heading
@@ -597,7 +604,7 @@ A run's confirmed scope never changes. When contextual work needs files outside
 it, or a confirmed target is mistaken, the run stays incomplete with its work
 preserved; the adopter abandons it, commits or discards its changes, and adopts
 again with a new confirmed scope. Initial adoption matches existing exact files
-and skill directories, including the system skill, whose complete inventory,
+and skill directories, including the system skills, whose complete inventory,
 bytes, and modes match, and replaces tracked ones that differ, while existing
 product state blocks it. Fresh adoption over previously installed content
 therefore needs only the committed removal of the product state directory; an
@@ -642,9 +649,10 @@ The product is complete only when all of these pass:
 11. Recover from interrupted installation and fixes through recorded progress
     and explicit retry. Prevent concurrent runs; preserve abandoned work.
 12. Pass the same product behavior on macOS and Linux through the published
-    installation path and pinned system skill.
+    installation path and pinned system skills.
 13. Report available updates without blocking, degrading to `unknown` when a
-    lookup fails, and classify every update as exact or contextual with
+    lookup fails, through `outdated` and the update notice that relays it to
+    an agent, and classify every update as exact or contextual with
     deterministic Markdown summaries of inspections and runs.
 14. Reject retired formats with the fresh-adoption diagnostic, and adopt fresh
     over previously installed content after removing the product state,
