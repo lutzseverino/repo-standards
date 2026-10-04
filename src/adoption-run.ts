@@ -10,7 +10,7 @@ import { ProductError } from './errors.js';
 import { formats, recordPath, requireFormat } from './formats.js';
 import type { InspectOptions, inspect } from './inspection.js';
 import { observe, type Content, type HashInventory, type Observation } from './observation.js';
-import { readRecordedAdoption, rejectRetiredRecords, type RecordedAdoption } from './recorded-state.js';
+import { readRecordedAdoption, rejectUnsupportedRecords, requireRecordedCli, type RecordedAdoption } from './recorded-state.js';
 import { committedEvidenceReport, compactIntervals, keptIdentity, memoryStore, WorkEvidenceJournal, type ObservationStore, type RecordedInterval } from './work-evidence.js';
 import { acquireWorker, executing, processGroupAlive, processIdentity } from './run-lock.js';
 import { actualChanges, file, flatten, ignore, json, lockPath, projectRoot, requirePinnedCli, safe, verifyFiles, write } from './adoption-files.js';
@@ -214,7 +214,8 @@ function abandonedReports(root: string, lock: string): Run[] {
 export function abandon(project: string, cliVersion: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
-  rejectRetiredRecords(root, lock);
+  requireRecordedCli(root, lock, cliVersion);
+  rejectUnsupportedRecords(root, lock);
   const release = acquireWorker(lock);
   try {
     if (!existsSync(lock)) throw new ProductError('NO_ACTIVE_RUN', 'No incomplete adoption is available to abandon.');
@@ -255,7 +256,8 @@ export function abandon(project: string, cliVersion: string) {
 export function status(project: string, cliVersion: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
-  rejectRetiredRecords(root, lock);
+  requireRecordedCli(root, lock, cliVersion);
+  rejectUnsupportedRecords(root, lock);
   const abandoned = abandonedReports(root, lock);
   const active = existsSync(lock) ? readRun(root, lock) : null;
   const format = formats.status;
@@ -553,7 +555,8 @@ export class AdoptionRunSession {
   static async scope(root: string, mode: 'start' | 'resume', callback: (session: AdoptionRunSession, installation?: Installation) => Promise<void>,
     resume?: { cliVersion: string; retry: boolean }) {
     const lock = lockPath(root);
-    rejectRetiredRecords(root, lock);
+    if (resume) requireRecordedCli(root, lock, resume.cliVersion);
+    rejectUnsupportedRecords(root, lock);
     const release = acquireWorker(lock);
     const session = new AdoptionRunSession(root, mode);
     try {

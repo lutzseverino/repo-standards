@@ -495,9 +495,10 @@ Retained inspection reads the committed durable state, which is
 [work evidence](script-protocol.md#observed-adoption-scope) as
 identities and deltas; `status` echoes it as `repo-standards/status/v6`.
 Inspection rejects a committed state, retained scope history, or run record in
-a retired format with `RETIRED_FORMAT` before reading anything else; nothing is
+an older format with `RETIRED_FORMAT` before reading anything else; nothing is
 converted. [Adopt fresh](adoption.md#adopt-fresh-from-a-retired-format) to
-continue.
+continue. A newer version fails with `NEWER_FORMAT` and names using the pinned
+CLI; it never calls for fresh adoption. The integrity lock is checked too.
 
 A confirmed scope never changes during a run. When contextual work needs files
 outside it, or a confirmed target is mistaken, preserve the work, abandon the

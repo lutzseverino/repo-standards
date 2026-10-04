@@ -20,7 +20,7 @@ export const formats = {
   outdatedCache: 'repo-standards/outdated-cache/v1',
 } as const;
 
-type RecordFormat = typeof formats.state | typeof formats.scopeHistory | typeof formats.run;
+type RecordFormat = typeof formats.state | typeof formats.lock | typeof formats.scopeHistory | typeof formats.run;
 
 // The path a diagnostic names: project-relative when the record is inside the
 // project, such as committed state, and absolute otherwise, such as a run record
@@ -30,12 +30,19 @@ export function recordPath(root: string, path: string) {
   return local && !local.startsWith('..') && !isAbsolute(local) ? local : path;
 }
 
-// A record of the same artifact under another version is retired. Anything
-// else that fails to match is left to the record's owner, which reports an
-// integrity failure.
+// Only an older version of the same artifact is retired. Newer versions need
+// the pinned CLI; malformed or unrelated formats remain integrity failures
+// reported by the record's owner.
 export function requireFormat(where: string, value: unknown, expected: RecordFormat) {
   const found = value && typeof value === 'object' ? (value as { format?: unknown }).format : undefined;
-  if (found === expected || typeof found !== 'string' || !found.startsWith(expected.slice(0, expected.lastIndexOf('/') + 1))) return;
+  const prefix = expected.slice(0, expected.lastIndexOf('/') + 1);
+  if (found === expected || typeof found !== 'string' || !found.startsWith(prefix)) return;
+  const version = found.slice(prefix.length);
+  if (!/^v(?:0|[1-9]\d*)$/.test(version)) return;
+  if (Number(version.slice(1)) > Number(expected.slice(prefix.length + 1))) {
+    throw new ProductError('NEWER_FORMAT', `${where} carries the newer format ${found}; this CLI reads only ${expected}. Use the pinned CLI to read this record.`,
+      { path: where, format: found, expected });
+  }
   const removal = expected === formats.run ? 'the .repo-standards directory and this run record' : 'the .repo-standards directory';
   throw new ProductError('RETIRED_FORMAT', `${where} carries the retired format ${found}; this CLI reads only ${expected}. Adopt fresh: remove ${removal}, commit, and adopt again.`,
     { path: where, format: found, expected });

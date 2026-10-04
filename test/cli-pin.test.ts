@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
@@ -119,6 +119,49 @@ test('status, resume and abandon of an active run require the run\'s pinned CLI'
   assert.equal(JSON.parse(status.stdout).active.phase, 'contextual');
 });
 
+test('an older CLI rejects the pin before record formats or integrity for status, resume and abandon', async t => {
+  const f = await fixture(t, { instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' } }, { 'agents.md': 'Instructions' });
+  const inspection = JSON.parse(f.candidate(inspectionArgs).stdout);
+  const started = f.candidate(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity]);
+  assert.equal(started.status, 0, started.stdout + started.stderr);
+  commit(f.project.root);
+  const root = f.project.root;
+  const lock = JSON.parse(readFileSync(join(root, '.repo-standards/lock.json'), 'utf8'));
+  const runRecord = join(root, git(root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
+  const reports = join(runRecord, '../repo-standards-reports');
+  mkdirSync(reports, { recursive: true });
+  const archived = join(reports, 'c0ffee00-0000-4000-8000-000000000000.json');
+  const records = [
+    { path: join(root, '.repo-standards/state.json'), versions: ['v5', 'v7'], artifact: 'state' },
+    { path: join(root, '.repo-standards/inputs/scope-history.json'), versions: ['v3', 'v5'], artifact: 'scope-history' },
+    { path: runRecord, versions: ['v5', 'v7'], artifact: 'run' },
+    { path: archived, versions: ['v5', 'v7'], artifact: 'run' },
+    { path: join(root, '.repo-standards/lock.json'), versions: ['v0', 'v2'], artifact: 'lock' },
+  ];
+  const commands = [['status', '--json'], ['status', '--summary'], ['resume', '--json'], ['resume', '--retry', '--json'], ['abandon', '--json']];
+  for (const { path, versions, artifact } of records) {
+    const original = existsSync(path) ? readFileSync(path) : undefined;
+    for (const version of versions) {
+      writeFileSync(path, JSON.stringify({ format: `repo-standards/${artifact}/${version}`, selection: lock.selection }));
+      const before = snapshot(root);
+      const requests = f.remote.requestLog().length;
+      for (const command of commands) {
+        const result = f.pinned(command);
+        if (command.includes('--json')) rejected(result, candidateVersion);
+        else {
+          assert.equal(result.status, 1, result.stdout + result.stderr);
+          assert.equal(result.stdout, '');
+          assert.match(result.stderr, /^\[CLI_PIN_MISMATCH\] /);
+        }
+        assert.deepEqual(snapshot(root), before, `${artifact}/${version} ${command[0]} must not write`);
+      }
+      assert.deepEqual(f.remote.requestLog().slice(requests), []);
+    }
+    if (original) writeFileSync(path, original);
+    else rmSync(path);
+  }
+});
+
 test('a CLI pin change interrupted before its runtime is installed sends the former CLI to the candidate CLI instead of a reinstall', async t => {
   const f = await fixture(t, { instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' } }, { 'agents.md': 'Instructions' });
   assert.equal(f.adopt().status, 0);
@@ -155,6 +198,32 @@ test('a CLI pin change interrupted before its runtime is installed sends the for
   const status = f.candidate(['status', '--json']);
   assert.equal(status.status, 0, status.stdout + status.stderr);
   assert.equal(JSON.parse(status.stdout).active.selection.cli.version, candidateVersion);
+
+  // Even with unreadable formats, the active run's candidate pin takes
+  // precedence over the former adoption's pin in the committed lock.
+  const runRecord = join(f.project.root, git(f.project.root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
+  const run = JSON.parse(readFileSync(runRecord, 'utf8'));
+  writeFileSync(runRecord, JSON.stringify({ ...run, format: 'repo-standards/run/v7' }));
+  const statePath = join(f.project.root, '.repo-standards/state.json');
+  const state = readFileSync(statePath);
+  writeFileSync(statePath, JSON.stringify({ format: 'repo-standards/state/v5' }));
+  const before = snapshot(f.project.root);
+  for (const command of ['status', 'resume', 'abandon']) {
+    const result = f.pinned([command, '--json']);
+    const error = JSON.parse(result.stdout).errors[0];
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(error.code, 'CLI_PIN_MISMATCH');
+    assert.ok(error.message.includes(` ${candidateVersion}`), error.message);
+    assert.deepEqual(snapshot(f.project.root), before, `${command} must not write`);
+  }
+  writeFileSync(statePath, state);
+  const newerRun = snapshot(f.project.root);
+  for (const command of ['status', 'resume', 'abandon']) {
+    const result = f.candidate([command, '--json']);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(JSON.parse(result.stdout).errors[0].code, 'NEWER_FORMAT');
+    assert.deepEqual(snapshot(f.project.root), newerRun, `${command} must not write`);
+  }
 });
 
 test('without a recorded pin, status and outdated answer under any CLI', async t => {

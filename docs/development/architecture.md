@@ -277,7 +277,9 @@ otherwise from the recorded adoption; `outdated` takes it from the selection it
 reads. Under another CLI version they fail with `CLI_PIN_MISMATCH`, naming the
 pinned version and, when the project runtime manifest and npm lock both pin it,
 the project root and the command that reinstalls the project runtime there;
-otherwise they name an exact CLI installed outside the project. `outdated` fails
+otherwise they name an exact CLI installed outside the project. `status`,
+`resume`, and `abandon` check that pin before any record format or integrity
+validation, and before acquiring a worker lock. `outdated` fails
 before any lookup. Without a recorded pin they report under any CLI. Only
 `inspect` and `start` treat a different exact CLI as a candidate CLI pin change.
 `outdated`, the update class, and both summaries describe; what to do with an
@@ -475,10 +477,16 @@ state, the integrity lock, retained scope evidence, the run record and local run
 report, the status record, the inspection report, and the work request and
 assessment. Reports and records carry hash inventories, unified diffs for
 changed text, and hashes for binary content, never file bytes or observation
-maps. Reading a retired format fails with `RETIRED_FORMAT` before anything else
-is read or written; nothing is converted. Its diagnostic names the one path
+maps. After any required CLI pin check, reading an older format fails with
+`RETIRED_FORMAT` before further records are read or anything is written;
+nothing is converted. Its diagnostic names the one path
 forward, fresh adoption: remove any retired run record in Git's directory and
 the product state directory, commit the directory's removal, and adopt again.
+A newer version of a known record format fails with `NEWER_FORMAT` and names
+using the pinned CLI, including when the record holding the pin has changed
+schema. It never advises removal or fresh adoption. The format gate checks the
+integrity lock, durable state, retained scope evidence, and active and archived
+run records. Malformed or unrelated format identities remain integrity failures.
 
 A format's version rises when its keys change: a key is added, removed,
 renamed, or changes type. Changed values under the same keys, such as embedded

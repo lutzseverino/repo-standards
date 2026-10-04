@@ -424,10 +424,16 @@ discarded edits. Evidence of the earlier adoption remains only in Git history.
 
 ## Adopt fresh from a retired format
 
-When committed state, retained scope evidence, or a run record carries a retired
-format, `inspect`, `start`, `status`, `resume`, and `abandon` all fail with
-`RETIRED_FORMAT` before reading or writing anything else. The diagnostic names
-the record, its retired format, and the format this CLI reads, for example:
+Each record has one format this CLI reads. `status`, `resume`, and `abandon`
+check the active run's CLI pin, or otherwise the recorded adoption's pin,
+before checking any record format. A different CLI fails with
+`CLI_PIN_MISMATCH` first, without changing anything.
+
+When committed state, the integrity lock, retained scope evidence, or a run
+record carries an older format, `inspect`, `start`, `status`, `resume`, and
+`abandon` fail with `RETIRED_FORMAT` after any required pin check and before
+reading further records or writing anything. The diagnostic names the record,
+its retired format, and the format this CLI reads, for example:
 
 ```text
 [RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v5; this CLI reads only repo-standards/state/v6. Adopt fresh: remove the .repo-standards directory, commit, and adopt again.
@@ -442,6 +448,19 @@ pinned CLI can still resume or abandon it to preserve its work; this CLI
 cannot. Remove that record as well before adopting fresh. The locations are
 `git rev-parse --git-path repo-standards-run.lock` and the
 `repo-standards-reports/` directory beside it.
+
+A higher version of the same record format fails with `NEWER_FORMAT`, including
+when a future schema no longer exposes the CLI pin where this CLI expects it:
+
+```text
+[NEWER_FORMAT] .repo-standards/state.json carries the newer format repo-standards/state/v7; this CLI reads only repo-standards/state/v6. Use the pinned CLI to read this record.
+```
+
+This diagnostic exits 1, reads no further records, and changes nothing. Use the
+CLI pinned by the project or active run. A newer format never takes the
+fresh-adoption path. Both format diagnostics include `details.path`,
+`details.format`, and `details.expected` in JSON output. Malformed or unrelated
+format identities fail the record's integrity validation instead.
 
 ## Recover or abandon an interrupted run
 
