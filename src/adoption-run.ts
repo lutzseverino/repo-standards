@@ -436,7 +436,13 @@ export class AdoptionRunSession {
 
   prepareInstallation(installation: Installation) {
     const run = this.#state();
-    if (this.#temporary) cpSync(join(this.#temporary, 'node_modules'), `${lockPath(this.#root)}.runtime`, { recursive: true, verbatimSymlinks: true });
+    if (this.#temporary) {
+      const runtimeStage = `${lockPath(this.#root)}.runtime`;
+      // No installation is recorded yet: an interrupted copy is disposable.
+      // Recorded installations instead resume through their integrity checks.
+      rmSync(runtimeStage, { recursive: true, force: true });
+      cpSync(join(this.#temporary, 'node_modules'), runtimeStage, { recursive: true, verbatimSymlinks: true });
+    }
     run.installation = { files: [], runtime: !this.#temporary };
     run.head = installation.git.head;
     persistInstallation(this.#root, run, installation);
