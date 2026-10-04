@@ -602,3 +602,28 @@ profiles:
       error.code === 'UNKNOWN_FIELD' && error.path === '/defaults/declarations/documentation/discovery'), result.stdout);
   });
 }
+
+
+test('author skill invocation must agree across Claude Code and Codex', (t) => {
+  const source = sourceFixture(header + `defaults:
+  declarations:
+    review:
+      kind: skill
+      name: review
+      source: skills/review
+profiles:
+  personal:
+    description: Personal
+    declarations: {}
+`, { 'skills/review/SKILL.md': '---\nname: review\ndisable-model-invocation: true\n---\nReview code.\n' });
+  t.after(() => source.close());
+  const result = cli.run(['source', 'validate', '--json'], source.root);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.profiles, {});
+  const diagnostic = report.errors.find((error: { code: string }) => error.code === 'SKILL_INVOCATION_MISMATCH');
+  assert.ok(diagnostic, result.stdout);
+  assert.match(diagnostic.message, /review/);
+  assert.match(diagnostic.message, /disable-model-invocation: true/);
+  assert.match(diagnostic.message, /policy.allow_implicit_invocation: true/);
+});
