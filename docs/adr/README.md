@@ -13,6 +13,9 @@ alternatives.
 - [Use agent discovery with confirmed concrete scope](0003-use-agent-discovery-with-confirmed-concrete-scope.md):
   agents propose evidence-backed file paths from author discovery guidance, and
   adopters confirm them with the inspection.
+- [Amend scope without redefining installed ownership](0004-amend-scope-without-redefining-installed-ownership.md):
+  superseded by ADR 0009; an active run accepted confirmed additions to its
+  discovered scope while keeping its selection and installed expectations.
 - [Retain work evidence as identities and deltas](0005-retain-work-evidence-as-identities-and-deltas.md):
   committed state keeps each work interval as observation identities and the
   delta between them.
@@ -39,3 +42,15 @@ alternatives.
   identities and committed evidence bind the content a run reads, never the
   project root or another machine-local location; the run records the project
   root for provenance only.
+- [Expose installed skills through skill links](0013-expose-installed-skills-through-skill-links.md):
+  each installed skill stays in `.agents/skills`, and a product-owned link
+  exposes it at `.claude/skills` for Claude Code.
+- [Leave available updates to the maintainer](0014-leave-available-updates-to-the-maintainer.md):
+  a product system skill reports available updates, and no standards source
+  routes them; the agent starts an update only on the maintainer's instruction.
+- [Leave delivery to standards sources](0015-leave-delivery-to-standards-sources.md):
+  there is no product-owned `deliver` skill; a source that defines a
+  contribution workflow ships its own, and the product offers on-demand checks.
+- [Keep edited content that leaves the selection](0016-keep-edited-content-that-leaves-the-selection.md):
+  an update removes a target that leaves the selection only when it matches its
+  installed baseline; an edited one stays and becomes project-owned.
