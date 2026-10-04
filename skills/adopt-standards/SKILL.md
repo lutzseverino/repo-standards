@@ -41,11 +41,12 @@ mkdir -p "$cli_dir"
   --ignore-scripts --save-exact --no-audit --no-fund \
   @lutzseverino/repo-standards@VERSION)
 "$cli_dir/node_modules/.bin/repo-standards" --version
+printf 'CLI directory: %s\n' "$cli_dir"
 ```
 
-Keep the printed absolute directory, since shell variables may not survive
-between tool calls. The bootstrap performs inspection only; keep this
-installation for `start` and recovery until the run completes.
+Keep the printed absolute directory and use it in later commands, since shell
+variables may not survive between tool calls. The bootstrap performs inspection
+only; keep this installation for `start` and recovery until the run completes.
 
 - **Active run:** follow [Recovery](references/recovery.md#read-the-active-run).
   An ordinary contextual handoff continues at Contextual work below. Obtain an

@@ -36,6 +36,9 @@ test('release artifacts install without build tools and expose the matching CLI,
   // docs/ directory. It links contracts at this exact version.
   assert.doesNotMatch(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md'), 'utf8')
     .replace(/\(https:\/\/github\.com\/lutzseverino\/repo-standards\/blob\/v[^)]+\)/g, ''), /\bdocs\//);
+  // The skill tells the agent to keep the external CLI directory, so its
+  // installation prints that directory expanded.
+  assert.match(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md'), 'utf8'), /^printf '[^'\n]*%s\\n' "\$cli_dir"$/m);
   const contractLinks = adoptionResources
     .flatMap(resource => [...readFileSync(join(installed, 'skills/adopt-standards', resource), 'utf8')
       .matchAll(/\]\(https:\/\/github\.com\/lutzseverino\/repo-standards\/blob\/v([^/)]+)\/([^)#]+)(?:#([^)]+))?\)/g)]

@@ -448,9 +448,10 @@ a partial successful report. Each observation is bounded to 20,000 directory
 entries/file observations, 128 directory levels, 8 MiB per file, 64 MiB of file
 reads, and 30 seconds of traversal. Proposals are limited to 2 MiB. There is no
 continuous monitoring or atomic filesystem snapshot guarantee. A proposal is
-judged against the observation it is inspected with. When the project changes
-after confirmation, start rejects the confirmed identity, and only a new
-inspection with its own confirmation can start.
+judged against the observation it is inspected with. When a change after
+confirmation alters the [inspection identity](#report-and-inspection-identity),
+start rejects the confirmed identity, and only a new inspection with its own
+confirmation can start.
 
 For initial adoption, one confirmation covers this complete inspection, and
 start takes the same external proposal file and identity:
