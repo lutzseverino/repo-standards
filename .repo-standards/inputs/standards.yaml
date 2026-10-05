@@ -3,7 +3,7 @@ name: repo-canon
 description: Complete repository documentation, contribution, agent workflow,
   and GitHub validation standards
 requires:
-  repo-standards: ">=5.0.1"
+  repo-standards: ">=5.1.0"
 defaults:
   declarations: {}
 profiles:
