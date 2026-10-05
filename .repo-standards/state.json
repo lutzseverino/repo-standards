@@ -15,8 +15,8 @@
         "id": "canonical-labels"
       },
       "operationIndex": 0,
-      "before": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
-      "after": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
+      "before": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
+      "after": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -35,8 +35,8 @@
         "id": "pull-request-integration"
       },
       "operationIndex": 1,
-      "before": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
-      "after": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
+      "before": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
+      "after": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -98,8 +98,8 @@
           "directories": []
         }
       },
-      "before": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
-      "after": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
+      "before": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
+      "after": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -161,8 +161,8 @@
           "directories": []
         }
       },
-      "before": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
-      "after": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
+      "before": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
+      "after": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -216,8 +216,8 @@
         "id": "documentation-navigation"
       },
       "operationIndex": 2,
-      "before": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
-      "after": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
+      "before": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
+      "after": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -236,8 +236,8 @@
         "id": "project-readme-structure"
       },
       "operationIndex": 3,
-      "before": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
-      "after": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
+      "before": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
+      "after": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -258,8 +258,8 @@
         "id": "repository-readme-structure"
       },
       "operationIndex": 4,
-      "before": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
-      "after": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
+      "before": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
+      "after": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -321,8 +321,8 @@
           "directories": []
         }
       },
-      "before": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
-      "after": "sha256:7418f2147f0dc3399d0bad244a59376f6a58cdbb133fd2e723739fb7daff783a",
+      "before": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
+      "after": "sha256:1a92ccf0c35f82116c8f6fdb0537ace8e0a34801b9932d6bb3f6fe1129767979",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -444,12 +444,6 @@
       ]
     },
     {
-      "path": ".agents/skills/adopt-standards/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
       "path": ".agents/skills/adopt-standards/references/assessment.md",
       "phases": [
         "installation"
@@ -474,222 +468,6 @@
       ]
     },
     {
-      "path": ".agents/skills/deliver/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/deliver/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/standards-updates/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/standards-updates/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/adopt-standards",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/ask-matt",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/code-review",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/codebase-design",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/deliver",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/diagnosing-bugs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/domain-modeling",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/grill-me",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/grill-with-docs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/grilling",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/handoff",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/implement",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/improve-codebase-architecture",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/prototype",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/research",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/resolving-merge-conflicts",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/setup-matt-pocock-skills",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/standards-updates",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/tdd",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/teach",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/to-questionnaire",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/to-spec",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/to-tickets",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/triage",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/wait-what",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/wayfinder",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/wizard",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/writing-for-agents",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".github/scripts/validate-pr-metadata.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "AGENTS.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "CONTRIBUTING.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "operations/lib/rendered-markdown.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
       "path": "scripts/validate-issue-contract.mjs",
       "phases": [
         "installation"
@@ -697,10 +475,10 @@
     }
   ],
   "lastComplete": {
-    "run": "77a2b7d1-0e17-4e74-88c6-e5ad368d86bc",
-    "inspection": "sha256:423a7b729a80d816646bc34f2cffd08a97e1023c462774b9e60f09eb52c12237",
-    "completedAt": "2026-10-05T08:18:26.836Z",
-    "head": "48929886f9d65d5ca4e8b9275d842ad5368a4342"
+    "run": "f00865e9-4c59-4a7f-857e-deef197ded3b",
+    "inspection": "sha256:c1d4d4d0a6f1b387b760d984b722aad4afbcfc8ad908f4b131943ddcc65d6e7b",
+    "completedAt": "2026-10-05T15:35:51.664Z",
+    "head": "6e894f0902ff75fecc18dc3a4c43d4868b38d7d8"
   },
   "baselines": {
     "docs/agents/README.md": {
@@ -732,7 +510,7 @@
       "executable": false
     },
     "scripts/validate-issue-contract.mjs": {
-      "sha256": "7fdab26e0f051a9b3493e667f84c2324cac1aa16c8c9c2d52024ab318615bf73",
+      "sha256": "3334b3322dfe3f34e9dc78b723b0826d8648f541b9bd8c1ad207d258fdff1b2d",
       "executable": false
     },
     ".github/workflows/issue-contracts.yml": {
@@ -1104,7 +882,7 @@
       "executable": false
     },
     ".agents/skills/adopt-standards/SKILL.md": {
-      "sha256": "68052a9bd2eb026527934d693cee844345fbd5a3b508f9f34f10548f1548ccd0",
+      "sha256": "d5f3893f503e4076da953581d9ce00994f55e68eb67da0351bc2170224bb133c",
       "executable": false
     },
     ".agents/skills/adopt-standards/agents/openai.yaml": {
@@ -1112,19 +890,19 @@
       "executable": false
     },
     ".agents/skills/adopt-standards/references/assessment.md": {
-      "sha256": "0101c11ed4dac35c46f2617d85c100438e17e9edc93bb911f900f2c031846137",
+      "sha256": "11ce493b12024dcdcef1a1c3e9460068997669a9ae954a0717e56994caa17181",
       "executable": false
     },
     ".agents/skills/adopt-standards/references/discovery.md": {
-      "sha256": "1442f4dfe99543e56b3cc6350285d3f740c89d2e949c71b9bd771e46566b7690",
+      "sha256": "75ab58e5ac82ced9e1c3aeb1d43dda7300ac180235ac53c70ef9fcede1151f7b",
       "executable": false
     },
     ".agents/skills/adopt-standards/references/recovery.md": {
-      "sha256": "ec78fa6b4d5adc20190fb33a96f1e32275121d80cfe2ed63b0ed73a743b6498c",
+      "sha256": "6904bb1126f7b62078f2d690f2bb6fd6f5406e5d6eefcbce3cbf85f62b3bb07e",
       "executable": false
     },
     ".agents/skills/adopt-standards/references/review.md": {
-      "sha256": "ea585384dbd581638a7ef947d5512848d1f895a543f4417b2acd895fc3aa1ca0",
+      "sha256": "f1f476fd67e0ae0c58d4f66f0ee0b9dcb7a7c02d170468fa2eefe5eab5ce2993",
       "executable": false
     },
     ".agents/skills/standards-updates/SKILL.md": {
@@ -1377,45 +1155,43 @@
     {
       "format": "repo-standards/assessment/v3",
       "scope": {
-        "inspection": "sha256:423a7b729a80d816646bc34f2cffd08a97e1023c462774b9e60f09eb52c12237",
-        "afterFixes": "sha256:8f6dbb52ac7f93adb5db364b31630e673606327cd8fddef49ec6414d1dc11238"
+        "inspection": "sha256:c1d4d4d0a6f1b387b760d984b722aad4afbcfc8ad908f4b131943ddcc65d6e7b",
+        "afterFixes": "sha256:0bf9cd843c7644933f43afe7a400254272613fd827a2256046d70ff33a110796"
       },
-      "run": "77a2b7d1-0e17-4e74-88c6-e5ad368d86bc",
-      "selection": "sha256:3129e187ebbd1d40002af2e525a49ba6e82e17b9bdd075b7e66633ff54d329bb",
-      "snapshot": "sha256:8f6dbb52ac7f93adb5db364b31630e673606327cd8fddef49ec6414d1dc11238",
+      "run": "f00865e9-4c59-4a7f-857e-deef197ded3b",
+      "selection": "sha256:d2d89b3e962bc5c18d12fb5bc671debcfff283d5ece8b45446aad95f540bfb69",
+      "snapshot": "sha256:0bf9cd843c7644933f43afe7a400254272613fd827a2256046d70ff33a110796",
       "declarations": [
         {
           "id": "documentation",
           "status": "satisfied",
-          "explanation": "The existing documentation satisfies the retained guidance without edits: current product contracts and how-to are in usage, setup/validation/release and architecture in development, consequential decisions in adr, and project constraints in agents. Existing facts, exact-owned files and excluded source/fixture material are preserved.",
+          "explanation": "The existing maintained documentation satisfies the adopted category, navigation, setup, audience and durable-content rules. The patch changes a retained drafter resource, not the documentation guidance; review found no useful contextual edit needed.",
           "changedPaths": [],
           "evidence": [
-            "docs/README.md describes the four categories; each document is listed in its directory index, including ADRs 0004 and 0013–0016 and docs/usage/check.md.",
-            "docs/development/README.md states Node.js 24, pinned pnpm, npm and Git prerequisites, frozen-lockfile setup, local commands and the three required Linux validation parts.",
-            "docs/usage/installation.md and authoring.md describe public npm installation, skill installation, source validation and publication; available-updates.md and check.md describe the current public interfaces.",
-            "CONTEXT.md defines current domain terms including Skill link, Update notice and Retired format; ADR 0004 is retained with its linked supersession status.",
-            "README.md, CONTEXT.md and docs have no contextual diff; no committed adoption-run or release record was introduced."
+            "docs/README.md gives audience/topic descriptions for the four categories; category indices list the appropriate documents once, and exact shared agent configuration remains separate from docs/agents/project.md.",
+            "docs/development/README.md gives prerequisites and root setup/validation commands matching package.json, pnpm-workspace.yaml and .github/workflows/validate.yml; frozen installation passed with pnpm 11.20.0.",
+            "docs/usage contains maintained installation, authoring, inspection, adoption, update-notice, check and protocol contracts for the neutral product; docs/development contains reusable architecture/release procedures, not adoption-run records.",
+            "CONTEXT.md distinguishes product, standards source, adopting project, exact/contextual updates and installed ownership; the ADRs explain consequential decisions, with ADR 0004 retained and explicitly superseded by ADR 0009.",
+            "All 34 allowed documentation files were reviewed against their current purpose and links and remain byte-identical to HEAD. Run and validation artifacts are kept outside the repository."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "The confirmed scope still covers all maintained documentation and domain terminology. The retained drafter produces the same included paths; no new root, missing index, move or link-repair path is needed.",
+              "explanation": "The current documentation root, glossary, exact-owned exclusions and fixture/product-source exclusions cover the adopting project completely; no migration or additional link-repair path is needed.",
               "evidence": [
-                "All 34 included paths remain present: CONTEXT.md and the docs indexes, ADRs, project guidance, development and usage documents.",
-                "The post-fix retained drafter includes exactly the confirmed documentation paths; the four exact-owned docs/agents files remain excluded.",
-                "The new .agents/skills/standards-updates/SKILL.md question is repo-canon#165: it is a product-owned system skill and remains outside contextual scope.",
-                "acceptance and examples are synthetic harness/source inputs; packaged skills are product distribution assets, not maintained documentation."
+                "The post-fix and refreshed v0.5.2 drafter outputs are identical to the inspection draft: 34 included paths, no installed standards-updates question, and the same three questions resolved as fixture/example/product-source exclusions.",
+                "docs/README.md and each category README establish usage, development, adr and agents, with the same maintained documents; CONTEXT.md is the single-context glossary.",
+                "All 34 confirmed documentation files match their pre-start HEAD bytes; exact-owned docs/agents configuration is excluded, and no root/index introduction or move destination is needed."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The confirmed scope still covers all maintained documentation and domain terminology. The retained drafter produces the same included paths; no new root, missing index, move or link-repair path is needed.",
+              "explanation": "The current documentation root, glossary, exact-owned exclusions and fixture/product-source exclusions cover the adopting project completely; no migration or additional link-repair path is needed.",
               "evidence": [
-                "All 34 included paths remain present: CONTEXT.md and the docs indexes, ADRs, project guidance, development and usage documents.",
-                "The post-fix retained drafter includes exactly the confirmed documentation paths; the four exact-owned docs/agents files remain excluded.",
-                "The new .agents/skills/standards-updates/SKILL.md question is repo-canon#165: it is a product-owned system skill and remains outside contextual scope.",
-                "acceptance and examples are synthetic harness/source inputs; packaged skills are product distribution assets, not maintained documentation."
+                "The post-fix and refreshed v0.5.2 drafter outputs are identical to the inspection draft: 34 included paths, no installed standards-updates question, and the same three questions resolved as fixture/example/product-source exclusions.",
+                "docs/README.md and each category README establish usage, development, adr and agents, with the same maintained documents; CONTEXT.md is the single-context glossary.",
+                "All 34 confirmed documentation files match their pre-start HEAD bytes; exact-owned docs/agents configuration is excluded, and no root/index introduction or move destination is needed."
               ],
               "additionalPaths": []
             }
@@ -1424,29 +1200,31 @@
         {
           "id": "github-repository-configuration",
           "status": "satisfied",
-          "explanation": "The confirmed fixes found the repository already configured as required. Separate readback verified the labels, PR metadata requirement and squash settings; no project-content change is needed.",
+          "explanation": "The authorized repeat-safe fixes verified the canonical GitHub configuration and needed no changes. This assessment records their observed readbacks at execution time, without claiming continuing remote freshness.",
           "changedPaths": [],
           "evidence": [
-            "Both canonical-labels and pull-request-integration exited 0 with status unchanged for lutzseverino/repo-standards.",
-            "GitHub API readback contains the five canonical triage labels and a main-branch required_status_checks rule with PR metadata.",
-            "GitHub API readback has allow_squash_merge true, allow_merge_commit and allow_rebase_merge false, squash_merge_commit_title PR_TITLE and squash_merge_commit_message PR_BODY."
+            "canonical-labels returned unchanged with exit code 0 after checking the 12 canonical names, colors and descriptions and reading the result back.",
+            "pull-request-integration returned unchanged with exit code 0 after verifying PR metadata enforcement, squash-only merging and PR title/body squash messages.",
+            "The authored operations preserve unrelated labels, settings, checks and rules; no partial or uncertain remote outcome was reported."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Empty project-content scope remains intentional: this declaration configures only the identified GitHub repository through the confirmed fixes.",
+              "explanation": "This declaration still governs remote GitHub configuration only, with intentionally empty project-content scope and one unambiguous repository identity.",
               "evidence": [
-                "The origin identifies lutzseverino/repo-standards on github.com.",
-                "Both fixes returned unchanged; a subsequent readback verified canonical triage labels, the PR metadata required check, squash-only merging, PR_TITLE and PR_BODY."
+                "origin fetch and push identify lutzseverino/repo-standards, with no competing GitHub remote.",
+                "Both canonical-labels and pull-request-integration completed with exit code 0, unchanged results, and successful authored readback against lutzseverino/repo-standards.",
+                "Neither remote fix produced any project-content target or scope addition; empty allowedTargets remains correct."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Empty project-content scope remains intentional: this declaration configures only the identified GitHub repository through the confirmed fixes.",
+              "explanation": "This declaration still governs remote GitHub configuration only, with intentionally empty project-content scope and one unambiguous repository identity.",
               "evidence": [
-                "The origin identifies lutzseverino/repo-standards on github.com.",
-                "Both fixes returned unchanged; a subsequent readback verified canonical triage labels, the PR metadata required check, squash-only merging, PR_TITLE and PR_BODY."
+                "origin fetch and push identify lutzseverino/repo-standards, with no competing GitHub remote.",
+                "Both canonical-labels and pull-request-integration completed with exit code 0, unchanged results, and successful authored readback against lutzseverino/repo-standards.",
+                "Neither remote fix produced any project-content target or scope addition; empty allowedTargets remains correct."
               ],
               "additionalPaths": []
             }
@@ -1455,32 +1233,31 @@
         {
           "id": "project-readmes",
           "status": "satisfied",
-          "explanation": "No non-root directory meets the separate Project responsibility and development-command criterion. The root package and its developer setup are documented at the repository entry points; the confirmed empty scope requires no file edits.",
+          "explanation": "No non-root directory is a separately maintained Project under the source criteria; the intentional empty README scope remains correct and requires no content edits.",
           "changedPaths": [],
           "evidence": [
-            "package.json defines one @lutzseverino/repo-standards CLI package and its build, tests, validation, release and runtime requirements.",
-            "pnpm-workspace.yaml declares no member packages; tsconfig.build.json builds src as the single package.",
-            "acceptance/README.md identifies synthetic projects and fixture sources; examples and packaged skills belong to product distribution.",
-            "README.md and docs/development/README.md document the root package and its shared setup."
+            "package.json and pnpm-workspace.yaml define one maintained root CLI package and no workspace-member packages; src, bootstrap, scripts and skills share its development and distribution lifecycle.",
+            "acceptance/README.md and acceptance/prepare-public.ts establish Bob, Harbor, Orchard, Forge and Relay as synthetic projects, and Alice, Mira, Atlas and Wayfinder as synthetic standards sources.",
+            "Existing fixture READMEs, examples, generated directories, vendored parsers and installed skills remain outside adopting-project Project README scope; no missing maintained Project README was found."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "The repository still contains one maintained root package and no independent non-root Projects; the explained empty Project README scope remains complete.",
+              "explanation": "The repository remains one maintained root CLI package; its component directories share that package lifecycle and synthetic nested projects remain fixtures. Empty included scope is valid.",
               "evidence": [
-                "package.json owns the single CLI build, runtime, packaged skills, validation and release.",
-                "pnpm-workspace.yaml declares no member packages; bootstrap, src, scripts, test, acceptance and examples are components or fixtures of that root package.",
-                "operations and vendor are installed standards resources; .agents/skills contains installed skills rather than independent Projects."
+                "package.json retains one CLI package, one root build/typecheck/lint/test/release script set, and the same distributed bootstrap, examples and skills.",
+                "pnpm-workspace.yaml declares build policy and no workspace members; acceptance/README.md and acceptance/prepare-public.ts identify the nested projects and sources as synthetic fixtures.",
+                "The ten confirmed directory exclusions still apply; no independent non-root maintained Project or missing Project README appeared during installation or remote fixes."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The repository still contains one maintained root package and no independent non-root Projects; the explained empty Project README scope remains complete.",
+              "explanation": "The repository remains one maintained root CLI package; its component directories share that package lifecycle and synthetic nested projects remain fixtures. Empty included scope is valid.",
               "evidence": [
-                "package.json owns the single CLI build, runtime, packaged skills, validation and release.",
-                "pnpm-workspace.yaml declares no member packages; bootstrap, src, scripts, test, acceptance and examples are components or fixtures of that root package.",
-                "operations and vendor are installed standards resources; .agents/skills contains installed skills rather than independent Projects."
+                "package.json retains one CLI package, one root build/typecheck/lint/test/release script set, and the same distributed bootstrap, examples and skills.",
+                "pnpm-workspace.yaml declares build policy and no workspace members; acceptance/README.md and acceptance/prepare-public.ts identify the nested projects and sources as synthetic fixtures.",
+                "The ten confirmed directory exclusions still apply; no independent non-root maintained Project or missing Project README appeared during installation or remote fixes."
               ],
               "additionalPaths": []
             }
@@ -1489,14 +1266,13 @@
         {
           "id": "repository-readme",
           "status": "satisfied",
-          "explanation": "The existing README is concise and useful for repository discovery, with the required title, description, applicable sections, commands, badges and link-only pointers. Its current product facts are preserved without edits.",
+          "explanation": "The current concise root README accurately introduces the CLI, its technologies and representative usage, and satisfies the reader-facing installation/section/pointer guidance without an edit.",
           "changedPaths": [],
           "evidence": [
-            "README.md begins with a centered Repository Standards title, one-sentence CLI/skills description, and TypeScript plus Node.js 24 badges matching package.json and tsconfig.build.json.",
-            "Installation uses an unversioned global npm installation and --ignore-scripts; Usage shows the public source validate command.",
-            "Features begin with verbs and describe validation, inspection, confirmed adoption, updates, summaries, checks and source discovery.",
-            "Documentation, Contributing and License contain single plain-paragraph links to docs/README.md, CONTRIBUTING.md and LICENSE; the root license is MIT.",
-            "pnpm typecheck, pnpm lint and pnpm build passed; the four selected adoption/scope tests passed with 11 including subtests."
+            "README.md starts with a centered Repository Standards title, a one-sentence purpose, and TypeScript and Node.js 24 badges matching package.json and the TypeScript source/build.",
+            "Installation gives an unversioned public npm command with ignore-scripts and the CLI version probe, separately from contributor setup; Usage shows source validate against a standards directory, matching the public CLI contract.",
+            "The Features items start with verbs and describe the product capabilities; applicable sections follow Installation, Features, Usage, Documentation, Contributing and License.",
+            "Documentation, Contributing and License are single plain link paragraphs to docs/README.md, CONTRIBUTING.md and the root MIT LICENSE; configuration is omitted because there is no separate required configuration entry point."
           ]
         }
       ]
