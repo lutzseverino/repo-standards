@@ -1,5 +1,12 @@
 import assert from "node:assert/strict";
-import { readFileSync, rmSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import {
+  chmodSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { after, test } from "node:test";
 import { fixtureFiles, installCli, sourceFixture } from "./installed-cli.ts";
@@ -139,6 +146,116 @@ test("inspection authenticates every REST endpoint, keeps Git anonymous, and pre
   noTokens(outputs, [project.root, remote.support.root, remote.env.TMPDIR]);
 });
 
+test("inspection trims tokens, treats whitespace as absent, and never scans an unused token", async (t) => {
+  const remote = await githubFixture(yaml, { "readme.md": "README" }, tokens);
+  const project = sourceFixture("");
+  t.after(() => {
+    remote.close();
+    project.close();
+  });
+  const outputs: string[] = [];
+  for (const [env, expected] of [
+    [{ GH_TOKEN: " \t ", GITHUB_TOKEN: tokens.GITHUB_TOKEN }, "github"],
+    [{ GH_TOKEN: `  ${tokens.GH_TOKEN}  `, GITHUB_TOKEN: " " }, "gh"],
+    [{ GH_TOKEN: tokens.GH_TOKEN, GITHUB_TOKEN: "b" }, "gh"],
+    [{ GH_TOKEN: "", GITHUB_TOKEN: `  ${tokens.GITHUB_TOKEN}  ` }, "github"],
+    [{ GH_TOKEN: " \t ", GITHUB_TOKEN: "  " }, "absent"],
+  ] as const) {
+    const before = requests(remote).length;
+    const result = cli.run(inspectionArgs, project.root, {
+      ...remote.env,
+      ...env,
+    });
+    outputs.push(result.stdout, result.stderr);
+    assert.equal(
+      result.status,
+      0,
+      "Only the trimmed, selected token affects inspection",
+    );
+    const rest = requests(remote)
+      .slice(before)
+      .filter((request) => request.kind === "rest");
+    assert.equal(rest.length, 4);
+    assert.ok(
+      rest.every((request) => request.authorized === (expected !== "absent")),
+    );
+    assert.ok(
+      rest.every((request) => request.matchesGh === (expected === "gh")),
+    );
+    assert.ok(
+      rest.every(
+        (request) => request.matchesGithub === (expected === "github"),
+      ),
+    );
+  }
+  noTokens(outputs, [project.root, remote.support.root, remote.env.TMPDIR]);
+});
+
+test("CLI Git subprocesses receive neither REST token while GitHub REST requests remain authenticated", async (t) => {
+  const remote = await githubFixture(yaml, { "readme.md": "README" }, tokens);
+  const project = sourceFixture("");
+  t.after(() => {
+    remote.close();
+    project.close();
+  });
+  const realGit = execFileSync("which", ["git"], { encoding: "utf8" }).trim();
+  const bin = join(remote.support.root, "bin");
+  mkdirSync(bin);
+  const log = join(remote.support.root, "git-environment.jsonl");
+  writeFileSync(log, "");
+  const wrapper = join(bin, "git");
+  writeFileSync(
+    wrapper,
+    `#!${process.execPath}
+import { appendFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+const args = process.argv.slice(2);
+appendFileSync(${JSON.stringify(log)}, JSON.stringify({
+  fetch: args.includes('fetch'),
+  ghPresent: Object.hasOwn(process.env, 'GH_TOKEN'),
+  githubPresent: Object.hasOwn(process.env, 'GITHUB_TOKEN')
+}) + '\\n');
+const result = spawnSync(${JSON.stringify(realGit)}, args, {stdio: 'inherit'});
+process.exit(result.status ?? 1);
+`,
+  );
+  chmodSync(wrapper, 0o755);
+  const env = { ...remote.env, ...tokens, PATH: `${bin}:${process.env.PATH}` };
+  const outputs: string[] = [];
+  for (const args of [inspectionArgs, ["source", "search", "--json"]]) {
+    publishSearch(remote);
+    const result = cli.run(args, project.root, env);
+    outputs.push(result.stdout, result.stderr);
+    assert.equal(result.status, 0);
+  }
+  const observed = readFileSync(log, "utf8")
+    .trim()
+    .split("\n")
+    .map(
+      (line) =>
+        JSON.parse(line) as {
+          fetch: boolean;
+          ghPresent: boolean;
+          githubPresent: boolean;
+        },
+    );
+  assert.ok(observed.some((entry) => entry.fetch));
+  assert.ok(
+    observed.every((entry) => !entry.ghPresent && !entry.githubPresent),
+  );
+  assert.ok(
+    requests(remote)
+      .filter((request) => request.kind === "rest")
+      .every((request) => request.matchesGh),
+  );
+  assert.ok(
+    requests(remote)
+      .filter((request) => request.kind === "git")
+      .every((request) => !request.authorized),
+  );
+  noTokens(outputs, [project.root, remote.support.root, remote.env.TMPDIR]);
+});
+
 test("inspect and confirmed start classify quota headers, keep ordinary failures, and never retry a rejected token anonymously", async (t) => {
   const remote = await githubFixture(yaml, { "readme.md": "README" }, tokens);
   const project = sourceFixture("");
@@ -161,6 +278,16 @@ test("inspect and confirmed start classify quota headers, keep ordinary failures
       "2033-05-18T03:33:20.000Z",
     ],
     [403, { "retry-after": "120" }, "QUOTA_EXHAUSTED", "120 seconds"],
+    [
+      403,
+      {
+        "x-ratelimit-remaining": "0",
+        "retry-after": "120",
+        "x-ratelimit-reset": "2000000000",
+      },
+      "QUOTA_EXHAUSTED",
+      "120 seconds",
+    ],
     [
       429,
       { "retry-after": "Wed, 18 May 2033 03:33:20 GMT" },
@@ -390,6 +517,10 @@ test("redirects, disconnected requests, and credential-reflecting bodies never d
     const final = requests(destination)
       .slice(before)
       .find((request) => request.path === "/redirected")!;
+    const message = (JSON.parse(result.stdout) as ErrorReport).errors[0]!
+      .message;
+    assert.equal(message.includes("rejected"), destination === remote);
+    if (destination !== remote) assert.match(message, /redirect target.*401/i);
     assert.equal(
       final.authorized,
       destination === remote,

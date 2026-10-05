@@ -104,19 +104,26 @@ sources, and other hosts are unsupported. Direct inspection needs no discovery.
 
 Acquisition uses GitHub REST repository and Git-object endpoints. Every GitHub
 REST request uses `GH_TOKEN`, or otherwise `GITHUB_TOKEN`, as bearer authorization
-when present; an empty value counts as absent. A token uses the authenticated
+when present. Values are trimmed; empty or whitespace-only values count as
+absent. A token uses the authenticated
 API quota instead of the shared anonymous quota. Credentials are optional for
 supported public sources and never make private sources supported. Git object
 downloads use Git's separate anonymous smart protocol and do not send the token.
+Both token variables are removed from every Git subprocess environment so a
+GitHub CLI credential helper cannot consume the REST token. The CLI keeps them
+available to its REST helper.
 The token is never recorded in reports, inspection identity, retained inputs,
 caches, or logs; the same inspection has the same identity with or without it.
 
 An exhausted quota (HTTP 429, or 403 with `x-ratelimit-remaining: 0` or
 `retry-after`) fails `inspect` and `start` with exit status 1 and
 `QUOTA_EXHAUSTED`. The message names `GH_TOKEN` and `GITHUB_TOKEN` and the reset
-time or retry delay when GitHub provides a usable header. Retry after that
+time or retry delay when GitHub provides a usable header. A usable `retry-after`
+takes precedence over `x-ratelimit-reset` when both arrive. Retry after that
 time; the CLI does not wait or retry automatically. A 401 with a token fails
 `SOURCE_UNAVAILABLE`, saying the token was rejected, with no anonymous retry.
+After a cross-origin redirect strips authorization, a target's 401 is reported
+as the redirect target's failure instead of a rejected token.
 Other connection and API failures remain `SOURCE_UNAVAILABLE`.
 
 Acquisition resolves lightweight or annotated tags to a commit and downloads that commit's

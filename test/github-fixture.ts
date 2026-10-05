@@ -89,9 +89,16 @@ process.stdin.on('end', () => process.exit()).resume();
   writeFileSync(
     loader,
     `const unmocked = globalThis.fetch;
-globalThis.fetch = (url, init) => {
+globalThis.fetch = async (url, init) => {
   if (!String(url).startsWith('https://api.github.com/')) return unmocked(url, init);
-  return unmocked(${JSON.stringify(origin)} + new URL(url).pathname + new URL(url).search, init);
+  const response = await unmocked(${JSON.stringify(origin)} + new URL(url).pathname + new URL(url).search, init);
+  // Preserve logical origins after mapping the GitHub transport to localhost.
+  // A redirect to the other fixture server retains its different origin.
+  if (new URL(response.url).origin === ${JSON.stringify(origin)}) {
+    const finalUrl = new URL(response.url);
+    Object.defineProperty(response, 'url', {value: 'https://api.github.com' + finalUrl.pathname + finalUrl.search});
+  }
+  return response;
 };
 `,
   );

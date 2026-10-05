@@ -73,6 +73,7 @@ const githubHeaders = {
   "X-GitHub-Api-Version": "2022-11-28",
   "User-Agent": "repo-standards",
 };
+const githubOrigin = "https://api.github.com";
 
 interface GithubRequestOptions {
   timeoutMs?: number;
@@ -82,17 +83,17 @@ interface GithubRequestOptions {
 }
 
 function quotaRetry(headers: Headers): string {
-  const reset = headers.get("x-ratelimit-reset");
-  if (reset && /^\d+$/.test(reset)) {
-    const time = new Date(Number(reset) * 1000);
-    if (Number.isFinite(time.getTime()))
-      return ` Retry at ${time.toISOString()}.`;
-  }
   const retry = headers.get("retry-after");
   if (retry && /^\d+$/.test(retry) && Number.isSafeInteger(Number(retry)))
     return ` Retry after ${Number(retry)} seconds.`;
   if (retry) {
     const time = new Date(retry);
+    if (Number.isFinite(time.getTime()))
+      return ` Retry at ${time.toISOString()}.`;
+  }
+  const reset = headers.get("x-ratelimit-reset");
+  if (reset && /^\d+$/.test(reset)) {
+    const time = new Date(Number(reset) * 1000);
     if (Number.isFinite(time.getTime()))
       return ` Retry at ${time.toISOString()}.`;
   }
@@ -106,10 +107,11 @@ export async function github(
   path: string,
   options: GithubRequestOptions = {},
 ): Promise<unknown> {
-  const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+  const token =
+    process.env.GH_TOKEN?.trim() || process.env.GITHUB_TOKEN?.trim();
   let response: Response;
   try {
-    response = await fetch(`https://api.github.com${path}`, {
+    response = await fetch(`${githubOrigin}${path}`, {
       headers: {
         ...githubHeaders,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -136,7 +138,9 @@ export async function github(
   if (response.status === 401 && token)
     throw new ProductError(
       "SOURCE_UNAVAILABLE",
-      "GitHub rejected the token in GH_TOKEN or GITHUB_TOKEN. Check the token and retry.",
+      response.redirected && new URL(response.url).origin !== githubOrigin
+        ? "The GitHub redirect target returned HTTP 401. Check the redirect target and retry."
+        : "GitHub rejected the token in GH_TOKEN or GITHUB_TOKEN. Check the token and retry.",
     );
   if (!response.ok)
     throw new ProductError(
@@ -155,24 +159,29 @@ export async function github(
     if (token) throw new Error("GitHub returned invalid JSON.");
     throw error;
   }
-  const credentials = [process.env.GH_TOKEN, process.env.GITHUB_TOKEN].filter(
-    (value): value is string => !!value,
-  );
   function containsCredential(value: unknown): boolean {
-    if (typeof value === "string")
-      return credentials.some((credential) => value.includes(credential));
+    if (typeof value === "string") return !!token && value.includes(token);
     if (value && typeof value === "object")
       return Object.entries(value).some(
         ([key, child]) => containsCredential(key) || containsCredential(child),
       );
     return false;
   }
-  if (credentials.length && containsCredential(document))
+  if (token && containsCredential(document))
     throw new ProductError(
       "SOURCE_UNAVAILABLE",
       "GitHub returned a response containing credentials. Retry later.",
     );
   return document;
+}
+
+// GitHub CLI credential helpers can read these variables from Git's inherited
+// environment. REST credentials belong only to the REST request boundary.
+export function gitEnvironment(): NodeJS.ProcessEnv {
+  const env = { ...process.env };
+  delete env.GH_TOKEN;
+  delete env.GITHUB_TOKEN;
+  return env;
 }
 
 function git(
@@ -183,7 +192,7 @@ function git(
   const result = spawnSync("git", [`--git-dir=${directory}`, ...args], {
     encoding: binary ? "buffer" : "utf8",
     env: {
-      ...process.env,
+      ...gitEnvironment(),
       GIT_DEFAULT_HASH: "sha1",
       GIT_OPTIONAL_LOCKS: "0",
       GIT_TERMINAL_PROMPT: "0",

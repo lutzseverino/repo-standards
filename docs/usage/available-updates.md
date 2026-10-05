@@ -59,11 +59,14 @@ in parallel, each bounded to ten seconds:
 - The standards pin is compared with the source repository's 100 most recent
   GitHub releases. A token in `GH_TOKEN`, or otherwise `GITHUB_TOKEN`, is sent
   to GitHub as bearer authorization when present; without one the request is
-  anonymous and uses the anonymous API quota. Empty values count as absent.
+  anonymous and uses the anonymous API quota. Values are trimmed; empty or
+  whitespace-only values count as absent.
   This is the same GitHub request helper used by acquisition and discovery.
   A token uses the authenticated quota and is never recorded in reports or caches,
   or sent to the npm registry or on Git object downloads. A rejected token
   (HTTP 401) reports `SOURCE_UNAVAILABLE` with no anonymous retry.
+  Quota retry guidance prefers a usable `retry-after` over `x-ratelimit-reset`
+  when both arrive.
 
 A stable version is a SemVer version without a prerelease component. For the
 standards pin it must also be the tag of a published GitHub release that is not

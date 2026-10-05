@@ -32,8 +32,8 @@ still usable through direct inspection but are not discoverable candidates.
 Follow `nextPage` to continue, up to page 34. Repository ordering and counts can
 change between requests. Release lists are paginated independently. GitHub
 indexing delays and API rate limits apply. Every GitHub REST request uses a
-bearer token from `GH_TOKEN`, or otherwise `GITHUB_TOKEN`, when present; empty
-values count as absent. A token uses the authenticated API quota; without one,
+bearer token from `GH_TOKEN`, or otherwise `GITHUB_TOKEN`, when present. Values
+are trimmed; empty or whitespace-only values count as absent. A token uses the authenticated API quota; without one,
 requests share the anonymous quota. Tokens never appear in reports, caches or
 logs, and private sources remain unsupported. Search can consume several requests per candidate because it
 validates referenced content rather than trusting topic labels.
@@ -52,7 +52,8 @@ An exhausted quota (HTTP 429, or 403 with `x-ratelimit-remaining: 0` or
 `retry-after`) anywhere in the page request, release lists, or candidate
 acquisition aborts the whole page with `QUOTA_EXHAUSTED` and exit status 1;
 it is never a candidate rejection. The message names both token variables and
-the reset time or retry delay when usable. The CLI does not wait or retry
+the reset time or retry delay when usable, preferring `retry-after` over
+`x-ratelimit-reset` when both arrive. The CLI does not wait or retry
 automatically. A 401 with a token reports `SOURCE_UNAVAILABLE`, saying the token
 was rejected, with no anonymous retry; other candidate failures remain rejections.
 

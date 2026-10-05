@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { lstatSync, readdirSync, readFileSync, readlinkSync } from "node:fs";
 import { join } from "node:path";
-import { hash } from "./acquisition.js";
+import { gitEnvironment, hash } from "./acquisition.js";
 import { ProductError } from "./errors.js";
 import { foldPath } from "./paths.js";
 
@@ -122,7 +122,7 @@ export function git(
   ];
   const options = {
     encoding: "utf8" as const,
-    env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" },
+    env: { ...gitEnvironment(), GIT_OPTIONAL_LOCKS: "0" },
     maxBuffer: 32 * 1024 * 1024,
     ...(timeout === undefined ? {} : { timeout }),
     ...(input === undefined ? {} : { input }),
@@ -164,6 +164,7 @@ export function git(
 export function requireSupportedGit(command?: "resume") {
   const result = spawnSync("git", ["--version"], {
     encoding: "utf8",
+    env: gitEnvironment(),
     timeout: 10_000,
   });
   const version = result.stdout
