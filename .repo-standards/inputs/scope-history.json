@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:c1d4d4d0a6f1b387b760d984b722aad4afbcfc8ad908f4b131943ddcc65d6e7b",
+  "inspection": "sha256:10400c51139ed6a53683980242bfb45bc7fff14c4db0e87784e4b6877b956aec",
   "resolved": {
     "description": "The complete Repo Canon standards profile",
     "declarations": [
@@ -1137,13 +1137,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:9c8879a91dea66e7ab9da57765d264e0ad2704e134f0fcc5ccb2f059995c503d",
+    "identity": "sha256:f53c2f18b3495beeb848cd1f65324e9f500a2a6df8957c00e011fe90f2923e85",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Fresh review confirms docs is the only documentation root and all existing indices are present; no new indices, moves, or link-repair destinations are indicated. The three remaining drafter questions are resolved by inspecting acceptance fixtures and their harness, published example-source content, and packaged product skill sources. Those files remain excluded. The installed .agents/skills/standards-updates system skill is present and correctly reserved by the v0.5.2 drafter; no question or documentation candidate names that installed path. The separate skills/standards-updates/SKILL.md product-source question is resolved as an exclusion. Historical v0.5.0 scope is comparison context only; all 34 included documentation paths and all prior exclusions were reviewed against the current tree.",
+          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Fresh v0.5.3 review finds docs is the sole documentation root, all directory indices already exist, and the root CONTEXT.md is the sole project glossary. All 34 included files remain applicable. The three drafter questions are resolved: acceptance Markdown is synthetic fixture input; examples Markdown is published standards-source example material; skills Markdown is packaged product skill source. Their current manifest, harness, release guide and packaging tests establish those roles. No migration destination, new index, or link repair is indicated. The confirmed v0.5.2 proposal in PR #207 is comparison context only; candidate membership is freshly judged against this worktree.",
           "candidates": [
             {
               "path": "CONTEXT.md",
@@ -1164,7 +1164,7 @@
             {
               "path": "acceptance/projects/bob/CONTRIBUTING.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1182,7 +1182,7 @@
             {
               "path": "acceptance/projects/forge/INDEX.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1200,7 +1200,7 @@
             {
               "path": "acceptance/projects/forge/groups/developer-tools.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1210,7 +1210,7 @@
             {
               "path": "acceptance/projects/forge/guides/hammer.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1220,7 +1220,7 @@
             {
               "path": "acceptance/projects/harbor/CONTRIBUTING.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1238,7 +1238,7 @@
             {
               "path": "acceptance/projects/harbor/docs/operations.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1248,7 +1248,7 @@
             {
               "path": "acceptance/projects/orchard/CATALOG.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1266,7 +1266,7 @@
             {
               "path": "acceptance/projects/orchard/legacy/pear-operations.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1276,7 +1276,7 @@
             {
               "path": "acceptance/projects/orchard/teams/runtime.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1286,7 +1286,7 @@
             {
               "path": "acceptance/projects/relay/groups/messaging-runtime.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1296,7 +1296,7 @@
             {
               "path": "acceptance/projects/relay/notes/relay-limitations.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1306,7 +1306,7 @@
             {
               "path": "acceptance/sources/wayfinder/guidance/service-discovery.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1316,7 +1316,7 @@
             {
               "path": "acceptance/sources/wayfinder/guidance/service-readiness.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or standards-source fixture, consumed by acceptance/prepare-public.ts; its content describes the fixture rather than this adopting project and remains in place.",
+              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
@@ -1622,7 +1622,7 @@
             {
               "path": "examples/alice/defaults/files/AGENTS.md",
               "decision": "exclude",
-              "reason": "Published example standards-source material, distributed by package.json and used by acceptance/prepare-public.ts; it governs synthetic adopters rather than this adopting project and remains in place.",
+              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
               "evidence": [
                 "acceptance/prepare-public.ts",
                 "examples/alice/defaults/files/AGENTS.md",
@@ -1632,7 +1632,7 @@
             {
               "path": "examples/alice/defaults/files/CONTRIBUTING.md",
               "decision": "exclude",
-              "reason": "Published example standards-source material, distributed by package.json and used by acceptance/prepare-public.ts; it governs synthetic adopters rather than this adopting project and remains in place.",
+              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
               "evidence": [
                 "acceptance/prepare-public.ts",
                 "examples/alice/defaults/files/CONTRIBUTING.md",
@@ -1642,7 +1642,7 @@
             {
               "path": "examples/alice/defaults/guidance/readme.md",
               "decision": "exclude",
-              "reason": "Published example standards-source material, distributed by package.json and used by acceptance/prepare-public.ts; it governs synthetic adopters rather than this adopting project and remains in place.",
+              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
               "evidence": [
                 "acceptance/prepare-public.ts",
                 "examples/alice/defaults/guidance/readme.md",
@@ -1652,7 +1652,7 @@
             {
               "path": "examples/alice/defaults/guidance/source-layout.md",
               "decision": "exclude",
-              "reason": "Published example standards-source material, distributed by package.json and used by acceptance/prepare-public.ts; it governs synthetic adopters rather than this adopting project and remains in place.",
+              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
               "evidence": [
                 "acceptance/prepare-public.ts",
                 "examples/alice/defaults/guidance/source-layout.md",
@@ -1662,7 +1662,7 @@
             {
               "path": "examples/alice/defaults/skills/review/SKILL.md",
               "decision": "exclude",
-              "reason": "Published example standards-source material, distributed by package.json and used by acceptance/prepare-public.ts; it governs synthetic adopters rather than this adopting project and remains in place.",
+              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
               "evidence": [
                 "acceptance/prepare-public.ts",
                 "examples/alice/defaults/skills/review/SKILL.md",
@@ -1672,7 +1672,7 @@
             {
               "path": "examples/alice/profiles/work/files/AGENTS.md",
               "decision": "exclude",
-              "reason": "Published example standards-source material, distributed by package.json and used by acceptance/prepare-public.ts; it governs synthetic adopters rather than this adopting project and remains in place.",
+              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
               "evidence": [
                 "acceptance/prepare-public.ts",
                 "examples/alice/profiles/work/files/AGENTS.md",
@@ -1682,7 +1682,7 @@
             {
               "path": "examples/atlas/guidance/project-discovery.md",
               "decision": "exclude",
-              "reason": "Published example standards-source material, distributed by package.json and used by acceptance/prepare-public.ts; it governs synthetic adopters rather than this adopting project and remains in place.",
+              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
               "evidence": [
                 "acceptance/prepare-public.ts",
                 "examples/atlas/guidance/project-discovery.md",
@@ -1692,7 +1692,7 @@
             {
               "path": "examples/atlas/guidance/project-documentation.md",
               "decision": "exclude",
-              "reason": "Published example standards-source material, distributed by package.json and used by acceptance/prepare-public.ts; it governs synthetic adopters rather than this adopting project and remains in place.",
+              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
               "evidence": [
                 "acceptance/prepare-public.ts",
                 "examples/atlas/guidance/project-documentation.md",
@@ -1702,7 +1702,7 @@
             {
               "path": "examples/mira/guidance/operations.md",
               "decision": "exclude",
-              "reason": "Published example standards-source material, distributed by package.json and used by acceptance/prepare-public.ts; it governs synthetic adopters rather than this adopting project and remains in place.",
+              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
               "evidence": [
                 "acceptance/prepare-public.ts",
                 "examples/mira/guidance/operations.md",
@@ -1712,8 +1712,9 @@
             {
               "path": "skills/adopt-standards/SKILL.md",
               "decision": "exclude",
-              "reason": "Product skill source or procedural reference shipped whole by package.json; test/release.test.ts defines the packaging contract. This is product material rather than contextual adopting-project documentation and remains in place.",
+              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
               "evidence": [
+                "docs/development/release.md",
                 "package.json",
                 "skills/adopt-standards/SKILL.md",
                 "test/release.test.ts"
@@ -1722,8 +1723,9 @@
             {
               "path": "skills/adopt-standards/references/assessment.md",
               "decision": "exclude",
-              "reason": "Product skill source or procedural reference shipped whole by package.json; test/release.test.ts defines the packaging contract. This is product material rather than contextual adopting-project documentation and remains in place.",
+              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
               "evidence": [
+                "docs/development/release.md",
                 "package.json",
                 "skills/adopt-standards/references/assessment.md",
                 "test/release.test.ts"
@@ -1732,8 +1734,9 @@
             {
               "path": "skills/adopt-standards/references/discovery.md",
               "decision": "exclude",
-              "reason": "Product skill source or procedural reference shipped whole by package.json; test/release.test.ts defines the packaging contract. This is product material rather than contextual adopting-project documentation and remains in place.",
+              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
               "evidence": [
+                "docs/development/release.md",
                 "package.json",
                 "skills/adopt-standards/references/discovery.md",
                 "test/release.test.ts"
@@ -1742,8 +1745,9 @@
             {
               "path": "skills/adopt-standards/references/recovery.md",
               "decision": "exclude",
-              "reason": "Product skill source or procedural reference shipped whole by package.json; test/release.test.ts defines the packaging contract. This is product material rather than contextual adopting-project documentation and remains in place.",
+              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
               "evidence": [
+                "docs/development/release.md",
                 "package.json",
                 "skills/adopt-standards/references/recovery.md",
                 "test/release.test.ts"
@@ -1752,8 +1756,9 @@
             {
               "path": "skills/adopt-standards/references/review.md",
               "decision": "exclude",
-              "reason": "Product skill source or procedural reference shipped whole by package.json; test/release.test.ts defines the packaging contract. This is product material rather than contextual adopting-project documentation and remains in place.",
+              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
               "evidence": [
+                "docs/development/release.md",
                 "package.json",
                 "skills/adopt-standards/references/review.md",
                 "test/release.test.ts"
@@ -1762,8 +1767,9 @@
             {
               "path": "skills/author-standards/SKILL.md",
               "decision": "exclude",
-              "reason": "Product skill source or procedural reference shipped whole by package.json; test/release.test.ts defines the packaging contract. This is product material rather than contextual adopting-project documentation and remains in place.",
+              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
               "evidence": [
+                "docs/development/release.md",
                 "package.json",
                 "skills/author-standards/SKILL.md",
                 "test/release.test.ts"
@@ -1772,8 +1778,9 @@
             {
               "path": "skills/author-standards/references/cli.md",
               "decision": "exclude",
-              "reason": "Product skill source or procedural reference shipped whole by package.json; test/release.test.ts defines the packaging contract. This is product material rather than contextual adopting-project documentation and remains in place.",
+              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
               "evidence": [
+                "docs/development/release.md",
                 "package.json",
                 "skills/author-standards/references/cli.md",
                 "test/release.test.ts"
@@ -1782,8 +1789,9 @@
             {
               "path": "skills/author-standards/references/operations.md",
               "decision": "exclude",
-              "reason": "Product skill source or procedural reference shipped whole by package.json; test/release.test.ts defines the packaging contract. This is product material rather than contextual adopting-project documentation and remains in place.",
+              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
               "evidence": [
+                "docs/development/release.md",
                 "package.json",
                 "skills/author-standards/references/operations.md",
                 "test/release.test.ts"
@@ -1792,8 +1800,9 @@
             {
               "path": "skills/author-standards/references/profiles.md",
               "decision": "exclude",
-              "reason": "Product skill source or procedural reference shipped whole by package.json; test/release.test.ts defines the packaging contract. This is product material rather than contextual adopting-project documentation and remains in place.",
+              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
               "evidence": [
+                "docs/development/release.md",
                 "package.json",
                 "skills/author-standards/references/profiles.md",
                 "test/release.test.ts"
@@ -1802,8 +1811,9 @@
             {
               "path": "skills/author-standards/references/revision.md",
               "decision": "exclude",
-              "reason": "Product skill source or procedural reference shipped whole by package.json; test/release.test.ts defines the packaging contract. This is product material rather than contextual adopting-project documentation and remains in place.",
+              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
               "evidence": [
+                "docs/development/release.md",
                 "package.json",
                 "skills/author-standards/references/revision.md",
                 "test/release.test.ts"
@@ -1812,8 +1822,9 @@
             {
               "path": "skills/standards-updates/SKILL.md",
               "decision": "exclude",
-              "reason": "Product skill source or procedural reference shipped whole by package.json; test/release.test.ts defines the packaging contract. This is product material rather than contextual adopting-project documentation and remains in place.",
+              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
               "evidence": [
+                "docs/development/release.md",
                 "package.json",
                 "skills/standards-updates/SKILL.md",
                 "test/release.test.ts"
@@ -1824,84 +1835,79 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Fresh review of Git remotes identifies one unambiguous github.com repository, lutzseverino/repo-standards, for both origin fetch and push. This declaration governs remote configuration only; empty project-content scope is intentional. Both canonical-labels and pull-request-integration fixes are retained and disclosed for a later identity-confirmed adoption. This inspection authorizes or executes neither remote fix, and does not verify live access or remote settings.",
+          "coverage": "Fresh git remote -v review identifies only origin, with fetch and push both naming lutzseverino/repo-standards on github.com. This declaration applies solely to remote GitHub configuration through its two authored fixes and intentionally has no project-content candidates. The empty scope matches PR #207. Those fixes are disclosed for a later identity-confirmed update; this read-only inspection neither executes nor authorizes them and does not verify current remote settings or write permissions.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "package.json and pnpm-workspace.yaml describe a single maintained root TypeScript/Node.js CLI package with no workspace member packages. Its bootstrap, source, tests, scripts, acceptance harness and distributed product skills share the root build/release and development guide. Nested manifests belong to synthetic fixtures. No non-root directory satisfies the separate Project responsibility-and-development-command criterion; root README.md is explicitly governed by repository-readme. Empty included scope is intentional. Fresh inspection of the current manifest, workspace configuration, development guide, fixture harness, release packaging contract and component files confirms the same membership decisions; the previous proposal supplies historical context only. No missing Project README requires introduction.",
+          "coverage": "Fresh review of package.json, pnpm-workspace.yaml, tsconfig.build.json, the development/release guides, fixture preparation code and component boundaries establishes one maintained root TypeScript/Node.js CLI package and no workspace members. Its components share root build, development and release commands. Nested fixture manifests are synthetic inputs. None of the ten excluded directories is a separate maintained Project under the responsibility-and-development-commands criterion; no non-root Project README, including a missing README, is required. The root README is governed separately by repository-readme. This intentionally empty scope matches the confirmed v0.5.2 proposal in PR #207 after fresh evidence review.",
           "candidates": [
             {
               "path": ".agents/skills",
               "decision": "exclude",
-              "reason": "Installed standards-managed skills; exact installation content, not an independently maintained Project.",
+              "reason": "Installed whole skills owned by standards installation; no independent Project responsibility or development commands.",
               "evidence": [
                 ".agents/skills",
-                "package.json",
-                "pnpm-workspace.yaml"
+                "package.json"
               ]
             },
             {
               "path": "acceptance",
               "decision": "exclude",
-              "reason": "Synthetic project and source fixtures plus the real-agent harness of the root package; acceptance/README.md and acceptance/prepare-public.ts establish the fixture role.",
+              "reason": "Root-package acceptance harness with synthetic project/source fixtures, as established by its guide and fixture preparation code.",
               "evidence": [
                 "acceptance",
                 "acceptance/README.md",
                 "acceptance/prepare-public.ts",
-                "package.json",
-                "pnpm-workspace.yaml"
+                "package.json"
               ]
             },
             {
               "path": "bootstrap",
               "decision": "exclude",
-              "reason": "Distribution entry point of the root npm package, with its build and release owned by package.json.",
+              "reason": "Distribution entry point of the root CLI package, sharing its release and development commands.",
               "evidence": [
                 "bootstrap",
-                "package.json",
-                "pnpm-workspace.yaml"
+                "docs/development/release.md",
+                "package.json"
               ]
             },
             {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Standards-source examples and test inputs distributed with the root package; not adopting-project application Projects.",
+              "reason": "Standards-source examples distributed and validated with the root package; not independently maintained adopting-project applications.",
               "evidence": [
                 "acceptance/prepare-public.ts",
                 "examples",
-                "package.json",
-                "pnpm-workspace.yaml"
+                "package.json"
               ]
             },
             {
               "path": "operations",
               "decision": "exclude",
-              "reason": "Repo Canon installation runtime and resources; not an independently maintained Project.",
+              "reason": "Installed Repo Canon operation scripts and their resources; not a separate maintained Project.",
               "evidence": [
                 "operations",
-                "package.json",
-                "pnpm-workspace.yaml"
+                "package.json"
               ]
             },
             {
               "path": "scripts",
               "decision": "exclude",
-              "reason": "Root-package validation, packaging and release tooling, governed by root build and development commands.",
+              "reason": "Validation and release tooling of the one root CLI package, using root development commands.",
               "evidence": [
+                "docs/development/README.md",
                 "package.json",
-                "pnpm-workspace.yaml",
                 "scripts"
               ]
             },
             {
               "path": "skills",
               "decision": "exclude",
-              "reason": "Packaged product system skills and references verified in test/release.test.ts; not independent Projects.",
+              "reason": "Product skill sources distributed whole and verified by release tests, sharing the root package lifecycle.",
               "evidence": [
                 "package.json",
-                "pnpm-workspace.yaml",
                 "skills",
                 "test/release.test.ts"
               ]
@@ -1909,30 +1915,29 @@
             {
               "path": "src",
               "decision": "exclude",
-              "reason": "Implementation modules owned by the one root CLI package; no workspace member Projects.",
+              "reason": "Implementation modules built together as the root CLI package; no workspace-member package.",
               "evidence": [
                 "package.json",
                 "pnpm-workspace.yaml",
-                "src"
+                "src",
+                "tsconfig.build.json"
               ]
             },
             {
               "path": "test",
               "decision": "exclude",
-              "reason": "Installed-public-CLI tests and fixture harnesses for the root package.",
+              "reason": "Tests and fixture harnesses belonging to the one root CLI package.",
               "evidence": [
                 "package.json",
-                "pnpm-workspace.yaml",
                 "test"
               ]
             },
             {
               "path": "vendor",
               "decision": "exclude",
-              "reason": "Vendored parser bundles and notices installed by Repo Canon; not maintained adopting-project Projects.",
+              "reason": "Installed third-party parser resources; not maintained adopting-project Projects.",
               "evidence": [
                 "package.json",
-                "pnpm-workspace.yaml",
                 "vendor"
               ]
             }
@@ -2051,7 +2056,7 @@
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "ccbfabe7622a74c0c5c714f87187d384956431626a8b18eba3f7bc2a1530219e",
+          "sha256": "e395bfb1c7e3844b12f6faa2e43ffb44ebc2e64da2ea401c4f79c0fa3e7684cd",
           "executable": false
         },
         "docs/development/release.md": {
@@ -2086,7 +2091,7 @@
         },
         "docs/usage/available-updates.md": {
           "type": "file",
-          "sha256": "2b6b8a648cee34e02061c534272c26f4996bb614e08a1004ca43899bf2081a3e",
+          "sha256": "82aa37ebe12b0d66d1d14026c0bbb0785099b84f3126208ba71ca01f0fc8600a",
           "executable": false
         },
         "docs/usage/check.md": {
@@ -2096,17 +2101,17 @@
         },
         "docs/usage/discovery.md": {
           "type": "file",
-          "sha256": "f327662201113f2642588db723246d574c0aeb29c5089ca9e31e08aaeed04495",
+          "sha256": "9e1e12e13c816ca55390791c1b50e5b4e11d34ee7d32e4341461f111d581f425",
           "executable": false
         },
         "docs/usage/inspection.md": {
           "type": "file",
-          "sha256": "1b3f5c0c6fb38acf27d9b1e21d688def13aa1b26e7f68bc96ffe2c5a6d0f1a97",
+          "sha256": "0ab45af8db2806bef25f46e6ac28d2a3b704b431105e594fbcd23d4981695588",
           "executable": false
         },
         "docs/usage/installation.md": {
           "type": "file",
-          "sha256": "65a9571ef910f155f9c0204c3b7469c057f55f63e02c09c6feef097ce985d4f3",
+          "sha256": "d8d1804a6af22274c3ae52840cf7076f59cb6f70cdc874888bc7af62bb5d29f3",
           "executable": false
         },
         "docs/usage/script-protocol.md": {
@@ -2145,7 +2150,7 @@
         },
         ".agents/skills/adopt-standards/SKILL.md": {
           "type": "file",
-          "sha256": "68052a9bd2eb026527934d693cee844345fbd5a3b508f9f34f10548f1548ccd0",
+          "sha256": "d5f3893f503e4076da953581d9ce00994f55e68eb67da0351bc2170224bb133c",
           "executable": false
         },
         ".agents/skills/adopt-standards/agents/openai.yaml": {
@@ -2155,22 +2160,22 @@
         },
         ".agents/skills/adopt-standards/references/assessment.md": {
           "type": "file",
-          "sha256": "0101c11ed4dac35c46f2617d85c100438e17e9edc93bb911f900f2c031846137",
+          "sha256": "11ce493b12024dcdcef1a1c3e9460068997669a9ae954a0717e56994caa17181",
           "executable": false
         },
         ".agents/skills/adopt-standards/references/discovery.md": {
           "type": "file",
-          "sha256": "1442f4dfe99543e56b3cc6350285d3f740c89d2e949c71b9bd771e46566b7690",
+          "sha256": "75ab58e5ac82ced9e1c3aeb1d43dda7300ac180235ac53c70ef9fcede1151f7b",
           "executable": false
         },
         ".agents/skills/adopt-standards/references/recovery.md": {
           "type": "file",
-          "sha256": "ec78fa6b4d5adc20190fb33a96f1e32275121d80cfe2ed63b0ed73a743b6498c",
+          "sha256": "6904bb1126f7b62078f2d690f2bb6fd6f5406e5d6eefcbce3cbf85f62b3bb07e",
           "executable": false
         },
         ".agents/skills/adopt-standards/references/review.md": {
           "type": "file",
-          "sha256": "ea585384dbd581638a7ef947d5512848d1f895a543f4417b2acd895fc3aa1ca0",
+          "sha256": "f1f476fd67e0ae0c58d4f66f0ee0b9dcb7a7c02d170468fa2eefe5eab5ce2993",
           "executable": false
         },
         ".agents/skills/ask-matt/PHASE-BOUNDARIES.md": {
@@ -3107,7 +3112,7 @@
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "ccbfabe7622a74c0c5c714f87187d384956431626a8b18eba3f7bc2a1530219e",
+          "sha256": "e395bfb1c7e3844b12f6faa2e43ffb44ebc2e64da2ea401c4f79c0fa3e7684cd",
           "executable": false
         },
         "docs/development/release.md": {
@@ -3142,7 +3147,7 @@
         },
         "docs/usage/available-updates.md": {
           "type": "file",
-          "sha256": "2b6b8a648cee34e02061c534272c26f4996bb614e08a1004ca43899bf2081a3e",
+          "sha256": "82aa37ebe12b0d66d1d14026c0bbb0785099b84f3126208ba71ca01f0fc8600a",
           "executable": false
         },
         "docs/usage/check.md": {
@@ -3152,17 +3157,17 @@
         },
         "docs/usage/discovery.md": {
           "type": "file",
-          "sha256": "f327662201113f2642588db723246d574c0aeb29c5089ca9e31e08aaeed04495",
+          "sha256": "9e1e12e13c816ca55390791c1b50e5b4e11d34ee7d32e4341461f111d581f425",
           "executable": false
         },
         "docs/usage/inspection.md": {
           "type": "file",
-          "sha256": "1b3f5c0c6fb38acf27d9b1e21d688def13aa1b26e7f68bc96ffe2c5a6d0f1a97",
+          "sha256": "0ab45af8db2806bef25f46e6ac28d2a3b704b431105e594fbcd23d4981695588",
           "executable": false
         },
         "docs/usage/installation.md": {
           "type": "file",
-          "sha256": "65a9571ef910f155f9c0204c3b7469c057f55f63e02c09c6feef097ce985d4f3",
+          "sha256": "d8d1804a6af22274c3ae52840cf7076f59cb6f70cdc874888bc7af62bb5d29f3",
           "executable": false
         },
         "docs/usage/script-protocol.md": {
@@ -3272,7 +3277,7 @@
         },
         "package.json": {
           "type": "file",
-          "sha256": "0d784720055f78b42d532df14ca85569b01b9a2a8896a96b77b764a499cc4572",
+          "sha256": "9f2b95808be43b746d8aad960e6ecce1f07f2cef75d0fbcaa9b076d73a02e461",
           "executable": false
         },
         "pnpm-lock.yaml": {
@@ -3307,7 +3312,7 @@
         },
         "scripts/validate-issue-contract.mjs": {
           "type": "file",
-          "sha256": "7fdab26e0f051a9b3493e667f84c2324cac1aa16c8c9c2d52024ab318615bf73",
+          "sha256": "3334b3322dfe3f34e9dc78b723b0826d8648f541b9bd8c1ad207d258fdff1b2d",
           "executable": false
         },
         "scripts/verify-npm-publisher.ts": {
@@ -3317,7 +3322,7 @@
         },
         "skills/adopt-standards/SKILL.md": {
           "type": "file",
-          "sha256": "d5f3893f503e4076da953581d9ce00994f55e68eb67da0351bc2170224bb133c",
+          "sha256": "ef097e2e369ed5bc44311a75292891de0260ff3dd318942f36ee49cb668df08e",
           "executable": false
         },
         "skills/adopt-standards/agents/openai.yaml": {
@@ -3327,22 +3332,22 @@
         },
         "skills/adopt-standards/references/assessment.md": {
           "type": "file",
-          "sha256": "11ce493b12024dcdcef1a1c3e9460068997669a9ae954a0717e56994caa17181",
+          "sha256": "517e66c6556d19e0e29f19f229c5a10c202cb4a0dd9d3d70ad7275fba165f7fe",
           "executable": false
         },
         "skills/adopt-standards/references/discovery.md": {
           "type": "file",
-          "sha256": "75ab58e5ac82ced9e1c3aeb1d43dda7300ac180235ac53c70ef9fcede1151f7b",
+          "sha256": "30acedb91d827e23d1442252a2c8e42ffd3b5b22dc5cdbf969cf09e66a026494",
           "executable": false
         },
         "skills/adopt-standards/references/recovery.md": {
           "type": "file",
-          "sha256": "6904bb1126f7b62078f2d690f2bb6fd6f5406e5d6eefcbce3cbf85f62b3bb07e",
+          "sha256": "69c25d7f4bde8cedd20350be878f1444f5ee7095d746c46a39ddacb848dad621",
           "executable": false
         },
         "skills/adopt-standards/references/review.md": {
           "type": "file",
-          "sha256": "f1f476fd67e0ae0c58d4f66f0ee0b9dcb7a7c02d170468fa2eefe5eab5ce2993",
+          "sha256": "cf8f028b0965d0395571e79a5ca5bb795de1b2ff397a45aab411474da72df10a",
           "executable": false
         },
         "skills/author-standards/SKILL.md": {
@@ -3357,7 +3362,7 @@
         },
         "skills/author-standards/references/cli.md": {
           "type": "file",
-          "sha256": "e4436496eee951dd79b99f2b1a6652781064f8956fdf67658b134e474a4749b9",
+          "sha256": "d11939a483c9cf85a1c78292e59a4a13adce4c7ec3cc9f32d6f4e687d3199572",
           "executable": false
         },
         "skills/author-standards/references/operations.md": {
@@ -3387,7 +3392,7 @@
         },
         "src/acquisition.ts": {
           "type": "file",
-          "sha256": "f693cf3d35a0c29e30754c6b8021310f366b34838a1d9549392bae7409cd34b0",
+          "sha256": "7dd83256c44750b908128cecd065775fab9cf7bbfbfc5cada5390f1901771409",
           "executable": false
         },
         "src/adoption-files.ts": {
@@ -3427,7 +3432,7 @@
         },
         "src/discovery.ts": {
           "type": "file",
-          "sha256": "df2976838d461cb3b37cde8c196a7c6b43dafcd8bfa8a578812ffc1d2079761a",
+          "sha256": "213ccb46a9c86f8196ffb5fddb24e3d7bf5dee2d9d305d2cfb3d8fe2a631f11c",
           "executable": false
         },
         "src/errors.ts": {
@@ -3462,12 +3467,12 @@
         },
         "src/observation.ts": {
           "type": "file",
-          "sha256": "3171b61d208465f886cced53217857a475317895a63d7f89dc8ee4450159cc5f",
+          "sha256": "90a4af13f135cccc04e47d76aba12831afb067f6e8ea1a04cbeacb3fa3543d1d",
           "executable": false
         },
         "src/outdated.ts": {
           "type": "file",
-          "sha256": "fc206d8a272a44d4fc78fe1ea342b205e8805bfbdf94076be47415ccdb502212",
+          "sha256": "43ce25667d3a0368ff5e24125dbd7bae156d823dca792d29226e30ef038a3400",
           "executable": false
         },
         "src/paths.ts": {
@@ -3625,6 +3630,16 @@
           "sha256": "442534e946dad8a3120349197457a081de31fe4f4ba2613b3130a4e40a16a1f4",
           "executable": false
         },
+        "test/github-fixture.ts": {
+          "type": "file",
+          "sha256": "657101f576da1e2783b875b6b91dda01563077611bf5bccb3a93ccade3478f15",
+          "executable": false
+        },
+        "test/github-token.test.ts": {
+          "type": "file",
+          "sha256": "8ac10b8accab1b406dd123db2ad1994310ed21003482c11cff98fa9ab9242a5d",
+          "executable": false
+        },
         "test/import-cycles.test.ts": {
           "type": "file",
           "sha256": "1eeb4f578d5281c28108caf7a31ff3228a90864da6884e8c2d7237acd53cde1c",
@@ -3657,7 +3672,7 @@
         },
         "test/outdated.test.ts": {
           "type": "file",
-          "sha256": "fe44761c73c84199a049c4323a28bf5afa5251a34c3d0680201e958c5b5c8250",
+          "sha256": "bf96215e1cb4c52ec37d07fe9fd3d274b794c6d326235ef53e7c891e564208bf",
           "executable": false
         },
         "test/path-validation.test.ts": {
@@ -3687,7 +3702,7 @@
         },
         "test/remote-fixture.ts": {
           "type": "file",
-          "sha256": "c5516c7c81c4d9cb9f7010bda7d6e20176d45c2a38978bab81cee3a2ca35d22c",
+          "sha256": "4d017e5da999a6cead06974d469113d73908646324142bc301c3eb22dcbff6f9",
           "executable": false
         },
         "test/retired-formats.test.ts": {
@@ -3712,7 +3727,7 @@
         },
         "test/search.test.ts": {
           "type": "file",
-          "sha256": "49d25df7cbcda314b5b9d99289e297e85a360fb52b1535863e3ac51561caa3c0",
+          "sha256": "9bce540e3ebed3f91e06125455de37cf579defdd4c5f7a8095f9017bd92e80d1",
           "executable": false
         },
         "test/source-validation.test.ts": {
@@ -4527,6 +4542,8 @@
           "test/discovery-lifecycle.test.ts",
           "test/examples.test.ts",
           "test/execution.test.ts",
+          "test/github-fixture.ts",
+          "test/github-token.test.ts",
           "test/import-cycles.test.ts",
           "test/inspection.test.ts",
           "test/installed-cli.ts",
