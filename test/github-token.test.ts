@@ -294,6 +294,27 @@ test("inspect and confirmed start classify quota headers, keep ordinary failures
       "QUOTA_EXHAUSTED",
       "2033-05-18T03:33:20.000Z",
     ],
+    [
+      429,
+      {
+        "retry-after": "Sat, 01 Jan 2000 00:00:00 GMT",
+        "x-ratelimit-reset": "2000000000",
+      },
+      "QUOTA_EXHAUSTED",
+      "2033-05-18T03:33:20.000Z",
+    ],
+    [
+      429,
+      { "retry-after": "Sat, 01 Jan 2000 00:00:00 GMT" },
+      "QUOTA_EXHAUSTED",
+      null,
+    ],
+    [
+      403,
+      { "x-ratelimit-remaining": "0", "x-ratelimit-reset": "946684800" },
+      "QUOTA_EXHAUSTED",
+      null,
+    ],
     [429, {}, "QUOTA_EXHAUSTED", null],
     [
       403,

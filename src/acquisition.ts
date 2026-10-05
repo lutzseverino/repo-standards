@@ -83,19 +83,18 @@ interface GithubRequestOptions {
 }
 
 function quotaRetry(headers: Headers): string {
+  const now = Date.now();
   const retry = headers.get("retry-after");
   if (retry && /^\d+$/.test(retry) && Number.isSafeInteger(Number(retry)))
     return ` Retry after ${Number(retry)} seconds.`;
   if (retry) {
     const time = new Date(retry);
-    if (Number.isFinite(time.getTime()))
-      return ` Retry at ${time.toISOString()}.`;
+    if (time.getTime() > now) return ` Retry at ${time.toISOString()}.`;
   }
   const reset = headers.get("x-ratelimit-reset");
   if (reset && /^\d+$/.test(reset)) {
     const time = new Date(Number(reset) * 1000);
-    if (Number.isFinite(time.getTime()))
-      return ` Retry at ${time.toISOString()}.`;
+    if (time.getTime() > now) return ` Retry at ${time.toISOString()}.`;
   }
   return "";
 }
