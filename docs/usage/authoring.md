@@ -46,7 +46,9 @@ the product repository. Commit the root `standards.yaml`, all referenced files
 and a root `LICENSE` or `LICENCE` file (recognized suffixes include `.md` and
 `.txt`). Choose licensing that permits the intended copying and use. Adoption
 retains root license files alongside selected source material and records their
-hashes and Git provenance. It does not infer permission from a public repository
+hashes and Git provenance. These license files must not be symbolic links;
+local validation and remote acquisition reject linked root licenses with
+`SOURCE_SYMLINK`. It does not infer permission from a public repository
 or copy unrelated files and other profiles into retained inputs.
 
 Set `requires.repo-standards` to an open-ended minimum: the oldest CLI version

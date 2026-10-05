@@ -255,6 +255,11 @@ test("remote and local validation reject selected links and linked ancestors wit
       target: "skill",
     },
     {
+      declaration: { kind: "skill", name: "review", source: "skills/x" },
+      link: "skills",
+      target: "material",
+    },
+    {
       declaration: { kind: "skill", name: "review", source: "skill" },
       link: "skill/nested",
       target: "../readme.md",
@@ -299,6 +304,7 @@ test("remote and local validation reject selected links and linked ancestors wit
     const remote = remoteFixture(manifest({ selected: declaration }), {
       "readme.md": "README",
       "material/readme.md": "README",
+      "material/x/SKILL.md": "Review skill",
       "skill/SKILL.md": "Review skill",
       "run.mjs": "",
     });
@@ -363,6 +369,33 @@ test("remote acquisition and local validation reject a symbolic standards.yaml",
     (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,
     "SOURCE_SYMLINK",
   );
+});
+
+test("remote acquisition and local validation reject linked root license files", (t) => {
+  const project = sourceFixture("");
+  t.after(() => project.close());
+  for (const name of ["LICENSE", "LICENCE.md", "license-extra.txt"]) {
+    const remote = remoteFixture(yaml, {
+      "readme.md": "README",
+      "LICENSE.md": "License terms",
+    });
+    t.after(() => remote.close());
+    symlinkSync("LICENSE.md", join(remote.source.root, name));
+    commit(remote.source.root);
+    remote.publish("v1.0.0");
+    const local = cli.run(["source", "validate", "--json"], remote.source.root);
+    assert.equal(local.status, 1, local.stdout + local.stderr);
+    assert.equal(
+      (JSON.parse(local.stdout) as ErrorReport).errors[0]!.code,
+      "SOURCE_SYMLINK",
+    );
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(
+      (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,
+      "SOURCE_SYMLINK",
+    );
+  }
 });
 
 test("unselected links still participate in tree-listing integrity and source safety checks", (t) => {

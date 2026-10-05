@@ -12,7 +12,7 @@ import {
 import { homedir, tmpdir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { valid, prerelease } from "semver";
-import { foldPath } from "./paths.js";
+import { foldPath, isRootLicense } from "./paths.js";
 import { ProductError } from "./errors.js";
 import { record } from "./records.js";
 
@@ -365,7 +365,10 @@ export async function acquireSource(
     }
     const advertisedEntries: GitTreeEntry[] = [];
     for (const { mode, type, sha, path } of listed) {
-      if (mode === "120000" && path === "standards.yaml")
+      if (
+        mode === "120000" &&
+        (path === "standards.yaml" || isRootLicense(path))
+      )
         throw new ProductError(
           "SOURCE_SYMLINK",
           `The selected source contains a symbolic link: ${path}.`,

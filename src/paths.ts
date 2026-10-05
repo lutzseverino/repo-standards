@@ -22,6 +22,10 @@ export interface SourcePaths {
   symlinks: ReadonlySet<string>;
 }
 
+export function isRootLicense(path: string) {
+  return !path.includes("/") && /^licen[sc]e(?:[.-].*)?$/i.test(path);
+}
+
 export function foldPath(path: string) {
   return caseFold(path.normalize("NFC")).normalize("NFC");
 }

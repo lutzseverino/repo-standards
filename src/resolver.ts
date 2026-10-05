@@ -1,11 +1,11 @@
-import { lstatSync, readFileSync } from "node:fs";
+import { lstatSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { satisfies, validRange } from "semver";
 import { Fields, readYaml } from "./yaml.js";
 import type { Diagnostic, Value } from "./yaml.js";
 import { Declarations } from "./declarations.js";
 import type { SourceProfile } from "./model.js";
-import { Paths, type SourcePaths } from "./paths.js";
+import { isRootLicense, Paths, type SourcePaths } from "./paths.js";
 import { validateSkillInvocation } from "./skill-invocation.js";
 import { dictionary } from "./records.js";
 
@@ -63,6 +63,30 @@ export function validateSource(
       ],
       profiles: {},
     };
+  }
+  try {
+    for (const name of readdirSync(directory).sort())
+      if (
+        isRootLicense(name) &&
+        lstatSync(resolve(directory, name)).isSymbolicLink()
+      )
+        errors.push({
+          code: "SOURCE_SYMLINK",
+          message: `Source license file contains a symbolic link: ${name}.`,
+          file: resolve(directory, name),
+          line: 1,
+          column: 1,
+          path: "",
+        });
+  } catch {
+    errors.push({
+      code: "SOURCE_READ",
+      message: "Cannot inspect root license files.",
+      file,
+      line: 1,
+      column: 1,
+      path: "",
+    });
   }
   const { roots, error } = readYaml(text, file, errors);
   const fields = new Fields(error);
