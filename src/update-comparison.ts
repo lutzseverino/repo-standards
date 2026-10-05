@@ -141,7 +141,7 @@ function targets(declaration: Declaration | undefined): Targets | undefined {
 // discovered with.
 function declarationChanges(
   recorded: RecordedAdoption,
-  discovery: Readonly<Record<string, string>>,
+  discovery: ReadonlyMap<string, string>,
   candidate: UpdateCandidate,
   next: SourceDeclaration,
 ): ContextualChange[] {
@@ -149,7 +149,7 @@ function declarationChanges(
     (declaration) => declaration.id === next.id,
   );
   const before = previous
-    ? material(previous, discovery[next.id], targets(previous), (path) =>
+    ? material(previous, discovery.get(next.id), targets(previous), (path) =>
         retainedFiles(recorded, path),
       )
     : material({}, undefined, undefined, () => ({}));
@@ -237,7 +237,7 @@ export function compareUpdate(
     (old) =>
       !candidate.declarations.some((declaration) => declaration.id === old.id),
   );
-  const discovery: Record<string, string> = Object.fromEntries(
+  const discovery = new Map<string, string>(
     (recorded.scopeEvidence?.sourceResolved?.declarations ?? []).flatMap(
       (declaration) =>
         declaration.discovery ? [[declaration.id, declaration.discovery]] : [],
