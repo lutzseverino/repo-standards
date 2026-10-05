@@ -20,14 +20,26 @@ install current `dist/` output; rebuild after changing product code.
 
 ### Continuous integration
 
-CI runs `pnpm validate` on macOS and Linux for every PR: typechecking,
-linting, rejecting any runtime cycle of static imports among the source modules
-(type-only imports are exempt), building, packing, and installing the npm
-package into temporary directories, then testing the installed public CLI
-against temporary Git repositories.
-Both validation jobs are the required checks for merging, and passing them
-replaces a local full-suite run, so open the PR once focused checks pass. Run
-additional local tests to diagnose failures when needed.
+Each PR runs three parallel Linux test parts using Node's `--test-shard` over
+the same files as `pnpm test`, with every file in exactly one part. Part 2 runs
+`test/update.test.ts`; parts 1 and 3 split all remaining `test/*.test.ts` files
+into two shards. All parts use Node's default test concurrency. The required
+checks are `validate (linux, 1/3)`, `validate (linux, 2/3)` and
+`validate (linux, 3/3)`. Each part typechecks, lints, rejects any
+runtime cycle of static imports among the source modules (type-only imports
+are exempt), and builds before testing. Tests pack and install the npm
+package into temporary directories, then exercise the installed public CLI
+against temporary Git repositories. PR branches trigger Validate only through
+`pull_request`; pushes trigger it only on `main`.
+
+macOS runs the full `pnpm validate` after merge on pushes to `main` and in the
+release workflow. A macOS failure on `main` is a bug: open an issue and fix it
+in a new PR. Merges continue; the release workflow blocks publication until
+macOS passes.
+
+`pnpm validate` remains the unchanged full local run. Passing all three Linux
+parts replaces a local full-suite run, so open the PR once focused checks pass.
+Run additional local tests to diagnose failures when needed.
 
 ## Documents
 
