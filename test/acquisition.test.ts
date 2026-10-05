@@ -17,6 +17,7 @@ import {
   manifest,
   operation,
   remoteFixture,
+  versionArgs,
 } from "./remote-fixture.ts";
 
 interface GitTree {
@@ -390,6 +391,53 @@ test("remote acquisition and local validation reject linked root license files",
       "SOURCE_SYMLINK",
     );
     const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(
+      (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,
+      "SOURCE_SYMLINK",
+    );
+  }
+});
+
+test("root license directories retain regular contents and reject links at every depth locally and remotely", (t) => {
+  const project = sourceFixture("");
+  t.after(() => project.close());
+  for (const path of ["LICENSE/link", "LICENSE/nested/link"]) {
+    const remote = remoteFixture(yaml, {
+      "readme.md": "README",
+      "LICENSE/terms.md": "License terms",
+    });
+    t.after(() => remote.close());
+    const localDirectory = cli.run(
+      ["source", "validate", "--json"],
+      remote.source.root,
+    );
+    assert.equal(
+      localDirectory.status,
+      0,
+      localDirectory.stdout + localDirectory.stderr,
+    );
+    const directory = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(directory.status, 0, directory.stdout + directory.stderr);
+    const license = (JSON.parse(directory.stdout) as Inspection).inputs
+      .LICENSE!;
+    assert.ok(license.type === "directory");
+    assert.deepEqual(Object.keys(license.entries), ["terms.md"]);
+
+    mkdirSync(join(remote.source.root, path, ".."), { recursive: true });
+    symlinkSync(
+      path === "LICENSE/link" ? "../readme.md" : "../../readme.md",
+      join(remote.source.root, path),
+    );
+    commit(remote.source.root);
+    remote.publish("v1.0.1");
+    const local = cli.run(["source", "validate", "--json"], remote.source.root);
+    assert.equal(local.status, 1, local.stdout + local.stderr);
+    assert.equal(
+      (JSON.parse(local.stdout) as ErrorReport).errors[0]!.code,
+      "SOURCE_SYMLINK",
+    );
+    const result = cli.run(versionArgs("v1.0.1"), project.root, remote.env);
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.equal(
       (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,

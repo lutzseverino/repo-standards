@@ -65,23 +65,28 @@ export function validateSource(
     };
   }
   try {
-    for (const name of readdirSync(directory).sort())
-      if (
-        isRootLicense(name) &&
-        lstatSync(resolve(directory, name)).isSymbolicLink()
-      )
+    function inspectLicense(path: string) {
+      const location = resolve(directory, path);
+      const stat = lstatSync(location);
+      if (stat.isSymbolicLink())
         errors.push({
           code: "SOURCE_SYMLINK",
-          message: `Source license file contains a symbolic link: ${name}.`,
-          file: resolve(directory, name),
+          message: `Source license entry contains a symbolic link: ${path}.`,
+          file: location,
           line: 1,
           column: 1,
           path: "",
         });
+      else if (stat.isDirectory())
+        for (const name of readdirSync(location).sort())
+          inspectLicense(`${path}/${name}`);
+    }
+    for (const name of readdirSync(directory).sort())
+      if (isRootLicense(name)) inspectLicense(name);
   } catch {
     errors.push({
       code: "SOURCE_READ",
-      message: "Cannot inspect root license files.",
+      message: "Cannot inspect root license entries.",
       file,
       line: 1,
       column: 1,

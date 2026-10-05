@@ -367,7 +367,7 @@ export async function acquireSource(
     for (const { mode, type, sha, path } of listed) {
       if (
         mode === "120000" &&
-        (path === "standards.yaml" || isRootLicense(path))
+        (path === "standards.yaml" || isRootLicense(path.split("/")[0]!))
       )
         throw new ProductError(
           "SOURCE_SYMLINK",

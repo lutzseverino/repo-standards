@@ -176,8 +176,9 @@ are model-invocable.
 
 Source and target paths are repository-relative and cannot escape their roots.
 The source root, `standards.yaml`, and selected material, including retained
-root license files, reference ancestors and whole skill/resource trees, cannot
-contain symbolic links.
+root license entries and their contents, reference ancestors and whole
+skill/resource trees, cannot contain symbolic links. Root license entries may
+be files or directories.
 Remote acquisition ignores unselected links without extracting them and still
 includes them in tree-listing integrity checks, matching local validation.
 Targets and their ancestors
