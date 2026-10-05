@@ -53,14 +53,19 @@ export function remoteFixture(
       .filter(Boolean)
       .map(
         (line) =>
-          JSON.parse(line) as { url: string; authorization: string | null },
+          JSON.parse(line) as {
+            url: string;
+            authorization:
+              "absent" | "GH_TOKEN" | "GITHUB_TOKEN" | "unexpected";
+          },
       );
   writeFileSync(
     loader,
     `import { appendFileSync, readFileSync } from 'node:fs';
 const unmocked = globalThis.fetch;
 globalThis.fetch = async (url, init) => {
-  ${recordRequests ? `appendFileSync(${JSON.stringify(requestLog)}, JSON.stringify({url: String(url), authorization: new Headers(init?.headers).get('authorization')}) + '\\n');` : ""}
+  const authorization = new Headers(init?.headers).get('authorization');
+  ${recordRequests ? `appendFileSync(${JSON.stringify(requestLog)}, JSON.stringify({url: String(url), authorization: authorization === null ? 'absent' : process.env.GH_TOKEN && authorization === 'Bearer ' + process.env.GH_TOKEN ? 'GH_TOKEN' : process.env.GITHUB_TOKEN && authorization === 'Bearer ' + process.env.GITHUB_TOKEN ? 'GITHUB_TOKEN' : 'unexpected'}) + '\\n');` : ""}
   if (!String(url).startsWith('https://api.github.com/')) return unmocked(url, init);
   const responses = JSON.parse(readFileSync(${JSON.stringify(dataFile)}, 'utf8'));
   const entry = responses[String(url)];
@@ -182,6 +187,8 @@ globalThis.fetch = async (url, init) => {
     },
     env: {
       ...process.env,
+      GH_TOKEN: "",
+      GITHUB_TOKEN: "",
       NODE_OPTIONS: `--import=${pathToFileURL(loader).href}`,
       XDG_CACHE_HOME: cache,
       TMPDIR: temporary.root,

@@ -1,7 +1,12 @@
 import { spawnSync } from "node:child_process";
 import { realpathSync } from "node:fs";
 import { relative } from "node:path";
-import { acquireSource, github, isStableVersion } from "./acquisition.js";
+import {
+  acquireSource,
+  gitEnvironment,
+  github,
+  isStableVersion,
+} from "./acquisition.js";
 import { ProductError } from "./errors.js";
 import { validateSource } from "./resolver.js";
 import { record } from "./records.js";
@@ -73,6 +78,7 @@ export async function searchSources(cliVersion: string, page: number) {
   }
   const location = spawnSync("git", ["rev-parse", "--show-toplevel"], {
     encoding: "utf8",
+    env: gitEnvironment(),
   });
   const project =
     location.status === 0 ? realpathSync(location.stdout.trim()) : undefined;
@@ -130,7 +136,8 @@ export async function searchSources(cliVersion: string, page: number) {
         source.close();
       }
     } catch (error) {
-      if (!(error instanceof ProductError)) throw error;
+      if (!(error instanceof ProductError) || error.code === "QUOTA_EXHAUSTED")
+        throw error;
       rejected.push({
         repository,
         ...(release ? { release } : {}),

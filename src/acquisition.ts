@@ -68,31 +68,119 @@ export function externalPath(path: string, project?: string): string {
   return path;
 }
 
-export const githubHeaders = {
+const githubHeaders = {
   Accept: "application/vnd.github+json",
   "X-GitHub-Api-Version": "2022-11-28",
   "User-Agent": "repo-standards",
 };
+const githubOrigin = "https://api.github.com";
 
-export async function github(path: string): Promise<unknown> {
+interface GithubRequestOptions {
+  timeoutMs?: number;
+  connectionMessage?: string;
+  httpMessage?: (status: number) => string;
+  invalidJsonMessage?: string;
+}
+
+function quotaRetry(headers: Headers): string {
+  const now = Date.now();
+  const retry = headers.get("retry-after");
+  if (retry && /^\d+$/.test(retry) && Number.isSafeInteger(Number(retry)))
+    return ` Retry after ${Number(retry)} seconds.`;
+  if (retry) {
+    const time = new Date(retry);
+    if (time.getTime() > now) return ` Retry at ${time.toISOString()}.`;
+  }
+  const reset = headers.get("x-ratelimit-reset");
+  if (reset && /^\d+$/.test(reset)) {
+    const time = new Date(Number(reset) * 1000);
+    if (time.getTime() > now) return ` Retry at ${time.toISOString()}.`;
+  }
+  return "";
+}
+
+// Every GitHub REST call uses this boundary. Credentials are request headers
+// only, never part of a source identity or a diagnostic. Git object fetches
+// below use their separate, anonymous smart-protocol path.
+export async function github(
+  path: string,
+  options: GithubRequestOptions = {},
+): Promise<unknown> {
+  const token =
+    process.env.GH_TOKEN?.trim() || process.env.GITHUB_TOKEN?.trim();
   let response: Response;
   try {
-    response = await fetch(`https://api.github.com${path}`, {
-      headers: githubHeaders,
-      signal: AbortSignal.timeout(30_000),
+    response = await fetch(`${githubOrigin}${path}`, {
+      headers: {
+        ...githubHeaders,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      signal: AbortSignal.timeout(options.timeoutMs ?? 30_000),
     });
   } catch {
     throw new ProductError(
       "SOURCE_UNAVAILABLE",
-      `Cannot reach public GitHub: ${path}. Check your connection and retry.`,
+      options.connectionMessage ??
+        `Cannot reach public GitHub: ${path}. Check your connection and retry.`,
     );
   }
+  if (
+    response.status === 429 ||
+    (response.status === 403 &&
+      (response.headers.get("x-ratelimit-remaining") === "0" ||
+        response.headers.has("retry-after")))
+  )
+    throw new ProductError(
+      "QUOTA_EXHAUSTED",
+      `The GitHub API quota is exhausted.${quotaRetry(response.headers)} Retry later, or provide a token in GH_TOKEN or GITHUB_TOKEN.`,
+    );
+  if (response.status === 401 && token)
+    throw new ProductError(
+      "SOURCE_UNAVAILABLE",
+      response.redirected && new URL(response.url).origin !== githubOrigin
+        ? "The GitHub redirect target returned HTTP 401. Check the redirect target and retry."
+        : "GitHub rejected the token in GH_TOKEN or GITHUB_TOKEN. Check the token and retry.",
+    );
   if (!response.ok)
     throw new ProductError(
       "SOURCE_UNAVAILABLE",
-      `Public GitHub returned HTTP ${response.status} for ${path}. Check the public repository, version tag, and API rate limit.`,
+      options.httpMessage?.(response.status) ??
+        `Public GitHub returned HTTP ${response.status} for ${path}. Check the public repository, version tag, and API rate limit.`,
     );
-  return response.json();
+  let document: unknown;
+  try {
+    document = await response.json();
+  } catch (error) {
+    if (options.invalidJsonMessage)
+      throw new ProductError("SOURCE_UNAVAILABLE", options.invalidJsonMessage);
+    // JSON parse errors may quote a response body that reflects authorization.
+    // eslint-disable-next-line preserve-caught-error -- Retaining the original cause could retain credentials.
+    if (token) throw new Error("GitHub returned invalid JSON.");
+    throw error;
+  }
+  function containsCredential(value: unknown): boolean {
+    if (typeof value === "string") return !!token && value.includes(token);
+    if (value && typeof value === "object")
+      return Object.entries(value).some(
+        ([key, child]) => containsCredential(key) || containsCredential(child),
+      );
+    return false;
+  }
+  if (token && containsCredential(document))
+    throw new ProductError(
+      "SOURCE_UNAVAILABLE",
+      "GitHub returned a response containing credentials. Retry later.",
+    );
+  return document;
+}
+
+// GitHub CLI credential helpers can read these variables from Git's inherited
+// environment. REST credentials belong only to the REST request boundary.
+export function gitEnvironment(): NodeJS.ProcessEnv {
+  const env = { ...process.env };
+  delete env.GH_TOKEN;
+  delete env.GITHUB_TOKEN;
+  return env;
 }
 
 function git(
@@ -103,7 +191,7 @@ function git(
   const result = spawnSync("git", [`--git-dir=${directory}`, ...args], {
     encoding: binary ? "buffer" : "utf8",
     env: {
-      ...process.env,
+      ...gitEnvironment(),
       GIT_DEFAULT_HASH: "sha1",
       GIT_OPTIONAL_LOCKS: "0",
       GIT_TERMINAL_PROMPT: "0",

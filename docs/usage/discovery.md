@@ -31,8 +31,11 @@ still usable through direct inspection but are not discoverable candidates.
 
 Follow `nextPage` to continue, up to page 34. Repository ordering and counts can
 change between requests. Release lists are paginated independently. GitHub
-indexing delays and API rate limits apply. Requests use the public API without
-authentication; search can consume several requests per candidate because it
+indexing delays and API rate limits apply. Every GitHub REST request uses a
+bearer token from `GH_TOKEN`, or otherwise `GITHUB_TOKEN`, when present. Values
+are trimmed; empty or whitespace-only values count as absent. A token uses the authenticated API quota; without one,
+requests share the anonymous quota. Tokens never appear in reports, caches or
+logs, and private sources remain unsupported. Search can consume several requests per candidate because it
 validates referenced content rather than trusting topic labels.
 
 Exit status 0 means the search page was processed, including an empty page or
@@ -44,6 +47,15 @@ means invalid CLI arguments. A page-level connection/API failure is explicit
 details), acquisition integrity errors and `MOVED_TAG`. A candidate rejected for
 CLI compatibility may be usable with another compatible exact CLI version;
 it is not presented as a valid candidate for the running version.
+
+An exhausted quota (HTTP 429, or 403 with `x-ratelimit-remaining: 0` or
+`retry-after`) anywhere in the page request, release lists, or candidate
+acquisition aborts the whole page with `QUOTA_EXHAUSTED` and exit status 1;
+it is never a candidate rejection. The message names both token variables and
+the reset time or retry delay when usable, preferring `retry-after` over
+`x-ratelimit-reset` when both arrive. The CLI does not wait or retry
+automatically. A 401 with a token reports `SOURCE_UNAVAILABLE`, saying the token
+was rejected, with no anonymous retry; other candidate failures remain rejections.
 
 Discovery is not an endorsement, trust decision or assessment of guidance
 quality. Review the source, license, scripts and prerequisites yourself. Choose

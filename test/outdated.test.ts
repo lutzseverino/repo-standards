@@ -374,20 +374,20 @@ test("a GitHub token from the environment is sent as authorization only to GitHu
       .sort(([a], [b]) => a.localeCompare(b));
   };
   assert.deepEqual(lookups(environment()), [
-    ["github", null],
-    ["registry", null],
+    ["github", "absent"],
+    ["registry", "absent"],
   ]);
   assert.deepEqual(lookups(environment({ GITHUB_TOKEN: "actions-token" })), [
-    ["github", "Bearer actions-token"],
-    ["registry", null],
+    ["github", "GITHUB_TOKEN"],
+    ["registry", "absent"],
   ]);
   assert.deepEqual(
     lookups(
       environment({ GH_TOKEN: "cli-token", GITHUB_TOKEN: "actions-token" }),
     ),
     [
-      ["github", "Bearer cli-token"],
-      ["registry", null],
+      ["github", "GH_TOKEN"],
+      ["registry", "absent"],
     ],
   );
 });

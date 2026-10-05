@@ -59,8 +59,14 @@ in parallel, each bounded to ten seconds:
 - The standards pin is compared with the source repository's 100 most recent
   GitHub releases. A token in `GH_TOKEN`, or otherwise `GITHUB_TOKEN`, is sent
   to GitHub as bearer authorization when present; without one the request is
-  anonymous and uses the anonymous API quota. The token is never sent to the npm
-  registry.
+  anonymous and uses the anonymous API quota. Values are trimmed; empty or
+  whitespace-only values count as absent.
+  This is the same GitHub request helper used by acquisition and discovery.
+  A token uses the authenticated quota and is never recorded in reports or caches,
+  or sent to the npm registry or on Git object downloads. A rejected token
+  (HTTP 401) reports `SOURCE_UNAVAILABLE` with no anonymous retry.
+  Quota retry guidance prefers a usable `retry-after` over `x-ratelimit-reset`
+  when both arrive.
 
 A stable version is a SemVer version without a prerelease component. For the
 standards pin it must also be the tag of a published GitHub release that is not
@@ -91,15 +97,15 @@ only a [CLI other than the pin](#pinned-cli) exits 1, and invalid usage exits 2.
 A pin that cannot be answered reports `update: unknown` with a reason, and the
 other pin is still answered:
 
-| Code                   | Pins      | Cause                                                                               |
-| ---------------------- | --------- | ----------------------------------------------------------------------------------- |
-| `NO_SELECTION`         | Both      | The directory is not a Git working tree or has no `.repo-standards/selection.yaml`. |
-| `INVALID_SELECTION`    | Both      | The selection cannot be read or does not name a CLI and GitHub source pin.          |
-| `REGISTRY_UNAVAILABLE` | CLI       | The registry is unreachable, timed out, or returned an error or no version list.    |
-| `SOURCE_UNAVAILABLE`   | Standards | GitHub is unreachable, timed out, or returned an error or no release list.          |
-| `QUOTA_EXHAUSTED`      | Standards | GitHub reports its API quota exhausted. Retry later or provide a token.             |
-| `NO_STABLE_RELEASE`    | Either    | The lookup found no stable version.                                                 |
-| `LOOKUP_FAILED`        | Either    | The lookup failed unexpectedly.                                                     |
+| Code                   | Pins      | Cause                                                                                                                             |
+| ---------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `NO_SELECTION`         | Both      | The directory is not a Git working tree or has no `.repo-standards/selection.yaml`.                                               |
+| `INVALID_SELECTION`    | Both      | The selection cannot be read or does not name a CLI and GitHub source pin.                                                        |
+| `REGISTRY_UNAVAILABLE` | CLI       | The registry is unreachable, timed out, or returned an error or no version list.                                                  |
+| `SOURCE_UNAVAILABLE`   | Standards | GitHub is unreachable, timed out, or returned an error or no release list.                                                        |
+| `QUOTA_EXHAUSTED`      | Standards | GitHub reports its API quota exhausted. The message names the usable reset time or retry delay and `GH_TOKEN` and `GITHUB_TOKEN`. |
+| `NO_STABLE_RELEASE`    | Either    | The lookup found no stable version.                                                                                               |
+| `LOOKUP_FAILED`        | Either    | The lookup failed unexpectedly.                                                                                                   |
 
 ## Cache
 
