@@ -2,7 +2,7 @@ import type { ErrorReport, Inspection, Run, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { rmSync, writeFileSync } from 'node:fs';
+import { rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { directoryFixture, installCli, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, manifest as standards, operation, startArgs, versionArgs } from './remote-fixture.ts';
@@ -284,7 +284,7 @@ test('inspect --summary lists removed retired targets, each discarded edit, and 
   writeFileSync(join(project.root, 'AGENTS.md'), 'Maintainer instructions\n');
   writeFileSync(join(project.root, 'LEGACY.md'), 'Maintainer legacy\n');
   // A copy in a system skill's link place is replaced and listed like any target.
-  rmSync(join(project.root, '.claude/skills/adopt-standards'));
+  unlinkSync(join(project.root, '.claude/skills/adopt-standards'));
   writeFileSync(join(project.root, '.claude/skills/adopt-standards'), 'Copy\n');
   commit(project.root);
   remote.addVersion('v1.1.0', exact({ instructions }), { 'agents.md': 'Revised instructions\n' });
