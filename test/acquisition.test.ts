@@ -1,13 +1,23 @@
 import type { Diagnostic, ErrorReport, Inspection } from "./json-reports.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
-import { readFileSync } from "node:fs";
+import {
+  appendFileSync,
+  mkdirSync,
+  readFileSync,
+  symlinkSync,
+  unlinkSync,
+} from "node:fs";
+import { join } from "node:path";
 import { installCli, sourceFixture } from "./installed-cli.ts";
 import {
   commit,
   git,
   inspectionArgs,
+  manifest,
+  operation,
   remoteFixture,
+  versionArgs,
 } from "./remote-fixture.ts";
 
 interface GitTree {
@@ -123,6 +133,396 @@ test("public inspection acquires a source larger than the anonymous API allowanc
   );
 });
 
+test("a self-adopted remote source ignores unselected links without extracting them", (t) => {
+  const names = [
+    "adopt-standards",
+    "standards-updates",
+    ...Array.from({ length: 26 }, (_, index) => `author-${index}`),
+  ];
+  const remote = remoteFixture(
+    manifest(
+      {
+        readme: { kind: "file", target: "README.md", exact: "readme.md" },
+        review: {
+          kind: "skill",
+          name: "review",
+          source: ".agents/skills/author-0",
+        },
+      },
+      { complete: {} },
+    ),
+    {
+      "readme.md": "README",
+      ...Object.fromEntries(
+        names.map((name) => [
+          `.agents/skills/${name}/SKILL.md`,
+          "Skill content",
+        ]),
+      ),
+    },
+    [],
+    "lutzseverino/repo-canon",
+  );
+  const project = sourceFixture("");
+  t.after(() => {
+    remote.close();
+    project.close();
+  });
+  mkdirSync(join(remote.source.root, ".claude/skills"), { recursive: true });
+  for (const name of names)
+    symlinkSync(
+      `../../.agents/skills/${name}`,
+      join(remote.source.root, ".claude/skills", name),
+    );
+  symlinkSync("readme.md", join(remote.source.root, "elsewhere"));
+  commit(remote.source.root);
+  remote.publish("v0.5.1");
+  unlinkSync(join(project.root, "standards.yaml"));
+
+  // Observe the extracted filesystem at its cleanup boundary; the installed
+  // CLI still performs acquisition and validation without fixture shortcuts.
+  const inventory = join(remote.support.root, "extracted.json");
+  appendFileSync(
+    join(remote.support.root, "https-fixture.mjs"),
+    `import fs from 'node:fs';
+import { join } from 'node:path';
+import { syncBuiltinESMExports } from 'node:module';
+const remove = fs.rmSync;
+fs.rmSync = (path, options) => {
+  const root = join(String(path), 'snapshot');
+  if (fs.existsSync(root)) {
+    fs.writeFileSync(${JSON.stringify(inventory)}, JSON.stringify(fs.readdirSync(root, {recursive: true})));
+  }
+  return remove(path, options);
+};
+syncBuiltinESMExports();\n`,
+  );
+  const local = cli.run(["source", "validate", "--json"], remote.source.root);
+  assert.equal(local.status, 0, local.stdout + local.stderr);
+  const result = cli.run(
+    [
+      "inspect",
+      "--source",
+      "https://github.com/lutzseverino/repo-canon",
+      "--standards-version",
+      "v0.5.1",
+      "--profile",
+      "complete",
+      "--project",
+      project.root,
+      "--json",
+    ],
+    project.root,
+    remote.env,
+  );
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const extracted = JSON.parse(readFileSync(inventory, "utf8")) as string[];
+  assert.ok(extracted.includes("readme.md"));
+  assert.ok(extracted.includes(".agents/skills/adopt-standards/SKILL.md"));
+  assert.ok(!extracted.some((path) => path.startsWith(".claude/skills/")));
+  assert.ok(!extracted.includes("elsewhere"));
+});
+
+test("remote and local validation reject selected links and linked ancestors with SOURCE_SYMLINK", (t) => {
+  const project = sourceFixture("");
+  t.after(() => project.close());
+  const scenarios = [
+    {
+      declaration: { kind: "file", target: "README.md", exact: "linked" },
+      link: "linked",
+      target: "readme.md",
+    },
+    {
+      declaration: {
+        kind: "file",
+        target: "README.md",
+        guidance: "linked/readme.md",
+      },
+      link: "linked",
+      target: "material",
+    },
+    {
+      declaration: {
+        kind: "repository",
+        guidance: "readme.md",
+        discovery: "linked",
+      },
+      link: "linked",
+      target: "readme.md",
+    },
+    {
+      declaration: { kind: "skill", name: "review", source: "linked" },
+      link: "linked",
+      target: "skill",
+    },
+    {
+      declaration: { kind: "skill", name: "review", source: "skills/x" },
+      link: "skills",
+      target: "material",
+    },
+    {
+      declaration: { kind: "skill", name: "review", source: "skill" },
+      link: "skill/nested",
+      target: "../readme.md",
+    },
+    {
+      declaration: {
+        kind: "file",
+        target: "README.md",
+        exact: "readme.md",
+        checks: [operation("check", { script: "linked" })],
+      },
+      link: "linked",
+      target: "readme.md",
+    },
+    {
+      declaration: {
+        kind: "file",
+        target: "README.md",
+        exact: "readme.md",
+        checks: [operation("check", { resources: ["linked"] })],
+      },
+      link: "linked",
+      target: "readme.md",
+    },
+    {
+      declaration: {
+        kind: "file",
+        target: "README.md",
+        exact: "readme.md",
+        checks: [operation("check", { resources: ["resources"] })],
+      },
+      link: "resources/nested",
+      target: "../readme.md",
+    },
+    {
+      declaration: { kind: "skill", name: "review", source: "skill" },
+      link: "skill/agents/openai.yaml",
+      target: "../../readme.md",
+    },
+  ];
+  for (const { declaration, link, target } of scenarios) {
+    const remote = remoteFixture(manifest({ selected: declaration }), {
+      "readme.md": "README",
+      "material/readme.md": "README",
+      "material/x/SKILL.md": "Review skill",
+      "skill/SKILL.md": "Review skill",
+      "run.mjs": "",
+    });
+    t.after(() => remote.close());
+    mkdirSync(join(remote.source.root, link, ".."), { recursive: true });
+    symlinkSync(target, join(remote.source.root, link));
+    commit(remote.source.root);
+    remote.publish("v1.0.0");
+    const local = cli.run(["source", "validate", "--json"], remote.source.root);
+    assert.equal(local.status, 1, local.stdout + local.stderr);
+    const localErrors = (JSON.parse(local.stdout) as ErrorReport).errors;
+    assert.ok(
+      localErrors.some((error) => error.code === "SOURCE_SYMLINK"),
+      local.stdout,
+    );
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    const error = (JSON.parse(result.stdout) as ErrorReport).errors[0]!;
+    assert.equal(error.code, "INVALID_STANDARDS", result.stdout);
+    assert.deepEqual(
+      error.details,
+      localErrors.map((detail) => ({ ...detail, file: "standards.yaml" })),
+      result.stdout,
+    );
+  }
+});
+
+test("remote acquisition and local validation reject a symbolic standards.yaml", (t) => {
+  const remote = remoteFixture(yaml, {
+    "readme.md": "README",
+    "manifest.yaml": yaml,
+  });
+  const project = sourceFixture("");
+  t.after(() => {
+    remote.close();
+    project.close();
+  });
+  const alias = join(remote.support.root, "linked-root");
+  symlinkSync(remote.source.root, alias);
+  const linkedRoot = cli.run(
+    ["source", "validate", alias, "--json"],
+    project.root,
+  );
+  assert.equal(linkedRoot.status, 1, linkedRoot.stdout + linkedRoot.stderr);
+  assert.equal(
+    (JSON.parse(linkedRoot.stdout) as ErrorReport).errors[0]!.code,
+    "SOURCE_SYMLINK",
+  );
+  unlinkSync(join(remote.source.root, "standards.yaml"));
+  symlinkSync("manifest.yaml", join(remote.source.root, "standards.yaml"));
+  commit(remote.source.root);
+  remote.publish("v1.0.0");
+  const local = cli.run(["source", "validate", "--json"], remote.source.root);
+  assert.equal(local.status, 1, local.stdout + local.stderr);
+  assert.equal(
+    (JSON.parse(local.stdout) as ErrorReport).errors[0]!.code,
+    "SOURCE_SYMLINK",
+  );
+  const result = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  assert.equal(
+    (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,
+    "SOURCE_SYMLINK",
+  );
+});
+
+test("remote acquisition and local validation reject linked root license files", (t) => {
+  const project = sourceFixture("");
+  t.after(() => project.close());
+  for (const name of ["LICENSE", "LICENCE.md", "license-extra.txt"]) {
+    const remote = remoteFixture(yaml, {
+      "readme.md": "README",
+      "LICENSE.md": "License terms",
+    });
+    t.after(() => remote.close());
+    symlinkSync("LICENSE.md", join(remote.source.root, name));
+    commit(remote.source.root);
+    remote.publish("v1.0.0");
+    const local = cli.run(["source", "validate", "--json"], remote.source.root);
+    assert.equal(local.status, 1, local.stdout + local.stderr);
+    assert.equal(
+      (JSON.parse(local.stdout) as ErrorReport).errors[0]!.code,
+      "SOURCE_SYMLINK",
+    );
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(
+      (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,
+      "SOURCE_SYMLINK",
+    );
+  }
+});
+
+test("root license directories retain regular contents and reject links at every depth locally and remotely", (t) => {
+  const project = sourceFixture("");
+  t.after(() => project.close());
+  for (const path of ["LICENSE/link", "LICENSE/nested/link"]) {
+    const remote = remoteFixture(yaml, {
+      "readme.md": "README",
+      "LICENSE/terms.md": "License terms",
+    });
+    t.after(() => remote.close());
+    const localDirectory = cli.run(
+      ["source", "validate", "--json"],
+      remote.source.root,
+    );
+    assert.equal(
+      localDirectory.status,
+      0,
+      localDirectory.stdout + localDirectory.stderr,
+    );
+    const directory = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(directory.status, 0, directory.stdout + directory.stderr);
+    const license = (JSON.parse(directory.stdout) as Inspection).inputs
+      .LICENSE!;
+    assert.ok(license.type === "directory");
+    assert.deepEqual(Object.keys(license.entries), ["terms.md"]);
+
+    mkdirSync(join(remote.source.root, path, ".."), { recursive: true });
+    symlinkSync(
+      path === "LICENSE/link" ? "../readme.md" : "../../readme.md",
+      join(remote.source.root, path),
+    );
+    commit(remote.source.root);
+    remote.publish("v1.0.1");
+    const local = cli.run(["source", "validate", "--json"], remote.source.root);
+    assert.equal(local.status, 1, local.stdout + local.stderr);
+    assert.equal(
+      (JSON.parse(local.stdout) as ErrorReport).errors[0]!.code,
+      "SOURCE_SYMLINK",
+    );
+    const result = cli.run(versionArgs("v1.0.1"), project.root, remote.env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(
+      (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,
+      "SOURCE_SYMLINK",
+    );
+  }
+});
+
+test("unselected links still participate in tree-listing integrity and source safety checks", (t) => {
+  const project = sourceFixture("");
+  t.after(() => project.close());
+  for (const [code, change] of [
+    [
+      "SOURCE_INTEGRITY",
+      (tree: GitTree) => {
+        tree.tree = tree.tree.filter((entry) => entry.path !== "linked");
+      },
+    ],
+    [
+      "SOURCE_INTEGRITY",
+      (tree: GitTree) => {
+        tree.tree.find((entry) => entry.path === "linked")!.sha = "a".repeat(
+          40,
+        );
+      },
+    ],
+    [
+      "SOURCE_INTEGRITY",
+      (tree: GitTree) => {
+        tree.tree.push({
+          type: "blob",
+          mode: "120000",
+          path: "invented-link",
+          sha: "a".repeat(40),
+        });
+      },
+    ],
+    [
+      "UNSAFE_SOURCE",
+      (tree: GitTree) => {
+        tree.tree.find((entry) => entry.path === "linked")!.path = "../escape";
+      },
+    ],
+    [
+      "UNSAFE_SOURCE",
+      (tree: GitTree) => {
+        tree.tree.find((entry) => entry.path === "linked")!.path = "README.md";
+      },
+    ],
+    [
+      "UNSAFE_SOURCE",
+      (tree: GitTree) => {
+        tree.tree.find((entry) => entry.path === "linked")!.mode = "100600";
+      },
+    ],
+    [
+      "UNSAFE_SOURCE",
+      (tree: GitTree) => {
+        const entry = tree.tree.find((entry) => entry.path === "linked")!;
+        entry.mode = "160000";
+        entry.type = "commit";
+      },
+    ],
+  ] as const) {
+    const remote = remoteFixture(yaml, { "readme.md": "README" });
+    t.after(() => remote.close());
+    symlinkSync("readme.md", join(remote.source.root, "linked"));
+    commit(remote.source.root);
+    const published = remote.publish("v1.0.0");
+    change(
+      remote.responses[
+        `${remote.prefix}/git/trees/${published.treeSha}?recursive=1`
+      ]!.body as GitTree,
+    );
+    remote.save();
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.equal(
+      (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,
+      code,
+      result.stdout,
+    );
+  }
+});
+
 test("inspection rejects unsupported sources, floating references and incompatible selections with structured diagnostics", (t) => {
   const remote = remoteFixture(yaml, { "readme.md": "README" });
   const project = sourceFixture("");
@@ -191,7 +591,7 @@ test("inspection rejects unsupported sources, floating references and incompatib
   );
 });
 
-test("private, missing, truncated, linked and corrupt remote snapshots are rejected", (t) => {
+test("private, missing, truncated and corrupt remote snapshots are rejected", (t) => {
   const project = sourceFixture("");
   t.after(() => project.close());
   const cases: [string, (remote: ReturnType<typeof remoteFixture>) => void][] =
@@ -218,21 +618,6 @@ test("private, missing, truncated, linked and corrupt remote snapshots are rejec
               `${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`
             ]!.body as GitTree
           ).truncated = true;
-        },
-      ],
-      [
-        "SOURCE_SYMLINK",
-        (remote) => {
-          (
-            remote.responses[
-              `${remote.prefix}/git/trees/${remote.treeSha}?recursive=1`
-            ]!.body as GitTree
-          ).tree.push({
-            type: "blob",
-            mode: "120000",
-            path: "unreferenced-link",
-            sha: "a".repeat(40),
-          });
         },
       ],
       [

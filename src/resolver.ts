@@ -1,18 +1,18 @@
-import { lstatSync, readFileSync } from "node:fs";
+import { lstatSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { satisfies, validRange } from "semver";
 import { Fields, readYaml } from "./yaml.js";
 import type { Diagnostic, Value } from "./yaml.js";
 import { Declarations } from "./declarations.js";
 import type { SourceProfile } from "./model.js";
-import { Paths } from "./paths.js";
+import { isRootLicense, Paths, type SourcePaths } from "./paths.js";
 import { validateSkillInvocation } from "./skill-invocation.js";
 import { dictionary } from "./records.js";
 
 export function validateSource(
   directory: string,
   cliVersion: string,
-  sourcePaths?: ReadonlySet<string>,
+  sourcePaths?: SourcePaths,
   retainedManifest?: string,
 ) {
   const errors: Diagnostic[] = [];
@@ -22,7 +22,7 @@ export function validateSource(
     if (
       retainedManifest === undefined &&
       sourcePaths &&
-      !sourcePaths.has("standards.yaml")
+      !sourcePaths.paths.has("standards.yaml")
     )
       throw new Error("Missing exact Git path");
     if (
@@ -63,6 +63,35 @@ export function validateSource(
       ],
       profiles: {},
     };
+  }
+  try {
+    function inspectLicense(path: string) {
+      const location = resolve(directory, path);
+      const stat = lstatSync(location);
+      if (stat.isSymbolicLink())
+        errors.push({
+          code: "SOURCE_SYMLINK",
+          message: `Source license entry contains a symbolic link: ${path}.`,
+          file: location,
+          line: 1,
+          column: 1,
+          path: "",
+        });
+      else if (stat.isDirectory())
+        for (const name of readdirSync(location).sort())
+          inspectLicense(`${path}/${name}`);
+    }
+    for (const name of readdirSync(directory).sort())
+      if (isRootLicense(name)) inspectLicense(name);
+  } catch {
+    errors.push({
+      code: "SOURCE_READ",
+      message: "Cannot inspect root license entries.",
+      file,
+      line: 1,
+      column: 1,
+      path: "",
+    });
   }
   const { roots, error } = readYaml(text, file, errors);
   const fields = new Fields(error);

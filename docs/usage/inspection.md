@@ -106,8 +106,14 @@ Acquisition uses unauthenticated GitHub REST repository and Git-object endpoints
 It resolves lightweight or annotated tags to a commit and downloads that commit's
 tree and blobs outside the project. Blob bytes are verified against Git object
 identities; executable bits are preserved. No checkout hooks, filters, author
-scripts, or prerequisite probes run. Symlinks, submodules, special files, unsafe
-paths, incomplete trees, and corrupt blobs are rejected. Before extraction,
+scripts, or prerequisite probes run. Symbolic links outside selected material
+are ignored and never extracted. The source root, `standards.yaml`, retained
+root license entries and their contents, selected references and their ancestors,
+and whole selected skill or resource trees
+cannot contain symbolic links; these fail with `SOURCE_SYMLINK`, as in local
+source validation. Link entries still count in tree-listing integrity checks.
+Submodules, special files, unsafe paths, incomplete trees, and corrupt blobs
+are rejected. Before extraction,
 source paths that collide after Unicode normalization and case folding are
 rejected. Source
 references and the root `standards.yaml` must use their exact Git path spelling,

@@ -6,7 +6,7 @@ import {
   readFileSync,
   readSync,
 } from "node:fs";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { caseFold } from "unicode-case-folding";
 import { systemSkills } from "./targets.js";
 import type { Fields, Value } from "./yaml.js";
@@ -14,6 +14,16 @@ import type { Fields, Value } from "./yaml.js";
 export interface Target {
   path: string;
   location: Value;
+}
+
+// Exact Git paths and verified links omitted from an acquired snapshot.
+export interface SourcePaths {
+  paths: ReadonlySet<string>;
+  symlinks: ReadonlySet<string>;
+}
+
+export function isRootLicense(path: string) {
+  return !path.includes("/") && /^licen[sc]e(?:[.-].*)?$/i.test(path);
 }
 
 export function foldPath(path: string) {
@@ -44,7 +54,7 @@ export class Paths {
   constructor(
     private readonly root: string,
     private readonly fields: Fields,
-    private readonly sourcePaths?: ReadonlySet<string>,
+    private readonly source?: SourcePaths,
   ) {}
 
   private relative(value: Value): string | undefined {
@@ -128,7 +138,7 @@ export class Paths {
     // obey the same exact-path, type, and symlink rules as other source files.
     for (let length = 1; length <= parts.length; length++) {
       const current = parts.slice(0, length).join("/");
-      if (optional) {
+      if (optional && !this.source?.symlinks.has(current)) {
         try {
           lstatSync(join(this.root, current));
         } catch (error) {
@@ -165,10 +175,18 @@ export class Paths {
     recurse: boolean,
   ): boolean {
     if (this.relative({ ...value, data: path }) === undefined) return false;
-    if (this.sourcePaths && !this.sourcePaths.has(path)) {
+    if (this.source && !this.source.paths.has(path)) {
       this.fields.error(
         "MISSING_REFERENCE",
         `Cannot read source reference with this exact Git path: ${path}.`,
+        value,
+      );
+      return false;
+    }
+    if (this.source?.symlinks.has(path)) {
+      this.fields.error(
+        "SOURCE_SYMLINK",
+        `Source reference contains a symbolic link: ${path}.`,
         value,
       );
       return false;
@@ -197,7 +215,10 @@ export class Paths {
       }
       if (stat.isFile()) verifyReadableFile(join(this.root, path));
       if (recurse && stat.isDirectory()) {
-        for (const entry of readdirSync(join(this.root, path)).sort())
+        const entries = new Set(readdirSync(join(this.root, path)));
+        for (const link of this.source?.symlinks ?? [])
+          if (dirname(link) === path) entries.add(basename(link));
+        for (const entry of [...entries].sort())
           this.inspect(`${path}/${entry}`, "resource", value, true);
       }
       return true;

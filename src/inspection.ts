@@ -18,6 +18,7 @@ import {
 } from "./observation.js";
 import type { Blocker, HashInventory, Observation } from "./observation.js";
 import { validateSource } from "./resolver.js";
+import { isRootLicense } from "./paths.js";
 import { stringify } from "yaml";
 import {
   readRecordedAdoption,
@@ -346,7 +347,7 @@ export async function inspectForStart(
     const validation = validateSource(
       source.root,
       cliVersion,
-      source.paths,
+      source,
       retainedSource?.manifest,
     );
     if (!validation.valid)
@@ -435,8 +436,7 @@ export async function inspectForStart(
       for (const path of paths) inputs[path] = observe(join(source.root, path));
     }
     for (const name of readdirSync(source.root).sort())
-      if (/^licen[sc]e(?:[.-].*)?$/i.test(name))
-        inputs[name] = observe(join(source.root, name));
+      if (isRootLicense(name)) inputs[name] = observe(join(source.root, name));
     const comparison = previous
       ? compareUpdate(
           previous,

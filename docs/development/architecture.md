@@ -175,7 +175,13 @@ setting means model-invocable. Product skills state both settings explicitly:
 are model-invocable.
 
 Source and target paths are repository-relative and cannot escape their roots.
-Selected sources cannot contain symbolic links. Targets and their ancestors
+The source root, `standards.yaml`, and selected material, including retained
+root license entries and their contents, reference ancestors and whole
+skill/resource trees, cannot contain symbolic links. Root license entries may
+be files or directories.
+Remote acquisition ignores unselected links without extracting them and still
+includes them in tree-listing integrity checks, matching local validation.
+Targets and their ancestors
 cannot be symbolic links during adoption, with one exception: a skill link
 holding exactly the text the product writes at its path. Concrete targets,
 including the skill link of each declared skill, cannot overlap, including

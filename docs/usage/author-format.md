@@ -167,6 +167,10 @@ the source root or future adopting-project root, never the YAML file's section.
 All referenced files, directory ancestors, and whole skill/resource trees must
 exist and contain only regular files and directories, with no symbolic links.
 The source root and `standards.yaml` cannot themselves be symbolic links.
+Root license entries and their contents retained by adoption are selected
+material too and cannot contain symbolic links. Entries may be files or
+directories. Their root names match `LICENSE` or `LICENCE` case-insensitively,
+optionally followed by a dot or hyphen suffix.
 Unreferenced source files are outside validation's selected material. Targets
 need not exist in the standards repository; adopting-project symlink and
 ownership checks belong to inspection and adoption.
