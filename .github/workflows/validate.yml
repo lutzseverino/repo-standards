@@ -30,6 +30,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
+      - run: pnpm format:check
       - run: node --experimental-vm-modules --disable-warning=ExperimentalWarning scripts/check-import-cycles.ts
       - run: pnpm build
       - name: Run test part

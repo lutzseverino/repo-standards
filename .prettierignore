@@ -1,0 +1,11 @@
+# Preserve vendored upstream bytes and notices.
+vendor/
+
+# Installed standards state changes only through adoption.
+.repo-standards/
+
+# Preserve installed skill source bytes.
+.agents/skills/
+
+# pnpm maintains the lockfile.
+pnpm-lock.yaml
