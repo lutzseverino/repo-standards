@@ -418,6 +418,7 @@ export function readRecordedAdoption(
         ),
         identity: pinned.selection.standards,
         paths,
+        symlinks: new Set<string>(),
         manifest: text(manifest),
         close() {},
       };

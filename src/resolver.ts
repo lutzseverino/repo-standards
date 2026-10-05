@@ -5,14 +5,14 @@ import { Fields, readYaml } from "./yaml.js";
 import type { Diagnostic, Value } from "./yaml.js";
 import { Declarations } from "./declarations.js";
 import type { SourceProfile } from "./model.js";
-import { Paths } from "./paths.js";
+import { Paths, type SourcePaths } from "./paths.js";
 import { validateSkillInvocation } from "./skill-invocation.js";
 import { dictionary } from "./records.js";
 
 export function validateSource(
   directory: string,
   cliVersion: string,
-  sourcePaths?: ReadonlySet<string>,
+  sourcePaths?: SourcePaths,
   retainedManifest?: string,
 ) {
   const errors: Diagnostic[] = [];
@@ -22,7 +22,7 @@ export function validateSource(
     if (
       retainedManifest === undefined &&
       sourcePaths &&
-      !sourcePaths.has("standards.yaml")
+      !sourcePaths.paths.has("standards.yaml")
     )
       throw new Error("Missing exact Git path");
     if (

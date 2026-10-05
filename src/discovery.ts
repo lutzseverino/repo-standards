@@ -104,11 +104,7 @@ export async function searchSources(cliVersion: string, page: number) {
       release = await stableRelease(item.full_name);
       const source = await acquireSource(repository!, release.version, project);
       try {
-        const validation = validateSource(
-          source.root,
-          cliVersion,
-          source.paths,
-        );
+        const validation = validateSource(source.root, cliVersion, source);
         if (!validation.valid)
           throw new ProductError(
             "INVALID_STANDARDS",

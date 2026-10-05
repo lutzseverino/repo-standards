@@ -365,7 +365,7 @@ export async function acquireSource(
     }
     const advertisedEntries: GitTreeEntry[] = [];
     for (const { mode, type, sha, path } of listed) {
-      if (mode === "120000")
+      if (mode === "120000" && path === "standards.yaml")
         throw new ProductError(
           "SOURCE_SYMLINK",
           `The selected source contains a symbolic link: ${path}.`,
@@ -376,7 +376,7 @@ export async function acquireSource(
         typeof sha !== "string" ||
         (!(type === "tree" && mode === "040000") &&
           (type !== "blob" ||
-            !["100644", "100755"].includes(mode) ||
+            !["100644", "100755", "120000"].includes(mode) ||
             !shaPattern.test(sha)))
       ) {
         throw new ProductError(
@@ -397,6 +397,7 @@ export async function acquireSource(
         "The GitHub tree listing does not match the fetched commit tree.",
       );
     }
+    const symlinks = new Set<string>();
     for (const entry of fetchedEntries) {
       if (entry.type === "tree") continue;
       let bytes: Buffer;
@@ -423,6 +424,12 @@ export async function acquireSource(
           "SOURCE_INTEGRITY",
           `Source bytes do not match Git identity: ${entry.path}.`,
         );
+      if (entry.mode === "120000") {
+        symlinks.add(entry.path);
+        // Keep ancestors visible when a selected tree contains only links.
+        mkdirSync(dirname(join(root, entry.path)), { recursive: true });
+        continue;
+      }
       const target = join(root, entry.path);
       mkdirSync(dirname(target), { recursive: true });
       writeFileSync(target, bytes, { flag: "wx" });
@@ -433,6 +440,7 @@ export async function acquireSource(
       root,
       identity,
       paths,
+      symlinks,
       close() {
         rmSync(temporary, { recursive: true, force: true });
       },

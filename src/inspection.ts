@@ -346,7 +346,7 @@ export async function inspectForStart(
     const validation = validateSource(
       source.root,
       cliVersion,
-      source.paths,
+      source,
       retainedSource?.manifest,
     );
     if (!validation.valid)
