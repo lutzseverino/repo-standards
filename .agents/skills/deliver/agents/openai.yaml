@@ -1,0 +1,5 @@
+interface:
+  display_name: "Deliver"
+  short_description: "Open a pull request for completed work"
+policy:
+  allow_implicit_invocation: false
