@@ -1,9 +1,9 @@
-import { spawnSync } from 'node:child_process';
-import { lstatSync, readdirSync, readFileSync, readlinkSync } from 'node:fs';
-import { join } from 'node:path';
-import { hash } from './acquisition.js';
-import { ProductError } from './errors.js';
-import { foldPath } from './paths.js';
+import { spawnSync } from "node:child_process";
+import { lstatSync, readdirSync, readFileSync, readlinkSync } from "node:fs";
+import { join } from "node:path";
+import { hash } from "./acquisition.js";
+import { ProductError } from "./errors.js";
+import { foldPath } from "./paths.js";
 
 // Read-only observation of the project: files and trees observed without
 // following links, target boundaries validated on the way down, and Git run
@@ -11,73 +11,181 @@ import { foldPath } from './paths.js';
 // project, including the reader of a recorded adoption, observes through here.
 // It also owns comparing an observed tree's inventory with a planned one.
 
-export interface Blocker { code: string; message: string; path?: string }
-export interface Content { sha256: string; executable: boolean; encoding: 'utf8' | 'base64'; content: string }
-export type Observation = { type: 'missing' } | ({ type: 'file' } & Content) | { type: 'directory'; entries: Record<string, Observation> } | { type: 'symlink'; target: string } | { type: 'unsafe'; obstacles?: Record<string, Observation> };
+export interface Blocker {
+  code: string;
+  message: string;
+  path?: string;
+}
+export interface Content {
+  sha256: string;
+  executable: boolean;
+  encoding: "utf8" | "base64";
+  content: string;
+}
+export type Observation =
+  | { type: "missing" }
+  | ({ type: "file" } & Content)
+  | { type: "directory"; entries: Record<string, Observation> }
+  | { type: "symlink"; target: string }
+  | { type: "unsafe"; obstacles?: Record<string, Observation> };
 // The reported form of an observation. Reports and run records carry each file
 // as its SHA-256 hash and executable mode, never its bytes.
-export type HashInventory = { type: 'missing' } | { type: 'file'; sha256: string; executable: boolean } | { type: 'directory'; entries: Record<string, HashInventory> } | { type: 'symlink'; target: string } | { type: 'unsafe'; obstacles?: Record<string, HashInventory> };
+export type HashInventory =
+  | { type: "missing" }
+  | { type: "file"; sha256: string; executable: boolean }
+  | { type: "directory"; entries: Record<string, HashInventory> }
+  | { type: "symlink"; target: string }
+  | { type: "unsafe"; obstacles?: Record<string, HashInventory> };
 
 function hashEntries(entries: Record<string, Observation>) {
-  return Object.fromEntries(Object.entries(entries).map(([name, child]) => [name, hashInventory(child)]));
+  return Object.fromEntries(
+    Object.entries(entries).map(([name, child]) => [
+      name,
+      hashInventory(child),
+    ]),
+  );
 }
 
 export function hashInventory(value: Observation): HashInventory {
-  if (value.type === 'file') return { type: 'file', sha256: value.sha256, executable: value.executable };
-  if (value.type === 'directory') return { type: 'directory', entries: hashEntries(value.entries) };
-  if (value.type === 'unsafe') return value.obstacles ? { type: 'unsafe', obstacles: hashEntries(value.obstacles) } : { type: 'unsafe' };
+  if (value.type === "file")
+    return { type: "file", sha256: value.sha256, executable: value.executable };
+  if (value.type === "directory")
+    return { type: "directory", entries: hashEntries(value.entries) };
+  if (value.type === "unsafe")
+    return value.obstacles
+      ? { type: "unsafe", obstacles: hashEntries(value.obstacles) }
+      : { type: "unsafe" };
   return value;
 }
 
 export function content(path: string): Content {
   const bytes = readFileSync(path);
-  const utf8 = bytes.toString('utf8');
-  const encoding = Buffer.from(utf8).equals(bytes) ? 'utf8' : 'base64';
-  return { sha256: hash(bytes), executable: (lstatSync(path).mode & 0o111) !== 0, encoding, content: encoding === 'utf8' ? utf8 : bytes.toString('base64') };
+  const utf8 = bytes.toString("utf8");
+  const encoding = Buffer.from(utf8).equals(bytes) ? "utf8" : "base64";
+  return {
+    sha256: hash(bytes),
+    executable: (lstatSync(path).mode & 0o111) !== 0,
+    encoding,
+    content: encoding === "utf8" ? utf8 : bytes.toString("base64"),
+  };
 }
 
-export function observe(path: string, excluded: ReadonlySet<string> = new Set()): Observation {
+export function observe(
+  path: string,
+  excluded: ReadonlySet<string> = new Set(),
+): Observation {
   try {
     const stat = lstatSync(path);
-    if (stat.isSymbolicLink()) return { type: 'symlink', target: readlinkSync(path) };
-    if (stat.isFile()) return { type: 'file', ...content(path) };
-    if (stat.isDirectory()) return { type: 'directory', entries: excluded.has(path) ? {} : Object.fromEntries(readdirSync(path).sort()
-      .flatMap(name => {
-        const child = observe(join(path, name), excluded);
-        return excluded.has(join(path, name)) && child.type === 'directory' ? [] : [[name, child]];
-      })) };
-    return { type: 'unsafe' };
+    if (stat.isSymbolicLink())
+      return { type: "symlink", target: readlinkSync(path) };
+    if (stat.isFile()) return { type: "file", ...content(path) };
+    if (stat.isDirectory())
+      return {
+        type: "directory",
+        entries: excluded.has(path)
+          ? {}
+          : Object.fromEntries(
+              readdirSync(path)
+                .sort()
+                .flatMap((name) => {
+                  const child = observe(join(path, name), excluded);
+                  return excluded.has(join(path, name)) &&
+                    child.type === "directory"
+                    ? []
+                    : [[name, child]];
+                }),
+            ),
+      };
+    return { type: "unsafe" };
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { type: 'missing' };
-    throw new ProductError('PROJECT_READ', `Cannot safely read project content: ${path}.`);
+    if ((error as NodeJS.ErrnoException).code === "ENOENT")
+      return { type: "missing" };
+    throw new ProductError(
+      "PROJECT_READ",
+      `Cannot safely read project content: ${path}.`,
+    );
   }
 }
 
-export function git(project: string, args: string[], input?: string, timeout?: number) {
-  const base = ['--no-optional-locks', '-c', 'core.fsmonitor=false', '-C', project];
-  const options = { encoding: 'utf8' as const, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' }, maxBuffer: 32 * 1024 * 1024, ...(timeout === undefined ? {} : { timeout }), ...(input === undefined ? {} : { input }) };
-  if (args[0] === 'status') {
+export function git(
+  project: string,
+  args: string[],
+  input?: string,
+  timeout?: number,
+) {
+  const base = [
+    "--no-optional-locks",
+    "-c",
+    "core.fsmonitor=false",
+    "-C",
+    project,
+  ];
+  const options = {
+    encoding: "utf8" as const,
+    env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" },
+    maxBuffer: 32 * 1024 * 1024,
+    ...(timeout === undefined ? {} : { timeout }),
+    ...(input === undefined ? {} : { input }),
+  };
+  if (args[0] === "status") {
     // Status can run clean/process filters while refreshing tracked-file hashes.
     // Ask only for configuration names; never execute repository filter commands.
-    const filters = spawnSync('git', [...base, 'config', '--null', '--name-only', '--get-regexp', '^filter\\..*\\.(clean|smudge|process|required)$'], options);
-    if (filters.error || (filters.status !== 0 && filters.status !== 1)) throw new ProductError('PROJECT_READ', 'Cannot disable Git filters for read-only observation.');
-    for (const key of filters.stdout.split('\0').filter(Boolean)) base.push('-c', `${key}=${key.endsWith('.required') ? 'false' : ''}`);
+    const filters = spawnSync(
+      "git",
+      [
+        ...base,
+        "config",
+        "--null",
+        "--name-only",
+        "--get-regexp",
+        "^filter\\..*\\.(clean|smudge|process|required)$",
+      ],
+      options,
+    );
+    if (filters.error || (filters.status !== 0 && filters.status !== 1))
+      throw new ProductError(
+        "PROJECT_READ",
+        "Cannot disable Git filters for read-only observation.",
+      );
+    for (const key of filters.stdout.split("\0").filter(Boolean))
+      base.push("-c", `${key}=${key.endsWith(".required") ? "false" : ""}`);
   }
-  const result = spawnSync('git', [...base, ...args], options);
-  if (result.error) throw new ProductError('GIT_REQUIRED', 'Install Git and inspect an existing Git working tree.');
+  const result = spawnSync("git", [...base, ...args], options);
+  if (result.error)
+    throw new ProductError(
+      "GIT_REQUIRED",
+      "Install Git and inspect an existing Git working tree.",
+    );
   return result;
 }
 
 // Older Git follows symbolic .gitignore files, whose referent discovery does
 // not bind. Gate commands before they can observe repository state.
-export function requireSupportedGit(command?: 'resume') {
-  const result = spawnSync('git', ['--version'], { encoding: 'utf8', timeout: 10_000 });
-  const version = result.stdout?.trim().match(/^git version ((\d+)\.(\d+)(?:\.[^\s]+)?)/);
-  if (result.error || result.status !== 0 || !version) throw new ProductError('GIT_REQUIRED', 'Git 2.32 or newer is required. Install Git and ensure it is on PATH.');
-  if (Number(version[2]) < 2 || (Number(version[2]) === 2 && Number(version[3]) < 32)) {
-    const requirement = command === 'resume' ? 'resume requires' : 'inspect and start require';
-    const recovery = command === 'resume' ? 'rerun the resume command' : 'inspect again';
-    throw new ProductError('GIT_VERSION_UNSUPPORTED', `Installed Git ${version[1]} is unsupported; ${requirement} Git 2.32 or newer. Upgrade Git and ${recovery}.`);
+export function requireSupportedGit(command?: "resume") {
+  const result = spawnSync("git", ["--version"], {
+    encoding: "utf8",
+    timeout: 10_000,
+  });
+  const version = result.stdout
+    ?.trim()
+    .match(/^git version ((\d+)\.(\d+)(?:\.[^\s]+)?)/);
+  if (result.error || result.status !== 0 || !version)
+    throw new ProductError(
+      "GIT_REQUIRED",
+      "Git 2.32 or newer is required. Install Git and ensure it is on PATH.",
+    );
+  if (
+    Number(version[2]) < 2 ||
+    (Number(version[2]) === 2 && Number(version[3]) < 32)
+  ) {
+    const requirement =
+      command === "resume" ? "resume requires" : "inspect and start require";
+    const recovery =
+      command === "resume" ? "rerun the resume command" : "inspect again";
+    throw new ProductError(
+      "GIT_VERSION_UNSUPPORTED",
+      `Installed Git ${version[1]} is unsupported; ${requirement} Git 2.32 or newer. Upgrade Git and ${recovery}.`,
+    );
   }
 }
 
@@ -87,53 +195,124 @@ export function requireSupportedGit(command?: 'resume') {
 // The one link a target may be is the skill link a caller observes as one: the
 // target itself, holding exactly the link text the caller passes. It is
 // observed as a link, never followed, and its ancestors stay directories.
-export function targetBoundaryObservation(root: string, target: string, blockers: Blocker[], excluded?: ReadonlySet<string>, link?: string): Observation {
+export function targetBoundaryObservation(
+  root: string,
+  target: string,
+  blockers: Blocker[],
+  excluded?: ReadonlySet<string>,
+  link?: string,
+): Observation {
   let parent = root;
-  const parts = target.split('/');
+  const parts = target.split("/");
   for (const [index, part] of parts.entries()) {
     try {
-      const matches = readdirSync(parent).filter(name => foldPath(name) === foldPath(part)).sort();
-      const aliases = matches.filter(name => name !== part);
+      const matches = readdirSync(parent)
+        .filter((name) => foldPath(name) === foldPath(part))
+        .sort();
+      const aliases = matches.filter((name) => name !== part);
       if (aliases.length) {
-        blockers.push({ code: 'CASE_CONFLICT', path: target, message: `Target spelling conflicts with existing ${aliases.join(', ')}.` });
-        return { type: 'unsafe', obstacles: Object.fromEntries(matches.map(name => [name, observe(join(parent, name))])) };
+        blockers.push({
+          code: "CASE_CONFLICT",
+          path: target,
+          message: `Target spelling conflicts with existing ${aliases.join(", ")}.`,
+        });
+        return {
+          type: "unsafe",
+          obstacles: Object.fromEntries(
+            matches.map((name) => [name, observe(join(parent, name))]),
+          ),
+        };
       }
       parent = join(parent, part);
       const stat = lstatSync(parent);
-      const skillLink = link !== undefined && index === parts.length - 1 && stat.isSymbolicLink() && readlinkSync(parent) === link;
-      if (!skillLink && (stat.isSymbolicLink() || (!stat.isDirectory() && index < parts.length - 1) || (!stat.isDirectory() && !stat.isFile()))) {
-        blockers.push({ code: 'UNSAFE_TARGET', path: target, message: 'A target or ancestor is a symbolic link, special file, or non-directory ancestor.' });
-        return { type: 'unsafe', obstacles: { [parts.slice(0, index + 1).join('/')]: observe(parent) } };
+      const skillLink =
+        link !== undefined &&
+        index === parts.length - 1 &&
+        stat.isSymbolicLink() &&
+        readlinkSync(parent) === link;
+      if (
+        !skillLink &&
+        (stat.isSymbolicLink() ||
+          (!stat.isDirectory() && index < parts.length - 1) ||
+          (!stat.isDirectory() && !stat.isFile()))
+      ) {
+        blockers.push({
+          code: "UNSAFE_TARGET",
+          path: target,
+          message:
+            "A target or ancestor is a symbolic link, special file, or non-directory ancestor.",
+        });
+        return {
+          type: "unsafe",
+          obstacles: { [parts.slice(0, index + 1).join("/")]: observe(parent) },
+        };
       }
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { type: 'missing' };
-      throw new ProductError('PROJECT_READ', `Cannot inspect target ${target}.`);
+      if ((error as NodeJS.ErrnoException).code === "ENOENT")
+        return { type: "missing" };
+      throw new ProductError(
+        "PROJECT_READ",
+        `Cannot inspect target ${target}.`,
+      );
     }
   }
   return observe(parent, excluded);
 }
 
-export function targetObservation(root: string, target: string, blockers: Blocker[], excluded?: ReadonlySet<string>, link?: string): Observation {
-  const observed = targetBoundaryObservation(root, target, blockers, excluded, link);
+export function targetObservation(
+  root: string,
+  target: string,
+  blockers: Blocker[],
+  excluded?: ReadonlySet<string>,
+  link?: string,
+): Observation {
+  const observed = targetBoundaryObservation(
+    root,
+    target,
+    blockers,
+    excluded,
+    link,
+  );
   // The boundary returns a link only for an accepted skill link.
-  if (observed.type === 'unsafe' || observed.type === 'missing' || observed.type === 'symlink') return observed;
+  if (
+    observed.type === "unsafe" ||
+    observed.type === "missing" ||
+    observed.type === "symlink"
+  )
+    return observed;
   function unsafe(value: Observation): boolean {
-    return value.type === 'symlink' || value.type === 'unsafe' || (value.type === 'directory' && Object.entries(value.entries).some(([name, child]) => name.toLowerCase() === '.git' || unsafe(child)));
+    return (
+      value.type === "symlink" ||
+      value.type === "unsafe" ||
+      (value.type === "directory" &&
+        Object.entries(value.entries).some(
+          ([name, child]) => name.toLowerCase() === ".git" || unsafe(child),
+        ))
+    );
   }
-  if (unsafe(observed)) blockers.push({ code: 'UNSAFE_TARGET', path: target, message: 'Target tree contains a symbolic link, special file, or nested Git metadata.' });
+  if (unsafe(observed))
+    blockers.push({
+      code: "UNSAFE_TARGET",
+      path: target,
+      message:
+        "Target tree contains a symbolic link, special file, or nested Git metadata.",
+    });
   return observed;
 }
 
 export function inventoryPaths(value: Observation | HashInventory): string[] {
   const result: string[] = [];
   function visit(prefix: string, child: Observation | HashInventory) {
-    if (child.type === 'file') result.push(prefix);
-    else if (child.type === 'directory') {
-      if (prefix) result.push(prefix + '/');
-      for (const [name, entry] of Object.entries<Observation | HashInventory>(child.entries)) visit(prefix ? `${prefix}/${name}` : name, entry);
+    if (child.type === "file") result.push(prefix);
+    else if (child.type === "directory") {
+      if (prefix) result.push(prefix + "/");
+      for (const [name, entry] of Object.entries<Observation | HashInventory>(
+        child.entries,
+      ))
+        visit(prefix ? `${prefix}/${name}` : name, entry);
     }
   }
-  visit('', value);
+  visit("", value);
   return result.sort();
 }
 
@@ -143,12 +322,16 @@ export function inventoryPaths(value: Observation | HashInventory): string[] {
 export function plannedInventory(files: string[]): Set<string> {
   const expected = new Set(files);
   for (const file of files) {
-    const parts = file.split('/');
-    for (let length = 1; length < parts.length; length++) expected.add(parts.slice(0, length).join('/') + '/');
+    const parts = file.split("/");
+    for (let length = 1; length < parts.length; length++)
+      expected.add(parts.slice(0, length).join("/") + "/");
   }
   return expected;
 }
 
 export function matchesInventory(value: Observation, files: string[]) {
-  return JSON.stringify(inventoryPaths(value)) === JSON.stringify([...plannedInventory(files)].sort());
+  return (
+    JSON.stringify(inventoryPaths(value)) ===
+    JSON.stringify([...plannedInventory(files)].sort())
+  );
 }

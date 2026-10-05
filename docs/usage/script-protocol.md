@@ -41,7 +41,7 @@ The CLI supplies one UTF-8 JSON object and closes stdin:
 ```json
 {
   "format": "repo-standards/operation/v1",
-  "operation": {"declaration": "readme", "phase": "checks", "id": "headings"},
+  "operation": { "declaration": "readme", "phase": "checks", "id": "headings" },
   "projectRoot": "/absolute/project",
   "standards": {
     "repository": "https://github.com/alice/standards",
@@ -50,7 +50,7 @@ The CLI supplies one UTF-8 JSON object and closes stdin:
   },
   "profile": "work",
   "declarations": [],
-  "allowedTargets": {"paths": ["README.md"], "directories": []}
+  "allowedTargets": { "paths": ["README.md"], "directories": [] }
 }
 ```
 
@@ -67,7 +67,11 @@ must respect that scope, the active profile, and exclusions.
 Return exactly one UTF-8 JSON object with these three fields, and exit zero:
 
 ```json
-{"format":"repo-standards/result/v1","status":"passed","message":"Required headings are present."}
+{
+  "format": "repo-standards/result/v1",
+  "status": "passed",
+  "message": "Required headings are present."
+}
 ```
 
 A fix status is `unchanged`, `changed`, or `blocked`. A check status is `passed`,

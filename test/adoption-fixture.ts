@@ -1,10 +1,15 @@
-import type { TestContext } from 'node:test';
-import type { Inspection, Run } from './json-reports.ts';
-import assert from 'node:assert/strict';
-import type { installCli } from './installed-cli.ts';
-import { sourceFixture } from './installed-cli.ts';
-import { registryFixture } from './registry-fixture.ts';
-import { commit, inspectionArgs, remoteFixture, startArgs } from './remote-fixture.ts';
+import type { TestContext } from "node:test";
+import type { Inspection, Run } from "./json-reports.ts";
+import assert from "node:assert/strict";
+import type { installCli } from "./installed-cli.ts";
+import { sourceFixture } from "./installed-cli.ts";
+import { registryFixture } from "./registry-fixture.ts";
+import {
+  commit,
+  inspectionArgs,
+  remoteFixture,
+  startArgs,
+} from "./remote-fixture.ts";
 
 export type InstalledCli = ReturnType<typeof installCli>;
 type Registry = Awaited<ReturnType<typeof registryFixture>>;
@@ -26,10 +31,24 @@ export interface AdoptionOptions {
 
 // A published standards source, a committed project and an npm registry, all
 // closed with the test, and the installed CLI run against them.
-export async function adoptionFixture(t: TestContext, cli: InstalledCli, yaml: string, options: AdoptionOptions = {}) {
-  const remote = remoteFixture(yaml, options.files, options.executables, options.repository, options.recordRequests);
-  const project = sourceFixture('', options.project);
-  t.after(() => { remote.close(); project.close(); });
+export async function adoptionFixture(
+  t: TestContext,
+  cli: InstalledCli,
+  yaml: string,
+  options: AdoptionOptions = {},
+) {
+  const remote = remoteFixture(
+    yaml,
+    options.files,
+    options.executables,
+    options.repository,
+    options.recordRequests,
+  );
+  const project = sourceFixture("", options.project);
+  t.after(() => {
+    remote.close();
+    project.close();
+  });
   let registry = options.registry;
   if (!registry) {
     const owned = await registryFixture(cli.root, options.versions);
@@ -38,15 +57,21 @@ export async function adoptionFixture(t: TestContext, cli: InstalledCli, yaml: s
   }
   if (options.commit ?? true) commit(project.root);
   const env = { ...remote.env, ...registry.env };
-  const run = (args: string[], environment: NodeJS.ProcessEnv = env) => cli.run(args, project.root, environment);
+  const run = (args: string[], environment: NodeJS.ProcessEnv = env) =>
+    cli.run(args, project.root, environment);
   // A command's JSON report, with the result it came from. Output that is not
   // JSON fails with the command's whole output.
-  const json = <T = Run>(args: string[], environment: NodeJS.ProcessEnv = env) => {
+  const json = <T = Run>(
+    args: string[],
+    environment: NodeJS.ProcessEnv = env,
+  ) => {
     const result = run(args, environment);
     try {
       return { result, report: JSON.parse(result.stdout) as T };
     } catch {
-      assert.fail(`${args.join(' ')} exited ${result.status ?? result.signal} without a JSON report:\n${result.stdout}${result.stderr}`);
+      assert.fail(
+        `${args.join(" ")} exited ${result.status ?? result.signal} without a JSON report:\n${result.stdout}${result.stderr}`,
+      );
     }
   };
   const inspect = (args = inspectionArgs) => {
@@ -54,7 +79,15 @@ export async function adoptionFixture(t: TestContext, cli: InstalledCli, yaml: s
     assert.equal(result.status, 0, result.stdout + result.stderr);
     return report;
   };
-  return { remote, project, root: project.root, registry, env, run, json, inspect,
+  return {
+    remote,
+    project,
+    root: project.root,
+    registry,
+    env,
+    run,
+    json,
+    inspect,
     // Inspects and starts a confirmed run, returning its report.
     start(args = inspectionArgs, environment: NodeJS.ProcessEnv = env) {
       return json<Run>(startArgs(inspect(args).identity, args), environment);
@@ -63,9 +96,11 @@ export async function adoptionFixture(t: TestContext, cli: InstalledCli, yaml: s
     // normal workflow would.
     adopt(args = inspectionArgs) {
       const inspection = inspect(args);
-      const { result, report } = json<Run>(startArgs(inspection.identity, args));
+      const { result, report } = json<Run>(
+        startArgs(inspection.identity, args),
+      );
       assert.equal(result.status, 0, result.stdout + result.stderr);
-      assert.equal(report.outcome, 'complete');
+      assert.equal(report.outcome, "complete");
       commit(project.root);
       return { inspection, run: report };
     },

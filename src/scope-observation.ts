@@ -1,202 +1,506 @@
-import { closeSync, constants, fstatSync, lstatSync, openSync, opendirSync, readSync, readlinkSync } from 'node:fs';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
-import { homedir } from 'node:os';
-import { hash } from './acquisition.js';
-import { ProductError } from './errors.js';
-import { git } from './observation.js';
-import { foldPath } from './paths.js';
-import { dictionary } from './records.js';
+import {
+  closeSync,
+  constants,
+  fstatSync,
+  lstatSync,
+  openSync,
+  opendirSync,
+  readSync,
+  readlinkSync,
+} from "node:fs";
+import { dirname, isAbsolute, join, resolve } from "node:path";
+import { homedir } from "node:os";
+import { hash } from "./acquisition.js";
+import { ProductError } from "./errors.js";
+import { git } from "./observation.js";
+import { foldPath } from "./paths.js";
+import { dictionary } from "./records.js";
 
-const limits = { paths: 20_000, fileBytes: 8 * 1024 * 1024, totalBytes: 64 * 1024 * 1024, depth: 128 };
+const limits = {
+  paths: 20_000,
+  fileBytes: 8 * 1024 * 1024,
+  totalBytes: 64 * 1024 * 1024,
+  depth: 128,
+};
 // The reserved durable product-state directory, excluded from every observation.
-const reservedProductState = '.repo-standards';
-export interface Evidence { kind: 'file' | 'directory' | 'absence'; path: string; identity: string }
+const reservedProductState = ".repo-standards";
+export interface Evidence {
+  kind: "file" | "directory" | "absence";
+  path: string;
+  identity: string;
+}
 // Discovery binds directory existence only; execution also observes permissions
 // so an operation cannot change an existing boundary outside its authority.
-export type FileState = { type: 'missing' } | { type: 'file'; sha256: string; executable: boolean } | { type: 'directory'; mode?: number } | { type: 'symlink'; target: string };
+export type FileState =
+  | { type: "missing" }
+  | { type: "file"; sha256: string; executable: boolean }
+  | { type: "directory"; mode?: number }
+  | { type: "symlink"; target: string };
 // An ignore input's content state; an explicitly empty global excludes setting
 // disables that input. A symbolic .gitignore is bound by the hash of its
 // target, the content Git stores for a link, because the target itself may name
 // a machine-local location.
-export type IgnoreState = Exclude<FileState, { type: 'symlink' }> | { type: 'symlink'; sha256: string } | { type: 'disabled' };
+export type IgnoreState =
+  | Exclude<FileState, { type: "symlink" }>
+  | { type: "symlink"; sha256: string }
+  | { type: "disabled" };
 // The product's observation identity: a content-derived identity for any
 // observed value, shared by discovery evidence and committed work evidence.
-export const observationIdentity = (value: unknown) => `sha256:${hash(JSON.stringify(value))}`;
+export const observationIdentity = (value: unknown) =>
+  `sha256:${hash(JSON.stringify(value))}`;
 
 // Eligible evidence is derived from an observation's files and directory
 // inventories. Retained scope evidence rebuilds it with this same derivation
 // instead of committing the arrays it already implies.
-export function scopeEvidence(files: Record<string, FileState>, inventories: Record<string, string[]>): Evidence[] {
+export function scopeEvidence(
+  files: Record<string, FileState>,
+  inventories: Record<string, string[]>,
+): Evidence[] {
   return [
-    ...Object.entries(files).filter(([, state]) => state.type === 'file').map(([path, state]) => ({ kind: 'file' as const, path, identity: observationIdentity(state) })),
-    ...Object.entries(inventories).map(([path, entries]) => ({ kind: 'directory' as const, path, identity: observationIdentity(entries) })),
-  ].sort((a, b) => a.kind < b.kind ? -1 : a.kind > b.kind ? 1 : a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
+    ...Object.entries(files)
+      .filter(([, state]) => state.type === "file")
+      .map(([path, state]) => ({
+        kind: "file" as const,
+        path,
+        identity: observationIdentity(state),
+      })),
+    ...Object.entries(inventories).map(([path, entries]) => ({
+      kind: "directory" as const,
+      path,
+      identity: observationIdentity(entries),
+    })),
+  ].sort((a, b) =>
+    a.kind < b.kind
+      ? -1
+      : a.kind > b.kind
+        ? 1
+        : a.path < b.path
+          ? -1
+          : a.path > b.path
+            ? 1
+            : 0,
+  );
 }
 
 // One bounded observation is compared with a second before issuing a report.
 // Only eligible files and named boundaries are read, never ignored siblings.
-export function observeScope(root: string, named: string[] = [], options: { execution?: boolean; directories?: string[] } = {}) {
+export function observeScope(
+  root: string,
+  named: string[] = [],
+  options: { execution?: boolean; directories?: string[] } = {},
+) {
   let bytes = 0;
   let count = 0;
   const deadline = Date.now() + 30_000;
   function file(path: string): FileState {
-    if (Date.now() > deadline) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeded 30 seconds.');
-    if (++count > limits.paths) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeds the path limit.');
+    if (Date.now() > deadline)
+      throw new ProductError(
+        "OBSERVATION_LIMIT",
+        "Discovery observation exceeded 30 seconds.",
+      );
+    if (++count > limits.paths)
+      throw new ProductError(
+        "OBSERVATION_LIMIT",
+        "Discovery observation exceeds the path limit.",
+      );
     let present = false;
     try {
       const before = lstatSync(path);
       present = true;
-      if (before.isSymbolicLink()) return { type: 'symlink', target: readlinkSync(path) };
-      if (before.isDirectory()) return { type: 'directory', ...(options.execution ? { mode: before.mode & 0o777 } : {}) };
-      if (!before.isFile()) throw new ProductError('OBSERVATION_UNSAFE', 'Discovery encountered a special file.');
-      if (before.size > limits.fileBytes || (bytes += before.size) > limits.totalBytes) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeds the byte limit.');
-      const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+      if (before.isSymbolicLink())
+        return { type: "symlink", target: readlinkSync(path) };
+      if (before.isDirectory())
+        return {
+          type: "directory",
+          ...(options.execution ? { mode: before.mode & 0o777 } : {}),
+        };
+      if (!before.isFile())
+        throw new ProductError(
+          "OBSERVATION_UNSAFE",
+          "Discovery encountered a special file.",
+        );
+      if (
+        before.size > limits.fileBytes ||
+        (bytes += before.size) > limits.totalBytes
+      )
+        throw new ProductError(
+          "OBSERVATION_LIMIT",
+          "Discovery observation exceeds the byte limit.",
+        );
+      const fd = openSync(
+        path,
+        constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
+      );
       try {
         const opened = fstatSync(fd);
-        if (!opened.isFile() || opened.ino !== before.ino || opened.dev !== before.dev || opened.size !== before.size) throw new ProductError('OBSERVATION_UNSTABLE', 'Discovery evidence changed while opening it.');
-        const buffer = Buffer.alloc(Math.min(before.size + 1, limits.fileBytes + 1));
+        if (
+          !opened.isFile() ||
+          opened.ino !== before.ino ||
+          opened.dev !== before.dev ||
+          opened.size !== before.size
+        )
+          throw new ProductError(
+            "OBSERVATION_UNSTABLE",
+            "Discovery evidence changed while opening it.",
+          );
+        const buffer = Buffer.alloc(
+          Math.min(before.size + 1, limits.fileBytes + 1),
+        );
         let length = 0;
         while (length < buffer.length) {
-          const read = readSync(fd, buffer, length, buffer.length - length, null);
+          const read = readSync(
+            fd,
+            buffer,
+            length,
+            buffer.length - length,
+            null,
+          );
           if (!read) break;
           length += read;
         }
         const content = buffer.subarray(0, length);
         const after = fstatSync(fd);
-        if (content.length !== before.size || after.mtimeMs !== before.mtimeMs || after.ctimeMs !== before.ctimeMs) throw new ProductError('OBSERVATION_UNSTABLE', 'Discovery evidence changed while reading it.');
-        return { type: 'file', sha256: hash(content), executable: (after.mode & 0o111) !== 0 };
-      } finally { closeSync(fd); }
+        if (
+          content.length !== before.size ||
+          after.mtimeMs !== before.mtimeMs ||
+          after.ctimeMs !== before.ctimeMs
+        )
+          throw new ProductError(
+            "OBSERVATION_UNSTABLE",
+            "Discovery evidence changed while reading it.",
+          );
+        return {
+          type: "file",
+          sha256: hash(content),
+          executable: (after.mode & 0o111) !== 0,
+        };
+      } finally {
+        closeSync(fd);
+      }
     } catch (error) {
       if (error instanceof ProductError) throw error;
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        if (present) throw new ProductError('OBSERVATION_UNSTABLE', 'An observed discovery file disappeared during reading.');
-        return { type: 'missing' };
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        if (present)
+          throw new ProductError(
+            "OBSERVATION_UNSTABLE",
+            "An observed discovery file disappeared during reading.",
+          );
+        return { type: "missing" };
       }
-      throw new ProductError('OBSERVATION_READ', 'Cannot completely read required discovery evidence or ignore inputs.');
+      throw new ProductError(
+        "OBSERVATION_READ",
+        "Cannot completely read required discovery evidence or ignore inputs.",
+      );
     }
   }
   function command(args: string[], absent = false) {
-    const result = git(root, args, undefined, Math.max(1, deadline - Date.now()));
-    if (result.status !== 0 && !(absent && result.status === 1)) throw new ProductError('OBSERVATION_READ', 'Cannot completely observe Git discovery inputs.');
+    const result = git(
+      root,
+      args,
+      undefined,
+      Math.max(1, deadline - Date.now()),
+    );
+    if (result.status !== 0 && !(absent && result.status === 1))
+      throw new ProductError(
+        "OBSERVATION_READ",
+        "Cannot completely observe Git discovery inputs.",
+      );
     return result.stdout;
   }
   function names(path: string): string[] {
-    if (!lstatSync(path).isDirectory()) throw new ProductError('OBSERVATION_UNSTABLE', 'A discovery directory boundary changed.');
+    if (!lstatSync(path).isDirectory())
+      throw new ProductError(
+        "OBSERVATION_UNSTABLE",
+        "A discovery directory boundary changed.",
+      );
     const directory = opendirSync(path);
     const result: string[] = [];
     try {
-      for (let entry = directory.readSync(); entry; entry = directory.readSync()) {
-        if (result.length >= limits.paths) throw new ProductError('OBSERVATION_LIMIT', 'Named directory observation exceeds the entry limit.');
+      for (
+        let entry = directory.readSync();
+        entry;
+        entry = directory.readSync()
+      ) {
+        if (result.length >= limits.paths)
+          throw new ProductError(
+            "OBSERVATION_LIMIT",
+            "Named directory observation exceeds the entry limit.",
+          );
         result.push(entry.name);
       }
-    } finally { directory.closeSync(); }
+    } finally {
+      directory.closeSync();
+    }
     return result;
   }
-  const settings = Object.fromEntries(['core.ignorecase', 'core.precomposeunicode', 'core.filemode', 'core.symlinks', 'core.sparsecheckout', 'core.sparsecheckoutcone']
-    .map(key => [key, command(['config', '--bool', '--get', key], true).trim() || null]));
-  const configuredExclude = command(['config', '--null', '--path', '--get', 'core.excludesfile'], true);
-  const globalExclude = configuredExclude ? configuredExclude.slice(0, -1) : join(process.env.XDG_CONFIG_HOME || join(homedir(), '.config'), 'git/ignore');
-  const infoExclude = command(['rev-parse', '--path-format=absolute', '--git-path', 'info/exclude']).replace(/\n$/, '');
+  const settings = Object.fromEntries(
+    [
+      "core.ignorecase",
+      "core.precomposeunicode",
+      "core.filemode",
+      "core.symlinks",
+      "core.sparsecheckout",
+      "core.sparsecheckoutcone",
+    ].map((key) => [
+      key,
+      command(["config", "--bool", "--get", key], true).trim() || null,
+    ]),
+  );
+  const configuredExclude = command(
+    ["config", "--null", "--path", "--get", "core.excludesfile"],
+    true,
+  );
+  const globalExclude = configuredExclude
+    ? configuredExclude.slice(0, -1)
+    : join(
+        process.env.XDG_CONFIG_HOME || join(homedir(), ".config"),
+        "git/ignore",
+      );
+  const infoExclude = command([
+    "rev-parse",
+    "--path-format=absolute",
+    "--git-path",
+    "info/exclude",
+  ]).replace(/\n$/, "");
   // Durable product state is never discovery evidence. Inspection observes the
   // whole reserved tree separately through its own product-state observation,
   // with its own inventory rules, so excluding it here keeps one exclusion
   // mechanism for every observation instead of tying it to execution.
-  const included = (path: string) => path !== reservedProductState && !path.startsWith(reservedProductState + '/');
-  const tracked = command(['ls-files', '--cached', '-z']).split('\0').filter(path => path && included(path));
+  const included = (path: string) =>
+    path !== reservedProductState &&
+    !path.startsWith(reservedProductState + "/");
+  const tracked = command(["ls-files", "--cached", "-z"])
+    .split("\0")
+    .filter((path) => path && included(path));
   const trackedParents = new Set<string>();
   for (const path of tracked) {
     let parent = dirname(path);
-    while (parent !== '.') { trackedParents.add(parent); parent = dirname(parent); }
+    while (parent !== ".") {
+      trackedParents.add(parent);
+      parent = dirname(parent);
+    }
   }
   const known = new Set(tracked);
-  const directories = new Set(['.']);
-  let pending = ['.'];
+  const directories = new Set(["."]);
+  let pending = ["."];
   let visited = 0;
   // Git omits untracked special files and empty directories from ls-files.
   // Walk eligible directory entries too, applying Git's own ignore decision.
   while (pending.length) {
-    if (Date.now() > deadline) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeded 30 seconds.');
-    const candidates = pending.flatMap(parent => names(join(root, parent))
-      .filter(name => !(parent === '.' && name === '.git'))
-      .map(name => parent === '.' ? name : `${parent}/${name}`).filter(included));
+    if (Date.now() > deadline)
+      throw new ProductError(
+        "OBSERVATION_LIMIT",
+        "Discovery observation exceeded 30 seconds.",
+      );
+    const candidates = pending.flatMap((parent) =>
+      names(join(root, parent))
+        .filter((name) => !(parent === "." && name === ".git"))
+        .map((name) => (parent === "." ? name : `${parent}/${name}`))
+        .filter(included),
+    );
     visited += candidates.length;
-    if (visited > limits.paths) throw new ProductError('OBSERVATION_LIMIT', 'Discovery directory observation exceeds the entry limit.');
-    const ignoredResult = candidates.length ? git(root, ['check-ignore', '--no-index', '--stdin', '-z'], candidates.join('\0') + '\0', Math.max(1, deadline - Date.now())) : undefined;
-    if (ignoredResult && ignoredResult.status !== 0 && ignoredResult.status !== 1) throw new ProductError('OBSERVATION_READ', 'Cannot completely classify discovery entries.');
-    const ignored = new Set(ignoredResult?.stdout.split('\0').filter(Boolean));
+    if (visited > limits.paths)
+      throw new ProductError(
+        "OBSERVATION_LIMIT",
+        "Discovery directory observation exceeds the entry limit.",
+      );
+    const ignoredResult = candidates.length
+      ? git(
+          root,
+          ["check-ignore", "--no-index", "--stdin", "-z"],
+          candidates.join("\0") + "\0",
+          Math.max(1, deadline - Date.now()),
+        )
+      : undefined;
+    if (
+      ignoredResult &&
+      ignoredResult.status !== 0 &&
+      ignoredResult.status !== 1
+    )
+      throw new ProductError(
+        "OBSERVATION_READ",
+        "Cannot completely classify discovery entries.",
+      );
+    const ignored = new Set(ignoredResult?.stdout.split("\0").filter(Boolean));
     pending = [];
     for (const path of candidates.sort()) {
-      const required = [...named, ...options.directories ?? []].some(target => target === path || target.startsWith(path + '/'))
-        || options.directories?.some(directory => path.startsWith(directory + '/'));
-      if (ignored.has(path) && !known.has(path) && !trackedParents.has(path) && !required) continue;
-      if (path.split('/').at(-1) === '.git') throw new ProductError('OBSERVATION_UNSAFE', 'Nested Git metadata prevents a complete discovery observation.');
+      const required =
+        [...named, ...(options.directories ?? [])].some(
+          (target) => target === path || target.startsWith(path + "/"),
+        ) ||
+        options.directories?.some((directory) =>
+          path.startsWith(directory + "/"),
+        );
+      if (
+        ignored.has(path) &&
+        !known.has(path) &&
+        !trackedParents.has(path) &&
+        !required
+      )
+        continue;
+      if (path.split("/").at(-1) === ".git")
+        throw new ProductError(
+          "OBSERVATION_UNSAFE",
+          "Nested Git metadata prevents a complete discovery observation.",
+        );
       let stat;
-      try { stat = lstatSync(join(root, path)); } catch { throw new ProductError('OBSERVATION_READ', 'A discovery directory entry cannot be observed.'); }
+      try {
+        stat = lstatSync(join(root, path));
+      } catch {
+        throw new ProductError(
+          "OBSERVATION_READ",
+          "A discovery directory entry cannot be observed.",
+        );
+      }
       if (stat.isDirectory()) {
-        if (path.split('/').length > limits.depth) throw new ProductError('OBSERVATION_LIMIT', 'Discovery directory observation exceeds the depth limit.');
+        if (path.split("/").length > limits.depth)
+          throw new ProductError(
+            "OBSERVATION_LIMIT",
+            "Discovery directory observation exceeds the depth limit.",
+          );
         // Gitlinks are reported as blockers by inspection; never traverse them.
-        if (!known.has(path)) { directories.add(path); pending.push(path); }
+        if (!known.has(path)) {
+          directories.add(path);
+          pending.push(path);
+        }
       } else known.add(path);
     }
   }
   const paths = [...known].sort();
-  if (paths.length + named.length > limits.paths) throw new ProductError('OBSERVATION_LIMIT', 'Discovery observation exceeds the path limit.');
+  if (paths.length + named.length > limits.paths)
+    throw new ProductError(
+      "OBSERVATION_LIMIT",
+      "Discovery observation exceeds the path limit.",
+    );
   const files: Record<string, FileState> = dictionary();
   const boundaries: Record<string, FileState> = dictionary();
   // Execution-phase observations additionally bind the observed root itself.
-  if (options.execution) boundaries['.'] = file(root);
+  if (options.execution) boundaries["."] = file(root);
   function observePath(path: string, eligible: boolean) {
-    const parts = path.split('/');
-    if (parts.length > limits.depth || parts.some(part => !part || part === '..' || part === '.') || isAbsolute(path)) throw new ProductError('OBSERVATION_UNSAFE', 'Unsafe discovery observation path.');
+    const parts = path.split("/");
+    if (
+      parts.length > limits.depth ||
+      parts.some((part) => !part || part === ".." || part === ".") ||
+      isAbsolute(path)
+    )
+      throw new ProductError(
+        "OBSERVATION_UNSAFE",
+        "Unsafe discovery observation path.",
+      );
     for (let length = 1; length < parts.length; length++) {
-      const parent = parts.slice(0, length).join('/');
-      const state = boundaries[parent] ??= file(join(root, parent));
-      if (state.type !== 'directory' && state.type !== 'missing') throw new ProductError('OBSERVATION_UNSAFE', `Unsafe discovery ancestor: ${parent}.`);
-      if (eligible && state.type === 'directory') directories.add(parent);
-      if (state.type === 'missing') return { type: 'missing' } as const;
+      const parent = parts.slice(0, length).join("/");
+      const state = (boundaries[parent] ??= file(join(root, parent)));
+      if (state.type !== "directory" && state.type !== "missing")
+        throw new ProductError(
+          "OBSERVATION_UNSAFE",
+          `Unsafe discovery ancestor: ${parent}.`,
+        );
+      if (eligible && state.type === "directory") directories.add(parent);
+      if (state.type === "missing") return { type: "missing" } as const;
     }
     return file(join(root, path));
   }
-  for (const directory of [...directories].filter(path => path !== '.').sort()) {
+  for (const directory of [...directories]
+    .filter((path) => path !== ".")
+    .sort()) {
     boundaries[directory] = file(join(root, directory));
-    if (boundaries[directory].type !== 'directory') throw new ProductError('OBSERVATION_UNSTABLE', 'A discovery directory boundary changed.');
+    if (boundaries[directory].type !== "directory")
+      throw new ProductError(
+        "OBSERVATION_UNSTABLE",
+        "A discovery directory boundary changed.",
+      );
   }
   for (const path of paths) files[path] = observePath(path, true);
   const targets: Record<string, FileState> = dictionary();
-  for (const path of [...new Set([...named, ...options.directories ?? []])].sort()) {
+  for (const path of [
+    ...new Set([...named, ...(options.directories ?? [])]),
+  ].sort()) {
     targets[path] = observePath(path, false);
     // Check spelling at every named boundary without reading sibling contents.
-    const parts = path.split('/');
+    const parts = path.split("/");
     for (let length = 0; length < parts.length; length++) {
-      const parent = length ? parts.slice(0, length).join('/') : '.';
-      if (parent !== '.' && boundaries[parent]?.type === 'missing') break;
-      const matches = names(join(root, parent)).filter(name => foldPath(name) === foldPath(parts[length]!));
-      if (matches.some(name => name !== parts[length])) throw new ProductError('CASE_CONFLICT', `Named scope path has a case-folded or Unicode alias: ${path}.`);
+      const parent = length ? parts.slice(0, length).join("/") : ".";
+      if (parent !== "." && boundaries[parent]?.type === "missing") break;
+      const matches = names(join(root, parent)).filter(
+        (name) => foldPath(name) === foldPath(parts[length]!),
+      );
+      if (matches.some((name) => name !== parts[length]))
+        throw new ProductError(
+          "CASE_CONFLICT",
+          `Named scope path has a case-folded or Unicode alias: ${path}.`,
+        );
     }
-    if (targets[path].type !== 'file' && targets[path].type !== 'missing' && !(options.directories?.includes(path) && targets[path].type === 'directory')) throw new ProductError('UNSAFE_TARGET', `Discovered targets must be individual regular files or absent files: ${path}.`);
+    if (
+      targets[path].type !== "file" &&
+      targets[path].type !== "missing" &&
+      !(
+        options.directories?.includes(path) &&
+        targets[path].type === "directory"
+      )
+    )
+      throw new ProductError(
+        "UNSAFE_TARGET",
+        `Discovered targets must be individual regular files or absent files: ${path}.`,
+      );
   }
   // Ignore inputs are named by role: the global excludes, the repository's info
   // exclude, and each consulted .gitignore by its project-relative path. Their
   // content state is bound; where they are located is not, so the observation
   // is the same from any checkout of the same content.
   const ignores: Record<string, IgnoreState> = dictionary();
-  for (const [role, path] of [['global', globalExclude ? resolve(root, globalExclude) : ''], ['info', infoExclude]] as const) {
-    if (path === '') { ignores[role] = { type: 'disabled' }; continue; }
+  for (const [role, path] of [
+    ["global", globalExclude ? resolve(root, globalExclude) : ""],
+    ["info", infoExclude],
+  ] as const) {
+    if (path === "") {
+      ignores[role] = { type: "disabled" };
+      continue;
+    }
     const state = file(path);
-    if (state.type !== 'file' && state.type !== 'missing') throw new ProductError('OBSERVATION_UNSAFE', 'Ignore inputs must be regular files or absent.');
+    if (state.type !== "file" && state.type !== "missing")
+      throw new ProductError(
+        "OBSERVATION_UNSAFE",
+        "Ignore inputs must be regular files or absent.",
+      );
     ignores[role] = state;
   }
-  for (const directory of [...new Set([...directories, ...Object.keys(boundaries).filter(path => boundaries[path]!.type === 'directory')])].sort()) {
-    const path = directory === '.' ? '.gitignore' : `${directory}/.gitignore`;
+  for (const directory of [
+    ...new Set([
+      ...directories,
+      ...Object.keys(boundaries).filter(
+        (path) => boundaries[path]!.type === "directory",
+      ),
+    ]),
+  ].sort()) {
+    const path = directory === "." ? ".gitignore" : `${directory}/.gitignore`;
     const state = file(join(root, path));
-    if (state.type === 'directory') throw new ProductError('OBSERVATION_UNSAFE', `Cannot read ignore input: ${path}.`);
-    ignores[path] = state.type === 'symlink' ? { type: 'symlink', sha256: hash(state.target) } : state;
+    if (state.type === "directory")
+      throw new ProductError(
+        "OBSERVATION_UNSAFE",
+        `Cannot read ignore input: ${path}.`,
+      );
+    ignores[path] =
+      state.type === "symlink"
+        ? { type: "symlink", sha256: hash(state.target) }
+        : state;
   }
-  const inventories: Record<string, string[]> = Object.fromEntries([...directories].sort().map(directory => [directory, []]));
+  const inventories: Record<string, string[]> = Object.fromEntries(
+    [...directories].sort().map((directory) => [directory, []]),
+  );
   for (const path of [...new Set([...paths, ...directories])].sort()) {
-    if (path !== '.' && inventories[dirname(path)]) inventories[dirname(path)]!.push(path);
+    if (path !== "." && inventories[dirname(path)])
+      inventories[dirname(path)]!.push(path);
   }
-  return { files, inventories, boundaries, targets, settings, ignores, limits, evidence: scopeEvidence(files, inventories) };
+  return {
+    files,
+    inventories,
+    boundaries,
+    targets,
+    settings,
+    ignores,
+    limits,
+    evidence: scopeEvidence(files, inventories),
+  };
 }
 
 // One bounded discovery observation, as its producers and its retained record

@@ -1,52 +1,126 @@
 // Prepare a disposable real-agent journey with public npm/GitHub acquisition.
 // This performs no adoption, contextual edits or assessment.
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { fixtureFiles, sourceFixture } from '../test/installed-cli.ts';
-import { commit, git, remoteFixture } from '../test/remote-fixture.ts';
+import { execFileSync } from "node:child_process";
+import {
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fixtureFiles, sourceFixture } from "../test/installed-cli.ts";
+import { commit, git, remoteFixture } from "../test/remote-fixture.ts";
 
-const [version, source, standardsVersion, profile, projectName] = process.argv.slice(2);
+const [version, source, standardsVersion, profile, projectName] =
+  process.argv.slice(2);
 const fixtureSources: Record<string, string> = {
-  'fixture:alice': 'examples/alice',
-  'fixture:mira': 'examples/mira',
-  'fixture:atlas': 'examples/atlas',
-  'fixture:wayfinder': 'acceptance/sources/wayfinder',
+  "fixture:alice": "examples/alice",
+  "fixture:mira": "examples/mira",
+  "fixture:atlas": "examples/atlas",
+  "fixture:wayfinder": "acceptance/sources/wayfinder",
 };
 const fixtureSource = fixtureSources[source!];
-const projects = ['bob', 'harbor', 'orchard', 'forge', 'relay'];
-if (!version || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) || (!source?.startsWith('https://github.com/') && !fixtureSource) || !standardsVersion || !profile || !projects.includes(projectName!)) {
-  throw new Error('Usage: node acceptance/prepare-public.ts <CLI-version> <public-source-URL|fixture:alice|fixture:mira|fixture:atlas|fixture:wayfinder> <standards-tag> <profile> <bob|harbor|orchard|forge|relay>');
+const projects = ["bob", "harbor", "orchard", "forge", "relay"];
+if (
+  !version ||
+  !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) ||
+  (!source?.startsWith("https://github.com/") && !fixtureSource) ||
+  !standardsVersion ||
+  !profile ||
+  !projects.includes(projectName!)
+) {
+  throw new Error(
+    "Usage: node acceptance/prepare-public.ts <CLI-version> <public-source-URL|fixture:alice|fixture:mira|fixture:atlas|fixture:wayfinder> <standards-tag> <profile> <bob|harbor|orchard|forge|relay>",
+  );
 }
-if (fixtureSource && standardsVersion !== 'v1.0.0') throw new Error('Source fixtures provide v1.0.0 only.');
-if (process.env.NODE_OPTIONS) throw new Error('Run public acceptance without NODE_OPTIONS or acquisition fixtures.');
-const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-public-agent-')));
-const configuration = join(root, 'empty.npmrc');
-writeFileSync(configuration, '');
-const globalConfiguration = join(root, 'global.npmrc');
-writeFileSync(globalConfiguration, '');
-const env = { ...process.env, npm_config_registry: 'https://registry.npmjs.org/',
+if (fixtureSource && standardsVersion !== "v1.0.0")
+  throw new Error("Source fixtures provide v1.0.0 only.");
+if (process.env.NODE_OPTIONS)
+  throw new Error(
+    "Run public acceptance without NODE_OPTIONS or acquisition fixtures.",
+  );
+const root = realpathSync(
+  mkdtempSync(join(tmpdir(), "repo-standards-public-agent-")),
+);
+const configuration = join(root, "empty.npmrc");
+writeFileSync(configuration, "");
+const globalConfiguration = join(root, "global.npmrc");
+writeFileSync(globalConfiguration, "");
+const env = {
+  ...process.env,
+  npm_config_registry: "https://registry.npmjs.org/",
   npm_config_userconfig: configuration,
   npm_config_globalconfig: globalConfiguration,
-  npm_config_cache: join(root, 'npm-cache'), XDG_CACHE_HOME: join(root, 'cache') };
-execFileSync('npm', ['install', '--prefix', root, '--ignore-scripts', '--no-audit', '--no-fund', '--save-exact', `@lutzseverino/repo-standards@${version}`], { cwd: root, env, stdio: 'pipe' });
+  npm_config_cache: join(root, "npm-cache"),
+  XDG_CACHE_HOME: join(root, "cache"),
+};
+execFileSync(
+  "npm",
+  [
+    "install",
+    "--prefix",
+    root,
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    "--save-exact",
+    `@lutzseverino/repo-standards@${version}`,
+  ],
+  { cwd: root, env, stdio: "pipe" },
+);
 // Only source acquisition is substituted. npm and all CLI/author execution remain real.
-const fixtureName = source?.slice('fixture:'.length);
+const fixtureName = source?.slice("fixture:".length);
 const sourceFiles = fixtureSource ? fixtureFiles(fixtureSource) : undefined;
-const remote = fixtureSource ? remoteFixture(sourceFiles!['standards.yaml']!, sourceFiles, [], `${fixtureName}/standards`) : undefined;
-const project = sourceFixture('', fixtureFiles(`acceptance/projects/${projectName}`));
-rmSync(join(project.root, 'standards.yaml'));
+const remote = fixtureSource
+  ? remoteFixture(
+      sourceFiles!["standards.yaml"]!,
+      sourceFiles,
+      [],
+      `${fixtureName}/standards`,
+    )
+  : undefined;
+const project = sourceFixture(
+  "",
+  fixtureFiles(`acceptance/projects/${projectName}`),
+);
+rmSync(join(project.root, "standards.yaml"));
 commit(project.root);
-const session = join(root, 'journey.json');
-writeFileSync(session, JSON.stringify({
-  project: project.root, cli: join(root, 'node_modules/.bin/repo-standards'),
-  package: join(root, 'node_modules/@lutzseverino/repo-standards'),
-  source: fixtureSource ? `https://github.com/${fixtureName}/standards` : source,
-  standardsVersion, profile, head: git(project.root, 'rev-parse', 'HEAD'),
-  acquisition: remote ? 'Public npm; explicit GitHub-response fixture backed by an independent Git source' : 'Public npm and GitHub; no remote fixtures',
-  ...(remote ? { fixtureSource: remote.source.root, fixtureCommit: remote.sha } : {}),
-  runtimeLock: JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8')) as unknown,
-  env: { npm_config_registry: env.npm_config_registry, npm_config_userconfig: configuration, npm_config_globalconfig: globalConfiguration, npm_config_cache: env.npm_config_cache, XDG_CACHE_HOME: env.XDG_CACHE_HOME, ...(remote ? { NODE_OPTIONS: remote.env.NODE_OPTIONS } : {}) },
-}, null, 2) + '\n');
+const session = join(root, "journey.json");
+writeFileSync(
+  session,
+  JSON.stringify(
+    {
+      project: project.root,
+      cli: join(root, "node_modules/.bin/repo-standards"),
+      package: join(root, "node_modules/@lutzseverino/repo-standards"),
+      source: fixtureSource
+        ? `https://github.com/${fixtureName}/standards`
+        : source,
+      standardsVersion,
+      profile,
+      head: git(project.root, "rev-parse", "HEAD"),
+      acquisition: remote
+        ? "Public npm; explicit GitHub-response fixture backed by an independent Git source"
+        : "Public npm and GitHub; no remote fixtures",
+      ...(remote
+        ? { fixtureSource: remote.source.root, fixtureCommit: remote.sha }
+        : {}),
+      runtimeLock: JSON.parse(
+        readFileSync(join(root, "package-lock.json"), "utf8"),
+      ) as unknown,
+      env: {
+        npm_config_registry: env.npm_config_registry,
+        npm_config_userconfig: configuration,
+        npm_config_globalconfig: globalConfiguration,
+        npm_config_cache: env.npm_config_cache,
+        XDG_CACHE_HOME: env.XDG_CACHE_HOME,
+        ...(remote ? { NODE_OPTIONS: remote.env.NODE_OPTIONS } : {}),
+      },
+    },
+    null,
+    2,
+  ) + "\n",
+);
 console.log(session);

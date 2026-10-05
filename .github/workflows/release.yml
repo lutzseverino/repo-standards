@@ -10,7 +10,7 @@ on:
       notes:
         description: Release notes in Markdown, required to publish; pass a file with -F notes=@FILE
         required: false
-        default: ''
+        default: ""
         type: string
       verify_published:
         description: Only verify an already published release on macOS and Linux

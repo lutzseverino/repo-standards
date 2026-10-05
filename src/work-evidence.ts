@@ -1,10 +1,16 @@
-import { ProductError } from './errors.js';
-import { declarationTargets } from './targets.js';
-import { formats } from './formats.js';
-import type { ResolvedProfile } from './model.js';
-import { concreteScope, type Scope } from './scope.js';
-import { observationIdentity } from './scope-observation.js';
-import { changedBoundaries, observeWork, observedChanges, permits, type WorkObservation } from './work-observation.js';
+import { ProductError } from "./errors.js";
+import { declarationTargets } from "./targets.js";
+import { formats } from "./formats.js";
+import type { ResolvedProfile } from "./model.js";
+import { concreteScope, type Scope } from "./scope.js";
+import { observationIdentity } from "./scope-observation.js";
+import {
+  changedBoundaries,
+  observeWork,
+  observedChanges,
+  permits,
+  type WorkObservation,
+} from "./work-observation.js";
 
 // Work evidence is the durable record of observation intervals and operation
 // outcomes for one adoption run. This module is its journal: it opens, closes
@@ -20,21 +26,32 @@ import { changedBoundaries, observeWork, observedChanges, permits, type WorkObse
 // the journal keeps only the one its last interval ends at, through an
 // observation store, for the next command to compare.
 
-type FileState = WorkObservation['files'][string];
-export interface Delta { before: unknown; after: unknown }
-type Operation = { declaration: string; phase: 'fixes' | 'checks'; id: string };
+type FileState = WorkObservation["files"][string];
+export interface Delta {
+  before: unknown;
+  after: unknown;
+}
+type Operation = { declaration: string; phase: "fixes" | "checks"; id: string };
 
 // An interval as a command holds it in memory, with its full observations.
 // It is recorded as identities and a delta through recordedInterval.
 interface WorkInterval {
-  phase: 'fixes' | 'checks' | 'agent'; scope: Scope; before: WorkObservation;
-  operation?: Operation; operationIndex?: number;
-  after?: WorkObservation; changedPaths?: string[]; boundaryChanges?: string[]; violations?: string[]; interrupted?: boolean;
-  restoredExact?: WorkObservation['files']; restoredBoundaries?: WorkObservation['boundaries'];
+  phase: "fixes" | "checks" | "agent";
+  scope: Scope;
+  before: WorkObservation;
+  operation?: Operation;
+  operationIndex?: number;
+  after?: WorkObservation;
+  changedPaths?: string[];
+  boundaryChanges?: string[];
+  violations?: string[];
+  interrupted?: boolean;
+  restoredExact?: WorkObservation["files"];
+  restoredBoundaries?: WorkObservation["boundaries"];
 }
 
 export interface RecordedInterval {
-  phase: WorkInterval['phase'];
+  phase: WorkInterval["phase"];
   scope: Scope;
   operation?: Operation;
   operationIndex?: number;
@@ -50,12 +67,15 @@ export interface RecordedInterval {
 
 // The phases that change project paths in a complete run. Checks never do: a
 // check that changes content leaves the run incomplete.
-const changePhases = ['installation', 'fixes', 'agent'] as const;
-type ChangePhase = typeof changePhases[number];
+const changePhases = ["installation", "fixes", "agent"] as const;
+type ChangePhase = (typeof changePhases)[number];
 
 // One entry of a run's net change set: a path whose state the run changed, and
 // every phase that changed it.
-export interface ChangedPath { path: string; phases: ChangePhase[] }
+export interface ChangedPath {
+  path: string;
+  phases: ChangePhase[];
+}
 
 export interface ExecutionEvidence {
   format: typeof formats.state;
@@ -69,15 +89,17 @@ export interface ExecutionEvidence {
 // observation settings that cannot be authorized as project paths. Each keeps
 // the state the interval actually compared.
 function changedState(observation: WorkObservation, path: string): unknown {
-  if (path === '@git/observation-settings') return observation.settings;
-  if (path.startsWith('@ignore/')) return observation.ignores[path.slice('@ignore/'.length)] ?? null;
+  if (path === "@git/observation-settings") return observation.settings;
+  if (path.startsWith("@ignore/"))
+    return observation.ignores[path.slice("@ignore/".length)] ?? null;
   if (Object.hasOwn(observation.files, path)) return observation.files[path];
-  if (Object.hasOwn(observation.ignores, path)) return observation.ignores[path];
-  return { type: 'missing' };
+  if (Object.hasOwn(observation.ignores, path))
+    return observation.ignores[path];
+  return { type: "missing" };
 }
 
 function boundaryState(observation: WorkObservation, path: string) {
-  return observation.boundaries[path] ?? { type: 'missing' };
+  return observation.boundaries[path] ?? { type: "missing" };
 }
 
 // Recording an interval keeps its authority, its identities and its delta.
@@ -86,24 +108,59 @@ function recordedInterval(observed: WorkInterval): RecordedInterval {
   return {
     phase: observed.phase,
     scope: structuredClone(observed.scope),
-    ...(observed.operation ? { operation: structuredClone(observed.operation) } : {}),
-    ...(observed.operationIndex !== undefined ? { operationIndex: observed.operationIndex } : {}),
+    ...(observed.operation
+      ? { operation: structuredClone(observed.operation) }
+      : {}),
+    ...(observed.operationIndex !== undefined
+      ? { operationIndex: observed.operationIndex }
+      : {}),
     before: observationIdentity(observed.before),
     ...(after ? { after: observationIdentity(after) } : {}),
-    ...(after && observed.changedPaths ? { changes: Object.fromEntries(observed.changedPaths
-      .map(path => [path, { before: changedState(observed.before, path), after: changedState(after, path) }])) } : {}),
-    ...(after && observed.boundaryChanges ? { boundaryChanges: Object.fromEntries(observed.boundaryChanges
-      .map(path => [path, { before: boundaryState(observed.before, path), after: boundaryState(after, path) }])) } : {}),
+    ...(after && observed.changedPaths
+      ? {
+          changes: Object.fromEntries(
+            observed.changedPaths.map((path) => [
+              path,
+              {
+                before: changedState(observed.before, path),
+                after: changedState(after, path),
+              },
+            ]),
+          ),
+        }
+      : {}),
+    ...(after && observed.boundaryChanges
+      ? {
+          boundaryChanges: Object.fromEntries(
+            observed.boundaryChanges.map((path) => [
+              path,
+              {
+                before: boundaryState(observed.before, path),
+                after: boundaryState(after, path),
+              },
+            ]),
+          ),
+        }
+      : {}),
     ...(observed.violations ? { violations: [...observed.violations] } : {}),
-    ...(observed.restoredExact ? { restoredExact: structuredClone(observed.restoredExact) } : {}),
-    ...(observed.restoredBoundaries ? { restoredBoundaries: structuredClone(observed.restoredBoundaries) } : {}),
+    ...(observed.restoredExact
+      ? { restoredExact: structuredClone(observed.restoredExact) }
+      : {}),
+    ...(observed.restoredBoundaries
+      ? { restoredBoundaries: structuredClone(observed.restoredBoundaries) }
+      : {}),
     ...(observed.interrupted ? { interrupted: observed.interrupted } : {}),
   };
 }
 
 // Agent work is authorized by the contextual declarations' concrete scope.
 function contextualScope(resolved: ResolvedProfile): Scope {
-  return concreteScope({ ...resolved, declarations: resolved.declarations.filter(declaration => 'guidance' in declaration) });
+  return concreteScope({
+    ...resolved,
+    declarations: resolved.declarations.filter(
+      (declaration) => "guidance" in declaration,
+    ),
+  });
 }
 
 function finishInterval(interval: WorkInterval, after: WorkObservation) {
@@ -111,27 +168,48 @@ function finishInterval(interval: WorkInterval, after: WorkObservation) {
   interval.changedPaths = observedChanges(interval.before, after);
   interval.boundaryChanges = changedBoundaries(interval.before, after);
   const scopes = Object.values(interval.scope);
-  const fileViolations = interval.changedPaths.filter(path => interval.phase === 'checks'
-    || (!interval.restoredExact?.[path] && !scopes.some(targets => permits(targets, path))));
-  const boundaryViolations = interval.boundaryChanges.filter(path => {
-    if (interval.phase === 'checks') return true;
+  const fileViolations = interval.changedPaths.filter(
+    (path) =>
+      interval.phase === "checks" ||
+      (!interval.restoredExact?.[path] &&
+        !scopes.some((targets) => permits(targets, path))),
+  );
+  const boundaryViolations = interval.boundaryChanges.filter((path) => {
+    if (interval.phase === "checks") return true;
     if (interval.restoredBoundaries?.[path]) return false;
-    if (scopes.some(targets => permits(targets, path))) return false;
+    if (scopes.some((targets) => permits(targets, path))) return false;
     const before = interval.before.boundaries[path];
     // Named file authority includes creating its missing parent directories,
     // but does not authorize deleting or changing existing ancestors.
-    return !((!before || before.type === 'missing') && after.boundaries[path]?.type === 'directory'
-      && scopes.some(targets => [...targets.paths, ...targets.directories].some(target => target.startsWith(path + '/'))));
+    return !(
+      (!before || before.type === "missing") &&
+      after.boundaries[path]?.type === "directory" &&
+      scopes.some((targets) =>
+        [...targets.paths, ...targets.directories].some((target) =>
+          target.startsWith(path + "/"),
+        ),
+      )
+    );
   });
-  interval.violations = [...new Set([...fileViolations, ...boundaryViolations])].sort();
+  interval.violations = [
+    ...new Set([...fileViolations, ...boundaryViolations]),
+  ].sort();
 }
 
 function requireValidIntervals(intervals: RecordedInterval[]) {
-  const invalid = intervals.find(interval => interval.violations?.length);
+  const invalid = intervals.find((interval) => interval.violations?.length);
   if (!invalid) return;
   const operation = invalid.operation;
-  const code = invalid.phase === 'agent' ? 'ASSESSMENT_SCOPE' : invalid.phase === 'checks' ? 'CHECK_MUTATION' : 'OPERATION_SCOPE';
-  throw new ProductError(code, `${operation ? `Operation ${operation.declaration}/${operation.id}` : 'Agent work'} changed paths outside its authorized ${invalid.phase} scope: ${invalid.violations!.join(', ')}. Work and interval evidence are preserved; abandon and reconcile before a new adoption.`);
+  const code =
+    invalid.phase === "agent"
+      ? "ASSESSMENT_SCOPE"
+      : invalid.phase === "checks"
+        ? "CHECK_MUTATION"
+        : "OPERATION_SCOPE";
+  throw new ProductError(
+    code,
+    `${operation ? `Operation ${operation.declaration}/${operation.id}` : "Agent work"} changed paths outside its authorized ${invalid.phase} scope: ${invalid.violations!.join(", ")}. Work and interval evidence are preserved; abandon and reconcile before a new adoption.`,
+  );
 }
 
 // The identity of the observation the last interval ends at: its before while
@@ -152,16 +230,23 @@ export interface ObservationStore {
 
 // Keeps observations in memory only, reading any it was not given from the
 // store an earlier command kept them in.
-export function memoryStore(kept: Pick<ObservationStore, 'read'>): ObservationStore {
+export function memoryStore(
+  kept: Pick<ObservationStore, "read">,
+): ObservationStore {
   const held = new Map<string, WorkObservation>();
   return {
-    read: identity => held.get(identity) ?? kept.read(identity),
-    keep: observation => { held.set(observationIdentity(observation), observation); },
+    read: (identity) => held.get(identity) ?? kept.read(identity),
+    keep: (observation) => {
+      held.set(observationIdentity(observation), observation);
+    },
   };
 }
 
 // The journal records into the run's intervals and reads its operation count.
-export interface JournalRecord { observations: RecordedInterval[]; readonly operations: readonly unknown[] }
+export interface JournalRecord {
+  observations: RecordedInterval[];
+  readonly operations: readonly unknown[];
+}
 
 // Every interval is observed over the resolved profile's concrete scope. Opening
 // and continuing persist the record through the caller's save; closing does not
@@ -176,7 +261,13 @@ export class WorkEvidenceJournal {
   readonly #save: () => void;
   #kept: WorkObservation | undefined;
 
-  constructor(root: string, resolved: ResolvedProfile, run: JournalRecord, store: ObservationStore, save: () => void = () => {}) {
+  constructor(
+    root: string,
+    resolved: ResolvedProfile,
+    run: JournalRecord,
+    store: ObservationStore,
+    save: () => void = () => {},
+  ) {
     this.#root = root;
     this.#resolved = resolved;
     this.#run = run;
@@ -184,11 +275,17 @@ export class WorkEvidenceJournal {
     this.#save = save;
   }
 
-  #observe() { return observeWork(this.#root, concreteScope(this.#resolved)); }
+  #observe() {
+    return observeWork(this.#root, concreteScope(this.#resolved));
+  }
 
   // The full observation the last interval ends at, read from the store when an
   // earlier command kept it.
-  #last() { return this.#kept ??= this.#store.read(keptIdentity(this.#run.observations)!); }
+  #last() {
+    return (this.#kept ??= this.#store.read(
+      keptIdentity(this.#run.observations)!,
+    ));
+  }
 
   // Intervals change only together with the observation they now end at, which
   // the store keeps before any saved record refers to it.
@@ -205,20 +302,42 @@ export class WorkEvidenceJournal {
   open(operation?: Operation) {
     const before = this.#observe();
     const previous = this.#run.observations.at(-1);
-    if (previous && !previous.after) throw new ProductError('OBSERVATION_INCOMPLETE', 'The preceding observation interval must be closed before more work.');
+    if (previous && !previous.after)
+      throw new ProductError(
+        "OBSERVATION_INCOMPLETE",
+        "The preceding observation interval must be closed before more work.",
+      );
     const agentScope = contextualScope(this.#resolved);
     if (previous?.after && previous.after !== observationIdentity(before)) {
-      const gap: WorkInterval = { phase: 'agent', scope: agentScope, before: this.#last() };
+      const gap: WorkInterval = {
+        phase: "agent",
+        scope: agentScope,
+        before: this.#last(),
+      };
       finishInterval(gap, before);
       this.#record([...this.#run.observations, recordedInterval(gap)], before);
       this.#save();
       requireValidIntervals(this.#run.observations);
     }
     const interval: WorkInterval = operation
-      ? { phase: operation.phase, operation, operationIndex: this.#run.operations.length, before,
-        scope: { [operation.declaration]: declarationTargets(this.#resolved.declarations.find(declaration => declaration.id === operation.declaration)!) } }
-      : { phase: 'agent', scope: agentScope, before };
-    this.#record([...this.#run.observations, recordedInterval(interval)], before);
+      ? {
+          phase: operation.phase,
+          operation,
+          operationIndex: this.#run.operations.length,
+          before,
+          scope: {
+            [operation.declaration]: declarationTargets(
+              this.#resolved.declarations.find(
+                (declaration) => declaration.id === operation.declaration,
+              )!,
+            ),
+          },
+        }
+      : { phase: "agent", scope: agentScope, before };
+    this.#record(
+      [...this.#run.observations, recordedInterval(interval)],
+      before,
+    );
     this.#save();
   }
 
@@ -230,7 +349,8 @@ export class WorkEvidenceJournal {
   close(verify: () => void) {
     const after = this.#observe();
     const last = this.#run.observations.at(-1);
-    if (!last || last.after) throw new Error('No observation interval is open.');
+    if (!last || last.after)
+      throw new Error("No observation interval is open.");
     this.#advance(after, false);
     verify();
     requireValidIntervals(this.#run.observations);
@@ -243,54 +363,115 @@ export class WorkEvidenceJournal {
   // resumed assessment after its own validation, recovery and final
   // verification at once, and abandonment never, since it preserves rather
   // than reports.
-  continue() { this.#continue(false); }
+  continue() {
+    this.#continue(false);
+  }
 
   // Continues after an interruption, as continue does, marking an interrupted
   // operation, one without a recorded outcome. Restorable exact paths are
   // exempt from attribution once the caller has verified the immutable
   // installation.
-  continueInterrupted(restorable?: Scope[string]) { this.#continue(true, restorable); }
+  continueInterrupted(restorable?: Scope[string]) {
+    this.#continue(true, restorable);
+  }
 
   #continue(interrupted: boolean, restorable?: Scope[string]) {
-    if (this.#run.observations.length) this.#advance(this.#observe(), interrupted, restorable);
+    if (this.#run.observations.length)
+      this.#advance(this.#observe(), interrupted, restorable);
     this.#save();
   }
 
   // Requires every recorded interval to have stayed within its authority,
   // reporting the first violation.
-  requireAuthorized() { requireValidIntervals(this.#run.observations); }
+  requireAuthorized() {
+    requireValidIntervals(this.#run.observations);
+  }
 
   // The paths agent work changed, excluding verified restoration of exact content.
   agentChanges() {
-    return [...new Set(this.#run.observations.filter(interval => interval.phase === 'agent')
-      .flatMap(interval => Object.keys(interval.changes ?? {}).filter(path => !interval.restoredExact?.[path])))];
+    return [
+      ...new Set(
+        this.#run.observations
+          .filter((interval) => interval.phase === "agent")
+          .flatMap((interval) =>
+            Object.keys(interval.changes ?? {}).filter(
+              (path) => !interval.restoredExact?.[path],
+            ),
+          ),
+      ),
+    ];
   }
 
-  #advance(after: WorkObservation, interrupted: boolean, restorable?: Scope[string]) {
+  #advance(
+    after: WorkObservation,
+    interrupted: boolean,
+    restorable?: Scope[string],
+  ) {
     const intervals = this.#run.observations;
     const last = intervals.at(-1)!;
-    const interval: WorkInterval = last.after ? { phase: 'agent', scope: contextualScope(this.#resolved), before: this.#last() }
-      : { phase: last.phase, scope: structuredClone(last.scope), ...(last.operation ? { operation: structuredClone(last.operation) } : {}),
-        ...(last.operationIndex !== undefined ? { operationIndex: last.operationIndex } : {}), before: this.#last() };
+    const interval: WorkInterval = last.after
+      ? {
+          phase: "agent",
+          scope: contextualScope(this.#resolved),
+          before: this.#last(),
+        }
+      : {
+          phase: last.phase,
+          scope: structuredClone(last.scope),
+          ...(last.operation
+            ? { operation: structuredClone(last.operation) }
+            : {}),
+          ...(last.operationIndex !== undefined
+            ? { operationIndex: last.operationIndex }
+            : {}),
+          before: this.#last(),
+        };
     if (last.after && restorable) {
       // Only restoration of those exact paths/inventories is exempt from
       // contextual attribution.
-      interval.restoredExact = Object.fromEntries(observedChanges(interval.before, after).filter(path => permits(restorable, path))
-        .map(path => [path, after.files[path] ?? { type: 'missing' }]));
-      interval.restoredBoundaries = Object.fromEntries(changedBoundaries(interval.before, after).flatMap(path => {
-        const before = interval.before.boundaries[path] ?? { type: 'missing' };
-        const current = after.boundaries[path] ?? { type: 'missing' };
-        const recreatingParent = before.type === 'missing' && current.type === 'directory'
-          && Object.entries(interval.restoredExact!).some(([file, state]) => state.type === 'file' && file.startsWith(path + '/'));
-        const removingExtra = before.type === 'directory' && current.type === 'missing'
-          && restorable.directories.some(directory => path.startsWith(directory + '/'))
-          && !restorable.paths.some(file => file.startsWith(path + '/'));
-        return recreatingParent || removingExtra ? [[path, current]] : [];
-      }));
+      interval.restoredExact = Object.fromEntries(
+        observedChanges(interval.before, after)
+          .filter((path) => permits(restorable, path))
+          .map((path) => [path, after.files[path] ?? { type: "missing" }]),
+      );
+      interval.restoredBoundaries = Object.fromEntries(
+        changedBoundaries(interval.before, after).flatMap((path) => {
+          const before = interval.before.boundaries[path] ?? {
+            type: "missing",
+          };
+          const current = after.boundaries[path] ?? { type: "missing" };
+          const recreatingParent =
+            before.type === "missing" &&
+            current.type === "directory" &&
+            Object.entries(interval.restoredExact!).some(
+              ([file, state]) =>
+                state.type === "file" && file.startsWith(path + "/"),
+            );
+          const removingExtra =
+            before.type === "directory" &&
+            current.type === "missing" &&
+            restorable.directories.some((directory) =>
+              path.startsWith(directory + "/"),
+            ) &&
+            !restorable.paths.some((file) => file.startsWith(path + "/"));
+          return recreatingParent || removingExtra ? [[path, current]] : [];
+        }),
+      );
     }
     finishInterval(interval, after);
-    if (interval.operation && interrupted && interval.operationIndex === this.#run.operations.length) interval.interrupted = true;
-    this.#record([...(last.after ? intervals : intervals.slice(0, -1)), recordedInterval(interval)], after);
+    if (
+      interval.operation &&
+      interrupted &&
+      interval.operationIndex === this.#run.operations.length
+    )
+      interval.interrupted = true;
+    this.#record(
+      [
+        ...(last.after ? intervals : intervals.slice(0, -1)),
+        recordedInterval(interval),
+      ],
+      after,
+    );
   }
 }
 
@@ -299,24 +480,48 @@ export class WorkEvidenceJournal {
 // precedes the intervals, which are in order, so a path's first before and last
 // after bound the run. Verified restoration returns exact content to its
 // installed state, so it undoes every attribution but installation's.
-function changeSet(installed: Record<string, Delta>, intervals: RecordedInterval[]): ChangedPath[] {
-  const paths = new Map<string, { before: unknown; after: unknown; phases: Set<ChangePhase> }>();
+function changeSet(
+  installed: Record<string, Delta>,
+  intervals: RecordedInterval[],
+): ChangedPath[] {
+  const paths = new Map<
+    string,
+    { before: unknown; after: unknown; phases: Set<ChangePhase> }
+  >();
   const change = (path: string, delta: Delta, phase?: ChangePhase) => {
-    const entry = paths.get(path) ?? { before: delta.before, after: delta.after, phases: new Set<ChangePhase>() };
+    const entry = paths.get(path) ?? {
+      before: delta.before,
+      after: delta.after,
+      phases: new Set<ChangePhase>(),
+    };
     entry.after = delta.after;
     if (phase) entry.phases.add(phase);
-    else entry.phases = new Set(entry.phases.has('installation') ? ['installation'] : []);
+    else
+      entry.phases = new Set(
+        entry.phases.has("installation") ? ["installation"] : [],
+      );
     paths.set(path, entry);
   };
-  const differs = (delta: Delta) => JSON.stringify(delta.before) !== JSON.stringify(delta.after);
-  for (const [path, delta] of Object.entries(installed)) if (differs(delta)) change(path, delta, 'installation');
+  const differs = (delta: Delta) =>
+    JSON.stringify(delta.before) !== JSON.stringify(delta.after);
+  for (const [path, delta] of Object.entries(installed))
+    if (differs(delta)) change(path, delta, "installation");
   for (const interval of intervals) {
-    if (interval.phase === 'checks') continue;
-    for (const [path, delta] of Object.entries(interval.changes ?? {})) change(path, delta, interval.restoredExact?.[path] ? undefined : interval.phase);
+    if (interval.phase === "checks") continue;
+    for (const [path, delta] of Object.entries(interval.changes ?? {}))
+      change(
+        path,
+        delta,
+        interval.restoredExact?.[path] ? undefined : interval.phase,
+      );
   }
-  return [...paths].filter(([, entry]) => entry.phases.size && differs(entry))
-    .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
-    .map(([path, entry]) => ({ path, phases: changePhases.filter(phase => entry.phases.has(phase)) }));
+  return [...paths]
+    .filter(([, entry]) => entry.phases.size && differs(entry))
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([path, entry]) => ({
+      path,
+      phases: changePhases.filter((phase) => entry.phases.has(phase)),
+    }));
 }
 
 // The execution-evidence slice a completion writes: this run's evidence only.
@@ -326,51 +531,91 @@ function changeSet(installed: Record<string, Delta>, intervals: RecordedInterval
 // installed, and its intervals. Last-complete,
 // installed baselines, skills, checks and assessments stay with their own
 // owners.
-export function completedEvidence(run: { observations: RecordedInterval[]; operations: unknown[]; retryHistory?: unknown[] }, installed: Record<string, Delta>): ExecutionEvidence {
+export function completedEvidence(
+  run: {
+    observations: RecordedInterval[];
+    operations: unknown[];
+    retryHistory?: unknown[];
+  },
+  installed: Record<string, Delta>,
+): ExecutionEvidence {
   return {
     format: formats.state,
     observations: structuredClone(run.observations),
-    operations: structuredClone(run.operations), retryHistory: structuredClone(run.retryHistory ?? []),
+    operations: structuredClone(run.operations),
+    retryHistory: structuredClone(run.retryHistory ?? []),
     changeSet: changeSet(installed, run.observations),
   };
 }
 
 // Status echoes the committed slice.
 export function committedEvidenceReport(state: ExecutionEvidence) {
-  return { observations: state.observations, operations: state.operations, retryHistory: state.retryHistory, changeSet: state.changeSet };
+  return {
+    observations: state.observations,
+    operations: state.operations,
+    retryHistory: state.retryHistory,
+    changeSet: state.changeSet,
+  };
 }
 
 // The recorded guarantee: no interval carries an observation map, and every
 // closed interval carries both identities.
-const observationMaps = ['files', 'boundaries', 'settings', 'ignores'];
+const observationMaps = ["files", "boundaries", "settings", "ignores"];
 export function compactIntervals(observations: unknown[]) {
-  return observations.every(value => {
+  return observations.every((value) => {
     const interval = value as Record<string, unknown> | null;
-    return !!interval && typeof interval === 'object' && typeof interval.before === 'string'
-      && (interval.after === undefined || typeof interval.after === 'string')
-      && !observationMaps.some(key => Object.hasOwn(interval, key));
+    return (
+      !!interval &&
+      typeof interval === "object" &&
+      typeof interval.before === "string" &&
+      (interval.after === undefined || typeof interval.after === "string") &&
+      !observationMaps.some((key) => Object.hasOwn(interval, key))
+    );
   });
 }
 
 // A change set holds one entry per path in path order, each with its phases in
 // phase order.
 function validChangeSet(value: unknown) {
-  return Array.isArray(value) && value.every((entry, index) => {
-    const changed = entry as Partial<ChangedPath> | null;
-    const previous = index ? (value[index - 1] as Partial<ChangedPath> | null)?.path : undefined;
-    return !!changed && typeof changed === 'object' && typeof changed.path === 'string' && changed.path !== ''
-      && (previous === undefined || (typeof previous === 'string' && previous < changed.path))
-      && Array.isArray(changed.phases) && changed.phases.length > 0
-      && changed.phases.every((phase, at) => changePhases.includes(phase)
-        && (at === 0 || changePhases.indexOf(changed.phases![at - 1]!) < changePhases.indexOf(phase)));
-  });
+  return (
+    Array.isArray(value) &&
+    value.every((entry, index) => {
+      const changed = entry as Partial<ChangedPath> | null;
+      const previous = index
+        ? (value[index - 1] as Partial<ChangedPath> | null)?.path
+        : undefined;
+      return (
+        !!changed &&
+        typeof changed === "object" &&
+        typeof changed.path === "string" &&
+        changed.path !== "" &&
+        (previous === undefined ||
+          (typeof previous === "string" && previous < changed.path)) &&
+        Array.isArray(changed.phases) &&
+        changed.phases.length > 0 &&
+        changed.phases.every(
+          (phase, at) =>
+            changePhases.includes(phase) &&
+            (at === 0 ||
+              changePhases.indexOf(changed.phases![at - 1]!) <
+                changePhases.indexOf(phase)),
+        )
+      );
+    })
+  );
 }
 
 // The execution-evidence slice is read in its single committed format only,
 // and holds the current run alone: a carried earlier run fails validation.
 export function validExecutionEvidence(value: ExecutionEvidence) {
   const state = value as unknown as Record<string, unknown>;
-  return state.format === formats.state && !Object.hasOwn(state, 'history')
-    && Array.isArray(state.observations) && Array.isArray(state.operations) && Array.isArray(state.retryHistory)
-    && compactIntervals(state.observations) && validChangeSet(state.changeSet);
+  return (
+    state.format === formats.state &&
+    !Object.hasOwn(state, "history") &&
+    Array.isArray(state.observations) &&
+    Array.isArray(state.operations) &&
+    Array.isArray(state.retryHistory) &&
+    compactIntervals(state.observations) &&
+    validChangeSet(state.changeSet)
+  );
 }

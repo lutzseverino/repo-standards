@@ -74,15 +74,15 @@ The report has format `repo-standards/outdated/v1` and one entry per pin: `cli`,
 which also names the `package`, and `standards`, which also names the source
 `repository`.
 
-| Field | Meaning |
-| --- | --- |
-| `pinned` | The version recorded in the selection, or `null` without a readable selection. |
-| `update` | `available` when a newer stable version exists, `none` when it does not, or `unknown` when the pin could not be answered. |
-| `newest` | The highest stable version published. |
-| `newerStableReleases` | How many stable versions newer than the pin are published, up to and including `newest`. |
-| `checkedAt` | When the answer was looked up. |
-| `cached` | Whether the answer came from the cache instead of a request. |
-| `reason` | For `unknown` only: a stable `code` and a `message`. |
+| Field                 | Meaning                                                                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `pinned`              | The version recorded in the selection, or `null` without a readable selection.                                            |
+| `update`              | `available` when a newer stable version exists, `none` when it does not, or `unknown` when the pin could not be answered. |
+| `newest`              | The highest stable version published.                                                                                     |
+| `newerStableReleases` | How many stable versions newer than the pin are published, up to and including `newest`.                                  |
+| `checkedAt`           | When the answer was looked up.                                                                                            |
+| `cached`              | Whether the answer came from the cache instead of a request.                                                              |
+| `reason`              | For `unknown` only: a stable `code` and a `message`.                                                                      |
 
 ## Degraded results
 
@@ -91,15 +91,15 @@ only a [CLI other than the pin](#pinned-cli) exits 1, and invalid usage exits 2.
 A pin that cannot be answered reports `update: unknown` with a reason, and the
 other pin is still answered:
 
-| Code | Pins | Cause |
-| --- | --- | --- |
-| `NO_SELECTION` | Both | The directory is not a Git working tree or has no `.repo-standards/selection.yaml`. |
-| `INVALID_SELECTION` | Both | The selection cannot be read or does not name a CLI and GitHub source pin. |
-| `REGISTRY_UNAVAILABLE` | CLI | The registry is unreachable, timed out, or returned an error or no version list. |
-| `SOURCE_UNAVAILABLE` | Standards | GitHub is unreachable, timed out, or returned an error or no release list. |
-| `QUOTA_EXHAUSTED` | Standards | GitHub reports its API quota exhausted. Retry later or provide a token. |
-| `NO_STABLE_RELEASE` | Either | The lookup found no stable version. |
-| `LOOKUP_FAILED` | Either | The lookup failed unexpectedly. |
+| Code                   | Pins      | Cause                                                                               |
+| ---------------------- | --------- | ----------------------------------------------------------------------------------- |
+| `NO_SELECTION`         | Both      | The directory is not a Git working tree or has no `.repo-standards/selection.yaml`. |
+| `INVALID_SELECTION`    | Both      | The selection cannot be read or does not name a CLI and GitHub source pin.          |
+| `REGISTRY_UNAVAILABLE` | CLI       | The registry is unreachable, timed out, or returned an error or no version list.    |
+| `SOURCE_UNAVAILABLE`   | Standards | GitHub is unreachable, timed out, or returned an error or no release list.          |
+| `QUOTA_EXHAUSTED`      | Standards | GitHub reports its API quota exhausted. Retry later or provide a token.             |
+| `NO_STABLE_RELEASE`    | Either    | The lookup found no stable version.                                                 |
+| `LOOKUP_FAILED`        | Either    | The lookup failed unexpectedly.                                                     |
 
 ## Cache
 

@@ -41,14 +41,14 @@ The root requires exactly these fields. Unknown fields at every schema level
 are errors, including adoption hooks, environment overrides, shell options,
 custom working directories, and profile inheritance fields.
 
-| Field | Value |
-| --- | --- |
-| `format` | `repo-standards/v2` |
-| `name` | Nonempty descriptive string |
-| `description` | Nonempty descriptive string |
-| `requires` | Mapping containing only `repo-standards`, a nonempty npm SemVer range compatible with the running CLI; declare an open-ended minimum such as `>=1.3.0` |
-| `defaults` | Mapping containing only `declarations`, a mapping of IDs to declarations (possibly empty) |
-| `profiles` | Nonempty mapping of profile names to complete profiles |
+| Field         | Value                                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `format`      | `repo-standards/v2`                                                                                                                                    |
+| `name`        | Nonempty descriptive string                                                                                                                            |
+| `description` | Nonempty descriptive string                                                                                                                            |
+| `requires`    | Mapping containing only `repo-standards`, a nonempty npm SemVer range compatible with the running CLI; declare an open-ended minimum such as `>=1.3.0` |
+| `defaults`    | Mapping containing only `declarations`, a mapping of IDs to declarations (possibly empty)                                                              |
+| `profiles`    | Nonempty mapping of profile names to complete profiles                                                                                                 |
 
 Each profile requires a nonempty `description` and a `declarations` mapping,
 which may be empty. Declaration IDs, skill names, and operation IDs use
@@ -80,11 +80,11 @@ their alternative values are still validated for independent errors; more than
 All four forms may contain optional `checks` and `fixes` lists. Omitted lists
 resolve to empty lists. Their remaining fields are:
 
-| Form | Required fields |
-| --- | --- |
-| Exact file | `kind: file`, one `target`, and `exact` referencing a regular source file |
-| Contextual file | `kind: file`, one `target`, and `guidance` referencing a regular source file |
-| Exact skill | `kind: skill`, `name`, and `source` referencing a whole directory containing a regular `SKILL.md` |
+| Form                | Required fields                                                                                                                                                                                      |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Exact file          | `kind: file`, one `target`, and `exact` referencing a regular source file                                                                                                                            |
+| Contextual file     | `kind: file`, one `target`, and `guidance` referencing a regular source file                                                                                                                         |
+| Exact skill         | `kind: skill`, `name`, and `source` referencing a whole directory containing a regular `SKILL.md`                                                                                                    |
 | Repository guidance | `kind: repository`, `guidance` referencing a regular file, and exactly one scope mode: explicit `targets` containing both `paths` and `directories` lists, or `discovery` referencing a regular file |
 
 A file must have exactly one of `exact` or `guidance`. Repository guidance
@@ -126,7 +126,7 @@ defaults and skills in unselected profiles. A disagreement produces
 format: repo-standards/v2
 name: project-documentation
 description: Documentation for maintained projects
-requires: {repo-standards: "<validated CLI SemVer range>"}
+requires: { repo-standards: "<validated CLI SemVer range>" }
 defaults:
   declarations:
     project-documentation:
@@ -275,33 +275,33 @@ fields point to their containing mapping; unreadable root documents use 1:1
 and an empty path. Independent errors are collected across all profiles;
 structurally invalid YAML may limit what can be determined.
 
-| Code | Meaning |
-| --- | --- |
-| `SOURCE_READ` | Source document or referenced material cannot be read |
-| `YAML_SYNTAX` | Invalid YAML, unsupported tag, or multiple documents |
-| `YAML_STRUCTURE` | Unresolved/recursive alias or YAML expansion/depth limit |
-| `DUPLICATE_IDENTITY` | Duplicate YAML key or operation ID |
-| `UNKNOWN_FIELD` | Field outside the author schema |
-| `REQUIRED_FIELD` | Required field omitted |
-| `INVALID_TYPE` | Wrong mapping, list, scalar, or string type |
-| `INVALID_FORMAT` | Format identity other than `repo-standards/v2` |
-| `INVALID_VERSION` | Malformed SemVer range |
-| `INCOMPATIBLE_CLI` | Running CLI does not satisfy the source range; the message recommends an open-ended minimum |
-| `EMPTY_PROFILES` | No complete named profile |
-| `INVALID_ID` | Declaration, skill, or operation identity is malformed |
-| `INVALID_DECLARATION` | Unknown kind, file without exactly one content mode, or repository guidance without exactly one scope mode |
+| Code                        | Meaning                                                                                                       |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `SOURCE_READ`               | Source document or referenced material cannot be read                                                         |
+| `YAML_SYNTAX`               | Invalid YAML, unsupported tag, or multiple documents                                                          |
+| `YAML_STRUCTURE`            | Unresolved/recursive alias or YAML expansion/depth limit                                                      |
+| `DUPLICATE_IDENTITY`        | Duplicate YAML key or operation ID                                                                            |
+| `UNKNOWN_FIELD`             | Field outside the author schema                                                                               |
+| `REQUIRED_FIELD`            | Required field omitted                                                                                        |
+| `INVALID_TYPE`              | Wrong mapping, list, scalar, or string type                                                                   |
+| `INVALID_FORMAT`            | Format identity other than `repo-standards/v2`                                                                |
+| `INVALID_VERSION`           | Malformed SemVer range                                                                                        |
+| `INCOMPATIBLE_CLI`          | Running CLI does not satisfy the source range; the message recommends an open-ended minimum                   |
+| `EMPTY_PROFILES`            | No complete named profile                                                                                     |
+| `INVALID_ID`                | Declaration, skill, or operation identity is malformed                                                        |
+| `INVALID_DECLARATION`       | Unknown kind, file without exactly one content mode, or repository guidance without exactly one scope mode    |
 | `SKILL_INVOCATION_MISMATCH` | Skill's Claude Code and Codex invocation settings disagree; message names the skill and both effective values |
-| `INVALID_EXCLUSION` | Invalid exclusion value, level, or default identity |
-| `INVALID_EXECUTABLE` | Executable violates the documented name/path syntax |
-| `INVALID_TIMEOUT` | Timeout is not a positive safe integer |
-| `EMPTY_TARGETS` | Repository guidance has no targets |
-| `UNSAFE_PATH` | Path can escape its root or uses unsupported path syntax |
-| `MISSING_REFERENCE` | Referenced file or directory does not exist |
-| `REFERENCE_TYPE` | Referenced entry has the wrong filesystem type |
-| `SOURCE_SYMLINK` | Source document or selected material contains a symlink |
-| `RESERVED_NAME` | An author tries to supply a product-owned system skill |
-| `RESERVED_TARGET` | Target overlaps reserved storage |
-| `TARGET_OVERLAP` | Two resolved targets overlap, including folded collisions |
+| `INVALID_EXCLUSION`         | Invalid exclusion value, level, or default identity                                                           |
+| `INVALID_EXECUTABLE`        | Executable violates the documented name/path syntax                                                           |
+| `INVALID_TIMEOUT`           | Timeout is not a positive safe integer                                                                        |
+| `EMPTY_TARGETS`             | Repository guidance has no targets                                                                            |
+| `UNSAFE_PATH`               | Path can escape its root or uses unsupported path syntax                                                      |
+| `MISSING_REFERENCE`         | Referenced file or directory does not exist                                                                   |
+| `REFERENCE_TYPE`            | Referenced entry has the wrong filesystem type                                                                |
+| `SOURCE_SYMLINK`            | Source document or selected material contains a symlink                                                       |
+| `RESERVED_NAME`             | An author tries to supply a product-owned system skill                                                        |
+| `RESERVED_TARGET`           | Target overlaps reserved storage                                                                              |
+| `TARGET_OVERLAP`            | Two resolved targets overlap, including folded collisions                                                     |
 
 ## Alice's complete example
 

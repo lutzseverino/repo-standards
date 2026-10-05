@@ -42,13 +42,24 @@ With `--json`, `check` prints one `repo-standards/check/v1` object:
   "format": "repo-standards/check/v1",
   "outcome": "failed",
   "selection": {
-    "cli": {"package": "@lutzseverino/repo-standards", "version": "5.0.0"},
-    "standards": {"repository": "https://github.com/alice/standards", "version": "v1.0.0", "commit": "40-character-resolved-commit-sha"},
+    "cli": { "package": "@lutzseverino/repo-standards", "version": "5.0.0" },
+    "standards": {
+      "repository": "https://github.com/alice/standards",
+      "version": "v1.0.0",
+      "commit": "40-character-resolved-commit-sha"
+    },
     "profile": "work"
   },
   "checks": [
-    {"declaration": "readme", "id": "headings", "status": "failed", "message": "README.md has no Usage heading.", "error": null,
-     "stdout": ".repo-standards/local/checks/0.stdout", "stderr": ".repo-standards/local/checks/0.stderr"}
+    {
+      "declaration": "readme",
+      "id": "headings",
+      "status": "failed",
+      "message": "README.md has no Usage heading.",
+      "error": null,
+      "stdout": ".repo-standards/local/checks/0.stdout",
+      "stderr": ".repo-standards/local/checks/0.stderr"
+    }
   ]
 }
 ```

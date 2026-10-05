@@ -31,8 +31,10 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "node --test test/*.test.ts",
-    "validate": "pnpm typecheck && pnpm lint && node --experimental-vm-modules --disable-warning=ExperimentalWarning scripts/check-import-cycles.ts && pnpm build && pnpm test",
+    "validate": "pnpm typecheck && pnpm lint && pnpm format:check && node --experimental-vm-modules --disable-warning=ExperimentalWarning scripts/check-import-cycles.ts && pnpm build && pnpm test",
     "prepack": "pnpm build",
     "release:pack": "pnpm build && node scripts/pack-release.ts"
   },
@@ -47,6 +49,7 @@
     "@types/semver": "7.8.0",
     "oxlint": "1.86.0",
     "oxlint-tsgolint": "7.0.2003",
+    "prettier": "3.9.9",
     "typescript": "7.0.2"
   }
 }

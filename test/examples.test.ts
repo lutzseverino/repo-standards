@@ -1,74 +1,165 @@
-import type { Run } from './json-reports.ts';
-import assert from 'node:assert/strict';
-import { after, test } from 'node:test';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { installCli, fixtureFiles } from './installed-cli.ts';
-import { git, startArgs } from './remote-fixture.ts';
-import { adoptionFixture } from './adoption-fixture.ts';
+import type { Run } from "./json-reports.ts";
+import assert from "node:assert/strict";
+import { after, test } from "node:test";
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { installCli, fixtureFiles } from "./installed-cli.ts";
+import { git, startArgs } from "./remote-fixture.ts";
+import { adoptionFixture } from "./adoption-fixture.ts";
 
 // The packaged author examples run their own operations through the installed CLI.
 const cli = installCli();
 after(() => cli.close());
 
-test('Alice author example checks actual README headings through installed adoption', async t => {
-  const files = fixtureFiles('examples/alice');
-  const f = await adoptionFixture(t, cli, files['standards.yaml']!, { files, project: { 'README.md': '# Bob\nA delivery queue.\n', 'CONTRIBUTING.md': 'Employer review policy\n' } });
+test("Alice author example checks actual README headings through installed adoption", async (t) => {
+  const files = fixtureFiles("examples/alice");
+  const f = await adoptionFixture(t, cli, files["standards.yaml"]!, {
+    files,
+    project: {
+      "README.md": "# Bob\nA delivery queue.\n",
+      "CONTRIBUTING.md": "Employer review policy\n",
+    },
+  });
   const { remote, project, env } = f;
-  const head = git(project.root, 'rev-parse', 'HEAD');
+  const head = git(project.root, "rev-parse", "HEAD");
   const started = f.run(startArgs(f.inspect().identity));
-  assert.equal((JSON.parse(started.stdout) as Run).phase, 'contextual', started.stdout);
+  assert.equal(
+    (JSON.parse(started.stdout) as Run).phase,
+    "contextual",
+    started.stdout,
+  );
   const assessment = () => ({
-    format: 'repo-standards/assessment/v3',
+    format: "repo-standards/assessment/v3",
     declarations: [
-      { id: 'readme', status: 'satisfied', explanation: 'Scripted protocol exercise.', evidence: ['README reviewed for this deterministic check exercise.'] },
-      { id: 'source-layout', status: 'satisfied', explanation: 'No source changes needed in this minimal fixture.', evidence: ['The fixture has no source tree.'] },
+      {
+        id: "readme",
+        status: "satisfied",
+        explanation: "Scripted protocol exercise.",
+        evidence: ["README reviewed for this deterministic check exercise."],
+      },
+      {
+        id: "source-layout",
+        status: "satisfied",
+        explanation: "No source changes needed in this minimal fixture.",
+        evidence: ["The fixture has no source tree."],
+      },
     ],
   });
-  const submission = join(remote.support.root, 'assessment.json');
+  const submission = join(remote.support.root, "assessment.json");
   writeFileSync(submission, JSON.stringify(assessment()));
-  const failed = cli.run(['resume', '--assessment', submission, '--json'], project.root, env);
-  const report = (JSON.parse(failed.stdout) as Run);
+  const failed = cli.run(
+    ["resume", "--assessment", submission, "--json"],
+    project.root,
+    env,
+  );
+  const report = JSON.parse(failed.stdout) as Run;
   assert.equal(failed.status, 1, failed.stdout);
   assert.match(report.reason, /CHECKS_FAILED/);
-  assert.equal(report.operations.at(-1)!.result!.status, 'failed');
+  assert.equal(report.operations.at(-1)!.result!.status, "failed");
 
-  writeFileSync(join(project.root, 'README.md'), '# Bob\nA delivery queue.\n## Setup\nUse Node.js 24.\n## Usage\nRun the worker.\n## Development\nRun the queue tests.\n');
-  cli.run(['resume', '--json'], project.root, env);
+  writeFileSync(
+    join(project.root, "README.md"),
+    "# Bob\nA delivery queue.\n## Setup\nUse Node.js 24.\n## Usage\nRun the worker.\n## Development\nRun the queue tests.\n",
+  );
+  cli.run(["resume", "--json"], project.root, env);
   writeFileSync(submission, JSON.stringify(assessment()));
-  const completed = cli.run(['resume', '--assessment', submission, '--json'], project.root, env);
+  const completed = cli.run(
+    ["resume", "--assessment", submission, "--json"],
+    project.root,
+    env,
+  );
   assert.equal(completed.status, 0, completed.stdout + completed.stderr);
-  assert.equal((JSON.parse(completed.stdout) as Run).operations.at(-1)!.result!.status, 'passed');
-  assert.equal(readFileSync(join(project.root, 'CONTRIBUTING.md'), 'utf8'), 'Employer review policy\n');
-  assert.equal(git(project.root, 'rev-parse', 'HEAD'), head);
-  assert.notEqual(git(project.root, 'status', '--porcelain'), '');
+  assert.equal(
+    (JSON.parse(completed.stdout) as Run).operations.at(-1)!.result!.status,
+    "passed",
+  );
+  assert.equal(
+    readFileSync(join(project.root, "CONTRIBUTING.md"), "utf8"),
+    "Employer review policy\n",
+  );
+  assert.equal(git(project.root, "rev-parse", "HEAD"), head);
+  assert.notEqual(git(project.root, "status", "--porcelain"), "");
 });
 
-test('Mira service source retains check resources and preserves fix output on explicit retry', async t => {
-  const files = fixtureFiles('examples/mira');
-  const f = await adoptionFixture(t, cli, files['standards.yaml']!, { files, repository: 'mira/standards', project: fixtureFiles('acceptance/projects/harbor') });
+test("Mira service source retains check resources and preserves fix output on explicit retry", async (t) => {
+  const files = fixtureFiles("examples/mira");
+  const f = await adoptionFixture(t, cli, files["standards.yaml"]!, {
+    files,
+    repository: "mira/standards",
+    project: fixtureFiles("acceptance/projects/harbor"),
+  });
   const { remote, project, env } = f;
-  const args = ['inspect', '--source', 'https://github.com/mira/standards', '--standards-version', 'v1.0.0', '--profile', 'service', '--json'];
-  const started = (JSON.parse(f.run(startArgs(f.inspect(args).identity, args)).stdout) as Run);
-  assert.equal(started.phase, 'contextual');
-  assert.equal(started.operations[0]!.result!.status, 'changed');
-  const retry = (JSON.parse(cli.run(['resume', '--retry', '--json'], project.root, env).stdout) as Run);
-  assert.equal(retry.phase, 'contextual');
-  assert.equal(retry.operations.at(-1)!.result!.status, 'unchanged');
-  assert.equal(readFileSync(join(project.root, 'docs/operating-status.json'), 'utf8'), '{\n  "status": "unverified"\n}\n');
-  writeFileSync(join(project.root, 'docs/operations.md'), '# Harbor\n## Startup\nStart the service.\n## Health\nProbe loopback.\n## Recovery\nRestart loses in-memory state.\n');
-  cli.run(['resume', '--json'], project.root, env);
-  const assessment = join(remote.support.root, 'assessment.json');
-  writeFileSync(assessment, JSON.stringify({ format: 'repo-standards/assessment/v3',
-    declarations: [{ id: 'operations-guide', status: 'satisfied', explanation: 'Scripted structural test.',
-      evidence: ['Startup, Health and Recovery sections present.'] }] }));
-  const result = cli.run(['resume', '--assessment', assessment, '--json'], project.root, env);
+  const args = [
+    "inspect",
+    "--source",
+    "https://github.com/mira/standards",
+    "--standards-version",
+    "v1.0.0",
+    "--profile",
+    "service",
+    "--json",
+  ];
+  const started = JSON.parse(
+    f.run(startArgs(f.inspect(args).identity, args)).stdout,
+  ) as Run;
+  assert.equal(started.phase, "contextual");
+  assert.equal(started.operations[0]!.result!.status, "changed");
+  const retry = JSON.parse(
+    cli.run(["resume", "--retry", "--json"], project.root, env).stdout,
+  ) as Run;
+  assert.equal(retry.phase, "contextual");
+  assert.equal(retry.operations.at(-1)!.result!.status, "unchanged");
+  assert.equal(
+    readFileSync(join(project.root, "docs/operating-status.json"), "utf8"),
+    '{\n  "status": "unverified"\n}\n',
+  );
+  writeFileSync(
+    join(project.root, "docs/operations.md"),
+    "# Harbor\n## Startup\nStart the service.\n## Health\nProbe loopback.\n## Recovery\nRestart loses in-memory state.\n",
+  );
+  cli.run(["resume", "--json"], project.root, env);
+  const assessment = join(remote.support.root, "assessment.json");
+  writeFileSync(
+    assessment,
+    JSON.stringify({
+      format: "repo-standards/assessment/v3",
+      declarations: [
+        {
+          id: "operations-guide",
+          status: "satisfied",
+          explanation: "Scripted structural test.",
+          evidence: ["Startup, Health and Recovery sections present."],
+        },
+      ],
+    }),
+  );
+  const result = cli.run(
+    ["resume", "--assessment", assessment, "--json"],
+    project.root,
+    env,
+  );
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal((JSON.parse(result.stdout) as Run).operations.at(-1)!.result!.status, 'passed');
-  const packageRoot = join(project.root, '.repo-standards/runtime/node_modules/@lutzseverino/repo-standards');
-  for (const path of ['docs/usage/authoring.md', 'docs/usage/assessment-protocol.md', 'docs/usage/adoption.md', 'examples/mira/standards.yaml']) {
-    assert.ok(readFileSync(join(packageRoot, path), 'utf8').length);
+  assert.equal(
+    (JSON.parse(result.stdout) as Run).operations.at(-1)!.result!.status,
+    "passed",
+  );
+  const packageRoot = join(
+    project.root,
+    ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards",
+  );
+  for (const path of [
+    "docs/usage/authoring.md",
+    "docs/usage/assessment-protocol.md",
+    "docs/usage/adoption.md",
+    "examples/mira/standards.yaml",
+  ]) {
+    assert.ok(readFileSync(join(packageRoot, path), "utf8").length);
   }
-  assert.equal(readFileSync(join(project.root, '.agents/skills/adopt-standards/SKILL.md'), 'utf8'),
-    readFileSync(join(packageRoot, 'skills/adopt-standards/SKILL.md'), 'utf8'));
+  assert.equal(
+    readFileSync(
+      join(project.root, ".agents/skills/adopt-standards/SKILL.md"),
+      "utf8",
+    ),
+    readFileSync(join(packageRoot, "skills/adopt-standards/SKILL.md"), "utf8"),
+  );
 });

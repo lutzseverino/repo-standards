@@ -1,24 +1,49 @@
-import type { PackageManifest } from './json-reports.ts';
-import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
-import { test } from 'node:test';
-import type { TestContext } from 'node:test';
+import type { PackageManifest } from "./json-reports.ts";
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { test } from "node:test";
+import type { TestContext } from "node:test";
 
 // Release status and the public acceptance helpers are maintainer scripts. Their
 // evidence is separate from the public CLI reports.
 interface AcceptanceEvidence {
-  passed: boolean; failure: string; nextAction: string;
-  downloads: { url: string; status: number | null; headers: Record<string, string> }[];
+  passed: boolean;
+  failure: string;
+  nextAction: string;
+  downloads: {
+    url: string;
+    status: number | null;
+    headers: Record<string, string>;
+  }[];
   commands: { status: number; args: string[] }[];
-  propagation: { attempts: { elapsedMs: number; result: string; status: number; version?: string; error?: string }[] };
+  propagation: {
+    attempts: {
+      elapsedMs: number;
+      result: string;
+      status: number;
+      version?: string;
+      error?: string;
+    }[];
+  };
 }
 interface ReleaseStatus {
-  state: string; nextAction: string; failure: string; notes: string;
-  runStatus: string; release: string;
+  state: string;
+  nextAction: string;
+  failure: string;
+  notes: string;
+  runStatus: string;
+  release: string;
   assets: { matched: string[]; missing: string[] };
 }
 
@@ -26,49 +51,79 @@ interface ReleaseStatus {
 // where a test depends on time, the clock.
 // These simulations are never public-acquisition or publication evidence.
 function fixture(t: TestContext) {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-maintainer-')));
+  const root = realpathSync(
+    mkdtempSync(join(tmpdir(), "repo-standards-maintainer-")),
+  );
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  const bin = join(root, 'bin');
+  const bin = join(root, "bin");
   mkdirSync(bin);
   function executable(name: string, body: string) {
-    writeFileSync(join(bin, name), `#!${process.execPath}\n${body}`, { mode: 0o755 });
+    writeFileSync(join(bin, name), `#!${process.execPath}\n${body}`, {
+      mode: 0o755,
+    });
   }
-  executable('npm', `if (process.argv[2] !== '--version') process.exit(77); console.log('11.19.0');`);
-  executable('git', `console.log(process.argv[2] === '--version' ? 'git version 2.50.0' : '${'a'.repeat(40)}\\trefs/tags/v1.1.0');`);
-  const preload = join(root, 'http.mjs');
-  const evidence = join(root, 'evidence.json');
-  return { root, executable, preload, evidence,
-    run(script: string, args: string[] = ['1.1.0', evidence]) {
-      const env: NodeJS.ProcessEnv = { ...process.env, PATH: bin, TMPDIR: root };
+  executable(
+    "npm",
+    `if (process.argv[2] !== '--version') process.exit(77); console.log('11.19.0');`,
+  );
+  executable(
+    "git",
+    `console.log(process.argv[2] === '--version' ? 'git version 2.50.0' : '${"a".repeat(40)}\\trefs/tags/v1.1.0');`,
+  );
+  const preload = join(root, "http.mjs");
+  const evidence = join(root, "evidence.json");
+  return {
+    root,
+    executable,
+    preload,
+    evidence,
+    run(script: string, args: string[] = ["1.1.0", evidence]) {
+      const env: NodeJS.ProcessEnv = {
+        ...process.env,
+        PATH: bin,
+        TMPDIR: root,
+      };
       delete env.NODE_OPTIONS;
-      return spawnSync(process.execPath, ['--import', preload, resolve(script), ...args],
-        { env, encoding: 'utf8', timeout: 20_000 });
+      return spawnSync(
+        process.execPath,
+        ["--import", preload, resolve(script), ...args],
+        { env, encoding: "utf8", timeout: 20_000 },
+      );
     },
   };
 }
 
-test('public author acquisition retains quota diagnostics and a recovery action without the response body', t => {
+test("public author acquisition retains quota diagnostics and a recovery action without the response body", (t) => {
   const f = fixture(t);
-  writeFileSync(f.preload, `globalThis.fetch = async () => new Response('PRIVATE_RESPONSE_BODY', {
+  writeFileSync(
+    f.preload,
+    `globalThis.fetch = async () => new Response('PRIVATE_RESPONSE_BODY', {
     status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': '1789232918',
-      'x-github-request-id': 'example-request', 'set-cookie': 'PRIVATE_COOKIE' } });`);
-  const result = f.run('acceptance/prepare-author.ts');
+      'x-github-request-id': 'example-request', 'set-cookie': 'PRIVATE_COOKIE' } });`,
+  );
+  const result = f.run("acceptance/prepare-author.ts");
   assert.equal(result.status, 1, result.stderr);
-  const bytes = readFileSync(f.evidence, 'utf8');
+  const bytes = readFileSync(f.evidence, "utf8");
   const evidence = JSON.parse(bytes) as AcceptanceEvidence;
   assert.equal(evidence.passed, false);
-  assert.equal(evidence.downloads[0]!.headers['x-ratelimit-remaining'], '0');
+  assert.equal(evidence.downloads[0]!.headers["x-ratelimit-remaining"], "0");
   assert.match(evidence.failure, /HTTP 403/);
   assert.match(evidence.nextAction, /2026-09-12T17:08:38.000Z/);
   assert.match(evidence.nextAction, /prepare-author\.ts/);
-  assert.doesNotMatch(bytes + result.stderr, /PRIVATE_RESPONSE_BODY|PRIVATE_COOKIE/);
+  assert.doesNotMatch(
+    bytes + result.stderr,
+    /PRIVATE_RESPONSE_BODY|PRIVATE_COOKIE/,
+  );
 });
 
-test('public author acquisition retains the failed URL when no HTTP response arrives', t => {
+test("public author acquisition retains the failed URL when no HTTP response arrives", (t) => {
   const f = fixture(t);
-  writeFileSync(f.preload, `globalThis.fetch = async () => { throw new Error('PRIVATE_TRANSPORT_DETAIL'); };`);
-  assert.equal(f.run('acceptance/prepare-author.ts').status, 1);
-  const bytes = readFileSync(f.evidence, 'utf8');
+  writeFileSync(
+    f.preload,
+    `globalThis.fetch = async () => { throw new Error('PRIVATE_TRANSPORT_DETAIL'); };`,
+  );
+  assert.equal(f.run("acceptance/prepare-author.ts").status, 1);
+  const bytes = readFileSync(f.evidence, "utf8");
   const evidence = JSON.parse(bytes) as AcceptanceEvidence;
   assert.equal(evidence.downloads[0]!.status, null);
   assert.match(evidence.downloads[0]!.url, /releases\/tags\/v1\.1\.0$/);
@@ -76,26 +131,34 @@ test('public author acquisition retains the failed URL when no HTTP response arr
   assert.doesNotMatch(bytes, /PRIVATE_TRANSPORT_DETAIL/);
 });
 
-test('public author acquisition does not classify an unexplained HTTP 403 as quota exhaustion', t => {
+test("public author acquisition does not classify an unexplained HTTP 403 as quota exhaustion", (t) => {
   const f = fixture(t);
-  writeFileSync(f.preload, `globalThis.fetch = async () => new Response('Unavailable', { status: 403 });`);
-  assert.equal(f.run('acceptance/prepare-author.ts').status, 1);
-  const evidence = JSON.parse(readFileSync(f.evidence, 'utf8')) as AcceptanceEvidence;
+  writeFileSync(
+    f.preload,
+    `globalThis.fetch = async () => new Response('Unavailable', { status: 403 });`,
+  );
+  assert.equal(f.run("acceptance/prepare-author.ts").status, 1);
+  const evidence = JSON.parse(
+    readFileSync(f.evidence, "utf8"),
+  ) as AcceptanceEvidence;
   assert.match(evidence.failure, /HTTP 403/);
   assert.doesNotMatch(evidence.nextAction, /quota exhausted|Wait until/);
 });
 
 for (const status of [403, 429]) {
-  test(`public author acquisition honors Retry-After on HTTP ${status} without primary quota headers`, t => {
+  test(`public author acquisition honors Retry-After on HTTP ${status} without primary quota headers`, (t) => {
     const f = fixture(t);
-    writeFileSync(f.preload, `Date.now = () => 1789232918000;
+    writeFileSync(
+      f.preload,
+      `Date.now = () => 1789232918000;
       globalThis.fetch = async () => new Response('PRIVATE_RESPONSE_BODY', {
-        status: ${status}, headers: { 'retry-after': '120' } });`);
-    assert.equal(f.run('acceptance/prepare-author.ts').status, 1);
-    const bytes = readFileSync(f.evidence, 'utf8');
+        status: ${status}, headers: { 'retry-after': '120' } });`,
+    );
+    assert.equal(f.run("acceptance/prepare-author.ts").status, 1);
+    const bytes = readFileSync(f.evidence, "utf8");
     const evidence = JSON.parse(bytes) as AcceptanceEvidence;
     assert.equal(evidence.downloads.length, 1);
-    assert.equal(evidence.downloads[0]!.headers['retry-after'], '120');
+    assert.equal(evidence.downloads[0]!.headers["retry-after"], "120");
     assert.match(evidence.nextAction, /Wait until 2026-09-12T17:10:38.000Z/);
     assert.match(evidence.nextAction, /prepare-author\.ts.*\.retry-/);
     assert.doesNotMatch(bytes, /PRIVATE_RESPONSE_BODY/);
@@ -103,66 +166,150 @@ for (const status of [403, 429]) {
 }
 
 for (const [name, headers, expected] of [
-  ['HTTP date', { 'retry-after': 'Sat, 12 Sep 2026 17:10:38 GMT' }, '2026-09-12T17:10:38.000Z'],
-  ['longer Retry-After', { 'retry-after': '120', 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': '1789232978' }, '2026-09-12T17:10:38.000Z'],
-  ['longer primary reset', { 'retry-after': '30', 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': '1789232978' }, '2026-09-12T17:09:38.000Z'],
-  ['invalid Retry-After with primary reset', { 'retry-after': 'invalid', 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': '1789232978' }, '2026-09-12T17:09:38.000Z'],
+  [
+    "HTTP date",
+    { "retry-after": "Sat, 12 Sep 2026 17:10:38 GMT" },
+    "2026-09-12T17:10:38.000Z",
+  ],
+  [
+    "longer Retry-After",
+    {
+      "retry-after": "120",
+      "x-ratelimit-remaining": "0",
+      "x-ratelimit-reset": "1789232978",
+    },
+    "2026-09-12T17:10:38.000Z",
+  ],
+  [
+    "longer primary reset",
+    {
+      "retry-after": "30",
+      "x-ratelimit-remaining": "0",
+      "x-ratelimit-reset": "1789232978",
+    },
+    "2026-09-12T17:09:38.000Z",
+  ],
+  [
+    "invalid Retry-After with primary reset",
+    {
+      "retry-after": "invalid",
+      "x-ratelimit-remaining": "0",
+      "x-ratelimit-reset": "1789232978",
+    },
+    "2026-09-12T17:09:38.000Z",
+  ],
 ] as const) {
-  test(`public author acquisition respects ${name}`, t => {
+  test(`public author acquisition respects ${name}`, (t) => {
     const f = fixture(t);
-    writeFileSync(f.preload, `Date.now = () => 1789232918000;
-      globalThis.fetch = async () => new Response('', { status: 429, headers: ${JSON.stringify(headers)} });`);
-    assert.equal(f.run('acceptance/prepare-author.ts').status, 1);
-    const evidence = JSON.parse(readFileSync(f.evidence, 'utf8')) as AcceptanceEvidence;
-    assert.ok(evidence.nextAction.includes('Wait until ' + expected), evidence.nextAction);
+    writeFileSync(
+      f.preload,
+      `Date.now = () => 1789232918000;
+      globalThis.fetch = async () => new Response('', { status: 429, headers: ${JSON.stringify(headers)} });`,
+    );
+    assert.equal(f.run("acceptance/prepare-author.ts").status, 1);
+    const evidence = JSON.parse(
+      readFileSync(f.evidence, "utf8"),
+    ) as AcceptanceEvidence;
+    assert.ok(
+      evidence.nextAction.includes("Wait until " + expected),
+      evidence.nextAction,
+    );
     assert.equal(evidence.downloads.length, 1);
   });
 }
 
-for (const retryAfter of ['invalid', '-1', '999999999999999999999', 'Sat, 99 Sep 2026 17:10:38 GMT',
-  'Sat, 31 Feb 2026 17:10:38 GMT', 'Sun, 12 Sep 2026 17:10:38 GMT', 'Sun, 12 Sep 2026 24:00:00 GMT']) {
-  test(`public author acquisition retains invalid Retry-After ${retryAfter} without inventing a delay`, t => {
+for (const retryAfter of [
+  "invalid",
+  "-1",
+  "999999999999999999999",
+  "Sat, 99 Sep 2026 17:10:38 GMT",
+  "Sat, 31 Feb 2026 17:10:38 GMT",
+  "Sun, 12 Sep 2026 17:10:38 GMT",
+  "Sun, 12 Sep 2026 24:00:00 GMT",
+]) {
+  test(`public author acquisition retains invalid Retry-After ${retryAfter} without inventing a delay`, (t) => {
     const f = fixture(t);
-    writeFileSync(f.preload, `globalThis.fetch = async () => new Response('', {
-      status: 429, headers: { 'retry-after': ${JSON.stringify(retryAfter)} } });`);
-    assert.equal(f.run('acceptance/prepare-author.ts').status, 1);
-    const evidence = JSON.parse(readFileSync(f.evidence, 'utf8')) as AcceptanceEvidence;
-    assert.equal(evidence.downloads[0]!.headers['retry-after'], retryAfter);
+    writeFileSync(
+      f.preload,
+      `globalThis.fetch = async () => new Response('', {
+      status: 429, headers: { 'retry-after': ${JSON.stringify(retryAfter)} } });`,
+    );
+    assert.equal(f.run("acceptance/prepare-author.ts").status, 1);
+    const evidence = JSON.parse(
+      readFileSync(f.evidence, "utf8"),
+    ) as AcceptanceEvidence;
+    assert.equal(evidence.downloads[0]!.headers["retry-after"], retryAfter);
     assert.match(evidence.failure, /HTTP 429/);
     assert.doesNotMatch(evidence.nextAction, /Wait until|quota exhausted/);
   });
 }
 
-function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismatch'; tag?: 'mismatch' | 'absent'; github?: 'published' | 'unavailable' | 'partial' | 'draft' | 'draft-partial'; draftTarget?: string; damagedAsset?: boolean; assetUnavailable?: boolean; draftListed?: boolean; noPushAccess?: boolean; duplicateDraft?: boolean; runStatus?: string; notes?: 'absent' | 'empty' | 'unnamed'; draftBody?: string } = {}) {
+function releaseFixture(
+  t: TestContext,
+  options: {
+    registry?: "absent" | "mismatch";
+    tag?: "mismatch" | "absent";
+    github?:
+      "published" | "unavailable" | "partial" | "draft" | "draft-partial";
+    draftTarget?: string;
+    damagedAsset?: boolean;
+    assetUnavailable?: boolean;
+    draftListed?: boolean;
+    noPushAccess?: boolean;
+    duplicateDraft?: boolean;
+    runStatus?: string;
+    notes?: "absent" | "empty" | "unnamed";
+    draftBody?: string;
+  } = {},
+) {
   const f = fixture(t);
-  const original = join(f.root, 'original');
+  const original = join(f.root, "original");
   mkdirSync(original);
-  const tarball = 'lutzseverino-repo-standards-1.1.0.tgz';
+  const tarball = "lutzseverino-repo-standards-1.1.0.tgz";
   const tarBytes = Buffer.from([0x1f, 0x8b, 0x00, 0xff, 0x80, 0x0a]);
-  const integrity = `sha512-${createHash('sha512').update(tarBytes).digest('base64')}`;
-  const artifacts = [{ file: tarball, bytes: tarBytes }, { file: 'repo-standards-bootstrap', bytes: 'original bootstrap' }]
-    .map(({ file, bytes }) => {
-      writeFileSync(join(original, file), bytes);
-      return { file, sha256: createHash('sha256').update(bytes).digest('hex') };
-    });
-  writeFileSync(join(original, 'release.json'), JSON.stringify({ package: '@lutzseverino/repo-standards', version: '1.1.0', tarball, integrity, artifacts }));
-  writeFileSync(join(original, 'SHA256SUMS'), artifacts.map(a => `${a.sha256}  ${a.file}\n`).join(''));
-  const notes = join(f.root, 'original-notes');
+  const integrity = `sha512-${createHash("sha512").update(tarBytes).digest("base64")}`;
+  const artifacts = [
+    { file: tarball, bytes: tarBytes },
+    { file: "repo-standards-bootstrap", bytes: "original bootstrap" },
+  ].map(({ file, bytes }) => {
+    writeFileSync(join(original, file), bytes);
+    return { file, sha256: createHash("sha256").update(bytes).digest("hex") };
+  });
+  writeFileSync(
+    join(original, "release.json"),
+    JSON.stringify({
+      package: "@lutzseverino/repo-standards",
+      version: "1.1.0",
+      tarball,
+      integrity,
+      artifacts,
+    }),
+  );
+  writeFileSync(
+    join(original, "SHA256SUMS"),
+    artifacts.map((a) => `${a.sha256}  ${a.file}\n`).join(""),
+  );
+  const notes = join(f.root, "original-notes");
   mkdirSync(notes);
-  const suppliedNotes = '## Changes\n\n- Supplied release notes.\n';
-  writeFileSync(join(notes, options.notes === 'unnamed' ? 'notes.md' : 'release-notes.md'), options.notes === 'empty' ? ' \n' : suppliedNotes);
-  f.executable('git', `console.log('feat/reliability');`);
-  f.executable('gh', `
+  const suppliedNotes = "## Changes\n\n- Supplied release notes.\n";
+  writeFileSync(
+    join(notes, options.notes === "unnamed" ? "notes.md" : "release-notes.md"),
+    options.notes === "empty" ? " \n" : suppliedNotes,
+  );
+  f.executable("git", `console.log('feat/reliability');`);
+  f.executable(
+    "gh",
+    `
     const fs = require('node:fs'), path = require('node:path');
     const args = process.argv.slice(2);
-    function release() { return { draft: ${JSON.stringify(options.github?.startsWith('draft') ?? false)}, prerelease: false,
-      target_commitish: ${JSON.stringify(options.draftTarget ?? 'a'.repeat(40))}, tag_name: 'v1.1.0',
+    function release() { return { draft: ${JSON.stringify(options.github?.startsWith("draft") ?? false)}, prerelease: false,
+      target_commitish: ${JSON.stringify(options.draftTarget ?? "a".repeat(40))}, tag_name: 'v1.1.0',
       body: ${JSON.stringify(options.draftBody ?? suppliedNotes.trim())},
       assets: fs.readdirSync(${JSON.stringify(original)}).map((name, id) => ({ name, id: id + 1 }))
-        .filter(asset => !${JSON.stringify(options.github?.includes('partial') ?? false)} || asset.name !== 'repo-standards-bootstrap') }; }
-    fs.appendFileSync(${JSON.stringify(join(f.root, 'commands.jsonl'))}, JSON.stringify(args) + '\\n');
+        .filter(asset => !${JSON.stringify(options.github?.includes("partial") ?? false)} || asset.name !== 'repo-standards-bootstrap') }; }
+    fs.appendFileSync(${JSON.stringify(join(f.root, "commands.jsonl"))}, JSON.stringify(args) + '\\n');
     if (args[0] === 'run' && args[1] === 'download' && args[args.indexOf('--name') + 1] === 'release-notes') {
-      if (${JSON.stringify(options.notes === 'absent')}) { console.error('no valid artifacts found to download'); process.exit(1); }
+      if (${JSON.stringify(options.notes === "absent")}) { console.error('no valid artifacts found to download'); process.exit(1); }
       fs.cpSync(${JSON.stringify(notes)}, args[args.indexOf('--dir') + 1], { recursive: true });
     } else if (args[0] === 'run' && args[1] === 'download') {
       fs.cpSync(${JSON.stringify(original)}, args[args.indexOf('--dir') + 1], { recursive: true });
@@ -170,14 +317,14 @@ function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismat
       const endpoint = args[1];
       if (endpoint.endsWith('/jobs?per_page=100')) console.log(JSON.stringify({ jobs: [
         { name: 'validate (ubuntu-latest)', conclusion: 'success' }, { name: 'validate (macos-latest)', conclusion: 'success' }] }));
-      else if (endpoint.endsWith('/actions/runs/123')) console.log(JSON.stringify({ path: '.github/workflows/release.yml', head_sha: '${'a'.repeat(40)}', status: ${JSON.stringify(options.runStatus ?? 'completed')} }));
-      else if (endpoint.includes('/git/ref/') && ${JSON.stringify(options.tag === 'absent')}) { console.error('gh: Not Found (HTTP 404)'); process.exit(1); }
-      else if (endpoint.includes('/git/ref/')) console.log(JSON.stringify({ object: { type: 'commit', sha: '${(options.tag === 'mismatch' ? 'b' : 'a').repeat(40)}' } }));
+      else if (endpoint.endsWith('/actions/runs/123')) console.log(JSON.stringify({ path: '.github/workflows/release.yml', head_sha: '${"a".repeat(40)}', status: ${JSON.stringify(options.runStatus ?? "completed")} }));
+      else if (endpoint.includes('/git/ref/') && ${JSON.stringify(options.tag === "absent")}) { console.error('gh: Not Found (HTTP 404)'); process.exit(1); }
+      else if (endpoint.includes('/git/ref/')) console.log(JSON.stringify({ object: { type: 'commit', sha: '${(options.tag === "mismatch" ? "b" : "a").repeat(40)}' } }));
       else if (endpoint.includes('/releases/tags/')) {
         if (${JSON.stringify(!!options.draftListed)}) { console.error('gh: Not Found (HTTP 404)'); process.exit(1); }
         if (['published', 'partial', 'draft', 'draft-partial'].includes(${JSON.stringify(options.github)})) console.log(JSON.stringify(release()));
-        else { console.error(${JSON.stringify(options.github === 'unavailable' ? 'gh: Unavailable (HTTP 503)' : 'gh: Not Found (HTTP 404)')}); process.exit(1); }
-      } else if (endpoint.endsWith('/releases?per_page=100')) console.log(JSON.stringify([${options.duplicateDraft ? '[release()], [release()]' : options.draftListed ? '[], [release()]' : '[]'}]));
+        else { console.error(${JSON.stringify(options.github === "unavailable" ? "gh: Unavailable (HTTP 503)" : "gh: Not Found (HTTP 404)")}); process.exit(1); }
+      } else if (endpoint.endsWith('/releases?per_page=100')) console.log(JSON.stringify([${options.duplicateDraft ? "[release()], [release()]" : options.draftListed ? "[], [release()]" : "[]"}]));
       else if (endpoint === 'repos/lutzseverino/repo-standards') console.log(JSON.stringify({ permissions: { push: ${JSON.stringify(!options.noPushAccess)} } }));
       else if (endpoint.includes('/releases/assets/')) {
         if (!args.includes('Accept: application/octet-stream')) process.exit(80);
@@ -186,182 +333,321 @@ function releaseFixture(t: TestContext, options: { registry?: 'absent' | 'mismat
         process.stdout.write(${JSON.stringify(!!options.damagedAsset)} ? Buffer.from('damaged') : fs.readFileSync(path.join(${JSON.stringify(original)}, asset.name)));
       } else process.exit(78);
     } else process.exit(79);
-  `);
-  writeFileSync(f.preload, `import { readFileSync } from 'node:fs';
+  `,
+  );
+  writeFileSync(
+    f.preload,
+    `import { readFileSync } from 'node:fs';
     globalThis.fetch = async url => {
-      if (String(url).startsWith('https://registry.npmjs.org/')) return new Response(JSON.stringify({ dist: { integrity: ${JSON.stringify(options.registry === 'mismatch' ? 'different' : integrity)} } }), { status: ${options.registry === 'absent' ? 404 : 200} });
-      if (!${JSON.stringify(options.github?.startsWith('draft') ?? false)} && String(url).startsWith('https://github.com/lutzseverino/repo-standards/releases/download/v1.1.0/')) return new Response(readFileSync(${JSON.stringify(original)} + '/' + String(url).split('/').at(-1)));
+      if (String(url).startsWith('https://registry.npmjs.org/')) return new Response(JSON.stringify({ dist: { integrity: ${JSON.stringify(options.registry === "mismatch" ? "different" : integrity)} } }), { status: ${options.registry === "absent" ? 404 : 200} });
+      if (!${JSON.stringify(options.github?.startsWith("draft") ?? false)} && String(url).startsWith('https://github.com/lutzseverino/repo-standards/releases/download/v1.1.0/')) return new Response(readFileSync(${JSON.stringify(original)} + '/' + String(url).split('/').at(-1)));
       throw new Error('Unexpected network request');
-    };`);
-  const output = join(f.root, 'status');
-  return { ...f, original, output, runStatus: () => f.run('scripts/release-status.ts', ['123', output]) };
+    };`,
+  );
+  const output = join(f.root, "status");
+  return {
+    ...f,
+    original,
+    output,
+    runStatus: () => f.run("scripts/release-status.ts", ["123", output]),
+  };
 }
 
-test('release status verifies the original bundle and prints the missing GitHub release action without publishing', t => {
+test("release status verifies the original bundle and prints the missing GitHub release action without publishing", (t) => {
   const f = releaseFixture(t);
   const result = f.runStatus();
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
-  assert.equal(report.state, 'github-release-missing');
+  const report = JSON.parse(
+    readFileSync(join(f.output, "status.json"), "utf8"),
+  ) as ReleaseStatus;
+  assert.equal(report.state, "github-release-missing");
   assert.match(report.nextAction, /gh.*release.*create.*v1\.1\.0/);
-  assert.ok(report.nextAction.includes('a'.repeat(40)));
-  assert.ok(report.nextAction.includes(join(f.output, 'bundle')));
+  assert.ok(report.nextAction.includes("a".repeat(40)));
+  assert.ok(report.nextAction.includes(join(f.output, "bundle")));
   assert.doesNotMatch(report.nextAction, /npm.*publish/);
   // The recovered release carries the notes supplied when the release was dispatched.
-  const notes = join(f.output, 'notes', 'release-notes.md');
+  const notes = join(f.output, "notes", "release-notes.md");
   assert.ok(report.nextAction.includes(`'--notes-file' '${notes}'`));
   assert.doesNotMatch(report.nextAction, /'--notes' /);
   assert.equal(report.notes, notes);
-  assert.equal(readFileSync(notes, 'utf8'), '## Changes\n\n- Supplied release notes.\n');
-  const commands = readFileSync(join(f.root, 'commands.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line) as string[]);
-  assert.ok(commands.every(args => args[0] === 'api' || (args[0] === 'run' && args[1] === 'download')));
+  assert.equal(
+    readFileSync(notes, "utf8"),
+    "## Changes\n\n- Supplied release notes.\n",
+  );
+  const commands = readFileSync(join(f.root, "commands.jsonl"), "utf8")
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as string[]);
+  assert.ok(
+    commands.every(
+      (args) =>
+        args[0] === "api" || (args[0] === "run" && args[1] === "download"),
+    ),
+  );
 });
 
-for (const notes of ['absent', 'empty', 'unnamed'] as const) {
-  test(`release status refuses to recreate a release whose supplied notes are ${notes}`, t => {
+for (const notes of ["absent", "empty", "unnamed"] as const) {
+  test(`release status refuses to recreate a release whose supplied notes are ${notes}`, (t) => {
     const f = releaseFixture(t, { notes });
     assert.equal(f.runStatus().status, 1);
-    const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
-    assert.equal(report.state, 'unknown');
+    const report = JSON.parse(
+      readFileSync(join(f.output, "status.json"), "utf8"),
+    ) as ReleaseStatus;
+    assert.equal(report.state, "unknown");
     assert.match(report.failure, /release notes/);
     assert.doesNotMatch(report.nextAction, /'gh'|'npm'/);
   });
 }
 
-for (const runStatus of ['queued', 'in_progress', 'waiting']) {
-  test(`release status reports run status ${runStatus} as in progress with a wait action`, t => {
+for (const runStatus of ["queued", "in_progress", "waiting"]) {
+  test(`release status reports run status ${runStatus} as in progress with a wait action`, (t) => {
     const f = releaseFixture(t, { runStatus });
     const result = f.runStatus();
     assert.equal(result.status, 0, result.stdout + result.stderr);
-    const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
-    assert.equal(report.state, 'in-progress');
+    const report = JSON.parse(
+      readFileSync(join(f.output, "status.json"), "utf8"),
+    ) as ReleaseStatus;
+    assert.equal(report.state, "in-progress");
     assert.equal(report.runStatus, runStatus);
     assert.match(report.nextAction, /'gh' 'run' 'watch' '123'/);
     assert.doesNotMatch(report.nextAction, /'npm'|'release'|'workflow'/);
-    const commands = readFileSync(join(f.root, 'commands.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line) as string[]);
-    assert.deepEqual(commands, [['api', 'repos/lutzseverino/repo-standards/actions/runs/123']]);
+    const commands = readFileSync(join(f.root, "commands.jsonl"), "utf8")
+      .trim()
+      .split("\n")
+      .map((line) => JSON.parse(line) as string[]);
+    assert.deepEqual(commands, [
+      ["api", "repos/lutzseverino/repo-standards/actions/runs/123"],
+    ]);
   });
 }
 
-test('release status verifies published assets before recommending verification-only acceptance', t => {
-  const f = releaseFixture(t, { github: 'published' });
+test("release status verifies published assets before recommending verification-only acceptance", (t) => {
+  const f = releaseFixture(t, { github: "published" });
   const result = f.runStatus();
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
-  assert.equal(report.state, 'published');
+  const report = JSON.parse(
+    readFileSync(join(f.output, "status.json"), "utf8"),
+  ) as ReleaseStatus;
+  assert.equal(report.state, "published");
   assert.match(report.nextAction, /workflow.*run.*release\.yml/);
   assert.match(report.nextAction, /verify_published=true/);
   assert.match(report.nextAction, /feat\/reliability/);
-  assert.deepEqual(report.assets, { matched: ['lutzseverino-repo-standards-1.1.0.tgz', 'repo-standards-bootstrap', 'SHA256SUMS', 'release.json'], missing: [] });
+  assert.deepEqual(report.assets, {
+    matched: [
+      "lutzseverino-repo-standards-1.1.0.tgz",
+      "repo-standards-bootstrap",
+      "SHA256SUMS",
+      "release.json",
+    ],
+    missing: [],
+  });
 });
 
-test('release status recommends only the original tarball when npm confirms the version is absent', t => {
-  const f = releaseFixture(t, { registry: 'absent' });
+test("release status recommends only the original tarball when npm confirms the version is absent", (t) => {
+  const f = releaseFixture(t, { registry: "absent" });
   assert.equal(f.runStatus().status, 0);
-  const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
-  assert.equal(report.state, 'npm-version-missing');
+  const report = JSON.parse(
+    readFileSync(join(f.output, "status.json"), "utf8"),
+  ) as ReleaseStatus;
+  assert.equal(report.state, "npm-version-missing");
   assert.match(report.nextAction, /npm.*publish/);
-  assert.ok(report.nextAction.includes(join(f.output, 'bundle', 'lutzseverino-repo-standards-1.1.0.tgz')));
+  assert.ok(
+    report.nextAction.includes(
+      join(f.output, "bundle", "lutzseverino-repo-standards-1.1.0.tgz"),
+    ),
+  );
   assert.doesNotMatch(report.nextAction, /release:pack|workflow.*run/);
 });
 
-test('release status verifies existing assets and recommends uploading only the missing original asset', t => {
-  const f = releaseFixture(t, { github: 'partial' });
+test("release status verifies existing assets and recommends uploading only the missing original asset", (t) => {
+  const f = releaseFixture(t, { github: "partial" });
   assert.equal(f.runStatus().status, 0);
-  const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
-  assert.equal(report.state, 'github-assets-missing');
+  const report = JSON.parse(
+    readFileSync(join(f.output, "status.json"), "utf8"),
+  ) as ReleaseStatus;
+  assert.equal(report.state, "github-assets-missing");
   assert.match(report.nextAction, /release.*upload/);
-  assert.ok(report.nextAction.includes(join(f.output, 'bundle', 'repo-standards-bootstrap')));
+  assert.ok(
+    report.nextAction.includes(
+      join(f.output, "bundle", "repo-standards-bootstrap"),
+    ),
+  );
   assert.doesNotMatch(report.nextAction, /clobber|\.tgz/);
 });
 
-for (const tag of [undefined, 'absent'] as const) {
-  for (const github of ['draft', 'draft-partial'] as const) {
-    test(`release status recovers ${github} with ${tag ?? 'matching'} tag without mutation`, t => {
-      const f = releaseFixture(t, { github, ...(tag ? { tag } : {}), draftListed: tag === 'absent' });
+for (const tag of [undefined, "absent"] as const) {
+  for (const github of ["draft", "draft-partial"] as const) {
+    test(`release status recovers ${github} with ${tag ?? "matching"} tag without mutation`, (t) => {
+      const f = releaseFixture(t, {
+        github,
+        ...(tag ? { tag } : {}),
+        draftListed: tag === "absent",
+      });
       const result = f.runStatus();
       assert.equal(result.status, 0, result.stdout + result.stderr);
-      const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
-      assert.equal(report.release, 'draft');
+      const report = JSON.parse(
+        readFileSync(join(f.output, "status.json"), "utf8"),
+      ) as ReleaseStatus;
+      assert.equal(report.release, "draft");
       // The draft's notes were retrieved for the body check.
-      assert.equal(report.notes, join(f.output, 'notes', 'release-notes.md'));
-      if (github === 'draft-partial') {
-        assert.equal(report.state, 'github-assets-missing');
+      assert.equal(report.notes, join(f.output, "notes", "release-notes.md"));
+      if (github === "draft-partial") {
+        assert.equal(report.state, "github-assets-missing");
         assert.match(report.nextAction, /release.*upload/);
-        assert.deepEqual(report.assets.missing, ['repo-standards-bootstrap']);
+        assert.deepEqual(report.assets.missing, ["repo-standards-bootstrap"]);
         assert.equal(report.assets.matched.length, 3);
         assert.doesNotMatch(report.nextAction, /clobber|draft=false|\.tgz/);
       } else {
-        assert.equal(report.state, 'github-draft-ready');
+        assert.equal(report.state, "github-draft-ready");
         assert.equal(report.assets.matched.length, 4);
         assert.deepEqual(report.assets.missing, []);
         assert.match(report.nextAction, /release.*edit.*draft=false/);
-        assert.ok(report.nextAction.includes('a'.repeat(40)));
+        assert.ok(report.nextAction.includes("a".repeat(40)));
       }
       assert.doesNotMatch(report.nextAction, /npm.*publish|workflow.*run/);
-      const commands = readFileSync(join(f.root, 'commands.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line) as string[]);
-      assert.ok(commands.every(args => args[0] === 'api' || (args[0] === 'run' && args[1] === 'download')));
-      assert.ok(commands.some(args => args.includes('Accept: application/octet-stream')));
+      const commands = readFileSync(join(f.root, "commands.jsonl"), "utf8")
+        .trim()
+        .split("\n")
+        .map((line) => JSON.parse(line) as string[]);
+      assert.ok(
+        commands.every(
+          (args) =>
+            args[0] === "api" || (args[0] === "run" && args[1] === "download"),
+        ),
+      );
+      assert.ok(
+        commands.some((args) =>
+          args.includes("Accept: application/octet-stream"),
+        ),
+      );
     });
   }
 }
 
 for (const [name, options, failure] of [
-  ['mismatched tag', { tag: 'mismatch' }, /Release tag differs from the original validated commit/],
-  ['unestablished target', { tag: 'absent', draftTarget: 'main' }, /must target the exact original validated commit/],
-  ['mismatched target', { tag: 'absent', draftTarget: 'b'.repeat(40) }, /must target the exact original validated commit/],
-  ['mismatched asset', { damagedAsset: true }, /Release asset differs from original bundle/],
-  ['unavailable asset', { assetUnavailable: true }, /Cannot inspect GitHub/],
-  ['insufficient draft access', { draftListed: true, noPushAccess: true }, /Push access is required/],
-  ['duplicate drafts', { draftListed: true, duplicateDraft: true }, /Multiple releases use the version tag/],
-  ['a body that differs from the supplied notes', { draftBody: 'Published artifacts; release acceptance is tracked separately.' }, /differs from the original run's release notes/],
-  ['no retained release notes', { notes: 'absent' }, /Cannot download the original run's release-notes artifact/],
+  [
+    "mismatched tag",
+    { tag: "mismatch" },
+    /Release tag differs from the original validated commit/,
+  ],
+  [
+    "unestablished target",
+    { tag: "absent", draftTarget: "main" },
+    /must target the exact original validated commit/,
+  ],
+  [
+    "mismatched target",
+    { tag: "absent", draftTarget: "b".repeat(40) },
+    /must target the exact original validated commit/,
+  ],
+  [
+    "mismatched asset",
+    { damagedAsset: true },
+    /Release asset differs from original bundle/,
+  ],
+  ["unavailable asset", { assetUnavailable: true }, /Cannot inspect GitHub/],
+  [
+    "insufficient draft access",
+    { draftListed: true, noPushAccess: true },
+    /Push access is required/,
+  ],
+  [
+    "duplicate drafts",
+    { draftListed: true, duplicateDraft: true },
+    /Multiple releases use the version tag/,
+  ],
+  [
+    "a body that differs from the supplied notes",
+    {
+      draftBody:
+        "Published artifacts; release acceptance is tracked separately.",
+    },
+    /differs from the original run's release notes/,
+  ],
+  [
+    "no retained release notes",
+    { notes: "absent" },
+    /Cannot download the original run's release-notes artifact/,
+  ],
 ] as const) {
-  test(`release status blocks draft recovery with ${name}`, t => {
-    const f = releaseFixture(t, { github: 'draft', ...options });
+  test(`release status blocks draft recovery with ${name}`, (t) => {
+    const f = releaseFixture(t, { github: "draft", ...options });
     assert.equal(f.runStatus().status, 1);
-    const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
-    assert.equal(report.state, 'unknown');
+    const report = JSON.parse(
+      readFileSync(join(f.output, "status.json"), "utf8"),
+    ) as ReleaseStatus;
+    assert.equal(report.state, "unknown");
     assert.match(report.failure, failure);
     assert.doesNotMatch(report.nextAction, /'gh'|'npm'/);
   });
 }
 
-test('release status accepts a draft body that differs from the supplied notes only in line endings', t => {
-  const f = releaseFixture(t, { github: 'draft', draftBody: '## Changes\r\n\r\n- Supplied release notes.\r\n' });
+test("release status accepts a draft body that differs from the supplied notes only in line endings", (t) => {
+  const f = releaseFixture(t, {
+    github: "draft",
+    draftBody: "## Changes\r\n\r\n- Supplied release notes.\r\n",
+  });
   assert.equal(f.runStatus().status, 0);
-  assert.equal((JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus).state, 'github-draft-ready');
+  assert.equal(
+    (
+      JSON.parse(
+        readFileSync(join(f.output, "status.json"), "utf8"),
+      ) as ReleaseStatus
+    ).state,
+    "github-draft-ready",
+  );
 });
 
-test('release status rejects a damaged original bundle before contacting npm', t => {
+test("release status rejects a damaged original bundle before contacting npm", (t) => {
   const f = releaseFixture(t);
-  writeFileSync(join(f.original, 'repo-standards-bootstrap'), 'damaged bootstrap');
-  writeFileSync(f.preload, `globalThis.fetch = async () => { throw new Error('Unexpected registry request'); };`);
+  writeFileSync(
+    join(f.original, "repo-standards-bootstrap"),
+    "damaged bootstrap",
+  );
+  writeFileSync(
+    f.preload,
+    `globalThis.fetch = async () => { throw new Error('Unexpected registry request'); };`,
+  );
   assert.equal(f.runStatus().status, 1);
-  const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
-  assert.equal(report.state, 'unknown');
+  const report = JSON.parse(
+    readFileSync(join(f.output, "status.json"), "utf8"),
+  ) as ReleaseStatus;
+  assert.equal(report.state, "unknown");
   assert.match(report.failure, /Original bundle hash mismatch/);
   assert.doesNotMatch(report.nextAction, /'gh'|'npm'/);
 });
 
-test('release status refuses to overwrite an earlier inspection', t => {
+test("release status refuses to overwrite an earlier inspection", (t) => {
   const f = releaseFixture(t);
   mkdirSync(f.output);
-  writeFileSync(join(f.output, 'status.json'), 'original observation');
+  writeFileSync(join(f.output, "status.json"), "original observation");
   assert.equal(f.runStatus().status, 1);
-  assert.equal(readFileSync(join(f.output, 'status.json'), 'utf8'), 'original observation');
+  assert.equal(
+    readFileSync(join(f.output, "status.json"), "utf8"),
+    "original observation",
+  );
 });
 
 for (const [name, options, failure] of [
-  ['different npm integrity', { registry: 'mismatch' }, /npm integrity differs from the original bundle/],
-  ['a moved tag', { tag: 'mismatch' }, /Release tag differs from the original validated commit/],
-  ['GitHub unavailable', { github: 'unavailable' }, /Cannot inspect GitHub/],
+  [
+    "different npm integrity",
+    { registry: "mismatch" },
+    /npm integrity differs from the original bundle/,
+  ],
+  [
+    "a moved tag",
+    { tag: "mismatch" },
+    /Release tag differs from the original validated commit/,
+  ],
+  ["GitHub unavailable", { github: "unavailable" }, /Cannot inspect GitHub/],
 ] as const) {
-  test(`release status refuses recovery with ${name}`, t => {
+  test(`release status refuses recovery with ${name}`, (t) => {
     const f = releaseFixture(t, options);
     assert.equal(f.runStatus().status, 1);
-    const report = (JSON.parse(readFileSync(join(f.output, 'status.json'), 'utf8')) as ReleaseStatus);
-    assert.equal(report.state, 'unknown');
+    const report = JSON.parse(
+      readFileSync(join(f.output, "status.json"), "utf8"),
+    ) as ReleaseStatus;
+    assert.equal(report.state, "unknown");
     assert.match(report.failure, failure);
     assert.doesNotMatch(report.nextAction, /'gh'|'npm'/);
   });
@@ -370,13 +656,18 @@ for (const [name, options, failure] of [
 // Replace npm and GitHub downloads for public acceptance. `missing` counts the
 // not-found responses each subject returns before it appears. The preload
 // advances a fake clock by each requested wait instead of sleeping.
-function publicFixture(t: TestContext, missing: { npm?: number; releaseJson?: number } = {}) {
+function publicFixture(
+  t: TestContext,
+  missing: { npm?: number; releaseJson?: number } = {},
+) {
   const f = fixture(t);
-  f.executable('npm', `
+  f.executable(
+    "npm",
+    `
     const fs = require('node:fs'), path = require('node:path');
     if (process.argv[2] === '--version') console.log('11.19.0');
     else if (process.argv[2] === 'view') {
-      const counter = ${JSON.stringify(join(f.root, 'npm-views'))};
+      const counter = ${JSON.stringify(join(f.root, "npm-views"))};
       const views = fs.existsSync(counter) ? Number(fs.readFileSync(counter, 'utf8')) : 0;
       fs.writeFileSync(counter, String(views + 1));
       if (views < ${missing.npm ?? 0}) {
@@ -390,9 +681,15 @@ function publicFixture(t: TestContext, missing: { npm?: number; releaseJson?: nu
       fs.mkdirSync(bin, { recursive: true });
       fs.writeFileSync(path.join(bin, 'repo-standards'), '#!${process.execPath}\\nconsole.log("1.0.0");', { mode: 0o755 });
     } else process.exit(77);
-  `);
-  f.executable('git', `if (process.argv[2] !== 'status') console.log('${'a'.repeat(40)}');`);
-  writeFileSync(f.preload, `let now = 1789232918000;
+  `,
+  );
+  f.executable(
+    "git",
+    `if (process.argv[2] !== 'status') console.log('${"a".repeat(40)}');`,
+  );
+  writeFileSync(
+    f.preload,
+    `let now = 1789232918000;
     Date.now = () => now;
     const wait = globalThis.setTimeout;
     globalThis.setTimeout = (callback, delay = 0, ...args) => { now += delay; return wait(callback, 0, ...args); };
@@ -401,54 +698,112 @@ function publicFixture(t: TestContext, missing: { npm?: number; releaseJson?: nu
       if (!String(url).startsWith('https://github.com/lutzseverino/repo-standards/releases/download/')) throw new Error('Unexpected network request');
       if (String(url).endsWith('/release.json') && releaseJsonMissing-- > 0) return new Response('Not Found', { status: 404 });
       return new Response('{}');
-    };`);
-  const version = (JSON.parse(readFileSync('package.json', 'utf8')) as PackageManifest).version;
-  return { ...f, version, runAcceptance: () => f.run('acceptance/public-installation.ts', [version, f.evidence]) };
+    };`,
+  );
+  const version = (
+    JSON.parse(readFileSync("package.json", "utf8")) as PackageManifest
+  ).version;
+  return {
+    ...f,
+    version,
+    runAcceptance: () =>
+      f.run("acceptance/public-installation.ts", [version, f.evidence]),
+  };
 }
 
-test('public CLI acceptance records an assertion failure even when every external command exited successfully', t => {
+test("public CLI acceptance records an assertion failure even when every external command exited successfully", (t) => {
   const f = publicFixture(t);
   const result = f.runAcceptance();
   assert.equal(result.status, 1, result.stderr);
-  const evidence = JSON.parse(readFileSync(f.evidence, 'utf8')) as AcceptanceEvidence;
+  const evidence = JSON.parse(
+    readFileSync(f.evidence, "utf8"),
+  ) as AcceptanceEvidence;
   assert.equal(evidence.passed, false);
-  assert.ok(evidence.commands.every((command: { status: number }) => command.status === 0));
+  assert.ok(
+    evidence.commands.every(
+      (command: { status: number }) => command.status === 0,
+    ),
+  );
   assert.match(evidence.failure, /1\.0\.0/);
   assert.match(evidence.nextAction, /public-installation\.ts/);
 });
 
-test('public CLI acceptance waits for the published version and release assets and logs each attempt', t => {
+test("public CLI acceptance waits for the published version and release assets and logs each attempt", (t) => {
   const f = publicFixture(t, { npm: 2, releaseJson: 1 });
   const result = f.runAcceptance();
   assert.equal(result.status, 1, result.stderr);
-  const evidence = JSON.parse(readFileSync(f.evidence, 'utf8')) as AcceptanceEvidence;
+  const evidence = JSON.parse(
+    readFileSync(f.evidence, "utf8"),
+  ) as AcceptanceEvidence;
   // Acceptance proceeds past the wait to its own assertions.
   assert.match(evidence.failure, /1\.0\.0/);
   const npm = `@lutzseverino/repo-standards@${f.version} on the npm registry`;
-  const asset = (file: string) => `https://github.com/lutzseverino/repo-standards/releases/download/v${f.version}/${file}`;
+  const asset = (file: string) =>
+    `https://github.com/lutzseverino/repo-standards/releases/download/v${f.version}/${file}`;
   assert.deepEqual(evidence.propagation.attempts, [
-    { subject: npm, at: '2026-09-12T17:08:38.000Z', elapsedMs: 0, result: 'E404' },
-    { subject: npm, at: '2026-09-12T17:08:48.000Z', elapsedMs: 10_000, result: 'E404' },
-    { subject: npm, at: '2026-09-12T17:08:58.000Z', elapsedMs: 20_000, result: 'available' },
-    { subject: asset('release.json'), at: '2026-09-12T17:08:58.000Z', elapsedMs: 20_000, result: 'HTTP 404' },
-    { subject: asset('release.json'), at: '2026-09-12T17:09:08.000Z', elapsedMs: 30_000, result: 'available' },
-    { subject: asset('repo-standards-bootstrap'), at: '2026-09-12T17:09:08.000Z', elapsedMs: 30_000, result: 'available' },
+    {
+      subject: npm,
+      at: "2026-09-12T17:08:38.000Z",
+      elapsedMs: 0,
+      result: "E404",
+    },
+    {
+      subject: npm,
+      at: "2026-09-12T17:08:48.000Z",
+      elapsedMs: 10_000,
+      result: "E404",
+    },
+    {
+      subject: npm,
+      at: "2026-09-12T17:08:58.000Z",
+      elapsedMs: 20_000,
+      result: "available",
+    },
+    {
+      subject: asset("release.json"),
+      at: "2026-09-12T17:08:58.000Z",
+      elapsedMs: 20_000,
+      result: "HTTP 404",
+    },
+    {
+      subject: asset("release.json"),
+      at: "2026-09-12T17:09:08.000Z",
+      elapsedMs: 30_000,
+      result: "available",
+    },
+    {
+      subject: asset("repo-standards-bootstrap"),
+      at: "2026-09-12T17:09:08.000Z",
+      elapsedMs: 30_000,
+      result: "available",
+    },
   ]);
   assert.match(result.stdout, /E404/);
 });
 
-test('public CLI acceptance fails after the propagation bound naming the version and the elapsed wait', t => {
+test("public CLI acceptance fails after the propagation bound naming the version and the elapsed wait", (t) => {
   const f = publicFixture(t, { npm: Infinity });
   const result = f.runAcceptance();
   assert.equal(result.status, 1, result.stderr);
-  const evidence = JSON.parse(readFileSync(f.evidence, 'utf8')) as AcceptanceEvidence;
+  const evidence = JSON.parse(
+    readFileSync(f.evidence, "utf8"),
+  ) as AcceptanceEvidence;
   assert.equal(evidence.passed, false);
-  assert.ok(evidence.failure.includes(`@lutzseverino/repo-standards@${f.version}`), evidence.failure);
+  assert.ok(
+    evidence.failure.includes(`@lutzseverino/repo-standards@${f.version}`),
+    evidence.failure,
+  );
   assert.match(evidence.failure, /300 seconds/);
   const attempts = evidence.propagation.attempts;
   assert.equal(attempts.length, 31);
   assert.equal(attempts.at(-1)!.elapsedMs, 300_000);
-  assert.ok(attempts.every((attempt: { result: string }) => attempt.result === 'E404'));
-  assert.ok(!evidence.commands.some((command: { args: string[] }) => command.args[0] === 'install'));
+  assert.ok(
+    attempts.every((attempt: { result: string }) => attempt.result === "E404"),
+  );
+  assert.ok(
+    !evidence.commands.some(
+      (command: { args: string[] }) => command.args[0] === "install",
+    ),
+  );
   assert.deepEqual(evidence.downloads, []);
 });

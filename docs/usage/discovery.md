@@ -21,13 +21,13 @@ An invalid or incompatible release is reported explicitly; search does not
 silently fall back to older releases. Stable tags without GitHub releases are
 still usable through direct inspection but are not discoverable candidates.
 
-| Report field | Meaning |
-| --- | --- |
-| `cliVersion`, `topic`, `notice` | Validation version, fixed topic and explicit reminder that discovery is not endorsement. |
-| `candidates` | Sources whose inspected release snapshot validates with this CLI. Each has canonical `repository`, repository `description`, immutable `commit`, `release` (version, name, URL, publication time), source metadata/compatibility and available `profiles`. No profile is selected. |
-| `rejected` | Unsupported, unavailable, malformed or incompatible candidates, with repository identity, stable error code, reason and any validation details. Includes the release when one was identified. |
-| `page`, `totalCount`, `nextPage` | Requested page, GitHub's count of topic matches before validation, and next page number or `null`. Pages contain up to 30 topic matches, so a page may contain no valid candidates. |
-| `incompleteResults`, `searchLimitReached` | GitHub marked its search incomplete, or its count exceeds the 1,000-result search cap. Neither report claims an exhaustive inventory. |
+| Report field                              | Meaning                                                                                                                                                                                                                                                                            |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cliVersion`, `topic`, `notice`           | Validation version, fixed topic and explicit reminder that discovery is not endorsement.                                                                                                                                                                                           |
+| `candidates`                              | Sources whose inspected release snapshot validates with this CLI. Each has canonical `repository`, repository `description`, immutable `commit`, `release` (version, name, URL, publication time), source metadata/compatibility and available `profiles`. No profile is selected. |
+| `rejected`                                | Unsupported, unavailable, malformed or incompatible candidates, with repository identity, stable error code, reason and any validation details. Includes the release when one was identified.                                                                                      |
+| `page`, `totalCount`, `nextPage`          | Requested page, GitHub's count of topic matches before validation, and next page number or `null`. Pages contain up to 30 topic matches, so a page may contain no valid candidates.                                                                                                |
+| `incompleteResults`, `searchLimitReached` | GitHub marked its search incomplete, or its count exceeds the 1,000-result search cap. Neither report claims an exhaustive inventory.                                                                                                                                              |
 
 Follow `nextPage` to continue, up to page 34. Repository ordering and counts can
 change between requests. Release lists are paginated independently. GitHub
