@@ -118,6 +118,51 @@ async function adopted(t: TestContext) {
   return { remote, run: f.json, inspect };
 }
 
+test("an unchanged declaration named constructor without discovery guidance has an exact update", async (t) => {
+  const f = await adoptionFixture(
+    t,
+    cli,
+    manifest({
+      constructor: {
+        kind: "file",
+        target: "README.md",
+        guidance: "guidance.md",
+      },
+    }),
+    {
+      files: { "guidance.md": "Keep the project README useful.\n" },
+      project: { "README.md": "# Project\nUseful project instructions.\n" },
+    },
+  );
+  const started = f.start();
+  assert.equal(started.report.phase, "contextual");
+  const assessment = join(f.remote.support.root, "assessment.json");
+  writeFileSync(
+    assessment,
+    JSON.stringify({
+      format: "repo-standards/assessment/v3",
+      declarations: [
+        {
+          id: "constructor",
+          status: "satisfied",
+          explanation: "The README already satisfies the guidance.",
+          evidence: ["Reviewed the project instructions in README.md."],
+        },
+      ],
+    }),
+  );
+  const completed = f.json(["resume", "--assessment", assessment, "--json"]);
+  assert.equal(completed.result.status, 0, completed.result.stdout);
+  assert.equal(completed.report.outcome, "complete");
+  commit(f.root);
+
+  const unchanged = f.inspect(["inspect", "--json"]);
+  assert.deepEqual(unchanged.update, []);
+  assert.equal(unchanged.updateClass, "exact");
+  assert.deepEqual(unchanged.contextualChanges, []);
+  assert.deepEqual(unchanged.start.blockers, []);
+});
+
 test("an update is exact when only exact content or the selection changes, including an unchanged selection", async (t) => {
   const f = await adopted(t);
   const unchanged = f.inspect(["inspect", "--json"]);
