@@ -3,7 +3,7 @@ name: repo-canon
 description: Complete repository documentation, contribution, agent workflow,
   and GitHub validation standards
 requires:
-  repo-standards: ">=4.0.0"
+  repo-standards: ">=5.0.0"
 defaults:
   declarations: {}
 profiles:
@@ -258,6 +258,12 @@ profiles:
         kind: skill
         name: codebase-design
         source: vendor/mattpocock-skills/skills/engineering/codebase-design
+      skill-deliver:
+        checks: []
+        fixes: []
+        kind: skill
+        name: deliver
+        source: .agents/skills/deliver
       skill-diagnosing-bugs:
         checks: []
         fixes: []

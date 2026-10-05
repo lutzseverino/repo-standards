@@ -9,6 +9,8 @@ templates. Specifications and implementation tickets live in the issue tracker;
 repository documents keep durable domain language, decisions, usage guidance,
 and development knowledge.
 
+Write multi-line issue bodies to a file and pass it with `--body-file`.
+
 Use short, descriptive issue titles in sentence case and the project's
 terminology. Name the observed failure for bugs, the desired capability for
 features, the action for implementation tickets, and the capability being
@@ -25,6 +27,9 @@ Brief comment; the intake body and discussion remain context.
 Before implementing, read the whole issue, its discussion, its parent
 specification, and its blockers, and clarify contradictions. Start a ticket
 only after its blockers are closed.
+
+When adding a native blocker, pass the blocking issue's numeric database ID as
+`issue_id`, not its issue number or `node_id`.
 
 ## Readiness
 
@@ -70,6 +75,8 @@ report the checks you ran and their outcomes, and link the relevant issue.
 Small corrections, such as typos, broken links, and formatting, need no issue:
 write `Small correction:` and its reason instead of the link. Reviewers judge
 whether a correction is small.
+
+Write multi-line pull request bodies to a file and pass it with `--body-file`.
 
 Keep the pull request template's sections in the template's order, adding
 Limits last when relevant. Put any other material, such as scope, impact, or

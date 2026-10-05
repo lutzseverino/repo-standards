@@ -1,7 +1,7 @@
-import { lstatSync, readFileSync, readdirSync } from 'node:fs';
-import { sep } from 'node:path';
-import { interpretMarkdown } from './rendered-markdown.mjs';
-import { localLinks, resolvedLocalPath } from './local-markdown-links.mjs';
+import { lstatSync, readFileSync, readdirSync } from "node:fs";
+import { sep } from "node:path";
+import { interpretMarkdown } from "./rendered-markdown.mjs";
+import { localLinks, resolvedLocalPath } from "./local-markdown-links.mjs";
 
 // The structure of a repository's documentation: its documentation roots and
 // categories, its directories and their documentation indexes, its documents,
@@ -15,9 +15,14 @@ import { localLinks, resolvedLocalPath } from './local-markdown-links.mjs';
 
 // The repository's documentation root, its development guide, and the
 // documentation categories, which the documentation scope drafter shares.
-export const repositoryDocumentationRoot = 'docs';
+export const repositoryDocumentationRoot = "docs";
 export const developmentGuide = `${repositoryDocumentationRoot}/development/README.md`;
-export const documentationCategories = Object.freeze(['usage', 'development', 'adr', 'agents']);
+export const documentationCategories = Object.freeze([
+  "usage",
+  "development",
+  "adr",
+  "agents",
+]);
 const categories = new Set(documentationCategories);
 
 // The installed agents index cites the optional project guidance in context
@@ -25,23 +30,23 @@ const categories = new Set(documentationCategories);
 const agentsIndex = `${repositoryDocumentationRoot}/agents/README.md`;
 const projectGuidance = `${repositoryDocumentationRoot}/agents/project.md`;
 
-const setupAndValidation = 'setup and validation';
+const setupAndValidation = "setup and validation";
 
 // The documentation rules, by the name each failure cites.
 export const documentationRules = Object.freeze({
-  indexEntryForm: 'index entry form',
-  oneIndex: 'one index per document',
-  developmentGuideOrder: 'development guide order',
-  scopeCoverage: 'scope coverage',
+  indexEntryForm: "index entry form",
+  oneIndex: "one index per document",
+  developmentGuideOrder: "development guide order",
+  scopeCoverage: "scope coverage",
 });
 
 function absolutePath(projectRoot, path) {
-  return `${projectRoot}${sep}${path.split('/').join(sep)}`;
+  return `${projectRoot}${sep}${path.split("/").join(sep)}`;
 }
 
 // The errors that show no entry can exist at a path: it is absent, lies below
 // a file or a symbolic link loop, or is too long.
-const noEntryErrors = new Set(['ENOENT', 'ENOTDIR', 'ELOOP', 'ENAMETOOLONG']);
+const noEntryErrors = new Set(["ENOENT", "ENOTDIR", "ELOOP", "ENAMETOOLONG"]);
 
 // The entry at a path, or null when no entry can exist there. Any other
 // failure to inspect the path, such as inside a directory that cannot be
@@ -68,7 +73,9 @@ function isDirectory(projectRoot, path) {
 // exists but cannot be read throws Node's read error naming its path, which
 // the check reports as a process error.
 function fileContent(projectRoot, path) {
-  return isFile(projectRoot, path) ? readFileSync(absolutePath(projectRoot, path), 'utf8') : null;
+  return isFile(projectRoot, path)
+    ? readFileSync(absolutePath(projectRoot, path), "utf8")
+    : null;
 }
 
 function isInside(path, directory) {
@@ -84,35 +91,40 @@ function isInside(path, directory) {
 export function inferredRoots(confirmedPaths) {
   const candidates = new Set([repositoryDocumentationRoot]);
   for (const path of confirmedPaths) {
-    const segments = path.split('/');
+    const segments = path.split("/");
     const fileName = segments.pop();
-    if (fileName !== 'README.md' || segments.length === 0) continue;
+    if (fileName !== "README.md" || segments.length === 0) continue;
     if (categories.has(segments.at(-1))) segments.pop();
-    if (segments.length > 0) candidates.add(segments.join('/'));
+    if (segments.length > 0) candidates.add(segments.join("/"));
   }
 
-  const candidatesWithCategories = [...candidates].filter(candidate => (
-    candidate === repositoryDocumentationRoot
-    || documentationCategories.some(category => (
-      confirmedPaths.includes(`${candidate}/${category}/README.md`)
-    ))
-  ));
-  const roots = candidatesWithCategories.filter(candidate => (
-    !candidatesWithCategories.some(other => isInside(candidate, other))
-  ));
+  const candidatesWithCategories = [...candidates].filter(
+    (candidate) =>
+      candidate === repositoryDocumentationRoot ||
+      documentationCategories.some((category) =>
+        confirmedPaths.includes(`${candidate}/${category}/README.md`),
+      ),
+  );
+  const roots = candidatesWithCategories.filter(
+    (candidate) =>
+      !candidatesWithCategories.some((other) => isInside(candidate, other)),
+  );
   return {
     roots: roots.sort(),
     candidatesWithCategories: candidatesWithCategories.sort(),
     ambiguous: [...candidates]
-      .filter(candidate => !candidatesWithCategories.includes(candidate)
-        && !roots.some(root => isInside(candidate, root)))
+      .filter(
+        (candidate) =>
+          !candidatesWithCategories.includes(candidate) &&
+          !roots.some((root) => isInside(candidate, root)),
+      )
       .sort(),
   };
 }
 
 // Whether a path is a Markdown document, which the documentation rules read.
 export function isMarkdownPath(path) {
-  return path.toLocaleLowerCase('en-US').endsWith('.md');
+  return path.toLocaleLowerCase("en-US").endsWith(".md");
 }
 
 // Walks a root depth first. The first directory is the root itself when it
@@ -122,13 +134,16 @@ export function isMarkdownPath(path) {
 export function documentationTree(projectRoot, root) {
   const directories = [];
   const markdownFiles = [];
-  const visit = path => {
-    const entries = readdirSync(absolutePath(projectRoot, path), { withFileTypes: true });
+  const visit = (path) => {
+    const entries = readdirSync(absolutePath(projectRoot, path), {
+      withFileTypes: true,
+    });
     directories.push({ path, entries });
     for (const entry of entries) {
       const child = `${path}/${entry.name}`;
       if (entry.isDirectory()) visit(child);
-      else if (entry.isFile() && isMarkdownPath(entry.name)) markdownFiles.push(child);
+      else if (entry.isFile() && isMarkdownPath(entry.name))
+        markdownFiles.push(child);
     }
   };
   if (isDirectory(projectRoot, root)) visit(root);
@@ -136,20 +151,22 @@ export function documentationTree(projectRoot, root) {
 }
 
 function isStrayEntry(entry) {
-  return entry.name !== 'README.md'
-    && !(entry.isDirectory() && categories.has(entry.name));
+  return (
+    entry.name !== "README.md" &&
+    !(entry.isDirectory() && categories.has(entry.name))
+  );
 }
 
 // The index that lists a document under a documentation root: its
 // directory's README, or for a directory README, its parent's. A root's own
 // index is listed in no index, so its index is null.
 export function documentIndex(root, document) {
-  const segments = document.split('/');
+  const segments = document.split("/");
   const fileName = segments.pop();
-  let directory = segments.join('/');
-  if (fileName === 'README.md') {
+  let directory = segments.join("/");
+  if (fileName === "README.md") {
     if (directory === root) return null;
-    directory = directory.slice(0, directory.lastIndexOf('/'));
+    directory = directory.slice(0, directory.lastIndexOf("/"));
   }
   return `${directory}/README.md`;
 }
@@ -165,14 +182,24 @@ export function documentIndex(root, document) {
 export function declarationTargets(declarations) {
   const paths = new Set();
   const directories = new Set();
-  const strings = values => (Array.isArray(values) ? values.filter(value => typeof value === 'string') : []);
+  const strings = (values) =>
+    Array.isArray(values)
+      ? values.filter((value) => typeof value === "string")
+      : [];
   for (const declaration of Array.isArray(declarations) ? declarations : []) {
-    if (declaration?.kind === 'file' && typeof declaration.target === 'string') {
+    if (
+      declaration?.kind === "file" &&
+      typeof declaration.target === "string"
+    ) {
       paths.add(declaration.target);
-    } else if (declaration?.kind === 'repository') {
+    } else if (declaration?.kind === "repository") {
       for (const path of strings(declaration.targets?.paths)) paths.add(path);
-      for (const directory of strings(declaration.targets?.directories)) directories.add(directory);
-    } else if (declaration?.kind === 'skill' && typeof declaration.name === 'string') {
+      for (const directory of strings(declaration.targets?.directories))
+        directories.add(directory);
+    } else if (
+      declaration?.kind === "skill" &&
+      typeof declaration.name === "string"
+    ) {
       directories.add(`.agents/skills/${declaration.name}`);
     }
   }
@@ -182,12 +209,15 @@ export function declarationTargets(declarations) {
 // Whether a path is one of the declared targets: an explicit path, or a path
 // inside a declared directory.
 function isDeclared(path, declaredTargets) {
-  return declaredTargets.paths.includes(path)
-    || declaredTargets.directories.some(directory => isInside(path, directory));
+  return (
+    declaredTargets.paths.includes(path) ||
+    declaredTargets.directories.some((directory) => isInside(path, directory))
+  );
 }
 
 const sentenceEnd = /[.!?]["'\u2019\u201d)\]]*$/u;
-const sentenceBoundary = /[.!?]["'\u2019\u201d)\]]*\s+["'\u2018\u201c(\[]*\p{Lu}/u;
+const sentenceBoundary =
+  /[.!?]["'\u2019\u201d)\]]*\s+["'\u2018\u201c([]*\p{Lu}/u;
 
 // Rendered text is one sentence when it ends a sentence and no sentence ends
 // before a capitalized word inside it.
@@ -201,13 +231,13 @@ function headingLevel(block) {
 }
 
 function foldedText(text) {
-  return text.replace(/\s+/g, ' ').trim().toLocaleLowerCase('en-US');
+  return text.replace(/\s+/g, " ").trim().toLocaleLowerCase("en-US");
 }
 
 function listItems(blocks) {
   return blocks
-    .filter(block => block.tag === 'ul' || block.tag === 'ol')
-    .flatMap(list => list.blocks.filter(block => block.tag === 'li'));
+    .filter((block) => block.tag === "ul" || block.tag === "ol")
+    .flatMap((list) => list.blocks.filter((block) => block.tag === "li"));
 }
 
 // An index item. Its first link names the listed path, a directory meaning
@@ -218,8 +248,8 @@ function listItems(blocks) {
 function indexItem(indexPath, item, directories) {
   const [link] = item.links;
   let path = link ? resolvedLocalPath(indexPath, link.target) : null;
-  if (typeof path === 'string') {
-    path = path.replace(/\/+$/, '');
+  if (typeof path === "string") {
+    path = path.replace(/\/+$/, "");
     if (directories.has(path)) path = `${path}/README.md`;
     if (path === indexPath) path = null;
   } else {
@@ -229,8 +259,11 @@ function indexItem(indexPath, item, directories) {
     text: item.text,
     target: link?.target ?? null,
     path,
-    wellFormed: Boolean(link?.text) && path !== null && item.text.startsWith(link.text)
-      && /^:\s+\S/.test(item.text.slice(link.text.length)),
+    wellFormed:
+      Boolean(link?.text) &&
+      path !== null &&
+      item.text.startsWith(link.text) &&
+      /^:\s+\S/.test(item.text.slice(link.text.length)),
   };
 }
 
@@ -244,41 +277,66 @@ function indexItem(indexPath, item, directories) {
 // (`missing`), and the items before its index.
 function indexStructure(path, document, directories, isDevelopmentGuide) {
   const { blocks } = document;
-  const isSetupAndValidation = block => headingLevel(block) !== null && foldedText(block.text) === setupAndValidation;
-  const titled = blocks.length > 0 && headingLevel(blocks[0]) !== null
-    && !(isDevelopmentGuide && isSetupAndValidation(blocks[0]));
+  const isSetupAndValidation = (block) =>
+    headingLevel(block) !== null &&
+    foldedText(block.text) === setupAndValidation;
+  const titled =
+    blocks.length > 0 &&
+    headingLevel(blocks[0]) !== null &&
+    !(isDevelopmentGuide && isSetupAndValidation(blocks[0]));
   let start = titled ? 1 : 0;
-  const purpose = blocks[start]?.tag === 'p' ? blocks[start] : null;
+  const purpose = blocks[start]?.tag === "p" ? blocks[start] : null;
   if (purpose) start += 1;
   const structure = {
     path,
-    purpose: purpose ? { text: purpose.text, oneSentence: isOneSentence(purpose.text) } : null,
+    purpose: purpose
+      ? { text: purpose.text, oneSentence: isOneSentence(purpose.text) }
+      : null,
   };
   let indexStart = start;
   if (isDevelopmentGuide) {
-    const section = blocks.findIndex((block, index) => index >= start && isSetupAndValidation(block));
-    const firstSection = blocks.findIndex((block, index) => index >= start && headingLevel(block) !== null);
+    const section = blocks.findIndex(
+      (block, index) => index >= start && isSetupAndValidation(block),
+    );
+    const firstSection = blocks.findIndex(
+      (block, index) => index >= start && headingLevel(block) !== null,
+    );
     if (section >= 0) {
       const level = headingLevel(blocks[section]);
-      const next = blocks.findIndex((block, index) => (
-        index > section && headingLevel(block) !== null && headingLevel(block) <= level
-      ));
+      const next = blocks.findIndex(
+        (block, index) =>
+          index > section &&
+          headingLevel(block) !== null &&
+          headingLevel(block) <= level,
+      );
       indexStart = next < 0 ? blocks.length : next;
     }
-    if (section < 0) structure.setupAndValidation = 'missing';
-    else structure.setupAndValidation = section === firstSection ? 'first' : 'later';
-    structure.itemsBeforeIndex = listItems(blocks.slice(start, indexStart))
-      .map(item => indexItem(path, item, directories));
+    if (section < 0) structure.setupAndValidation = "missing";
+    else
+      structure.setupAndValidation =
+        section === firstSection ? "first" : "later";
+    structure.itemsBeforeIndex = listItems(blocks.slice(start, indexStart)).map(
+      (item) => indexItem(path, item, directories),
+    );
   }
-  structure.items = listItems(blocks.slice(indexStart)).map(item => indexItem(path, item, directories));
-  const contextBlocks = blocks.filter((block, index) => (
-    (index > 0 || !titled) && (index < indexStart || (block.tag !== 'ul' && block.tag !== 'ol'))
-  ));
+  structure.items = listItems(blocks.slice(indexStart)).map((item) =>
+    indexItem(path, item, directories),
+  );
+  const contextBlocks = blocks.filter(
+    (block, index) =>
+      (index > 0 || !titled) &&
+      (index < indexStart || (block.tag !== "ul" && block.tag !== "ol")),
+  );
   structure.context = {
-    text: contextBlocks.map(block => block.text).join('\n'),
-    paths: [...new Set(contextBlocks.flatMap(block => block.links)
-      .map(link => resolvedLocalPath(path, link.target))
-      .filter(linked => typeof linked === 'string'))].sort(),
+    text: contextBlocks.map((block) => block.text).join("\n"),
+    paths: [
+      ...new Set(
+        contextBlocks
+          .flatMap((block) => block.links)
+          .map((link) => resolvedLocalPath(path, link.target))
+          .filter((linked) => typeof linked === "string"),
+      ),
+    ].sort(),
   };
   return structure;
 }
@@ -286,12 +344,14 @@ function indexStructure(path, document, directories, isDevelopmentGuide) {
 // Every rendered local link of a document. `path` is null when the target
 // leaves the project, which makes the link broken.
 function documentLinks(projectRoot, source, document) {
-  return localLinks(projectRoot, source, document.content.elements).map(link => ({
-    source,
-    target: link.target,
-    path: link.path ?? null,
-    broken: link.broken,
-  }));
+  return localLinks(projectRoot, source, document.content.elements).map(
+    (link) => ({
+      source,
+      target: link.target,
+      path: link.path ?? null,
+      broken: link.broken,
+    }),
+  );
 }
 
 // Builds the model from the project root, the confirmed paths, and the paths
@@ -322,21 +382,24 @@ function documentLinks(projectRoot, source, document) {
 // Each index state is `{ path, state, confirmed }`, where `state` is
 // `missing`, `empty`, or `present`. `declaredTargets` holds the explicit
 // `paths` and `directories` that other declarations own.
-export function documentationModel(projectRoot, confirmedPaths, {
-  declaredTargets = { paths: [], directories: [] },
-} = {}) {
+export function documentationModel(
+  projectRoot,
+  confirmedPaths,
+  { declaredTargets = { paths: [], directories: [] } } = {},
+) {
   const rendered = new Map();
-  const render = path => {
+  const render = (path) => {
     if (!rendered.has(path)) {
       const content = fileContent(projectRoot, path);
       rendered.set(path, content === null ? null : interpretMarkdown(content));
     }
     return rendered.get(path);
   };
-  const index = path => {
+  const index = (path) => {
     const document = render(path);
-    let state = 'missing';
-    if (document !== null) state = document.content.hasContent ? 'present' : 'empty';
+    let state = "missing";
+    if (document !== null)
+      state = document.content.hasContent ? "present" : "empty";
     return { path, state, confirmed: confirmedPaths.includes(path) };
   };
 
@@ -344,34 +407,46 @@ export function documentationModel(projectRoot, confirmedPaths, {
   const documents = new Set();
   const members = [];
   const directoryPaths = new Set();
-  const roots = inference.roots.map(path => {
+  const roots = inference.roots.map((path) => {
     const tree = documentationTree(projectRoot, path);
-    for (const directory of tree.directories) directoryPaths.add(directory.path);
+    for (const directory of tree.directories)
+      directoryPaths.add(directory.path);
     const [rootDirectory, ...directories] = tree.directories;
-    const candidatesInRoot = inference.candidatesWithCategories.filter(candidate => (
-      candidate === path || isInside(candidate, path)
-    ));
-    const confirmedIndexes = new Set(confirmedPaths.filter(confirmedPath => (
-      confirmedPath.endsWith('/README.md')
-      && candidatesInRoot.some(candidate => (
-        isInside(confirmedPath, candidate)
-        && categories.has(confirmedPath.slice(candidate.length + 1).split('/')[0])
-      ))
-    )));
+    const candidatesInRoot = inference.candidatesWithCategories.filter(
+      (candidate) => candidate === path || isInside(candidate, path),
+    );
+    const confirmedIndexes = new Set(
+      confirmedPaths.filter(
+        (confirmedPath) =>
+          confirmedPath.endsWith("/README.md") &&
+          candidatesInRoot.some(
+            (candidate) =>
+              isInside(confirmedPath, candidate) &&
+              categories.has(
+                confirmedPath.slice(candidate.length + 1).split("/")[0],
+              ),
+          ),
+      ),
+    );
     for (const document of tree.markdownFiles) {
       documents.add(document);
       let scope = null;
-      if (confirmedPaths.includes(document)) scope = 'confirmed';
-      else if (isDeclared(document, declaredTargets)) scope = 'declared';
-      members.push({ path: document, root: path, index: documentIndex(path, document), scope });
+      if (confirmedPaths.includes(document)) scope = "confirmed";
+      else if (isDeclared(document, declaredTargets)) scope = "declared";
+      members.push({
+        path: document,
+        root: path,
+        index: documentIndex(path, document),
+        scope,
+      });
     }
     const root = {
       path,
       index: index(`${path}/README.md`),
       strayEntries: (rootDirectory?.entries ?? [])
         .filter(isStrayEntry)
-        .map(entry => `${path}/${entry.name}`),
-      directories: directories.map(directory => ({
+        .map((entry) => `${path}/${entry.name}`),
+      directories: directories.map((directory) => ({
         path: directory.path,
         index: index(`${directory.path}/README.md`),
       })),
@@ -382,9 +457,19 @@ export function documentationModel(projectRoot, confirmedPaths, {
   // Every directory of every root is known before any index's items are
   // resolved, so a link to a directory in another root lists its README.
   const indexes = roots
-    .flatMap(root => [root.index, ...root.directories.map(directory => directory.index)])
-    .filter(({ state }) => state === 'present')
-    .map(({ path }) => indexStructure(path, render(path), directoryPaths, path === developmentGuide));
+    .flatMap((root) => [
+      root.index,
+      ...root.directories.map((directory) => directory.index),
+    ])
+    .filter(({ state }) => state === "present")
+    .map(({ path }) =>
+      indexStructure(
+        path,
+        render(path),
+        directoryPaths,
+        path === developmentGuide,
+      ),
+    );
   for (const path of confirmedPaths) {
     if (isMarkdownPath(path) && isFile(projectRoot, path)) documents.add(path);
   }
@@ -395,9 +480,13 @@ export function documentationModel(projectRoot, confirmedPaths, {
     ambiguousRoots: inference.ambiguous,
     developmentGuide: index(developmentGuide),
     documents: sortedDocuments,
-    members: members.sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0)),
+    members: members.sort((left, right) =>
+      left.path < right.path ? -1 : left.path > right.path ? 1 : 0,
+    ),
     indexes,
-    links: sortedDocuments.flatMap(source => documentLinks(projectRoot, source, render(source))),
+    links: sortedDocuments.flatMap((source) =>
+      documentLinks(projectRoot, source, render(source)),
+    ),
   };
 }
 
@@ -406,16 +495,19 @@ export function documentationModel(projectRoot, confirmedPaths, {
 // the index, such as `project.md` or `./project.md`, or by its repository path.
 function citesInContext(structure, document) {
   if (!structure) return false;
-  const escaped = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const relative = document.slice(structure.path.lastIndexOf('/') + 1);
+  const escaped = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const relative = document.slice(structure.path.lastIndexOf("/") + 1);
   const named = new RegExp(
     `(^|[^\\w./-])((\\./)?${escaped(relative)}|${escaped(document)})(?![\\w/-]|\\.\\w)`,
   );
-  return structure.context.paths.includes(document) || named.test(structure.context.text);
+  return (
+    structure.context.paths.includes(document) ||
+    named.test(structure.context.text)
+  );
 }
 
 function itemLabel(item) {
-  const [line] = item.text.split('\n');
+  const [line] = item.text.split("\n");
   return line.length > 80 ? `${line.slice(0, 79)}\u2026` : line;
 }
 
@@ -427,18 +519,29 @@ function itemLabel(item) {
 // of it in another index is still a violation.
 export function documentationRuleViolations(model) {
   const violations = [];
-  const violation = (rule, path, correction) => violations.push({ rule, path, correction });
-  const indexes = new Map(model.indexes.map(structure => [structure.path, structure]));
+  const violation = (rule, path, correction) =>
+    violations.push({ rule, path, correction });
+  const indexes = new Map(
+    model.indexes.map((structure) => [structure.path, structure]),
+  );
   const sortedIndexes = [...indexes.keys()].sort();
 
   for (const path of sortedIndexes) {
     const { purpose, items } = indexes.get(path);
     if (purpose === null) {
-      violation(documentationRules.indexEntryForm, path, 'start it with a one-sentence purpose after its title.');
+      violation(
+        documentationRules.indexEntryForm,
+        path,
+        "start it with a one-sentence purpose after its title.",
+      );
     } else if (!purpose.oneSentence) {
-      violation(documentationRules.indexEntryForm, path, 'make the purpose after its title one sentence.');
+      violation(
+        documentationRules.indexEntryForm,
+        path,
+        "make the purpose after its title one sentence.",
+      );
     }
-    for (const item of items.filter(candidate => !candidate.wellFormed)) {
+    for (const item of items.filter((candidate) => !candidate.wellFormed)) {
       violation(
         documentationRules.indexEntryForm,
         path,
@@ -448,9 +551,11 @@ export function documentationRuleViolations(model) {
   }
 
   const guide = indexes.get(developmentGuide);
-  const listedBeforeIndex = new Set((guide?.itemsBeforeIndex ?? [])
-    .filter(item => item.wellFormed)
-    .map(item => item.path));
+  const listedBeforeIndex = new Set(
+    (guide?.itemsBeforeIndex ?? [])
+      .filter((item) => item.wellFormed)
+      .map((item) => item.path),
+  );
   const listings = new Map();
   for (const path of sortedIndexes) {
     for (const item of indexes.get(path).items) {
@@ -464,47 +569,80 @@ export function documentationRuleViolations(model) {
     const listing = listings.get(member.path) ?? [];
     if (member.index === null) {
       for (const other of new Set(listing)) {
-        violation(documentationRules.oneIndex, member.path, `remove it from ${other}; a root's own index is listed in no index.`);
+        violation(
+          documentationRules.oneIndex,
+          member.path,
+          `remove it from ${other}; a root's own index is listed in no index.`,
+        );
       }
       continue;
     }
-    const citedInContext = member.path === projectGuidance && member.index === agentsIndex
-      && citesInContext(indexes.get(agentsIndex), projectGuidance);
-    const ownListings = listing.filter(path => path === member.index).length;
-    const listedTooEarly = member.index === developmentGuide && listedBeforeIndex.has(member.path);
-    if (indexes.has(member.index) && ownListings === 0 && !citedInContext && !listedTooEarly) {
-      violation(documentationRules.oneIndex, member.path, `list it in ${member.index}.`);
+    const citedInContext =
+      member.path === projectGuidance &&
+      member.index === agentsIndex &&
+      citesInContext(indexes.get(agentsIndex), projectGuidance);
+    const ownListings = listing.filter((path) => path === member.index).length;
+    const listedTooEarly =
+      member.index === developmentGuide && listedBeforeIndex.has(member.path);
+    if (
+      indexes.has(member.index) &&
+      ownListings === 0 &&
+      !citedInContext &&
+      !listedTooEarly
+    ) {
+      violation(
+        documentationRules.oneIndex,
+        member.path,
+        `list it in ${member.index}.`,
+      );
     } else if (ownListings > 1) {
-      violation(documentationRules.oneIndex, member.path, `list it once in ${member.index}.`);
+      violation(
+        documentationRules.oneIndex,
+        member.path,
+        `list it once in ${member.index}.`,
+      );
     }
-    for (const other of new Set(listing.filter(path => path !== member.index))) {
-      violation(documentationRules.oneIndex, member.path, citedInContext
-        ? `leave it to the in-context citation in ${member.index}; remove it from ${other}.`
-        : `list it only in ${member.index}; remove it from ${other}.`);
+    for (const other of new Set(
+      listing.filter((path) => path !== member.index),
+    )) {
+      violation(
+        documentationRules.oneIndex,
+        member.path,
+        citedInContext
+          ? `leave it to the in-context citation in ${member.index}; remove it from ${other}.`
+          : `list it only in ${member.index}; remove it from ${other}.`,
+      );
     }
   }
 
   if (guide) {
-    if (guide.setupAndValidation !== 'first') {
+    if (guide.setupAndValidation !== "first") {
       violation(
         documentationRules.developmentGuideOrder,
         guide.path,
-        'give its purpose, then a Setup and validation section, then its index.',
+        "give its purpose, then a Setup and validation section, then its index.",
       );
-    } else if (model.members.some(member => member.index === guide.path && listedBeforeIndex.has(member.path))) {
+    } else if (
+      model.members.some(
+        (member) =>
+          member.index === guide.path && listedBeforeIndex.has(member.path),
+      )
+    ) {
       violation(
         documentationRules.developmentGuideOrder,
         guide.path,
-        'list its entries after the Setup and validation section.',
+        "list its entries after the Setup and validation section.",
       );
     }
   }
 
-  for (const member of model.members.filter(candidate => candidate.scope === null)) {
+  for (const member of model.members.filter(
+    (candidate) => candidate.scope === null,
+  )) {
     violation(
       documentationRules.scopeCoverage,
       member.path,
-      'include it in the confirmed documentation scope.',
+      "include it in the confirmed documentation scope.",
     );
   }
   return violations;

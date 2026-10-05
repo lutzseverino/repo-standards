@@ -3,23 +3,23 @@
   "selection": {
     "cli": {
       "package": "@lutzseverino/repo-standards",
-      "version": "4.0.0"
+      "version": "5.0.0"
     },
     "standards": {
       "repository": "https://github.com/lutzseverino/repo-canon",
-      "version": "v0.4.0",
-      "commit": "4c0c57796617dbd3af63c67542f9b840e85925f7"
+      "version": "v0.5.0",
+      "commit": "117582e1ab9260fe1b486eddbd0b16118efea5f0"
     },
     "profile": "complete"
   },
-  "inspection": "sha256:ba65e84550121040a22854d0df7d9fa3a0ea21be95143b07ad871d790f6ed205",
+  "inspection": "sha256:423a7b729a80d816646bc34f2cffd08a97e1023c462774b9e60f09eb52c12237",
   "files": {
     "docs/agents/README.md": {
       "sha256": "a78a8a4934c9de37cfcd11be23ce3dd58462108fa53b6cdaead4af18ca7e773b",
       "executable": false
     },
     "AGENTS.md": {
-      "sha256": "2e6b5c90fc36abebe5a18d4352996d380d8daa2845ee1c01ecfc82140067ea18",
+      "sha256": "a618bde85fc4febaf526f393ebffc0129506cf4a52501e20fbb490e204cb8b7c",
       "executable": false
     },
     ".github/ISSUE_TEMPLATE/bug-report.yml": {
@@ -27,7 +27,7 @@
       "executable": false
     },
     "CONTRIBUTING.md": {
-      "sha256": "ab90708574a383a95a2dfd7f9a3d9a9740c638e10bf8b48ec1d4f876a55d1858",
+      "sha256": "ec24834f03f1cd8fdb5c7fb0d62aa4d9824a0c55dc008b21477c141de0091d59",
       "executable": false
     },
     "docs/agents/domain.md": {
@@ -43,7 +43,7 @@
       "executable": false
     },
     "scripts/validate-issue-contract.mjs": {
-      "sha256": "d10f01c9eba73debfc060c295e32063086b1ef02dbfe9a945060bfa1d99f1372",
+      "sha256": "7fdab26e0f051a9b3493e667f84c2324cac1aa16c8c9c2d52024ab318615bf73",
       "executable": false
     },
     ".github/workflows/issue-contracts.yml": {
@@ -87,7 +87,7 @@
       "executable": false
     },
     ".github/scripts/validate-pr-metadata.mjs": {
-      "sha256": "92c5d69ef964b4898eaa4fc58b8b8cec0d81cddd0fe5fe6f93057731541d058b",
+      "sha256": "f158dd6cd917302fd655ac9644aaaf54505b6f6f44e54e9d89e3c3d6dff4ecfb",
       "executable": false
     },
     ".github/workflows/pr-metadata.yml": {
@@ -99,7 +99,7 @@
       "executable": false
     },
     "operations/lib/rendered-markdown.mjs": {
-      "sha256": "bbc379d38a2305ba6f351503b14622743961b229570b53d58dcc4b45fe76af55",
+      "sha256": "c9e0db1806e9ecac66bb9f99c201a07306a5155d205294e80c5592acc175476b",
       "executable": false
     },
     ".agents/skills/ask-matt/PHASE-BOUNDARIES.md": {
@@ -136,6 +136,14 @@
     },
     ".agents/skills/codebase-design/agents/openai.yaml": {
       "sha256": "edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f",
+      "executable": false
+    },
+    ".agents/skills/deliver/SKILL.md": {
+      "sha256": "e1138f5120adaa23036065ce730488de88f76e02f2f43a9ef2e31956dac44ff9",
+      "executable": false
+    },
+    ".agents/skills/deliver/agents/openai.yaml": {
+      "sha256": "de8c252bae82640677c7d2b11522dbdf650e17800414ce430ac89a3501a57b2c",
       "executable": false
     },
     ".agents/skills/diagnosing-bugs/SKILL.md": {
@@ -407,7 +415,35 @@
       "executable": false
     },
     ".agents/skills/adopt-standards/SKILL.md": {
-      "sha256": "496084e62baa7971c618151a13f1f5aa9888e88d243e87255075a0e9350c19bf",
+      "sha256": "68052a9bd2eb026527934d693cee844345fbd5a3b508f9f34f10548f1548ccd0",
+      "executable": false
+    },
+    ".agents/skills/adopt-standards/agents/openai.yaml": {
+      "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+      "executable": false
+    },
+    ".agents/skills/adopt-standards/references/assessment.md": {
+      "sha256": "0101c11ed4dac35c46f2617d85c100438e17e9edc93bb911f900f2c031846137",
+      "executable": false
+    },
+    ".agents/skills/adopt-standards/references/discovery.md": {
+      "sha256": "1442f4dfe99543e56b3cc6350285d3f740c89d2e949c71b9bd771e46566b7690",
+      "executable": false
+    },
+    ".agents/skills/adopt-standards/references/recovery.md": {
+      "sha256": "ec78fa6b4d5adc20190fb33a96f1e32275121d80cfe2ed63b0ed73a743b6498c",
+      "executable": false
+    },
+    ".agents/skills/adopt-standards/references/review.md": {
+      "sha256": "ea585384dbd581638a7ef947d5512848d1f895a543f4417b2acd895fc3aa1ca0",
+      "executable": false
+    },
+    ".agents/skills/standards-updates/SKILL.md": {
+      "sha256": "722c218bf5a3cf54ea5778bac1c7c7c56fa27f912b8648e7de2b798699f1ee18",
+      "executable": false
+    },
+    ".agents/skills/standards-updates/agents/openai.yaml": {
+      "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935",
       "executable": false
     },
     ".repo-standards/inputs/source/docs/agents/README.md": {
@@ -415,7 +451,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/AGENTS.md": {
-      "sha256": "2e6b5c90fc36abebe5a18d4352996d380d8daa2845ee1c01ecfc82140067ea18",
+      "sha256": "a618bde85fc4febaf526f393ebffc0129506cf4a52501e20fbb490e204cb8b7c",
       "executable": false
     },
     ".repo-standards/inputs/source/.github/ISSUE_TEMPLATE/bug-report.yml": {
@@ -423,7 +459,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/CONTRIBUTING.md": {
-      "sha256": "ab90708574a383a95a2dfd7f9a3d9a9740c638e10bf8b48ec1d4f876a55d1858",
+      "sha256": "ec24834f03f1cd8fdb5c7fb0d62aa4d9824a0c55dc008b21477c141de0091d59",
       "executable": false
     },
     ".repo-standards/inputs/source/guidance/documentation.md": {
@@ -431,27 +467,27 @@
       "executable": false
     },
     ".repo-standards/inputs/source/discovery/documentation.md": {
-      "sha256": "ac3f0fbba6bffcc1e5e66127d6b4922c95981ea41d8d4a7417629b53b86b726e",
+      "sha256": "2ff022d0fd5f601a3c381ccdcb79c221f6d46d48a6816c8ed9d9d4f0805e3e51",
       "executable": false
     },
     ".repo-standards/inputs/source/operations/check-documentation.mjs": {
-      "sha256": "cc67cb7482da77cb58d9e23618c42eab9b708e35889a4b1264419f1a70a8c8e1",
+      "sha256": "6be93d5fcaa837b65c4b1df18cccc3d4b167ade270c60fa7fcc8c74ab68b3fd7",
       "executable": false
     },
     ".repo-standards/inputs/source/operations/lib/rendered-markdown.mjs": {
-      "sha256": "bbc379d38a2305ba6f351503b14622743961b229570b53d58dcc4b45fe76af55",
+      "sha256": "c9e0db1806e9ecac66bb9f99c201a07306a5155d205294e80c5592acc175476b",
       "executable": false
     },
     ".repo-standards/inputs/source/operations/lib/local-markdown-links.mjs": {
-      "sha256": "3c58d0eace6d2ab7f63ab84f5f8c725be27260b8aeac3859f3a39a50909a0093",
+      "sha256": "e9b25e6a81c6f40ac8a18358e001619dcf50d7b61f4b9bb2c1f2fd3323539260",
       "executable": false
     },
     ".repo-standards/inputs/source/operations/lib/documentation-model.mjs": {
-      "sha256": "754628c45b47b749d60f35a4b0b836a663c20901e852504867209093cea4b35f",
+      "sha256": "20a0a60e77f2905552b9c8c437e0b4d878632b0e6ba27b5e2798a152fed88707",
       "executable": false
     },
     ".repo-standards/inputs/source/discovery/draft-documentation-scope.mjs": {
-      "sha256": "8392b385ff75e14714e45d2e795011cabc0d5be5c7539f1d6d5c1bc42b623798",
+      "sha256": "5df8ea87f49f4206b8df7b596a5bc2e86efad849d0b2d2d6f235b3a1570da295",
       "executable": false
     },
     ".repo-standards/inputs/source/vendor/marked/LICENSE": {
@@ -499,11 +535,11 @@
       "executable": false
     },
     ".repo-standards/inputs/source/operations/setup-github-labels.mjs": {
-      "sha256": "587c0eff5bf3a2c822ce974bec0a72967a7c2608c81f67e8735dec9a1beb6525",
+      "sha256": "c6728405c1f7391486d6075f54fd432e6374c20e7baddbbff4cf11a495beea07",
       "executable": false
     },
     ".repo-standards/inputs/source/operations/lib/github-operation.mjs": {
-      "sha256": "e3ab9ad479fb741b90c7372a71a8f3da650c374820e9346b340ad850625affa9",
+      "sha256": "00a1efcc9305c04f73d09f631f8832f02e848e2660452dce214f2d84ad08ea92",
       "executable": false
     },
     ".repo-standards/inputs/source/LICENSE": {
@@ -519,7 +555,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/operations/setup-github-pr-integration.mjs": {
-      "sha256": "812a63d62b3c06c791b19d1943f2113f5eed3b9247ff52571384efce4394c7c0",
+      "sha256": "3f3d7ec38ea8e58606346f40c6420c58ffb8b12bf8cb45389433d35f12c5ff9d",
       "executable": false
     },
     ".repo-standards/inputs/source/.github/ISSUE_TEMPLATE/implementation-ticket.yml": {
@@ -527,7 +563,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/scripts/validate-issue-contract.mjs": {
-      "sha256": "d10f01c9eba73debfc060c295e32063086b1ef02dbfe9a945060bfa1d99f1372",
+      "sha256": "7fdab26e0f051a9b3493e667f84c2324cac1aa16c8c9c2d52024ab318615bf73",
       "executable": false
     },
     ".repo-standards/inputs/source/.github/workflows/issue-contracts.yml": {
@@ -539,7 +575,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/.github/scripts/validate-pr-metadata.mjs": {
-      "sha256": "92c5d69ef964b4898eaa4fc58b8b8cec0d81cddd0fe5fe6f93057731541d058b",
+      "sha256": "f158dd6cd917302fd655ac9644aaaf54505b6f6f44e54e9d89e3c3d6dff4ecfb",
       "executable": false
     },
     ".repo-standards/inputs/source/.github/workflows/pr-metadata.yml": {
@@ -555,7 +591,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/operations/check-project-readmes.mjs": {
-      "sha256": "77609ccf56ba3bd76ec67e1c1d3e6d203922539d9987143b354e9a268e12b113",
+      "sha256": "1f85407c2e957209d3c35010d605c1890c1b2a1260dee90c74683d7636eb0ede",
       "executable": false
     },
     ".repo-standards/inputs/source/.github/PULL_REQUEST_TEMPLATE.md": {
@@ -567,7 +603,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/operations/check-repository-readme.mjs": {
-      "sha256": "3d83f77132fa6074ba8aca6bc06ccd969ef97ceb61a93b8c5100a836a0cee816",
+      "sha256": "0ac707767b91a6900d1cfee373d34a6c48eaaf6bfcba182c16f5b1bfb10bdf60",
       "executable": false
     },
     ".repo-standards/inputs/source/vendor/mattpocock-skills/skills/engineering/ask-matt/PHASE-BOUNDARIES.md": {
@@ -604,6 +640,14 @@
     },
     ".repo-standards/inputs/source/vendor/mattpocock-skills/skills/engineering/codebase-design/agents/openai.yaml": {
       "sha256": "edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f",
+      "executable": false
+    },
+    ".repo-standards/inputs/source/.agents/skills/deliver/SKILL.md": {
+      "sha256": "e1138f5120adaa23036065ce730488de88f76e02f2f43a9ef2e31956dac44ff9",
+      "executable": false
+    },
+    ".repo-standards/inputs/source/.agents/skills/deliver/agents/openai.yaml": {
+      "sha256": "de8c252bae82640677c7d2b11522dbdf650e17800414ce430ac89a3501a57b2c",
       "executable": false
     },
     ".repo-standards/inputs/source/vendor/mattpocock-skills/skills/engineering/diagnosing-bugs/SKILL.md": {
@@ -863,23 +907,23 @@
       "executable": false
     },
     ".repo-standards/inputs/standards.yaml": {
-      "sha256": "1842c731782ea465f853c86fe9a98929dec43d122f119b298d25fde838369f39",
+      "sha256": "0d4f5851a22acddaafaf09a32e4c36fb41541ae9baaaadfe58948d176e20f7ae",
       "executable": false
     },
     ".repo-standards/inputs/metadata.json": {
-      "sha256": "ab7ec008952727c37ec218c314710e8662608e6dd53b244bc3776d2b7d06147d",
+      "sha256": "391e28941d663d1f4cd806e4792c6d5593d067b3eb47bfba7fc743366ce75cb9",
       "executable": false
     },
     ".repo-standards/inputs/resolved.json": {
-      "sha256": "4c537afbb0705194559e8dde9a159d1bb3938e0549a3673b287b177050b482a9",
+      "sha256": "d5f32c89c9f6f66b5eb0989d8869aa1a966ab8524a4d968f0a1f1b665c4541db",
       "executable": false
     },
     ".repo-standards/inputs/scope-history.json": {
-      "sha256": "3aafed9abf207c79ff6cc77fff5c88af7d0e5a7da35fbd8c580df9b4d05c8170",
+      "sha256": "595c03c05099e519b62383520c61f25cb0bf27507de466f4b3948c991cdfde3d",
       "executable": false
     },
     ".repo-standards/selection.yaml": {
-      "sha256": "0a9a35d3993c1888786b9b333446f506442c15aaf480da943805ad101cca9706",
+      "sha256": "083ceefc425350e05f051eb6ecd4bd51fa21cd653f3c1b19f953a4e01ac126f5",
       "executable": false
     },
     ".repo-standards/.gitignore": {
@@ -887,16 +931,16 @@
       "executable": false
     },
     ".repo-standards/runtime/package.json": {
-      "sha256": "77990ba94006db317e905503e45538a38113a492e67feeb4d9510096599e9d8d",
+      "sha256": "811e2688c4a0d9411d713a9f06a5129a9c4a9ae8ca713e61650a5b2b9dddfacd",
       "executable": false
     },
     ".repo-standards/runtime/package-lock.json": {
-      "sha256": "3a2e15d3369c9e4621b2ae3afa97071fd29c83b79ad09d2255186674b6e55c59",
+      "sha256": "7b5193bb7d65d7b8add222a8c739814518378d41396bc8461ec13b799bd71ba0",
       "executable": false
     }
   },
   "state": {
-    "sha256": "5d069c6a5d6809fd62721dde66c9beb433c5e35d0690794a73354ad641377679",
+    "sha256": "5028a676a6145cda97a89db796367c055a815c340c663e1a2fff2fd849e1b122",
     "executable": false
   }
 }

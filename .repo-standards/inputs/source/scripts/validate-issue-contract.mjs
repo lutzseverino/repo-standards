@@ -5,14 +5,29 @@ import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { lexer } from "../vendor/marked/marked.esm.js";
-import { interpretMarkdown, markdownInlineText, markdownTokenSpans } from "../operations/lib/rendered-markdown.mjs";
+import {
+  interpretMarkdown,
+  markdownInlineText,
+  markdownTokenSpans,
+} from "../operations/lib/rendered-markdown.mjs";
 
 const feedbackMarker = "<!-- repo-canon:issue-contract-feedback -->";
 const feedbackStatePrefix = "<!-- repo-canon:issue-contract-state ";
 const readyLabels = new Set(["ready-for-agent", "ready-for-human"]);
-const workflowLabels = new Set(["needs-triage", "needs-info", "ready-for-agent", "ready-for-human", "wontfix"]);
+const workflowLabels = new Set([
+  "needs-triage",
+  "needs-info",
+  "ready-for-agent",
+  "ready-for-human",
+  "wontfix",
+]);
 const categoryLabels = new Set(["bug", "enhancement"]);
-const childLabels = new Set(["wayfinder:research", "wayfinder:prototype", "wayfinder:grilling", "wayfinder:task"]);
+const childLabels = new Set([
+  "wayfinder:research",
+  "wayfinder:prototype",
+  "wayfinder:grilling",
+  "wayfinder:task",
+]);
 const agentBriefHeadingNames = new Set(["agent brief"]);
 const issueNonRenderedElements = ["head", "title"];
 const contractSectionNames = new Set([
@@ -42,12 +57,49 @@ const contractSectionNames = new Set([
   "what to build",
 ]);
 const contractFields = new Map([
-  ["bug report", new Set(["steps to reproduce", "expected behavior", "actual behavior", "environment", "additional context"])],
-  ["feature request", new Set(["problem", "desired outcome", "proposed approach", "additional context"])],
-  ["specification", new Set(["problem statement", "solution", "user stories", "implementation decisions", "testing decisions", "out of scope", "further notes"])],
-  ["implementation ticket", new Set(["parent", "what to build", "acceptance criteria", "blocked by"])],
+  [
+    "bug report",
+    new Set([
+      "steps to reproduce",
+      "expected behavior",
+      "actual behavior",
+      "environment",
+      "additional context",
+    ]),
+  ],
+  [
+    "feature request",
+    new Set([
+      "problem",
+      "desired outcome",
+      "proposed approach",
+      "additional context",
+    ]),
+  ],
+  [
+    "specification",
+    new Set([
+      "problem statement",
+      "solution",
+      "user stories",
+      "implementation decisions",
+      "testing decisions",
+      "out of scope",
+      "further notes",
+    ]),
+  ],
+  [
+    "implementation ticket",
+    new Set(["parent", "what to build", "acceptance criteria", "blocked by"]),
+  ],
 ]);
-const wayfinderMapFields = new Set(["destination", "notes", "decisions so far", "not yet specified", "out of scope"]);
+const wayfinderMapFields = new Set([
+  "destination",
+  "notes",
+  "decisions so far",
+  "not yet specified",
+  "out of scope",
+]);
 const wayfinderChildFields = new Set(["parent", "question"]);
 
 // The decision reads one snapshot, which the adapter below fetches in full
@@ -80,7 +132,9 @@ export function decideIssueContract(snapshot) {
       exitCode: 1,
       message: result.errors.join("\n"),
       removeLabels: readinessLabels(result.labels),
-      addLabels: result.usesWorkflowState ? reviewReturnLabels(result.labels) : [],
+      addLabels: result.usesWorkflowState
+        ? reviewReturnLabels(result.labels)
+        : [],
       feedback: feedbackChange(comments, invalidFeedback(result.errors)),
     });
   }
@@ -90,27 +144,57 @@ export function decideIssueContract(snapshot) {
     return issueDecision({
       exitCode: 0,
       message: `Valid ${result.kind}.`,
-      feedback: previousFeedback ? feedbackChange(comments, resolvedFeedback(result.kind)) : null,
+      feedback: previousFeedback
+        ? feedbackChange(comments, resolvedFeedback(result.kind))
+        : null,
     });
   }
 
   const contract = contractRevision(snapshot, result);
   const revision = contract.revision;
   const timeline = issueTimeline(snapshot);
-  const readiness = assessReadiness({ snapshot, result, timeline, previousFeedback, revision, openingEligible: contract.openingEligible });
+  const readiness = assessReadiness({
+    snapshot,
+    result,
+    timeline,
+    previousFeedback,
+    revision,
+    openingEligible: contract.openingEligible,
+  });
   if (!readiness.valid) {
     return issueDecision({
       exitCode: 1,
       message: readiness.error,
       removeLabels: readinessLabels(result.labels),
-      addLabels: result.usesWorkflowState ? reviewReturnLabels(result.labels) : [],
-      feedback: feedbackChange(comments, awaitingReviewFeedback(result.kind, revision, readiness.observedEventId, readiness.sourceInvalidation, readiness.error)),
+      addLabels: result.usesWorkflowState
+        ? reviewReturnLabels(result.labels)
+        : [],
+      feedback: feedbackChange(
+        comments,
+        awaitingReviewFeedback(
+          result.kind,
+          revision,
+          readiness.observedEventId,
+          readiness.sourceInvalidation,
+          {
+            reason: readiness.error,
+            rejected: Boolean(readiness.rejectionReason),
+            rejectedCreationLabel: readiness.rejectedCreationLabel,
+          },
+        ),
+      ),
     });
   }
 
-  const supersedingState = readiness.approved && result.usesWorkflowState
-    ? stateAppliedAfterReview(result.labels, readiness.reviewEventId, timeline, event)
-    : null;
+  const supersedingState =
+    readiness.approved && result.usesWorkflowState
+      ? stateAppliedAfterReview(
+          result.labels,
+          readiness.reviewEventId,
+          timeline,
+          event,
+        )
+      : null;
   if (supersedingState) {
     return issueDecision({
       exitCode: 0,
@@ -118,7 +202,15 @@ export function decideIssueContract(snapshot) {
       removeLabels: replacedWorkflowStates(result.labels, supersedingState),
       feedback: feedbackChange(
         comments,
-        awaitingReviewFeedback(result.kind, revision, readiness.reviewEventId, readiness.sourceInvalidation, `\`${supersedingState}\` was applied after the review and supersedes its readiness.`),
+        awaitingReviewFeedback(
+          result.kind,
+          revision,
+          readiness.reviewEventId,
+          readiness.sourceInvalidation,
+          {
+            reason: `\`${supersedingState}\` was applied after the review and supersedes its readiness.`,
+          },
+        ),
       ),
     });
   }
@@ -127,8 +219,14 @@ export function decideIssueContract(snapshot) {
   let addLabels = [];
   if (readiness.approved && result.usesWorkflowState) {
     removeLabels = replacedWorkflowStates(result.labels, readiness.label);
-  } else if (event.action === "unlabeled" && readinessTransitionLabel(event) && result.usesWorkflowState) {
-    const remainingStates = [...result.labels].filter((label) => workflowLabels.has(label));
+  } else if (
+    event.action === "unlabeled" &&
+    readinessTransitionLabel(event) &&
+    result.usesWorkflowState
+  ) {
+    const remainingStates = [...result.labels].filter((label) =>
+      workflowLabels.has(label),
+    );
     if (remainingStates.length === 0) addLabels = ["needs-triage"];
   }
 
@@ -140,13 +238,36 @@ export function decideIssueContract(snapshot) {
     feedback: feedbackChange(
       comments,
       readiness.approved
-        ? approvedFeedback(result.kind, revision, readiness.label, readiness.reviewer, readiness.reviewEventId, readiness.sourceInvalidation)
-        : awaitingReviewFeedback(result.kind, revision, readiness.observedEventId, readiness.sourceInvalidation),
+        ? approvedFeedback(
+            result.kind,
+            revision,
+            readiness.label,
+            readiness.reviewer,
+            readiness.reviewEventId,
+            readiness.sourceInvalidation,
+          )
+        : awaitingReviewFeedback(
+            result.kind,
+            revision,
+            readiness.observedEventId,
+            readiness.sourceInvalidation,
+            {
+              reason: readiness.rejectionReason,
+              rejected: true,
+              rejectedCreationLabel: readiness.rejectedCreationLabel,
+            },
+          ),
     ),
   });
 }
 
-function issueDecision({ exitCode, message, removeLabels = [], addLabels = [], feedback = null }) {
+function issueDecision({
+  exitCode,
+  message,
+  removeLabels = [],
+  addLabels = [],
+  feedback = null,
+}) {
   return { exitCode, message, removeLabels, addLabels, feedback };
 }
 
@@ -156,16 +277,23 @@ function assessStructure(snapshot) {
   const { event, issue, comments } = snapshot;
   const relationships = resolveRelationships(snapshot);
   const transitionLabel = readinessTransitionLabel(event);
-  const validationIssue = transitionLabel && ["labeled", "unlabeled"].includes(event.action)
-    ? {
-        ...issue,
-        labels: (issue.labels ?? []).filter((label) => {
-          const name = labelName(label);
-          if (!workflowLabels.has(name)) return true;
-          return event.action === "labeled" ? name === transitionLabel : name === "needs-triage";
-        }).concat(event.action === "unlabeled" ? [{ name: "needs-triage" }] : []),
-      }
-    : issue;
+  const validationIssue =
+    transitionLabel && ["labeled", "unlabeled"].includes(event.action)
+      ? {
+          ...issue,
+          labels: (issue.labels ?? [])
+            .filter((label) => {
+              const name = labelName(label);
+              if (!workflowLabels.has(name)) return true;
+              return event.action === "labeled"
+                ? name === transitionLabel
+                : name === "needs-triage";
+            })
+            .concat(
+              event.action === "unlabeled" ? [{ name: "needs-triage" }] : [],
+            ),
+        }
+      : issue;
   const result = validate({
     issue: validationIssue,
     comments,
@@ -191,39 +319,65 @@ function revisionContract(snapshot) {
 // The explicit references the adapter looks up: the first `Parent` reference
 // when no native parent exists, and each `Blocked by` reference that no native
 // blocker already supplies.
-function relationshipLookups({ repository, issue, parent: nativeParent, blockedBy: nativeBlockedBy }) {
+function relationshipLookups({
+  repository,
+  issue,
+  parent: nativeParent,
+  blockedBy: nativeBlockedBy,
+}) {
   const sections = parseSections(issue.body ?? "");
-  const parentReference = firstIssueReference(sections.get("parent"), repository);
-  const knownReferences = new Set(nativeBlockedBy.map((blocker) => issueReferenceFor(blocker)).filter(Boolean));
+  const parentReference = firstIssueReference(
+    sections.get("parent"),
+    repository,
+  );
+  const knownReferences = new Set(
+    nativeBlockedBy
+      .map((blocker) => issueReferenceFor(blocker))
+      .filter(Boolean),
+  );
   return {
     parentReference,
     parent: !nativeParent && parentReference ? parentReference : null,
-    blockers: issueReferences(sections.get("blocked by"), repository).filter((reference) => !knownReferences.has(reference)),
+    blockers: issueReferences(sections.get("blocked by"), repository).filter(
+      (reference) => !knownReferences.has(reference),
+    ),
   };
 }
 
 function resolveRelationships(snapshot) {
   const lookups = relationshipLookups(snapshot);
   const errors = [];
-  const fallbackParent = lookups.parent ? relatedIssue(snapshot, lookups.parent) : null;
+  const fallbackParent = lookups.parent
+    ? relatedIssue(snapshot, lookups.parent)
+    : null;
   const parent = snapshot.parent ?? fallbackParent;
-  if (lookups.parentReference && !parent) errors.push(`Could not resolve the \`Parent\` issue reference ${lookups.parentReference}.`);
+  if (lookups.parentReference && !parent)
+    errors.push(
+      `Could not resolve the \`Parent\` issue reference ${lookups.parentReference}.`,
+    );
   const blockedBy = [...snapshot.blockedBy];
   for (const reference of lookups.blockers) {
     const blocker = relatedIssue(snapshot, reference);
     if (blocker) blockedBy.push(blocker);
-    else errors.push(`Could not resolve the \`Blocked by\` issue reference ${reference}.`);
+    else
+      errors.push(
+        `Could not resolve the \`Blocked by\` issue reference ${reference}.`,
+      );
   }
   return { parent, blockedBy, errors };
 }
 
 function relatedIssue({ relatedIssues = {} }, reference) {
-  return Object.hasOwn(relatedIssues, reference) ? relatedIssues[reference] : null;
+  return Object.hasOwn(relatedIssues, reference)
+    ? relatedIssues[reference]
+    : null;
 }
 
 function issueReferenceFor(issue) {
   if (issue.url) return new URL(issue.url).pathname;
-  const match = issue.html_url?.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/issues\/(\d+)/);
+  const match = issue.html_url?.match(
+    /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/issues\/(\d+)/,
+  );
   return match ? `/repos/${match[1]}/${match[2]}/issues/${match[3]}` : null;
 }
 
@@ -234,7 +388,8 @@ function firstIssueReference(value, repository) {
 function issueReferences(value = "", repository) {
   const references = [];
   const seen = new Set();
-  const expression = /https:\/\/github\.com\/([^/\s]+)\/([^/\s]+)\/issues\/(\d+)|(?:^|[\s(])#(\d+)\b/gim;
+  const expression =
+    /https:\/\/github\.com\/([^/\s]+)\/([^/\s]+)\/issues\/(\d+)|(?:^|[\s(])#(\d+)\b/gim;
   for (const match of markdownReferenceText(value).matchAll(expression)) {
     const reference = match[4]
       ? `/repos/${repository}/issues/${match[4]}`
@@ -261,7 +416,9 @@ function markdownVisibleText(markdown) {
 }
 
 function issueMarkdown(markdown) {
-  return interpretMarkdown(markdown, { additionalNonRenderedElements: issueNonRenderedElements });
+  return interpretMarkdown(markdown, {
+    additionalNonRenderedElements: issueNonRenderedElements,
+  });
 }
 
 function validate({ issue, comments, blockedBy, parent, relationshipErrors }) {
@@ -276,7 +433,9 @@ function validate({ issue, comments, blockedBy, parent, relationshipErrors }) {
     return outcome("Wayfinder map", errors, labels, false);
   }
 
-  const wayfinderChildren = [...labels].filter((label) => childLabels.has(label));
+  const wayfinderChildren = [...labels].filter((label) =>
+    childLabels.has(label),
+  );
   if (wayfinderChildren.length > 0) {
     sections = parseSections(body, wayfinderChildFields);
     errors.push(...relationshipErrors);
@@ -285,7 +444,9 @@ function validate({ issue, comments, blockedBy, parent, relationshipErrors }) {
   }
 
   const brief = latestAgentBrief(comments);
-  const hasTriageCategory = [...labels].some((label) => categoryLabels.has(label));
+  const hasTriageCategory = [...labels].some((label) =>
+    categoryLabels.has(label),
+  );
   if (hasTriageCategory && labels.has("wontfix")) {
     validateTriagedLabels(labels, null, errors);
     return outcome("triaged wontfix request", errors, labels, true);
@@ -293,34 +454,62 @@ function validate({ issue, comments, blockedBy, parent, relationshipErrors }) {
   if (brief && hasTriageCategory) {
     validateTriagedLabels(labels, null, errors);
     validateAgentBrief(brief.body, labels, errors);
-    return outcome("triaged Agent Brief", errors, labels, true, { type: "comment", comment: brief, body: brief.body ?? "" });
+    return outcome("triaged Agent Brief", errors, labels, true, {
+      type: "comment",
+      comment: brief,
+      body: brief.body ?? "",
+    });
   }
 
   const contractKind = identifyContract(sections);
   sections = parseSections(body, contractFields.get(contractKind));
   if (!hasTriageCategory && contractKind === "specification") {
-    requireSections(sections, ["Problem Statement", "Solution", "User Stories", "Out of Scope"], errors);
-    for (const name of ["Implementation Decisions", "Testing Decisions", "Further Notes"]) {
+    requireSections(
+      sections,
+      ["Problem Statement", "Solution", "User Stories", "Out of Scope"],
+      errors,
+    );
+    for (const name of [
+      "Implementation Decisions",
+      "Testing Decisions",
+      "Further Notes",
+    ]) {
       requireSection(sections, name, errors, { allowEmpty: true });
     }
-    return outcome("specification", errors, labels, true, { type: "issue-body", body });
+    return outcome("specification", errors, labels, true, {
+      type: "issue-body",
+      body,
+    });
   }
 
   if (!hasTriageCategory && contractKind === "implementation ticket") {
     errors.push(...relationshipErrors);
     requireSections(sections, ["What to build", "Acceptance criteria"], errors);
-    requireSection(sections, "Blocked by", errors, { allowExternalValue: blockedBy.length > 0 });
-    return outcome("implementation ticket", errors, labels, true, { type: "issue-body", body });
+    requireSection(sections, "Blocked by", errors, {
+      allowExternalValue: blockedBy.length > 0,
+    });
+    return outcome("implementation ticket", errors, labels, true, {
+      type: "issue-body",
+      body,
+    });
   }
 
   if (brief) {
     validateTriagedLabels(labels, null, errors);
     validateAgentBrief(brief.body, labels, errors);
-    return outcome("triaged Agent Brief", errors, labels, true, { type: "comment", comment: brief, body: brief.body ?? "" });
+    return outcome("triaged Agent Brief", errors, labels, true, {
+      type: "comment",
+      comment: brief,
+      body: brief.body ?? "",
+    });
   }
 
   if (contractKind === "bug report") {
-    requireSections(sections, ["Steps to reproduce", "Expected behavior", "Actual behavior"], errors);
+    requireSections(
+      sections,
+      ["Steps to reproduce", "Expected behavior", "Actual behavior"],
+      errors,
+    );
     validateTriagedLabels(labels, "bug", errors);
     requireAgentBriefForReadiness(labels, errors);
     return outcome("bug report", errors, labels, true);
@@ -335,11 +524,15 @@ function validate({ issue, comments, blockedBy, parent, relationshipErrors }) {
 
   if (hasTriageCategory) {
     validateTriagedLabels(labels, null, errors);
-    errors.push("Add an Agent Brief for this category-labeled triaged request, or use the matching public bug or feature form.");
+    errors.push(
+      "Add an Agent Brief for this category-labeled triaged request, or use the matching public bug or feature form.",
+    );
     return outcome("triaged request", errors, labels, true);
   }
 
-  errors.push("Use one supported issue contract: a public form, native specification or ticket, triaged Agent Brief, Wayfinder map, or labeled Wayfinder child.");
+  errors.push(
+    "Use one supported issue contract: a public form, native specification or ticket, triaged Agent Brief, Wayfinder map, or labeled Wayfinder child.",
+  );
   return outcome("issue contract", errors, labels, true);
 }
 
@@ -365,7 +558,14 @@ function identifyContract(sections) {
 // Triaged requests, direct specifications and tickets, and unrecognized issues
 // that lose readiness carry one workflow state; Wayfinder issues never gain one.
 function outcome(kind, errors, labels, usesWorkflowState, contract = null) {
-  return { valid: errors.length === 0, kind, errors: [...new Set(errors)], labels, usesWorkflowState, contract };
+  return {
+    valid: errors.length === 0,
+    kind,
+    errors: [...new Set(errors)],
+    labels,
+    usesWorkflowState,
+    contract,
+  };
 }
 
 function parseSections(markdown, acceptedNames = contractSectionNames) {
@@ -383,8 +583,9 @@ function parseSections(markdown, acceptedNames = contractSectionNames) {
 
 function findMarkdownHeadings(markdown, acceptedNames = null) {
   markdown = normalizeMarkdown(markdown);
-  return issueMarkdown(markdown).markdownHeadings
-    .filter(({ name }) => !acceptedNames || acceptedNames.has(normalize(name)));
+  return issueMarkdown(markdown).markdownHeadings.filter(
+    ({ name }) => !acceptedNames || acceptedNames.has(normalize(name)),
+  );
 }
 
 function briefFieldMatches(markdown) {
@@ -396,12 +597,21 @@ function briefFieldMatches(markdown) {
     let lineStart = true;
     for (const inlineToken of token.tokens ?? []) {
       const inlineIndex = markdown.indexOf(inlineToken.raw, cursor);
-      if (inlineIndex === -1) throw new Error(`Could not locate parsed inline Markdown token after offset ${cursor}.`);
+      if (inlineIndex === -1)
+        throw new Error(
+          `Could not locate parsed inline Markdown token after offset ${cursor}.`,
+        );
       cursor = inlineIndex + inlineToken.raw.length;
-      const fieldName = inlineToken.type === "strong" && lineStart
-        ? markdownInlineText(inlineToken.tokens).match(/^([^:\n]+):$/)?.[1]
-        : null;
-      if (fieldName) matches.push({ index: inlineIndex, length: inlineToken.raw.length, name: fieldName });
+      const fieldName =
+        inlineToken.type === "strong" && lineStart
+          ? markdownInlineText(inlineToken.tokens).match(/^([^:\n]+):$/)?.[1]
+          : null;
+      if (fieldName)
+        matches.push({
+          index: inlineIndex,
+          length: inlineToken.raw.length,
+          name: fieldName,
+        });
       lineStart = inlineToken.raw.endsWith("\n");
     }
   }
@@ -409,7 +619,11 @@ function briefFieldMatches(markdown) {
 }
 
 function normalize(value) {
-  return value.replace(/[*_`]/g, "").replace(/[ \t]+/g, " ").trim().toLowerCase();
+  return value
+    .replace(/[*_`]/g, "")
+    .replace(/[ \t]+/g, " ")
+    .trim()
+    .toLowerCase();
 }
 
 function normalizeMarkdown(value) {
@@ -420,14 +634,21 @@ function requireSections(sections, names, errors) {
   for (const name of names) requireSection(sections, name, errors);
 }
 
-function requireSection(sections, name, errors, { allowEmpty = false, allowExternalValue = false } = {}) {
+function requireSection(
+  sections,
+  name,
+  errors,
+  { allowEmpty = false, allowExternalValue = false } = {},
+) {
   const key = normalize(name);
   if (!sections.has(key)) {
     errors.push(`Add the \`${name}\` section.`);
     return;
   }
   if (!allowEmpty && !allowExternalValue && isPlaceholder(sections.get(key))) {
-    errors.push(`Replace the placeholder under \`${name}\` with the required information.`);
+    errors.push(
+      `Replace the placeholder under \`${name}\` with the required information.`,
+    );
   }
 }
 
@@ -435,7 +656,9 @@ function isPlaceholder(value) {
   const withoutEmptyTasks = value.replace(/^\s*[-+*]\s*\[[ xX]\]\s*$/gm, "");
   const visibleText = markdownVisibleText(withoutEmptyTasks).trim();
   if (!visibleText) return true;
-  return /^(?:no response|tbd|todo|\[(?:your |add |describe |enter )?[^\]]+\])\.?$/i.test(visibleText);
+  return /^(?:no response|tbd|todo|\[(?:your |add |describe |enter )?[^\]]+\])\.?$/i.test(
+    visibleText,
+  );
 }
 
 function validateWayfinderMap(sections, labels, errors) {
@@ -443,26 +666,46 @@ function validateWayfinderMap(sections, labels, errors) {
   if ([...labels].some((label) => childLabels.has(label))) {
     errors.push("Keep `wayfinder:map` separate from Wayfinder child labels.");
   }
-  requireSections(sections, ["Destination", "Notes", "Not yet specified", "Out of scope"], errors);
+  requireSections(
+    sections,
+    ["Destination", "Notes", "Not yet specified", "Out of scope"],
+    errors,
+  );
   requireSection(sections, "Decisions so far", errors, { allowEmpty: true });
 }
 
-function validateWayfinderChild(sections, labels, childLabelList, parent, errors) {
+function validateWayfinderChild(
+  sections,
+  labels,
+  childLabelList,
+  parent,
+  errors,
+) {
   rejectPlanningReadiness(labels, errors);
   if (childLabelList.length !== 1 || labels.has("wayfinder:map")) {
-    errors.push("Apply exactly one Wayfinder child label and do not combine it with `wayfinder:map`.");
+    errors.push(
+      "Apply exactly one Wayfinder child label and do not combine it with `wayfinder:map`.",
+    );
   }
   requireSection(sections, "Question", errors);
   if (!parent) {
-    errors.push("Link the Wayfinder child to its parent map using the native parent relationship or a `Parent` section.");
-  } else if (!(parent.labels ?? []).some((label) => labelName(label) === "wayfinder:map")) {
-    errors.push("Link the Wayfinder child to an issue labeled `wayfinder:map`.");
+    errors.push(
+      "Link the Wayfinder child to its parent map using the native parent relationship or a `Parent` section.",
+    );
+  } else if (
+    !(parent.labels ?? []).some((label) => labelName(label) === "wayfinder:map")
+  ) {
+    errors.push(
+      "Link the Wayfinder child to an issue labeled `wayfinder:map`.",
+    );
   }
 }
 
 function rejectPlanningReadiness(labels, errors) {
   if ([...labels].some((label) => readyLabels.has(label))) {
-    errors.push("Remove readiness labels from Wayfinder planning issues; their eligibility uses open state, assignment, and blockers.");
+    errors.push(
+      "Remove readiness labels from Wayfinder planning issues; their eligibility uses open state, assignment, and blockers.",
+    );
   }
 }
 
@@ -473,16 +716,25 @@ function labelName(label) {
 function validateTriagedLabels(labels, expectedCategory, errors) {
   const categories = [...labels].filter((label) => categoryLabels.has(label));
   const states = [...labels].filter((label) => workflowLabels.has(label));
-  if (categories.length !== 1) errors.push("Apply exactly one category label: `bug` or `enhancement`.");
-  if (expectedCategory && (categories.length !== 1 || categories[0] !== expectedCategory)) {
-    errors.push(`Use the \`${expectedCategory}\` category for this issue form.`);
+  if (categories.length !== 1)
+    errors.push("Apply exactly one category label: `bug` or `enhancement`.");
+  if (
+    expectedCategory &&
+    (categories.length !== 1 || categories[0] !== expectedCategory)
+  ) {
+    errors.push(
+      `Use the \`${expectedCategory}\` category for this issue form.`,
+    );
   }
-  if (states.length !== 1) errors.push("Apply exactly one workflow state label.");
+  if (states.length !== 1)
+    errors.push("Apply exactly one workflow state label.");
 }
 
 function requireAgentBriefForReadiness(labels, errors) {
   if ([...labels].some((label) => readyLabels.has(label))) {
-    errors.push("Add a reviewed Agent Brief before applying a readiness label to a triaged request.");
+    errors.push(
+      "Add a reviewed Agent Brief before applying a readiness label to a triaged request.",
+    );
   }
 }
 
@@ -493,7 +745,11 @@ function requireAgentBriefForReadiness(labels, errors) {
 function latestAgentBrief(comments) {
   let latest = null;
   for (const comment of comments) {
-    if (agentBriefHeading(comment.body ?? "") && (!latest || BigInt(comment.id) > BigInt(latest.id))) latest = comment;
+    if (
+      agentBriefHeading(comment.body ?? "") &&
+      (!latest || BigInt(comment.id) > BigInt(latest.id))
+    )
+      latest = comment;
   }
   return latest;
 }
@@ -502,23 +758,41 @@ function validateAgentBrief(body, labels, errors) {
   body = normalizeMarkdown(body);
   const heading = agentBriefHeading(body);
   if (!isAgentBriefPreamble(body.slice(0, heading.index))) {
-    errors.push("Start the Agent Brief comment with `> *This was generated by AI during triage.*`.");
+    errors.push(
+      "Start the Agent Brief comment with `> *This was generated by AI during triage.*`.",
+    );
   }
   const fields = parseBriefFields(markdownSection(body, heading));
-  for (const name of ["Category", "Summary", "Current behavior", "Desired behavior", "Key interfaces", "Acceptance criteria", "Out of scope"]) {
-    if (!fields.has(normalize(name)) || isPlaceholder(fields.get(normalize(name)))) {
+  for (const name of [
+    "Category",
+    "Summary",
+    "Current behavior",
+    "Desired behavior",
+    "Key interfaces",
+    "Acceptance criteria",
+    "Out of scope",
+  ]) {
+    if (
+      !fields.has(normalize(name)) ||
+      isPlaceholder(fields.get(normalize(name)))
+    ) {
       errors.push(`Complete the Agent Brief \`${name}\` field.`);
     }
   }
   const category = normalize(fields.get("category") ?? "");
-  if (category && !categoryLabels.has(category)) errors.push("Set the Agent Brief `Category` to `bug` or `enhancement`.");
-  if (category && !labels.has(category)) errors.push(`Apply the Agent Brief's \`${category}\` category label.`);
+  if (category && !categoryLabels.has(category))
+    errors.push("Set the Agent Brief `Category` to `bug` or `enhancement`.");
+  if (category && !labels.has(category))
+    errors.push(`Apply the Agent Brief's \`${category}\` category label.`);
 }
 
 function markdownSection(markdown, heading) {
   markdown = normalizeMarkdown(markdown);
-  const end = findMarkdownHeadings(markdown)
-    .find((candidate) => candidate.index > heading.index && candidate.level <= heading.level)?.index ?? markdown.length;
+  const end =
+    findMarkdownHeadings(markdown).find(
+      (candidate) =>
+        candidate.index > heading.index && candidate.level <= heading.level,
+    )?.index ?? markdown.length;
   return markdown.slice(heading.index + heading.length, end);
 }
 
@@ -538,12 +812,17 @@ function parseBriefFields(body) {
 function isAgentBriefPreamble(markdown) {
   const blocks = lexer(markdown).filter((token) => token.type !== "space");
   if (blocks.length !== 1 || blocks[0].type !== "blockquote") return false;
-  const quoteBlocks = blocks[0].tokens?.filter((token) => token.type !== "space") ?? [];
-  if (quoteBlocks.length !== 1 || quoteBlocks[0].type !== "paragraph") return false;
+  const quoteBlocks =
+    blocks[0].tokens?.filter((token) => token.type !== "space") ?? [];
+  if (quoteBlocks.length !== 1 || quoteBlocks[0].type !== "paragraph")
+    return false;
   const inline = quoteBlocks[0].tokens ?? [];
-  return inline.length === 1
-    && inline[0].type === "em"
-    && markdownInlineText(inline[0].tokens) === "This was generated by AI during triage.";
+  return (
+    inline.length === 1 &&
+    inline[0].type === "em" &&
+    markdownInlineText(inline[0].tokens) ===
+      "This was generated by AI during triage."
+  );
 }
 
 function agentBriefHeading(body) {
@@ -554,8 +833,15 @@ function contractRevision({ bodyRevision }, result) {
   let source;
   let openingEligible = false;
   if (result.contract.type === "issue-body") {
-    if (!bodyRevision) throw new Error("The snapshot does not include the issue-body revision metadata.");
-    source = { type: "issue-body", id: bodyRevision.id, editedAt: bodyRevision.lastEditedAt ?? null };
+    if (!bodyRevision)
+      throw new Error(
+        "The snapshot does not include the issue-body revision metadata.",
+      );
+    source = {
+      type: "issue-body",
+      id: bodyRevision.id,
+      editedAt: bodyRevision.lastEditedAt ?? null,
+    };
     openingEligible = bodyRevision.lastEditedAt == null;
   } else {
     const comment = result.contract.comment;
@@ -571,38 +857,73 @@ function contractRevision({ bodyRevision }, result) {
     source,
     body: result.contract.body,
   });
-  return { revision: `sha256:${createHash("sha256").update(value).digest("hex")}`, openingEligible };
+  return {
+    revision: `sha256:${createHash("sha256").update(value).digest("hex")}`,
+    openingEligible,
+  };
 }
 
-function assessReadiness({ snapshot, result, timeline, previousFeedback, revision, openingEligible }) {
+function assessReadiness({
+  snapshot,
+  result,
+  timeline,
+  previousFeedback,
+  revision,
+  openingEligible,
+}) {
   const { event: currentEvent, issue, permissions } = snapshot;
-  const currentReadyLabels = [...result.labels].filter((label) => readyLabels.has(label));
+  const currentReadyLabels = [...result.labels].filter((label) =>
+    readyLabels.has(label),
+  );
   const latestEvent = timeline.latestReadinessTransition();
-  const observedEventId = latestEvent?.id == null ? null : String(latestEvent.id);
+  const observedEventId =
+    latestEvent?.id == null ? null : String(latestEvent.id);
   if (currentReadyLabels.length > 1) {
-    return { valid: false, observedEventId, error: "Apply only one readiness label to an implementation contract." };
+    return {
+      valid: false,
+      observedEventId,
+      error: "Apply only one readiness label to an implementation contract.",
+    };
   }
 
   const recorded = feedbackState(previousFeedback?.body);
   const deletedBrief = supersedingDeletedBrief(currentEvent, result);
-  const sourceInvalidation = deletedBrief ?? recorded?.sourceInvalidation ?? null;
+  const sourceInvalidation =
+    deletedBrief ?? recorded?.sourceInvalidation ?? null;
   if (deletedBrief && recorded?.sourceInvalidation !== deletedBrief) {
     return {
       valid: false,
       observedEventId,
       sourceInvalidation,
-      error: "Deleting a newer Agent Brief invalidated the restored contract source. Review the published revision again.",
+      error:
+        "Deleting a newer Agent Brief invalidated the restored contract source. Review the published revision again.",
     };
   }
-  const creationEvent = creationLabelEvent(currentEvent, issue, result, currentReadyLabels[0], timeline, openingEligible);
-  const labelEvent = creationEvent ?? (
-    currentReadyLabels.length === 1
-      && latestEvent?.event === "labeled"
-      && latestEvent.label?.name === currentReadyLabels[0]
-      ? latestEvent
-      : null
+  const creationEvent = creationLabelEvent(
+    currentEvent,
+    issue,
+    result,
+    currentReadyLabels[0],
+    timeline,
+    openingEligible,
   );
-  if (currentReadyLabels.length === 1 && activeApproval(permissions, recorded, revision, currentReadyLabels[0], timeline)) {
+  const labelEvent =
+    creationEvent ??
+    (currentReadyLabels.length === 1 &&
+    latestEvent?.event === "labeled" &&
+    latestEvent.label?.name === currentReadyLabels[0]
+      ? latestEvent
+      : null);
+  if (
+    currentReadyLabels.length === 1 &&
+    activeApproval(
+      permissions,
+      recorded,
+      revision,
+      currentReadyLabels[0],
+      timeline,
+    )
+  ) {
     return {
       valid: true,
       approved: true,
@@ -613,18 +934,35 @@ function assessReadiness({ snapshot, result, timeline, previousFeedback, revisio
     };
   }
 
-  const grant = readinessGrant(recorded, previousFeedback, revision, currentReadyLabels, labelEvent, timeline);
+  const grant = readinessGrant(
+    recorded,
+    previousFeedback,
+    revision,
+    currentReadyLabels,
+    labelEvent,
+    timeline,
+  );
   if (grant.candidate) {
-    if (!grant.valid) return { valid: false, error: grant.error, observedEventId, sourceInvalidation };
+    if (!grant.valid)
+      return {
+        valid: false,
+        error: grant.error,
+        observedEventId,
+        sourceInvalidation,
+      };
     const authority = reviewerAuthority(permissions, grant.reviewer);
     if (!authority.authorized) {
+      const error = authority.error
+        ? `Could not verify @${grant.reviewer}'s review authority: ${authority.error}`
+        : `@${grant.reviewer} is not authorized to grant readiness. Use a repository admin, maintainer, or collaborator with the triage role.`;
       return {
         valid: false,
         observedEventId,
         sourceInvalidation,
-        error: authority.error
-          ? `Could not verify @${grant.reviewer}'s review authority: ${authority.error}`
-          : `@${grant.reviewer} is not authorized to grant readiness. Use a repository admin, maintainer, or collaborator with the triage role.`,
+        error,
+        rejectionReason: authority.error ? null : error,
+        rejectedCreationLabel:
+          !authority.error && creationEvent ? grant.label : null,
       };
     }
     return {
@@ -638,52 +976,95 @@ function assessReadiness({ snapshot, result, timeline, previousFeedback, revisio
   }
 
   if (currentReadyLabels.length === 0) {
-    return { valid: true, approved: false, observedEventId, sourceInvalidation };
+    const rejectionReason =
+      recorded?.status === "awaiting-review" &&
+      recorded.revision === revision &&
+      recorded.rejectionReason &&
+      timeline.rejectionUnchanged(
+        recorded.observedEventId,
+        recorded.rejectedCreationLabel,
+      )
+        ? recorded.rejectionReason
+        : null;
+    return {
+      valid: true,
+      approved: false,
+      observedEventId,
+      sourceInvalidation,
+      rejectionReason,
+      rejectedCreationLabel: rejectionReason
+        ? recorded.rejectedCreationLabel
+        : null,
+    };
   }
 
   return {
     valid: false,
     observedEventId,
     sourceInvalidation,
-    error: "Readiness is not bound to an authorized review of the current contract revision. Remove the stale attempt and review the published revision again.",
+    error:
+      "Readiness is not bound to an authorized review of the current contract revision. Remove the stale attempt and review the published revision again.",
   };
 }
 
-function readinessGrant(recorded, previousFeedback, revision, currentReadyLabels, labelEvent, timeline) {
+function readinessGrant(
+  recorded,
+  previousFeedback,
+  revision,
+  currentReadyLabels,
+  labelEvent,
+  timeline,
+) {
   if (currentReadyLabels.length !== 1) return { candidate: false };
   const label = currentReadyLabels[0];
   if (!labelEvent || labelEvent.id == null || labelEvent.event !== "labeled") {
-    return { candidate: true, valid: false, error: "The authoritative issue timeline does not contain the current readiness label event." };
+    return {
+      candidate: true,
+      valid: false,
+      error:
+        "The authoritative issue timeline does not contain the current readiness label event.",
+    };
   }
   const reviewer = labelEvent.actor?.login;
-  if (!reviewer) return { candidate: true, valid: false, error: "The readiness event does not identify its actor." };
+  if (!reviewer)
+    return {
+      candidate: true,
+      valid: false,
+      error: "The readiness event does not identify its actor.",
+    };
   const reviewEventId = String(labelEvent.id);
   const openingReview = labelEvent.opening === true;
-  const followsApprovedRevision = recorded?.status === "approved"
-    && recorded.revision === revision
-    && timeline.follows(reviewEventId, recorded.reviewEventId);
-  const followsAwaitingRevision = recorded?.status === "awaiting-review"
-    && recorded.revision === revision
-    && timeline.noticePrecedes(previousFeedback, labelEvent)
-    && timeline.follows(reviewEventId, recorded.observedEventId);
-  const followsRevisionNotice = followsApprovedRevision || followsAwaitingRevision;
+  const followsApprovedRevision =
+    recorded?.status === "approved" &&
+    recorded.revision === revision &&
+    timeline.follows(reviewEventId, recorded.reviewEventId);
+  const followsAwaitingRevision =
+    recorded?.status === "awaiting-review" &&
+    recorded.revision === revision &&
+    timeline.noticePrecedes(previousFeedback, labelEvent) &&
+    timeline.follows(reviewEventId, recorded.observedEventId);
+  const followsRevisionNotice =
+    followsApprovedRevision || followsAwaitingRevision;
   if (!openingReview && !followsRevisionNotice) {
     return {
       candidate: true,
       valid: false,
-      error: "Wait for the validator to publish the exact contract revision before applying readiness, then review that revision and apply the label again.",
+      error:
+        "Wait for the validator to publish the exact contract revision before applying readiness, then review that revision and apply the label again.",
     };
   }
   return { candidate: true, valid: true, label, reviewer, reviewEventId };
 }
 
 function activeApproval(permissions, recorded, revision, label, timeline) {
-  if (recorded?.status !== "approved"
-    || recorded.revision !== revision
-    || recorded.label !== label
-    || !recorded.reviewer
-    || !recorded.reviewEventId
-    || !timeline.isCurrentReview(recorded.reviewEventId, label)) {
+  if (
+    recorded?.status !== "approved" ||
+    recorded.revision !== revision ||
+    recorded.label !== label ||
+    !recorded.reviewer ||
+    !recorded.reviewEventId ||
+    !timeline.isCurrentReview(recorded.reviewEventId, label)
+  ) {
     return false;
   }
   return reviewerAuthority(permissions, recorded.reviewer).authorized;
@@ -697,20 +1078,37 @@ function activeApproval(permissions, recorded, revision, label, timeline) {
 // any later review. Either run then checks the opener's role as it checks any
 // reviewer's, so an opener without an authorizing role gets the same rejection
 // in either order.
-function creationLabelEvent(currentEvent, issue, result, label, timeline, openingEligible) {
-  if (result.contract.type !== "issue-body" || !openingEligible || !label) return null;
+function creationLabelEvent(
+  currentEvent,
+  issue,
+  result,
+  label,
+  timeline,
+  openingEligible,
+) {
+  if (result.contract.type !== "issue-body" || !openingEligible || !label)
+    return null;
   if (currentEvent.action === "labeled") {
     if (!issue.user?.login) return null;
-    return timeline.creationReview(label, issue.user, { openingPayload: false });
+    return timeline.creationReview(label, issue.user, {
+      openingPayload: false,
+    });
   }
-  const openingReadyLabels = currentEvent.issue?.labels?.map(labelName).filter((name) => readyLabels.has(name)) ?? [];
-  if (currentEvent.action !== "opened"
-    || currentEvent.issue?.body !== issue.body
-    || openingReadyLabels.length !== 1
-    || openingReadyLabels[0] !== label) {
+  const openingReadyLabels =
+    currentEvent.issue?.labels
+      ?.map(labelName)
+      .filter((name) => readyLabels.has(name)) ?? [];
+  if (
+    currentEvent.action !== "opened" ||
+    currentEvent.issue?.body !== issue.body ||
+    openingReadyLabels.length !== 1 ||
+    openingReadyLabels[0] !== label
+  ) {
     return null;
   }
-  return timeline.creationReview(label, currentEvent.sender, { openingPayload: true });
+  return timeline.creationReview(label, currentEvent.sender, {
+    openingPayload: true,
+  });
 }
 
 function openingReviewId(issue) {
@@ -718,19 +1116,28 @@ function openingReviewId(issue) {
 }
 
 function supersedingDeletedBrief(currentEvent, result) {
-  if (currentEvent.action !== "deleted"
-    || result.contract.type !== "comment"
-    || !agentBriefHeading(currentEvent.comment?.body ?? "")) {
+  if (
+    currentEvent.action !== "deleted" ||
+    result.contract.type !== "comment" ||
+    !agentBriefHeading(currentEvent.comment?.body ?? "")
+  ) {
     return null;
   }
   const deleted = currentEvent.comment;
-  return latestAgentBrief([result.contract.comment, deleted]) === deleted ? `deleted-comment:${deleted.node_id ?? deleted.id}` : null;
+  return latestAgentBrief([result.contract.comment, deleted]) === deleted
+    ? `deleted-comment:${deleted.node_id ?? deleted.id}`
+    : null;
 }
 
 function reviewerAuthority(permissions, login) {
-  const permission = permissions && Object.hasOwn(permissions, login) ? permissions[login] : null;
+  const permission =
+    permissions && Object.hasOwn(permissions, login)
+      ? permissions[login]
+      : null;
   if (permission?.error) return { authorized: false, error: permission.error };
-  return { authorized: ["admin", "maintain", "triage"].includes(permission?.role) };
+  return {
+    authorized: ["admin", "maintain", "triage"].includes(permission?.role),
+  };
 }
 
 // Every login whose repository role a decision can consult: each actor on a
@@ -741,16 +1148,25 @@ function reviewerAuthority(permissions, login) {
 function reviewerLogins({ event, comments, issueEvents }) {
   const logins = new Set();
   for (const candidate of issueEvents) {
-    if (isReadinessTransition(candidate) && candidate.actor?.login) logins.add(candidate.actor.login);
+    if (isReadinessTransition(candidate) && candidate.actor?.login)
+      logins.add(candidate.actor.login);
   }
-  const recordedReviewer = feedbackState(findFeedback(comments)?.body)?.reviewer;
+  const recordedReviewer = feedbackState(
+    findFeedback(comments)?.body,
+  )?.reviewer;
   if (recordedReviewer) logins.add(recordedReviewer);
-  if (event.action === "opened" && event.sender?.login) logins.add(event.sender.login);
+  if (event.action === "opened" && event.sender?.login)
+    logins.add(event.sender.login);
   return [...logins];
 }
 
 function feedbackState(body = "") {
-  const line = normalizeMarkdown(body).split("\n").find((candidate) => candidate.startsWith(feedbackStatePrefix) && candidate.endsWith(" -->"));
+  const line = normalizeMarkdown(body)
+    .split("\n")
+    .find(
+      (candidate) =>
+        candidate.startsWith(feedbackStatePrefix) && candidate.endsWith(" -->"),
+    );
   if (!line) return null;
   try {
     return JSON.parse(line.slice(feedbackStatePrefix.length, -4));
@@ -765,7 +1181,9 @@ function readinessLabels(labels) {
 
 function reviewReturnLabels(labels) {
   const hadReadiness = [...labels].some((label) => readyLabels.has(label));
-  const remainingStates = [...labels].filter((label) => workflowLabels.has(label) && !readyLabels.has(label));
+  const remainingStates = [...labels].filter(
+    (label) => workflowLabels.has(label) && !readyLabels.has(label),
+  );
   return hadReadiness && remainingStates.length === 0 ? ["needs-triage"] : [];
 }
 
@@ -777,16 +1195,23 @@ function reviewReturnLabels(labels) {
 // creation, or a label the issue was opened with. A triggering label
 // recorded before the review supersedes only without a payload time or with one
 // in a strictly later second than the review.
-function stateAppliedAfterReview(labels, reviewEventId, timeline, currentEvent) {
+function stateAppliedAfterReview(
+  labels,
+  reviewEventId,
+  timeline,
+  currentEvent,
+) {
   const appliedLater = [];
   for (const label of labels) {
     if (!workflowLabels.has(label) || readyLabels.has(label)) continue;
     const recordedLater = timeline.appliedAfterReview(label, reviewEventId);
     if (recordedLater) appliedLater.push(label);
     const recorded = timeline.latestChangeIsApplication(label);
-    const triggering = currentEvent.action === "labeled" && currentEvent.label?.name === label;
+    const triggering =
+      currentEvent.action === "labeled" && currentEvent.label?.name === label;
     if (triggering) {
-      if (!recordedLater && timeline.triggerFollowsReview(label, reviewEventId)) return label;
+      if (!recordedLater && timeline.triggerFollowsReview(label, reviewEventId))
+        return label;
       continue;
     }
     if (!timeline.openedWith(label) && !recorded) return label;
@@ -795,11 +1220,16 @@ function stateAppliedAfterReview(labels, reviewEventId, timeline, currentEvent) 
 }
 
 function replacedWorkflowStates(labels, keptLabel) {
-  return [...labels].filter((label) => workflowLabels.has(label) && label !== keptLabel);
+  return [...labels].filter(
+    (label) => workflowLabels.has(label) && label !== keptLabel,
+  );
 }
 
 function isReadinessTransition(candidate) {
-  return ["labeled", "unlabeled"].includes(candidate.event) && readyLabels.has(candidate.label?.name);
+  return (
+    ["labeled", "unlabeled"].includes(candidate.event) &&
+    readyLabels.has(candidate.label?.name)
+  );
 }
 
 // The one owner of every "did A happen after B" question about issue events,
@@ -813,25 +1243,40 @@ function isReadinessTransition(candidate) {
 // Brief comments are ordered among themselves by comment ID, in
 // `latestAgentBrief`.
 function issueTimeline({ event, issue, issueEvents }) {
-  if (!Array.isArray(issueEvents)) throw new Error("The snapshot does not include the issue-event timeline.");
+  if (!Array.isArray(issueEvents))
+    throw new Error("The snapshot does not include the issue-event timeline.");
   const openingId = openingReviewId(issue);
 
   function position(eventId) {
     if (eventId == null) return null;
     if (String(eventId) === openingId) return 0;
-    const index = issueEvents.findIndex(({ id }) => String(id) === String(eventId));
+    const index = issueEvents.findIndex(
+      ({ id }) => String(id) === String(eventId),
+    );
     return index < 0 ? null : index + 1;
   }
 
   function review(reviewEventId) {
     const reviewPosition = position(reviewEventId);
-    const at = reviewPosition === 0 ? issue.created_at : issueEvents[reviewPosition - 1]?.created_at;
-    return { position: reviewPosition, at, known: reviewPosition !== null && Boolean(at) };
+    const at =
+      reviewPosition === 0
+        ? issue.created_at
+        : issueEvents[reviewPosition - 1]?.created_at;
+    return {
+      position: reviewPosition,
+      at,
+      known: reviewPosition !== null && Boolean(at),
+    };
   }
 
   function lastApplication(label) {
-    const index = issueEvents.findLastIndex((candidate) => candidate.event === "labeled" && candidate.label?.name === label);
-    return index < 0 ? null : { position: index + 1, at: issueEvents[index].created_at };
+    const index = issueEvents.findLastIndex(
+      (candidate) =>
+        candidate.event === "labeled" && candidate.label?.name === label,
+    );
+    return index < 0
+      ? null
+      : { position: index + 1, at: issueEvents[index].created_at };
   }
 
   // Whether a label change carries the issue's creation timestamp, so the
@@ -851,12 +1296,59 @@ function issueTimeline({ event, issue, issueEvents }) {
 
   // Whether the label's latest recorded change is its application.
   function latestChangeIsApplication(label) {
-    const latestChange = issueEvents.findLast((candidate) => ["labeled", "unlabeled"].includes(candidate.event) && candidate.label?.name === label);
+    const latestChange = issueEvents.findLast(
+      (candidate) =>
+        ["labeled", "unlabeled"].includes(candidate.event) &&
+        candidate.label?.name === label,
+    );
     return latestChange?.event === "labeled";
   }
 
   return {
     latestReadinessTransition,
+
+    // Removing readiness is part of the validator's rejection cleanup, not
+    // another review attempt. Every other readiness transition replaces it.
+    rejectionUnchanged(observedEventId, rejectedCreationLabel) {
+      // The creation review recorded which opener's label it rejected. Its
+      // other creation run can replay that label while history is still empty.
+      // Every other human readiness trigger replaces the rejection.
+      const readinessTrigger =
+        ["labeled", "unlabeled"].includes(event.action) &&
+        readinessTransitionLabel(event);
+      const creationTrigger =
+        event.action === "labeled" &&
+        Boolean(issue.user?.login) &&
+        event.sender?.login === issue.user.login &&
+        event.label?.name === rejectedCreationLabel;
+      if (
+        readinessTrigger &&
+        event.sender?.login !== "github-actions[bot]" &&
+        !creationTrigger
+      ) {
+        return false;
+      }
+      const observed = observedEventId == null ? 0 : position(observedEventId);
+      if (observed === null) return false;
+      const transitions = issueEvents
+        .slice(observed)
+        .filter(isReadinessTransition);
+      const first = transitions[0];
+      if (
+        observedEventId == null &&
+        first?.event === "labeled" &&
+        first.label?.name === rejectedCreationLabel &&
+        atCreation(first.created_at) &&
+        first.actor?.login === issue.user?.login
+      ) {
+        transitions.shift();
+      }
+      return transitions.every(
+        (candidate) =>
+          candidate.event === "unlabeled" &&
+          candidate.actor?.login === "github-actions[bot]",
+      );
+    },
 
     // Whether a review event follows an earlier barrier in the timeline. No
     // barrier precedes every review. This issue's own opening is the only
@@ -872,14 +1364,23 @@ function issueTimeline({ event, issue, issueEvents }) {
     // Whether the revision notice was updated in a strictly earlier second
     // than the readiness label event.
     noticePrecedes(notice, labelEvent) {
-      return Boolean(notice?.updated_at && labelEvent.created_at && notice.updated_at < labelEvent.created_at);
+      return Boolean(
+        notice?.updated_at &&
+        labelEvent.created_at &&
+        notice.updated_at < labelEvent.created_at,
+      );
     },
 
     // Whether a recorded review is still the latest readiness transition, or
     // the creation snapshot when the timeline has none.
     isCurrentReview(reviewEventId, label) {
       const latest = latestReadinessTransition();
-      if (latest) return latest.event === "labeled" && latest.label?.name === label && String(latest.id) === reviewEventId;
+      if (latest)
+        return (
+          latest.event === "labeled" &&
+          latest.label?.name === label &&
+          String(latest.id) === reviewEventId
+        );
       return reviewEventId === openingId;
     },
 
@@ -893,14 +1394,16 @@ function issueTimeline({ event, issue, issueEvents }) {
       const first = issueEvents.find(isReadinessTransition) ?? null;
       if (!latest && !openingPayload) return null;
       if (latest && String(first?.id) !== String(latest.id)) return null;
-      if (latest && (
-        latest.event !== "labeled"
-        || latest.label?.name !== label
-        || latest.actor?.login !== opener?.login
-      )) {
+      if (
+        latest &&
+        (latest.event !== "labeled" ||
+          latest.label?.name !== label ||
+          latest.actor?.login !== opener?.login)
+      ) {
         return null;
       }
-      if (!openingPayload && latest.created_at !== issue.created_at) return null;
+      if (!openingPayload && latest.created_at !== issue.created_at)
+        return null;
       return {
         id: latest?.id ?? openingId,
         event: "labeled",
@@ -916,10 +1419,12 @@ function issueTimeline({ event, issue, issueEvents }) {
     appliedAfterReview(label, reviewEventId) {
       const reviewPosition = position(reviewEventId);
       const application = lastApplication(label);
-      return reviewPosition !== null
-        && application !== null
-        && application.position > reviewPosition
-        && !atCreation(application.at);
+      return (
+        reviewPosition !== null &&
+        application !== null &&
+        application.position > reviewPosition &&
+        !atCreation(application.at)
+      );
     },
 
     latestChangeIsApplication,
@@ -931,11 +1436,18 @@ function issueTimeline({ event, issue, issueEvents }) {
       if (!reviewPoint.known) return true;
       const payloadAt = event.issue?.updated_at;
       if (!payloadAt) return true;
-      return latestChangeIsApplication(label) ? payloadAt > reviewPoint.at : notBefore(payloadAt, reviewPoint.at);
+      return latestChangeIsApplication(label)
+        ? payloadAt > reviewPoint.at
+        : notBefore(payloadAt, reviewPoint.at);
     },
 
     openedWith(label) {
-      return event.action === "opened" && (event.issue?.labels ?? []).some((candidate) => labelName(candidate) === label);
+      return (
+        event.action === "opened" &&
+        (event.issue?.labels ?? []).some(
+          (candidate) => labelName(candidate) === label,
+        )
+      );
     },
 
     // The label whose latest application is latest in the timeline.
@@ -943,7 +1455,8 @@ function issueTimeline({ event, issue, issueEvents }) {
       let latest = null;
       for (const label of labels) {
         const applied = lastApplication(label);
-        if (!latest || applied.position > latest.position) latest = { label, position: applied.position };
+        if (!latest || applied.position > latest.position)
+          latest = { label, position: applied.position };
       }
       return latest?.label ?? null;
     },
@@ -957,21 +1470,62 @@ function feedbackChange(comments, body) {
 }
 
 function findFeedback(comments) {
-  return [...comments].reverse().find((comment) => comment.body?.includes(feedbackMarker) && comment.user?.login === "github-actions[bot]");
+  return [...comments]
+    .reverse()
+    .find(
+      (comment) =>
+        comment.body?.includes(feedbackMarker) &&
+        comment.user?.login === "github-actions[bot]",
+    );
 }
 
 function invalidFeedback(errors) {
   return `${feedbackMarker}\n## Issue contract needs attention\n\n${errors.map((error) => `- ${error}`).join("\n")}\n\nFix the items above. Structural validation will re-run, but only an authorized reviewer can grant readiness.`;
 }
 
-function awaitingReviewFeedback(kind, revision, observedEventId = null, sourceInvalidation = null, reason = null) {
-  const state = JSON.stringify({ status: "awaiting-review", revision, label: null, reviewer: null, observedEventId, sourceInvalidation });
-  const explanation = reason ? `\n\nThe last readiness attempt was rejected: ${reason}` : "";
+function awaitingReviewFeedback(
+  kind,
+  revision,
+  observedEventId = null,
+  sourceInvalidation = null,
+  { reason = null, rejected = false, rejectedCreationLabel = null } = {},
+) {
+  const state = JSON.stringify({
+    status: "awaiting-review",
+    revision,
+    label: null,
+    reviewer: null,
+    observedEventId,
+    sourceInvalidation,
+    ...(rejected && reason
+      ? {
+          rejectionReason: reason,
+          ...(rejectedCreationLabel ? { rejectedCreationLabel } : {}),
+        }
+      : {}),
+  });
+  const explanation = reason
+    ? `\n\nThe last readiness attempt was rejected: ${reason}`
+    : "";
   return `${feedbackMarker}\n${feedbackStatePrefix}${state} -->\n## Issue contract awaiting review\n\nThe ${kind} has the required structure at revision \`${revision}\`.${explanation}\n\nA fresh authorized review is required. A repository admin, maintainer, or explicitly authorized triage-role collaborator must review this exact revision, then apply one readiness label. For an Agent Brief, wait for this revision notice before applying the label. Structural validation never grants readiness.`;
 }
 
-function approvedFeedback(kind, revision, label, reviewer, reviewEventId, sourceInvalidation = null) {
-  const state = JSON.stringify({ status: "approved", revision, label, reviewer, reviewEventId, sourceInvalidation });
+function approvedFeedback(
+  kind,
+  revision,
+  label,
+  reviewer,
+  reviewEventId,
+  sourceInvalidation = null,
+) {
+  const state = JSON.stringify({
+    status: "approved",
+    revision,
+    label,
+    reviewer,
+    reviewEventId,
+    sourceInvalidation,
+  });
   return `${feedbackMarker}\n${feedbackStatePrefix}${state} -->\n## Issue contract readiness recorded\n\nThe ${kind} at revision \`${revision}\` was reviewed by @${reviewer}, whose repository role authorizes triage, and is bound to \`${label}\`. Editing or replacing the contract or removing readiness invalidates this association.`;
 }
 
@@ -984,7 +1538,8 @@ function resolvedFeedback(kind) {
 // Node.js 24.2 and later report that as `import.meta.main`. Earlier 24
 // releases lack it, so there the adapter compares the resolved script path with
 // this module's path; that is the only file-system read an import can make.
-if (import.meta.main ?? executedAsScript(import.meta.url)) await runIssueContractValidation(process.env);
+if (import.meta.main ?? executedAsScript(import.meta.url))
+  await runIssueContractValidation(process.env);
 
 // Whether the process was started with this module as its script, following
 // symlinks on both paths. A path that cannot be resolved fails the run rather
@@ -1001,15 +1556,20 @@ async function runIssueContractValidation(environment) {
     if (!value) throw new Error(`${name} is required.`);
     return value;
   };
-  const event = JSON.parse(await readFile(required("GITHUB_EVENT_PATH"), "utf8"));
+  const event = JSON.parse(
+    await readFile(required("GITHUB_EVENT_PATH"), "utf8"),
+  );
 
   if (event.issue?.pull_request) {
-    console.log("Skipped pull request discussion; issue contract validation handles issues only.");
+    console.log(
+      "Skipped pull request discussion; issue contract validation handles issues only.",
+    );
     return;
   }
 
   const issueNumber = event.issue?.number;
-  if (!Number.isInteger(issueNumber)) throw new Error("The event does not identify an issue number.");
+  if (!Number.isInteger(issueNumber))
+    throw new Error("The event does not identify an issue number.");
 
   const repository = required("GITHUB_REPOSITORY");
   const api = createApi({
@@ -1021,7 +1581,9 @@ async function runIssueContractValidation(environment) {
 
   const issue = await api.getIssue(issueNumber);
   if (issue.pull_request) {
-    console.log("Skipped pull request discussion; issue contract validation handles issues only.");
+    console.log(
+      "Skipped pull request discussion; issue contract validation handles issues only.",
+    );
     return;
   }
 
@@ -1038,21 +1600,28 @@ async function runIssueContractValidation(environment) {
     permissions: {},
   };
   const lookups = relationshipLookups(snapshot);
-  for (const reference of [lookups.parent, ...lookups.blockers].filter(Boolean)) {
+  for (const reference of [lookups.parent, ...lookups.blockers].filter(
+    Boolean,
+  )) {
     snapshot.relatedIssues[reference] = await api.getOptionalUrl(reference);
   }
   const contract = revisionContract(snapshot);
   if (contract) {
-    if (contract.type === "issue-body") snapshot.bodyRevision = await api.getIssueBodyRevision(issueNumber);
+    if (contract.type === "issue-body")
+      snapshot.bodyRevision = await api.getIssueBodyRevision(issueNumber);
     snapshot.issueEvents = await api.listEvents(issueNumber);
-    for (const login of reviewerLogins(snapshot)) snapshot.permissions[login] = await readPermission(api, login);
+    for (const login of reviewerLogins(snapshot))
+      snapshot.permissions[login] = await readPermission(api, login);
   }
 
   const decision = decideIssueContract(snapshot);
   const { feedback } = decision;
-  for (const label of decision.removeLabels) await api.removeLabel(issueNumber, label);
-  if (decision.addLabels.length > 0) await api.addLabels(issueNumber, decision.addLabels);
-  if (feedback && feedback.commentId == null) await api.createComment(issueNumber, feedback.body);
+  for (const label of decision.removeLabels)
+    await api.removeLabel(issueNumber, label);
+  if (decision.addLabels.length > 0)
+    await api.addLabels(issueNumber, decision.addLabels);
+  if (feedback && feedback.commentId == null)
+    await api.createComment(issueNumber, feedback.body);
   else if (feedback) await api.updateComment(feedback.commentId, feedback.body);
   if (decision.exitCode === 0) console.log(decision.message);
   else console.error(decision.message);
@@ -1063,7 +1632,9 @@ async function runIssueContractValidation(environment) {
 async function readPermission(apiClient, login) {
   try {
     const permission = await apiClient.getPermission(login);
-    return permission ? { role: permission.role_name ?? permission.permission } : null;
+    return permission
+      ? { role: permission.role_name ?? permission.permission }
+      : null;
   } catch (error) {
     return { error: error.message };
   }
@@ -1072,20 +1643,29 @@ async function readPermission(apiClient, login) {
 function createApi({ baseUrl, graphqlUrl, repository, token }) {
   const issuePath = `/repos/${repository}/issues`;
 
-  async function requestResponse(path, { allowNotFound = false, ...options } = {}) {
-    const response = await fetch(path.startsWith("http") ? path : `${baseUrl}${path}`, {
-      ...options,
-      headers: {
-        accept: "application/vnd.github+json",
-        authorization: `Bearer ${token}`,
-        "content-type": "application/json",
-        "x-github-api-version": "2022-11-28",
-        ...options.headers,
+  async function requestResponse(
+    path,
+    { allowNotFound = false, ...options } = {},
+  ) {
+    const response = await fetch(
+      path.startsWith("http") ? path : `${baseUrl}${path}`,
+      {
+        ...options,
+        headers: {
+          accept: "application/vnd.github+json",
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+          "x-github-api-version": "2022-11-28",
+          ...options.headers,
+        },
       },
-    });
-    if (allowNotFound && response.status === 404) return { data: null, link: null };
+    );
+    if (allowNotFound && response.status === 404)
+      return { data: null, link: null };
     if (!response.ok) {
-      throw new Error(`GitHub API ${options.method ?? "GET"} ${path} returned ${response.status}: ${await response.text()}`);
+      throw new Error(
+        `GitHub API ${options.method ?? "GET"} ${path} returned ${response.status}: ${await response.text()}`,
+      );
     }
     return {
       data: response.status === 204 ? null : await response.json(),
@@ -1115,31 +1695,59 @@ function createApi({ baseUrl, graphqlUrl, repository, token }) {
       body: JSON.stringify({ query, variables }),
     });
     if (response.errors?.length) {
-      throw new Error(`GitHub GraphQL returned errors: ${response.errors.map(({ message }) => message).join("; ")}`);
+      throw new Error(
+        `GitHub GraphQL returned errors: ${response.errors.map(({ message }) => message).join("; ")}`,
+      );
     }
     return response.data;
   }
 
   return {
     getIssue: (number) => request(`${issuePath}/${number}`),
-    getParent: (number) => request(`${issuePath}/${number}/parent`, { allowNotFound: true }),
+    getParent: (number) =>
+      request(`${issuePath}/${number}/parent`, { allowNotFound: true }),
     getOptionalUrl: (url) => request(url, { allowNotFound: true }),
-    getPermission: (login) => request(`/repos/${repository}/collaborators/${encodeURIComponent(login)}/permission`, { allowNotFound: true }),
+    getPermission: (login) =>
+      request(
+        `/repos/${repository}/collaborators/${encodeURIComponent(login)}/permission`,
+        { allowNotFound: true },
+      ),
     getIssueBodyRevision: async (number) => {
       const [owner, name] = repository.split("/");
       const data = await graphql(
         "query IssueBodyRevision($owner: String!, $name: String!, $number: Int!) { repository(owner: $owner, name: $name) { issue(number: $number) { id lastEditedAt } } }",
         { owner, name, number },
       );
-      if (!data?.repository?.issue) throw new Error(`GitHub GraphQL did not return issue #${number}.`);
+      if (!data?.repository?.issue)
+        throw new Error(`GitHub GraphQL did not return issue #${number}.`);
       return data.repository.issue;
     },
-    listComments: (number) => paginate(`${issuePath}/${number}/comments?per_page=100`),
-    listEvents: (number) => paginate(`${issuePath}/${number}/events?per_page=100`),
-    listBlockedBy: (number) => paginate(`${issuePath}/${number}/dependencies/blocked_by?per_page=100`, { allowNotFound: true }),
-    removeLabel: (number, label) => request(`${issuePath}/${number}/labels/${encodeURIComponent(label)}`, { method: "DELETE" }),
-    addLabels: (number, labels) => request(`${issuePath}/${number}/labels`, { method: "POST", body: JSON.stringify({ labels }) }),
-    createComment: (number, body) => request(`${issuePath}/${number}/comments`, { method: "POST", body: JSON.stringify({ body }) }),
-    updateComment: (id, body) => request(`${issuePath}/comments/${id}`, { method: "PATCH", body: JSON.stringify({ body }) }),
+    listComments: (number) =>
+      paginate(`${issuePath}/${number}/comments?per_page=100`),
+    listEvents: (number) =>
+      paginate(`${issuePath}/${number}/events?per_page=100`),
+    listBlockedBy: (number) =>
+      paginate(`${issuePath}/${number}/dependencies/blocked_by?per_page=100`, {
+        allowNotFound: true,
+      }),
+    removeLabel: (number, label) =>
+      request(`${issuePath}/${number}/labels/${encodeURIComponent(label)}`, {
+        method: "DELETE",
+      }),
+    addLabels: (number, labels) =>
+      request(`${issuePath}/${number}/labels`, {
+        method: "POST",
+        body: JSON.stringify({ labels }),
+      }),
+    createComment: (number, body) =>
+      request(`${issuePath}/${number}/comments`, {
+        method: "POST",
+        body: JSON.stringify({ body }),
+      }),
+    updateComment: (id, body) =>
+      request(`${issuePath}/comments/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ body }),
+      }),
   };
 }

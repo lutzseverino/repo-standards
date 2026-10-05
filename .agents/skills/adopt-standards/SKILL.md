@@ -4,66 +4,65 @@ description: Guide confirmed Repository Standards discovery, adoption, contextua
 disable-model-invocation: true
 ---
 
+This skill's references hold its procedures and install with it at the same
+version:
+
+- [Discovery](references/discovery.md): building the scope proposal and
+  rechecking coverage.
+- [Assessment](references/assessment.md): doing and judging contextual work.
+- [Recovery](references/recovery.md): an interrupted run, abandonment, scope
+  correction, and fresh adoption from a retired format.
+- [Review](references/review.md): reviewing a completed run's outputs.
+
 ## Choose the CLI and route
 
 Work from the adopting project's Git root. Use its pinned executable at
 `.repo-standards/runtime/node_modules/.bin/repo-standards`. If dependencies are
 absent, restore them with `npm ci --ignore-scripts --prefix .repo-standards/runtime`.
-Protocol document paths in this skill are relative to the document root: the
-externally installed exact CLI's package `docs/` directory until the project
-runtime exists, and thereafter
-`.repo-standards/runtime/node_modules/@lutzseverino/repo-standards/docs/`.
 Read `status --json` for pins, active progress and historical evidence; it
 makes no network request. `outdated --json` reports, for the CLI pin and the
 standards pin, whether a newer stable version is published and how many stable
 releases separate it from the pin. It is read-only apart from its ignored
 cache, needs no clean tree, and reports `unknown` with a reason when a lookup
-fails; read `usage/available-updates.md`. It states availability only. What
-to do with an available update is decided by the adopted standards' own
-guidance and the maintainer, not by this skill.
-If any command fails with `RETIRED_FORMAT`, read
-`usage/adoption.md#adopt-fresh-from-a-retired-format`: nothing is converted, and the
-only path forward is fresh adoption. When the diagnostic names a run record in
-Git's directory, its earlier pinned CLI can still resume or abandon that run to
-preserve its work; the record must then be removed as that section describes.
-The maintainer removes any such record and the product state directory, and
-commits the directory's removal through their normal workflow. Then follow
-initial adoption below with an externally installed exact CLI.
+fails. It states availability only. Whether to update is the maintainer's
+decision; the `standards-updates` skill reports available updates without
+starting one.
+If any command fails with `RETIRED_FORMAT` or `RETIRED_RUN`, follow
+[Recovery](references/recovery.md#adopt-fresh-from-a-retired-format).
 
-For initial adoption, use an externally installed exact CLI and read
-`usage/inspection.md` for acquisition. The bootstrap performs inspection only;
-keep that disclosed exact version installed outside the project for `start`
-and recovery.
+For initial adoption, and to change the CLI pin, use an exact CLI installed
+outside the project, replacing `VERSION` with the exact version, such as the
+one the bootstrap disclosed:
 
-- **Active run:** inspect `active.phase`, `reason`, `changes`, `completed`,
-  `uncertain`, `nextAction` and `execution`. Wait while execution is active.
-  An ordinary contextual handoff continues at Contextual work below.
-  An active run's confirmed scope never changes. When contextual work needs
-  files outside it or a confirmed target is mistaken, read
-  `usage/adoption.md#correct-a-confirmed-scope`: preserve the work, obtain an
-  abandonment instruction before `abandon --json`, resolve its changes, and
-  adopt again with a new confirmed scope.
-  For interrupted installation, failed/uncertain scripts, or abandonment, read
-  `usage/adoption.md#recover-or-abandon-an-interrupted-run` before acting. Obtain an
-  explicit retry instruction before `resume --retry --json`, or an abandonment
-  instruction before `abandon --json`. Retry repeats trusted fixes and requires
-  renewed assessment. Use the run's exact external CLI if the local runtime is
-  unusable. Preserve progress records and partial changes.
+```sh
+cli_dir="$HOME/.local/share/repo-standards/cli-VERSION"
+mkdir -p "$cli_dir"
+(cd "$cli_dir" && npm install --prefix "$cli_dir" \
+  --ignore-scripts --save-exact --no-audit --no-fund \
+  @lutzseverino/repo-standards@VERSION)
+"$cli_dir/node_modules/.bin/repo-standards" --version
+printf 'CLI directory: %s\n' "$cli_dir"
+```
+
+Keep the printed absolute directory and use it in later commands, since shell
+variables may not survive between tool calls. The bootstrap performs inspection
+only; keep this installation for `start` and recovery until the run completes.
+
+- **Active run:** follow [Recovery](references/recovery.md#read-the-active-run).
+  An ordinary contextual handoff continues at Contextual work below. Obtain an
+  explicit retry instruction before `resume --retry --json`, and an abandonment
+  instruction before `abandon --json`.
 - **Existing complete adoption:** every requested change of the selection, and
   every repetition of it, is one update on a single path: read `outdated --json`
   for available updates, inspect, present the summary, obtain confirmation of
-  the inspection identity, and start. Read
-  `usage/adoption.md#update-the-selection` for candidate acquisition and commands.
+  the inspection identity, and start.
   Pass source flags to select a standards version, source, or profile; run the
   external candidate exact CLI to change the CLI pin, alone or with any of
   them; omit source flags to keep the retained standards, which the pinned CLI
   inspects even when the source is unavailable. A confirmed inspection of the
   unchanged selection starts a run that applies it again; do not present that
   run as a retry, resume, or automatic compliance repair.
-  Historical discovered scope explains prior authorization; it does not prove
-  current coverage. Every active discovery declaration needs a fresh proposal
-  for every update, even when the original source is unavailable for retained
-  work.
+  Every active discovery declaration needs a fresh proposal for every update.
 - **Initial adoption:** obtain the public GitHub source, stable standards tag
   and complete profile from the maintainer, then inspect that selection.
 
@@ -75,21 +74,11 @@ and recovery.
    or without them to keep the retained standards. To apply the unchanged
    selection again, run the pinned project's `inspect --json` without source
    flags.
-   Store reports outside the project. Read `usage/inspection.md` when interpreting
-   fields, blockers, or acquisition errors. If discovery is required, read
-   `usage/inspection.md#discover-contextual-file-scope` and each discovery
-   guidance file. Inspect eligible evidence in the real repository, explain
-   candidate inclusion/exclusion and membership for missing READMEs, and resolve
-   membership questions with the maintainer. Enumerate individual existing files,
-   planned destinations, directory introductions, and link-repair files around
-   exact-owned content. Prepare the versioned proposal outside the project. For
-   each active discovery declaration it holds only your judgment: candidates,
-   each with its path, decision, reason and supporting evidence paths from
-   `discovery.evidence`; the coverage explanation; and unresolved questions.
-   Copy no identities; the CLI derives the request binding, evidence identities,
-   the absence of planned files and the included paths. Rerun
+   Store reports outside the project. The
+   [report contract](https://github.com/lutzseverino/repo-standards/blob/v5.0.0/docs/usage/inspection.md#report-and-inspection-identity)
+   defines its fields and blockers. If the report returns `discovery`, build
+   the proposal as [Discovery](references/discovery.md) describes and rerun
    `inspect --scope <file>` until one complete inspection is reviewable.
-   An explained empty scope retains its declaration and operations.
 2. Present the actual report's identity and exact CLI version, source URL,
    standards tag, commit and profile; for updates include the changed
    components, previous and candidate selections, retired declarations, and
@@ -104,7 +93,8 @@ and recovery.
    that its identity matches the report. Show exact creates, replacements and matches,
    the targets an update removes, each target in `discardedEdits` (its
    replacement or removal discards content other than its installed
-   baseline), whole-skill inventories, discovery rationale and candidate exclusions,
+   baseline), each target in `kept` (edited content that leaves the selection
+   stays in place, and the project owns it from then on), whole-skill inventories, discovery rationale and candidate exclusions,
    contextual guidance and allowed targets, resolved exclusions, and ownership changes. Make the full inspection available
    for review, including its diffs against existing content and the hashes of supplied material.
 3. Disclose every declared fix/check, its script and resources, literal argument
@@ -130,37 +120,9 @@ replace this workflow or supply adoption hooks.
 
 ## Contextual work
 
-When a report returns `workRequest`, read `usage/assessment-protocol.md` before editing
-or submitting evidence. The handoff is expected incomplete adoption.
-
-1. For a discovery request, recheck semantic coverage after fixes against
-   each discovery guidance file and accepted proposal before editing. Record the
-   post-fix coverage evidence for assessment. If more files are needed or a
-   confirmed target is mistaken, submit the blocked scope review without writing
-   those files, then correct the scope by adopting again as described above;
-   additional-path evidence alone grants no authority. Read every request declaration's
-   retained guidance and explicit allowed paths and directory trees. Inspect the real project files needed to understand its
-   purpose, commands and behavior. Apply guidance usefully within those targets;
-   preserve project facts, exact content, excluded employer content and unrelated
-   work. If guidance requires out-of-scope work or unsupported facts, assess it
-   as blocked and explain the decision needed.
-2. Account for every contextual declaration, including already satisfied ones.
-   Evidence must cite concrete project content or observed command outcomes.
-   Separate agent judgments from CLI script results; passing a structural check
-   alone does not establish contextual usefulness.
-3. After edits, run `resume --json` to refresh the request. Follow the
-   assessment protocol exactly: for each declaration provide only its ID,
-   satisfied/blocked, explanation, and supporting evidence, plus both
-   scope-validity reviews for a discovered declaration, after reviewing coverage
-   again at the refreshed snapshot. The CLI binds the assessment to the active
-   run and derives every changed path from the run's work evidence, across all
-   retry intervals; copy no identities or paths. For a migration, explain how
-   each destination preserves the useful content of its source.
-4. Store the submission outside the project or in `.repo-standards/local/` and
-   run `resume --assessment <file> --json`. Keep content unchanged between refresh
-   and submission. Stale evidence needs a refreshed request and reassessment of
-   every contextual declaration. Follow the protocol's distinction between
-   renewed assessment after ordinary failed checks and explicit operation retry.
+When a report returns `workRequest`, follow
+[Assessment](references/assessment.md) before editing or submitting evidence.
+The handoff is expected incomplete adoption.
 
 ## Explain the result
 
@@ -171,12 +133,8 @@ are incomplete; diagnostic rejections may instead contain `valid: false` and
 For incomplete work, explain phase, reason, actual changes, completed work,
 failed or uncertain operations, and the returned safe next action. Preserve
 partial work; retry and abandonment require the instructions described above.
-For completion, report script outcomes and agent evidence separately, then read
-`usage/adoption.md#review-completed-outputs`. Review tracked changes and the contents
-and executable state of every non-ignored untracked file, including exact
-content, whole skills, retained inputs and durable runtime/state files.
-`git diff` omits untracked files; status names and hashes alone are not a content
-review. Keep HEAD and index unchanged while exposing new-file content; leave all
+For completion, report script outcomes and agent evidence separately, then
+review every output as [Review](references/review.md) describes, leaving all
 adoption changes uncommitted for the maintainer's normal workflow. `status`
 evidence describes that run, not continuing compliance after subsequent edits.
 `status --summary` renders the last complete run, or the active run, as a
