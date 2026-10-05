@@ -7,12 +7,12 @@
     },
     "standards": {
       "repository": "https://github.com/lutzseverino/repo-canon",
-      "version": "v0.5.3",
-      "commit": "4ca905a28e1918eaa8c3b2a5b2aaed8c21a5a479"
+      "version": "v0.5.4",
+      "commit": "c7585598c4e28706d3b32c4ed3e9d27f8c43fb9e"
     },
     "profile": "complete"
   },
-  "inspection": "sha256:10400c51139ed6a53683980242bfb45bc7fff14c4db0e87784e4b6877b956aec",
+  "inspection": "sha256:3513c0a5328100737558e4a4a33e3481b5895a5ba209e7fd687df3844ac89d11",
   "files": {
     "docs/agents/README.md": {
       "sha256": "a78a8a4934c9de37cfcd11be23ce3dd58462108fa53b6cdaead4af18ca7e773b",
@@ -43,7 +43,7 @@
       "executable": false
     },
     "scripts/validate-issue-contract.mjs": {
-      "sha256": "ff4cafab526a72d1bb430936b3da20aaca7e65df47eb0087dfe67907124a5275",
+      "sha256": "191300570b34b7b3f689aaf093435184dd9d2171e83a1272d1554c69fb6d26ab",
       "executable": false
     },
     ".github/workflows/issue-contracts.yml": {
@@ -563,7 +563,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/scripts/validate-issue-contract.mjs": {
-      "sha256": "ff4cafab526a72d1bb430936b3da20aaca7e65df47eb0087dfe67907124a5275",
+      "sha256": "191300570b34b7b3f689aaf093435184dd9d2171e83a1272d1554c69fb6d26ab",
       "executable": false
     },
     ".repo-standards/inputs/source/.github/workflows/issue-contracts.yml": {
@@ -919,11 +919,11 @@
       "executable": false
     },
     ".repo-standards/inputs/scope-history.json": {
-      "sha256": "77907cc8e3638f6bd902ca37face9b3edfe5fd1c0a82860142bd21c12cc54188",
+      "sha256": "a26e79464c09211afd7e621d818622b99f3f48dc9b18e2b7964eff7347c515cb",
       "executable": false
     },
     ".repo-standards/selection.yaml": {
-      "sha256": "a6eb27a49006c8f9c61370eb7199de3a632497e4606e8655fc12a00a45f70c1e",
+      "sha256": "0bad5c0cc783193bb87f56c73175a4ebfd04549d0ec711cf4b56560d4b465506",
       "executable": false
     },
     ".repo-standards/.gitignore": {
@@ -940,7 +940,7 @@
     }
   },
   "state": {
-    "sha256": "f46c747ac9d3098f86f05ad6cb629e4f1d8a285d25eaf3fc8992b88324d08218",
+    "sha256": "31f74306b365362ab61418fec1f09600bb31a875035ba4f12f95f71b23d313dd",
     "executable": false
   }
 }
