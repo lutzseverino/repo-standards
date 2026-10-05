@@ -102,8 +102,25 @@ existing stable SemVer tag (`1.2.3` or `v1.2.3`, optionally with build metadata)
 Branches, commit-only inputs, ranges, prereleases, local directories, SSH, private
 sources, and other hosts are unsupported. Direct inspection needs no discovery.
 
-Acquisition uses unauthenticated GitHub REST repository and Git-object endpoints.
-It resolves lightweight or annotated tags to a commit and downloads that commit's
+Acquisition uses GitHub REST repository and Git-object endpoints. Every GitHub
+REST request uses `GH_TOKEN`, or otherwise `GITHUB_TOKEN`, as bearer authorization
+when present; an empty value counts as absent. A token uses the authenticated
+API quota instead of the shared anonymous quota. Credentials are optional for
+supported public sources and never make private sources supported. Git object
+downloads use Git's separate anonymous smart protocol and do not send the token.
+The token is never recorded in reports, inspection identity, retained inputs,
+caches, or logs; the same inspection has the same identity with or without it.
+
+An exhausted quota (HTTP 429, or 403 with `x-ratelimit-remaining: 0` or
+`retry-after`) fails `inspect` and `start` with `QUOTA_EXHAUSTED` and exit status
+
+1. The message names `GH_TOKEN` and `GITHUB_TOKEN` and the reset time or retry
+   delay when GitHub provides a usable header. Retry after that time; the CLI does
+   not wait or retry automatically. A 401 with a token fails `SOURCE_UNAVAILABLE`,
+   saying the token was rejected, with no anonymous retry. Other connection and
+   API failures remain `SOURCE_UNAVAILABLE`.
+
+Acquisition resolves lightweight or annotated tags to a commit and downloads that commit's
 tree and blobs outside the project. Blob bytes are verified against Git object
 identities; executable bits are preserved. No checkout hooks, filters, author
 scripts, or prerequisite probes run. Symbolic links outside selected material

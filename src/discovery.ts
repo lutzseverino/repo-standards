@@ -130,7 +130,8 @@ export async function searchSources(cliVersion: string, page: number) {
         source.close();
       }
     } catch (error) {
-      if (!(error instanceof ProductError)) throw error;
+      if (!(error instanceof ProductError) || error.code === "QUOTA_EXHAUSTED")
+        throw error;
       rejected.push({
         repository,
         ...(release ? { release } : {}),

@@ -56,10 +56,18 @@ Discovery is optional and is not an endorsement of any source.
 Public source acquisition uses a bounded set of GitHub REST requests to resolve
 the repository, immutable tag, commit and tree, then obtains all source objects
 through Git's anonymous smart protocol. The number of REST requests does not grow
-with the source's file count. GitHub availability and shared anonymous API limits
-still apply to each inspection, start and source-search request; retry after a
-reported reset rather than repeatedly restarting a failed command. Credentials
-are not required for supported public sources.
+with the source's file count. Every GitHub REST request, including inspection,
+start, source search and the `outdated` releases lookup, uses `GH_TOKEN`, or
+otherwise `GITHUB_TOKEN`, as bearer authorization when present; empty values
+count as absent. A token uses the authenticated API quota instead of the shared
+anonymous quota and is never sent on Git object downloads or recorded in output,
+retained inputs or caches. Private sources remain unsupported. An exhausted
+quota fails inspection, start and search with `QUOTA_EXHAUSTED`, naming the
+retry time or delay when available and both token variables. Retry after the
+reported reset rather than repeatedly restarting a failed command. A rejected
+token (HTTP 401) is `SOURCE_UNAVAILABLE`, without anonymous retry. `outdated`
+reports either failure as `unknown` and still exits 0. Credentials are not
+required for supported public sources.
 
 Read the installed `skills/adopt-standards/SKILL.md` with your agent, then follow
 [inspection](inspection.md) and [adoption](adoption.md) to disclose the report,

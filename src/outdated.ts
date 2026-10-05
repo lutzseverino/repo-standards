@@ -1,6 +1,6 @@
 import { compare, gt } from "semver";
 import { parse } from "yaml";
-import { githubHeaders, isStableVersion } from "./acquisition.js";
+import { github, isStableVersion } from "./acquisition.js";
 import {
   file,
   json,
@@ -153,34 +153,17 @@ async function registryVersions(registry: string) {
 }
 
 async function releaseVersions(repository: string) {
-  const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
-  const url = `https://api.github.com/repos/${githubRepository(repository)}/releases?per_page=100`;
-  const response = await request(
-    url,
+  const releases = await github(
+    `/repos/${githubRepository(repository)}/releases?per_page=100`,
     {
-      ...githubHeaders,
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      timeoutMs: lookupTimeout,
+      connectionMessage:
+        "Cannot reach public GitHub. Check the connection and retry later.",
+      httpMessage: (status) =>
+        `Public GitHub returned HTTP ${status} for the releases of ${repository}.`,
+      invalidJsonMessage: `Public GitHub did not return a release list for ${repository}.`,
     },
-    "SOURCE_UNAVAILABLE",
-    "public GitHub",
   );
-  if (
-    response.status === 429 ||
-    (response.status === 403 &&
-      (response.headers.get("x-ratelimit-remaining") === "0" ||
-        response.headers.has("retry-after")))
-  ) {
-    throw new ProductError(
-      "QUOTA_EXHAUSTED",
-      "The GitHub API quota is exhausted. Retry later, or provide a token in GH_TOKEN or GITHUB_TOKEN.",
-    );
-  }
-  if (!response.ok)
-    throw new ProductError(
-      "SOURCE_UNAVAILABLE",
-      `Public GitHub returned HTTP ${response.status} for the releases of ${repository}.`,
-    );
-  const releases: unknown = await response.json().catch(() => undefined);
   if (!Array.isArray(releases))
     throw new ProductError(
       "SOURCE_UNAVAILABLE",

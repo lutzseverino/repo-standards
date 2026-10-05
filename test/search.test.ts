@@ -437,7 +437,7 @@ test("candidate failures remain explicit without falling back from an invalid ne
   assert.equal(invalid.rejected[0]!.code, "INVALID_STANDARDS");
   assert.equal(invalid.rejected[0]!.release!.version, "v2.0.0");
   for (const [response, code] of [
-    [{ status: 429, body: {} }, "SOURCE_UNAVAILABLE"],
+    [{ status: 403, body: {} }, "SOURCE_UNAVAILABLE"],
     [{ body: {} }, "INVALID_SOURCE"],
     [{ body: [{ ...release, published_at: null }] }, "INVALID_SOURCE"],
   ] as const) {

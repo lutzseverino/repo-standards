@@ -68,31 +68,111 @@ export function externalPath(path: string, project?: string): string {
   return path;
 }
 
-export const githubHeaders = {
+const githubHeaders = {
   Accept: "application/vnd.github+json",
   "X-GitHub-Api-Version": "2022-11-28",
   "User-Agent": "repo-standards",
 };
 
-export async function github(path: string): Promise<unknown> {
+interface GithubRequestOptions {
+  timeoutMs?: number;
+  connectionMessage?: string;
+  httpMessage?: (status: number) => string;
+  invalidJsonMessage?: string;
+}
+
+function quotaRetry(headers: Headers): string {
+  const reset = headers.get("x-ratelimit-reset");
+  if (reset && /^\d+$/.test(reset)) {
+    const time = new Date(Number(reset) * 1000);
+    if (Number.isFinite(time.getTime()))
+      return ` Retry at ${time.toISOString()}.`;
+  }
+  const retry = headers.get("retry-after");
+  if (retry && /^\d+$/.test(retry) && Number.isSafeInteger(Number(retry)))
+    return ` Retry after ${Number(retry)} seconds.`;
+  if (retry) {
+    const time = new Date(retry);
+    if (Number.isFinite(time.getTime()))
+      return ` Retry at ${time.toISOString()}.`;
+  }
+  return "";
+}
+
+// Every GitHub REST call uses this boundary. Credentials are request headers
+// only, never part of a source identity or a diagnostic. Git object fetches
+// below use their separate, anonymous smart-protocol path.
+export async function github(
+  path: string,
+  options: GithubRequestOptions = {},
+): Promise<unknown> {
+  const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
   let response: Response;
   try {
     response = await fetch(`https://api.github.com${path}`, {
-      headers: githubHeaders,
-      signal: AbortSignal.timeout(30_000),
+      headers: {
+        ...githubHeaders,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      signal: AbortSignal.timeout(options.timeoutMs ?? 30_000),
     });
   } catch {
     throw new ProductError(
       "SOURCE_UNAVAILABLE",
-      `Cannot reach public GitHub: ${path}. Check your connection and retry.`,
+      options.connectionMessage ??
+        `Cannot reach public GitHub: ${path}. Check your connection and retry.`,
     );
   }
+  if (
+    response.status === 429 ||
+    (response.status === 403 &&
+      (response.headers.get("x-ratelimit-remaining") === "0" ||
+        response.headers.has("retry-after")))
+  )
+    throw new ProductError(
+      "QUOTA_EXHAUSTED",
+      `The GitHub API quota is exhausted.${quotaRetry(response.headers)} Retry later, or provide a token in GH_TOKEN or GITHUB_TOKEN.`,
+    );
+  if (response.status === 401 && token)
+    throw new ProductError(
+      "SOURCE_UNAVAILABLE",
+      "GitHub rejected the token in GH_TOKEN or GITHUB_TOKEN. Check the token and retry.",
+    );
   if (!response.ok)
     throw new ProductError(
       "SOURCE_UNAVAILABLE",
-      `Public GitHub returned HTTP ${response.status} for ${path}. Check the public repository, version tag, and API rate limit.`,
+      options.httpMessage?.(response.status) ??
+        `Public GitHub returned HTTP ${response.status} for ${path}. Check the public repository, version tag, and API rate limit.`,
     );
-  return response.json();
+  let document: unknown;
+  try {
+    document = await response.json();
+  } catch (error) {
+    if (options.invalidJsonMessage)
+      throw new ProductError("SOURCE_UNAVAILABLE", options.invalidJsonMessage);
+    // JSON parse errors may quote a response body that reflects authorization.
+    // eslint-disable-next-line preserve-caught-error -- Retaining the original cause could retain credentials.
+    if (token) throw new Error("GitHub returned invalid JSON.");
+    throw error;
+  }
+  const credentials = [process.env.GH_TOKEN, process.env.GITHUB_TOKEN].filter(
+    (value): value is string => !!value,
+  );
+  function containsCredential(value: unknown): boolean {
+    if (typeof value === "string")
+      return credentials.some((credential) => value.includes(credential));
+    if (value && typeof value === "object")
+      return Object.entries(value).some(
+        ([key, child]) => containsCredential(key) || containsCredential(child),
+      );
+    return false;
+  }
+  if (credentials.length && containsCredential(document))
+    throw new ProductError(
+      "SOURCE_UNAVAILABLE",
+      "GitHub returned a response containing credentials. Retry later.",
+    );
+  return document;
 }
 
 function git(
