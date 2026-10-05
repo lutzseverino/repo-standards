@@ -11,13 +11,13 @@ explicitly on the parent specification, as
 Use the checked-out product repository and its pinned Node.js/pnpm versions.
 Choose the row that matches the observed state:
 
-| State | Next action |
-| --- | --- |
-| A `Release` run is still queued or running | Wait for it to finish before inspecting or retrying anything. The status helper below reports this as `in-progress` with a wait action. |
-| New version, no publication attempted | Complete the trusted-publisher setup below, update the package, the standalone authoring guide, and the adoption skill's contract links to the same exact version, write the release notes, then dispatch `Release` at the reviewed commit with them. |
-| A publication attempt failed or its outcome is uncertain | Follow **Recover a publication** below before dispatching another publishing run. |
-| npm and the matching GitHub assets are already published | Dispatch `Release` with `verify_published: true` and the exact published version. |
-| Public acceptance failed | Inspect that job's evidence and failure output. Follow **Retry public acceptance** below; preserve the failed attempt. |
+| State                                                    | Next action                                                                                                                                                                                                                                           |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A `Release` run is still queued or running               | Wait for it to finish before inspecting or retrying anything. The status helper below reports this as `in-progress` with a wait action.                                                                                                               |
+| New version, no publication attempted                    | Complete the trusted-publisher setup below, update the package, the standalone authoring guide, and the adoption skill's contract links to the same exact version, write the release notes, then dispatch `Release` at the reviewed commit with them. |
+| A publication attempt failed or its outcome is uncertain | Follow **Recover a publication** below before dispatching another publishing run.                                                                                                                                                                     |
+| npm and the matching GitHub assets are already published | Dispatch `Release` with `verify_published: true` and the exact published version.                                                                                                                                                                     |
+| Public acceptance failed                                 | Inspect that job's evidence and failure output. Follow **Retry public acceptance** below; preserve the failed attempt.                                                                                                                                |
 
 Publication and acceptance are separate states. A successful upload or OIDC
 probe does not establish complete release acceptance. The workflow does not run
@@ -157,15 +157,15 @@ original bundle's `integrity`. Resolve the tag to the original validated commit;
 If an interrupted release creation left a draft without a tag, its target must
 be the full original validated commit SHA. A branch name is insufficient.
 
-| Established state | Recovery action |
-| --- | --- |
-| npm version is absent; original validated bundle is intact | Correct authentication and publish only the original tarball using **Interactive publication** below. Recheck registry integrity before proceeding. |
-| npm integrity matches; GitHub tag/release is absent | Create the release at the original validated commit with the original four bundle files and the original run's release notes. |
-| npm integrity matches; tag matches; release exists but an asset is missing | Verify existing assets against the original bundle, then upload only missing files with `gh release upload`. |
-| npm integrity matches; draft identity and body match; assets are missing | Verify existing draft assets through authenticated GitHub asset downloads, then upload only missing original files. Re-run the status helper with a fresh output directory. |
-| npm integrity matches; draft identity, body, and all four assets match | Publish the existing draft with `gh release edit v<version> --draft=false --target <original-validated-commit>`, then re-inspect before verification-only acceptance. |
-| npm, tag, and all four release assets match | Run verification-only acceptance below. |
-| Any identity differs, or cannot be established | Stop recovery and resolve the discrepancy. Preserve the original bundle and observations. |
+| Established state                                                          | Recovery action                                                                                                                                                             |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| npm version is absent; original validated bundle is intact                 | Correct authentication and publish only the original tarball using **Interactive publication** below. Recheck registry integrity before proceeding.                         |
+| npm integrity matches; GitHub tag/release is absent                        | Create the release at the original validated commit with the original four bundle files and the original run's release notes.                                               |
+| npm integrity matches; tag matches; release exists but an asset is missing | Verify existing assets against the original bundle, then upload only missing files with `gh release upload`.                                                                |
+| npm integrity matches; draft identity and body match; assets are missing   | Verify existing draft assets through authenticated GitHub asset downloads, then upload only missing original files. Re-run the status helper with a fresh output directory. |
+| npm integrity matches; draft identity, body, and all four assets match     | Publish the existing draft with `gh release edit v<version> --draft=false --target <original-validated-commit>`, then re-inspect before verification-only acceptance.       |
+| npm, tag, and all four release assets match                                | Run verification-only acceptance below.                                                                                                                                     |
+| Any identity differs, or cannot be established                             | Stop recovery and resolve the discrepancy. Preserve the original bundle and observations.                                                                                   |
 
 `gh release create` uploads assets to an intermediate draft before publication.
 The status helper checks the authenticated release listing when the tag lookup

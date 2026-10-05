@@ -1,64 +1,146 @@
 // Live public-distribution evidence, deliberately outside deterministic tests.
-import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { arch, platform, release, tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
-import { snapshot } from '../test/installed-cli.ts';
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { arch, platform, release, tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { snapshot } from "../test/installed-cli.ts";
 
 const [version, evidencePath] = process.argv.slice(2);
-if (!version || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) || !evidencePath) {
-  throw new Error('Usage: node acceptance/public-installation.ts <exact-version> <evidence.json>');
+if (
+  !version ||
+  !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version) ||
+  !evidencePath
+) {
+  throw new Error(
+    "Usage: node acceptance/public-installation.ts <exact-version> <evidence.json>",
+  );
 }
-if (process.env.NODE_OPTIONS) throw new Error('Run public acceptance without NODE_OPTIONS or acquisition fixtures.');
+if (process.env.NODE_OPTIONS)
+  throw new Error(
+    "Run public acceptance without NODE_OPTIONS or acquisition fixtures.",
+  );
 const evidence = resolve(evidencePath);
 const checkout = process.cwd();
-const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-public-')));
-const project = join(root, 'project');
+const root = realpathSync(
+  mkdtempSync(join(tmpdir(), "repo-standards-public-")),
+);
+const project = join(root, "project");
 mkdirSync(project);
-const configuration = join(root, 'empty.npmrc');
-writeFileSync(configuration, '');
-const globalConfiguration = join(root, 'global.npmrc');
-writeFileSync(globalConfiguration, '');
-const env = { ...process.env, npm_config_registry: 'https://registry.npmjs.org/',
-  npm_config_userconfig: configuration, npm_config_globalconfig: globalConfiguration, npm_config_cache: join(root, 'npm-cache'),
-  XDG_CACHE_HOME: join(root, 'cache') };
-const commands: { executable: string; args: string[]; status: number | null; stdout: string; stderr: string }[] = [];
+const configuration = join(root, "empty.npmrc");
+writeFileSync(configuration, "");
+const globalConfiguration = join(root, "global.npmrc");
+writeFileSync(globalConfiguration, "");
+const env = {
+  ...process.env,
+  npm_config_registry: "https://registry.npmjs.org/",
+  npm_config_userconfig: configuration,
+  npm_config_globalconfig: globalConfiguration,
+  npm_config_cache: join(root, "npm-cache"),
+  XDG_CACHE_HOME: join(root, "cache"),
+};
+const commands: {
+  executable: string;
+  args: string[];
+  status: number | null;
+  stdout: string;
+  stderr: string;
+}[] = [];
 const downloads: { url: string; status: number; sha256: string }[] = [];
 // Publication reaches the npm registry and GitHub release downloads eventually.
 // Poll each subject at a fixed interval, bounding the whole wait.
-const propagation = { intervalMs: 10_000, boundMs: 300_000,
-  attempts: [] as { subject: string; at: string; elapsedMs: number; result: string }[] };
+const propagation = {
+  intervalMs: 10_000,
+  boundMs: 300_000,
+  attempts: [] as {
+    subject: string;
+    at: string;
+    elapsedMs: number;
+    result: string;
+  }[],
+};
 let propagationStarted: number | undefined;
 // The parts of an inspection report this smoke test reads.
-interface InspectionIdentity { selection: { cli: { version: string } }; identity: unknown }
+interface InspectionIdentity {
+  selection: { cli: { version: string } };
+  identity: unknown;
+}
 
-async function awaitPublished<T>(subject: string, observe: () => { value?: T; result: string } | Promise<{ value?: T; result: string }>): Promise<T> {
+async function awaitPublished<T>(
+  subject: string,
+  observe: () =>
+    { value?: T; result: string } | Promise<{ value?: T; result: string }>,
+): Promise<T> {
   propagationStarted ??= Date.now();
   for (;;) {
     const { value, result } = await observe();
     const now = Date.now();
     const elapsedMs = now - propagationStarted;
-    const attempt = { subject, at: new Date(now).toISOString(), elapsedMs, result };
+    const attempt = {
+      subject,
+      at: new Date(now).toISOString(),
+      elapsedMs,
+      result,
+    };
     propagation.attempts.push(attempt);
-    console.log(`${attempt.at} ${subject}: ${result} after ${elapsedMs / 1000} seconds`);
+    console.log(
+      `${attempt.at} ${subject}: ${result} after ${elapsedMs / 1000} seconds`,
+    );
     if (value !== undefined) return value;
     if (elapsedMs >= propagation.boundMs) {
-      throw new Error(`${subject} did not appear within the ${propagation.boundMs / 1000} seconds propagation bound; waited ${elapsedMs / 1000} seconds; last result: ${result}`);
+      throw new Error(
+        `${subject} did not appear within the ${propagation.boundMs / 1000} seconds propagation bound; waited ${elapsedMs / 1000} seconds; last result: ${result}`,
+      );
     }
-    await new Promise(resolve => setTimeout(resolve, Math.min(propagation.intervalMs, propagation.boundMs - elapsedMs)));
+    await new Promise((resolve) =>
+      setTimeout(
+        resolve,
+        Math.min(propagation.intervalMs, propagation.boundMs - elapsedMs),
+      ),
+    );
   }
 }
 let passed = false;
 let failure: string | undefined;
-const retry = ['node', 'acceptance/public-installation.ts', version, `${evidence}.retry-${Date.now()}.json`]
-  .map(value => `'${value.replaceAll("'", "'\\''")}'`).join(' ');
+const retry = [
+  "node",
+  "acceptance/public-installation.ts",
+  version,
+  `${evidence}.retry-${Date.now()}.json`,
+]
+  .map((value) => `'${value.replaceAll("'", "'\\''")}'`)
+  .join(" ");
 const nextAction = `Inspect the failure evidence, correct the cause, then retry: ${retry}`;
 try {
-  function execute(executable: string, args: string[], cwd = root, timeout = 300_000) {
-    const result = spawnSync(executable, args, { cwd, env, encoding: 'utf8', timeout, maxBuffer: 32 * 1024 * 1024 });
-    commands.push({ executable, args, status: result.status, stdout: result.stdout ?? '', stderr: result.stderr ?? '' });
+  function execute(
+    executable: string,
+    args: string[],
+    cwd = root,
+    timeout = 300_000,
+  ) {
+    const result = spawnSync(executable, args, {
+      cwd,
+      env,
+      encoding: "utf8",
+      timeout,
+      maxBuffer: 32 * 1024 * 1024,
+    });
+    commands.push({
+      executable,
+      args,
+      status: result.status,
+      stdout: result.stdout ?? "",
+      stderr: result.stderr ?? "",
+    });
     if (result.error) throw result.error;
     return result;
   }
@@ -67,75 +149,234 @@ try {
     assert.equal(result.status, 0, result.stdout + result.stderr);
     return result.stdout.trim();
   }
-  run('npm', ['--version']);
-  assert.equal((JSON.parse(readFileSync(join(checkout, 'package.json'), 'utf8')) as { version: string }).version, version);
-  const checkoutCommit = run('git', ['rev-parse', 'HEAD'], checkout);
-  const wayfinderTree = run('git', ['rev-parse', 'HEAD:acceptance/sources/wayfinder'], checkout);
-  assert.equal(run('git', ['status', '--porcelain=v1', '--untracked-files=all', '--', 'acceptance/sources/wayfinder'], checkout), '');
-  const distribution = await awaitPublished(`@lutzseverino/repo-standards@${version} on the npm registry`, () => {
-    // Cap each observation like a download, so an attempt started at the bound ends within a minute.
-    const result = execute('npm', ['view', `@lutzseverino/repo-standards@${version}`, 'dist', '--json', '--prefer-online'], root, 60_000);
-    if (result.status !== 0 && /\bE404\b/.test(result.stdout + result.stderr)) return { result: 'E404' };
-    assert.equal(result.status, 0, result.stdout + result.stderr);
-    return { value: JSON.parse(result.stdout) as { integrity: string }, result: 'available' };
-  });
+  run("npm", ["--version"]);
+  assert.equal(
+    (
+      JSON.parse(readFileSync(join(checkout, "package.json"), "utf8")) as {
+        version: string;
+      }
+    ).version,
+    version,
+  );
+  const checkoutCommit = run("git", ["rev-parse", "HEAD"], checkout);
+  const wayfinderTree = run(
+    "git",
+    ["rev-parse", "HEAD:acceptance/sources/wayfinder"],
+    checkout,
+  );
+  assert.equal(
+    run(
+      "git",
+      [
+        "status",
+        "--porcelain=v1",
+        "--untracked-files=all",
+        "--",
+        "acceptance/sources/wayfinder",
+      ],
+      checkout,
+    ),
+    "",
+  );
+  const distribution = await awaitPublished(
+    `@lutzseverino/repo-standards@${version} on the npm registry`,
+    () => {
+      // Cap each observation like a download, so an attempt started at the bound ends within a minute.
+      const result = execute(
+        "npm",
+        [
+          "view",
+          `@lutzseverino/repo-standards@${version}`,
+          "dist",
+          "--json",
+          "--prefer-online",
+        ],
+        root,
+        60_000,
+      );
+      if (result.status !== 0 && /\bE404\b/.test(result.stdout + result.stderr))
+        return { result: "E404" };
+      assert.equal(result.status, 0, result.stdout + result.stderr);
+      return {
+        value: JSON.parse(result.stdout) as { integrity: string },
+        result: "available",
+      };
+    },
+  );
   async function download(file: string) {
     const url = `https://github.com/lutzseverino/repo-standards/releases/download/v${version}/${file}`;
     return awaitPublished(url, async () => {
-      const response = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(60_000),
+      });
       const bytes = Buffer.from(await response.arrayBuffer());
-      downloads.push({ url, status: response.status, sha256: createHash('sha256').update(bytes).digest('hex') });
-      if (response.status === 404) return { result: 'HTTP 404' };
+      downloads.push({
+        url,
+        status: response.status,
+        sha256: createHash("sha256").update(bytes).digest("hex"),
+      });
+      if (response.status === 404) return { result: "HTTP 404" };
       assert.equal(response.status, 200, `Cannot download ${url}`);
-      return { value: bytes, result: 'available' };
+      return { value: bytes, result: "available" };
     });
   }
-  const bundleBytes = await download('release.json');
-  const bootstrapBytes = await download('repo-standards-bootstrap');
-  const installation = join(root, 'cli');
-  run('npm', ['install', '--prefix', installation, '--ignore-scripts', '--no-audit', '--no-fund', '--save-exact', `@lutzseverino/repo-standards@${version}`]);
-  const cli = join(installation, 'node_modules/.bin/repo-standards');
-  const installed = join(installation, 'node_modules/@lutzseverino/repo-standards');
-  assert.equal(run(cli, ['--version']), version);
-  const lock = JSON.parse(readFileSync(join(installation, 'package-lock.json'), 'utf8')) as { packages: { 'node_modules/@lutzseverino/repo-standards': { integrity: string } } };
-  assert.equal(lock.packages['node_modules/@lutzseverino/repo-standards'].integrity, distribution.integrity);
-  const bundle = JSON.parse(bundleBytes.toString('utf8')) as { version: string; package: string; integrity: string; artifacts: { file: string; sha256: string }[] };
+  const bundleBytes = await download("release.json");
+  const bootstrapBytes = await download("repo-standards-bootstrap");
+  const installation = join(root, "cli");
+  run("npm", [
+    "install",
+    "--prefix",
+    installation,
+    "--ignore-scripts",
+    "--no-audit",
+    "--no-fund",
+    "--save-exact",
+    `@lutzseverino/repo-standards@${version}`,
+  ]);
+  const cli = join(installation, "node_modules/.bin/repo-standards");
+  const installed = join(
+    installation,
+    "node_modules/@lutzseverino/repo-standards",
+  );
+  assert.equal(run(cli, ["--version"]), version);
+  const lock = JSON.parse(
+    readFileSync(join(installation, "package-lock.json"), "utf8"),
+  ) as {
+    packages: {
+      "node_modules/@lutzseverino/repo-standards": { integrity: string };
+    };
+  };
+  assert.equal(
+    lock.packages["node_modules/@lutzseverino/repo-standards"].integrity,
+    distribution.integrity,
+  );
+  const bundle = JSON.parse(bundleBytes.toString("utf8")) as {
+    version: string;
+    package: string;
+    integrity: string;
+    artifacts: { file: string; sha256: string }[];
+  };
   assert.equal(bundle.version, version);
-  assert.equal(bundle.package, '@lutzseverino/repo-standards');
+  assert.equal(bundle.package, "@lutzseverino/repo-standards");
   assert.equal(bundle.integrity, distribution.integrity);
-  assert.equal(createHash('sha256').update(bootstrapBytes).digest('hex'), bundle.artifacts.find(artifact => artifact.file === 'repo-standards-bootstrap')?.sha256);
-  assert.deepEqual(bootstrapBytes, readFileSync(join(installed, 'bootstrap/repo-standards')));
-  const bootstrap = join(root, 'repo-standards-bootstrap');
+  assert.equal(
+    createHash("sha256").update(bootstrapBytes).digest("hex"),
+    bundle.artifacts.find(
+      (artifact) => artifact.file === "repo-standards-bootstrap",
+    )?.sha256,
+  );
+  assert.deepEqual(
+    bootstrapBytes,
+    readFileSync(join(installed, "bootstrap/repo-standards")),
+  );
+  const bootstrap = join(root, "repo-standards-bootstrap");
   writeFileSync(bootstrap, bootstrapBytes);
   chmodSync(bootstrap, 0o755);
-  run(join(installation, 'node_modules/.bin/repo-standards-bootstrap'), ['--help']);
-  for (const author of ['alice', 'mira', 'atlas']) {
-    assert.equal((JSON.parse(run(cli, ['source', 'validate', join(installed, 'examples', author), '--json'])) as { valid: boolean }).valid, true);
+  run(join(installation, "node_modules/.bin/repo-standards-bootstrap"), [
+    "--help",
+  ]);
+  for (const author of ["alice", "mira", "atlas"]) {
+    assert.equal(
+      (
+        JSON.parse(
+          run(cli, [
+            "source",
+            "validate",
+            join(installed, "examples", author),
+            "--json",
+          ]),
+        ) as { valid: boolean }
+      ).valid,
+      true,
+    );
   }
-  assert.equal((JSON.parse(run(cli, ['source', 'validate', join(checkout, 'acceptance/sources/wayfinder'), '--json'])) as { valid: boolean }).valid, true);
-  const source = 'https://github.com/lutzseverino/repo-standards-example';
-  const search = JSON.parse(run(cli, ['source', 'search', '--json'])) as { candidates: { repository: string }[] };
-  assert.ok(search.candidates.some(candidate => candidate.repository === source), 'Public learning source must be discoverable');
-  run('git', ['init', '--quiet'], project);
-  run('git', ['config', 'maintenance.auto', 'false'], project);
-  writeFileSync(join(project, 'README.md'), '# Public installation smoke project\n');
-  run('git', ['add', '.'], project);
-  run('git', ['-c', 'user.name=Release acceptance', '-c', 'user.email=release@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=/dev/null', 'commit', '--quiet', '-m', 'test: initialize disposable project'], project);
+  assert.equal(
+    (
+      JSON.parse(
+        run(cli, [
+          "source",
+          "validate",
+          join(checkout, "acceptance/sources/wayfinder"),
+          "--json",
+        ]),
+      ) as { valid: boolean }
+    ).valid,
+    true,
+  );
+  const source = "https://github.com/lutzseverino/repo-standards-example";
+  const search = JSON.parse(run(cli, ["source", "search", "--json"])) as {
+    candidates: { repository: string }[];
+  };
+  assert.ok(
+    search.candidates.some((candidate) => candidate.repository === source),
+    "Public learning source must be discoverable",
+  );
+  run("git", ["init", "--quiet"], project);
+  run("git", ["config", "maintenance.auto", "false"], project);
+  writeFileSync(
+    join(project, "README.md"),
+    "# Public installation smoke project\n",
+  );
+  run("git", ["add", "."], project);
+  run(
+    "git",
+    [
+      "-c",
+      "user.name=Release acceptance",
+      "-c",
+      "user.email=release@example.invalid",
+      "-c",
+      "commit.gpgsign=false",
+      "-c",
+      "core.hooksPath=/dev/null",
+      "commit",
+      "--quiet",
+      "-m",
+      "test: initialize disposable project",
+    ],
+    project,
+  );
   const before = snapshot(project);
-  const args = ['inspect', '--source', source, '--standards-version', 'v2.0.0', '--profile', 'service', '--json'];
-  const explicit = JSON.parse(run(bootstrap, ['--cli-version', version, ...args], project)) as InspectionIdentity;
+  const args = [
+    "inspect",
+    "--source",
+    source,
+    "--standards-version",
+    "v2.0.0",
+    "--profile",
+    "service",
+    "--json",
+  ];
+  const explicit = JSON.parse(
+    run(bootstrap, ["--cli-version", version, ...args], project),
+  ) as InspectionIdentity;
   assert.equal(explicit.selection.cli.version, version);
   assert.deepEqual(snapshot(project), before);
-  const latest = JSON.parse(run(bootstrap, args, project)) as InspectionIdentity;
+  const latest = JSON.parse(
+    run(bootstrap, args, project),
+  ) as InspectionIdentity;
   assert.match(latest.selection.cli.version, /^\d+\.\d+\.\d+$/);
-  assert.ok(commands.at(-1)!.stderr.includes(`CLI ${latest.selection.cli.version} `));
+  assert.ok(
+    commands.at(-1)!.stderr.includes(`CLI ${latest.selection.cli.version} `),
+  );
   assert.deepEqual(snapshot(project), before);
-  writeFileSync(join(root, 'identity.json'), JSON.stringify({ distribution,
-    skillSha256: createHash('sha256').update(readFileSync(join(installed, 'skills/adopt-standards/SKILL.md'))).digest('hex'),
-    checkoutCommit, wayfinderTree,
-    explicitIdentity: explicit.identity, omittedIdentity: latest.identity,
-    omittedVersion: latest.selection.cli.version, projectUnchanged: true,
-  }));
+  writeFileSync(
+    join(root, "identity.json"),
+    JSON.stringify({
+      distribution,
+      skillSha256: createHash("sha256")
+        .update(
+          readFileSync(join(installed, "skills/adopt-standards/SKILL.md")),
+        )
+        .digest("hex"),
+      checkoutCommit,
+      wayfinderTree,
+      explicitIdentity: explicit.identity,
+      omittedIdentity: latest.identity,
+      omittedVersion: latest.selection.cli.version,
+      projectUnchanged: true,
+    }),
+  );
   passed = true;
 } catch (error) {
   failure = error instanceof Error ? error.message : String(error);
@@ -143,12 +384,33 @@ try {
 } finally {
   mkdirSync(dirname(evidence), { recursive: true });
   let identity: unknown;
-  try { identity = JSON.parse(readFileSync(join(root, 'identity.json'), 'utf8')); } catch { /* Failure evidence still includes command output. */ }
-  writeFileSync(evidence, JSON.stringify({ date: new Date().toISOString(),
-    os: { platform: platform(), release: release(), arch: arch() }, node: process.version,
-    version, passed, failure, nextAction: passed ? undefined : nextAction, identity, propagation, commands, downloads,
-    scope: 'Public installation, packaged author validation, clean checkout-bound Wayfinder validation, discovery and read-only bootstrap. No adoption or real-agent assessment.',
-  }, null, 2) + '\n');
+  try {
+    identity = JSON.parse(readFileSync(join(root, "identity.json"), "utf8"));
+  } catch {
+    /* Failure evidence still includes command output. */
+  }
+  writeFileSync(
+    evidence,
+    JSON.stringify(
+      {
+        date: new Date().toISOString(),
+        os: { platform: platform(), release: release(), arch: arch() },
+        node: process.version,
+        version,
+        passed,
+        failure,
+        nextAction: passed ? undefined : nextAction,
+        identity,
+        propagation,
+        commands,
+        downloads,
+        scope:
+          "Public installation, packaged author validation, clean checkout-bound Wayfinder validation, discovery and read-only bootstrap. No adoption or real-agent assessment.",
+      },
+      null,
+      2,
+    ) + "\n",
+  );
   rmSync(root, { recursive: true, force: true });
   if (!passed) console.error(nextAction);
 }

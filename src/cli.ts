@@ -1,118 +1,279 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
-import { searchSources } from './discovery.js';
-import { validateSource } from './resolver.js';
-import { inspect } from './inspection.js';
-import { ProductError } from './errors.js';
-import { requireSupportedGit } from './observation.js';
-import { abandon, inspectRetained, resume, start, startRetained, status } from './adoption.js';
-import { outdated } from './outdated.js';
-import { check, checkSummary } from './check.js';
-import { inspectionSummary, statusSummary } from './summary.js';
-import type { InspectionReport, StatusRecord } from './summary.js';
+import { readFileSync } from "node:fs";
+import { searchSources } from "./discovery.js";
+import { validateSource } from "./resolver.js";
+import { inspect } from "./inspection.js";
+import { ProductError } from "./errors.js";
+import { requireSupportedGit } from "./observation.js";
+import {
+  abandon,
+  inspectRetained,
+  resume,
+  start,
+  startRetained,
+  status,
+} from "./adoption.js";
+import { outdated } from "./outdated.js";
+import { check, checkSummary } from "./check.js";
+import { inspectionSummary, statusSummary } from "./summary.js";
+import type { InspectionReport, StatusRecord } from "./summary.js";
 
-const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string };
+const { version } = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+) as { version: string };
 const args = process.argv.slice(2);
-if (args.length === 1 && args[0] === '--version') {
+if (args.length === 1 && args[0] === "--version") {
   console.log(version);
-} else if (args.length === 0 || (args.length === 1 && args[0] === '--help')) {
-  console.log('Usage: repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json | --summary]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json | --summary]\n       repo-standards outdated [--project <directory>] [--json]\n       repo-standards check [--project <directory>] [--json]\n\nAn update is one confirmed run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project. Check runs the adopted checks against the working tree and fails when any does not pass. --summary renders an inspection or status as Markdown instead of JSON.');
-} else if (args[0] === 'outdated' || args[0] === 'check') {
+} else if (args.length === 0 || (args.length === 1 && args[0] === "--help")) {
+  console.log(
+    "Usage: repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json | --summary]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --confirm <inspection identity> [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json | --summary]\n       repo-standards outdated [--project <directory>] [--json]\n       repo-standards check [--project <directory>] [--json]\n\nAn update is one confirmed run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project. Check runs the adopted checks against the working tree and fails when any does not pass. --summary renders an inspection or status as Markdown instead of JSON.",
+  );
+} else if (args[0] === "outdated" || args[0] === "check") {
   const command = args[0];
   const flags = new Map<string, string>();
   for (let index = 1; index < args.length; index++) {
     const key = args[index]!;
-    if (key === '--json' && !flags.has(key)) flags.set(key, 'true');
-    else if (key === '--project' && !flags.has(key) && args[index + 1] && !args[index + 1]!.startsWith('--')) flags.set(key, args[++index]!);
-    else flags.set('usage', key);
+    if (key === "--json" && !flags.has(key)) flags.set(key, "true");
+    else if (
+      key === "--project" &&
+      !flags.has(key) &&
+      args[index + 1] &&
+      !args[index + 1]!.startsWith("--")
+    )
+      flags.set(key, args[++index]!);
+    else flags.set("usage", key);
   }
-  let diagnostic: { code: string; message: string; details?: unknown } | undefined;
-  if (flags.has('usage')) diagnostic = { code: 'USAGE', message: `Use repo-standards ${command} [--project <directory>] [--json].` };
-  else try {
-    const project = flags.get('--project') ?? '.';
-    if (command === 'outdated') console.log(JSON.stringify(await outdated(project, version), null, 2));
-    else {
-      const report = await check(project, version);
-      if (flags.has('--json')) console.log(JSON.stringify(report, null, 2));
-      else process.stdout.write(checkSummary(report));
-      if (report.outcome !== 'passed') process.exitCode = 1;
+  let diagnostic:
+    { code: string; message: string; details?: unknown } | undefined;
+  if (flags.has("usage"))
+    diagnostic = {
+      code: "USAGE",
+      message: `Use repo-standards ${command} [--project <directory>] [--json].`,
+    };
+  else
+    try {
+      const project = flags.get("--project") ?? ".";
+      if (command === "outdated")
+        console.log(JSON.stringify(await outdated(project, version), null, 2));
+      else {
+        const report = await check(project, version);
+        if (flags.has("--json")) console.log(JSON.stringify(report, null, 2));
+        else process.stdout.write(checkSummary(report));
+        if (report.outcome !== "passed") process.exitCode = 1;
+      }
+    } catch (error) {
+      // An unexpected check failure, such as a filesystem error before any check
+      // runs, is still reported as a diagnostic.
+      if (!(error instanceof ProductError) && command !== "check") throw error;
+      diagnostic =
+        error instanceof ProductError
+          ? {
+              code: error.code,
+              message: error.message,
+              ...(error.details === undefined
+                ? {}
+                : { details: error.details }),
+            }
+          : { code: "CHECK_FAILED", message: (error as Error).message };
     }
-  } catch (error) {
-    // An unexpected check failure, such as a filesystem error before any check
-    // runs, is still reported as a diagnostic.
-    if (!(error instanceof ProductError) && command !== 'check') throw error;
-    diagnostic = error instanceof ProductError ? { code: error.code, message: error.message, ...(error.details === undefined ? {} : { details: error.details }) }
-      : { code: 'CHECK_FAILED', message: (error as Error).message };
-  }
   if (diagnostic) {
-    if (flags.has('--json')) console.log(JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2));
+    if (flags.has("--json"))
+      console.log(
+        JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2),
+      );
     else console.error(`[${diagnostic.code}] ${diagnostic.message}`);
-    process.exitCode = diagnostic.code === 'USAGE' ? 2 : 1;
+    process.exitCode = diagnostic.code === "USAGE" ? 2 : 1;
   }
-} else if (args[0] === 'inspect' || args[0] === 'start' || args[0] === 'status' || args[0] === 'resume' || args[0] === 'abandon') {
+} else if (
+  args[0] === "inspect" ||
+  args[0] === "start" ||
+  args[0] === "status" ||
+  args[0] === "resume" ||
+  args[0] === "abandon"
+) {
   try {
     const flags = new Map<string, string>();
     for (let index = 1; index < args.length; index++) {
       const key = args[index]!;
-      if ((key === '--json' || (key === '--retry' && args[0] === 'resume') || (key === '--summary' && ['inspect', 'status'].includes(args[0]))) && !flags.has(key)) { flags.set(key, 'true'); continue; }
-      if (!['--project', ...(['status', 'resume', 'abandon'].includes(args[0]) ? [] : ['--source', '--standards-version', '--profile']), ...(['inspect', 'start'].includes(args[0]) ? ['--scope'] : []), ...(args[0] === 'start' ? ['--confirm'] : []), ...(args[0] === 'resume' ? ['--assessment'] : [])].includes(key) || flags.has(key) || !args[index + 1] || args[index + 1]!.startsWith('--')) throw new ProductError('USAGE', `Unknown, duplicate, or incomplete option: ${key}. Use --help.`);
+      if (
+        (key === "--json" ||
+          (key === "--retry" && args[0] === "resume") ||
+          (key === "--summary" && ["inspect", "status"].includes(args[0]))) &&
+        !flags.has(key)
+      ) {
+        flags.set(key, "true");
+        continue;
+      }
+      if (
+        ![
+          "--project",
+          ...(["status", "resume", "abandon"].includes(args[0])
+            ? []
+            : ["--source", "--standards-version", "--profile"]),
+          ...(["inspect", "start"].includes(args[0]) ? ["--scope"] : []),
+          ...(args[0] === "start" ? ["--confirm"] : []),
+          ...(args[0] === "resume" ? ["--assessment"] : []),
+        ].includes(key) ||
+        flags.has(key) ||
+        !args[index + 1] ||
+        args[index + 1]!.startsWith("--")
+      )
+        throw new ProductError(
+          "USAGE",
+          `Unknown, duplicate, or incomplete option: ${key}. Use --help.`,
+        );
       flags.set(key, args[++index]!);
     }
-    if (flags.has('--summary') && flags.has('--json')) throw new ProductError('USAGE', 'Use either --summary or --json, not both.');
-    if (flags.has('--retry') && flags.has('--assessment')) throw new ProductError('USAGE', 'Retry requests renewed contextual work; submit assessment separately after retry.');
-    const selectionKeys = ['--source', '--standards-version', '--profile'];
-    const selectionCount = selectionKeys.filter(key => flags.has(key)).length;
-    const retained = ['inspect', 'start'].includes(args[0]) && selectionCount === 0;
-    if (['inspect', 'start'].includes(args[0]) && selectionCount !== 0 && selectionCount !== selectionKeys.length) throw new ProductError('USAGE', 'Provide --source, --standards-version and --profile together, or omit all three to use retained standards.');
-    if (args[0] === 'start' && !flags.has('--confirm')) throw new ProductError('CONFIRMATION_REQUIRED', 'Inspect the selection, review its changes, and pass its identity with --confirm <identity> after explicit maintainer confirmation.');
-    if (args[0] === 'inspect' || args[0] === 'start') requireSupportedGit();
-    const options = { source: flags.get('--source')!, standardsVersion: flags.get('--standards-version')!, profile: flags.get('--profile')!, project: flags.get('--project') ?? '.', ...(flags.has('--scope') ? { scope: flags.get('--scope')! } : {}) };
-    const report = args[0] === 'abandon' ? abandon(options.project, version) : args[0] === 'resume' ? await resume(options.project, version, flags.get('--assessment'), flags.has('--retry')) : args[0] === 'status' ? status(options.project, version) : args[0] === 'start' ? retained ? await startRetained(options.project, version, flags.get('--confirm')!, options.scope) : await start(options, version, flags.get('--confirm')!) : retained ? await inspectRetained(options.project, version, options.scope) : await inspect(options, version);
-    if (flags.has('--summary')) process.stdout.write(args[0] === 'status' ? statusSummary(report as StatusRecord) : inspectionSummary(report as InspectionReport));
+    if (flags.has("--summary") && flags.has("--json"))
+      throw new ProductError(
+        "USAGE",
+        "Use either --summary or --json, not both.",
+      );
+    if (flags.has("--retry") && flags.has("--assessment"))
+      throw new ProductError(
+        "USAGE",
+        "Retry requests renewed contextual work; submit assessment separately after retry.",
+      );
+    const selectionKeys = ["--source", "--standards-version", "--profile"];
+    const selectionCount = selectionKeys.filter((key) => flags.has(key)).length;
+    const retained =
+      ["inspect", "start"].includes(args[0]) && selectionCount === 0;
+    if (
+      ["inspect", "start"].includes(args[0]) &&
+      selectionCount !== 0 &&
+      selectionCount !== selectionKeys.length
+    )
+      throw new ProductError(
+        "USAGE",
+        "Provide --source, --standards-version and --profile together, or omit all three to use retained standards.",
+      );
+    if (args[0] === "start" && !flags.has("--confirm"))
+      throw new ProductError(
+        "CONFIRMATION_REQUIRED",
+        "Inspect the selection, review its changes, and pass its identity with --confirm <identity> after explicit maintainer confirmation.",
+      );
+    if (args[0] === "inspect" || args[0] === "start") requireSupportedGit();
+    const options = {
+      source: flags.get("--source")!,
+      standardsVersion: flags.get("--standards-version")!,
+      profile: flags.get("--profile")!,
+      project: flags.get("--project") ?? ".",
+      ...(flags.has("--scope") ? { scope: flags.get("--scope")! } : {}),
+    };
+    const report =
+      args[0] === "abandon"
+        ? abandon(options.project, version)
+        : args[0] === "resume"
+          ? await resume(
+              options.project,
+              version,
+              flags.get("--assessment"),
+              flags.has("--retry"),
+            )
+          : args[0] === "status"
+            ? status(options.project, version)
+            : args[0] === "start"
+              ? retained
+                ? await startRetained(
+                    options.project,
+                    version,
+                    flags.get("--confirm")!,
+                    options.scope,
+                  )
+                : await start(options, version, flags.get("--confirm")!)
+              : retained
+                ? await inspectRetained(options.project, version, options.scope)
+                : await inspect(options, version);
+    if (flags.has("--summary"))
+      process.stdout.write(
+        args[0] === "status"
+          ? statusSummary(report as StatusRecord)
+          : inspectionSummary(report as InspectionReport),
+      );
     else console.log(JSON.stringify(report, null, 2));
-    if ('outcome' in report && report.outcome === 'incomplete') process.exitCode = 1;
+    if ("outcome" in report && report.outcome === "incomplete")
+      process.exitCode = 1;
   } catch (error) {
-    const diagnostic = error instanceof ProductError ? { code: error.code, message: error.message, ...(error.details === undefined ? {} : { details: error.details }) } : { code: 'INSPECTION_FAILED', message: (error as Error).message };
-    if (args.includes('--json')) console.log(JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2));
+    const diagnostic =
+      error instanceof ProductError
+        ? {
+            code: error.code,
+            message: error.message,
+            ...(error.details === undefined ? {} : { details: error.details }),
+          }
+        : { code: "INSPECTION_FAILED", message: (error as Error).message };
+    if (args.includes("--json"))
+      console.log(
+        JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2),
+      );
     else console.error(`[${diagnostic.code}] ${diagnostic.message}`);
-    process.exitCode = diagnostic.code === 'USAGE' ? 2 : 1;
+    process.exitCode = diagnostic.code === "USAGE" ? 2 : 1;
   }
-} else if (args[0] === 'source' && args[1] === 'search') {
+} else if (args[0] === "source" && args[1] === "search") {
   try {
     let page = 1;
     const seen = new Set<string>();
     for (let index = 2; index < args.length; index++) {
       const key = args[index]!;
-      if (seen.has(key) || !['--json', '--page'].includes(key)) throw new ProductError('USAGE', 'Use repo-standards source search [--page <1-34>] [--json].');
+      if (seen.has(key) || !["--json", "--page"].includes(key))
+        throw new ProductError(
+          "USAGE",
+          "Use repo-standards source search [--page <1-34>] [--json].",
+        );
       seen.add(key);
-      if (key === '--page') {
-        const value = args[++index] ?? '';
+      if (key === "--page") {
+        const value = args[++index] ?? "";
         page = Number(value);
-        if (!/^[1-9][0-9]?$/.test(value) || page > 34) throw new ProductError('USAGE', 'Search page must be an integer from 1 to 34.');
+        if (!/^[1-9][0-9]?$/.test(value) || page > 34)
+          throw new ProductError(
+            "USAGE",
+            "Search page must be an integer from 1 to 34.",
+          );
       }
     }
     console.log(JSON.stringify(await searchSources(version, page), null, 2));
   } catch (error) {
-    const diagnostic = error instanceof ProductError ? { code: error.code, message: error.message } : { code: 'SEARCH_FAILED', message: (error as Error).message };
-    if (args.includes('--json')) console.log(JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2));
+    const diagnostic =
+      error instanceof ProductError
+        ? { code: error.code, message: error.message }
+        : { code: "SEARCH_FAILED", message: (error as Error).message };
+    if (args.includes("--json"))
+      console.log(
+        JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2),
+      );
     else console.error(`[${diagnostic.code}] ${diagnostic.message}`);
-    process.exitCode = diagnostic.code === 'USAGE' ? 2 : 1;
+    process.exitCode = diagnostic.code === "USAGE" ? 2 : 1;
   }
-} else if (args[0] === 'source' && args[1] === 'validate' && args.slice(2).filter(arg => arg !== '--json').length <= 1 && !args.slice(2).some(arg => arg.startsWith('-') && arg !== '--json')) {
-  const directory = args.slice(2).find(arg => arg !== '--json') ?? '.';
+} else if (
+  args[0] === "source" &&
+  args[1] === "validate" &&
+  args.slice(2).filter((arg) => arg !== "--json").length <= 1 &&
+  !args.slice(2).some((arg) => arg.startsWith("-") && arg !== "--json")
+) {
+  const directory = args.slice(2).find((arg) => arg !== "--json") ?? ".";
   const report = validateSource(directory, version);
-  if (args.includes('--json')) console.log(JSON.stringify(report, null, 2));
+  if (args.includes("--json")) console.log(JSON.stringify(report, null, 2));
   else if (report.valid) {
-    console.log(`Valid standards source; profiles: ${Object.keys(report.profiles).join(', ')}.`);
+    console.log(
+      `Valid standards source; profiles: ${Object.keys(report.profiles).join(", ")}.`,
+    );
     console.log(report.scope?.verified);
     console.log(report.scope?.limitations);
-    for (const [profile, declarations] of Object.entries(report.scope?.discoveryRequired ?? {})) {
-      if (declarations.length) console.log(`Discovery required for profile ${profile}: ${declarations.join(', ')}.`);
+    for (const [profile, declarations] of Object.entries(
+      report.scope?.discoveryRequired ?? {},
+    )) {
+      if (declarations.length)
+        console.log(
+          `Discovery required for profile ${profile}: ${declarations.join(", ")}.`,
+        );
     }
-  }
-  else for (const error of report.errors) console.error(`${error.file}:${error.line}:${error.column} [${error.code}] ${error.message} (${error.path || '/'})`);
+  } else
+    for (const error of report.errors)
+      console.error(
+        `${error.file}:${error.line}:${error.column} [${error.code}] ${error.message} (${error.path || "/"})`,
+      );
   process.exitCode = report.valid ? 0 : 1;
 } else {
-  console.error('Usage: repo-standards source validate [directory] [--json]');
+  console.error("Usage: repo-standards source validate [directory] [--json]");
   process.exitCode = 2;
 }

@@ -66,13 +66,17 @@ unrelated project path is itself an out-of-scope change.
       "id": "readme",
       "status": "satisfied",
       "explanation": "The README describes this service's setup and architecture.",
-      "evidence": ["Setup names the worker command; Architecture explains queue ownership."]
+      "evidence": [
+        "Setup names the worker command; Architecture explains queue ownership."
+      ]
     },
     {
       "id": "source-layout",
       "status": "satisfied",
       "explanation": "Existing source modules already have clear responsibilities.",
-      "evidence": ["src/queue.ts owns delivery; src/storage.ts owns persistence."]
+      "evidence": [
+        "src/queue.ts owns delivery; src/storage.ts owns persistence."
+      ]
     }
   ]
 }
@@ -201,7 +205,9 @@ Each review uses:
 {
   "status": "valid",
   "explanation": "The maintained projects and planned migration files remain covered.",
-  "evidence": ["Reviewed project manifests, legacy documentation and navigation links."],
+  "evidence": [
+    "Reviewed project manifests, legacy documentation and navigation links."
+  ],
   "additionalPaths": []
 }
 ```

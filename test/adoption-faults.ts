@@ -1,14 +1,21 @@
-import { writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 // Faults at the filesystem boundary, keyed to the public persisted run phase.
 // The installed CLI still performs all installation and integrity verification.
 // The mutation runs once, inside the write that persisted the phase, with
 // `fs`, the original `write`, `spawnSync` and `syncBuiltinESMExports` in scope.
-export function filesystemFault(directory: string, env: NodeJS.ProcessEnv, phase: string, mutation: string) {
-  const loader = join(directory, 'filesystem-fault.mjs');
-  writeFileSync(loader, `import fs from 'node:fs';
+export function filesystemFault(
+  directory: string,
+  env: NodeJS.ProcessEnv,
+  phase: string,
+  mutation: string,
+) {
+  const loader = join(directory, "filesystem-fault.mjs");
+  writeFileSync(
+    loader,
+    `import fs from 'node:fs';
 import { syncBuiltinESMExports } from 'node:module';
 import { spawnSync } from 'node:child_process';
 const write = fs.writeFileSync;
@@ -24,8 +31,12 @@ fs.writeFileSync = function(path, data, ...args) {
   return result;
 };
 syncBuiltinESMExports();
-`);
-  return { ...env, NODE_OPTIONS: `${env.NODE_OPTIONS ?? ''} --import=${pathToFileURL(loader).href}` };
+`,
+  );
+  return {
+    ...env,
+    NODE_OPTIONS: `${env.NODE_OPTIONS ?? ""} --import=${pathToFileURL(loader).href}`,
+  };
 }
 
 // Mutations for filesystemFault. Each wraps one filesystem call from the phase
@@ -36,7 +47,10 @@ export const kill = `process.kill(process.pid, 'SIGKILL');`;
 // the suffixes, when `when` holds. Both `when` and `before`, which runs ahead of
 // the stop, see the renamed file as `record` when it holds JSON, and the
 // original `rename`.
-export function killAfterRename(suffix: string | string[], options: { when?: string; before?: string } = {}) {
+export function killAfterRename(
+  suffix: string | string[],
+  options: { when?: string; before?: string } = {},
+) {
   return `
 const rename = fs.renameSync;
 fs.renameSync = function(from, to, ...args) {
@@ -44,8 +58,8 @@ fs.renameSync = function(from, to, ...args) {
   if (${JSON.stringify([suffix].flat())}.some(suffix => String(to).endsWith(suffix))) {
     let record;
     try { record = JSON.parse(fs.readFileSync(to, 'utf8')); } catch {}
-    if (${options.when ?? 'true'}) {
-      ${options.before ?? ''}
+    if (${options.when ?? "true"}) {
+      ${options.before ?? ""}
       ${kill}
     }
   }
@@ -73,7 +87,7 @@ const remove = fs.rmSync;
 const unlink = fs.unlinkSync;
 const fault = path => {
   if (String(path).endsWith(${JSON.stringify(suffix)})) {
-    ${first ? `remove.call(fs, String(path) + ${JSON.stringify(first)});` : ''}
+    ${first ? `remove.call(fs, String(path) + ${JSON.stringify(first)});` : ""}
     ${kill}
   }
 };

@@ -1,43 +1,116 @@
-import type { RecordedInterval } from '../src/work-evidence.ts';
-import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
-import { isAbsolute, join } from 'node:path';
-import { git } from './remote-fixture.ts';
+import type { RecordedInterval } from "../src/work-evidence.ts";
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readFileSync, writeFileSync } from "node:fs";
+import { isAbsolute, join } from "node:path";
+import { git } from "./remote-fixture.ts";
 
-export type CommittedInterval = Omit<RecordedInterval, 'before' | 'after'> & { before: unknown; after?: unknown };
+export type CommittedInterval = Omit<RecordedInterval, "before" | "after"> & {
+  before: unknown;
+  after?: unknown;
+};
 
 export function committedState(root: string) {
-  return JSON.parse(readFileSync(join(root, '.repo-standards/state.json'), 'utf8')) as {
-    format: string; observations?: CommittedInterval[]; operations?: unknown[]; retryHistory?: unknown[];
+  return JSON.parse(
+    readFileSync(join(root, ".repo-standards/state.json"), "utf8"),
+  ) as {
+    format: string;
+    observations?: CommittedInterval[];
+    operations?: unknown[];
+    retryHistory?: unknown[];
     changeSet?: { path: string; phases: string[] }[];
-    lastComplete: { run: string; inspection: string; completedAt: string; head: string };
+    lastComplete: {
+      run: string;
+      inspection: string;
+      completedAt: string;
+      head: string;
+    };
   };
 }
 
 export function localRunReport(root: string) {
-  return JSON.parse(readFileSync(join(root, '.repo-standards/local/run.json'), 'utf8')) as { format: string; root: string; observations: CommittedInterval[] };
+  return JSON.parse(
+    readFileSync(join(root, ".repo-standards/local/run.json"), "utf8"),
+  ) as { format: string; root: string; observations: CommittedInterval[] };
 }
 
 // Every interval, committed or in a run record, is identities plus delta.
-const intervalFields = ['phase', 'scope', 'operation', 'operationIndex', 'before', 'after', 'changes', 'boundaryChanges',
-  'violations', 'restoredExact', 'restoredBoundaries', 'interrupted'];
-function assertCompactIntervals(label: string, observations: CommittedInterval[]) {
-  assert.ok(Array.isArray(observations), `${label} must retain ordered intervals`);
+const intervalFields = [
+  "phase",
+  "scope",
+  "operation",
+  "operationIndex",
+  "before",
+  "after",
+  "changes",
+  "boundaryChanges",
+  "violations",
+  "restoredExact",
+  "restoredBoundaries",
+  "interrupted",
+];
+function assertCompactIntervals(
+  label: string,
+  observations: CommittedInterval[],
+) {
+  assert.ok(
+    Array.isArray(observations),
+    `${label} must retain ordered intervals`,
+  );
   for (const [index, interval] of observations.entries()) {
     const where = `${label} interval ${index}`;
-    assert.equal(typeof interval.before, 'string', `${where} must carry a before identity, not an observation map`);
-    assert.match(interval.before as string, /^sha256:[0-9a-f]{64}$/, `${where} before identity`);
-    if (interval.after !== undefined || interval.changes !== undefined || interval.violations !== undefined) {
-      assert.equal(typeof interval.after, 'string', `${where} is closed and must carry an after identity`);
-      assert.match(interval.after as string, /^sha256:[0-9a-f]{64}$/, `${where} after identity`);
+    assert.equal(
+      typeof interval.before,
+      "string",
+      `${where} must carry a before identity, not an observation map`,
+    );
+    assert.match(
+      interval.before as string,
+      /^sha256:[0-9a-f]{64}$/,
+      `${where} before identity`,
+    );
+    if (
+      interval.after !== undefined ||
+      interval.changes !== undefined ||
+      interval.violations !== undefined
+    ) {
+      assert.equal(
+        typeof interval.after,
+        "string",
+        `${where} is closed and must carry an after identity`,
+      );
+      assert.match(
+        interval.after as string,
+        /^sha256:[0-9a-f]{64}$/,
+        `${where} after identity`,
+      );
     }
-    for (const key of ['files', 'boundaries', 'settings', 'ignores', 'inventories', 'targets', 'evidence']) {
-      assert.equal(Object.hasOwn(interval, key), false, `${where} must not carry an observation map: ${key}`);
+    for (const key of [
+      "files",
+      "boundaries",
+      "settings",
+      "ignores",
+      "inventories",
+      "targets",
+      "evidence",
+    ]) {
+      assert.equal(
+        Object.hasOwn(interval, key),
+        false,
+        `${where} must not carry an observation map: ${key}`,
+      );
     }
-    assert.deepEqual(Object.keys(interval).filter(key => !intervalFields.includes(key)), [], `${where} carries only the committed interval fields`);
+    assert.deepEqual(
+      Object.keys(interval).filter((key) => !intervalFields.includes(key)),
+      [],
+      `${where} carries only the committed interval fields`,
+    );
     for (const identity of [interval.before, interval.after]) {
-      assert.equal(typeof identity === 'object' && identity !== null, false, `${where} identities must not be observation maps`);
+      assert.equal(
+        typeof identity === "object" && identity !== null,
+        false,
+        `${where} identities must not be observation maps`,
+      );
     }
   }
 }
@@ -45,83 +118,156 @@ function assertCompactIntervals(label: string, observations: CommittedInterval[]
 // Structural regression guard: a run record, whether the journal, the local run
 // report or an archived report, has the single run format and records its
 // intervals in the committed shape, never with an observation map.
-export function assertCompactRunRecord(record: { format: string; observations: CommittedInterval[] }, label = 'run record') {
-  assert.equal(record.format, 'repo-standards/run/v6');
+export function assertCompactRunRecord(
+  record: { format: string; observations: CommittedInterval[] },
+  label = "run record",
+) {
+  assert.equal(record.format, "repo-standards/run/v6");
   assertCompactIntervals(label, record.observations);
 }
 
 // Structural regression guard: no committed interval may carry an observation
 // map, and every closed interval must carry both observation identities.
-export function assertCompactWorkEvidence(state: ReturnType<typeof committedState>) {
-  assertCompactIntervals('current', state.observations!);
+export function assertCompactWorkEvidence(
+  state: ReturnType<typeof committedState>,
+) {
+  assertCompactIntervals("current", state.observations!);
 }
 
 interface CommittedScopeRun {
   inspection: string;
   resolved: unknown;
   sourceResolved?: unknown;
-  discovery?: { identity: string; proposal?: unknown; absence?: unknown; declarations?: unknown;
-    named?: { targets?: Record<string, unknown>; boundaries?: Record<string, unknown>; observation?: unknown };
-    observation?: { boundaries?: Record<string, unknown> } };
+  discovery?: {
+    identity: string;
+    proposal?: unknown;
+    absence?: unknown;
+    declarations?: unknown;
+    named?: {
+      targets?: Record<string, unknown>;
+      boundaries?: Record<string, unknown>;
+      observation?: unknown;
+    };
+    observation?: { boundaries?: Record<string, unknown> };
+  };
 }
 
 export function committedScopeEvidence(root: string) {
-  return JSON.parse(readFileSync(join(root, '.repo-standards/inputs/scope-history.json'), 'utf8')) as CommittedScopeRun & {
-    format: string; evidence: string; scopeChanges: { id: string; additions: string[]; removals: string[] }[] };
+  return JSON.parse(
+    readFileSync(
+      join(root, ".repo-standards/inputs/scope-history.json"),
+      "utf8",
+    ),
+  ) as CommittedScopeRun & {
+    format: string;
+    evidence: string;
+    scopeChanges: { id: string; additions: string[]; removals: string[] }[];
+  };
 }
 
 // Structural regression guard: the retained file holds the current run and its
 // scope change against the previous run, and nothing else; its discovery
 // carries neither the evidence arrays nor the full named observation its stored
 // observation already implies.
-export function assertCompactScopeEvidence(scope: ReturnType<typeof committedScopeEvidence>) {
-  assert.deepEqual(Object.keys(scope).filter(key => !['format', 'evidence', 'inspection', 'resolved', 'sourceResolved', 'discovery', 'scopeChanges'].includes(key)), [],
-    'scope evidence must hold only the current run and its scope change');
-  assert.equal(typeof scope.inspection, 'string');
-  assert.ok(Array.isArray(scope.scopeChanges), 'scope evidence must record its scope change');
+export function assertCompactScopeEvidence(
+  scope: ReturnType<typeof committedScopeEvidence>,
+) {
+  assert.deepEqual(
+    Object.keys(scope).filter(
+      (key) =>
+        ![
+          "format",
+          "evidence",
+          "inspection",
+          "resolved",
+          "sourceResolved",
+          "discovery",
+          "scopeChanges",
+        ].includes(key),
+    ),
+    [],
+    "scope evidence must hold only the current run and its scope change",
+  );
+  assert.equal(typeof scope.inspection, "string");
+  assert.ok(
+    Array.isArray(scope.scopeChanges),
+    "scope evidence must record its scope change",
+  );
   const discovery = scope.discovery;
   if (!discovery) return;
-  assert.equal(Object.hasOwn(discovery, 'evidence'), false, 'discovery must not carry a derived evidence array');
-  assert.equal(Object.hasOwn(discovery, 'namedObservation'), false, 'discovery must store the named observation as a delta');
-  assert.ok(discovery.observation, 'discovery must retain its project observation');
-  assert.equal(Object.hasOwn(discovery.observation, 'evidence'), false, 'the observation must not carry a derived evidence array');
-  if (discovery.named) assert.deepEqual(Object.keys(discovery.named).filter(key => !['targets', 'boundaries'].includes(key)), [], 'named delta fields');
+  assert.equal(
+    Object.hasOwn(discovery, "evidence"),
+    false,
+    "discovery must not carry a derived evidence array",
+  );
+  assert.equal(
+    Object.hasOwn(discovery, "namedObservation"),
+    false,
+    "discovery must store the named observation as a delta",
+  );
+  assert.ok(
+    discovery.observation,
+    "discovery must retain its project observation",
+  );
+  assert.equal(
+    Object.hasOwn(discovery.observation, "evidence"),
+    false,
+    "the observation must not carry a derived evidence array",
+  );
+  if (discovery.named)
+    assert.deepEqual(
+      Object.keys(discovery.named).filter(
+        (key) => !["targets", "boundaries"].includes(key),
+      ),
+      [],
+      "named delta fields",
+    );
 }
 
 // Replace a retained input with other bytes and rebind the integrity lock to
 // them, so only the content under test differs from a committed adoption.
-export function rewriteRetainedInput(root: string, path: string, value: unknown) {
-  const bytes = JSON.stringify(value, null, 2) + '\n';
+export function rewriteRetainedInput(
+  root: string,
+  path: string,
+  value: unknown,
+) {
+  const bytes = JSON.stringify(value, null, 2) + "\n";
   writeFileSync(join(root, path), bytes);
-  const lockPath = join(root, '.repo-standards/lock.json');
-  const lock = JSON.parse(readFileSync(lockPath, 'utf8')) as { files: Record<string, { sha256: string }> };
-  lock.files[path]!.sha256 = createHash('sha256').update(bytes).digest('hex');
-  writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
+  const lockPath = join(root, ".repo-standards/lock.json");
+  const lock = JSON.parse(readFileSync(lockPath, "utf8")) as {
+    files: Record<string, { sha256: string }>;
+  };
+  lock.files[path]!.sha256 = createHash("sha256").update(bytes).digest("hex");
+  writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
 }
 
 // Replace the committed durable state and rebind the integrity lock to it.
 export function rewriteCommittedState(root: string, value: unknown) {
-  const bytes = JSON.stringify(value, null, 2) + '\n';
-  writeFileSync(join(root, '.repo-standards/state.json'), bytes);
-  const lockPath = join(root, '.repo-standards/lock.json');
-  const lock = JSON.parse(readFileSync(lockPath, 'utf8')) as { state: { sha256: string } };
-  lock.state.sha256 = createHash('sha256').update(bytes).digest('hex');
-  writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
+  const bytes = JSON.stringify(value, null, 2) + "\n";
+  writeFileSync(join(root, ".repo-standards/state.json"), bytes);
+  const lockPath = join(root, ".repo-standards/lock.json");
+  const lock = JSON.parse(readFileSync(lockPath, "utf8")) as {
+    state: { sha256: string };
+  };
+  lock.state.sha256 = createHash("sha256").update(bytes).digest("hex");
+  writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
 }
 
 // Grow the committed durable state past a byte threshold, the way an adopter's
 // accumulated evidence does, preserving everything the state records and
 // rebinding the integrity lock to the new bytes.
 export function growCommittedState(root: string, bytes: number) {
-  const path = join(root, '.repo-standards/state.json');
-  const state = readFileSync(path, 'utf8');
-  assert.equal(state[0], '{');
-  const grown = `{${' '.repeat(Math.max(0, bytes - state.length))}${state.slice(1)}`;
+  const path = join(root, ".repo-standards/state.json");
+  const state = readFileSync(path, "utf8");
+  assert.equal(state[0], "{");
+  const grown = `{${" ".repeat(Math.max(0, bytes - state.length))}${state.slice(1)}`;
   writeFileSync(path, grown);
-  const lockPath = join(root, '.repo-standards/lock.json');
-  const lock = JSON.parse(readFileSync(lockPath, 'utf8')) as { state: { sha256: string } };
-  lock.state.sha256 = createHash('sha256').update(grown).digest('hex');
-  writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
+  const lockPath = join(root, ".repo-standards/lock.json");
+  const lock = JSON.parse(readFileSync(lockPath, "utf8")) as {
+    state: { sha256: string };
+  };
+  lock.state.sha256 = createHash("sha256").update(grown).digest("hex");
+  writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
   return Buffer.byteLength(grown);
 }
 
@@ -133,26 +279,57 @@ export function growCommittedState(root: string, bytes: number) {
 // link's text, which resolves inside the project. Absolute
 // paths the standards source itself declares, such as an operation's
 // executable, are retained source content and are passed as authored.
-export function assertNoMachineLocation(root: string, locations: string[], authored: string[] = []) {
-  const committed = git(root, 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', '.repo-standards').split('\0').filter(Boolean);
-  assert.ok(committed.includes('.repo-standards/state.json'), 'the adoption leaves committed state');
+export function assertNoMachineLocation(
+  root: string,
+  locations: string[],
+  authored: string[] = [],
+) {
+  const committed = git(
+    root,
+    "ls-files",
+    "--cached",
+    "--others",
+    "--exclude-standard",
+    "-z",
+    "--",
+    ".repo-standards",
+  )
+    .split("\0")
+    .filter(Boolean);
+  assert.ok(
+    committed.includes(".repo-standards/state.json"),
+    "the adoption leaves committed state",
+  );
   const located: string[] = [];
   // A skill link's text climbs from .claude/skills/<name> back into the
   // project, so it names no location outside it.
   const skillLinkText = /^\.\.\/\.\.\/\.agents\/skills\/[^/]+$/;
-  const location = (value: string) => isAbsolute(value) || (value.split('/').includes('..') && !skillLinkText.test(value));
+  const location = (value: string) =>
+    isAbsolute(value) ||
+    (value.split("/").includes("..") && !skillLinkText.test(value));
   function visit(path: string, value: unknown) {
-    if (typeof value === 'string' && location(value) && !authored.includes(value)) located.push(`${path}: ${value}`);
-    else if (value && typeof value === 'object') for (const [key, child] of Object.entries(value)) {
-      if (location(key)) located.push(`${path}: ${key}`);
-      visit(path, child);
-    }
+    if (
+      typeof value === "string" &&
+      location(value) &&
+      !authored.includes(value)
+    )
+      located.push(`${path}: ${value}`);
+    else if (value && typeof value === "object")
+      for (const [key, child] of Object.entries(value)) {
+        if (location(key)) located.push(`${path}: ${key}`);
+        visit(path, child);
+      }
   }
   for (const path of committed) {
-    const text = readFileSync(join(root, path), 'utf8');
-    for (const machine of locations) if (text.includes(machine)) located.push(`${path}: ${machine}`);
-    if (path.endsWith('.json')) visit(path, JSON.parse(text) as unknown);
+    const text = readFileSync(join(root, path), "utf8");
+    for (const machine of locations)
+      if (text.includes(machine)) located.push(`${path}: ${machine}`);
+    if (path.endsWith(".json")) visit(path, JSON.parse(text) as unknown);
   }
-  assert.deepEqual(located, [], 'committed evidence must not record an absolute path or a path outside the project');
+  assert.deepEqual(
+    located,
+    [],
+    "committed evidence must not record an absolute path or a path outside the project",
+  );
   return committed;
 }

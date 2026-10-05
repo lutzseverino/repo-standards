@@ -222,18 +222,18 @@ the run's other changes; a link that Git ignores fails completion with
 
 Review and commit these files through the adopting project's normal workflow:
 
-| Path | Recorded material |
-| --- | --- |
-| `.repo-standards/selection.yaml` | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile. |
-| `.repo-standards/lock.json` | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state. |
-| `.repo-standards/state.json` | Last-complete run, HEAD at start, completion time, exact baselines, full skill file inventories, skill links, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this run only. |
-| `.repo-standards/inputs/` | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted. |
-| `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values. |
-| `.repo-standards/.gitignore` | Ignores runtime dependencies, local reports/logs, and caches. |
-| `.agents/skills/adopt-standards/` | The product-owned adoption skill from this exact CLI version, with its references. |
-| `.agents/skills/standards-updates/` | The product-owned update notice from this exact CLI version, which reports [available updates](available-updates.md) to an agent. |
-| Exact targets and `.agents/skills/<author skill>/` | The selected author-owned content and complete skill resources. |
-| `.claude/skills/<skill>` | A skill link for every skill above, system or author: a relative symbolic link to `../../.agents/skills/<skill>`. |
+| Path                                                        | Recorded material                                                                                                                                                                                                                     |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.repo-standards/selection.yaml`                            | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile.                                                                                                                                                 |
+| `.repo-standards/lock.json`                                 | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state.                                                                  |
+| `.repo-standards/state.json`                                | Last-complete run, HEAD at start, completion time, exact baselines, full skill file inventories, skill links, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this run only. |
+| `.repo-standards/inputs/`                                   | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted.                                  |
+| `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values.                                                                                                                                            |
+| `.repo-standards/.gitignore`                                | Ignores runtime dependencies, local reports/logs, and caches.                                                                                                                                                                         |
+| `.agents/skills/adopt-standards/`                           | The product-owned adoption skill from this exact CLI version, with its references.                                                                                                                                                    |
+| `.agents/skills/standards-updates/`                         | The product-owned update notice from this exact CLI version, which reports [available updates](available-updates.md) to an agent.                                                                                                     |
+| Exact targets and `.agents/skills/<author skill>/`          | The selected author-owned content and complete skill resources.                                                                                                                                                                       |
+| `.claude/skills/<skill>`                                    | A skill link for every skill above, system or author: a relative symbolic link to `../../.agents/skills/<skill>`.                                                                                                                     |
 
 Discovery adoption additionally retains `inputs/scope-history.json`, and every
 later run keeps writing it. It holds the current run only: its accepted
@@ -271,15 +271,15 @@ Historical evidence makes no current-coverage claim.
 
 Each artifact has exactly one format, which this CLI both writes and reads:
 
-| Artifact | Format |
-| --- | --- |
-| Durable state, `.repo-standards/state.json` | `repo-standards/state/v7` |
-| Integrity lock, `.repo-standards/lock.json` | `repo-standards/lock/v1` |
-| Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v5` |
-| Run record, local run report, and archived abandoned report | `repo-standards/run/v6` |
-| `status` report | `repo-standards/status/v7` |
-| Inspection report | `repo-standards/inspection/v6` |
-| Work request and assessment | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
+| Artifact                                                             | Format                                                           |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Durable state, `.repo-standards/state.json`                          | `repo-standards/state/v7`                                        |
+| Integrity lock, `.repo-standards/lock.json`                          | `repo-standards/lock/v1`                                         |
+| Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v5`                                |
+| Run record, local run report, and archived abandoned report          | `repo-standards/run/v6`                                          |
+| `status` report                                                      | `repo-standards/status/v7`                                       |
+| Inspection report                                                    | `repo-standards/inspection/v6`                                   |
+| Work request and assessment                                          | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
 
 Earlier formats are retired: they are not read, converted, or compacted. A
 project whose committed files carry one

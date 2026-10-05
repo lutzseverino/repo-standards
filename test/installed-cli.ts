@@ -1,62 +1,125 @@
-import { packPackage } from '../scripts/pack-package.ts';
-import { execFileSync, spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { lstatSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { packPackage } from "../scripts/pack-package.ts";
+import { execFileSync, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import {
+  lstatSync,
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  readlinkSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 export function snapshot(root: string): unknown {
-  return readdirSync(root).sort().map(name => {
-    const path = join(root, name);
-    const stat = lstatSync(path);
-    return [name, stat.mode, stat.isSymbolicLink() ? readlinkSync(path) : stat.isDirectory() ? snapshot(path) : readFileSync(path).toString('base64')];
-  });
+  return readdirSync(root)
+    .sort()
+    .map((name) => {
+      const path = join(root, name);
+      const stat = lstatSync(path);
+      return [
+        name,
+        stat.mode,
+        stat.isSymbolicLink()
+          ? readlinkSync(path)
+          : stat.isDirectory()
+            ? snapshot(path)
+            : readFileSync(path).toString("base64"),
+      ];
+    });
 }
 
 // A tree's files with their bytes and executable state, which is all an
 // installation preserves; other permission bits depend on the umask.
-export function installedTree(root: string, prefix = ''): [string, string, boolean][] {
-  return readdirSync(join(root, prefix)).sort().flatMap(name => {
-    const path = prefix ? `${prefix}/${name}` : name;
-    const stat = lstatSync(join(root, path));
-    return stat.isDirectory() ? installedTree(root, path) : [[path, readFileSync(join(root, path)).toString('base64'), (stat.mode & 0o111) !== 0] as [string, string, boolean]];
-  });
+export function installedTree(
+  root: string,
+  prefix = "",
+): [string, string, boolean][] {
+  return readdirSync(join(root, prefix))
+    .sort()
+    .flatMap((name) => {
+      const path = prefix ? `${prefix}/${name}` : name;
+      const stat = lstatSync(join(root, path));
+      return stat.isDirectory()
+        ? installedTree(root, path)
+        : [
+            [
+              path,
+              readFileSync(join(root, path)).toString("base64"),
+              (stat.mode & 0o111) !== 0,
+            ] as [string, string, boolean],
+          ];
+    });
 }
 
 // Reports and run records carry hashes, never file bytes: list every place a
 // value still embeds content.
-export function embeddedContent(value: unknown, path = '$'): string[] {
-  if (!value || typeof value !== 'object') return [];
+export function embeddedContent(value: unknown, path = "$"): string[] {
+  if (!value || typeof value !== "object") return [];
   return Object.entries(value).flatMap(([key, child]) => [
-    ...(['content', 'encoding'].includes(key) ? [`${path}.${key}`] : []),
+    ...(["content", "encoding"].includes(key) ? [`${path}.${key}`] : []),
     ...embeddedContent(child, `${path}.${key}`),
   ]);
 }
 
-export function sha256(bytes: string | Buffer) { return createHash('sha256').update(bytes).digest('hex'); }
+export function sha256(bytes: string | Buffer) {
+  return createHash("sha256").update(bytes).digest("hex");
+}
 
 // Every test invokes the packed, independently installed executable, never src/.
 export function installCli() {
-  const root = mkdtempSync(join(tmpdir(), 'repo-standards-cli-'));
+  const root = mkdtempSync(join(tmpdir(), "repo-standards-cli-"));
   try {
     const packed = packPackage(root);
-    execFileSync('npm', ['install', '--prefix', root, '--ignore-scripts', '--no-audit', '--no-fund',
-      join(root, packed.filename)], { stdio: 'pipe' });
+    execFileSync(
+      "npm",
+      [
+        "install",
+        "--prefix",
+        root,
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund",
+        join(root, packed.filename),
+      ],
+      { stdio: "pipe" },
+    );
     return {
       root,
       version: packed.version,
       // The project paths of the packaged system skills' files, sorted, which
       // adoption installs as whole skills.
-      systemSkillFiles: ['adopt-standards', 'standards-updates'].flatMap(name => installedTree(join(root, 'node_modules/@lutzseverino/repo-standards/skills', name))
-        .map(([path]) => `.agents/skills/${name}/${path}`)),
+      systemSkillFiles: ["adopt-standards", "standards-updates"].flatMap(
+        (name) =>
+          installedTree(
+            join(
+              root,
+              "node_modules/@lutzseverino/repo-standards/skills",
+              name,
+            ),
+          ).map(([path]) => `.agents/skills/${name}/${path}`),
+      ),
       // The skill links adoption installs for the system skills, sorted.
-      systemSkillLinks: ['adopt-standards', 'standards-updates'].map(name => `.claude/skills/${name}`),
+      systemSkillLinks: ["adopt-standards", "standards-updates"].map(
+        (name) => `.claude/skills/${name}`,
+      ),
       run(args: string[], cwd: string, env: NodeJS.ProcessEnv = process.env) {
         // A report carries the observed product state, which an established
         // adopter grows well past Node's default 1 MiB capture buffer.
-        return spawnSync(join(root, 'node_modules/.bin/repo-standards'), args, { cwd, env, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 });
+        return spawnSync(join(root, "node_modules/.bin/repo-standards"), args, {
+          cwd,
+          env,
+          encoding: "utf8",
+          maxBuffer: 128 * 1024 * 1024,
+        });
       },
-      close() { rmSync(root, { recursive: true, force: true }); },
+      close() {
+        rmSync(root, { recursive: true, force: true });
+      },
     };
   } catch (error) {
     rmSync(root, { recursive: true, force: true });
@@ -64,32 +127,52 @@ export function installCli() {
   }
 }
 
-export function sourceFixture(yaml: string, files: Record<string, string | Buffer> = {}) {
-  const root = realpathSync(mkdtempSync(join(tmpdir(), 'repo-standards-source-')));
-  execFileSync('git', ['init', '--quiet', root]);
+export function sourceFixture(
+  yaml: string,
+  files: Record<string, string | Buffer> = {},
+) {
+  const root = realpathSync(
+    mkdtempSync(join(tmpdir(), "repo-standards-source-")),
+  );
+  execFileSync("git", ["init", "--quiet", root]);
   // Fixture commits must finish all writes before preservation snapshots begin.
   // Recent Git versions otherwise launch detached automatic maintenance.
-  execFileSync('git', ['-C', root, 'config', 'maintenance.auto', 'false']);
-  for (const [path, content] of Object.entries({ ...files, 'standards.yaml': yaml })) {
+  execFileSync("git", ["-C", root, "config", "maintenance.auto", "false"]);
+  for (const [path, content] of Object.entries({
+    ...files,
+    "standards.yaml": yaml,
+  })) {
     const target = resolve(root, path);
-    mkdirSync(join(target, '..'), { recursive: true });
+    mkdirSync(join(target, ".."), { recursive: true });
     writeFileSync(target, content);
   }
-  return { root, close() { rmSync(root, { recursive: true, force: true }); } };
+  return {
+    root,
+    close() {
+      rmSync(root, { recursive: true, force: true });
+    },
+  };
 }
 
 // A plain temporary directory, such as the CLI's temporary storage, removed by close().
 export function directoryFixture(prefix: string) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), prefix)));
-  return { root, close() { rmSync(root, { recursive: true, force: true }); } };
+  return {
+    root,
+    close() {
+      rmSync(root, { recursive: true, force: true });
+    },
+  };
 }
 
 // Read ordinary source/project fixtures without coupling tests to their layout.
 export function fixtureFiles(root: string): Record<string, string> {
-  return Object.fromEntries(readdirSync(root, { recursive: true, withFileTypes: true })
-    .filter(entry => entry.isFile())
-    .map(entry => {
-      const path = join(entry.parentPath, entry.name);
-      return [path.slice(root.length + 1), readFileSync(path, 'utf8')];
-    }));
+  return Object.fromEntries(
+    readdirSync(root, { recursive: true, withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => {
+        const path = join(entry.parentPath, entry.name);
+        return [path.slice(root.length + 1), readFileSync(path, "utf8")];
+      }),
+  );
 }

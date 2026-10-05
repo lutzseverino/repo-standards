@@ -1,15 +1,41 @@
-import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { hash, type acquireSource } from './acquisition.js';
-import { inventory, json, lockPath, relativePath, requirePinnedCli } from './adoption-files.js';
-import { ProductError } from './errors.js';
-import { formatAge, formats, newerFormat, recordPath, requireFormat, retiredFormat, retiredRun } from './formats.js';
-import type { Declaration } from './model.js';
-import { git, targetObservation, type Blocker, type Content, type Observation } from './observation.js';
-import { retainedScopeEvidence, type RetainedScopeEvidence } from './scope-evidence.js';
-import { linkTextAt, linkedSkillTarget } from './targets.js';
-import { validExecutionEvidence, type ExecutionEvidence } from './work-evidence.js';
-import { dictionary } from './records.js';
+import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { hash, type acquireSource } from "./acquisition.js";
+import {
+  inventory,
+  json,
+  lockPath,
+  relativePath,
+  requirePinnedCli,
+} from "./adoption-files.js";
+import { ProductError } from "./errors.js";
+import {
+  formatAge,
+  formats,
+  newerFormat,
+  recordPath,
+  requireFormat,
+  retiredFormat,
+  retiredRun,
+} from "./formats.js";
+import type { Declaration } from "./model.js";
+import {
+  git,
+  targetObservation,
+  type Blocker,
+  type Content,
+  type Observation,
+} from "./observation.js";
+import {
+  retainedScopeEvidence,
+  type RetainedScopeEvidence,
+} from "./scope-evidence.js";
+import { linkTextAt, linkedSkillTarget } from "./targets.js";
+import {
+  validExecutionEvidence,
+  type ExecutionEvidence,
+} from "./work-evidence.js";
+import { dictionary } from "./records.js";
 
 // The one reader of a recorded adoption: everything the last complete adoption
 // left under the product state directory, read and verified together, after the
@@ -26,23 +52,35 @@ export interface RecordedSelection {
   profile: string;
 }
 
-type Baseline = Pick<Content, 'sha256' | 'executable'>;
+type Baseline = Pick<Content, "sha256" | "executable">;
 interface RecordedLock {
-  format: string; selection: RecordedSelection; inspection: string;
-  files: Record<string, Baseline>; state: Baseline;
+  format: string;
+  selection: RecordedSelection;
+  inspection: string;
+  files: Record<string, Baseline>;
+  state: Baseline;
 }
 // The execution-evidence slice and its validation belong to work evidence.
 interface RecordedState extends ExecutionEvidence {
-  lastComplete: { run: string; inspection: string; completedAt: string; head: string };
-  baselines: Record<string, Baseline>; skills: Record<string, string[]>;
+  lastComplete: {
+    run: string;
+    inspection: string;
+    completedAt: string;
+    head: string;
+  };
+  baselines: Record<string, Baseline>;
+  skills: Record<string, string[]>;
   // Each installed skill link's text, by path.
   links: Record<string, string>;
-  checks: unknown[]; assessments: unknown[];
+  checks: unknown[];
+  assessments: unknown[];
 }
-type RecordedFile = Extract<Observation, { type: 'file' }>;
+type RecordedFile = Extract<Observation, { type: "file" }>;
 
 // Retained standards used in place of an acquired source.
-export type RetainedSource = Awaited<ReturnType<typeof acquireSource>> & { manifest: string };
+export type RetainedSource = Awaited<ReturnType<typeof acquireSource>> & {
+  manifest: string;
+};
 
 export interface RecordedAdoption {
   selection: RecordedSelection;
@@ -62,56 +100,92 @@ export interface RecordedAdoption {
   source(): RetainedSource;
 }
 
-const lockFile = '.repo-standards/lock.json';
-const stateFile = '.repo-standards/state.json';
-const inputs = '.repo-standards/inputs';
+const lockFile = ".repo-standards/lock.json";
+const stateFile = ".repo-standards/state.json";
+const inputs = ".repo-standards/inputs";
 const retainedSource = `${inputs}/source`;
 const resolvedFile = `${inputs}/resolved.json`;
 const scopeFile = `${inputs}/scope-history.json`;
 const manifestFile = `${inputs}/standards.yaml`;
 
 function unreadable(): never {
-  throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state cannot be read. Restore the committed product state.');
+  throw new ProductError(
+    "STATE_INTEGRITY",
+    "Recorded adoption state cannot be read. Restore the committed product state.",
+  );
 }
 
 function invalid(): never {
-  throw new ProductError('STATE_INTEGRITY', 'Recorded adoption state failed integrity validation. Restore the committed product state.');
+  throw new ProductError(
+    "STATE_INTEGRITY",
+    "Recorded adoption state failed integrity validation. Restore the committed product state.",
+  );
 }
 
-function text(value: Pick<Content, 'content' | 'encoding'>) {
-  return Buffer.from(value.content, value.encoding).toString('utf8');
+function text(value: Pick<Content, "content" | "encoding">) {
+  return Buffer.from(value.content, value.encoding).toString("utf8");
 }
 
 // Every recorded link is the skill link of a recorded skill, with the text the
 // product writes there.
 function validLinks(links: unknown, skills: Record<string, string[]>) {
-  return !!links && typeof links === 'object' && !Array.isArray(links)
-    && Object.entries(links).every(([path, text]) => linkTextAt(path) === text && Object.hasOwn(skills, linkedSkillTarget(path)!));
+  return (
+    !!links &&
+    typeof links === "object" &&
+    !Array.isArray(links) &&
+    Object.entries(links).every(
+      ([path, text]) =>
+        linkTextAt(path) === text &&
+        Object.hasOwn(skills, linkedSkillTarget(path)!),
+    )
+  );
 }
 
 // Decodes durable state in its single committed format.
-function decodeState(value: Pick<Content, 'content' | 'encoding'>): RecordedState {
+function decodeState(
+  value: Pick<Content, "content" | "encoding">,
+): RecordedState {
   let state: RecordedState;
-  try { state = JSON.parse(text(value)) as RecordedState; }
-  catch { unreadable(); }
+  try {
+    state = JSON.parse(text(value)) as RecordedState;
+  } catch {
+    unreadable();
+  }
   requireFormat(stateFile, state, formats.state);
-  if (!state?.lastComplete || !state.baselines || !state.skills || !validLinks(state.links, state.skills)
-    || !Array.isArray(state.checks) || !Array.isArray(state.assessments)
-    || !validExecutionEvidence(state)) {
+  if (
+    !state?.lastComplete ||
+    !state.baselines ||
+    !state.skills ||
+    !validLinks(state.links, state.skills) ||
+    !Array.isArray(state.checks) ||
+    !Array.isArray(state.assessments) ||
+    !validExecutionEvidence(state)
+  ) {
     invalid();
   }
   return state;
 }
 
 function decode(lock: Observation, observed: Observation) {
-  if (lock.type !== 'file' || observed.type !== 'file') throw new ProductError('STATE_INTEGRITY', 'Complete adoption state or integrity lock is missing.');
+  if (lock.type !== "file" || observed.type !== "file")
+    throw new ProductError(
+      "STATE_INTEGRITY",
+      "Complete adoption state or integrity lock is missing.",
+    );
   let pinned: RecordedLock;
-  try { pinned = JSON.parse(text(lock)) as RecordedLock; }
-  catch { unreadable(); }
+  try {
+    pinned = JSON.parse(text(lock)) as RecordedLock;
+  } catch {
+    unreadable();
+  }
   const state = decodeState(observed);
-  if (pinned?.format !== formats.lock
-    || pinned.state?.sha256 !== observed.sha256 || pinned.state.executable !== observed.executable
-    || !pinned.selection || !pinned.files) {
+  if (
+    pinned?.format !== formats.lock ||
+    pinned.state?.sha256 !== observed.sha256 ||
+    pinned.state.executable !== observed.executable ||
+    !pinned.selection ||
+    !pinned.files
+  ) {
     invalid();
   }
   return { pinned, state, stateFile: observed };
@@ -121,12 +195,22 @@ function decode(lock: Observation, observed: Observation) {
 // matched against its recorded hash and mode before anything reads it.
 function verifiedProductFiles(root: string, files: Record<string, Baseline>) {
   const verified: Record<string, RecordedFile> = dictionary();
-  for (const [path, expected] of Object.entries(files).filter(([path]) => path.startsWith('.repo-standards/'))) {
+  for (const [path, expected] of Object.entries(files).filter(([path]) =>
+    path.startsWith(".repo-standards/"),
+  )) {
     relativePath(path);
     const blockers: Blocker[] = [];
     const actual = targetObservation(root, path, blockers);
-    if (blockers.length || actual.type !== 'file' || actual.sha256 !== expected?.sha256 || actual.executable !== expected.executable) {
-      throw new ProductError('STATE_INTEGRITY', `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.`);
+    if (
+      blockers.length ||
+      actual.type !== "file" ||
+      actual.sha256 !== expected?.sha256 ||
+      actual.executable !== expected.executable
+    ) {
+      throw new ProductError(
+        "STATE_INTEGRITY",
+        `Retained product material changed: ${path}. Restore it from the adopting project's committed baseline.`,
+      );
     }
     verified[path] = actual;
   }
@@ -136,42 +220,63 @@ function verifiedProductFiles(root: string, files: Record<string, Baseline>) {
 function recordedResolution(value: RecordedFile | undefined) {
   if (!value) unreadable();
   let resolved: { declarations: Declaration[] };
-  try { resolved = JSON.parse(text(value)) as { declarations: Declaration[] }; }
-  catch { unreadable(); }
+  try {
+    resolved = JSON.parse(text(value)) as { declarations: Declaration[] };
+  } catch {
+    unreadable();
+  }
   if (!Array.isArray(resolved?.declarations)) invalid();
   return resolved;
 }
 
 function recordedScopeEvidence(value: RecordedFile) {
-  try { return retainedScopeEvidence(JSON.parse(text(value))); }
-  catch (error) {
+  try {
+    return retainedScopeEvidence(JSON.parse(text(value)));
+  } catch (error) {
     // The scope-evidence module reports its own integrity failures; only a
     // file this reader cannot parse becomes unreadable scope evidence.
     if (error instanceof ProductError) throw error;
-    throw new ProductError('STATE_INTEGRITY', 'Recorded discovery history cannot be read. Restore the committed product state.');
+    throw new ProductError(
+      "STATE_INTEGRITY",
+      "Recorded discovery history cannot be read. Restore the committed product state.",
+    );
   }
 }
 
 // A record's JSON, read without verification, for its pin or format alone.
 function unverifiedRecord(path: string): unknown {
-  try { return lstatSync(path, { throwIfNoEntry: false })?.isFile() ? JSON.parse(readFileSync(path, 'utf8')) : undefined; }
-  catch { return undefined; }
+  try {
+    return lstatSync(path, { throwIfNoEntry: false })?.isFile()
+      ? JSON.parse(readFileSync(path, "utf8"))
+      : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 // Read only the pin before checking any record's format or contents. An active
 // run owns the pin, even while updating an adoption whose lock still names the
 // former CLI. If a future schema no longer exposes this field, the format gate
 // supplies the pinned-CLI diagnostic instead.
-export function requireRecordedCli(root: string, runRecord: string, running: string) {
-  const record = unverifiedRecord(existsSync(runRecord) ? runRecord : join(root, lockFile)) as
-    { selection?: { cli?: { version?: unknown } } } | undefined;
+export function requireRecordedCli(
+  root: string,
+  runRecord: string,
+  running: string,
+) {
+  const record = unverifiedRecord(
+    existsSync(runRecord) ? runRecord : join(root, lockFile),
+  ) as { selection?: { cli?: { version?: unknown } } } | undefined;
   const pinned = record?.selection?.cli?.version;
-  if (typeof pinned === 'string') requirePinnedCli(root, pinned, running);
+  if (typeof pinned === "string") requirePinnedCli(root, pinned, running);
 }
 
 // A committed product record in a retired format, which a fresh adoption removes
 // with the rest of the product state directory.
-export interface RetiredRecord { path: string; format: string; expected: string }
+export interface RetiredRecord {
+  path: string;
+  format: string;
+  expected: string;
+}
 
 // After any required pin check, every command that reads product records
 // rejects an unsupported format before further reads or writes, so the
@@ -184,33 +289,76 @@ export interface RetiredRecord { path: string; format: string; expected: string 
 // and rejected otherwise; every committed record present must then carry its
 // artifact's current or retired format. Otherwise records that cannot be read
 // are left to their owners.
-export function rejectUnsupportedRecords(root: string, runRecord: string, { retiredState = false } = {}): RetiredRecord[] {
-  const archive = join(dirname(runRecord), 'repo-standards-reports');
+export function rejectUnsupportedRecords(
+  root: string,
+  runRecord: string,
+  { retiredState = false } = {},
+): RetiredRecord[] {
+  const archive = join(dirname(runRecord), "repo-standards-reports");
   const archived = lstatSync(archive, { throwIfNoEntry: false })?.isDirectory()
-    ? readdirSync(archive).sort().filter(name => name.endsWith('.json')).map(name => join(archive, name)) : [];
+    ? readdirSync(archive)
+        .sort()
+        .filter((name) => name.endsWith(".json"))
+        .map((name) => join(archive, name))
+    : [];
   const records = [
-    ...([[lockFile, formats.lock], [stateFile, formats.state], [scopeFile, formats.scopeHistory]] as const)
-      .map(([path, format]) => ({ where: path, value: unverifiedRecord(join(root, path)), format, kind: 'committed' as const })),
-    ...[runRecord, ...archived].map((path, index) => ({ where: recordPath(root, path), value: unverifiedRecord(path), format: formats.run, kind: index ? 'archived' as const : 'active' as const })),
-  ].map(record => ({ ...record, age: formatAge(record.value, record.format) }));
-  const newer = records.find(({ age }) => age === 'newer');
+    ...(
+      [
+        [lockFile, formats.lock],
+        [stateFile, formats.state],
+        [scopeFile, formats.scopeHistory],
+      ] as const
+    ).map(([path, format]) => ({
+      where: path,
+      value: unverifiedRecord(join(root, path)),
+      format,
+      kind: "committed" as const,
+    })),
+    ...[runRecord, ...archived].map((path, index) => ({
+      where: recordPath(root, path),
+      value: unverifiedRecord(path),
+      format: formats.run,
+      kind: index ? ("archived" as const) : ("active" as const),
+    })),
+  ].map((record) => ({
+    ...record,
+    age: formatAge(record.value, record.format),
+  }));
+  const newer = records.find(({ age }) => age === "newer");
   if (newer) throw newerFormat(newer.where, newer.value, newer.format);
-  const retired = records.filter(({ age }) => age === 'retired');
-  const active = retired.find(({ kind }) => kind === 'active');
+  const retired = records.filter(({ age }) => age === "retired");
+  const active = retired.find(({ kind }) => kind === "active");
   if (active) throw retiredRun(active.where, active.value, active.format);
-  const committed = retired.filter(({ kind }) => kind === 'committed');
-  const rejected = retiredState ? retired.find(({ kind }) => kind === 'archived') : retired[0];
-  if (rejected) throw retiredFormat(rejected.where, rejected.value, rejected.format);
+  const committed = retired.filter(({ kind }) => kind === "committed");
+  const rejected = retiredState
+    ? retired.find(({ kind }) => kind === "archived")
+    : retired[0];
+  if (rejected)
+    throw retiredFormat(rejected.where, rejected.value, rejected.format);
   // Removing retired product state is confirmed only when every committed
   // record present is one of its own artifact, current or retired. Any other
   // file there fails integrity, as a malformed format does everywhere else.
-  if (committed.length) for (const { where, value, format, kind, age } of records) {
-    if (kind !== 'committed' || age || !lstatSync(join(root, where), { throwIfNoEntry: false })) continue;
-    if ((value as { format?: unknown } | undefined)?.format !== format) {
-      throw new ProductError('STATE_INTEGRITY', `${where} is not a readable ${format} record or a retired version of it, so the retired product state cannot be removed. Restore the committed product state.`, { path: where });
+  if (committed.length)
+    for (const { where, value, format, kind, age } of records) {
+      if (
+        kind !== "committed" ||
+        age ||
+        !lstatSync(join(root, where), { throwIfNoEntry: false })
+      )
+        continue;
+      if ((value as { format?: unknown } | undefined)?.format !== format) {
+        throw new ProductError(
+          "STATE_INTEGRITY",
+          `${where} is not a readable ${format} record or a retired version of it, so the retired product state cannot be removed. Restore the committed product state.`,
+          { path: where },
+        );
+      }
     }
-  }
-  return committed.map(({ where, value, format }) => ({ path: where, format: (value as { format: string }).format, expected: format }));
+  return committed.map(({ where, value, format }) => ({
+    path: where,
+    format: (value as { format: string }).format,
+    expected: format,
+  }));
 }
 
 // An active run in the current format, which the pin check has matched with
@@ -223,30 +371,56 @@ export function activeRunExemption(runRecord: string) {
 
 // Reads the recorded adoption of the project at root, or nothing when neither
 // the lock nor durable state exists. Unsupported record formats are rejected first.
-export function readRecordedAdoption(root: string): RecordedAdoption | undefined {
+export function readRecordedAdoption(
+  root: string,
+): RecordedAdoption | undefined {
   rejectUnsupportedRecords(root, lockPath(root));
   const lock = targetObservation(root, lockFile, []);
   const state = targetObservation(root, stateFile, []);
-  if (lock.type === 'missing' && state.type === 'missing') return undefined;
+  if (lock.type === "missing" && state.type === "missing") return undefined;
   const decoded = decode(lock, state);
   const { pinned } = decoded;
   const verified = verifiedProductFiles(root, pinned.files);
   const resolved = recordedResolution(verified[resolvedFile]);
   const scope = verified[scopeFile];
   return {
-    selection: pinned.selection, files: pinned.files, state: decoded.state, stateFile: decoded.stateFile, resolved,
+    selection: pinned.selection,
+    files: pinned.files,
+    state: decoded.state,
+    stateFile: decoded.stateFile,
+    resolved,
     ...(scope ? { scopeEvidence: recordedScopeEvidence(scope) } : {}),
     source() {
-      const recorded = Object.keys(pinned.files).filter(path => path.startsWith(`${inputs}/`));
-      if (json(inventory(root, inputs)) !== json(recorded.map(path => path.slice(inputs.length + 1)).sort())) throw new ProductError('STATE_INTEGRITY', 'Retained input inventory changed.');
+      const recorded = Object.keys(pinned.files).filter((path) =>
+        path.startsWith(`${inputs}/`),
+      );
+      if (
+        json(inventory(root, inputs)) !==
+        json(recorded.map((path) => path.slice(inputs.length + 1)).sort())
+      )
+        throw new ProductError(
+          "STATE_INTEGRITY",
+          "Retained input inventory changed.",
+        );
       const paths = new Set<string>();
-      for (const path of recorded) if (path.startsWith(`${retainedSource}/`)) {
-        const parts = path.slice(retainedSource.length + 1).split('/');
-        for (let length = 1; length <= parts.length; length++) paths.add(parts.slice(0, length).join('/'));
-      }
+      for (const path of recorded)
+        if (path.startsWith(`${retainedSource}/`)) {
+          const parts = path.slice(retainedSource.length + 1).split("/");
+          for (let length = 1; length <= parts.length; length++)
+            paths.add(parts.slice(0, length).join("/"));
+        }
       const manifest = verified[manifestFile];
       if (!manifest) unreadable();
-      return { root: join(root, existsSync(join(root, retainedSource)) ? retainedSource : inputs), identity: pinned.selection.standards, paths, manifest: text(manifest), close() {} };
+      return {
+        root: join(
+          root,
+          existsSync(join(root, retainedSource)) ? retainedSource : inputs,
+        ),
+        identity: pinned.selection.standards,
+        paths,
+        manifest: text(manifest),
+        close() {},
+      };
     },
   };
 }
@@ -255,25 +429,40 @@ export function readRecordedAdoption(root: string): RecordedAdoption | undefined
 // Its clean HEAD at start still holds the last complete adoption's committed
 // evidence. Read only that proposal, verified against that commit's lock;
 // neither the active proposal nor an archived run supplies it.
-export function readCommittedScopeProposal(root: string, head: string | null, inspection: string | undefined) {
+export function readCommittedScopeProposal(
+  root: string,
+  head: string | null,
+  inspection: string | undefined,
+) {
   if (!inspection) return null;
   if (!head) invalid();
   const read = (path: string) => {
-    const result = git(root, ['show', `${head}:${path}`]);
+    const result = git(root, ["show", `${head}:${path}`]);
     if (result.status !== 0) unreadable();
     return result.stdout;
   };
   let lock: RecordedLock;
-  try { lock = JSON.parse(read(lockFile)) as RecordedLock; }
-  catch { unreadable(); }
-  if (lock?.format !== formats.lock || lock.inspection !== inspection || !lock.files) invalid();
+  try {
+    lock = JSON.parse(read(lockFile)) as RecordedLock;
+  } catch {
+    unreadable();
+  }
+  if (
+    lock?.format !== formats.lock ||
+    lock.inspection !== inspection ||
+    !lock.files
+  )
+    invalid();
   const expected = lock.files[scopeFile];
   if (!expected) return null;
   const bytes = read(scopeFile);
   if (hash(bytes) !== expected.sha256) invalid();
   let value: unknown;
-  try { value = JSON.parse(bytes); }
-  catch { unreadable(); }
+  try {
+    value = JSON.parse(bytes);
+  } catch {
+    unreadable();
+  }
   const evidence = retainedScopeEvidence(value);
   if (evidence.inspection !== inspection) invalid();
   return evidence.discovery?.proposal ?? null;

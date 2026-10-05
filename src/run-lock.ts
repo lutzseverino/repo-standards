@@ -1,20 +1,30 @@
-import { randomUUID } from 'node:crypto';
-import { spawnSync } from 'node:child_process';
-import { mkdirSync, readdirSync, rmSync, rmdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { ProductError } from './errors.js';
-import { processIdentity } from './process-identity.js';
-export { processIdentity } from './process-identity.js';
+import { randomUUID } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import {
+  mkdirSync,
+  readdirSync,
+  rmSync,
+  rmdirSync,
+  writeFileSync,
+} from "node:fs";
+import { join } from "node:path";
+import { ProductError } from "./errors.js";
+import { processIdentity } from "./process-identity.js";
+export { processIdentity } from "./process-identity.js";
 
 function alive(name: string) {
-  const [pid, identity] = name.split('-');
+  const [pid, identity] = name.split("-");
   return /^\d+$/.test(pid!) && processIdentity(Number(pid)) === identity;
 }
 
 export function executing(lock: string) {
   const directory = `${lock}.workers`;
-  try { return readdirSync(directory).some(alive); }
-  catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return false; throw error; }
+  try {
+    return readdirSync(directory).some(alive);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+    throw error;
+  }
 }
 
 // Each contender registers before checking peers. Two simultaneous contenders
@@ -23,28 +33,50 @@ export function executing(lock: string) {
 export function acquireWorker(lock: string) {
   const directory = `${lock}.workers`;
   const identity = processIdentity(process.pid);
-  if (!identity) throw new ProductError('PROCESS_STATE', 'Cannot identify this execution process.');
+  if (!identity)
+    throw new ProductError(
+      "PROCESS_STATE",
+      "Cannot identify this execution process.",
+    );
   const name = `${process.pid}-${identity}-${randomUUID()}`;
   const path = join(directory, name);
   for (;;) {
     mkdirSync(directory, { recursive: true });
-    try { writeFileSync(path, '', { flag: 'wx' }); break; }
-    catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+    try {
+      writeFileSync(path, "", { flag: "wx" });
+      break;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
   }
   const release = () => {
     rmSync(path, { force: true });
-    try { rmdirSync(directory); } catch (error) {
-      if (!['ENOTEMPTY', 'EEXIST', 'ENOENT'].includes((error as NodeJS.ErrnoException).code!)) throw error;
+    try {
+      rmdirSync(directory);
+    } catch (error) {
+      if (
+        !["ENOTEMPTY", "EEXIST", "ENOENT"].includes(
+          (error as NodeJS.ErrnoException).code!,
+        )
+      )
+        throw error;
     }
   };
   try {
     for (const peer of readdirSync(directory)) {
       if (peer === name) continue;
-      if (alive(peer)) throw new ProductError('ACTIVE_RUN', 'An adoption command is still executing. Wait for it to finish before resuming or abandoning.');
+      if (alive(peer))
+        throw new ProductError(
+          "ACTIVE_RUN",
+          "An adoption command is still executing. Wait for it to finish before resuming or abandoning.",
+        );
       rmSync(join(directory, peer), { force: true });
     }
     return release;
-  } catch (error) { release(); throw error; }
+  } catch (error) {
+    release();
+    throw error;
+  }
 }
 
 export function processGroupAlive(group: number, identity?: string) {
@@ -54,10 +86,17 @@ export function processGroupAlive(group: number, identity?: string) {
   }
   // A group can outlive its leader. Keep protecting its surviving descendants
   // when no live leader remains; a different live leader proves numeric reuse.
-  const result = spawnSync('ps', ['-axo', 'pgid=,stat='], { encoding: 'utf8', env: { ...process.env, LC_ALL: 'C', TZ: 'UTC' } });
-  if (result.error || result.status !== 0) throw new ProductError('PROCESS_STATE', 'Cannot establish whether an author process is still running.');
-  return result.stdout.split('\n').some(line => {
+  const result = spawnSync("ps", ["-axo", "pgid=,stat="], {
+    encoding: "utf8",
+    env: { ...process.env, LC_ALL: "C", TZ: "UTC" },
+  });
+  if (result.error || result.status !== 0)
+    throw new ProductError(
+      "PROCESS_STATE",
+      "Cannot establish whether an author process is still running.",
+    );
+  return result.stdout.split("\n").some((line) => {
     const [id, state] = line.trim().split(/\s+/);
-    return Number(id) === group && state && !state.startsWith('Z');
+    return Number(id) === group && state && !state.startsWith("Z");
   });
 }

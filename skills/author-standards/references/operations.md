@@ -85,8 +85,8 @@ For each active operation with a concrete fixture selection:
 3. Invoke `[executable, absolute-copied-script, ...run.arguments]` directly with
    fixture-root cwd, the JSON request on stdin, and bounded timeout/output. For
    example, a Node exercise can use `spawnSync(executable, [script, ...args],
-   { cwd: projectRoot, input: JSON.stringify(request), encoding: 'utf8',
-   timeout: timeoutSeconds * 1000, maxBuffer: 1024 * 1024, shell: false })`.
+{ cwd: projectRoot, input: JSON.stringify(request), encoding: 'utf8',
+timeout: timeoutSeconds * 1000, maxBuffer: 1024 * 1024, shell: false })`.
    Capture process status, stdout, stderr and parsed result separately. Check the
    exact result fields/format and phase-appropriate status against the protocol.
 4. Run the check on violating content first; expect a zero-exit `failed` result
