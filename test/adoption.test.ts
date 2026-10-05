@@ -265,9 +265,9 @@ test('initial adoption replaces differing tracked files, author skills, and the 
   const packagedSkill = readFileSync(join(packaged, 'SKILL.md'), 'utf8');
   const review = '.agents/skills/review';
   const system = '.agents/skills/adopt-standards';
-  const cases: { name: string; files: Record<string, string>; source?: string; sourceFiles?: Record<string, string>; setup?: (root: string) => void; discarded: string[] }[] = [
+  const cases: { name: string; files: Record<string, string>; source?: string; sourceFiles?: Record<string, string>; setup?: (root: string) => void; discarded: string[]; action?: string }[] = [
     { name: 'exact file with differing bytes', files: { 'AGENTS.md': 'Original' }, discarded: ['AGENTS.md'] },
-    { name: 'skill with differing bytes', files: { [`${review}/SKILL.md`]: 'Unrelated review' }, source: skillSource, discarded: [review] },
+    { name: 'skill with differing bytes', files: { [`${review}/SKILL.md`]: 'Unrelated review' }, source: skillSource, discarded: [review], action: 'replace' },
     { name: 'skill with a differing mode', files: { [`${review}/SKILL.md`]: 'Review' }, source: skillSource, setup: root => chmodSync(join(root, review, 'SKILL.md'), 0o755), discarded: [review] },
     { name: 'skill with an additional resource', files: { [`${review}/SKILL.md`]: 'Review', [`${review}/notes.md`]: 'Local' }, source: skillSource, discarded: [review] },
     { name: 'skill missing a supplied resource', files: { [`${review}/SKILL.md`]: 'Review' }, source: skillSource, sourceFiles: { 'skill/notes.md': 'Supplied' }, discarded: [review] },
@@ -290,6 +290,7 @@ test('initial adoption replaces differing tracked files, author skills, and the 
     assert.deepEqual(inspection.start.blockers, []);
     assert.equal(inspection.start.eligible, true);
     assert.deepEqual(inspection.discardedEdits, example.discarded);
+    if (example.action) assert.equal(inspection.exact[0]!.action, example.action);
     const result = f.run(startArgs(inspection.identity));
     assert.equal(result.status, 0, result.stdout + result.stderr);
     assert.equal((JSON.parse(result.stdout) as Run).outcome, 'complete');

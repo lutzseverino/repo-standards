@@ -324,6 +324,50 @@ These targets leave the selection with edits. They stay in place, and the projec
   assert.ok(!summary.includes('| `standards-updates` |'), summary);
 });
 
+test('inspect --summary gives each skill and link its action, and keeps an edited skill whole with its link', async t => {
+  const review = { kind: 'skill', name: 'review', source: 'review' };
+  const f = await adoptionFixture(t, cli, standards({ review, legacy: { kind: 'skill', name: 'legacy', source: 'legacy' },
+    retired: { kind: 'file', target: 'RETIRED.md', exact: 'retired.md' } }), {
+    files: { 'review/SKILL.md': '# Review', 'legacy/SKILL.md': '# Legacy', 'legacy/notes.md': 'Legacy notes', 'retired.md': 'Retired' },
+    // Tracked copies stand where the author skill's and a system skill's links go.
+    project: { 'README.md': 'Project', '.claude/skills/review/SKILL.md': 'Hand-made copy', '.claude/skills/adopt-standards': 'Placeholder' } });
+  const { remote, project } = f;
+  const summaryOf = (args: string[]) => {
+    const result = f.run(args.map(argument => argument === '--json' ? '--summary' : argument));
+    assert.equal(result.status, 0, result.stderr);
+    assertDescriptive(result.stdout);
+    return result.stdout;
+  };
+  // An initial adoption creates the author skill and replaces the copy at its
+  // link, replaces the system skill link copy, and creates the other link.
+  const initial = summaryOf(inspectionArgs);
+  for (const row of ['| `review` | `.agents/skills/review/SKILL.md` | created |\n| `review` | `.claude/skills/review` | replaced |',
+    '| `adopt-standards` | `.claude/skills/adopt-standards` | replaced |', '| `standards-updates` | `.claude/skills/standards-updates` | created |']) {
+    assert.ok(initial.includes(row), initial);
+  }
+  f.adopt();
+
+  // An update that drops edited declarations keeps them, the skill whole with
+  // its link, and neither deletes nor lists them as discarded edits.
+  writeFileSync(join(project.root, 'RETIRED.md'), 'Maintainer edit');
+  writeFileSync(join(project.root, '.agents/skills/legacy/notes.md'), 'Maintainer notes');
+  commit(project.root);
+  remote.addVersion('v1.1.0', standards({ review }));
+  const update = summaryOf(versionArgs('v1.1.0'));
+  assert.ok(update.includes(`## Kept targets
+
+These targets leave the selection with edits. They stay in place, and the project now owns them:
+
+| Declaration | Path |
+| --- | --- |
+| \`legacy\` | \`.agents/skills/legacy\` |
+| \`legacy\` | \`.claude/skills/legacy\` |
+| \`retired\` | \`RETIRED.md\` |
+`), update);
+  assert.ok(!update.includes('## Discarded edits'), update);
+  assert.ok(!/\| `(?:legacy|retired)` \| `[^`]*` \| deleted \|/.test(update), update);
+});
+
 test('--summary and --json together are a usage error', t => {
   const project = sourceFixture('');
   t.after(() => project.close());

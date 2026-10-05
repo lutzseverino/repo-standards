@@ -389,6 +389,7 @@ test('an inspection made in another clone of the same content, under another uma
   assert.equal(cloneInspection.identity, inspected.identity);
   assert.deepEqual(cloneInspection.start.blockers, []);
   const started = run<Run>(startArgs(inspected.identity, [...inspectionArgs, '--scope', f.scopeFile]));
+  assert.equal(started.result.status, 1, started.result.stdout + started.result.stderr);
   assert.equal(started.report.phase, 'contextual', started.result.stdout);
   assert.equal(started.report.inspection, inspected.identity);
   // The run records where it happened, for provenance only.

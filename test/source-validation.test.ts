@@ -420,22 +420,29 @@ profiles:
       documentation: {exclude: true}
 `, { 'guidance.md': 'Preserve useful project facts.', 'discovery.md': 'Identify maintained projects, including those without READMEs.' });
   t.after(() => source.close());
-  const result = cli.run(['source', 'validate', '--json'], source.root);
+  // The source is named explicitly, as an author validating it from elsewhere would.
+  const result = cli.run(['source', 'validate', source.root, '--json'], source.root);
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const report = (JSON.parse(result.stdout) as SourceValidation);
+  assert.equal(report.valid, true);
+  assert.deepEqual(report.errors, []);
   assert.equal(report.source!.format, 'repo-standards/v2');
-  assert.deepEqual(report.profiles.inherited!.declarations, [{
-    id: 'documentation', kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md', checks: [], fixes: [],
-  }]);
-  assert.deepEqual(report.profiles.explicit!.declarations, [{
-    id: 'documentation', kind: 'repository', guidance: 'guidance.md', targets: { paths: ['README.md'], directories: ['docs'] }, checks: [], fixes: [],
-  }]);
-  assert.deepEqual(report.profiles.excluded!.declarations, []);
+  // Each profile reports its description and complete resolved declarations.
+  assert.deepEqual(report.profiles, {
+    inherited: { description: 'Inherited discovery', declarations: [{
+      id: 'documentation', kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md', checks: [], fixes: [] }] },
+    explicit: { description: 'Complete explicit replacement', declarations: [{
+      id: 'documentation', kind: 'repository', guidance: 'guidance.md', targets: { paths: ['README.md'], directories: ['docs'] }, checks: [], fixes: [] }] },
+    excluded: { description: 'No documentation governance', declarations: [] },
+  });
   assert.deepEqual(report.scope!.discoveryRequired, { inherited: ['documentation'], explicit: [], excluded: [] });
   assert.match(report.scope!.verified, /all profiles.*references.*operations.*explicit.target conflicts/i);
   assert.match(report.scope!.limitations, /concrete scope safety.*semantic completeness/i);
   const human = cli.run(['source', 'validate'], source.root);
   assert.equal(human.status, 0, human.stderr);
+  assert.equal(human.stderr, '');
+  // The readable report lists every profile.
+  assert.match(human.stdout, /profiles: inherited, explicit, excluded\./);
   assert.match(human.stdout, /discovery.*inherited.*documentation/i);
   assert.match(human.stdout, /concrete scope safety.*semantic completeness/i);
 });

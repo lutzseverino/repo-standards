@@ -300,7 +300,9 @@ ${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fix
     writeFileSync(join(f.project.root, 'AGENTS.md'), installed);
     const retry = f.run<Run>(['resume', '--retry', '--json']);
     assert.equal(retry.result.status, 0, retry.result.stdout);
-    assert.ok(retry.report.observations.some((interval: { restoredExact?: object }) => interval.restoredExact && 'AGENTS.md' in interval.restoredExact));
+    assert.equal(readFileSync(join(f.project.root, 'AGENTS.md'), 'utf8'), installed);
+    const restored = retry.report.observations.find(interval => interval.restoredExact && 'AGENTS.md' in interval.restoredExact);
+    assert.equal(restored?.restoredExact!['AGENTS.md']!.type, 'file');
     return f.run<Status>(['status', '--json']).report.changeSet;
   };
   // Initial adoption installs the file; the corrupting fix it undid is not listed.
