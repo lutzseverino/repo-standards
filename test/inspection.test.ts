@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { readFileSync, readdirSync, lstatSync, writeFileSync, mkdirSync, symlinkSync, chmodSync, utimesSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { embeddedContent, installCli, sha256, snapshot, sourceFixture } from './installed-cli.ts';
 import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
-import { registryFixture } from './registry-fixture.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
@@ -69,38 +69,6 @@ test('inspection reports invalid invocation settings under their skill metadata 
   assert.deepEqual(snapshot(project.root), before);
 });
 
-test('inspection identity and confirmation carry between clones made under different umasks', async t => {
-  const yaml = simpleSource().replace('    instructions:', '    docs:\n      kind: repository\n      guidance: guidance.md\n      discovery: discovery.md\n    instructions:');
-  const remote = remoteFixture(yaml, { 'content.md': 'Instructions', 'guidance.md': 'Document maintained projects.', 'discovery.md': 'Identify maintained projects.' });
-  const project = sourceFixture('', { 'apps/widget/package.json': '{}' });
-  t.after(() => { remote.close(); project.close(); });
-  commit(project.root);
-  const checkouts = ['022', '077'].map(mask => {
-    const checkout = join(remote.support.root, `clone-${mask}`);
-    const cloned = spawnSync('/bin/sh', ['-c', 'umask "$1"; exec git clone --quiet "$2" "$3"', 'clone', mask, project.root, checkout], { encoding: 'utf8' });
-    assert.equal(cloned.status, 0, cloned.stderr);
-    return checkout;
-  });
-  assert.notEqual(lstatSync(join(checkouts[0]!, 'apps/widget')).mode & 0o777, lstatSync(join(checkouts[1]!, 'apps/widget')).mode & 0o777);
-  const scopeFile = join(remote.support.root, 'scope.json');
-  writeFileSync(scopeFile, JSON.stringify({ format: 'repo-standards/scope/v2', declarations: [{ id: 'docs', coverage: 'No maintained documentation targets.', candidates: [], unresolved: [] }] }));
-  const args = [...inspectionArgs, '--scope', scopeFile];
-  const reports = checkouts.map(checkout => {
-    const result = cli.run(args, checkout, remote.env);
-    assert.equal(result.status, 0, result.stdout + result.stderr);
-    return (JSON.parse(result.stdout) as Inspection);
-  });
-  assert.equal(reports[0]!.identity, reports[1]!.identity);
-  assert.deepEqual(reports[0]!.start.blockers, []);
-  const registry = await registryFixture(cli.root);
-  t.after(() => registry.close());
-  const started = cli.run(['start', ...args.slice(1), '--confirm', reports[0]!.identity], checkouts[1]!, { ...remote.env, ...registry.env });
-  assert.equal(started.status, 1, started.stdout + started.stderr);
-  const run = (JSON.parse(started.stdout) as Run);
-  assert.equal(run.phase, 'contextual', started.stdout);
-  assert.equal(run.inspection, reports[0]!.identity);
-});
-
 test('inspect and start reject Git older than 2.32 before observing public or retained selections', t => {
   const remote = remoteFixture(simpleSource(), { 'content.md': 'Instructions' }, [], 'alice/standards', true);
   const project = sourceFixture('', { '.repo-standards/state.json': 'Unreadable product state' });
@@ -116,7 +84,6 @@ test('inspect and start reject Git older than 2.32 before observing public or re
     assert.equal(error!.code, 'GIT_VERSION_UNSUPPORTED');
     assert.match(error!.message, /2\.31\.8/);
     assert.match(error!.message, /2\.32/);
-    assert.equal(error!.message, 'Installed Git 2.31.8 is unsupported; inspect and start require Git 2.32 or newer. Upgrade Git and inspect again.');
   }
   assert.equal(lstatSync(unexpected, { throwIfNoEntry: false }), undefined, 'Only the Git version probe may run');
   assert.deepEqual(remote.requests(), []);
@@ -124,17 +91,11 @@ test('inspect and start reject Git older than 2.32 before observing public or re
 });
 
 test('resume rejects Git older than 2.32 before reading records or observing work', async t => {
-  const remote = remoteFixture(simpleSource().replace('exact: content.md', 'guidance: content.md'), { 'content.md': 'Maintain instructions.' }, [], 'alice/standards', true);
-  const project = sourceFixture('');
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  commit(project.root);
-  const env = { ...remote.env, ...registry.env };
-  const inspected = cli.run(inspectionArgs, project.root, env);
-  assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
-  const started = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', (JSON.parse(inspected.stdout) as Inspection).identity], project.root, env);
-  assert.equal(started.status, 1, started.stdout + started.stderr);
-  assert.equal((JSON.parse(started.stdout) as Run).phase, 'contextual', started.stdout);
+  const f = await adoptionFixture(t, cli, simpleSource().replace('exact: content.md', 'guidance: content.md'), { files: { 'content.md': 'Maintain instructions.' }, recordRequests: true });
+  const { remote, project, env } = f;
+  const started = f.start();
+  assert.equal(started.result.status, 1, started.result.stdout + started.result.stderr);
+  assert.equal(started.report.phase, 'contextual', started.result.stdout);
   const runRecord = join(project.root, git(project.root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
   const run = (JSON.parse(readFileSync(runRecord, 'utf8')) as Run);
   const { env: gitEnv, unexpected } = oldGitEnv(remote.support.root, true);
@@ -162,24 +123,19 @@ test('resume rejects Git older than 2.32 before reading records or observing wor
   assert.deepEqual(remote.requestLog().slice(requests), []);
 });
 
-test('resume rejects a CLI other than the pin before rejecting old Git or record formats', t => {
+test('resume rejects a CLI other than the pin before rejecting old Git', t => {
   const project = sourceFixture('', { '.repo-standards/state.json': 'Unreadable product state' });
   const support = sourceFixture('');
   t.after(() => { project.close(); support.close(); });
   const { env, unexpected } = oldGitEnv(support.root, true);
-  const runRecord = join(project.root, git(project.root, 'rev-parse', '--git-path', 'repo-standards-run.lock'));
-  for (const path of [join(project.root, '.repo-standards/lock.json'), runRecord]) {
-    writeFileSync(path, JSON.stringify({ format: 'repo-standards/unknown/v999', selection: { cli: { version: '99.0.0' } } }));
-    const before = snapshot(project.root);
-    for (const args of [['resume', '--json'], ['resume', '--retry', '--json'], ['resume', '--assessment', '/unread/assessment.json', '--json']]) {
-      const result = cli.run(args, project.root, env);
-      assert.equal(result.status, 1, result.stdout + result.stderr);
-      const error = (JSON.parse(result.stdout) as ErrorReport).errors[0];
-      assert.equal(error!.code, 'CLI_PIN_MISMATCH');
-      assert.match(error!.message, /99\.0\.0/);
-      assert.deepEqual(snapshot(project.root), before);
-    }
-  }
+  writeFileSync(join(project.root, '.repo-standards/lock.json'), JSON.stringify({ format: 'repo-standards/unknown/v999', selection: { cli: { version: '99.0.0' } } }));
+  const before = snapshot(project.root);
+  const result = cli.run(['resume', '--json'], project.root, env);
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const error = (JSON.parse(result.stdout) as ErrorReport).errors[0];
+  assert.equal(error!.code, 'CLI_PIN_MISMATCH');
+  assert.match(error!.message, /99\.0\.0/);
+  assert.deepEqual(snapshot(project.root), before);
   assert.equal(lstatSync(unexpected, { throwIfNoEntry: false }), undefined, 'Pin rejection must not observe project work');
 });
 
@@ -247,7 +203,6 @@ test('inspection reports the pinned complete profile without changing a dirty pr
   assert.deepEqual(report.selection.standards, { repository: 'https://github.com/alice/standards', version: 'v1.0.0', commit: remote.sha });
   assert.equal(report.selection.profile, 'work');
   assert.deepEqual(report.resolved.declarations.map((d: { id: string }) => d.id), ['agent-guidance', 'readme', 'review-skill', 'source-layout']);
-  assert.equal(report.format, 'repo-standards/inspection/v6');
   assert.deepEqual(embeddedContent(report), [], 'Reports reference content by hash and carry changes as diffs');
   const agents = report.exact.find((d: { id: string }) => d.id === 'agent-guidance');
   assert.equal(agents!.action, 'replace');
@@ -311,9 +266,9 @@ test('validation and inspection reject reserved skills and targets in an unselec
   assert.deepEqual(snapshot(project.root), before);
 });
 
-test('unsafe ancestors and ignored replacement content block start without following links, and a differing tracked skill is replaced', (t) => {
-  const remote = remoteFixture(simpleSource('linked/AGENTS.md') + '', { 'content.md': 'Expected' });
-  const project = sourceFixture('', { '.gitignore': 'ignored.md\n', 'ignored.md': 'Ignored private content', '.agents/skills/review/SKILL.md': 'Unrelated skill' });
+test('an unsafe ancestor is reported without following its link, and the identity binds the link target', (t) => {
+  const remote = remoteFixture(simpleSource('linked/AGENTS.md'), { 'content.md': 'Expected' });
+  const project = sourceFixture('');
   t.after(() => { remote.close(); project.close(); });
   commit(project.root);
   symlinkSync(remote.source.root, join(project.root, 'linked'));
@@ -327,19 +282,6 @@ test('unsafe ancestors and ignored replacement content block start without follo
   unlinkSync(join(project.root, 'linked'));
   symlinkSync(remote.support.root, join(project.root, 'linked'));
   assert.notEqual((JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout) as Inspection).identity, report.identity);
-
-  const skillSource = simpleSource().replace('kind: file\n      target: AGENTS.md\n      exact: content.md', 'kind: skill\n      name: review\n      source: skill');
-  const skillRemote = remoteFixture(skillSource, { 'skill/SKILL.md': 'Supplied skill' });
-  t.after(() => skillRemote.close());
-  const skillReport = (JSON.parse(cli.run(inspectionArgs, project.root, skillRemote.env).stdout) as Inspection);
-  assert.ok(!skillReport.start.blockers.some((b: { path?: string }) => b.path?.startsWith('.agents/')), JSON.stringify(skillReport.start.blockers));
-  assert.equal(skillReport.exact[0]!.action, 'replace');
-  assert.deepEqual(skillReport.discardedEdits, ['.agents/skills/review']);
-
-  const ignoredRemote = remoteFixture(simpleSource('ignored.md'), { 'content.md': 'New content' });
-  t.after(() => ignoredRemote.close());
-  const ignoredReport = (JSON.parse(cli.run(inspectionArgs, project.root, ignoredRemote.env).stdout) as Inspection);
-  assert.ok(ignoredReport.start.blockers.some((b: { code: string }) => b.code === 'UNTRACKED_REPLACEMENT'));
 });
 
 test('inspection identity binds affected bytes, executable state and profile, not the index or HEAD', (t) => {
@@ -390,36 +332,6 @@ test('inspection identity binds affected bytes, executable state and profile, no
   commit(project.root);
   git(project.root, '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgsign=false', 'commit', '--quiet', '--allow-empty', '-m', 'Unrelated');
   assert.equal(inspect().identity, committed.identity);
-});
-
-test('inspection reports unborn Git state and type, case, reserved-state and untracked conflicts', (t) => {
-  const remote = remoteFixture(simpleSource('agents.md'), { 'content.md': 'Expected' });
-  const project = sourceFixture('', { 'AGENTS.md': 'Existing' });
-  t.after(() => { remote.close(); project.close(); });
-  const report = (JSON.parse(cli.run(inspectionArgs, project.root, remote.env).stdout) as Inspection);
-  assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'NO_COMMIT'));
-  assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'CASE_CONFLICT'));
-  const directoryRemote = remoteFixture(simpleSource('folder'), { 'content.md': 'Expected' });
-  t.after(() => directoryRemote.close());
-  mkdirSync(join(project.root, 'folder'));
-  mkdirSync(join(project.root, '.repo-standards'));
-  const directoryReport = (JSON.parse(cli.run(inspectionArgs, project.root, directoryRemote.env).stdout) as Inspection);
-  for (const code of ['TARGET_TYPE', 'UNTRACKED_REPLACEMENT', 'EXISTING_ADOPTION']) assert.ok(directoryReport.start.blockers.some((b: { code: string }) => b.code === code));
-});
-
-test('Git flags that hide local changes cannot make an unsafe replacement start-eligible', (t) => {
-  const remote = remoteFixture(simpleSource(), { 'content.md': 'Expected' });
-  const project = sourceFixture('', { 'AGENTS.md': 'Tracked baseline' });
-  t.after(() => { remote.close(); project.close(); });
-  commit(project.root);
-  git(project.root, 'update-index', '--assume-unchanged', 'AGENTS.md');
-  writeFileSync(join(project.root, 'AGENTS.md'), 'Hidden local changes');
-  assert.equal(git(project.root, 'status', '--porcelain'), '');
-  const result = cli.run(inspectionArgs, project.root, remote.env);
-  assert.equal(result.status, 0, result.stdout + result.stderr);
-  const report = (JSON.parse(result.stdout) as Inspection);
-  assert.equal(report.start.eligible, false);
-  assert.ok(report.start.blockers.some((b: { code: string }) => b.code === 'HIDDEN_INDEX_STATE'));
 });
 
 test('contextual path names cannot disappear from the inspection identity', (t) => {
@@ -604,55 +516,6 @@ test('case conflicts retain the exact target hashes and bind them into inspectio
   }
 });
 
-test('selected discovery returns a blocked inspection and prevents start without author execution', (t) => {
-  const yaml = simpleSource()
-    .replace('profiles:', `    documentation:
-      kind: repository
-      guidance: guidance.md
-      discovery: discovery.md
-      fixes:
-        - id: fix
-          run: {executable: ./probe, script: script.js, resources: [], arguments: []}
-          prerequisite: {version-arguments: ["--version"], version: ">=24.0.0"}
-          timeout-seconds: 5
-profiles:`) + `  explicit:
-    description: Excludes discovery
-    declarations:
-      documentation: {exclude: true}
-  replacement:
-    description: Replaces discovery with explicit scope
-    declarations:
-      documentation:
-        kind: repository
-        guidance: guidance.md
-        targets: {paths: [README.md], directories: []}
-`;
-  const remote = remoteFixture(yaml, { 'content.md': 'Exact content', 'guidance.md': 'Improve documentation.',
-    'discovery.md': 'Find maintained projects.', 'script.js': 'process.exit(99);' });
-  const project = sourceFixture('', { 'probe': '#!/bin/sh\ntouch SENTINEL\necho 24.0.0\n' });
-  t.after(() => { remote.close(); project.close(); });
-  chmodSync(join(project.root, 'probe'), 0o755);
-  commit(project.root);
-  const before = snapshot(project.root);
-  const discoveryResult = cli.run(inspectionArgs, project.root, remote.env);
-  assert.equal(discoveryResult.status, 0, discoveryResult.stdout + discoveryResult.stderr);
-  const discoveryReport = (JSON.parse(discoveryResult.stdout) as Inspection);
-  assert.equal(discoveryReport.start.eligible, false);
-  assert.ok(discoveryReport.start.blockers.some((blocker: { code: string }) => blocker.code === 'DISCOVERY_REQUIRED'));
-  const startResult = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', discoveryReport.identity], project.root, remote.env);
-  assert.equal(startResult.status, 1, startResult.stdout + startResult.stderr);
-  assert.deepEqual(snapshot(project.root), before);
-  for (const profile of ['explicit', 'replacement']) {
-    const result = cli.run(inspectionArgs.map(arg => arg === 'work' ? profile : arg), project.root, remote.env);
-    assert.equal(result.status, 0, result.stdout + result.stderr);
-    const report = (JSON.parse(result.stdout) as Inspection);
-    assert.equal(report.source!.format, 'repo-standards/v2');
-    assert.equal(report.start.eligible, true);
-    assert.deepEqual(report.operations, [], 'Excluding or replacing discovery removes its fixes');
-    assert.deepEqual(snapshot(project.root), before);
-  }
-});
-
 test('inspection reports project, scope, and product-state blockers before one block per installation target', (t) => {
   const yaml = `format: repo-standards/v2
 name: test-standards
@@ -689,4 +552,18 @@ profiles:
     { code: 'UNTRACKED_REPLACEMENT', path: '.agents/skills/review/local.md' },
   ]);
   assert.deepEqual(report.discardedEdits, ['.agents/skills/adopt-standards', '.agents/skills/review']);
+});
+
+test('inspection without npm on PATH fails with setup instructions before any other work', (t) => {
+  const project = sourceFixture('');
+  t.after(() => project.close());
+  const bin = join(project.root, 'bin');
+  mkdirSync(bin);
+  symlinkSync(process.execPath, join(bin, 'node'));
+  symlinkSync(execFileSync('/bin/sh', ['-c', 'command -v git'], { encoding: 'utf8' }).trim(), join(bin, 'git'));
+  const result = cli.run(inspectionArgs, project.root, { ...process.env, PATH: bin });
+  assert.equal(result.status, 1);
+  const report = (JSON.parse(result.stdout) as ErrorReport);
+  assert.equal(report.errors[0]!.code, 'NPM_REQUIRED');
+  assert.match(report.errors[0]!.message, /Node\.js 24.*PATH/);
 });

@@ -6,11 +6,11 @@ import { join } from 'node:path';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { inc } from 'semver';
-import { stringify } from 'yaml';
-import { filesystemFault } from './adoption-faults.ts';
-import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
-import { registryFixture } from './registry-fixture.ts';
-import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+import { filesystemFault, kill } from './adoption-faults.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
+import { installCli, snapshot } from './installed-cli.ts';
+import { installCandidate } from './registry-fixture.ts';
+import { commit, git, inspectionArgs, manifest, startArgs } from './remote-fixture.ts';
 
 const cli = installCli();
 const candidateVersion = inc(cli.version, 'minor')!;
@@ -21,25 +21,16 @@ const reinstall = 'npm ci --ignore-scripts --prefix .repo-standards/runtime';
 // A project adopted with the installed CLI, and a candidate exact CLI of
 // another version installed outside it from the registry fixture.
 async function fixture(t: TestContext, declarations: Record<string, unknown>, files: Record<string, string>) {
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'pin-standards', description: 'CLI pin fixture',
-    requires: { 'repo-standards': '>=1.0.0' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: {} } } }),
-  files, [], 'alice/standards', true);
-  const project = sourceFixture('', { 'README.md': '# Project\n' });
-  const candidate = sourceFixture('');
-  const registry = await registryFixture(cli.root, [cli.version, candidateVersion]);
-  t.after(() => { registry.close(); remote.close(); project.close(); candidate.close(); });
-  commit(project.root);
-  const env = { ...remote.env, ...registry.env };
-  execFileSync('npm', ['install', '--prefix', candidate.root, '--ignore-scripts', '--no-audit', '--no-fund', `@lutzseverino/repo-standards@${candidateVersion}`], { cwd: candidate.root, env, stdio: 'pipe' });
-  const candidateBin = join(candidate.root, 'node_modules/.bin/repo-standards');
+  const f = await adoptionFixture(t, cli, manifest(declarations), { files, recordRequests: true, project: { 'README.md': '# Project\n' },
+    versions: [cli.version, candidateVersion] });
+  const { project, remote, env } = f;
+  const candidate = installCandidate(candidateVersion, env);
+  t.after(() => candidate.close());
   return {
     project, remote, env,
-    pinned: (args: string[]) => cli.run(args, project.root, env),
-    candidate: (args: string[], environment: NodeJS.ProcessEnv = env, cwd = project.root) => spawnSync(candidateBin, args, { cwd, env: environment, encoding: 'utf8' }),
-    adopt() {
-      const inspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
-      return cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
-    },
+    pinned: (args: string[]) => f.run(args),
+    candidate: (args: string[], environment: NodeJS.ProcessEnv = env, cwd = project.root) => candidate.run(args, cwd, environment),
+    adopt() { return f.run(startArgs(f.inspect().identity)); },
   };
 }
 
@@ -123,7 +114,7 @@ test('status, resume and abandon of an active run require the run\'s pinned CLI'
 test('an older CLI rejects the pin before record formats or integrity for status, resume and abandon', async t => {
   const f = await fixture(t, { instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' } }, { 'agents.md': 'Instructions' });
   const inspection = (JSON.parse(f.candidate(inspectionArgs).stdout) as Inspection);
-  const started = f.candidate(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity]);
+  const started = f.candidate(startArgs(inspection.identity));
   assert.equal(started.status, 0, started.stdout + started.stderr);
   commit(f.project.root);
   const root = f.project.root;
@@ -169,7 +160,7 @@ test('a CLI pin change interrupted before its runtime is installed sends the for
   commit(f.project.root);
   const inspection = (JSON.parse(f.candidate(['inspect', '--json']).stdout) as Inspection);
   assert.deepEqual(inspection.update, ['cli']);
-  const env = filesystemFault(f.remote.support.root, f.env, 'installation', `process.kill(process.pid, 'SIGKILL');`);
+  const env = filesystemFault(f.remote.support.root, f.env, 'installation', kill);
   const started = f.candidate(['start', '--confirm', inspection.identity, '--json'], env);
   assert.equal(started.signal, 'SIGKILL', started.stdout + started.stderr);
   const runtime = (JSON.parse(readFileSync(join(f.project.root, '.repo-standards/runtime/package.json'), 'utf8')) as PackageManifest);
@@ -224,19 +215,5 @@ test('a CLI pin change interrupted before its runtime is installed sends the for
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.equal((JSON.parse(result.stdout) as ErrorReport).errors[0]!.code, 'NEWER_FORMAT');
     assert.deepEqual(snapshot(f.project.root), newerRun, `${command} must not write`);
-  }
-});
-
-test('without a recorded pin, status and outdated answer under any CLI', async t => {
-  const f = await fixture(t, { instructions: { kind: 'file', target: 'AGENTS.md', exact: 'agents.md' } }, { 'agents.md': 'Instructions' });
-  const status = f.candidate(['status', '--json']);
-  assert.equal(status.status, 0, status.stdout + status.stderr);
-  assert.equal((JSON.parse(status.stdout) as Status).selection, null);
-  const outdated = f.candidate(['outdated', '--json']);
-  assert.equal(outdated.status, 0, outdated.stdout + outdated.stderr);
-  const report = (JSON.parse(outdated.stdout) as OutdatedReport);
-  for (const pin of [report.cli, report.standards]) {
-    assert.equal(pin.pinned, null);
-    assert.equal(pin.reason!.code, 'NO_SELECTION');
   }
 });

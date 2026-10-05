@@ -2,36 +2,29 @@ import type { ErrorReport, FileState, Inspection, Run, Status } from './json-rep
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
-import { existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative } from 'node:path';
-import { stringify } from 'yaml';
-import { installCli, sha256, sourceFixture } from './installed-cli.ts';
-import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
-import { registryFixture } from './registry-fixture.ts';
-import { filesystemFault } from './adoption-faults.ts';
+import { installCli, sha256 } from './installed-cli.ts';
+import { commit, git, inspectionArgs, manifest, operation, startArgs } from './remote-fixture.ts';
+import { filesystemFault, killAfterRename } from './adoption-faults.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
 import { assertCompactRunRecord, assertCompactScopeEvidence, assertCompactWorkEvidence, assertNoMachineLocation, committedScopeEvidence, committedState, localRunReport } from './committed-evidence.ts';
 
 const cli = installCli();
 after(() => cli.close());
-const operation = (id: string) => ({ id, run: { executable: process.execPath, script: 'run.mjs', resources: [], arguments: [] },
-  prerequisite: { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': 5 });
 const script = `import { readFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0, 'utf8'));
 console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.operation.phase==='fixes'?'unchanged':'passed',message:JSON.stringify(input.allowedTargets)}));`;
 async function fixture(t: TestContext, base = 'components/odd/nested', files = {}, runScript = script) {
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'discovered-adoption', description: 'Documentation for maintained projects',
-    requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
-      docs: { kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md', fixes: [operation('prepare')], checks: [operation('verify')] },
-      configuration: { kind: 'file', target: 'docs/config.json', exact: 'config.json' },
-    } }, profiles: { work: { description: 'Work', declarations: {} } } }),
-  { 'guidance.md': 'Preserve useful documentation and repair links around exact configuration.', 'discovery.md': 'Find maintained projects using manifests and ownership; exclude fixtures, generated output, and organizational directories.', 'config.json': '{"shared":true}\n', 'run.mjs': runScript });
-  const project = sourceFixture('', { [`${base}/package.json`]: '{"name":"maintained"}', 'fixtures/fake/package.json': '{}', ...files });
-  commit(project.root);
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  const env = { ...remote.env, ...registry.env };
-  const run = <T = Run>(args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: (JSON.parse(result.stdout) as T) }; };
+  const f = await adoptionFixture(t, cli, manifest({
+    docs: { kind: 'repository', guidance: 'guidance.md', discovery: 'discovery.md', fixes: [operation('prepare')], checks: [operation('verify')] },
+    configuration: { kind: 'file', target: 'docs/config.json', exact: 'config.json' },
+  }), { files: { 'guidance.md': 'Preserve useful documentation and repair links around exact configuration.', 'discovery.md': 'Find maintained projects using manifests and ownership; exclude fixtures, generated output, and organizational directories.', 'config.json': '{"shared":true}\n', 'run.mjs': runScript },
+  project: { [`${base}/package.json`]: '{"name":"maintained"}', 'fixtures/fake/package.json': '{}', ...files } });
+  const { project, remote, env } = f;
+  const run = <T = Run>(args: string[]) => f.json<T>(args);
   const request = run<Inspection>(inspectionArgs).report;
   const member = `${base}/package.json`;
   const excluded = 'fixtures/fake/package.json';
@@ -45,26 +38,22 @@ async function fixture(t: TestContext, base = 'components/odd/nested', files = {
     return run<T>([...inspectionArgs, '--scope', scopeFile]);
   }
   return { project, remote, env, run, request, proposal, member, excluded, scopeFile, inspect,
-    start<T = Run>(identity: string) { return run<T>(['start', ...inspectionArgs.slice(1), '--scope', scopeFile, '--confirm', identity]); } };
+    start<T = Run>(identity: string) { return run<T>(startArgs(identity, [...inspectionArgs, '--scope', scopeFile])); } };
 }
 
-test('one confirmed discovery scope starts initial adoption and passes concrete files to fixes', async t => {
+test('one confirmed discovery scope starts initial adoption, passes concrete files to fixes, and requires versioned coverage review after fixes and at assessment', async t => {
   const f = await fixture(t);
   const inspected = f.inspect();
   assert.equal(inspected.result.status, 0, inspected.result.stdout);
   assert.deepEqual(inspected.report.start.blockers, []);
-  const started = f.start(inspected.report.identity);
-  assert.equal(started.result.status, 1, started.result.stdout);
-  assert.equal(started.report.phase, 'contextual', started.result.stdout);
-  assert.equal(started.report.operations.length, 1);
-  assert.deepEqual((JSON.parse(started.report.operations[0]!.result!.message) as unknown), { paths: ['components/odd/nested/README.md'], directories: [] });
+  const start = f.start(inspected.report.identity);
+  assert.equal(start.result.status, 1, start.result.stdout);
+  const started = start.report;
+  assert.equal(started.phase, 'contextual', start.result.stdout);
+  assert.equal(started.operations.length, 1);
+  assert.deepEqual((JSON.parse(started.operations[0]!.result!.message) as unknown), { paths: ['components/odd/nested/README.md'], directories: [] });
   assert.equal(readFileSync(join(f.project.root, 'docs/config.json'), 'utf8'), '{"shared":true}\n');
   assert.equal(existsSync(join(f.project.root, 'components/odd/nested/README.md')), false);
-});
-
-test('discovery handoff requires versioned coverage review after fixes and at assessment', async t => {
-  const f = await fixture(t);
-  const started = f.start(f.inspect().report.identity).report;
   const request = started.workRequest;
   assert.equal(request!.format, 'repo-standards/work-request/v3');
   assert.equal(request!.scope!.inspection, started.inspection);
@@ -105,90 +94,89 @@ function setScopeTargets(f: Awaited<ReturnType<typeof fixture>>, targets: string
   })];
 }
 
-test('two unfamiliar layouts complete a useful migration around exact configuration and retain historical scope in a fresh checkout', async t => {
-  for (const base of ['apps/widget', 'components/odd/nested']) await t.test(base, async t => {
-    const useful = '# Operations\n\nSetup: node server.js\n\nRecovery: restore the last snapshot.\n';
-    const f = await fixture(t, base, { 'old/operations.md': useful, 'INDEX.md': '[Operations](old/operations.md)\n',
-      'docs/config.json': '{"shared":true}\n', 'generated/project/README.md': 'Generated; preserve.', 'organization/overview.md': 'Organizational; preserve.' });
-    const targets = [`${base}/README.md`, 'old/operations.md', 'docs/projects/operations.md', 'docs/README.md', 'INDEX.md'];
-    setScopeTargets(f, targets);
-    for (const [candidate, file, reason] of [
-      ['generated/project', 'generated/project/README.md', 'Generated output is not a maintained project.'],
-      ['organization', 'organization/overview.md', 'An organizational grouping, not an independently maintained project.'],
-    ]) f.proposal.declarations[0]!.candidates.push({ path: candidate!, decision: 'exclude', reason: reason!,
-      evidence: [file!] });
-    const inspected = f.inspect().report;
-    const start = f.start(inspected.identity).report;
-    assert.equal(start.phase, 'contextual');
-    // Paused for agent work, the journal and the local run report hold intervals
-    // as identities and deltas only.
-    assertCompactRunRecord((JSON.parse(readFileSync(join(f.project.root, '.git/repo-standards-run.lock'), 'utf8')) as Run), 'journal');
-    assertCompactRunRecord(localRunReport(f.project.root), 'local run report');
-    const before = start.workRequest!.scope!.afterFixes;
-    mkdirSync(join(f.project.root, 'docs/projects'), { recursive: true });
-    writeFileSync(join(f.project.root, 'docs/projects/operations.md'), useful);
-    rmSync(join(f.project.root, 'old/operations.md'));
-    writeFileSync(join(f.project.root, 'docs/README.md'), '# Documentation\n\n[Operations](projects/operations.md)\n');
-    writeFileSync(join(f.project.root, 'INDEX.md'), '[Operations](docs/projects/operations.md)\n');
-    writeFileSync(join(f.project.root, `${base}/README.md`), '# Maintained project\n\nRun node server.js. Recovery instructions are in the repository documentation.\n');
-    const refreshed = f.run<Run>(['resume', '--json']).report.workRequest;
-    assert.equal(refreshed!.scope!.afterFixes, before);
-    assert.notEqual(refreshed!.snapshot, before);
-    const completed = submit(f, assessment());
-    assert.equal(completed.result.status, 0, completed.result.stdout);
-    // The migration's deletion, creations and link repairs are derived from the run's work evidence.
-    assert.deepEqual(completed.report.assessments[0]!.declarations[0]!.changedPaths, [...targets].sort());
-    assert.deepEqual(completed.report.assessments[0]!.scope, { inspection: refreshed!.scope!.inspection, afterFixes: refreshed!.scope!.afterFixes });
-    assert.equal(readFileSync(join(f.project.root, 'docs/projects/operations.md'), 'utf8'), useful);
-    assert.equal(existsSync(join(f.project.root, 'old/operations.md')), false);
-    assert.equal(readFileSync(join(f.project.root, 'docs/config.json'), 'utf8'), '{"shared":true}\n');
-    assert.equal(readFileSync(join(f.project.root, 'generated/project/README.md'), 'utf8'), 'Generated; preserve.');
-    // Completion carries the local record's intervals into committed state unchanged.
-    const local = localRunReport(f.project.root);
-    assertCompactRunRecord(local, 'local run report');
-    assert.deepEqual([...new Set(local.observations.map(interval => interval.phase))].sort(), ['agent', 'checks', 'fixes']);
-    assertCompactWorkEvidence(committedState(f.project.root));
-    assert.deepEqual(committedState(f.project.root).observations, local.observations);
-    // Each system skill's link is installation's alone: agent work beside it
-    // neither changes nor claims it.
-    const links = ['adopt-standards', 'standards-updates'].map(name => [`.claude/skills/${name}`, `../../.agents/skills/${name}`] as const);
-    assert.deepEqual(committedState(f.project.root).changeSet!.filter(({ path }) => path.startsWith('.claude/')), links.map(([path]) => ({ path, phases: ['installation'] })));
-    const status = f.run<Status>(['status', '--json']).report;
-    // The committed interval keeps each changed path's before and after state.
-    const migration = status.observations!.find((entry) => entry.phase === 'agent' && Object.hasOwn(entry.changes!, 'old/operations.md'));
-    assert.equal((migration!.changes!['old/operations.md']!.before as FileState).type, 'file');
-    assert.equal((migration!.changes!['old/operations.md']!.after as FileState).type, 'missing');
-    assert.equal((migration!.changes!['docs/projects/operations.md']!.before as FileState).type, 'missing');
-    assert.equal((migration!.changes!['docs/projects/operations.md']!.after as FileState).type, 'file');
-    assert.match(status.assessments![0]!.declarations[0]!.explanation, /preserved/);
-    commit(f.project.root);
-    const checkout = join(f.remote.support.root, 'checkout');
-    git(f.project.root, 'clone', '--quiet', f.project.root, checkout);
-    writeFileSync(join(f.remote.support.root, 'responses.json'), '{}');
-    const retained = f.run<Inspection>(['inspect', '--project', checkout, '--json']);
-    assert.equal(retained.result.status, 0, retained.result.stdout);
-    assert.equal(retained.report.format, 'repo-standards/inspection/v6');
-    assert.equal(retained.report.retained, true);
-    assert.equal(retained.report.historicalScope!.format, 'repo-standards/scope-history/v5');
-    assert.equal(retained.report.historicalScope!.evidence, 'historical');
-    assert.equal(retained.report.historicalScope!.inspection, inspected.identity);
-    assert.deepEqual(retained.report.historicalScope!.resolved, inspected.resolved);
-    assert.deepEqual(retained.report.historicalScope!.discovery!.proposal, inspected.discovery!.proposal);
-    assert.deepEqual(retained.report.historicalScope!.discovery!.absence, inspected.discovery!.absence);
-    assert.deepEqual(retained.report.historicalScope!.sourceResolved, inspected.sourceResolved);
-    assert.equal(retained.report.start.eligible, false);
-    // A clone carries the links, which the retained inspection matches.
-    for (const [path, text] of links) assert.equal(readlinkSync(join(checkout, path)), text);
-    assert.deepEqual(retained.report.systemSkills.map(({ link }: { link: { action: string } }) => link.action), ['match', 'match']);
-    // The committed run keeps its named observation as the delta of the
-    // confirmed targets and the boundaries naming them added.
-    const scope = committedScopeEvidence(checkout);
-    assertCompactScopeEvidence(scope);
-    const stored = scope.discovery!;
-    assert.deepEqual(Object.keys(stored.named!.targets!).sort(), [...targets].sort());
-    assert.deepEqual(stored.named!.boundaries!['docs/projects'], { type: 'missing' });
-    assert.equal(Object.hasOwn(stored.observation!.boundaries!, 'docs/projects'), false);
-  });
+test('an unfamiliar layout completes a useful migration around exact configuration and retains historical scope in a fresh checkout', async t => {
+  const base = 'components/odd/nested';
+  const useful = '# Operations\n\nSetup: node server.js\n\nRecovery: restore the last snapshot.\n';
+  const f = await fixture(t, base, { 'old/operations.md': useful, 'INDEX.md': '[Operations](old/operations.md)\n',
+    'docs/config.json': '{"shared":true}\n', 'generated/project/README.md': 'Generated; preserve.', 'organization/overview.md': 'Organizational; preserve.' });
+  const targets = [`${base}/README.md`, 'old/operations.md', 'docs/projects/operations.md', 'docs/README.md', 'INDEX.md'];
+  setScopeTargets(f, targets);
+  for (const [candidate, file, reason] of [
+    ['generated/project', 'generated/project/README.md', 'Generated output is not a maintained project.'],
+    ['organization', 'organization/overview.md', 'An organizational grouping, not an independently maintained project.'],
+  ]) f.proposal.declarations[0]!.candidates.push({ path: candidate!, decision: 'exclude', reason: reason!,
+    evidence: [file!] });
+  const inspected = f.inspect().report;
+  const start = f.start(inspected.identity).report;
+  assert.equal(start.phase, 'contextual');
+  // Paused for agent work, the journal and the local run report hold intervals
+  // as identities and deltas only.
+  assertCompactRunRecord((JSON.parse(readFileSync(join(f.project.root, '.git/repo-standards-run.lock'), 'utf8')) as Run), 'journal');
+  assertCompactRunRecord(localRunReport(f.project.root), 'local run report');
+  const before = start.workRequest!.scope!.afterFixes;
+  mkdirSync(join(f.project.root, 'docs/projects'), { recursive: true });
+  writeFileSync(join(f.project.root, 'docs/projects/operations.md'), useful);
+  rmSync(join(f.project.root, 'old/operations.md'));
+  writeFileSync(join(f.project.root, 'docs/README.md'), '# Documentation\n\n[Operations](projects/operations.md)\n');
+  writeFileSync(join(f.project.root, 'INDEX.md'), '[Operations](docs/projects/operations.md)\n');
+  writeFileSync(join(f.project.root, `${base}/README.md`), '# Maintained project\n\nRun node server.js. Recovery instructions are in the repository documentation.\n');
+  const refreshed = f.run<Run>(['resume', '--json']).report.workRequest;
+  assert.equal(refreshed!.scope!.afterFixes, before);
+  assert.notEqual(refreshed!.snapshot, before);
+  const completed = submit(f, assessment());
+  assert.equal(completed.result.status, 0, completed.result.stdout);
+  // The migration's deletion, creations and link repairs are derived from the run's work evidence.
+  assert.deepEqual(completed.report.assessments[0]!.declarations[0]!.changedPaths, [...targets].sort());
+  assert.deepEqual(completed.report.assessments[0]!.scope, { inspection: refreshed!.scope!.inspection, afterFixes: refreshed!.scope!.afterFixes });
+  assert.equal(readFileSync(join(f.project.root, 'docs/projects/operations.md'), 'utf8'), useful);
+  assert.equal(existsSync(join(f.project.root, 'old/operations.md')), false);
+  assert.equal(readFileSync(join(f.project.root, 'docs/config.json'), 'utf8'), '{"shared":true}\n');
+  assert.equal(readFileSync(join(f.project.root, 'generated/project/README.md'), 'utf8'), 'Generated; preserve.');
+  // Completion carries the local record's intervals into committed state unchanged.
+  const local = localRunReport(f.project.root);
+  assertCompactRunRecord(local, 'local run report');
+  assert.deepEqual([...new Set(local.observations.map(interval => interval.phase))].sort(), ['agent', 'checks', 'fixes']);
+  assertCompactWorkEvidence(committedState(f.project.root));
+  assert.deepEqual(committedState(f.project.root).observations, local.observations);
+  // Each system skill's link is installation's alone: agent work beside it
+  // neither changes nor claims it.
+  const links = ['adopt-standards', 'standards-updates'].map(name => [`.claude/skills/${name}`, `../../.agents/skills/${name}`] as const);
+  assert.deepEqual(committedState(f.project.root).changeSet!.filter(({ path }) => path.startsWith('.claude/')), links.map(([path]) => ({ path, phases: ['installation'] })));
+  const status = f.run<Status>(['status', '--json']).report;
+  // The committed interval keeps each changed path's before and after state.
+  const migration = status.observations!.find((entry) => entry.phase === 'agent' && Object.hasOwn(entry.changes!, 'old/operations.md'));
+  assert.equal((migration!.changes!['old/operations.md']!.before as FileState).type, 'file');
+  assert.equal((migration!.changes!['old/operations.md']!.after as FileState).type, 'missing');
+  assert.equal((migration!.changes!['docs/projects/operations.md']!.before as FileState).type, 'missing');
+  assert.equal((migration!.changes!['docs/projects/operations.md']!.after as FileState).type, 'file');
+  assert.match(status.assessments![0]!.declarations[0]!.explanation, /preserved/);
+  commit(f.project.root);
+  const checkout = join(f.remote.support.root, 'checkout');
+  git(f.project.root, 'clone', '--quiet', f.project.root, checkout);
+  writeFileSync(join(f.remote.support.root, 'responses.json'), '{}');
+  const retained = f.run<Inspection>(['inspect', '--project', checkout, '--json']);
+  assert.equal(retained.result.status, 0, retained.result.stdout);
+  assert.equal(retained.report.retained, true);
+  assert.equal(retained.report.historicalScope!.evidence, 'historical');
+  assert.equal(retained.report.historicalScope!.inspection, inspected.identity);
+  assert.deepEqual(retained.report.historicalScope!.resolved, inspected.resolved);
+  assert.deepEqual(retained.report.historicalScope!.discovery!.proposal, inspected.discovery!.proposal);
+  assert.deepEqual(retained.report.historicalScope!.discovery!.absence, inspected.discovery!.absence);
+  // The named observation is rebuilt on read from the stored delta.
+  assert.deepEqual(retained.report.historicalScope!.discovery!.namedObservation, inspected.discovery!.namedObservation);
+  assert.deepEqual(retained.report.historicalScope!.sourceResolved, inspected.sourceResolved);
+  assert.equal(retained.report.start.eligible, false);
+  // A clone carries the links, which the retained inspection matches.
+  for (const [path, text] of links) assert.equal(readlinkSync(join(checkout, path)), text);
+  assert.deepEqual(retained.report.systemSkills.map(({ link }: { link: { action: string } }) => link.action), ['match', 'match']);
+  // The committed run keeps its named observation as the delta of the
+  // confirmed targets and the boundaries naming them added.
+  const scope = committedScopeEvidence(checkout);
+  assertCompactScopeEvidence(scope);
+  const stored = scope.discovery!;
+  assert.deepEqual(Object.keys(stored.named!.targets!).sort(), [...targets].sort());
+  assert.deepEqual(stored.named!.boundaries!['docs/projects'], { type: 'missing' });
+  assert.equal(Object.hasOwn(stored.observation!.boundaries!, 'docs/projects'), false);
 });
 
 test('missing, invalid, unresolved, stale and dirty discovery starts preserve the project before mutation', async t => {
@@ -200,7 +188,7 @@ test('missing, invalid, unresolved, stale and dirty discovery starts preserve th
     assert.equal(existsSync(join(f.project.root, 'docs/config.json')), false);
     assert.equal(f.run<Status>(['status', '--json']).report.active, null);
   };
-  reject(f.run<ErrorReport>(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity]).report, 'STALE_INSPECTION');
+  reject(f.run<ErrorReport>(startArgs(inspection.identity)).report, 'STALE_INSPECTION');
   writeFileSync(f.scopeFile, '{}');
   reject(f.start<ErrorReport>(inspection.identity).report, 'INVALID_SCOPE');
   f.proposal.declarations[0]!.unresolved = ['Is this project maintained?'];
@@ -245,32 +233,6 @@ test('missing, invalid, unresolved, stale and dirty discovery starts preserve th
   assert.equal(readFileSync(join(f.project.root, 'unrelated.txt'), 'utf8'), 'Uncommitted');
 });
 
-test('a scope proposal cannot claim a system skill link path', async t => {
-  const f = await fixture(t);
-  for (const path of ['.claude/skills/adopt-standards', '.claude/skills/standards-updates/README.md', '.claude']) {
-    setScopeTargets(f, [path]);
-    const inspected = f.inspect<ErrorReport>();
-    assert.equal(inspected.result.status, 1, inspected.result.stdout);
-    assert.deepEqual(inspected.report.errors, [{ code: 'RESERVED_TARGET', message: 'Target overlaps product-owned state, a system skill or its link, or Git metadata.' }]);
-  }
-  assert.equal(lstatSync(join(f.project.root, '.claude'), { throwIfNoEntry: false }), undefined);
-});
-
-test('explained empty discovery scope retains fixes, coverage assessment and checks', async t => {
-  const f = await fixture(t, 'fixtures/example');
-  const entry = f.proposal.declarations[0]!;
-  entry.candidates = [{ path: 'fixtures/example', decision: 'exclude', reason: 'Fixture project; there are no maintained projects here.', evidence: [f.member, f.excluded] }, entry.candidates[1]!];
-  entry.coverage = 'This repository contains test fixtures only; no maintained project requires documentation.';
-  const start = f.start(f.inspect().report.identity).report;
-  assert.equal(start.phase, 'contextual');
-  assert.equal(start.workRequest!.declarations.length, 1);
-  assert.deepEqual((JSON.parse(start.operations[0]!.result!.message) as unknown), { paths: [], directories: [] });
-  const completed = submit(f, assessment());
-  assert.equal(completed.result.status, 0, completed.result.stdout);
-  assert.deepEqual(completed.report.operations.map((op: { operation: { phase: string } }) => op.operation.phase), ['fixes', 'checks']);
-  assert.deepEqual((JSON.parse(completed.report.operations[1]!.result!.message) as unknown), { paths: [], directories: [] });
-});
-
 test('scope-validity omissions, copied identities and additional file needs block checks without new authority', async t => {
   const f = await fixture(t);
   const start = f.start(f.inspect().report.identity).report;
@@ -307,7 +269,7 @@ test('scope-validity omissions, copied identities and additional file needs bloc
 
 test('a blocked scope review is corrected by abandoning the run and adopting again with a new confirmed scope', async t => {
   const f = await fixture(t);
-  const start = f.start(f.inspect().report.identity).report;
+  f.start(f.inspect().report.identity);
   const needsMore = assessment();
   needsMore.declarations[0]!.scopeValidity.current.status = 'blocked';
   needsMore.declarations[0]!.scopeValidity.current.additionalPaths = ['new-destination.md'];
@@ -316,16 +278,6 @@ test('a blocked scope review is corrected by abandoning the run and adopting aga
   assert.equal(blocked.report.outcome, 'incomplete');
   assert.match(blocked.report.reason, /SCOPE_INCOMPLETE/);
   assert.match(blocked.report.nextAction, /Preserve the work, abandon the run, commit or discard its changes, and adopt again with a new confirmed scope/);
-  assert.doesNotMatch(`${blocked.report.reason} ${blocked.report.nextAction}`, /amend/i);
-
-  // An active run offers no way to change its confirmed scope.
-  for (const args of [['inspect', '--amend-scope'], ['resume', '--amend-scope', '--scope', f.scopeFile, '--confirm', start.inspection]]) {
-    const rejected = f.run<ErrorReport>([...args, '--json']);
-    assert.equal(rejected.result.status, 2, rejected.result.stdout);
-    assert.equal(rejected.report.errors[0]!.code, 'USAGE');
-    assert.match(rejected.report.errors[0]!.message, /Unknown, duplicate, or incomplete option: --amend-scope/);
-  }
-  assert.doesNotMatch(cli.run(['--help'], f.project.root).stdout, /amend/i);
 
   const abandoned = f.run<Run>(['abandon', '--json']);
   assert.equal(abandoned.report.abandoned, true, abandoned.result.stdout);
@@ -370,7 +322,7 @@ test('unconfirmed migration destinations and exact corruption preserve incomplet
   });
 });
 
-test('discovered fixes and checks enforce confirmed files through the established v2 observation contract', async t => {
+test('discovered fixes and checks enforce confirmed files through the observed-scope contract', async t => {
   for (const phase of ['fixes', 'checks']) await t.test(phase, async t => {
     const f = await fixture(t, 'apps/widget', {}, script.replace("console.log(JSON.stringify", `if (input.operation.phase === '${phase}') { const { writeFileSync } = await import('node:fs'); writeFileSync('outside.md', 'Operation violation'); }\nconsole.log(JSON.stringify`));
     const start = f.start(f.inspect().report.identity).report;
@@ -406,15 +358,8 @@ test('discovered scope survives retry with separate earlier agent evidence and r
 test('interrupted pre-install discovery can retry its relative proposal from another working directory', async t => {
   const f = await fixture(t);
   const inspected = f.inspect().report;
-  const env = filesystemFault(f.remote.support.root, f.env, 'runtime', `
-const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  const result = rename.call(this, from, to);
-  if (String(to).endsWith('repo-standards-run.lock')) process.kill(process.pid, 'SIGKILL');
-  return result;
-};
-syncBuiltinESMExports();`);
-  const interrupted = cli.run(['start', ...inspectionArgs.slice(1), '--scope', relative(f.project.root, f.scopeFile), '--confirm', inspected.identity], f.project.root, env);
+  const env = filesystemFault(f.remote.support.root, f.env, 'runtime', killAfterRename('repo-standards-run.lock'));
+  const interrupted = cli.run(startArgs(inspected.identity, [...inspectionArgs, '--scope', relative(f.project.root, f.scopeFile)]), f.project.root, env);
   assert.equal(interrupted.signal, 'SIGKILL');
   assert.equal(existsSync(join(f.project.root, '.repo-standards')), false);
   const elsewhere = join(f.remote.support.root, 'runner');
@@ -426,16 +371,25 @@ syncBuiltinESMExports();`);
   assert.deepEqual(report.workRequest!.scope!.proposal, inspected.discovery!.proposal);
 });
 
-test('an inspection made in another clone of the same content confirms a start in this checkout', async t => {
+test('an inspection made in another clone of the same content, under another umask, confirms a start in this checkout', async t => {
   const f = await fixture(t);
+  // Directory modes are not bound, so a clone under a stricter umask is the
+  // same project.
+  const directory = dirname(f.member);
+  chmodSync(join(f.project.root, directory), 0o755);
   const inspected = f.inspect().report;
   const clone = join(f.remote.support.root, 'clone');
-  git(f.project.root, 'clone', '--quiet', f.project.root, clone);
+  const cloned = spawnSync('/bin/sh', ['-c', 'umask 077; exec git clone --quiet "$1" "$2"', 'clone', f.project.root, clone], { encoding: 'utf8' });
+  assert.equal(cloned.status, 0, cloned.stderr);
+  assert.notEqual(lstatSync(join(f.project.root, directory)).mode & 0o777, lstatSync(join(clone, directory)).mode & 0o777);
   const run = <T = Run>(args: string[]) => { const result = cli.run(args, clone, f.env); return { result, report: (JSON.parse(result.stdout) as T) }; };
   // Neither the request nor the inspection binds where the project is checked out.
   assert.equal(run<Inspection>(inspectionArgs).report.discovery!.identity, f.request.discovery!.identity);
-  assert.equal(run<Inspection>([...inspectionArgs, '--scope', f.scopeFile]).report.identity, inspected.identity);
-  const started = run<Run>(['start', ...inspectionArgs.slice(1), '--scope', f.scopeFile, '--confirm', inspected.identity]);
+  const cloneInspection = run<Inspection>([...inspectionArgs, '--scope', f.scopeFile]).report;
+  assert.equal(cloneInspection.identity, inspected.identity);
+  assert.deepEqual(cloneInspection.start.blockers, []);
+  const started = run<Run>(startArgs(inspected.identity, [...inspectionArgs, '--scope', f.scopeFile]));
+  assert.equal(started.result.status, 1, started.result.stdout + started.result.stderr);
   assert.equal(started.report.phase, 'contextual', started.result.stdout);
   assert.equal(started.report.inspection, inspected.identity);
   // The run records where it happened, for provenance only.
@@ -443,7 +397,7 @@ test('an inspection made in another clone of the same content confirms a start i
   assert.equal(existsSync(join(f.project.root, '.repo-standards')), false);
 });
 
-test('committed evidence binds ignore inputs by role and content and records no absolute path', async t => {
+test('explained empty discovery scope retains its operations, and committed evidence binds ignore inputs by role and content and records no absolute path', async t => {
   const f = await fixture(t, 'fixtures/example', { 'fixtures/.gitignore': 'build/\n' });
   const globalIgnore = join(f.remote.support.root, 'global-ignore');
   writeFileSync(globalIgnore, '*.log\n');
@@ -451,10 +405,15 @@ test('committed evidence binds ignore inputs by role and content and records no 
   const entry = f.proposal.declarations[0]!;
   entry.candidates = [{ path: 'fixtures/example', decision: 'exclude', reason: 'Fixture project; there are no maintained projects here.', evidence: [f.member, f.excluded] }, entry.candidates[1]!];
   entry.coverage = 'This repository contains test fixtures only; no maintained project requires documentation.';
+  // Explained empty scope still runs fixes, coverage assessment and checks.
   const start = f.start(f.inspect().report.identity).report;
   assert.equal(start.phase, 'contextual', JSON.stringify(start));
+  assert.equal(start.workRequest!.declarations.length, 1);
+  assert.deepEqual((JSON.parse(start.operations[0]!.result!.message) as unknown), { paths: [], directories: [] });
   const completed = submit(f, assessment());
   assert.equal(completed.result.status, 0, completed.result.stdout);
+  assert.deepEqual(completed.report.operations.map((op: { operation: { phase: string } }) => op.operation.phase), ['fixes', 'checks']);
+  assert.deepEqual((JSON.parse(completed.report.operations[1]!.result!.message) as unknown), { paths: [], directories: [] });
   assert.equal(completed.report.root, f.project.root);
   assert.equal(localRunReport(f.project.root).root, f.project.root);
   const ignores = (committedScopeEvidence(f.project.root).discovery!.observation as { ignores: Record<string, unknown> }).ignores;

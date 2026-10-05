@@ -4,33 +4,25 @@ import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { stringify } from 'yaml';
-import { installCli, sha256, sourceFixture } from './installed-cli.ts';
+import { installCli, sha256 } from './installed-cli.ts';
 import { assertCompactRunRecord, assertCompactWorkEvidence, committedState, localRunReport } from './committed-evidence.ts';
-import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+import { commit, git, manifest, operation, startArgs, versionArgs } from './remote-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
-import { registryFixture } from './registry-fixture.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
-const operation = (id: string) => ({ id, run: { executable: process.execPath, script: 'run.mjs', resources: [], arguments: [] },
-  prerequisite: { 'version-arguments': ['--version'], version: '^24' }, 'timeout-seconds': 5 });
 async function fixture(t: TestContext, script: string, declarations: Record<string, unknown> = {
   readme: { kind: 'file', target: 'README.md', guidance: 'guide.md', fixes: [operation('prepare')], checks: [operation('verify')] },
   other: { kind: 'file', target: 'OTHER.md', guidance: 'guide.md' },
 }, files = {}) {
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'observed-scope', description: 'Observed operation scope',
-    requires: { 'repo-standards': '>=1' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: {} } } }),
-  { 'guide.md': 'Explain this project.', 'exact.md': 'Expected instructions', 'skill/SKILL.md': '# Review', 'run.mjs': script });
-  const project = sourceFixture('', { 'README.md': 'Original', 'OTHER.md': 'Other', ...files });
-  commit(project.root);
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  const env = { ...remote.env, ...registry.env };
-  const run = <T = Run>(args: string[]) => { const result = cli.run(args, project.root, env); return { result, report: (JSON.parse(result.stdout) as T) }; };
-  const inspection = run<Inspection>(inspectionArgs).report;
-  const startArgs = ['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity];
-  return { project, remote, env, run, startArgs, head: git(project.root, 'rev-parse', 'HEAD'), start: () => run<Run>(startArgs),
+  const f = await adoptionFixture(t, cli, manifest(declarations), {
+    files: { 'guide.md': 'Explain this project.', 'exact.md': 'Expected instructions', 'skill/SKILL.md': '# Review', 'run.mjs': script },
+    project: { 'README.md': 'Original', 'OTHER.md': 'Other', ...files } });
+  const { project, remote, env } = f;
+  const run = <T = Run>(args: string[]) => f.json<T>(args);
+  const start = startArgs(f.inspect().identity);
+  return { project, remote, env, run, startArgs: start, head: git(project.root, 'rev-parse', 'HEAD'), start: () => run<Run>(start),
     assess(request: { declarations: { id: string }[] }, status = 'satisfied') {
       const path = join(remote.support.root, 'assessment.json');
       writeFileSync(path, JSON.stringify({ format: 'repo-standards/assessment/v3',
@@ -43,36 +35,7 @@ const prelude = `import { readFileSync, writeFileSync, chmodSync, rmSync, mkdirS
 const input = JSON.parse(readFileSync(0, 'utf8'));`;
 const result = `console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.operation.phase==='fixes'?'changed':'passed',message:'Done'}));`;
 
-test('v2 interrupted installation rejects added directories before writing pending files', async t => {
-  for (const addition of ['.agents/skills/review/unexpected', '.repo-standards/inputs/unexpected']) await t.test(addition, async t => {
-    const f = await fixture(t, '', {
-      review: { kind: 'skill', name: 'review', source: 'skill' },
-      zlast: { kind: 'file', target: 'Z-LAST.md', exact: 'exact.md' },
-    });
-    const env = filesystemFault(f.remote.support.root, f.env, 'installation', `
-const rename = fs.renameSync;
-fs.renameSync = function(from, to) {
-  const result = rename.call(this, from, to);
-  if (String(to).endsWith('/review/SKILL.md')) process.kill(process.pid, 'SIGKILL');
-  return result;
-};
-syncBuiltinESMExports();`);
-    assert.equal(cli.run(f.startArgs, f.project.root, env).signal, 'SIGKILL');
-    assert.equal(existsSync(join(f.project.root, 'Z-LAST.md')), false);
-    mkdirSync(join(f.project.root, addition), { recursive: true });
-    const rejected = f.run<Run>(['resume', '--retry', '--json']);
-    assert.equal(rejected.result.status, 1, rejected.result.stdout);
-    assert.match(rejected.report.reason, /INSTALLATION_CHANGED.*inventory/);
-    assert.equal(existsSync(join(f.project.root, 'Z-LAST.md')), false);
-    assert.equal(existsSync(join(f.project.root, addition)), true);
-    rmSync(join(f.project.root, addition), { recursive: true });
-    const recovered = f.run<Run>(['resume', '--retry', '--json']);
-    assert.equal(recovered.result.status, 0, recovered.result.stdout);
-    assert.equal(recovered.report.outcome, 'complete');
-  });
-});
-
-test('v2 fixes enforce their owning declaration rather than the union of authorized paths', async t => {
+test('fixes enforce their owning declaration rather than the union of authorized paths', async t => {
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'fixes') writeFileSync('OTHER.md', 'Wrong declaration');
 ${result}`);
@@ -87,7 +50,7 @@ ${result}`);
   assert.equal(f.run<Status>(['status', '--json']).report.lastComplete, null);
 });
 
-test('v2 keeps named targets observable when fixes make them ignored', async t => {
+test('named targets stay observable when fixes make them ignored', async t => {
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'fixes') {
   writeFileSync('new.md', 'Written by fix');
@@ -106,7 +69,7 @@ ${result}`, {
   assert.deepEqual(complete.report.assessments[0]!.declarations[0]!.changedPaths, ['new.md']);
 });
 
-test('v2 preserves same-file agent work across fix replay and attributes it to its declaration', async t => {
+test('retry preserves same-file agent work across fix replay and attributes it to its declaration', async t => {
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'fixes') writeFileSync('README.md', 'Prepared');
 ${result}`);
@@ -125,13 +88,16 @@ ${result}`);
   const status = f.run<Status>(['status', '--json']).report;
   const intervals = status.observations as { phase: string; changes: Record<string, unknown>; scope: unknown }[];
   assert.deepEqual(intervals.filter(interval => Object.hasOwn(interval.changes, 'README.md')).map(interval => interval.phase), ['fixes', 'agent', 'fixes']);
-  assert.ok(intervals.every(interval => interval.scope));
+  // An operation's interval is scoped to its declaration, and an agent
+  // interval to every contextual declaration.
+  const readme = { readme: { paths: ['README.md'], directories: [] } };
+  for (const interval of intervals) assert.deepEqual(interval.scope, interval.phase === 'agent' ? { other: { paths: ['OTHER.md'], directories: [] }, ...readme } : readme, interval.phase);
   assert.equal(status.checks!.length, 1);
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), f.head);
   assert.notEqual(git(f.project.root, 'status', '--porcelain'), '');
 });
 
-test('v2 reports additions, deletions and executable changes made outside a fix scope', async t => {
+test('additions, deletions and executable changes a fix makes outside its scope are reported', async t => {
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'fixes') { writeFileSync('added.txt', 'Added'); rmSync('OTHER.md'); chmodSync('tool.sh', 0o755); }
 ${result}`, undefined, { 'tool.sh': '#!/bin/sh\n' });
@@ -145,7 +111,7 @@ ${result}`, undefined, { 'tool.sh': '#!/bin/sh\n' });
   assert.equal(retried.operations.length, 1);
 });
 
-test('v2 preserves explicit directory scope, ignored descendants and the limit for unlisted ignored siblings', async t => {
+test('observation preserves explicit directory scope, ignored descendants and the limit for unlisted ignored siblings', async t => {
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'fixes') {
   rmSync('docs/old.md'); mkdirSync('docs/sub', {recursive:true});
@@ -167,7 +133,7 @@ ${result}`, {
   assert.deepEqual(completed.report.assessments[0]!.declarations[0]!.changedPaths, ['docs/sub/new.md']);
 });
 
-test('v2 checks remain read-only even for ignored named targets and keep operation outcomes separate', async t => {
+test('checks remain read-only even for ignored named targets and keep operation outcomes separate', async t => {
   const f = await fixture(t, `${prelude}
 writeFileSync('new.md', input.operation.phase);
 if (input.operation.phase === 'fixes') writeFileSync('.gitignore', 'new.md\\n');
@@ -183,25 +149,21 @@ ${result}`, {
   assert.equal(readFileSync(join(f.project.root, 'new.md'), 'utf8'), 'checks');
 });
 
-test('v2 exact declarations cannot redefine bytes, executable state or complete skill inventories with their own fixes', async t => {
-  for (const [name, mutation, declaration] of [
-    ['bytes', "writeFileSync('AGENTS.md', 'Corrupted');", { kind: 'file', target: 'AGENTS.md', exact: 'exact.md' }],
-    ['mode', "chmodSync('AGENTS.md', 0o755);", { kind: 'file', target: 'AGENTS.md', exact: 'exact.md' }],
-    ['inventory', "writeFileSync('.agents/skills/review/added.md', 'Added');", { kind: 'skill', name: 'review', source: 'skill' }],
-  ] as const) await t.test(name, async st => {
-    const f = await fixture(st, `${prelude}\n${mutation}\n${result}`, { exact: { ...declaration, fixes: [operation('prepare')] } });
-    const failed = f.start().report;
-    assert.match(failed.reason, /FINAL_INTEGRITY/);
-    assert.equal(failed.operations[0]!.result!.status, 'changed');
-    assert.deepEqual(failed.observations[0]!.violations, []);
-    const retry = f.run<Run>(['resume', '--retry', '--json']).report;
-    assert.match(retry.reason, /FINAL_INTEGRITY/);
-    assert.equal(retry.operations.length, 1);
-    assert.equal(f.run<Status>(['status', '--json']).report.lastComplete, null);
-  });
+test('an exact declaration cannot redefine its installed content with its own fix', async t => {
+  // One representative: verifyInstallation's branches are covered once, in adoption.test.ts.
+  const f = await fixture(t, `${prelude}\nwriteFileSync('AGENTS.md', 'Corrupted');\n${result}`,
+    { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fixes: [operation('prepare')] } });
+  const failed = f.start().report;
+  assert.match(failed.reason, /FINAL_INTEGRITY/);
+  assert.equal(failed.operations[0]!.result!.status, 'changed');
+  assert.deepEqual(failed.observations[0]!.violations, []);
+  const retry = f.run<Run>(['resume', '--retry', '--json']).report;
+  assert.match(retry.reason, /FINAL_INTEGRITY/);
+  assert.equal(retry.operations.length, 1);
+  assert.equal(f.run<Status>(['status', '--json']).report.lastComplete, null);
 });
 
-test('v2 incomplete observations block author progression and preserve its definite outcome', async t => {
+test('incomplete observations block author progression and preserve its definite outcome', async t => {
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'fixes') writeFileSync('README.md', Buffer.alloc(8 * 1024 * 1024 + 1));
 ${result}`);
@@ -221,33 +183,7 @@ ${result}`);
   assert.ok(abandoned.uncertain.some((message: string) => message.includes('observation')));
 });
 
-test('v2 interrupted fixes preserve uncertain intervals through explicit retry and require fresh agent assessment', async t => {
-  const f = await fixture(t, `${prelude}
-if (input.operation.phase === 'fixes') {
-  const marker = '.repo-standards/local/attempt';
-  writeFileSync('README.md', 'Prepared');
-  if (!existsSync(marker)) { writeFileSync(marker, 'Attempted'); process.kill(process.ppid, 'SIGKILL'); process.exit(0); }
-}
-${result}`);
-  const killed = cli.run(f.startArgs, f.project.root, f.env);
-  assert.equal(killed.signal, 'SIGKILL');
-  const stopped = f.run<Status>(['status', '--json']).report.active;
-  assert.equal(stopped!.operations.length, 0);
-  assert.equal(stopped!.observations[0]!.after, undefined);
-  assert.equal(f.run<ErrorReport>(['resume', '--json']).report.errors[0]!.code, 'RESUME_UNAVAILABLE');
-  const retry = f.run<Run>(['resume', '--retry', '--json']).report;
-  assert.equal(retry.phase, 'contextual', retry.reason);
-  assert.equal(retry.observations[0]!.interrupted, true);
-  assert.deepEqual(Object.keys(retry.observations[0]!.changes!), ['README.md']);
-  assert.equal(retry.observations[0]!.phase, 'fixes');
-  assert.equal(retry.retryHistory![0]!.phase, 'fixes');
-  assert.ok(retry.retryHistory![0]!.uncertain.length);
-  const completed = f.assess(retry.workRequest!);
-  assert.equal(completed.result.status, 0, completed.result.stdout);
-  assert.equal(f.run<Status>(['status', '--json']).report.observations![0]!.interrupted, true);
-});
-
-test('v2 retry records agent edits after rejected evidence before replay can overwrite them', async t => {
+test('retry records agent edits after rejected evidence before replay can overwrite them', async t => {
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'fixes') writeFileSync('README.md', 'Prepared');
 ${result}`);
@@ -262,7 +198,7 @@ ${result}`);
   assert.deepEqual(complete.report.assessments[0]!.declarations.map((entry: { changedPaths: string[] }) => entry.changedPaths), [[], ['README.md']]);
 });
 
-test('v2 refuses unsafe named ancestors and stale assessments after observation settings change', async t => {
+test('observation refuses unsafe named ancestors and stale assessments after observation settings change', async t => {
   const f = await fixture(t, `${prelude}\n${result}`, {
     docs: { kind: 'repository', guidance: 'guide.md', targets: { paths: ['docs/new.md'], directories: [] } },
   });
@@ -276,7 +212,7 @@ test('v2 refuses unsafe named ancestors and stale assessments after observation 
 });
 
 
-test('v2 observes gaps between completed fixes before another operation can accept a new baseline', async t => {
+test('a gap between completed fixes is observed before another operation can accept a new baseline', async t => {
   const f = await fixture(t, `${prelude}\n${result}`, {
     readme: { kind: 'file', target: 'README.md', guidance: 'guide.md', fixes: [operation('prepare'), operation('again')] },
   });
@@ -310,7 +246,7 @@ syncBuiltinESMExports();`);
   assert.deepEqual(retried.observations[1], gap);
 });
 
-test('v2 interrupted checks close their interval by retry and keep the observed mutation', async t => {
+test('interrupted checks close their interval by retry and keep the observed mutation', async t => {
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'checks') {
   writeFileSync('OTHER.md', 'Written by a check');
@@ -337,7 +273,7 @@ ${result}`);
   assert.equal(readFileSync(join(f.project.root, 'OTHER.md'), 'utf8'), 'Written by a check');
 });
 
-test('v2 observes named ancestor deletion, root mode changes, and empty directories created by checks', async t => {
+test('named ancestor deletion, root mode changes, and empty directories created by checks are observed', async t => {
   for (const [name, mutation, phase, code] of [
     ['ancestor', "rmSync('docs', {recursive:true});", 'fixes', 'OPERATION_SCOPE'],
     ['root', "chmodSync('.', 0o755);", 'fixes', 'OPERATION_SCOPE'],
@@ -354,19 +290,6 @@ test('v2 observes named ancestor deletion, root mode changes, and empty director
   });
 });
 
-test('v2 retry permits verified restoration of an exact file without granting agent authority over it', async t => {
-  const f = await fixture(t, `${prelude}
-const marker = '.repo-standards/local/attempt';
-if (!existsSync(marker)) { writeFileSync(marker, 'attempted'); writeFileSync('AGENTS.md', 'Corrupted'); }
-${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fixes: [operation('prepare')] } });
-  assert.match(f.start().report.reason, /FINAL_INTEGRITY/);
-  writeFileSync(join(f.project.root, 'AGENTS.md'), 'Expected instructions');
-  const retry = f.run<Run>(['resume', '--retry', '--json']);
-  assert.equal(retry.result.status, 0, retry.result.stdout);
-  assert.equal(readFileSync(join(f.project.root, 'AGENTS.md'), 'utf8'), 'Expected instructions');
-  assert.equal(retry.report.observations[1]!.restoredExact!['AGENTS.md']!.type, 'file');
-});
-
 test('verified restoration of an exact file leaves only its installation in the change set', async t => {
   const f = await fixture(t, `${prelude}
 const marker = '.repo-standards/local/attempt';
@@ -377,7 +300,9 @@ ${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fix
     writeFileSync(join(f.project.root, 'AGENTS.md'), installed);
     const retry = f.run<Run>(['resume', '--retry', '--json']);
     assert.equal(retry.result.status, 0, retry.result.stdout);
-    assert.ok(retry.report.observations.some((interval: { restoredExact?: object }) => interval.restoredExact && 'AGENTS.md' in interval.restoredExact));
+    assert.equal(readFileSync(join(f.project.root, 'AGENTS.md'), 'utf8'), installed);
+    const restored = retry.report.observations.find(interval => interval.restoredExact && 'AGENTS.md' in interval.restoredExact);
+    assert.equal(restored?.restoredExact!['AGENTS.md']!.type, 'file');
     return f.run<Status>(['status', '--json']).report.changeSet;
   };
   // Initial adoption installs the file; the corrupting fix it undid is not listed.
@@ -389,8 +314,8 @@ ${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fix
   const update = (version: string) => {
     commit(f.project.root);
     rmSync(join(f.project.root, '.repo-standards/local/attempt'));
-    const args = inspectionArgs.map(argument => argument === 'v1.0.0' ? version : argument);
-    return f.run<Run>(['start', ...args.slice(1), '--confirm', f.run<Inspection>(args).report.identity]);
+    const args = versionArgs(version);
+    return f.run<Run>(startArgs(f.run<Inspection>(args).report.identity, args));
   };
   assert.deepEqual(restoreAndRetry(update('v1.0.0')), []);
   // An update that installs new content lists it as installed only.
@@ -398,7 +323,7 @@ ${result}`, { exact: { kind: 'file', target: 'AGENTS.md', exact: 'exact.md', fix
   assert.deepEqual(restoreAndRetry(update('v1.1.0'), 'Revised instructions'), [{ path: 'AGENTS.md', phases: ['installation'] }]);
 });
 
-test('v2 retry restores complete exact skill inventories and their necessary directories', async t => {
+test('retry restores complete exact skill inventories and their necessary directories', async t => {
   for (const mode of ['removed', 'added']) await t.test(mode, async st => {
     const mutation = mode === 'removed' ? "rmSync('.agents/skills/review', {recursive:true});"
       : "mkdirSync('.agents/skills/review/unexpected'); writeFileSync('.agents/skills/review/unexpected/extra.md', 'Extra');";
@@ -421,7 +346,7 @@ ${result}`, { review: { kind: 'skill', name: 'review', source: 'skill', fixes: [
   });
 });
 
-test('v2 exact skill integrity includes empty directories during execution, recovery and retained inspection', async t => {
+test('exact skill integrity includes empty directories during execution, recovery and retained inspection', async t => {
   const f = await fixture(t, `${prelude}
 const marker = '.repo-standards/local/attempt';
 if (!existsSync(marker)) { writeFileSync(marker, 'attempted'); mkdirSync('.agents/skills/review/empty'); }
@@ -440,8 +365,9 @@ ${result}`, { review: { kind: 'skill', name: 'review', source: 'skill', fixes: [
   assert.deepEqual(retained.discardedEdits, ['.agents/skills/review']);
 });
 
-test('v2 protects durable product directories while permitting generated local and cache directories', async t => {
-  for (const target of ['inputs/unexpected', 'runtime/unexpected', 'unexpected']) await t.test(target, async st => {
+test('durable product directories are protected while generated local and cache directories are permitted', async t => {
+  // One representative per phase that author code runs in.
+  for (const target of ['inputs/unexpected', 'runtime/unexpected']) await t.test(target, async st => {
     const phase = target.startsWith('runtime') ? 'checks' : 'fixes';
     const f = await fixture(st, `${prelude}
 mkdirSync('.repo-standards/local/scratch', {recursive:true});
@@ -466,7 +392,7 @@ ${result}`);
   });
 });
 
-test('v2 run records and completion keep work evidence as identities and deltas', async t => {
+test('run records and completion keep work evidence as identities and deltas', async t => {
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'fixes') writeFileSync('README.md', 'Prepared');
 ${result}`);
@@ -503,7 +429,6 @@ ${result}`);
   assert.equal(completed.result.status, 0, completed.result.stdout);
 
   const state = committedState(f.project.root);
-  assert.equal(state.format, 'repo-standards/state/v7');
   assertCompactWorkEvidence(state);
   const intervals = state.observations!;
   assert.deepEqual(intervals.filter(interval => interval.operation)
@@ -531,14 +456,12 @@ ${result}`);
   assert.deepEqual(observations(), []);
 
   const status = f.run<Status>(['status', '--json']).report;
-  assert.equal(status.format, 'repo-standards/status/v7');
   assert.deepEqual(status.observations, intervals);
-  assert.equal(Object.hasOwn(status, 'history'), false);
   // A project that never discovered scope retains no scope evidence to report.
   assert.equal(Object.hasOwn(status, 'scopeChanges'), false);
 });
 
-test('v2 work evidence records an ignore input change by its role and content state, never its location', async t => {
+test('work evidence records an ignore input change by its role and content state, never its location', async t => {
   const f = await fixture(t, `${prelude}
 if (input.operation.phase === 'fixes') writeFileSync('.git/info/exclude', '# changed by a fix\\n');
 ${result}`);

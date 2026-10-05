@@ -273,7 +273,7 @@ capture author acceptance of any deferred verification.
 These are direct public-protocol exercises, not adoption: no repository
 provisioning, commits, publication, or `inspect`/`start`/`resume` in the authoring
 workspace. Reuse `test/source-validation.test.ts`, `test/execution.test.ts`, and
-`test/author-workflow.test.ts` separately for installed-CLI read-only validation,
+`test/examples.test.ts` separately for installed-CLI read-only validation,
 resource/literal/scope/exclusion enforcement, and author-operation integration.
 Do not create a local-directory adoption interface for acceptance convenience.
 

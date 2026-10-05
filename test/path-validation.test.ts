@@ -91,39 +91,37 @@ test('unreadable selected files are reported for every reference kind', (t) => {
 });
 
 test('all file and repository guidance forms reject system-skill targets, their links, and overlapping paths', async t => {
-  for (const name of ['adopt-standards', 'standards-updates', 'author-standards']) {
-    for (const target of [
-      `.agents/skills/${name}`, '.agents', '.agents/skills',
-      `.agents/skills/${name}/SKILL.md`,
-      `.AGENTS/SKILLS/${name.toUpperCase()}/SKILL.md`,
-      `.agents/ſkills/${name}/cafe\u0301.md`,
-      `.claude/skills/${name}`, '.claude', '.claude/skills',
-      `.claude/skills/${name}/SKILL.md`,
-      `.CLAUDE/SKILLS/${name.toUpperCase()}`,
-    ]) {
-      for (const form of ['exact', 'contextual', 'paths', 'directories']) {
-        await t.test(`${form}: ${target}`, st => {
-          const file = form === 'exact' || form === 'contextual';
-          const declaration = file
-            ? `      kind: file\n      target: ${JSON.stringify(target)}\n      ${form === 'exact' ? 'exact' : 'guidance'}: content.md\n`
-            : `      kind: repository\n      guidance: content.md\n      targets:\n        paths: ${form === 'paths' ? `[${JSON.stringify(target)}]` : '[]'}\n        directories: ${form === 'directories' ? `[${JSON.stringify(target)}]` : '[]'}\n`;
-          const source = sourceFixture(header + 'defaults:\n  declarations:\n    competing:\n' + declaration + profile,
-            { 'content.md': 'Standards material' });
-          st.after(() => source.close());
-          const result = cli.run(['source', 'validate', '--json'], source.root);
-          assert.equal(result.status, 1, result.stdout + result.stderr);
-          const report = (JSON.parse(result.stdout) as SourceValidation);
-          assert.deepEqual(report.profiles, {});
-          assert.deepEqual(report.errors, [{
-            code: 'RESERVED_TARGET',
-            message: 'Target overlaps product-owned state, a system skill or its link, or Git metadata.',
-            file: join(source.root, 'standards.yaml'),
-            line: file ? 9 : form === 'paths' ? 11 : 12,
-            column: file ? 15 : form === 'paths' ? 17 : 23,
-            path: `/defaults/declarations/competing/${file ? 'target' : `targets/${form}/0`}`,
-          }]);
-        });
-      }
+  // Each system skill's own paths, the ancestors they share once, and the
+  // case-folded and Unicode-normalized variants for one name.
+  const targets = [
+    ...['adopt-standards', 'standards-updates', 'author-standards'].flatMap(name => [`.agents/skills/${name}`, `.agents/skills/${name}/SKILL.md`,
+      `.claude/skills/${name}`, `.claude/skills/${name}/SKILL.md`]),
+    '.agents', '.agents/skills', '.claude', '.claude/skills',
+    '.AGENTS/SKILLS/ADOPT-STANDARDS/SKILL.md', '.agents/ſkills/adopt-standards/cafe\u0301.md', '.CLAUDE/SKILLS/ADOPT-STANDARDS',
+  ];
+  for (const target of targets) {
+    for (const form of ['exact', 'contextual', 'paths', 'directories']) {
+      await t.test(`${form}: ${target}`, st => {
+        const file = form === 'exact' || form === 'contextual';
+        const declaration = file
+          ? `      kind: file\n      target: ${JSON.stringify(target)}\n      ${form === 'exact' ? 'exact' : 'guidance'}: content.md\n`
+          : `      kind: repository\n      guidance: content.md\n      targets:\n        paths: ${form === 'paths' ? `[${JSON.stringify(target)}]` : '[]'}\n        directories: ${form === 'directories' ? `[${JSON.stringify(target)}]` : '[]'}\n`;
+        const source = sourceFixture(header + 'defaults:\n  declarations:\n    competing:\n' + declaration + profile,
+          { 'content.md': 'Standards material' });
+        st.after(() => source.close());
+        const result = cli.run(['source', 'validate', '--json'], source.root);
+        assert.equal(result.status, 1, result.stdout + result.stderr);
+        const report = (JSON.parse(result.stdout) as SourceValidation);
+        assert.deepEqual(report.profiles, {});
+        assert.deepEqual(report.errors, [{
+          code: 'RESERVED_TARGET',
+          message: 'Target overlaps product-owned state, a system skill or its link, or Git metadata.',
+          file: join(source.root, 'standards.yaml'),
+          line: file ? 9 : form === 'paths' ? 11 : 12,
+          column: file ? 15 : form === 'paths' ? 17 : 23,
+          path: `/defaults/declarations/competing/${file ? 'target' : `targets/${form}/0`}`,
+        }]);
+      });
     }
   }
 });

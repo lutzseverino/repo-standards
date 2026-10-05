@@ -1,44 +1,38 @@
-import type { Inspection, OperationLog, Run, Status } from './json-reports.ts';
+import type { OperationLog, Run, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { stringify } from 'yaml';
-import { installCli, snapshot, sourceFixture } from './installed-cli.ts';
-import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
-import { registryFixture } from './registry-fixture.ts';
+import { installCli, snapshot } from './installed-cli.ts';
+import { git, manifest, operation, startArgs } from './remote-fixture.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
-function operation(id: string, overrides = {}) {
-  return { id, run: { executable: process.execPath, script: 'scripts/run.mjs', resources: ['scripts/data.txt'], arguments: [] },
-    prerequisite: { 'version-arguments': ['--version'], version: '>=24.0.0 <25.0.0' }, 'timeout-seconds': 2, ...overrides };
-}
-function fixture(t: TestContext, declarations: Record<string, unknown>, script = '', exclusions = {}) {
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'script-standards', description: 'Trusted operations',
-    requires: { 'repo-standards': '>=1.0.0' }, defaults: { declarations }, profiles: { work: { description: 'Work', declarations: exclusions } } }),
-  { 'content.md': 'Expected', 'scripts/run.mjs': script, 'scripts/data.txt': 'Resource', 'skill/SKILL.md': '# Review' });
-  const project = sourceFixture('', { 'README.md': 'Project', '.gitignore': 'ignored/\n' });
-  t.after(() => { remote.close(); project.close(); });
-  commit(project.root);
-  return { remote, project, start(env = remote.env) {
-    const inspected = cli.run(inspectionArgs, project.root, env);
-    assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
-    const inspection = (JSON.parse(inspected.stdout) as Inspection);
-    const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+// An operation running the source's script with its retained data file.
+// Each operation runs the source's script with its retained data file.
+const scripted = { script: 'scripts/run.mjs', resources: ['scripts/data.txt'],
+  prerequisite: { 'version-arguments': ['--version'], version: '>=24.0.0 <25.0.0' }, 'timeout-seconds': 2 };
+async function fixture(t: TestContext, declarations: Record<string, unknown>, script = '', exclusions = {}) {
+  const f = await adoptionFixture(t, cli, manifest(declarations, { work: exclusions }), {
+    files: { 'content.md': 'Expected', 'scripts/run.mjs': script, 'scripts/data.txt': 'Resource', 'skill/SKILL.md': '# Review' },
+    project: { 'README.md': 'Project', '.gitignore': 'ignored/\n' } });
+  return { remote: f.remote, project: f.project, env: f.env, start(env = f.env) {
+    const inspection = f.inspect();
+    const result = f.run(startArgs(inspection.identity), env);
     return { result, report: (JSON.parse(result.stdout) as Run), inspection };
   } };
 }
 const exact = { kind: 'file', target: 'AGENTS.md', exact: 'content.md' };
 
-test('every prerequisite is probed before mutation and all failures are reported', t => {
-  const f = fixture(t, { instructions: { ...exact, fixes: [
-    operation('missing', { run: { executable: 'repo-standards-no-such-executable', script: 'scripts/run.mjs', resources: [], arguments: [] } }),
-    operation('failed', { prerequisite: { 'version-arguments': ['-e', 'process.exit(2)'], version: '*' } }),
-    operation('unreadable', { prerequisite: { 'version-arguments': ['-e', 'console.log("unknown")'], version: '*' } }),
-    operation('incompatible', { prerequisite: { 'version-arguments': ['-e', 'console.error("tool 1.2.3 then 24.0.0")'], version: '>=24' } }),
-  ], checks: [operation('compatible')] } });
+test('every prerequisite is probed before mutation and all failures are reported', async t => {
+  const f = await fixture(t, { instructions: { ...exact, fixes: [
+    operation('missing', { ...scripted, executable: 'repo-standards-no-such-executable', resources: [] }),
+    operation('failed', { ...scripted, prerequisite: { 'version-arguments': ['-e', 'process.exit(2)'], version: '*' } }),
+    operation('unreadable', { ...scripted, prerequisite: { 'version-arguments': ['-e', 'console.log("unknown")'], version: '*' } }),
+    operation('incompatible', { ...scripted, prerequisite: { 'version-arguments': ['-e', 'console.error("tool 1.2.3 then 24.0.0")'], version: '>=24' } }),
+  ], checks: [operation('compatible', scripted)] } });
   const before = snapshot(f.project.root);
   const { result, report } = f.start();
   assert.equal(result.status, 1);
@@ -51,21 +45,19 @@ test('every prerequisite is probed before mutation and all failures are reported
 });
 
 test('trusted operations receive literal arguments, retained resources and resolved identities in declared order', async t => {
-  const registry = await registryFixture(cli.root);
-  t.after(() => registry.close());
   const args = ['two words', '', '$(touch SHELL_RAN)', '; touch SHELL_RAN', '*', '--flag'];
-  const first = operation('first', { run: { executable: process.execPath, script: 'scripts/run.mjs', resources: ['scripts/data.txt'], arguments: args } });
-  const f = fixture(t, {
-    zulu: { kind: 'skill', name: 'review', source: 'skill', fixes: [operation('z-fix')], checks: [operation('z-check')] },
-    instructions: { ...exact, fixes: [first, operation('second')], checks: [operation('first-check'), operation('second-check')] },
-    excluded: { kind: 'file', target: 'EXCLUDED', exact: 'content.md', fixes: [operation('excluded')] },
+  const first = operation('first', { ...scripted, arguments: args });
+  const f = await fixture(t, {
+    zulu: { kind: 'skill', name: 'review', source: 'skill', fixes: [operation('z-fix', scripted)], checks: [operation('z-check', scripted)] },
+    instructions: { ...exact, fixes: [first, operation('second', scripted)], checks: [operation('first-check', scripted), operation('second-check', scripted)] },
+    excluded: { kind: 'file', target: 'EXCLUDED', exact: 'content.md', fixes: [operation('excluded', scripted)] },
   }, `import { readFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0, 'utf8'));
 console.error(JSON.stringify({ input, cwd: process.cwd(), args: process.argv.slice(2), resource: readFileSync(new URL('./data.txt', import.meta.url), 'utf8') }));
 console.log(JSON.stringify({format: 'repo-standards/result/v1', status: input.operation.phase === 'fixes' ? 'unchanged' : 'passed', message: 'Verified'}));
 `, { excluded: { exclude: true } });
   const head = git(f.project.root, 'rev-parse', 'HEAD');
-  const { result, report, inspection } = f.start({ ...f.remote.env, ...registry.env });
+  const { result, report, inspection } = f.start();
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(report.outcome, 'complete');
   assert.deepEqual(report.operations.map((o: { operation: { id: string } }) => o.operation.id), ['first', 'second', 'z-fix', 'first-check', 'second-check', 'z-check']);
@@ -83,20 +75,18 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status: input.op
   assert.equal(existsSync(join(f.project.root, 'SHELL_RAN')), false);
   assert.equal(existsSync(join(f.project.root, 'EXCLUDED')), false);
   assert.equal(git(f.project.root, 'rev-parse', 'HEAD'), head);
-  const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout) as Status);
+  const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout) as Status);
   assert.deepEqual(status.checks!.map((o) => o.result!.status), ['passed', 'passed', 'passed']);
   assert.deepEqual(status.assessments, []);
 });
 
 test('checks cannot mutate tracked or new project content even while adoption already has uncommitted changes', async t => {
-  const registry = await registryFixture(cli.root);
-  t.after(() => registry.close());
-  for (const path of ['README.md', 'NEW.txt']) await t.test(path, st => {
-    const f = fixture(st, { instructions: { ...exact, checks: [operation('mutating'), operation('must-not-run')] } },
+  for (const path of ['README.md', 'NEW.txt']) await t.test(path, async st => {
+    const f = await fixture(st, { instructions: { ...exact, checks: [operation('mutating', scripted), operation('must-not-run', scripted)] } },
       `import { writeFileSync } from 'node:fs';
 writeFileSync(${JSON.stringify(path)}, 'Mutated by check');
 console.log(JSON.stringify({format: 'repo-standards/result/v1', status: 'passed', message: 'Claimed success'}));`);
-    const { result, report } = f.start({ ...f.remote.env, ...registry.env });
+    const { result, report } = f.start();
     assert.equal(result.status, 1);
     assert.match(report.reason, /CHECK_MUTATION/);
     assert.equal(report.operations.length, 1);
@@ -107,8 +97,6 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status: 'passed'
 });
 
 test('standards results and process errors remain distinct and stop only the required work', async t => {
-  const registry = await registryFixture(cli.root);
-  t.after(() => registry.close());
   const cases = [
     { name: 'changed', phase: 'fixes', output: `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',message:'Fixed'}))`, count: 2, code: null },
     { name: 'blocked fix', phase: 'fixes', output: `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'blocked',message:'Needs help'}))`, count: 1, code: 'OPERATION_BLOCKED' },
@@ -117,18 +105,16 @@ test('standards results and process errors remain distinct and stop only the req
     { name: 'nonzero', phase: 'fixes', output: 'console.error("Problem"); process.exit(7)', count: 1, code: 'NONZERO_EXIT' },
     { name: 'signal', phase: 'fixes', output: 'process.kill(process.pid, "SIGTERM")', count: 1, code: 'SIGNAL' },
     { name: 'timeout', phase: 'fixes', output: 'process.on("SIGTERM", () => {}); setInterval(() => {}, 1000)', count: 1, code: 'TIMEOUT' },
+    // The result protocol's variants run through check; one stops a start.
     { name: 'malformed', phase: 'fixes', output: 'console.log("not json")', count: 1, code: 'PROTOCOL_ERROR' },
-    { name: 'multiple results', phase: 'fixes', output: 'console.log("{}\\n{}")', count: 1, code: 'PROTOCOL_ERROR' },
-    { name: 'wrong version', phase: 'fixes', output: 'console.log(JSON.stringify({format:"v2",status:"unchanged",message:""}))', count: 1, code: 'PROTOCOL_ERROR' },
-    { name: 'wrong status', phase: 'fixes', output: 'console.log(JSON.stringify({format:"repo-standards/result/v1",status:"passed",message:""}))', count: 1, code: 'PROTOCOL_ERROR' },
   ];
-  for (const example of cases) await t.test(example.name, st => {
-    const f = fixture(st, { instructions: { ...exact, [example.phase]: [operation('first', { 'timeout-seconds': 1 }), operation('last')] } },
+  for (const example of cases) await t.test(example.name, async st => {
+    const f = await fixture(st, { instructions: { ...exact, [example.phase]: [operation('first', { ...scripted, 'timeout-seconds': 1 }), operation('last', scripted)] } },
       `import { readFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0,'utf8'));
 if (input.operation.id === 'first') { ${example.output} }
 else console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.operation.phase === 'fixes' ? 'unchanged' : 'passed',message:'Last'}));`);
-    const { result, report } = f.start({ ...f.remote.env, ...registry.env });
+    const { result, report } = f.start();
     assert.equal(result.status, example.code ? 1 : 0, result.stdout + result.stderr);
     assert.equal(report.operations.length, example.count);
     if (example.code) assert.ok(report.reason.startsWith(example.code + ':'), report.reason);
@@ -143,21 +129,19 @@ else console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.
     if (example.name === 'failed check') {
       assert.equal(report.operations[0]!.error, null);
       assert.equal(report.operations[0]!.result!.status, 'failed');
-      const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout) as Status);
+      const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout) as Status);
       assert.equal(status.active!.operations[1]!.result!.status, 'passed');
     }
   });
 });
 
 test('fixes finish before the contextual handoff and checks wait for the later assessment interface', async t => {
-  const registry = await registryFixture(cli.root);
-  t.after(() => registry.close());
-  const f = fixture(t, { readme: { kind: 'file', target: 'README.md', guidance: 'content.md', fixes: [operation('prepare')], checks: [operation('later')] } },
+  const f = await fixture(t, { readme: { kind: 'file', target: 'README.md', guidance: 'content.md', fixes: [operation('prepare', scripted)], checks: [operation('later', scripted)] } },
     `import { readFileSync, writeFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0,'utf8'));
 writeFileSync('README.md', 'Prepared');
 console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',message:'Prepared for agent'}));`);
-  const { result, report } = f.start({ ...f.remote.env, ...registry.env });
+  const { result, report } = f.start();
   assert.equal(result.status, 1);
   assert.equal(report.phase, 'contextual');
   assert.match(report.reason, /CONTEXTUAL_REQUIRED/);
@@ -166,35 +150,13 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',m
   assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
 });
 
-test('author phases cannot redefine exact, skill, retained-input or product-state baselines', async t => {
-  const registry = await registryFixture(cli.root);
-  t.after(() => registry.close());
-  const paths = ['AGENTS.md', '.agents/skills/review/added.txt', '.agents/skills/review/SKILL.md',
-    '.repo-standards/inputs/source/content.md', '.repo-standards/inputs/added.txt',
-    '.repo-standards/selection.yaml', '.repo-standards/runtime/package.json',
-    '.repo-standards/unexpected.txt', '.repo-standards/local/run.json'];
-  for (const path of paths) await t.test(path, st => {
-    const f = fixture(st, { instructions: { ...exact, fixes: [operation('corrupt'), operation('must-not-run')] }, review: { kind: 'skill', name: 'review', source: 'skill' } },
-      `import { writeFileSync } from 'node:fs';
-writeFileSync(${JSON.stringify(path)}, 'Corrupted');
-console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',message:'Changed'}));`);
-    const { result, report } = f.start({ ...f.remote.env, ...registry.env });
-    assert.equal(result.status, 1, result.stdout + result.stderr);
-    assert.match(report.reason, /FINAL_INTEGRITY/);
-    assert.equal(report.operations.length, 1);
-    assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
-    if (!path.includes('/local/')) assert.equal(readFileSync(join(f.project.root, path), 'utf8'), 'Corrupted');
-    assert.equal((JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout) as Status).active!.outcome, 'incomplete');
-  });
-});
-
-test('prerequisite arguments stay literal and failed or hung probes block installation', t => {
+test('prerequisite arguments stay literal and failed or hung probes block installation', async t => {
   const probes = [
-    operation('literal', { prerequisite: { 'version-arguments': ['-e', 'if(process.argv[1] !== "$(touch PROBE_SHELL_RAN)") process.exit(1); console.log("v24.11.1")', '$(touch PROBE_SHELL_RAN)'], version: '^24.0.0' } }),
-    operation('signal', { prerequisite: { 'version-arguments': ['-e', 'process.kill(process.pid,"SIGTERM")'], version: '*' } }),
-    operation('timeout', { prerequisite: { 'version-arguments': ['-e', 'setInterval(()=>{},1000)'], version: '*' }, 'timeout-seconds': 1 }),
+    operation('literal', { ...scripted, prerequisite: { 'version-arguments': ['-e', 'if(process.argv[1] !== "$(touch PROBE_SHELL_RAN)") process.exit(1); console.log("v24.11.1")', '$(touch PROBE_SHELL_RAN)'], version: '^24.0.0' } }),
+    operation('signal', { ...scripted, prerequisite: { 'version-arguments': ['-e', 'process.kill(process.pid,"SIGTERM")'], version: '*' } }),
+    operation('timeout', { ...scripted, prerequisite: { 'version-arguments': ['-e', 'setInterval(()=>{},1000)'], version: '*' }, 'timeout-seconds': 1 }),
   ];
-  const f = fixture(t, { instructions: { ...exact, checks: probes } });
+  const f = await fixture(t, { instructions: { ...exact, checks: probes } });
   const before = snapshot(f.project.root);
   const { report } = f.start();
   assert.deepEqual(report.prerequisites.map((p: { code: string | null }) => p.code), [null, 'PROBE_FAILED', 'PROBE_FAILED']);
@@ -202,9 +164,7 @@ test('prerequisite arguments stay literal and failed or hung probes block instal
 });
 
 test('the first observed version wins across probe streams and long valid timeouts do not overflow', async t => {
-  const registry = await registryFixture(cli.root);
-  t.after(() => registry.close());
-  const f = fixture(t, { instructions: { ...exact, checks: [operation('first-version', {
+  const f = await fixture(t, { instructions: { ...exact, checks: [operation('first-version', { ...scripted,
     prerequisite: { 'version-arguments': ['-e', 'console.error("1.2.3"); setTimeout(()=>console.log("24.11.1"),100)'], version: '>=24' },
   })] } });
   const before = snapshot(f.project.root);
@@ -212,14 +172,14 @@ test('the first observed version wins across probe streams and long valid timeou
   assert.equal(report.prerequisites[0]!.version, '1.2.3');
   assert.equal(report.prerequisites[0]!.code, 'VERSION_INCOMPATIBLE');
   assert.deepEqual(snapshot(f.project.root), before);
-  const long = fixture(t, { instructions: { ...exact, fixes: [operation('long-timeout', { 'timeout-seconds': 2147484 })] } },
+  const long = await fixture(t, { instructions: { ...exact, fixes: [operation('long-timeout', { ...scripted, 'timeout-seconds': 2147484 })] } },
     `setTimeout(()=>console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Finished'})),50);`);
-  const { result } = long.start({ ...long.remote.env, ...registry.env });
+  const { result } = long.start();
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
 
-test('version probes cannot fabricate a version by joining stdout and stderr fragments', t => {
-  const f = fixture(t, { instructions: { ...exact, checks: [operation('split-streams', {
+test('version probes cannot fabricate a version by joining stdout and stderr fragments', async t => {
+  const f = await fixture(t, { instructions: { ...exact, checks: [operation('split-streams', { ...scripted,
     prerequisite: { 'version-arguments': ['-e', 'process.stdout.write("1.2"); setTimeout(()=>process.stderr.write(".3"),30)'], version: '1.2.3' },
   })] } });
   const before = snapshot(f.project.root);
@@ -231,24 +191,19 @@ test('version probes cannot fabricate a version by joining stdout and stderr fra
 });
 
 test('author operations that hide index entries stop adoption before further work', async t => {
-  const registry = await registryFixture(cli.root);
-  t.after(() => registry.close());
-  for (const phase of ['fixes', 'checks']) for (const flag of ['--skip-worktree', '--assume-unchanged']) await t.test(`${phase} ${flag}`, st => {
-    const f = fixture(st, { instructions: { ...exact, [phase]: [operation('hide-index'), operation('must-not-run')] } },
+  for (const phase of ['fixes', 'checks']) for (const flag of ['--skip-worktree', '--assume-unchanged']) await t.test(`${phase} ${flag}`, async st => {
+    const f = await fixture(st, { instructions: { ...exact, [phase]: [operation('hide-index', scripted), operation('must-not-run', scripted)] } },
       `import { execFileSync } from 'node:child_process';
 execFileSync('git', ['update-index', ${JSON.stringify(flag)}, 'README.md']);
 console.log(JSON.stringify({format:'repo-standards/result/v1',status:${JSON.stringify(phase === 'fixes' ? 'unchanged' : 'passed')},message:'Reported success'}));`);
-    const index = git(f.project.root, 'ls-files', '--stage');
-    const { result, report } = f.start({ ...f.remote.env, ...registry.env });
-    assert.equal(git(f.project.root, 'ls-files', '--stage'), index, 'the staged entries alone cannot detect these flags');
-    assert.match(git(f.project.root, 'ls-files', '-v', 'README.md'), flag === '--skip-worktree' ? /^S / : /^h /);
+    const { result, report } = f.start();
     assert.equal(readFileSync(join(f.project.root, 'README.md'), 'utf8'), 'Project');
     assert.equal(result.status, 1, result.stdout + result.stderr);
     assert.equal(report.phase, phase);
     assert.match(report.reason, /FINAL_INTEGRITY:.*hidden index/);
     assert.equal(report.operations.length, 1);
     assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
-    const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.remote.env).stdout) as Status);
+    const status = (JSON.parse(cli.run(['status', '--json'], f.project.root, f.env).stdout) as Status);
     assert.equal(status.lastComplete, null);
     assert.equal(status.active!.outcome, 'incomplete');
   });

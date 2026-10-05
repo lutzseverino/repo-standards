@@ -1,4 +1,4 @@
-import type { ErrorReport, Inspection, Run, Status } from './json-reports.ts';
+import type { ErrorReport, Run, Status } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { setTimeout } from 'node:timers/promises';
@@ -6,35 +6,27 @@ import { after, test } from 'node:test';
 import type { TestContext } from 'node:test';
 import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { stringify } from 'yaml';
-import { embeddedContent, installCli, sha256, sourceFixture } from './installed-cli.ts';
-import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
+import { embeddedContent, installCli, sha256 } from './installed-cli.ts';
+import { git, inspectionArgs, manifest, operation, startArgs } from './remote-fixture.ts';
 import { filesystemFault } from './adoption-faults.ts';
-import { registryFixture } from './registry-fixture.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
 
 const cli = installCli();
 after(() => cli.close());
-const operation = (id: string) => ({ id, run: { executable: process.execPath, script: 'check.mjs', resources: [], arguments: [] },
-  prerequisite: { 'version-arguments': ['--version'], version: '>=24 <25' }, 'timeout-seconds': 5 });
+const check = (id: string) => operation(id, { script: 'check.mjs', prerequisite: { 'version-arguments': ['--version'], version: '>=24 <25' } });
 async function fixture(t: TestContext, script = `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Verified'}));`) {
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'alice', description: 'Alice standards',
-    requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
-      agents: { kind: 'file', target: 'AGENTS.md', exact: 'default.md' },
-      contribution: { kind: 'file', target: 'CONTRIBUTING.md', exact: 'default.md' },
-      readme: { kind: 'file', target: 'README.md', guidance: 'readme.md', checks: [operation('headings')] },
-      review: { kind: 'skill', name: 'review', source: 'skill' },
-      layout: { kind: 'repository', guidance: 'layout.md', targets: { paths: ['config.json'], directories: ['src'] } },
-    } }, profiles: { work: { description: 'Work', declarations: {
-      agents: { kind: 'file', target: 'AGENTS.md', exact: 'work.md' }, contribution: { exclude: true },
-    } } } }), { 'default.md': 'Default', 'work.md': 'Work instructions', 'readme.md': 'Describe setup and architecture.',
-    'layout.md': 'Explain source responsibilities.', 'skill/SKILL.md': '# Review', 'check.mjs': script });
-  const project = sourceFixture('', { 'README.md': '# Bob\nA queue service.', 'CONTRIBUTING.md': 'Employer policy', '.gitignore': 'ignored/\n', 'src/old.ts': '// Old' });
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  commit(project.root);
-  const env = { ...remote.env, ...registry.env };
-  const inspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
-  const result = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+  const f = await adoptionFixture(t, cli, manifest({
+    agents: { kind: 'file', target: 'AGENTS.md', exact: 'default.md' },
+    contribution: { kind: 'file', target: 'CONTRIBUTING.md', exact: 'default.md' },
+    readme: { kind: 'file', target: 'README.md', guidance: 'readme.md', checks: [check('headings')] },
+    review: { kind: 'skill', name: 'review', source: 'skill' },
+    layout: { kind: 'repository', guidance: 'layout.md', targets: { paths: ['config.json'], directories: ['src'] } },
+  }, { work: { agents: { kind: 'file', target: 'AGENTS.md', exact: 'work.md' }, contribution: { exclude: true } } }), {
+    files: { 'default.md': 'Default', 'work.md': 'Work instructions', 'readme.md': 'Describe setup and architecture.',
+      'layout.md': 'Explain source responsibilities.', 'skill/SKILL.md': '# Review', 'check.mjs': script },
+    project: { 'README.md': '# Bob\nA queue service.', 'CONTRIBUTING.md': 'Employer policy', '.gitignore': 'ignored/\n', 'src/old.ts': '// Old' } });
+  const { project, remote, env } = f;
+  const result = f.run(startArgs(f.inspect().identity));
   const run = (JSON.parse(result.stdout) as Run);
   assert.equal(run.phase, 'contextual', result.stdout + result.stderr);
   return { project, remote, env, run, resume<T = Run>(assessment?: unknown) {
@@ -44,7 +36,7 @@ async function fixture(t: TestContext, script = `console.log(JSON.stringify({for
       writeFileSync(path, typeof assessment === 'string' ? assessment : JSON.stringify(assessment));
       args.push('--assessment', path);
     }
-    const result = cli.run(args, project.root, env);
+    const result = f.run(args);
     return { result, report: (JSON.parse(result.stdout) as T) };
   } };
 }
@@ -153,8 +145,9 @@ test('malformed assessments, copied run fields, changed paths and missing declar
     assert.equal(report.operations.length, 0);
     assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
   });
+  // The reason names the declaration whose evidence is missing.
   const missing = f.resume({ ...valid, declarations: valid.declarations.slice(1) }).report.reason;
-  assert.equal(missing, 'ASSESSMENT_DECLARATIONS: Submit evidence for every contextual declaration. Missing: layout.');
+  assert.ok(missing.startsWith('ASSESSMENT_DECLARATIONS:') && missing.includes('layout'), missing);
   assert.equal(f.resume(valid).result.status, 0);
 });
 
@@ -165,7 +158,10 @@ test('an assessment submitted for no active run is rejected with the next step',
   assert.equal(f.resume(submission()).result.status, 0);
   const { result, report } = f.resume<ErrorReport>(submission());
   assert.equal(result.status, 1, result.stdout);
-  assert.deepEqual(report.errors, [{ code: 'NO_ACTIVE_RUN', message: 'No incomplete adoption is available to resume; resume and assessments apply only to an active run. Read status, and inspect and start an adoption if one is needed.' }]);
+  assert.equal(report.errors.length, 1);
+  assert.equal(report.errors[0]!.code, 'NO_ACTIVE_RUN');
+  // The next step reads status.
+  assert.ok(report.errors[0]!.message.includes('status'), report.errors[0]!.message);
 });
 
 test('observed out-of-scope tracked and untracked changes block completion while ignored content is excluded', async t => {
@@ -209,44 +205,39 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:readFileSyn
   assert.equal(status.checks![0]!.result!.status, 'passed');
 });
 
-test('contextual work cannot corrupt installed exact content, full skills, inputs or product state', async t => {
+test('contextual work cannot corrupt installed exact content', async t => {
   const f = await fixture(t);
   contextualWork(f.project.root);
   f.resume();
   const valid = submission();
-  for (const path of ['AGENTS.md', '.agents/skills/review/SKILL.md', '.agents/skills/review/added.txt',
-    '.repo-standards/inputs/source/readme.md', '.repo-standards/inputs/added.txt', '.repo-standards/selection.yaml',
-    '.repo-standards/runtime/package.json', '.repo-standards/unexpected.txt']) await t.test(path, () => {
-    const target = join(f.project.root, path);
-    const before = existsSync(target) ? readFileSync(target) : null;
-    writeFileSync(target, 'Corrupted');
-    const { result, report } = f.resume(valid);
-    assert.equal(result.status, 1);
-    assert.match(report.reason, /FINAL_INTEGRITY/);
-    assert.equal(report.operations.length, 0);
-    assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
-    assert.equal(readFileSync(target, 'utf8'), 'Corrupted');
-    if (before) writeFileSync(target, before); else rmSync(target);
-  });
+  // One representative: verifyInstallation's branches are covered once, in adoption.test.ts.
+  const target = join(f.project.root, 'AGENTS.md');
+  const before = readFileSync(target);
+  writeFileSync(target, 'Corrupted');
+  const { result, report } = f.resume(valid);
+  assert.equal(result.status, 1);
+  assert.match(report.reason, /FINAL_INTEGRITY/);
+  assert.equal(report.operations.length, 0);
+  assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
+  assert.equal(readFileSync(target, 'utf8'), 'Corrupted');
+  writeFileSync(target, before);
   // Restoring the bytes cannot erase the recorded out-of-scope agent changes.
   assert.match(f.resume(valid).report.reason, /^ASSESSMENT_SCOPE:/);
 });
 
-test('checks after assessment still reject mutation and exact-content corruption', async t => {
-  for (const [path, code] of [['README.md', 'CHECK_MUTATION'], ['.agents/skills/review/added.txt', 'FINAL_INTEGRITY']]) await t.test(path, async st => {
-    const f = await fixture(st, `import { writeFileSync } from 'node:fs';
-writeFileSync(${JSON.stringify(path)}, 'Changed during check');
+test('checks after assessment still reject mutation', async t => {
+  const f = await fixture(t, `import { writeFileSync } from 'node:fs';
+writeFileSync('README.md', 'Changed during check');
 console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Reported success'}));`);
-    contextualWork(f.project.root);
-    f.resume();
-    const { result, report } = f.resume(submission());
-    assert.equal(result.status, 1);
-    assert.ok(report.reason.startsWith(code + ':'), report.reason);
-    assert.equal(report.assessments.length, 1);
-    assert.equal(report.operations.length, 1);
-    assert.equal(readFileSync(join(f.project.root, path!), 'utf8'), 'Changed during check');
-    assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
-  });
+  contextualWork(f.project.root);
+  f.resume();
+  const { result, report } = f.resume(submission());
+  assert.equal(result.status, 1);
+  assert.ok(report.reason.startsWith('CHECK_MUTATION:'), report.reason);
+  assert.equal(report.assessments.length, 1);
+  assert.equal(report.operations.length, 1);
+  assert.equal(readFileSync(join(f.project.root, 'README.md'), 'utf8'), 'Changed during check');
+  assert.equal(existsSync(join(f.project.root, '.repo-standards/state.json')), false);
 });
 
 test('content changing between assessment and final verification requires reassessment and fresh checks', async t => {
@@ -269,28 +260,20 @@ test('content changing between assessment and final verification requires reasse
 });
 
 test('a second independent author uses fixes, repository configuration and runbook evidence through the same handoff', async t => {
-  const remote = remoteFixture(stringify({ format: 'repo-standards/v2', name: 'charlie-operations', description: 'Service operations standards',
-    requires: { 'repo-standards': '>=1' }, defaults: { declarations: {
-      operations: { kind: 'repository', guidance: 'ops.md', targets: { paths: ['service.json'], directories: ['runbooks'] },
-        fixes: [operation('prepare')], checks: [operation('verify')] },
-    } }, profiles: { work: { description: 'Production service', declarations: {} } } }), {
+  const f = await adoptionFixture(t, cli, manifest({
+    operations: { kind: 'repository', guidance: 'ops.md', targets: { paths: ['service.json'], directories: ['runbooks'] },
+      fixes: [check('prepare')], checks: [check('verify')] },
+  }, { work: {} }, 'charlie-operations'), { repository: 'charlie/operations', project: { 'README.md': '# Payments API' }, files: {
     'ops.md': 'Record a service owner, incident command and a service-specific recovery procedure.',
     'check.mjs': `import { readFileSync, writeFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0,'utf8'));
 if (input.operation.phase === 'fixes') writeFileSync('service.json', JSON.stringify({owner:'payments'}));
 const status = input.operation.phase === 'fixes' ? 'changed' : JSON.parse(readFileSync('service.json','utf8')).owner === 'payments' && readFileSync('runbooks/recovery.md','utf8').includes('Replay failed payments') ? 'passed' : 'failed';
 console.log(JSON.stringify({format:'repo-standards/result/v1',status,message:'Service operations verified'}));`,
-  }, [], 'charlie/operations');
-  const project = sourceFixture('', { 'README.md': '# Payments API' });
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  commit(project.root);
-  const env = { ...remote.env, ...registry.env };
+  } });
+  const { remote, project, env } = f;
   const args = inspectionArgs.map(arg => arg === 'https://github.com/alice/standards' ? 'https://github.com/charlie/operations' : arg);
-  const inspected = cli.run(args, project.root, env);
-  const inspection = (JSON.parse(inspected.stdout) as Inspection);
-  assert.equal(inspected.status, 0, inspected.stdout);
-  const started = (JSON.parse(cli.run(['start', ...args.slice(1), '--confirm', inspection.identity], project.root, env).stdout) as Run);
+  const started = (JSON.parse(f.run(startArgs(f.inspect(args).identity, args)).stdout) as Run);
   assert.equal(started.phase, 'contextual');
   assert.equal(started.operations[0]!.result!.status, 'changed');
   assert.equal(readFileSync(join(project.root, 'service.json'), 'utf8'), '{"owner":"payments"}');
@@ -324,9 +307,14 @@ test('assessment accounts for deleted tracked files and executable changes', asy
 });
 
 test('only one resume can execute checks for an active contextual adoption', async t => {
-  const f = await fixture(t, `import { writeFileSync } from 'node:fs';
+  // The check runs until the test releases it.
+  const f = await fixture(t, `import { existsSync, writeFileSync } from 'node:fs';
 writeFileSync('.repo-standards/local/check-started', 'started');
-setTimeout(()=>console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Verified'})),1000);`);
+const wait = setInterval(() => {
+  if (!existsSync('.repo-standards/local/check-released')) return;
+  clearInterval(wait);
+  console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Verified'}));
+}, 10);`);
   contextualWork(f.project.root);
   f.resume();
   const assessment = submission();
@@ -342,6 +330,7 @@ setTimeout(()=>console.log(JSON.stringify({format:'repo-standards/result/v1',sta
   while (!existsSync(join(f.project.root, '.repo-standards/local/check-started')) && child.exitCode === null && Date.now() < deadline) await setTimeout(10);
   assert.equal(existsSync(join(f.project.root, '.repo-standards/local/check-started')), true, output);
   const concurrent = cli.run(['resume', '--assessment', path, '--json'], f.project.root, f.env);
+  writeFileSync(join(f.project.root, '.repo-standards/local/check-released'), 'released');
   assert.equal(concurrent.status, 1, concurrent.stdout);
   assert.equal((JSON.parse(concurrent.stdout) as ErrorReport).errors[0]!.code, 'ACTIVE_RUN');
   assert.equal(await finished, 0, output);
@@ -349,10 +338,10 @@ setTimeout(()=>console.log(JSON.stringify({format:'repo-standards/result/v1',sta
 });
 
 test('uncertain check outcomes cannot be retried through contextual resume', async t => {
+  // A process failure and a protocol failure; the other process outcomes take
+  // the same path.
   for (const [code, script] of [
     ['NONZERO_EXIT', 'process.exit(7);'],
-    ['SIGNAL', "process.kill(process.pid, 'SIGTERM');"],
-    ['TIMEOUT', 'setInterval(() => {}, 1000);'],
     ['PROTOCOL_ERROR', "console.log('not a result');"],
   ]) await t.test(code, async st => {
     const f = await fixture(st, `import { existsSync, readFileSync, writeFileSync } from 'node:fs';

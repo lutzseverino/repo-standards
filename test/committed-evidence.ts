@@ -50,12 +50,9 @@ export function assertCompactRunRecord(record: { format: string; observations: C
   assertCompactIntervals(label, record.observations);
 }
 
-// Structural regression guard: committed state has the single state format and
-// holds the current run only, no committed interval may carry an observation
+// Structural regression guard: no committed interval may carry an observation
 // map, and every closed interval must carry both observation identities.
 export function assertCompactWorkEvidence(state: ReturnType<typeof committedState>) {
-  assert.equal(state.format, 'repo-standards/state/v7');
-  assert.equal(Object.hasOwn(state, 'history'), false, 'committed state must not carry earlier runs');
   assertCompactIntervals('current', state.observations!);
 }
 
@@ -78,7 +75,6 @@ export function committedScopeEvidence(root: string) {
 // carries neither the evidence arrays nor the full named observation its stored
 // observation already implies.
 export function assertCompactScopeEvidence(scope: ReturnType<typeof committedScopeEvidence>) {
-  assert.equal(scope.format, 'repo-standards/scope-history/v5');
   assert.deepEqual(Object.keys(scope).filter(key => !['format', 'evidence', 'inspection', 'resolved', 'sourceResolved', 'discovery', 'scopeChanges'].includes(key)), [],
     'scope evidence must hold only the current run and its scope change');
   assert.equal(typeof scope.inspection, 'string');

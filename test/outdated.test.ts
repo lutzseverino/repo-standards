@@ -201,6 +201,10 @@ test('a project without a selection reports both pins unknown and changes nothin
     assert.deepEqual(requests, []);
     assert.deepEqual(snapshot(root), before);
   }
+  // Without a selection there is no recorded pin, so status answers too.
+  const status = cli.run(['status', '--json'], project.root, environment());
+  assert.equal(status.status, 0, status.stdout + status.stderr);
+  assert.equal((JSON.parse(status.stdout) as Status).selection, null);
 });
 
 test('a GitHub token from the environment is sent as authorization only to GitHub and only when present', t => {

@@ -1,26 +1,22 @@
-import type { Inspection, Run } from './json-reports.ts';
+import type { Run } from './json-reports.ts';
 import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { installCli, sourceFixture, fixtureFiles } from './installed-cli.ts';
-import { commit, git, inspectionArgs, remoteFixture } from './remote-fixture.ts';
-import { registryFixture } from './registry-fixture.ts';
+import { installCli, fixtureFiles } from './installed-cli.ts';
+import { git, startArgs } from './remote-fixture.ts';
+import { adoptionFixture } from './adoption-fixture.ts';
 
+// The packaged author examples run their own operations through the installed CLI.
 const cli = installCli();
 after(() => cli.close());
 
 test('Alice author example checks actual README headings through installed adoption', async t => {
   const files = fixtureFiles('examples/alice');
-  const remote = remoteFixture(files['standards.yaml']!, files);
-  const project = sourceFixture('', { 'README.md': '# Bob\nA delivery queue.\n', 'CONTRIBUTING.md': 'Employer review policy\n' });
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  commit(project.root);
+  const f = await adoptionFixture(t, cli, files['standards.yaml']!, { files, project: { 'README.md': '# Bob\nA delivery queue.\n', 'CONTRIBUTING.md': 'Employer review policy\n' } });
+  const { remote, project, env } = f;
   const head = git(project.root, 'rev-parse', 'HEAD');
-  const env = { ...remote.env, ...registry.env };
-  const inspection = (JSON.parse(cli.run(inspectionArgs, project.root, env).stdout) as Inspection);
-  const started = cli.run(['start', ...inspectionArgs.slice(1), '--confirm', inspection.identity], project.root, env);
+  const started = f.run(startArgs(f.inspect().identity));
   assert.equal((JSON.parse(started.stdout) as Run).phase, 'contextual', started.stdout);
   const assessment = () => ({
     format: 'repo-standards/assessment/v3',
@@ -50,15 +46,10 @@ test('Alice author example checks actual README headings through installed adopt
 
 test('Mira service source retains check resources and preserves fix output on explicit retry', async t => {
   const files = fixtureFiles('examples/mira');
-  const remote = remoteFixture(files['standards.yaml']!, files, [], 'mira/standards');
-  const project = sourceFixture('', fixtureFiles('acceptance/projects/harbor'));
-  const registry = await registryFixture(cli.root);
-  t.after(() => { registry.close(); remote.close(); project.close(); });
-  commit(project.root);
-  const env = { ...remote.env, ...registry.env };
-  const args = ['--source', 'https://github.com/mira/standards', '--standards-version', 'v1.0.0', '--profile', 'service', '--json'];
-  const inspection = (JSON.parse(cli.run(['inspect', ...args], project.root, env).stdout) as Inspection);
-  const started = (JSON.parse(cli.run(['start', ...args, '--confirm', inspection.identity], project.root, env).stdout) as Run);
+  const f = await adoptionFixture(t, cli, files['standards.yaml']!, { files, repository: 'mira/standards', project: fixtureFiles('acceptance/projects/harbor') });
+  const { remote, project, env } = f;
+  const args = ['inspect', '--source', 'https://github.com/mira/standards', '--standards-version', 'v1.0.0', '--profile', 'service', '--json'];
+  const started = (JSON.parse(f.run(startArgs(f.inspect(args).identity, args)).stdout) as Run);
   assert.equal(started.phase, 'contextual');
   assert.equal(started.operations[0]!.result!.status, 'changed');
   const retry = (JSON.parse(cli.run(['resume', '--retry', '--json'], project.root, env).stdout) as Run);
