@@ -37,6 +37,7 @@ const directoryIndex = "README.md";
 const reservedPaths = [
   ".repo-standards",
   ".agents/skills/adopt-standards",
+  ".agents/skills/standards-updates",
   ".agents/skills/author-standards",
 ];
 

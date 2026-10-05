@@ -2,6 +2,7 @@
 
 import { realpathSync } from "node:fs";
 import { readFile } from "node:fs/promises";
+import { setTimeout as wait } from "node:timers/promises";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { lexer } from "../vendor/marked/marked.esm.js";
@@ -21,6 +22,8 @@ const workflowLabels = new Set([
   "ready-for-human",
   "wontfix",
 ]);
+const missingLabelEventError =
+  "The authoritative issue timeline does not contain the current readiness label event.";
 const categoryLabels = new Set(["bug", "enhancement"]);
 const childLabels = new Set([
   "wayfinder:research",
@@ -259,6 +262,28 @@ export function decideIssueContract(snapshot) {
           ),
     ),
   });
+}
+
+// Whether the snapshot's run is a human readiness trigger the timeline has not
+// recorded yet: a `labeled` event for a readiness label by a sender other than
+// `github-actions[bot]`, whose re-fetched issue still carries that label, while
+// the timeline lacks the sender's application of that label or records a
+// removal as the label's latest change. The adapter re-reads the timeline while
+// this holds, within its bound, and the decision fails closed while it does.
+export function readinessTriggerUnrecorded(snapshot) {
+  const { event, issue } = snapshot;
+  const label = readinessTransitionLabel(event);
+  const sender = event.sender?.login;
+  if (
+    event.action !== "labeled" ||
+    !label ||
+    !sender ||
+    sender === "github-actions[bot]" ||
+    !(issue.labels ?? []).some((candidate) => labelName(candidate) === label)
+  ) {
+    return false;
+  }
+  return !issueTimeline(snapshot).recordsApplication(label, sender);
 }
 
 function issueDecision({
@@ -899,6 +924,16 @@ function assessReadiness({
         "Deleting a newer Agent Brief invalidated the restored contract source. Review the published revision again.",
     };
   }
+  // A human readiness trigger the timeline has not recorded yet is never
+  // reviewed from the timeline, not even as a recorded approval.
+  if (readinessTriggerUnrecorded(snapshot)) {
+    return {
+      valid: false,
+      observedEventId,
+      sourceInvalidation,
+      error: missingLabelEventError,
+    };
+  }
   const creationEvent = creationLabelEvent(
     currentEvent,
     issue,
@@ -1021,8 +1056,7 @@ function readinessGrant(
     return {
       candidate: true,
       valid: false,
-      error:
-        "The authoritative issue timeline does not contain the current readiness label event.",
+      error: missingLabelEventError,
     };
   }
   const reviewer = labelEvent.actor?.login;
@@ -1073,11 +1107,12 @@ function activeApproval(permissions, recorded, revision, label, timeline) {
 // The creation snapshot's review of an unedited direct contract, for either the
 // `opened` run or a `labeled` run, whichever arrives first. The opening payload
 // shows the one readiness label the issue was created with. A `labeled` run has
-// no such payload, so the timeline must show the opener, the issue's author,
-// applying it in the issue's creation second. Otherwise the run is decided as
-// any later review. Either run then checks the opener's role as it checks any
-// reviewer's, so an opener without an authorizing role gets the same rejection
-// in either order.
+// no such payload: a readiness trigger reviews from the creation snapshot only
+// when its sender is the opener, the issue's author, and the timeline must show
+// the opener applying the label in the issue's creation second. Otherwise the run is
+// decided as any later review. Either run then checks the opener's role as it
+// checks any reviewer's, so an opener without an authorizing role gets the same
+// rejection in either order.
 function creationLabelEvent(
   currentEvent,
   issue,
@@ -1089,7 +1124,11 @@ function creationLabelEvent(
   if (result.contract.type !== "issue-body" || !openingEligible || !label)
     return null;
   if (currentEvent.action === "labeled") {
-    if (!issue.user?.login) return null;
+    if (
+      !issue.user?.login ||
+      (readinessTransitionLabel(currentEvent) && !timeline.sentByOpener())
+    )
+      return null;
     return timeline.creationReview(label, issue.user, {
       openingPayload: false,
     });
@@ -1290,6 +1329,25 @@ function issueTimeline({ event, issue, issueEvents }) {
     return time >= reviewAt && !atCreation(time);
   }
 
+  // Whether the run's sender is the issue's opener.
+  function sentByOpener() {
+    return (
+      Boolean(issue.user?.login) && event.sender?.login === issue.user.login
+    );
+  }
+
+  // Whether a label event is the opener's application of a readiness label
+  // in the issue's creation second.
+  function isCreationLabel(candidate) {
+    return (
+      candidate?.event === "labeled" &&
+      readyLabels.has(candidate.label?.name) &&
+      Boolean(issue.user?.login) &&
+      candidate.actor?.login === issue.user.login &&
+      atCreation(candidate.created_at)
+    );
+  }
+
   function latestReadinessTransition() {
     return issueEvents.findLast(isReadinessTransition) ?? null;
   }
@@ -1318,8 +1376,7 @@ function issueTimeline({ event, issue, issueEvents }) {
         readinessTransitionLabel(event);
       const creationTrigger =
         event.action === "labeled" &&
-        Boolean(issue.user?.login) &&
-        event.sender?.login === issue.user.login &&
+        sentByOpener() &&
         event.label?.name === rejectedCreationLabel;
       if (
         readinessTrigger &&
@@ -1336,10 +1393,8 @@ function issueTimeline({ event, issue, issueEvents }) {
       const first = transitions[0];
       if (
         observedEventId == null &&
-        first?.event === "labeled" &&
-        first.label?.name === rejectedCreationLabel &&
-        atCreation(first.created_at) &&
-        first.actor?.login === issue.user?.login
+        isCreationLabel(first) &&
+        first.label?.name === rejectedCreationLabel
       ) {
         transitions.shift();
       }
@@ -1428,6 +1483,21 @@ function issueTimeline({ event, issue, issueEvents }) {
     },
 
     latestChangeIsApplication,
+
+    // Whether the timeline holds the sender's application of the label and
+    // the label's latest recorded change is an application, by anyone.
+    recordsApplication(label, login) {
+      return (
+        issueEvents.some(
+          (candidate) =>
+            candidate.event === "labeled" &&
+            candidate.label?.name === label &&
+            candidate.actor?.login === login,
+        ) && latestChangeIsApplication(label)
+      );
+    },
+
+    sentByOpener,
 
     // Whether the triggering label's payload time places it after the review:
     // in a strictly later second when its application is recorded.
@@ -1533,6 +1603,13 @@ function resolvedFeedback(kind) {
   return `${feedbackMarker}\n## Issue contract structure corrected\n\nThe ${kind} now has the required structure. A fresh authorized review is still required before restoring readiness.`;
 }
 
+// While a human readiness trigger is unrecorded, the adapter re-reads the
+// issue events every two seconds, waiting thirty seconds at most in total, then
+// decides from the last read. The wait is `node:timers/promises`'s
+// `setTimeout`, which the adapter tests replace so they use no real time.
+const triggerWaitInterval = 2000;
+const triggerWaitBound = 30000;
+
 // The GitHub adapter runs only when the workflow executes this file. It reads
 // the event, fetches the complete snapshot, decides, and applies the writes.
 // Node.js 24.2 and later report that as `import.meta.main`. Earlier 24
@@ -1610,6 +1687,14 @@ async function runIssueContractValidation(environment) {
     if (contract.type === "issue-body")
       snapshot.bodyRevision = await api.getIssueBodyRevision(issueNumber);
     snapshot.issueEvents = await api.listEvents(issueNumber);
+    for (
+      let waited = 0;
+      waited < triggerWaitBound && readinessTriggerUnrecorded(snapshot);
+      waited += triggerWaitInterval
+    ) {
+      await wait(triggerWaitInterval);
+      snapshot.issueEvents = await api.listEvents(issueNumber);
+    }
     for (const login of reviewerLogins(snapshot))
       snapshot.permissions[login] = await readPermission(api, login);
   }
