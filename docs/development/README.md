@@ -20,13 +20,14 @@ install current `dist/` output; rebuild after changing product code.
 
 ### Continuous integration
 
-Each PR runs three parallel Linux test parts using Node's `--test-shard` and
-`--test-concurrency=6` over the same files as `pnpm test`, with every file in
-exactly one part. The required
+Each PR runs three parallel Linux test parts using Node's `--test-shard` over
+the same files as `pnpm test`, with every file in exactly one part. Part 2 runs
+`test/update.test.ts`; parts 1 and 3 split all remaining `test/*.test.ts` files
+into two shards. All parts use Node's default test concurrency. The required
 checks are `validate (linux, 1/3)`, `validate (linux, 2/3)` and
-`validate (linux, 3/3)`. Each part runs typechecking, linting, rejecting any
+`validate (linux, 3/3)`. Each part typechecks, lints, rejects any
 runtime cycle of static imports among the source modules (type-only imports
-are exempt), and building before testing. Tests pack and install the npm
+are exempt), and builds before testing. Tests pack and install the npm
 package into temporary directories, then exercise the installed public CLI
 against temporary Git repositories. PR branches trigger Validate only through
 `pull_request`; pushes trigger it only on `main`.

@@ -32,7 +32,25 @@ jobs:
       - run: pnpm lint
       - run: node --experimental-vm-modules --disable-warning=ExperimentalWarning scripts/check-import-cycles.ts
       - run: pnpm build
-      - run: node --test --test-concurrency=6 --test-shard=${{ matrix.part }}/3 test/*.test.ts
+      - name: Run test part
+        env:
+          TEST_PART: ${{ matrix.part }}
+        run: |
+          if [[ "$TEST_PART" == 2 ]]; then
+            node --test --test-shard=1/1 test/update.test.ts
+          else
+            files=()
+            for file in test/*.test.ts; do
+              if [[ "$file" != test/update.test.ts ]]; then
+                files+=("$file")
+              fi
+            done
+            shard=1
+            if [[ "$TEST_PART" == 3 ]]; then
+              shard=2
+            fi
+            node --test --test-shard="$shard/2" "${files[@]}"
+          fi
 
   validate-macos:
     if: github.event_name == 'push'
