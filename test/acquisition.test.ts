@@ -1,7 +1,8 @@
 import type { Diagnostic, ErrorReport, Inspection } from "./json-reports.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
-import { readFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync, symlinkSync } from "node:fs";
+import { join } from "node:path";
 import { installCli, sourceFixture } from "./installed-cli.ts";
 import {
   commit,
@@ -121,6 +122,51 @@ test("public inspection acquires a source larger than the anonymous API allowanc
     remote.requests().length <= 5,
     `Expected bounded API requests, observed ${remote.requests().length}`,
   );
+});
+
+test("a self-adopted remote source ignores unselected links without extracting them", (t) => {
+  const remote = remoteFixture(yaml, { "readme.md": "README" });
+  const project = sourceFixture("");
+  t.after(() => {
+    remote.close();
+    project.close();
+  });
+  mkdirSync(join(remote.source.root, ".claude/skills"), { recursive: true });
+  symlinkSync(
+    "../../.agents/skills/adopt-standards",
+    join(remote.source.root, ".claude/skills/adopt-standards"),
+  );
+  symlinkSync("readme.md", join(remote.source.root, "elsewhere"));
+  commit(remote.source.root);
+  remote.publish("v1.0.0");
+  commit(project.root);
+
+  // Observe the extracted filesystem at its cleanup boundary; the installed
+  // CLI still performs acquisition and validation without fixture shortcuts.
+  const inventory = join(remote.support.root, "extracted.json");
+  appendFileSync(
+    join(remote.support.root, "https-fixture.mjs"),
+    `import fs from 'node:fs';
+import { join } from 'node:path';
+import { syncBuiltinESMExports } from 'node:module';
+const remove = fs.rmSync;
+fs.rmSync = (path, options) => {
+  const root = join(String(path), 'snapshot');
+  if (fs.existsSync(root)) {
+    fs.writeFileSync(${JSON.stringify(inventory)}, JSON.stringify(fs.readdirSync(root, {recursive: true})));
+  }
+  return remove(path, options);
+};
+syncBuiltinESMExports();\n`,
+  );
+  const local = cli.run(["source", "validate", "--json"], remote.source.root);
+  assert.equal(local.status, 0, local.stdout + local.stderr);
+  const result = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const extracted = JSON.parse(readFileSync(inventory, "utf8")) as string[];
+  assert.ok(extracted.includes("readme.md"));
+  assert.ok(!extracted.includes(".claude/skills/adopt-standards"));
+  assert.ok(!extracted.includes("elsewhere"));
 });
 
 test("inspection rejects unsupported sources, floating references and incompatible selections with structured diagnostics", (t) => {
