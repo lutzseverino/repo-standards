@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:10400c51139ed6a53683980242bfb45bc7fff14c4db0e87784e4b6877b956aec",
+  "inspection": "sha256:3513c0a5328100737558e4a4a33e3481b5895a5ba209e7fd687df3844ac89d11",
   "resolved": {
     "description": "The complete Repo Canon standards profile",
     "declarations": [
@@ -1137,13 +1137,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:f53c2f18b3495beeb848cd1f65324e9f500a2a6df8957c00e011fe90f2923e85",
+    "identity": "sha256:9b8f0d3f95df79243af599c7128b6d10aca25f06781aab59adb8b8b0a61c0305",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Fresh v0.5.3 review finds docs is the sole documentation root, all directory indices already exist, and the root CONTEXT.md is the sole project glossary. All 34 included files remain applicable. The three drafter questions are resolved: acceptance Markdown is synthetic fixture input; examples Markdown is published standards-source example material; skills Markdown is packaged product skill source. Their current manifest, harness, release guide and packaging tests establish those roles. No migration destination, new index, or link repair is indicated. The confirmed v0.5.2 proposal in PR #207 is comparison context only; candidate membership is freshly judged against this worktree.",
+          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Fresh v0.5.4 review finds docs is the sole documentation root, all directory indices already exist, and the root CONTEXT.md is the sole project glossary. All 34 included files remain applicable. The three drafter questions are resolved: acceptance Markdown is synthetic fixture input; examples Markdown is published standards-source example material; skills Markdown is packaged product skill source. Their current manifest, harness, release guide and packaging tests establish those roles. No migration destination, new index, or link repair is indicated. The confirmed v0.5.3 proposal in PR #209 is comparison context only; candidate membership is freshly judged against this worktree.",
           "candidates": [
             {
               "path": "CONTEXT.md",
@@ -1835,13 +1835,13 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Fresh git remote -v review identifies only origin, with fetch and push both naming lutzseverino/repo-standards on github.com. This declaration applies solely to remote GitHub configuration through its two authored fixes and intentionally has no project-content candidates. The empty scope matches PR #207. Those fixes are disclosed for a later identity-confirmed update; this read-only inspection neither executes nor authorizes them and does not verify current remote settings or write permissions.",
+          "coverage": "Fresh git remote -v review identifies only origin, with fetch and push both naming lutzseverino/repo-standards on github.com. This declaration applies solely to remote GitHub configuration through its two authored fixes and intentionally has no project-content candidates. The empty scope matches PR #209. Those fixes are disclosed for a later identity-confirmed update; this read-only inspection neither executes nor authorizes them and does not verify current remote settings or write permissions.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "Fresh review of package.json, pnpm-workspace.yaml, tsconfig.build.json, the development/release guides, fixture preparation code and component boundaries establishes one maintained root TypeScript/Node.js CLI package and no workspace members. Its components share root build, development and release commands. Nested fixture manifests are synthetic inputs. None of the ten excluded directories is a separate maintained Project under the responsibility-and-development-commands criterion; no non-root Project README, including a missing README, is required. The root README is governed separately by repository-readme. This intentionally empty scope matches the confirmed v0.5.2 proposal in PR #207 after fresh evidence review.",
+          "coverage": "Fresh review of package.json, pnpm-workspace.yaml, tsconfig.build.json, the development/release guides, fixture preparation code and component boundaries establishes one maintained root TypeScript/Node.js CLI package and no workspace members. Its components share root build, development and release commands. Nested fixture manifests are synthetic inputs. None of the ten excluded directories is a separate maintained Project under the responsibility-and-development-commands criterion; no non-root Project README, including a missing README, is required. The root README is governed separately by repository-readme. This intentionally empty scope matches the confirmed v0.5.3 proposal in PR #209 after fresh evidence review.",
           "candidates": [
             {
               "path": ".agents/skills",
@@ -2150,7 +2150,7 @@
         },
         ".agents/skills/adopt-standards/SKILL.md": {
           "type": "file",
-          "sha256": "d5f3893f503e4076da953581d9ce00994f55e68eb67da0351bc2170224bb133c",
+          "sha256": "ef097e2e369ed5bc44311a75292891de0260ff3dd318942f36ee49cb668df08e",
           "executable": false
         },
         ".agents/skills/adopt-standards/agents/openai.yaml": {
@@ -2160,22 +2160,22 @@
         },
         ".agents/skills/adopt-standards/references/assessment.md": {
           "type": "file",
-          "sha256": "11ce493b12024dcdcef1a1c3e9460068997669a9ae954a0717e56994caa17181",
+          "sha256": "517e66c6556d19e0e29f19f229c5a10c202cb4a0dd9d3d70ad7275fba165f7fe",
           "executable": false
         },
         ".agents/skills/adopt-standards/references/discovery.md": {
           "type": "file",
-          "sha256": "75ab58e5ac82ced9e1c3aeb1d43dda7300ac180235ac53c70ef9fcede1151f7b",
+          "sha256": "30acedb91d827e23d1442252a2c8e42ffd3b5b22dc5cdbf969cf09e66a026494",
           "executable": false
         },
         ".agents/skills/adopt-standards/references/recovery.md": {
           "type": "file",
-          "sha256": "6904bb1126f7b62078f2d690f2bb6fd6f5406e5d6eefcbce3cbf85f62b3bb07e",
+          "sha256": "69c25d7f4bde8cedd20350be878f1444f5ee7095d746c46a39ddacb848dad621",
           "executable": false
         },
         ".agents/skills/adopt-standards/references/review.md": {
           "type": "file",
-          "sha256": "f1f476fd67e0ae0c58d4f66f0ee0b9dcb7a7c02d170468fa2eefe5eab5ce2993",
+          "sha256": "cf8f028b0965d0395571e79a5ca5bb795de1b2ff397a45aab411474da72df10a",
           "executable": false
         },
         ".agents/skills/ask-matt/PHASE-BOUNDARIES.md": {
@@ -3312,7 +3312,7 @@
         },
         "scripts/validate-issue-contract.mjs": {
           "type": "file",
-          "sha256": "3334b3322dfe3f34e9dc78b723b0826d8648f541b9bd8c1ad207d258fdff1b2d",
+          "sha256": "ff4cafab526a72d1bb430936b3da20aaca7e65df47eb0087dfe67907124a5275",
           "executable": false
         },
         "scripts/verify-npm-publisher.ts": {

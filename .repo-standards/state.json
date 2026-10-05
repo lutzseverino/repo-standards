@@ -15,8 +15,8 @@
         "id": "canonical-labels"
       },
       "operationIndex": 0,
-      "before": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
-      "after": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
+      "before": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
+      "after": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -35,8 +35,8 @@
         "id": "pull-request-integration"
       },
       "operationIndex": 1,
-      "before": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
-      "after": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
+      "before": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
+      "after": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -98,8 +98,8 @@
           "directories": []
         }
       },
-      "before": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
-      "after": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
+      "before": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
+      "after": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -161,8 +161,8 @@
           "directories": []
         }
       },
-      "before": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
-      "after": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
+      "before": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
+      "after": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -216,8 +216,8 @@
         "id": "documentation-navigation"
       },
       "operationIndex": 2,
-      "before": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
-      "after": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
+      "before": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
+      "after": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -236,8 +236,8 @@
         "id": "project-readme-structure"
       },
       "operationIndex": 3,
-      "before": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
-      "after": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
+      "before": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
+      "after": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -258,8 +258,8 @@
         "id": "repository-readme-structure"
       },
       "operationIndex": 4,
-      "before": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
-      "after": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
+      "before": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
+      "after": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -321,8 +321,8 @@
           "directories": []
         }
       },
-      "before": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
-      "after": "sha256:23cd77563b93ad49a572e134f0389bd4eec0ca9ad637d145da38085c63d40d10",
+      "before": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
+      "after": "sha256:57c37f9ed8ccf65f8f3de1d25d1eb5ff12857ded105b3a5a7a944ec79a8c42a7",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -438,36 +438,6 @@
   "retryHistory": [],
   "changeSet": [
     {
-      "path": ".agents/skills/adopt-standards/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/adopt-standards/references/assessment.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/adopt-standards/references/discovery.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/adopt-standards/references/recovery.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/adopt-standards/references/review.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
       "path": "scripts/validate-issue-contract.mjs",
       "phases": [
         "installation"
@@ -475,10 +445,10 @@
     }
   ],
   "lastComplete": {
-    "run": "7a42db4f-214e-4540-9ded-ce9512c233bb",
-    "inspection": "sha256:10400c51139ed6a53683980242bfb45bc7fff14c4db0e87784e4b6877b956aec",
-    "completedAt": "2026-10-05T19:39:21.358Z",
-    "head": "c9f660e58d6bd8668c3268068b9afbe63118b5f5"
+    "run": "df135b2e-6ab3-4484-b006-9404314793aa",
+    "inspection": "sha256:3513c0a5328100737558e4a4a33e3481b5895a5ba209e7fd687df3844ac89d11",
+    "completedAt": "2026-10-05T22:40:31.833Z",
+    "head": "a4368697d21409b2f1786bb74dc5d6d4110eba78"
   },
   "baselines": {
     "docs/agents/README.md": {
@@ -510,7 +480,7 @@
       "executable": false
     },
     "scripts/validate-issue-contract.mjs": {
-      "sha256": "ff4cafab526a72d1bb430936b3da20aaca7e65df47eb0087dfe67907124a5275",
+      "sha256": "191300570b34b7b3f689aaf093435184dd9d2171e83a1272d1554c69fb6d26ab",
       "executable": false
     },
     ".github/workflows/issue-contracts.yml": {
@@ -1155,44 +1125,41 @@
     {
       "format": "repo-standards/assessment/v3",
       "scope": {
-        "inspection": "sha256:10400c51139ed6a53683980242bfb45bc7fff14c4db0e87784e4b6877b956aec",
-        "afterFixes": "sha256:4494b700c38b30e15a5e2c78288929c4afa2a851a6fdcedf43e320877f4b24d2"
+        "inspection": "sha256:3513c0a5328100737558e4a4a33e3481b5895a5ba209e7fd687df3844ac89d11",
+        "afterFixes": "sha256:b3bd2de8e908834fc5da3efb3c8a372234982d711913e9fa0d1ace013dddde06"
       },
-      "run": "7a42db4f-214e-4540-9ded-ce9512c233bb",
-      "selection": "sha256:ddf1ba511168c657f545f98265594badc0551f61ff739b3273612768005be18e",
-      "snapshot": "sha256:4494b700c38b30e15a5e2c78288929c4afa2a851a6fdcedf43e320877f4b24d2",
+      "run": "df135b2e-6ab3-4484-b006-9404314793aa",
+      "selection": "sha256:755491f74af303af0bf899e7e5c1678da9ba63468951906a8a826e6cb7cf5bff",
+      "snapshot": "sha256:b3bd2de8e908834fc5da3efb3c8a372234982d711913e9fa0d1ace013dddde06",
       "declarations": [
         {
           "id": "documentation",
           "status": "satisfied",
-          "explanation": "Existing maintained documentation already follows the selected categories, indexes, audience boundaries, development setup and record-placement guidance. The update changes installed exact content and pins without requiring a contextual documentation edit.",
+          "explanation": "The existing documentation serves the product users and contributors in the four canonical categories, with current category indexes, one root glossary and preserved ADRs. Its content and scope remain applicable after the validator-only installation; no contextual edit is needed.",
           "changedPaths": [],
           "evidence": [
-            "docs/README.md describes and links the usage, development, adr and agents categories; their README indexes give purpose statements and descriptive document entries instead of duplicating inventories in other documents.",
-            "docs/development/README.md documents Node.js 24, pinned pnpm, frozen-lockfile setup, typechecking, linting, formatting, build and test commands; package.json and tsconfig.build.json establish these as the root CLI package's actual tools and commands.",
-            "Usage documents explain public installation, source authorship/discovery, inspection, adoption, checks and public formats; development documents explain architecture and release maintenance, and ADRs preserve decision rationale and supersession links such as ADR 0004 to ADR 0009.",
-            "CONTEXT.md defines the product and adoption vocabulary; docs/agents/project.md contains repository-specific constraints, while installed shared agent guidance remains exact-owned.",
-            "docs/development/release.md and acceptance/README.md require event-specific acceptance records to remain with PRs, releases or workflow artifacts. This run's proposal, reports and assessment are stored outside the repository.",
-            "The post-fix v0.5.3 documentation drafter output is byte-identical as parsed JSON to the pre-start draft, and all 34 documentation targets remain unchanged from HEAD. No missing index, migration destination or link-repair file was identified."
+            "docs/README.md describes usage, development, adr and agents and points to their category indexes. Usage entries document public installation, authoring, inspection, adoption, checks and protocols; development entries document setup, architecture and release responsibilities.",
+            "docs/development/README.md states Node.js 24, the package-pinned pnpm version, frozen-lockfile setup, typechecking, linting, formatting, building, focused tests and the three Linux validation parts, matching package.json and the build configuration.",
+            "docs/agents/project.md keeps repository-specific constraints while the exact shared agent configuration remains outside this contextual scope. CONTEXT.md defines the neutral product and author/adopter vocabulary.",
+            "docs/adr/README.md indexes the 16 retained decisions; ADR 0004 remains preserved with its explicit supersession link to ADR 0009. Documents explain maintained behavior and cite their governing records rather than introducing an evidence category.",
+            "All 34 included files and every reviewed excluded file are byte-identical to HEAD. The fresh post-fix and current source-drafter results equal the inspection draft; no new root, index, move destination or link-repair path is indicated."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "The post-fix tree retains the confirmed 34 documentation targets and all candidate exclusions; exact installation and remote fixes introduced no new documentation root, missing index or additional contextual target.",
+              "explanation": "The 34 included paths, docs root, root glossary and the 42 exclusions remain complete. The three drafter questions still resolve to fixture, standards-example and packaged-skill exclusions; no new index, migration destination or repair file is needed.",
               "evidence": [
-                "The selected source's drafter produced the same documentation draft after fixes as before start, including the 34 included files, existing indexes and fixture/example/product-skill questions.",
-                "acceptance/README.md and acceptance/prepare-public.ts still establish synthetic fixtures; package.json, example manifests and release packaging tests establish distributed examples and product skill sources, so the 42 documented exclusions remain applicable.",
-                "All confirmed documentation files remain unchanged from HEAD, docs is the sole documentation root, and CONTEXT.md is the repository glossary."
+                "The post-fix source draft equals the inspected draft, including all included paths and the same three unresolved draft questions resolved in the accepted proposal.",
+                "Reviewed actual acceptance/example content, fixture preparation, package and release packaging contracts and documentation indexes; all candidate files remain unchanged from HEAD."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The refreshed work request describes the same project content as the post-fix request. The documentation scope remains complete without additional paths or withdrawn targets.",
+              "explanation": "The refreshed snapshot equals the post-fix snapshot. The 34 included paths, docs root, root glossary and the 42 exclusions remain complete. The three drafter questions still resolve to fixture, standards-example and packaged-skill exclusions; no new index, migration destination or repair file is needed.",
               "evidence": [
-                "The refreshed request's snapshot equals its post-fix snapshot, and no contextual file was edited between coverage review and refresh.",
-                "Rechecked the documentation category indexes, developer setup and package commands, preserved ADR supersession, and the same fixture/example/skill exclusions.",
-                "No new documentation root, missing index, move destination or link-repair target requires scope correction."
+                "The refreshed work-request snapshot equals the start handoff snapshot; no contextual edits were made.",
+                "The current source draft equals the post-fix draft, and the included/excluded candidates, missing paths, component evidence and repository identity were reviewed again."
               ],
               "additionalPaths": []
             }
@@ -1201,30 +1168,30 @@
         {
           "id": "github-repository-configuration",
           "status": "satisfied",
-          "explanation": "Both confirmed remote operations completed successfully with unchanged results. Their authored readbacks and independent GitHub API readbacks establish the required labels and PR integration at execution time.",
+          "explanation": "The two approved remote fixes completed with unchanged results and successful authored readbacks. Independent GitHub readbacks show the canonical PR integration and preserve the existing validation requirements; this records their execution-time outcome.",
           "changedPaths": [],
           "evidence": [
-            "canonical-labels and pull-request-integration both returned unchanged, exit code 0, no timeout, signal or operation error, against lutzseverino/repo-standards.",
-            "GitHub repository readback shows squash merging enabled, merge commits and rebase merging disabled, squash_merge_commit_title PR_TITLE and squash_merge_commit_message PR_BODY.",
-            "Effective main-branch rules require PR metadata and retain the three existing Linux validation checks. The labels readback includes the canonical triage labels; the authored label operation verified its complete canonical configuration.",
-            "The sole Git remote is origin and both fetch and push identify lutzseverino/repo-standards. No operation reported a partial or uncertain remote result."
+            "canonical-labels and pull-request-integration each exited 0 with result unchanged, no timeout, signal, process error or operation error; their messages identify lutzseverino/repo-standards.",
+            "The independent GitHub repository readback enables squash merges, disables merge commits and rebase merges, and sets squash_merge_commit_title to PR_TITLE and squash_merge_commit_message to PR_BODY.",
+            "The independent main-branch rules readback requires PR metadata and retains validate (linux, 1/3), validate (linux, 2/3) and validate (linux, 3/3). Labels were read back independently; the authored canonical-labels operation verified its complete canonical names, colors and descriptions.",
+            "git remote -v identifies only origin, with matching GitHub repository identity for fetch and push. The remote fixes introduced no project-content target or scope addition."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "This declaration configures only the unambiguous remote GitHub repository through its authored operations, so its confirmed empty project-content scope remains intentional after fixes.",
+              "explanation": "Remote configuration only remains the declaration responsibility. Its empty project-content scope is intentional, with the same unambiguous repository identity and approved remote operations.",
               "evidence": [
-                "Both remote fixes exited 0 with unchanged results and successful authored readback; neither required a project-content target.",
-                "origin fetch and push identify the same lutzseverino/repo-standards repository; GitHub API readbacks confirm the labels and squash-only PR integration."
+                "Both successful fixes returned unchanged and required no project-content paths.",
+                "Origin fetch and push identify lutzseverino/repo-standards, and independent API readbacks corroborate the authored execution-time result."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The refreshed project remains associated with the same remote repository and requires no project-content paths for remote configuration.",
+              "explanation": "The refreshed snapshot equals the post-fix snapshot. Remote configuration only remains the declaration responsibility. Its empty project-content scope is intentional, with the same unambiguous repository identity and approved remote operations.",
               "evidence": [
-                "The refreshed snapshot matches the post-fix snapshot and no project-content edits were made for this declaration.",
-                "The successful fix results and independent remote readbacks establish this run's outcome without claiming continuing remote freshness."
+                "The refreshed work-request snapshot equals the start handoff snapshot; no contextual edits were made.",
+                "The current source draft equals the post-fix draft, and the included/excluded candidates, missing paths, component evidence and repository identity were reviewed again."
               ],
               "additionalPaths": []
             }
@@ -1233,30 +1200,30 @@
         {
           "id": "project-readmes",
           "status": "satisfied",
-          "explanation": "This repository has one maintained root CLI package. No non-root directory satisfies the selected Project responsibility-and-development-command criterion, so the confirmed empty included scope needs no README creation or edit.",
+          "explanation": "The repository has one maintained root CLI package with shared development commands. None of the excluded non-root components or synthetic fixture projects requires a Project README under the selected guidance; intentionally empty scope needs no edit.",
           "changedPaths": [],
           "evidence": [
-            "package.json defines the single @lutzseverino/repo-standards CLI package and root build, validation and release commands; pnpm-workspace.yaml contains build policy and no workspace members, and tsconfig.build.json builds src together.",
-            "acceptance/README.md and acceptance/prepare-public.ts establish Bob, Harbor, Orchard, Forge and Relay as synthetic project fixtures and the example/source fixtures as synthetic publishers.",
-            "bootstrap, scripts, src, test, skills and the acceptance harness share the root package lifecycle; examples are distributed source examples, while installed skills, operations and vendor content are standards-managed resources.",
-            "The ten directory exclusions remain applicable. Root README.md and docs/development/README.md document the root package; no missing independent Project README was identified."
+            "package.json defines @lutzseverino/repo-standards and its root build, typecheck, lint, format, test and release commands. pnpm-workspace.yaml holds dependency build policy and no workspace members; tsconfig.build.json builds src modules together.",
+            "acceptance/README.md identifies Bob, Harbor, Orchard, Forge and Relay as synthetic projects. acceptance/prepare-public.ts maps these to fixtureFiles and sourceFixture and maps Alice, Mira, Atlas and Wayfinder to example/source fixtures.",
+            "The ten directory exclusions cover .agents/skills, acceptance, bootstrap, examples, operations, scripts, skills, src, test and vendor. Their installed-resource, package-component, test-fixture or third-party roles remain unchanged and do not establish independently maintained non-root Projects.",
+            "Root README.md and docs/development/README.md explain the one package and its commands. No new independent component, missing Project README, planned migration or additional path was found after fixes or at refresh."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Installation and remote fixes did not introduce a separate maintained Project. Empty included scope and the ten confirmed directory exclusions remain correct.",
+              "explanation": "The one-package layout and all ten exclusions remain applicable after installation and remote fixes. No independent maintained non-root Project or missing README requires an included path.",
               "evidence": [
-                "package.json, pnpm-workspace.yaml, tsconfig.build.json and the fixture preparation code retain the same one-package and synthetic-fixture structure.",
-                "Reviewed the installed-skill, acceptance, bootstrap, example, operation, script, product-skill, source, test and vendor directory roles; none supplies an independent maintained Project requiring a non-root README."
+                "package.json, pnpm-workspace.yaml and tsconfig.build.json retain a single package and root command set.",
+                "The acceptance guide and fixture preparation code identify nested projects and sources as synthetic; installed resources and root package components have no independent development lifecycle."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The refreshed snapshot is unchanged from after fixes; the repository remains one maintained root CLI package with no independent non-root Projects.",
+              "explanation": "The refreshed snapshot equals the post-fix snapshot. The one-package layout and all ten exclusions remain applicable after installation and remote fixes. No independent maintained non-root Project or missing README requires an included path.",
               "evidence": [
-                "The refreshed work request and post-fix snapshot match, and no contextual changes introduced manifests, component responsibilities or separate development commands.",
-                "All ten confirmed exclusions still apply and no missing Project README needs an additional path."
+                "The refreshed work-request snapshot equals the start handoff snapshot; no contextual edits were made.",
+                "The current source draft equals the post-fix draft, and the included/excluded candidates, missing paths, component evidence and repository identity were reviewed again."
               ],
               "additionalPaths": []
             }
@@ -1265,14 +1232,14 @@
         {
           "id": "repository-readme",
           "status": "satisfied",
-          "explanation": "The existing concise root README accurately introduces the CLI and supplies useful installation, features and representative usage with the required section order and link-only documentation, contribution and license pointers.",
+          "explanation": "The current concise root README accurately introduces the CLI, gives the public installation and representative usage, and provides the prescribed section order and plain documentation, contribution and license links. No edit improves an unmet requirement.",
           "changedPaths": [],
           "evidence": [
-            "README.md starts with a centered Repository Standards title, one-sentence purpose, and TypeScript and Node.js 24 badges matching package.json and the TypeScript build.",
-            "Installation gives an unversioned global npm command with ignore-scripts and a CLI version probe, while contributor setup is linked through the development documentation.",
-            "Features begin with verbs and describe validation, inspection, adoption, updates, summaries, checks and discovery; Usage demonstrates source validate, which is the public CLI's local source-validation interface.",
-            "Applicable sections follow Installation, Features, Usage, Documentation, Contributing and License. The final three contain plain-paragraph links to docs/README.md, CONTRIBUTING.md and the root MIT LICENSE, respectively.",
-            "The README remains unchanged from HEAD; its accurate project facts, commands and concise reader-oriented explanation require no contextual edit."
+            "README.md starts with a centered Repository Standards title and one-sentence description, with TypeScript and Node.js 24 badges matching package.json, .node-version and the TypeScript source/build.",
+            "Installation uses an unversioned public npm install command with ignore-scripts and a version probe and links the deeper installation guide. The representative source validate command agrees with the public CLI usage in src/cli.ts.",
+            "Features start with verbs and describe source validation, inspection, adoption, deliberate updates, summaries, adopted checks and discovery. Recognized sections follow Installation, Features, Usage, Documentation, Contributing and License.",
+            "Documentation, Contributing and License each contain one plain link paragraph to docs/README.md, CONTRIBUTING.md and LICENSE. The MIT License label agrees with the root MIT license text and package license.",
+            "README.md is byte-identical to HEAD. Its installation is distinct from contributor setup in the development guide, and no separate required configuration entry point warrants a Configuration section."
           ]
         }
       ]

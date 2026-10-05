@@ -267,10 +267,10 @@ export function decideIssueContract(snapshot) {
 // Whether the snapshot's run is a human readiness trigger the timeline has not
 // recorded yet: a `labeled` event for a readiness label by a sender other than
 // `github-actions[bot]`, whose re-fetched issue still carries that label, while
-// the timeline lacks the sender's application of that label or records a
-// removal as the label's latest change. While the latest feedback awaits
-// review, the label's latest application must also follow its observed event:
-// the run that wrote it already observed every one at or before it. The adapter
+// the label's latest recorded application, by anyone, is not the sender's or a
+// removal is the label's latest recorded change. While the latest feedback
+// awaits review, that application must also follow its observed event: the run
+// that wrote it already observed every one at or before it. The adapter
 // re-reads the timeline while this holds, within its bound, and the decision
 // fails closed while it does.
 export function readinessTriggerUnrecorded(snapshot) {
@@ -1321,7 +1321,11 @@ function issueTimeline({ event, issue, issueEvents }) {
     );
     return index < 0
       ? null
-      : { position: index + 1, at: issueEvents[index].created_at };
+      : {
+          event: issueEvents[index],
+          position: index + 1,
+          at: issueEvents[index].created_at,
+        };
   }
 
   // Whether a label change carries the issue's creation timestamp, so the
@@ -1495,18 +1499,13 @@ function issueTimeline({ event, issue, issueEvents }) {
 
     latestChangeIsApplication,
 
-    // Whether the timeline holds the sender's application of the label, the
-    // label's latest application, by anyone, follows the barrier, and the
-    // label's latest recorded change is an application.
+    // Whether the label's latest application, by anyone, is the sender's,
+    // follows the barrier, and is the label's latest recorded change.
     recordsApplication(label, login, barrierEventId) {
-      const appliesLabel = (candidate) =>
-        candidate.event === "labeled" && candidate.label?.name === label;
+      const application = lastApplication(label)?.event;
       return (
-        issueEvents.some(
-          (candidate) =>
-            appliesLabel(candidate) && candidate.actor?.login === login,
-        ) &&
-        Boolean(eventsAfter(barrierEventId)?.some(appliesLabel)) &&
+        application?.actor?.login === login &&
+        Boolean(eventsAfter(barrierEventId)?.includes(application)) &&
         latestChangeIsApplication(label)
       );
     },
