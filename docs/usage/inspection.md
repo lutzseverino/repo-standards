@@ -112,13 +112,12 @@ The token is never recorded in reports, inspection identity, retained inputs,
 caches, or logs; the same inspection has the same identity with or without it.
 
 An exhausted quota (HTTP 429, or 403 with `x-ratelimit-remaining: 0` or
-`retry-after`) fails `inspect` and `start` with `QUOTA_EXHAUSTED` and exit status
-
-1. The message names `GH_TOKEN` and `GITHUB_TOKEN` and the reset time or retry
-   delay when GitHub provides a usable header. Retry after that time; the CLI does
-   not wait or retry automatically. A 401 with a token fails `SOURCE_UNAVAILABLE`,
-   saying the token was rejected, with no anonymous retry. Other connection and
-   API failures remain `SOURCE_UNAVAILABLE`.
+`retry-after`) fails `inspect` and `start` with exit status 1 and
+`QUOTA_EXHAUSTED`. The message names `GH_TOKEN` and `GITHUB_TOKEN` and the reset
+time or retry delay when GitHub provides a usable header. Retry after that
+time; the CLI does not wait or retry automatically. A 401 with a token fails
+`SOURCE_UNAVAILABLE`, saying the token was rejected, with no anonymous retry.
+Other connection and API failures remain `SOURCE_UNAVAILABLE`.
 
 Acquisition resolves lightweight or annotated tags to a commit and downloads that commit's
 tree and blobs outside the project. Blob bytes are verified against Git object
