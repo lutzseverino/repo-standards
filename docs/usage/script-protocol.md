@@ -185,8 +185,10 @@ its evidence.
 
 Adjacent observations are compared across operation and handoff boundaries;
 work between author invocations has its own agent interval. Named file scope
-permits creating missing parent directories, but not deleting or changing
-existing ancestors. Checks may not create even empty directories.
+permits creating missing parent directories and removing a directory whose
+files the authorized changes removed, but not changing directory modes or
+replacing directories. A directory emptied earlier in the run may be removed
+later. Checks may not create or remove even empty directories.
 
 Retry retains intervals and earlier agent evidence before repeating fixes; it
 cannot authorize new scope or hide a recorded violation. A recorded scope or

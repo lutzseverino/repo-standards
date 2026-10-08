@@ -520,36 +520,106 @@ ${result}`,
   );
 });
 
-test("named ancestor deletion, root mode changes, and empty directories created by checks are observed", async (t) => {
-  for (const [name, mutation, phase, code] of [
+test("a fix may remove a directory whose files its authority removed, and every other directory change stays a violation", async (t) => {
+  for (const [name, mutation, phase, code, files] of [
+    ["empty ancestor", "rmSync('docs', {recursive:true});", "fixes", null, {}],
     [
-      "ancestor",
+      "emptied directory",
       "rmSync('docs', {recursive:true});",
       "fixes",
-      "OPERATION_SCOPE",
+      null,
+      { "docs/old.md": "Old" },
     ],
-    ["root", "chmodSync('.', 0o755);", "fixes", "OPERATION_SCOPE"],
-    ["empty directory", "mkdirSync('unrelated');", "checks", "CHECK_MUTATION"],
-  ])
+    [
+      "unauthorized file",
+      "rmSync('docs', {recursive:true});",
+      "fixes",
+      "OPERATION_SCOPE.*docs/other.md",
+      { "docs/other.md": "Other" },
+    ],
+    ["root mode", "chmodSync('.', 0o755);", "fixes", "OPERATION_SCOPE", {}],
+    [
+      "directory mode",
+      "chmodSync('docs', 0o751);",
+      "fixes",
+      "OPERATION_SCOPE.*docs",
+      {},
+    ],
+    [
+      "replaced by a file",
+      "rmSync('empty', {recursive:true}); writeFileSync('empty', 'File');",
+      "fixes",
+      "OPERATION_SCOPE.*empty",
+      {},
+    ],
+    [
+      "replaced by a link",
+      "rmSync('empty', {recursive:true}); symlinkSync('docs', 'empty');",
+      "fixes",
+      "OPERATION_SCOPE.*empty",
+      {},
+    ],
+    [
+      "unnamed directory",
+      "mkdirSync('unrelated');",
+      "fixes",
+      "OPERATION_SCOPE.*unrelated",
+      {},
+    ],
+    [
+      "empty directory",
+      "mkdirSync('unrelated');",
+      "checks",
+      "CHECK_MUTATION.*unrelated",
+      {},
+    ],
+    [
+      "removed by a check",
+      "rmSync('empty', {recursive:true});",
+      "checks",
+      "CHECK_MUTATION.*empty",
+      {},
+    ],
+  ] as const)
     await t.test(name, async (st) => {
       const f = await fixture(
         st,
-        `${prelude}\nif (input.operation.phase === '${phase}') { ${mutation} }\n${result}`,
+        `${prelude}\nimport { symlinkSync } from 'node:fs';\nif (input.operation.phase === '${phase}') { ${mutation} }\n${result}`,
         {
           docs: {
             kind: "repository",
             guidance: "guide.md",
-            targets: { paths: ["docs/new.md"], directories: [] },
+            targets: { paths: ["docs/new.md", "docs/old.md"], directories: [] },
             fixes: [operation("prepare")],
             checks: [operation("verify")],
           },
         },
+        files,
       );
-      mkdirSync(join(f.project.root, "docs"));
+      mkdirSync(join(f.project.root, "docs"), { recursive: true });
+      mkdirSync(join(f.project.root, "empty"));
       const started = f.start().report;
+      if (!code) {
+        assert.equal(started.phase, "contextual", started.reason);
+        const complete = f.assess(started.workRequest!);
+        assert.equal(complete.result.status, 0, complete.result.stdout);
+        const status = f.run<Status>(["status", "--json"]).report;
+        const fix = status.observations!.find(
+          (interval) => interval.phase === "fixes",
+        )!;
+        // The removal is recorded but is not a violation, and the change set
+        // lists files only.
+        assert.deepEqual(Object.keys(fix.boundaryChanges!), ["docs"]);
+        assert.deepEqual(fix.violations, []);
+        assert.deepEqual(
+          status.changeSet!.filter(({ path }) => path.startsWith("docs")),
+          Object.keys(files).map((path) => ({ path, phases: ["fixes"] })),
+        );
+        return;
+      }
       const failed =
         phase === "checks" ? f.assess(started.workRequest!).report : started;
-      assert.match(failed.reason, new RegExp(code!));
+      assert.match(failed.reason, new RegExp(code));
     });
 });
 
