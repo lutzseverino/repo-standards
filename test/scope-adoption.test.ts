@@ -17,6 +17,7 @@ import {
   readFileSync,
   readlinkSync,
   realpathSync,
+  renameSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -688,6 +689,76 @@ test("discovered contextual changes reject a stale assessment and complete with 
     complete.report.assessments[0]!.declarations[0]!.changedPaths,
     [target],
   );
+});
+
+test("agent work may remove a directory only when its confirmed scope covers every file it held", async (t) => {
+  for (const removal of ["confirmed", "outside scope"])
+    await t.test(removal, async (st) => {
+      const f = await fixture(st, "apps/widget", {
+        "legacy/a.md": "A",
+        "legacy/b.md": "B",
+      });
+      setScopeTargets(f, [
+        "apps/widget/README.md",
+        "legacy/a.md",
+        "legacy/b.md",
+      ]);
+      f.start(f.inspect().report.identity);
+      if (removal === "outside scope") {
+        rmSync(join(f.project.root, "fixtures"), { recursive: true });
+        f.run<Run>(["resume", "--json"]);
+        assert.match(
+          submit(f, assessment()).report.reason,
+          /ASSESSMENT_SCOPE.*fixtures\/fake\/package.json/,
+        );
+        return;
+      }
+      // Removing the directory's last file removes the directory too. The run
+      // binds the index, so the removal is unstaged again.
+      git(f.project.root, "rm", "--quiet", "legacy/a.md", "legacy/b.md");
+      git(f.project.root, "reset", "--quiet");
+      assert.equal(existsSync(join(f.project.root, "legacy")), false);
+      f.run<Run>(["resume", "--json"]);
+      const complete = submit(f, assessment());
+      assert.equal(complete.result.status, 0, complete.result.stdout);
+      const status = f.run<Status>(["status", "--json"]).report;
+      const interval = status.observations!.find(
+        ({ changes }) => changes && "legacy/a.md" in changes,
+      )!;
+      assert.deepEqual(Object.keys(interval.boundaryChanges!), ["legacy"]);
+      assert.deepEqual(interval.violations, []);
+      assert.deepEqual(
+        status.changeSet!.filter(({ path }) => path.startsWith("legacy")),
+        ["legacy/a.md", "legacy/b.md"].map((path) => ({
+          path,
+          phases: ["agent"],
+        })),
+      );
+    });
+});
+
+test("agent work may remove a directory it emptied in an earlier interval", async (t) => {
+  const f = await fixture(t, "apps/widget", { "legacy/only.md": "# Widget" });
+  setScopeTargets(f, ["apps/widget/README.md", "legacy/only.md"]);
+  f.start(f.inspect().report.identity);
+  renameSync(
+    join(f.project.root, "legacy/only.md"),
+    join(f.project.root, "apps/widget/README.md"),
+  );
+  f.run<Run>(["resume", "--json"]);
+  rmSync(join(f.project.root, "legacy"), { recursive: true });
+  f.run<Run>(["resume", "--json"]);
+  const complete = submit(f, assessment());
+  assert.equal(complete.result.status, 0, complete.result.stdout);
+  const removal = f
+    .run<Status>(["status", "--json"])
+    .report.observations!.find(
+      (interval) =>
+        interval.boundaryChanges && "legacy" in interval.boundaryChanges,
+    )!;
+  assert.equal(removal.phase, "agent");
+  assert.deepEqual(removal.changes, {});
+  assert.deepEqual(removal.violations, []);
 });
 
 test("unconfirmed migration destinations and exact corruption preserve incomplete work and installed expectations", async (t) => {

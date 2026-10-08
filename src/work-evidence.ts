@@ -5,6 +5,7 @@ import type { ResolvedProfile } from "./model.js";
 import { concreteScope, type Scope } from "./scope.js";
 import { observationIdentity } from "./scope-observation.js";
 import {
+  absent,
   changedBoundaries,
   observeWork,
   observedChanges,
@@ -163,16 +164,23 @@ function contextualScope(resolved: ResolvedProfile): Scope {
   });
 }
 
-function finishInterval(interval: WorkInterval, after: WorkObservation) {
+// Closes an interval at an observation of the project at root made just now.
+function finishInterval(
+  interval: WorkInterval,
+  after: WorkObservation,
+  root: string,
+) {
   interval.after = after;
   interval.changedPaths = observedChanges(interval.before, after);
   interval.boundaryChanges = changedBoundaries(interval.before, after);
   const scopes = Object.values(interval.scope);
+  const changed = new Set(interval.changedPaths);
+  const authorized = (path: string) =>
+    interval.phase !== "checks" &&
+    (!!interval.restoredExact?.[path] ||
+      scopes.some((targets) => permits(targets, path)));
   const fileViolations = interval.changedPaths.filter(
-    (path) =>
-      interval.phase === "checks" ||
-      (!interval.restoredExact?.[path] &&
-        !scopes.some((targets) => permits(targets, path))),
+    (path) => !authorized(path),
   );
   const boundaryViolations = interval.boundaryChanges.filter((path) => {
     if (interval.phase === "checks") return true;
@@ -180,15 +188,31 @@ function finishInterval(interval: WorkInterval, after: WorkObservation) {
     if (scopes.some((targets) => permits(targets, path))) return false;
     const before = interval.before.boundaries[path];
     // Named file authority includes creating its missing parent directories,
-    // but does not authorize deleting or changing existing ancestors.
+    // and removing a directory whose files the authorized changes removed. An
+    // empty directory qualifies trivially. Changing an existing directory's
+    // mode, or replacing it with a file, link or ignored entry, is never
+    // authorized.
+    if (!before || before.type === "missing")
+      return !(
+        after.boundaries[path]?.type === "directory" &&
+        scopes.some((targets) =>
+          [...targets.paths, ...targets.directories].some((target) =>
+            target.startsWith(path + "/"),
+          ),
+        )
+      );
     return !(
-      (!before || before.type === "missing") &&
-      after.boundaries[path]?.type === "directory" &&
-      scopes.some((targets) =>
-        [...targets.paths, ...targets.directories].some((target) =>
-          target.startsWith(path + "/"),
-        ),
-      )
+      before.type === "directory" &&
+      [after.boundaries[path], after.files[path]].every(
+        (state) => !state || state.type === "missing",
+      ) &&
+      absent(root, path) &&
+      Object.entries(interval.before.files)
+        .filter(
+          ([file, state]) =>
+            state.type !== "missing" && file.startsWith(path + "/"),
+        )
+        .every(([file]) => changed.has(file) && authorized(file))
     );
   });
   interval.violations = [
@@ -314,7 +338,7 @@ export class WorkEvidenceJournal {
         scope: agentScope,
         before: this.#last(),
       };
-      finishInterval(gap, before);
+      finishInterval(gap, before, this.#root);
       this.#record([...this.#run.observations, recordedInterval(gap)], before);
       this.#save();
       requireValidIntervals(this.#run.observations);
@@ -458,7 +482,7 @@ export class WorkEvidenceJournal {
         }),
       );
     }
-    finishInterval(interval, after);
+    finishInterval(interval, after, this.#root);
     if (
       interval.operation &&
       interrupted &&
