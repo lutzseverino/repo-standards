@@ -1,3 +1,5 @@
+import { lstatSync } from "node:fs";
+import { join } from "node:path";
 import { ProductError } from "./errors.js";
 import type { Scope } from "./scope.js";
 import { observeScope } from "./scope-observation.js";
@@ -79,4 +81,15 @@ export function changedBoundaries(
         JSON.stringify(after.boundaries[path] ?? { type: "missing" }),
     )
     .sort();
+}
+// Observations omit ignored entries, so only reading a path itself shows that
+// nothing, ignored or not, exists there. An unreadable path is not absent.
+export function absent(root: string, path: string) {
+  try {
+    lstatSync(join(root, path));
+    return false;
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    return code === "ENOENT" || code === "ENOTDIR";
+  }
 }

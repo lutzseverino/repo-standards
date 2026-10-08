@@ -580,6 +580,36 @@ test("a fix may remove a directory whose files its authority removed, and every 
       "CHECK_MUTATION.*empty",
       {},
     ],
+    // Git does not list ignored entries, so neither may pass as absence.
+    [
+      "replaced by an ignored file",
+      "rmSync('empty', {recursive:true}); writeFileSync('empty', 'File');",
+      "fixes",
+      "OPERATION_SCOPE.*empty",
+      { ".gitignore": "empty\n!empty/\n" },
+    ],
+    [
+      "replaced by an ignored link",
+      "rmSync('empty', {recursive:true}); symlinkSync('docs', 'empty');",
+      "fixes",
+      "OPERATION_SCOPE.*empty",
+      { ".gitignore": "empty\n!empty/\n" },
+    ],
+    [
+      "emptied and replaced by an ignored file",
+      "rmSync('docs', {recursive:true}); writeFileSync('docs', 'File');",
+      "fixes",
+      // A named target's ancestor is read directly whether or not it is ignored.
+      "OBSERVATION_UNSAFE.*docs",
+      { ".gitignore": "docs\n!docs/\n", "docs/old.md": "Old" },
+    ],
+    [
+      "kept but ignored",
+      "writeFileSync('.gitignore', 'empty/\\n');",
+      "fixes",
+      "OPERATION_SCOPE.*empty",
+      { ".gitignore": "" },
+    ],
   ] as const)
     await t.test(name, async (st) => {
       const f = await fixture(
@@ -589,7 +619,10 @@ test("a fix may remove a directory whose files its authority removed, and every 
           docs: {
             kind: "repository",
             guidance: "guide.md",
-            targets: { paths: ["docs/new.md", "docs/old.md"], directories: [] },
+            targets: {
+              paths: ["docs/new.md", "docs/old.md", ".gitignore"],
+              directories: [],
+            },
             fixes: [operation("prepare")],
             checks: [operation("verify")],
           },

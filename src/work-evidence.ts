@@ -5,6 +5,7 @@ import type { ResolvedProfile } from "./model.js";
 import { concreteScope, type Scope } from "./scope.js";
 import { observationIdentity } from "./scope-observation.js";
 import {
+  absent,
   changedBoundaries,
   observeWork,
   observedChanges,
@@ -163,7 +164,12 @@ function contextualScope(resolved: ResolvedProfile): Scope {
   });
 }
 
-function finishInterval(interval: WorkInterval, after: WorkObservation) {
+// Closes an interval at an observation of the project at root made just now.
+function finishInterval(
+  interval: WorkInterval,
+  after: WorkObservation,
+  root: string,
+) {
   interval.after = after;
   interval.changedPaths = observedChanges(interval.before, after);
   interval.boundaryChanges = changedBoundaries(interval.before, after);
@@ -184,7 +190,8 @@ function finishInterval(interval: WorkInterval, after: WorkObservation) {
     // Named file authority includes creating its missing parent directories,
     // and removing a directory whose files the authorized changes removed. An
     // empty directory qualifies trivially. Changing an existing directory's
-    // mode, or replacing it with a file or link, is never authorized.
+    // mode, or replacing it with a file, link or ignored entry, is never
+    // authorized.
     if (!before || before.type === "missing")
       return !(
         after.boundaries[path]?.type === "directory" &&
@@ -199,6 +206,7 @@ function finishInterval(interval: WorkInterval, after: WorkObservation) {
       [after.boundaries[path], after.files[path]].every(
         (state) => !state || state.type === "missing",
       ) &&
+      absent(root, path) &&
       Object.entries(interval.before.files)
         .filter(
           ([file, state]) =>
@@ -330,7 +338,7 @@ export class WorkEvidenceJournal {
         scope: agentScope,
         before: this.#last(),
       };
-      finishInterval(gap, before);
+      finishInterval(gap, before, this.#root);
       this.#record([...this.#run.observations, recordedInterval(gap)], before);
       this.#save();
       requireValidIntervals(this.#run.observations);
@@ -474,7 +482,7 @@ export class WorkEvidenceJournal {
         }),
       );
     }
-    finishInterval(interval, after);
+    finishInterval(interval, after, this.#root);
     if (
       interval.operation &&
       interrupted &&
