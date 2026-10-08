@@ -691,7 +691,7 @@ test("discovered contextual changes reject a stale assessment and complete with 
   );
 });
 
-test("agent work may remove a directory whose files are all within its confirmed scope", async (t) => {
+test("agent work may remove a directory only when its confirmed scope covers every file it held", async (t) => {
   for (const removal of ["confirmed", "outside scope"])
     await t.test(removal, async (st) => {
       const f = await fixture(st, "apps/widget", {
@@ -722,6 +722,11 @@ test("agent work may remove a directory whose files are all within its confirmed
       const complete = submit(f, assessment());
       assert.equal(complete.result.status, 0, complete.result.stdout);
       const status = f.run<Status>(["status", "--json"]).report;
+      const interval = status.observations!.find(
+        ({ changes }) => changes && "legacy/a.md" in changes,
+      )!;
+      assert.deepEqual(Object.keys(interval.boundaryChanges!), ["legacy"]);
+      assert.deepEqual(interval.violations, []);
       assert.deepEqual(
         status.changeSet!.filter(({ path }) => path.startsWith("legacy")),
         ["legacy/a.md", "legacy/b.md"].map((path) => ({
