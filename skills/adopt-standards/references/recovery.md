@@ -6,7 +6,7 @@ to use. If installation stopped before the project runtime became usable, use
 the externally installed CLI that started the run. Preserve progress records
 and partial changes throughout. The commands and their guarantees are defined
 in
-[recovery](https://github.com/lutzseverino/repo-standards/blob/v5.1.0/docs/usage/adoption.md#recover-or-abandon-an-interrupted-run).
+[recovery](https://github.com/lutzseverino/repo-standards/blob/v5.1.1/docs/usage/adoption.md#recover-or-abandon-an-interrupted-run).
 
 ## Read the active run
 
