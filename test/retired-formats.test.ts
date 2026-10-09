@@ -162,7 +162,7 @@ test("a retired state, scope evidence, or run record format is rejected with the
     "repo-standards/status/v7",
   );
   const retainedInspection = f.run<Inspection>(["inspect", "--json"]).report;
-  assert.equal(retainedInspection.format, "repo-standards/inspection/v6");
+  assert.equal(retainedInspection.format, "repo-standards/inspection/v7");
   assert.equal(
     retainedInspection.historicalScope!.format,
     "repo-standards/scope-history/v5",

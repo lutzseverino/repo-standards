@@ -10,7 +10,7 @@ export const formats = {
   scopeHistory: "repo-standards/scope-history/v5",
   run: "repo-standards/run/v6",
   status: "repo-standards/status/v7",
-  inspection: "repo-standards/inspection/v6",
+  inspection: "repo-standards/inspection/v7",
   scope: "repo-standards/scope/v2",
   workRequest: "repo-standards/work-request/v3",
   assessment: "repo-standards/assessment/v3",

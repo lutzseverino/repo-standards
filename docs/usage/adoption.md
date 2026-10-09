@@ -275,7 +275,7 @@ paths, derived absence and observation identities, together with the run's scope
 change against the previous run. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
 source availability, as `repo-standards/scope-history/v5` in the
-`repo-standards/inspection/v6` report, and `status` reports its scope change.
+`repo-standards/inspection/v7` report, and `status` reports its scope change.
 
 Retained scope evidence stores the run's discovery once: its identity, proposal,
 absence, declarations and project observation without the evidence array that
@@ -310,7 +310,7 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v5`                                |
 | Run record, local run report, and archived abandoned report          | `repo-standards/run/v6`                                          |
 | `status` report                                                      | `repo-standards/status/v7`                                       |
-| Inspection report                                                    | `repo-standards/inspection/v6`                                   |
+| Inspection report                                                    | `repo-standards/inspection/v7`                                   |
 | Work request and assessment                                          | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
 
 Earlier formats are retired: they are not read, converted, or compacted. A

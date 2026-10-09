@@ -564,6 +564,8 @@ Replacing or removing these targets discards content that is not their installed
 - \`.claude/skills/adopt-standards\`
 - \`AGENTS.md\`
 
+Confirmation required: starting this run needs the maintainer's confirmation of these discarded edits.
+
 ## Kept targets
 
 These targets leave the selection with edits. They stay in place, and the project now owns them:
@@ -656,6 +658,7 @@ These targets leave the selection with edits. They stay in place, and the projec
     update,
   );
   assert.ok(!update.includes("## Discarded edits"), update);
+  assert.ok(!update.includes("Confirmation required"), update);
   assert.ok(
     !/\| `(?:legacy|retired)` \| `[^`]*` \| deleted \|/.test(update),
     update,

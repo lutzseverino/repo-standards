@@ -211,7 +211,7 @@ adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
 scope is missing. Initial start receives the same valid proposal and confirmed
 complete inspection identity and reconstructs inspection before mutation. Inspection accepts
 `repo-standards/scope/v2` proposals through `--scope`, returns explicitly versioned
-`repo-standards/inspection/v6` reports, and binds a complete eligible project
+`repo-standards/inspection/v7` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
 A proposal carries only the agent's judgment per active discovery declaration:
 candidates with their decisions, reasons and evidence paths, coverage, and
@@ -273,8 +273,9 @@ are recorded independently of the exact CLI package pin.
 `--summary` is a peer of `--json` on `inspect` and `status`; combining them is a
 usage error. One renderer module produces both summaries, and the same report
 or record renders the same bytes. An inspection summary lists the selection
-before and after, the update class, changed declarations and paths, operations,
-scope changes, retired declarations, blockers when present, and the identity. A
+before and after, the update class, changed declarations and paths, discarded
+edits with whether confirmation is required, operations, scope changes, retired
+declarations, blockers when present, and the identity. A
 status summary lists the selection, operations and their results, the run's net
 change set, scope changes, and identities, or an active run's phase, progress,
 and next action.
@@ -986,3 +987,6 @@ These mechanisms are removed, not deprecated
 - Confirming every inspection. A start without a confirmation-required change
   proceeds with the identity alone; the `adopt-standards` skill asks the
   maintainer only when the report requires it.
+- The format `repo-standards/inspection/v6`. Its current version is
+  `inspection/v7` (`confirmation`)
+  ([ADR 0007](../adr/0007-write-and-read-one-evidence-format.md)).

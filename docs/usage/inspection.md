@@ -152,7 +152,7 @@ the tag-cache location must resolve outside the project, including via symlinks.
 
 ## Report and inspection identity
 
-Every report has the single format `repo-standards/inspection/v6`. A profile
+Every report has the single format `repo-standards/inspection/v7`. A profile
 with discovery declarations adds the `discovery` and `sourceResolved` fields
 described [below](#discover-contextual-file-scope):
 
@@ -385,7 +385,8 @@ of JSON. It has these sections, in order:
   what changed.
 - **Discarded edits**: present only when a replacement or removal discards
   content that is not the target's installed baseline, listing each such
-  target.
+  target, then, when `confirmation.required` is true, a line stating that
+  starting the run needs the maintainer's confirmation of these discarded edits.
 - **Kept targets**: present only when an update keeps edited targets that leave
   the selection, listing each with its declaration as now owned by the project.
 - **Operations**: every fix and check with its literal argument vector,
@@ -409,7 +410,7 @@ record the same way.
 
 A selected repository declaration with `discovery` uses two read-only inspections.
 The first invocation uses the same source, version, profile and project flags
-shown above. Its `repo-standards/inspection/v6` report adds discovery instructions,
+shown above. Its `repo-standards/inspection/v7` report adds discovery instructions,
 eligible evidence, a request identity, and `DISCOVERY_REQUIRED` in `start.blockers`.
 The report still includes exact changes, contextual guidance, and all operations.
 Unresolved declarations remain in `sourceResolved`; they do not manufacture
@@ -560,7 +561,7 @@ request and final inspection identities, so neither a retained historical
 proposal nor an earlier inspection authorizes the new run.
 
 After ordinary discovery completion, retained `inspect --json` remains
-`repo-standards/inspection/v6` and exposes `historicalScope` as
+`repo-standards/inspection/v7` and exposes `historicalScope` as
 `repo-standards/scope-history/v5`: the last complete run's accepted inspection
 identity, materialized concrete selection, and, when that run discovered scope,
 its source-resolved declarations and discovery proposal, rationale, guidance,
