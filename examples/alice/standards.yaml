@@ -2,7 +2,7 @@ format: repo-standards/v2
 name: alice-standards
 description: Alice's repository standards
 requires:
-  repo-standards: ">=1.2.0"
+  repo-standards: ">=6.0.0"
 
 defaults:
   declarations:
