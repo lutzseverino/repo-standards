@@ -5,7 +5,7 @@ import re
 import sys
 
 request = json.load(sys.stdin)
-if request.get("format") != "repo-standards/operation/v1":
+if request.get("format") != "repo-standards/operation/v2":
     raise ValueError("Unsupported operation input")
 targets = request["allowedTargets"]["paths"]
 if len(targets) != 1 or request["allowedTargets"]["directories"]:
@@ -15,7 +15,7 @@ text = path.read_text() if path.is_file() else ""
 headings = {match.casefold() for match in re.findall(r"^##[ \t]+(.+?)[ \t]*$", text, re.MULTILINE)}
 missing = [heading for heading in ("Setup", "Usage", "Development") if heading.casefold() not in headings]
 print(json.dumps({
-    "format": "repo-standards/result/v1",
+    "format": "repo-standards/result/v2",
     "status": "failed" if missing else "passed",
     "message": "Missing README headings: " + ", ".join(missing) if missing else "Setup, Usage and Development headings are present; usefulness requires agent assessment.",
 }))

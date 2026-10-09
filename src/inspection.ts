@@ -759,6 +759,15 @@ export async function inspectForStart(
           }
         : {}),
       discardedEdits,
+      // Discarding a person's edits is the only confirmation-required change
+      // inspection can see; it runs no source code to find others.
+      confirmation: {
+        required: discardedEdits.length > 0,
+        reasons: discardedEdits.map((target) => ({
+          change: "discarded-edit" as const,
+          target,
+        })),
+      },
       start: {
         eligible: blockers.length ? false : operations.length ? null : true,
         blockers,

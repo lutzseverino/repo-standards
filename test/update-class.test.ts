@@ -40,7 +40,7 @@ const files = {
   "legacy.md": "Legacy notes\n",
   "guidance.md": "Keep every maintained project README useful.\n",
   "discovery.md": "Include the README of every maintained project.\n",
-  "check.mjs": `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Verified'}));\n`,
+  "check.mjs": `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'passed',message:'Verified'}));\n`,
   "rules/style.txt": "Headings use sentence case.\n",
 };
 

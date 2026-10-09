@@ -49,7 +49,7 @@ const cli = installCli();
 after(() => cli.close());
 const script = `import { readFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0, 'utf8'));
-console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.operation.phase==='fixes'?'unchanged':'passed',message:JSON.stringify(input.allowedTargets)}));`;
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:input.operation.phase==='fixes'?'unchanged':'passed',message:JSON.stringify(input.allowedTargets)}));`;
 async function fixture(
   t: TestContext,
   base = "components/odd/nested",

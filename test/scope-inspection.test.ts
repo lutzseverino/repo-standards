@@ -407,6 +407,8 @@ test("a proposal holding only the agent judgment is accepted, and the CLI derive
   const before = snapshot(project.root);
   const report = inspect();
   assert.deepEqual(report.start.blockers, []);
+  // A scope proposal is not a confirmation-required change.
+  assert.deepEqual(report.confirmation, { required: false, reasons: [] });
   assert.equal(report.discovery!.identity, request.discovery!.identity);
   assert.deepEqual(
     (

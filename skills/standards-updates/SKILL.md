@@ -46,5 +46,6 @@ continue the current work as planned. Do not inspect or start an update.
 When the maintainer asks for an update, carry it through `adopt-standards` as a
 change separate from the current work, never mixed with the current work's
 changes. `adopt-standards` is manual only: on that instruction, follow
-`.agents/skills/adopt-standards/SKILL.md`, which inspects the update, obtains
-confirmation and starts the run from a clean working tree.
+`.agents/skills/adopt-standards/SKILL.md`, which inspects the update and starts
+the run from a clean working tree, asking for confirmation only when the
+inspection requires it.

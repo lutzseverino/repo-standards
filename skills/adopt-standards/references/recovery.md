@@ -17,6 +17,8 @@ Read `status --json` and its `active` record: `phase`, `reason`, `changes`,
   running. Wait for it to finish. Stop it only on the maintainer's
   instruction.
 - An ordinary contextual handoff continues with [assessment](assessment.md).
+- A `reason` starting `CONFIRMATION_REQUIRED:` in the `fixes` phase is a fix
+  that needs confirmation; see [below](#confirm-a-fixs-overwrite).
 - In a run with contextual work, an ordinary `CHECKS_FAILED` result continues
   with a renewed [assessment](assessment.md#submit-the-assessment), not a
   retry. Without contextual work there is no assessment to renew, and
@@ -25,6 +27,25 @@ Read `status --json` and its `active` record: `phase`, `reason`, `changes`,
   completion need a decision between retry and abandonment. Explain the phase,
   reason, actual changes, completed and uncertain work, and the safe next
   action, then ask the maintainer.
+
+## Confirm a fix's overwrite
+
+A fix that would change or remove an existing setting holding a different
+value changes nothing and stops the run, resumably. Its `reason` names the fix
+and its message, which names the setting, its current value, and the value the
+standard sets; the fix's result is the last entry in `operations`. This is a
+confirmation-required change. Present the setting and both values, and ask the
+maintainer whether to overwrite it.
+
+- Only after their explicit confirmation of that overwrite, run
+  `resume --confirmed --json`. It reruns the fix allowed to overwrite, then
+  continues the run; a later fix may stop for its own confirmation, which
+  needs its own answer. The
+  [confirmation contract](https://github.com/lutzseverino/repo-standards/blob/v5.1.1/docs/usage/adoption.md#confirmation-required-changes)
+  defines the command.
+- Without confirmation, the run stays stopped. If the maintainer declines,
+  obtain an abandonment instruction and [abandon](#abandon) the run. Retry
+  stops at the same fix again; it is no way around the question.
 
 ## Retry
 
@@ -41,7 +62,7 @@ overwriting. Never remove durable run records to get past a recovery check.
 Obtain an explicit abandonment instruction before `abandon --json`. Abandonment
 keeps the project content and archives the run's report. Afterwards, help the
 maintainer reconcile the preserved changes through the project's normal
-workflow. A new adoption needs a clean committed project and a fresh confirmed
+workflow. A new adoption needs a clean committed project and a fresh
 inspection.
 
 ## Correct a confirmed scope
@@ -58,8 +79,9 @@ stays incomplete with `SCOPE_INCOMPLETE`. Then adopt again:
    restoring `.repo-standards/`, exact content, and skills to their committed
    state: the new run installs them again, and an abandoned run's product state
    is not a complete adoption.
-4. Build a new [scope proposal](discovery.md), inspect with it, obtain explicit
-   confirmation of the new inspection, and start it with the same proposal.
+4. Build a new [scope proposal](discovery.md), inspect with it, and start the
+   new inspection with the same proposal, confirmed only when its report
+   requires confirmation.
 
 ## Adopt fresh from a retired format
 
@@ -81,5 +103,6 @@ Nothing is converted, and nothing needs removing or committing first.
    unlisted ignored `local/` content, such as an earlier abandoned run's
    `incomplete-state.json`, which the maintainer may want to copy first.
    Content that the earlier adoption installed and the selection no longer
-   declares stays as project content. Confirming the inspection confirms the removal,
-   which `start` leaves uncommitted with the run's other changes.
+   declares stays as project content. Removing the retired state is not a
+   confirmation-required change; `start` leaves the removal uncommitted with
+   the run's other changes.

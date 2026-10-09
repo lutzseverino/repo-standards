@@ -1,6 +1,6 @@
 ---
 name: adopt-standards
-description: Guide confirmed Repository Standards discovery, adoption, contextual work, updates, and recovery.
+description: Guide Repository Standards discovery, adoption, contextual work, updates, and recovery.
 disable-model-invocation: true
 ---
 
@@ -10,8 +10,9 @@ version:
 - [Discovery](references/discovery.md): building the scope proposal and
   rechecking coverage.
 - [Assessment](references/assessment.md): doing and judging contextual work.
-- [Recovery](references/recovery.md): an interrupted run, abandonment, scope
-  correction, and fresh adoption from a retired format.
+- [Recovery](references/recovery.md): an interrupted run, a fix that needs
+  confirmation, abandonment, scope correction, and fresh adoption from a
+  retired format.
 - [Review](references/review.md): reviewing a completed run's outputs.
 
 ## Choose the CLI and route
@@ -54,19 +55,22 @@ only; keep this installation for `start` and recovery until the run completes.
   instruction before `abandon --json`.
 - **Existing complete adoption:** every requested change of the selection, and
   every repetition of it, is one update on a single path: read `outdated --json`
-  for available updates, inspect, present the summary, obtain confirmation of
-  the inspection identity, and start.
+  for available updates, inspect, present the summary, and start with the
+  inspection identity.
   Pass source flags to select a standards version, source, or profile; run the
   external candidate exact CLI to change the CLI pin, alone or with any of
   them; omit source flags to keep the retained standards, which the pinned CLI
-  inspects even when the source is unavailable. A confirmed inspection of the
+  inspects even when the source is unavailable. An inspection of the
   unchanged selection starts a run that applies it again; do not present that
   run as a retry, resume, or automatic compliance repair.
   Every active discovery declaration needs a fresh proposal for every update.
 - **Initial adoption:** obtain the public GitHub source, stable standards tag
   and complete profile from the maintainer, then inspect that selection.
 
-## Inspect and confirm
+## Inspect and start
+
+The maintainer's request to adopt or update a selection is their consent. Ask
+them again only when the inspection report requires confirmation.
 
 1. Run `inspect --source <URL> --standards-version <tag> --profile <name> --json`
    for initial adoption or to select a standards version, source, or profile.
@@ -89,8 +93,8 @@ only; keep this installation for `start` and recovery until the run completes.
    `contextualChanges` names each differing declaration. The class describes
    the update; it neither approves it nor replaces review. Render the same
    inspection with `inspect --summary`, using the same executable and flags
-   without `--json`, and present that Markdown as the proposal after checking
-   that its identity matches the report. Show exact creates, replacements and matches,
+   without `--json`, and present that Markdown, after checking that its
+   identity matches the report, as what the run will do. Show exact creates, replacements and matches,
    the targets an update removes, each target in `discardedEdits` (its
    replacement or removal discards content other than its installed
    baseline), each target in `kept` (edited content that leaves the selection
@@ -104,15 +108,29 @@ only; keep this installation for `start` and recovery until the run completes.
    sandbox. Inspection runs none of them; prerequisites remain unverified until
    start. Surface all blockers. Reconcile them before reinspection; preserve
    existing work and let the maintainer handle prerequisite installation.
-4. Obtain explicit maintainer confirmation tied to this inspection identity and
-   disclosed selection/operations. A general request to adopt is not confirmation
-   of an unseen inspection. Then use the same executable and flags for
-   `start --confirm <identity> --json`, repeating source flags when the
+4. Read the report's `confirmation`. When `confirmation.required` is false,
+   start without asking: use the same executable and flags for
+   `start --identity <identity> --json`, repeating source flags when the
    inspection used them and omitting them when it used retained standards. For
    every discovery-backed adoption or update, pass the same `--scope <file>`
-   proposal. One confirmation covers the
-   complete inspection; scope discovery itself needs no separate approval.
-   Changed inputs or a stale rejection require a new inspection and renewed confirmation.
+   proposal.
+5. When `confirmation.required` is true, the run makes a confirmation-required
+   change: each entry in `confirmation.reasons` names a target whose
+   replacement or removal discards a person's edits. Present those targets with
+   their diffs, and ask the maintainer to confirm discarding them. Only after
+   their explicit confirmation of this inspection, start as above with
+   `--confirmed` added. Without it, do not start. `start` refuses to proceed
+   without `--confirmed` when the inspection requires it, and rejects it when
+   the inspection does not; never pass it by habit.
+
+Changed inputs or a stale rejection require a new inspection; ask again only
+when the new report requires confirmation.
+
+A fix can also require confirmation: one that would overwrite an existing
+setting with a different value stops the run instead, with a `reason` starting
+`CONFIRMATION_REQUIRED:`. Follow
+[Recovery](references/recovery.md#confirm-a-fixs-overwrite); never resume with
+`--confirmed` before the maintainer confirms that overwrite.
 
 Author skills are ordinary-work content. The product-owned `adopt-standards`
 skill and public CLI govern adoption for every author; author material cannot

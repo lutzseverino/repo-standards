@@ -24,7 +24,12 @@ import type { InspectOptions } from "./inspection.js";
 import { observe } from "./observation.js";
 import { json, projectRoot } from "./adoption-files.js";
 import { declarationTargets, installedSystemSkills } from "./targets.js";
-import { withStartRun, withResumedRun } from "./adoption-run.js";
+import {
+  confirmationStop,
+  fixConfirmationRequired,
+  withStartRun,
+  withResumedRun,
+} from "./adoption-run.js";
 import {
   install,
   planInstallation,
@@ -112,21 +117,41 @@ function workSnapshot(
 }
 
 const staleDiscovery =
-  "Selection, project state, or the scope proposal changed since the confirmed inspection. Inspect again with the proposal, review it against the fresh discovery evidence, and obtain confirmation of the new identity.";
+  "Selection, project state, or the scope proposal changed since the inspection. Inspect again with the proposal, review it against the fresh discovery evidence, and start with the new identity.";
 
-function verifyConfirmation(report: Inspection, confirmation: string) {
-  if (report.identity !== confirmation)
+// A start binds to the identity of the inspection it carries out. It carries
+// the maintainer's confirmation exactly when that inspection reports a
+// confirmation-required change: never by habit, and never without it.
+function verifyInspection(
+  report: Inspection,
+  identity: string,
+  confirmed: boolean | null,
+) {
+  if (report.identity !== identity)
     throw new ProductError(
       "STALE_INSPECTION",
       report.discovery
         ? staleDiscovery
-        : "Selection or project state changed. Inspect again and obtain confirmation of the new identity.",
+        : "Selection or project state changed. Inspect again and start with the new identity.",
     );
   if (report.start.blockers.length)
     throw new ProductError(
       "START_BLOCKED",
       "Resolve all inspection blockers before starting adoption.",
       report.start.blockers,
+    );
+  const { required, reasons } = report.confirmation;
+  if (confirmed === null) return;
+  if (required && !confirmed)
+    throw new ProductError(
+      "CONFIRMATION_REQUIRED",
+      `This adoption discards edits to ${reasons.map(({ target }) => target).join(", ")}. Ask the maintainer to confirm discarding them, then start again with --identity ${identity} --confirmed.`,
+      reasons,
+    );
+  if (!required && confirmed)
+    throw new ProductError(
+      "CONFIRMATION_NOT_REQUIRED",
+      `This adoption makes no confirmation-required change. Start with --identity ${identity} alone.`,
     );
 }
 
@@ -262,33 +287,46 @@ function prepareRuntime(directory: string, version: string, project: string) {
 export async function start(
   options: InspectOptions,
   cliVersion: string,
-  confirmation: string,
+  identity: string,
+  confirmed: boolean,
 ) {
   return withStartRun(options.project, (session) =>
-    startRun({ kind: "public", options }, cliVersion, confirmation, session),
+    startRun(
+      { kind: "public", options },
+      cliVersion,
+      identity,
+      confirmed,
+      session,
+    ),
   );
 }
 
 export async function startRetained(
   project: string,
   cliVersion: string,
-  confirmation: string,
+  identity: string,
+  confirmed: boolean,
   scope?: string,
 ) {
   return withStartRun(project, (session) =>
     startRun(
       { kind: "retained", project, ...(scope ? { scope } : {}) },
       cliVersion,
-      confirmation,
+      identity,
+      confirmed,
       session,
     ),
   );
 }
 
+// A retry of a start that stopped before preparing its installation passes
+// null for confirmation: the run began under this identity, so its start
+// already carried any confirmation the identity's report requires.
 async function startRun(
   input: StartInput,
   cliVersion: string,
-  confirmation: string,
+  identity: string,
+  confirmed: boolean | null,
   session: AdoptionRunSession,
 ) {
   const inspectSelection = async () => {
@@ -297,7 +335,7 @@ async function startRun(
         ? retainedInspection(input.project, cliVersion, input.scope)
         : inspectForStart(input.options, cliVersion));
     } catch (error) {
-      // The confirmed proposal fit the project it was inspected against.
+      // The inspected proposal fit the project it was inspected against.
       if (error instanceof ObservedScopeError)
         throw new ProductError(
           "STALE_INSPECTION",
@@ -309,7 +347,7 @@ async function startRun(
   };
   const initial = await inspectSelection();
   const root = initial.root;
-  verifyConfirmation(initial.report, confirmation);
+  verifyInspection(initial.report, identity, confirmed);
   const proposalPath =
     input.kind === "retained" ? input.scope : input.options.scope;
   const scope =
@@ -326,7 +364,7 @@ async function startRun(
   session.begin(
     initial.report,
     { root, head: initial.git.head },
-    confirmation,
+    identity,
     startInput,
     initial.recorded,
   );
@@ -350,24 +388,33 @@ async function startRun(
     : undefined;
   // Network/package acquisition can take time. Repeat all Git, source and
   // target checks under the lock before creating any project material. The
-  // materials come from this inspection, whose confirmed identity binds their
-  // hashes.
+  // materials come from this inspection, whose identity binds their hashes.
   const inspected = await inspectSelection();
-  verifyConfirmation(inspected.report, confirmation);
-  const installation = planInstallation(root, inspected, confirmation, runtime);
+  verifyInspection(inspected.report, identity, confirmed);
+  const installation = planInstallation(root, inspected, identity, runtime);
   session.prepareInstallation(installation);
   install(root, session, installation);
   await advance(root, session, installation);
 }
 
+// How a resumed run continues: with an assessment, or a refreshed work request
+// when none is submitted, or from the fix the maintainer confirmed overwriting.
+type Continuation =
+  | { kind: "assessment"; assessment?: unknown }
+  | { kind: "confirmed"; fix: { declaration: string; id: string } };
+
 async function advance(
   root: string,
   session: AdoptionRunSession,
   installation: Installation,
-  resumed = false,
-  assessment?: unknown,
+  continuation?: Continuation,
 ) {
   const { report } = installation;
+  const resumed = continuation?.kind === "assessment";
+  const assessment = resumed ? continuation.assessment : undefined;
+  // A confirmed continuation skips the fixes accepted before the stop.
+  let confirmedFix =
+    continuation?.kind === "confirmed" ? continuation.fix : null;
   const verifyInstalled = () => verifyInstallation(root, installation);
   // A resumed assessment is validated before the journal's violations are checked.
   if (resumed) session.journal.continue();
@@ -412,10 +459,23 @@ async function advance(
     : ["fixes", "checks"];
   for (const phase of phases) {
     for (const selected of operations(report.resolved, phase)) {
+      const overwriteAllowed =
+        phase === "fixes" &&
+        confirmedFix?.declaration === selected.declaration &&
+        confirmedFix.id === selected.operation.id;
+      if (phase === "fixes" && confirmedFix && !overwriteAllowed) continue;
+      confirmedFix = null;
       const evidence = await session.authorProcess(
         { phase, declaration: selected.declaration, id: selected.operation.id },
         (onSpawn) =>
-          execute(root, selected, report.selection, report.resolved, onSpawn),
+          execute(
+            root,
+            selected,
+            report.selection,
+            report.resolved,
+            onSpawn,
+            overwriteAllowed,
+          ),
         verifyInstalled,
       );
       if (evidence.error)
@@ -428,6 +488,21 @@ async function advance(
           "OPERATION_BLOCKED",
           `Operation ${selected.declaration}/${selected.operation.id} is blocked: ${evidence.result.message}`,
         );
+      if (evidence.result?.status === "confirmation-required") {
+        // A fix that needs confirmation must have made no change.
+        const changed = session.journal.operationChanges(
+          session.observation.operations.length - 1,
+        );
+        if (changed.length)
+          throw new ProductError(
+            "PROTOCOL_ERROR",
+            `Fix ${selected.declaration}/${selected.operation.id} returned confirmation-required after changing ${changed.join(", ")}; a fix that needs confirmation must make no change. Read its logs and preserve changes.`,
+          );
+        throw fixConfirmationRequired(
+          { declaration: selected.declaration, id: selected.operation.id },
+          evidence.result.message,
+        );
+      }
       session.record({
         type: "operation-accepted",
         description: `${phase}: ${selected.declaration}/${selected.operation.id} (${evidence.result!.status})`,
@@ -477,15 +552,23 @@ export async function resume(
   cliVersion: string,
   assessmentPath?: string,
   retry = false,
+  confirmed = false,
 ) {
   return withResumedRun(
     project,
     cliVersion,
     retry,
+    confirmed,
     async (session, installation) => {
       if (!installation) {
         const run = session.observation;
-        return startRun(run.startInput!, cliVersion, run.inspection, session);
+        return startRun(
+          run.startInput!,
+          cliVersion,
+          run.inspection,
+          null,
+          session,
+        );
       }
       const root = projectRoot(project);
       if (retry) {
@@ -503,6 +586,12 @@ export async function resume(
           install(root, session, installation);
         return advance(root, session, installation);
       }
+      // The session accepts confirmation only for a run stopped for it.
+      if (confirmed)
+        return advance(root, session, installation, {
+          kind: "confirmed",
+          fix: confirmationStop(session.observation)!.operation,
+        });
       session.record({ type: "assessment-reading" });
       let assessment: unknown;
       if (assessmentPath !== undefined) {
@@ -517,7 +606,10 @@ export async function resume(
           );
         }
       }
-      await advance(root, session, installation, true, assessment);
+      await advance(root, session, installation, {
+        kind: "assessment",
+        assessment,
+      });
     },
   );
 }

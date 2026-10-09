@@ -23,7 +23,7 @@ The product supports both journeys:
 2. An adopting project inspects one complete profile, adopts it, commits the
    resulting material through its own workflow, and later deliberately updates
    its selection, in any combination of its pins, source, and profile, through
-   one confirmed run.
+   one run, confirmed by the maintainer only for a confirmation-required change.
 
 The maintainer's own standards are published separately as Repo Canon; the
 product remains neutral for independently authored standards.
@@ -51,14 +51,14 @@ standards format.
 | Declaration targets      | A resolved declaration produces the targets it applies to, as paths and directory trees: an exact file's or skill's one installation target, or contextual guidance's targets. It also produces each skill's link and the text the product writes there, and holds the system skills: each reserved name, target, and link, and the ones adoption installs. Every other module asks it rather than deriving a skill's target or link, a declaration's targets, or the system skills itself.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Target ownership         | Each installation target's current content, its installed baseline when one exists, its candidate content when one exists, and whether that content is tracked produce its target ownership: the action a run would take on it (match, create, or replace; a recorded target the selection no longer installs has a missing candidate, so its removal is a replacement, unless it overlaps contextual scope or lies at or inside a target the selection still installs, where it has no candidate and no action), whether that action discards content other than the installed baseline, whether the target is kept, and its one ownership blocker, untracked replacement content. A recorded target the selection no longer installs is kept, with no action and no blocker, when its safely observed, tracked content is not its installed baseline, unless it contains a target the selection still installs; a skill directory is judged whole, and a kept skill keeps its link. The rule is the same for every target kind in every run. Inspection observes each target once and is its only caller. |
 | Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, skill links, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, status, and check read an established adoption only through it; every command first runs its format gate over the records in the product state and Git directories, which is all resume and abandon need while a run is active. The gate rejects newer and retired records, except that it returns retired committed records to a public inspection or start, which adopts fresh over them, and to status, resume, abandon, and check while a run of this CLI is active. `outdated` reads the selection leniently instead.                                                                                                                                                                                                                     |
-| Installation             | A confirmed inspection produces one run's installation plan, not the adoption itself: the exact content, skills, skill links, retained inputs, durable product state, and runtime an adoption run installs, the links it removes, retired product state it removes whole, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Execution                | Confirmed adoption progress advances through exact installation, literal process execution, checks, and final integrity. Final integrity is the run-time check of the run's planned installation, distinct from the recorded adoption reader's check of the committed baseline a run starts from. `check` runs the recorded adoption's checks through the same prerequisite probes and process execution outside any run, observing that each leaves the project unchanged.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| Installation             | The inspection a start is bound to produces one run's installation plan, not the adoption itself: the exact content, skills, skill links, retained inputs, durable product state, and runtime an adoption run installs, the links it removes, retired product state it removes whole, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Execution                | Adoption progress advances through exact installation, literal process execution, checks, and final integrity. Final integrity is the run-time check of the run's planned installation, distinct from the recorded adoption reader's check of the committed baseline a run starts from. `check` runs the recorded adoption's checks through the same prerequisite probes and process execution outside any run, observing that each leaves the project unchanged.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | Work evidence            | The work-evidence journal owns an adoption run's observation intervals: it opens one for a phase and scope after recording any unattributed gap as an agent interval, closes intervals with their violation checks, continues after an interruption by recording and saving without checking, so each caller requires authorization where it holds, and answers what the agent changed. It keeps the one observation its last interval ends at behind an observation store seam: a file store beside the run journal for runs, an in-memory store for abandonment. Intervals and operation outcomes produce the run's execution evidence as identities and deltas, in one shape shared by the run record, the local run report, and committed durable state, which holds the current run only. At completion, the installation's changes and the intervals produce the run's net change set.                                                                                                                                                                                                                |
-| Scope evidence           | A confirmed run and the recorded adoption it updates produce the retained scope evidence: the current run, with its project observation kept without derived evidence and its named observation as a delta, and its scope change against the previous run. The projected historical scope is rebuilt on read.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Scope evidence           | A run and the recorded adoption it updates produce the retained scope evidence: the current run, with its project observation kept without derived evidence and its named observation as a delta, and its scope change against the previous run. The projected historical scope is rebuilt on read.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Available updates        | A selection and the newest published stable CLI and standards versions produce per-pin availability, cached in the ignored product cache. It never blocks and writes nothing else; it fails only under a CLI other than the selection's CLI pin, before any lookup.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Summary renderer         | An inspection report or a status record produces one deterministic Markdown document. It describes and never prescribes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | Update notice            | The `standards-updates` system skill runs `outdated` with the project runtime, reinstalling the pinned runtime once when it is missing or reports `CLI_PIN_MISMATCH`, and reports each available update to the agent. It starts no update: one starts only on the maintainer's instruction, through adoption orchestration, as a change separate from the current work.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Adoption orchestration   | The `adopt-standards` system skill presents inspection and its summary, obtains confirmation, performs requested contextual work, and submits evidence through the CLI.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Adoption orchestration   | The `adopt-standards` system skill presents inspection and its summary, obtains confirmation only when the inspection requires it, performs requested contextual work, and submits evidence through the CLI.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 These responsibilities do not mandate separate packages or class hierarchies.
 They share the resolver's result. Other modules do not independently interpret
@@ -211,7 +211,7 @@ adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
 scope is missing. Initial start receives the same valid proposal and confirmed
 complete inspection identity and reconstructs inspection before mutation. Inspection accepts
 `repo-standards/scope/v2` proposals through `--scope`, returns explicitly versioned
-`repo-standards/inspection/v6` reports, and binds a complete eligible project
+`repo-standards/inspection/v7` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
 A proposal carries only the agent's judgment per active discovery declaration:
 candidates with their decisions, reasons and evidence paths, coverage, and
@@ -263,8 +263,8 @@ are recorded independently of the exact CLI package pin.
 | `source validate` | Validates a local source and all its profiles without running author code.                                                                                                                                                                        |
 | `source search`   | Finds public GitHub candidates and metadata.                                                                                                                                                                                                      |
 | `inspect`         | Describes the exact selection, the update comparison and class, proposed changes, guidance, operations, prerequisites, and conflicts without modifying the project or running author code. `--summary` renders the report as a Markdown proposal. |
-| `start`           | Validates the confirmed inspection and advances adoption until completion, a problem, or required contextual work.                                                                                                                                |
-| `resume`          | Continues the existing run, including accepting `--assessment <file>` and explicitly retrying interrupted work.                                                                                                                                   |
+| `start`           | Validates the inspection identity and its confirmation and advances adoption until completion, a problem, or required contextual work.                                                                                                            |
+| `resume`          | Continues the existing run, including accepting `--assessment <file>`, explicitly retrying interrupted work, and continuing with `--confirmed` from a fix that needs confirmation.                                                                |
 | `status`          | Reports current pins, progress, and historical evidence without any network request or implying continuing compliance. `--summary` renders the last complete or active run as a Markdown record.                                                  |
 | `abandon`         | Ends an incomplete run while retaining its changes and report.                                                                                                                                                                                    |
 | `outdated`        | Reports, for each pin, whether a newer stable CLI or standards version is published and by how many stable releases, without blocking or changing anything outside the ignored product cache.                                                     |
@@ -273,8 +273,9 @@ are recorded independently of the exact CLI package pin.
 `--summary` is a peer of `--json` on `inspect` and `status`; combining them is a
 usage error. One renderer module produces both summaries, and the same report
 or record renders the same bytes. An inspection summary lists the selection
-before and after, the update class, changed declarations and paths, operations,
-scope changes, retired declarations, blockers when present, and the identity. A
+before and after, the update class, changed declarations and paths, discarded
+edits with whether confirmation is required, operations, scope changes, retired
+declarations, blockers when present, and the identity. A
 status summary lists the selection, operations and their results, the run's net
 change set, scope changes, and identities, or an active run's phase, progress,
 and next action.
@@ -328,7 +329,7 @@ workflow.
 
 The thin user-installed bootstrap obtains one exact CLI version outside the
 project for first inspection. An omitted version selects the latest stable
-once and discloses it. Confirmed adoption installs that version and the matching
+once and discloses it. Adoption installs that version and the matching
 repository-local `adopt-standards` and `standards-updates` skills. Existing
 projects use their own pin.
 Adoption does not automatically install `author-standards`; reserving that
@@ -351,16 +352,39 @@ adoption will execute. Its identity binds what the run reads: the selection,
 resolved materials, affected bytes and modes, the product-state inventory, and,
 when discovery is active, the discovery observation. It does not bind Git HEAD,
 the index, status, or the project root, so an inspection made in any checkout of
-the same content confirms a start in another
+the same content starts a run in another
 ([ADR 0012](../adr/0012-bind-content-not-location.md)). Reports carry hash
 inventories and diffs, not file bytes.
-The `adopt-standards` skill obtains explicit confirmation of that inspection;
-start rejects stale state before mutation.
+
+Asking to adopt or update is the maintainer's consent; an adoption waits for
+the maintainer only for a confirmation-required change
+([ADR 0017](../adr/0017-confirm-only-confirmation-required-changes.md)).
+Inspection reports the ones it can see in its deterministic `confirmation`
+result, computed without running source code: `required` exactly when
+`discardedEdits` is not empty, with one `discarded-edit` reason per target, at
+an initial adoption as at an update. Breaking source changes, scope proposals,
+retired product state, and removing unedited installed content add none. The
+report binds the result into its identity. `start --identity <identity>` binds
+every run to the inspection identity and rejects stale state before mutation,
+before it checks confirmation. Its `--confirmed` flag is required when the
+inspection requires confirmation, failing with `CONFIRMATION_REQUIRED`
+otherwise, and accepted only then, failing with `CONFIRMATION_NOT_REQUIRED`
+when it does not. A retry of a start interrupted before its installation was
+prepared repeats the identity check only: the run's start already carried the
+confirmation that identity requires. The `adopt-standards` skill asks the
+maintainer only when the report or a fix requires confirmation.
+
+Fixes report the confirmation-required changes inspection cannot see, because
+it runs no source code: a fix that would change or remove an existing setting
+holding a different value returns `confirmation-required` without changing
+anything, unless its request allows overwriting. The run stops there,
+resumably, as the [script execution contract](#script-execution-contract)
+describes.
 
 For an established adoption, inspection is an update. It reports every changed
 selection component, in the order CLI, standards, source, and profile, together
 with the previous selection and the declarations that retire. Any combination,
-including none, is one update that can be confirmed and started; a confirmed
+including none, is one update that can be started; an
 inspection of the unchanged selection starts a run that applies it again. The
 update class is exact only when every declaration's guidance, discovery
 guidance, and operations, including their scripts, arguments, resources, and
@@ -395,13 +419,14 @@ Target ownership is one rule for every installation target, including author
 skills, the system skills, and skill links, in every run. An existing exact
 file or skill directory whose complete inventory, bytes, and modes match the
 supplied content is matched without rewriting, and so is a skill link with the
-same text. Tracked content that differs is replaced, as shown in the confirmed
+same text. Tracked content that differs is replaced, as shown in the
 inspection, because Git can recover it; a replaced skill directory is replaced
 whole, and so is whatever a skill link replaces. Ignored or otherwise untracked replacement
 content, including an empty directory, blocks mutation. The inspection lists
 each replacement that discards content other than the target's installed
 baseline; at initial adoption there is no baseline, so every replacement of
-existing content is listed. Existing product state blocks initial adoption,
+existing content is listed, and each listed one requires confirmation.
+Existing product state blocks initial adoption,
 unless its committed records use a retired format, when the run removes it.
 [ADR 0010](../adr/0010-replace-tracked-content-block-only-untracked.md) records
 the decision.
@@ -421,12 +446,29 @@ argument vector with the retained script path followed by literal arguments.
 The working directory is the adopting-project root. There are no author-defined
 environment values, shell interpretation, or custom working directories.
 
-One versioned JSON input conveys the operation identity, project root,
-standards identity, profile, active resolved declarations, and allowed targets.
-The script returns one versioned JSON result on standard output and human logs
-on standard error. A check reports `passed`, `failed`, or `blocked`; a fix
-reports `unchanged`, `changed`, or `blocked`. Nonzero exits, signals, timeouts,
-and invalid protocol output are execution errors.
+One versioned JSON input, `repo-standards/operation/v2`, conveys the operation
+identity, project root, standards identity, profile, active resolved
+declarations, allowed targets, and whether a fix may overwrite an existing
+setting, `overwriteAllowed`, false for every check. The script returns one
+versioned JSON result, `repo-standards/result/v2`, on standard output and human
+logs on standard error. A check reports `passed`, `failed`, or `blocked`; a fix
+reports `unchanged`, `changed`, `blocked`, or, only when overwriting is not
+allowed, `confirmation-required`. Nonzero exits, signals, timeouts, and invalid
+protocol output, including a retired result format, are execution errors.
+
+A `confirmation-required` fix stops the run resumably in the `fixes` phase,
+recording the fix's result in the run's operations and its message in the run's
+`reason`, under `CONFIRMATION_REQUIRED`. The run record gains no field: the
+stop is that reason with the fix's recorded result as the last operation and no
+uncertain work. The fix's observed interval must hold no change: a
+`confirmation-required` fix whose interval changed a path or boundary is a
+`PROTOCOL_ERROR`, not a stop, and `resume --confirmed` does not accept it.
+`resume --confirmed`, accepted only by such a run and failing with
+`CONFIRMATION_NOT_REQUIRED` otherwise, reruns that fix with
+`overwriteAllowed: true`, then the fixes after it, and continues the run.
+Without confirmation the run stays stopped: `resume` and `resume --assessment`
+fail with `CONFIRMATION_REQUIRED` and change nothing, retry stops at the same
+fix again, and abandonment works as for any run.
 
 Scripts are trusted code. Resource declarations describe what the product
 retains; they cannot restrict host or network access. Authors must respect the
@@ -454,14 +496,14 @@ and interruption evidence.
 Retry closes the outgoing interval before replay, retains agent changes even
 when fixes subsequently overwrite the same files, and requires renewed
 assessment and checks. Detected scope violations cannot be erased by retry;
-abandon and reconcile before a new confirmed adoption. Installation, process
+abandon and reconcile before a new adoption. Installation, process
 liveness, concurrency, clean initial starts, and abandonment keep their existing
 contracts. See the [script](../usage/script-protocol.md#observed-adoption-scope)
 and [assessment](../usage/assessment-protocol.md#observation-and-replay) protocols.
 
 ## Adoption sequence and agent interface
 
-1. Verify confirmation freshness and all prerequisites.
+1. Verify inspection freshness, the required confirmation, and all prerequisites.
 2. Install exact content, runtime state, pinned system skills, and skill links.
 3. Run declared fixes serially.
 4. Return a contextual work request if required.
@@ -472,7 +514,7 @@ and [assessment](../usage/assessment-protocol.md#observation-and-replay) protoco
 
 Within phases, declarations run by ID and operations in their declared list
 order. Cross-declaration dependencies are unsupported. Fixes stop on the first
-block or execution error. Ordinary check failures do not prevent collecting
+block, execution error, or `confirmation-required` result. Ordinary check failures do not prevent collecting
 the remaining check results.
 
 A work request identifies its adoption run, applicable guidance, allowed
@@ -574,10 +616,11 @@ format identities, including a same-prefix version that is not `vN` such as
 fail integrity validation when a command reads that record.
 
 A format's version rises when its keys change: a key is added, removed,
-renamed, or changes type. Changed values under the same keys, such as embedded
-content or digests, keep the version. Raise each format at most once per
-release; a branch that rebases onto a merge that already raised a format keeps
-that raise and does not raise it again.
+renamed, or changes type. A value an earlier reader would reject, such as a new
+enumerated status, counts as a change. Changed values under the same keys, such
+as embedded content or digests, keep the version. Raise each format at most
+once per release; a branch that rebases onto a merge that already raised a
+format keeps that raise and does not raise it again.
 
 ### Committed evidence
 
@@ -596,7 +639,7 @@ excludes, `info` for the repository info exclude, and each consulted
 | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`                                     | `repo-standards/state/v7`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `observations`, `operations`, `retryHistory` | The run's work evidence: its intervals as identities and deltas, its operation outcomes, and its retry history.                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `lastComplete`                               | The run ID, its confirmed inspection identity, completion time, and HEAD at start.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `lastComplete`                               | The run ID, the inspection identity its start was bound to, completion time, and HEAD at start.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `baselines`, `skills`, `links`               | Installed baselines of exact content, complete skill inventories, and each skill link's text by path.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `checks`, `assessments`                      | The run's final checks and accepted assessments.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `changeSet`                                  | The run's net change set: each path whose state at completion differs from its state before the run, once, sorted, with the phases that changed it: `installation`, `fixes`, or `agent`. Installation changes are the exact files, skill files, and skill links, including the system skills' and a retired declaration's removed target, that the run created, replaced, or removed; fix and agent changes are the paths their intervals name. Verified restoration of installed content after an interruption keeps only the installation's attribution. Product state is not listed. |
@@ -613,7 +656,7 @@ and by every later run, and is one object:
 | Field                         | Content                                                                                                                                                                                                               |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`, `evidence`          | `repo-standards/scope-history/v5` and `historical`.                                                                                                                                                                   |
-| `inspection`                  | The run's confirmed inspection identity.                                                                                                                                                                              |
+| `inspection`                  | The inspection identity the run's start was bound to.                                                                                                                                                                 |
 | `resolved`                    | The run's resolved selection, with discovered scope materialized as concrete targets.                                                                                                                                 |
 | `sourceResolved`, `discovery` | Present when the run discovered scope: the source-resolved declarations, and the discovery identity, proposal, absence, declarations, project observation without derived evidence, and named observation as a delta. |
 | `scopeChanges`                | Each discovery declaration whose discovered paths changed against the previous run's confirmed scope, with the paths added and removed. A first discovery adds every path.                                            |
@@ -636,10 +679,10 @@ reported as complete. The status summary remains unchanged.
 
 ## Updates, interruption, and retirement
 
-An update moves an adopting project from its current selection to a confirmed
-selection in one inspected and confirmed run. It can change the CLI pin, the
+An update moves an adopting project from its current selection to a candidate
+selection in one inspected run. It can change the CLI pin, the
 standards version, the source, the profile, any combination of them, or none;
-each follows the same inspection, confirmation, and start. The candidate exact
+each follows the same inspection and start, with confirmation only when required. The candidate exact
 CLI inspects and starts a changed CLI pin; source flags select a standards
 version, source, or profile; omitting them keeps the retained standards.
 Existing retained inputs support inspection and use of the current selection if
@@ -718,7 +761,7 @@ The product is complete only when all of these pass:
 2. Publish a public source with a stable version and discover it by topic.
    Adopt it directly without depending on discovery.
 3. Run inspection without project mutation or author-script execution.
-4. Reject stale confirmation, invalid Git state, unsafe targets, ignored
+4. Reject a stale inspection, a missing or unneeded confirmation, invalid Git state, unsafe targets, ignored
    replacement content, and missing prerequisites before project mutation.
 5. Adopt Alice's work profile: install the correct exact content and skill,
    with a skill link for every installed skill, improve Bob's real README, and
@@ -733,16 +776,18 @@ The product is complete only when all of these pass:
    after the standards source becomes unavailable.
 9. Update the CLI pin, the standards version, the source, and the profile,
    separately and together, and apply an unchanged selection again, each in one
-   confirmed run. Reject incompatible selections and moved tags before
-   mutation. Replace local edits to installed content, including added skill
-   resources, and list each one in the confirmed inspection; remove obsolete
-   resources on an unchanged skill update.
+   run. Reject incompatible selections and moved tags before mutation. Replace
+   local edits to installed content, including added skill resources, and list
+   each one in the inspection as a confirmation-required change; remove
+   obsolete resources on an unchanged skill update.
 10. Retire a declaration by removing its unedited installed targets,
     including a skill's link, and relinquishing ownership, keeping each edited
     target, a skill whole with its link, as project content that later runs
     neither track nor remove.
 11. Recover from interrupted installation and fixes through recorded progress
     and explicit retry. Prevent concurrent runs; preserve abandoned work.
+    Stop at a fix that needs confirmation to overwrite a setting, and continue
+    only with confirmation, rerunning it allowed to overwrite.
 12. Pass the same product behavior on macOS and Linux through the published
     installation path and pinned system skills.
 13. Report available updates without blocking, degrading to `unknown` when a
@@ -750,7 +795,7 @@ The product is complete only when all of these pass:
     an agent, and classify every update as exact or contextual with
     deterministic Markdown summaries of inspections and runs.
 14. Preview and complete a fresh adoption over retired committed product
-    state, removing it in the confirmed run and replacing any differing tracked
+    state, removing it in the run and replacing any differing tracked
     system skill without an ownership blocker; block on a retired active run
     record; and reject other reads of retired formats with the fresh-adoption
     diagnostic.
@@ -895,7 +940,7 @@ committed state or run records use a retired format adopts fresh.
 
 These mechanisms and outcomes are removed, not deprecated. A project adopted
 with 4.0.0 adopts fresh over retired committed state through a source-flag
-inspection and its confirmed start; it does not update in place and has no
+inspection and its start; it does not update in place and has no
 update class.
 
 - Git older than 2.32 for `inspect`, `start`, `resume` (including `--retry`
@@ -918,7 +963,7 @@ update class.
   records and never advise removal.
 - Requiring removal and a separate commit before inspecting retired committed
   product state. A source-flag inspection previews its removal, and the
-  confirmed start removes the whole `.repo-standards` tree under its lock.
+  start removes the whole `.repo-standards` tree under its lock.
   Every committed record present must carry its own artifact's current or
   retired format, or `STATE_INTEGRITY` prevents removal. The final observation
   before removal must match the confirmed inventory, or an unchanged subset
@@ -956,4 +1001,25 @@ update class.
   versions are `state/v7` (skill-link baselines), `scope-history/v5` (directory
   entries without modes), `status/v7` (`scopeProposal`), and `inspection/v6`
   (`systemSkills`, skill links, `kept`, and `retiredState`)
+  ([ADR 0007](../adr/0007-write-and-read-one-evidence-format.md)).
+
+## Removed in 6.0.0
+
+These mechanisms are removed, not deprecated
+([ADR 0017](../adr/0017-confirm-only-confirmation-required-changes.md)).
+
+- `start --confirm <identity>`. `start --identity <identity>` binds every run
+  to its inspection, and `--confirmed` is passed only when the inspection
+  requires confirmation. `--confirm` is a usage error.
+- Confirming every inspection. A start without a confirmation-required change
+  proceeds with the identity alone; the `adopt-standards` skill asks the
+  maintainer only when the report requires it.
+- Fixes that overwrite an existing setting unasked. A fix returns
+  `confirmation-required` instead, and the run continues from it with
+  `resume --confirmed`.
+- The formats `repo-standards/inspection/v6`, `repo-standards/operation/v1`,
+  and `repo-standards/result/v1`. Their current versions are `inspection/v7`
+  (`confirmation`), `operation/v2` (`overwriteAllowed`), and `result/v2` (the
+  fix status `confirmation-required`). A script returning the retired result
+  format fails with `PROTOCOL_ERROR`; no compatibility reader accepts it
   ([ADR 0007](../adr/0007-write-and-read-one-evidence-format.md)).

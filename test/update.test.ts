@@ -445,7 +445,7 @@ test("a skill link changed after confirmation makes start stale", async (t) => {
   commit(project.root);
   const before = snapshot(project.root);
   const started = cli.run(
-    ["start", "--confirm", inspection.identity, "--json"],
+    ["start", "--identity", inspection.identity, "--json"],
     project.root,
     env,
   );
@@ -601,8 +601,17 @@ test("update inspections match candidate-equal content and list each discarded e
           ),
           actions,
         );
+      // Only a discarded edit requires confirmation; removing the unedited
+      // retired targets requires none.
+      assert.deepEqual(inspection.confirmation, {
+        required: discarded.length > 0,
+        reasons: discarded.map((target) => ({
+          change: "discarded-edit",
+          target,
+        })),
+      });
       const started = cli.run(
-        startArgs(inspection.identity, updateArgs),
+        startArgs(inspection.identity, updateArgs, discarded.length > 0),
         project.root,
         env,
       );
@@ -945,7 +954,7 @@ test("an update keeps each edited target that leaves the selection as project co
       assert.deepEqual(later.removed, []);
       assert.deepEqual(later.kept, []);
       assert.deepEqual(later.discardedEdits, []);
-      const again = run(["start", "--confirm", later.identity, "--json"], env);
+      const again = run(["start", "--identity", later.identity, "--json"], env);
       assert.equal(
         (JSON.parse(again.stdout) as Run).outcome,
         "complete",
@@ -1227,8 +1236,11 @@ test("an update leaves a retired installed target inside a still-installed skill
   assert.deepEqual(inspection.removed, []);
   assert.deepEqual(inspection.start.blockers, []);
   assert.equal(inspection.exact[0]!.action, "replace");
+  // The skill has no installed baseline of its own, so replacing the
+  // directory discards content that is not its baseline.
+  assert.deepEqual(inspection.discardedEdits, [".agents/skills/review"]);
   const result = cli.run(
-    startArgs(inspection.identity, updateArgs),
+    startArgs(inspection.identity, updateArgs, true),
     project.root,
     env,
   );
@@ -1283,7 +1295,7 @@ test("an update removes the link path of a kept skill when it contains a newly i
   );
   assert.deepEqual(inspection.discardedEdits, [".claude/skills/legacy"]);
   const started = cli.run(
-    startArgs(inspection.identity, args),
+    startArgs(inspection.identity, args, true),
     project.root,
     env,
   );
@@ -1428,7 +1440,7 @@ test("a candidate CLI updates only the exact runtime pin from retained standards
   assert.equal(inspection.selection.profile, originalSelection!.profile);
   const oldHead = git(project.root, "rev-parse", "HEAD");
   const result = candidate.run(
-    ["start", "--confirm", inspection.identity, "--json"],
+    ["start", "--identity", inspection.identity, "--json"],
     project.root,
   );
   assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -1535,7 +1547,7 @@ test("an update failure preserves actual work and the previous last-complete evi
   const { run: initial } = f.adopt();
   remote.addVersion("v1.1.0", v2, {
     "agents.md": "Version two",
-    "check.mjs": `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'failed',message:'Not ready'}));`,
+    "check.mjs": `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'failed',message:'Not ready'}));`,
   });
   const updateArgs = versionArgs("v1.1.0");
   const inspection = f.inspect(updateArgs);
@@ -1582,7 +1594,7 @@ test("an update failure preserves actual work and the previous last-complete evi
   );
 });
 
-test("a confirmed inspection of the unchanged selection starts a run that re-applies it from retained inputs", async (t) => {
+test("an inspection of the unchanged selection starts a run that re-applies it from retained inputs", async (t) => {
   const f = await adoptionFixture(
     t,
     cli,
@@ -1601,7 +1613,7 @@ test("a confirmed inspection of the unchanged selection starts a run that re-app
     {
       files: {
         "agents.md": "Pinned standards",
-        "check.mjs": `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Ready'}));`,
+        "check.mjs": `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'passed',message:'Ready'}));`,
       },
     },
   );
@@ -1633,7 +1645,7 @@ test("a confirmed inspection of the unchanged selection starts a run that re-app
   assert.deepEqual(inspection.start.blockers, []);
 
   const result = cli.run(
-    ["start", "--confirm", inspection.identity, "--json"],
+    ["start", "--identity", inspection.identity, "--json"],
     project.root,
     env,
   );
@@ -1667,7 +1679,7 @@ test("a confirmed inspection of the unchanged selection starts a run that re-app
   assert.equal(git(project.root, "rev-parse", "HEAD"), head);
 });
 
-test("a coordinated update changes the CLI and standards pins in one confirmed run when the new standards version requires the candidate", async (t) => {
+test("a coordinated update changes the CLI and standards pins in one run when the new standards version requires the candidate", async (t) => {
   const declarations = `    instructions:
       kind: file
       target: AGENTS.md
@@ -2022,7 +2034,7 @@ test("whole-skill updates allow resources to change between files and directorie
   assert.equal(git(project.root, "rev-parse", "HEAD"), head);
 });
 
-// An adopted skill and a confirmed inspection of its update: a standards
+// An adopted skill and an inspection of its update: a standards
 // update that replaces the skill's resources, or a CLI update that replaces the
 // runtime and keeps the retained standards.
 async function pendingUpdate(
@@ -2532,7 +2544,7 @@ const input = JSON.parse(readFileSync(0, 'utf8'));
 let status = input.operation.phase === 'fixes' ? 'unchanged' : 'passed';
 if (input.operation.id === 'prepare') { writeFileSync('README.md', '# Prepared README'); status = 'changed'; }
 if (input.operation.id === 'verify' && !readFileSync('README.md', 'utf8').includes('## Usage')) status = 'failed';
-console.log(JSON.stringify({format: 'repo-standards/result/v1', status, message: input.operation.id}));`,
+console.log(JSON.stringify({format: 'repo-standards/result/v2', status, message: input.operation.id}));`,
         },
         project: {
           "README.md": "# Project",
@@ -2841,7 +2853,7 @@ test("retry resumes an interrupted removal of retired targets and an interrupted
       } else {
         const initial = f.inspect();
         assert.deepEqual(initial.discardedEdits, discarded);
-        start = startArgs(initial.identity);
+        start = startArgs(initial.identity, inspectionArgs, true);
       }
       assert.equal(
         f.run(

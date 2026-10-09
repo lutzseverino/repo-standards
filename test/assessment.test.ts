@@ -33,7 +33,7 @@ const check = (id: string) =>
   });
 async function fixture(
   t: TestContext,
-  script = `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Verified'}));`,
+  script = `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'passed',message:'Verified'}));`,
 ) {
   const f = await adoptionFixture(
     t,
@@ -443,7 +443,7 @@ test("changed content invalidates prior assessment and every check runs again af
   const f = await fixture(
     t,
     `import { readFileSync } from 'node:fs';
-console.log(JSON.stringify({format:'repo-standards/result/v1',status:readFileSync('README.md','utf8').includes('Ready')?'passed':'failed',message:'Requires readiness'}));`,
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:readFileSync('README.md','utf8').includes('Ready')?'passed':'failed',message:'Requires readiness'}));`,
   );
   contextualWork(f.project.root);
   f.resume();
@@ -501,7 +501,7 @@ test("checks after assessment still reject mutation", async (t) => {
     t,
     `import { writeFileSync } from 'node:fs';
 writeFileSync('README.md', 'Changed during check');
-console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Reported success'}));`,
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:'passed',message:'Reported success'}));`,
   );
   contextualWork(f.project.root);
   f.resume();
@@ -578,7 +578,7 @@ test("a second independent author uses fixes, repository configuration and runbo
 const input = JSON.parse(readFileSync(0,'utf8'));
 if (input.operation.phase === 'fixes') writeFileSync('service.json', JSON.stringify({owner:'payments'}));
 const status = input.operation.phase === 'fixes' ? 'changed' : JSON.parse(readFileSync('service.json','utf8')).owner === 'payments' && readFileSync('runbooks/recovery.md','utf8').includes('Replay failed payments') ? 'passed' : 'failed';
-console.log(JSON.stringify({format:'repo-standards/result/v1',status,message:'Service operations verified'}));`,
+console.log(JSON.stringify({format:'repo-standards/result/v2',status,message:'Service operations verified'}));`,
       },
     },
   );
@@ -669,7 +669,7 @@ writeFileSync('.repo-standards/local/check-started', 'started');
 const wait = setInterval(() => {
   if (!existsSync('.repo-standards/local/check-released')) return;
   clearInterval(wait);
-  console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Verified'}));
+  console.log(JSON.stringify({format:'repo-standards/result/v2',status:'passed',message:'Verified'}));
 }, 10);`,
   );
   contextualWork(f.project.root);

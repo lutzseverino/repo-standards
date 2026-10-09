@@ -111,12 +111,16 @@ export interface OperationEvidence {
   stdout: string;
   stderr: string;
 }
+// A fix may overwrite an existing setting with a different value only when the
+// maintainer confirmed that overwrite; otherwise it reports
+// `confirmation-required` without changing anything. A check never may.
 export async function execute(
   root: string,
   selected: SelectedOperation,
   selection: { standards: unknown; profile: string },
   resolved: Pick<ResolvedProfile, "declarations">,
   onSpawn?: (group: number) => void,
+  overwriteAllowed = false,
 ) {
   const { declaration, phase, operation } = selected;
   const identity = { declaration, phase, id: operation.id };
@@ -130,6 +134,7 @@ export async function execute(
     allowedTargets: declarationTargets(
       resolved.declarations.find((item) => item.id === declaration)!,
     ),
+    overwriteAllowed,
   };
   const process = await invoke(
     operation.run.executable,
@@ -164,7 +169,12 @@ export async function execute(
       const { format, status, message } = result;
       const statuses =
         phase === "fixes"
-          ? ["unchanged", "changed", "blocked"]
+          ? [
+              "unchanged",
+              "changed",
+              "blocked",
+              ...(overwriteAllowed ? [] : ["confirmation-required"]),
+            ]
           : ["passed", "failed", "blocked"];
       if (
         format !== formats.result ||

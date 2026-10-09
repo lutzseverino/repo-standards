@@ -49,7 +49,7 @@ repo-standards-bootstrap --cli-version 5.1.1 inspect \
 
 Use the full bootstrap path if `$HOME/.local/bin` is not on `PATH`. Omit
 `--cli-version 5.1.1` to select the greatest published stable version once;
-stderr discloses the exact selection. Keep that version for confirmation and
+stderr discloses the exact selection. Keep that version for
 start. Inspection does not change project content or run author operations.
 Discovery is optional and is not an endorsement of any source.
 
@@ -72,7 +72,7 @@ required for supported public sources.
 
 Read the installed `skills/adopt-standards/SKILL.md` with your agent, then follow
 [inspection](inspection.md) and [adoption](adoption.md) to disclose the report,
-confirm its identity, start and perform contextual work. The standalone
+start with its identity, and perform contextual work. The standalone
 bootstrap only inspects; retain an external installation of its selected exact
 CLI for start and recovery. Adoption installs the matching repository-local
 skill and runtime and leaves changes uncommitted with HEAD unchanged.
@@ -142,8 +142,8 @@ Status reports historical adoption evidence, not ongoing compliance.
 Use the pinned CLI to change the standards version, source, or profile, and an
 externally installed candidate exact CLI to change the CLI pin, alone or together
 with them. Follow [Update the selection](adoption.md#update-the-selection); each
-update is one inspection, one confirmation, and one run.
+update is one inspection and one run.
 
 Windows, private sources, SSH and Git hosts other than public GitHub are
 unsupported. Trusted author scripts have normal host and network access;
-`--ignore-scripts` disables npm lifecycle scripts, not confirmed author operations.
+`--ignore-scripts` disables npm lifecycle scripts, not disclosed author operations.

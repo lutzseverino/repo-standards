@@ -380,6 +380,42 @@ function canResumeAssessment(run: Run) {
   );
 }
 
+// The fix a run stopped at because overwriting a setting needs the
+// maintainer's confirmation, when it did: its outcome is recorded, it changed
+// nothing, and the run can continue from it once the maintainer confirms.
+export function confirmationStop(run: Run) {
+  const last = run.operations.at(-1);
+  return run.outcome === "incomplete" &&
+    !!run.continuation &&
+    run.phase === "fixes" &&
+    run.reason.startsWith("CONFIRMATION_REQUIRED:") &&
+    run.uncertain.length === 0 &&
+    last?.operation.phase === "fixes" &&
+    last.result?.status === "confirmation-required"
+    ? { operation: last.operation, message: last.result.message }
+    : undefined;
+}
+
+// A fix's request for the maintainer's confirmation to overwrite a setting,
+// as the run stops for it and as a resume without confirmation refuses it.
+export function fixConfirmationRequired(
+  fix: { declaration: string; id: string },
+  message: string,
+  nextAction?: string,
+  details?: unknown,
+) {
+  return new ProductError(
+    "CONFIRMATION_REQUIRED",
+    `Fix ${fix.declaration}/${fix.id} needs the maintainer's confirmation to overwrite a setting: ${message}${nextAction ? ` ${nextAction}` : ""}`,
+    details,
+  );
+}
+
+function confirmationNextAction(run: Run) {
+  const stop = confirmationStop(run)!;
+  return `Ask the maintainer to confirm the overwrite fix ${stop.operation.declaration}/${stop.operation.id} reports, then continue with resume --confirmed, which reruns that fix allowed to overwrite. Without confirmation, abandon the run to preserve its work and report.`;
+}
+
 // Run records, active or archived after abandonment, are read in their single
 // format only.
 function readRun(root: string, path: string, active: boolean): Run {
@@ -488,7 +524,7 @@ export function abandon(project: string, cliVersion: string) {
     run.reason = `ABANDONED: ${run.reason}`;
     run.changes = actualChanges(root, run.affected);
     run.nextAction =
-      "Review the archived report with status and reconcile the preserved project changes through the normal workflow. A new adoption needs a fresh confirmed inspection.";
+      "Review the archived report with status and reconcile the preserved project changes through the normal workflow. A new adoption starts from a fresh inspection, bound to its identity.";
     const directory = join(dirname(lock), "repo-standards-reports");
     mkdirSync(directory, { recursive: true });
     const path = join(directory, `${run.id}.json`);
@@ -1089,11 +1125,12 @@ export class AdoptionRunSession {
     else if (!this.#mutated && !run.processGroup) {
       run.uncertain = [];
       run.nextAction =
-        "Resolve the reported problem, inspect again, and confirm the new inspection before retrying.";
+        "Resolve the reported problem, inspect again, and start with the new inspection's identity.";
     }
     if (error instanceof ProductError && error.code === "SCOPE_INCOMPLETE")
       run.nextAction =
         "Additional paths grant no authority, and an active run cannot change its confirmed scope. Preserve the work, abandon the run, commit or discard its changes, and adopt again with a new confirmed scope.";
+    if (confirmationStop(run)) run.nextAction = confirmationNextAction(run);
     try {
       this.#save();
     } catch {
@@ -1109,7 +1146,7 @@ export class AdoptionRunSession {
       session: AdoptionRunSession,
       installation?: Installation,
     ) => Promise<void>,
-    resume?: { cliVersion: string; retry: boolean },
+    resume?: { cliVersion: string; retry: boolean; confirmed: boolean },
   ) {
     const lock = lockPath(root);
     if (resume) {
@@ -1144,7 +1181,23 @@ export class AdoptionRunSession {
             "ACTIVE_RUN",
             `Author process group ${run.processGroup} is still running. Stop it before retry or abandonment.`,
           );
-        if (!resume.retry && !canResumeAssessment(run))
+        // Confirmation is accepted only by a run stopped for it, and such a
+        // run continues only with it, or by explicit retry, which stops
+        // there again.
+        const stop = confirmationStop(run);
+        if (resume.confirmed && !stop)
+          throw new ProductError(
+            "CONFIRMATION_NOT_REQUIRED",
+            "This run is not stopped for a fix's confirmation. Read status and resume without --confirmed.",
+          );
+        if (stop && !resume.confirmed && !resume.retry)
+          throw fixConfirmationRequired(
+            stop.operation,
+            stop.message,
+            confirmationNextAction(run),
+            stop,
+          );
+        if (!resume.retry && !stop && !canResumeAssessment(run))
           throw new ProductError(
             "RESUME_UNAVAILABLE",
             "Explicit recovery is required. Review status and use resume --retry, or abandon to preserve the incomplete work and report.",
@@ -1221,6 +1274,7 @@ export function withResumedRun(
   project: string,
   cliVersion: string,
   retry: boolean,
+  confirmed: boolean,
   callback: (
     session: AdoptionRunSession,
     installation?: Installation,
@@ -1229,5 +1283,6 @@ export function withResumedRun(
   return AdoptionRunSession.scope(projectRoot(project), "resume", callback, {
     cliVersion,
     retry,
+    confirmed,
   });
 }

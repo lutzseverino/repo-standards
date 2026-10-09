@@ -426,6 +426,19 @@ export class WorkEvidenceJournal {
     ];
   }
 
+  // The paths and boundaries an operation's closed interval changed.
+  operationChanges(operationIndex: number) {
+    const interval = this.#run.observations.find(
+      (entry) => entry.operation && entry.operationIndex === operationIndex,
+    );
+    return [
+      ...new Set([
+        ...Object.keys(interval?.changes ?? {}),
+        ...Object.keys(interval?.boundaryChanges ?? {}),
+      ]),
+    ].sort();
+  }
+
   #advance(
     after: WorkObservation,
     interrupted: boolean,

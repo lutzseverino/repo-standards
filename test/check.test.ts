@@ -59,7 +59,7 @@ const script = `import { appendFileSync, chmodSync, copyFileSync, mkdirSync, rea
 import { execFileSync, spawn } from 'node:child_process';
 const input = JSON.parse(readFileSync(0, 'utf8'));
 console.error(JSON.stringify({ input, cwd: process.cwd(), args: process.argv.slice(2) }));
-const result = (status, message) => console.log(JSON.stringify({ format: 'repo-standards/result/v1', status, message }));
+const result = (status, message) => console.log(JSON.stringify({ format: 'repo-standards/result/v2', status, message }));
 if (input.operation.phase === 'fixes') {
   mkdirSync('ignored', { recursive: true });
   appendFileSync('ignored/fixes.log', input.operation.id + '\\n');
@@ -71,7 +71,7 @@ if (input.operation.phase === 'fixes') {
   else if (mode === 'exit') process.exit(3);
   else if (mode === 'multiline') result('failed', 'first line\\npassed  zulu/forged: second line\\r\\nthird line');
   else if (mode === 'multiple results') console.log('{}\\n{}');
-  else if (mode === 'wrong version') console.log(JSON.stringify({ format: 'v2', status: 'passed', message: '' }));
+  else if (mode === 'retired version') console.log(JSON.stringify({ format: 'repo-standards/result/v1', status: 'passed', message: '' }));
   else if (mode === 'wrong status') result('unchanged', 'A fix status');
   else result(mode, \`\${input.operation.id} \${mode}\`);
 }
@@ -176,7 +176,8 @@ test("check runs every retained check with a run's inputs, reports each result, 
   ) as OperationLog;
   assert.equal(evidence.cwd, f.project.root);
   assert.deepEqual(evidence.args, ["literal argument"]);
-  assert.equal(evidence.input.format, "repo-standards/operation/v1");
+  assert.equal(evidence.input.format, "repo-standards/operation/v2");
+  assert.equal(evidence.input.overwriteAllowed, false);
   assert.deepEqual(evidence.input.operation, {
     declaration: "instructions",
     phase: "checks",
@@ -252,11 +253,17 @@ test("check fails when any check fails, is blocked, or returns a malformed resul
     {
       modes: {
         first: "multiple results",
-        second: "wrong version",
+        second: "retired version",
         third: "wrong status",
       },
       statuses: ["error", "error", "error"],
       errors: ["PROTOCOL_ERROR", "PROTOCOL_ERROR", "PROTOCOL_ERROR"],
+    },
+    // Only a fix may ask for confirmation to overwrite a setting.
+    {
+      modes: { second: "confirmation-required" },
+      statuses: ["passed", "error", "passed"],
+      errors: [null, "PROTOCOL_ERROR", null],
     },
   ];
   for (const example of cases)

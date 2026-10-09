@@ -208,7 +208,7 @@ test("an unchanged v2 selection recomputes retained discovery and reports scope 
     "start",
     "--scope",
     f.scopeFile,
-    "--confirm",
+    "--identity",
     firstInspection.identity,
     "--json",
   ]);
@@ -239,7 +239,7 @@ test("an unchanged v2 selection recomputes retained discovery and reports scope 
     "start",
     "--scope",
     f.scopeFile,
-    "--confirm",
+    "--identity",
     inspected.identity,
     "--json",
   ]).report;
@@ -317,7 +317,7 @@ test("an unchanged v2 selection recomputes retained discovery and reports scope 
     "start",
     "--scope",
     f.scopeFile,
-    "--confirm",
+    "--identity",
     checkoutInspection.identity,
     "--json",
   ]);
@@ -639,7 +639,7 @@ test("compatible standards updates preserve discovery evidence through discovery
   // A later run without discovery changes no scope against the retired one.
   const reapplied = f.run<Inspection>(["inspect", "--json"]).report;
   assert.equal(
-    f.run<Run>(["start", "--confirm", reapplied.identity, "--json"]).result
+    f.run<Run>(["start", "--identity", reapplied.identity, "--json"]).result
       .status,
     0,
   );
@@ -739,7 +739,7 @@ test("a compatible CLI update uses retained v2 guidance and fresh scope without 
     "start",
     "--scope",
     f.scopeFile,
-    "--confirm",
+    "--identity",
     inspected.identity,
     "--json",
   ]).report;

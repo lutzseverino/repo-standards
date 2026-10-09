@@ -11,8 +11,9 @@ alternatives.
   the authoring skill ends at a reviewed, validated local source and hands off
   publication and adoption.
 - [Use agent discovery with confirmed concrete scope](0003-use-agent-discovery-with-confirmed-concrete-scope.md):
-  agents propose evidence-backed file paths from author discovery guidance, and
-  adopters confirm them with the inspection.
+  agents propose evidence-backed file paths from author discovery guidance;
+  amended by ADR 0017, adopters review the proposal with the inspection and no
+  longer confirm it.
 - [Amend scope without redefining installed ownership](0004-amend-scope-without-redefining-installed-ownership.md):
   superseded by ADR 0009; an active run accepted confirmed additions to its
   discovered scope while keeping its selection and installed expectations.
@@ -33,7 +34,7 @@ alternatives.
   again with a new scope.
 - [Replace tracked content; block only untracked](0010-replace-tracked-content-block-only-untracked.md):
   the product replaces or removes tracked content at any installation target,
-  lists each overwrite that discards edits in the confirmed inspection, and
+  lists each overwrite that discards edits in the inspection, and
   blocks only untracked content.
 - [Retain only the current run](0011-retain-only-the-current-run.md):
   committed state and scope evidence hold the current run only, with its scope
@@ -54,3 +55,7 @@ alternatives.
 - [Keep edited content that leaves the selection](0016-keep-edited-content-that-leaves-the-selection.md):
   an update removes a target that leaves the selection only when it matches its
   installed baseline; an edited one stays and becomes project-owned.
+- [Confirm only confirmation-required changes](0017-confirm-only-confirmation-required-changes.md):
+  asking to adopt is the maintainer's consent; `start` requires confirmation
+  only when the inspection reports discarded edits, and a fix's overwrite of a
+  chosen setting is confirmed through `resume --confirmed`.

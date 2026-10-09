@@ -256,7 +256,7 @@ process.exit(result.status ?? 1);
   noTokens(outputs, [project.root, remote.support.root, remote.env.TMPDIR]);
 });
 
-test("inspect and confirmed start classify quota headers, keep ordinary failures, and never retry a rejected token anonymously", async (t) => {
+test("inspect and start classify quota headers, keep ordinary failures, and never retry a rejected token anonymously", async (t) => {
   const remote = await githubFixture(yaml, { "readme.md": "README" }, tokens);
   const project = sourceFixture("");
   t.after(() => {
@@ -598,7 +598,7 @@ test("start retains no tokens in inputs, reports, runtime logs or caches, and ou
   assert.ok(summary.stdout.includes(report.identity));
   const before = requests(remote).length;
   const started = cli.run(startArgs(report.identity), project.root, env);
-  assert.equal(started.status, 0, "Confirmed start completes");
+  assert.equal(started.status, 0, "Start completes");
   const acquired = requests(remote).slice(before);
   assert.ok(
     acquired

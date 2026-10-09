@@ -149,7 +149,7 @@ test("trusted operations receive literal arguments, retained resources and resol
     `import { readFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0, 'utf8'));
 console.error(JSON.stringify({ input, cwd: process.cwd(), args: process.argv.slice(2), resource: readFileSync(new URL('./data.txt', import.meta.url), 'utf8') }));
-console.log(JSON.stringify({format: 'repo-standards/result/v1', status: input.operation.phase === 'fixes' ? 'unchanged' : 'passed', message: 'Verified'}));
+console.log(JSON.stringify({format: 'repo-standards/result/v2', status: input.operation.phase === 'fixes' ? 'unchanged' : 'passed', message: 'Verified'}));
 `,
     { excluded: { exclude: true } },
   );
@@ -167,7 +167,8 @@ console.log(JSON.stringify({format: 'repo-standards/result/v1', status: input.op
   assert.deepEqual(evidence.args, args);
   assert.equal(evidence.resource, "Resource");
   assert.equal(evidence.cwd, f.project.root);
-  assert.equal(evidence.input.format, "repo-standards/operation/v1");
+  assert.equal(evidence.input.format, "repo-standards/operation/v2");
+  assert.equal(evidence.input.overwriteAllowed, false);
   assert.equal(evidence.input.projectRoot, f.project.root);
   assert.deepEqual(evidence.input.standards, inspection.selection.standards);
   assert.equal(evidence.input.profile, "work");
@@ -213,7 +214,7 @@ test("checks cannot mutate tracked or new project content even while adoption al
         },
         `import { writeFileSync } from 'node:fs';
 writeFileSync(${JSON.stringify(path)}, 'Mutated by check');
-console.log(JSON.stringify({format: 'repo-standards/result/v1', status: 'passed', message: 'Claimed success'}));`,
+console.log(JSON.stringify({format: 'repo-standards/result/v2', status: 'passed', message: 'Claimed success'}));`,
       );
       const { result, report } = f.start();
       assert.equal(result.status, 1);
@@ -236,28 +237,28 @@ test("standards results and process errors remain distinct and stop only the req
     {
       name: "changed",
       phase: "fixes",
-      output: `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',message:'Fixed'}))`,
+      output: `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'changed',message:'Fixed'}))`,
       count: 2,
       code: null,
     },
     {
       name: "blocked fix",
       phase: "fixes",
-      output: `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'blocked',message:'Needs help'}))`,
+      output: `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'blocked',message:'Needs help'}))`,
       count: 1,
       code: "OPERATION_BLOCKED",
     },
     {
       name: "failed check",
       phase: "checks",
-      output: `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'failed',message:'Not satisfied'}))`,
+      output: `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'failed',message:'Not satisfied'}))`,
       count: 2,
       code: "CHECKS_FAILED",
     },
     {
       name: "blocked check",
       phase: "checks",
-      output: `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'blocked',message:'Needs help'}))`,
+      output: `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'blocked',message:'Needs help'}))`,
       count: 1,
       code: "OPERATION_BLOCKED",
     },
@@ -290,6 +291,20 @@ test("standards results and process errors remain distinct and stop only the req
       count: 1,
       code: "PROTOCOL_ERROR",
     },
+    {
+      name: "retired result format",
+      phase: "fixes",
+      output: `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Fixed'}))`,
+      count: 1,
+      code: "PROTOCOL_ERROR",
+    },
+    {
+      name: "fix needing confirmation",
+      phase: "fixes",
+      output: `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'confirmation-required',message:'Overwrites a setting'}))`,
+      count: 1,
+      code: "CONFIRMATION_REQUIRED",
+    },
   ];
   for (const example of cases)
     await t.test(example.name, async (st) => {
@@ -307,7 +322,7 @@ test("standards results and process errors remain distinct and stop only the req
         `import { readFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0,'utf8'));
 if (input.operation.id === 'first') { ${example.output} }
-else console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.operation.phase === 'fixes' ? 'unchanged' : 'passed',message:'Last'}));`,
+else console.log(JSON.stringify({format:'repo-standards/result/v2',status:input.operation.phase === 'fixes' ? 'unchanged' : 'passed',message:'Last'}));`,
       );
       const { result, report } = f.start();
       assert.equal(
@@ -363,7 +378,7 @@ test("fixes finish before the contextual handoff and checks wait for the later a
     `import { readFileSync, writeFileSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0,'utf8'));
 writeFileSync('README.md', 'Prepared');
-console.log(JSON.stringify({format:'repo-standards/result/v1',status:'changed',message:'Prepared for agent'}));`,
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:'changed',message:'Prepared for agent'}));`,
   );
   const { result, report } = f.start();
   assert.equal(result.status, 1);
@@ -455,7 +470,7 @@ test("the first observed version wins across probe streams and long valid timeou
         ],
       },
     },
-    `setTimeout(()=>console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Finished'})),50);`,
+    `setTimeout(()=>console.log(JSON.stringify({format:'repo-standards/result/v2',status:'unchanged',message:'Finished'})),50);`,
   );
   const { result } = long.start();
   assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -504,7 +519,7 @@ test("author operations that hide index entries stop adoption before further wor
           },
           `import { execFileSync } from 'node:child_process';
 execFileSync('git', ['update-index', ${JSON.stringify(flag)}, 'README.md']);
-console.log(JSON.stringify({format:'repo-standards/result/v1',status:${JSON.stringify(phase === "fixes" ? "unchanged" : "passed")},message:'Reported success'}));`,
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:${JSON.stringify(phase === "fixes" ? "unchanged" : "passed")},message:'Reported success'}));`,
         );
         const { result, report } = f.start();
         assert.equal(

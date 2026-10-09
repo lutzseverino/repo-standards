@@ -94,7 +94,7 @@ async function fixture(
 }
 const prelude = `import { readFileSync, writeFileSync, chmodSync, rmSync, mkdirSync, existsSync } from 'node:fs';
 const input = JSON.parse(readFileSync(0, 'utf8'));`;
-const result = `console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.operation.phase==='fixes'?'changed':'passed',message:'Done'}));`;
+const result = `console.log(JSON.stringify({format:'repo-standards/result/v2',status:input.operation.phase==='fixes'?'changed':'passed',message:'Done'}));`;
 
 test("fixes enforce their owning declaration rather than the union of authorized paths", async (t) => {
   const f = await fixture(

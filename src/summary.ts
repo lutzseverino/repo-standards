@@ -56,6 +56,7 @@ export interface InspectionReport {
   removed?: { id: string; target: string; files: ChangedFile[] }[];
   kept?: { id: string; target: string }[];
   discardedEdits: string[];
+  confirmation: { required: boolean };
   retiredState?: {
     target: string;
     records: { path: string; format: string; expected: string }[];
@@ -326,6 +327,11 @@ export function inspectionSummary(report: InspectionReport) {
         [
           "Replacing or removing these targets discards content that is not their installed baseline:",
           report.discardedEdits.map((path) => `- ${code(path)}`).join("\n"),
+          ...(report.confirmation.required
+            ? [
+                "Confirmation required: starting this run needs the maintainer's confirmation of these discarded edits.",
+              ]
+            : []),
         ].join("\n\n"),
       ),
     );

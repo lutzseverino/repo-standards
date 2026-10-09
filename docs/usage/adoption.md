@@ -1,4 +1,4 @@
-# Confirmed adoption
+# Adoption
 
 Initial adoption and deliberate updates install exact files and whole author
 skills and execute trusted fixes and checks. Profiles with contextual guidance
@@ -6,7 +6,7 @@ return a work request after fixes and continue through the public
 [assessment protocol](assessment-protocol.md). Interrupted adoption supports
 explicit retry and abandonment as described below.
 
-## Inspect, confirm, and start
+## Inspect and start
 
 Use Node.js 24, npm, Git, and an [externally installed exact CLI](inspection.md#keep-the-disclosed-cli-for-start-and-recovery).
 An agent adopts through the `adopt-standards` skill: before first adoption, the
@@ -19,29 +19,86 @@ repo-standards inspect --source https://github.com/OWNER/STANDARDS \
   --standards-version v1.2.3 --profile work --json
 ```
 
-Review the pins, proposed replacements and the edits they discard, matching
-files and skills, whole-skill inventories, guidance, declared fixes and checks, prerequisites, and blockers. After explicit maintainer confirmation, use the same
-CLI version and selection, passing the report's `identity` verbatim:
+The report lists the pins, proposed replacements and the edits they discard,
+matching files and skills, whole-skill inventories, guidance, declared fixes and
+checks, prerequisites, and blockers. Use the same CLI version and selection to
+start, passing the report's `identity` verbatim:
 
 ```sh
 repo-standards start --source https://github.com/OWNER/STANDARDS \
-  --standards-version v1.2.3 --profile work --confirm 'sha256:INSPECTION_HASH' --json
+  --standards-version v1.2.3 --profile work \
+  --identity 'sha256:INSPECTION_HASH' --json
 ```
 
-For discovery-backed initial adoption, follow the [two-pass inspection](inspection.md#discover-contextual-file-scope), then pass the same `--scope <file>` proposal with the confirmed complete inspection identity to `start`. Missing, invalid, unresolved or stale scope blocks mutation.
+For discovery-backed initial adoption, follow the [two-pass inspection](inspection.md#discover-contextual-file-scope), then pass the same `--scope <file>` proposal with the complete inspection's identity to `start`. Missing, invalid, unresolved or stale scope blocks mutation.
 
 Both commands accept `--project <directory>` and default to the current Git
 working tree. Store inspection reports outside the project to keep it clean.
-`--confirm` represents the maintainer's explicit confirmation; the CLI cannot
-establish whether an agent obtained that confirmation truthfully.
+
+### Confirmation-required changes
+
+Asking to adopt or update a selection is the maintainer's consent, so most runs
+start with the identity alone. A run waits for the maintainer only when it
+makes a confirmation-required change: one that discards a person's work or
+overwrites a setting someone chose. Inspection finds the discarded edits: the
+report's [`confirmation`](inspection.md#report-and-inspection-identity) says
+whether the run discards any, with one reason for each target in
+`discardedEdits`, at an initial adoption as at an update. Breaking source changes, scope proposals,
+removing retired product state, and removing unedited installed content need
+no confirmation.
+
+When `confirmation.required` is true, `start` without `--confirmed` fails with
+`CONFIRMATION_REQUIRED`, naming each discarded edit, and changes nothing. After
+the maintainer confirms the discarded edits, start the same inspection with
+`--confirmed` added:
+
+```sh
+repo-standards start --source https://github.com/OWNER/STANDARDS \
+  --standards-version v1.2.3 --profile work \
+  --identity 'sha256:INSPECTION_HASH' --confirmed --json
+```
+
+`start` accepts `--confirmed` only when the inspection requires it, and fails
+with `CONFIRMATION_NOT_REQUIRED` otherwise, so the flag always means the
+maintainer confirmed the reported changes. The CLI cannot establish whether an
+agent obtained that confirmation truthfully. The identity binds every start,
+confirmed or not: a project that changed since inspection fails with
+`STALE_INSPECTION` either way.
+
+Inspection runs no source code, so it cannot see the settings a fix would
+overwrite. A fix that would change or remove an existing setting holding a
+different value instead returns `confirmation-required`, having changed
+nothing, with a message naming the setting and both values; creating a missing
+setting needs no confirmation. The [script protocol](script-protocol.md#overwriting-a-setting)
+defines the result. The run stops there, resumably: it stays incomplete in the
+`fixes` phase, with a `reason` starting `CONFIRMATION_REQUIRED:` that names the
+fix and its message, the fix's result in `operations`, and a `nextAction`
+naming `resume --confirmed`. After the maintainer confirms that overwrite,
+continue the run:
+
+```sh
+repo-standards resume --confirmed --json
+```
+
+It reruns that fix with `overwriteAllowed: true`, then the fixes after it,
+which may each stop for their own confirmation, and continues as the run
+would have, to contextual work or checks and completion. Fixes accepted before
+the stop are not run again. Without confirmation the run stays stopped: plain
+`resume` and `resume --assessment` fail with `CONFIRMATION_REQUIRED` and change
+nothing, `resume --retry` repeats the fixes and stops at the same fix again,
+and `abandon` ends the run as it ends any other. `resume --confirmed` is
+accepted only by a run stopped for a fix's confirmation, failing with
+`CONFIRMATION_NOT_REQUIRED` otherwise, and cannot be combined with `--retry` or
+`--assessment`.
 
 ## Update the selection
 
-An update is one inspected and confirmed run from the current selection to a
+An update is one inspected run from the current selection to a
 candidate selection. The candidate can change the CLI pin, the standards pin,
 the source, the profile, any combination of them, or none of them. The
 inspection report lists every changed component together with the previous
-selection, and every update uses the same inspect, confirm, and start sequence.
+selection, and every update uses the same inspect and start sequence, with
+[confirmation](#confirmation-required-changes) only when the report requires it.
 The report also states whether the update is an exact update, which changes
 only exact content, skills, or the selection, or a contextual update, which
 changes guidance, discovery guidance, operations, retired declarations, or
@@ -58,7 +115,7 @@ With the currently pinned CLI:
 .repo-standards/runtime/node_modules/.bin/repo-standards start \
   --source https://github.com/OWNER/STANDARDS \
   --standards-version v1.3.0 --profile work \
-  --confirm 'sha256:INSPECTION_HASH' --json
+  --identity 'sha256:INSPECTION_HASH' --json
 ```
 
 To change the CLI pin, obtain the candidate exact CLI outside the project and
@@ -75,13 +132,12 @@ mkdir -p "$candidate_dir"
 "$candidate_dir/node_modules/.bin/repo-standards" inspect --json
 ```
 
-Keep that directory outside the adopting project. Review the inspection and
-obtain explicit confirmation before running the same candidate executable with
-the same flags:
+Keep that directory outside the adopting project. Start with the same
+candidate executable and flags:
 
 ```sh
 "$candidate_dir/node_modules/.bin/repo-standards" start \
-  --confirm 'sha256:INSPECTION_HASH' --json
+  --identity 'sha256:INSPECTION_HASH' --json
 ```
 
 The bootstrap provides temporary inspection only. Keep the external candidate
@@ -94,7 +150,7 @@ content its standards should cover, run the pinned CLI without source flags:
 ```sh
 .repo-standards/runtime/node_modules/.bin/repo-standards inspect --json
 .repo-standards/runtime/node_modules/.bin/repo-standards start \
-  --confirm 'sha256:INSPECTION_HASH' --json
+  --identity 'sha256:INSPECTION_HASH' --json
 ```
 
 Without source flags, inspection and start resolve the selection from retained
@@ -108,11 +164,11 @@ even when the retained range excludes the candidate version.
 When the candidate profile has active discovery declarations, including an
 unchanged selection, the first inspection requires fresh project evidence.
 Build a new `--scope` proposal and pass it to both the complete inspection and
-confirmed start. The report lists discovered-scope additions and removals
+its start. The report lists discovered-scope additions and removals
 relative to the prior complete adoption; removed scope ends governance without
 deleting that project-owned content.
 
-Every update applies confirmation freshness, Git-state, prerequisite,
+Every update applies inspection freshness, confirmation, Git-state, prerequisite,
 compatibility, and ownership checks before mutation, then uses the normal
 fixes, contextual assessment, checks, integrity verification, recovery, and
 abandonment behavior. It replaces the retained inputs and still-declared exact
@@ -135,9 +191,11 @@ runtime. An incomplete run retains the prior last-complete evidence.
 
 Tracked content at an installation target never blocks: the run replaces it, or
 removes it when the selection no longer installs the target and the project
-has not edited it, and the confirmed
+has not edited it, and the
 inspection lists each replacement or removal that discards content other than
-the target's installed baseline. Git keeps what it discards. Only ignored or
+the target's installed baseline, each one a
+[confirmation-required change](#confirmation-required-changes). Git keeps what
+it discards. Only ignored or
 untracked content, which Git cannot recover, blocks with
 `UNTRACKED_REPLACEMENT`. There is no universal rollback. Only a
 complete run advances last-complete state and new baselines. Every update
@@ -157,14 +215,14 @@ edits; unrelated and excluded content remains outside the selection.
 
 The identity binds what the run reads, not Git HEAD or where the project is
 checked out: a commit between inspection and start that touches no affected
-file, retained input, or durable product state leaves the confirmation valid,
-and an inspection made in another clone of the same content confirms a start in
+file, retained input, or durable product state leaves the identity valid,
+and an inspection made in another clone of the same content starts a run in
 this one. The run records the project root and HEAD at start in its `root` and
 `head` fields for provenance, and completion records only HEAD, in the state's
 `lastComplete.head`; the root is never committed. HEAD and the index must then
 stay unchanged until the run completes. Inspection and run reports carry hash
 inventories and diffs rather than file bytes; start acquires the source again
-and installs only bytes that match the confirmed hashes. See
+and installs only bytes that match the inspected hashes. See
 [the inspection report](inspection.md#report-and-inspection-identity).
 
 Before installation, start probes every declared prerequisite using its literal
@@ -203,7 +261,7 @@ or a link at the path with any other text, blocks with `UNSAFE_TARGET`; the
 product never writes through a link it did not create. The inspection lists
 each link with its skill and action, its identity binds the link without
 following it, and durable state records each link's text. A link changed after
-confirmation makes `start` fail as stale.
+inspection makes `start` fail as stale.
 
 The product links only the skills it installs and never writes
 `.claude/skills` as a whole: a skill the project wrote itself under
@@ -243,7 +301,7 @@ paths, derived absence and observation identities, together with the run's scope
 change against the previous run. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
 source availability, as `repo-standards/scope-history/v5` in the
-`repo-standards/inspection/v6` report, and `status` reports its scope change.
+`repo-standards/inspection/v7` report, and `status` reports its scope change.
 
 Retained scope evidence stores the run's discovery once: its identity, proposal,
 absence, declarations and project observation without the evidence array that
@@ -278,7 +336,7 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v5`                                |
 | Run record, local run report, and archived abandoned report          | `repo-standards/run/v6`                                          |
 | `status` report                                                      | `repo-standards/status/v7`                                       |
-| Inspection report                                                    | `repo-standards/inspection/v6`                                   |
+| Inspection report                                                    | `repo-standards/inspection/v7`                                   |
 | Work request and assessment                                          | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
 
 Earlier formats are retired: they are not read, converted, or compacted. A
@@ -356,7 +414,8 @@ describes a review of every output.
 Fixes run serially before contextual work. Checks run after fixes for profiles
 without contextual declarations; otherwise they wait for a satisfied, current agent assessment. Ordinary failed checks allow subsequent checks to collect evidence.
 Blocked results, execution errors, check mutation, and integrity failures stop
-the phase and preserve incomplete work. A contextual handoff is incomplete,
+the phase and preserve incomplete work. A fix that needs confirmation to
+overwrite a setting stops the run until [`resume --confirmed`](#confirmation-required-changes). A contextual handoff is incomplete,
 with no last-complete state. Apply its guidance, refresh the snapshot with
 `resume --json`, and submit `resume --assessment <file> --json` to continue.
 
@@ -475,7 +534,8 @@ there fails with `STATE_INTEGRITY`, and nothing is removed:
   initial adoption: without an installed baseline, every replaced target is
   listed among the discarded edits. Content that an earlier adoption installed
   and the selection no longer declares stays in place as project content.
-- Confirming the inspection confirms the removal. Under its lock, `start`
+- Removing the retired state is not a
+  [confirmation-required change](#confirmation-required-changes). Under its lock, `start`
   observes the same retired directory again, removes it, and then installs. The
   removal is left uncommitted with the run's other changes; HEAD and the index
   don't change. A directory that no longer matches the inspection when its
@@ -491,7 +551,7 @@ further records or writing anything. The diagnostic names the record, its
 retired format, and the format this CLI reads, for example:
 
 ```text
-[RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v6; this CLI reads only repo-standards/state/v7. Adopt fresh: inspect with --source, --standards-version and --profile, and confirm that inspection; its start removes the retired .repo-standards directory.
+[RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v6; this CLI reads only repo-standards/state/v7. Adopt fresh: inspect with --source, --standards-version and --profile, and start that inspection, which removes the retired .repo-standards directory.
 ```
 
 Run records live in Git's directory: the active run at
@@ -567,14 +627,15 @@ installation does not require a compiler or enabled install scripts. Recovery
 is rejected if process identity or liveness cannot be determined safely.
 
 `resume --retry` explicitly authorizes repeating trusted operations. It checks
-prerequisites again, verifies confirmed installed bytes, executable state,
+prerequisites again, verifies inspected installed bytes, executable state,
 inventories, HEAD and index, and finishes pending installation from saved
 material. A write interrupted before its progress was recorded may contain the
 original inspected bytes or the expected installed bytes. Other edits block
 retry for reconciliation; there is no force-overwrite. Once installation was
 prepared, recovery needs neither the standards source nor fresh npm acquisition.
 An interruption before preparation repeats inspection and acquisition and still
-requires the original confirmation to be fresh.
+requires the original inspection identity to be fresh; the run's start already
+carried any confirmation that inspection required.
 
 Retry reruns repeat-safe fixes in declaration order, requests renewed contextual
 assessment where applicable, reruns checks, and verifies final integrity before
@@ -588,7 +649,10 @@ recorded scope violations or create scope authority; see the
 [observed execution contract](script-protocol.md#observed-adoption-scope). Submit a new assessment separately after retry;
 `--retry` and `--assessment` cannot be combined. Plain `resume` and
 `resume --assessment` remain the contextual interface and never implicitly retry
-uncertain process outcomes. A failed completion write remains incomplete until
+uncertain process outcomes. A run stopped because a fix needs confirmation to
+overwrite a setting continues with
+[`resume --confirmed`](#confirmation-required-changes) once the maintainer
+confirms. A failed completion write remains incomplete until
 its candidate state is verified and recovery finishes.
 
 `abandon` ends an incomplete run while keeping its work:
@@ -614,7 +678,7 @@ CLI releases the run only after preserving any candidate completion state and
 archiving its report. Failed preservation blocks abandonment and keeps the run
 active for reconciliation. Preserved changes stay in the working tree for the
 project's normal workflow. A new initial adoption still requires a clean
-project without conflicting product state and a fresh confirmed inspection.
+project without conflicting product state and a fresh inspection.
 An archived run report is moved out of Git's directory only when it carries a
 [retired format](#adopt-fresh-from-a-retired-format), because this CLI cannot
 read it.
@@ -627,8 +691,8 @@ coverage needs files outside the scope or that a confirmed target is mistaken,
 leaves the run incomplete with `SCOPE_INCOMPLETE`; its additional paths grant no
 authority. A different scope takes a new run: `abandon` ends the current one and
 keeps its changes, the next `start` requires a clean committed project, and the
-new run's inspection, with a new discovery proposal, needs its own explicit
-confirmation. Content the abandoned run installed, once restored to its
+new run starts from its own inspection, with a new discovery proposal,
+confirmed only when that inspection requires it. Content the abandoned run installed, once restored to its
 committed state, is installed again by the new run; an abandoned run's product
 state is not a complete adoption.
 
@@ -648,7 +712,7 @@ source flags verifies retained input integrity and resolves the current profile
 from retained material. Local edits to exact project content remain visible in
 the report, which has `retained: true`. With the pinned CLI it describes the
 unchanged selection; with a different exact CLI version it describes a CLI
-update. Either can be confirmed and started as described above. Active discovery
+update. Either can be started as described above. Active discovery
 declarations require fresh `--scope` proposals; retained historical scope never
 substitutes for them.
 

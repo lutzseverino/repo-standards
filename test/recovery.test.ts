@@ -147,7 +147,7 @@ if (input.operation.phase === 'fixes') {
   writeFileSync('README.md', 'Prepared project');
   if (count === 0) { process.kill(process.ppid, 'SIGKILL'); process.exit(0); }
 }
-console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.operation.phase === 'fixes'?'changed':'passed',message:'Verified'}));`,
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:input.operation.phase === 'fixes'?'changed':'passed',message:'Verified'}));`,
   );
   assert.equal(f.run(f.startArgs).signal, "SIGKILL");
   const stopped = f.report<Status>(["status", "--json"]).report.active;
@@ -209,6 +209,203 @@ console.log(JSON.stringify({format:'repo-standards/result/v1',status:input.opera
     true,
   );
   assert.equal(git(f.project.root, "rev-parse", "HEAD"), f.head);
+});
+
+test("a fix that needs confirmation to overwrite a setting stops the run until resume --confirmed reruns it allowed to overwrite", async (t) => {
+  const message =
+    "README.md: the title is 'Original project'; the standard sets 'Standard project'.";
+  const f = await fixture(
+    t,
+    {
+      readme: {
+        kind: "file",
+        target: "README.md",
+        guidance: "guide.md",
+        fixes: [operation("prepare"), operation("title")],
+        checks: [operation("verify")],
+      },
+    },
+    `
+import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
+const input = JSON.parse(readFileSync(0, 'utf8'));
+const result = (status, message) => console.log(JSON.stringify({format:'repo-standards/result/v2',status,message}));
+appendFileSync('.repo-standards/local/requests', input.operation.id + ' ' + input.overwriteAllowed + '\\n');
+const title = readFileSync('README.md', 'utf8');
+if (input.operation.phase === 'checks') result(title === 'Standard project' ? 'passed' : 'failed', 'Checked');
+else if (input.operation.id === 'prepare') result('unchanged', 'Prepared');
+else if (title === 'Standard project') result('unchanged', 'Already set');
+else if (!input.overwriteAllowed) result('confirmation-required', ${JSON.stringify(message)});
+else { writeFileSync('README.md', 'Standard project'); result('changed', 'Set the title'); }`,
+  );
+  const requests = () =>
+    readFileSync(
+      join(f.project.root, ".repo-standards/local/requests"),
+      "utf8",
+    );
+
+  // The fix changes nothing and stops the run, recording the fix and its message.
+  const started = f.report<Run>(f.startArgs);
+  assert.equal(started.result.status, 1, started.result.stderr);
+  const stopped = started.report;
+  assert.equal(stopped.outcome, "incomplete");
+  assert.equal(stopped.phase, "fixes");
+  assert.ok(stopped.reason.startsWith("CONFIRMATION_REQUIRED:"));
+  assert.ok(stopped.reason.includes("readme/title"), stopped.reason);
+  assert.ok(stopped.reason.includes(message), stopped.reason);
+  assert.deepEqual(stopped.operations.at(-1)!.operation, {
+    declaration: "readme",
+    phase: "fixes",
+    id: "title",
+  });
+  assert.deepEqual(stopped.operations.at(-1)!.result, {
+    format: "repo-standards/result/v2",
+    status: "confirmation-required",
+    message,
+  });
+  assert.deepEqual(stopped.uncertain, []);
+  assert.match(stopped.nextAction, /resume --confirmed/);
+  assert.equal(
+    readFileSync(join(f.project.root, "README.md"), "utf8"),
+    "Original project",
+  );
+  assert.equal(requests(), "prepare false\ntitle false\n");
+
+  // Without confirmation the run stays stopped, and nothing runs.
+  for (const args of [
+    ["resume", "--json"],
+    ["resume", "--assessment", "assessment.json", "--json"],
+  ]) {
+    const refused = f.report<ErrorReport>(args);
+    assert.equal(refused.result.status, 1);
+    assert.equal(refused.report.errors[0]!.code, "CONFIRMATION_REQUIRED");
+    assert.ok(refused.report.errors[0]!.message.includes(message));
+  }
+  for (const args of [
+    ["resume", "--confirmed", "--retry", "--json"],
+    ["resume", "--confirmed", "--assessment", "assessment.json", "--json"],
+  ])
+    assert.equal(f.run(args).status, 2);
+  const unchanged = f.report<Status>(["status", "--json"]).report.active!;
+  assert.equal(unchanged.reason, stopped.reason);
+  assert.equal(unchanged.nextAction, stopped.nextAction);
+  assert.equal(unchanged.operations.length, 2);
+  assert.equal(requests(), "prepare false\ntitle false\n");
+
+  // Confirmation reruns that fix, allowed to overwrite, and continues.
+  const confirmed = f.report<Run>(["resume", "--confirmed", "--json"]);
+  assert.equal(confirmed.report.id, stopped.id);
+  assert.equal(confirmed.report.phase, "contextual", confirmed.report.reason);
+  assert.equal(requests(), "prepare false\ntitle false\ntitle true\n");
+  assert.equal(
+    readFileSync(join(f.project.root, "README.md"), "utf8"),
+    "Standard project",
+  );
+  assert.deepEqual(
+    confirmed.report.operations.map(
+      (entry) => `${entry.operation.id} ${entry.result!.status}`,
+    ),
+    ["prepare unchanged", "title confirmation-required", "title changed"],
+  );
+  const again = f.report<ErrorReport>(["resume", "--confirmed", "--json"]);
+  assert.equal(again.result.status, 1);
+  assert.equal(again.report.errors[0]!.code, "CONFIRMATION_NOT_REQUIRED");
+
+  const path = join(f.remote.support.root, "assessment.json");
+  writeFileSync(
+    path,
+    JSON.stringify({
+      format: "repo-standards/assessment/v3",
+      declarations: [
+        {
+          id: "readme",
+          status: "satisfied",
+          explanation: "The README keeps the standard title.",
+          evidence: ["README.md reads 'Standard project'."],
+        },
+      ],
+    }),
+  );
+  const complete = f.report<Run>(["resume", "--assessment", path, "--json"]);
+  assert.equal(complete.result.status, 0, complete.result.stdout);
+  assert.equal(complete.report.outcome, "complete");
+  assert.equal(
+    f.report<Status>(["status", "--json"]).report.lastComplete.run,
+    stopped.id,
+  );
+});
+
+test("retry stops at a fix that needs confirmation again, and a fix allowed to overwrite cannot ask again", async (t) => {
+  const f = await fixture(
+    t,
+    {
+      readme: {
+        kind: "file",
+        target: "README.md",
+        guidance: "guide.md",
+        fixes: [operation("title")],
+      },
+    },
+    `
+import { readFileSync } from 'node:fs';
+readFileSync(0, 'utf8');
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:'confirmation-required',message:'Overwrites the title'}));`,
+  );
+  const stopped = f.report<Run>(f.startArgs).report;
+  assert.ok(stopped.reason.startsWith("CONFIRMATION_REQUIRED:"));
+  const retried = f.report<Run>(["resume", "--retry", "--json"]);
+  assert.equal(retried.result.status, 1);
+  assert.equal(retried.report.phase, "fixes");
+  assert.ok(retried.report.reason.startsWith("CONFIRMATION_REQUIRED:"));
+  assert.match(retried.report.nextAction, /resume --confirmed/);
+  assert.equal(retried.report.retryHistory!.length, 1);
+  const confirmed = f.report<Run>(["resume", "--confirmed", "--json"]);
+  assert.equal(confirmed.result.status, 1);
+  assert.ok(
+    confirmed.report.reason.startsWith("PROTOCOL_ERROR:"),
+    confirmed.report.reason,
+  );
+  assert.equal(confirmed.report.operations.length, 3);
+  assert.equal(
+    f.report<ErrorReport>(["resume", "--confirmed", "--json"]).report.errors[0]!
+      .code,
+    "CONFIRMATION_NOT_REQUIRED",
+  );
+  assert.equal(f.report<Run>(["abandon", "--json"]).report.abandoned, true);
+});
+
+test("a fix that asks for confirmation after changing the project breaks the protocol and cannot be confirmed", async (t) => {
+  const f = await fixture(
+    t,
+    {
+      readme: {
+        kind: "file",
+        target: "README.md",
+        guidance: "guide.md",
+        fixes: [operation("title")],
+      },
+    },
+    `
+import { readFileSync, writeFileSync } from 'node:fs';
+readFileSync(0, 'utf8');
+writeFileSync('README.md', 'Standard project');
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:'confirmation-required',message:'Overwrites the title'}));`,
+  );
+  const started = f.report<Run>(f.startArgs);
+  assert.equal(started.result.status, 1, started.result.stderr);
+  const stopped = started.report;
+  assert.equal(stopped.phase, "fixes");
+  assert.ok(stopped.reason.startsWith("PROTOCOL_ERROR:"), stopped.reason);
+  assert.ok(stopped.reason.includes("readme/title"), stopped.reason);
+  assert.ok(stopped.reason.includes("README.md"), stopped.reason);
+  assert.doesNotMatch(stopped.nextAction, /--confirmed/);
+  assert.equal(
+    readFileSync(join(f.project.root, "README.md"), "utf8"),
+    "Standard project",
+  );
+  const confirmed = f.report<ErrorReport>(["resume", "--confirmed", "--json"]);
+  assert.equal(confirmed.result.status, 1);
+  assert.equal(confirmed.report.errors[0]!.code, "CONFIRMATION_NOT_REQUIRED");
+  assert.equal(f.report<Run>(["abandon", "--json"]).report.abandoned, true);
 });
 
 test("surviving author processes block retry and abandonment after the CLI dies", async (t) => {
@@ -405,7 +602,7 @@ if (input.operation.phase === 'checks') {
   status = existsSync(path) ? 'passed' : 'failed';
   writeFileSync(path, 'checked');
 }
-console.log(JSON.stringify({format:'repo-standards/result/v1',status,message:'Checked'}));`,
+console.log(JSON.stringify({format:'repo-standards/result/v2',status,message:'Checked'}));`,
   );
   const started = f.report(f.startArgs).report;
   const old = started.workRequest;
@@ -698,7 +895,7 @@ writeFileSync(process.env.RECOVERY_GROUP_FILE, String(process.pid));`;
             fixes: [op],
           },
         },
-        `${phase === "fixes" ? background : ""}\nconsole.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Finished'}));`,
+        `${phase === "fixes" ? background : ""}\nconsole.log(JSON.stringify({format:'repo-standards/result/v2',status:'unchanged',message:'Finished'}));`,
       );
       const path = join(f.remote.support.root, "group");
       const result = f.run(f.startArgs, {
@@ -881,7 +1078,7 @@ test("a fast author operation cannot have its local report corruption overwritte
     `
 import { writeFileSync } from 'node:fs';
 writeFileSync('.repo-standards/local/run.json', 'Corrupted');
-console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Claimed success'}));`,
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:'unchanged',message:'Claimed success'}));`,
   );
   const env = filesystemFault(
     f.remote.support.root,
@@ -937,7 +1134,7 @@ if (!existsSync(marker)) {
   process.kill(process.ppid, 'SIGKILL');
   writeFileSync('.repo-standards/local/run.json', 'Interrupted author evidence');
 }
-console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Finished'}));`,
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:'unchanged',message:'Finished'}));`,
   );
   assert.equal(f.run(f.startArgs).signal, "SIGKILL");
   const deadline = Date.now() + 3000;
@@ -987,7 +1184,7 @@ test("abandoned operation logs remain readable after reconciliation and another 
 import { readFileSync } from 'node:fs';
 readFileSync(0, 'utf8');
 console.error(process.env.RUN_MESSAGE);
-console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:process.env.RUN_MESSAGE}));`,
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:'unchanged',message:process.env.RUN_MESSAGE}));`,
   );
   const first = JSON.parse(
     f.run(f.startArgs, { ...f.env, RUN_MESSAGE: "First run" }).stdout,
@@ -1105,7 +1302,7 @@ test("operation output written before its result reached the journal is kept by 
           fixes: [operation("prepare")],
         },
       },
-      `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:process.env.RUN_MESSAGE}));`,
+      `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'unchanged',message:process.env.RUN_MESSAGE}));`,
     );
     const env = filesystemFault(
       f.remote.support.root,
@@ -1170,7 +1367,7 @@ test("failed abandonment archives leave the actual report, journal and logs avai
         fixes: [operation("prepare")],
       },
     },
-    `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Preserve this evidence'}));`,
+    `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'unchanged',message:'Preserve this evidence'}));`,
   );
   const started = f.report(f.startArgs);
   assert.equal(started.report.phase, "contextual");
@@ -1220,7 +1417,7 @@ test("committed retry evidence in a linked worktree names no location outside th
         fixes: [operation("prepare")],
       },
     },
-    `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'unchanged',message:'Prepared'}));`,
+    `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'unchanged',message:'Prepared'}));`,
   );
   // The linked worktree's Git directory lives in the main checkout's.
   const worktree = join(f.remote.support.root, "linked");

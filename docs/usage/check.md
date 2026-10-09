@@ -7,7 +7,7 @@
 `check` runs every check of the last complete adoption against the current
 working tree and reports each result. Use it between runs, for example to
 check finished work against the adopted standards before delivering it. It
-runs no fix and asks for no confirmation: the adoption disclosed and confirmed
+runs no fix and asks for no confirmation: the adoption disclosed and ran
 these checks. It records nothing, so a passing `check` does not change the
 adoption's evidence or claim continuing compliance. `--project <directory>`
 selects another Git working tree.
@@ -23,10 +23,10 @@ describes:
 - It first probes the prerequisites of every check. Any missing executable or
   incompatible version fails `check` with `PREREQUISITES_BLOCKED` before any
   check runs, listing every probe in the diagnostic's `details`.
-- Each check receives the same `repo-standards/operation/v1` input as in a run,
+- Each check receives the same `repo-standards/operation/v2` input as in a run,
   with the selection's standards and profile, every active resolved declaration,
-  and its declaration's allowed targets, and the same arguments, working
-  directory, timeout and output limits.
+  its declaration's allowed targets, and `overwriteAllowed: false`. It uses
+  the same arguments, working directory, timeout and output limits.
 - Declarations run by ID and checks in their listed order.
 
 Unlike a run, `check` runs every check whatever earlier checks returned, so one

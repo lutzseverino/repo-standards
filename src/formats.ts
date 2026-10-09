@@ -10,12 +10,12 @@ export const formats = {
   scopeHistory: "repo-standards/scope-history/v5",
   run: "repo-standards/run/v6",
   status: "repo-standards/status/v7",
-  inspection: "repo-standards/inspection/v6",
+  inspection: "repo-standards/inspection/v7",
   scope: "repo-standards/scope/v2",
   workRequest: "repo-standards/work-request/v3",
   assessment: "repo-standards/assessment/v3",
-  operation: "repo-standards/operation/v1",
-  result: "repo-standards/result/v1",
+  operation: "repo-standards/operation/v2",
+  result: "repo-standards/result/v2",
   outdated: "repo-standards/outdated/v1",
   outdatedCache: "repo-standards/outdated-cache/v1",
   check: "repo-standards/check/v1",
@@ -77,7 +77,7 @@ export function newerFormat(
 }
 
 // Committed product state in a retired format is replaced by a fresh adoption,
-// whose confirmed start removes it. An archived run report is evidence that
+// whose start removes it. An archived run report is evidence that
 // only the CLI that wrote it reads.
 export function retiredFormat(
   where: string,
@@ -87,7 +87,7 @@ export function retiredFormat(
   const path =
     expected === formats.run
       ? "Move this archived run report out of Git's directory, keeping it if its evidence matters, and run the command again."
-      : "Adopt fresh: inspect with --source, --standards-version and --profile, and confirm that inspection; its start removes the retired .repo-standards directory.";
+      : "Adopt fresh: inspect with --source, --standards-version and --profile, and start that inspection, which removes the retired .repo-standards directory.";
   return new ProductError(
     "RETIRED_FORMAT",
     `${where} carries the retired format ${found(value)}; this CLI reads only ${expected}. ${path}`,

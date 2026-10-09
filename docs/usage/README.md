@@ -11,7 +11,7 @@ Repository Standards, and defines its public formats and protocols.
   for standards sources without selecting or adopting them.
 - [Inspection](inspection.md): the read-only bootstrap and inspection, its
   report and identity, update inspection, summaries, and discovery scope.
-- [Adoption](adoption.md): confirmed adoption and updates, durable and local
+- [Adoption](adoption.md): adoption and updates, confirmation-required changes, durable and local
   state, completion, status summaries, recovery commands, and fresh adoption.
 - [Available updates](available-updates.md): the read-only `outdated` report
   of newer CLI and standards versions and its cache.

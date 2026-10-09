@@ -45,7 +45,7 @@ const files = {
 const input = JSON.parse(readFileSync(0, 'utf8'));
 let status = input.operation.phase === 'fixes' ? 'unchanged' : 'passed';
 if (input.operation.id === 'prepare' && !readFileSync('apps/a/README.md', 'utf8').includes('Prepared')) { writeFileSync('apps/a/README.md', '# Project A\\nPrepared.\\n'); status = 'changed'; }
-console.log(JSON.stringify({format: 'repo-standards/result/v1', status, message: input.operation.id + ' done'}));
+console.log(JSON.stringify({format: 'repo-standards/result/v2', status, message: input.operation.id + ' done'}));
 `,
 };
 
@@ -308,7 +308,10 @@ test("the record of an update that only installs exact content lists every insta
   const adopt = (version: string) => {
     const args = versionArgs(version);
     const report = JSON.parse(run(args).stdout) as Inspection;
-    const started = run(startArgs(report.identity, args));
+    // Confirmed by the maintainer whenever the inspection requires it.
+    const started = run(
+      startArgs(report.identity, args, report.confirmation.required),
+    );
     assert.equal(
       (JSON.parse(started.stdout) as Run).outcome,
       "complete",
@@ -381,7 +384,10 @@ test("the record of an update lists a removed retired target and a replaced edit
   const adopt = (version: string) => {
     const args = versionArgs(version);
     const report = JSON.parse(run(args).stdout) as Inspection;
-    const started = run(startArgs(report.identity, args));
+    // Confirmed by the maintainer whenever the inspection requires it.
+    const started = run(
+      startArgs(report.identity, args, report.confirmation.required),
+    );
     assert.equal(
       (JSON.parse(started.stdout) as Run).outcome,
       "complete",
@@ -558,6 +564,8 @@ Replacing or removing these targets discards content that is not their installed
 - \`.claude/skills/adopt-standards\`
 - \`AGENTS.md\`
 
+Confirmation required: starting this run needs the maintainer's confirmation of these discarded edits.
+
 ## Kept targets
 
 These targets leave the selection with edits. They stay in place, and the project now owns them:
@@ -650,6 +658,7 @@ These targets leave the selection with edits. They stay in place, and the projec
     update,
   );
   assert.ok(!update.includes("## Discarded edits"), update);
+  assert.ok(!update.includes("Confirmation required"), update);
   assert.ok(
     !/\| `(?:legacy|retired)` \| `[^`]*` \| deleted \|/.test(update),
     update,
