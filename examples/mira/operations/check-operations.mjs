@@ -4,7 +4,7 @@ import { join } from "node:path";
 const input = JSON.parse(readFileSync(0, "utf8"));
 const targets = ["docs/operations.md", "docs/operating-status.json"];
 if (
-  input.format !== "repo-standards/operation/v1" ||
+  input.format !== "repo-standards/operation/v2" ||
   targets.some((path) => !input.allowedTargets.paths.includes(path))
 ) {
   throw new Error(
@@ -29,7 +29,7 @@ try {
 }
 console.log(
   JSON.stringify({
-    format: "repo-standards/result/v1",
+    format: "repo-standards/result/v2",
     status: !missing.length && unverified ? "passed" : "failed",
     message: missing.length
       ? `Missing runbook sections: ${missing.join(", ")}`

@@ -10,8 +10,9 @@ version:
 - [Discovery](references/discovery.md): building the scope proposal and
   rechecking coverage.
 - [Assessment](references/assessment.md): doing and judging contextual work.
-- [Recovery](references/recovery.md): an interrupted run, abandonment, scope
-  correction, and fresh adoption from a retired format.
+- [Recovery](references/recovery.md): an interrupted run, a fix that needs
+  confirmation, abandonment, scope correction, and fresh adoption from a
+  retired format.
 - [Review](references/review.md): reviewing a completed run's outputs.
 
 ## Choose the CLI and route
@@ -124,6 +125,12 @@ them again only when the inspection report requires confirmation.
 
 Changed inputs or a stale rejection require a new inspection; ask again only
 when the new report requires confirmation.
+
+A fix can also require confirmation: one that would overwrite an existing
+setting with a different value stops the run instead, with a `reason` starting
+`CONFIRMATION_REQUIRED:`. Follow
+[Recovery](references/recovery.md#confirm-a-fixs-overwrite); never resume with
+`--confirmed` before the maintainer confirms that overwrite.
 
 Author skills are ordinary-work content. The product-owned `adopt-standards`
 skill and public CLI govern adoption for every author; author material cannot

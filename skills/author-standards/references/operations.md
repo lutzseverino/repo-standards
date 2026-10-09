@@ -14,8 +14,9 @@ behavior proposal before including material in the source:
 - What triggers it, which declaration and paths it governs, and what it leaves
   alone. Explain profile exclusions and any limitations of the check's evidence.
 - For a check, what passes, fails, or blocks and how it stays read-only. For a
-  fix, precisely what it changes or preserves, when it blocks, and why retrying
-  after a partial run is safe. For a skill, its ordinary-work invocation, actions,
+  fix, precisely what it changes or preserves, when it blocks, which existing
+  settings it would overwrite only after confirmation, and why retrying after a
+  partial run is safe. For a skill, its ordinary-work invocation, actions,
   expected output, and whole-directory ownership; it has no adoption role.
 - Tools, versions, version probes, literal arguments, timeouts, resources, and
   any network, credential, or host-access needs. Trusted operations inherit the
@@ -35,7 +36,11 @@ declaration. Generate every referenced script and resource, preserving their
 source-relative layout. Use declared literal argument vectors without a shell.
 Scripts read the versioned stdin request, active resolved declarations and
 `allowedTargets`, and respect the selected scope. A fix observes current content
-and makes only missing changes. Checks leave project content unchanged.
+and makes only missing changes. When it would change or remove an existing
+setting that holds a different value and the request's `overwriteAllowed` is
+`false`, it changes nothing and returns `confirmation-required`, its message
+naming the setting and both values; creating a missing setting needs no
+confirmation. Checks leave project content unchanged.
 
 Return exactly the protocol's result object on stdout, human logs on stderr,
 and zero exit for ordinary result statuses, including a failed check or blocked
@@ -75,9 +80,11 @@ For each active operation with a concrete fixture selection:
    observed version with the declared range as the matching protocol describes.
    If missing, failed, unreadable, or incompatible, record the actual blocker and
    leave that operation unverified. Do not silently install or substitute tools.
-2. Build a `repo-standards/operation/v1` request using the validated profile's
+2. Build a `repo-standards/operation/v2` request using the validated profile's
    complete resolved declarations, its actual owning declaration/phase/operation
-   ID, absolute fixture `projectRoot`, and the owner's exact `allowedTargets`.
+   ID, absolute fixture `projectRoot`, the owner's exact `allowedTargets`, and
+   `overwriteAllowed`: `false` for a check, and for a fix each value it
+   exercises.
    Supply syntactically valid, explicitly synthetic standards provenance in the
    protocol's repository/version/commit fields; this is fixture metadata, not a
    publication claim. File owners allow one path, skill owners their whole target
@@ -92,7 +99,10 @@ timeout: timeoutSeconds * 1000, maxBuffer: 1024 * 1024, shell: false })`.
 4. Run the check on violating content first; expect a zero-exit `failed` result
    with a useful reason. Exercise an applicable blocked case. Run the fix on
    repairable content, inspect the actual change, then repeat it and expect
-   `unchanged` with identical bytes/modes. Check the repaired fixture and expect
+   `unchanged` with identical bytes/modes. For a fix that overwrites settings,
+   run it on a differing setting with `overwriteAllowed: false` and expect
+   `confirmation-required` with unchanged bytes, then with `true` and expect the
+   change. Check the repaired fixture and expect
    `passed`. Also exercise any promised preservation or partial-retry behavior.
 5. Compare full fixture inventories, bytes and modes around each invocation.
    Every check must preserve them, including when failed or blocked; fixes must

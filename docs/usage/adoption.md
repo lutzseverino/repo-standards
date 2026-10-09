@@ -65,6 +65,32 @@ agent obtained that confirmation truthfully. The identity binds every start,
 confirmed or not: a project that changed since inspection fails with
 `STALE_INSPECTION` either way.
 
+Inspection runs no source code, so it cannot see the settings a fix would
+overwrite. A fix that would change or remove an existing setting holding a
+different value instead returns `confirmation-required`, having changed
+nothing, with a message naming the setting and both values; creating a missing
+setting needs no confirmation. The [script protocol](script-protocol.md#overwriting-a-setting)
+defines the result. The run stops there, resumably: it stays incomplete in the
+`fixes` phase, with a `reason` starting `CONFIRMATION_REQUIRED:` that names the
+fix and its message, the fix's result in `operations`, and a `nextAction`
+naming `resume --confirmed`. After the maintainer confirms that overwrite,
+continue the run:
+
+```sh
+repo-standards resume --confirmed --json
+```
+
+It reruns that fix with `overwriteAllowed: true`, then the fixes after it,
+which may each stop for their own confirmation, and continues as the run
+would have, to contextual work or checks and completion. Fixes accepted before
+the stop are not run again. Without confirmation the run stays stopped: plain
+`resume` and `resume --assessment` fail with `CONFIRMATION_REQUIRED` and change
+nothing, `resume --retry` repeats the fixes and stops at the same fix again,
+and `abandon` ends the run as it ends any other. `resume --confirmed` is
+accepted only by a run stopped for a fix's confirmation, failing with
+`CONFIRMATION_NOT_REQUIRED` otherwise, and cannot be combined with `--retry` or
+`--assessment`.
+
 ## Update the selection
 
 An update is one inspected run from the current selection to a
@@ -388,7 +414,8 @@ describes a review of every output.
 Fixes run serially before contextual work. Checks run after fixes for profiles
 without contextual declarations; otherwise they wait for a satisfied, current agent assessment. Ordinary failed checks allow subsequent checks to collect evidence.
 Blocked results, execution errors, check mutation, and integrity failures stop
-the phase and preserve incomplete work. A contextual handoff is incomplete,
+the phase and preserve incomplete work. A fix that needs confirmation to
+overwrite a setting stops the run until [`resume --confirmed`](#confirmation-required-changes). A contextual handoff is incomplete,
 with no last-complete state. Apply its guidance, refresh the snapshot with
 `resume --json`, and submit `resume --assessment <file> --json` to continue.
 
@@ -622,7 +649,10 @@ recorded scope violations or create scope authority; see the
 [observed execution contract](script-protocol.md#observed-adoption-scope). Submit a new assessment separately after retry;
 `--retry` and `--assessment` cannot be combined. Plain `resume` and
 `resume --assessment` remain the contextual interface and never implicitly retry
-uncertain process outcomes. A failed completion write remains incomplete until
+uncertain process outcomes. A run stopped because a fix needs confirmation to
+overwrite a setting continues with
+[`resume --confirmed`](#confirmation-required-changes) once the maintainer
+confirms. A failed completion write remains incomplete until
 its candidate state is verified and recovery finishes.
 
 `abandon` ends an incomplete run while keeping its work:

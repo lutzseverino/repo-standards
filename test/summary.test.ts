@@ -45,7 +45,7 @@ const files = {
 const input = JSON.parse(readFileSync(0, 'utf8'));
 let status = input.operation.phase === 'fixes' ? 'unchanged' : 'passed';
 if (input.operation.id === 'prepare' && !readFileSync('apps/a/README.md', 'utf8').includes('Prepared')) { writeFileSync('apps/a/README.md', '# Project A\\nPrepared.\\n'); status = 'changed'; }
-console.log(JSON.stringify({format: 'repo-standards/result/v1', status, message: input.operation.id + ' done'}));
+console.log(JSON.stringify({format: 'repo-standards/result/v2', status, message: input.operation.id + ' done'}));
 `,
 };
 

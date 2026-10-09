@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 const input = JSON.parse(readFileSync(0, "utf8"));
 const target = "docs/operating-status.json";
 if (
-  input.format !== "repo-standards/operation/v1" ||
+  input.format !== "repo-standards/operation/v2" ||
   !input.allowedTargets.paths.includes(target)
 ) {
   throw new Error(
@@ -19,7 +19,7 @@ if (!exists) {
 }
 console.log(
   JSON.stringify({
-    format: "repo-standards/result/v1",
+    format: "repo-standards/result/v2",
     status: exists ? "unchanged" : "changed",
     message: exists
       ? "Preserved existing operating status."

@@ -24,7 +24,7 @@ for (const target of input.allowedTargets.paths) {
 const failed = input.operation.phase === "checks" && invalid.length > 0;
 console.log(
   JSON.stringify({
-    format: "repo-standards/result/v1",
+    format: "repo-standards/result/v2",
     status: failed
       ? "failed"
       : changed.length > 0

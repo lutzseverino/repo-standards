@@ -26,7 +26,7 @@ if (args.length === 1 && args[0] === "--version") {
   console.log(version);
 } else if (args.length === 0 || (args.length === 1 && args[0] === "--help")) {
   console.log(
-    "Usage: repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json | --summary]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --identity <inspection identity> [--confirmed] [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file>] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json | --summary]\n       repo-standards outdated [--project <directory>] [--json]\n       repo-standards check [--project <directory>] [--json]\n\nStart binds to the identity of the inspection it carries out. Pass --confirmed only when the inspection reports confirmation.required, after the maintainer confirms its confirmation-required changes. An update is one run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project. Check runs the adopted checks against the working tree and fails when any does not pass. --summary renders an inspection or status as Markdown instead of JSON.",
+    "Usage: repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json | --summary]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --identity <inspection identity> [--confirmed] [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file> | --confirmed] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json | --summary]\n       repo-standards outdated [--project <directory>] [--json]\n       repo-standards check [--project <directory>] [--json]\n\nStart binds to the identity of the inspection it carries out. Pass --confirmed only when the inspection reports confirmation.required, after the maintainer confirms its confirmation-required changes. An update is one run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment; when a fix stopped the run because overwriting a setting needs confirmation, resume --confirmed reruns that fix allowed to overwrite, after the maintainer confirms. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project. Check runs the adopted checks against the working tree and fails when any does not pass. --summary renders an inspection or status as Markdown instead of JSON.",
   );
 } else if (args[0] === "outdated" || args[0] === "check") {
   const command = args[0];
@@ -98,7 +98,7 @@ if (args.length === 1 && args[0] === "--version") {
       if (
         (key === "--json" ||
           (key === "--retry" && args[0] === "resume") ||
-          (key === "--confirmed" && args[0] === "start") ||
+          (key === "--confirmed" && ["start", "resume"].includes(args[0])) ||
           (key === "--summary" && ["inspect", "status"].includes(args[0]))) &&
         !flags.has(key)
       ) {
@@ -135,6 +135,15 @@ if (args.length === 1 && args[0] === "--version") {
         "USAGE",
         "Retry requests renewed contextual work; submit assessment separately after retry.",
       );
+    if (
+      args[0] === "resume" &&
+      flags.has("--confirmed") &&
+      (flags.has("--retry") || flags.has("--assessment"))
+    )
+      throw new ProductError(
+        "USAGE",
+        "Confirmation continues a run stopped for a fix's confirmation; use resume --confirmed alone, without --retry or --assessment.",
+      );
     const selectionKeys = ["--source", "--standards-version", "--profile"];
     const selectionCount = selectionKeys.filter((key) => flags.has(key)).length;
     const retained =
@@ -170,6 +179,7 @@ if (args.length === 1 && args[0] === "--version") {
               version,
               flags.get("--assessment"),
               flags.has("--retry"),
+              flags.has("--confirmed"),
             )
           : args[0] === "status"
             ? status(options.project, version)

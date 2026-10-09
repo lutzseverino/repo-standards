@@ -24,7 +24,11 @@ import type { InspectOptions } from "./inspection.js";
 import { observe } from "./observation.js";
 import { json, projectRoot } from "./adoption-files.js";
 import { declarationTargets, installedSystemSkills } from "./targets.js";
-import { withStartRun, withResumedRun } from "./adoption-run.js";
+import {
+  confirmationStop,
+  withStartRun,
+  withResumedRun,
+} from "./adoption-run.js";
 import {
   install,
   planInstallation,
@@ -392,14 +396,23 @@ async function startRun(
   await advance(root, session, installation);
 }
 
+// How a resumed run continues: with an assessment, or a refreshed work request
+// when none is submitted, or from the fix the maintainer confirmed overwriting.
+type Continuation =
+  | { kind: "assessment"; assessment?: unknown }
+  | { kind: "confirmed"; fix: { declaration: string; id: string } };
+
 async function advance(
   root: string,
   session: AdoptionRunSession,
   installation: Installation,
-  resumed = false,
-  assessment?: unknown,
+  continuation?: Continuation,
 ) {
   const { report } = installation;
+  const resumed = continuation?.kind === "assessment";
+  const assessment = resumed ? continuation.assessment : undefined;
+  // A confirmed continuation skips the fixes accepted before the stop.
+  let confirmed = continuation?.kind === "confirmed" ? continuation.fix : null;
   const verifyInstalled = () => verifyInstallation(root, installation);
   // A resumed assessment is validated before the journal's violations are checked.
   if (resumed) session.journal.continue();
@@ -444,10 +457,23 @@ async function advance(
     : ["fixes", "checks"];
   for (const phase of phases) {
     for (const selected of operations(report.resolved, phase)) {
+      const overwriteAllowed =
+        phase === "fixes" &&
+        confirmed?.declaration === selected.declaration &&
+        confirmed.id === selected.operation.id;
+      if (phase === "fixes" && confirmed && !overwriteAllowed) continue;
+      confirmed = null;
       const evidence = await session.authorProcess(
         { phase, declaration: selected.declaration, id: selected.operation.id },
         (onSpawn) =>
-          execute(root, selected, report.selection, report.resolved, onSpawn),
+          execute(
+            root,
+            selected,
+            report.selection,
+            report.resolved,
+            onSpawn,
+            overwriteAllowed,
+          ),
         verifyInstalled,
       );
       if (evidence.error)
@@ -459,6 +485,11 @@ async function advance(
         throw new ProductError(
           "OPERATION_BLOCKED",
           `Operation ${selected.declaration}/${selected.operation.id} is blocked: ${evidence.result.message}`,
+        );
+      if (evidence.result?.status === "confirmation-required")
+        throw new ProductError(
+          "CONFIRMATION_REQUIRED",
+          `Fix ${selected.declaration}/${selected.operation.id} needs the maintainer's confirmation to overwrite a setting: ${evidence.result.message}`,
         );
       session.record({
         type: "operation-accepted",
@@ -509,11 +540,13 @@ export async function resume(
   cliVersion: string,
   assessmentPath?: string,
   retry = false,
+  confirmed = false,
 ) {
   return withResumedRun(
     project,
     cliVersion,
     retry,
+    confirmed,
     async (session, installation) => {
       if (!installation) {
         const run = session.observation;
@@ -541,6 +574,12 @@ export async function resume(
           install(root, session, installation);
         return advance(root, session, installation);
       }
+      // The session accepts confirmation only for a run stopped for it.
+      if (confirmed)
+        return advance(root, session, installation, {
+          kind: "confirmed",
+          fix: confirmationStop(session.observation)!.operation,
+        });
       session.record({ type: "assessment-reading" });
       let assessment: unknown;
       if (assessmentPath !== undefined) {
@@ -555,7 +594,10 @@ export async function resume(
           );
         }
       }
-      await advance(root, session, installation, true, assessment);
+      await advance(root, session, installation, {
+        kind: "assessment",
+        assessment,
+      });
     },
   );
 }

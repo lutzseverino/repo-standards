@@ -1547,7 +1547,7 @@ test("an update failure preserves actual work and the previous last-complete evi
   const { run: initial } = f.adopt();
   remote.addVersion("v1.1.0", v2, {
     "agents.md": "Version two",
-    "check.mjs": `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'failed',message:'Not ready'}));`,
+    "check.mjs": `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'failed',message:'Not ready'}));`,
   });
   const updateArgs = versionArgs("v1.1.0");
   const inspection = f.inspect(updateArgs);
@@ -1613,7 +1613,7 @@ test("a confirmed inspection of the unchanged selection starts a run that re-app
     {
       files: {
         "agents.md": "Pinned standards",
-        "check.mjs": `console.log(JSON.stringify({format:'repo-standards/result/v1',status:'passed',message:'Ready'}));`,
+        "check.mjs": `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'passed',message:'Ready'}));`,
       },
     },
   );
@@ -2544,7 +2544,7 @@ const input = JSON.parse(readFileSync(0, 'utf8'));
 let status = input.operation.phase === 'fixes' ? 'unchanged' : 'passed';
 if (input.operation.id === 'prepare') { writeFileSync('README.md', '# Prepared README'); status = 'changed'; }
 if (input.operation.id === 'verify' && !readFileSync('README.md', 'utf8').includes('## Usage')) status = 'failed';
-console.log(JSON.stringify({format: 'repo-standards/result/v1', status, message: input.operation.id}));`,
+console.log(JSON.stringify({format: 'repo-standards/result/v2', status, message: input.operation.id}));`,
         },
         project: {
           "README.md": "# Project",

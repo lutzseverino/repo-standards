@@ -17,6 +17,8 @@ Read `status --json` and its `active` record: `phase`, `reason`, `changes`,
   running. Wait for it to finish. Stop it only on the maintainer's
   instruction.
 - An ordinary contextual handoff continues with [assessment](assessment.md).
+- A `reason` starting `CONFIRMATION_REQUIRED:` in the `fixes` phase is a fix
+  that needs confirmation; see [below](#confirm-a-fixs-overwrite).
 - In a run with contextual work, an ordinary `CHECKS_FAILED` result continues
   with a renewed [assessment](assessment.md#submit-the-assessment), not a
   retry. Without contextual work there is no assessment to renew, and
@@ -25,6 +27,25 @@ Read `status --json` and its `active` record: `phase`, `reason`, `changes`,
   completion need a decision between retry and abandonment. Explain the phase,
   reason, actual changes, completed and uncertain work, and the safe next
   action, then ask the maintainer.
+
+## Confirm a fix's overwrite
+
+A fix that would change or remove an existing setting holding a different
+value changes nothing and stops the run, resumably. Its `reason` names the fix
+and its message, which names the setting, its current value, and the value the
+standard sets; the fix's result is the last entry in `operations`. This is a
+confirmation-required change. Present the setting and both values, and ask the
+maintainer whether to overwrite it.
+
+- Only after their explicit confirmation of that overwrite, run
+  `resume --confirmed --json`. It reruns the fix allowed to overwrite, then
+  continues the run; a later fix may stop for its own confirmation, which
+  needs its own answer. The
+  [confirmation contract](https://github.com/lutzseverino/repo-standards/blob/v5.1.1/docs/usage/adoption.md#confirmation-required-changes)
+  defines the command.
+- Without confirmation, the run stays stopped. If the maintainer declines,
+  obtain an abandonment instruction and [abandon](#abandon) the run. Retry
+  stops at the same fix again; it is no way around the question.
 
 ## Retry
 

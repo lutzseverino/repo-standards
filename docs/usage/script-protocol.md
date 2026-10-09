@@ -40,7 +40,7 @@ The CLI supplies one UTF-8 JSON object and closes stdin:
 
 ```json
 {
-  "format": "repo-standards/operation/v1",
+  "format": "repo-standards/operation/v2",
   "operation": { "declaration": "readme", "phase": "checks", "id": "headings" },
   "projectRoot": "/absolute/project",
   "standards": {
@@ -50,7 +50,8 @@ The CLI supplies one UTF-8 JSON object and closes stdin:
   },
   "profile": "work",
   "declarations": [],
-  "allowedTargets": { "paths": ["README.md"], "directories": [] }
+  "allowedTargets": { "paths": ["README.md"], "directories": [] },
+  "overwriteAllowed": false
 }
 ```
 
@@ -61,6 +62,10 @@ operation's owning declaration: file targets are explicit paths, skills are
 whole `.agents/skills/<name>` directories, and repository guidance retains its
 explicit paths and directory trees. All targets are project-relative. Authors
 must respect that scope, the active profile, and exclusions.
+`overwriteAllowed` tells a fix whether it may change or remove an existing
+setting that holds a different value; it is `true` only when the maintainer
+confirmed that overwrite, as described [below](#overwriting-a-setting), and
+always `false` for a check.
 
 ## JSON result on stdout
 
@@ -68,16 +73,17 @@ Return exactly one UTF-8 JSON object with these three fields, and exit zero:
 
 ```json
 {
-  "format": "repo-standards/result/v1",
+  "format": "repo-standards/result/v2",
   "status": "passed",
   "message": "Required headings are present."
 }
 ```
 
-A fix status is `unchanged`, `changed`, or `blocked`. A check status is `passed`,
-`failed`, or `blocked`. `message` is a string explaining the result. Additional
-fields, wrong formats, invalid statuses, missing fields, multiple JSON values,
-and non-JSON stdout are protocol errors. Surrounding whitespace is accepted.
+A fix status is `unchanged`, `changed`, `blocked`, or `confirmation-required`.
+A check status is `passed`, `failed`, or `blocked`. `message` is a string
+explaining the result. Additional fields, wrong formats, including the retired
+`repo-standards/result/v1`, invalid statuses, missing fields, multiple JSON
+values, and non-JSON stdout are protocol errors. Surrounding whitespace is accepted.
 Write human logs to stderr. A standards failure is a zero-exit `failed` result;
 it is distinct from a process failure.
 
@@ -91,13 +97,38 @@ sandbox. Captured output is bounded and retained under ignored
 execution `error` code or null, and stdout/stderr log paths. Durable state keeps
 check evidence; detailed logs remain local and are absent from fresh checkouts.
 
+### Overwriting a setting
+
+A fix creates a missing setting without asking. When it would change or remove
+an existing setting that holds a different value, and the request's
+`overwriteAllowed` is `false`, the fix makes no change and returns
+`confirmation-required`, its message naming the setting, its current value, and
+the value the standard sets:
+
+```json
+{
+  "format": "repo-standards/result/v2",
+  "status": "confirmation-required",
+  "message": "tsconfig.json compilerOptions.strict is false; the standard sets true."
+}
+```
+
+That is a [confirmation-required change](adoption.md#confirmation-required-changes):
+the run stops resumably at the fix, recording its result, and the fixes after
+it wait. Once the maintainer confirms, `resume --confirmed` invokes the same
+fix again with `overwriteAllowed: true`, and the fix makes the change; the run
+then continues with the fixes after it, each asking for its own confirmation
+when it needs one. A fix invoked with
+`overwriteAllowed: true` must not return `confirmation-required`; that result is
+a protocol error. A check never returns it.
+
 ## Ordering, integrity and incomplete work
 
 Declarations execute by ID; operations execute in their listed order. All fixes
 run before contextual work. Checks run after a satisfied, current [agent assessment](assessment-protocol.md);
 profiles without contextual declarations run checks immediately after fixes.
 Excluded declarations and their operations never run. Fixes stop at the first
-block or execution error. Ordinary failed checks allow remaining checks to
+block, execution error, or `confirmation-required` result. Ordinary failed checks allow remaining checks to
 collect evidence. A blocked check or execution error stops further execution.
 
 Fixes must be safe to repeat, including after interruption at any point. Observe
@@ -133,8 +164,8 @@ blocked result, failed check or contextual handoff asserts complete adoption.
 ## Observed adoption scope
 
 Every adoption uses the same execution
-machinery and unchanged `repo-standards/operation/v1` input and
-`repo-standards/result/v1` output. Each fix's observed added, deleted, edited,
+machinery and unchanged `repo-standards/operation/v2` input and
+`repo-standards/result/v2` output. Each fix's observed added, deleted, edited,
 and executable-state-changed files must fit **its owning declaration**, not the
 union of all declarations. A violation reports `OPERATION_SCOPE`, the operation,
 and offending paths. Checks report `CHECK_MUTATION` for observed writes, even

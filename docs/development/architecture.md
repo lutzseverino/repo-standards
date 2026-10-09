@@ -264,7 +264,7 @@ are recorded independently of the exact CLI package pin.
 | `source search`   | Finds public GitHub candidates and metadata.                                                                                                                                                                                                      |
 | `inspect`         | Describes the exact selection, the update comparison and class, proposed changes, guidance, operations, prerequisites, and conflicts without modifying the project or running author code. `--summary` renders the report as a Markdown proposal. |
 | `start`           | Validates the inspection identity and its confirmation and advances adoption until completion, a problem, or required contextual work.                                                                                                            |
-| `resume`          | Continues the existing run, including accepting `--assessment <file>` and explicitly retrying interrupted work.                                                                                                                                   |
+| `resume`          | Continues the existing run, including accepting `--assessment <file>`, explicitly retrying interrupted work, and continuing with `--confirmed` from a fix that needs confirmation.                                                                |
 | `status`          | Reports current pins, progress, and historical evidence without any network request or implying continuing compliance. `--summary` renders the last complete or active run as a Markdown record.                                                  |
 | `abandon`         | Ends an incomplete run while retaining its changes and report.                                                                                                                                                                                    |
 | `outdated`        | Reports, for each pin, whether a newer stable CLI or standards version is published and by how many stable releases, without blocking or changing anything outside the ignored product cache.                                                     |
@@ -372,7 +372,14 @@ otherwise, and accepted only then, failing with `CONFIRMATION_NOT_REQUIRED`
 when it does not. A retry of a start interrupted before its installation was
 prepared repeats the identity check only: the run's start already carried the
 confirmation that identity requires. The `adopt-standards` skill asks the
-maintainer only when the report requires confirmation.
+maintainer only when the report or a fix requires confirmation.
+
+Fixes report the confirmation-required changes inspection cannot see, because
+it runs no source code: a fix that would change or remove an existing setting
+holding a different value returns `confirmation-required` without changing
+anything, unless its request allows overwriting. The run stops there,
+resumably, as the [script execution contract](#script-execution-contract)
+describes.
 
 For an established adoption, inspection is an update. It reports every changed
 selection component, in the order CLI, standards, source, and profile, together
@@ -439,12 +446,26 @@ argument vector with the retained script path followed by literal arguments.
 The working directory is the adopting-project root. There are no author-defined
 environment values, shell interpretation, or custom working directories.
 
-One versioned JSON input conveys the operation identity, project root,
-standards identity, profile, active resolved declarations, and allowed targets.
-The script returns one versioned JSON result on standard output and human logs
-on standard error. A check reports `passed`, `failed`, or `blocked`; a fix
-reports `unchanged`, `changed`, or `blocked`. Nonzero exits, signals, timeouts,
-and invalid protocol output are execution errors.
+One versioned JSON input, `repo-standards/operation/v2`, conveys the operation
+identity, project root, standards identity, profile, active resolved
+declarations, allowed targets, and whether a fix may overwrite an existing
+setting, `overwriteAllowed`, false for every check. The script returns one
+versioned JSON result, `repo-standards/result/v2`, on standard output and human
+logs on standard error. A check reports `passed`, `failed`, or `blocked`; a fix
+reports `unchanged`, `changed`, `blocked`, or, only when overwriting is not
+allowed, `confirmation-required`. Nonzero exits, signals, timeouts, and invalid
+protocol output, including a retired result format, are execution errors.
+
+A `confirmation-required` fix stops the run resumably in the `fixes` phase,
+recording the fix's result in the run's operations and its message in the run's
+`reason`, under `CONFIRMATION_REQUIRED`. The run record gains no field: the
+stop is that reason with the fix's recorded result as the last operation and no
+uncertain work. `resume --confirmed`, accepted only by such a run and failing
+with `CONFIRMATION_NOT_REQUIRED` otherwise, reruns that fix with
+`overwriteAllowed: true`, then the fixes after it, and continues the run.
+Without confirmation the run stays stopped: `resume` and `resume --assessment`
+fail with `CONFIRMATION_REQUIRED` and change nothing, retry stops at the same
+fix again, and abandonment works as for any run.
 
 Scripts are trusted code. Resource declarations describe what the product
 retains; they cannot restrict host or network access. Authors must respect the
@@ -490,7 +511,7 @@ and [assessment](../usage/assessment-protocol.md#observation-and-replay) protoco
 
 Within phases, declarations run by ID and operations in their declared list
 order. Cross-declaration dependencies are unsupported. Fixes stop on the first
-block or execution error. Ordinary check failures do not prevent collecting
+block, execution error, or `confirmation-required` result. Ordinary check failures do not prevent collecting
 the remaining check results.
 
 A work request identifies its adoption run, applicable guidance, allowed
@@ -761,6 +782,8 @@ The product is complete only when all of these pass:
     neither track nor remove.
 11. Recover from interrupted installation and fixes through recorded progress
     and explicit retry. Prevent concurrent runs; preserve abandoned work.
+    Stop at a fix that needs confirmation to overwrite a setting, and continue
+    only with confirmation, rerunning it allowed to overwrite.
 12. Pass the same product behavior on macOS and Linux through the published
     installation path and pinned system skills.
 13. Report available updates without blocking, degrading to `unknown` when a
@@ -987,6 +1010,12 @@ These mechanisms are removed, not deprecated
 - Confirming every inspection. A start without a confirmation-required change
   proceeds with the identity alone; the `adopt-standards` skill asks the
   maintainer only when the report requires it.
-- The format `repo-standards/inspection/v6`. Its current version is
-  `inspection/v7` (`confirmation`)
+- Fixes that overwrite an existing setting unasked. A fix returns
+  `confirmation-required` instead, and the run continues from it with
+  `resume --confirmed`.
+- The formats `repo-standards/inspection/v6`, `repo-standards/operation/v1`,
+  and `repo-standards/result/v1`. Their current versions are `inspection/v7`
+  (`confirmation`), `operation/v2` (`overwriteAllowed`), and `result/v2` (the
+  fix status `confirmation-required`). A script returning the retired result
+  format fails with `PROTOCOL_ERROR`; no compatibility reader accepts it
   ([ADR 0007](../adr/0007-write-and-read-one-evidence-format.md)).

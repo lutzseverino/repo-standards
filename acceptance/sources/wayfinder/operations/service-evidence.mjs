@@ -38,7 +38,7 @@ if (input.operation.phase === "fixes") {
   }
   console.log(
     JSON.stringify({
-      format: "repo-standards/result/v1",
+      format: "repo-standards/result/v2",
       status: changed.length > 0 ? "changed" : "unchanged",
       message:
         changed.length > 0
@@ -90,7 +90,7 @@ for (const path of statuses) {
 
 console.log(
   JSON.stringify({
-    format: "repo-standards/result/v1",
+    format: "repo-standards/result/v2",
     status: problems.length > 0 ? "failed" : "passed",
     message:
       problems.length > 0

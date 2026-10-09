@@ -241,7 +241,9 @@ Confirmed adoption invokes the executable directly with the retained script path
 followed by literal arguments, from the adopting-project root. No shell
 expansion is applied to arguments. Scripts are trusted code; resources describe
 retention and do not restrict host or network access. Fixes must be safe to
-repeat; checks must not mutate project content. See the
+repeat; checks must not mutate project content. A fix that would overwrite an
+existing setting holding a different value asks for the maintainer's
+confirmation instead, unless its request allows overwriting. See the
 [public script protocol](script-protocol.md) for the
 versioned input/result protocol and execution rules. Source validation does not execute these operations.
 
