@@ -1,6 +1,6 @@
 # Repository Standards — architecture contracts
 
-This document describes the current contracts of CLI 5.1.0; individual tickets
+This document describes the current contracts of CLI 5.1.1; individual tickets
 state implementation scope, and the [architecture decisions](../adr/README.md)
 record the rationale.
 
