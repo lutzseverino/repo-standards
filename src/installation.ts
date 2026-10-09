@@ -45,10 +45,11 @@ import { installedSystemSkills, linkTextAt, skillTarget } from "./targets.js";
 import { completedEvidence, type Delta } from "./work-evidence.js";
 import { dictionary, record } from "./records.js";
 
-// Installation is the confirmed plan of an adoption run's exact content,
-// retained inputs, durable product state and runtime, planned from one
-// confirmed inspection. It installs itself over interruptions, verifies itself
-// at run time, and produces the durable state and lock a completion writes.
+// Installation is the plan of an adoption run's exact content, retained
+// inputs, durable product state and runtime, planned from the one inspection
+// the run's start is bound to. It installs itself over interruptions, verifies
+// itself at run time, and produces the durable state and lock a completion
+// writes.
 // Final integrity is this run-time check of the run's planned installation; the
 // recorded adoption reader separately verifies the committed baseline a run
 // starts from. The run session saves the value with the run and hands it back
@@ -85,10 +86,10 @@ export interface Installation {
   previousState?: Content;
 }
 
-// Plans the installation of a confirmed inspection. A replaced runtime was
-// prepared in its directory, with the system skills it packages, by target;
-// otherwise the installed runtime is kept, and the system skills are the ones
-// the inspecting CLI, which is the pinned one, packages.
+// Plans the installation of the inspection a start is bound to. A replaced
+// runtime was prepared in its directory, with the system skills it packages, by
+// target; otherwise the installed runtime is kept, and the system skills are
+// the ones the inspecting CLI, which is the pinned one, packages.
 export function planInstallation(
   root: string,
   inspected: StartInspection,
@@ -143,7 +144,7 @@ export function planInstallation(
   inputs[".repo-standards/inputs/resolved.json"] = file(json(report.resolved));
   // Scope evidence retains this run and its scope change against the run that
   // confirmed the recorded scope, once any run has discovered scope. The change
-  // is derived here from the same confirmed selection and recorded adoption the
+  // is derived here from the same selection and recorded adoption the
   // inspection compared, because an inspection reports none for an initial
   // adoption, where every discovered path is an addition.
   const previousScope = recorded?.scopeEvidence;

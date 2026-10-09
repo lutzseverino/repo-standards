@@ -77,7 +77,7 @@ export function newerFormat(
 }
 
 // Committed product state in a retired format is replaced by a fresh adoption,
-// whose confirmed start removes it. An archived run report is evidence that
+// whose start removes it. An archived run report is evidence that
 // only the CLI that wrote it reads.
 export function retiredFormat(
   where: string,

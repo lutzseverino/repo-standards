@@ -140,7 +140,7 @@ _Avoid_: Lock, requirement
 
 **Update**:
 A deliberate adoption operation that moves an adopting project from its current
-selection to a confirmed selection, including unchanged pins, changed pins, or a
+selection to a requested selection, including unchanged pins, changed pins, or a
 different source or profile.
 _Avoid_: Automatic upgrade, re-adoption, one-pin update
 

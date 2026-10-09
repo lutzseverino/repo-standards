@@ -1168,7 +1168,7 @@ test("a committed record that is neither current nor retired beside retired stat
       `${args[0]} must not remove anything`,
     );
   }
-  // The confirmed inspection holds again once the record is restored.
+  // The inspection holds again once the record is restored.
   writeFileSync(lockFile, lock);
   commit(root);
   assert.equal(

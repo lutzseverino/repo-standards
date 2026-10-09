@@ -26,6 +26,7 @@ import { json, projectRoot } from "./adoption-files.js";
 import { declarationTargets, installedSystemSkills } from "./targets.js";
 import {
   confirmationStop,
+  fixConfirmationRequired,
   withStartRun,
   withResumedRun,
 } from "./adoption-run.js";
@@ -412,7 +413,8 @@ async function advance(
   const resumed = continuation?.kind === "assessment";
   const assessment = resumed ? continuation.assessment : undefined;
   // A confirmed continuation skips the fixes accepted before the stop.
-  let confirmed = continuation?.kind === "confirmed" ? continuation.fix : null;
+  let confirmedFix =
+    continuation?.kind === "confirmed" ? continuation.fix : null;
   const verifyInstalled = () => verifyInstallation(root, installation);
   // A resumed assessment is validated before the journal's violations are checked.
   if (resumed) session.journal.continue();
@@ -459,10 +461,10 @@ async function advance(
     for (const selected of operations(report.resolved, phase)) {
       const overwriteAllowed =
         phase === "fixes" &&
-        confirmed?.declaration === selected.declaration &&
-        confirmed.id === selected.operation.id;
-      if (phase === "fixes" && confirmed && !overwriteAllowed) continue;
-      confirmed = null;
+        confirmedFix?.declaration === selected.declaration &&
+        confirmedFix.id === selected.operation.id;
+      if (phase === "fixes" && confirmedFix && !overwriteAllowed) continue;
+      confirmedFix = null;
       const evidence = await session.authorProcess(
         { phase, declaration: selected.declaration, id: selected.operation.id },
         (onSpawn) =>
@@ -486,11 +488,21 @@ async function advance(
           "OPERATION_BLOCKED",
           `Operation ${selected.declaration}/${selected.operation.id} is blocked: ${evidence.result.message}`,
         );
-      if (evidence.result?.status === "confirmation-required")
-        throw new ProductError(
-          "CONFIRMATION_REQUIRED",
-          `Fix ${selected.declaration}/${selected.operation.id} needs the maintainer's confirmation to overwrite a setting: ${evidence.result.message}`,
+      if (evidence.result?.status === "confirmation-required") {
+        // A fix that needs confirmation must have made no change.
+        const changed = session.journal.operationChanges(
+          session.observation.operations.length - 1,
         );
+        if (changed.length)
+          throw new ProductError(
+            "PROTOCOL_ERROR",
+            `Fix ${selected.declaration}/${selected.operation.id} returned confirmation-required after changing ${changed.join(", ")}; a fix that needs confirmation must make no change. Read its logs and preserve changes.`,
+          );
+        throw fixConfirmationRequired(
+          { declaration: selected.declaration, id: selected.operation.id },
+          evidence.result.message,
+        );
+      }
       session.record({
         type: "operation-accepted",
         description: `${phase}: ${selected.declaration}/${selected.operation.id} (${evidence.result!.status})`,

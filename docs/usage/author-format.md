@@ -24,7 +24,7 @@ A selected profile with unresolved discovery returns guidance, eligible evidence
 a discovery request identity, and a `DISCOVERY_REQUIRED` start blocker.
 `inspect --scope` validates an evidence-backed `repo-standards/scope/v2` proposal
 and presents concrete paths in the complete inspection. Initial adoption passes
-the same proposal to `start --scope` with that inspection’s confirmed identity.
+the same proposal to `start --scope`, bound to that inspection’s identity.
 Contextual assessment reviews coverage again after fixes and before
 submission. Empty scope retains the declaration and its operations. Source
 validation alone proves neither project-specific safety nor semantic coverage.
@@ -237,7 +237,7 @@ string lists; empty lists and empty string arguments are valid. NUL bytes
 cannot occur in strings. The prerequisite `version` is a nonempty npm SemVer
 range. `timeout-seconds` is a positive safe integer.
 
-Confirmed adoption invokes the executable directly with the retained script path
+Adoption invokes the executable directly with the retained script path
 followed by literal arguments, from the adopting-project root. No shell
 expansion is applied to arguments. Scripts are trusted code; resources describe
 retention and do not restrict host or network access. Fixes must be safe to

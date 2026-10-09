@@ -122,6 +122,11 @@ when it needs one. A fix invoked with
 `overwriteAllowed: true` must not return `confirmation-required`; that result is
 a protocol error. A check never returns it.
 
+A fix that returns `confirmation-required` must have made no change. When its
+observed interval changed any path, the result is a protocol error: the run
+stops with `PROTOCOL_ERROR`, naming the changed paths, and `resume --confirmed`
+does not accept it. Recover with `resume --retry`, or abandon the run.
+
 ## Ordering, integrity and incomplete work
 
 Declarations execute by ID; operations execute in their listed order. All fixes

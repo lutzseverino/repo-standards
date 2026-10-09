@@ -373,6 +373,41 @@ console.log(JSON.stringify({format:'repo-standards/result/v2',status:'confirmati
   assert.equal(f.report<Run>(["abandon", "--json"]).report.abandoned, true);
 });
 
+test("a fix that asks for confirmation after changing the project breaks the protocol and cannot be confirmed", async (t) => {
+  const f = await fixture(
+    t,
+    {
+      readme: {
+        kind: "file",
+        target: "README.md",
+        guidance: "guide.md",
+        fixes: [operation("title")],
+      },
+    },
+    `
+import { readFileSync, writeFileSync } from 'node:fs';
+readFileSync(0, 'utf8');
+writeFileSync('README.md', 'Standard project');
+console.log(JSON.stringify({format:'repo-standards/result/v2',status:'confirmation-required',message:'Overwrites the title'}));`,
+  );
+  const started = f.report<Run>(f.startArgs);
+  assert.equal(started.result.status, 1, started.result.stderr);
+  const stopped = started.report;
+  assert.equal(stopped.phase, "fixes");
+  assert.ok(stopped.reason.startsWith("PROTOCOL_ERROR:"), stopped.reason);
+  assert.ok(stopped.reason.includes("readme/title"), stopped.reason);
+  assert.ok(stopped.reason.includes("README.md"), stopped.reason);
+  assert.doesNotMatch(stopped.nextAction, /--confirmed/);
+  assert.equal(
+    readFileSync(join(f.project.root, "README.md"), "utf8"),
+    "Standard project",
+  );
+  const confirmed = f.report<ErrorReport>(["resume", "--confirmed", "--json"]);
+  assert.equal(confirmed.result.status, 1);
+  assert.equal(confirmed.report.errors[0]!.code, "CONFIRMATION_NOT_REQUIRED");
+  assert.equal(f.report<Run>(["abandon", "--json"]).report.abandoned, true);
+});
+
 test("surviving author processes block retry and abandonment after the CLI dies", async (t) => {
   const f = await fixture(
     t,

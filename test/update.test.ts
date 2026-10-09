@@ -1594,7 +1594,7 @@ test("an update failure preserves actual work and the previous last-complete evi
   );
 });
 
-test("a confirmed inspection of the unchanged selection starts a run that re-applies it from retained inputs", async (t) => {
+test("an inspection of the unchanged selection starts a run that re-applies it from retained inputs", async (t) => {
   const f = await adoptionFixture(
     t,
     cli,
@@ -1679,7 +1679,7 @@ test("a confirmed inspection of the unchanged selection starts a run that re-app
   assert.equal(git(project.root, "rev-parse", "HEAD"), head);
 });
 
-test("a coordinated update changes the CLI and standards pins in one confirmed run when the new standards version requires the candidate", async (t) => {
+test("a coordinated update changes the CLI and standards pins in one run when the new standards version requires the candidate", async (t) => {
   const declarations = `    instructions:
       kind: file
       target: AGENTS.md
@@ -2034,7 +2034,7 @@ test("whole-skill updates allow resources to change between files and directorie
   assert.equal(git(project.root, "rev-parse", "HEAD"), head);
 });
 
-// An adopted skill and a confirmed inspection of its update: a standards
+// An adopted skill and an inspection of its update: a standards
 // update that replaces the skill's resources, or a CLI update that replaces the
 // runtime and keeps the retained standards.
 async function pendingUpdate(

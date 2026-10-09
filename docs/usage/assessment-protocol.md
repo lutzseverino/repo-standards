@@ -3,7 +3,7 @@
 After exact installation and serial fixes, a profile with contextual file or
 repository guidance returns an incomplete `contextual` run with a
 `repo-standards/work-request/v3` object in `workRequest`. The CLI never runs a
-model. This handoff uses the already confirmed selection and preserves the run,
+model. This handoff uses the run's started selection and preserves the run,
 installed baselines, and post-fix project snapshot for subsequent commands.
 
 ## Work request
@@ -172,7 +172,7 @@ separately from operation outcomes and assessment submissions. State v7 holds
 the last complete run's interval, operation, retry, check and assessment
 evidence only; a completion does not carry the preceding run's evidence. A
 recorded out-of-scope interval remains an incomplete result; abandon and
-reconcile before a new confirmed adoption. The last complete state retains its
+reconcile before a new adoption. The last complete state retains its
 interval and retry history as historical evidence, without asserting ongoing
 compliance.
 
@@ -180,7 +180,7 @@ compliance.
 
 Active discovery uses the same `repo-standards/work-request/v3` and
 `repo-standards/assessment/v3` formats as explicit selections. The
-request adds `scope` with the confirmed `inspection` identity, `afterFixes`
+request adds `scope` with the run's `inspection` identity, `afterFixes`
 snapshot identity, and accepted `proposal`. Each discovered declaration also
 includes `discovery` guidance alongside its contextual `guidance` and concrete
 `allowedTargets`. Explicit contextual declarations do not have discovery fields.

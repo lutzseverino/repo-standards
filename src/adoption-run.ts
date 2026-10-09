@@ -396,6 +396,21 @@ export function confirmationStop(run: Run) {
     : undefined;
 }
 
+// A fix's request for the maintainer's confirmation to overwrite a setting,
+// as the run stops for it and as a resume without confirmation refuses it.
+export function fixConfirmationRequired(
+  fix: { declaration: string; id: string },
+  message: string,
+  nextAction?: string,
+  details?: unknown,
+) {
+  return new ProductError(
+    "CONFIRMATION_REQUIRED",
+    `Fix ${fix.declaration}/${fix.id} needs the maintainer's confirmation to overwrite a setting: ${message}${nextAction ? ` ${nextAction}` : ""}`,
+    details,
+  );
+}
+
 function confirmationNextAction(run: Run) {
   const stop = confirmationStop(run)!;
   return `Ask the maintainer to confirm the overwrite fix ${stop.operation.declaration}/${stop.operation.id} reports, then continue with resume --confirmed, which reruns that fix allowed to overwrite. Without confirmation, abandon the run to preserve its work and report.`;
@@ -509,7 +524,7 @@ export function abandon(project: string, cliVersion: string) {
     run.reason = `ABANDONED: ${run.reason}`;
     run.changes = actualChanges(root, run.affected);
     run.nextAction =
-      "Review the archived report with status and reconcile the preserved project changes through the normal workflow. A new adoption needs a fresh confirmed inspection.";
+      "Review the archived report with status and reconcile the preserved project changes through the normal workflow. A new adoption starts from a fresh inspection, bound to its identity.";
     const directory = join(dirname(lock), "repo-standards-reports");
     mkdirSync(directory, { recursive: true });
     const path = join(directory, `${run.id}.json`);
@@ -1110,7 +1125,7 @@ export class AdoptionRunSession {
     else if (!this.#mutated && !run.processGroup) {
       run.uncertain = [];
       run.nextAction =
-        "Resolve the reported problem, inspect again, and confirm the new inspection before retrying.";
+        "Resolve the reported problem, inspect again, and start with the new inspection's identity.";
     }
     if (error instanceof ProductError && error.code === "SCOPE_INCOMPLETE")
       run.nextAction =
@@ -1176,9 +1191,10 @@ export class AdoptionRunSession {
             "This run is not stopped for a fix's confirmation. Read status and resume without --confirmed.",
           );
         if (stop && !resume.confirmed && !resume.retry)
-          throw new ProductError(
-            "CONFIRMATION_REQUIRED",
-            `Fix ${stop.operation.declaration}/${stop.operation.id} needs the maintainer's confirmation to overwrite a setting: ${stop.message} ${confirmationNextAction(run)}`,
+          throw fixConfirmationRequired(
+            stop.operation,
+            stop.message,
+            confirmationNextAction(run),
             stop,
           );
         if (!resume.retry && !stop && !canResumeAssessment(run))
