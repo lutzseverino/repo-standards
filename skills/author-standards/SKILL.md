@@ -98,7 +98,7 @@ and whole author-skill directory. Preserve unrelated existing files; clarify a
 destination collision before
 overwriting it. Give the source a descriptive name and description and set
 `requires.repo-standards` to an open-ended minimum of the CLI version actually
-validated, such as `>=1.3.0`, never an upper bound or exact version. One
+validated, such as `>=6.0.0`, never an upper bound or exact version. One
 profile need not duplicate its inherited defaults.
 
 Maintain `authoring-notes.md` beside `standards.yaml`, outside the declarations.

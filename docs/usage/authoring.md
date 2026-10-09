@@ -53,7 +53,7 @@ Local validation and remote acquisition reject these links with
 or copy unrelated files and other profiles into retained inputs.
 
 Set `requires.repo-standards` to an open-ended minimum: the oldest CLI version
-you have tested, such as `>=1.3.0`, without an upper bound or exact version.
+you have tested, such as `>=6.0.0`, without an upper bound or exact version.
 The range gates only which CLI versions can select this standards version from
 its source. An adopter's later CLI update keeps their retained standards
 whenever the new CLI supports this source format, so an upper bound protects no
