@@ -3,7 +3,7 @@
 Every active declaration may own checks and repeat-safe fixes as described in
 [Author format](author-format.md#checks-and-fixes). Inspection displays their
 scripts, literal arguments, resources and prerequisites without executing them.
-Maintainer confirmation authorizes their execution. Scripts are trusted code
+The maintainer's request to adopt authorizes their execution. Scripts are trusted code
 with the invoking user's host, environment and network access. Declared
 resources control retention, not sandbox access.
 

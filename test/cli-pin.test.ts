@@ -147,7 +147,7 @@ test("status and outdated reject a CLI other than the pin, while inspect and sta
   );
   const started = f.candidate([
     "start",
-    "--confirm",
+    "--identity",
     inspection.identity,
     "--json",
   ]);
@@ -317,7 +317,7 @@ test("a CLI pin change interrupted before its runtime is installed sends the for
     kill,
   );
   const started = f.candidate(
-    ["start", "--confirm", inspection.identity, "--json"],
+    ["start", "--identity", inspection.identity, "--json"],
     env,
   );
   assert.equal(started.signal, "SIGKILL", started.stdout + started.stderr);

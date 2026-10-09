@@ -35,6 +35,7 @@ import {
   git,
   inspectionArgs,
   remoteFixture,
+  versionArgs,
 } from "./remote-fixture.ts";
 import { adoptionFixture } from "./adoption-fixture.ts";
 
@@ -162,8 +163,8 @@ test("inspect and start reject Git older than 2.32 before observing public or re
   for (const args of [
     inspectionArgs,
     ["inspect", "--json"],
-    ["start", ...inspectionArgs.slice(1), "--confirm", "sha256:unobserved"],
-    ["start", "--json", "--confirm", "sha256:unobserved"],
+    ["start", ...inspectionArgs.slice(1), "--identity", "sha256:unobserved"],
+    ["start", "--json", "--identity", "sha256:unobserved"],
   ]) {
     const result = cli.run(args, project.root, env);
     assert.equal(result.status, 1, result.stdout + result.stderr);
@@ -1121,6 +1122,114 @@ profiles:
     ".agents/skills/adopt-standards",
     ".agents/skills/review",
   ]);
+});
+
+// A confirmation-required change is one the run makes by discarding a
+// person's edits. Every other change, however large, needs no confirmation.
+test("inspection requires confirmation only when the run discards edits, with one reason per discarded edit", async (t) => {
+  const standards = (
+    version: string,
+    declarations: string,
+  ) => `format: repo-standards/v2
+name: test-standards
+description: Confirmation fixture ${version}
+requires: {repo-standards: ">=1.0.0"}
+defaults:
+  declarations:
+${declarations}
+profiles:
+  work:
+    description: Work
+    declarations: {}
+`;
+  const instructions = `    instructions:
+      kind: file
+      target: AGENTS.md
+      exact: agents.md`;
+  const review = `    review:
+      kind: skill
+      name: review
+      source: review`;
+  const files = { "agents.md": "Version one", "review/SKILL.md": "# Review" };
+  const none = { required: false, reasons: [] };
+  const discarded = (...targets: string[]) => ({
+    required: true,
+    reasons: targets.map((target) => ({ change: "discarded-edit", target })),
+  });
+  await t.test("a first adoption that discards nothing", async (st) => {
+    const f = await adoptionFixture(st, cli, standards("v1", instructions), {
+      files,
+      project: { "README.md": "Project" },
+    });
+    assert.deepEqual(f.inspect().confirmation, none);
+  });
+  await t.test(
+    "a first adoption that replaces existing content",
+    async (st) => {
+      const f = await adoptionFixture(
+        st,
+        cli,
+        standards("v1", `${instructions}\n${review}`),
+        {
+          files,
+          project: {
+            "AGENTS.md": "The maintainer's own instructions",
+            ".agents/skills/review/SKILL.md": "# The maintainer's review",
+          },
+        },
+      );
+      const inspection = f.inspect();
+      assert.deepEqual(inspection.discardedEdits, [
+        "AGENTS.md",
+        ".agents/skills/review",
+      ]);
+      assert.deepEqual(
+        inspection.confirmation,
+        discarded("AGENTS.md", ".agents/skills/review"),
+      );
+    },
+  );
+  await t.test(
+    "an update that replaces an edited installed file",
+    async (st) => {
+      const f = await adoptionFixture(st, cli, standards("v1", instructions), {
+        files,
+      });
+      f.adopt();
+      writeFileSync(join(f.root, "AGENTS.md"), "Maintainer edit");
+      commit(f.root);
+      f.remote.addVersion("v1.1.0", standards("v1.1", instructions), {
+        "agents.md": "Version two",
+      });
+      assert.deepEqual(
+        f.inspect(versionArgs("v1.1.0")).confirmation,
+        discarded("AGENTS.md"),
+      );
+    },
+  );
+  await t.test(
+    "a breaking update that changes, retires and removes unedited installed content",
+    async (st) => {
+      const f = await adoptionFixture(
+        st,
+        cli,
+        standards("v1", `${instructions}\n${review}`),
+        { files },
+      );
+      f.adopt();
+      f.remote.addVersion("v2.0.0", standards("v2", instructions), {
+        "agents.md": "Version two",
+      });
+      const inspection = f.inspect(versionArgs("v2.0.0"));
+      assert.deepEqual(inspection.update, ["standards"]);
+      assert.deepEqual(
+        inspection.removed!.map(({ target }) => target),
+        [".agents/skills/review", ".claude/skills/review"],
+      );
+      assert.equal(inspection.exact[0]!.action, "replace");
+      assert.deepEqual(inspection.confirmation, none);
+    },
+  );
 });
 
 test("inspection without npm on PATH fails with setup instructions before any other work", (t) => {

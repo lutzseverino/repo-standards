@@ -97,6 +97,12 @@ A content-derived identity that binds an inspection to its exact standards
 selection and relevant adopting-project state.
 _Avoid_: Approval token, mutable plan file
 
+**Confirmation-required change**:
+A change an inspection or fix reports that discards a person's work or
+overwrites a setting someone chose; the only reason an adoption waits for the
+maintainer.
+_Avoid_: Critical change, risky change
+
 **Scope proposal**:
 An agent's evidence-backed identification of the project paths to which
 contextual guidance applies, reviewed before authorizing that scope.
@@ -108,8 +114,8 @@ including exact installation, contextual work, declared fixes, and checks.
 _Avoid_: File copying, installation
 
 **Adoption run**:
-One recorded execution of adoption from a confirmed inspection through a
-complete or incomplete result.
+One recorded execution of adoption from an inspection through a complete or
+incomplete result.
 _Avoid_: Transaction, deployment
 
 **Agent assessment**:

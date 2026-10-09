@@ -1,7 +1,7 @@
 # Bootstrap and public inspection
 
 See [public installation](installation.md) for npm and standalone-bootstrap
-acquisition and [adoption](adoption.md) for confirmed adoption, runtime pins and
+acquisition and [adoption](adoption.md) for adoption, runtime pins and
 retained inspection. Public release status is recorded in the product repository.
 
 ## Obtain the CLI outside the adopting project
@@ -67,7 +67,7 @@ mkdir -p "$adoption_cli"
 "$adoption_cli/node_modules/.bin/repo-standards" --version
 ```
 
-Use that executable from the project root for inspection and confirmed start.
+Use that executable from the project root for inspection and start.
 Before initial adoption, an agent uses the packaged skill at
 `$adoption_cli/node_modules/@lutzseverino/repo-standards/skills/adopt-standards/`.
 After installation, it uses the matching repository-local `adopt-standards` skill.
@@ -166,6 +166,7 @@ described [below](#discover-contextual-file-scope):
 | `retiredState`       | For a fresh adoption over [retired](adoption.md#adopt-fresh-from-a-retired-format) committed product state, the `target` `.repo-standards`, which the run removes whole; its retired `records`, each by `path`, retired `format`, and the `expected` format this CLI reads; and the project path of each of its `files`, sorted, without its ignored generated directories.                                        |
 | `kept`               | For an update, each edited installed target the selection no longer installs and the run keeps, including the link of a kept skill, by `id` of the declaration that installed it and `target`, sorted by path. The project owns it from then on.                                                                                                                                                                   |
 | `discardedEdits`     | Each target whose replacement or removal discards content that is not its installed baseline, in the order of the target blockers. At initial adoption there is no baseline, so every replaced existing target is listed.                                                                                                                                                                                          |
+| `confirmation`       | Whether `start` needs the maintainer's confirmation. `required` is true exactly when `discardedEdits` is not empty, and `reasons` has one `{ "change": "discarded-edit", "target": <path> }` entry per discarded edit, in the same order. See [confirmation](#confirmation).                                                                                                                                       |
 | `guidance`           | Guidance by source-relative `source` path, SHA-256 and executable state, with its explicit project paths or directory trees.                                                                                                                                                                                                                                                                                       |
 | `operations`         | Ordered fixes and checks, literal arguments, the script by path and hash, resource hash inventories, timeout, and declared prerequisite probe/range.                                                                                                                                                                                                                                                               |
 | `project`            | Hash inventories of the affected targets, of each system skill target in `systemSkills` by path, of each installed skill's link in `skillLinks` by path, and of the durable product state. The project root, Git HEAD, index, and status are not reported.                                                                                                                                                         |
@@ -195,7 +196,7 @@ blockers stand. An installed target within contextual scope, as a contextual tar
 inside or containing one, is not removed and stays in place as project content.
 Nor is one at or inside a target the selection still installs, whose own action
 covers it. One that contains such a target is removed, even when edited, and
-the run then installs the contained target. Initial adoption omits these fields. Any update can be confirmed and
+the run then installs the contained target. Initial adoption omits these fields. Any update can be
 started; an unchanged selection is applied again. A complete discovery-backed
 update also includes `scopeChanges`, listing individual additions and removals
 by declaration relative to the prior complete adoption. Removed contextual
@@ -238,7 +239,7 @@ or deleting an empty file, which the before and after states express. Read refer
 discovery guidance, scripts, and resources at their source-relative paths in
 the standards source at `selection.standards.commit`; adoption retains the same
 bytes at `.repo-standards/inputs/source/<path>`. Start acquires the source again
-and verifies its bytes against the hashes the confirmed identity binds, so a
+and verifies its bytes against the hashes the identity binds, so a
 report needs no bytes to remain safe.
 Whole-skill inventories include existing and supplied files.
 Matching exact files and skill directories are matched without rewriting during
@@ -259,16 +260,47 @@ and, when discovery is active, the discovery observation and confirmed scope.
 The project root, Git HEAD, the index, and Git status are not bound, except
 through the start blockers Git state produces, such as a dirty tree. The same
 content inspected from two clones with the same file executable bits has
-one identity, so an inspection made in a throwaway clone confirms a start in
+one identity, so an inspection made in a throwaway clone starts a run in
 the maintainer's checkout. A commit that
-touches nothing the run reads leaves the identity unchanged, so a confirmation
+touches nothing the run reads leaves the identity unchanged, so an inspection
 survives unrelated work between inspection and start; a change to an affected
 file's bytes or executable bit, a retained input, or the product-state inventory changes
 it. The discovery observation spans the tracked and non-ignored tree, so for a
 discovery-backed selection most commits change the identity. Start still
 requires a clean committed tree, and the run records the project root and HEAD
 at start for provenance. Repeated unchanged inspection has the same identity.
-`start --confirm` checks this identity after explicit maintainer confirmation.
+`start --identity <identity>` checks this identity on every start, before it
+checks [confirmation](#confirmation), and fails with `STALE_INSPECTION` when
+the project or selection no longer produces it.
+
+### Confirmation
+
+A run waits for the maintainer only when it makes a confirmation-required
+change: one that discards a person's work or overwrites a setting someone
+chose. Asking to adopt or update a selection is otherwise the consent.
+Inspection finds the discarded edits deterministically, from the same
+observation as `discardedEdits`, without running source code. `confirmation`
+is required for every discarded edit, including at an initial adoption, where
+every replaced existing target is one. Nothing else requires it: a breaking
+source change, a contextual update, a scope proposal, removing retired product
+state, and removing unedited installed content in `removed` all leave
+`confirmation.required` false.
+
+```json
+"confirmation": {
+  "required": true,
+  "reasons": [{ "change": "discarded-edit", "target": "AGENTS.md" }]
+}
+```
+
+When `required` is false, `start --identity <identity>` proceeds with the
+identity alone, and adding `--confirmed` fails with
+`CONFIRMATION_NOT_REQUIRED`. When it is true, `start` without `--confirmed`
+fails with `CONFIRMATION_REQUIRED`, naming each reason in its message and
+listing them in its `details`, and changes nothing; after the maintainer
+confirms, `start --identity <identity> --confirmed` proceeds. The report binds
+`confirmation` into its identity, so a start's confirmation always refers to
+the inspection it names.
 
 Known blockers include missing commits, dirty Git state, symlink or non-directory
 ancestors, special files, case-folded existing-path conflicts, file/directory type
@@ -285,12 +317,12 @@ replaced, because Git can recover it, and a replaced skill directory is
 replaced whole. Content that is ignored or untracked, including an empty
 directory, blocks with `UNTRACKED_REPLACEMENT`. `discardedEdits` lists each
 replacement that discards content other than the target's installed baseline,
-so confirming the inspection confirms each such overwrite. Existing product
+and each one requires [confirmation](#confirmation). Existing product
 state blocks initial adoption with `EXISTING_ADOPTION`, unless it is retired,
 when the run removes it; see
 [adopting afresh over installed content](adoption.md#adopt-afresh-over-installed-content).
 Established projects can use `inspect --json` with their pinned CLI to inspect
-the unchanged selection from retained material. Confirming that inspection
+the unchanged selection from retained material. Starting that inspection
 starts a run that applies the selection again. It requires a complete prior
 adoption and a clean committed project, and reuses retained source material
 when the original source is unavailable. The resolver
@@ -501,31 +533,31 @@ entries/file observations, 128 directory levels, 8 MiB per file, 64 MiB of file
 reads, and 30 seconds of traversal. Proposals are limited to 2 MiB. There is no
 continuous monitoring or atomic filesystem snapshot guarantee. A proposal is
 judged against the observation it is inspected with. When a change after
-confirmation alters the [inspection identity](#report-and-inspection-identity),
-start rejects the confirmed identity, and only a new inspection with its own
-confirmation can start.
+inspection alters the [inspection identity](#report-and-inspection-identity),
+start rejects the stale identity, and only a new inspection can start.
 
-For initial adoption, one confirmation covers this complete inspection, and
-start takes the same external proposal file and identity:
+For initial adoption, start takes the same external proposal file and the
+complete inspection's identity, with `--confirmed` only when its
+[confirmation](#confirmation) is required:
 
 ```sh
 repo-standards start --source https://github.com/OWNER/STANDARDS \
   --standards-version v1.2.3 --profile work --scope /tmp/scope.json \
-  --confirm 'sha256:INSPECTION_HASH' --json
+  --identity 'sha256:INSPECTION_HASH' --json
 ```
 
 Start reconstructs the inspection before prerequisites and again before
 installation. Missing, invalid, unresolved, or stale scope cannot authorize
 mutation. Initial clean committed-project and prerequisite rules still apply.
-There is no separate mandatory scope confirmation. Explicit-target selections
+A scope proposal needs no confirmation of its own. Explicit-target selections
 produce the same report format without `discovery`; execution uses the
 [observed-scope contract](script-protocol.md#observed-adoption-scope).
 Every update, including an unchanged selection, repeats this fresh discovery
 pass for every active discovery declaration: pass `--scope <file>` to the
-update commands described above and to the matching confirmed start. The
+update commands described above and to the matching start. The
 selection, product-state inventory, and project observation are bound into the
 request and final inspection identities, so neither a retained historical
-proposal nor an earlier confirmation authorizes the new run.
+proposal nor an earlier inspection authorizes the new run.
 
 After ordinary discovery completion, retained `inspect --json` remains
 `repo-standards/inspection/v6` and exposes `historicalScope` as

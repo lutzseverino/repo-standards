@@ -375,12 +375,12 @@ test("newer record formats require the pinned CLI without fresh-adoption advice 
     // A newer format never takes the fresh-adoption path, with or without source flags.
     for (const command of [
       ["inspect"],
-      ["start", "--confirm", "sha256:unreadable"],
+      ["start", "--identity", "sha256:unreadable"],
       inspectionArgs.slice(0, -1),
       [
         "start",
         ...inspectionArgs.slice(1, -1),
-        "--confirm",
+        "--identity",
         "sha256:unreadable",
       ],
       ["status"],
@@ -642,7 +642,7 @@ test("tampered retained declarations, inputs and scope history fail every reader
       for (const args of [
         ["inspect", "--json"],
         versionArgs,
-        ["start", "--confirm", "sha256:unconfirmed", "--json"],
+        ["start", "--identity", "sha256:unconfirmed", "--json"],
         startArgs("sha256:unconfirmed", versionArgs),
         ["status", "--json"],
       ]) {
@@ -673,7 +673,7 @@ test("tampered retained declarations, inputs and scope history fail every reader
             "start",
             "--scope",
             f.scopeFile,
-            "--confirm",
+            "--identity",
             confirmed.identity,
             "--json",
           ],
@@ -720,7 +720,7 @@ test("tampered retained declarations, inputs and scope history fail every reader
           "start",
           "--scope",
           f.scopeFile,
-          "--confirm",
+          "--identity",
           confirmed.identity,
           "--json",
         ],
@@ -817,10 +817,18 @@ test("a project on a retired format inspects a fresh adoption that removes its p
   assert.ok(existsSync(join(root, ".repo-standards/runtime/node_modules")));
   assert.ok(existsSync(join(root, ".repo-standards/local")));
   // A fresh adoption has no baseline: the earlier system skill is replaced and
-  // listed, and the matching author content is kept as is.
+  // listed, and the matching author content is kept as is. Removing the
+  // retired product state is not a confirmation-required change; only that
+  // discarded edit is.
   assert.deepEqual(inspection.discardedEdits, [
     ".agents/skills/adopt-standards",
   ]);
+  assert.deepEqual(inspection.confirmation, {
+    required: true,
+    reasons: [
+      { change: "discarded-edit", target: ".agents/skills/adopt-standards" },
+    ],
+  });
   assert.deepEqual(
     inspection.exact.map(({ id, action, link }) => [id, action, link?.action]),
     [
@@ -863,7 +871,9 @@ test("a project on a retired format inspects a fresh adoption that removes its p
 
   const head = git(root, "rev-parse", "HEAD");
   const index = git(root, "ls-files", "--stage");
-  const started = f.run<Run>(startArgs(inspection.identity));
+  const started = f.run<Run>(
+    startArgs(inspection.identity, inspectionArgs, true),
+  );
   assert.equal(
     started.result.status,
     0,
@@ -1024,7 +1034,10 @@ test("a fresh adoption interrupted while removing retired product state reports 
     "installation",
     killDuringRemoval("/.repo-standards", "/selection.yaml"),
   );
-  assert.equal(f.raw(startArgs(inspection.identity), env).signal, "SIGKILL");
+  assert.equal(
+    f.raw(startArgs(inspection.identity, inspectionArgs, true), env).signal,
+    "SIGKILL",
+  );
   const runRecord = JSON.parse(
     readFileSync(
       join(
@@ -1088,7 +1101,10 @@ test("a fresh adoption stopped before removing retired product state blocks chec
     "installation",
     killDuringRemoval("/.repo-standards"),
   );
-  assert.equal(f.raw(startArgs(inspection.identity), env).signal, "SIGKILL");
+  assert.equal(
+    f.raw(startArgs(inspection.identity, inspectionArgs, true), env).signal,
+    "SIGKILL",
+  );
   assert.equal(committedState(root).format, "repo-standards/state/v6");
   const checked = f.run<ErrorReport>(["check", "--json"]);
   assert.equal(checked.result.status, 1, checked.result.stdout);
@@ -1185,7 +1201,10 @@ test("retired product state changed while its removal is recorded fails the star
   };
   syncBuiltinESMExports();`,
   );
-  const started = f.run<Run>(startArgs(inspection.identity), env);
+  const started = f.run<Run>(
+    startArgs(inspection.identity, inspectionArgs, true),
+    env,
+  );
   assert.equal(
     started.result.status,
     1,

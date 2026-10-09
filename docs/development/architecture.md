@@ -23,7 +23,7 @@ The product supports both journeys:
 2. An adopting project inspects one complete profile, adopts it, commits the
    resulting material through its own workflow, and later deliberately updates
    its selection, in any combination of its pins, source, and profile, through
-   one confirmed run.
+   one run, confirmed by the maintainer only for a confirmation-required change.
 
 The maintainer's own standards are published separately as Repo Canon; the
 product remains neutral for independently authored standards.
@@ -58,7 +58,7 @@ standards format.
 | Available updates        | A selection and the newest published stable CLI and standards versions produce per-pin availability, cached in the ignored product cache. It never blocks and writes nothing else; it fails only under a CLI other than the selection's CLI pin, before any lookup.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Summary renderer         | An inspection report or a status record produces one deterministic Markdown document. It describes and never prescribes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | Update notice            | The `standards-updates` system skill runs `outdated` with the project runtime, reinstalling the pinned runtime once when it is missing or reports `CLI_PIN_MISMATCH`, and reports each available update to the agent. It starts no update: one starts only on the maintainer's instruction, through adoption orchestration, as a change separate from the current work.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Adoption orchestration   | The `adopt-standards` system skill presents inspection and its summary, obtains confirmation, performs requested contextual work, and submits evidence through the CLI.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Adoption orchestration   | The `adopt-standards` system skill presents inspection and its summary, obtains confirmation only when the inspection requires it, performs requested contextual work, and submits evidence through the CLI.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 These responsibilities do not mandate separate packages or class hierarchies.
 They share the resolver's result. Other modules do not independently interpret
@@ -263,7 +263,7 @@ are recorded independently of the exact CLI package pin.
 | `source validate` | Validates a local source and all its profiles without running author code.                                                                                                                                                                        |
 | `source search`   | Finds public GitHub candidates and metadata.                                                                                                                                                                                                      |
 | `inspect`         | Describes the exact selection, the update comparison and class, proposed changes, guidance, operations, prerequisites, and conflicts without modifying the project or running author code. `--summary` renders the report as a Markdown proposal. |
-| `start`           | Validates the confirmed inspection and advances adoption until completion, a problem, or required contextual work.                                                                                                                                |
+| `start`           | Validates the inspection identity and its confirmation and advances adoption until completion, a problem, or required contextual work.                                                                                                            |
 | `resume`          | Continues the existing run, including accepting `--assessment <file>` and explicitly retrying interrupted work.                                                                                                                                   |
 | `status`          | Reports current pins, progress, and historical evidence without any network request or implying continuing compliance. `--summary` renders the last complete or active run as a Markdown record.                                                  |
 | `abandon`         | Ends an incomplete run while retaining its changes and report.                                                                                                                                                                                    |
@@ -351,16 +351,32 @@ adoption will execute. Its identity binds what the run reads: the selection,
 resolved materials, affected bytes and modes, the product-state inventory, and,
 when discovery is active, the discovery observation. It does not bind Git HEAD,
 the index, status, or the project root, so an inspection made in any checkout of
-the same content confirms a start in another
+the same content starts a run in another
 ([ADR 0012](../adr/0012-bind-content-not-location.md)). Reports carry hash
 inventories and diffs, not file bytes.
-The `adopt-standards` skill obtains explicit confirmation of that inspection;
-start rejects stale state before mutation.
+
+Asking to adopt or update is the maintainer's consent; an adoption waits for
+the maintainer only for a confirmation-required change
+([ADR 0017](../adr/0017-confirm-only-confirmation-required-changes.md)).
+Inspection reports the ones it can see in its deterministic `confirmation`
+result, computed without running source code: `required` exactly when
+`discardedEdits` is not empty, with one `discarded-edit` reason per target, at
+an initial adoption as at an update. Breaking source changes, scope proposals,
+retired product state, and removing unedited installed content add none. The
+report binds the result into its identity. `start --identity <identity>` binds
+every run to the inspection identity and rejects stale state before mutation,
+before it checks confirmation. Its `--confirmed` flag is required when the
+inspection requires confirmation, failing with `CONFIRMATION_REQUIRED`
+otherwise, and accepted only then, failing with `CONFIRMATION_NOT_REQUIRED`
+when it does not. A retry of a start interrupted before its installation was
+prepared repeats the identity check only: the run's start already carried the
+confirmation that identity requires. The `adopt-standards` skill asks the
+maintainer only when the report requires confirmation.
 
 For an established adoption, inspection is an update. It reports every changed
 selection component, in the order CLI, standards, source, and profile, together
 with the previous selection and the declarations that retire. Any combination,
-including none, is one update that can be confirmed and started; a confirmed
+including none, is one update that can be started; an
 inspection of the unchanged selection starts a run that applies it again. The
 update class is exact only when every declaration's guidance, discovery
 guidance, and operations, including their scripts, arguments, resources, and
@@ -395,13 +411,14 @@ Target ownership is one rule for every installation target, including author
 skills, the system skills, and skill links, in every run. An existing exact
 file or skill directory whose complete inventory, bytes, and modes match the
 supplied content is matched without rewriting, and so is a skill link with the
-same text. Tracked content that differs is replaced, as shown in the confirmed
+same text. Tracked content that differs is replaced, as shown in the
 inspection, because Git can recover it; a replaced skill directory is replaced
 whole, and so is whatever a skill link replaces. Ignored or otherwise untracked replacement
 content, including an empty directory, blocks mutation. The inspection lists
 each replacement that discards content other than the target's installed
 baseline; at initial adoption there is no baseline, so every replacement of
-existing content is listed. Existing product state blocks initial adoption,
+existing content is listed, and each listed one requires confirmation.
+Existing product state blocks initial adoption,
 unless its committed records use a retired format, when the run removes it.
 [ADR 0010](../adr/0010-replace-tracked-content-block-only-untracked.md) records
 the decision.
@@ -461,7 +478,7 @@ and [assessment](../usage/assessment-protocol.md#observation-and-replay) protoco
 
 ## Adoption sequence and agent interface
 
-1. Verify confirmation freshness and all prerequisites.
+1. Verify inspection freshness, the required confirmation, and all prerequisites.
 2. Install exact content, runtime state, pinned system skills, and skill links.
 3. Run declared fixes serially.
 4. Return a contextual work request if required.
@@ -636,10 +653,10 @@ reported as complete. The status summary remains unchanged.
 
 ## Updates, interruption, and retirement
 
-An update moves an adopting project from its current selection to a confirmed
-selection in one inspected and confirmed run. It can change the CLI pin, the
+An update moves an adopting project from its current selection to a candidate
+selection in one inspected run. It can change the CLI pin, the
 standards version, the source, the profile, any combination of them, or none;
-each follows the same inspection, confirmation, and start. The candidate exact
+each follows the same inspection and start, with confirmation only when required. The candidate exact
 CLI inspects and starts a changed CLI pin; source flags select a standards
 version, source, or profile; omitting them keeps the retained standards.
 Existing retained inputs support inspection and use of the current selection if
@@ -718,7 +735,7 @@ The product is complete only when all of these pass:
 2. Publish a public source with a stable version and discover it by topic.
    Adopt it directly without depending on discovery.
 3. Run inspection without project mutation or author-script execution.
-4. Reject stale confirmation, invalid Git state, unsafe targets, ignored
+4. Reject a stale inspection, a missing or unneeded confirmation, invalid Git state, unsafe targets, ignored
    replacement content, and missing prerequisites before project mutation.
 5. Adopt Alice's work profile: install the correct exact content and skill,
    with a skill link for every installed skill, improve Bob's real README, and
@@ -957,3 +974,15 @@ update class.
   entries without modes), `status/v7` (`scopeProposal`), and `inspection/v6`
   (`systemSkills`, skill links, `kept`, and `retiredState`)
   ([ADR 0007](../adr/0007-write-and-read-one-evidence-format.md)).
+
+## Removed in 6.0.0
+
+These mechanisms are removed, not deprecated
+([ADR 0017](../adr/0017-confirm-only-confirmation-required-changes.md)).
+
+- `start --confirm <identity>`. `start --identity <identity>` binds every run
+  to its inspection, and `--confirmed` is passed only when the inspection
+  requires confirmation. `--confirm` is a usage error.
+- Confirming every inspection. A start without a confirmation-required change
+  proceeds with the identity alone; the `adopt-standards` skill asks the
+  maintainer only when the report requires it.

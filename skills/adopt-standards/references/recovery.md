@@ -41,7 +41,7 @@ overwriting. Never remove durable run records to get past a recovery check.
 Obtain an explicit abandonment instruction before `abandon --json`. Abandonment
 keeps the project content and archives the run's report. Afterwards, help the
 maintainer reconcile the preserved changes through the project's normal
-workflow. A new adoption needs a clean committed project and a fresh confirmed
+workflow. A new adoption needs a clean committed project and a fresh
 inspection.
 
 ## Correct a confirmed scope
@@ -58,8 +58,9 @@ stays incomplete with `SCOPE_INCOMPLETE`. Then adopt again:
    restoring `.repo-standards/`, exact content, and skills to their committed
    state: the new run installs them again, and an abandoned run's product state
    is not a complete adoption.
-4. Build a new [scope proposal](discovery.md), inspect with it, obtain explicit
-   confirmation of the new inspection, and start it with the same proposal.
+4. Build a new [scope proposal](discovery.md), inspect with it, and start the
+   new inspection with the same proposal, confirmed only when its report
+   requires confirmation.
 
 ## Adopt fresh from a retired format
 
@@ -81,5 +82,6 @@ Nothing is converted, and nothing needs removing or committing first.
    unlisted ignored `local/` content, such as an earlier abandoned run's
    `incomplete-state.json`, which the maintainer may want to copy first.
    Content that the earlier adoption installed and the selection no longer
-   declares stays as project content. Confirming the inspection confirms the removal,
-   which `start` leaves uncommitted with the run's other changes.
+   declares stays as project content. Removing the retired state is not a
+   confirmation-required change; `start` leaves the removal uncommitted with
+   the run's other changes.

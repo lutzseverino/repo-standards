@@ -12,3 +12,8 @@ cost of requiring reviewed agent judgment before adoption.
 Decision confirmed in the contextual-scope interview and final simplicity review.
 Planning destination filenames before confirmation avoids adding a protected
 directory language while retaining location-independent coverage.
+
+[ADR 0017](0017-confirm-only-confirmation-required-changes.md) amends this
+decision: adopters no longer confirm a scope proposal. A proposal is reviewed
+with the inspection, and the run waits for the maintainer only for a
+confirmation-required change.

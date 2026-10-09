@@ -87,7 +87,7 @@ export function retiredFormat(
   const path =
     expected === formats.run
       ? "Move this archived run report out of Git's directory, keeping it if its evidence matters, and run the command again."
-      : "Adopt fresh: inspect with --source, --standards-version and --profile, and confirm that inspection; its start removes the retired .repo-standards directory.";
+      : "Adopt fresh: inspect with --source, --standards-version and --profile, and start that inspection, which removes the retired .repo-standards directory.";
   return new ProductError(
     "RETIRED_FORMAT",
     `${where} carries the retired format ${found(value)}; this CLI reads only ${expected}. ${path}`,

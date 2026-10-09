@@ -25,7 +25,8 @@ node acceptance/prepare-public.ts "$PUBLISHED_CLI_VERSION" fixture:wayfinder v1.
 
 These sessions use public npm but substitute source acquisition with real Git
 objects. Keep live public bootstrap/search evidence separate. Fresh agents must
-author proposals from each inspection's eligible evidence, obtain confirmation,
+author proposals from each inspection's eligible evidence, obtain confirmation
+when the inspection requires it,
 perform and assess useful work, and retain every proposal/report outside the
 project. The Atlas journey includes interrupted recovery, followed by a normal
 project commit, fresh checkout, a source-unavailable update that applies the
@@ -138,7 +139,7 @@ into a public-source session.
 
 Save the full report outside the adopting project, disclose the pins, exact
 content, contextual scope and trusted operations, and obtain maintainer
-confirmation of its identity. Follow the skill to start that same selection.
+confirmation when its report requires it. Follow the skill to start that same selection.
 After installation, read the matching project-local skill and its assessment
 reference, then use `--local` before the public CLI arguments:
 

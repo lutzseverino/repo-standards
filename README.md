@@ -23,8 +23,8 @@ authoring skill, and fresh-checkout restoration.
 
 - Validate independently authored standards and complete profiles.
 - Inspect published GitHub versions, exact replacements, and contextual scope.
-- Adopt through confirmed operations and agent assessments, retaining evidence.
-- Update any pin, the source, or the profile in one confirmed run.
+- Adopt through disclosed operations and agent assessments, retaining evidence.
+- Update any pin, the source, or the profile in one run, confirmed only when it discards edits.
 - Report available updates and render inspections and runs as Markdown summaries.
 - Run the adopted checks on demand against the working tree.
 - Discover sources by topic without automatically selecting or adopting them.
@@ -38,7 +38,7 @@ repo-standards source validate /path/to/standards-repository --json
 ```
 
 Authors publish complete profiles in separate standards repositories. Adopting
-projects select one profile and inspect it before confirming exact installation,
+projects select one profile and inspect it before starting exact installation,
 contextual work, and trusted checks and fixes. Read [authoring](docs/usage/authoring.md)
 and [adoption](docs/usage/adoption.md) for these distinct workflows, the
 [author format](docs/usage/author-format.md) for the source format, and the

@@ -64,20 +64,73 @@ const skillSource = yaml.replace(
   "kind: skill\n      name: review\n      source: skill",
 );
 
-test("start requires explicit confirmation of an inspection before any project mutation", async (t) => {
+test("start binds to an inspection identity, and the retired --confirm form is a usage error, before any project mutation", async (t) => {
+  const f = await adoptionFixture(t, cli, yaml, {
+    files: { "content.md": "Expected" },
+    project: { "README.md": "Project" },
+  });
+  const { identity } = f.inspect();
+  const before = snapshot(f.root);
+  for (const args of [
+    ["start", ...inspectionArgs.slice(1)],
+    ["start", ...inspectionArgs.slice(1), "--confirmed"],
+    ["start", ...inspectionArgs.slice(1), "--confirm", identity],
+  ]) {
+    const result = f.run(args);
+    assert.equal(result.status, 2, result.stdout + result.stderr);
+    const error = (JSON.parse(result.stdout) as ErrorReport).errors[0]!;
+    assert.equal(error.code, "USAGE");
+    if (!args.includes("--confirm")) assert.match(error.message, /--identity/);
+    assert.deepEqual(snapshot(f.root), before);
+  }
+});
+
+test("start proceeds with the identity alone when the inspection requires no confirmation, and rejects a confirmation it does not need", async (t) => {
+  const f = await adoptionFixture(t, cli, yaml, {
+    files: { "content.md": "Expected" },
+    project: { "README.md": "Project" },
+  });
+  const inspection = f.inspect();
+  assert.equal(inspection.confirmation.required, false);
+  const before = snapshot(f.root);
+  const unneeded = f.run(startArgs(inspection.identity, inspectionArgs, true));
+  assert.equal(unneeded.status, 1, unneeded.stdout + unneeded.stderr);
+  assert.equal(
+    (JSON.parse(unneeded.stdout) as ErrorReport).errors[0]!.code,
+    "CONFIRMATION_NOT_REQUIRED",
+  );
+  assert.deepEqual(snapshot(f.root), before);
+  const started = f.run(startArgs(inspection.identity));
+  assert.equal(started.status, 0, started.stdout + started.stderr);
+  const run = JSON.parse(started.stdout) as Run;
+  assert.equal(run.outcome, "complete");
+  assert.equal(run.inspection, inspection.identity);
+  assert.equal(readFileSync(join(f.root, "AGENTS.md"), "utf8"), "Expected");
+});
+
+test("start refuses without confirmation when the inspection requires it, naming each reason, and proceeds with it", async (t) => {
   const f = await adoptionFixture(t, cli, yaml, {
     files: { "content.md": "Expected" },
     project: { "AGENTS.md": "Existing" },
   });
+  const inspection = f.inspect();
+  assert.equal(inspection.confirmation.required, true);
   const before = snapshot(f.root);
-  const result = f.run(["start", ...inspectionArgs.slice(1)]);
-  assert.equal(result.status, 1, result.stdout + result.stderr);
-  assert.equal(
-    (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,
-    "CONFIRMATION_REQUIRED",
-  );
+  const refused = f.run(startArgs(inspection.identity));
+  assert.equal(refused.status, 1, refused.stdout + refused.stderr);
+  const error = (JSON.parse(refused.stdout) as ErrorReport).errors[0]!;
+  assert.equal(error.code, "CONFIRMATION_REQUIRED");
+  assert.match(error.message, /AGENTS\.md/);
+  assert.match(error.message, /--confirmed/);
+  assert.deepEqual(error.details, [
+    { change: "discarded-edit", target: "AGENTS.md" },
+  ]);
   assert.deepEqual(snapshot(f.root), before);
   assert.equal(readFileSync(join(f.root, "AGENTS.md"), "utf8"), "Existing");
+  const started = f.run(startArgs(inspection.identity, inspectionArgs, true));
+  assert.equal(started.status, 0, started.stdout + started.stderr);
+  assert.equal((JSON.parse(started.stdout) as Run).outcome, "complete");
+  assert.equal(readFileSync(join(f.root, "AGENTS.md"), "utf8"), "Expected");
 });
 
 test("a fresh checkout restores the exact runtime and inspects retained standards after the source disappears", async (t) => {
@@ -813,9 +866,12 @@ test("initial adoption replaces differing tracked files, author skills, and the 
       assert.deepEqual(inspection.start.blockers, []);
       assert.equal(inspection.start.eligible, true);
       assert.deepEqual(inspection.discardedEdits, example.discarded);
+      assert.equal(inspection.confirmation.required, true);
       if (example.action)
         assert.equal(inspection.exact[0]!.action, example.action);
-      const result = f.run(startArgs(inspection.identity));
+      const result = f.run(
+        startArgs(inspection.identity, inspectionArgs, true),
+      );
       assert.equal(result.status, 0, result.stdout + result.stderr);
       assert.equal((JSON.parse(result.stdout) as Run).outcome, "complete");
       // Each replaced target now holds exactly its candidate: bytes, modes, and inventory.
@@ -972,7 +1028,9 @@ test("skill links follow target ownership and leave the project its own skills",
         ".claude/skills/adopt-standards",
         link,
       ]);
-      const result = f.run(startArgs(inspection.identity));
+      const result = f.run(
+        startArgs(inspection.identity, inspectionArgs, true),
+      );
       assert.equal(result.status, 0, result.stdout + result.stderr);
       assert.equal((JSON.parse(result.stdout) as Run).outcome, "complete");
       for (const name of ["adopt-standards", "review", "standards-updates"])
@@ -1054,18 +1112,22 @@ test("start rejects stale identities, project content and profile selection", as
         change === "profile"
           ? inspectionArgs.map((arg) => (arg === "work" ? "other" : arg))
           : inspectionArgs;
-      const result = f.run(
-        startArgs(
-          change === "identity" ? "sha256:wrong" : inspection.identity,
-          args,
-        ),
-      );
-      assert.equal(result.status, 1, result.stdout + result.stderr);
-      assert.equal(
-        (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,
-        "STALE_INSPECTION",
-      );
-      assert.deepEqual(snapshot(project.root), before);
+      // The identity binds the start whether or not it is confirmed.
+      for (const confirmed of [false, true]) {
+        const result = f.run(
+          startArgs(
+            change === "identity" ? "sha256:wrong" : inspection.identity,
+            args,
+            confirmed,
+          ),
+        );
+        assert.equal(result.status, 1, result.stdout + result.stderr);
+        assert.equal(
+          (JSON.parse(result.stdout) as ErrorReport).errors[0]!.code,
+          "STALE_INSPECTION",
+        );
+        assert.deepEqual(snapshot(project.root), before);
+      }
     });
 });
 
@@ -1269,7 +1331,7 @@ profiles:`,
     ).sha256,
     sha256(references["skills/large/references/7.md"]!),
   );
-  const started = capture(["start", "--confirm", report.identity, "--json"]);
+  const started = capture(["start", "--identity", report.identity, "--json"]);
   assert.equal(started.status, 0, started.stdout + started.stderr);
   const run = JSON.parse(started.stdout) as Run;
   assert.equal(run.outcome, "complete");
@@ -1508,7 +1570,11 @@ test("exact installation preserves binary bytes and executable state and retains
   );
   const { project, env } = f;
   const inspection = f.inspect();
-  const result = f.run(startArgs(inspection.identity), env);
+  // Replacing the project's own instructions discards them.
+  const result = f.run(
+    startArgs(inspection.identity, inspectionArgs, true),
+    env,
+  );
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.deepEqual(
     readFileSync(join(project.root, "AGENTS.md")),

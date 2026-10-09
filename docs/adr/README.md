@@ -54,3 +54,7 @@ alternatives.
 - [Keep edited content that leaves the selection](0016-keep-edited-content-that-leaves-the-selection.md):
   an update removes a target that leaves the selection only when it matches its
   installed baseline; an edited one stays and becomes project-owned.
+- [Confirm only confirmation-required changes](0017-confirm-only-confirmation-required-changes.md):
+  asking to adopt is the maintainer's consent, and `start` requires
+  confirmation only when the inspection reports discarded edits or a fix would
+  overwrite a chosen setting.

@@ -35,7 +35,7 @@ nor probes and does not assess guidance or author-skill quality, concrete scope
 safety, or semantic completeness in an unfamiliar project. The skill's
 [exercise guide](../../skills/author-standards/references/operations.md) runs
 operations against disposable directories through the script protocol, without
-a Git repository or adoption. The separate [confirmed adoption workflow](adoption.md)
+a Git repository or adoption. The separate [adoption workflow](adoption.md)
 exercises integration against published sources and committed adopting
 projects.
 

@@ -246,9 +246,20 @@ export function versionArgs(tag: string, args = inspectionArgs) {
   return args.map((argument) => (argument === "v1.0.0" ? tag : argument));
 }
 
-// The start that confirms an inspection made with the given arguments.
-export function startArgs(identity: string, args = inspectionArgs) {
-  return ["start", ...args.slice(1), "--confirm", identity];
+// The start of an inspection made with the given arguments, bound to its
+// identity, and confirmed by the maintainer when the inspection requires it.
+export function startArgs(
+  identity: string,
+  args = inspectionArgs,
+  confirmed = false,
+) {
+  return [
+    "start",
+    ...args.slice(1),
+    "--identity",
+    identity,
+    ...(confirmed ? ["--confirmed"] : []),
+  ];
 }
 
 // A standards source declaring the given defaults and profiles.

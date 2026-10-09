@@ -88,16 +88,22 @@ export async function adoptionFixture(
     run,
     json,
     inspect,
-    // Inspects and starts a confirmed run, returning its report.
+    // Inspects and starts a run, returning its report. Like adopt-standards,
+    // it passes the maintainer's confirmation only when the inspection
+    // requires it.
     start(args = inspectionArgs, environment: NodeJS.ProcessEnv = env) {
-      return json<Run>(startArgs(inspect(args).identity, args), environment);
+      const inspection = inspect(args);
+      return json<Run>(
+        startArgs(inspection.identity, args, inspection.confirmation.required),
+        environment,
+      );
     },
     // Inspects, starts and completes a run, then commits it as the project's
     // normal workflow would.
     adopt(args = inspectionArgs) {
       const inspection = inspect(args);
       const { result, report } = json<Run>(
-        startArgs(inspection.identity, args),
+        startArgs(inspection.identity, args, inspection.confirmation.required),
       );
       assert.equal(result.status, 0, result.stdout + result.stderr);
       assert.equal(report.outcome, "complete");

@@ -25,3 +25,8 @@ the run, or changes the standards source. An excluded or retired declaration's
 installed content is removed too, rather than left behind without an owner,
 unless it lies within contextual scope, where it stays as project content, or
 inside a target the selection still installs, whose own action covers it.
+
+[ADR 0017](0017-confirm-only-confirmation-required-changes.md) amends this
+decision: each listed overwrite that discards edits is a confirmation-required
+change, and `start` requires the maintainer's confirmation only when the
+inspection lists one, rather than for every inspection.

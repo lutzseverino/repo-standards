@@ -112,21 +112,41 @@ function workSnapshot(
 }
 
 const staleDiscovery =
-  "Selection, project state, or the scope proposal changed since the confirmed inspection. Inspect again with the proposal, review it against the fresh discovery evidence, and obtain confirmation of the new identity.";
+  "Selection, project state, or the scope proposal changed since the inspection. Inspect again with the proposal, review it against the fresh discovery evidence, and start with the new identity.";
 
-function verifyConfirmation(report: Inspection, confirmation: string) {
-  if (report.identity !== confirmation)
+// A start binds to the identity of the inspection it carries out. It carries
+// the maintainer's confirmation exactly when that inspection reports a
+// confirmation-required change: never by habit, and never without it.
+function verifyInspection(
+  report: Inspection,
+  identity: string,
+  confirmed: boolean | null,
+) {
+  if (report.identity !== identity)
     throw new ProductError(
       "STALE_INSPECTION",
       report.discovery
         ? staleDiscovery
-        : "Selection or project state changed. Inspect again and obtain confirmation of the new identity.",
+        : "Selection or project state changed. Inspect again and start with the new identity.",
     );
   if (report.start.blockers.length)
     throw new ProductError(
       "START_BLOCKED",
       "Resolve all inspection blockers before starting adoption.",
       report.start.blockers,
+    );
+  const { required, reasons } = report.confirmation;
+  if (confirmed === null) return;
+  if (required && !confirmed)
+    throw new ProductError(
+      "CONFIRMATION_REQUIRED",
+      `This adoption discards edits to ${reasons.map(({ target }) => target).join(", ")}. Ask the maintainer to confirm discarding them, then start again with --identity ${identity} --confirmed.`,
+      reasons,
+    );
+  if (!required && confirmed)
+    throw new ProductError(
+      "CONFIRMATION_NOT_REQUIRED",
+      `This adoption makes no confirmation-required change. Start with --identity ${identity} alone.`,
     );
 }
 
@@ -262,33 +282,46 @@ function prepareRuntime(directory: string, version: string, project: string) {
 export async function start(
   options: InspectOptions,
   cliVersion: string,
-  confirmation: string,
+  identity: string,
+  confirmed: boolean,
 ) {
   return withStartRun(options.project, (session) =>
-    startRun({ kind: "public", options }, cliVersion, confirmation, session),
+    startRun(
+      { kind: "public", options },
+      cliVersion,
+      identity,
+      confirmed,
+      session,
+    ),
   );
 }
 
 export async function startRetained(
   project: string,
   cliVersion: string,
-  confirmation: string,
+  identity: string,
+  confirmed: boolean,
   scope?: string,
 ) {
   return withStartRun(project, (session) =>
     startRun(
       { kind: "retained", project, ...(scope ? { scope } : {}) },
       cliVersion,
-      confirmation,
+      identity,
+      confirmed,
       session,
     ),
   );
 }
 
+// A retry of a start that stopped before preparing its installation passes
+// null for confirmation: the run began under this identity, so its start
+// already carried any confirmation the identity's report requires.
 async function startRun(
   input: StartInput,
   cliVersion: string,
-  confirmation: string,
+  identity: string,
+  confirmed: boolean | null,
   session: AdoptionRunSession,
 ) {
   const inspectSelection = async () => {
@@ -297,7 +330,7 @@ async function startRun(
         ? retainedInspection(input.project, cliVersion, input.scope)
         : inspectForStart(input.options, cliVersion));
     } catch (error) {
-      // The confirmed proposal fit the project it was inspected against.
+      // The inspected proposal fit the project it was inspected against.
       if (error instanceof ObservedScopeError)
         throw new ProductError(
           "STALE_INSPECTION",
@@ -309,7 +342,7 @@ async function startRun(
   };
   const initial = await inspectSelection();
   const root = initial.root;
-  verifyConfirmation(initial.report, confirmation);
+  verifyInspection(initial.report, identity, confirmed);
   const proposalPath =
     input.kind === "retained" ? input.scope : input.options.scope;
   const scope =
@@ -326,7 +359,7 @@ async function startRun(
   session.begin(
     initial.report,
     { root, head: initial.git.head },
-    confirmation,
+    identity,
     startInput,
     initial.recorded,
   );
@@ -350,11 +383,10 @@ async function startRun(
     : undefined;
   // Network/package acquisition can take time. Repeat all Git, source and
   // target checks under the lock before creating any project material. The
-  // materials come from this inspection, whose confirmed identity binds their
-  // hashes.
+  // materials come from this inspection, whose identity binds their hashes.
   const inspected = await inspectSelection();
-  verifyConfirmation(inspected.report, confirmation);
-  const installation = planInstallation(root, inspected, confirmation, runtime);
+  verifyInspection(inspected.report, identity, confirmed);
+  const installation = planInstallation(root, inspected, identity, runtime);
   session.prepareInstallation(installation);
   install(root, session, installation);
   await advance(root, session, installation);
@@ -485,7 +517,13 @@ export async function resume(
     async (session, installation) => {
       if (!installation) {
         const run = session.observation;
-        return startRun(run.startInput!, cliVersion, run.inspection, session);
+        return startRun(
+          run.startInput!,
+          cliVersion,
+          run.inspection,
+          null,
+          session,
+        );
       }
       const root = projectRoot(project);
       if (retry) {

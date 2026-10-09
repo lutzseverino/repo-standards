@@ -20,8 +20,8 @@ The report states availability only. It updates nothing and does not recommend
 an update; whether to update is the maintainer's decision. Adoption installs the
 model-invocable `standards-updates` system skill, which reports this result to
 an agent and starts no update; `outdated` remains the complete interface without
-an agent. Apply an update through inspection and confirmation as described in
-[Confirmed adoption](adoption.md).
+an agent. Apply an update through inspection and start as described in
+[Adoption](adoption.md).
 
 ## Pinned CLI
 

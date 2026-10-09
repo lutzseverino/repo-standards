@@ -308,7 +308,10 @@ test("the record of an update that only installs exact content lists every insta
   const adopt = (version: string) => {
     const args = versionArgs(version);
     const report = JSON.parse(run(args).stdout) as Inspection;
-    const started = run(startArgs(report.identity, args));
+    // Confirmed by the maintainer whenever the inspection requires it.
+    const started = run(
+      startArgs(report.identity, args, report.confirmation.required),
+    );
     assert.equal(
       (JSON.parse(started.stdout) as Run).outcome,
       "complete",
@@ -381,7 +384,10 @@ test("the record of an update lists a removed retired target and a replaced edit
   const adopt = (version: string) => {
     const args = versionArgs(version);
     const report = JSON.parse(run(args).stdout) as Inspection;
-    const started = run(startArgs(report.identity, args));
+    // Confirmed by the maintainer whenever the inspection requires it.
+    const started = run(
+      startArgs(report.identity, args, report.confirmation.required),
+    );
     assert.equal(
       (JSON.parse(started.stdout) as Run).outcome,
       "complete",

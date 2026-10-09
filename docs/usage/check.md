@@ -7,7 +7,7 @@
 `check` runs every check of the last complete adoption against the current
 working tree and reports each result. Use it between runs, for example to
 check finished work against the adopted standards before delivering it. It
-runs no fix and asks for no confirmation: the adoption disclosed and confirmed
+runs no fix and asks for no confirmation: the adoption disclosed and ran
 these checks. It records nothing, so a passing `check` does not change the
 adoption's evidence or claim continuing compliance. `--project <directory>`
 selects another Git working tree.

@@ -81,7 +81,7 @@ before(async () => {
     cli.run(inspectionArgs, adopted.root, env).stdout,
   ) as Inspection;
   const started = cli.run(
-    ["start", ...inspectionArgs.slice(1), "--confirm", inspection.identity],
+    ["start", ...inspectionArgs.slice(1), "--identity", inspection.identity],
     adopted.root,
     env,
   );
