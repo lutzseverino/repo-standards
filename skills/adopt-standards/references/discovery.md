@@ -10,7 +10,7 @@ when the original source is unavailable for retained work.
 
 The proposal format, its validation, and the fields the CLI derives are defined
 by the
-[scope contract](https://github.com/lutzseverino/repo-standards/blob/v5.1.1/docs/usage/inspection.md#discover-contextual-file-scope).
+[scope contract](https://github.com/lutzseverino/repo-standards/blob/v6.0.0/docs/usage/inspection.md#discover-contextual-file-scope).
 
 ## Judge the candidates
 

@@ -6,7 +6,7 @@ to use. If installation stopped before the project runtime became usable, use
 the externally installed CLI that started the run. Preserve progress records
 and partial changes throughout. The commands and their guarantees are defined
 in
-[recovery](https://github.com/lutzseverino/repo-standards/blob/v5.1.1/docs/usage/adoption.md#recover-or-abandon-an-interrupted-run).
+[recovery](https://github.com/lutzseverino/repo-standards/blob/v6.0.0/docs/usage/adoption.md#recover-or-abandon-an-interrupted-run).
 
 ## Read the active run
 
@@ -41,7 +41,7 @@ maintainer whether to overwrite it.
   `resume --confirmed --json`. It reruns the fix allowed to overwrite, then
   continues the run; a later fix may stop for its own confirmation, which
   needs its own answer. The
-  [confirmation contract](https://github.com/lutzseverino/repo-standards/blob/v5.1.1/docs/usage/adoption.md#confirmation-required-changes)
+  [confirmation contract](https://github.com/lutzseverino/repo-standards/blob/v6.0.0/docs/usage/adoption.md#confirmation-required-changes)
   defines the command.
 - Without confirmation, the run stays stopped. If the maintainer declines,
   obtain an abandonment instruction and [abandon](#abandon) the run. Retry
