@@ -66,10 +66,11 @@ export function run(executable, args, cwd, input) {
     const processState = outcome.signal
       ? `signal ${outcome.signal}`
       : `exit ${outcome.status}`;
+    const reason = outcome.stderr.replace(/\s+/g, " ").trim();
     return {
       ok: false,
       unavailable: false,
-      detail: processState,
+      detail: reason ? `${processState}: ${reason}` : processState,
       stderr: outcome.stderr,
     };
   }

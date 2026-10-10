@@ -83,6 +83,7 @@
           "docs/adr/0014-leave-available-updates-to-the-maintainer.md",
           "docs/adr/0015-leave-delivery-to-standards-sources.md",
           "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
+          "docs/adr/0017-confirm-only-confirmation-required-changes.md",
           "docs/adr/README.md",
           "docs/agents/project.md",
           "docs/development/README.md",
@@ -330,6 +331,14 @@
       "kind": "file",
       "target": "operations/lib/rendered-markdown.mjs",
       "exact": "operations/lib/rendered-markdown.mjs"
+    },
+    {
+      "id": "repository-license",
+      "checks": [],
+      "fixes": [],
+      "kind": "file",
+      "target": "LICENSE",
+      "guidance": "guidance/repository-license.md"
     },
     {
       "id": "repository-readme",

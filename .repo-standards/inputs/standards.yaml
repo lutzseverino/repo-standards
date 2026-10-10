@@ -219,6 +219,12 @@ profiles:
         kind: file
         target: operations/lib/rendered-markdown.mjs
         exact: operations/lib/rendered-markdown.mjs
+      repository-license:
+        checks: []
+        fixes: []
+        kind: file
+        target: LICENSE
+        guidance: guidance/repository-license.md
       repository-readme:
         checks:
           - id: repository-readme-structure
