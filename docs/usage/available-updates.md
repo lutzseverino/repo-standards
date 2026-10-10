@@ -5,7 +5,7 @@
 ```
 
 `outdated` reports whether an
-[available update](https://github.com/lutzseverino/repo-standards/blob/main/CONTEXT.md#language)
+[available update](https://github.com/lutzseverino/repo-standards/blob/main/GLOSSARY.md#language)
 exists for each pin of the adopting project's selection: a published CLI or
 standards version newer than the pinned one. It reads
 `.repo-standards/selection.yaml`, looks up the newest stable versions, and

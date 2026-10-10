@@ -3,7 +3,7 @@ name: repo-canon
 description: Complete repository documentation, contribution, agent workflow,
   and GitHub validation standards
 requires:
-  repo-standards: ">=5.1.0"
+  repo-standards: ">=6.0.0"
 defaults:
   declarations: {}
 profiles:
@@ -63,6 +63,60 @@ profiles:
         kind: file
         target: docs/agents/domain.md
         exact: vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills/domain.md
+      factory-adapter:
+        checks: []
+        fixes: []
+        kind: file
+        target: .sandcastle/adapter.ts
+        exact: .sandcastle/adapter.ts
+      factory-decision-core:
+        checks: []
+        fixes: []
+        kind: file
+        target: .sandcastle/factory.ts
+        exact: .sandcastle/factory.ts
+      factory-direct-prompt:
+        checks: []
+        fixes: []
+        kind: file
+        target: .sandcastle/direct-prompt.md
+        exact: .sandcastle/direct-prompt.md
+      factory-entry:
+        checks: []
+        fixes: []
+        kind: file
+        target: .sandcastle/main.ts
+        exact: .sandcastle/main.ts
+      factory-gitignore:
+        checks: []
+        fixes: []
+        kind: file
+        target: .sandcastle/.gitignore
+        exact: .sandcastle/.gitignore
+      factory-orchestrated-prompt:
+        checks: []
+        fixes: []
+        kind: file
+        target: .sandcastle/orchestrated-prompt.md
+        exact: .sandcastle/orchestrated-prompt.md
+      factory-sandbox-image:
+        checks:
+          - id: sandbox-image-base
+            run:
+              executable: node
+              script: operations/check-sandbox-image.mjs
+              resources:
+                - operations/sandbox-image-base.Dockerfile
+              arguments: []
+            prerequisite:
+              version-arguments:
+                - --version
+              version: ">=24.0.0 <25.0.0"
+            timeout-seconds: 30
+        fixes: []
+        kind: file
+        target: .sandcastle/Dockerfile
+        guidance: guidance/factory-sandbox-image.md
       feature-request-template:
         checks: []
         fixes: []
@@ -80,6 +134,7 @@ profiles:
                 - operations/lib/github-operation.mjs
                 - LICENSE
                 - THIRD_PARTY_NOTICES.md
+                - vendor/humanlayer-skills/LICENSE
                 - vendor/mattpocock-skills/LICENSE
               arguments: []
             prerequisite:
@@ -102,6 +157,12 @@ profiles:
         kind: repository
         guidance: guidance/github-repository-configuration.md
         discovery: discovery/github-repository-configuration.md
+      humanlayer-skills-license:
+        checks: []
+        fixes: []
+        kind: file
+        target: .agents/skills/LICENSE.humanlayer-skills
+        exact: vendor/humanlayer-skills/LICENSE
       implementation-ticket-template:
         checks: []
         fixes: []
@@ -252,6 +313,12 @@ profiles:
         kind: skill
         name: ask-matt
         source: vendor/mattpocock-skills/skills/engineering/ask-matt
+      skill-babysit:
+        checks: []
+        fixes: []
+        kind: skill
+        name: babysit
+        source: .agents/skills/babysit
       skill-code-review:
         checks: []
         fixes: []
@@ -264,12 +331,6 @@ profiles:
         kind: skill
         name: codebase-design
         source: vendor/mattpocock-skills/skills/engineering/codebase-design
-      skill-deliver:
-        checks: []
-        fixes: []
-        kind: skill
-        name: deliver
-        source: .agents/skills/deliver
       skill-diagnosing-bugs:
         checks: []
         fixes: []
@@ -312,12 +373,24 @@ profiles:
         kind: skill
         name: implement
         source: vendor/mattpocock-skills/skills/engineering/implement
+      skill-implement-spec:
+        checks: []
+        fixes: []
+        kind: skill
+        name: implement-spec
+        source: vendor/mattpocock-skills/skills/engineering/implement-spec
       skill-improve-codebase-architecture:
         checks: []
         fixes: []
         kind: skill
         name: improve-codebase-architecture
         source: vendor/mattpocock-skills/skills/engineering/improve-codebase-architecture
+      skill-pr:
+        checks: []
+        fixes: []
+        kind: skill
+        name: pr
+        source: vendor/mattpocock-skills/skills/engineering/pr
       skill-prototype:
         checks: []
         fixes: []
@@ -330,18 +403,24 @@ profiles:
         kind: skill
         name: research
         source: vendor/mattpocock-skills/skills/engineering/research
-      skill-resolving-merge-conflicts:
+      skill-retro:
         checks: []
         fixes: []
         kind: skill
-        name: resolving-merge-conflicts
-        source: vendor/mattpocock-skills/skills/engineering/resolving-merge-conflicts
+        name: retro
+        source: vendor/mattpocock-skills/skills/engineering/retro
       skill-setup-matt-pocock-skills:
         checks: []
         fixes: []
         kind: skill
         name: setup-matt-pocock-skills
         source: vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills
+      skill-show-me:
+        checks: []
+        fixes: []
+        kind: skill
+        name: show-me
+        source: vendor/humanlayer-skills/skills/show-me
       skill-tdd:
         checks: []
         fixes: []

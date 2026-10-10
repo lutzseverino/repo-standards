@@ -39,7 +39,8 @@ const exactPlaceholders = new Set([
 ]);
 const recognizedSections = new Set([
   "summary",
-  "validation",
+  "evidence",
+  "merge danger",
   "related issue",
   "impact",
   "migration",
@@ -74,11 +75,15 @@ function isMeaningful(text) {
 function requiredSection(sections, name, errors) {
   const matches = sections.get(name) ?? [];
   const displayName =
-    name === "related issue"
-      ? "Related issue"
-      : name[0].toUpperCase() + name.slice(1);
+    name === "merge danger"
+      ? "Merge Danger"
+      : name === "related issue"
+        ? "Related issue"
+        : name[0].toUpperCase() + name.slice(1);
   if (matches.length === 0) {
-    errors.push(`Add a ${displayName} section.`);
+    errors.push(
+      `Add ${name === "evidence" ? "an" : "a"} ${displayName} section.`,
+    );
     return null;
   }
   if (matches.length > 1) {
@@ -105,9 +110,9 @@ function hasIssueReference(content) {
   return rendered.links.some((href) => issueUrl.test(href));
 }
 
-function hasSmallCorrectionReason(content) {
+function hasDirectChangeReason(content) {
   const rendered = normalizedRenderedText(content, false);
-  const marker = rendered.match(/(?:^|\n)Small correction\s*:\s*([\s\S]*)$/i);
+  const marker = rendered.match(/(?:^|\n)Direct change\s*:\s*([\s\S]*)$/i);
   return marker !== null && isMeaningful(marker[1]);
 }
 
@@ -123,7 +128,8 @@ function isAdoptionRecord(body) {
 
 function validateSections(sections, errors) {
   const summary = requiredSection(sections, "summary", errors);
-  const validation = requiredSection(sections, "validation", errors);
+  const evidence = requiredSection(sections, "evidence", errors);
+  const mergeDanger = requiredSection(sections, "merge danger", errors);
   const relatedIssue = requiredSection(sections, "related issue", errors);
 
   if (summary !== null && !isMeaningful(normalizedRenderedText(summary))) {
@@ -131,21 +137,26 @@ function validateSections(sections, errors) {
       "Replace the Summary placeholder with a meaningful problem and resulting change.",
     );
   }
+  if (evidence !== null && !isMeaningful(normalizedRenderedText(evidence))) {
+    errors.push(
+      "Replace the Evidence placeholder with before-and-after evidence, checks and outcomes, or explain what was not run.",
+    );
+  }
   if (
-    validation !== null &&
-    !isMeaningful(normalizedRenderedText(validation))
+    mergeDanger !== null &&
+    !isMeaningful(normalizedRenderedText(mergeDanger))
   ) {
     errors.push(
-      "Replace the Validation placeholder with checks and outcomes, or explain what was not run.",
+      "Replace the Merge Danger placeholder with the door, blast radius and relevant limits.",
     );
   }
   if (
     relatedIssue !== null &&
     !hasIssueReference(relatedIssue) &&
-    !hasSmallCorrectionReason(relatedIssue)
+    !hasDirectChangeReason(relatedIssue)
   ) {
     errors.push(
-      "Link a related GitHub issue, or write Small correction: followed by a meaningful reason.",
+      "Link a related GitHub issue, or write Direct change: followed by a meaningful reason.",
     );
   }
 }

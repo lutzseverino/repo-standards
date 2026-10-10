@@ -10,7 +10,7 @@ when the original source is unavailable for retained work.
 
 The proposal format, its validation, and the fields the CLI derives are defined
 by the
-[scope contract](https://github.com/lutzseverino/repo-standards/blob/v5.1.0/docs/usage/inspection.md#discover-contextual-file-scope).
+[scope contract](https://github.com/lutzseverino/repo-standards/blob/v6.0.0/docs/usage/inspection.md#discover-contextual-file-scope).
 
 ## Judge the candidates
 
@@ -45,13 +45,13 @@ identity, the absence of each planned file, and the included paths.
 
 Run the same inspection again with `--scope <file>` and correct the proposal
 until one complete inspection is reviewable. Present that inspection as the
-skill describes, and pass the same file to `start` with its confirmed identity.
-A change after confirmation matters only when it alters the inspection
+skill describes, and pass the same file to `start` with its identity.
+A change after inspection matters only when it alters the inspection
 identity, which `start` reconstructs. A change outside everything the identity
-binds leaves the confirmation valid. For a discovery-backed selection the
+binds leaves the identity valid. For a discovery-backed selection the
 observation spans the tracked and non-ignored tree, so most commits do alter
 it. Then `start` rejects the stale identity: inspect again, review the proposal
-against the fresh evidence, and obtain a new confirmation.
+against the fresh evidence, and start with the new identity.
 
 ## Recheck coverage during contextual work
 

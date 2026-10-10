@@ -6,7 +6,7 @@ import {
   documentationRuleViolations,
 } from "./lib/documentation-model.mjs";
 
-const resultFormat = "repo-standards/result/v1";
+const resultFormat = "repo-standards/result/v2";
 
 function failProcess(message) {
   throw new Error(message);
@@ -42,9 +42,9 @@ function readRequest() {
   } catch {
     failProcess("Operation input must be one JSON object.");
   }
-  if (request?.format !== "repo-standards/operation/v1") {
+  if (request?.format !== "repo-standards/operation/v2") {
     failProcess(
-      "Unsupported operation input format; expected repo-standards/operation/v1.",
+      "Unsupported operation input format; expected repo-standards/operation/v2.",
     );
   }
   if (request.operation?.phase !== "checks") {

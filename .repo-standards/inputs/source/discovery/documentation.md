@@ -44,7 +44,7 @@ it is decided:
   the scope must cover, such as a document to move into a category.
 - Which category a file or directory directly under a root moves to, and which
   category holds the documents of a root that has none.
-- Whether another `CONTEXT.md` or `CONTEXT-MAP.md` is a glossary or context map
+- Whether another `GLOSSARY.md` or `GLOSSARY-MAP.md` is a glossary or context map
   of this repository.
 - What becomes of a file under a root that Git ignores, a directory under a root
   without a file that Git keeps, a symbolic link under a root, or an entry that

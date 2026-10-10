@@ -28,8 +28,8 @@ const proposalFormat = "repo-standards/scope/v2";
 const declarationId = "documentation";
 // The declaration fields that decide its targets.
 const targetFields = ["kind", "target", "name", "exclude"];
-const glossary = "CONTEXT.md";
-const contextMap = "CONTEXT-MAP.md";
+const glossary = "GLOSSARY.md";
+const contextMap = "GLOSSARY-MAP.md";
 const directoryIndex = "README.md";
 
 // Paths Repository Standards reserves, which no declaration's scope can hold:
