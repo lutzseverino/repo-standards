@@ -266,26 +266,30 @@ export function decideIssueContract(snapshot) {
 
 // Whether the snapshot's run is a human readiness trigger the timeline has not
 // recorded yet: a `labeled` event for a readiness label by a sender other than
-// `github-actions[bot]`, whose re-fetched issue still carries that label, while
-// the label's latest recorded application, by anyone, is not the sender's or a
+// `github-actions[bot]`, checked against the readiness label its re-fetched
+// issue carries, its own when present and otherwise the other, while that
+// label's latest recorded application, by anyone, is not the sender's or a
 // removal is the label's latest recorded change. While the latest feedback
 // awaits review, that application must also follow its observed event: the run
-// that wrote it already observed every one at or before it. The adapter
+// that wrote it already observed every one at or before it. A trigger whose
+// issue carries no readiness label awaits no timeline application. The adapter
 // re-reads the timeline while this holds, within its bound, and the decision
 // fails closed while it does.
 export function readinessTriggerUnrecorded(snapshot) {
   const { event, issue, comments } = snapshot;
-  const label = readinessTransitionLabel(event);
+  const trigger = readinessTransitionLabel(event);
   const sender = event.sender?.login;
   if (
     event.action !== "labeled" ||
-    !label ||
+    !trigger ||
     !sender ||
-    sender === "github-actions[bot]" ||
-    !(issue.labels ?? []).some((candidate) => labelName(candidate) === label)
+    sender === "github-actions[bot]"
   ) {
     return false;
   }
+  const carried = readinessLabels((issue.labels ?? []).map(labelName));
+  const label = carried.includes(trigger) ? trigger : carried[0];
+  if (!label) return false;
   const recorded = feedbackState(findFeedback(comments)?.body);
   const barrier =
     recorded?.status === "awaiting-review" ? recorded.observedEventId : null;

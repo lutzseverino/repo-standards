@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:3513c0a5328100737558e4a4a33e3481b5895a5ba209e7fd687df3844ac89d11",
+  "inspection": "sha256:26b537519934903c89ef17d7ded37628eec479a5575dbb74146e1a15636c5231",
   "resolved": {
     "description": "The complete Repo Canon standards profile",
     "declarations": [
@@ -87,6 +87,7 @@
             "docs/adr/0014-leave-available-updates-to-the-maintainer.md",
             "docs/adr/0015-leave-delivery-to-standards-sources.md",
             "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
+            "docs/adr/0017-confirm-only-confirmation-required-changes.md",
             "docs/adr/README.md",
             "docs/agents/project.md",
             "docs/development/README.md",
@@ -334,6 +335,14 @@
         "kind": "file",
         "target": "operations/lib/rendered-markdown.mjs",
         "exact": "operations/lib/rendered-markdown.mjs"
+      },
+      {
+        "id": "repository-license",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "LICENSE",
+        "guidance": "guidance/repository-license.md"
       },
       {
         "id": "repository-readme",
@@ -881,6 +890,14 @@
         "exact": "operations/lib/rendered-markdown.mjs"
       },
       {
+        "id": "repository-license",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "LICENSE",
+        "guidance": "guidance/repository-license.md"
+      },
+      {
         "id": "repository-readme",
         "checks": [
           {
@@ -1137,13 +1154,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:9b8f0d3f95df79243af599c7128b6d10aca25f06781aab59adb8b8b0a61c0305",
+    "identity": "sha256:175c6ca45dbe435dbab3340564b21cc3d577235f02724851e005844ef8692fbf",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Fresh v0.5.4 review finds docs is the sole documentation root, all directory indices already exist, and the root CONTEXT.md is the sole project glossary. All 34 included files remain applicable. The three drafter questions are resolved: acceptance Markdown is synthetic fixture input; examples Markdown is published standards-source example material; skills Markdown is packaged product skill source. Their current manifest, harness, release guide and packaging tests establish those roles. No migration destination, new index, or link repair is indicated. The confirmed v0.5.3 proposal in PR #209 is comparison context only; candidate membership is freshly judged against this worktree.",
+          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Fresh review against current main 70f1290 includes the newly maintained ADR docs/adr/0017-confirm-only-confirmation-required-changes.md and its existing ADR index. The root CONTEXT.md and remaining documentation describe the current neutral CLI product. Acceptance fixtures, standards-source examples, and packaged skill resources remain excluded for their actual responsibilities. docs is still the sole documentation root; no moves, missing indexes or outside link repairs are required.",
           "candidates": [
             {
               "path": "CONTEXT.md",
@@ -1164,10 +1181,8 @@
             {
               "path": "acceptance/projects/bob/CONTRIBUTING.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/projects/bob/CONTRIBUTING.md"
               ]
             },
@@ -1182,10 +1197,8 @@
             {
               "path": "acceptance/projects/forge/INDEX.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/projects/forge/INDEX.md"
               ]
             },
@@ -1200,30 +1213,24 @@
             {
               "path": "acceptance/projects/forge/groups/developer-tools.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/projects/forge/groups/developer-tools.md"
               ]
             },
             {
               "path": "acceptance/projects/forge/guides/hammer.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/projects/forge/guides/hammer.md"
               ]
             },
             {
               "path": "acceptance/projects/harbor/CONTRIBUTING.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/projects/harbor/CONTRIBUTING.md"
               ]
             },
@@ -1238,20 +1245,16 @@
             {
               "path": "acceptance/projects/harbor/docs/operations.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/projects/harbor/docs/operations.md"
               ]
             },
             {
               "path": "acceptance/projects/orchard/CATALOG.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/projects/orchard/CATALOG.md"
               ]
             },
@@ -1266,60 +1269,48 @@
             {
               "path": "acceptance/projects/orchard/legacy/pear-operations.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/projects/orchard/legacy/pear-operations.md"
               ]
             },
             {
               "path": "acceptance/projects/orchard/teams/runtime.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/projects/orchard/teams/runtime.md"
               ]
             },
             {
               "path": "acceptance/projects/relay/groups/messaging-runtime.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/projects/relay/groups/messaging-runtime.md"
               ]
             },
             {
               "path": "acceptance/projects/relay/notes/relay-limitations.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/projects/relay/notes/relay-limitations.md"
               ]
             },
             {
               "path": "acceptance/sources/wayfinder/guidance/service-discovery.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/sources/wayfinder/guidance/service-discovery.md"
               ]
             },
             {
               "path": "acceptance/sources/wayfinder/guidance/service-readiness.md",
               "decision": "exclude",
-              "reason": "Synthetic acceptance project or source fixture; acceptance/prepare-public.ts consumes these files as fixture input, not maintained documentation of this adopting project.",
+              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
               "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
                 "acceptance/sources/wayfinder/guidance/service-readiness.md"
               ]
             },
@@ -1457,6 +1448,14 @@
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
                 "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0017-confirm-only-confirmation-required-changes.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0017-confirm-only-confirmation-required-changes.md"
               ]
             },
             {
@@ -1622,212 +1621,161 @@
             {
               "path": "examples/alice/defaults/files/AGENTS.md",
               "decision": "exclude",
-              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
+              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
               "evidence": [
-                "acceptance/prepare-public.ts",
-                "examples/alice/defaults/files/AGENTS.md",
-                "package.json"
+                "examples/alice/defaults/files/AGENTS.md"
               ]
             },
             {
               "path": "examples/alice/defaults/files/CONTRIBUTING.md",
               "decision": "exclude",
-              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
+              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
               "evidence": [
-                "acceptance/prepare-public.ts",
-                "examples/alice/defaults/files/CONTRIBUTING.md",
-                "package.json"
+                "examples/alice/defaults/files/CONTRIBUTING.md"
               ]
             },
             {
               "path": "examples/alice/defaults/guidance/readme.md",
               "decision": "exclude",
-              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
+              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
               "evidence": [
-                "acceptance/prepare-public.ts",
-                "examples/alice/defaults/guidance/readme.md",
-                "package.json"
+                "examples/alice/defaults/guidance/readme.md"
               ]
             },
             {
               "path": "examples/alice/defaults/guidance/source-layout.md",
               "decision": "exclude",
-              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
+              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
               "evidence": [
-                "acceptance/prepare-public.ts",
-                "examples/alice/defaults/guidance/source-layout.md",
-                "package.json"
+                "examples/alice/defaults/guidance/source-layout.md"
               ]
             },
             {
               "path": "examples/alice/defaults/skills/review/SKILL.md",
               "decision": "exclude",
-              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
+              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
               "evidence": [
-                "acceptance/prepare-public.ts",
-                "examples/alice/defaults/skills/review/SKILL.md",
-                "package.json"
+                "examples/alice/defaults/skills/review/SKILL.md"
               ]
             },
             {
               "path": "examples/alice/profiles/work/files/AGENTS.md",
               "decision": "exclude",
-              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
+              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
               "evidence": [
-                "acceptance/prepare-public.ts",
-                "examples/alice/profiles/work/files/AGENTS.md",
-                "package.json"
+                "examples/alice/profiles/work/files/AGENTS.md"
               ]
             },
             {
               "path": "examples/atlas/guidance/project-discovery.md",
               "decision": "exclude",
-              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
+              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
               "evidence": [
-                "acceptance/prepare-public.ts",
-                "examples/atlas/guidance/project-discovery.md",
-                "package.json"
+                "examples/atlas/guidance/project-discovery.md"
               ]
             },
             {
               "path": "examples/atlas/guidance/project-documentation.md",
               "decision": "exclude",
-              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
+              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
               "evidence": [
-                "acceptance/prepare-public.ts",
-                "examples/atlas/guidance/project-documentation.md",
-                "package.json"
+                "examples/atlas/guidance/project-documentation.md"
               ]
             },
             {
               "path": "examples/mira/guidance/operations.md",
               "decision": "exclude",
-              "reason": "Authored standards-source example material distributed by the root package and consumed by source validation and acceptance fixtures; preserve it in its source layout.",
+              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
               "evidence": [
-                "acceptance/prepare-public.ts",
-                "examples/mira/guidance/operations.md",
-                "package.json"
+                "examples/mira/guidance/operations.md"
               ]
             },
             {
               "path": "skills/adopt-standards/SKILL.md",
               "decision": "exclude",
-              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
+              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
               "evidence": [
-                "docs/development/release.md",
-                "package.json",
-                "skills/adopt-standards/SKILL.md",
-                "test/release.test.ts"
+                "skills/adopt-standards/SKILL.md"
               ]
             },
             {
               "path": "skills/adopt-standards/references/assessment.md",
               "decision": "exclude",
-              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
+              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
               "evidence": [
-                "docs/development/release.md",
-                "package.json",
-                "skills/adopt-standards/references/assessment.md",
-                "test/release.test.ts"
+                "skills/adopt-standards/references/assessment.md"
               ]
             },
             {
               "path": "skills/adopt-standards/references/discovery.md",
               "decision": "exclude",
-              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
+              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
               "evidence": [
-                "docs/development/release.md",
-                "package.json",
-                "skills/adopt-standards/references/discovery.md",
-                "test/release.test.ts"
+                "skills/adopt-standards/references/discovery.md"
               ]
             },
             {
               "path": "skills/adopt-standards/references/recovery.md",
               "decision": "exclude",
-              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
+              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
               "evidence": [
-                "docs/development/release.md",
-                "package.json",
-                "skills/adopt-standards/references/recovery.md",
-                "test/release.test.ts"
+                "skills/adopt-standards/references/recovery.md"
               ]
             },
             {
               "path": "skills/adopt-standards/references/review.md",
               "decision": "exclude",
-              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
+              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
               "evidence": [
-                "docs/development/release.md",
-                "package.json",
-                "skills/adopt-standards/references/review.md",
-                "test/release.test.ts"
+                "skills/adopt-standards/references/review.md"
               ]
             },
             {
               "path": "skills/author-standards/SKILL.md",
               "decision": "exclude",
-              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
+              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
               "evidence": [
-                "docs/development/release.md",
-                "package.json",
-                "skills/author-standards/SKILL.md",
-                "test/release.test.ts"
+                "skills/author-standards/SKILL.md"
               ]
             },
             {
               "path": "skills/author-standards/references/cli.md",
               "decision": "exclude",
-              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
+              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
               "evidence": [
-                "docs/development/release.md",
-                "package.json",
-                "skills/author-standards/references/cli.md",
-                "test/release.test.ts"
+                "skills/author-standards/references/cli.md"
               ]
             },
             {
               "path": "skills/author-standards/references/operations.md",
               "decision": "exclude",
-              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
+              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
               "evidence": [
-                "docs/development/release.md",
-                "package.json",
-                "skills/author-standards/references/operations.md",
-                "test/release.test.ts"
+                "skills/author-standards/references/operations.md"
               ]
             },
             {
               "path": "skills/author-standards/references/profiles.md",
               "decision": "exclude",
-              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
+              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
               "evidence": [
-                "docs/development/release.md",
-                "package.json",
-                "skills/author-standards/references/profiles.md",
-                "test/release.test.ts"
+                "skills/author-standards/references/profiles.md"
               ]
             },
             {
               "path": "skills/author-standards/references/revision.md",
               "decision": "exclude",
-              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
+              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
               "evidence": [
-                "docs/development/release.md",
-                "package.json",
-                "skills/author-standards/references/revision.md",
-                "test/release.test.ts"
+                "skills/author-standards/references/revision.md"
               ]
             },
             {
               "path": "skills/standards-updates/SKILL.md",
               "decision": "exclude",
-              "reason": "Product-owned skill source or bundled procedure/reference shipped whole by the root npm package; its packaging and release tests require this layout, outside adopting-project documentation scope.",
+              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
               "evidence": [
-                "docs/development/release.md",
-                "package.json",
-                "skills/standards-updates/SKILL.md",
-                "test/release.test.ts"
+                "skills/standards-updates/SKILL.md"
               ]
             }
           ],
@@ -1835,67 +1783,68 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Fresh git remote -v review identifies only origin, with fetch and push both naming lutzseverino/repo-standards on github.com. This declaration applies solely to remote GitHub configuration through its two authored fixes and intentionally has no project-content candidates. The empty scope matches PR #209. Those fixes are disclosed for a later identity-confirmed update; this read-only inspection neither executes nor authorizes them and does not verify current remote settings or write permissions.",
+          "coverage": "Intentionally empty project-content scope: both fixes configure remote GitHub settings only. Fresh Git remotes and authenticated gh repo view identify lutzseverino/repo-standards, default branch main, viewer permission ADMIN. The maintainer confirmation of the complete inspection must authorize the disclosed fixes; no operation runs during inspection. Rechecked on main 70f1290: the new product ADR is documentation only and creates no nested Project or remote project-content target.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "Fresh review of package.json, pnpm-workspace.yaml, tsconfig.build.json, the development/release guides, fixture preparation code and component boundaries establishes one maintained root TypeScript/Node.js CLI package and no workspace members. Its components share root build, development and release commands. Nested fixture manifests are synthetic inputs. None of the ten excluded directories is a separate maintained Project under the responsibility-and-development-commands criterion; no non-root Project README, including a missing README, is required. The root README is governed separately by repository-readme. This intentionally empty scope matches the confirmed v0.5.3 proposal in PR #209 after fresh evidence review.",
+          "coverage": "Fresh review of package.json, root source and tooling responsibilities, development commands, README and documentation identifies one root TypeScript CLI package with no workspace members. Nested tooling and acceptance harnesses use root setup, build and release commands. Fixture manifests and generated outputs are synthetic; preserved vendor content and packaged skills are assets. There is no independently maintained nested Project requiring a non-root README. The scope is intentionally empty. Rechecked on main 70f1290: the new product ADR is documentation only and creates no nested Project or remote project-content target.",
           "candidates": [
             {
-              "path": ".agents/skills",
+              "path": ".agents",
               "decision": "exclude",
-              "reason": "Installed whole skills owned by standards installation; no independent Project responsibility or development commands.",
+              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
               "evidence": [
-                ".agents/skills",
+                ".agents",
+                "docs/development/README.md",
                 "package.json"
               ]
             },
             {
               "path": "acceptance",
               "decision": "exclude",
-              "reason": "Root-package acceptance harness with synthetic project/source fixtures, as established by its guide and fixture preparation code.",
+              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
               "evidence": [
                 "acceptance",
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts",
+                "docs/development/README.md",
                 "package.json"
               ]
             },
             {
               "path": "bootstrap",
               "decision": "exclude",
-              "reason": "Distribution entry point of the root CLI package, sharing its release and development commands.",
+              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
               "evidence": [
                 "bootstrap",
-                "docs/development/release.md",
+                "docs/development/README.md",
+                "package.json"
+              ]
+            },
+            {
+              "path": "docs",
+              "decision": "exclude",
+              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
+              "evidence": [
+                "docs",
+                "docs/development/README.md",
                 "package.json"
               ]
             },
             {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Standards-source examples distributed and validated with the root package; not independently maintained adopting-project applications.",
+              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
               "evidence": [
-                "acceptance/prepare-public.ts",
+                "docs/development/README.md",
                 "examples",
-                "package.json"
-              ]
-            },
-            {
-              "path": "operations",
-              "decision": "exclude",
-              "reason": "Installed Repo Canon operation scripts and their resources; not a separate maintained Project.",
-              "evidence": [
-                "operations",
                 "package.json"
               ]
             },
             {
               "path": "scripts",
               "decision": "exclude",
-              "reason": "Validation and release tooling of the one root CLI package, using root development commands.",
+              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
               "evidence": [
                 "docs/development/README.md",
                 "package.json",
@@ -1905,29 +1854,29 @@
             {
               "path": "skills",
               "decision": "exclude",
-              "reason": "Product skill sources distributed whole and verified by release tests, sharing the root package lifecycle.",
+              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
               "evidence": [
+                "docs/development/README.md",
                 "package.json",
-                "skills",
-                "test/release.test.ts"
+                "skills"
               ]
             },
             {
               "path": "src",
               "decision": "exclude",
-              "reason": "Implementation modules built together as the root CLI package; no workspace-member package.",
+              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
               "evidence": [
+                "docs/development/README.md",
                 "package.json",
-                "pnpm-workspace.yaml",
-                "src",
-                "tsconfig.build.json"
+                "src"
               ]
             },
             {
               "path": "test",
               "decision": "exclude",
-              "reason": "Tests and fixture harnesses belonging to the one root CLI package.",
+              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
               "evidence": [
+                "docs/development/README.md",
                 "package.json",
                 "test"
               ]
@@ -1935,8 +1884,9 @@
             {
               "path": "vendor",
               "decision": "exclude",
-              "reason": "Installed third-party parser resources; not maintained adopting-project Projects.",
+              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
               "evidence": [
+                "docs/development/README.md",
                 "package.json",
                 "vendor"
               ]
@@ -1951,7 +1901,7 @@
       "targets": {
         "CONTEXT.md": {
           "type": "file",
-          "sha256": "984d8ce6224a0f54d3f0f4cc1189738f852a1faf4a4969d1dba579f4ae28167b",
+          "sha256": "5c67ed089d9b6489d8d49642fecf39383fe4a82eae4c7689e5863b4909188411",
           "executable": false
         },
         "docs/README.md": {
@@ -1971,7 +1921,7 @@
         },
         "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md": {
           "type": "file",
-          "sha256": "92d9b92395e2c4239a82e3d8eed1b9f461be5bc465a0fdda4978011dc7456f61",
+          "sha256": "33ff3e041641621ec9ebb2a97cb737e3204b5ff24644dbcb270e34fc8cdda5a4",
           "executable": false
         },
         "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md": {
@@ -2006,7 +1956,7 @@
         },
         "docs/adr/0010-replace-tracked-content-block-only-untracked.md": {
           "type": "file",
-          "sha256": "95664354c1e69866d0badc6a4e7bbf356c5fc30046e5d0e76a295dc2aefe339d",
+          "sha256": "fbf56133e3b571ba2552138c4ff0d0034b56d6256aec3fac1827418695fd2aa6",
           "executable": false
         },
         "docs/adr/0011-retain-only-the-current-run.md": {
@@ -2039,9 +1989,14 @@
           "sha256": "a95de0d2d7c780c0d0320312feb1846b7a2523b0441033b76f9ca4a415ca08a3",
           "executable": false
         },
+        "docs/adr/0017-confirm-only-confirmation-required-changes.md": {
+          "type": "file",
+          "sha256": "3b048a7137bda262b86d8408098b82723f6bad75345554b90cdc74b5b200dd9d",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "199634d492140d4f22ea5e9df8f8b5acdb69882362e234eb4d043ec6d4138acb",
+          "sha256": "0d56b07d38274bc9109968e1c7eb614152d416fff72c8eb03e921d0e9d50e1e0",
           "executable": false
         },
         "docs/agents/project.md": {
@@ -2051,12 +2006,12 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "dc4f0c7353fb9ff9d958781cffd5b5657cf529549dae62cf026aa8dc9fba98a6",
+          "sha256": "3788b0e8a8891ce17572d576c6bdc0ff908c8a1d0aaaaada032b624726d2f8fa",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "e395bfb1c7e3844b12f6faa2e43ffb44ebc2e64da2ea401c4f79c0fa3e7684cd",
+          "sha256": "6a35c884b764e5715600822f588c9ad81036681b2d4ed3a7e83a7b54f2f7f247",
           "executable": false
         },
         "docs/development/release.md": {
@@ -2066,37 +2021,37 @@
         },
         "docs/usage/README.md": {
           "type": "file",
-          "sha256": "6dc5c55d48a3fd3dbc5ad6f634dfca4ba61eb6170994d8074919402ff05ea022",
+          "sha256": "e348f243ca2ff1fc9a50f93d98c497406bbc07257b0a775864d659ee98ad7395",
           "executable": false
         },
         "docs/usage/adoption.md": {
           "type": "file",
-          "sha256": "d9a5230ea7207c31ffa661709151a42fbe97ee8a26b823df6165c49602b2451a",
+          "sha256": "792d4044cc1396a4cfdd90dc5d88648b00029cd73e224a5749704c8cd91d50cf",
           "executable": false
         },
         "docs/usage/assessment-protocol.md": {
           "type": "file",
-          "sha256": "fef0a784f32c9d70a336a78abc3382272a39b4b09f67542ca47c6851de63a032",
+          "sha256": "0542a827ce321a931a6cae9adc338d11b32ac63dda10ff82b70b82bb91f90788",
           "executable": false
         },
         "docs/usage/author-format.md": {
           "type": "file",
-          "sha256": "48be00fb3833b967a42d7fd356294fb743dd12c5df4168e75a72268f01080259",
+          "sha256": "10e7865c103c55dd0faf2f1f1c5b4029a3ac152fa80611bc618b2d7b222398cc",
           "executable": false
         },
         "docs/usage/authoring.md": {
           "type": "file",
-          "sha256": "0ef7127d9e597a89452dc69bee96fbc301a7d12215d2905365dfb2cd8338fe26",
+          "sha256": "02ce50c82a4c1521dbd288cd513b663b9f821c6a4567628b0a469e6bfd90a008",
           "executable": false
         },
         "docs/usage/available-updates.md": {
           "type": "file",
-          "sha256": "82aa37ebe12b0d66d1d14026c0bbb0785099b84f3126208ba71ca01f0fc8600a",
+          "sha256": "f49f5cda316293c98acb84658642f6a9794a85705e43fb05a07520115dc05a76",
           "executable": false
         },
         "docs/usage/check.md": {
           "type": "file",
-          "sha256": "d440d63cc8fec263743a0747d555a6a4719787a18141b1308182fe907c2b2293",
+          "sha256": "bbff51aca0d97bf0457399ece4800232bc1aff0650225437f39c132c70df4cfc",
           "executable": false
         },
         "docs/usage/discovery.md": {
@@ -2106,17 +2061,17 @@
         },
         "docs/usage/inspection.md": {
           "type": "file",
-          "sha256": "0ab45af8db2806bef25f46e6ac28d2a3b704b431105e594fbcd23d4981695588",
+          "sha256": "06c55776a3b146ff75a14a74101ebc8428677f68879fd059dba69ffd6537bb49",
           "executable": false
         },
         "docs/usage/installation.md": {
           "type": "file",
-          "sha256": "d8d1804a6af22274c3ae52840cf7076f59cb6f70cdc874888bc7af62bb5d29f3",
+          "sha256": "9cac4a47c4347136e3ee2c328c6454f428b4934913be4d0bdaff6aa4919acb3c",
           "executable": false
         },
         "docs/usage/script-protocol.md": {
           "type": "file",
-          "sha256": "1972367b82f7f34b6e7eac7a434cbd4119293dfa47793123adc7dad5b875f67d",
+          "sha256": "4a02d4c7157b8acc11f3be378ddedbb639d29d9035ad36b87f5fd90bbd00d3ce",
           "executable": false
         }
       }
@@ -2757,7 +2712,7 @@
         },
         "CONTEXT.md": {
           "type": "file",
-          "sha256": "984d8ce6224a0f54d3f0f4cc1189738f852a1faf4a4969d1dba579f4ae28167b",
+          "sha256": "5c67ed089d9b6489d8d49642fecf39383fe4a82eae4c7689e5863b4909188411",
           "executable": false
         },
         "CONTRIBUTING.md": {
@@ -2772,12 +2727,12 @@
         },
         "README.md": {
           "type": "file",
-          "sha256": "a6e6d945fc41492e4c988a5d8737c96b1d8da0019c8652b50e712c05f45d3a1a",
+          "sha256": "cca8429526811ada222826c8252baa2ce63962c6cd8f26222f17e3bc826944b7",
           "executable": false
         },
         "acceptance/README.md": {
           "type": "file",
-          "sha256": "1b655ebe4923ba4d8b2563fb0539235c7e2873919e75190ffd7908d99aebeacb",
+          "sha256": "1ef3fd1113556f9fae33b85becd9acd2da8456171a0348b5703f704e4af3b966",
           "executable": false
         },
         "acceptance/cli.ts": {
@@ -2977,12 +2932,12 @@
         },
         "acceptance/sources/wayfinder/operations/service-evidence.mjs": {
           "type": "file",
-          "sha256": "b55e55f3a85769b5cace6ede84075b96cf6ff8f1755b6de1d6bdc9721f63b9ab",
+          "sha256": "daebf137c18417b0e163cecc2c2f582b1d2d0d5a4eac19061eff5d626fa5d770",
           "executable": false
         },
         "acceptance/sources/wayfinder/standards.yaml": {
           "type": "file",
-          "sha256": "869a4bbfaf662c1fb752af52d35e25c8a62ba4f991453570008e533a673a5705",
+          "sha256": "342931658984d9c0486bd921bc56adcc8861dbe5cfbe24e8f4049c8b63ca53e8",
           "executable": false
         },
         "bootstrap/repo-standards": {
@@ -3007,7 +2962,7 @@
         },
         "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md": {
           "type": "file",
-          "sha256": "92d9b92395e2c4239a82e3d8eed1b9f461be5bc465a0fdda4978011dc7456f61",
+          "sha256": "33ff3e041641621ec9ebb2a97cb737e3204b5ff24644dbcb270e34fc8cdda5a4",
           "executable": false
         },
         "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md": {
@@ -3042,7 +2997,7 @@
         },
         "docs/adr/0010-replace-tracked-content-block-only-untracked.md": {
           "type": "file",
-          "sha256": "95664354c1e69866d0badc6a4e7bbf356c5fc30046e5d0e76a295dc2aefe339d",
+          "sha256": "fbf56133e3b571ba2552138c4ff0d0034b56d6256aec3fac1827418695fd2aa6",
           "executable": false
         },
         "docs/adr/0011-retain-only-the-current-run.md": {
@@ -3075,9 +3030,14 @@
           "sha256": "a95de0d2d7c780c0d0320312feb1846b7a2523b0441033b76f9ca4a415ca08a3",
           "executable": false
         },
+        "docs/adr/0017-confirm-only-confirmation-required-changes.md": {
+          "type": "file",
+          "sha256": "3b048a7137bda262b86d8408098b82723f6bad75345554b90cdc74b5b200dd9d",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "199634d492140d4f22ea5e9df8f8b5acdb69882362e234eb4d043ec6d4138acb",
+          "sha256": "0d56b07d38274bc9109968e1c7eb614152d416fff72c8eb03e921d0e9d50e1e0",
           "executable": false
         },
         "docs/agents/README.md": {
@@ -3107,12 +3067,12 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "dc4f0c7353fb9ff9d958781cffd5b5657cf529549dae62cf026aa8dc9fba98a6",
+          "sha256": "3788b0e8a8891ce17572d576c6bdc0ff908c8a1d0aaaaada032b624726d2f8fa",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "e395bfb1c7e3844b12f6faa2e43ffb44ebc2e64da2ea401c4f79c0fa3e7684cd",
+          "sha256": "6a35c884b764e5715600822f588c9ad81036681b2d4ed3a7e83a7b54f2f7f247",
           "executable": false
         },
         "docs/development/release.md": {
@@ -3122,37 +3082,37 @@
         },
         "docs/usage/README.md": {
           "type": "file",
-          "sha256": "6dc5c55d48a3fd3dbc5ad6f634dfca4ba61eb6170994d8074919402ff05ea022",
+          "sha256": "e348f243ca2ff1fc9a50f93d98c497406bbc07257b0a775864d659ee98ad7395",
           "executable": false
         },
         "docs/usage/adoption.md": {
           "type": "file",
-          "sha256": "d9a5230ea7207c31ffa661709151a42fbe97ee8a26b823df6165c49602b2451a",
+          "sha256": "792d4044cc1396a4cfdd90dc5d88648b00029cd73e224a5749704c8cd91d50cf",
           "executable": false
         },
         "docs/usage/assessment-protocol.md": {
           "type": "file",
-          "sha256": "fef0a784f32c9d70a336a78abc3382272a39b4b09f67542ca47c6851de63a032",
+          "sha256": "0542a827ce321a931a6cae9adc338d11b32ac63dda10ff82b70b82bb91f90788",
           "executable": false
         },
         "docs/usage/author-format.md": {
           "type": "file",
-          "sha256": "48be00fb3833b967a42d7fd356294fb743dd12c5df4168e75a72268f01080259",
+          "sha256": "10e7865c103c55dd0faf2f1f1c5b4029a3ac152fa80611bc618b2d7b222398cc",
           "executable": false
         },
         "docs/usage/authoring.md": {
           "type": "file",
-          "sha256": "0ef7127d9e597a89452dc69bee96fbc301a7d12215d2905365dfb2cd8338fe26",
+          "sha256": "02ce50c82a4c1521dbd288cd513b663b9f821c6a4567628b0a469e6bfd90a008",
           "executable": false
         },
         "docs/usage/available-updates.md": {
           "type": "file",
-          "sha256": "82aa37ebe12b0d66d1d14026c0bbb0785099b84f3126208ba71ca01f0fc8600a",
+          "sha256": "f49f5cda316293c98acb84658642f6a9794a85705e43fb05a07520115dc05a76",
           "executable": false
         },
         "docs/usage/check.md": {
           "type": "file",
-          "sha256": "d440d63cc8fec263743a0747d555a6a4719787a18141b1308182fe907c2b2293",
+          "sha256": "bbff51aca0d97bf0457399ece4800232bc1aff0650225437f39c132c70df4cfc",
           "executable": false
         },
         "docs/usage/discovery.md": {
@@ -3162,22 +3122,22 @@
         },
         "docs/usage/inspection.md": {
           "type": "file",
-          "sha256": "0ab45af8db2806bef25f46e6ac28d2a3b704b431105e594fbcd23d4981695588",
+          "sha256": "06c55776a3b146ff75a14a74101ebc8428677f68879fd059dba69ffd6537bb49",
           "executable": false
         },
         "docs/usage/installation.md": {
           "type": "file",
-          "sha256": "d8d1804a6af22274c3ae52840cf7076f59cb6f70cdc874888bc7af62bb5d29f3",
+          "sha256": "9cac4a47c4347136e3ee2c328c6454f428b4934913be4d0bdaff6aa4919acb3c",
           "executable": false
         },
         "docs/usage/script-protocol.md": {
           "type": "file",
-          "sha256": "1972367b82f7f34b6e7eac7a434cbd4119293dfa47793123adc7dad5b875f67d",
+          "sha256": "4a02d4c7157b8acc11f3be378ddedbb639d29d9035ad36b87f5fd90bbd00d3ce",
           "executable": false
         },
         "examples/alice/defaults/checks/readme.py": {
           "type": "file",
-          "sha256": "096be53f4341c075024c2b682f030b10cf6d5450082c34b6efccd99893a7ae3e",
+          "sha256": "c407d53f3e99c3afeb5eb0182ce97f705314a373423a93648ebdbefd9d07baab",
           "executable": false
         },
         "examples/alice/defaults/files/AGENTS.md": {
@@ -3212,7 +3172,7 @@
         },
         "examples/alice/standards.yaml": {
           "type": "file",
-          "sha256": "cf54fab6cb1d9776ffeb2892b71a856ed9bcd0ad16d6aa159f27dc593730c803",
+          "sha256": "2a58de65ca17f513d039c2944ce9fd6e281dc260e9c3723863ce1541ecc9742e",
           "executable": false
         },
         "examples/atlas/files/catalog.json": {
@@ -3232,12 +3192,12 @@
         },
         "examples/atlas/operations/markdown-ending.mjs": {
           "type": "file",
-          "sha256": "8c9778ef4b2e96465a272773eae16cd379a9c15cc9e81df258289ea0029f1aa8",
+          "sha256": "7611367be5a2c0409775706f6e6191857e57df4dc12f84f02c0a5f99f5a100ce",
           "executable": false
         },
         "examples/atlas/standards.yaml": {
           "type": "file",
-          "sha256": "5d058f6624f40065d505a454603dde85bb707d6202e15df4514e74fb6404b6af",
+          "sha256": "e58ac07c54b497e8034b8f6cfedf0c41200b109894a4daf87dfc56b41038438c",
           "executable": false
         },
         "examples/mira/files/editorconfig": {
@@ -3252,12 +3212,12 @@
         },
         "examples/mira/operations/check-operations.mjs": {
           "type": "file",
-          "sha256": "f72fe74be296bd7a78bfaa899be7068fc00ce0603d36b0654ee0d4d4bf70ca9f",
+          "sha256": "8787889f68a704c0da86591e57a05b35c9a86e3ae7ec6b9dfd910aad0002f417",
           "executable": false
         },
         "examples/mira/operations/initialize-status.mjs": {
           "type": "file",
-          "sha256": "a990b859329c5bfd577fd86a985787970d4d38743da7bd62a1b0ac6c4b7ccf30",
+          "sha256": "b93f78519fa877bd757c34ae87b124ce1e5a3ad58feba81aa0c829abc80e62c9",
           "executable": false
         },
         "examples/mira/operations/required-sections.json": {
@@ -3267,7 +3227,7 @@
         },
         "examples/mira/standards.yaml": {
           "type": "file",
-          "sha256": "f2dfd372df44ea132292b992794966cfc2b5d54d1237ffd995967c0a662edc2e",
+          "sha256": "5ae0c35ed550615a4966e7b5095e8246b5099746a69c82f022eb0de4216a0e11",
           "executable": false
         },
         "operations/lib/rendered-markdown.mjs": {
@@ -3277,7 +3237,7 @@
         },
         "package.json": {
           "type": "file",
-          "sha256": "9f2b95808be43b746d8aad960e6ecce1f07f2cef75d0fbcaa9b076d73a02e461",
+          "sha256": "0e94749b29be9f2f2c88d59f33be27a13323d4781345dd82e0a18acebcb518bf",
           "executable": false
         },
         "pnpm-lock.yaml": {
@@ -3312,7 +3272,7 @@
         },
         "scripts/validate-issue-contract.mjs": {
           "type": "file",
-          "sha256": "ff4cafab526a72d1bb430936b3da20aaca7e65df47eb0087dfe67907124a5275",
+          "sha256": "191300570b34b7b3f689aaf093435184dd9d2171e83a1272d1554c69fb6d26ab",
           "executable": false
         },
         "scripts/verify-npm-publisher.ts": {
@@ -3322,7 +3282,7 @@
         },
         "skills/adopt-standards/SKILL.md": {
           "type": "file",
-          "sha256": "ef097e2e369ed5bc44311a75292891de0260ff3dd318942f36ee49cb668df08e",
+          "sha256": "8abd386956435fec093e74982de0687bd5d9b4be6e77ef28bc3a670f1c415224",
           "executable": false
         },
         "skills/adopt-standards/agents/openai.yaml": {
@@ -3332,27 +3292,27 @@
         },
         "skills/adopt-standards/references/assessment.md": {
           "type": "file",
-          "sha256": "517e66c6556d19e0e29f19f229c5a10c202cb4a0dd9d3d70ad7275fba165f7fe",
+          "sha256": "b0e4fdafd427a18ba834deaa98e4a695884d5e9cd0f959df7f5fbd469e07d881",
           "executable": false
         },
         "skills/adopt-standards/references/discovery.md": {
           "type": "file",
-          "sha256": "30acedb91d827e23d1442252a2c8e42ffd3b5b22dc5cdbf969cf09e66a026494",
+          "sha256": "0170d35348f3b671a1c28da5ca624e32bc71bae32198f16bd42d3b419fb9c980",
           "executable": false
         },
         "skills/adopt-standards/references/recovery.md": {
           "type": "file",
-          "sha256": "69c25d7f4bde8cedd20350be878f1444f5ee7095d746c46a39ddacb848dad621",
+          "sha256": "27d88ef16bccb4538b25c40068b57eb9eeb769320fb1a87b78a33057e7924e06",
           "executable": false
         },
         "skills/adopt-standards/references/review.md": {
           "type": "file",
-          "sha256": "cf8f028b0965d0395571e79a5ca5bb795de1b2ff397a45aab411474da72df10a",
+          "sha256": "9a369755463ded9523d50bf1a338490d156860c7b3516ca27b465427d113bf61",
           "executable": false
         },
         "skills/author-standards/SKILL.md": {
           "type": "file",
-          "sha256": "832e70d83337ea7dcbe6215a3509a80dddc2c9ae0e3b2f30051b3b820db22d29",
+          "sha256": "8b43ace92ae5e8e83b35a41eabd4a6f91e600c3f1c2a066bc34c9af08a1e5f3b",
           "executable": false
         },
         "skills/author-standards/agents/openai.yaml": {
@@ -3362,12 +3322,12 @@
         },
         "skills/author-standards/references/cli.md": {
           "type": "file",
-          "sha256": "d11939a483c9cf85a1c78292e59a4a13adce4c7ec3cc9f32d6f4e687d3199572",
+          "sha256": "e91782cc3a68f4998d037716bb58a475602e17f9fcd4bc7d55325d4813d3c2da",
           "executable": false
         },
         "skills/author-standards/references/operations.md": {
           "type": "file",
-          "sha256": "8fe3a16dbac1f3370a20e043aea639fab111389b968ed832b368424db4d6a103",
+          "sha256": "8b9e6ec747cc929140dfa6fbcf1af5e6f948c97aef7a93dcf386e2e14462fec5",
           "executable": false
         },
         "skills/author-standards/references/profiles.md": {
@@ -3382,7 +3342,7 @@
         },
         "skills/standards-updates/SKILL.md": {
           "type": "file",
-          "sha256": "722c218bf5a3cf54ea5778bac1c7c7c56fa27f912b8648e7de2b798699f1ee18",
+          "sha256": "3262164c280f6d05c33fcfed23934dc17955038680ad19a89fef26a5cb4e0999",
           "executable": false
         },
         "skills/standards-updates/agents/openai.yaml": {
@@ -3402,12 +3362,12 @@
         },
         "src/adoption-run.ts": {
           "type": "file",
-          "sha256": "2289f884102d4c62162b814628c180e66b7717df4fc1651994468771ecd198ba",
+          "sha256": "23241e7269e5ebc1fb379045494c835badde437e8b5cee3004df9a90ca44c413",
           "executable": false
         },
         "src/adoption.ts": {
           "type": "file",
-          "sha256": "7a1fc7c45d721ceb5288b6ef089a54bb0f4959b829d07cc4a35a32f3fdfef00b",
+          "sha256": "5170f60254221034cb5562ec1d1b87e19321c9e6e49532ee9921865ccc29a92d",
           "executable": false
         },
         "src/assessment.ts": {
@@ -3422,7 +3382,7 @@
         },
         "src/cli.ts": {
           "type": "file",
-          "sha256": "d6f141a2bfa378dc72f1d864ce04c88f7ad7e759356c97b75f7c5c4326120dbf",
+          "sha256": "62d99d627bdcf7dc7bc3d12cbe4e9f2066fa278b1a65272c7fb8dd7fe636f939",
           "executable": false
         },
         "src/declarations.ts": {
@@ -3442,22 +3402,22 @@
         },
         "src/execution.ts": {
           "type": "file",
-          "sha256": "34e72477d59fde67ef11533285a90b35a533aaa52c8c99e0765d699c7eb22f86",
+          "sha256": "cb5ff51a1891a9f2880721d0a2f598b1c5e36838ed8f6b2469f1bd8304d5be10",
           "executable": false
         },
         "src/formats.ts": {
           "type": "file",
-          "sha256": "ae06f424e6a84b4dd049b57e0cca801c89e5e2b11513a05367c3b1e4a2b92aaa",
+          "sha256": "105fe7e48b7b3c751da3dc2b6d15afaaa71ed343869698f904bf154f9a03e13b",
           "executable": false
         },
         "src/inspection.ts": {
           "type": "file",
-          "sha256": "0d0d08e68d505e94050158971dd26bcdcb43535951cb3b12114c21b35d6bcca8",
+          "sha256": "fc373cee99e9af0ccaf5636258b2ca507f77158d8eb4572bc5c4ce927b5f9939",
           "executable": false
         },
         "src/installation.ts": {
           "type": "file",
-          "sha256": "a703d8238029bce6266117de3cf96d5cc6291c408fdc9f5510a7c4d24e0a64ff",
+          "sha256": "485e1dec42770d41e843c1a1f09ece89ff684f1b132382977053f3789adfb868",
           "executable": false
         },
         "src/model.ts": {
@@ -3497,7 +3457,7 @@
         },
         "src/resolver.ts": {
           "type": "file",
-          "sha256": "bb275c473b0ecfc4444c71824fc0cefd53b512645983c2c77cdff16fd686f5d3",
+          "sha256": "dce63aa8c4ab544715ef9bef18a3da3202e2eee327a0a1d9253eb786659be687",
           "executable": false
         },
         "src/run-lock.ts": {
@@ -3527,7 +3487,7 @@
         },
         "src/summary.ts": {
           "type": "file",
-          "sha256": "e10c0907dd5ee030f8505bb589483b2e3f119b6b90cc0815e2a13cfcab1a8979",
+          "sha256": "6075a16afa71235a15988dbbcb88ed8c404f9142ec9fdf935fb9a7e70d48e9ab",
           "executable": false
         },
         "src/target-ownership.ts": {
@@ -3552,12 +3512,12 @@
         },
         "src/work-evidence.ts": {
           "type": "file",
-          "sha256": "2141076be8125ecbc2d3cc2a52ddd29bda8bd2cc388a971a2c9ded83a760fabb",
+          "sha256": "be40042ec7e04019acdcbc7979a94faed06d82c3391df65724e9c1ec32ae34d0",
           "executable": false
         },
         "src/work-observation.ts": {
           "type": "file",
-          "sha256": "19d7aab590fb784d1e85a923c9c7e5f6ca8912df071c297e752522ec84dbf468",
+          "sha256": "d2c671b2c8f13f912e3853aa7d67fb6491c15c69eccfe25fd6758f5250f1ddd7",
           "executable": false
         },
         "src/yaml.ts": {
@@ -3582,17 +3542,17 @@
         },
         "test/adoption-fixture.ts": {
           "type": "file",
-          "sha256": "69b7d642cb871ac6a17324671afd318ad520f2a047e4f2333217672299a0f728",
+          "sha256": "fae0da68c587bcf066a9b9fa22a5b48eded3aa71e62934d1db0b8bf46ab2b9a1",
           "executable": false
         },
         "test/adoption.test.ts": {
           "type": "file",
-          "sha256": "633c063fa86d960589981513e4104572c7035ab846b6b0982a9e99b0fef72571",
+          "sha256": "3e2a23b93afd82f09a410dc5a949765e60ae64d3de9ff946539407ca2fb76121",
           "executable": false
         },
         "test/assessment.test.ts": {
           "type": "file",
-          "sha256": "ed154d963caabf77e0525ae9bc5f92729fae5a126380bfe02aae17cf1b09d164",
+          "sha256": "33b715bc8c5fd81288e5461fa73dae95c3fc755f510ed4a3fc7a474aa9b218d9",
           "executable": false
         },
         "test/bootstrap.test.ts": {
@@ -3602,12 +3562,12 @@
         },
         "test/check.test.ts": {
           "type": "file",
-          "sha256": "96b0bd32198c297f360151b9e3ba26e45796a5cb8505351f7c86cc62bf151c90",
+          "sha256": "aa56166ff091702c6bbaa48953e89d45761d140a24b2ba307b9fcc01f01f7db7",
           "executable": false
         },
         "test/cli-pin.test.ts": {
           "type": "file",
-          "sha256": "a04a22ac1f46dbb257f44ca8243e9d7924acde6a16230dae29141de69e0561d5",
+          "sha256": "e858b81ec351906f5e9a807aa83743ea951b193742b472c694de7691ac44f0dd",
           "executable": false
         },
         "test/committed-evidence.ts": {
@@ -3617,7 +3577,7 @@
         },
         "test/discovery-lifecycle.test.ts": {
           "type": "file",
-          "sha256": "72160355fbc20ba82ab7d418f8fa7e111a00f4c0b39f1db837607e99b3b70000",
+          "sha256": "0c70e5e1d821aa417427dd07d7aa5ffcfaed29baa7f90d51336f72b2e5483ddf",
           "executable": false
         },
         "test/examples.test.ts": {
@@ -3627,7 +3587,7 @@
         },
         "test/execution.test.ts": {
           "type": "file",
-          "sha256": "442534e946dad8a3120349197457a081de31fe4f4ba2613b3130a4e40a16a1f4",
+          "sha256": "042f95c67d93c692a5c4750df5a34f8ed9cbe819c74f104107596dd3885098d2",
           "executable": false
         },
         "test/github-fixture.ts": {
@@ -3637,7 +3597,7 @@
         },
         "test/github-token.test.ts": {
           "type": "file",
-          "sha256": "8ac10b8accab1b406dd123db2ad1994310ed21003482c11cff98fa9ab9242a5d",
+          "sha256": "75dc4a3aa90ee9f3a4abccc37e5ef1adb3998c49b51774ab1ed1a1a4b3f40335",
           "executable": false
         },
         "test/import-cycles.test.ts": {
@@ -3647,7 +3607,7 @@
         },
         "test/inspection.test.ts": {
           "type": "file",
-          "sha256": "32c076fa55b9502ce5ae6bcf6b8c18776ac219aa3962f5785111c097450c469c",
+          "sha256": "0e81ebe7ce81acf673eac087419a538708242365f0dadd79df945522a01df900",
           "executable": false
         },
         "test/installed-cli.ts": {
@@ -3657,12 +3617,12 @@
         },
         "test/json-reports.ts": {
           "type": "file",
-          "sha256": "e44795fa0edbe0ed801b8a24738f499a18b337fb8be42b9615a333e207607f10",
+          "sha256": "072c4e90d45c07fd43d149684e9de38a961b0785d1484a98c67baa00249ec757",
           "executable": false
         },
         "test/observed-scope.test.ts": {
           "type": "file",
-          "sha256": "02c3aada77d09099b62a14e1a510e1cf6499e9040f883b5dc4f49930ffba1684",
+          "sha256": "b72ded17d459c0be083f7cbf0604fafa378dec4441c4cc5835f0f5d658dabb42",
           "executable": false
         },
         "test/operation-validation.test.ts": {
@@ -3672,7 +3632,7 @@
         },
         "test/outdated.test.ts": {
           "type": "file",
-          "sha256": "bf96215e1cb4c52ec37d07fe9fd3d274b794c6d326235ef53e7c891e564208bf",
+          "sha256": "17acccb0fd8bbbb43f3a36277cf72fbc46567d163ba60d862d6e80020365f4c5",
           "executable": false
         },
         "test/path-validation.test.ts": {
@@ -3682,7 +3642,7 @@
         },
         "test/recovery.test.ts": {
           "type": "file",
-          "sha256": "b17e9189760285196d097c140bf515fc3f1ad3421c9b57874cbad5ee22d0b814",
+          "sha256": "13450e8a7f760d46d0408989ab0d4f0661abc0dfb90f9f9ddac9ed209489323d",
           "executable": false
         },
         "test/registry-fixture.ts": {
@@ -3702,12 +3662,12 @@
         },
         "test/remote-fixture.ts": {
           "type": "file",
-          "sha256": "4d017e5da999a6cead06974d469113d73908646324142bc301c3eb22dcbff6f9",
+          "sha256": "21a4233002f819157df2c75987d618cc96de97464d86064da046b09c26054650",
           "executable": false
         },
         "test/retired-formats.test.ts": {
           "type": "file",
-          "sha256": "306937f317117d5e348d6d8e3a71fe4af062016ac7c07452dacc93461c6a963c",
+          "sha256": "764c19f2ca799a20a6f5e3287a24c0526387ac69f64b6fa9c36a64ccb2e71a8c",
           "executable": false
         },
         "test/runtime-acquisition.test.ts": {
@@ -3717,12 +3677,12 @@
         },
         "test/scope-adoption.test.ts": {
           "type": "file",
-          "sha256": "0204caaf83fb451527f4e0866c7d16378c5a755814e06b60ccec7aaf6a65fbc9",
+          "sha256": "face48f9a164604fcaa36e45a5b2ee78023f53df716758ff31a9c045a88c4bc1",
           "executable": false
         },
         "test/scope-inspection.test.ts": {
           "type": "file",
-          "sha256": "a06ff0a3c12a1b585d8162c943e8076b23a25050bff36faf5a18d469295ecec6",
+          "sha256": "0b26546dd39de0cb7450bfa317b7add59ce3f68be2821c68376622d4bd0bf882",
           "executable": false
         },
         "test/search.test.ts": {
@@ -3737,17 +3697,17 @@
         },
         "test/summary.test.ts": {
           "type": "file",
-          "sha256": "ad4b1f24b9e2dff5f3e232730615d2632a7a40779c90fcfdc0eaa52d7c801c66",
+          "sha256": "379427e16dab52fa91cfd1c050a8dc46f5737342fee514c788dbaa3ed80981d5",
           "executable": false
         },
         "test/update-class.test.ts": {
           "type": "file",
-          "sha256": "9d0bdb88b8a710e72e823df31ca8f36fedfd8f000aef5723913fb64dfec5ebcb",
+          "sha256": "8e7860e57f19bc94b703430b40cc867f24346cfead01958d7135b82f2a326ace",
           "executable": false
         },
         "test/update.test.ts": {
           "type": "file",
-          "sha256": "e8aa8c4bb272e4e887591981ce8fc7c8b3de8e5da967e60af7e672949e9c9396",
+          "sha256": "2acc29512388a74d80319ec4fbff5c3bc39990a7fd18f2dd7711c44be708e980",
           "executable": false
         },
         "tsconfig.build.json": {
@@ -4335,6 +4295,7 @@
           "docs/adr/0014-leave-available-updates-to-the-maintainer.md",
           "docs/adr/0015-leave-delivery-to-standards-sources.md",
           "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
+          "docs/adr/0017-confirm-only-confirmation-required-changes.md",
           "docs/adr/README.md"
         ],
         "docs/agents": [
@@ -5511,5 +5472,13 @@
       }
     }
   },
-  "scopeChanges": []
+  "scopeChanges": [
+    {
+      "id": "documentation",
+      "additions": [
+        "docs/adr/0017-confirm-only-confirmation-required-changes.md"
+      ],
+      "removals": []
+    }
+  ]
 }

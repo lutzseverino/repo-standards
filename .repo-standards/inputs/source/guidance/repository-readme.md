@@ -32,9 +32,9 @@ prose, additional links, lists, quotations, tables, or images. The Contributing
 section links to `CONTRIBUTING.md`. When documentation exists, the
 Documentation section links to `docs/README.md`, which lists the documents;
 otherwise omit the section. The License section links to the root `LICENSE`
-file, and its label is the actual repository license name. If the repository
-has no clear, single license, ask the maintainer to identify it; never select
-or infer a license for the project.
+file, and its label is the actual repository license name. The separate
+`repository-license` declaration establishes that file according to the
+[Repository license guidance](repository-license.md).
 
 Report evidence for descriptions, commands, technology choices, badges, and
 links. The read-only structural check covers title centering, section order,
