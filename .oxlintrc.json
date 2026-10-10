@@ -8,7 +8,12 @@
     "typeAware": true,
     "denyWarnings": true
   },
-  "ignorePatterns": ["vendor/**", ".repo-standards/**", ".agents/skills/**"],
+  "ignorePatterns": [
+    "vendor/**",
+    ".repo-standards/**",
+    ".agents/skills/**",
+    ".sandcastle/**"
+  ],
   "rules": {
     "typescript/no-floating-promises": [
       "warn",
