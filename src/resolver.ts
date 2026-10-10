@@ -155,7 +155,7 @@ function resolveDocument(
   else if (range && cliVersion !== undefined && !satisfies(cliVersion, range))
     error(
       "INCOMPATIBLE_CLI",
-      `CLI ${cliVersion} does not satisfy ${range}. Declare an open-ended minimum CLI version, such as ">=1.3.0", so later CLI versions can select this standards version.`,
+      `CLI ${cliVersion} does not satisfy ${range}. Declare an open-ended minimum CLI version, such as ">=${cliVersion}", so later CLI versions can select this standards version.`,
       rangeValue,
     );
   const defaults = fields.get(root, "defaults");

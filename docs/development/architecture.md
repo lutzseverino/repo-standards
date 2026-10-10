@@ -1,6 +1,6 @@
 # Repository Standards — architecture contracts
 
-This document describes the current contracts of CLI 5.1.1; individual tickets
+This document describes the current contracts of CLI 6.0.0; individual tickets
 state implementation scope, and the [architecture decisions](../adr/README.md)
 record the rationale.
 
@@ -98,7 +98,7 @@ format: repo-standards/v2
 name: alice-standards
 description: Alice's repository standards
 requires:
-  repo-standards: ">=1.2.0"
+  repo-standards: ">=6.0.0"
 
 defaults:
   declarations:
@@ -253,7 +253,7 @@ version is selected from its source. Retained inputs are validated against the
 running CLI's supported source formats, which carry the compatibility promise,
 so a CLI update over retained standards never fails on the retained range.
 Validation diagnostics and the authoring guide recommend an open-ended minimum,
-such as `>=1.3.0`. Source Git provenance and SHA-256 hashes of retained inputs
+such as `>=6.0.0`. Source Git provenance and SHA-256 hashes of retained inputs
 are recorded independently of the exact CLI package pin.
 
 ## CLI and bootstrap

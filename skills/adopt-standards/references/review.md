@@ -4,7 +4,7 @@ A complete run leaves its changes uncommitted. Review their contents before the
 maintainer's normal commit workflow, after initial adoption and after every
 update. A list of filenames or hashes is not a content review. What a run
 writes and records is defined in
-[durable and local state](https://github.com/lutzseverino/repo-standards/blob/v5.1.1/docs/usage/adoption.md#durable-and-local-state).
+[durable and local state](https://github.com/lutzseverino/repo-standards/blob/v6.0.0/docs/usage/adoption.md#durable-and-local-state).
 
 ## Enumerate every output
 

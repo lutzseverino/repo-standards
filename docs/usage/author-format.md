@@ -46,7 +46,7 @@ custom working directories, and profile inheritance fields.
 | `format`      | `repo-standards/v2`                                                                                                                                    |
 | `name`        | Nonempty descriptive string                                                                                                                            |
 | `description` | Nonempty descriptive string                                                                                                                            |
-| `requires`    | Mapping containing only `repo-standards`, a nonempty npm SemVer range compatible with the running CLI; declare an open-ended minimum such as `>=1.3.0` |
+| `requires`    | Mapping containing only `repo-standards`, a nonempty npm SemVer range compatible with the running CLI; declare an open-ended minimum such as `>=6.0.0` |
 | `defaults`    | Mapping containing only `declarations`, a mapping of IDs to declarations (possibly empty)                                                              |
 | `profiles`    | Nonempty mapping of profile names to complete profiles                                                                                                 |
 

@@ -42,7 +42,7 @@ With `--json`, `check` prints one `repo-standards/check/v1` object:
   "format": "repo-standards/check/v1",
   "outcome": "failed",
   "selection": {
-    "cli": { "package": "@lutzseverino/repo-standards", "version": "5.0.0" },
+    "cli": { "package": "@lutzseverino/repo-standards", "version": "6.0.0" },
     "standards": {
       "repository": "https://github.com/alice/standards",
       "version": "v1.0.0",

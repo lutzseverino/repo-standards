@@ -1710,11 +1710,14 @@ test("a coordinated update changes the CLI and standards pins in one run when th
   assert.equal(pinned.status, 1, pinned.stdout + pinned.stderr);
   const error = (JSON.parse(pinned.stdout) as ErrorReport).errors[0];
   assert.equal(error!.code, "INVALID_STANDARDS");
-  // The diagnostic recommends an open-ended minimum such as >=1.3.0.
+  // The diagnostic recommends an open-ended minimum at the running CLI version.
   const incompatible = (error!.details as Diagnostic[]).find(
     (detail: { code: string }) => detail.code === "INCOMPATIBLE_CLI",
   );
-  assert.ok(incompatible!.message.includes(">=1.3.0"), incompatible!.message);
+  assert.ok(
+    incompatible!.message.includes(`>=${cli.version}`),
+    incompatible!.message,
+  );
   assert.equal(git(project.root, "status", "--porcelain=v1"), "");
 
   const candidate = installCandidate(candidateVersion, env);
