@@ -30,6 +30,12 @@ links and account for both old and new paths. Preserve exact shared agent
 configuration. Project-specific agent constraints belong in optional
 `docs/agents/project.md`.
 
+During an update, rename existing `CONTEXT.md` and `CONTEXT-MAP.md` files to
+`GLOSSARY.md` and `GLOSSARY-MAP.md`, including glossaries in each context.
+Preserve their content and repair links and map entries to the renamed paths.
+Include both source and destination paths in the contextual documentation scope
+before confirming the inspection. The updated conventions use the new names.
+
 Assess documents against their actual audience and topic. Mechanical checks
 cover categories, directory READMEs, required entry points, local link targets,
 the index entry form, one index per document, the development guide's order,

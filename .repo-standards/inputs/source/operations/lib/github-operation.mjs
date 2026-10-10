@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
+import { isDeepStrictEqual } from "node:util";
 import { spawnSync } from "node:child_process";
 
-const resultFormat = "repo-standards/result/v1";
+const resultFormat = "repo-standards/result/v2";
 const maximumOutput = 1024 * 1024;
 
 function failProcess(message) {
@@ -15,8 +16,8 @@ export function readFixesRequest(operationName) {
   } catch {
     failProcess(`${operationName} input must be one JSON object.`);
   }
-  if (request?.format !== "repo-standards/operation/v1") {
-    failProcess(`${operationName} requires repo-standards/operation/v1 input.`);
+  if (request?.format !== "repo-standards/operation/v2") {
+    failProcess(`${operationName} requires repo-standards/operation/v2 input.`);
   }
   if (request.operation?.phase !== "fixes") {
     failProcess(`${operationName} must run as a fixes operation.`);
@@ -38,6 +39,11 @@ export function readFixesRequest(operationName) {
   ) {
     failProcess(`${operationName} input must identify the project root.`);
   }
+  if (typeof request.overwriteAllowed !== "boolean") {
+    failProcess(
+      `${operationName} input must specify boolean overwriteAllowed.`,
+    );
+  }
   return request;
 }
 
@@ -45,6 +51,30 @@ export function writeOperationResult(status, message) {
   process.stdout.write(
     `${JSON.stringify({ format: resultFormat, status, message })}\n`,
   );
+}
+
+// Missing settings can be created freely; existing differing values need
+// confirmation. Compare only the fields the fix plans to write.
+export function describeSettingChanges(current, desired, prefix) {
+  return Object.entries(desired).flatMap(([name, value]) => {
+    if (
+      !Object.hasOwn(current, name) ||
+      isDeepStrictEqual(current[name], value)
+    )
+      return [];
+    return [
+      `${prefix}.${name} is ${JSON.stringify(current[name])}; the standard sets ${JSON.stringify(value)}`,
+    ];
+  });
+}
+
+export function requireOverwriteConfirmation(request, operationName, changes) {
+  if (request.overwriteAllowed || changes.length === 0) return false;
+  writeOperationResult(
+    "confirmation-required",
+    `${operationName} requires confirmation: ${changes.join("; ")}. No changes were made.`,
+  );
+  return true;
 }
 
 export function run(executable, args, cwd, input) {

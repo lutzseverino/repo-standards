@@ -5,6 +5,9 @@ Read `docs/agents/project.md`, when present, for repository-specific constraints
 
 For setup and validation commands, read `docs/development/README.md`.
 
+Deliver every change as one pull request: open it as `CONTRIBUTING.md` says,
+write its body with `pr`, then `babysit` it until it merges.
+
 ## Agent skills
 
 ### Issue tracker
@@ -19,5 +22,5 @@ The five canonical triage roles use their default label strings. See
 
 ### Domain docs
 
-Single-context by default: a root `CONTEXT.md` and `docs/adr/`; a root
-`CONTEXT-MAP.md` makes it multi-context. See `docs/agents/domain.md`.
+Single-context by default: a root `GLOSSARY.md` and `docs/adr/`; a root
+`GLOSSARY-MAP.md` makes it multi-context. See `docs/agents/domain.md`.

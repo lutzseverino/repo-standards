@@ -66,7 +66,7 @@ carries only product material: the compiled CLI, the bootstrap, the system
 skills with their references, the Alice, Mira, and Atlas author examples, the
 usage documents under `docs/usage/`, the package README, and the license. Development documents, ADRs,
 agent guidance, the documentation index, `AGENTS.md`, `CONTRIBUTING.md`, and
-`CONTEXT.md` stay in the repository. Pack once and publish that same tarball.
+`GLOSSARY.md` stay in the repository. Pack once and publish that same tarball.
 `pnpm validate` installs a release bundle with scripts disabled and exercises its
 executables and supplied author material alongside owning behavior tests.
 

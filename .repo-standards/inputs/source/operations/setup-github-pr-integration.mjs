@@ -1,5 +1,7 @@
 import {
   apiEndpoint,
+  describeSettingChanges,
+  requireOverwriteConfirmation,
   githubApi,
   jsonFrom,
   prepareGithubRepository,
@@ -406,7 +408,16 @@ function updateMergeSettings(identity, projectRoot, effects) {
 // protection nor rulesets, and deferred, while the default branch lacks the
 // workflow that reports it. Either way only the merge settings apply, and the
 // outcome names what applies and why the requirement does not.
-function setupMergeSettingsOnly(identity, repository, projectRoot, outcome) {
+function setupMergeSettingsOnly(identity, repository, request, outcome) {
+  if (
+    requireOverwriteConfirmation(
+      request,
+      operationName,
+      describeSettingChanges(repository, mergeSettings, "repository"),
+    )
+  )
+    return;
+  const projectRoot = request.projectRoot;
   const effects = [];
   if (
     !matchingMergeSettings(repository) &&
@@ -488,7 +499,7 @@ function setupIntegration(request) {
     setupMergeSettingsOnly(
       inferred.identity,
       repository,
-      request.projectRoot,
+      request,
       unavailableRequirement(inferred.identity),
     );
     return;
@@ -523,7 +534,7 @@ function setupIntegration(request) {
     setupMergeSettingsOnly(
       inferred.identity,
       repository,
-      request.projectRoot,
+      request,
       deferredRequirement(inferred.identity, repository.default_branch),
     );
     return;
@@ -553,6 +564,34 @@ function setupIntegration(request) {
     if (plan.kind !== "none") checkAction = { type: "ruleset", plan };
   }
   const settingsNeedUpdate = !matchingMergeSettings(repository);
+  const changes = describeSettingChanges(
+    repository,
+    mergeSettings,
+    "repository",
+  );
+  if (checkAction?.type === "branch") {
+    const contexts = branchBefore.value.statusChecks.contexts;
+    changes.push(
+      ...describeSettingChanges(
+        { contexts },
+        { contexts: [...contexts, checkName] },
+        `branch ${repository.default_branch} protection.required_status_checks`,
+      ),
+    );
+  }
+  if (checkAction?.type === "ruleset" && checkAction.plan.kind === "update") {
+    const current = rulesetsBefore.value.find(
+      (ruleset) => ruleset.id === checkAction.plan.id,
+    );
+    changes.push(
+      ...describeSettingChanges(
+        current,
+        checkAction.plan.payload,
+        `ruleset ${current.name} (${current.id})`,
+      ),
+    );
+  }
+  if (requireOverwriteConfirmation(request, operationName, changes)) return;
   const effects = [];
 
   if (checkAction?.type === "branch") {

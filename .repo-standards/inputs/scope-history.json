@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:26b537519934903c89ef17d7ded37628eec479a5575dbb74146e1a15636c5231",
+  "inspection": "sha256:0c5b2ff8559dd842420a04dcc3b450ff015a81024425a0e7b6302ac7802505d2",
   "resolved": {
     "description": "The complete Repo Canon standards profile",
     "declarations": [
@@ -70,6 +70,7 @@
         "targets": {
           "paths": [
             "CONTEXT.md",
+            "GLOSSARY.md",
             "docs/README.md",
             "docs/adr/0001-separate-authorship-from-adoption.md",
             "docs/adr/0002-finish-authoring-at-a-validated-source.md",
@@ -117,6 +118,81 @@
         "exact": "vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills/domain.md"
       },
       {
+        "id": "factory-adapter",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/adapter.ts",
+        "exact": ".sandcastle/adapter.ts"
+      },
+      {
+        "id": "factory-decision-core",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/factory.ts",
+        "exact": ".sandcastle/factory.ts"
+      },
+      {
+        "id": "factory-direct-prompt",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/direct-prompt.md",
+        "exact": ".sandcastle/direct-prompt.md"
+      },
+      {
+        "id": "factory-entry",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/main.ts",
+        "exact": ".sandcastle/main.ts"
+      },
+      {
+        "id": "factory-gitignore",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/.gitignore",
+        "exact": ".sandcastle/.gitignore"
+      },
+      {
+        "id": "factory-orchestrated-prompt",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/orchestrated-prompt.md",
+        "exact": ".sandcastle/orchestrated-prompt.md"
+      },
+      {
+        "id": "factory-sandbox-image",
+        "checks": [
+          {
+            "id": "sandbox-image-base",
+            "run": {
+              "executable": "node",
+              "script": "operations/check-sandbox-image.mjs",
+              "resources": [
+                "operations/sandbox-image-base.Dockerfile"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0"
+            },
+            "timeout-seconds": 30
+          }
+        ],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/Dockerfile",
+        "guidance": "guidance/factory-sandbox-image.md"
+      },
+      {
         "id": "feature-request-template",
         "checks": [],
         "fixes": [],
@@ -137,6 +213,7 @@
                 "operations/lib/github-operation.mjs",
                 "LICENSE",
                 "THIRD_PARTY_NOTICES.md",
+                "vendor/humanlayer-skills/LICENSE",
                 "vendor/mattpocock-skills/LICENSE"
               ],
               "arguments": []
@@ -174,6 +251,14 @@
           "paths": [],
           "directories": []
         }
+      },
+      {
+        "id": "humanlayer-skills-license",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".agents/skills/LICENSE.humanlayer-skills",
+        "exact": "vendor/humanlayer-skills/LICENSE"
       },
       {
         "id": "implementation-ticket-template",
@@ -383,6 +468,14 @@
         "source": "vendor/mattpocock-skills/skills/engineering/ask-matt"
       },
       {
+        "id": "skill-babysit",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "babysit",
+        "source": ".agents/skills/babysit"
+      },
+      {
         "id": "skill-code-review",
         "checks": [],
         "fixes": [],
@@ -397,14 +490,6 @@
         "kind": "skill",
         "name": "codebase-design",
         "source": "vendor/mattpocock-skills/skills/engineering/codebase-design"
-      },
-      {
-        "id": "skill-deliver",
-        "checks": [],
-        "fixes": [],
-        "kind": "skill",
-        "name": "deliver",
-        "source": ".agents/skills/deliver"
       },
       {
         "id": "skill-diagnosing-bugs",
@@ -463,12 +548,28 @@
         "source": "vendor/mattpocock-skills/skills/engineering/implement"
       },
       {
+        "id": "skill-implement-spec",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "implement-spec",
+        "source": "vendor/mattpocock-skills/skills/engineering/implement-spec"
+      },
+      {
         "id": "skill-improve-codebase-architecture",
         "checks": [],
         "fixes": [],
         "kind": "skill",
         "name": "improve-codebase-architecture",
         "source": "vendor/mattpocock-skills/skills/engineering/improve-codebase-architecture"
+      },
+      {
+        "id": "skill-pr",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "pr",
+        "source": "vendor/mattpocock-skills/skills/engineering/pr"
       },
       {
         "id": "skill-prototype",
@@ -487,12 +588,12 @@
         "source": "vendor/mattpocock-skills/skills/engineering/research"
       },
       {
-        "id": "skill-resolving-merge-conflicts",
+        "id": "skill-retro",
         "checks": [],
         "fixes": [],
         "kind": "skill",
-        "name": "resolving-merge-conflicts",
-        "source": "vendor/mattpocock-skills/skills/engineering/resolving-merge-conflicts"
+        "name": "retro",
+        "source": "vendor/mattpocock-skills/skills/engineering/retro"
       },
       {
         "id": "skill-setup-matt-pocock-skills",
@@ -501,6 +602,14 @@
         "kind": "skill",
         "name": "setup-matt-pocock-skills",
         "source": "vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills"
+      },
+      {
+        "id": "skill-show-me",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "show-me",
+        "source": "vendor/humanlayer-skills/skills/show-me"
       },
       {
         "id": "skill-tdd",
@@ -676,6 +785,81 @@
         "exact": "vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills/domain.md"
       },
       {
+        "id": "factory-adapter",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/adapter.ts",
+        "exact": ".sandcastle/adapter.ts"
+      },
+      {
+        "id": "factory-decision-core",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/factory.ts",
+        "exact": ".sandcastle/factory.ts"
+      },
+      {
+        "id": "factory-direct-prompt",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/direct-prompt.md",
+        "exact": ".sandcastle/direct-prompt.md"
+      },
+      {
+        "id": "factory-entry",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/main.ts",
+        "exact": ".sandcastle/main.ts"
+      },
+      {
+        "id": "factory-gitignore",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/.gitignore",
+        "exact": ".sandcastle/.gitignore"
+      },
+      {
+        "id": "factory-orchestrated-prompt",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/orchestrated-prompt.md",
+        "exact": ".sandcastle/orchestrated-prompt.md"
+      },
+      {
+        "id": "factory-sandbox-image",
+        "checks": [
+          {
+            "id": "sandbox-image-base",
+            "run": {
+              "executable": "node",
+              "script": "operations/check-sandbox-image.mjs",
+              "resources": [
+                "operations/sandbox-image-base.Dockerfile"
+              ],
+              "arguments": []
+            },
+            "prerequisite": {
+              "version-arguments": [
+                "--version"
+              ],
+              "version": ">=24.0.0 <25.0.0"
+            },
+            "timeout-seconds": 30
+          }
+        ],
+        "fixes": [],
+        "kind": "file",
+        "target": ".sandcastle/Dockerfile",
+        "guidance": "guidance/factory-sandbox-image.md"
+      },
+      {
         "id": "feature-request-template",
         "checks": [],
         "fixes": [],
@@ -696,6 +880,7 @@
                 "operations/lib/github-operation.mjs",
                 "LICENSE",
                 "THIRD_PARTY_NOTICES.md",
+                "vendor/humanlayer-skills/LICENSE",
                 "vendor/mattpocock-skills/LICENSE"
               ],
               "arguments": []
@@ -730,6 +915,14 @@
         "kind": "repository",
         "guidance": "guidance/github-repository-configuration.md",
         "discovery": "discovery/github-repository-configuration.md"
+      },
+      {
+        "id": "humanlayer-skills-license",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".agents/skills/LICENSE.humanlayer-skills",
+        "exact": "vendor/humanlayer-skills/LICENSE"
       },
       {
         "id": "implementation-ticket-template",
@@ -936,6 +1129,14 @@
         "source": "vendor/mattpocock-skills/skills/engineering/ask-matt"
       },
       {
+        "id": "skill-babysit",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "babysit",
+        "source": ".agents/skills/babysit"
+      },
+      {
         "id": "skill-code-review",
         "checks": [],
         "fixes": [],
@@ -950,14 +1151,6 @@
         "kind": "skill",
         "name": "codebase-design",
         "source": "vendor/mattpocock-skills/skills/engineering/codebase-design"
-      },
-      {
-        "id": "skill-deliver",
-        "checks": [],
-        "fixes": [],
-        "kind": "skill",
-        "name": "deliver",
-        "source": ".agents/skills/deliver"
       },
       {
         "id": "skill-diagnosing-bugs",
@@ -1016,12 +1209,28 @@
         "source": "vendor/mattpocock-skills/skills/engineering/implement"
       },
       {
+        "id": "skill-implement-spec",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "implement-spec",
+        "source": "vendor/mattpocock-skills/skills/engineering/implement-spec"
+      },
+      {
         "id": "skill-improve-codebase-architecture",
         "checks": [],
         "fixes": [],
         "kind": "skill",
         "name": "improve-codebase-architecture",
         "source": "vendor/mattpocock-skills/skills/engineering/improve-codebase-architecture"
+      },
+      {
+        "id": "skill-pr",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "pr",
+        "source": "vendor/mattpocock-skills/skills/engineering/pr"
       },
       {
         "id": "skill-prototype",
@@ -1040,12 +1249,12 @@
         "source": "vendor/mattpocock-skills/skills/engineering/research"
       },
       {
-        "id": "skill-resolving-merge-conflicts",
+        "id": "skill-retro",
         "checks": [],
         "fixes": [],
         "kind": "skill",
-        "name": "resolving-merge-conflicts",
-        "source": "vendor/mattpocock-skills/skills/engineering/resolving-merge-conflicts"
+        "name": "retro",
+        "source": "vendor/mattpocock-skills/skills/engineering/retro"
       },
       {
         "id": "skill-setup-matt-pocock-skills",
@@ -1054,6 +1263,14 @@
         "kind": "skill",
         "name": "setup-matt-pocock-skills",
         "source": "vendor/mattpocock-skills/skills/engineering/setup-matt-pocock-skills"
+      },
+      {
+        "id": "skill-show-me",
+        "checks": [],
+        "fixes": [],
+        "kind": "skill",
+        "name": "show-me",
+        "source": "vendor/humanlayer-skills/skills/show-me"
       },
       {
         "id": "skill-tdd",
@@ -1154,20 +1371,46 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:175c6ca45dbe435dbab3340564b21cc3d577235f02724851e005844ef8692fbf",
+    "identity": "sha256:7860f7df78314024ec2276a0dac61dff903e12546ed289edc1bb3a3567206483",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Fresh review against current main 70f1290 includes the newly maintained ADR docs/adr/0017-confirm-only-confirmation-required-changes.md and its existing ADR index. The root CONTEXT.md and remaining documentation describe the current neutral CLI product. Acceptance fixtures, standards-source examples, and packaged skill resources remain excluded for their actual responsibilities. docs is still the sole documentation root; no moves, missing indexes or outside link repairs are required.",
+          "coverage": "The only documentation root is docs, with usage, development, adr and agents categories. Include every project-owned document and index there; exact shared agent configuration remains excluded. CONTEXT.md is the single root domain glossary and migrates byte-for-byte to GLOSSARY.md; no CONTEXT-MAP.md or context glossaries exist. Included release and available-update documents cover all non-exact links to the old glossary. Acceptance files are synthetic test fixtures and journey harnesses, examples are independently authored standards sources, skills are shipped product content, vendor files are retained upstream dependencies, and installed agent skills remain governed by their skill declarations; none is a documentation root or a document to move.",
           "candidates": [
+            {
+              "path": ".agents/skills",
+              "decision": "exclude",
+              "reason": "Installed author and system skills are governed separately; retired unedited skills are removed by adoption.",
+              "evidence": [
+                ".agents/skills/deliver/SKILL.md",
+                ".agents/skills/resolving-merge-conflicts/SKILL.md"
+              ]
+            },
             {
               "path": "CONTEXT.md",
               "decision": "include",
-              "reason": "The domain glossary at the repository root.",
+              "reason": "Root domain glossary migration source and destination; preserve all vocabulary and repair links.",
               "evidence": [
                 "CONTEXT.md"
+              ]
+            },
+            {
+              "path": "GLOSSARY.md",
+              "decision": "include",
+              "reason": "Root domain glossary migration source and destination; preserve all vocabulary and repair links.",
+              "evidence": [
+                "CONTEXT.md"
+              ]
+            },
+            {
+              "path": "acceptance",
+              "decision": "exclude",
+              "reason": "Synthetic projects and sources plus acceptance harness; preserve their intentional layouts and README fixtures.",
+              "evidence": [
+                "acceptance/README.md",
+                "acceptance/projects/bob/package.json"
               ]
             },
             {
@@ -1179,27 +1422,11 @@
               ]
             },
             {
-              "path": "acceptance/projects/bob/CONTRIBUTING.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/projects/bob/CONTRIBUTING.md"
-              ]
-            },
-            {
               "path": "acceptance/projects/bob/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index.",
               "evidence": [
                 "acceptance/projects/bob/README.md"
-              ]
-            },
-            {
-              "path": "acceptance/projects/forge/INDEX.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/projects/forge/INDEX.md"
               ]
             },
             {
@@ -1211,30 +1438,6 @@
               ]
             },
             {
-              "path": "acceptance/projects/forge/groups/developer-tools.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/projects/forge/groups/developer-tools.md"
-              ]
-            },
-            {
-              "path": "acceptance/projects/forge/guides/hammer.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/projects/forge/guides/hammer.md"
-              ]
-            },
-            {
-              "path": "acceptance/projects/harbor/CONTRIBUTING.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/projects/harbor/CONTRIBUTING.md"
-              ]
-            },
-            {
               "path": "acceptance/projects/harbor/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index.",
@@ -1243,75 +1446,11 @@
               ]
             },
             {
-              "path": "acceptance/projects/harbor/docs/operations.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/projects/harbor/docs/operations.md"
-              ]
-            },
-            {
-              "path": "acceptance/projects/orchard/CATALOG.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/projects/orchard/CATALOG.md"
-              ]
-            },
-            {
               "path": "acceptance/projects/orchard/generated/site/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index.",
               "evidence": [
                 "acceptance/projects/orchard/generated/site/README.md"
-              ]
-            },
-            {
-              "path": "acceptance/projects/orchard/legacy/pear-operations.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/projects/orchard/legacy/pear-operations.md"
-              ]
-            },
-            {
-              "path": "acceptance/projects/orchard/teams/runtime.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/projects/orchard/teams/runtime.md"
-              ]
-            },
-            {
-              "path": "acceptance/projects/relay/groups/messaging-runtime.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/projects/relay/groups/messaging-runtime.md"
-              ]
-            },
-            {
-              "path": "acceptance/projects/relay/notes/relay-limitations.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/projects/relay/notes/relay-limitations.md"
-              ]
-            },
-            {
-              "path": "acceptance/sources/wayfinder/guidance/service-discovery.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/sources/wayfinder/guidance/service-discovery.md"
-              ]
-            },
-            {
-              "path": "acceptance/sources/wayfinder/guidance/service-readiness.md",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance fixture input, preserved for its scenario; not maintained product documentation.",
-              "evidence": [
-                "acceptance/sources/wayfinder/guidance/service-readiness.md"
               ]
             },
             {
@@ -1619,163 +1758,29 @@
               ]
             },
             {
-              "path": "examples/alice/defaults/files/AGENTS.md",
+              "path": "examples",
               "decision": "exclude",
-              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
+              "reason": "Independently authored standards sources packaged as examples, not adopting-project documentation.",
               "evidence": [
-                "examples/alice/defaults/files/AGENTS.md"
+                "examples/alice/standards.yaml"
               ]
             },
             {
-              "path": "examples/alice/defaults/files/CONTRIBUTING.md",
+              "path": "skills",
               "decision": "exclude",
-              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
+              "reason": "Product-owned skills shipped in the npm package, not adopting-project documentation.",
               "evidence": [
-                "examples/alice/defaults/files/CONTRIBUTING.md"
-              ]
-            },
-            {
-              "path": "examples/alice/defaults/guidance/readme.md",
-              "decision": "exclude",
-              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
-              "evidence": [
-                "examples/alice/defaults/guidance/readme.md"
-              ]
-            },
-            {
-              "path": "examples/alice/defaults/guidance/source-layout.md",
-              "decision": "exclude",
-              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
-              "evidence": [
-                "examples/alice/defaults/guidance/source-layout.md"
-              ]
-            },
-            {
-              "path": "examples/alice/defaults/skills/review/SKILL.md",
-              "decision": "exclude",
-              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
-              "evidence": [
-                "examples/alice/defaults/skills/review/SKILL.md"
-              ]
-            },
-            {
-              "path": "examples/alice/profiles/work/files/AGENTS.md",
-              "decision": "exclude",
-              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
-              "evidence": [
-                "examples/alice/profiles/work/files/AGENTS.md"
-              ]
-            },
-            {
-              "path": "examples/atlas/guidance/project-discovery.md",
-              "decision": "exclude",
-              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
-              "evidence": [
-                "examples/atlas/guidance/project-discovery.md"
-              ]
-            },
-            {
-              "path": "examples/atlas/guidance/project-documentation.md",
-              "decision": "exclude",
-              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
-              "evidence": [
-                "examples/atlas/guidance/project-documentation.md"
-              ]
-            },
-            {
-              "path": "examples/mira/guidance/operations.md",
-              "decision": "exclude",
-              "reason": "Example standards-source payload installed or interpreted in examples, not maintained product documentation.",
-              "evidence": [
-                "examples/mira/guidance/operations.md"
-              ]
-            },
-            {
-              "path": "skills/adopt-standards/SKILL.md",
-              "decision": "exclude",
-              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
-              "evidence": [
+                "package.json",
                 "skills/adopt-standards/SKILL.md"
               ]
             },
             {
-              "path": "skills/adopt-standards/references/assessment.md",
+              "path": "vendor",
               "decision": "exclude",
-              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
+              "reason": "Vendored dependencies retain upstream documentation and licenses.",
               "evidence": [
-                "skills/adopt-standards/references/assessment.md"
-              ]
-            },
-            {
-              "path": "skills/adopt-standards/references/discovery.md",
-              "decision": "exclude",
-              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
-              "evidence": [
-                "skills/adopt-standards/references/discovery.md"
-              ]
-            },
-            {
-              "path": "skills/adopt-standards/references/recovery.md",
-              "decision": "exclude",
-              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
-              "evidence": [
-                "skills/adopt-standards/references/recovery.md"
-              ]
-            },
-            {
-              "path": "skills/adopt-standards/references/review.md",
-              "decision": "exclude",
-              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
-              "evidence": [
-                "skills/adopt-standards/references/review.md"
-              ]
-            },
-            {
-              "path": "skills/author-standards/SKILL.md",
-              "decision": "exclude",
-              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
-              "evidence": [
-                "skills/author-standards/SKILL.md"
-              ]
-            },
-            {
-              "path": "skills/author-standards/references/cli.md",
-              "decision": "exclude",
-              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
-              "evidence": [
-                "skills/author-standards/references/cli.md"
-              ]
-            },
-            {
-              "path": "skills/author-standards/references/operations.md",
-              "decision": "exclude",
-              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
-              "evidence": [
-                "skills/author-standards/references/operations.md"
-              ]
-            },
-            {
-              "path": "skills/author-standards/references/profiles.md",
-              "decision": "exclude",
-              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
-              "evidence": [
-                "skills/author-standards/references/profiles.md"
-              ]
-            },
-            {
-              "path": "skills/author-standards/references/revision.md",
-              "decision": "exclude",
-              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
-              "evidence": [
-                "skills/author-standards/references/revision.md"
-              ]
-            },
-            {
-              "path": "skills/standards-updates/SKILL.md",
-              "decision": "exclude",
-              "reason": "Packaged product skill source and reference material; preserve paths as product assets, not documentation migrations.",
-              "evidence": [
-                "skills/standards-updates/SKILL.md"
+                "vendor/marked/README.md",
+                "vendor/parse5/README.md"
               ]
             }
           ],
@@ -1783,112 +1788,73 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Intentionally empty project-content scope: both fixes configure remote GitHub settings only. Fresh Git remotes and authenticated gh repo view identify lutzseverino/repo-standards, default branch main, viewer permission ADMIN. The maintainer confirmation of the complete inspection must authorize the disclosed fixes; no operation runs during inspection. Rechecked on main 70f1290: the new product ADR is documentation only and creates no nested Project or remote project-content target.",
+          "coverage": "Intentionally empty project-content scope: authored fixes change only remote GitHub configuration. Git remotes and authenticated gh repo view identify lutzseverino/repo-standards, default branch main, viewer permission ADMIN. The maintainer requested this adoption; overwriting an existing different setting must stop for confirmation.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "Fresh review of package.json, root source and tooling responsibilities, development commands, README and documentation identifies one root TypeScript CLI package with no workspace members. Nested tooling and acceptance harnesses use root setup, build and release commands. Fixture manifests and generated outputs are synthetic; preserved vendor content and packaged skills are assets. There is no independently maintained nested Project requiring a non-root README. The scope is intentionally empty. Rechecked on main 70f1290: the new product ADR is documentation only and creates no nested Project or remote project-content target.",
+          "coverage": "Repository Standards is one root npm CLI and skill package with shared development commands. src, bootstrap, scripts, skills and acceptance are components of that package; examples and acceptance/projects are synthetic source/project fixtures, vendor contains third-party bundled dependencies. No independently maintained non-root Project needs its own README.",
           "candidates": [
             {
-              "path": ".agents",
+              "path": "acceptance/projects",
               "decision": "exclude",
-              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
+              "reason": "Synthetic acceptance fixtures, not maintained apps or services.",
               "evidence": [
-                ".agents",
-                "docs/development/README.md",
-                "package.json"
-              ]
-            },
-            {
-              "path": "acceptance",
-              "decision": "exclude",
-              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
-              "evidence": [
-                "acceptance",
-                "docs/development/README.md",
-                "package.json"
+                "acceptance/README.md",
+                "acceptance/projects/bob/package.json",
+                "acceptance/projects/harbor/README.md"
               ]
             },
             {
               "path": "bootstrap",
               "decision": "exclude",
-              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
+              "reason": "Entry point of the same root package, not an independent project.",
               "evidence": [
-                "bootstrap",
-                "docs/development/README.md",
-                "package.json"
-              ]
-            },
-            {
-              "path": "docs",
-              "decision": "exclude",
-              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
-              "evidence": [
-                "docs",
-                "docs/development/README.md",
                 "package.json"
               ]
             },
             {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
+              "reason": "Packaged standards-source examples, not independent tools.",
               "evidence": [
-                "docs/development/README.md",
-                "examples",
+                "examples/alice/standards.yaml",
                 "package.json"
               ]
             },
             {
               "path": "scripts",
               "decision": "exclude",
-              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
+              "reason": "Build and maintenance commands for the root package.",
               "evidence": [
-                "docs/development/README.md",
-                "package.json",
-                "scripts"
+                "package.json"
               ]
             },
             {
               "path": "skills",
               "decision": "exclude",
-              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
+              "reason": "Agent skills distributed with the single root package.",
               "evidence": [
-                "docs/development/README.md",
-                "package.json",
-                "skills"
+                "package.json"
               ]
             },
             {
               "path": "src",
               "decision": "exclude",
-              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
+              "reason": "Modules of the single root CLI package; commands are root package scripts.",
               "evidence": [
                 "docs/development/README.md",
-                "package.json",
-                "src"
-              ]
-            },
-            {
-              "path": "test",
-              "decision": "exclude",
-              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
-              "evidence": [
-                "docs/development/README.md",
-                "package.json",
-                "test"
+                "package.json"
               ]
             },
             {
               "path": "vendor",
               "decision": "exclude",
-              "reason": "Root package component using the single root development/build/release workflow; not an independent maintained Project. Fixtures, generated code, vendor payloads, and organizational directories have no separately maintained Project here.",
+              "reason": "Third-party dependencies, not maintained project components.",
               "evidence": [
-                "docs/development/README.md",
-                "package.json",
-                "vendor"
+                "vendor/marked/README.md",
+                "vendor/parse5/README.md"
               ]
             }
           ],
@@ -1896,13 +1862,22 @@
         }
       ]
     },
-    "absence": [],
+    "absence": [
+      {
+        "kind": "absence",
+        "path": "GLOSSARY.md",
+        "identity": "sha256:4d33cd9cec1b2a76e3978091a66a6d8f32a4e4fa6cebbcf2d05c43733508ef3a"
+      }
+    ],
     "named": {
       "targets": {
         "CONTEXT.md": {
           "type": "file",
           "sha256": "5c67ed089d9b6489d8d49642fecf39383fe4a82eae4c7689e5863b4909188411",
           "executable": false
+        },
+        "GLOSSARY.md": {
+          "type": "missing"
         },
         "docs/README.md": {
           "type": "file",
@@ -2080,7 +2055,7 @@
       {
         "id": "documentation",
         "source": "discovery/documentation.md",
-        "sha256": "2ff022d0fd5f601a3c381ccdcb79c221f6d46d48a6816c8ed9d9d4f0805e3e51",
+        "sha256": "a500542e46d0bda006a810b26085b64a2de7241123ce7cc3b94ff322fee336b3",
         "executable": false
       },
       {
@@ -3272,7 +3247,7 @@
         },
         "scripts/validate-issue-contract.mjs": {
           "type": "file",
-          "sha256": "191300570b34b7b3f689aaf093435184dd9d2171e83a1272d1554c69fb6d26ab",
+          "sha256": "557049976a4307e864467f20af5a453aef8aa8674df5415afb7f1b5405c41ff7",
           "executable": false
         },
         "scripts/verify-npm-publisher.ts": {
@@ -5476,7 +5451,7 @@
     {
       "id": "documentation",
       "additions": [
-        "docs/adr/0017-confirm-only-confirmation-required-changes.md"
+        "GLOSSARY.md"
       ],
       "removals": []
     }
