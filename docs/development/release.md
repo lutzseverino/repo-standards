@@ -97,8 +97,9 @@ gh workflow run release.yml --repo lutzseverino/repo-standards \
 ```
 
 Write the notes in Markdown for adopters: what changed, breaking changes with
-their migration, and the parent specification. GitHub limits a dispatch's
-inputs to 65,535 characters in total. The workflow refuses to publish without
+their migration, and the parent specification. Leave site-only changes out of
+the CLI's release notes; the private site deploys independently from `main` through
+Deploy site. GitHub limits a dispatch's inputs to 65,535 characters in total. The workflow refuses to publish without
 notes. It validates on macOS and Linux, produces one bundle, retains the
 notes as the `release-notes` artifact, authenticates through OIDC, publishes its
 tarball, and attaches that bundle to the matching GitHub `v<version>` release,

@@ -1,13 +1,23 @@
 # Development
 
 This directory explains how to set up, validate, release, and maintain the
-Repository Standards product.
+Repository Standards CLI and website.
 
 ## Setup and validation
 
 Use TypeScript, ESM, Node.js 24 and pnpm at the versions in `.node-version` and
 `package.json`, with npm and Git 2.32 or newer on `PATH`. Run `pnpm install --frozen-lockfile`; npm registry access or
-cached dependencies are required.
+cached dependencies are required. The root package remains the published CLI;
+`site/` is a private pnpm workspace. Installation from the root installs both
+projects. The factory sandbox image already supplies Node.js, pnpm, npm and Git;
+the site needs no additional system tools.
+
+Run `pnpm --dir site dev` for the website at `http://localhost:4321`.
+`pnpm --dir site check` runs `astro check`, and `pnpm --dir site build` writes
+the static site to `site/dist/`. `pnpm --dir site preview` serves that build.
+Run `pnpm validate` to validate the entire repository, including the site check
+and build. The site uses a compatible TypeScript compiler for Astro checking;
+the CLI keeps its root TypeScript version.
 
 During development, run `pnpm typecheck`, `pnpm lint` and `pnpm build`, then
 focused tests covering the changed behavior, such as
@@ -32,10 +42,18 @@ into two shards. All parts use Node's default test concurrency. The required
 checks are `validate (linux, 1/3)`, `validate (linux, 2/3)` and
 `validate (linux, 3/3)`. Each part typechecks, lints, checks formatting, rejects any
 runtime cycle of static imports among the source modules (type-only imports
-are exempt), and builds before testing. Tests pack and install the npm
-package into temporary directories, then exercise the installed public CLI
+are exempt), and builds before testing. A separate Linux `site` job runs
+`astro check` and the site build on every pull request, without path filtering.
+Root oxlint covers the site's TypeScript, React and Astro scripts; Astro checking
+covers templates. Root Prettier loads `prettier-plugin-astro` for `.astro` files
+and checks the site along with the rest of the authored repository. No site
+test framework is installed until there is logic worth testing. Tests pack and
+install the npm package into temporary directories, then exercise the installed public CLI
 against temporary Git repositories. PR branches trigger Validate only through
 `pull_request`; pushes trigger it only on `main`.
+
+The Deploy site workflow builds and publishes to GitHub Pages on every push to
+`main`, separately from Release.
 
 macOS runs the full `pnpm validate` after merge on pushes to `main` and in the
 release workflow. A macOS failure on `main` is a bug: open an issue and fix it
@@ -47,6 +65,9 @@ parts replaces a local full-suite run, so open the PR once focused checks pass.
 Run additional local tests to diagnose failures when needed.
 
 ## Documents
+
+- [Website project](../../site/README.md): local site commands, source layout,
+  Pages deployment and custom-domain setup.
 
 - [Architecture contracts](architecture.md): the product's purpose and release
   boundary, module responsibilities, formats, commands, adoption and update
