@@ -7,12 +7,12 @@
     },
     "standards": {
       "repository": "https://github.com/lutzseverino/repo-canon",
-      "version": "v0.8.0",
-      "commit": "f215d0bf4e9e9e4320e12dcae99215de6e7c29e7"
+      "version": "v0.8.1",
+      "commit": "b94fdd2ffd097882b0d8a87a55e8fed5082ad4c7"
     },
     "profile": "complete"
   },
-  "inspection": "sha256:c68bc6521c4cd56bf1d490c2fa0e04b7820eb9d7508e8b96ac87695039dc5188",
+  "inspection": "sha256:a08ac22c88626a739107f26d47372b49ff250f6d1fedf9767de47d62a9e031f2",
   "files": {
     "docs/agents/README.md": {
       "sha256": "a78a8a4934c9de37cfcd11be23ce3dd58462108fa53b6cdaead4af18ca7e773b",
@@ -27,7 +27,7 @@
       "executable": false
     },
     "CONTRIBUTING.md": {
-      "sha256": "640f12b8843e39c45d06638ec60783ef8d61c4f23e105d15816459572b9e3d91",
+      "sha256": "a18409516f02793f7a72a9562bcda4f45be1e9992f2827871545131e6ab4ce7b",
       "executable": false
     },
     "docs/agents/domain.md": {
@@ -515,7 +515,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/CONTRIBUTING.md": {
-      "sha256": "640f12b8843e39c45d06638ec60783ef8d61c4f23e105d15816459572b9e3d91",
+      "sha256": "a18409516f02793f7a72a9562bcda4f45be1e9992f2827871545131e6ab4ce7b",
       "executable": false
     },
     ".repo-standards/inputs/source/guidance/documentation.md": {
@@ -1047,11 +1047,11 @@
       "executable": false
     },
     ".repo-standards/inputs/scope-history.json": {
-      "sha256": "b438e7f87940e996e9a1c8415cc38d99d6cb63dec5a37108d673a6be205dd7a4",
+      "sha256": "c3362579ffcdba9e16f4b8e8c12c147784d3e274190f881a823c855c61d8b5d4",
       "executable": false
     },
     ".repo-standards/selection.yaml": {
-      "sha256": "44f8b07e6189e96f182afaeef0b04902972b9b6c84a620a6845833c303c1a177",
+      "sha256": "2ffb03e0b7c4c975070634fc5fc8cee10c8e3f22a50124883b8e9099959e9b64",
       "executable": false
     },
     ".repo-standards/.gitignore": {
@@ -1068,7 +1068,7 @@
     }
   },
   "state": {
-    "sha256": "3c4bf8483b69eeb6b88ec756b83d2979f826e9db542d3ee03a2e147b26a2660b",
+    "sha256": "8cae1e0da195c626a2e4b1d922373a085a36482231cb8fd2be0a59cc3cf18462",
     "executable": false
   }
 }
