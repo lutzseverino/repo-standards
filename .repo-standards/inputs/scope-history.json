@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:c68bc6521c4cd56bf1d490c2fa0e04b7820eb9d7508e8b96ac87695039dc5188",
+  "inspection": "sha256:a08ac22c88626a739107f26d47372b49ff250f6d1fedf9767de47d62a9e031f2",
   "resolved": {
     "description": "The complete Repo Canon standards profile",
     "declarations": [
@@ -1389,13 +1389,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:2072ba43c51f25fed5e0a1c2c017477dc1b33ea5b860cbc51a840712581ddb50",
+    "identity": "sha256:e57f7e7c6c4dcf5baa0aa2093b4070382a8b7f628151d414b5fcd0167d6df5ec",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Reviewed fresh drafter evidence: docs is the only documentation root. Include its project-owned documents and indexes and root GLOSSARY.md; exact agent guidance remains separately owned. site is a maintained private Astro Project with site/README.md covered by project-readmes and no additional documentation root. Acceptance material is a synthetic test harness, examples are independent standards fixtures, skills is published product content, and vendor is upstream content. No missing indexes, glossary renames, move destinations, or link repairs are needed.",
+          "coverage": "Fresh review of the drafter and repository content establishes docs as the only documentation root, with usage, development, adr and agents categories, and GLOSSARY.md as the single domain glossary. Include project-owned documents and indexes; shared exact agent files remain separately owned. site is the maintained private Astro workspace and its README belongs to project-readmes. acceptance is a synthetic test harness, examples are independent standards fixtures, skills is published executable-agent product content, and vendor is upstream material. No missing indexes, glossary renames, move destinations or link repairs are needed.",
           "candidates": [
             {
               "path": "GLOSSARY.md",
@@ -1408,7 +1408,7 @@
             {
               "path": "acceptance",
               "decision": "exclude",
-              "reason": "Synthetic acceptance projects and source fixtures preserve intentional layouts; the harness README documents executable acceptance journeys, not a separate maintained Project.",
+              "reason": "The harness describes synthetic publishers and projects; fixture documents preserve intentional layouts for acceptance tests.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/projects/bob/package.json"
@@ -1769,7 +1769,7 @@
             {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Independent standards-source fixtures, not maintained project documentation.",
+              "reason": "Independent standards-source fixtures supply intentional author guidance and exact test inputs, rather than maintained project documentation.",
               "evidence": [
                 "examples/alice/defaults/guidance/readme.md"
               ]
@@ -1777,7 +1777,7 @@
             {
               "path": "site/README.md",
               "decision": "exclude",
-              "reason": "Maintained private Astro Project README; covered exclusively by project-readmes.",
+              "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "site/README.md"
               ]
@@ -1785,7 +1785,7 @@
             {
               "path": "skills",
               "decision": "exclude",
-              "reason": "Published CLI product skills and references must retain their shipped layout.",
+              "reason": "Package files ship these product skills and references at their established paths. They are executable agent content, not documents to migrate.",
               "evidence": [
                 "package.json",
                 "skills/adopt-standards/SKILL.md"
@@ -1796,18 +1796,18 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Empty project-content scope is intentional: authorized adoption operations configure only remote GitHub settings for the unambiguous origin lutzseverino/repo-standards. Preserve unrelated settings.",
+          "coverage": "The origin unambiguously names lutzseverino/repo-standards. The requested complete-profile update authorizes its repeat-safe GitHub operations; this declaration configures remote labels and PR settings only and intentionally has no project-content targets. Preserve unrelated settings.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "Root package.json and pnpm-workspace.yaml establish the root CLI and private site workspace. site/package.json provides its independent Astro commands, and maintained site source establishes responsibility. Only site/README.md is a non-root Project README. src, bootstrap and scripts belong to the CLI; acceptance/projects are synthetic test fixtures; examples are standards fixtures; skills and vendor are shipped or upstream content.",
+          "coverage": "The root package owns the CLI, with bootstrap, src and scripts within its responsibility. pnpm-workspace.yaml includes only site, whose private manifest, Astro configuration and maintained page source establish a separate website Project with its own dev, check, build and preview commands. site/README.md is the only non-root Project README. Acceptance projects and example sources are synthetic fixtures; skills are shipped CLI content and vendor is upstream material.",
           "candidates": [
             {
               "path": "acceptance",
               "decision": "exclude",
-              "reason": "Synthetic acceptance fixtures and harness belong to the CLI testing boundary, not independently maintained Projects.",
+              "reason": "Synthetic projects and the harness exercise the CLI and preserve intentional layouts rather than establish separately maintained Projects.",
               "evidence": [
                 "acceptance/README.md",
                 "package.json"
@@ -1816,7 +1816,7 @@
             {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Standards-source fixtures, not apps, services or libraries.",
+              "reason": "Independently authored standards fixtures are CLI test inputs, rather than maintained apps or libraries.",
               "evidence": [
                 "examples/alice/defaults/guidance/readme.md"
               ]
@@ -1824,7 +1824,7 @@
             {
               "path": "site/README.md",
               "decision": "include",
-              "reason": "Maintained private Astro website workspace with its own development, check, build and preview commands.",
+              "reason": "The private Astro website has maintained page source, independent commands and its own responsibility. Its existing README links shared contribution and development guidance.",
               "evidence": [
                 "pnpm-workspace.yaml",
                 "site/README.md",
@@ -1835,7 +1835,7 @@
             {
               "path": "vendor",
               "decision": "exclude",
-              "reason": "Vendored upstream parser content is exact owned, not independently maintained Projects.",
+              "reason": "Vendored upstream parsers have no independent repository development responsibility.",
               "evidence": [
                 "vendor/marked/README.md",
                 "vendor/parse5/README.md"
@@ -2115,7 +2115,7 @@
         },
         ".agents/skills/babysit/SKILL.md": {
           "type": "file",
-          "sha256": "c30ca8fe16691b1d7ce7c7223b9743cc382b6c39f72fdd89325fe0aa3a6918c9",
+          "sha256": "f1b03813dc8a30c5594f52861390c00d5671ea2085065baedfcf0ff1c21a701e",
           "executable": false
         },
         ".agents/skills/code-review/SKILL.md": {
@@ -2729,7 +2729,7 @@
         },
         ".sandcastle/adapter.ts": {
           "type": "file",
-          "sha256": "4f80995276122f1222059c578be6a89e45f42c5f4f7289707fa5abdff68e1c3e",
+          "sha256": "83ca42c2e7d20072bf28ed63acd3bc81efcd5fd4364c8ffdcc071dd70e280171",
           "executable": false
         },
         ".sandcastle/direct-prompt.md": {
@@ -2739,7 +2739,7 @@
         },
         ".sandcastle/factory.ts": {
           "type": "file",
-          "sha256": "9d072c085552c6fbef36ba6611b23a8fe99e752c15587771e6f8f8d6061ddd90",
+          "sha256": "892714cd2dbfbb198c4580f7b4a0bdda3d5981e00bbd2ae2f27c1a1260558e31",
           "executable": false
         },
         ".sandcastle/main.ts": {
@@ -2759,7 +2759,7 @@
         },
         "CONTRIBUTING.md": {
           "type": "file",
-          "sha256": "c607558049b95241761d45b9d172b84b290d56ef6f6fe3393d5b1ea5e0f444d3",
+          "sha256": "640f12b8843e39c45d06638ec60783ef8d61c4f23e105d15816459572b9e3d91",
           "executable": false
         },
         "GLOSSARY.md": {
@@ -3282,9 +3282,14 @@
           "sha256": "5ae0c35ed550615a4966e7b5095e8246b5099746a69c82f022eb0de4216a0e11",
           "executable": false
         },
+        "operations/lib/issue-contract-kind.mjs": {
+          "type": "file",
+          "sha256": "c0d3a558cbb1f905a519a4b3c1a5f358f22a9d78a06452a6ecbd9fac931293a2",
+          "executable": false
+        },
         "operations/lib/rendered-markdown.mjs": {
           "type": "file",
-          "sha256": "c9e0db1806e9ecac66bb9f99c201a07306a5155d205294e80c5592acc175476b",
+          "sha256": "b885d1cd1650e61c616b6f2917b4074bc752282626b4d5eee01df4d5a923b267",
           "executable": false
         },
         "package.json": {
@@ -3324,7 +3329,7 @@
         },
         "scripts/validate-issue-contract.mjs": {
           "type": "file",
-          "sha256": "557049976a4307e864467f20af5a453aef8aa8674df5415afb7f1b5405c41ff7",
+          "sha256": "d33894f51d4b12b3357f0ddbc714b12477d42b0afd0d34a4d1ecf564d83f5163",
           "executable": false
         },
         "scripts/verify-npm-publisher.ts": {
@@ -4547,6 +4552,7 @@
           "operations/lib"
         ],
         "operations/lib": [
+          "operations/lib/issue-contract-kind.mjs",
           "operations/lib/rendered-markdown.mjs"
         ],
         "scripts": [

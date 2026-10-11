@@ -42,7 +42,10 @@ specification or ticket can be ready while its blockers are open. The
 readiness of an issue that runs over its tickets (a specification or any issue
 with sub-issues) covers them: apply it after they are published, and apply it
 again when a ticket is published later. To re-apply readiness the issue still
-carries, remove `ready-for-agent` and add it back.
+carries, remove `ready-for-agent` and add it back. Apply that readiness only once
+the latest ticket link appears in the issue's timeline. Readiness recorded in
+the same second as that link holds the issue; the factory's skip reason says to
+remove `ready-for-agent` and add it back.
 
 The factory picks up ready issues. Without a `model:` label it runs the
 factory's default model. Name a stronger model with `model:<slug>` or
@@ -130,9 +133,12 @@ project.
 
 Its body is the adoption record: the output of `status --summary`, byte for
 byte, starting with its `# Repository Standards adoption record` heading. The
-record omits the checks, so post their outcomes as one comment. The record
-stays the body; for a breaking (`!`) title, add Impact and Migration sections
-after the record.
+record's Operations table lists the standards source's fixes and checks with
+their results. Post one check-outcomes comment with the repository's own
+validation outcomes, confirmation that the run-state conditions for opening
+the pull request hold, and findings links or unfiled findings as described
+below. The record stays the body; for a breaking (`!`) title, add Impact and
+Migration sections after the record.
 
 A finding is a defect, gap, or stale instruction the adoption or update run
 observed in the standards or tooling it used. The run's own contextual work in
