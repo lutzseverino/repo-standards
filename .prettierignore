@@ -9,3 +9,6 @@ vendor/
 
 # pnpm maintains the lockfile.
 pnpm-lock.yaml
+
+# Astro generates these declarations and caches.
+site/.astro/

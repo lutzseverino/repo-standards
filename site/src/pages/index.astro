@@ -1,0 +1,29 @@
+---
+import { RepositoryLink } from "@/components/repository-link";
+import "@/styles/global.css";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Repository Standards website. Coming soon."
+    />
+    <title>Repository Standards</title>
+    <link rel="canonical" href={Astro.site} />
+  </head>
+  <body>
+    <main class="mx-auto flex min-h-svh max-w-xl flex-col justify-center gap-6 px-6 py-16">
+      <h1 class="text-3xl font-semibold tracking-tight">
+        Repository Standards
+      </h1>
+      <p class="text-muted-foreground">Website coming soon.</p>
+      <div>
+        <RepositoryLink />
+      </div>
+    </main>
+  </body>
+</html>

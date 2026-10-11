@@ -1,3 +1,9 @@
+packages:
+  - site
+
 # Supported platforms use the packaged binary; no native compilation is needed.
 allowBuilds:
   koffi: false
+  # Both use optional prebuilt platform packages on the supported platforms.
+  esbuild: false
+  sharp: false

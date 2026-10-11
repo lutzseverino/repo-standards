@@ -31,10 +31,10 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "prettier --plugin prettier-plugin-astro --write .",
+    "format:check": "prettier --plugin prettier-plugin-astro --check .",
     "test": "node --test test/*.test.ts",
-    "validate": "pnpm typecheck && pnpm lint && pnpm format:check && node --experimental-vm-modules --disable-warning=ExperimentalWarning scripts/check-import-cycles.ts && pnpm build && pnpm test",
+    "validate": "pnpm typecheck && pnpm lint && pnpm format:check && node --experimental-vm-modules --disable-warning=ExperimentalWarning scripts/check-import-cycles.ts && pnpm build && pnpm test && pnpm --dir site check && pnpm --dir site build",
     "prepack": "pnpm build",
     "release:pack": "pnpm build && node scripts/pack-release.ts"
   },
@@ -50,6 +50,7 @@
     "oxlint": "1.86.0",
     "oxlint-tsgolint": "7.0.2003",
     "prettier": "3.9.9",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "prettier-plugin-astro": "1.1.1"
   }
 }

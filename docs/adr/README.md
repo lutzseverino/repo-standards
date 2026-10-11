@@ -59,3 +59,6 @@ alternatives.
   asking to adopt is the maintainer's consent; `start` requires confirmation
   only when the inspection reports discarded edits, and a fix's overwrite of a
   chosen setting is confirmed through `resume --confirmed`.
+- [Add a private Astro site workspace](0018-add-a-private-astro-site-workspace.md):
+  a static website shares repository tooling and deploys independently to
+  GitHub Pages from `main`.
