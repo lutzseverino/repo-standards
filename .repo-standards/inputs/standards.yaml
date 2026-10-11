@@ -169,6 +169,12 @@ profiles:
         kind: file
         target: .github/ISSUE_TEMPLATE/implementation-ticket.yml
         exact: .github/ISSUE_TEMPLATE/implementation-ticket.yml
+      issue-contract-kind-runtime:
+        checks: []
+        fixes: []
+        kind: file
+        target: operations/lib/issue-contract-kind.mjs
+        exact: operations/lib/issue-contract-kind.mjs
       issue-contract-validator:
         checks: []
         fixes: []

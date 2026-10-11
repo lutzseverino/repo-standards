@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:02f3335b0a3326078e637423690d35f4d2233e179426ab7c475841e7f71cbc2f",
+  "inspection": "sha256:c68bc6521c4cd56bf1d490c2fa0e04b7820eb9d7508e8b96ac87695039dc5188",
   "resolved": {
     "description": "The complete Repo Canon standards profile",
     "declarations": [
@@ -267,6 +267,14 @@
         "kind": "file",
         "target": ".github/ISSUE_TEMPLATE/implementation-ticket.yml",
         "exact": ".github/ISSUE_TEMPLATE/implementation-ticket.yml"
+      },
+      {
+        "id": "issue-contract-kind-runtime",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "operations/lib/issue-contract-kind.mjs",
+        "exact": "operations/lib/issue-contract-kind.mjs"
       },
       {
         "id": "issue-contract-validator",
@@ -935,6 +943,14 @@
         "exact": ".github/ISSUE_TEMPLATE/implementation-ticket.yml"
       },
       {
+        "id": "issue-contract-kind-runtime",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "operations/lib/issue-contract-kind.mjs",
+        "exact": "operations/lib/issue-contract-kind.mjs"
+      },
+      {
         "id": "issue-contract-validator",
         "checks": [],
         "fixes": [],
@@ -1373,13 +1389,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:3a6ded91db3ee929a1fbf16406ba1af4a50f614931b7dce134aa4fef144f9017",
+    "identity": "sha256:2072ba43c51f25fed5e0a1c2c017477dc1b33ea5b860cbc51a840712581ddb50",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "docs is the only documentation root; include every project-owned file and index there and root GLOSSARY.md. site is a maintained private website Project, with only site/README.md as documentation today and no site/docs root; its README belongs exclusively to project-readmes. No glossary migration, context map, missing indexes, or planned documentation destinations are needed. Acceptance projects are synthetic fixtures, examples are independently authored sources, skills are shipped product content, vendor is upstream content, and installed skills have separate ownership. These explain every outside-Markdown question from the drafter; none needs migration. Exact agent documents stay excluded.",
+          "coverage": "Reviewed fresh drafter evidence: docs is the only documentation root. Include its project-owned documents and indexes and root GLOSSARY.md; exact agent guidance remains separately owned. site is a maintained private Astro Project with site/README.md covered by project-readmes and no additional documentation root. Acceptance material is a synthetic test harness, examples are independent standards fixtures, skills is published product content, and vendor is upstream content. No missing indexes, glossary renames, move destinations, or link repairs are needed.",
           "candidates": [
             {
               "path": "GLOSSARY.md",
@@ -1392,7 +1408,7 @@
             {
               "path": "acceptance",
               "decision": "exclude",
-              "reason": "Acceptance harness and synthetic fixtures preserve their intentional document layouts.",
+              "reason": "Synthetic acceptance projects and source fixtures preserve intentional layouts; the harness README documents executable acceptance journeys, not a separate maintained Project.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/projects/bob/package.json"
@@ -1401,7 +1417,7 @@
             {
               "path": "acceptance/README.md",
               "decision": "exclude",
-              "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index.",
+              "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "acceptance/README.md"
               ]
@@ -1409,7 +1425,7 @@
             {
               "path": "acceptance/projects/bob/README.md",
               "decision": "exclude",
-              "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index.",
+              "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "acceptance/projects/bob/README.md"
               ]
@@ -1417,7 +1433,7 @@
             {
               "path": "acceptance/projects/forge/build/generated/README.md",
               "decision": "exclude",
-              "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index.",
+              "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "acceptance/projects/forge/build/generated/README.md"
               ]
@@ -1425,7 +1441,7 @@
             {
               "path": "acceptance/projects/harbor/README.md",
               "decision": "exclude",
-              "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index.",
+              "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "acceptance/projects/harbor/README.md"
               ]
@@ -1433,7 +1449,7 @@
             {
               "path": "acceptance/projects/orchard/generated/site/README.md",
               "decision": "exclude",
-              "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index.",
+              "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "acceptance/projects/orchard/generated/site/README.md"
               ]
@@ -1753,16 +1769,15 @@
             {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Independently authored standards sources distributed as examples, not adopting-project documentation.",
+              "reason": "Independent standards-source fixtures, not maintained project documentation.",
               "evidence": [
-                "examples/alice/standards.yaml",
-                "package.json"
+                "examples/alice/defaults/guidance/readme.md"
               ]
             },
             {
               "path": "site/README.md",
               "decision": "exclude",
-              "reason": "Project README owned by project-readmes; not a documentation root index or migration source.",
+              "reason": "Maintained private Astro Project README; covered exclusively by project-readmes.",
               "evidence": [
                 "site/README.md"
               ]
@@ -1770,19 +1785,10 @@
             {
               "path": "skills",
               "decision": "exclude",
-              "reason": "Product-owned packaged skill instructions, not documentation to reorganize.",
+              "reason": "Published CLI product skills and references must retain their shipped layout.",
               "evidence": [
                 "package.json",
                 "skills/adopt-standards/SKILL.md"
-              ]
-            },
-            {
-              "path": "vendor",
-              "decision": "exclude",
-              "reason": "Upstream vendored dependencies retain their documents.",
-              "evidence": [
-                "vendor/marked/README.md",
-                "vendor/parse5/README.md"
               ]
             }
           ],
@@ -1790,90 +1796,46 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Intentionally empty project-content scope. Git remotes and authenticated gh repo view identify lutzseverino/repo-standards, main, ADMIN permission. The maintainer authorizes this update and its declared repeat-safe remote fixes; any different existing setting requiring confirmation must stop.",
+          "coverage": "Empty project-content scope is intentional: authorized adoption operations configure only remote GitHub settings for the unambiguous origin lutzseverino/repo-standards. Preserve unrelated settings.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "The repository has the root CLI package and one non-root maintained Project: site, a private pnpm website workspace added by #225 / PR #226. site/README.md exists and is the only Project README. src/bootstrap/scripts/skills belong to the root package; acceptance projects and examples are synthetic fixtures/sources; vendor is third-party; docs and .github organize shared documentation/workflows. No missing Project README or membership question remains.",
+          "coverage": "Root package.json and pnpm-workspace.yaml establish the root CLI and private site workspace. site/package.json provides its independent Astro commands, and maintained site source establishes responsibility. Only site/README.md is a non-root Project README. src, bootstrap and scripts belong to the CLI; acceptance/projects are synthetic test fixtures; examples are standards fixtures; skills and vendor are shipped or upstream content.",
           "candidates": [
             {
-              "path": "acceptance/projects",
+              "path": "acceptance",
               "decision": "exclude",
-              "reason": "Synthetic acceptance fixtures, not maintained apps or services.",
+              "reason": "Synthetic acceptance fixtures and harness belong to the CLI testing boundary, not independently maintained Projects.",
               "evidence": [
                 "acceptance/README.md",
-                "acceptance/projects/bob/package.json"
-              ]
-            },
-            {
-              "path": "bootstrap",
-              "decision": "exclude",
-              "reason": "Entry point of the root CLI package.",
-              "evidence": [
                 "package.json"
-              ]
-            },
-            {
-              "path": "docs",
-              "decision": "exclude",
-              "reason": "Organizes repository documentation, not an independent Project.",
-              "evidence": [
-                "docs/README.md"
               ]
             },
             {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Packaged standards-source examples, not independent maintained tools.",
+              "reason": "Standards-source fixtures, not apps, services or libraries.",
               "evidence": [
-                "examples/alice/standards.yaml",
-                "package.json"
-              ]
-            },
-            {
-              "path": "scripts",
-              "decision": "exclude",
-              "reason": "Build and maintenance commands for the root package.",
-              "evidence": [
-                "package.json"
+                "examples/alice/defaults/guidance/readme.md"
               ]
             },
             {
               "path": "site/README.md",
               "decision": "include",
-              "reason": "Maintained private Astro website workspace with its own purpose, dev/check/build/preview commands, source and independent GitHub Pages deployment.",
+              "reason": "Maintained private Astro website workspace with its own development, check, build and preview commands.",
               "evidence": [
-                ".github/workflows/deploy-site.yml",
                 "pnpm-workspace.yaml",
                 "site/README.md",
-                "site/astro.config.mjs",
                 "site/package.json",
                 "site/src/pages/index.astro"
               ]
             },
             {
-              "path": "skills",
-              "decision": "exclude",
-              "reason": "Agent skills shipped as part of the root CLI package.",
-              "evidence": [
-                "package.json"
-              ]
-            },
-            {
-              "path": "src",
-              "decision": "exclude",
-              "reason": "Modules of the root CLI package, with root development commands.",
-              "evidence": [
-                "docs/development/README.md",
-                "package.json"
-              ]
-            },
-            {
               "path": "vendor",
               "decision": "exclude",
-              "reason": "Third-party bundled dependencies.",
+              "reason": "Vendored upstream parser content is exact owned, not independently maintained Projects.",
               "evidence": [
                 "vendor/marked/README.md",
                 "vendor/parse5/README.md"
@@ -2069,7 +2031,7 @@
         },
         "site/README.md": {
           "type": "file",
-          "sha256": "0a72ca31a91f166531beaf05229732c637f9834e76ea8a007ad17e53cf99bd45",
+          "sha256": "18b5a640101af3fc2c13e6093eb869604cfd22975e58ffd853e6840f9c610cb3",
           "executable": false
         }
       }
@@ -2078,7 +2040,7 @@
       {
         "id": "documentation",
         "source": "discovery/documentation.md",
-        "sha256": "a500542e46d0bda006a810b26085b64a2de7241123ce7cc3b94ff322fee336b3",
+        "sha256": "40109a83532c36a9f9348b7f09b4a9aa6a8dd7327e49730c853c32cf3fd39e8d",
         "executable": false
       },
       {
@@ -3377,7 +3339,7 @@
         },
         "site/README.md": {
           "type": "file",
-          "sha256": "0a72ca31a91f166531beaf05229732c637f9834e76ea8a007ad17e53cf99bd45",
+          "sha256": "18b5a640101af3fc2c13e6093eb869604cfd22975e58ffd853e6840f9c610cb3",
           "executable": false
         },
         "site/astro.config.mjs": {
@@ -5768,22 +5730,5 @@
       }
     }
   },
-  "scopeChanges": [
-    {
-      "id": "documentation",
-      "additions": [
-        "docs/adr/0018-add-a-private-astro-site-workspace.md"
-      ],
-      "removals": [
-        "CONTEXT.md"
-      ]
-    },
-    {
-      "id": "project-readmes",
-      "additions": [
-        "site/README.md"
-      ],
-      "removals": []
-    }
-  ]
+  "scopeChanges": []
 }

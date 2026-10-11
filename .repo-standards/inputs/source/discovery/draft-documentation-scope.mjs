@@ -443,7 +443,7 @@ const reasons = {
   glossary: "The domain glossary at the repository root.",
   contextMap: "The context map at the repository root.",
   contextGlossary: `A context glossary that ${code(contextMap)} lists.`,
-  outsideIndex: `A ${directoryIndex} outside the documentation roots, which the documentation check would read as a documentation root's index.`,
+  outsideIndex: `A ${directoryIndex} outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the \`project-readmes\` declaration's proposal covers it.`,
 };
 
 const questions = {

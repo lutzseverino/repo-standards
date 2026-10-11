@@ -4,12 +4,25 @@
 export type Provider = "claude-code" | "codex";
 export type Mode = "direct" | "orchestrated";
 
+// An issue's number in this repository, or `<owner>/<name>#<n>` in another.
+export type IssueId = number | string;
+
 export type Issue = {
   number: number;
   createdAt: string;
   labels: string[];
-  parent: number | null;
-  subIssues: { number: number; state: "open" | "closed"; labels: string[] }[];
+  // Whether its contract is a specification, which runs orchestrated over
+  // its tickets.
+  specification: boolean;
+  // When `ready-for-agent` was last applied, or null when it is unknown.
+  readyAt: string | null;
+  // Its native parent, or null when it has none.
+  nativeParent: IssueId | null;
+  // The first issue its `Parent` section names, or null when it names none.
+  parentReference: IssueId | null;
+  // When a native sub-issue was last added, and which, or null when none was.
+  latestLink: { ticket: IssueId | null; at: string } | null;
+  subIssues: { number: IssueId; state: "open" | "closed"; labels: string[] }[];
   blockedBy: { number: number; state: "open" | "closed" }[];
 };
 
@@ -194,7 +207,7 @@ export function decideFactory(snapshot: Snapshot): Decision[] {
       (issue.labels.includes(labels.running)
         ? "claimed by a running factory run"
         : null) ??
-      exclusion(issue) ??
+      exclusion(issue, snapshot.issues) ??
       (snapshot.runs.some((run) => run.issue === issue.number)
         ? "a factory run for it is still on the host"
         : null);
@@ -203,7 +216,9 @@ export function decideFactory(snapshot: Snapshot): Decision[] {
       continue;
     }
     const mode: Mode =
-      issue.subIssues.length > 0 || issue.labels.includes(labels.orchestrated)
+      issue.specification ||
+      issue.subIssues.length > 0 ||
+      issue.labels.includes(labels.orchestrated)
         ? "orchestrated"
         : "direct";
     const model = issueModel(issue, snapshot.settings);
@@ -292,7 +307,7 @@ function relaunch(
   snapshot: Snapshot,
 ): Decision[] {
   const reason = issue.labels.includes(labels.ready)
-    ? exclusion(issue)
+    ? exclusion(issue, snapshot.issues)
     : `it no longer carries ${labels.ready}`;
   if (reason) return [unretried(retry, reason)];
   const { provider } = retry.model;
@@ -413,14 +428,37 @@ function oldestFirst(issues: Issue[]): Issue[] {
   );
 }
 
-function exclusion(issue: Issue): string | null {
-  if (issue.parent !== null) return `child of specification #${issue.parent}`;
+// An issue's exclusion from pickup, given the open issues, which may hold it
+// or name it as their parent.
+function exclusion(issue: Issue, openIssues: Issue[]): string | null {
+  const held = parentExclusion(issue, openIssues);
+  if (held) return held;
   if (issue.labels.includes(labels.failed))
     return `labelled ${labels.failed}; remove the label to run it again`;
   const blockers = issue.blockedBy.filter(
     (blocker) => blocker.state === "open",
   );
   if (blockers.length > 0) return `blocked by ${references(blockers)}`;
+  // Only a specification holds the tickets that name it without a link.
+  const unlinked = issue.specification
+    ? openIssues.filter(
+        (other) =>
+          other.nativeParent === null &&
+          other.parentReference === issue.number &&
+          !issue.subIssues.some((child) => child.number === other.number),
+      )
+    : [];
+  if (unlinked.length > 0)
+    return `tickets name it as their parent but are not linked to it yet: ${references(unlinked)}`;
+  if (issue.specification && issue.subIssues.length === 0)
+    return "specification has no tickets yet";
+  const link = issue.latestLink;
+  if (
+    issue.subIssues.length > 0 &&
+    link &&
+    (issue.readyAt === null || Date.parse(issue.readyAt) <= Date.parse(link.at))
+  )
+    return `readiness predates its latest ticket${link.ticket === null ? "" : ` ${reference(link.ticket)}`}; remove and re-apply ${labels.ready} once its tickets are published`;
   const unready = issue.subIssues.filter(
     (child) => child.state === "open" && !child.labels.includes(labels.ready),
   );
@@ -429,6 +467,29 @@ function exclusion(issue: Issue): string | null {
   return null;
 }
 
-function references(issues: { number: number }[]): string {
-  return issues.map((issue) => `#${issue.number}`).join(", ");
+// A sub-issue runs as part of its native parent while that parent is open in
+// this repository. An issue with no native parent runs as part of the open
+// specification in this repository that its `Parent` section names. Any other
+// parent leaves it to run on its own.
+function parentExclusion(issue: Issue, openIssues: Issue[]): string | null {
+  const findOpen = (id: IssueId | null) =>
+    openIssues.find((other) => other.number === id);
+  if (issue.nativeParent !== null) {
+    const parent = findOpen(issue.nativeParent);
+    if (!parent) return null;
+    const name = reference(parent.number);
+    return `sub-issue of ${parent.specification ? "specification " : ""}${name}; it runs as part of ${name} once ${name} is ready for agent`;
+  }
+  const named = findOpen(issue.parentReference);
+  return named?.specification
+    ? `names specification ${reference(named.number)} as its parent but is not linked to it yet`
+    : null;
+}
+
+function references(issues: { number: IssueId }[]): string {
+  return issues.map((issue) => reference(issue.number)).join(", ");
+}
+
+function reference(id: IssueId): string {
+  return typeof id === "number" ? `#${id}` : id;
 }
