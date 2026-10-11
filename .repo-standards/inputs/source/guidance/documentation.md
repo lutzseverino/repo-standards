@@ -34,7 +34,7 @@ During an update, rename existing `CONTEXT.md` and `CONTEXT-MAP.md` files to
 `GLOSSARY.md` and `GLOSSARY-MAP.md`, including glossaries in each context.
 Preserve their content and repair links and map entries to the renamed paths.
 Include both source and destination paths in the contextual documentation scope
-before confirming the inspection. The updated conventions use the new names.
+before the complete inspection. The updated conventions use the new names.
 
 Assess documents against their actual audience and topic. Mechanical checks
 cover categories, directory READMEs, required entry points, local link targets,

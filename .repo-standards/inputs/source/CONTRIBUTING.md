@@ -38,7 +38,11 @@ Applying `ready-for-agent` or `ready-for-human` is the review action and needs
 the repository `admin`, `maintain`, or `triage` role. After revising a contract
 or posting an Agent Brief, wait for the issue-contract workflow's revision
 notice before applying readiness. Editing a contract removes its readiness. A
-specification or ticket can be ready while its blockers are open.
+specification or ticket can be ready while its blockers are open. The
+readiness of an issue that runs over its tickets (a specification or any issue
+with sub-issues) covers them: apply it after they are published, and apply it
+again when a ticket is published later. To re-apply readiness the issue still
+carries, remove `ready-for-agent` and add it back.
 
 The factory picks up ready issues. Without a `model:` label it runs the
 factory's default model. Name a stronger model with `model:<slug>` or
@@ -130,13 +134,45 @@ record omits the checks, so post their outcomes as one comment. The record
 stays the body; for a breaking (`!`) title, add Impact and Migration sections
 after the record.
 
+A finding is a defect, gap, or stale instruction the adoption or update run
+observed in the standards or tooling it used. The run's own contextual work in
+the adopting repository is not a finding. File each finding in the right
+repository:
+
+- For the standards source's guidance, discovery, checks, fixes, installed
+  files, or drafter, use the source repository identified by the source URL in
+  the adoption record's Selection.
+- For the Repository Standards CLI or the `adopt-standards` skill, use
+  `lutzseverino/repo-standards`.
+
+Before filing, check for an open issue that already reports the finding and
+link it instead of creating a duplicate. Otherwise, open one issue per finding
+through the target repository's issue forms, labelled `needs-triage`. Cite the
+adoption pull request and distinguish what the run observed from what it only
+read in code. Link every filed or existing issue from the check-outcomes
+comment.
+
+If an issue cannot be created in its target repository, list each unfiled
+finding in that comment, name its target repository, and state that it was not
+filed. Findings never block or delay the adoption pull request; it still
+proceeds when findings cannot be filed.
+
 ### Merging
 
 Merge a pull request once every required check passes on its latest head and
-every review thread is answered. Squash-merge pull requests into their base
-branch, using the PR title as the commit subject and its description as the
-body. Preserve issue references and breaking-change explanations in the final
-message.
+every review thread is answered with its fix or a reasoned decline.
+Squash-merge pull requests into their base branch, using the PR title as the
+commit subject and its description as the body. Preserve issue references and
+breaking-change explanations in the final message.
+
+Fix a review finding about a defect in what the change is responsible for.
+Decline a finding that does not hold. A real finding may also be declined when
+it is outside the change's ticket or scope; when it guards a rule another layer
+owns, such as by duplicating that layer's validation; or when it guards against
+the owner misconfiguring files only the owner writes, or a component corrupting
+state it owns itself, which lie outside the threat model. Answer a decline with
+its reason in its review thread. Open a follow-up issue for a declined finding
+only when it is worth keeping, and leave it to triage.
 
 ## Documentation
 

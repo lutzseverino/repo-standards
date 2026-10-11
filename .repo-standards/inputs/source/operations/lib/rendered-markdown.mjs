@@ -141,6 +141,7 @@ function semanticElements(
         type: "link",
         text: renderedText(node, isHidden).trim(),
         target: attribute(node, "href") ?? "",
+        containsMedia: containsMedia(node, isHidden),
         insideHeading: true,
       });
     } else if (node.tagName === "img") {
