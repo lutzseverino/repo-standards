@@ -56,6 +56,15 @@ slug needs no provider. Add `run:orchestrated` to a ticket for an implementer
 and a reviewer that are different agents; a specification always runs that
 way.
 
+An orchestrated run over tickets uses the parent's `model:` label, or the
+host's default model without one, for every ticket. A ticket's label does not
+choose a separate model inside that run. At pickup, an open ticket naming a
+different provider, model or effort holds its parent unclaimed; label the
+parent and its tickets with one model, or remove the tickets' `model:` labels.
+Equivalent spellings name the same model after parsing, with `high` as the
+default effort. An open ticket with an unusable or several `model:` labels
+also holds its parent, with the ticket's correction in the skip reason.
+
 ## Development setup
 
 See the [development guide](docs/development/README.md) for prerequisites,
@@ -167,6 +176,11 @@ proceeds when findings cannot be filed.
 
 Merge a pull request once every required check passes on its latest head and
 every review thread is answered with its fix or a reasoned decline.
+When Codex does not review the latest head, because it is unavailable or no
+review arrives within 30 minutes of the latest review request (the head's push
+or a later `@codex review` comment), the pull request merges once those
+conditions hold, and the merging agent comments on it that Codex did not review
+that head and why.
 Squash-merge pull requests into their base branch, using the PR title as the
 commit subject and its description as the body. Preserve issue references and
 breaking-change explanations in the final message.

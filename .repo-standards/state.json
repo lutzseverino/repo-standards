@@ -15,8 +15,8 @@
         "id": "canonical-labels"
       },
       "operationIndex": 0,
-      "before": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
-      "after": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
+      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -35,8 +35,8 @@
         "id": "pull-request-integration"
       },
       "operationIndex": 1,
-      "before": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
-      "after": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
+      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -114,8 +114,8 @@
           "directories": []
         }
       },
-      "before": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
-      "after": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
+      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -193,8 +193,8 @@
           "directories": []
         }
       },
-      "before": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
-      "after": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
+      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -250,8 +250,8 @@
         "id": "documentation-navigation"
       },
       "operationIndex": 2,
-      "before": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
-      "after": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
+      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -272,8 +272,8 @@
         "id": "sandbox-image-base"
       },
       "operationIndex": 3,
-      "before": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
-      "after": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
+      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -294,8 +294,8 @@
         "id": "project-readme-structure"
       },
       "operationIndex": 4,
-      "before": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
-      "after": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
+      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -316,8 +316,8 @@
         "id": "repository-readme-structure"
       },
       "operationIndex": 5,
-      "before": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
-      "after": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
+      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -395,8 +395,8 @@
           "directories": []
         }
       },
-      "before": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
-      "after": "sha256:8522e00c54a959139eed97f3ab9fc22bc280ba71b8b5cae627a6bfc1323e9caa",
+      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -533,6 +533,48 @@
   "retryHistory": [],
   "changeSet": [
     {
+      "path": ".agents/skills/babysit/SKILL.md",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": ".agents/skills/babysit/wait.mjs",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": ".sandcastle/adapter.ts",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": ".sandcastle/direct-prompt.md",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": ".sandcastle/factory.ts",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": ".sandcastle/main.ts",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
+      "path": ".sandcastle/orchestrated-prompt.md",
+      "phases": [
+        "installation"
+      ]
+    },
+    {
       "path": "CONTRIBUTING.md",
       "phases": [
         "installation"
@@ -540,10 +582,10 @@
     }
   ],
   "lastComplete": {
-    "run": "9d02b879-8268-46d2-a20b-cc8da831f689",
-    "inspection": "sha256:a08ac22c88626a739107f26d47372b49ff250f6d1fedf9767de47d62a9e031f2",
-    "completedAt": "2026-10-11T05:39:16.454Z",
-    "head": "ce876e897907e6a1745e815453927df5e1a98c12"
+    "run": "a7bf51bf-1ef2-4692-bd23-9a66108e7e87",
+    "inspection": "sha256:d0283df30a9202f39847a1d0c21077f5bbae73a310e8fbe469156cff656688d7",
+    "completedAt": "2026-10-11T23:08:03.290Z",
+    "head": "e85d157c31279d2de46b587e24c40930b1203ad6"
   },
   "baselines": {
     "docs/agents/README.md": {
@@ -559,7 +601,7 @@
       "executable": false
     },
     "CONTRIBUTING.md": {
-      "sha256": "a18409516f02793f7a72a9562bcda4f45be1e9992f2827871545131e6ab4ce7b",
+      "sha256": "84b7d3188157f82574efcbebfc9e9d6f338140e1600d9d30fcfaa297754b2aef",
       "executable": false
     },
     "docs/agents/domain.md": {
@@ -567,27 +609,19 @@
       "executable": false
     },
     ".sandcastle/adapter.ts": {
-      "sha256": "83ca42c2e7d20072bf28ed63acd3bc81efcd5fd4364c8ffdcc071dd70e280171",
+      "sha256": "fe89956d204b7047cf992f24f297823bac6456ea6e92e4cc3a71cd58c36e1231",
       "executable": false
     },
     ".sandcastle/factory.ts": {
-      "sha256": "892714cd2dbfbb198c4580f7b4a0bdda3d5981e00bbd2ae2f27c1a1260558e31",
-      "executable": false
-    },
-    ".sandcastle/direct-prompt.md": {
-      "sha256": "0435fe1d4892564d831d6dc221512739eb72f04a82d006f001b6269030ac9861",
+      "sha256": "ae37bf7a0560893374e3c4a4f67fbc6f3b26ad6f8f8c7c8ec7367a6a60fc4cb2",
       "executable": false
     },
     ".sandcastle/main.ts": {
-      "sha256": "7d2ce378a5d495729ee0156b895334bf397f7ebf5dca68f4c3fa0831ca1a5865",
+      "sha256": "bbc8fcc396b6745de5bff6d9c59d412dff340c4c8b1611cea1742c582f7049f5",
       "executable": false
     },
     ".sandcastle/.gitignore": {
       "sha256": "95f8dff762dbd253b540e84c6f40919cdac8c5a7f5a0fab1150d501e4cc8edb4",
-      "executable": false
-    },
-    ".sandcastle/orchestrated-prompt.md": {
-      "sha256": "e1d2d4aad583a3ea755133874d9531d83405ce793534ca37fcf9042c3211e9dc",
       "executable": false
     },
     ".github/ISSUE_TEMPLATE/feature-request.yml": {
@@ -679,7 +713,11 @@
       "executable": false
     },
     ".agents/skills/babysit/SKILL.md": {
-      "sha256": "f1b03813dc8a30c5594f52861390c00d5671ea2085065baedfcf0ff1c21a701e",
+      "sha256": "b79467f82f54f64186b54894b25c9b47e500cf53b2c88e128519f53ba6b6082e",
+      "executable": false
+    },
+    ".agents/skills/babysit/wait.mjs": {
+      "sha256": "c3ba206e74d3cc95caee0eaec1daddfc92b6812531818b99935782fc62534be2",
       "executable": false
     },
     ".agents/skills/code-review/SKILL.md": {
@@ -1042,7 +1080,8 @@
       "agents/openai.yaml"
     ],
     ".agents/skills/babysit": [
-      "SKILL.md"
+      "SKILL.md",
+      "wait.mjs"
     ],
     ".agents/skills/code-review": [
       "SKILL.md",
@@ -1312,41 +1351,41 @@
     {
       "format": "repo-standards/assessment/v3",
       "scope": {
-        "inspection": "sha256:a08ac22c88626a739107f26d47372b49ff250f6d1fedf9767de47d62a9e031f2",
-        "afterFixes": "sha256:b10341e718ffd2da641e69f38780cb30731a29dd6dd02dc972f7e8b6fa3ca6d4"
+        "inspection": "sha256:d0283df30a9202f39847a1d0c21077f5bbae73a310e8fbe469156cff656688d7",
+        "afterFixes": "sha256:d6da3f3f21ea79bdbc7e4c58f92b6da2ee3ad3619c97b684eab73ba3dc90ba0c"
       },
-      "run": "9d02b879-8268-46d2-a20b-cc8da831f689",
-      "selection": "sha256:e935b7c2b497a9c3d977b8352e5099ebee8bdcbd058fbed1b431836bd32cad1b",
-      "snapshot": "sha256:b10341e718ffd2da641e69f38780cb30731a29dd6dd02dc972f7e8b6fa3ca6d4",
+      "run": "a7bf51bf-1ef2-4692-bd23-9a66108e7e87",
+      "selection": "sha256:03a8fefedbe5cb19c20dbe0c74399ed5c7fff2b797046bf19bf9bcc1e5cac950",
+      "snapshot": "sha256:d6da3f3f21ea79bdbc7e4c58f92b6da2ee3ad3619c97b684eab73ba3dc90ba0c",
       "declarations": [
         {
           "id": "documentation",
           "status": "satisfied",
-          "explanation": "Existing maintained documentation already follows the installed contribution rules: docs is the sole documentation root, with audience-specific usage, development, adr and agents categories; GLOSSARY.md records domain terms. The development guide explains actual setup and validation, durable ADRs preserve rationale and supersession, and run records remain with their PR/release/CI events. No contextual edits are needed.",
+          "explanation": "The existing documentation already separates usage, development, architecture decisions and agent configuration, with maintained category indexes, a root glossary and accurate contributor setup. No contextual edits or moves are needed.",
           "changedPaths": [],
           "evidence": [
-            "docs/README.md describes each category, with per-directory README indexes; docs/usage/README.md points to the CLI public formats and commands, and docs/development/README.md gives Setup and validation before its document index.",
-            "docs/agents/project.md keeps project-specific constraints separate from the exact shared agent configuration; GLOSSARY.md defines the product and adoption language at the root.",
-            "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md retains its historical decision with a status link to ADR 0009; ADR 0018 explains the private site workspace and shared tooling.",
-            "acceptance/README.md explicitly keeps acceptance records on PRs, releases and workflow runs. Its synthetic project documents, independent example standards sources and published product skill references are intentionally outside the documentation root.",
-            "Fresh post-fix and current drafter output includes exactly the 36 accepted documentation paths. No missing indexes, legacy CONTEXT files, documentation moves or link-repair paths are needed."
+            "docs/README.md describes all four categories; docs/usage/README.md indexes installation, authoring, discovery and CLI protocols; docs/adr/README.md records decision rationales and the supersession of ADR 0004 by ADR 0009.",
+            "docs/development/README.md specifies Node.js 24, pnpm 11.20.0, frozen installation, root validation and site commands, matching package.json, .node-version and .github/workflows/validate.yml; installation, typecheck, lint, format:check and build passed.",
+            "docs/agents/project.md preserves the product neutrality and main-branch constraints; GLOSSARY.md defines selection, exact content, contextual guidance, adoption and update. No CONTEXT.md or CONTEXT-MAP.md remains."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Fresh tree and document review confirms all accepted documentation files, exact-owned exclusions and fixture/product-content exclusions. No missing indexes, glossary migrations, move destinations or link repairs alter coverage.",
+              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
               "evidence": [
-                "Current drafter includes exactly the accepted documentation paths; docs is the only documentation root and GLOSSARY.md is the single root domain glossary.",
-                "Reviewed acceptance/README.md, root package files and site/README.md: synthetic fixtures, examples and product skills remain excluded; the maintained site README is covered exclusively by project-readmes."
+                "docs/README.md describes all four categories; docs/usage/README.md indexes installation, authoring, discovery and CLI protocols; docs/adr/README.md records decision rationales and the supersession of ADR 0004 by ADR 0009.",
+                "docs/development/README.md specifies Node.js 24, pnpm 11.20.0, frozen installation, root validation and site commands, matching package.json, .node-version and .github/workflows/validate.yml; installation, typecheck, lint, format:check and build passed.",
+                "docs/agents/project.md preserves the product neutrality and main-branch constraints; GLOSSARY.md defines selection, exact content, contextual guidance, adoption and update. No CONTEXT.md or CONTEXT-MAP.md remains."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Fresh tree and document review confirms all accepted documentation files, exact-owned exclusions and fixture/product-content exclusions. No missing indexes, glossary migrations, move destinations or link repairs alter coverage.",
+              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
               "evidence": [
-                "Current drafter includes exactly the accepted documentation paths; docs is the only documentation root and GLOSSARY.md is the single root domain glossary.",
-                "Reviewed acceptance/README.md, root package files and site/README.md: synthetic fixtures, examples and product skills remain excluded; the maintained site README is covered exclusively by project-readmes."
+                "docs/README.md describes all four categories; docs/usage/README.md indexes installation, authoring, discovery and CLI protocols; docs/adr/README.md records decision rationales and the supersession of ADR 0004 by ADR 0009.",
+                "docs/development/README.md specifies Node.js 24, pnpm 11.20.0, frozen installation, root validation and site commands, matching package.json, .node-version and .github/workflows/validate.yml; installation, typecheck, lint, format:check and build passed.",
+                "docs/agents/project.md preserves the product neutrality and main-branch constraints; GLOSSARY.md defines selection, exact content, contextual guidance, adoption and update. No CONTEXT.md or CONTEXT-MAP.md remains."
               ],
               "additionalPaths": []
             }
@@ -1355,39 +1394,41 @@
         {
           "id": "factory-sandbox-image",
           "status": "satisfied",
-          "explanation": "The existing Dockerfile starts with the retained base unchanged, then installs only the versioned contributor toolchain and restores the agent user. No edits or image rebuild are needed for this contribution-guide update.",
+          "explanation": "The existing Dockerfile retains the exact base followed by the required Node.js and pnpm toolchain, ending as the agent user. No image change is needed.",
           "changedPaths": [],
           "evidence": [
-            ".sandcastle/Dockerfile contains the source sandbox base, including Node.js 24, Git, gh and agent tools; its final USER root block installs node@24.11.1 and pnpm@11.20.0 before restoring USER ${AGENT_UID}:${AGENT_GID}.",
-            "docs/development/README.md requires Node.js 24 and the versions in .node-version and package.json, which name 24.11.1 and pnpm@11.20.0. Project dependencies remain the run's responsibility; no COPY, ADD or additional stage is introduced."
+            ".sandcastle/Dockerfile starts with the retained operations/sandbox-image-base.Dockerfile content and adds only USER root, installation of node@24.11.1 and pnpm@11.20.0, and the final agent USER.",
+            ".node-version specifies 24.11.1; package.json packageManager specifies pnpm@11.20.0; docs/development/README.md requires those versions and leaves project dependencies to the run. No image build was performed."
           ]
         },
         {
           "id": "github-repository-configuration",
           "status": "satisfied",
-          "explanation": "The declared fixes verified existing canonical labels and PR integration without changing remote settings. The empty project-content scope remains intentional.",
+          "explanation": "The remote configuration already satisfies the declared label and PR integration guidance. The successful repeat-safe fixes reported no changes.",
           "changedPaths": [],
           "evidence": [
             "canonical-labels exited 0 with status unchanged: GitHub labels already match the canonical configuration for lutzseverino/repo-standards.",
-            "pull-request-integration exited 0 with status unchanged: GitHub PR integration already matches the canonical configuration, including the applicable PR metadata enforcement and squash/title/body settings.",
-            "git remote names the single origin https://github.com/lutzseverino/repo-standards; the profile update authorizes its remote configuration operations."
+            "pull-request-integration exited 0 with status unchanged: GitHub PR integration already matches canonical configuration. Remote configuration is the whole scope; no project-content paths are needed.",
+            "The release migration query gh issue list --state open --label ready-for-agent returned no issues, so there are no ready parents whose ticket model labels require alignment."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "The same unambiguous origin and authorized repeat-safe remote operations remain applicable. No project-content path belongs to this remote-only declaration.",
+              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
               "evidence": [
-                "Origin is https://github.com/lutzseverino/repo-standards.",
-                "Both fix results are unchanged; no remote settings or project files were modified by the fixes."
+                "canonical-labels exited 0 with status unchanged: GitHub labels already match the canonical configuration for lutzseverino/repo-standards.",
+                "pull-request-integration exited 0 with status unchanged: GitHub PR integration already matches canonical configuration. Remote configuration is the whole scope; no project-content paths are needed.",
+                "The release migration query gh issue list --state open --label ready-for-agent returned no issues, so there are no ready parents whose ticket model labels require alignment."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "The same unambiguous origin and authorized repeat-safe remote operations remain applicable. No project-content path belongs to this remote-only declaration.",
+              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
               "evidence": [
-                "Origin is https://github.com/lutzseverino/repo-standards.",
-                "Both fix results are unchanged; no remote settings or project files were modified by the fixes."
+                "canonical-labels exited 0 with status unchanged: GitHub labels already match the canonical configuration for lutzseverino/repo-standards.",
+                "pull-request-integration exited 0 with status unchanged: GitHub PR integration already matches canonical configuration. Remote configuration is the whole scope; no project-content paths are needed.",
+                "The release migration query gh issue list --state open --label ready-for-agent returned no issues, so there are no ready parents whose ticket model labels require alignment."
               ],
               "additionalPaths": []
             }
@@ -1396,30 +1437,31 @@
         {
           "id": "project-readmes",
           "status": "satisfied",
-          "explanation": "site is the sole non-root maintained Project. Its developer-facing README already explains its website purpose, real commands, important configuration and documentation links without duplicating shared setup. Synthetic acceptance projects and source examples are excluded.",
+          "explanation": "Site is the only maintained non-root project; its README correctly describes its purpose, development commands, configuration and shared contribution/setup links.",
           "changedPaths": [],
           "evidence": [
-            "pnpm-workspace.yaml includes only site; site/package.json is a private Astro workspace with dev, check, build and preview scripts. site/src/pages/index.astro owns the maintained placeholder.",
-            "site/README.md describes Astro, React, Tailwind and shadcn, states that commands run from the repository root, and links ../CONTRIBUTING.md and ../docs/development/README.md.",
-            "site/astro.config.mjs agrees with the README's integrations and public site URL. Local pnpm --dir site check passed with zero errors, warnings or hints; pnpm --dir site build successfully emitted one static page.",
-            "acceptance/README.md establishes the test fixtures as synthetic publishers and projects; root package.json ships examples and skills as CLI content. vendor holds upstream parsers, rather than separately maintained repository Projects."
+            "site/package.json is the private Astro workspace with dev/check/build/preview commands and pnpm-workspace.yaml includes site; site/astro.config.mjs configures React, Tailwind and https://repo-standards.lutzseverino.com.",
+            "site/README.md gives root-relative pnpm --dir site commands, static output and local server details, describes the placeholder page and configuration files, and links ../CONTRIBUTING.md and ../docs/development/README.md.",
+            "acceptance/README.md describes disposable real-agent journeys and fixture projects; examples are standards inputs, test holds CLI tests, skills holds root-package resources, and vendor holds third-party exact content. None is another maintained project."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Reviewed manifests, workspace configuration, maintained page source and README links establish site as the sole non-root Project at both snapshots; no additional or missing Project README is needed.",
+              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
               "evidence": [
-                "pnpm-workspace.yaml selects site, and site/package.json plus site/src/pages/index.astro establish its own responsibility and development commands.",
-                "acceptance projects and independent example sources remain synthetic CLI fixtures; src, scripts, bootstrap and skills belong to the root CLI, and vendor remains upstream content."
+                "site/package.json is the private Astro workspace with dev/check/build/preview commands and pnpm-workspace.yaml includes site; site/astro.config.mjs configures React, Tailwind and https://repo-standards.lutzseverino.com.",
+                "site/README.md gives root-relative pnpm --dir site commands, static output and local server details, describes the placeholder page and configuration files, and links ../CONTRIBUTING.md and ../docs/development/README.md.",
+                "acceptance/README.md describes disposable real-agent journeys and fixture projects; examples are standards inputs, test holds CLI tests, skills holds root-package resources, and vendor holds third-party exact content. None is another maintained project."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Reviewed manifests, workspace configuration, maintained page source and README links establish site as the sole non-root Project at both snapshots; no additional or missing Project README is needed.",
+              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
               "evidence": [
-                "pnpm-workspace.yaml selects site, and site/package.json plus site/src/pages/index.astro establish its own responsibility and development commands.",
-                "acceptance projects and independent example sources remain synthetic CLI fixtures; src, scripts, bootstrap and skills belong to the root CLI, and vendor remains upstream content."
+                "site/package.json is the private Astro workspace with dev/check/build/preview commands and pnpm-workspace.yaml includes site; site/astro.config.mjs configures React, Tailwind and https://repo-standards.lutzseverino.com.",
+                "site/README.md gives root-relative pnpm --dir site commands, static output and local server details, describes the placeholder page and configuration files, and links ../CONTRIBUTING.md and ../docs/development/README.md.",
+                "acceptance/README.md describes disposable real-agent journeys and fixture projects; examples are standards inputs, test holds CLI tests, skills holds root-package resources, and vendor holds third-party exact content. None is another maintained project."
               ],
               "additionalPaths": []
             }
@@ -1428,23 +1470,22 @@
         {
           "id": "repository-license",
           "status": "satisfied",
-          "explanation": "The existing root LICENSE clearly provides the MIT License and copyright notice. There is no competing root license file, so the selected license is preserved.",
+          "explanation": "The existing root LICENSE is the single clear MIT license, with the repository owner copyright; no change is needed.",
           "changedPaths": [],
           "evidence": [
-            "LICENSE contains the MIT License text with Copyright (c) 2026 Jasper Lutz Severino.",
-            "Root license-file inventory contains only LICENSE; README.md labels its pointer MIT License."
+            "LICENSE contains the MIT License and Copyright (c) 2026 Jasper Lutz Severino, matching package.json license MIT and README.md MIT License link.",
+            "Reviewed the tracked license inventory: there is no other root license file to reconcile; nested vendor and fixture licenses are separate content."
           ]
         },
         {
           "id": "repository-readme",
           "status": "satisfied",
-          "explanation": "The existing root README provides accurate introductory CLI documentation with a centered title, concise description, TypeScript and Node.js 24 badges, user installation, representative usage, concise verb-led features and navigation pointers. No update is needed.",
+          "explanation": "The root README accurately presents the CLI and skills, concise installation and usage, runtime badges, feature actions and the required pointer sections in order.",
           "changedPaths": [],
           "evidence": [
-            "README.md starts with a centered Repository Standards title and describes the CLI and agent skills; package.json names the ESM TypeScript-built CLI, Node >=24 <25 and repo-standards binary.",
-            "Installation uses npm install --global --ignore-scripts @lutzseverino/repo-standards without a version and links detailed installation; Usage gives source validate as a representative public command.",
-            "Recognized sections appear in Installation, Features, Usage, Documentation, Contributing, License order, with the final three holding only their links to docs/README.md, CONTRIBUTING.md and LICENSE.",
-            "CLI 6.0.0 was restored from the exact pinned runtime and reported its version; local typecheck, lint, formatting and build passed, supporting the maintained development instructions."
+            "README.md has a centered Repository Standards title and TypeScript/Node.js 24 badges, matching package.json type module, tsconfig and engines >=24 <25.",
+            "Installation uses npm install --global --ignore-scripts @lutzseverino/repo-standards without a version pin; Usage shows source validate, which src/cli.ts exposes.",
+            "Features describe independently authored profiles, inspection, adoption, updates, outdated summaries, checks and discovery; Documentation, Contributing and License are single links to docs/README.md, CONTRIBUTING.md and LICENSE."
           ]
         }
       ]
