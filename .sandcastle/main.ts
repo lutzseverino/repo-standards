@@ -6,16 +6,16 @@ import { execFile, spawn, spawnSync } from "node:child_process";
 import { once } from "node:events";
 import { readFileSync } from "node:fs";
 import { delimiter, join } from "node:path";
-import { createInterface } from "node:readline";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import {
   claudeUsage,
-  codexUsage,
   createFactory,
   createStandardsRunner,
+  readCodexUsage,
   readSettings,
+  sandboxMounts,
   type ImageBuild,
   type LaunchRequest,
 } from "./adapter.ts";
@@ -40,7 +40,7 @@ const providers: Record<
   },
   codex: {
     agent: (model, options) => sandcastle.codex(model, options),
-    readUsage: readCodexUsage,
+    readUsage: () => readCodexUsage(settings.codexLogin),
   },
 };
 
@@ -110,7 +110,10 @@ async function launch(request: LaunchRequest): Promise<void> {
     agent: providers[request.provider].agent(request.model, {
       effort: request.effort,
     }),
-    sandbox: sandcastle.docker({ imageName: request.image }),
+    sandbox: sandcastle.docker({
+      imageName: request.image,
+      mounts: sandboxMounts(request.provider, settings.codexLogin),
+    }),
     prompt: request.prompt,
     branchStrategy: { type: "branch", branch: request.branch },
     logging: { type: "file", path: request.log },
@@ -143,62 +146,6 @@ async function buildImage(request: ImageBuild): Promise<void> {
   const [status] = await once(build, "close");
   if (status !== 0)
     throw new Error(`docker build exited with ${status}: ${errors.trim()}`);
-}
-
-// The Codex app-server's documented rate-limit read, over stdio JSONL.
-async function readCodexUsage(): Promise<number | null> {
-  const server = spawn("codex", ["app-server"], {
-    stdio: ["pipe", "pipe", "ignore"],
-  });
-  // One reader for the whole session: each reply settles its request by id.
-  const pending = new Map<
-    number,
-    { resolve: (result: unknown) => void; reject: (error: Error) => void }
-  >();
-  const abandon = (error: Error) => {
-    for (const request of pending.values()) request.reject(error);
-    pending.clear();
-  };
-  server.on("error", abandon);
-  createInterface({ input: server.stdout })
-    .on("line", (line) => {
-      let message;
-      try {
-        message = JSON.parse(line);
-      } catch {
-        return;
-      }
-      const request = pending.get(message.id);
-      if (!request) return;
-      pending.delete(message.id);
-      if (message.error) request.reject(new Error(message.error.message));
-      else request.resolve(message.result);
-    })
-    .on("close", () =>
-      abandon(new Error("codex app-server closed before replying")),
-    );
-  const send = (message: object) =>
-    server.stdin.write(`${JSON.stringify(message)}\n`);
-  const request = (method: string, id: number, params?: object) => {
-    const reply = new Promise((resolve, reject) =>
-      pending.set(id, { resolve, reject }),
-    );
-    send({ method, id, params });
-    return Promise.race([reply, sleep(30_000).then(timeout)]);
-  };
-  try {
-    await request("initialize", 0, {
-      clientInfo: { name: "factory", title: "Factory", version: "1.0.0" },
-    });
-    send({ method: "initialized", params: {} });
-    return codexUsage(await request("account/rateLimits/read", 1));
-  } finally {
-    server.kill();
-  }
-}
-
-function timeout(): never {
-  throw new Error("timed out");
 }
 
 // Claude Code publishes no usage read; this one is best-effort.

@@ -173,6 +173,11 @@ const efforts: Record<Provider, string[]> = {
   codex: ["low", "medium", "high", "xhigh"],
 };
 
+export const skillPrefixes: Record<Provider, string> = {
+  "claude-code": "/",
+  codex: "$",
+};
+
 const vendorPrefixes: [string, Provider][] = [
   ["claude-", "claude-code"],
   ["gpt-", "codex"],
@@ -230,7 +235,9 @@ export function decideFactory(snapshot: Snapshot): Decision[] {
       });
       continue;
     }
-    const gated = gate(model.provider, running, snapshot);
+    const gated =
+      ticketModelExclusion(issue, model, snapshot.settings) ??
+      gate(model.provider, running, snapshot);
     if (gated) {
       decisions.push({ kind: "skip", issue: issue.number, reason: gated });
       continue;
@@ -372,7 +379,7 @@ function gate(
 type Model = { provider: Provider; model: string; effort: string };
 
 function issueModel(
-  issue: Issue,
+  issue: Pick<Issue, "labels">,
   settings: Settings,
 ): Model | { error: string } {
   const named = issue.labels.filter((label) => label.startsWith("model:"));
@@ -380,6 +387,41 @@ function issueModel(
     return { error: `several model labels: ${named.join(", ")}` };
   if (named.length === 1) return parseModel(named[0].slice("model:".length));
   return parseModel(settings.defaultModel);
+}
+
+// At pickup, a parent runs every ticket on its own model. Explicit ticket
+// labels must agree; unlabelled and closed tickets hold nothing. Retries keep
+// the host's retry model and do not pass through this guard.
+function ticketModelExclusion(
+  issue: Issue,
+  model: Model,
+  settings: Settings,
+): string | null {
+  const conflicts: string[] = [];
+  for (const ticket of issue.subIssues) {
+    if (
+      ticket.state !== "open" ||
+      !ticket.labels.some((label) => label.startsWith("model:"))
+    )
+      continue;
+    const named = issueModel(ticket, settings);
+    if ("error" in named) {
+      conflicts.push(`${reference(ticket.number)}: ${named.error}`);
+    } else if (
+      named.provider !== model.provider ||
+      named.model !== model.model ||
+      named.effort !== model.effort
+    ) {
+      conflicts.push(`${reference(ticket.number)}: ${modelName(named)}`);
+    }
+  }
+  return conflicts.length > 0
+    ? `tickets hold the parent on run model ${modelName(model)}: ${conflicts.join("; ")}; label the parent and its tickets with one model, or remove the tickets' model: labels`
+    : null;
+}
+
+function modelName({ provider, model, effort }: Model): string {
+  return `${provider}/${model}@${effort}`;
 }
 
 // A model is `<slug>` or `<provider>/<slug>`, with an optional `@<effort>`.

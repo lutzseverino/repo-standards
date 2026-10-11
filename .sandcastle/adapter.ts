@@ -1,9 +1,22 @@
 // The factory's adapter: it reads the snapshot through the GitHub CLI and the
 // usage readers, asks the decision core what to do, and carries the decisions
 // out through GitHub label edits, comments, and Sandcastle launches.
+import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import {
+  accessSync,
+  constants,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { isAbsolute, join } from "node:path";
+import { createInterface } from "node:readline";
+import { setTimeout as sleep } from "node:timers/promises";
 import {
   isSpecification,
   parentSectionReference,
@@ -14,6 +27,7 @@ import {
   isProvider,
   labels,
   parseModel,
+  skillPrefixes,
   unknownProvider,
   updateModel,
   type Claim,
@@ -70,8 +84,12 @@ type HostRun = Run & {
   stopped: boolean;
 };
 
-// The decision core's settings and the time between passes.
-export type HostSettings = Settings & { pollSeconds: number };
+// The decision core's settings, the time between passes, and the host file
+// holding the Codex login, or null for none.
+export type HostSettings = Settings & {
+  pollSeconds: number;
+  codexLogin: string | null;
+};
 
 // The factory host sets these; Repo Canon ships no values for them.
 export function readSettings(
@@ -135,6 +153,10 @@ export function readSettings(
         "set it to a positive number of seconds, or leave it unset for 300",
       )
     : 300;
+  // Checked once here; launches and usage reads use the path as it stands.
+  const codexLogin = env.FACTORY_CODEX_LOGIN || null;
+  const loginProblem = codexLogin && codexLoginProblem(codexLogin);
+  if (loginProblem) problems.push(`- FACTORY_CODEX_LOGIN: ${loginProblem}`);
   if (problems.length > 0)
     throw new Error(
       ["The factory host settings are unusable:", ...problems].join("\n"),
@@ -146,7 +168,48 @@ export function readSettings(
     usageThreshold,
     timeLimitMinutes,
     pollSeconds,
+    codexLogin,
   };
+}
+
+// Why the factory cannot use a Codex login file, by its path alone.
+function codexLoginProblem(path: string): string | null {
+  if (!isAbsolute(path)) return `set it to an absolute path, not ${path}`;
+  const unreadable = `${path} is not readable by the factory's user; let it read the file`;
+  let file;
+  try {
+    file = statSync(path);
+  } catch (error: any) {
+    return error.code === "EACCES"
+      ? unreadable
+      : `${path} does not exist; set it to the Codex login file`;
+  }
+  if (!file.isFile())
+    return `${path} is not a regular file; set it to the Codex login file`;
+  try {
+    accessSync(path, constants.R_OK);
+  } catch {
+    return unreadable;
+  }
+  return null;
+}
+
+// The bind mounts a run's sandbox gets. A run on Codex signs in from the
+// host's login, read-only in its default Codex home; the rest of that home
+// stays writable and private to the sandbox.
+export function sandboxMounts(
+  provider: Provider,
+  codexLogin: string | null,
+): { hostPath: string; sandboxPath: string; readonly: boolean }[] {
+  return provider === "codex" && codexLogin !== null
+    ? [
+        {
+          hostPath: codexLogin,
+          sandboxPath: "/home/agent/.codex/auth.json",
+          readonly: true,
+        },
+      ]
+    : [];
 }
 
 // The pinned bootstrap acquires a candidate outside the checkout and removes
@@ -204,16 +267,9 @@ export function createStandardsRunner(
   };
 }
 
-const templates: Record<Mode, string> = {
-  direct: readFileSync(new URL("./direct-prompt.md", import.meta.url), "utf8"),
-  orchestrated: readFileSync(
-    new URL("./orchestrated-prompt.md", import.meta.url),
-    "utf8",
-  ),
-};
-
-export function prompt(mode: Mode, issue: number): string {
-  return templates[mode].trim().replaceAll("{{ISSUE}}", String(issue));
+export function prompt(provider: Provider, mode: Mode, issue: number): string {
+  const skill = mode === "direct" ? "implement" : "implement-spec";
+  return `${skillPrefixes[provider]}${skill} #${issue}`;
 }
 
 // A page holds 25 issues so the query stays within GitHub's limit of 500,000
@@ -708,7 +764,7 @@ export function createFactory(settings: Settings, ports: Ports) {
           .launch({
             issue,
             branch: runBranch(issue),
-            prompt: prompt(decision.mode, issue),
+            prompt: prompt(run.provider, run.mode, issue),
             provider: run.provider,
             model: run.model,
             effort: run.effort,
@@ -935,6 +991,101 @@ export function codexUsage(result: any): number | null {
     limits?.primary?.usedPercent,
     limits?.secondary?.usedPercent,
   ]);
+}
+
+// The Codex app-server's documented rate-limit read, over stdio JSONL. With a
+// login file, each read signs in from its own private copy, removed afterwards.
+export async function readCodexUsage(
+  codexLogin: string | null,
+  codex = "codex",
+  timeoutMs = 30_000,
+): Promise<number | null> {
+  let home: string | null = null;
+  try {
+    if (codexLogin !== null) {
+      home = mkdtempSync(join(tmpdir(), "factory-codex-"));
+      writeFileSync(join(home, "auth.json"), readFileSync(codexLogin), {
+        mode: 0o600,
+      });
+    }
+    return await readRateLimits(
+      codex,
+      home === null ? process.env : { ...process.env, CODEX_HOME: home },
+      timeoutMs,
+    );
+  } finally {
+    if (home !== null) rmSync(home, { recursive: true, force: true });
+  }
+}
+
+async function readRateLimits(
+  codex: string,
+  env: NodeJS.ProcessEnv,
+  timeoutMs: number,
+): Promise<number | null> {
+  const server = spawn(codex, ["app-server"], {
+    stdio: ["pipe", "pipe", "ignore"],
+    env,
+  });
+  const exited = new Promise((resolve) => server.on("close", resolve));
+  // One reader for the whole session: each reply settles its request by id.
+  const pending = new Map<
+    number,
+    { resolve: (result: unknown) => void; reject: (error: Error) => void }
+  >();
+  const abandon = (error: Error) => {
+    for (const request of pending.values()) request.reject(error);
+    pending.clear();
+  };
+  server.on("error", abandon);
+  createInterface({ input: server.stdout })
+    .on("line", (line) => {
+      let message;
+      try {
+        message = JSON.parse(line);
+      } catch {
+        return;
+      }
+      const request = pending.get(message.id);
+      if (!request) return;
+      pending.delete(message.id);
+      if (message.error) request.reject(new Error(message.error.message));
+      else request.resolve(message.result);
+    })
+    .on("close", () =>
+      abandon(new Error("codex app-server closed before replying")),
+    );
+  const send = (message: object) =>
+    server.stdin.write(`${JSON.stringify(message)}\n`);
+  // The timers end with the read, rather than outlasting it.
+  const timers = new AbortController();
+  const request = (method: string, id: number, params?: object) => {
+    const reply = new Promise((resolve, reject) =>
+      pending.set(id, { resolve, reject }),
+    );
+    send({ method, id, params });
+    return Promise.race([
+      reply,
+      sleep(timeoutMs, undefined, { signal: timers.signal }).then(timeout),
+    ]);
+  };
+  try {
+    await request("initialize", 0, {
+      clientInfo: { name: "factory", title: "Factory", version: "1.0.0" },
+    });
+    send({ method: "initialized", params: {} });
+    return codexUsage(await request("account/rateLimits/read", 1));
+  } finally {
+    timers.abort();
+    server.kill();
+    // The server writes into its Codex home until it exits, so the caller
+    // removes that home only afterwards.
+    if (server.pid !== undefined) await exited;
+  }
+}
+
+function timeout(): never {
+  throw new Error("timed out");
 }
 
 // Claude Code's subscription usage, read best-effort.

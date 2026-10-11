@@ -75,12 +75,6 @@ profiles:
         kind: file
         target: .sandcastle/factory.ts
         exact: .sandcastle/factory.ts
-      factory-direct-prompt:
-        checks: []
-        fixes: []
-        kind: file
-        target: .sandcastle/direct-prompt.md
-        exact: .sandcastle/direct-prompt.md
       factory-entry:
         checks: []
         fixes: []
@@ -93,12 +87,6 @@ profiles:
         kind: file
         target: .sandcastle/.gitignore
         exact: .sandcastle/.gitignore
-      factory-orchestrated-prompt:
-        checks: []
-        fixes: []
-        kind: file
-        target: .sandcastle/orchestrated-prompt.md
-        exact: .sandcastle/orchestrated-prompt.md
       factory-sandbox-image:
         checks:
           - id: sandbox-image-base
