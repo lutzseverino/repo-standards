@@ -6,10 +6,9 @@ page; the site's direction and content follow separately.
 
 ## Development
 
-Install dependencies from the repository root with `pnpm install --frozen-lockfile`.
-Use the Node.js and pnpm versions in the repository's
-[development guide](../docs/development/README.md), which also documents shared
-validation and CI.
+Follow the repository's [development guide](../docs/development/README.md) for
+shared prerequisites, installation, validation and CI, and the
+[contribution guidelines](../CONTRIBUTING.md) for the pull request workflow.
 
 From the repository root:
 
