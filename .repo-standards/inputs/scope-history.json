@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:0c5b2ff8559dd842420a04dcc3b450ff015a81024425a0e7b6302ac7802505d2",
+  "inspection": "sha256:02f3335b0a3326078e637423690d35f4d2233e179426ab7c475841e7f71cbc2f",
   "resolved": {
     "description": "The complete Repo Canon standards profile",
     "declarations": [
@@ -69,7 +69,6 @@
         "guidance": "guidance/documentation.md",
         "targets": {
           "paths": [
-            "CONTEXT.md",
             "GLOSSARY.md",
             "docs/README.md",
             "docs/adr/0001-separate-authorship-from-adoption.md",
@@ -89,6 +88,7 @@
             "docs/adr/0015-leave-delivery-to-standards-sources.md",
             "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
             "docs/adr/0017-confirm-only-confirmation-required-changes.md",
+            "docs/adr/0018-add-a-private-astro-site-workspace.md",
             "docs/adr/README.md",
             "docs/agents/project.md",
             "docs/development/README.md",
@@ -401,7 +401,9 @@
         "kind": "repository",
         "guidance": "guidance/project-readmes.md",
         "targets": {
-          "paths": [],
+          "paths": [
+            "site/README.md"
+          ],
           "directories": []
         }
       },
@@ -1371,43 +1373,26 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:7860f7df78314024ec2276a0dac61dff903e12546ed289edc1bb3a3567206483",
+    "identity": "sha256:3a6ded91db3ee929a1fbf16406ba1af4a50f614931b7dce134aa4fef144f9017",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "The only documentation root is docs, with usage, development, adr and agents categories. Include every project-owned document and index there; exact shared agent configuration remains excluded. CONTEXT.md is the single root domain glossary and migrates byte-for-byte to GLOSSARY.md; no CONTEXT-MAP.md or context glossaries exist. Included release and available-update documents cover all non-exact links to the old glossary. Acceptance files are synthetic test fixtures and journey harnesses, examples are independently authored standards sources, skills are shipped product content, vendor files are retained upstream dependencies, and installed agent skills remain governed by their skill declarations; none is a documentation root or a document to move.",
+          "coverage": "docs is the only documentation root; include every project-owned file and index there and root GLOSSARY.md. site is a maintained private website Project, with only site/README.md as documentation today and no site/docs root; its README belongs exclusively to project-readmes. No glossary migration, context map, missing indexes, or planned documentation destinations are needed. Acceptance projects are synthetic fixtures, examples are independently authored sources, skills are shipped product content, vendor is upstream content, and installed skills have separate ownership. These explain every outside-Markdown question from the drafter; none needs migration. Exact agent documents stay excluded.",
           "candidates": [
-            {
-              "path": ".agents/skills",
-              "decision": "exclude",
-              "reason": "Installed author and system skills are governed separately; retired unedited skills are removed by adoption.",
-              "evidence": [
-                ".agents/skills/deliver/SKILL.md",
-                ".agents/skills/resolving-merge-conflicts/SKILL.md"
-              ]
-            },
-            {
-              "path": "CONTEXT.md",
-              "decision": "include",
-              "reason": "Root domain glossary migration source and destination; preserve all vocabulary and repair links.",
-              "evidence": [
-                "CONTEXT.md"
-              ]
-            },
             {
               "path": "GLOSSARY.md",
               "decision": "include",
-              "reason": "Root domain glossary migration source and destination; preserve all vocabulary and repair links.",
+              "reason": "The domain glossary at the repository root.",
               "evidence": [
-                "CONTEXT.md"
+                "GLOSSARY.md"
               ]
             },
             {
               "path": "acceptance",
               "decision": "exclude",
-              "reason": "Synthetic projects and sources plus acceptance harness; preserve their intentional layouts and README fixtures.",
+              "reason": "Acceptance harness and synthetic fixtures preserve their intentional document layouts.",
               "evidence": [
                 "acceptance/README.md",
                 "acceptance/projects/bob/package.json"
@@ -1598,6 +1583,14 @@
               ]
             },
             {
+              "path": "docs/adr/0018-add-a-private-astro-site-workspace.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0018-add-a-private-astro-site-workspace.md"
+              ]
+            },
+            {
               "path": "docs/adr/README.md",
               "decision": "include",
               "reason": "A file under the documentation root `docs`.",
@@ -1760,15 +1753,24 @@
             {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Independently authored standards sources packaged as examples, not adopting-project documentation.",
+              "reason": "Independently authored standards sources distributed as examples, not adopting-project documentation.",
               "evidence": [
-                "examples/alice/standards.yaml"
+                "examples/alice/standards.yaml",
+                "package.json"
+              ]
+            },
+            {
+              "path": "site/README.md",
+              "decision": "exclude",
+              "reason": "Project README owned by project-readmes; not a documentation root index or migration source.",
+              "evidence": [
+                "site/README.md"
               ]
             },
             {
               "path": "skills",
               "decision": "exclude",
-              "reason": "Product-owned skills shipped in the npm package, not adopting-project documentation.",
+              "reason": "Product-owned packaged skill instructions, not documentation to reorganize.",
               "evidence": [
                 "package.json",
                 "skills/adopt-standards/SKILL.md"
@@ -1777,7 +1779,7 @@
             {
               "path": "vendor",
               "decision": "exclude",
-              "reason": "Vendored dependencies retain upstream documentation and licenses.",
+              "reason": "Upstream vendored dependencies retain their documents.",
               "evidence": [
                 "vendor/marked/README.md",
                 "vendor/parse5/README.md"
@@ -1788,13 +1790,13 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Intentionally empty project-content scope: authored fixes change only remote GitHub configuration. Git remotes and authenticated gh repo view identify lutzseverino/repo-standards, default branch main, viewer permission ADMIN. The maintainer requested this adoption; overwriting an existing different setting must stop for confirmation.",
+          "coverage": "Intentionally empty project-content scope. Git remotes and authenticated gh repo view identify lutzseverino/repo-standards, main, ADMIN permission. The maintainer authorizes this update and its declared repeat-safe remote fixes; any different existing setting requiring confirmation must stop.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "Repository Standards is one root npm CLI and skill package with shared development commands. src, bootstrap, scripts, skills and acceptance are components of that package; examples and acceptance/projects are synthetic source/project fixtures, vendor contains third-party bundled dependencies. No independently maintained non-root Project needs its own README.",
+          "coverage": "The repository has the root CLI package and one non-root maintained Project: site, a private pnpm website workspace added by #225 / PR #226. site/README.md exists and is the only Project README. src/bootstrap/scripts/skills belong to the root package; acceptance projects and examples are synthetic fixtures/sources; vendor is third-party; docs and .github organize shared documentation/workflows. No missing Project README or membership question remains.",
           "candidates": [
             {
               "path": "acceptance/projects",
@@ -1802,22 +1804,29 @@
               "reason": "Synthetic acceptance fixtures, not maintained apps or services.",
               "evidence": [
                 "acceptance/README.md",
-                "acceptance/projects/bob/package.json",
-                "acceptance/projects/harbor/README.md"
+                "acceptance/projects/bob/package.json"
               ]
             },
             {
               "path": "bootstrap",
               "decision": "exclude",
-              "reason": "Entry point of the same root package, not an independent project.",
+              "reason": "Entry point of the root CLI package.",
               "evidence": [
                 "package.json"
               ]
             },
             {
+              "path": "docs",
+              "decision": "exclude",
+              "reason": "Organizes repository documentation, not an independent Project.",
+              "evidence": [
+                "docs/README.md"
+              ]
+            },
+            {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Packaged standards-source examples, not independent tools.",
+              "reason": "Packaged standards-source examples, not independent maintained tools.",
               "evidence": [
                 "examples/alice/standards.yaml",
                 "package.json"
@@ -1832,9 +1841,22 @@
               ]
             },
             {
+              "path": "site/README.md",
+              "decision": "include",
+              "reason": "Maintained private Astro website workspace with its own purpose, dev/check/build/preview commands, source and independent GitHub Pages deployment.",
+              "evidence": [
+                ".github/workflows/deploy-site.yml",
+                "pnpm-workspace.yaml",
+                "site/README.md",
+                "site/astro.config.mjs",
+                "site/package.json",
+                "site/src/pages/index.astro"
+              ]
+            },
+            {
               "path": "skills",
               "decision": "exclude",
-              "reason": "Agent skills distributed with the single root package.",
+              "reason": "Agent skills shipped as part of the root CLI package.",
               "evidence": [
                 "package.json"
               ]
@@ -1842,7 +1864,7 @@
             {
               "path": "src",
               "decision": "exclude",
-              "reason": "Modules of the single root CLI package; commands are root package scripts.",
+              "reason": "Modules of the root CLI package, with root development commands.",
               "evidence": [
                 "docs/development/README.md",
                 "package.json"
@@ -1851,7 +1873,7 @@
             {
               "path": "vendor",
               "decision": "exclude",
-              "reason": "Third-party dependencies, not maintained project components.",
+              "reason": "Third-party bundled dependencies.",
               "evidence": [
                 "vendor/marked/README.md",
                 "vendor/parse5/README.md"
@@ -1862,22 +1884,13 @@
         }
       ]
     },
-    "absence": [
-      {
-        "kind": "absence",
-        "path": "GLOSSARY.md",
-        "identity": "sha256:4d33cd9cec1b2a76e3978091a66a6d8f32a4e4fa6cebbcf2d05c43733508ef3a"
-      }
-    ],
+    "absence": [],
     "named": {
       "targets": {
-        "CONTEXT.md": {
+        "GLOSSARY.md": {
           "type": "file",
           "sha256": "5c67ed089d9b6489d8d49642fecf39383fe4a82eae4c7689e5863b4909188411",
           "executable": false
-        },
-        "GLOSSARY.md": {
-          "type": "missing"
         },
         "docs/README.md": {
           "type": "file",
@@ -1969,9 +1982,14 @@
           "sha256": "3b048a7137bda262b86d8408098b82723f6bad75345554b90cdc74b5b200dd9d",
           "executable": false
         },
+        "docs/adr/0018-add-a-private-astro-site-workspace.md": {
+          "type": "file",
+          "sha256": "8843db226c5e09c91966a69bbb629b968283aaa9e3376f2fee6f17651e80b03f",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "0d56b07d38274bc9109968e1c7eb614152d416fff72c8eb03e921d0e9d50e1e0",
+          "sha256": "1bf3a77b484d69c5ea579b0aed5faab7999af6fe41c5d232a9ad6c87ae0ca3ec",
           "executable": false
         },
         "docs/agents/project.md": {
@@ -1981,7 +1999,7 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "3788b0e8a8891ce17572d576c6bdc0ff908c8a1d0aaaaada032b624726d2f8fa",
+          "sha256": "a821d2aefba2c9ace5e7ef749babe3462f7f0833de9ebcc7dbc74273478161e1",
           "executable": false
         },
         "docs/development/architecture.md": {
@@ -1991,7 +2009,7 @@
         },
         "docs/development/release.md": {
           "type": "file",
-          "sha256": "834c5be3cb1ce8eb0f870a5e043e036d9d57cd2a2fe18d9631ac03f47f1cd67f",
+          "sha256": "c8a4170999bd1fe4ff27980d7e4b53037a0300e3c3513acbc2b632af94d91571",
           "executable": false
         },
         "docs/usage/README.md": {
@@ -2021,7 +2039,7 @@
         },
         "docs/usage/available-updates.md": {
           "type": "file",
-          "sha256": "f49f5cda316293c98acb84658642f6a9794a85705e43fb05a07520115dc05a76",
+          "sha256": "7284c7a768c099d14e5a485f2febf98c1846761dde76c03eacbb57edbe2cd8c8",
           "executable": false
         },
         "docs/usage/check.md": {
@@ -2048,6 +2066,11 @@
           "type": "file",
           "sha256": "4a02d4c7157b8acc11f3be378ddedbb639d29d9035ad36b87f5fd90bbd00d3ce",
           "executable": false
+        },
+        "site/README.md": {
+          "type": "file",
+          "sha256": "0a72ca31a91f166531beaf05229732c637f9834e76ea8a007ad17e53cf99bd45",
+          "executable": false
         }
       }
     },
@@ -2073,6 +2096,11 @@
     ],
     "observation": {
       "files": {
+        ".agents/skills/LICENSE.humanlayer-skills": {
+          "type": "file",
+          "sha256": "5f13c18ea00ea5c1384f41745feeca774079164f7f59a92e4ac0899ad217b26f",
+          "executable": false
+        },
         ".agents/skills/LICENSE.mattpocock-skills": {
           "type": "file",
           "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
@@ -2080,7 +2108,7 @@
         },
         ".agents/skills/adopt-standards/SKILL.md": {
           "type": "file",
-          "sha256": "ef097e2e369ed5bc44311a75292891de0260ff3dd318942f36ee49cb668df08e",
+          "sha256": "8abd386956435fec093e74982de0687bd5d9b4be6e77ef28bc3a670f1c415224",
           "executable": false
         },
         ".agents/skills/adopt-standards/agents/openai.yaml": {
@@ -2090,22 +2118,22 @@
         },
         ".agents/skills/adopt-standards/references/assessment.md": {
           "type": "file",
-          "sha256": "517e66c6556d19e0e29f19f229c5a10c202cb4a0dd9d3d70ad7275fba165f7fe",
+          "sha256": "b0e4fdafd427a18ba834deaa98e4a695884d5e9cd0f959df7f5fbd469e07d881",
           "executable": false
         },
         ".agents/skills/adopt-standards/references/discovery.md": {
           "type": "file",
-          "sha256": "30acedb91d827e23d1442252a2c8e42ffd3b5b22dc5cdbf969cf09e66a026494",
+          "sha256": "0170d35348f3b671a1c28da5ca624e32bc71bae32198f16bd42d3b419fb9c980",
           "executable": false
         },
         ".agents/skills/adopt-standards/references/recovery.md": {
           "type": "file",
-          "sha256": "69c25d7f4bde8cedd20350be878f1444f5ee7095d746c46a39ddacb848dad621",
+          "sha256": "27d88ef16bccb4538b25c40068b57eb9eeb769320fb1a87b78a33057e7924e06",
           "executable": false
         },
         ".agents/skills/adopt-standards/references/review.md": {
           "type": "file",
-          "sha256": "cf8f028b0965d0395571e79a5ca5bb795de1b2ff397a45aab411474da72df10a",
+          "sha256": "9a369755463ded9523d50bf1a338490d156860c7b3516ca27b465427d113bf61",
           "executable": false
         },
         ".agents/skills/ask-matt/PHASE-BOUNDARIES.md": {
@@ -2115,12 +2143,17 @@
         },
         ".agents/skills/ask-matt/SKILL.md": {
           "type": "file",
-          "sha256": "b25d86fb36b1d294eeead5d7db529f86135f9671f2afcd607579a63bb2213769",
+          "sha256": "32b3c71d6dbb5a7c15147e8a503a9df28e9a567f45eba6a6bb42aa903225c6ff",
           "executable": false
         },
         ".agents/skills/ask-matt/agents/openai.yaml": {
           "type": "file",
           "sha256": "bdffbc5a0a99ed1b6ef3253d251d755fd18162b9845972e380007f844b09b05c",
+          "executable": false
+        },
+        ".agents/skills/babysit/SKILL.md": {
+          "type": "file",
+          "sha256": "c30ca8fe16691b1d7ce7c7223b9743cc382b6c39f72fdd89325fe0aa3a6918c9",
           "executable": false
         },
         ".agents/skills/code-review/SKILL.md": {
@@ -2140,7 +2173,7 @@
         },
         ".agents/skills/codebase-design/DESIGN-IT-TWICE.md": {
           "type": "file",
-          "sha256": "8e740bf98446dbd4dfdc132ac4346d9a7eedaf93de6a495889171cf7f99f16bd",
+          "sha256": "52b52e75655a27aea59c6966b410bac82448968ad46ef1ebb9f07c274e3ae010",
           "executable": false
         },
         ".agents/skills/codebase-design/SKILL.md": {
@@ -2153,19 +2186,9 @@
           "sha256": "edebc9e4fcfe102114012575eaa9600b9b5fd08c311664f389c36e7bc717740f",
           "executable": false
         },
-        ".agents/skills/deliver/SKILL.md": {
-          "type": "file",
-          "sha256": "e1138f5120adaa23036065ce730488de88f76e02f2f43a9ef2e31956dac44ff9",
-          "executable": false
-        },
-        ".agents/skills/deliver/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "de8c252bae82640677c7d2b11522dbdf650e17800414ce430ac89a3501a57b2c",
-          "executable": false
-        },
         ".agents/skills/diagnosing-bugs/SKILL.md": {
           "type": "file",
-          "sha256": "77f3cf31bc99b2f49af943222526531fcc9fc41d047626d3640e875e85af3e84",
+          "sha256": "9168404abda0967a5d32977e3498cd95fda6807018852f3de736a78357c82b40",
           "executable": false
         },
         ".agents/skills/diagnosing-bugs/agents/openai.yaml": {
@@ -2183,14 +2206,14 @@
           "sha256": "944c92aa790e8fbdc9199640b170979abb8a34ba8d0fe18c2a01a63bce140ca0",
           "executable": false
         },
-        ".agents/skills/domain-modeling/CONTEXT-FORMAT.md": {
+        ".agents/skills/domain-modeling/GLOSSARY-FORMAT.md": {
           "type": "file",
-          "sha256": "17ab16ce783e4d2801ee52fd9acdf550cbf44de65ae76797a93943bbedf22a13",
+          "sha256": "21dcc40cdec8e151a829b98ab1517c1867bc444e3665134a98c6983411996801",
           "executable": false
         },
         ".agents/skills/domain-modeling/SKILL.md": {
           "type": "file",
-          "sha256": "327a2b50620e2fd70abc6893cd6965e76b20f8d0adb0dc2c8d5eb3845efb643e",
+          "sha256": "7b925d7b1e341a2eeae33ad68a8a8c0ab889a38ddd22a7598e4c240e5a7556a3",
           "executable": false
         },
         ".agents/skills/domain-modeling/agents/openai.yaml": {
@@ -2238,6 +2261,16 @@
           "sha256": "5c479fd562c691851690e8b18c8501045bef0943c10743d636b2fae26add1d28",
           "executable": false
         },
+        ".agents/skills/implement-spec/SKILL.md": {
+          "type": "file",
+          "sha256": "7a22dd2e60b8fcece478ced9d2533582adf3520d695acd3ab715341535c9e56d",
+          "executable": false
+        },
+        ".agents/skills/implement-spec/agents/openai.yaml": {
+          "type": "file",
+          "sha256": "fd41efb42c60c96320d6531be7e4bf15cbf5518cd652d57dff27ccffa46988e9",
+          "executable": false
+        },
         ".agents/skills/implement/SKILL.md": {
           "type": "file",
           "sha256": "6d3fd9e83b8f36e5213854779db49b256a457a7ebb4a503e53fa7dcff696adc3",
@@ -2255,12 +2288,27 @@
         },
         ".agents/skills/improve-codebase-architecture/SKILL.md": {
           "type": "file",
-          "sha256": "d1ac25511a936ff4250a48dbcefda363837d6bb9321b3cba73df99fa37270a75",
+          "sha256": "552240a5ab5cec6b67c15dd1ad6e9f6962b1bca6ce870059a8c2713760c20392",
           "executable": false
         },
         ".agents/skills/improve-codebase-architecture/agents/openai.yaml": {
           "type": "file",
           "sha256": "c8cb20f68ebf0edb4e497bc11ae5fcaa196004e661cd189015b04f4109ced7f1",
+          "executable": false
+        },
+        ".agents/skills/pr/CREDITS.md": {
+          "type": "file",
+          "sha256": "a7a087127665d7298a72280ef6e19c41ad8404523712a788c8dc3ab414bc2497",
+          "executable": false
+        },
+        ".agents/skills/pr/SKILL.md": {
+          "type": "file",
+          "sha256": "ab63f1cf78647389edcd386c9427c5dfca27ed2836930c24773ffee834c19bcd",
+          "executable": false
+        },
+        ".agents/skills/pr/agents/openai.yaml": {
+          "type": "file",
+          "sha256": "2295b586624db4ef546f3fd4695492f039d941a46d8a1593a702ce3ca511b8ad",
           "executable": false
         },
         ".agents/skills/prototype/LOGIC.md": {
@@ -2293,19 +2341,19 @@
           "sha256": "9b4c470d63221c1f68f22df70b83e2f12401b317babe0d1b7b5f24a974474d0d",
           "executable": false
         },
-        ".agents/skills/resolving-merge-conflicts/SKILL.md": {
+        ".agents/skills/retro/SKILL.md": {
           "type": "file",
-          "sha256": "9d8114f8ef0b31f535a265fc05c364bd8cf2e2895a830040e06c22acb11f54b0",
+          "sha256": "33fbc28568e3146f20fd908b12998bc0ab30aa4f4c87288199a40793efa94696",
           "executable": false
         },
-        ".agents/skills/resolving-merge-conflicts/agents/openai.yaml": {
+        ".agents/skills/retro/agents/openai.yaml": {
           "type": "file",
-          "sha256": "a1f4f96838f2ed6282eb28abbbf99029cb8fadce552baf53da90a025b8bffddf",
+          "sha256": "cb6fb9d7e6b4be5975f41f6def1dd00a1255bad5d9b02696b124c924a8b8745c",
           "executable": false
         },
         ".agents/skills/setup-matt-pocock-skills/SKILL.md": {
           "type": "file",
-          "sha256": "2bcd89e97777cdb705914424e39c97d5db524c8eb4eafac8120778a07774f0ec",
+          "sha256": "9a0c21694be19fa3eefc39343355d3af7414716ba364882c7432c2f821eac3e9",
           "executable": false
         },
         ".agents/skills/setup-matt-pocock-skills/agents/openai.yaml": {
@@ -2315,7 +2363,7 @@
         },
         ".agents/skills/setup-matt-pocock-skills/domain.md": {
           "type": "file",
-          "sha256": "edc6d6131fdffc4b7135704f5262124fc43355c95f61b7399dc5a4db643e28ca",
+          "sha256": "593a7042218689f1d24df89df14eaf0a20e19e0d0a7d479a01947ac78f0784b9",
           "executable": false
         },
         ".agents/skills/setup-matt-pocock-skills/issue-tracker-github.md": {
@@ -2338,9 +2386,19 @@
           "sha256": "4f53c9b40ce2651e3611aa090eaedbd6dbc9b71ef8c5f7e65eac0d8263190d0d",
           "executable": false
         },
+        ".agents/skills/show-me/SKILL.md": {
+          "type": "file",
+          "sha256": "434a2346cc95e313b0d367d477dda2e23ba642dd2181757415a09500664af100",
+          "executable": false
+        },
+        ".agents/skills/show-me/agents/openai.yaml": {
+          "type": "file",
+          "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+          "executable": false
+        },
         ".agents/skills/standards-updates/SKILL.md": {
           "type": "file",
-          "sha256": "722c218bf5a3cf54ea5778bac1c7c7c56fa27f912b8648e7de2b798699f1ee18",
+          "sha256": "3262164c280f6d05c33fcfed23934dc17955038680ad19a89fef26a5cb4e0999",
           "executable": false
         },
         ".agents/skills/standards-updates/agents/openai.yaml": {
@@ -2350,7 +2408,7 @@
         },
         ".agents/skills/tdd/SKILL.md": {
           "type": "file",
-          "sha256": "cb01f66bebfaa25fa1f88e6b7e769cd9fd9f35b1120b8563749820738814c927",
+          "sha256": "93ea419b76e9caaf26153b828e984f7c3fb136f4caa67b14af95f32ea965a1cc",
           "executable": false
         },
         ".agents/skills/tdd/agents/openai.yaml": {
@@ -2440,7 +2498,7 @@
         },
         ".agents/skills/triage/SKILL.md": {
           "type": "file",
-          "sha256": "623a2ed692bdc77d2090e2a3dea3b627dd722ad3bbaca0be83aada75292c8fc4",
+          "sha256": "917b0baf74be583e74f110857ed45df2766617f75c00baf61fd136d7af515edf",
           "executable": false
         },
         ".agents/skills/triage/agents/openai.yaml": {
@@ -2450,7 +2508,7 @@
         },
         ".agents/skills/wait-what/SKILL.md": {
           "type": "file",
-          "sha256": "e3f44e3ccbc0e7b62f20ba70b295fc9c9f4aa3f96c77168faee1c71bacbf4215",
+          "sha256": "d961bb37defd975c539427edb8f450cdbccdcdd552e213c1ece46676a7970905",
           "executable": false
         },
         ".agents/skills/wait-what/agents/openai.yaml": {
@@ -2506,6 +2564,10 @@
           "type": "symlink",
           "target": "../../.agents/skills/ask-matt"
         },
+        ".claude/skills/babysit": {
+          "type": "symlink",
+          "target": "../../.agents/skills/babysit"
+        },
         ".claude/skills/code-review": {
           "type": "symlink",
           "target": "../../.agents/skills/code-review"
@@ -2513,10 +2575,6 @@
         ".claude/skills/codebase-design": {
           "type": "symlink",
           "target": "../../.agents/skills/codebase-design"
-        },
-        ".claude/skills/deliver": {
-          "type": "symlink",
-          "target": "../../.agents/skills/deliver"
         },
         ".claude/skills/diagnosing-bugs": {
           "type": "symlink",
@@ -2546,9 +2604,17 @@
           "type": "symlink",
           "target": "../../.agents/skills/implement"
         },
+        ".claude/skills/implement-spec": {
+          "type": "symlink",
+          "target": "../../.agents/skills/implement-spec"
+        },
         ".claude/skills/improve-codebase-architecture": {
           "type": "symlink",
           "target": "../../.agents/skills/improve-codebase-architecture"
+        },
+        ".claude/skills/pr": {
+          "type": "symlink",
+          "target": "../../.agents/skills/pr"
         },
         ".claude/skills/prototype": {
           "type": "symlink",
@@ -2558,13 +2624,17 @@
           "type": "symlink",
           "target": "../../.agents/skills/research"
         },
-        ".claude/skills/resolving-merge-conflicts": {
+        ".claude/skills/retro": {
           "type": "symlink",
-          "target": "../../.agents/skills/resolving-merge-conflicts"
+          "target": "../../.agents/skills/retro"
         },
         ".claude/skills/setup-matt-pocock-skills": {
           "type": "symlink",
           "target": "../../.agents/skills/setup-matt-pocock-skills"
+        },
+        ".claude/skills/show-me": {
+          "type": "symlink",
+          "target": "../../.agents/skills/show-me"
         },
         ".claude/skills/standards-updates": {
           "type": "symlink",
@@ -2632,12 +2702,17 @@
         },
         ".github/PULL_REQUEST_TEMPLATE.md": {
           "type": "file",
-          "sha256": "3da5d642dd01ec874d4a855d608c21f42d082fcd8a05bf66b11e823ded57f1ae",
+          "sha256": "4ca0528fa7bab99c0107da587058aebf6cb94c2e9a5760b725f50a3e2c29d2ec",
           "executable": false
         },
         ".github/scripts/validate-pr-metadata.mjs": {
           "type": "file",
-          "sha256": "f158dd6cd917302fd655ac9644aaaf54505b6f6f44e54e9d89e3c3d6dff4ecfb",
+          "sha256": "65b6f02602bdafe9b8c0f9cd33ac517ced92211eb2782c8327757406d747ed5e",
+          "executable": false
+        },
+        ".github/workflows/deploy-site.yml": {
+          "type": "file",
+          "sha256": "dc83dbc7cc623d167d727b873126ab4e2f111c747d2f96b026c2937c8e2a873c",
           "executable": false
         },
         ".github/workflows/issue-contracts.yml": {
@@ -2657,7 +2732,7 @@
         },
         ".github/workflows/validate.yml": {
           "type": "file",
-          "sha256": "c619c98874e2b78685bd2122c0eae8764280ac34e840276fddd1e29c56208703",
+          "sha256": "55624d80c0994450becec61639e0200a3b441cf67298f3c5b0bfad07c916718d",
           "executable": false
         },
         ".gitignore": {
@@ -2672,27 +2747,62 @@
         },
         ".oxlintrc.json": {
           "type": "file",
-          "sha256": "bc1792861900bd72da6320de20ebcae650d2460c6fe509825dea8abc26905b34",
+          "sha256": "8db6e28d1f3f2c7f639d3f32cbc638a22d77212f62dcae60cc2a413efa4df40c",
           "executable": false
         },
         ".prettierignore": {
           "type": "file",
-          "sha256": "8204d2815c51a4cbd3ee9b434bb6986034a4995db1bc588bbb74288a745e0a09",
+          "sha256": "8448f109f016570ee298c8e285ad24adfe1450321ace5e667a8a48dc042c70ab",
+          "executable": false
+        },
+        ".sandcastle/.gitignore": {
+          "type": "file",
+          "sha256": "95f8dff762dbd253b540e84c6f40919cdac8c5a7f5a0fab1150d501e4cc8edb4",
+          "executable": false
+        },
+        ".sandcastle/Dockerfile": {
+          "type": "file",
+          "sha256": "b6a38adcf1bd4b8c6d2ee4551a10b19a29731c42632ebfe9116c96fa0d788fb7",
+          "executable": false
+        },
+        ".sandcastle/adapter.ts": {
+          "type": "file",
+          "sha256": "4f80995276122f1222059c578be6a89e45f42c5f4f7289707fa5abdff68e1c3e",
+          "executable": false
+        },
+        ".sandcastle/direct-prompt.md": {
+          "type": "file",
+          "sha256": "0435fe1d4892564d831d6dc221512739eb72f04a82d006f001b6269030ac9861",
+          "executable": false
+        },
+        ".sandcastle/factory.ts": {
+          "type": "file",
+          "sha256": "9d072c085552c6fbef36ba6611b23a8fe99e752c15587771e6f8f8d6061ddd90",
+          "executable": false
+        },
+        ".sandcastle/main.ts": {
+          "type": "file",
+          "sha256": "7d2ce378a5d495729ee0156b895334bf397f7ebf5dca68f4c3fa0831ca1a5865",
+          "executable": false
+        },
+        ".sandcastle/orchestrated-prompt.md": {
+          "type": "file",
+          "sha256": "e1d2d4aad583a3ea755133874d9531d83405ce793534ca37fcf9042c3211e9dc",
           "executable": false
         },
         "AGENTS.md": {
           "type": "file",
-          "sha256": "a618bde85fc4febaf526f393ebffc0129506cf4a52501e20fbb490e204cb8b7c",
-          "executable": false
-        },
-        "CONTEXT.md": {
-          "type": "file",
-          "sha256": "5c67ed089d9b6489d8d49642fecf39383fe4a82eae4c7689e5863b4909188411",
+          "sha256": "f6145c198fbd884a665182cce07f2694817f5100d396dfe0091b87387fbd213f",
           "executable": false
         },
         "CONTRIBUTING.md": {
           "type": "file",
-          "sha256": "ec24834f03f1cd8fdb5c7fb0d62aa4d9824a0c55dc008b21477c141de0091d59",
+          "sha256": "c607558049b95241761d45b9d172b84b290d56ef6f6fe3393d5b1ea5e0f444d3",
+          "executable": false
+        },
+        "GLOSSARY.md": {
+          "type": "file",
+          "sha256": "5c67ed089d9b6489d8d49642fecf39383fe4a82eae4c7689e5863b4909188411",
           "executable": false
         },
         "LICENSE": {
@@ -3010,9 +3120,14 @@
           "sha256": "3b048a7137bda262b86d8408098b82723f6bad75345554b90cdc74b5b200dd9d",
           "executable": false
         },
+        "docs/adr/0018-add-a-private-astro-site-workspace.md": {
+          "type": "file",
+          "sha256": "8843db226c5e09c91966a69bbb629b968283aaa9e3376f2fee6f17651e80b03f",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "0d56b07d38274bc9109968e1c7eb614152d416fff72c8eb03e921d0e9d50e1e0",
+          "sha256": "1bf3a77b484d69c5ea579b0aed5faab7999af6fe41c5d232a9ad6c87ae0ca3ec",
           "executable": false
         },
         "docs/agents/README.md": {
@@ -3022,7 +3137,7 @@
         },
         "docs/agents/domain.md": {
           "type": "file",
-          "sha256": "edc6d6131fdffc4b7135704f5262124fc43355c95f61b7399dc5a4db643e28ca",
+          "sha256": "593a7042218689f1d24df89df14eaf0a20e19e0d0a7d479a01947ac78f0784b9",
           "executable": false
         },
         "docs/agents/issue-tracker.md": {
@@ -3042,7 +3157,7 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "3788b0e8a8891ce17572d576c6bdc0ff908c8a1d0aaaaada032b624726d2f8fa",
+          "sha256": "a821d2aefba2c9ace5e7ef749babe3462f7f0833de9ebcc7dbc74273478161e1",
           "executable": false
         },
         "docs/development/architecture.md": {
@@ -3052,7 +3167,7 @@
         },
         "docs/development/release.md": {
           "type": "file",
-          "sha256": "834c5be3cb1ce8eb0f870a5e043e036d9d57cd2a2fe18d9631ac03f47f1cd67f",
+          "sha256": "c8a4170999bd1fe4ff27980d7e4b53037a0300e3c3513acbc2b632af94d91571",
           "executable": false
         },
         "docs/usage/README.md": {
@@ -3082,7 +3197,7 @@
         },
         "docs/usage/available-updates.md": {
           "type": "file",
-          "sha256": "f49f5cda316293c98acb84658642f6a9794a85705e43fb05a07520115dc05a76",
+          "sha256": "7284c7a768c099d14e5a485f2febf98c1846761dde76c03eacbb57edbe2cd8c8",
           "executable": false
         },
         "docs/usage/check.md": {
@@ -3212,17 +3327,17 @@
         },
         "package.json": {
           "type": "file",
-          "sha256": "0e94749b29be9f2f2c88d59f33be27a13323d4781345dd82e0a18acebcb518bf",
+          "sha256": "30eb4c59bd21f1dc56d2727a545f97ae3be8264411dd1cb6dd26c1ba0323d736",
           "executable": false
         },
         "pnpm-lock.yaml": {
           "type": "file",
-          "sha256": "fd59377dc717ad2fc3adeb4fa779609dad073e5756679f9b07d91f2ac82c6fce",
+          "sha256": "d69e8d4a2eada4b5a55909f8f7641babba71228aadfb84d8ba2231e47d29fdc9",
           "executable": false
         },
         "pnpm-workspace.yaml": {
           "type": "file",
-          "sha256": "dd918e0d614ea71fa12f712359eb452eb0a6f19952945bdf64305ca04402eab4",
+          "sha256": "316e57563212a48f3ba705e87c482b1a2da056ead6397d52786ddd7ad47e9544",
           "executable": false
         },
         "scripts/check-import-cycles.ts": {
@@ -3253,6 +3368,61 @@
         "scripts/verify-npm-publisher.ts": {
           "type": "file",
           "sha256": "7bb3fc5708d7892d0e25cae7783f254c76966529592cef5e385bb98d6b9bf17d",
+          "executable": false
+        },
+        "site/.gitignore": {
+          "type": "file",
+          "sha256": "853e19fb559c1d9d8df469c8dce09df4c37d495c02dc09fef40de174572a36e9",
+          "executable": false
+        },
+        "site/README.md": {
+          "type": "file",
+          "sha256": "0a72ca31a91f166531beaf05229732c637f9834e76ea8a007ad17e53cf99bd45",
+          "executable": false
+        },
+        "site/astro.config.mjs": {
+          "type": "file",
+          "sha256": "61324cf6e6c4ba0bb6d37e9720253ddac9061a868cfc3d73b077f64c644aafb1",
+          "executable": false
+        },
+        "site/components.json": {
+          "type": "file",
+          "sha256": "c6686338362943fea65d6882f9c9dac3051c19d36bf09178c538160bbb2ada56",
+          "executable": false
+        },
+        "site/package.json": {
+          "type": "file",
+          "sha256": "d7fcb6d7b5a90b4e6b5e7570061cf72ae839ab6a239e9c6b0e2a207526225128",
+          "executable": false
+        },
+        "site/src/components/repository-link.tsx": {
+          "type": "file",
+          "sha256": "eb2206ec5995a30543bbf51990677ae0e64afd41b86b019000b9abacf69e4afa",
+          "executable": false
+        },
+        "site/src/components/ui/button.tsx": {
+          "type": "file",
+          "sha256": "e1b46928ec47d09b41d6334a28f5dcefd1c193031b14e4f4462831f29af40bd9",
+          "executable": false
+        },
+        "site/src/lib/utils.ts": {
+          "type": "file",
+          "sha256": "d1f1e0d62cb8d8d1e04c26e14de842d8a151f75812d81b046c65b5d1fe8e4b27",
+          "executable": false
+        },
+        "site/src/pages/index.astro": {
+          "type": "file",
+          "sha256": "d72f13fb5ec49efd3cdf236d7a2b5075954994c3769b0c2fb182a026e3df4d44",
+          "executable": false
+        },
+        "site/src/styles/global.css": {
+          "type": "file",
+          "sha256": "b02e882e1d165996718a59a8d90a542cb74e9a9598f8fac309e8d05ce0e79dd3",
+          "executable": false
+        },
+        "site/tsconfig.json": {
+          "type": "file",
+          "sha256": "65a1e0eae32a37289a11b9869f9c98a8dfc433b917215e011494c35e6236cd29",
           "executable": false
         },
         "skills/adopt-standards/SKILL.md": {
@@ -3740,9 +3910,10 @@
           ".node-version",
           ".oxlintrc.json",
           ".prettierignore",
+          ".sandcastle",
           "AGENTS.md",
-          "CONTEXT.md",
           "CONTRIBUTING.md",
+          "GLOSSARY.md",
           "LICENSE",
           "README.md",
           "acceptance",
@@ -3754,6 +3925,7 @@
           "pnpm-lock.yaml",
           "pnpm-workspace.yaml",
           "scripts",
+          "site",
           "skills",
           "src",
           "test",
@@ -3765,12 +3937,13 @@
           ".agents/skills"
         ],
         ".agents/skills": [
+          ".agents/skills/LICENSE.humanlayer-skills",
           ".agents/skills/LICENSE.mattpocock-skills",
           ".agents/skills/adopt-standards",
           ".agents/skills/ask-matt",
+          ".agents/skills/babysit",
           ".agents/skills/code-review",
           ".agents/skills/codebase-design",
-          ".agents/skills/deliver",
           ".agents/skills/diagnosing-bugs",
           ".agents/skills/domain-modeling",
           ".agents/skills/grill-me",
@@ -3778,11 +3951,14 @@
           ".agents/skills/grilling",
           ".agents/skills/handoff",
           ".agents/skills/implement",
+          ".agents/skills/implement-spec",
           ".agents/skills/improve-codebase-architecture",
+          ".agents/skills/pr",
           ".agents/skills/prototype",
           ".agents/skills/research",
-          ".agents/skills/resolving-merge-conflicts",
+          ".agents/skills/retro",
           ".agents/skills/setup-matt-pocock-skills",
+          ".agents/skills/show-me",
           ".agents/skills/standards-updates",
           ".agents/skills/tdd",
           ".agents/skills/teach",
@@ -3817,6 +3993,9 @@
         ".agents/skills/ask-matt/agents": [
           ".agents/skills/ask-matt/agents/openai.yaml"
         ],
+        ".agents/skills/babysit": [
+          ".agents/skills/babysit/SKILL.md"
+        ],
         ".agents/skills/code-review": [
           ".agents/skills/code-review/SKILL.md",
           ".agents/skills/code-review/agents"
@@ -3833,13 +4012,6 @@
         ".agents/skills/codebase-design/agents": [
           ".agents/skills/codebase-design/agents/openai.yaml"
         ],
-        ".agents/skills/deliver": [
-          ".agents/skills/deliver/SKILL.md",
-          ".agents/skills/deliver/agents"
-        ],
-        ".agents/skills/deliver/agents": [
-          ".agents/skills/deliver/agents/openai.yaml"
-        ],
         ".agents/skills/diagnosing-bugs": [
           ".agents/skills/diagnosing-bugs/SKILL.md",
           ".agents/skills/diagnosing-bugs/agents",
@@ -3853,7 +4025,7 @@
         ],
         ".agents/skills/domain-modeling": [
           ".agents/skills/domain-modeling/ADR-FORMAT.md",
-          ".agents/skills/domain-modeling/CONTEXT-FORMAT.md",
+          ".agents/skills/domain-modeling/GLOSSARY-FORMAT.md",
           ".agents/skills/domain-modeling/SKILL.md",
           ".agents/skills/domain-modeling/agents"
         ],
@@ -3892,6 +4064,13 @@
           ".agents/skills/implement/SKILL.md",
           ".agents/skills/implement/agents"
         ],
+        ".agents/skills/implement-spec": [
+          ".agents/skills/implement-spec/SKILL.md",
+          ".agents/skills/implement-spec/agents"
+        ],
+        ".agents/skills/implement-spec/agents": [
+          ".agents/skills/implement-spec/agents/openai.yaml"
+        ],
         ".agents/skills/implement/agents": [
           ".agents/skills/implement/agents/openai.yaml"
         ],
@@ -3902,6 +4081,14 @@
         ],
         ".agents/skills/improve-codebase-architecture/agents": [
           ".agents/skills/improve-codebase-architecture/agents/openai.yaml"
+        ],
+        ".agents/skills/pr": [
+          ".agents/skills/pr/CREDITS.md",
+          ".agents/skills/pr/SKILL.md",
+          ".agents/skills/pr/agents"
+        ],
+        ".agents/skills/pr/agents": [
+          ".agents/skills/pr/agents/openai.yaml"
         ],
         ".agents/skills/prototype": [
           ".agents/skills/prototype/LOGIC.md",
@@ -3919,12 +4106,12 @@
         ".agents/skills/research/agents": [
           ".agents/skills/research/agents/openai.yaml"
         ],
-        ".agents/skills/resolving-merge-conflicts": [
-          ".agents/skills/resolving-merge-conflicts/SKILL.md",
-          ".agents/skills/resolving-merge-conflicts/agents"
+        ".agents/skills/retro": [
+          ".agents/skills/retro/SKILL.md",
+          ".agents/skills/retro/agents"
         ],
-        ".agents/skills/resolving-merge-conflicts/agents": [
-          ".agents/skills/resolving-merge-conflicts/agents/openai.yaml"
+        ".agents/skills/retro/agents": [
+          ".agents/skills/retro/agents/openai.yaml"
         ],
         ".agents/skills/setup-matt-pocock-skills": [
           ".agents/skills/setup-matt-pocock-skills/SKILL.md",
@@ -3937,6 +4124,13 @@
         ],
         ".agents/skills/setup-matt-pocock-skills/agents": [
           ".agents/skills/setup-matt-pocock-skills/agents/openai.yaml"
+        ],
+        ".agents/skills/show-me": [
+          ".agents/skills/show-me/SKILL.md",
+          ".agents/skills/show-me/agents"
+        ],
+        ".agents/skills/show-me/agents": [
+          ".agents/skills/show-me/agents/openai.yaml"
         ],
         ".agents/skills/standards-updates": [
           ".agents/skills/standards-updates/SKILL.md",
@@ -4031,9 +4225,9 @@
         ".claude/skills": [
           ".claude/skills/adopt-standards",
           ".claude/skills/ask-matt",
+          ".claude/skills/babysit",
           ".claude/skills/code-review",
           ".claude/skills/codebase-design",
-          ".claude/skills/deliver",
           ".claude/skills/diagnosing-bugs",
           ".claude/skills/domain-modeling",
           ".claude/skills/grill-me",
@@ -4041,11 +4235,14 @@
           ".claude/skills/grilling",
           ".claude/skills/handoff",
           ".claude/skills/implement",
+          ".claude/skills/implement-spec",
           ".claude/skills/improve-codebase-architecture",
+          ".claude/skills/pr",
           ".claude/skills/prototype",
           ".claude/skills/research",
-          ".claude/skills/resolving-merge-conflicts",
+          ".claude/skills/retro",
           ".claude/skills/setup-matt-pocock-skills",
+          ".claude/skills/show-me",
           ".claude/skills/standards-updates",
           ".claude/skills/tdd",
           ".claude/skills/teach",
@@ -4074,10 +4271,20 @@
           ".github/scripts/validate-pr-metadata.mjs"
         ],
         ".github/workflows": [
+          ".github/workflows/deploy-site.yml",
           ".github/workflows/issue-contracts.yml",
           ".github/workflows/pr-metadata.yml",
           ".github/workflows/release.yml",
           ".github/workflows/validate.yml"
+        ],
+        ".sandcastle": [
+          ".sandcastle/.gitignore",
+          ".sandcastle/Dockerfile",
+          ".sandcastle/adapter.ts",
+          ".sandcastle/direct-prompt.md",
+          ".sandcastle/factory.ts",
+          ".sandcastle/main.ts",
+          ".sandcastle/orchestrated-prompt.md"
         ],
         "acceptance": [
           "acceptance/README.md",
@@ -4271,6 +4478,7 @@
           "docs/adr/0015-leave-delivery-to-standards-sources.md",
           "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
           "docs/adr/0017-confirm-only-confirmation-required-changes.md",
+          "docs/adr/0018-add-a-private-astro-site-workspace.md",
           "docs/adr/README.md"
         ],
         "docs/agents": [
@@ -4386,6 +4594,37 @@
           "scripts/release-status.ts",
           "scripts/validate-issue-contract.mjs",
           "scripts/verify-npm-publisher.ts"
+        ],
+        "site": [
+          "site/.gitignore",
+          "site/README.md",
+          "site/astro.config.mjs",
+          "site/components.json",
+          "site/package.json",
+          "site/src",
+          "site/tsconfig.json"
+        ],
+        "site/src": [
+          "site/src/components",
+          "site/src/lib",
+          "site/src/pages",
+          "site/src/styles"
+        ],
+        "site/src/components": [
+          "site/src/components/repository-link.tsx",
+          "site/src/components/ui"
+        ],
+        "site/src/components/ui": [
+          "site/src/components/ui/button.tsx"
+        ],
+        "site/src/lib": [
+          "site/src/lib/utils.ts"
+        ],
+        "site/src/pages": [
+          "site/src/pages/index.astro"
+        ],
+        "site/src/styles": [
+          "site/src/styles/global.css"
         ],
         "skills": [
           "skills/adopt-standards",
@@ -4541,6 +4780,9 @@
         ".agents/skills/ask-matt/agents": {
           "type": "directory"
         },
+        ".agents/skills/babysit": {
+          "type": "directory"
+        },
         ".agents/skills/code-review": {
           "type": "directory"
         },
@@ -4551,12 +4793,6 @@
           "type": "directory"
         },
         ".agents/skills/codebase-design/agents": {
-          "type": "directory"
-        },
-        ".agents/skills/deliver": {
-          "type": "directory"
-        },
-        ".agents/skills/deliver/agents": {
           "type": "directory"
         },
         ".agents/skills/diagnosing-bugs": {
@@ -4601,6 +4837,12 @@
         ".agents/skills/implement": {
           "type": "directory"
         },
+        ".agents/skills/implement-spec": {
+          "type": "directory"
+        },
+        ".agents/skills/implement-spec/agents": {
+          "type": "directory"
+        },
         ".agents/skills/implement/agents": {
           "type": "directory"
         },
@@ -4608,6 +4850,12 @@
           "type": "directory"
         },
         ".agents/skills/improve-codebase-architecture/agents": {
+          "type": "directory"
+        },
+        ".agents/skills/pr": {
+          "type": "directory"
+        },
+        ".agents/skills/pr/agents": {
           "type": "directory"
         },
         ".agents/skills/prototype": {
@@ -4622,16 +4870,22 @@
         ".agents/skills/research/agents": {
           "type": "directory"
         },
-        ".agents/skills/resolving-merge-conflicts": {
+        ".agents/skills/retro": {
           "type": "directory"
         },
-        ".agents/skills/resolving-merge-conflicts/agents": {
+        ".agents/skills/retro/agents": {
           "type": "directory"
         },
         ".agents/skills/setup-matt-pocock-skills": {
           "type": "directory"
         },
         ".agents/skills/setup-matt-pocock-skills/agents": {
+          "type": "directory"
+        },
+        ".agents/skills/show-me": {
+          "type": "directory"
+        },
+        ".agents/skills/show-me/agents": {
           "type": "directory"
         },
         ".agents/skills/standards-updates": {
@@ -4716,6 +4970,9 @@
           "type": "directory"
         },
         ".github/workflows": {
+          "type": "directory"
+        },
+        ".sandcastle": {
           "type": "directory"
         },
         "acceptance": {
@@ -4925,6 +5182,27 @@
         "scripts": {
           "type": "directory"
         },
+        "site": {
+          "type": "directory"
+        },
+        "site/src": {
+          "type": "directory"
+        },
+        "site/src/components": {
+          "type": "directory"
+        },
+        "site/src/components/ui": {
+          "type": "directory"
+        },
+        "site/src/lib": {
+          "type": "directory"
+        },
+        "site/src/pages": {
+          "type": "directory"
+        },
+        "site/src/styles": {
+          "type": "directory"
+        },
         "skills": {
           "type": "directory"
         },
@@ -5012,6 +5290,9 @@
         ".agents/skills/ask-matt/agents/.gitignore": {
           "type": "missing"
         },
+        ".agents/skills/babysit/.gitignore": {
+          "type": "missing"
+        },
         ".agents/skills/code-review/.gitignore": {
           "type": "missing"
         },
@@ -5022,12 +5303,6 @@
           "type": "missing"
         },
         ".agents/skills/codebase-design/agents/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/deliver/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/deliver/agents/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/diagnosing-bugs/.gitignore": {
@@ -5072,6 +5347,12 @@
         ".agents/skills/implement/.gitignore": {
           "type": "missing"
         },
+        ".agents/skills/implement-spec/.gitignore": {
+          "type": "missing"
+        },
+        ".agents/skills/implement-spec/agents/.gitignore": {
+          "type": "missing"
+        },
         ".agents/skills/implement/agents/.gitignore": {
           "type": "missing"
         },
@@ -5079,6 +5360,12 @@
           "type": "missing"
         },
         ".agents/skills/improve-codebase-architecture/agents/.gitignore": {
+          "type": "missing"
+        },
+        ".agents/skills/pr/.gitignore": {
+          "type": "missing"
+        },
+        ".agents/skills/pr/agents/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/prototype/.gitignore": {
@@ -5093,16 +5380,22 @@
         ".agents/skills/research/agents/.gitignore": {
           "type": "missing"
         },
-        ".agents/skills/resolving-merge-conflicts/.gitignore": {
+        ".agents/skills/retro/.gitignore": {
           "type": "missing"
         },
-        ".agents/skills/resolving-merge-conflicts/agents/.gitignore": {
+        ".agents/skills/retro/agents/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/setup-matt-pocock-skills/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/setup-matt-pocock-skills/agents/.gitignore": {
+          "type": "missing"
+        },
+        ".agents/skills/show-me/.gitignore": {
+          "type": "missing"
+        },
+        ".agents/skills/show-me/agents/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/standards-updates/.gitignore": {
@@ -5188,6 +5481,11 @@
         },
         ".github/workflows/.gitignore": {
           "type": "missing"
+        },
+        ".sandcastle/.gitignore": {
+          "type": "file",
+          "sha256": "95f8dff762dbd253b540e84c6f40919cdac8c5a7f5a0fab1150d501e4cc8edb4",
+          "executable": false
         },
         "acceptance/.gitignore": {
           "type": "missing"
@@ -5396,6 +5694,29 @@
         "scripts/.gitignore": {
           "type": "missing"
         },
+        "site/.gitignore": {
+          "type": "file",
+          "sha256": "853e19fb559c1d9d8df469c8dce09df4c37d495c02dc09fef40de174572a36e9",
+          "executable": false
+        },
+        "site/src/.gitignore": {
+          "type": "missing"
+        },
+        "site/src/components/.gitignore": {
+          "type": "missing"
+        },
+        "site/src/components/ui/.gitignore": {
+          "type": "missing"
+        },
+        "site/src/lib/.gitignore": {
+          "type": "missing"
+        },
+        "site/src/pages/.gitignore": {
+          "type": "missing"
+        },
+        "site/src/styles/.gitignore": {
+          "type": "missing"
+        },
         "skills/.gitignore": {
           "type": "missing"
         },
@@ -5451,7 +5772,16 @@
     {
       "id": "documentation",
       "additions": [
-        "GLOSSARY.md"
+        "docs/adr/0018-add-a-private-astro-site-workspace.md"
+      ],
+      "removals": [
+        "CONTEXT.md"
+      ]
+    },
+    {
+      "id": "project-readmes",
+      "additions": [
+        "site/README.md"
       ],
       "removals": []
     }

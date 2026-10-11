@@ -65,7 +65,6 @@
       "guidance": "guidance/documentation.md",
       "targets": {
         "paths": [
-          "CONTEXT.md",
           "GLOSSARY.md",
           "docs/README.md",
           "docs/adr/0001-separate-authorship-from-adoption.md",
@@ -85,6 +84,7 @@
           "docs/adr/0015-leave-delivery-to-standards-sources.md",
           "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
           "docs/adr/0017-confirm-only-confirmation-required-changes.md",
+          "docs/adr/0018-add-a-private-astro-site-workspace.md",
           "docs/adr/README.md",
           "docs/agents/project.md",
           "docs/development/README.md",
@@ -397,7 +397,9 @@
       "kind": "repository",
       "guidance": "guidance/project-readmes.md",
       "targets": {
-        "paths": [],
+        "paths": [
+          "site/README.md"
+        ],
         "directories": []
       }
     },
