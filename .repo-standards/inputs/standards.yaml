@@ -105,6 +105,12 @@ profiles:
         kind: file
         target: .sandcastle/Dockerfile
         guidance: guidance/factory-sandbox-image.md
+      factory-sandbox-image-workflow:
+        checks: []
+        fixes: []
+        kind: file
+        target: .github/workflows/sandbox-image.yml
+        exact: .github/workflows/sandbox-image.yml
       feature-request-template:
         checks: []
         fixes: []

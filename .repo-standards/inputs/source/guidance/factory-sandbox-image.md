@@ -36,3 +36,12 @@ missing version that matters, ask the maintainer, and assess the declaration as
 file starts with the unchanged base and that the additions keep its stage,
 entrypoint, and user; whether they install the right toolchain remains an agent
 judgment.
+
+Repo Canon also installs `.github/workflows/sandbox-image.yml`. On every pull
+request that changes anything under `.sandcastle/` or the workflow itself, it
+builds `.sandcastle/Dockerfile` on standard input without a build context,
+using the runner user's IDs for `AGENT_UID` and `AGENT_GID`. The build proves
+the toolchain commands execute, and a failing command fails the job with its
+build output. Pull requests with no such changes pass without building. The
+workflow runs nothing inside the built image; choosing the toolchain the
+development guide requires remains an agent judgment.
