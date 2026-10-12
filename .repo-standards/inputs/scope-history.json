@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:380fad19f80470d4f505199dfe74fcb9f421383a7456bfe63a4a323ebff4d4db",
+  "inspection": "sha256:da04787f5c86d6c6c5d57f53bbfd6ee429bce2c8ebb64f716b26399a6d4f0028",
   "resolved": {
     "description": "The complete Repo Canon standards profile",
     "declarations": [
@@ -1357,13 +1357,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:58662ae8f67c410f85efac958a13855f9cd3205f04405de9195f7c15c037af29",
+    "identity": "sha256:58b056ee38526ee8cdf5b9bb966c4609a5aa63144c9f7cdcd2a99445d9a26a06",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Fresh v0.9.2 review of the maintained docs root, category indexes, development guide, project guidance and root glossary. All documents remain in their existing categories. Acceptance contains synthetic journey fixtures and tooling, examples contains authored standards inputs, and skills contains published product resources; these are not repository documentation roots or migration sources. Site README belongs to project-readmes. No migration or link-repair paths are needed.",
+          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Reviewed against actual documentation indexes, the acceptance fixture journey, the published skill sources and private site workspace; docs is the only documentation root. Acceptance/example Markdown is fixture content, skills is distributable agent content, and vendor/installed inputs are retained third-party content.",
           "candidates": [
             {
               "path": "GLOSSARY.md",
@@ -1371,6 +1371,15 @@
               "reason": "The domain glossary at the repository root.",
               "evidence": [
                 "GLOSSARY.md"
+              ]
+            },
+            {
+              "path": "acceptance",
+              "decision": "exclude",
+              "reason": "Synthetic acceptance projects and standards sources, as acceptance/README.md explains; not repository documentation to migrate.",
+              "evidence": [
+                "acceptance/README.md",
+                "acceptance/prepare-public.ts"
               ]
             },
             {
@@ -1726,11 +1735,32 @@
               ]
             },
             {
+              "path": "examples",
+              "decision": "exclude",
+              "reason": "Separately authored example standards sources shipped in the package, not repository documentation.",
+              "evidence": [
+                "examples/alice/standards.yaml",
+                "examples/atlas/standards.yaml",
+                "examples/mira/standards.yaml",
+                "package.json"
+              ]
+            },
+            {
               "path": "site/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "site/README.md"
+              ]
+            },
+            {
+              "path": "skills",
+              "decision": "exclude",
+              "reason": "Published agent skills and bundled references are package content, not repository documentation.",
+              "evidence": [
+                "package.json",
+                "skills/adopt-standards/SKILL.md",
+                "skills/author-standards/SKILL.md"
               ]
             }
           ],
@@ -1738,66 +1768,59 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Fresh v0.9.2 review: Intentionally empty project-content scope: operations configure lutzseverino/repo-standards on GitHub; repository identity follows its single origin and this requested complete-profile update authorizes those operations.",
+          "coverage": "Intentionally empty local file scope: this declaration only maintains remote GitHub settings. The unambiguous origin is lutzseverino/repo-standards; the requested complete-profile update authorizes its repeat-safe remote operations.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "Fresh v0.9.2 review: The root CLI project is owned by repository-readme. Site is the only maintained non-root project with its own manifest, source and development commands. Acceptance is root-owned tooling; its disposable projects, test fixtures, examples, vendored libraries and published skills are not separate maintained projects.",
+          "coverage": "The root package is the CLI project, covered by repository-readme. The private site workspace is the only maintained nested project, with its own Astro commands and deployment. Acceptance projects and examples are synthetic fixtures; source, scripts, bootstrap and skills are components of the root package; vendor holds third-party dependencies.",
           "candidates": [
             {
               "path": "acceptance",
               "decision": "exclude",
-              "reason": "Root-owned acceptance runner and disposable test input projects, not independently maintained apps.",
+              "reason": "Synthetic acceptance journey fixtures and test tooling, not maintained nested projects.",
               "evidence": [
                 "acceptance/README.md",
-                "package.json"
+                "acceptance/prepare-public.ts"
               ]
             },
             {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Example standards inputs exercised by the root CLI.",
+              "reason": "Sample authored standards bundled with the CLI, without independent project commands.",
               "evidence": [
-                "examples",
+                "examples/alice/standards.yaml",
                 "package.json"
               ]
             },
             {
               "path": "site/README.md",
               "decision": "include",
-              "reason": "Private Astro workspace with independent site responsibility, manifest, source and dev/check/build/preview commands.",
+              "reason": "Private Astro/React workspace with maintained source and independent dev/check/build/preview commands.",
               "evidence": [
                 "pnpm-workspace.yaml",
+                "site/README.md",
                 "site/package.json",
-                "site/src"
+                "site/src/pages/index.astro"
               ]
             },
             {
               "path": "skills",
               "decision": "exclude",
-              "reason": "Published resources of the root CLI rather than separate projects.",
+              "reason": "Skills distributed by the root CLI package, not an independently developed project.",
               "evidence": [
                 "package.json",
-                "skills"
-              ]
-            },
-            {
-              "path": "test",
-              "decision": "exclude",
-              "reason": "Root CLI tests and fixtures.",
-              "evidence": [
-                "package.json",
-                "test"
+                "skills/author-standards/SKILL.md"
               ]
             },
             {
               "path": "vendor",
               "decision": "exclude",
-              "reason": "Third-party exact-owned parser libraries, not maintained repository projects.",
+              "reason": "Vendored parsers with provenance, not maintained repository projects.",
               "evidence": [
-                "vendor"
+                "vendor/marked/README.md",
+                "vendor/parse5/README.md"
               ]
             }
           ],
@@ -2074,12 +2097,12 @@
         },
         ".agents/skills/babysit/SKILL.md": {
           "type": "file",
-          "sha256": "b79467f82f54f64186b54894b25c9b47e500cf53b2c88e128519f53ba6b6082e",
+          "sha256": "56238e57d96eab56fd422ba3d1be45875eab304f1a79acd9c8cb4b03e619e09b",
           "executable": false
         },
         ".agents/skills/babysit/wait.mjs": {
           "type": "file",
-          "sha256": "c3ba206e74d3cc95caee0eaec1daddfc92b6812531818b99935782fc62534be2",
+          "sha256": "5fb0546e4fedcb8462b0522e27176105a065486e2d184f644aec581af51d0b8f",
           "executable": false
         },
         ".agents/skills/code-review/SKILL.md": {
@@ -2713,7 +2736,7 @@
         },
         "CONTRIBUTING.md": {
           "type": "file",
-          "sha256": "84b7d3188157f82574efcbebfc9e9d6f338140e1600d9d30fcfaa297754b2aef",
+          "sha256": "4c40b422177119c96e4752532bd1e0050aeaee766d9a007ac354bbdc6c0b6d76",
           "executable": false
         },
         "GLOSSARY.md": {

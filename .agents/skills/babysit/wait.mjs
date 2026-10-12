@@ -5,12 +5,15 @@
 // it exits, starting with the head's full SHA, plus one line per failing
 // check, and its exit code names the outcome:
 //
-//   0  checks passed and Codex reviewed the head
+//   0  checks settled and Codex reviewed the head
 //   1  usage or `gh` error
 //   2  one or more checks failed
-//   3  checks passed and Codex is unavailable
-//   4  checks passed and Codex did not review this head
+//   3  checks settled and Codex is unavailable
+//   4  checks settled and Codex did not review this head
 //   5  still waiting at the invocation limit; run it again
+//
+// Checks settled means checks passed or no check arrived within 5 minutes
+// of a push GitHub recorded and no workflow run for the head is unfinished.
 //
 // Usage: node wait.mjs <number> [--repo <owner/name>] [--limit <seconds>]
 //        [--interval <seconds>]
@@ -19,6 +22,7 @@
 // 10-minute foreground limit, with each look at GitHub bounded to 45 seconds.
 // One invocation covers 9 minutes waited: a typical wait takes one, and the
 // worst case, the 30-minute review bound plus checks, takes at most four.
+// A head with no recorded push and no check or run never settles its checks.
 import { execFile } from "node:child_process";
 import { realpathSync } from "node:fs";
 
@@ -28,6 +32,7 @@ const unavailableReply = "create an environment for this repo";
 const reviewRequest = /@codex (security )?review\b/i;
 const responseBoundMs = 5 * 60_000;
 const reviewBoundMs = 30 * 60_000;
+const checksBoundMs = 5 * 60_000;
 
 const settledCodes = {
   reviewed: 0,
@@ -116,11 +121,14 @@ const codexState = ({ head, requestedAt, pushedAt, comments, now }) => {
 // Decides the outcome from one look at the pull request. `checks` holds
 // `{ name, state: "pass" | "fail" | "pending", link }`; `runs` holds the
 // head's GitHub Actions workflow runs as `{ status }`;
-// `requestedAt` is the latest review request and `pushedAt` the head's push.
-// The checks stay pending while the head has none, or while any check or run
+// `requestedAt` is the latest review request; `pushedAt` is the head's push
+// time or its committer-date fallback, and `pushRecorded` says whether GitHub
+// recorded that push. The checks stay pending while the head has none and
+// its push is unrecorded or less than 5 minutes old, or while any check or run
 // is unfinished: a new head's checks and a queued rerun can be missing from
-// the rollup while their runs are already listed. A failed check ends the wait
-// unless Codex is reviewing, so its findings arrive with the failures. It
+// the rollup while their runs are already
+// listed. A failed check ends the wait unless Codex is reviewing, so its
+// findings arrive with the failures. It
 // returns `code: null` while the outcome is unsettled and the invocation limit
 // is not reached.
 export const decide = ({
@@ -129,6 +137,7 @@ export const decide = ({
   runs = [],
   requestedAt,
   pushedAt,
+  pushRecorded,
   comments,
   now,
   startedAt,
@@ -137,14 +146,17 @@ export const decide = ({
   const codex = codexState({ head, requestedAt, pushedAt, comments, now });
   const failing = checks.filter((check) => check.state === "fail");
   const checksPending =
-    checks.length === 0 ||
+    (checks.length === 0 &&
+      (!pushRecorded || now - pushedAt < checksBoundMs)) ||
     checks.some((check) => check.state === "pending") ||
     runs.some((run) => run.status !== "completed");
   if (!checksPending && failing.length > 0 && codex !== "reviewing") {
     return { code: 2, codex, failing };
   }
   if (!checksPending && codex in settledCodes) {
-    return { code: settledCodes[codex], codex, failing };
+    const outcome = { code: settledCodes[codex], codex, failing };
+    if (checks.length === 0) outcome.noChecks = true;
+    return outcome;
   }
   if (now - startedAt >= limitMs) {
     return { code: 5, codex, failing, checksPending };
@@ -175,7 +187,12 @@ export const report = (outcome, head) => {
     const waiting = `still waiting on ${pending.join(" and ")}; run again`;
     line = count === 0 ? waiting : `${failed}, ${waiting}`;
   } else {
-    line = `${count === 0 ? "checks passed" : failed}, ${codexPhrases[outcome.codex]}`;
+    const checks = outcome.noChecks
+      ? "no checks within 5 minutes of the push"
+      : count === 0
+        ? "checks passed"
+        : failed;
+    line = `${checks}, ${codexPhrases[outcome.codex]}`;
   }
   return [
     `${head}: ${line}`,
@@ -274,24 +291,28 @@ const parseArguments = (argv) => {
   return { number: positional[0], ...options };
 };
 
-// When GitHub recorded the push of the pull request's head, else its
-// committer date, and never before the pull request opened.
+// Whether GitHub recorded the push of the pull request's head, with its time
+// for Codex: the recorded time, else the committer date, never before opening.
 const pushTime = async (pull) => {
   const head = pull.headRefOid;
   const activity = await gh([
     "api",
     `repos/{owner}/{repo}/activity?ref=${encodeURIComponent(`refs/heads/${pull.headRefName}`)}&per_page=100`,
   ]).catch(() => []);
+  const recorded = activity.find((entry) => entry.after === head);
   const pushedAt =
-    activity.find((entry) => entry.after === head)?.timestamp ??
+    recorded?.timestamp ??
     (await gh(["api", `repos/{owner}/{repo}/commits/${head}`])).commit
       .committer.date;
-  return Math.max(Date.parse(pushedAt), Date.parse(pull.createdAt));
+  return {
+    pushedAt: Math.max(Date.parse(pushedAt), Date.parse(pull.createdAt)),
+    pushRecorded: Boolean(recorded),
+  };
 };
 
 // Reads one look at the pull request. The head's workflow runs are read by
 // its SHA, which also finds `pull_request_target` runs; its push time is
-// cached per head.
+// cached per head only when GitHub recorded it.
 const look = async (number, pushTimes) => {
   const [pull, pages] = await Promise.all([
     gh([
@@ -314,7 +335,7 @@ const look = async (number, pushTimes) => {
     body: comment.body ?? "",
   }));
   const head = pull.headRefOid;
-  const [runs, pushedAt] = await Promise.all([
+  const [runs, push] = await Promise.all([
     gh([
       "api",
       `repos/{owner}/{repo}/actions/runs?head_sha=${head}&per_page=100`,
@@ -323,7 +344,7 @@ const look = async (number, pushTimes) => {
     ]),
     pushTimes.get(head) ?? pushTime(pull),
   ]);
-  pushTimes.set(head, pushedAt);
+  if (push.pushRecorded) pushTimes.set(head, push);
   return {
     head,
     checks: checkStates(pull.statusCheckRollup),
@@ -331,7 +352,7 @@ const look = async (number, pushTimes) => {
       .flatMap((page) => page.workflow_runs)
       .map(({ status }) => ({ status })),
     requestedAt: reviewRequestedAt(Date.parse(pull.createdAt), comments),
-    pushedAt,
+    ...push,
     comments,
   };
 };
