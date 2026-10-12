@@ -15,8 +15,8 @@
         "id": "canonical-labels"
       },
       "operationIndex": 0,
-      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
-      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "before": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "after": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -35,8 +35,8 @@
         "id": "pull-request-integration"
       },
       "operationIndex": 1,
-      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
-      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "before": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "after": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -114,8 +114,8 @@
           "directories": []
         }
       },
-      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
-      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "before": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "after": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -193,8 +193,166 @@
           "directories": []
         }
       },
-      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
-      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "before": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "after": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "changes": {},
+      "boundaryChanges": {},
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "documentation": {
+          "paths": [
+            "GLOSSARY.md",
+            "docs/README.md",
+            "docs/adr/0001-separate-authorship-from-adoption.md",
+            "docs/adr/0002-finish-authoring-at-a-validated-source.md",
+            "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md",
+            "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md",
+            "docs/adr/0005-retain-work-evidence-as-identities-and-deltas.md",
+            "docs/adr/0006-gate-selection-with-the-author-range-only.md",
+            "docs/adr/0007-write-and-read-one-evidence-format.md",
+            "docs/adr/0008-bind-confirmation-identity-to-what-the-run-reads.md",
+            "docs/adr/0009-correct-scope-by-adopting-again.md",
+            "docs/adr/0010-replace-tracked-content-block-only-untracked.md",
+            "docs/adr/0011-retain-only-the-current-run.md",
+            "docs/adr/0012-bind-content-not-location.md",
+            "docs/adr/0013-expose-installed-skills-through-skill-links.md",
+            "docs/adr/0014-leave-available-updates-to-the-maintainer.md",
+            "docs/adr/0015-leave-delivery-to-standards-sources.md",
+            "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
+            "docs/adr/0017-confirm-only-confirmation-required-changes.md",
+            "docs/adr/0018-add-a-private-astro-site-workspace.md",
+            "docs/adr/README.md",
+            "docs/agents/project.md",
+            "docs/development/README.md",
+            "docs/development/architecture.md",
+            "docs/development/release.md",
+            "docs/usage/README.md",
+            "docs/usage/adoption.md",
+            "docs/usage/assessment-protocol.md",
+            "docs/usage/author-format.md",
+            "docs/usage/authoring.md",
+            "docs/usage/available-updates.md",
+            "docs/usage/check.md",
+            "docs/usage/discovery.md",
+            "docs/usage/inspection.md",
+            "docs/usage/installation.md",
+            "docs/usage/script-protocol.md"
+          ],
+          "directories": []
+        },
+        "factory-sandbox-image": {
+          "paths": [
+            ".sandcastle/Dockerfile"
+          ],
+          "directories": []
+        },
+        "github-repository-configuration": {
+          "paths": [],
+          "directories": []
+        },
+        "project-readmes": {
+          "paths": [
+            "site/README.md"
+          ],
+          "directories": []
+        },
+        "repository-license": {
+          "paths": [
+            "LICENSE"
+          ],
+          "directories": []
+        },
+        "repository-readme": {
+          "paths": [
+            "README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "after": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "changes": {},
+      "boundaryChanges": {},
+      "violations": []
+    },
+    {
+      "phase": "agent",
+      "scope": {
+        "documentation": {
+          "paths": [
+            "GLOSSARY.md",
+            "docs/README.md",
+            "docs/adr/0001-separate-authorship-from-adoption.md",
+            "docs/adr/0002-finish-authoring-at-a-validated-source.md",
+            "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md",
+            "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md",
+            "docs/adr/0005-retain-work-evidence-as-identities-and-deltas.md",
+            "docs/adr/0006-gate-selection-with-the-author-range-only.md",
+            "docs/adr/0007-write-and-read-one-evidence-format.md",
+            "docs/adr/0008-bind-confirmation-identity-to-what-the-run-reads.md",
+            "docs/adr/0009-correct-scope-by-adopting-again.md",
+            "docs/adr/0010-replace-tracked-content-block-only-untracked.md",
+            "docs/adr/0011-retain-only-the-current-run.md",
+            "docs/adr/0012-bind-content-not-location.md",
+            "docs/adr/0013-expose-installed-skills-through-skill-links.md",
+            "docs/adr/0014-leave-available-updates-to-the-maintainer.md",
+            "docs/adr/0015-leave-delivery-to-standards-sources.md",
+            "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
+            "docs/adr/0017-confirm-only-confirmation-required-changes.md",
+            "docs/adr/0018-add-a-private-astro-site-workspace.md",
+            "docs/adr/README.md",
+            "docs/agents/project.md",
+            "docs/development/README.md",
+            "docs/development/architecture.md",
+            "docs/development/release.md",
+            "docs/usage/README.md",
+            "docs/usage/adoption.md",
+            "docs/usage/assessment-protocol.md",
+            "docs/usage/author-format.md",
+            "docs/usage/authoring.md",
+            "docs/usage/available-updates.md",
+            "docs/usage/check.md",
+            "docs/usage/discovery.md",
+            "docs/usage/inspection.md",
+            "docs/usage/installation.md",
+            "docs/usage/script-protocol.md"
+          ],
+          "directories": []
+        },
+        "factory-sandbox-image": {
+          "paths": [
+            ".sandcastle/Dockerfile"
+          ],
+          "directories": []
+        },
+        "github-repository-configuration": {
+          "paths": [],
+          "directories": []
+        },
+        "project-readmes": {
+          "paths": [
+            "site/README.md"
+          ],
+          "directories": []
+        },
+        "repository-license": {
+          "paths": [
+            "LICENSE"
+          ],
+          "directories": []
+        },
+        "repository-readme": {
+          "paths": [
+            "README.md"
+          ],
+          "directories": []
+        }
+      },
+      "before": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "after": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -250,8 +408,8 @@
         "id": "documentation-navigation"
       },
       "operationIndex": 2,
-      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
-      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "before": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "after": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -272,8 +430,8 @@
         "id": "sandbox-image-base"
       },
       "operationIndex": 3,
-      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
-      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "before": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "after": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -294,8 +452,8 @@
         "id": "project-readme-structure"
       },
       "operationIndex": 4,
-      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
-      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "before": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "after": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -316,8 +474,8 @@
         "id": "repository-readme-structure"
       },
       "operationIndex": 5,
-      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
-      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "before": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "after": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -395,8 +553,8 @@
           "directories": []
         }
       },
-      "before": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
-      "after": "sha256:42810b1079bf617f4c2fad31251777652ae5d94264ecab6ed46e08e9dbd62544",
+      "before": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
+      "after": "sha256:510434324856732483cb265a243cd4a0597a40175fa390a6454086db4ac7bb66",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -545,36 +703,6 @@
       ]
     },
     {
-      "path": ".sandcastle/adapter.ts",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".sandcastle/direct-prompt.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".sandcastle/factory.ts",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".sandcastle/main.ts",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".sandcastle/orchestrated-prompt.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
       "path": "CONTRIBUTING.md",
       "phases": [
         "installation"
@@ -582,10 +710,10 @@
     }
   ],
   "lastComplete": {
-    "run": "a7bf51bf-1ef2-4692-bd23-9a66108e7e87",
-    "inspection": "sha256:d0283df30a9202f39847a1d0c21077f5bbae73a310e8fbe469156cff656688d7",
-    "completedAt": "2026-10-11T23:08:03.290Z",
-    "head": "e85d157c31279d2de46b587e24c40930b1203ad6"
+    "run": "194c4688-43d8-4533-a24d-0ecfd8f50474",
+    "inspection": "sha256:380fad19f80470d4f505199dfe74fcb9f421383a7456bfe63a4a323ebff4d4db",
+    "completedAt": "2026-10-12T00:59:52.089Z",
+    "head": "ccc7fabd5de425f3d41723c938e645b21d0b933a"
   },
   "baselines": {
     "docs/agents/README.md": {
@@ -601,7 +729,7 @@
       "executable": false
     },
     "CONTRIBUTING.md": {
-      "sha256": "84b7d3188157f82574efcbebfc9e9d6f338140e1600d9d30fcfaa297754b2aef",
+      "sha256": "4c40b422177119c96e4752532bd1e0050aeaee766d9a007ac354bbdc6c0b6d76",
       "executable": false
     },
     "docs/agents/domain.md": {
@@ -713,11 +841,11 @@
       "executable": false
     },
     ".agents/skills/babysit/SKILL.md": {
-      "sha256": "b79467f82f54f64186b54894b25c9b47e500cf53b2c88e128519f53ba6b6082e",
+      "sha256": "56238e57d96eab56fd422ba3d1be45875eab304f1a79acd9c8cb4b03e619e09b",
       "executable": false
     },
     ".agents/skills/babysit/wait.mjs": {
-      "sha256": "c3ba206e74d3cc95caee0eaec1daddfc92b6812531818b99935782fc62534be2",
+      "sha256": "5fb0546e4fedcb8462b0522e27176105a065486e2d184f644aec581af51d0b8f",
       "executable": false
     },
     ".agents/skills/code-review/SKILL.md": {
@@ -1351,41 +1479,41 @@
     {
       "format": "repo-standards/assessment/v3",
       "scope": {
-        "inspection": "sha256:d0283df30a9202f39847a1d0c21077f5bbae73a310e8fbe469156cff656688d7",
-        "afterFixes": "sha256:d6da3f3f21ea79bdbc7e4c58f92b6da2ee3ad3619c97b684eab73ba3dc90ba0c"
+        "inspection": "sha256:380fad19f80470d4f505199dfe74fcb9f421383a7456bfe63a4a323ebff4d4db",
+        "afterFixes": "sha256:2b1b89c71023e3667ace9444de2835a9c56f9588396d2076606b96588973f36e"
       },
-      "run": "a7bf51bf-1ef2-4692-bd23-9a66108e7e87",
-      "selection": "sha256:03a8fefedbe5cb19c20dbe0c74399ed5c7fff2b797046bf19bf9bcc1e5cac950",
-      "snapshot": "sha256:d6da3f3f21ea79bdbc7e4c58f92b6da2ee3ad3619c97b684eab73ba3dc90ba0c",
+      "run": "194c4688-43d8-4533-a24d-0ecfd8f50474",
+      "selection": "sha256:a38159a3c596f8b99240109eaa0f4f1927f30c5e7bc2ecb969306b1d59461dac",
+      "snapshot": "sha256:2b1b89c71023e3667ace9444de2835a9c56f9588396d2076606b96588973f36e",
       "declarations": [
         {
           "id": "documentation",
           "status": "satisfied",
-          "explanation": "The existing documentation already separates usage, development, architecture decisions and agent configuration, with maintained category indexes, a root glossary and accurate contributor setup. No contextual edits or moves are needed.",
+          "explanation": "Existing documentation satisfies the unchanged guidance; no contextual edits or migration are needed.",
           "changedPaths": [],
           "evidence": [
-            "docs/README.md describes all four categories; docs/usage/README.md indexes installation, authoring, discovery and CLI protocols; docs/adr/README.md records decision rationales and the supersession of ADR 0004 by ADR 0009.",
-            "docs/development/README.md specifies Node.js 24, pnpm 11.20.0, frozen installation, root validation and site commands, matching package.json, .node-version and .github/workflows/validate.yml; installation, typecheck, lint, format:check and build passed.",
-            "docs/agents/project.md preserves the product neutrality and main-branch constraints; GLOSSARY.md defines selection, exact content, contextual guidance, adoption and update. No CONTEXT.md or CONTEXT-MAP.md remains."
+            "docs/README.md explains the four categories and links each index once; docs/usage/README.md indexes current user protocols and docs/adr/README.md retains consequential decisions including superseded ADRs.",
+            "docs/development/README.md has Setup and validation before Documents and documents Node.js 24, pnpm install --frozen-lockfile and required checks consistently with package.json.",
+            "docs/agents/project.md holds project-specific constraints; GLOSSARY.md names the neutral product concepts. No CONTEXT.md or CONTEXT-MAP.md needs migration."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
+              "explanation": "Rechecked all proposed included and excluded candidates after fixes and at the refreshed snapshot. Docs remains the sole documentation root; site is the sole maintained non-root Project. Acceptance fixtures, examples, product skill resources and vendored libraries remain excluded. No missing README, migration destination or link repair needs an additional path. GitHub configuration intentionally has empty project-content scope.",
               "evidence": [
-                "docs/README.md describes all four categories; docs/usage/README.md indexes installation, authoring, discovery and CLI protocols; docs/adr/README.md records decision rationales and the supersession of ADR 0004 by ADR 0009.",
-                "docs/development/README.md specifies Node.js 24, pnpm 11.20.0, frozen installation, root validation and site commands, matching package.json, .node-version and .github/workflows/validate.yml; installation, typecheck, lint, format:check and build passed.",
-                "docs/agents/project.md preserves the product neutrality and main-branch constraints; GLOSSARY.md defines selection, exact content, contextual guidance, adoption and update. No CONTEXT.md or CONTEXT-MAP.md remains."
+                "docs/README.md and the usage/development/adr/agents indexes cover current maintained documentation; root GLOSSARY.md provides the single-context domain vocabulary.",
+                "site/package.json, pnpm-workspace.yaml, site/astro.config.mjs and site/README.md establish the private Astro project and its commands.",
+                "acceptance/README.md explicitly describes synthetic fixture sources and disposable projects. Root package.json publishes skills and examples as CLI resources."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
+              "explanation": "Rechecked all proposed included and excluded candidates after fixes and at the refreshed snapshot. Docs remains the sole documentation root; site is the sole maintained non-root Project. Acceptance fixtures, examples, product skill resources and vendored libraries remain excluded. No missing README, migration destination or link repair needs an additional path. GitHub configuration intentionally has empty project-content scope.",
               "evidence": [
-                "docs/README.md describes all four categories; docs/usage/README.md indexes installation, authoring, discovery and CLI protocols; docs/adr/README.md records decision rationales and the supersession of ADR 0004 by ADR 0009.",
-                "docs/development/README.md specifies Node.js 24, pnpm 11.20.0, frozen installation, root validation and site commands, matching package.json, .node-version and .github/workflows/validate.yml; installation, typecheck, lint, format:check and build passed.",
-                "docs/agents/project.md preserves the product neutrality and main-branch constraints; GLOSSARY.md defines selection, exact content, contextual guidance, adoption and update. No CONTEXT.md or CONTEXT-MAP.md remains."
+                "docs/README.md and the usage/development/adr/agents indexes cover current maintained documentation; root GLOSSARY.md provides the single-context domain vocabulary.",
+                "site/package.json, pnpm-workspace.yaml, site/astro.config.mjs and site/README.md establish the private Astro project and its commands.",
+                "acceptance/README.md explicitly describes synthetic fixture sources and disposable projects. Root package.json publishes skills and examples as CLI resources."
               ],
               "additionalPaths": []
             }
@@ -1394,41 +1522,41 @@
         {
           "id": "factory-sandbox-image",
           "status": "satisfied",
-          "explanation": "The existing Dockerfile retains the exact base followed by the required Node.js and pnpm toolchain, ending as the agent user. No image change is needed.",
+          "explanation": "The image preserves the source base and appends only the required Node.js and pnpm toolchain.",
           "changedPaths": [],
           "evidence": [
-            ".sandcastle/Dockerfile starts with the retained operations/sandbox-image-base.Dockerfile content and adds only USER root, installation of node@24.11.1 and pnpm@11.20.0, and the final agent USER.",
-            ".node-version specifies 24.11.1; package.json packageManager specifies pnpm@11.20.0; docs/development/README.md requires those versions and leaves project dependencies to the run. No image build was performed."
+            ".sandcastle/Dockerfile starts with the retained sandbox-image-base.Dockerfile bytes, then installs node@24.11.1 and pnpm@11.20.0 as root and returns to the agent user.",
+            ".node-version is 24.11.1 and package.json pins pnpm@11.20.0; docs/development/README.md requires these tools. No extra FROM, ENTRYPOINT, CMD or copied project dependencies."
           ]
         },
         {
           "id": "github-repository-configuration",
           "status": "satisfied",
-          "explanation": "The remote configuration already satisfies the declared label and PR integration guidance. The successful repeat-safe fixes reported no changes.",
+          "explanation": "The authenticated repeat-safe fixes report the repository already satisfies canonical configuration.",
           "changedPaths": [],
           "evidence": [
-            "canonical-labels exited 0 with status unchanged: GitHub labels already match the canonical configuration for lutzseverino/repo-standards.",
-            "pull-request-integration exited 0 with status unchanged: GitHub PR integration already matches canonical configuration. Remote configuration is the whole scope; no project-content paths are needed.",
-            "The release migration query gh issue list --state open --label ready-for-agent returned no issues, so there are no ready parents whose ticket model labels require alignment."
+            "canonical-labels completed exit 0 with unchanged for lutzseverino/repo-standards.",
+            "pull-request-integration completed exit 0 with unchanged, verifying squash-only integration, squash title/body and PR metadata requirement.",
+            "origin uniquely identifies https://github.com/lutzseverino/repo-standards; the requested complete-profile update authorizes its configured operations."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
+              "explanation": "Rechecked all proposed included and excluded candidates after fixes and at the refreshed snapshot. Docs remains the sole documentation root; site is the sole maintained non-root Project. Acceptance fixtures, examples, product skill resources and vendored libraries remain excluded. No missing README, migration destination or link repair needs an additional path. GitHub configuration intentionally has empty project-content scope.",
               "evidence": [
-                "canonical-labels exited 0 with status unchanged: GitHub labels already match the canonical configuration for lutzseverino/repo-standards.",
-                "pull-request-integration exited 0 with status unchanged: GitHub PR integration already matches canonical configuration. Remote configuration is the whole scope; no project-content paths are needed.",
-                "The release migration query gh issue list --state open --label ready-for-agent returned no issues, so there are no ready parents whose ticket model labels require alignment."
+                "docs/README.md and the usage/development/adr/agents indexes cover current maintained documentation; root GLOSSARY.md provides the single-context domain vocabulary.",
+                "site/package.json, pnpm-workspace.yaml, site/astro.config.mjs and site/README.md establish the private Astro project and its commands.",
+                "acceptance/README.md explicitly describes synthetic fixture sources and disposable projects. Root package.json publishes skills and examples as CLI resources."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
+              "explanation": "Rechecked all proposed included and excluded candidates after fixes and at the refreshed snapshot. Docs remains the sole documentation root; site is the sole maintained non-root Project. Acceptance fixtures, examples, product skill resources and vendored libraries remain excluded. No missing README, migration destination or link repair needs an additional path. GitHub configuration intentionally has empty project-content scope.",
               "evidence": [
-                "canonical-labels exited 0 with status unchanged: GitHub labels already match the canonical configuration for lutzseverino/repo-standards.",
-                "pull-request-integration exited 0 with status unchanged: GitHub PR integration already matches canonical configuration. Remote configuration is the whole scope; no project-content paths are needed.",
-                "The release migration query gh issue list --state open --label ready-for-agent returned no issues, so there are no ready parents whose ticket model labels require alignment."
+                "docs/README.md and the usage/development/adr/agents indexes cover current maintained documentation; root GLOSSARY.md provides the single-context domain vocabulary.",
+                "site/package.json, pnpm-workspace.yaml, site/astro.config.mjs and site/README.md establish the private Astro project and its commands.",
+                "acceptance/README.md explicitly describes synthetic fixture sources and disposable projects. Root package.json publishes skills and examples as CLI resources."
               ],
               "additionalPaths": []
             }
@@ -1437,31 +1565,31 @@
         {
           "id": "project-readmes",
           "status": "satisfied",
-          "explanation": "Site is the only maintained non-root project; its README correctly describes its purpose, development commands, configuration and shared contribution/setup links.",
+          "explanation": "The website is the only non-root maintained Project and its existing README is useful and accurate.",
           "changedPaths": [],
           "evidence": [
-            "site/package.json is the private Astro workspace with dev/check/build/preview commands and pnpm-workspace.yaml includes site; site/astro.config.mjs configures React, Tailwind and https://repo-standards.lutzseverino.com.",
-            "site/README.md gives root-relative pnpm --dir site commands, static output and local server details, describes the placeholder page and configuration files, and links ../CONTRIBUTING.md and ../docs/development/README.md.",
-            "acceptance/README.md describes disposable real-agent journeys and fixture projects; examples are standards inputs, test holds CLI tests, skills holds root-package resources, and vendor holds third-party exact content. None is another maintained project."
+            "site/package.json contains dev/check/build/preview scripts; pnpm-workspace.yaml includes site and site/astro.config.mjs configures Astro, React, Tailwind and the documented site URL.",
+            "site/README.md explains the placeholder project, root-relative pnpm --dir site commands, localhost:4321 and site/dist, configuration and deployment, and links shared CONTRIBUTING.md and docs/development/README.md.",
+            "acceptance/README.md identifies synthetic projects and real-agent tooling; examples, skills and vendor are resources, not additional maintained Projects."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
+              "explanation": "Rechecked all proposed included and excluded candidates after fixes and at the refreshed snapshot. Docs remains the sole documentation root; site is the sole maintained non-root Project. Acceptance fixtures, examples, product skill resources and vendored libraries remain excluded. No missing README, migration destination or link repair needs an additional path. GitHub configuration intentionally has empty project-content scope.",
               "evidence": [
-                "site/package.json is the private Astro workspace with dev/check/build/preview commands and pnpm-workspace.yaml includes site; site/astro.config.mjs configures React, Tailwind and https://repo-standards.lutzseverino.com.",
-                "site/README.md gives root-relative pnpm --dir site commands, static output and local server details, describes the placeholder page and configuration files, and links ../CONTRIBUTING.md and ../docs/development/README.md.",
-                "acceptance/README.md describes disposable real-agent journeys and fixture projects; examples are standards inputs, test holds CLI tests, skills holds root-package resources, and vendor holds third-party exact content. None is another maintained project."
+                "docs/README.md and the usage/development/adr/agents indexes cover current maintained documentation; root GLOSSARY.md provides the single-context domain vocabulary.",
+                "site/package.json, pnpm-workspace.yaml, site/astro.config.mjs and site/README.md establish the private Astro project and its commands.",
+                "acceptance/README.md explicitly describes synthetic fixture sources and disposable projects. Root package.json publishes skills and examples as CLI resources."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Rechecked included and excluded candidates after fixes and against the refreshed unchanged contextual snapshot; no missing targets, destinations or link repairs.",
+              "explanation": "Rechecked all proposed included and excluded candidates after fixes and at the refreshed snapshot. Docs remains the sole documentation root; site is the sole maintained non-root Project. Acceptance fixtures, examples, product skill resources and vendored libraries remain excluded. No missing README, migration destination or link repair needs an additional path. GitHub configuration intentionally has empty project-content scope.",
               "evidence": [
-                "site/package.json is the private Astro workspace with dev/check/build/preview commands and pnpm-workspace.yaml includes site; site/astro.config.mjs configures React, Tailwind and https://repo-standards.lutzseverino.com.",
-                "site/README.md gives root-relative pnpm --dir site commands, static output and local server details, describes the placeholder page and configuration files, and links ../CONTRIBUTING.md and ../docs/development/README.md.",
-                "acceptance/README.md describes disposable real-agent journeys and fixture projects; examples are standards inputs, test holds CLI tests, skills holds root-package resources, and vendor holds third-party exact content. None is another maintained project."
+                "docs/README.md and the usage/development/adr/agents indexes cover current maintained documentation; root GLOSSARY.md provides the single-context domain vocabulary.",
+                "site/package.json, pnpm-workspace.yaml, site/astro.config.mjs and site/README.md establish the private Astro project and its commands.",
+                "acceptance/README.md explicitly describes synthetic fixture sources and disposable projects. Root package.json publishes skills and examples as CLI resources."
               ],
               "additionalPaths": []
             }
@@ -1470,22 +1598,22 @@
         {
           "id": "repository-license",
           "status": "satisfied",
-          "explanation": "The existing root LICENSE is the single clear MIT license, with the repository owner copyright; no change is needed.",
+          "explanation": "The existing root license is clear and matches the README; no choice or edit is needed.",
           "changedPaths": [],
           "evidence": [
-            "LICENSE contains the MIT License and Copyright (c) 2026 Jasper Lutz Severino, matching package.json license MIT and README.md MIT License link.",
-            "Reviewed the tracked license inventory: there is no other root license file to reconcile; nested vendor and fixture licenses are separate content."
+            "LICENSE contains the MIT License with Copyright (c) 2026 Jasper Lutz Severino.",
+            "Root license inventory contains only LICENSE; package.json license is MIT and README.md links MIT License."
           ]
         },
         {
           "id": "repository-readme",
           "status": "satisfied",
-          "explanation": "The root README accurately presents the CLI and skills, concise installation and usage, runtime badges, feature actions and the required pointer sections in order.",
+          "explanation": "The existing README accurately explains the CLI and follows the unchanged discovery guidance.",
           "changedPaths": [],
           "evidence": [
-            "README.md has a centered Repository Standards title and TypeScript/Node.js 24 badges, matching package.json type module, tsconfig and engines >=24 <25.",
-            "Installation uses npm install --global --ignore-scripts @lutzseverino/repo-standards without a version pin; Usage shows source validate, which src/cli.ts exposes.",
-            "Features describe independently authored profiles, inspection, adoption, updates, outdated summaries, checks and discovery; Documentation, Contributing and License are single links to docs/README.md, CONTRIBUTING.md and LICENSE."
+            "README.md has a centered title, concise product description, TypeScript and Node.js 24 badges; package.json declares ESM and engines >=24 <25.",
+            "Installation uses unversioned npm install --global --ignore-scripts @lutzseverino/repo-standards and Usage shows the public source validate command implemented in src/cli.ts.",
+            "Features describe validation, inspection, adoption, updates, checks and discovery. Documentation, Contributing and License are single resolving links in order."
           ]
         }
       ]

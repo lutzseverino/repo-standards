@@ -14,7 +14,7 @@ conditions and the wording rules.
    - `0`: checks passed and Codex reviewed; go to step 2.
    - `2`: the listed checks failed; go to step 2.
    - `3` or `4`: checks passed and Codex did not review this head (`3`
-     unavailable, `4` no review arrived); go to step 2 and follow
+     unavailable, `4` for the reason its line gives); go to step 2 and follow
      `CONTRIBUTING.md` for merging without that review.
    - `5`: still waiting; run it again.
    - `1`: fix the invocation or `gh` access and run it again.
@@ -25,5 +25,8 @@ conditions and the wording rules.
 4. When pushed fixes change enough to warrant another look, comment
    `@codex review` to re-request review of the new head. After any push or
    re-request, return to step 1.
-5. Squash-merge once the merge conditions hold on the latest head.
+5. Once the merge conditions hold on the latest head, squash-merge with
+   `gh pr merge <number> --squash --match-head-commit <SHA>`, where `<SHA>` is
+   the full SHA that starts the wait's latest line. If GitHub refuses because
+   the head no longer matches, return to step 1.
 6. Stop.

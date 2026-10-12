@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:d0283df30a9202f39847a1d0c21077f5bbae73a310e8fbe469156cff656688d7",
+  "inspection": "sha256:380fad19f80470d4f505199dfe74fcb9f421383a7456bfe63a4a323ebff4d4db",
   "resolved": {
     "description": "The complete Repo Canon standards profile",
     "declarations": [
@@ -1357,36 +1357,20 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:8f507ffbc4b893536bd73853d47110cad71a384c6070a6c297c717dc98fd4a3b",
+    "identity": "sha256:58662ae8f67c410f85efac958a13855f9cd3205f04405de9195f7c15c037af29",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Reviewed the maintained docs root, its four categories and indexes, the root glossary, and project constraints. No additional documentation roots or migration destinations are needed. Acceptance files, examples and product skill resources are executable acceptance/source inputs, not maintained repository documentation. The two factory prompts are retired exact files removed by this update. Site README belongs to project-readmes.",
+          "coverage": "Fresh v0.9.2 review of the maintained docs root, category indexes, development guide, project guidance and root glossary. All documents remain in their existing categories. Acceptance contains synthetic journey fixtures and tooling, examples contains authored standards inputs, and skills contains published product resources; these are not repository documentation roots or migration sources. Site README belongs to project-readmes. No migration or link-repair paths are needed.",
           "candidates": [
-            {
-              "path": ".sandcastle",
-              "decision": "exclude",
-              "reason": "Factory source and exact prompt templates; prompts are removed by the selected release.",
-              "evidence": [
-                ".sandcastle"
-              ]
-            },
             {
               "path": "GLOSSARY.md",
               "decision": "include",
               "reason": "The domain glossary at the repository root.",
               "evidence": [
                 "GLOSSARY.md"
-              ]
-            },
-            {
-              "path": "acceptance",
-              "decision": "exclude",
-              "reason": "Real-agent journey tooling and fixture projects; README documents how to run that tooling. Fixture documentation is test input.",
-              "evidence": [
-                "acceptance"
               ]
             },
             {
@@ -1742,27 +1726,11 @@
               ]
             },
             {
-              "path": "examples",
-              "decision": "exclude",
-              "reason": "Independently authored standards examples are product inputs, not repository documentation.",
-              "evidence": [
-                "examples"
-              ]
-            },
-            {
               "path": "site/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "site/README.md"
-              ]
-            },
-            {
-              "path": "skills",
-              "decision": "exclude",
-              "reason": "Published CLI skill resources are product content with their own resource layout.",
-              "evidence": [
-                "skills"
               ]
             }
           ],
@@ -1770,13 +1738,13 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Intentionally empty project-content scope: operations configure lutzseverino/repo-standards on GitHub; repository identity follows its single origin and this requested complete-profile update authorizes those operations.",
+          "coverage": "Fresh v0.9.2 review: Intentionally empty project-content scope: operations configure lutzseverino/repo-standards on GitHub; repository identity follows its single origin and this requested complete-profile update authorizes those operations.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "The root CLI project is owned by repository-readme. Site is the only maintained non-root project with its own manifest, source and development commands. Acceptance is root-owned tooling; its disposable projects, test fixtures, examples, vendored libraries and published skills are not separate maintained projects.",
+          "coverage": "Fresh v0.9.2 review: The root CLI project is owned by repository-readme. Site is the only maintained non-root project with its own manifest, source and development commands. Acceptance is root-owned tooling; its disposable projects, test fixtures, examples, vendored libraries and published skills are not separate maintained projects.",
           "candidates": [
             {
               "path": "acceptance",
@@ -2106,7 +2074,12 @@
         },
         ".agents/skills/babysit/SKILL.md": {
           "type": "file",
-          "sha256": "f1b03813dc8a30c5594f52861390c00d5671ea2085065baedfcf0ff1c21a701e",
+          "sha256": "b79467f82f54f64186b54894b25c9b47e500cf53b2c88e128519f53ba6b6082e",
+          "executable": false
+        },
+        ".agents/skills/babysit/wait.mjs": {
+          "type": "file",
+          "sha256": "c3ba206e74d3cc95caee0eaec1daddfc92b6812531818b99935782fc62534be2",
           "executable": false
         },
         ".agents/skills/code-review/SKILL.md": {
@@ -2720,27 +2693,17 @@
         },
         ".sandcastle/adapter.ts": {
           "type": "file",
-          "sha256": "83ca42c2e7d20072bf28ed63acd3bc81efcd5fd4364c8ffdcc071dd70e280171",
-          "executable": false
-        },
-        ".sandcastle/direct-prompt.md": {
-          "type": "file",
-          "sha256": "0435fe1d4892564d831d6dc221512739eb72f04a82d006f001b6269030ac9861",
+          "sha256": "fe89956d204b7047cf992f24f297823bac6456ea6e92e4cc3a71cd58c36e1231",
           "executable": false
         },
         ".sandcastle/factory.ts": {
           "type": "file",
-          "sha256": "892714cd2dbfbb198c4580f7b4a0bdda3d5981e00bbd2ae2f27c1a1260558e31",
+          "sha256": "ae37bf7a0560893374e3c4a4f67fbc6f3b26ad6f8f8c7c8ec7367a6a60fc4cb2",
           "executable": false
         },
         ".sandcastle/main.ts": {
           "type": "file",
-          "sha256": "7d2ce378a5d495729ee0156b895334bf397f7ebf5dca68f4c3fa0831ca1a5865",
-          "executable": false
-        },
-        ".sandcastle/orchestrated-prompt.md": {
-          "type": "file",
-          "sha256": "e1d2d4aad583a3ea755133874d9531d83405ce793534ca37fcf9042c3211e9dc",
+          "sha256": "bbc8fcc396b6745de5bff6d9c59d412dff340c4c8b1611cea1742c582f7049f5",
           "executable": false
         },
         "AGENTS.md": {
@@ -2750,7 +2713,7 @@
         },
         "CONTRIBUTING.md": {
           "type": "file",
-          "sha256": "a18409516f02793f7a72a9562bcda4f45be1e9992f2827871545131e6ab4ce7b",
+          "sha256": "84b7d3188157f82574efcbebfc9e9d6f338140e1600d9d30fcfaa297754b2aef",
           "executable": false
         },
         "GLOSSARY.md": {
@@ -3952,7 +3915,8 @@
           ".agents/skills/ask-matt/agents/openai.yaml"
         ],
         ".agents/skills/babysit": [
-          ".agents/skills/babysit/SKILL.md"
+          ".agents/skills/babysit/SKILL.md",
+          ".agents/skills/babysit/wait.mjs"
         ],
         ".agents/skills/code-review": [
           ".agents/skills/code-review/SKILL.md",
@@ -4239,10 +4203,8 @@
           ".sandcastle/.gitignore",
           ".sandcastle/Dockerfile",
           ".sandcastle/adapter.ts",
-          ".sandcastle/direct-prompt.md",
           ".sandcastle/factory.ts",
-          ".sandcastle/main.ts",
-          ".sandcastle/orchestrated-prompt.md"
+          ".sandcastle/main.ts"
         ],
         "acceptance": [
           "acceptance/README.md",
