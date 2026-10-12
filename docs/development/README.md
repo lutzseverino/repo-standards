@@ -68,7 +68,6 @@ Run additional local tests to diagnose failures when needed.
 
 - [Website project](../../site/README.md): local site commands, source layout,
   Pages deployment and custom-domain setup.
-
 - [Architecture contracts](architecture.md): the product's purpose and release
   boundary, module responsibilities, formats, commands, adoption and update
   behavior, acceptance criteria, exclusions, and the mechanisms removed in
