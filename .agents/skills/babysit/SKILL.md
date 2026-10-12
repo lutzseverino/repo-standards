@@ -10,7 +10,9 @@ conditions and the wording rules.
    foreground until it exits; it waits for the checks and Codex's review of the
    head, silently. On Claude Code, set the command timeout to 600000 ms. On
    Codex, ask for the longest wait each time the command yields. The exit code
-   says what comes next:
+   says what comes next. Here, "checks passed" also covers no check arriving
+   within 5 minutes of a push GitHub recorded, with no unfinished workflow run
+   for the head:
    - `0`: checks passed and Codex reviewed; go to step 2.
    - `2`: the listed checks failed; go to step 2.
    - `3` or `4`: checks passed and Codex did not review this head (`3`
