@@ -1,7 +1,8 @@
 # Usage
 
-This directory explains how to install, author, inspect, adopt, and update with
-Repository Standards, and defines its public formats and protocols.
+This directory explains how to install, author, discover, inspect, adopt, and
+update with Repository Standards, report available updates, and run adopted
+checks, and defines its public formats and protocols.
 
 - [Installation](installation.md): public npm installation, the standalone
   bootstrap, the authoring skill, and fresh-checkout restoration.
