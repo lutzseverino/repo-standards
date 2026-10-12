@@ -38,5 +38,5 @@ ENTRYPOINT ["sleep", "infinity"]
 
 # Match .node-version and package.json for contributor commands.
 USER root
-RUN npm install --global node@24.11.1 pnpm@11.20.0
+RUN npm install --global --force node@24.11.1 pnpm@11.20.0
 USER ${AGENT_UID}:${AGENT_GID}
