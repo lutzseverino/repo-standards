@@ -30,6 +30,7 @@ import {
   skillPrefixes,
   unknownProvider,
   updateModel,
+  workflowChanges,
   type Claim,
   type Decision,
   type Issue,
@@ -62,6 +63,7 @@ export type ImageBuild = { image: string; dockerfile: string };
 
 export type Ports = {
   gh(args: string[]): Promise<string>;
+  git(args: string[]): Promise<string>;
   // No version uses the project's pinned runtime; a version uses an exact
   // external candidate runtime, leaving the project's pin alone.
   standards(args: string[], version?: string): Promise<string>;
@@ -76,6 +78,7 @@ export type Ports = {
 };
 
 type HostRun = Run & {
+  base: string;
   // The first attempt's start; a retry continues its pull request.
   pullRequestSince: string;
   controller: AbortController;
@@ -349,12 +352,79 @@ export function createFactory(settings: Settings, ports: Ports) {
   let pendingUpdate: Inspection | null = null;
   let updateRun: {
     provider: Provider;
+    base: string;
+    inspection: Inspection;
     branch: string;
     log: string;
     controller: AbortController;
     startedAt: number;
     exited: boolean;
   } | null = null;
+
+  async function refusedWorkflowPush(
+    branch: string,
+    base: string,
+  ): Promise<string[]> {
+    const head = (
+      await ports.git([
+        "for-each-ref",
+        "--format=%(objectname)",
+        `refs/heads/${branch}`,
+      ])
+    ).trim();
+    if (!head) return [];
+    const commits = (await ports.git(["rev-list", `${base}..${head}`]))
+      .trim()
+      .split("\n")
+      .filter(Boolean);
+    const paths = new Set<string>();
+    for (const commit of commits) {
+      const changed = await ports.git([
+        "diff-tree",
+        "--no-commit-id",
+        "--name-only",
+        "-z",
+        "-r",
+        "-m",
+        commit,
+        "--",
+        ".github/workflows/",
+      ]);
+      for (const path of changed.split("\0").filter(Boolean)) paths.add(path);
+    }
+    if (!paths.size) return [];
+    const remote = (
+      await ports.git([
+        "ls-remote",
+        "--heads",
+        "origin",
+        `refs/heads/${branch}`,
+      ])
+    )
+      .trim()
+      .split(/\s+/)[0];
+    if (remote) {
+      await ports.git(["fetch", "--quiet", "--no-tags", "origin", remote]);
+      if (!(await ports.git(["rev-list", head, "--not", remote])).trim())
+        return [];
+    }
+    return [...paths].sort();
+  }
+
+  async function fileUpdateIssue(inspection: Inspection, paths: string[] = []) {
+    const marker = updateMarker(inspection.selection);
+    if ((await updateIssue(marker)) !== null) return;
+    await ports.gh([
+      "issue",
+      "create",
+      "--label",
+      "needs-triage",
+      "--title",
+      `Review standards update to ${inspection.selection.standards.version} with CLI ${inspection.selection.cli.version}`,
+      "--body",
+      triageBody(inspection, marker, paths),
+    ]);
+  }
 
   async function readUpdate() {
     const now = ports.now().getTime();
@@ -397,18 +467,7 @@ export function createFactory(settings: Settings, ports: Ports) {
       );
       const decision = decideUpdate(outdated, inspection);
       if (decision.kind === "triage-update") {
-        const marker = updateMarker(inspection.selection);
-        if ((await updateIssue(marker)) !== null) return;
-        await ports.gh([
-          "issue",
-          "create",
-          "--label",
-          "needs-triage",
-          "--title",
-          `Review standards update to ${inspection.selection.standards.version} with CLI ${inspection.selection.cli.version}`,
-          "--body",
-          triageBody(inspection, marker),
-        ]);
+        await fileUpdateIssue(inspection);
       } else if (decision.kind === "adopt-update") {
         // Keep checking daily during a long run, but do not queue that same
         // candidate again before its run has settled and the next check is due.
@@ -479,13 +538,26 @@ export function createFactory(settings: Settings, ports: Ports) {
   async function settleUpdateRun() {
     if (!updateRun?.exited) return;
     const run = updateRun;
+    let hasPullRequest: boolean;
     try {
-      if ((await readUpdatePullRequests(run.branch)).length === 0)
-        ports.report(
-          `update run ended without a pull request; log: ${run.log}`,
-        );
+      hasPullRequest = (await readUpdatePullRequests(run.branch)).length > 0;
     } catch (error) {
       ports.report(`ended update PR lookup failed: ${error}; log: ${run.log}`);
+      updateRun = null;
+      return;
+    }
+    if (!hasPullRequest) {
+      ports.report(`update run ended without a pull request; log: ${run.log}`);
+      try {
+        const paths = await refusedWorkflowPush(run.branch, run.base);
+        if (paths.length) await fileUpdateIssue(run.inspection, paths);
+      } catch (error) {
+        // Keep this candidate until its Git check and owner handoff finish.
+        ports.report(
+          `ended update workflow check failed: ${error}; log: ${run.log}`,
+        );
+        return;
+      }
     }
     updateRun = null;
   }
@@ -521,6 +593,8 @@ export function createFactory(settings: Settings, ports: Ports) {
     const controller = new AbortController();
     const run = {
       provider: model.provider,
+      base: (await ports.git(["rev-parse", "HEAD"])).trim(),
+      inspection,
       branch,
       log: join(
         ports.root,
@@ -734,11 +808,13 @@ export function createFactory(settings: Settings, ports: Ports) {
         ]);
         return;
       case "launch": {
+        const base = (await ports.git(["rev-parse", "HEAD"])).trim();
         const previous = runs.find((run) => run.issue === issue);
         forget(issue);
         const controller = new AbortController();
         const startedAt = ports.now().toISOString();
         const run: HostRun = {
+          base,
           issue,
           mode: decision.mode,
           provider: decision.provider,
@@ -804,7 +880,12 @@ export function createFactory(settings: Settings, ports: Ports) {
           "comment",
           String(issue),
           "--body",
-          failureComment(decision.failure, decision.log, run),
+          failureComment(
+            decision.failure,
+            decision.log,
+            run,
+            decision.workflowPaths,
+          ),
         ]);
         forget(issue);
         return;
@@ -847,7 +928,7 @@ export function createFactory(settings: Settings, ports: Ports) {
     for (const run of runs) {
       // An exited run stays on the host only while it waits to settle, such
       // as for its retry's gate, so its pull request state is read each pass.
-      if (run.exited)
+      if (run.exited) {
         run.ended = {
           // Sandcastle's idle timeout can end a run at its limit before the
           // factory stops it, so the time it ran decides, not who ended it.
@@ -857,6 +938,17 @@ export function createFactory(settings: Settings, ports: Ports) {
               settings.timeLimitMinutes * 60_000,
           pullRequest: await pullRequestState(run.issue, run.pullRequestSince),
         };
+        if (
+          !run.ended.timedOut &&
+          ["none", "closed"].includes(run.ended.pullRequest)
+        ) {
+          const paths = await refusedWorkflowPush(
+            runBranch(run.issue),
+            run.base,
+          );
+          if (paths.length) run.ended.refusedWorkflowPush = paths;
+        }
+      }
     }
     const issues = await readIssues();
     const claims = await readClaims(issues);
@@ -921,7 +1013,11 @@ function updateMarker(selection: Selection): string {
     .slice(0, 16)}`;
 }
 
-function triageBody(inspection: Inspection, marker: string): string {
+function triageBody(
+  inspection: Inspection,
+  marker: string,
+  refusedPaths: string[] = [],
+): string {
   const { selection } = inspection;
   return [
     `<!-- ${marker} -->`,
@@ -929,13 +1025,23 @@ function triageBody(inspection: Inspection, marker: string): string {
     "",
     `The available update to ${selection.standards.repository} ${selection.standards.version} (${selection.profile}) with CLI ${selection.cli.version} requires confirmation.`,
     "",
-    ...inspection.confirmation.reasons.map(
-      (reason) => `- ${reason.change}: \`${reason.target}\``,
-    ),
+    ...[
+      ...inspection.confirmation.reasons,
+      ...workflowChanges(inspection),
+      ...refusedPaths.map((target) => ({
+        change: "refused workflow push",
+        target,
+      })),
+    ].map((reason) => `- ${reason.change}: \`${reason.target}\``),
     "",
     "### Desired outcome",
     "",
     "Triage whether to accept these changes before adopting the update.",
+    ...(workflowChanges(inspection).length || refusedPaths.length
+      ? [
+          "A person with Workflows permission must deliver the workflow changes; the factory's GitHub App can't push them.",
+        ]
+      : []),
     "",
     "### Additional context",
     "",
@@ -959,6 +1065,7 @@ function failureComment(
   failure: string,
   log: string | null,
   run?: HostRun,
+  workflowPaths?: string[],
 ): string {
   const details = [
     ...(run
@@ -972,6 +1079,14 @@ function failureComment(
     `The factory run failed: ${failure}.`,
     "",
     ...(details.length > 0 ? [...details, ""] : []),
+    ...(workflowPaths?.length
+      ? [
+          ...workflowPaths.map((path) => `- Workflow: \`${path}\``),
+          "",
+          "A person with Workflows permission must deliver the change.",
+          "",
+        ]
+      : []),
     `Remove \`${labels.failed}\` to let the factory pick this issue up again.`,
   ].join("\n");
 }

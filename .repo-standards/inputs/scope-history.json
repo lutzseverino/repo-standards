@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:da04787f5c86d6c6c5d57f53bbfd6ee429bce2c8ebb64f716b26399a6d4f0028",
+  "inspection": "sha256:2925b5ca53a88415ca0551a44cc940f199c0129cb29e71c6c1b9ca9c1247ea3b",
   "resolved": {
     "description": "The complete Repo Canon standards profile",
     "declarations": [
@@ -175,6 +175,14 @@
         "kind": "file",
         "target": ".sandcastle/Dockerfile",
         "guidance": "guidance/factory-sandbox-image.md"
+      },
+      {
+        "id": "factory-sandbox-image-workflow",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".github/workflows/sandbox-image.yml",
+        "exact": ".github/workflows/sandbox-image.yml"
       },
       {
         "id": "feature-request-template",
@@ -838,6 +846,14 @@
         "guidance": "guidance/factory-sandbox-image.md"
       },
       {
+        "id": "factory-sandbox-image-workflow",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": ".github/workflows/sandbox-image.yml",
+        "exact": ".github/workflows/sandbox-image.yml"
+      },
+      {
         "id": "feature-request-template",
         "checks": [],
         "fixes": [],
@@ -1357,13 +1373,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:58b056ee38526ee8cdf5b9bb966c4609a5aa63144c9f7cdcd2a99445d9a26a06",
+    "identity": "sha256:348db8c6969e06c7c32ad318556d2b55e630b0c0c5ef23af23d91d259c47d627",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Reviewed against actual documentation indexes, the acceptance fixture journey, the published skill sources and private site workspace; docs is the only documentation root. Acceptance/example Markdown is fixture content, skills is distributable agent content, and vendor/installed inputs are retained third-party content.",
+          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Reviewed the real manifests, workspace, acceptance preparers, documentation indexes, and published package file list: docs is the only documentation root; acceptance fixtures and examples preserve deliberately noncompliant sample input; skills contains shipped product interfaces and supporting resources, not repository documentation to relocate. No migrations or link repairs are needed.",
           "candidates": [
             {
               "path": "GLOSSARY.md",
@@ -1371,15 +1387,6 @@
               "reason": "The domain glossary at the repository root.",
               "evidence": [
                 "GLOSSARY.md"
-              ]
-            },
-            {
-              "path": "acceptance",
-              "decision": "exclude",
-              "reason": "Synthetic acceptance projects and standards sources, as acceptance/README.md explains; not repository documentation to migrate.",
-              "evidence": [
-                "acceptance/README.md",
-                "acceptance/prepare-public.ts"
               ]
             },
             {
@@ -1391,11 +1398,29 @@
               ]
             },
             {
+              "path": "acceptance/projects/bob/CONTRIBUTING.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/bob/CONTRIBUTING.md"
+              ]
+            },
+            {
               "path": "acceptance/projects/bob/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "acceptance/projects/bob/README.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/forge/INDEX.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/forge/INDEX.md"
               ]
             },
             {
@@ -1407,6 +1432,33 @@
               ]
             },
             {
+              "path": "acceptance/projects/forge/groups/developer-tools.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/forge/groups/developer-tools.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/forge/guides/hammer.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/forge/guides/hammer.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/harbor/CONTRIBUTING.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/harbor/CONTRIBUTING.md"
+              ]
+            },
+            {
               "path": "acceptance/projects/harbor/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
@@ -1415,11 +1467,83 @@
               ]
             },
             {
+              "path": "acceptance/projects/harbor/docs/operations.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/harbor/docs/operations.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/orchard/CATALOG.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/orchard/CATALOG.md"
+              ]
+            },
+            {
               "path": "acceptance/projects/orchard/generated/site/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "acceptance/projects/orchard/generated/site/README.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/orchard/legacy/pear-operations.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/orchard/legacy/pear-operations.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/orchard/teams/runtime.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/orchard/teams/runtime.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/relay/groups/messaging-runtime.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/relay/groups/messaging-runtime.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/relay/notes/relay-limitations.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/relay/notes/relay-limitations.md"
+              ]
+            },
+            {
+              "path": "acceptance/sources/wayfinder/guidance/service-discovery.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/sources/wayfinder/guidance/service-discovery.md"
+              ]
+            },
+            {
+              "path": "acceptance/sources/wayfinder/guidance/service-readiness.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/sources/wayfinder/guidance/service-readiness.md"
               ]
             },
             {
@@ -1735,14 +1859,84 @@
               ]
             },
             {
-              "path": "examples",
+              "path": "examples/alice/defaults/files/AGENTS.md",
               "decision": "exclude",
-              "reason": "Separately authored example standards sources shipped in the package, not repository documentation.",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
               "evidence": [
-                "examples/alice/standards.yaml",
-                "examples/atlas/standards.yaml",
-                "examples/mira/standards.yaml",
-                "package.json"
+                "acceptance/prepare-public.ts",
+                "examples/alice/defaults/files/AGENTS.md"
+              ]
+            },
+            {
+              "path": "examples/alice/defaults/files/CONTRIBUTING.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "examples/alice/defaults/files/CONTRIBUTING.md"
+              ]
+            },
+            {
+              "path": "examples/alice/defaults/guidance/readme.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "examples/alice/defaults/guidance/readme.md"
+              ]
+            },
+            {
+              "path": "examples/alice/defaults/guidance/source-layout.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "examples/alice/defaults/guidance/source-layout.md"
+              ]
+            },
+            {
+              "path": "examples/alice/defaults/skills/review/SKILL.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "examples/alice/defaults/skills/review/SKILL.md"
+              ]
+            },
+            {
+              "path": "examples/alice/profiles/work/files/AGENTS.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "examples/alice/profiles/work/files/AGENTS.md"
+              ]
+            },
+            {
+              "path": "examples/atlas/guidance/project-discovery.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "examples/atlas/guidance/project-discovery.md"
+              ]
+            },
+            {
+              "path": "examples/atlas/guidance/project-documentation.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "examples/atlas/guidance/project-documentation.md"
+              ]
+            },
+            {
+              "path": "examples/mira/guidance/operations.md",
+              "decision": "exclude",
+              "reason": "Acceptance/sample standards material consumed as fixture input, not maintained documentation of this repository.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "examples/mira/guidance/operations.md"
               ]
             },
             {
@@ -1754,13 +1948,102 @@
               ]
             },
             {
-              "path": "skills",
+              "path": "skills/adopt-standards/SKILL.md",
               "decision": "exclude",
-              "reason": "Published agent skills and bundled references are package content, not repository documentation.",
+              "reason": "Published product skill or supporting resource retained in its public package layout; not repository documentation to relocate.",
               "evidence": [
                 "package.json",
-                "skills/adopt-standards/SKILL.md",
+                "skills/adopt-standards/SKILL.md"
+              ]
+            },
+            {
+              "path": "skills/adopt-standards/references/assessment.md",
+              "decision": "exclude",
+              "reason": "Published product skill or supporting resource retained in its public package layout; not repository documentation to relocate.",
+              "evidence": [
+                "package.json",
+                "skills/adopt-standards/references/assessment.md"
+              ]
+            },
+            {
+              "path": "skills/adopt-standards/references/discovery.md",
+              "decision": "exclude",
+              "reason": "Published product skill or supporting resource retained in its public package layout; not repository documentation to relocate.",
+              "evidence": [
+                "package.json",
+                "skills/adopt-standards/references/discovery.md"
+              ]
+            },
+            {
+              "path": "skills/adopt-standards/references/recovery.md",
+              "decision": "exclude",
+              "reason": "Published product skill or supporting resource retained in its public package layout; not repository documentation to relocate.",
+              "evidence": [
+                "package.json",
+                "skills/adopt-standards/references/recovery.md"
+              ]
+            },
+            {
+              "path": "skills/adopt-standards/references/review.md",
+              "decision": "exclude",
+              "reason": "Published product skill or supporting resource retained in its public package layout; not repository documentation to relocate.",
+              "evidence": [
+                "package.json",
+                "skills/adopt-standards/references/review.md"
+              ]
+            },
+            {
+              "path": "skills/author-standards/SKILL.md",
+              "decision": "exclude",
+              "reason": "Published product skill or supporting resource retained in its public package layout; not repository documentation to relocate.",
+              "evidence": [
+                "package.json",
                 "skills/author-standards/SKILL.md"
+              ]
+            },
+            {
+              "path": "skills/author-standards/references/cli.md",
+              "decision": "exclude",
+              "reason": "Published product skill or supporting resource retained in its public package layout; not repository documentation to relocate.",
+              "evidence": [
+                "package.json",
+                "skills/author-standards/references/cli.md"
+              ]
+            },
+            {
+              "path": "skills/author-standards/references/operations.md",
+              "decision": "exclude",
+              "reason": "Published product skill or supporting resource retained in its public package layout; not repository documentation to relocate.",
+              "evidence": [
+                "package.json",
+                "skills/author-standards/references/operations.md"
+              ]
+            },
+            {
+              "path": "skills/author-standards/references/profiles.md",
+              "decision": "exclude",
+              "reason": "Published product skill or supporting resource retained in its public package layout; not repository documentation to relocate.",
+              "evidence": [
+                "package.json",
+                "skills/author-standards/references/profiles.md"
+              ]
+            },
+            {
+              "path": "skills/author-standards/references/revision.md",
+              "decision": "exclude",
+              "reason": "Published product skill or supporting resource retained in its public package layout; not repository documentation to relocate.",
+              "evidence": [
+                "package.json",
+                "skills/author-standards/references/revision.md"
+              ]
+            },
+            {
+              "path": "skills/standards-updates/SKILL.md",
+              "decision": "exclude",
+              "reason": "Published product skill or supporting resource retained in its public package layout; not repository documentation to relocate.",
+              "evidence": [
+                "package.json",
+                "skills/standards-updates/SKILL.md"
               ]
             }
           ],
@@ -1768,28 +2051,39 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "Intentionally empty local file scope: this declaration only maintains remote GitHub settings. The unambiguous origin is lutzseverino/repo-standards; the requested complete-profile update authorizes its repeat-safe remote operations.",
+          "coverage": "Intentional empty file scope: only authored operations change remote canonical labels and PR integration settings. Git origin identifies lutzseverino/repo-standards and the owner authorized this update; preserve unrelated settings.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "The root package is the CLI project, covered by repository-readme. The private site workspace is the only maintained nested project, with its own Astro commands and deployment. Acceptance projects and examples are synthetic fixtures; source, scripts, bootstrap and skills are components of the root package; vendor holds third-party dependencies.",
+          "coverage": "The root CLI is covered by repository-readme. The private site workspace is the only non-root maintained Project with its own build/dev commands. Acceptance tools share the root CLI toolchain; examples and acceptance/projects are fixture inputs, vendor is shipped third-party exact content, and other directories organize the root product.",
           "candidates": [
             {
               "path": "acceptance",
               "decision": "exclude",
-              "reason": "Synthetic acceptance journey fixtures and test tooling, not maintained nested projects.",
+              "reason": "Root-product acceptance harness sharing root build/setup; README documents its agent journey, not an independent package.",
               "evidence": [
                 "acceptance/README.md",
-                "acceptance/prepare-public.ts"
+                "acceptance/prepare-public.ts",
+                "package.json"
+              ]
+            },
+            {
+              "path": "acceptance/projects",
+              "decision": "exclude",
+              "reason": "Deliberately incomplete fixture repositories copied into disposable projects by acceptance preparation.",
+              "evidence": [
+                "acceptance/prepare-public.ts",
+                "acceptance/projects/bob/README.md"
               ]
             },
             {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Sample authored standards bundled with the CLI, without independent project commands.",
+              "reason": "Sample standards sources consumed by fixture acquisition and shipped as CLI examples.",
               "evidence": [
+                "acceptance/prepare-public.ts",
                 "examples/alice/standards.yaml",
                 "package.json"
               ]
@@ -1797,7 +2091,7 @@
             {
               "path": "site/README.md",
               "decision": "include",
-              "reason": "Private Astro/React workspace with maintained source and independent dev/check/build/preview commands.",
+              "reason": "Private Astro website workspace has its own responsibility, package manifest, development/check/build/preview commands and maintained source.",
               "evidence": [
                 "pnpm-workspace.yaml",
                 "site/README.md",
@@ -1808,16 +2102,16 @@
             {
               "path": "skills",
               "decision": "exclude",
-              "reason": "Skills distributed by the root CLI package, not an independently developed project.",
+              "reason": "Published CLI skill resources share root packaging and validation; no independent development commands.",
               "evidence": [
                 "package.json",
-                "skills/author-standards/SKILL.md"
+                "skills/adopt-standards/SKILL.md"
               ]
             },
             {
               "path": "vendor",
               "decision": "exclude",
-              "reason": "Vendored parsers with provenance, not maintained repository projects.",
+              "reason": "Third-party exact-owned parser inputs, not independently maintained projects.",
               "evidence": [
                 "vendor/marked/README.md",
                 "vendor/parse5/README.md"
@@ -1943,7 +2237,7 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "a821d2aefba2c9ace5e7ef749babe3462f7f0833de9ebcc7dbc74273478161e1",
+          "sha256": "0c90463294d8dc8a7bf51f493653ccc64dbc9cc674fc66375d2342359309ed10",
           "executable": false
         },
         "docs/development/architecture.md": {
@@ -1958,7 +2252,7 @@
         },
         "docs/usage/README.md": {
           "type": "file",
-          "sha256": "e348f243ca2ff1fc9a50f93d98c497406bbc07257b0a775864d659ee98ad7395",
+          "sha256": "9fc28e80e958f1474b7dce2853c26e908036ff27c6e62825a318b73cda675354",
           "executable": false
         },
         "docs/usage/adoption.md": {
@@ -2097,12 +2391,12 @@
         },
         ".agents/skills/babysit/SKILL.md": {
           "type": "file",
-          "sha256": "56238e57d96eab56fd422ba3d1be45875eab304f1a79acd9c8cb4b03e619e09b",
+          "sha256": "207c1f16973c66e601f357c6ccf3d395de0a9f7725d8a164a9a40e520aa3b7e6",
           "executable": false
         },
         ".agents/skills/babysit/wait.mjs": {
           "type": "file",
-          "sha256": "5fb0546e4fedcb8462b0522e27176105a065486e2d184f644aec581af51d0b8f",
+          "sha256": "b7d0b2f58a663c352a8a4301c20524cc15d59bec6423aa315fe87e2a17ceb44a",
           "executable": false
         },
         ".agents/skills/code-review/SKILL.md": {
@@ -2711,7 +3005,7 @@
         },
         ".sandcastle/Dockerfile": {
           "type": "file",
-          "sha256": "b6a38adcf1bd4b8c6d2ee4551a10b19a29731c42632ebfe9116c96fa0d788fb7",
+          "sha256": "3fe7eb47e688f69c5723fc0a813bae535da7b727902cb5d13efa9a16b01d3cc2",
           "executable": false
         },
         ".sandcastle/adapter.ts": {
@@ -3096,7 +3390,7 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "a821d2aefba2c9ace5e7ef749babe3462f7f0833de9ebcc7dbc74273478161e1",
+          "sha256": "0c90463294d8dc8a7bf51f493653ccc64dbc9cc674fc66375d2342359309ed10",
           "executable": false
         },
         "docs/development/architecture.md": {
@@ -3111,7 +3405,7 @@
         },
         "docs/usage/README.md": {
           "type": "file",
-          "sha256": "e348f243ca2ff1fc9a50f93d98c497406bbc07257b0a775864d659ee98ad7395",
+          "sha256": "9fc28e80e958f1474b7dce2853c26e908036ff27c6e62825a318b73cda675354",
           "executable": false
         },
         "docs/usage/adoption.md": {

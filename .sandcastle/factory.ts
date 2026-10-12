@@ -50,7 +50,11 @@ export type Run = {
   attempt: 1 | 2;
   startedAt: string;
   log: string;
-  ended: null | { timedOut: boolean; pullRequest: PullRequestState };
+  ended: null | {
+    timedOut: boolean;
+    pullRequest: PullRequestState;
+    refusedWorkflowPush?: string[];
+  };
 };
 
 // A `factory:running` issue that no run on the host holds.
@@ -82,6 +86,9 @@ export type Inspection = {
   format: string;
   identity: string;
   selection: Selection;
+  exact?: { target: string; action: string }[];
+  systemSkills?: { target: string; action: string }[];
+  removed?: { target: string }[];
   confirmation: {
     required: boolean;
     reasons: { change: string; target: string }[];
@@ -118,9 +125,26 @@ export function decideUpdate(
       reason: "inspection does not report confirmation-required changes",
     };
   return {
-    kind: inspection.confirmation.required ? "triage-update" : "adopt-update",
+    kind:
+      inspection.confirmation.required || workflowChanges(inspection).length > 0
+        ? "triage-update"
+        : "adopt-update",
     inspection,
   };
+}
+
+export function workflowChanges(
+  inspection: Inspection,
+): { change: string; target: string }[] {
+  return [
+    ...[...(inspection.exact ?? []), ...(inspection.systemSkills ?? [])]
+      .filter(({ action }) => action === "create" || action === "replace")
+      .map(({ action, target }) => ({ change: action, target })),
+    ...(inspection.removed ?? []).map(({ target }) => ({
+      change: "remove",
+      target,
+    })),
+  ].filter(({ target }) => target.startsWith(".github/workflows/"));
 }
 
 export function updateModel(snapshot: Snapshot): Model | { error: string } {
@@ -156,7 +180,13 @@ export type Decision =
   | Launch
   | { kind: "skip"; issue: number; reason: string }
   | { kind: "stop"; issue: number; reason: string }
-  | { kind: "fail"; issue: number; failure: string; log: string | null }
+  | {
+      kind: "fail";
+      issue: number;
+      failure: string;
+      log: string | null;
+      workflowPaths?: string[];
+    }
   | { kind: "keep"; issue: number }
   | { kind: "release"; issue: number };
 
@@ -288,6 +318,17 @@ function settle(run: Run, snapshot: Snapshot): Decision[] | Retry {
     return [{ kind: "release", issue: run.issue }];
   if (!run.ended.timedOut && run.ended.pullRequest === "open")
     return [{ kind: "keep", issue: run.issue }];
+  if (!run.ended.timedOut && run.ended.refusedWorkflowPush?.length)
+    return [
+      {
+        kind: "fail",
+        issue: run.issue,
+        failure:
+          "the factory's GitHub App can't push changes to GitHub workflow files",
+        workflowPaths: run.ended.refusedWorkflowPush,
+        log: run.log,
+      },
+    ];
   const failure = run.ended.timedOut
     ? `the run exceeded ${overtime}`
     : "the run ended without an open pull request";

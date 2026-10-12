@@ -1581,6 +1581,12 @@ async function runIssueContractValidation(environment) {
     );
     return;
   }
+  if (issue.state === "closed") {
+    console.log(
+      "Skipped closed issue; issue contract validation handles open issues only.",
+    );
+    return;
+  }
 
   const snapshot = {
     repository,

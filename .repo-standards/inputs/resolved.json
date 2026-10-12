@@ -173,6 +173,14 @@
       "guidance": "guidance/factory-sandbox-image.md"
     },
     {
+      "id": "factory-sandbox-image-workflow",
+      "checks": [],
+      "fixes": [],
+      "kind": "file",
+      "target": ".github/workflows/sandbox-image.yml",
+      "exact": ".github/workflows/sandbox-image.yml"
+    },
+    {
       "id": "feature-request-template",
       "checks": [],
       "fixes": [],

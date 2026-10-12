@@ -168,6 +168,13 @@ function report(line: string) {
 
 const factory = createFactory(settings, {
   gh,
+  git: async (args) => {
+    const { stdout } = await promisify(execFile)("git", args, {
+      cwd: root,
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    return stdout;
+  },
   standards,
   launch,
   buildImage,
