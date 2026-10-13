@@ -1,5 +1,5 @@
 import { validRange } from "semver";
-import type { SourceDeclaration, Operation } from "./model.js";
+import type { SourceDeclaration, Operation, Script } from "./model.js";
 import { Fields } from "./yaml.js";
 import type { Value } from "./yaml.js";
 import type { Paths, Target } from "./paths.js";
@@ -42,14 +42,73 @@ export class Declarations {
     return name;
   }
 
+  // A trusted script's run, prerequisite and timeout, as checks, fixes and
+  // readiness probes declare them.
+  private script(value: Value): Script {
+    const f = this.fields;
+    const run = f.get(value, "run");
+    f.map(run, ["executable", "script", "resources", "arguments"]);
+    const executableValue = f.get(run, "executable");
+    const executable = f.string(executableValue) ?? "";
+    if (executable && !validExecutable(executable)) {
+      f.error(
+        "INVALID_EXECUTABLE",
+        "Expected an executable name or path using ASCII letters, digits, dot, underscore, plus, hyphen, and slash.",
+        executableValue,
+      );
+    }
+    const script = this.paths.reference(f.get(run, "script"), "file");
+    const resources = f
+      .list(f.get(run, "resources"))
+      .map((resource) => this.paths.reference(resource, "resource"));
+    const arguments_ = f.strings(f.get(run, "arguments"));
+    const prerequisite = f.get(value, "prerequisite");
+    f.map(prerequisite, ["version-arguments", "version"]);
+    const versionArguments = f.strings(
+      f.get(prerequisite, "version-arguments"),
+    );
+    const versionValue = f.get(prerequisite, "version");
+    const version = f.string(versionValue) ?? "";
+    if (version && !validRange(version))
+      f.error(
+        "INVALID_VERSION",
+        "Expected a prerequisite SemVer range.",
+        versionValue,
+      );
+    const timeout = f.get(value, "timeout-seconds");
+    if (
+      typeof timeout.data !== "number" ||
+      !Number.isSafeInteger(timeout.data) ||
+      timeout.data <= 0
+    ) {
+      f.error(
+        "INVALID_TIMEOUT",
+        "Timeout must be a positive integer number of seconds.",
+        timeout,
+      );
+    }
+    return {
+      run: { executable, script, resources, arguments: arguments_ },
+      prerequisite: { "version-arguments": versionArguments, version },
+      "timeout-seconds": timeout.data as number,
+    };
+  }
+
   private operations(
     value: Value | undefined,
     identities: Set<string>,
+    phase: "checks" | "fixes",
   ): Operation[] {
     if (!value) return [];
     const f = this.fields;
     return f.list(value).map((operation) => {
-      f.map(operation, ["id", "run", "prerequisite", "timeout-seconds"]);
+      const entries = f.map(operation, [
+        "id",
+        "run",
+        "prerequisite",
+        "timeout-seconds",
+        ...(phase === "fixes" ? ["remote-setup"] : []),
+      ]);
       const idValue = f.get(operation, "id");
       const id = this.id(idValue) ?? "";
       if (identities.has(id))
@@ -59,53 +118,14 @@ export class Declarations {
           idValue,
         );
       identities.add(id);
-      const run = f.get(operation, "run");
-      f.map(run, ["executable", "script", "resources", "arguments"]);
-      const executableValue = f.get(run, "executable");
-      const executable = f.string(executableValue) ?? "";
-      if (executable && !validExecutable(executable)) {
-        f.error(
-          "INVALID_EXECUTABLE",
-          "Expected an executable name or path using ASCII letters, digits, dot, underscore, plus, hyphen, and slash.",
-          executableValue,
-        );
-      }
-      const script = this.paths.reference(f.get(run, "script"), "file");
-      const resources = f
-        .list(f.get(run, "resources"))
-        .map((resource) => this.paths.reference(resource, "resource"));
-      const arguments_ = f.strings(f.get(run, "arguments"));
-      const prerequisite = f.get(operation, "prerequisite");
-      f.map(prerequisite, ["version-arguments", "version"]);
-      const versionArguments = f.strings(
-        f.get(prerequisite, "version-arguments"),
-      );
-      const versionValue = f.get(prerequisite, "version");
-      const version = f.string(versionValue) ?? "";
-      if (version && !validRange(version))
-        f.error(
-          "INVALID_VERSION",
-          "Expected a prerequisite SemVer range.",
-          versionValue,
-        );
-      const timeout = f.get(operation, "timeout-seconds");
-      if (
-        typeof timeout.data !== "number" ||
-        !Number.isSafeInteger(timeout.data) ||
-        timeout.data <= 0
-      ) {
-        f.error(
-          "INVALID_TIMEOUT",
-          "Timeout must be a positive integer number of seconds.",
-          timeout,
-        );
-      }
-      return {
-        id,
-        run: { executable, script, resources, arguments: arguments_ },
-        prerequisite: { "version-arguments": versionArguments, version },
-        "timeout-seconds": timeout.data as number,
-      };
+      const script = this.script(operation);
+      if (phase === "checks" || !entries.has("remote-setup"))
+        return { id, ...script };
+      const remoteSetup = f.get(operation, "remote-setup");
+      f.map(remoteSetup, ["probe"]);
+      const probe = f.get(remoteSetup, "probe");
+      f.map(probe, ["run", "prerequisite", "timeout-seconds"]);
+      return { id, ...script, "remote-setup": { probe: this.script(probe) } };
     });
   }
 
@@ -131,8 +151,16 @@ export class Declarations {
         continue;
       }
       const operationIds = new Set<string>();
-      const checks = this.operations(entries.get("checks"), operationIds);
-      const fixes = this.operations(entries.get("fixes"), operationIds);
+      const checks = this.operations(
+        entries.get("checks"),
+        operationIds,
+        "checks",
+      );
+      const fixes = this.operations(
+        entries.get("fixes"),
+        operationIds,
+        "fixes",
+      );
       const kindValue = f.get(declaration, "kind");
       const kind = f.string(kindValue);
       const base = { id, checks, fixes };

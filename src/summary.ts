@@ -65,6 +65,12 @@ export interface InspectionReport {
   discovery?: { declarations: { id: string }[]; proposal?: unknown };
   scopeChanges?: ScopeChange[];
   retired?: Declaration[];
+  remoteSetup: {
+    declaration: string;
+    id: string;
+    status: string;
+    reason?: string;
+  }[];
   start: { eligible: boolean | null; blockers: Blocker[] };
   identity: string;
 }
@@ -73,6 +79,11 @@ interface OperationEvidence {
   operation: { declaration: string; phase: string; id: string };
   result: { status: string; message: string } | null;
   error: string | null;
+}
+interface DeferredRemoteSetup {
+  declaration: string;
+  id: string;
+  reason: string;
 }
 interface RunRecord {
   id: string;
@@ -83,6 +94,7 @@ interface RunRecord {
   phase: string;
   reason: string;
   operations: OperationEvidence[];
+  deferred: DeferredRemoteSetup[];
   changes: string[];
   completed: string[];
   uncertain: string[];
@@ -100,6 +112,7 @@ export interface StatusRecord {
     head: string;
   } | null;
   operations?: OperationEvidence[];
+  deferred?: DeferredRemoteSetup[];
   changeSet?: { path: string; phases: string[] }[];
   scopeChanges?: ScopeChange[];
   active: RunRecord | null;
@@ -201,17 +214,30 @@ function scopeTable(changes: ScopeChange[]) {
   );
 }
 
-function evidenceTable(operations: OperationEvidence[]) {
-  if (!operations.length) return "No operations ran.";
+// The operations that ran, then each deferred remote setup, which did not.
+function evidenceTable(
+  operations: OperationEvidence[],
+  deferred: DeferredRemoteSetup[] = [],
+) {
+  if (!operations.length && !deferred.length) return "No operations ran.";
   return table(
     ["Phase", "Declaration", "Operation", "Result", "Message"],
-    operations.map((evidence) => [
-      evidence.operation.phase,
-      code(evidence.operation.declaration),
-      code(evidence.operation.id),
-      evidence.result?.status ?? evidence.error ?? "unrecorded",
-      text(evidence.result?.message ?? ""),
-    ]),
+    [
+      ...operations.map((evidence) => [
+        evidence.operation.phase,
+        code(evidence.operation.declaration),
+        code(evidence.operation.id),
+        evidence.result?.status ?? evidence.error ?? "unrecorded",
+        text(evidence.result?.message ?? ""),
+      ]),
+      ...deferred.map((entry) => [
+        "fixes",
+        code(entry.declaration),
+        code(entry.id),
+        "deferred",
+        text(entry.reason),
+      ]),
+    ],
   );
 }
 
@@ -404,6 +430,22 @@ export function inspectionSummary(report: InspectionReport) {
     ),
   );
 
+  if (report.remoteSetup.length)
+    parts.push(
+      section(
+        "Remote setup",
+        table(
+          ["Declaration", "Fix", "Readiness", "Reason"],
+          report.remoteSetup.map((entry) => [
+            code(entry.declaration),
+            code(entry.id),
+            entry.status.replace("-", " "),
+            text(entry.reason ?? ""),
+          ]),
+        ),
+      ),
+    );
+
   const discovered =
     report.discovery?.declarations.map((declaration) => declaration.id) ?? [];
   let scope: string;
@@ -504,7 +546,7 @@ function activeSummary(run: RunRecord, execution: string | undefined) {
           : "Uncertain: none.",
       ].join("\n\n"),
     ),
-    section("Operations", evidenceTable(run.operations)),
+    section("Operations", evidenceTable(run.operations, run.deferred)),
     section(
       "Changed paths",
       run.changes.length
@@ -547,7 +589,10 @@ export function statusSummary(record: StatusRecord) {
         "Selection",
         table(["Component", "Value"], selectionRows(record.selection)),
       ),
-      section("Operations", evidenceTable(record.operations ?? [])),
+      section(
+        "Operations",
+        evidenceTable(record.operations ?? [], record.deferred),
+      ),
       section(
         "Changed paths",
         changed.length

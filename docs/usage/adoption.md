@@ -65,7 +65,7 @@ agent obtained that confirmation truthfully. The identity binds every start,
 confirmed or not: a project that changed since inspection fails with
 `STALE_INSPECTION` either way.
 
-Inspection runs no source code, so it cannot see the settings a fix would
+Inspection runs no fix, so it cannot see the settings a fix would
 overwrite. A fix that would change or remove an existing setting holding a
 different value instead returns `confirmation-required`, having changed
 nothing, with a message naming the setting and both values; creating a missing
@@ -90,6 +90,45 @@ and `abandon` ends the run as it ends any other. `resume --confirmed` is
 accepted only by a run stopped for a fix's confirmation, failing with
 `CONFIRMATION_NOT_REQUIRED` otherwise, and cannot be combined with `--retry` or
 `--assessment`.
+
+### Remote setup
+
+A fix that changes the hosting platform's settings, such as its labels or merge
+rules, can declare itself [remote setup](author-format.md#remote-setup), with a
+readiness probe. Inspection runs every remote setup probe before anything is
+written and reports each one in
+[`remoteSetup`](inspection.md#remote-setup-readiness) as ready, or not ready
+with the probe's reason, such as a missing tool, remote, sign-in, or role.
+
+When every remote setup is ready, the run applies each one as it applies any
+fix. When one is not ready, `start` fails with `REMOTE_SETUP_NOT_READY`, naming
+each such fix and its reason, and writes nothing, not even a run record.
+Resolve the reason and inspect again, or defer remote setup and complete
+adoption locally:
+
+```sh
+repo-standards start --source https://github.com/OWNER/STANDARDS \
+  --standards-version v1.2.3 --profile work \
+  --identity 'sha256:INSPECTION_HASH' --defer-remote-setup --json
+```
+
+`--defer-remote-setup` defers each remote setup that is not ready and changes
+nothing for one that is ready. A deferred remote setup runs neither its fix nor
+its fix's prerequisite probe. The CLI records it as deferred, not as a script
+result, with the probe's reason: in the run's `deferred`, and at completion in
+durable state, where `status --json` reports it as `deferred` and the adoption
+record's Operations table lists it with the result `deferred`; see
+[summarize status](#summarize-status). Retry and recovery keep the deferral its
+start chose. A retry of a start interrupted before installation repeats the
+inspection, probes included, and its identity check, so a probe whose answer
+changed since inspection makes it stale like any other change; nothing was
+installed yet, so abandon the run and inspect again.
+
+Every later run, an update or the unchanged selection applied again, probes
+every remote setup again, including deferred ones. A ready one runs as any fix
+does, and the completion that follows records no deferral for it. One still
+not ready stops the run again unless it is deferred again. Remote setup names
+no platform; the probe decides readiness.
 
 ## Update the selection
 
@@ -374,8 +413,10 @@ Neither dependencies nor run records belong in commits.
 
 `start` prints a `repo-standards/run/v6` JSON report. Its fields include `id`,
 `inspection`, `selection`, `root`, `head`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
-`uncertain`, `nextAction`, `prerequisites`, `operations`, `assessments`, and contextual
-`workRequest` when required. `root` and `head` record the canonical project
+`uncertain`, `nextAction`, `prerequisites`, `operations`, `deferred`, `assessments`, and contextual
+`workRequest` when required. `deferred` lists each
+[remote setup](#remote-setup) the run defers, by `declaration`, fix `id`, and
+the probe's `reason`. `root` and `head` record the canonical project
 root and HEAD at start for provenance; the inspection identity binds neither,
 and neither is committed. The report carries no file bytes: `affected` holds
 the hash inventories of the targets at start, `completion` the hashes of the
@@ -458,12 +499,14 @@ differ between checkouts holding the same committed adoption state.
 
 `status --summary` renders the status record as Markdown on stdout instead of
 JSON. After a complete run it is the record of that run: the selection, every
-operation with its result and message, each path the run changed, once, with
+operation with its result and message, then each deferred
+[remote setup](#remote-setup) with the result `deferred` and the probe's reason,
+each path the run changed, once, with
 the phases that changed it, the discovered-scope additions and removals the run
 made, and the run, inspection, HEAD-at-start, and completion identities. During
 an active run it renders the run's selection, outcome, phase, execution and
-reason, its completed and uncertain work, operations and results, changed
-paths, next action, and identities. Abandoned runs and a state error are listed
+reason, its completed and uncertain work, operations and results, then its
+deferred remote setup, changed paths, next action, and identities. Abandoned runs and a state error are listed
 when present. The same record renders the same bytes, the summary describes the
 record without prescribing anything, and combining `--summary` with `--json` is
 a usage error.
@@ -479,6 +522,10 @@ listed, verified restoration of installed content after an interruption keeps
 only the installation's attribution, and product state under `.repo-standards/`
 is not listed. The JSON status record of a complete adoption includes the same
 `changeSet`.
+
+The JSON status record of a complete adoption also includes `deferred`: each
+remote setup its last complete run deferred, by `declaration`, fix `id`, and
+`reason`, or an empty list. An active run reports its own `deferred`.
 
 The JSON status record of a complete discovery-backed adoption includes
 `scopeChanges`: the additions and removals by declaration that its last complete

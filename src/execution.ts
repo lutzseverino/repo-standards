@@ -3,7 +3,7 @@ import { formats } from "./formats.js";
 import { join } from "node:path";
 import semver from "semver";
 import { processGroupAlive } from "./run-lock.js";
-import type { ResolvedProfile } from "./model.js";
+import type { ResolvedProfile, Script } from "./model.js";
 import { declarationTargets } from "./targets.js";
 import { record } from "./records.js";
 
@@ -19,7 +19,15 @@ export function operations(
     })),
   );
 }
-type SelectedOperation = ReturnType<typeof operations>[number];
+// A remote setup fix's readiness probe runs as its fix's operation in the
+// probes phase.
+type SelectedOperation =
+  | ReturnType<typeof operations>[number]
+  | {
+      declaration: string;
+      phase: "probes";
+      operation: Script & { id: string };
+    };
 export interface PrerequisiteEvidence {
   declaration: string;
   phase: "fixes" | "checks";
@@ -39,63 +47,76 @@ export async function preflight(
   for (const { declaration, phase, operation } of phases.flatMap((phase) =>
     operations(resolved, phase),
   )) {
-    const result = await invoke(
-      operation.run.executable,
-      operation.prerequisite["version-arguments"],
-      root,
-      operation["timeout-seconds"],
-      "",
-      onSpawn,
-    );
-    const candidates = (["stdout", "stderr"] as const).flatMap((stream) => {
-      const token = result[stream].match(
-        /(?<![\w.])v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)(?![\w.])/,
-      );
-      if (!token) return [];
-      const end = Buffer.byteLength(
-        result[stream].slice(0, token.index! + token[0].length),
-      );
-      let bytes = 0;
-      const event = result.output.findIndex(
-        (chunk) => chunk.stream === stream && (bytes += chunk.bytes) >= end,
-      );
-      return [{ version: semver.valid(token[1]), event }];
-    });
-    const version =
-      candidates.sort((a, b) => a.event - b.event)[0]?.version ?? null;
-    const code =
-      result.outcome.error === "ENOENT"
-        ? "EXECUTABLE_MISSING"
-        : result.outcome.error ||
-            result.outcome.timedOut ||
-            result.outcome.signal ||
-            result.outcome.exitCode !== 0
-          ? "PROBE_FAILED"
-          : !version
-            ? "VERSION_UNREADABLE"
-            : !semver.satisfies(version, operation.prerequisite.version)
-              ? "VERSION_INCOMPATIBLE"
-              : null;
+    const probe = await probePrerequisite(root, operation, onSpawn);
     evidence.push({
       declaration,
       phase,
       operation: operation.id,
       executable: operation.run.executable,
-      version,
-      code,
-      process: result.outcome,
+      ...probe,
     });
     if (
-      result.outcome.error === "AUTHOR_PROCESS_ACTIVE" ||
-      result.outcome.error === "PROCESS_STATE"
+      probe.process.error === "AUTHOR_PROCESS_ACTIVE" ||
+      probe.process.error === "PROCESS_STATE"
     )
       break;
   }
   return evidence;
 }
 
+// Invokes a script's executable with its version arguments and compares the
+// first version either output stream reports with the declared range.
+export async function probePrerequisite(
+  root: string,
+  script: Script,
+  onSpawn?: (group: number) => void,
+) {
+  const result = await invoke(
+    script.run.executable,
+    script.prerequisite["version-arguments"],
+    root,
+    script["timeout-seconds"],
+    "",
+    onSpawn,
+  );
+  const candidates = (["stdout", "stderr"] as const).flatMap((stream) => {
+    const token = result[stream].match(
+      /(?<![\w.])v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?)(?![\w.])/,
+    );
+    if (!token) return [];
+    const end = Buffer.byteLength(
+      result[stream].slice(0, token.index! + token[0].length),
+    );
+    let bytes = 0;
+    const event = result.output.findIndex(
+      (chunk) => chunk.stream === stream && (bytes += chunk.bytes) >= end,
+    );
+    return [{ version: semver.valid(token[1]), event }];
+  });
+  const version =
+    candidates.sort((a, b) => a.event - b.event)[0]?.version ?? null;
+  const code =
+    result.outcome.error === "ENOENT"
+      ? "EXECUTABLE_MISSING"
+      : result.outcome.error ||
+          result.outcome.timedOut ||
+          result.outcome.signal ||
+          result.outcome.exitCode !== 0
+        ? "PROBE_FAILED"
+        : !version
+          ? "VERSION_UNREADABLE"
+          : !semver.satisfies(version, script.prerequisite.version)
+            ? "VERSION_INCOMPATIBLE"
+            : null;
+  return { version, code, process: result.outcome };
+}
+
 export interface OperationEvidence {
-  operation: { declaration: string; phase: "fixes" | "checks"; id: string };
+  operation: {
+    declaration: string;
+    phase: "fixes" | "checks" | "probes";
+    id: string;
+  };
   process: {
     exitCode: number | null;
     signal: string | null;
@@ -113,7 +134,9 @@ export interface OperationEvidence {
 }
 // A fix may overwrite an existing setting with a different value only when the
 // maintainer confirmed that overwrite; otherwise it reports
-// `confirmation-required` without changing anything. A check never may.
+// `confirmation-required` without changing anything. A check or probe never
+// may. Scripts run from the retained inputs, except a probe inspection runs
+// before anything is retained, from the acquired source.
 export async function execute(
   root: string,
   selected: SelectedOperation,
@@ -121,6 +144,7 @@ export async function execute(
   resolved: Pick<ResolvedProfile, "declarations">,
   onSpawn?: (group: number) => void,
   overwriteAllowed = false,
+  sourceRoot = join(root, ".repo-standards/inputs/source"),
 ) {
   const { declaration, phase, operation } = selected;
   const identity = { declaration, phase, id: operation.id };
@@ -138,10 +162,7 @@ export async function execute(
   };
   const process = await invoke(
     operation.run.executable,
-    [
-      join(root, ".repo-standards/inputs/source", operation.run.script),
-      ...operation.run.arguments,
-    ],
+    [join(sourceRoot, operation.run.script), ...operation.run.arguments],
     root,
     operation["timeout-seconds"],
     JSON.stringify(input) + "\n",
@@ -175,7 +196,9 @@ export async function execute(
               "blocked",
               ...(overwriteAllowed ? [] : ["confirmation-required"]),
             ]
-          : ["passed", "failed", "blocked"];
+          : phase === "probes"
+            ? ["ready", "not-ready"]
+            : ["passed", "failed", "blocked"];
       if (
         format !== formats.result ||
         typeof status !== "string" ||

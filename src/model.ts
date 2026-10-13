@@ -1,5 +1,5 @@
-export interface Operation {
-  id: string;
+// A trusted script as checks, fixes and readiness probes declare it.
+export interface Script {
   run: {
     executable: string;
     script: string;
@@ -8,6 +8,12 @@ export interface Operation {
   };
   prerequisite: { "version-arguments": string[]; version: string };
   "timeout-seconds": number;
+}
+export interface Operation extends Script {
+  id: string;
+  // A fix that changes the hosting platform's settings, with the read-only
+  // probe that says whether it can apply.
+  "remote-setup"?: { probe: Script };
 }
 
 interface DeclarationBase {

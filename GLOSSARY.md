@@ -88,14 +88,26 @@ It cannot replace or extend adoption behavior.
 _Avoid_: System skill, adoption hook
 
 **Inspection**:
-A read-only evaluation of a standards selection and adopting project that does
-not execute author code.
+A read-only evaluation of a standards selection and adopting project that
+executes no author code other than readiness probes.
 _Avoid_: Dry-run adoption, validation
 
 **Inspection identity**:
 A content-derived identity that binds an inspection to its exact standards
 selection and relevant adopting-project state.
 _Avoid_: Approval token, mutable plan file
+
+**Remote setup**:
+The part of adoption that changes the hosting platform's settings for the
+repository, such as its labels and merge rules, declared by a fix with a
+readiness probe. It can be deferred, so that adoption completes locally
+without it, and a later run applies it once it is ready.
+_Avoid_: GitHub setup, fixes, when meaning only the remote part
+
+**Readiness probe**:
+A remote setup fix's read-only script that inspection runs before any write to
+report whether the remote setup can apply, or the reason it cannot.
+_Avoid_: Prerequisite, check
 
 **Confirmation-required change**:
 A change an inspection or fix reports that discards a person's work or

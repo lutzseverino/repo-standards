@@ -11,9 +11,11 @@ import {
   content,
   git,
   hashInventory,
+  hiddenIndexPaths,
   inventoryPaths,
   observe,
-  targetBoundaryObservation,
+  observeProductState,
+  productStateObservation,
   targetObservation,
 } from "./observation.js";
 import type { Blocker, HashInventory, Observation } from "./observation.js";
@@ -27,6 +29,11 @@ import {
 } from "./recorded-state.js";
 import { scopeChanges } from "./scope-evidence.js";
 import { observeScope } from "./scope-observation.js";
+import {
+  probeRemoteSetup,
+  remoteSetupFixes,
+  type RemoteSetup,
+} from "./remote-setup.js";
 import { validateScope } from "./scope.js";
 import {
   judgeTargetOwnership,
@@ -131,16 +138,6 @@ function changedFiles(
   return files;
 }
 
-export function hiddenIndexPaths(root: string) {
-  const flags = git(root, ["ls-files", "-v", "-z"]);
-  if (flags.status !== 0)
-    throw new ProductError("PROJECT_READ", "Cannot inspect Git index flags.");
-  return flags.stdout
-    .split("\0")
-    .filter((entry) => /^[a-zS] /.test(entry))
-    .map((entry) => entry.slice(2));
-}
-
 // The system skills this exact CLI installs, by target. Start verifies that
 // the acquired runtime package carries the same inventories.
 export function packagedSystemSkills(): Record<string, Observation> {
@@ -158,37 +155,6 @@ export interface InspectOptions {
   profile: string;
   project: string;
   scope?: string;
-}
-
-function productStateObservation(root: string, blockers: Blocker[]) {
-  const directories = ["local", "cache", "runtime/node_modules"].map(
-    (path) => `.repo-standards/${path}`,
-  );
-  const excluded = new Set(directories.map((path) => join(root, path)));
-  // Generated descendants do not bind confirmation, but each root must still
-  // be a safe directory boundary. Missing ignored directories are allowed.
-  for (const path of directories) {
-    const value = targetBoundaryObservation(root, path, blockers, excluded);
-    if (value.type === "file")
-      blockers.push({
-        code: "TARGET_TYPE",
-        path,
-        message: "Generated product state requires a directory at this path.",
-      });
-  }
-  return targetObservation(root, ".repo-standards", blockers, excluded);
-}
-
-export function observeProductState(root: string) {
-  const blockers: Blocker[] = [];
-  const observed = productStateObservation(root, blockers);
-  if (blockers.length)
-    throw new ProductError(
-      "FINAL_INTEGRITY",
-      "Unsafe product state.",
-      blockers,
-    );
-  return observed;
 }
 
 export function productInventory(root: string): string[] {
@@ -429,9 +395,11 @@ export async function inspectForStart(
             ? declaration.exact
             : declaration.guidance,
         ...("discovery" in declaration ? [declaration.discovery] : []),
-        ...[...declaration.fixes, ...declaration.checks].flatMap(
-          (operation) => [operation.run.script, ...operation.run.resources],
-        ),
+        ...[
+          ...declaration.fixes,
+          ...declaration.checks,
+          ...remoteSetupFixes([declaration]).map(({ probe }) => probe),
+        ].flatMap((script) => [script.run.script, ...script.run.resources]),
       ];
       for (const path of paths) inputs[path] = observe(join(source.root, path));
     }
@@ -694,6 +662,14 @@ export async function inspectForStart(
           });
         }
       }
+    // Remote setup probes run once nothing blocks the start, before any write.
+    const remoteSetup: RemoteSetup[] = blockers.length
+      ? remoteSetupFixes(profile.declarations).map(({ declaration, fix }) => ({
+          declaration,
+          id: fix.id,
+          status: "not-checked",
+        }))
+      : await probeRemoteSetup(root, source.root, selection, resolved);
     const changedScope =
       previous && (!discoveryDeclarations.length || proposal)
         ? scopeChanges(previous.scopeEvidence, {
@@ -768,6 +744,9 @@ export async function inspectForStart(
           target,
         })),
       },
+      // Each remote setup's readiness. A start defers those not ready only
+      // when the adopter chooses to.
+      remoteSetup,
       start: {
         eligible: blockers.length ? false : operations.length ? null : true,
         blockers,
