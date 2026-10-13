@@ -256,8 +256,9 @@ A valid entry passes the checks `inspect --scope` applies to a submitted entry,
 except how its targets fit those of other declarations. The error's details
 name the `declaration`, the `reason`, and the script's `stdout` and `stderr`,
 each limited to 1 MiB. Inspection stops processes the script or its probe left
-in their group before it removes the copy. The project is unchanged in every
-case. The copy protects the project, not the host: a discovery script is
+in their group before it removes the copy. A group that survives being killed
+fails inspection with `AUTHOR_PROCESS_ACTIVE`, naming the group and the copy,
+which is left in place. The project is unchanged in every case. The copy protects the project, not the host: a discovery script is
 trusted code like every other author script.
 
 ## Observed adoption scope

@@ -165,15 +165,19 @@ function remove(work: string) {
   }
 }
 
-// A process the script left running would outlive the copy it works in.
+// A process the script left running would outlive the copy it works in, so
+// the group is killed and awaited; whether it is gone is returned.
 async function stop(group: number) {
   try {
     process.kill(-group, "SIGKILL");
   } catch {
-    return;
+    return true;
   }
-  for (let tries = 0; tries < 100 && processGroupAlive(group); tries++)
+  for (let tries = 0; tries < 100; tries++) {
+    if (!processGroupAlive(group)) return true;
     await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  return !processGroupAlive(group);
 }
 
 function unavailable(
@@ -211,6 +215,8 @@ export async function draftScope(options: {
 }): Promise<Entry> {
   const { declaration, script, observation } = options;
   const work = mkdtempSync(join(tmpdir(), "repo-standards-discovery-"));
+  // A copy a surviving process may still use is left in place.
+  let kept = false;
   try {
     const project = join(work, "project");
     const copied = copyObserved(options.root, observation, project);
@@ -218,9 +224,17 @@ export async function draftScope(options: {
     const spawned = (spawnedGroup: number) => {
       group = spawnedGroup;
     };
+    const settle = async (error: string | null) => {
+      if (error !== "AUTHOR_PROCESS_ACTIVE" || (await stop(group))) return;
+      kept = true;
+      throw new ProductError(
+        "AUTHOR_PROCESS_ACTIVE",
+        `The discovery script of ${declaration} left author process group ${group} running after it was killed. Stop it, remove ${work}, then inspect again.`,
+        { declaration, group, copy: work },
+      );
+    };
     const prerequisite = await probePrerequisite(project, script, spawned);
-    if (prerequisite.process.error === "AUTHOR_PROCESS_ACTIVE")
-      await stop(group);
+    await settle(prerequisite.process.error);
     if (prerequisite.code)
       unavailable(declaration, prerequisite.code, {
         stdout: prerequisite.stdout,
@@ -241,7 +255,7 @@ export async function draftScope(options: {
       JSON.stringify(input) + "\n",
       spawned,
     );
-    if (outcome.error === "AUTHOR_PROCESS_ACTIVE") await stop(group);
+    await settle(outcome.error);
     const output = { stdout, stderr };
     const reason =
       processError(outcome) ??
@@ -263,6 +277,6 @@ export async function draftScope(options: {
     if (rejection) invalid(rejection);
     return entry!;
   } finally {
-    remove(work);
+    if (!kept) remove(work);
   }
 }

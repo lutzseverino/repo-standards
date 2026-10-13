@@ -808,7 +808,9 @@ The product is complete only when all of these pass:
    replacement, exclusion, references, and strict error reporting.
 2. Publish a public source with a stable version and discover it by topic.
    Adopt it directly without depending on discovery.
-3. Run inspection without project mutation or author-script execution.
+3. Run inspection without project mutation or author-script execution, except
+   remote setup readiness probes and, when discovery is required, declared
+   discovery scripts, both read-only.
 4. Reject a stale inspection, a missing or unneeded confirmation, invalid Git state, unsafe targets, ignored
    replacement content, and missing prerequisites before project mutation.
 5. Adopt Alice's work profile: install the correct exact content and skill,
