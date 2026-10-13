@@ -453,6 +453,8 @@ with an empty change set satisfies the path condition. The verdict describes
 readiness for the project's commit workflow; it does not run checks or certify
 ongoing compliance. Producing a status report still exits 0 when the verdict is
 false; CLI pin, format, and integrity failures still fail as documented below.
+Readiness depends on the checkout's current Git status, so the verdict can
+differ between checkouts holding the same committed adoption state.
 
 `status --summary` renders the status record as Markdown on stdout instead of
 JSON. After a complete run it is the record of that run: the selection, every
@@ -467,8 +469,8 @@ record without prescribing anything, and combining `--summary` with `--json` is
 a usage error.
 
 The changed paths are the run's net change set, which completion keeps in
-durable state as `changeSet`, so the record renders from committed state alone,
-in any checkout. Each entry names a path whose state at completion differs from
+durable state as `changeSet`, so the changed-path table renders from committed
+state alone, in any checkout. Each entry names a path whose state at completion differs from
 its state before the run, and the phases that changed it: `installation` for
 exact files and skill files, including the system skills' and a retired
 declaration's removed target, that the run created, replaced, or removed; `fixes` and `agent` for the paths their intervals
