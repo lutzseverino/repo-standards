@@ -188,8 +188,13 @@ function lookup(
       const installed = rulesPath(declaration.id);
       if (!covered || !files[installed]) return [];
       // The bytes printed are the ones the lock records, read once.
-      const bytes = readFileSync(join(root, installed));
-      if (hash(bytes) !== files[installed].sha256)
+      let bytes: Buffer | undefined;
+      try {
+        bytes = readFileSync(join(root, installed));
+      } catch {
+        // A file gone or unreadable since verification changed too.
+      }
+      if (!bytes || hash(bytes) !== files[installed].sha256)
         throw new ProductError(
           "STATE_INTEGRITY",
           `Retained product material changed: ${installed}. Restore it from the adopting project's committed baseline.`,

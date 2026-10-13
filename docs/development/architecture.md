@@ -1062,7 +1062,7 @@ These mechanisms are removed, not deprecated
   `confirmation-required` instead, and the run continues from it with
   `resume --confirmed`.
 - The formats `repo-standards/inspection/v6`, `repo-standards/operation/v1`,
-  and `repo-standards/result/v1`. Their current versions are `inspection/v7`
+  and `repo-standards/result/v1`. 6.0.0 replaced them with `inspection/v7`
   (`confirmation`), `operation/v2` (`overwriteAllowed`), and `result/v2` (the
   fix status `confirmation-required`). A script returning the retired result
   format fails with `PROTOCOL_ERROR`; no compatibility reader accepts it
