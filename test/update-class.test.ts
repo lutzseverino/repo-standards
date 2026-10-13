@@ -42,6 +42,7 @@ const files = {
   "discovery.md": "Include the README of every maintained project.\n",
   "check.mjs": `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'passed',message:'Verified'}));\n`,
   "rules/style.txt": "Headings use sentence case.\n",
+  "docs-rules.md": "Every README has a heading.\n",
 };
 
 // A complete discovery-backed adoption of v1.0.0 whose confirmed scope is the
@@ -190,9 +191,22 @@ test("an update is exact when only exact content or the selection changes, inclu
   );
   assert.equal(exactContent.updateClass, "exact");
   assert.deepEqual(exactContent.contextualChanges, []);
+
+  // An exact declaration's rules are installed, never assessed.
+  f.remote.addVersion(
+    "v1.2.0",
+    manifest({
+      ...declarations,
+      instructions: { ...declarations.instructions, rules: "docs-rules.md" },
+    }),
+    files,
+  );
+  const exactRules = f.inspect(versionArgs("v1.2.0"));
+  assert.equal(exactRules.updateClass, "exact");
+  assert.deepEqual(exactRules.contextualChanges, []);
 });
 
-test("each change to guidance, discovery guidance, operations, retired declarations, or confirmed scope makes the update contextual", async (t) => {
+test("each change to guidance, rules, discovery guidance, operations, retired declarations, or confirmed scope makes the update contextual", async (t) => {
   const f = await adopted(t);
   // An active discovery declaration without a confirmed proposal has no scope
   // that can equal the retained one yet.
@@ -214,6 +228,15 @@ test("each change to guidance, discovery guidance, operations, retired declarati
       declarations,
       { "guidance.md": "Keep every maintained project README accurate.\n" },
       ["guidance"],
+    ],
+    [
+      "rules",
+      {
+        ...declarations,
+        docs: { ...declarations.docs, rules: "docs-rules.md" },
+      },
+      {},
+      ["rules"],
     ],
     [
       "discovery guidance",

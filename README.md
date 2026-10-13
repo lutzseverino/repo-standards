@@ -27,6 +27,7 @@ authoring skill, and fresh-checkout restoration.
 - Update any pin, the source, or the profile in one run, confirmed only when it discards edits.
 - Report available updates and render inspections and runs as Markdown summaries.
 - Run the adopted checks on demand against the working tree.
+- Install each declaration's rules and print the rules that cover a path.
 - Discover sources by topic without automatically selecting or adopting them.
 
 ## Usage

@@ -275,7 +275,7 @@ export function inspectionSummary(report: InspectionReport) {
       section(
         "Update class",
         report.updateClass === "exact"
-          ? "Exact update: guidance, discovery guidance, operations, retired declarations, and confirmed scope match the retained inputs."
+          ? "Exact update: guidance, contextual rules, discovery guidance, operations, retired declarations, and confirmed scope match the retained inputs."
           : [
               `Contextual update: ${changes.length === 1 ? "1 declaration differs" : `${changes.length} declarations differ`} from the retained inputs.`,
               table(

@@ -23,13 +23,13 @@ import { declarationTargets, type Targets } from "./targets.js";
 // An update's class says whether anything an adopter reviews in context
 // changes. It is exact only when every declaration's guidance, discovery
 // guidance, operations (definition, script, arguments, resources and any
-// remote setup probe), and
-// confirmed scope are hash-identical to the retained inputs and no declaration
-// retires; any difference makes it contextual. Exact content, skills and the
-// selection itself never affect the class.
+// remote setup probe), and confirmed scope, and every contextual declaration's
+// rules, are hash-identical to the retained inputs and no declaration retires;
+// any difference makes it contextual. Exact content, an exact declaration's
+// rules, skills and the selection itself never affect the class.
 type UpdateClass = "exact" | "contextual";
 type ContextualChange =
-  "guidance" | "discovery" | "operations" | "scope" | "retired";
+  "guidance" | "rules" | "discovery" | "operations" | "scope" | "retired";
 interface DeclarationChanges {
   id: string;
   changes: ContextualChange[];
@@ -97,7 +97,12 @@ function candidateFiles(candidate: UpdateCandidate, path: string): FileHashes {
 // The reviewable material of one declaration, built field by field so that
 // the comparison does not depend on how either side was serialized.
 function material(
-  declaration: { guidance?: string; fixes?: Operation[]; checks?: Operation[] },
+  declaration: {
+    guidance?: string;
+    rules?: string;
+    fixes?: Operation[];
+    checks?: Operation[];
+  },
   discovery: string | undefined,
   scope: Targets | undefined,
   files: (path: string) => FileHashes,
@@ -126,6 +131,11 @@ function material(
   const guided = declaration.guidance !== undefined;
   return {
     guidance: guided ? JSON.stringify(files(declaration.guidance!)) : null,
+    // The rules a contextual declaration's assessment is made against.
+    rules:
+      guided && declaration.rules !== undefined
+        ? JSON.stringify(files(declaration.rules))
+        : null,
     discovery:
       discovery === undefined ? null : JSON.stringify(files(discovery)),
     operations: JSON.stringify({
@@ -175,9 +185,9 @@ function declarationChanges(
   );
   // A guided declaration whose scope is not confirmed yet cannot match.
   if ("guidance" in next && after.scope === null) after.scope = "unconfirmed";
-  return (["guidance", "discovery", "operations", "scope"] as const).filter(
-    (field) => before[field] !== after[field],
-  );
+  return (
+    ["guidance", "rules", "discovery", "operations", "scope"] as const
+  ).filter((field) => before[field] !== after[field]);
 }
 
 // Any change to the durable product-state inventory blocks the entire update

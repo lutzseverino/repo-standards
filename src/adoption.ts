@@ -46,6 +46,7 @@ import type {
 } from "./adoption-run.js";
 import { record } from "./records.js";
 import { deferredRemoteSetup, withoutDeferred } from "./remote-setup.js";
+import { citedRules } from "./rules.js";
 export { abandon, status } from "./adoption-run.js";
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 const retainedSource = ".repo-standards/inputs/source";
@@ -549,15 +550,21 @@ async function advance(
     }
   }
   const run = session.observation;
-  if (
-    run.operations
-      .slice(operationStart)
-      .some((evidence) => evidence.result?.status === "failed")
-  )
+  const failed = run.operations
+    .slice(operationStart)
+    .filter((evidence) => evidence.result?.status === "failed");
+  if (failed.length) {
+    // Each failed check names its declaration's installed rules, if any.
+    const cited = citedRules(report.resolved.declarations);
+    const checks = failed.map(({ operation }) => {
+      const rules = cited.get(operation.declaration);
+      return `${operation.declaration}/${operation.id}${rules ? ` (rules: ${rules})` : ""}`;
+    });
     throw new ProductError(
       "CHECKS_FAILED",
-      "One or more standards checks failed. All remaining ordinary check evidence was collected.",
+      `Standards checks failed: ${checks.join(", ")}. All remaining ordinary check evidence was collected.`,
     );
+  }
   session.record({ type: "final-verification" });
   verifyInstalled();
   session.journal.continue();

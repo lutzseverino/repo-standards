@@ -395,6 +395,9 @@ export async function inspectForStart(
             ? declaration.exact
             : declaration.guidance,
         ...("discovery" in declaration ? [declaration.discovery] : []),
+        ...("rules" in declaration && declaration.rules !== undefined
+          ? [declaration.rules]
+          : []),
         ...[
           ...declaration.fixes,
           ...declaration.checks,

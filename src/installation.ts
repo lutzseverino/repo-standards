@@ -36,6 +36,7 @@ import {
   type HashInventory,
   type Observation,
 } from "./observation.js";
+import { plannedRules, rulesDirectory } from "./rules.js";
 import { committedScopeEvidence, type ScopeRun } from "./scope-evidence.js";
 import type { Scope } from "./scope.js";
 import { installedSystemSkills, linkTextAt, skillTarget } from "./targets.js";
@@ -43,10 +44,10 @@ import { completedEvidence, type Delta } from "./work-evidence.js";
 import { dictionary, record } from "./records.js";
 
 // Installation is the plan of an adoption run's exact content, retained
-// inputs, durable product state and runtime, planned from the one inspection
-// the run's start is bound to. It installs itself over interruptions, verifies
-// itself at run time, and produces the durable state and lock a completion
-// writes.
+// inputs, installed rules, durable product state and runtime, planned from the
+// one inspection the run's start is bound to. It installs itself over
+// interruptions, verifies itself at run time, and produces the durable state
+// and lock a completion writes.
 // Final integrity is this run-time check of the run's planned installation; the
 // recorded adoption reader separately verifies the committed baseline a run
 // starts from. The run session saves the value with the run and hands it back
@@ -161,6 +162,14 @@ export function planInstallation(
     );
   }
   Object.assign(files, inputs);
+  Object.assign(
+    files,
+    plannedRules(
+      report.selection,
+      report.resolved.declarations,
+      materials.inputs,
+    ),
+  );
   files[".repo-standards/selection.yaml"] = file(stringify(report.selection));
   files[".repo-standards/.gitignore"] = file(ignore);
   for (const name of ["package.json", "package-lock.json"]) {
@@ -180,14 +189,16 @@ export function planInstallation(
       files: durable,
     }),
   );
-  // An update replaces its retained inputs as a whole tree. A replaced skill,
-  // including a system skill, is replaced as a whole tree, removing
-  // resources the candidate lacks, and so is whatever a replaced skill link
-  // replaces. A removed target is removed whole, and so is retired product
+  // An update replaces its retained inputs and installed rules as whole
+  // trees. A replaced skill, including a system skill, is replaced as a whole
+  // tree, removing resources the candidate lacks, and so is whatever a
+  // replaced skill link replaces. A removed target is removed whole, and so is retired product
   // state.
   const replaceTrees = [
     ...(report.retiredState ? [productState] : []),
-    ...(report.update !== undefined ? [".repo-standards/inputs"] : []),
+    ...(report.update !== undefined
+      ? [".repo-standards/inputs", rulesDirectory]
+      : []),
     ...[...report.exact, ...report.systemSkills]
       .filter(
         ({ target, action }) =>

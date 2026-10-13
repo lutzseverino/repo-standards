@@ -164,6 +164,20 @@ export class Declarations {
       const kindValue = f.get(declaration, "kind");
       const kind = f.string(kindValue);
       const base = { id, checks, fixes };
+      // Rules are optional on every declaration but a skill. Installed rules
+      // are named by declaration ID beside their README.md index, which the
+      // ID readme would fold onto.
+      const rules = () => {
+        if (!entries.has("rules")) return {};
+        const value = f.get(declaration, "rules");
+        if (id === "readme")
+          f.error(
+            "RESERVED_NAME",
+            "A declaration with rules cannot have the ID readme: its installed rules would collide with the generated rules index README.md.",
+            value,
+          );
+        return { rules: this.paths.reference(value, "file") };
+      };
       const targets: Target[] = [];
       const targetPath = (location: Value) => {
         const target = this.paths.target(location);
@@ -176,6 +190,7 @@ export class Declarations {
           "target",
           "exact",
           "guidance",
+          "rules",
           "checks",
           "fixes",
         ]);
@@ -198,6 +213,7 @@ export class Declarations {
           kind,
           target,
           ...(exact !== undefined ? { exact } : { guidance: guidance ?? "" }),
+          ...rules(),
         });
       } else if (kind === "skill") {
         f.map(declaration, ["kind", "name", "source", "checks", "fixes"]);
@@ -224,6 +240,7 @@ export class Declarations {
         f.map(declaration, [
           "kind",
           "guidance",
+          "rules",
           "targets",
           "checks",
           "fixes",
@@ -233,6 +250,7 @@ export class Declarations {
           f.get(declaration, "guidance"),
           "file",
         );
+        const ruled = rules();
         if (entries.has("targets") === entries.has("discovery")) {
           f.error(
             "INVALID_DECLARATION",
@@ -258,6 +276,7 @@ export class Declarations {
             ...base,
             kind,
             guidance,
+            ...ruled,
             targets: { paths, directories },
           });
         }
@@ -266,7 +285,13 @@ export class Declarations {
             f.get(declaration, "discovery"),
             "file",
           );
-          declarations.set(id, { ...base, kind, guidance, discovery });
+          declarations.set(id, {
+            ...base,
+            kind,
+            guidance,
+            ...ruled,
+            discovery,
+          });
         }
       } else {
         f.map(declaration, [
@@ -274,6 +299,7 @@ export class Declarations {
           "target",
           "exact",
           "guidance",
+          "rules",
           "name",
           "source",
           "targets",

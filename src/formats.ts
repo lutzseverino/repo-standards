@@ -19,6 +19,7 @@ export const formats = {
   outdated: "repo-standards/outdated/v1",
   outdatedCache: "repo-standards/outdated-cache/v1",
   check: "repo-standards/check/v1",
+  rules: "repo-standards/rules/v1",
 } as const;
 
 type RecordFormat =

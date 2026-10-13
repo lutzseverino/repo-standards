@@ -205,13 +205,14 @@ paths remain project content and are not deleted.
 
 Every update report states its class in `updateClass`. It is an **exact update**
 (`exact`) only when each declaration's guidance, discovery guidance, and
-operations, including their scripts, arguments, and resources, are
-hash-identical to the retained inputs, its confirmed scope is unchanged, and no
-declaration retires. Exact content, skills, and the selection itself can change
-in an exact update, and an unchanged selection is one. Any other difference
+operations, including their scripts, arguments, and resources, and each
+contextual declaration's [rules](rules.md), are hash-identical to the retained
+inputs, its confirmed scope is unchanged, and no declaration retires. Exact
+content, an exact declaration's rules, skills, and the selection itself can
+change in an exact update, and an unchanged selection is one. Any other difference
 makes it a **contextual update** (`contextual`). `contextualChanges` lists each
 differing declaration by ID with what differs, in the order `guidance`,
-`discovery`, `operations`, and `scope`, or `retired` for a declaration the
+`rules`, `discovery`, `operations`, and `scope`, or `retired` for a declaration the
 candidate no longer declares; it is empty for an exact update. Operations
 compare their complete definitions, including prerequisite probes, timeouts,
 and any remote setup readiness probe.

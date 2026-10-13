@@ -1,8 +1,9 @@
 # Usage
 
 This directory explains how to install, author, discover, inspect, adopt, and
-update with Repository Standards, report available updates, and run adopted
-checks, and defines its public formats and protocols.
+update with Repository Standards, report available updates, run adopted
+checks, and look up installed rules, and defines its public formats and
+protocols.
 
 - [Installation](installation.md): public npm installation, the standalone
   bootstrap, the authoring skill, and fresh-checkout restoration.
@@ -18,6 +19,8 @@ checks, and defines its public formats and protocols.
   of newer CLI and standards versions and its cache.
 - [Adopted checks](check.md): running the adopted checks on demand with
   `check`, its report, and how it detects checks that write.
+- [Installed rules](rules.md): the rules adoption installs, their index, the
+  `rules` lookup by path, and how failed checks cite them.
 - [Author format](author-format.md): the `repo-standards/v2` source format,
   its declarations, profiles, checks and fixes, and validation errors.
 - [Script protocol](script-protocol.md): how trusted checks and fixes run,
