@@ -50,8 +50,9 @@ standards format.
 | Repository state         | A resolved selection and observed project produce an inspection, its update comparison and class, freshness identities, and durable adoption progress. The update comparison takes the verified recorded adoption, the candidate selection and materials, and the project's observed product state. It rejects a recorded tag that now resolves to a different commit, and returns the whole update part of an inspection, which is the changed selection components, the previous selection, the retired declarations, the update class and contextual changes, and the product-state-integrity blocker. Scope changes stay with inspection, which holds the scope proposal. Inspection also runs each remote setup's readiness probe through execution, read-only, and reports its readiness.                                                                                                                                                                                                                                                                                                             |
 | Declaration targets      | A resolved declaration produces the targets it applies to, as paths and directory trees: an exact file's or skill's one installation target, or contextual guidance's targets. It also produces each skill's link and the text the product writes there, and holds the system skills: each reserved name, target, and link, and the ones adoption installs. Every other module asks it rather than deriving a skill's target or link, a declaration's targets, or the system skills itself.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | Target ownership         | Each installation target's current content, its installed baseline when one exists, its candidate content when one exists, and whether that content is tracked produce its target ownership: the action a run would take on it (match, create, or replace; a recorded target the selection no longer installs has a missing candidate, so its removal is a replacement, unless it overlaps contextual scope or lies at or inside a target the selection still installs, where it has no candidate and no action), whether that action discards content other than the installed baseline, whether the target is kept, and its one ownership blocker, untracked replacement content. A recorded target the selection no longer installs is kept, with no action and no blocker, when its safely observed, tracked content is not its installed baseline, unless it contains a target the selection still installs; a skill directory is judged whole, and a kept skill keeps its link. The rule is the same for every target kind in every run. Inspection observes each target once and is its only caller. |
-| Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, skill links, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, status, and check read an established adoption only through it; every command first runs its format gate over the records in the product state and Git directories, which is all resume and abandon need while a run is active. The gate rejects newer and retired records, except that it returns retired committed records to a public inspection or start, which adopts fresh over them, and to status, resume, abandon, and check while a run of this CLI is active. `outdated` reads the selection leniently instead.                                                                                                                                                                                                                     |
-| Installation             | The inspection a start is bound to produces one run's installation plan, not the adoption itself: the exact content, skills, skill links, retained inputs, durable product state, and runtime an adoption run installs, the links it removes, retired product state it removes whole, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Recorded adoption reader | The product state directory produces one verified value of what the last complete adoption left: selection, lock, durable state, baselines, skills, skill links, resolved declarations, retained source, scope evidence, and execution evidence, each matched against the lock before it is read, or one state-integrity failure. Inspection, start, resume, status, check, and rules read an established adoption only through it; every command first runs its format gate over the records in the product state and Git directories, which is all resume and abandon need while a run is active. The gate rejects newer and retired records, except that it returns retired committed records to a public inspection or start, which adopts fresh over them, and to status, resume, abandon, check, and rules while a run of this CLI is active. `outdated` reads the selection leniently instead.                                                                                                                                                                                                       |
+| Installed rules          | A resolved selection and its retained rules produce the rules files and index an installation writes, at `.repo-standards/rules/`. A project path and the recorded adoption produce the rules that cover it: those of declarations whose targets or confirmed scope contain it, and of every repository-wide declaration, whose empty targets or confirmed scope make it cover the whole repository. It names the rules a failed check cites, in `check` and in an adoption run.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Installation             | The inspection a start is bound to produces one run's installation plan, not the adoption itself: the exact content, skills, skill links, retained inputs, installed rules, durable product state, and runtime an adoption run installs, the links it removes, retired product state it removes whole, and, for an update, the last complete adoption's durable state, kept in place until completion replaces it unread. It installs itself across interruptions, verifies itself, and produces the durable state and lock a completion writes. The run session saves it with the run and leaves interpreting the plan to this module.                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | Execution                | Adoption progress advances through exact installation, literal process execution, checks, and final integrity. Final integrity is the run-time check of the run's planned installation, distinct from the recorded adoption reader's check of the committed baseline a run starts from. `check` runs the recorded adoption's checks through the same prerequisite probes and process execution outside any run, observing that each leaves the project unchanged; remote setup readiness probes run under the same read-only observation, and a run skips the fixes and prerequisites of deferred remote setup.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Work evidence            | The work-evidence journal owns an adoption run's observation intervals: it opens one for a phase and scope after recording any unattributed gap as an agent interval, closes intervals with their violation checks, continues after an interruption by recording and saving without checking, so each caller requires authorization where it holds, and answers what the agent changed. It keeps the one observation its last interval ends at behind an observation store seam: a file store beside the run journal for runs, an in-memory store for abandonment. Intervals and operation outcomes produce the run's execution evidence as identities and deltas, in one shape shared by the run record, the local run report, and committed durable state, which holds the current run only. At completion, the installation's changes and the intervals produce the run's net change set.                                                                                                                                                                                                                |
 | Scope evidence           | A run and the recorded adoption it updates produce the retained scope evidence: the current run, with its project observation kept without derived evidence and its named observation as a delta, and its scope change against the previous run. The projected historical scope is rebuilt on read.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
@@ -72,7 +73,9 @@ Source paths refer to ordinary files in that standards repository.
 
 Declaration IDs are stable, local, lower-case kebab-case names. A resolved
 declaration is one complete unit containing content or guidance and its checks
-and fixes. It has one of four forms:
+and fixes. Every form but an exact skill may also name rules: lasting
+requirements that adoption installs. Its guidance is adoption guidance, kept
+only with the retained inputs. It has one of four forms:
 
 - Exact file: supplied bytes at one target.
 - Contextual file: referenced guidance for one project-owned target.
@@ -211,7 +214,7 @@ adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
 scope is missing. Initial start receives the same valid proposal and confirmed
 complete inspection identity and reconstructs inspection before mutation. Inspection accepts
 `repo-standards/scope/v2` proposals through `--scope`, returns explicitly versioned
-`repo-standards/inspection/v7` reports, and binds a complete eligible project
+`repo-standards/inspection/v8` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
 A proposal carries only the agent's judgment per active discovery declaration:
 candidates with their decisions, reasons and evidence paths, coverage, and
@@ -269,6 +272,7 @@ are recorded independently of the exact CLI package pin.
 | `abandon`         | Ends an incomplete run while retaining its changes and report.                                                                                                                                                                                    |
 | `outdated`        | Reports, for each pin, whether a newer stable CLI or standards version is published and by how many stable releases, without blocking or changing anything outside the ignored product cache.                                                     |
 | `check`           | Runs every retained check of the last complete adoption against the working tree, outside any run and without confirmation, and reports each result; fails when any check does not pass or changes the project.                                   |
+| `rules`           | Prints the installed rules covering a path and the rules of every repository-wide declaration, from the last complete adoption, without any network request.                                                                                      |
 
 `--summary` is a peer of `--json` on `inspect` and `status`; combining them is a
 usage error. One renderer module produces both summaries, and the same report
@@ -309,15 +313,16 @@ requests remain anonymous.
 exhausted quota, or a missing selection report `unknown` with a reason for each
 affected pin. `status` stays offline.
 
-`status`, `outdated`, and `check` require the recorded CLI pin, as `resume` and
-`abandon` do. `status` and `check` take it from the active run's selection when
-a run is active, where `check` then fails with `ACTIVE_RUN`, and otherwise from
+`status`, `outdated`, `check`, and `rules` require the recorded CLI pin, as
+`resume` and `abandon` do. `status`, `check`, and `rules` take it from the
+active run's selection when a run is active, where `check` and `rules` then
+fail with `ACTIVE_RUN`, and otherwise from
 the recorded adoption; `outdated` takes it from the selection it reads. Under
 another CLI version they fail with `CLI_PIN_MISMATCH`, naming the pinned
 version and, when the project runtime manifest and npm lock both pin it, the
 project root and the command that reinstalls the project runtime there;
 otherwise they name an exact CLI installed outside the project. `status`,
-`resume`, `abandon`, and `check` check that pin before any record format or
+`resume`, `abandon`, `check`, and `rules` check that pin before any record format or
 integrity validation, and before acquiring a worker lock. `outdated` fails
 before any lookup. Without a recorded pin they report under any CLI. Only
 `inspect` and `start` treat a different exact CLI as a candidate CLI pin change.
@@ -566,6 +571,7 @@ cannot silently redefine installation baselines.
   lock.json
   state.json
   inputs/
+  rules/
   runtime/
   cache/      (ignored)
   local/      (ignored)
@@ -581,8 +587,12 @@ cannot silently redefine installation baselines.
   input hashes. The npm runtime lock owns dependency resolution details.
 - State records the last complete adoption, exact-content baselines, checks,
   and assessment identities, and that run's work evidence.
+- Rules holds the installed rules of each active declaration that has them,
+  named by declaration ID, and a generated `README.md` index of what each
+  covers. They are CLI-owned exact content: the lock records them, completion
+  verifies them, and an update replaces the directory whole.
 - Inputs retain normalized source metadata, resolved selection, source license,
-  exact content, guidance, scripts, and declared resources. Other profiles and
+  exact content, guidance, rules, scripts, and declared resources. Other profiles and
   unrelated source files are omitted.
 
 Exact baselines include file hashes, executable bits, and complete skill path
@@ -1052,7 +1062,7 @@ These mechanisms are removed, not deprecated
   `confirmation-required` instead, and the run continues from it with
   `resume --confirmed`.
 - The formats `repo-standards/inspection/v6`, `repo-standards/operation/v1`,
-  and `repo-standards/result/v1`. Their current versions are `inspection/v7`
+  and `repo-standards/result/v1`. 6.0.0 replaced them with `inspection/v7`
   (`confirmation`), `operation/v2` (`overwriteAllowed`), and `result/v2` (the
   fix status `confirmation-required`). A script returning the retired result
   format fails with `PROTOCOL_ERROR`; no compatibility reader accepts it

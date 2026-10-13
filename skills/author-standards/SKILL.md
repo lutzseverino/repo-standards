@@ -76,6 +76,12 @@ alongside the draft:
   directory, including resources; updates replace it as a unit. It supports
   ordinary work and cannot replace or extend adoption behavior.
 
+Every form but an exact author skill may also name **rules**: the lasting
+requirements of what it governs, which adoption installs and failed checks
+cite. Its guidance is **adoption guidance**: one-time steps for the run, such
+as a migration, a question for the maintainer, or how to assess, which is never
+installed. Put each requirement in rules and each one-time step in guidance.
+
 Ask when identical bytes versus shared intent, or the affected paths, are
 ambiguous. Configuration or guidance is sufficient when it meets the preference.
 Policy acceptance alone does not authorize an enforcement mechanism or author

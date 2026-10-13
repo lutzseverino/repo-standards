@@ -61,15 +61,29 @@ Author-owned content installed as a whole file or whole skill directory and
 tracked against its installed baseline.
 _Avoid_: Generated guidance, merged content
 
+**Rules**:
+The installed, human-readable statement of what a standard requires of a file
+or repository area, which its checks and assessments cite. Rules outlast the
+adoption run that installs them.
+_Avoid_: Guidance, when meaning lasting requirements; skill instructions
+
+**Adoption guidance**:
+A standard's one-time instructions for an adoption or update run, such as a
+migration, a question for the maintainer, or how to assess a declaration. It
+is kept with the run's inputs and never installed as rules.
+_Avoid_: Guidance, when meaning rules
+
 **Contextual guidance**:
-Author-provided direction used by an agent to assess or adapt project-owned
-content without transferring ownership of that content to the standards
-source.
-_Avoid_: Template, exact content
+The adoption guidance an agent follows during a run to assess or adapt
+project-owned content, without transferring ownership of that content to the
+standards source. What the content must keep satisfying afterwards is the
+declaration's rules.
+_Avoid_: Template, exact content, rules
 
 **Repository guidance**:
-Contextual guidance that applies to a set of project paths or directory trees,
-identified by explicit targets or project-specific discovery.
+A contextual declaration over a set of project paths or directory trees,
+identified by explicit targets or project-specific discovery. One whose
+confirmed scope is empty is repository-wide: its rules cover every path.
 _Avoid_: Global guidance, glob rule
 
 **Discovery guidance**:
@@ -158,12 +172,13 @@ _Avoid_: Automatic upgrade, re-adoption, one-pin update
 
 **Exact update**:
 An update in which only exact content, skills, or the selection change, while
-guidance, discovery guidance, operations, and confirmed scope are unchanged.
+guidance, contextual declarations' rules, discovery guidance, operations, and
+confirmed scope are unchanged.
 _Avoid_: Small update, trivial update, in-ticket update
 
 **Contextual update**:
-An update that changes guidance, discovery guidance, operations, retired
-declarations, or confirmed scope.
+An update that changes guidance, a contextual declaration's rules, discovery
+guidance, operations, retired declarations, or confirmed scope.
 _Avoid_: Large update, breaking update, separate-ticket update
 
 **Available update**:

@@ -1,8 +1,10 @@
 # Adoption
 
 Initial adoption and deliberate updates install exact files and whole author
-skills and execute trusted fixes and checks. Profiles with contextual guidance
-return a work request after fixes and continue through the public
+skills, install each declaration's [rules](rules.md), and execute trusted fixes
+and checks. Profiles with contextual declarations return a work request after
+fixes, carrying their adoption guidance: one-time instructions for the run,
+kept only with the retained inputs. The run continues through the public
 [assessment protocol](assessment-protocol.md). Interrupted adoption supports
 explicit retry and abandonment as described below.
 
@@ -140,8 +142,8 @@ selection, and every update uses the same inspect and start sequence, with
 [confirmation](#confirmation-required-changes) only when the report requires it.
 The report also states whether the update is an exact update, which changes
 only exact content, skills, or the selection, or a contextual update, which
-changes guidance, discovery guidance, operations, retired declarations, or
-confirmed scope; see [update class](inspection.md#report-and-inspection-identity).
+changes guidance, a contextual declaration's rules, discovery guidance,
+operations, retired declarations, or confirmed scope; see [update class](inspection.md#report-and-inspection-identity).
 `inspect --summary` renders the report as a [Markdown proposal](inspection.md#markdown-summary).
 
 To select a standards version, source, or profile, pass all three source flags.
@@ -325,6 +327,7 @@ Review and commit these files through the adopting project's normal workflow:
 | `.repo-standards/lock.json`                                 | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state.                                                                  |
 | `.repo-standards/state.json`                                | Last-complete run, HEAD at start, completion time, exact baselines, full skill file inventories, skill links, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this run only. |
 | `.repo-standards/inputs/`                                   | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted.                                  |
+| `.repo-standards/rules/`                                    | The [installed rules](rules.md) of every active declaration that has rules, and the generated `README.md` index of what each covers.                                                                                                  |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values.                                                                                                                                            |
 | `.repo-standards/.gitignore`                                | Ignores runtime dependencies, local reports/logs, and caches.                                                                                                                                                                         |
 | `.agents/skills/adopt-standards/`                           | The product-owned adoption skill from this exact CLI version, with its references.                                                                                                                                                    |
@@ -340,7 +343,7 @@ paths, derived absence and observation identities, together with the run's scope
 change against the previous run. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
 source availability, as `repo-standards/scope-history/v5` in the
-`repo-standards/inspection/v7` report, and `status` reports its scope change.
+`repo-standards/inspection/v8` report, and `status` reports its scope change.
 
 Retained scope evidence stores the run's discovery once: its identity, proposal,
 absence, declarations and project observation without the evidence array that
@@ -375,8 +378,8 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v5`                                |
 | Run record, local run report, and archived abandoned report          | `repo-standards/run/v6`                                          |
 | `status` report                                                      | `repo-standards/status/v8`                                       |
-| Inspection report                                                    | `repo-standards/inspection/v7`                                   |
-| Work request and assessment                                          | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
+| Inspection report                                                    | `repo-standards/inspection/v8`                                   |
+| Work request and assessment                                          | `repo-standards/work-request/v4`, `repo-standards/assessment/v3` |
 
 Earlier formats are retired: they are not read, converted, or compacted. A
 project whose committed files carry one
@@ -786,7 +789,9 @@ substitutes for them.
 
 `status` reports pins, active progress, and historical last-complete evidence
 without any network request; [`outdated`](available-updates.md) reports
-available CLI and standards updates. Both require the pinned CLI. `status` takes
+available CLI and standards updates. Both require the pinned CLI, and so does
+[`rules`](rules.md#look-up-the-rules-for-a-path), which reads the installed
+rules without any network request. `status` takes
 the pin from the active run when a run is active, otherwise from the last
 complete adoption; `outdated` takes it from the committed selection. Under
 another CLI version each exits 1 with `CLI_PIN_MISMATCH`, as `resume` and

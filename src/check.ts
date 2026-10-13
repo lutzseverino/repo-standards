@@ -19,6 +19,7 @@ import {
   requireRecordedCli,
   type RecordedSelection,
 } from "./recorded-state.js";
+import { installedRules } from "./rules.js";
 import { acquireWorker } from "./run-lock.js";
 import { concreteScope } from "./scope.js";
 
@@ -42,6 +43,9 @@ export interface CheckResult {
   message: string;
   // The execution error code, when the check did not return a valid result.
   error: string | null;
+  // The installed rules of the declaration of a check that did not pass, when
+  // it has any.
+  rules: string | null;
   stdout: string;
   stderr: string;
 }
@@ -80,6 +84,7 @@ export async function check(
       );
     const { selection, resolved } = recorded;
     recorded.source();
+    const cited = installedRules(resolved.declarations);
     const scope = concreteScope(resolved);
     const requireUnchanged = readOnlyGuard(
       root,
@@ -147,16 +152,21 @@ export async function check(
         throw error;
       }
       keepLogs();
+      const status = evidence.result
+        ? (evidence.result.status as CheckResult["status"])
+        : "error";
       checks.push({
         declaration: selected.declaration,
         id: selected.operation.id,
-        status: evidence.result
-          ? (evidence.result.status as CheckResult["status"])
-          : "error",
+        status,
         message:
           evidence.result?.message ??
           `The check did not return a successful process and protocol result (${[evidence.error, evidence.process.error].filter(Boolean).join(": ")}). Read its logs.`,
         error: evidence.error,
+        rules:
+          status === "passed"
+            ? null
+            : (cited.get(selected.declaration) ?? null),
         stdout: `${log}.stdout`,
         stderr: `${log}.stderr`,
       });
@@ -200,7 +210,7 @@ export function checkSummary(report: CheckReport) {
     `Checks of ${standards.repository} ${standards.version}, profile ${oneLine(profile)}: ${counts.length ? counts.join(", ") : "none declared"}.`,
     ...report.checks.map(
       (result) =>
-        `${result.status.padEnd(7)} ${result.declaration}/${result.id}: ${oneLine(result.message)}${result.status === "passed" ? "" : ` Output: ${result.stdout}, ${result.stderr}`}`,
+        `${result.status.padEnd(7)} ${result.declaration}/${result.id}: ${oneLine(result.message)}${result.rules ? ` Rules: ${result.rules}` : ""}${result.status === "passed" ? "" : ` Output: ${result.stdout}, ${result.stderr}`}`,
     ),
   ];
   return lines.join("\n") + "\n";

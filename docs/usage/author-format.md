@@ -78,18 +78,38 @@ their alternative values are still validated for independent errors; more than
 ## Declarations
 
 All four forms may contain optional `checks` and `fixes` lists. Omitted lists
-resolve to empty lists. Their remaining fields are:
+resolve to empty lists, and every form but an exact skill may name optional
+[`rules`](#rules-and-adoption-guidance). Their remaining fields are:
 
-| Form                | Required fields                                                                                                                                                                                      |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Exact file          | `kind: file`, one `target`, and `exact` referencing a regular source file                                                                                                                            |
-| Contextual file     | `kind: file`, one `target`, and `guidance` referencing a regular source file                                                                                                                         |
-| Exact skill         | `kind: skill`, `name`, and `source` referencing a whole directory containing a regular `SKILL.md`                                                                                                    |
-| Repository guidance | `kind: repository`, `guidance` referencing a regular file, and exactly one scope mode: explicit `targets` containing both `paths` and `directories` lists, or `discovery` referencing a regular file |
+| Form                | Required fields                                                                                                                                                                                                              |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Exact file          | `kind: file`, one `target`, and `exact` referencing a regular source file                                                                                                                                                    |
+| Contextual file     | `kind: file`, one `target`, and `guidance`, its adoption guidance, referencing a regular source file                                                                                                                         |
+| Exact skill         | `kind: skill`, `name`, and `source` referencing a whole directory containing a regular `SKILL.md`                                                                                                                            |
+| Repository guidance | `kind: repository`, `guidance`, its adoption guidance, referencing a regular file, and exactly one scope mode: explicit `targets` containing both `paths` and `directories` lists, or `discovery` referencing a regular file |
 
 A file must have exactly one of `exact` or `guidance`. Repository guidance
 requires exactly one of `targets` or `discovery`, and explicit targets need at
-least one path or directory. Exact skills target
+least one path or directory.
+
+### Rules and adoption guidance
+
+Every form but an exact skill may also name `rules`, referencing a regular
+source file: human-readable Markdown stating the declaration's lasting
+requirements. Adoption installs each active declaration's rules at
+`.repo-standards/rules/<declaration ID>.md` as exact content the CLI owns, with
+a generated index, and checks and assessments cite them; see
+[installed rules](rules.md). `guidance` is the declaration's adoption guidance:
+one-time instructions for the run, such as a migration, a question for the
+maintainer, or how to assess the declaration. It is kept only with the
+retained inputs and never installed. Keep lasting requirements in `rules` and
+one-time steps in `guidance`.
+
+A skill declaration with `rules` fails with `UNKNOWN_FIELD`. A declaration with
+`rules` cannot have the ID `readme`, whose installed rules would collide with
+the index `README.md`; it fails with `RESERVED_NAME`. A repository guidance
+declaration whose confirmed scope is empty is repository-wide: its rules cover
+every path of the adopting project. Exact skills target
 `.agents/skills/<name>` as a whole, and adoption also installs the skill's
 [skill link](adoption.md#skill-links) at `.claude/skills/<name>`, which is a
 target of the skill too: no other target may overlap it. `adopt-standards`,
@@ -132,6 +152,7 @@ defaults:
     project-documentation:
       kind: repository
       guidance: guidance/documentation.md
+      rules: rules/documentation.md
       discovery: guidance/find-projects.md
 profiles:
   work:
@@ -140,9 +161,11 @@ profiles:
 ```
 
 Replace the compatibility placeholder with the CLI SemVer range actually tested,
-and supply both referenced files. `guidance/documentation.md` describes how to assess
-or adapt project content, such as preserving useful facts and documenting real
-commands. `guidance/find-projects.md` describes where that guidance applies: for
+and supply the referenced files. `rules/documentation.md` states what the
+discovered documentation must keep satisfying, such as documenting real
+commands. `guidance/documentation.md` is the adoption guidance: how to assess
+or adapt project content during the run, such as preserving useful facts while
+moving them. `guidance/find-projects.md` describes where that guidance applies: for
 example, evidence of maintained projects including projects missing READMEs, and
 criteria for distinguishing fixtures, generated output, and organizational
 directories. Discovery is agent-interpreted prose, never an executable hook.
@@ -308,8 +331,8 @@ explaining project-specific limits, and `scope.discoveryRequired`, a mapping of
 all profile names to their active discovery declaration IDs (empty lists for
 profiles without discovery). Human output presents these same facts and limits.
 
-Validation verifies every profile's schema, references (including both guidance
-files), operations, identities, reservations, and all determinable explicit-target
+Validation verifies every profile's schema, references (including guidance,
+discovery guidance and rules files), operations, identities, reservations, and all determinable explicit-target
 conflicts. It cannot establish concrete scope safety or semantic completeness in
 an unfamiliar adopting project, even when all explicit source targets are valid.
 Excluded discovery declarations do not require project discovery; their source
@@ -348,7 +371,7 @@ structurally invalid YAML may limit what can be determined.
 | `MISSING_REFERENCE`         | Referenced file or directory does not exist                                                                   |
 | `REFERENCE_TYPE`            | Referenced entry has the wrong filesystem type                                                                |
 | `SOURCE_SYMLINK`            | Source document or selected material contains a symlink                                                       |
-| `RESERVED_NAME`             | An author tries to supply a product-owned system skill                                                        |
+| `RESERVED_NAME`             | An author tries to supply a product-owned system skill, or names a declaration with rules `readme`            |
 | `RESERVED_TARGET`           | Target overlaps reserved storage                                                                              |
 | `TARGET_OVERLAP`            | Two resolved targets overlap, including folded collisions                                                     |
 

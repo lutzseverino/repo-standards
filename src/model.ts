@@ -21,26 +21,32 @@ interface DeclarationBase {
   checks: Operation[];
   fixes: Operation[];
 }
+// Every declaration but a skill may name its rules: the lasting requirements
+// adoption installs. Guidance is the declaration's adoption guidance.
+interface Ruled {
+  rules?: string;
+}
 export type Declaration = DeclarationBase &
   (
-    | { kind: "file"; target: string; exact: string }
-    | { kind: "file"; target: string; guidance: string }
+    | (Ruled & { kind: "file"; target: string; exact: string })
+    | (Ruled & { kind: "file"; target: string; guidance: string })
     | { kind: "skill"; name: string; source: string }
-    | {
+    | (Ruled & {
         kind: "repository";
         guidance: string;
         targets: { paths: string[]; directories: string[] };
-      }
+      })
   );
 
 // Source discovery has no executable targets until project scope is confirmed.
 export type SourceDeclaration =
   | Declaration
-  | (DeclarationBase & {
-      kind: "repository";
-      guidance: string;
-      discovery: string;
-    });
+  | (DeclarationBase &
+      Ruled & {
+        kind: "repository";
+        guidance: string;
+        discovery: string;
+      });
 export interface SourceProfile {
   description: string;
   declarations: SourceDeclaration[];

@@ -35,11 +35,11 @@ work is what it checks.
 
 ## Report
 
-With `--json`, `check` prints one `repo-standards/check/v1` object:
+With `--json`, `check` prints one `repo-standards/check/v2` object:
 
 ```json
 {
-  "format": "repo-standards/check/v1",
+  "format": "repo-standards/check/v2",
   "outcome": "failed",
   "selection": {
     "cli": { "package": "@lutzseverino/repo-standards", "version": "6.0.0" },
@@ -52,11 +52,12 @@ With `--json`, `check` prints one `repo-standards/check/v1` object:
   },
   "checks": [
     {
-      "declaration": "readme",
+      "declaration": "project-readme",
       "id": "headings",
       "status": "failed",
       "message": "README.md has no Usage heading.",
       "error": null,
+      "rules": ".repo-standards/rules/project-readme.md",
       "stdout": ".repo-standards/local/checks/0.stdout",
       "stderr": ".repo-standards/local/checks/0.stderr"
     }
@@ -69,14 +70,18 @@ order. `status` is the check's result status, `passed`, `failed` or `blocked`,
 with its `message`, or `error` when the check did not return a valid result: a
 nonzero exit, signal, timeout, spawn failure, excess output or invalid protocol
 output. `error` is then the execution error code, such as `PROTOCOL_ERROR` or
-`NONZERO_EXIT`, and `message` says so; otherwise `error` is null. `stdout` and
+`NONZERO_EXIT`, and `message` says so; otherwise `error` is null. The `rules`
+of a check that did not pass name its declaration's
+[installed rules](rules.md); they are null for a passed check or a declaration
+without rules. `stdout` and
 `stderr` name the check's captured output streams, which the next `check`
 replaces. `outcome` is `passed` only when every check passed, including when
 there are none.
 
 Without `--json`, `check` prints a readable summary: the selection and the count
 of each status, then one line per check with its status, declaration, ID and
-message, and the paths of its output logs when it did not pass. Line breaks in
+message, then its installed rules and the paths of its output logs when it did
+not pass. Line breaks in
 a message or the profile become spaces in the summary, so each check and the
 header keep one line; the JSON report keeps both values as they are.
 

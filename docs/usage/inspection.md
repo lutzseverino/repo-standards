@@ -152,7 +152,7 @@ the tag-cache location must resolve outside the project, including via symlinks.
 
 ## Report and inspection identity
 
-Every report has the single format `repo-standards/inspection/v7`. A profile
+Every report has the single format `repo-standards/inspection/v8`. A profile
 with discovery declarations adds the `discovery` and `sourceResolved` fields
 described [below](#discover-contextual-file-scope):
 
@@ -205,13 +205,14 @@ paths remain project content and are not deleted.
 
 Every update report states its class in `updateClass`. It is an **exact update**
 (`exact`) only when each declaration's guidance, discovery guidance, and
-operations, including their scripts, arguments, and resources, are
-hash-identical to the retained inputs, its confirmed scope is unchanged, and no
-declaration retires. Exact content, skills, and the selection itself can change
-in an exact update, and an unchanged selection is one. Any other difference
+operations, including their scripts, arguments, and resources, and each
+contextual declaration's [rules](rules.md), are hash-identical to the retained
+inputs, its confirmed scope is unchanged, and no declaration retires. Exact
+content, an exact declaration's rules, skills, and the selection itself can
+change in an exact update, and an unchanged selection is one. Any other difference
 makes it a **contextual update** (`contextual`). `contextualChanges` lists each
 differing declaration by ID with what differs, in the order `guidance`,
-`discovery`, `operations`, and `scope`, or `retired` for a declaration the
+`rules`, `discovery`, `operations`, and `scope`, or `retired` for a declaration the
 candidate no longer declares; it is empty for an exact update. Operations
 compare their complete definitions, including prerequisite probes, timeouts,
 and any remote setup readiness probe.
@@ -454,7 +455,7 @@ record the same way.
 
 A selected repository declaration with `discovery` uses two read-only inspections.
 The first invocation uses the same source, version, profile and project flags
-shown above. Its `repo-standards/inspection/v7` report adds discovery instructions,
+shown above. Its `repo-standards/inspection/v8` report adds discovery instructions,
 eligible evidence, a request identity, and `DISCOVERY_REQUIRED` in `start.blockers`.
 The report still includes exact changes, contextual guidance, and all operations.
 Unresolved declarations remain in `sourceResolved`; they do not manufacture
@@ -605,7 +606,7 @@ request and final inspection identities, so neither a retained historical
 proposal nor an earlier inspection authorizes the new run.
 
 After ordinary discovery completion, retained `inspect --json` remains
-`repo-standards/inspection/v7` and exposes `historicalScope` as
+`repo-standards/inspection/v8` and exposes `historicalScope` as
 `repo-standards/scope-history/v5`: the last complete run's accepted inspection
 identity, materialized concrete selection, and, when that run discovered scope,
 its source-resolved declarations and discovery proposal, rationale, guidance,
