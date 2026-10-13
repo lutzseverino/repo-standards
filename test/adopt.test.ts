@@ -71,14 +71,24 @@ async function fixture(
       },
     },
   );
-  const releases = (...tags: string[]) => {
-    f.remote.responses[`${f.remote.prefix}/releases?per_page=100`] = {
-      body: tags.map((tag) => ({
-        tag_name: tag,
-        draft: false,
-        prerelease: false,
-      })),
-    };
+  // Publishes the release list, one page per list of tags. A full page of
+  // 100 releases leads to the next.
+  const releases = (...pages: (string | string[])[]) => {
+    const lists =
+      typeof pages[0] === "string"
+        ? [pages as string[]]
+        : (pages as string[][]);
+    lists.forEach((tags, index) => {
+      f.remote.responses[
+        `${f.remote.prefix}/releases?per_page=100&page=${index + 1}`
+      ] = {
+        body: tags.map((tag) => ({
+          tag_name: tag,
+          draft: false,
+          prerelease: /-/.test(tag),
+        })),
+      };
+    });
     f.remote.save();
   };
   releases("v1.0.0");
@@ -504,7 +514,12 @@ test("adopt without a source updates an adopted project, offering the newest sta
     readFileSync(join(f.remote.source.root, "standards.yaml"), "utf8"),
     { "content/AGENTS.md": "Updated agent guidance\n" },
   );
-  f.releases("v1.1.0", "v1.0.0");
+  // The newest 100 releases are prereleases; the stable ones follow on the
+  // next page of the release list.
+  f.releases(
+    Array.from({ length: 100 }, (_, index) => `v2.0.0-rc.${100 - index}`),
+    ["v1.1.0", "v1.0.0"],
+  );
   const update = f.adopt([]);
   assert.equal(update.result.status, 0, update.result.stderr);
   assert.deepEqual(update.report.selection, {
@@ -513,6 +528,10 @@ test("adopt without a source updates an adopted project, offering the newest sta
     version: "v1.1.0",
     profile: "work",
   });
+  assert.deepEqual(question(update.report, "version").choices, [
+    "v1.1.0",
+    "v1.0.0",
+  ]);
   assert.match(
     question(update.report, "version").context,
     /adopts v1\.0\.0 now/,
@@ -529,8 +548,11 @@ test("adopt without a source updates an adopted project, offering the newest sta
   assert.equal(selection.standards.version, "v1.1.0");
 });
 
-test("adopt asks a discovery script's open questions as answers-file fields and starts once they are answered", async (t) => {
-  const discovery = "Projects have a package manifest; fixtures do not count.";
+const discovery = "Projects have a package manifest; fixtures do not count.";
+
+// A source whose discovery script drafts the app's README with the given open
+// questions, and a project with an app, a fixture and tools.
+async function discoveryFixture(t: TestContext, unresolved: string[]) {
   const f = await fixture(
     t,
     {
@@ -556,7 +578,7 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
     { path: "app/README.md", decision: "include", reason: "Its manifest makes it a project.", evidence: ["app/package.json"] },
     { path: "fixtures/fake", decision: "exclude", reason: "Fixtures are test data.", evidence: ["fixtures/fake/package.json"] },
   ],
-  unresolved: ["Is tools a maintained project?"],
+  unresolved: ${JSON.stringify(unresolved)},
 }] }));
 `,
       },
@@ -567,9 +589,6 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
       },
     },
   );
-  const before = snapshot(f.root);
-  const template = f.adopt([source]).report;
-  const scope = question(template, "scope:project-docs");
   const draft = {
     coverage: "The app is maintained; the fixture is test data.",
     candidates: [
@@ -586,8 +605,18 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
         evidence: ["fixtures/fake/package.json"],
       },
     ],
-    unresolved: ["Is tools a maintained project?"],
+    unresolved,
   };
+  return { f, draft };
+}
+
+test("adopt asks a discovery script's open questions as answers-file fields and starts once they are answered", async (t) => {
+  const { f, draft } = await discoveryFixture(t, [
+    "Is tools a maintained project?",
+  ]);
+  const before = snapshot(f.root);
+  const template = f.adopt([source]).report;
+  const scope = question(template, "scope:project-docs");
   assert.deepEqual(scope.answer, draft);
   assert.deepEqual(scope.details, {
     unresolved: ["Is tools a maintained project?"],
@@ -687,4 +716,36 @@ else { appendFileSync(process.argv[2], 'rebase\\n'); result('changed', 'Set the 
   );
   assert.equal(confirmed.report.outcome, "complete", confirmed.result.stdout);
   assert.equal(readFileSync(log, "utf8"), "rebase\n");
+});
+
+test("a drafted scope without open questions is an answer only once the answers file carries it", async (t) => {
+  const { f, draft } = await discoveryFixture(t, []);
+  const before = snapshot(f.root);
+  const template = f.adopt([source]).report;
+  assert.deepEqual(question(template, "scope:project-docs").answer, draft);
+  assert.deepEqual(template.missing, []);
+
+  // An answers file written before the scope question was asked, such as
+  // one from before the profile was chosen, does not answer it.
+  const early = f.adopt(
+    f.answer({
+      ...template.answers,
+      questions: template.answers.questions.filter(
+        ({ id }) => id === "version" || id === "profile",
+      ),
+    }),
+  );
+  assert.equal(early.result.status, 1);
+  assert.equal(early.report.outcome, "answers-required");
+  assert.deepEqual(early.report.missing, ["scope:project-docs"]);
+  assert.deepEqual(question(early.report, "scope:project-docs").answer, draft);
+  assert.deepEqual(snapshot(f.root), before);
+
+  // Carried back, the draft is the confirmed scope.
+  const started = f.adopt(f.answer(early.report.answers));
+  assert.equal(started.report.outcome, "contextual", started.result.stdout);
+  assert.deepEqual(started.report.contextual![0]!.allowedTargets, {
+    paths: ["app/README.md"],
+    directories: [],
+  });
 });

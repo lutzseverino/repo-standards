@@ -240,17 +240,23 @@ function recordedSelection(root: string) {
   }
 }
 
-// The source's stable releases, newest first.
+// The source's stable releases, newest first, from every page of its
+// release list.
 async function stableReleases(source: string) {
   const { owner, name } = githubSource(source);
-  const releases = await github(
-    `/repos/${owner}/${name}/releases?per_page=100`,
-  );
-  if (!Array.isArray(releases))
-    throw new ProductError(
-      "INVALID_SOURCE",
-      "GitHub did not return a release list.",
+  const releases: unknown[] = [];
+  for (let page = 1; ; page++) {
+    const listed = await github(
+      `/repos/${owner}/${name}/releases?per_page=100&page=${page}`,
     );
+    if (!Array.isArray(listed))
+      throw new ProductError(
+        "INVALID_SOURCE",
+        "GitHub did not return a release list.",
+      );
+    releases.push(...(listed as unknown[]));
+    if (listed.length < 100) break;
+  }
   const versions = releases
     .map(record)
     .filter(
@@ -569,7 +575,11 @@ async function prepare(
         details: { unresolved: open },
         answer,
       });
-      if (answer !== null && open.length) missing.push(`scope:${id}`);
+      // A drafted entry an answers file has not carried back is not yet an
+      // answer: inspection read no proposal for it. The template proposes it,
+      // as it proposes the other defaults.
+      if ((!proposing && scopeAnswer(id) === undefined) || open.length)
+        missing.push(`scope:${id}`);
     }
     const notReady = deferredRemoteSetup(inspection.remoteSetup);
     if (notReady.length)
