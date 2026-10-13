@@ -116,6 +116,17 @@ for (const edited of [false, true]) {
       (edited ? update.kept! : update.removed!).map(({ target }) => target),
       [".agents/skills/standards-updates", ".claude/skills/standards-updates"],
     );
+    for (const target of edited ? update.kept! : update.removed!) {
+      assert.equal(Object.hasOwn(target, "id"), false);
+      assert.equal(target.systemSkill, "standards-updates");
+    }
+    const summary = f.run([...inspectionArgs.slice(0, -1), "--summary"]);
+    assert.equal(summary.status, 0, summary.stdout + summary.stderr);
+    assert.match(summary.stdout, /\| Owner \| Path/);
+    assert.match(
+      summary.stdout,
+      /\| system skill `standards-updates` \| `\.agents\/skills\/standards-updates/,
+    );
     const updated = f.json<Run>(startArgs(update.identity));
     assert.equal(updated.report.outcome, "complete", updated.result.stdout);
     assert.equal(
@@ -231,9 +242,7 @@ test("a confirmed standards update advances only the standards pin, replaces who
     ["excluded", "retired"],
   );
   assert.deepEqual(
-    inspection.removed!.map(
-      ({ id, target }: { id: string; target: string }) => ({ id, target }),
-    ),
+    inspection.removed!.map(({ id, target }) => ({ id, target })),
     [
       { id: "excluded", target: "EXCLUDED.md" },
       { id: "retired", target: "RETIRED.md" },
@@ -413,21 +422,11 @@ test("retiring a skill removes its link, and an update leaves the project its ow
   const inspection = f.inspect(args);
   assert.deepEqual(inspection.start.blockers, []);
   assert.deepEqual(
-    inspection.removed!.map(
-      ({
-        id,
-        target,
-        files,
-      }: {
-        id: string;
-        target: string;
-        files: { path: string; after: unknown }[];
-      }) => ({
-        id,
-        target,
-        files: files.map(({ path, after }) => ({ path, after })),
-      }),
-    ),
+    inspection.removed!.map(({ id, target, files }) => ({
+      id,
+      target,
+      files: files.map(({ path, after }) => ({ path, after })),
+    })),
     [
       {
         id: "review",

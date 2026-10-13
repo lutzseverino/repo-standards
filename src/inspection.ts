@@ -48,6 +48,7 @@ import {
   installedSystemSkills,
   linkTextAt,
   retiredSystemSkills,
+  type InstallationOwner,
 } from "./targets.js";
 import { unifiedDiff } from "./unified-diff.js";
 import { compareUpdate } from "./update-comparison.js";
@@ -642,20 +643,24 @@ export async function inspectForStart(
     }));
     // Each removed and each kept target, including a skill link, is
     // attributed to the declaration or retired system skill that installed it.
-    const installer = (target: string) =>
-      previous!.resolved.declarations.find(
+    const installer = (target: string): InstallationOwner => {
+      const declaration = previous!.resolved.declarations.find(
         (declaration) =>
           installationTarget(declaration) === target ||
           declarationLink(declaration) === target,
-      )?.id ??
-      retiredSystemSkills.find(
-        (skill) => skill.target === target || skill.link === target,
-      )!.name;
+      );
+      if (declaration) return { id: declaration.id };
+      return {
+        systemSkill: retiredSystemSkills.find(
+          (skill) => skill.target === target || skill.link === target,
+        )!.name,
+      };
+    };
     const removed = previous
       ? baselineOnly
           .filter((path) => ownership.get(path)!.action === "replace")
           .map((target) => ({
-            id: installer(target),
+            ...installer(target),
             target,
             files: changedFiles(target, observed.get(target)!.value, {
               type: "missing",
@@ -665,7 +670,7 @@ export async function inspectForStart(
     const kept = previous
       ? baselineOnly
           .filter((path) => ownership.get(path)!.kept)
-          .map((target) => ({ id: installer(target), target }))
+          .map((target) => ({ ...installer(target), target }))
       : undefined;
     if (!proposal)
       for (const declaration of discoveryDeclarations)

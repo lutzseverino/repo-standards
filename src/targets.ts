@@ -16,6 +16,11 @@ export interface SystemSkill {
   link: string;
 }
 
+// The declaration or product skill that installed a recorded target. A
+// system skill has no declaration ID, including when it leaves the selection.
+export type InstallationOwner =
+  { id: string; systemSkill?: never } | { id?: never; systemSkill: string };
+
 // The shared skill location every installed skill, system or author, lives in.
 export function skillTarget(name: string) {
   return `.agents/skills/${name}`;

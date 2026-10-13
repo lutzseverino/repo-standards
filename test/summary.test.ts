@@ -555,7 +555,7 @@ test("inspect --summary lists removed retired targets, each discarded edit, and 
 
 Exact content:
 
-| Declaration | Path | Change |
+| Owner | Path | Change |
 | --- | --- | --- |
 | \`instructions\` | \`AGENTS.md\` | modified |
 | \`notes\` | \`NOTES.md\` | deleted |
@@ -576,7 +576,7 @@ Confirmation required: starting this run needs the maintainer's confirmation of 
 
 These targets leave the selection with edits. They stay in place, and the project now owns them:
 
-| Declaration | Path |
+| Owner | Path |
 | --- | --- |
 | \`legacy\` | \`LEGACY.md\` |
 
@@ -655,7 +655,7 @@ test("inspect --summary gives each skill and link its action, and keeps an edite
 
 These targets leave the selection with edits. They stay in place, and the project now owns them:
 
-| Declaration | Path |
+| Owner | Path |
 | --- | --- |
 | \`legacy\` | \`.agents/skills/legacy\` |
 | \`legacy\` | \`.claude/skills/legacy\` |

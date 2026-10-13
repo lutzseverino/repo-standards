@@ -46,7 +46,9 @@ Before changing a project file it looks up the source's installed rules with
 `rules <path>` and follows them. During contextual work in an active run it
 reads the installed rules index and the rules named by the work request,
 because `rules` reads only a complete adoption. The skill adds no requirements
-of its own. An update removes an unedited old notice skill and its link under
+of its own. Inspection identifies removed and kept product targets by `systemSkill`,
+separately from a declaration's `id`; summaries name their owner. An update
+removes an unedited old notice skill and its link under
 the ordinary retired-target policy; edited copies remain project-owned.
 
 ## Deep modules
