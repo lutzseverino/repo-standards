@@ -532,9 +532,12 @@ test("inspect --summary lists removed retired targets, each discarded edit, and 
   f.adopt();
   writeFileSync(join(project.root, "AGENTS.md"), "Maintainer instructions\n");
   writeFileSync(join(project.root, "LEGACY.md"), "Maintainer legacy\n");
-  // A copy in a system skill's link place is replaced and listed like any target.
-  unlinkSync(join(project.root, ".claude/skills/adopt-standards"));
-  writeFileSync(join(project.root, ".claude/skills/adopt-standards"), "Copy\n");
+  // A copy in the system skill's link place is replaced and listed like any target.
+  unlinkSync(join(project.root, ".claude/skills/repository-standards"));
+  writeFileSync(
+    join(project.root, ".claude/skills/repository-standards"),
+    "Copy\n",
+  );
   commit(project.root);
   remote.addVersion("v1.1.0", exact({ instructions }), {
     "agents.md": "Revised instructions\n",
@@ -567,7 +570,7 @@ Exact content:
 
 Replacing or removing these targets discards content that is not their installed baseline:
 
-- \`.claude/skills/adopt-standards\`
+- \`.claude/skills/repository-standards\`
 - \`AGENTS.md\`
 
 Confirmation required: starting this run needs the maintainer's confirmation of these discarded edits.
@@ -584,14 +587,20 @@ These targets leave the selection with edits. They stay in place, and the projec
     summary,
   );
   assert.ok(!summary.includes("\n## Blockers\n"), summary);
-  // A system skill has a row only when it or its link changes.
+  // A system skill has a row only when it or its link changes: here its link
+  // changes and the skill itself does not.
   assert.ok(
     summary.includes(
-      "| `adopt-standards` | `.claude/skills/adopt-standards` | replaced |\n",
+      "| `repository-standards` | `.claude/skills/repository-standards` | replaced |\n",
     ),
     summary,
   );
-  assert.ok(!summary.includes("| `repository-standards` |"), summary);
+  assert.ok(
+    !summary.includes(
+      "| `repository-standards` | `.agents/skills/repository-standards` |",
+    ),
+    summary,
+  );
 });
 
 test("inspect --summary gives each skill and link its action, and keeps an edited skill whole with its link", async (t) => {
@@ -611,11 +620,11 @@ test("inspect --summary gives each skill and link its action, and keeps an edite
         "legacy/notes.md": "Legacy notes",
         "retired.md": "Retired",
       },
-      // Tracked copies stand where the author skill's and a system skill's links go.
+      // Tracked copies stand where the review skill's and the system skill's links go.
       project: {
         "README.md": "Project",
         ".claude/skills/review/SKILL.md": "Hand-made copy",
-        ".claude/skills/adopt-standards": "Placeholder",
+        ".claude/skills/repository-standards": "Placeholder",
       },
     },
   );
@@ -629,12 +638,13 @@ test("inspect --summary gives each skill and link its action, and keeps an edite
     return result.stdout;
   };
   // An initial adoption creates the author skill and replaces the copy at its
-  // link, replaces the system skill link copy, and creates the other link.
+  // link, replaces the system skill link copy, and creates the legacy skill's
+  // link.
   const initial = summaryOf(inspectionArgs);
   for (const row of [
     "| `review` | `.agents/skills/review/SKILL.md` | created |\n| `review` | `.claude/skills/review` | replaced |",
-    "| `adopt-standards` | `.claude/skills/adopt-standards` | replaced |",
-    "| `repository-standards` | `.claude/skills/repository-standards` | created |",
+    "| `repository-standards` | `.claude/skills/repository-standards` | replaced |",
+    "| `legacy` | `.claude/skills/legacy` | created |",
   ]) {
     assert.ok(initial.includes(row), initial);
   }

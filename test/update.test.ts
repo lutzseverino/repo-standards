@@ -74,8 +74,11 @@ profiles:
     declarations: {}
 `;
 
+// The system skills an earlier CLI installed, which this CLI retires.
+const retiredSkills = ["adopt-standards", "standards-updates"];
+
 for (const edited of [false, true]) {
-  test(`a CLI update replaces standards-updates and ${edited ? "keeps edited" : "removes unedited"} old content with its link`, async (t) => {
+  test(`a CLI update retires adopt-standards and standards-updates and ${edited ? "keeps edited" : "removes unedited"} old content with its link`, async (t) => {
     const legacyVersion = "5.99.0";
     const registry = await registryFixture(
       cli.root,
@@ -94,59 +97,62 @@ for (const edited of [false, true]) {
     const inspection = JSON.parse(inspected.stdout) as Inspection;
     const adopted = legacy.run(startArgs(inspection.identity), f.root, f.env);
     assert.equal(adopted.status, 0, adopted.stdout + adopted.stderr);
-    assert.equal(
-      existsSync(join(f.root, ".agents/skills/standards-updates/SKILL.md")),
-      true,
-    );
+    for (const name of retiredSkills)
+      assert.equal(
+        existsSync(join(f.root, `.agents/skills/${name}/SKILL.md`)),
+        true,
+      );
     assert.equal(
       existsSync(join(f.root, ".agents/skills/repository-standards")),
       false,
     );
-    if (edited) {
-      writeFileSync(
-        join(f.root, ".agents/skills/standards-updates/local.md"),
-        "Local notice customization.\n",
-      );
-    }
+    if (edited)
+      for (const name of retiredSkills)
+        writeFileSync(
+          join(f.root, `.agents/skills/${name}/local.md`),
+          "Local customization.\n",
+        );
     commit(f.root);
 
     const update = f.inspect();
     assert.deepEqual(update.start.blockers, []);
+    // Each retired skill and its link, sorted by path.
     assert.deepEqual(
       (edited ? update.kept! : update.removed!).map(({ target }) => target),
-      [".agents/skills/standards-updates", ".claude/skills/standards-updates"],
+      retiredSkills
+        .flatMap((name) => [`.agents/skills/${name}`, `.claude/skills/${name}`])
+        .sort(),
     );
     for (const target of edited ? update.kept! : update.removed!) {
       assert.equal(Object.hasOwn(target, "id"), false);
-      assert.equal(target.systemSkill, "standards-updates");
+      assert.equal(target.target.endsWith(`/${target.systemSkill}`), true);
     }
     const summary = f.run([...inspectionArgs.slice(0, -1), "--summary"]);
     assert.equal(summary.status, 0, summary.stdout + summary.stderr);
     assert.match(summary.stdout, /\| Owner \| Path/);
-    assert.match(
-      summary.stdout,
-      /\| system skill `standards-updates` \| `\.agents\/skills\/standards-updates/,
-    );
+    for (const name of retiredSkills)
+      assert.match(
+        summary.stdout,
+        new RegExp(
+          `\\| system skill \`${name}\` \\| \`\\.agents/skills/${name}`,
+        ),
+      );
     const updated = f.json<Run>(startArgs(update.identity));
     assert.equal(updated.report.outcome, "complete", updated.result.stdout);
-    assert.equal(
-      existsSync(join(f.root, ".agents/skills/standards-updates")),
-      edited,
-    );
-    assert.equal(
-      lstatSync(join(f.root, ".claude/skills/standards-updates"), {
-        throwIfNoEntry: false,
-      })?.isSymbolicLink() ?? false,
-      edited,
-    );
-    if (edited)
+    for (const name of retiredSkills) {
+      assert.equal(existsSync(join(f.root, `.agents/skills/${name}`)), edited);
       assert.equal(
-        readFileSync(
-          join(f.root, ".agents/skills/standards-updates/local.md"),
-          "utf8",
-        ),
-        "Local notice customization.\n",
+        lstatSync(join(f.root, `.claude/skills/${name}`), {
+          throwIfNoEntry: false,
+        })?.isSymbolicLink() ?? false,
+        edited,
       );
+      if (edited)
+        assert.equal(
+          readFileSync(join(f.root, `.agents/skills/${name}/local.md`), "utf8"),
+          "Local customization.\n",
+        );
+    }
     assert.equal(
       readlinkSync(join(f.root, ".claude/skills/repository-standards")),
       "../../.agents/skills/repository-standards",
@@ -155,13 +161,13 @@ for (const edited of [false, true]) {
       readFileSync(join(f.root, ".repo-standards/state.json"), "utf8"),
     ) as State;
     assert.ok(state.skills[".agents/skills/repository-standards"]);
-    assert.equal(state.skills[".agents/skills/standards-updates"], undefined);
-    assert.equal(state.links[".claude/skills/standards-updates"], undefined);
-    assert.ok(
-      !Object.keys(state.baselines).some((path) =>
-        path.includes("standards-updates"),
-      ),
-    );
+    for (const name of retiredSkills) {
+      assert.equal(state.skills[`.agents/skills/${name}`], undefined);
+      assert.equal(state.links[`.claude/skills/${name}`], undefined);
+      assert.ok(
+        !Object.keys(state.baselines).some((path) => path.includes(name)),
+      );
+    }
     assert.equal(f.json<Status>(["status", "--json"]).result.status, 0);
   });
 }
@@ -219,7 +225,7 @@ test("a confirmed standards update advances only the standards pin, replaces who
   const runtimePaths = [
     ".repo-standards/runtime/package.json",
     ".repo-standards/runtime/package-lock.json",
-    ".agents/skills/adopt-standards/SKILL.md",
+    ".agents/skills/repository-standards/SKILL.md",
   ];
   const originalRuntime = runtimePaths.map((path) =>
     readFileSync(join(project.root, path), "utf8"),
@@ -325,10 +331,6 @@ test("an update whose source adds a skill links it as exact content", async (t) 
   assert.deepEqual(
     inspection.systemSkills.map(({ action, link }) => ({ action, link })),
     [
-      {
-        action: "match",
-        link: { target: ".claude/skills/adopt-standards", action: "match" },
-      },
       {
         action: "match",
         link: {
@@ -476,7 +478,6 @@ test("retiring a skill removes its link, and an update leaves the project its ow
     readFileSync(join(project.root, ".repo-standards/state.json"), "utf8"),
   ) as State;
   assert.deepEqual(Object.keys(state.links).sort(), [
-    ".claude/skills/adopt-standards",
     ".claude/skills/repository-standards",
   ]);
   assert.ok(
@@ -578,7 +579,7 @@ test("update inspections match candidate-equal content and list each discarded e
     "review/SKILL.md": "# Review v2",
   };
   const review = ".agents/skills/review";
-  const system = ".agents/skills/adopt-standards";
+  const system = ".agents/skills/repository-standards";
   const untracked = (path: string) => ({ code: "UNTRACKED_REPLACEMENT", path });
   for (const { name, mutate, blockers = [], discarded, actions } of [
     {
@@ -744,7 +745,7 @@ test("update inspections match candidate-equal content and list each discarded e
         installedTree(
           join(
             cli.root,
-            "node_modules/@lutzseverino/repo-standards/skills/adopt-standards",
+            "node_modules/@lutzseverino/repo-standards/skills/repository-standards",
           ),
         ),
       );
@@ -1545,7 +1546,7 @@ test("a candidate CLI updates only the exact runtime pin from retained standards
   );
   assert.ok(
     readFileSync(
-      join(project.root, ".agents/skills/adopt-standards/SKILL.md"),
+      join(project.root, ".agents/skills/repository-standards/SKILL.md"),
       "utf8",
     ).includes(`Fixture CLI ${candidateVersion}.`),
   );
@@ -1588,7 +1589,7 @@ test("a candidate CLI updates only the exact runtime pin from retained standards
   );
   assert.ok(
     readFileSync(
-      join(checkout.root, ".agents/skills/adopt-standards/SKILL.md"),
+      join(checkout.root, ".agents/skills/repository-standards/SKILL.md"),
       "utf8",
     ).includes(`Fixture CLI ${candidateVersion}.`),
   );
@@ -1708,7 +1709,7 @@ test("an inspection of the unchanged selection starts a run that re-applies it f
   const runtimePaths = [
     ".repo-standards/runtime/package.json",
     ".repo-standards/runtime/package-lock.json",
-    ".agents/skills/adopt-standards/SKILL.md",
+    ".agents/skills/repository-standards/SKILL.md",
   ];
   const runtime = runtimePaths.map((path) =>
     readFileSync(join(project.root, path), "utf8"),
@@ -1852,7 +1853,7 @@ test("a coordinated update changes the CLI and standards pins in one run when th
   );
   assert.ok(
     readFileSync(
-      join(project.root, ".agents/skills/adopt-standards/SKILL.md"),
+      join(project.root, ".agents/skills/repository-standards/SKILL.md"),
       "utf8",
     ).includes(`Fixture CLI ${candidateVersion}.`),
   );
@@ -1922,7 +1923,7 @@ test("source and profile switches are updates that remove the installed content 
   const runtimePaths = [
     ".repo-standards/runtime/package.json",
     ".repo-standards/runtime/package-lock.json",
-    ".agents/skills/adopt-standards/SKILL.md",
+    ".agents/skills/repository-standards/SKILL.md",
   ];
   const runtime = runtimePaths.map((path) =>
     readFileSync(join(project.root, path), "utf8"),
@@ -2015,7 +2016,7 @@ test("source and profile switches are updates that remove the installed content 
   assert.equal(existsSync(join(project.root, "LEGACY.md")), false);
   assert.ok(
     readFileSync(
-      join(project.root, ".agents/skills/adopt-standards/SKILL.md"),
+      join(project.root, ".agents/skills/repository-standards/SKILL.md"),
       "utf8",
     ).includes(`Fixture CLI ${candidateVersion}.`),
   );
@@ -2255,7 +2256,7 @@ test("retry preserves runtime integrity failures after the installation is recor
         f.env,
         "installation",
         killAfterRename(
-          `/.agents/skills/${point === "staged" ? "adopt-standards" : "review"}/SKILL.md`,
+          `/.agents/skills/${point === "staged" ? "repository-standards" : "review"}/SKILL.md`,
         ),
       );
       assert.equal(f.run(f.startArgs, env).signal, "SIGKILL");
@@ -2961,12 +2962,7 @@ test("retry resumes an interrupted removal of retired targets and an interrupted
       );
       assert.deepEqual(
         readdirSync(join(project.root, ".claude/skills")).sort(),
-        [
-          "adopt-standards",
-          ...(initialFiles ? ["legacy"] : []),
-          "repository-standards",
-          "review",
-        ],
+        [...(initialFiles ? ["legacy"] : []), "repository-standards", "review"],
       );
       if (!initialFiles) {
         assert.equal(existsSync(join(project.root, "RETIRED.md")), false);

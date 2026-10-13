@@ -68,9 +68,8 @@ mkdir -p "$adoption_cli"
 ```
 
 Use that executable from the project root for inspection and start.
-Before initial adoption, an agent uses the packaged skill at
-`$adoption_cli/node_modules/@lutzseverino/repo-standards/skills/adopt-standards/`.
-After installation, it uses the matching repository-local `adopt-standards` skill.
+[`adopt`](adoption.md#adopt-with-one-command) needs no external installation:
+it drives these commands and pins the CLI that ran it.
 Keep the external runtime available until completion for interrupted-installation
 recovery. The [adoption workflow](adoption.md) documents start and continuation.
 
@@ -161,7 +160,7 @@ described [below](#discover-contextual-file-scope):
 | `selection`          | Exact CLI package/version, canonical standards URL, version tag, commit SHA, and profile.                                                                                                                                                                                                                                                                                                                          |
 | `source`, `resolved` | Validated metadata and the resolver's complete active profile.                                                                                                                                                                                                                                                                                                                                                     |
 | `exact`              | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. A skill also has its `link`: the [skill link](adoption.md#skill-links) `.claude/skills/<name>` as `target`, with its own `create`, `replace`, or `match` `action`. |
-| `systemSkills`       | Each system skill adoption installs, `adopt-standards` and then `repository-standards`, by `name` and reserved `.agents/skills/<name>` `target`, with `create`, `replace`, or `match` against the copy packaged with the inspecting exact CLI, and its `link` as in `exact`.                                                                                                                                       |
+| `systemSkills`       | Each system skill adoption installs, `repository-standards`, by `name` and reserved `.agents/skills/<name>` `target`, with `create`, `replace`, or `match` against the copy packaged with the inspecting exact CLI, and its `link` as in `exact`.                                                                                                                                                                  |
 | `removed`            | For an update, each installed target the selection no longer installs and the run removes, including a retired skill's link, with its installer (`id` for a declaration, or `systemSkill` for a retired system skill) and each file's or link's before and after hash inventories and diff, as in `exact`.                                                                                                         |
 | `retiredState`       | For a fresh adoption over [retired](adoption.md#adopt-fresh-from-a-retired-format) committed product state, the `target` `.repo-standards`, which the run removes whole; its retired `records`, each by `path`, retired `format`, and the `expected` format this CLI reads; and the project path of each of its `files`, sorted, without its ignored generated directories.                                        |
 | `kept`               | For an update, each edited installed target the selection no longer installs and the run keeps, including the link of a kept skill, by its installer (`id` for a declaration, or `systemSkill` for a retired system skill) and `target`, sorted by path. The project owns it from then on.                                                                                                                         |
@@ -472,9 +471,8 @@ declaration's discovery guidance, with reasons, supporting evidence, a coverage
 explanation, and unresolved questions. Inventory and hash evidence establish
 what was observed; they do not prove that a candidate is a maintained project.
 The adopter reviews semantic coverage together with the complete inspection.
-The `adopt-standards` skill's
-[discovery reference](../../skills/adopt-standards/references/discovery.md)
-describes building one.
+[`adopt`](adoption.md#adopt-with-one-command) asks for each declaration's entry
+in its answers file and prints next steps for judging the candidates.
 
 A declaration may name a
 [discovery script](script-protocol.md#discovery-scripts). Then this first

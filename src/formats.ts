@@ -21,6 +21,8 @@ export const formats = {
   outdatedCache: "repo-standards/outdated-cache/v1",
   check: "repo-standards/check/v2",
   rules: "repo-standards/rules/v1",
+  answers: "repo-standards/answers/v1",
+  adopt: "repo-standards/adopt/v1",
 } as const;
 
 type RecordFormat =

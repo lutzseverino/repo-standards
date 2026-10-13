@@ -88,8 +88,8 @@ export async function adoptionFixture(
     run,
     json,
     inspect,
-    // Inspects and starts a run, returning its report. Like adopt-standards,
-    // it passes the maintainer's confirmation only when the inspection
+    // Inspects and starts a run, returning its report. Like the agent adopt
+    // guides, it passes the maintainer's confirmation only when the inspection
     // requires it.
     start(args = inspectionArgs, environment: NodeJS.ProcessEnv = env) {
       const inspection = inspect(args);

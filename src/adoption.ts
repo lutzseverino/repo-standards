@@ -592,6 +592,47 @@ export async function resume(
   retry = false,
   confirmed = false,
 ) {
+  return resumeRun(
+    project,
+    cliVersion,
+    retry,
+    confirmed,
+    assessmentPath === undefined
+      ? undefined
+      : () => {
+          try {
+            return JSON.parse(
+              readFileSync(resolve(project, assessmentPath), "utf8"),
+            ) as unknown;
+          } catch {
+            throw new ProductError(
+              "ASSESSMENT_FORMAT",
+              "Cannot read the assessment file as JSON. Correct the file and resubmit.",
+            );
+          }
+        },
+  );
+}
+
+// Submits an assessment held in memory, as `adopt` does with the one its
+// answers file carries.
+export async function submitAssessment(
+  project: string,
+  cliVersion: string,
+  assessment: unknown,
+) {
+  return resumeRun(project, cliVersion, false, false, () => assessment);
+}
+
+// A resumed run continues with the assessment the reader returns, or with a
+// refreshed work request without a reader.
+async function resumeRun(
+  project: string,
+  cliVersion: string,
+  retry: boolean,
+  confirmed: boolean,
+  readAssessment?: () => unknown,
+) {
   return withResumedRun(
     project,
     cliVersion,
@@ -631,22 +672,9 @@ export async function resume(
           fix: confirmationStop(session.observation)!.operation,
         });
       session.record({ type: "assessment-reading" });
-      let assessment: unknown;
-      if (assessmentPath !== undefined) {
-        try {
-          assessment = JSON.parse(
-            readFileSync(resolve(project, assessmentPath), "utf8"),
-          );
-        } catch {
-          throw new ProductError(
-            "ASSESSMENT_FORMAT",
-            "Cannot read the assessment file as JSON. Correct the file and resubmit.",
-          );
-        }
-      }
       await advance(root, session, installation, {
         kind: "assessment",
-        assessment,
+        assessment: readAssessment?.(),
       });
     },
   );

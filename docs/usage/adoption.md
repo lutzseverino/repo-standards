@@ -8,13 +8,116 @@ kept only with the retained inputs. The run continues through the public
 [assessment protocol](assessment-protocol.md). Interrupted adoption supports
 explicit retry and abandonment as described below.
 
+## Adopt with one command
+
+`adopt` adopts a standards source, or updates an adopted project, for an agent.
+It drives the [inspect and start](#inspect-and-start) and
+[resume](#recover-or-abandon-an-interrupted-run) commands below, which remain
+the lower-level interface, and prints the agent's next steps at every stage:
+
+```sh
+npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
+```
+
+The full form is `adopt [<GitHub URL>] [--standards-version <tag>]
+[--profile <name>] [--answers <file>] [--project <directory>] [--json]`. In an
+adopted project, `adopt` without a source updates the current selection. When
+the source cannot be reached, it proposes the current version and profile and
+applies them again from the retained standards, as `inspect` and `start` do
+without source flags.
+
+Without an answers file, `adopt` prints its questions as an answers-file
+template, with the inspection of the selection it proposes and the next steps,
+and changes nothing. It runs what inspection runs: remote setup readiness
+probes and, when discovery is required, declared discovery scripts. The agent
+saves the template outside the project, relays each question to the
+maintainer, records their answers, and runs `adopt --answers <file>`. With a
+filled answers file, `adopt` names each missing answer, asks the questions that
+follow from the answers, and starts the run once none remain and nothing blocks
+it. A question that depends on an answer appears once that answer is given: the
+profile's questions follow the profile, and remote setup readiness follows a
+complete scope, since inspection probes only an unblocked selection. A run
+starts only an inspection the answers file names, so the agent has it to
+present to the maintainer first.
+
+`adopt` installs the exact CLI that ran it into the project's
+[runtime](#durable-and-local-state) and records it as the CLI pin, so no CLI
+needs installing outside the project. Before a run, its next steps name the
+same exact CLI through `npx`; once a run has installed the pinned runtime,
+`.repo-standards/runtime/node_modules/.bin/repo-standards`, they continue and
+recover the run with it. With an active run,
+`adopt --answers <file>` continues it, advancing it by at most one step: a
+confirmed fix, or submitted assessments. A source, version, or profile that
+differs from the active run's selection fails with `ACTIVE_RUN`.
+
+### Answers file
+
+The answers file, `repo-standards/answers/v1`, is the JSON object `adopt`
+prints: `format`, the `source` URL, and `questions`. Each question has an `id`,
+the `question` to ask, its `context`, optional `choices` and `details`, and an
+`answer`, which is `null` until answered. `adopt` reads only each question's
+`id` and `answer`, and ignores the answer to a question it does not ask at
+that stage, such as one for a declaration of another profile. It rejects other
+fields, an ID of no question kind below, a repeated ID, and an answer of the
+wrong kind with `ANSWERS_FORMAT`, and an answers file inside the project with
+`ANSWERS_LOCATION`. A file of at most 2 MiB is read.
+
+| `id`                       | Asked when                                               | `answer`                                                                                                                                                                                                                                                 |
+| -------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`                  | Always; the template proposes the newest stable release. | A stable tag from `choices`, the source's stable releases newest first.                                                                                                                                                                                  |
+| `profile`                  | Always; proposed for an update or a single profile.      | A profile `name` from `choices`, each with its `description`.                                                                                                                                                                                            |
+| `scope:<declaration>`      | For each active discovery declaration.                   | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`. A discovery script's draft is proposed; it stays missing while it has open questions or until an answers file carries it back. |
+| `remote-setup`             | When a remote setup probe is not ready.                  | `defer` to complete adoption without it, or `resolve` to stop, writing nothing.                                                                                                                                                                          |
+| `confirmation`             | When the inspection requires confirmation.               | The inspection identity the maintainer confirmed. `details` names the identity and the discarded edits.                                                                                                                                                  |
+| `inspection`               | Once inspected; the template carries the identity.       | The identity of the inspection the answers file was written against. A run starts only when it names the current inspection; a new or changed inspection is printed again to present first.                                                              |
+| `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.             | The run's inspection identity, once the maintainer confirms the overwrite its `context` names.                                                                                                                                                           |
+| `assessment:<declaration>` | For each declaration of contextual work.                 | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration.                                                                             |
+
+The question's ID names the declaration of a `scope:` or `assessment:`
+answer; an `id` inside the answer is ignored. An answers file confirms a
+confirmation-required change only by naming the identity the maintainer
+confirmed. An answer naming another identity, such as
+one confirmed before the inspection changed, stays missing, and the run does
+not start or continue. Version and profile flags must agree with the answers
+file, and so must a source given with it.
+
+### Stages and results
+
+`adopt` prints Markdown for the agent: what it needs, the selection, missing
+answers, blockers, the inspection summary with each discarded edit's diff, or what replaces a skill or skill link it has none for, the
+discovery and adoption guidance of discovery declarations, the run and its
+failed checks, each contextual declaration's installed rules and adoption
+guidance, the answers file, and the next steps. `--json` prints the same as a
+`repo-standards/adopt/v1` report, whose `outcome` is one of:
+
+| `outcome`          | Meaning                                                                                                                                                                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `answers-required` | Questions in `missing` need answers, including a fix's confirmation in an active run; before a run, nothing was changed.                                                                                                        |
+| `blocked`          | Inspection `blockers`, a `resolve` remote setup answer, or a start that stopped before writing anything, with its `run.reason`.                                                                                                 |
+| `contextual`       | The run waits for contextual work: `contextual` lists each declaration's allowed targets, rules, and adoption guidance, and `failedChecks` each failure of the latest check round, which cites its rules in the run's `reason`. |
+| `complete`         | The run completed; its changes are uncommitted.                                                                                                                                                                                 |
+| `incomplete`       | The run needs recovery or the maintainer's decision, such as a retry, abandonment, or scope correction.                                                                                                                         |
+
+For contextual work, the agent edits the allowed targets, answers each
+`assessment:<declaration>`, and runs `adopt --answers <file>` with the pinned
+runtime. It refreshes the work request at the current project, submits the
+assessments, and runs the checks. A run that has just reached contextual work
+asks for new assessments; after failed checks, the answers just submitted are
+carried for renewal. `adopt` never retries or abandons a run: its next steps
+name the pinned `resume --retry` and `abandon`, which need the maintainer's
+explicit instruction.
+
+Exit status is 0 for a complete run and for a template printed without an
+answers file, 1 for every other result or rejection, and 2 for invalid usage.
+Rejections use the common `valid: false` / `errors` diagnostic format with
+`--json`.
+
 ## Inspect and start
 
-Use Node.js 24, npm, Git, and an [externally installed exact CLI](inspection.md#keep-the-disclosed-cli-for-start-and-recovery).
-An agent adopts through the `adopt-standards` skill: before first adoption, the
-one in that package's `skills/adopt-standards/`, and afterwards the matching
-repository-local `.agents/skills/adopt-standards/` that adoption installs. First
-inspect the public GitHub selection:
+[`adopt`](#adopt-with-one-command) drives these commands and needs no CLI
+installed outside the project. To run them yourself, use Node.js 24, npm, Git,
+and an [externally installed exact CLI](inspection.md#keep-the-disclosed-cli-for-start-and-recovery).
+First inspect the public GitHub selection:
 
 ```sh
 repo-standards inspect --source https://github.com/OWNER/STANDARDS \
@@ -330,7 +433,6 @@ Review and commit these files through the adopting project's normal workflow:
 | `.repo-standards/rules/`                                    | The [installed rules](rules.md) of every active declaration that has rules, and the generated `README.md` index of what each covers.                                                                                                  |
 | `.repo-standards/runtime/package.json`, `package-lock.json` | An isolated exact CLI dependency and npm's resolved dependency graph and integrity values.                                                                                                                                            |
 | `.repo-standards/.gitignore`                                | Ignores runtime dependencies, local reports/logs, and caches.                                                                                                                                                                         |
-| `.agents/skills/adopt-standards/`                           | The product-owned adoption skill from this exact CLI version, with its references.                                                                                                                                                    |
 | `.agents/skills/repository-standards/`                      | The product-owned model-invocable skill from this exact CLI version, which looks up [installed rules](rules.md) before file changes and reports [available updates](available-updates.md).                                            |
 | Exact targets and `.agents/skills/<author skill>/`          | The selected author-owned content and complete skill resources.                                                                                                                                                                       |
 | `.claude/skills/<skill>`                                    | A skill link for every skill above, system or author: a relative symbolic link to `../../.agents/skills/<skill>`.                                                                                                                     |
@@ -451,9 +553,8 @@ Git's normal add workflow; ignore rules hiding new adoption outputs make the
 run incomplete. Verification uses the original expected installation
 values; unexpected changes cannot become new baselines. Completion leaves all
 changes uncommitted and releases the lock. Those changes include new untracked
-files, which `git diff` omits; the `adopt-standards` skill's
-[review reference](../../skills/adopt-standards/references/review.md)
-describes a review of every output.
+files, which `git diff` omits; review them too, such as with
+`git ls-files --others --exclude-standard -z`, as `adopt`'s next steps describe.
 
 Fixes run serially before contextual work. Checks run after fixes for profiles
 without contextual declarations; otherwise they wait for a satisfied, current agent assessment. Ordinary failed checks allow subsequent checks to collect evidence.
@@ -807,5 +908,5 @@ preserved product files do not represent complete adoption, `stateError`
 describes that condition; historical evidence comes from the matching archived
 run and does not certify the candidate selection as complete.
 It does not claim ongoing compliance after subsequent project edits. While an
-initial run is incomplete, no last-complete adoption is reported. The installed
-`adopt-standards` skill guides these same commands and confirmation requirements.
+initial run is incomplete, no last-complete adoption is reported. `adopt`'s
+next steps guide these same commands and confirmation requirements.

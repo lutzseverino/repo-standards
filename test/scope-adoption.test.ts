@@ -391,9 +391,9 @@ test("an unfamiliar layout completes a useful migration around exact configurati
     committedState(f.project.root).observations,
     local.observations,
   );
-  // Each system skill's link is installation's alone: agent work beside it
+  // The system skill's link is installation's alone: agent work beside it
   // neither changes nor claims it.
-  const links = ["adopt-standards", "repository-standards"].map(
+  const links = ["repository-standards"].map(
     (name) =>
       [`.claude/skills/${name}`, `../../.agents/skills/${name}`] as const,
   );
@@ -475,7 +475,7 @@ test("an unfamiliar layout completes a useful migration around exact configurati
     retained.report.systemSkills.map(
       ({ link }: { link: { action: string } }) => link.action,
     ),
-    ["match", "match"],
+    ["match"],
   );
   // The committed run keeps its named observation as the delta of the
   // confirmed targets and the boundaries naming them added.

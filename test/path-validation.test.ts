@@ -15,11 +15,7 @@ requires: {repo-standards: ">=1.0.0"}
 const profile =
   "profiles:\n  personal:\n    description: Personal\n    declarations: {}\n";
 
-for (const name of [
-  "adopt-standards",
-  "repository-standards",
-  "author-standards",
-]) {
+for (const name of ["repository-standards", "author-standards"]) {
   test(`authors cannot supply the product-owned ${name} skill`, (t) => {
     const source = sourceFixture(
       header +
@@ -51,6 +47,25 @@ for (const name of [
     });
   });
 }
+
+test("authors may supply a skill named for the retired adopt-standards system skill", (t) => {
+  const source = sourceFixture(
+    header +
+      `defaults:
+  declarations:
+    adoption:
+      kind: skill
+      name: adopt-standards
+      source: skill
+` +
+      profile,
+    { "skill/SKILL.md": "# Adoption skill" },
+  );
+  t.after(() => source.close());
+  const result = cli.run(["source", "validate", "--json"], source.root);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.deepEqual((JSON.parse(result.stdout) as SourceValidation).errors, []);
+});
 
 test("unreadable selected files are reported for every reference kind", (t) => {
   if (process.getuid?.() === 0) {
@@ -131,21 +146,19 @@ test("all file and repository guidance forms reject system-skill targets, their 
   // Each system skill's own paths, the ancestors they share once, and the
   // case-folded and Unicode-normalized variants for one name.
   const targets = [
-    ...["adopt-standards", "repository-standards", "author-standards"].flatMap(
-      (name) => [
-        `.agents/skills/${name}`,
-        `.agents/skills/${name}/SKILL.md`,
-        `.claude/skills/${name}`,
-        `.claude/skills/${name}/SKILL.md`,
-      ],
-    ),
+    ...["repository-standards", "author-standards"].flatMap((name) => [
+      `.agents/skills/${name}`,
+      `.agents/skills/${name}/SKILL.md`,
+      `.claude/skills/${name}`,
+      `.claude/skills/${name}/SKILL.md`,
+    ]),
     ".agents",
     ".agents/skills",
     ".claude",
     ".claude/skills",
-    ".AGENTS/SKILLS/ADOPT-STANDARDS/SKILL.md",
-    ".agents/ſkills/adopt-standards/cafe\u0301.md",
-    ".CLAUDE/SKILLS/ADOPT-STANDARDS",
+    ".AGENTS/SKILLS/REPOSITORY-STANDARDS/SKILL.md",
+    ".agents/ſkills/repository-standards/cafe\u0301.md",
+    ".CLAUDE/SKILLS/REPOSITORY-STANDARDS",
   ];
   for (const target of targets) {
     for (const form of ["exact", "contextual", "paths", "directories"]) {

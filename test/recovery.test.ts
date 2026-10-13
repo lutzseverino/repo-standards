@@ -725,7 +725,7 @@ test("retry recovers interrupted installation, and blocks content added since be
     {
       name: "an added skill file",
       fault: staged,
-      addition: ".agents/skills/adopt-standards/extra.txt",
+      addition: ".agents/skills/repository-standards/extra.txt",
     },
     {
       name: "an added skill directory",

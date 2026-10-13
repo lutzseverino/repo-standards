@@ -37,9 +37,10 @@ product remains neutral for independently authored standards.
 
 The product does not implement an author's adoption procedure. All authors use
 the same resolution and adoption interfaces. Authors cannot replace system
-skills or provide adoption hooks. `adopt-standards`, `repository-standards`, and
-`author-standards` are product-owned system skill names reserved within the
-standards format.
+skills or provide adoption hooks. `repository-standards` and `author-standards`
+are product-owned system skill names reserved within the standards format. The
+retired `adopt-standards` and `standards-updates` names are released: they are
+neither installed nor reserved.
 
 The model-invocable `repository-standards` skill replaces `standards-updates`.
 Before changing a project file it looks up the source's installed rules with
@@ -50,6 +51,10 @@ of its own. Inspection identifies removed and kept product targets by `systemSki
 separately from a declaration's `id`; summaries name their owner. An update
 removes an unedited old notice skill and its link under
 the ordinary retired-target policy; edited copies remain project-owned.
+
+`adopt` replaces the manual-only `adopt-standards` skill: that skill's
+procedure is the next steps `adopt` prints at each stage. An update removes the
+unedited old adoption skill and its link under the same retired-target policy.
 
 ## Deep modules
 
@@ -68,8 +73,8 @@ the ordinary retired-target policy; edited copies remain project-owned.
 | Scope evidence           | A run and the recorded adoption it updates produce the retained scope evidence: the current run, with its project observation kept without derived evidence and its named observation as a delta, and its scope change against the previous run. The projected historical scope is rebuilt on read.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Available updates        | A selection and the newest published stable CLI and standards versions produce per-pin availability, cached in the ignored product cache. It never blocks and writes nothing else; it fails only under a CLI other than the selection's CLI pin, before any lookup.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Summary renderer         | An inspection report or a status record produces one deterministic Markdown document. It describes and never prescribes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Update notice            | The `repository-standards` system skill runs `outdated` with the project runtime, reinstalling the pinned runtime once when it is missing or reports `CLI_PIN_MISMATCH`, and reports each available update to the agent. It starts no update: one starts only on the maintainer's instruction, through adoption orchestration, as a change separate from the current work.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Adoption orchestration   | The `adopt-standards` system skill presents inspection and its summary, obtains confirmation only when the inspection requires it, performs requested contextual work, and submits evidence through the CLI.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Update notice            | The `repository-standards` system skill runs `outdated` with the project runtime, reinstalling the pinned runtime once when it is missing or reports `CLI_PIN_MISMATCH`, and reports each available update to the agent. It starts no update: one starts only on the maintainer's instruction, through guided adoption, as a change separate from the current work.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Guided adoption          | `adopt` takes an optional source, version, profile, and answers file and the project's state, and produces the questions the adoption still asks as an answers-file template, the next steps, and the start, or one step of the active run: a confirmed fix or submitted assessments. It drives inspect, start, and resume, interprets no author format, and writes nothing in the project itself; the start it drives pins the exact CLI that ran. An answers file confirms a confirmation-required change only by naming the inspection identity the maintainer confirmed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 These responsibilities do not mandate separate packages or class hierarchies.
 They share the resolver's result. Other modules do not independently interpret
@@ -184,8 +189,7 @@ locations.
 Author skills' `SKILL.md` frontmatter `disable-model-invocation` and
 `agents/openai.yaml` `policy.allow_implicit_invocation` must agree; an absent
 setting means model-invocable. Product skills state both settings explicitly:
-`adopt-standards` is manual only, and `repository-standards` and `author-standards`
-are model-invocable.
+`repository-standards` and `author-standards` are model-invocable.
 
 Source and target paths are repository-relative and cannot escape their roots.
 The source root, `standards.yaml`, and selected material, including retained
@@ -199,7 +203,7 @@ cannot be symbolic links during adoption, with one exception: a skill link
 holding exactly the text the product writes at its path. Concrete targets,
 including the skill link of each declared skill, cannot overlap, including
 case-folded collisions. Product-owned state, every system-skill path
-(`.agents/skills/adopt-standards`, `.agents/skills/repository-standards`, and
+(`.agents/skills/repository-standards` and
 `.agents/skills/author-standards`), and each system skill's link path
 (`.claude/skills/<name>`) are reserved, including equal paths,
 ancestors, descendants, and collisions under the same case-folded and
@@ -277,6 +281,7 @@ are recorded independently of the exact CLI package pin.
 
 | Operation         | Observable result                                                                                                                                                                                                                                                                                                                                                   |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `adopt`           | Adopts a public source, or updates the current selection without one: prints its questions as an answers-file template with next steps and changes nothing, or, with a filled answers file, names missing answers, starts the run once none remain, and continues an active run by one step.                                                                        |
 | `source validate` | Validates a local source and all its profiles without running author code.                                                                                                                                                                                                                                                                                          |
 | `source search`   | Finds public GitHub candidates and metadata.                                                                                                                                                                                                                                                                                                                        |
 | `inspect`         | Describes the exact selection, the update comparison and class, proposed changes, guidance, operations, prerequisites, and conflicts without modifying the project. It runs no author code except remote setup readiness probes and, when discovery is required, declared discovery scripts, both read-only. `--summary` renders the report as a Markdown proposal. |
@@ -349,8 +354,9 @@ workflow.
 The thin user-installed bootstrap obtains one exact CLI version outside the
 project for first inspection. An omitted version selects the latest stable
 once and discloses it. Adoption installs that version and the matching
-repository-local `adopt-standards` and `repository-standards` skills. Existing
-projects use their own pin.
+repository-local `repository-standards` skill. Existing projects use their own
+pin. `adopt` needs no bootstrap: run through `npx`, it installs and pins the
+exact CLI that ran it.
 Adoption does not automatically install `author-standards`; reserving that
 identity does not manage unrelated global skill installations or change
 adoption runtime pins, system-skill installation, integrity baselines, or
@@ -390,8 +396,9 @@ inspection requires confirmation, failing with `CONFIRMATION_REQUIRED`
 otherwise, and accepted only then, failing with `CONFIRMATION_NOT_REQUIRED`
 when it does not. A retry of a start interrupted before its installation was
 prepared repeats the identity check only: the run's start already carried the
-confirmation that identity requires. The `adopt-standards` skill asks the
-maintainer only when the report or a fix requires confirmation.
+confirmation that identity requires. `adopt` asks the maintainer only when the
+report or a fix requires confirmation, and its answers file confirms only by
+naming the identity the maintainer confirmed.
 
 Fixes report the confirmation-required changes inspection cannot see, because
 it runs no fix: a fix that would change or remove an existing setting
@@ -591,7 +598,7 @@ cannot silently redefine installation baselines.
   local/      (ignored)
   .gitignore
 .agents/skills/
-  adopt-standards/
+  repository-standards/
   <author skills>/
 ```
 
@@ -621,10 +628,11 @@ records stay ignored. The product never commits or moves HEAD.
 
 Each artifact has exactly one format, which the CLI writes and reads: durable
 state, the integrity lock, retained scope evidence, the run record and local run
-report, the status record, the inspection report, and the work request and
-assessment. Reports and records carry hash inventories, unified diffs for
-changed text, and hashes for binary content, never file bytes or observation
-maps. After any required CLI pin check, the format gate checks the integrity
+report, the status record, the inspection report, the work request and
+assessment, and `adopt`'s answers file and report. Reports and records carry
+hash inventories, unified diffs for changed text, and hashes for binary
+content, never file bytes or observation maps; only `adopt`'s report, written
+for the agent to read, carries the text of the rules and guidance it presents. After any required CLI pin check, the format gate checks the integrity
 lock, durable state, retained scope evidence, and active and archived run
 records before further records are read or anything is written; nothing is
 converted. A newer version of a known record format anywhere fails with
@@ -859,6 +867,11 @@ The product is complete only when all of these pass:
     system skill without an ownership blocker; block on a retired active run
     record; and reject other reads of retired formats with the fresh-adoption
     diagnostic.
+15. Adopt and update through `adopt` and an answers file: print a complete
+    template without changing the project, name missing answers, start only
+    with the inspection identity the maintainer confirmed when confirmation is
+    required, complete contextual work from the answers file's assessments, and
+    pin the exact CLI that ran.
 
 ## Implementation choices
 

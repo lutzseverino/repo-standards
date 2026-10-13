@@ -1,7 +1,13 @@
 import type { PackageManifest } from "./json-reports.ts";
 import { createHash } from "node:crypto";
 import { execFileSync, spawn, spawnSync } from "node:child_process";
-import { cpSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { directoryFixture, sourceFixture } from "./installed-cli.ts";
 
@@ -12,7 +18,7 @@ import { directoryFixture, sourceFixture } from "./installed-cli.ts";
 export async function registryFixture(
   cliRoot: string,
   versions?: string[],
-  legacyNoticeVersion?: string,
+  legacyVersion?: string,
 ) {
   const support = sourceFixture("");
   const installedPackage = join(
@@ -34,20 +40,29 @@ export async function registryFixture(
       cpSync(installedPackage, directory, { recursive: true });
       writeFileSync(join(directory, "package.json"), JSON.stringify(manifest));
       writeFileSync(
-        join(directory, "skills/adopt-standards/SKILL.md"),
-        `${readFileSync(join(directory, "skills/adopt-standards/SKILL.md"), "utf8")}\nFixture CLI ${version}.\n`,
+        join(directory, "skills/repository-standards/SKILL.md"),
+        `${readFileSync(join(directory, "skills/repository-standards/SKILL.md"), "utf8")}\nFixture CLI ${version}.\n`,
       );
-      // An earlier CLI using the same record formats but the retired notice
-      // skill, to exercise a real installed CLI transition through adoption.
-      if (version === legacyNoticeVersion) {
+      // An earlier CLI using the same record formats but installing the
+      // retired system skills, adopt-standards and standards-updates, to
+      // exercise a real installed CLI transition through adoption.
+      if (version === legacyVersion) {
         const targets = join(directory, "dist/targets.js");
-        writeFileSync(
-          targets,
-          readFileSync(targets, "utf8").replaceAll(
-            '"repository-standards"',
-            '"standards-updates"',
-          ),
-        );
+        const compiled = readFileSync(targets, "utf8");
+        const legacy = compiled
+          .replace(
+            /(export const installedSystemSkills = )\[[^\]]*\]/,
+            '$1["adopt-standards", "standards-updates"]',
+          )
+          .replace(/(export const retiredSystemSkills = )\[[^\]]*\]/, "$1[]");
+        if (
+          !/installedSystemSkills = \["adopt-standards"/.test(legacy) ||
+          !/retiredSystemSkills = \[\]/.test(legacy)
+        )
+          throw new Error(
+            "The legacy CLI fixture cannot rewrite its system skills.",
+          );
+        writeFileSync(targets, legacy);
         renameSync(
           join(directory, "skills/repository-standards"),
           join(directory, "skills/standards-updates"),
@@ -55,6 +70,11 @@ export async function registryFixture(
         writeFileSync(
           join(directory, "skills/standards-updates/SKILL.md"),
           "---\nname: standards-updates\ndescription: Report available updates.\ndisable-model-invocation: false\n---\n\nReport available updates on the maintainer's instruction.\n",
+        );
+        mkdirSync(join(directory, "skills/adopt-standards"));
+        writeFileSync(
+          join(directory, "skills/adopt-standards/SKILL.md"),
+          "---\nname: adopt-standards\ndescription: Guide adoption.\ndisable-model-invocation: true\n---\n\nGuide adoption on the maintainer's instruction.\n",
         );
       }
       execFileSync(

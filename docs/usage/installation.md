@@ -77,12 +77,12 @@ no hosting platform: a source's own probes and fixes decide what a platform
 needs. Source acquisition is the known blocker to platform independence: it
 accepts only public `github.com` sources.
 
-Read the installed `skills/adopt-standards/SKILL.md` with your agent, then follow
-[inspection](inspection.md) and [adoption](adoption.md) to disclose the report,
-start with its identity, and perform contextual work. The standalone
-bootstrap only inspects; retain an external installation of its selected exact
-CLI for start and recovery. Adoption installs the matching repository-local
-skill and runtime and leaves changes uncommitted with HEAD unchanged.
+An agent adopts with [`adopt`](adoption.md#adopt-with-one-command), which
+prints its questions as an answers-file template with the next steps, installs
+the exact CLI that ran into the project's runtime, and leaves changes
+uncommitted with HEAD unchanged. The standalone bootstrap only inspects; to
+drive [inspection](inspection.md) and [adoption](adoption.md) yourself, retain
+an external installation of its selected exact CLI for start and recovery.
 
 ## Install the authoring skill
 
@@ -113,7 +113,7 @@ installation's matching `docs/usage/author-format.md` and
 Node.js 24, npm, and registry access are required. Installing the skill does not
 install its CLI, change an adopting project's runtime pin, or install authoring
 into adopting projects. Adoption continues to manage its matching local
-`adopt-standards` and `repository-standards` skills independently.
+`repository-standards` skill independently.
 
 Direct installation is independent of the
 [skills.sh directory](https://skills.sh/lutzseverino/repo-standards/author-standards).

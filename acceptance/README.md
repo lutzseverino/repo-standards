@@ -2,7 +2,7 @@
 
 The [authoring candidate journey](#authoring-candidate) evaluates preference
 elicitation and local source creation. The adoption journey below evaluates
-the packaged `adopt-standards` skill against
+the packaged CLI's `adopt` against
 substantive projects. It is separate from `pnpm validate`: deterministic tests
 submit scripted assessments and cannot establish contextual usefulness.
 
@@ -124,12 +124,12 @@ installation. Public-registry installation evidence belongs to issue #11.
 
 ## Run the agent journey
 
-Read the external package's `skills/adopt-standards/SKILL.md` before first
-inspection. Use the printed session path to invoke the installed CLI:
+Use the printed session path to invoke the installed CLI's `adopt`, and
+follow the next steps it prints:
 
 ```sh
-node acceptance/cli.ts SESSION inspect --source SOURCE \
-  --standards-version TAG --profile PROFILE --json
+node acceptance/cli.ts SESSION adopt SOURCE \
+  --standards-version TAG --profile PROFILE
 ```
 
 Replace `SESSION`, `SOURCE`, `TAG` and `PROFILE` with the prepared session path
@@ -137,16 +137,17 @@ and its recorded selection. Earlier fixture sessions use tag `v1.0.0`; public
 sessions record `standardsVersion` explicitly. Do not substitute fixture URLs
 into a public-source session.
 
-Save the full report outside the adopting project, disclose the pins, exact
-content, contextual scope and trusted operations, and obtain maintainer
-confirmation when its report requires it. Follow the skill to start that same selection.
-After installation, read the matching project-local skill and its assessment
-reference, then use `--local` before the public CLI arguments:
+Save the answers file outside the adopting project, disclose the pins, exact
+content, contextual scope and trusted operations, and record the maintainer's
+answers, including confirmation when the inspection requires it. Pass the
+answers file to the same session's `adopt` to start that selection; its
+installation writes the pinned runtime. After that, use `--local` before the
+public CLI arguments, as the next steps name the pinned runtime:
 
 ```sh
+node acceptance/cli.ts SESSION adopt --answers /outside/answers.json
+node acceptance/cli.ts SESSION --local adopt --answers /outside/answers.json
 node acceptance/cli.ts SESSION --local status --json
-node acceptance/cli.ts SESSION --local resume --json
-node acceptance/cli.ts SESSION --local resume --assessment /outside/assessment.json --json
 ```
 
 The agent must read the actual project, make useful contextual edits and write
@@ -166,7 +167,7 @@ submitted assessment, final report, status evidence, project diff (including
 new files), and command outputs supporting contextual claims. Compare employer
 contribution bytes, initial/final HEAD and index; capture the uncommitted Git
 status.
-Follow [the review reference](../skills/adopt-standards/references/review.md):
+Follow the review `adopt` prints at completion:
 include tracked changes and every non-ignored untracked file in content diffs
 or explicit content inspection, preserving binary bytes and executable state.
 Verify coverage against `git ls-files --others --exclude-standard -z`; contextual

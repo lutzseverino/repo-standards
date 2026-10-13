@@ -256,11 +256,8 @@ function gitTree(directory: string, commit: string): GitTreeEntry[] {
   return entries;
 }
 
-export async function acquireSource(
-  repository: string,
-  version: string,
-  project?: string,
-) {
+// The owner and repository name a public GitHub source URL names.
+export function githubSource(repository: string) {
   const match =
     /^https:\/\/github\.com\/([A-Za-z0-9-]+)\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/.exec(
       repository,
@@ -270,13 +267,22 @@ export async function acquireSource(
       "UNSUPPORTED_SOURCE",
       "Use a public https://github.com/owner/repository URL. Local paths, SSH, other hosts, and URL references are unsupported.",
     );
+  return { owner: match[1]!, name: match[2]! };
+}
+
+export async function acquireSource(
+  repository: string,
+  version: string,
+  project?: string,
+) {
+  const { owner, name } = githubSource(repository);
   if (!isStableVersion(version)) {
     throw new ProductError(
       "INVALID_STANDARDS_VERSION",
       "Choose an exact stable SemVer tag, such as v1.2.3. Branches, ranges, and prereleases are unsupported.",
     );
   }
-  const metadata = record(await github(`/repos/${match[1]}/${match[2]}`));
+  const metadata = record(await github(`/repos/${owner}/${name}`));
   if (
     metadata.private !== false ||
     typeof metadata.full_name !== "string" ||

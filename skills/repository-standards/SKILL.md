@@ -68,9 +68,9 @@ For each pin, `cli` and `standards`:
 Without the maintainer's instruction, mention the available updates and
 continue the current work as planned. Do not inspect or start an update.
 
-When the maintainer asks for an update, carry it through `adopt-standards` as a
-change separate from the current work, never mixed with the current work's
-changes. `adopt-standards` is manual only: on that instruction, follow
-`.agents/skills/adopt-standards/SKILL.md`, which inspects the update and starts
-the run from a clean working tree, asking for confirmation only when the
+When the maintainer asks for an update, carry it through `adopt` as a change
+separate from the current work, never mixed with the current work's changes.
+On that instruction, run the pinned CLI's `adopt` without a source, which
+updates the current selection, and follow the next steps it prints. The run
+starts from a clean working tree and asks for confirmation only when its
 inspection requires it.

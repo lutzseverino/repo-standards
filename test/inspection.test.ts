@@ -1085,7 +1085,7 @@ profiles:
     "skill/SKILL.md": "Supplied review",
   });
   const project = sourceFixture("", {
-    ".agents/skills/adopt-standards/SKILL.md": "Unrelated system skill",
+    ".agents/skills/repository-standards/SKILL.md": "Unrelated system skill",
     ".agents/skills/review/SKILL.md": "Unrelated review",
   });
   t.after(() => {
@@ -1094,7 +1094,7 @@ profiles:
   });
   commit(project.root);
   writeFileSync(
-    join(project.root, ".agents/skills/adopt-standards/local.md"),
+    join(project.root, ".agents/skills/repository-standards/local.md"),
     "Untracked system resource",
   );
   writeFileSync(
@@ -1113,13 +1113,13 @@ profiles:
       { code: "DISCOVERY_REQUIRED", path: undefined },
       {
         code: "UNTRACKED_REPLACEMENT",
-        path: ".agents/skills/adopt-standards/local.md",
+        path: ".agents/skills/repository-standards/local.md",
       },
       { code: "UNTRACKED_REPLACEMENT", path: ".agents/skills/review/local.md" },
     ],
   );
   assert.deepEqual(report.discardedEdits, [
-    ".agents/skills/adopt-standards",
+    ".agents/skills/repository-standards",
     ".agents/skills/review",
   ]);
 });

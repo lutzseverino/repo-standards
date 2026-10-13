@@ -16,6 +16,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { join, relative } from "node:path";
 import { stringify } from "yaml";
 import { installCli, installedTree, snapshot } from "./installed-cli.ts";
@@ -739,11 +740,13 @@ test("tampered retained declarations, inputs and scope history fail every reader
 
 // A committed adoption shaped as CLI 4.0.0 left it: durable state in the
 // retired state/v6 format, which records no skill links, an earlier CLI pin,
-// that CLI's own adopt-standards skill, no repository-standards skill, and no
+// that CLI's own copy of the repository-standards skill, which differs from
+// this CLI's, its adopt-standards skill, no system skill of this CLI, and no
 // skill links. Its ignored runtime, local and cache content stays in place.
 // The pin differs from the CLI under test, whose package version is raised only
 // at release.
 const earlierCli = "3.9.0";
+const earlierSystemSkill = "# The system skill of CLI 4.0.0\n";
 async function retiredProject(t: TestContext) {
   const f = await adoptionFixture(t, cli, exactSource, {
     files: {
@@ -769,13 +772,12 @@ async function retiredProject(t: TestContext) {
     stringify(lock.selection),
   );
   rmSync(join(root, ".claude"), { recursive: true });
-  rmSync(join(root, ".agents/skills/repository-standards"), {
-    recursive: true,
-  });
-  writeFileSync(
-    join(root, ".agents/skills/adopt-standards/SKILL.md"),
-    "# The system skill of CLI 4.0.0\n",
-  );
+  for (const name of ["repository-standards", "adopt-standards"]) {
+    const skill = join(root, ".agents/skills", name);
+    rmSync(skill, { recursive: true, force: true });
+    mkdirSync(skill);
+    writeFileSync(join(skill, "SKILL.md"), earlierSystemSkill);
+  }
   writeFileSync(
     join(root, ".repo-standards/inputs/source/retired.md"),
     "An input only the earlier adoption retained\n",
@@ -784,7 +786,7 @@ async function retiredProject(t: TestContext) {
   return { root, remote, env, raw, run };
 }
 
-const installedSkills = ["adopt-standards", "repository-standards", "review"];
+const installedSkills = ["repository-standards", "review"];
 
 test("a project on a retired format inspects a fresh adoption that removes its product state, and its start links every installed skill", async (t) => {
   const f = await retiredProject(t);
@@ -819,16 +821,20 @@ test("a project on a retired format inspects a fresh adoption that removes its p
   assert.ok(existsSync(join(root, ".repo-standards/runtime/node_modules")));
   assert.ok(existsSync(join(root, ".repo-standards/local")));
   // A fresh adoption has no baseline: the earlier system skill is replaced and
-  // listed, and the matching author content is kept as is. Removing the
-  // retired product state is not a confirmation-required change; only that
-  // discarded edit is.
+  // listed, the earlier CLI's adopt-standards skill is not this CLI's to
+  // replace and stays project content, and the matching author content is
+  // kept as is. Removing the retired product state is not a
+  // confirmation-required change; only that discarded edit is.
   assert.deepEqual(inspection.discardedEdits, [
-    ".agents/skills/adopt-standards",
+    ".agents/skills/repository-standards",
   ]);
   assert.deepEqual(inspection.confirmation, {
     required: true,
     reasons: [
-      { change: "discarded-edit", target: ".agents/skills/adopt-standards" },
+      {
+        change: "discarded-edit",
+        target: ".agents/skills/repository-standards",
+      },
     ],
   });
   assert.deepEqual(
@@ -844,10 +850,7 @@ test("a project on a retired format inspects a fresh adoption that removes its p
       action,
       link.action,
     ]),
-    [
-      ["adopt-standards", "replace", "create"],
-      ["repository-standards", "create", "create"],
-    ],
+    [["repository-standards", "replace", "create"]],
   );
   const summary = f.raw([...inspectionArgs.slice(0, -1), "--summary"]).stdout;
   assert.ok(
@@ -889,11 +892,11 @@ test("a project on a retired format inspects a fresh adoption that removes its p
     existsSync(join(root, ".repo-standards/inputs/source/retired.md")),
     false,
   );
-  const changed = git(
-    root,
-    "status",
-    "--porcelain=v1",
-    "--untracked-files=all",
+  // Untrimmed, so the first entry keeps its leading status column.
+  const changed = execFileSync(
+    "git",
+    ["status", "--porcelain=v1", "--untracked-files=all"],
+    { cwd: root, encoding: "utf8" },
   ).split("\n");
   assert.ok(
     changed.includes(" D .repo-standards/inputs/source/retired.md"),
@@ -927,18 +930,24 @@ test("a project on a retired format inspects a fresh adoption that removes its p
       changed.join("\n"),
     );
   }
-  for (const name of ["adopt-standards", "repository-standards"]) {
-    assert.deepEqual(
-      installedTree(join(root, ".agents/skills", name)),
-      installedTree(
-        join(
-          cli.root,
-          "node_modules/@lutzseverino/repo-standards/skills",
-          name,
-        ),
+  assert.deepEqual(
+    installedTree(join(root, ".agents/skills/repository-standards")),
+    installedTree(
+      join(
+        cli.root,
+        "node_modules/@lutzseverino/repo-standards/skills/repository-standards",
       ),
-    );
-  }
+    ),
+  );
+  // The earlier CLI's adoption skill is left as it was, unlinked.
+  assert.equal(
+    readFileSync(join(root, ".agents/skills/adopt-standards/SKILL.md"), "utf8"),
+    earlierSystemSkill,
+  );
+  assert.ok(
+    !changed.some((line) => line.includes("skills/adopt-standards")),
+    changed.join("\n"),
+  );
   assert.equal(
     (
       JSON.parse(
