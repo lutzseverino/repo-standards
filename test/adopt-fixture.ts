@@ -176,6 +176,8 @@ export async function discoveryFixture(
   t: TestContext,
   cli: InstalledCli,
   unresolved: string[],
+  // Declarations and source files beside the discovery declaration.
+  others: { declarations?: object; files?: Record<string, string> } = {},
 ) {
   const f = await fixture(
     t,
@@ -189,9 +191,11 @@ export async function discoveryFixture(
           operation("draft", { script: "draft.mjs" }),
         ),
       },
+      ...others.declarations,
     },
     {
       files: {
+        ...others.files,
         "guidance.md": "Document each maintained project.",
         "discovery.md": discovery,
         "draft.mjs": `import { readFileSync } from "node:fs";

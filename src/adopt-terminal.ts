@@ -27,7 +27,7 @@ import type { Candidate } from "./scope.js";
 
 export interface Terminal {
   write: (text: string) => void;
-  // The line the person typed, trimmed. It fails with INTERRUPTED when they
+  // The line the person typed, as typed. It fails with INTERRUPTED when they
   // interrupt or end the input.
   ask: (prompt: string) => Promise<string>;
 }
@@ -49,9 +49,7 @@ export function processTerminal(): Terminal {
       lines.on("SIGINT", () => interrupted.abort());
       lines.on("close", () => interrupted.abort());
       try {
-        return (
-          await lines.question(prompt, { signal: interrupted.signal })
-        ).trim();
+        return await lines.question(prompt, { signal: interrupted.signal });
       } catch {
         process.stdout.write("\n");
         throw new ProductError(
@@ -77,6 +75,7 @@ const scopeRejections = [
   "TARGET_OVERLAP",
   "CASE_CONFLICT",
   "UNSAFE_TARGET",
+  "OBSERVATION_UNSAFE",
 ];
 
 type Contextual = NonNullable<AdoptReport["contextual"]>[number];
@@ -89,7 +88,9 @@ interface Session {
 
 // The ways adopt asks a person through a terminal.
 type Prompts = ReturnType<typeof prompts>;
-function prompts({ write, ask }: Terminal) {
+function prompts({ write, ask: line }: Terminal) {
+  // An answer, without the spaces around it.
+  const ask = async (prompt: string) => (await line(prompt)).trim();
   // One of the choices, or the fallback when the person types nothing.
   const choose = async <T extends string>(
     prompt: string,
@@ -121,12 +122,13 @@ function prompts({ write, ask }: Terminal) {
         { y: "yes", yes: "yes", n: "no", no: "no" },
         fallback,
       )) === "yes",
-    // Paths, one per line, which may hold spaces; an empty line ends them.
+    // Paths, one per line as typed, since a path may begin or end with a
+    // space; a blank line ends them.
     paths: async (prompt: string) => {
       const paths: string[] = [];
       for (;;) {
-        const typed = await ask(prompt);
-        if (!typed) return [...new Set(paths)];
+        const typed = await line(prompt);
+        if (!typed.trim()) return [...new Set(paths)];
         paths.push(typed);
       }
     },
@@ -308,17 +310,23 @@ export async function adoptInTerminal(
           );
         } else if (!reason.startsWith("CONTEXTUAL_REQUIRED:"))
           write(`\nThe run did not accept the last assessment: ${reason}\n`);
-        for (const [index, declaration] of walk.entries())
-          judged.set(
-            declaration.id,
-            await walkDeclaration(
-              prompt,
-              session,
-              declaration,
-              `${index + 1} of ${walk.length}`,
-              failed.filter((check) => check.declaration === declaration.id),
-            ),
-          );
+        let incomplete: string | undefined;
+        for (const [index, declaration] of walk.entries()) {
+          const judgment: Answer = incomplete
+            ? notWalked(declaration, incomplete)
+            : await walkDeclaration(
+                prompt,
+                session,
+                declaration,
+                `${index + 1} of ${walk.length}`,
+                failed.filter((check) => check.declaration === declaration.id),
+              );
+          judged.set(declaration.id, judgment);
+          // A confirmed scope that misses files stops the run, so the walk
+          // stops with it.
+          if (judgment.scopeValidity?.current.status === "blocked")
+            incomplete ??= declaration.id;
+        }
         for (const { id } of declarations)
           answers.set(`assessment:${id}`, judged.get(id));
         submitted = true;
@@ -334,6 +342,30 @@ export async function adoptInTerminal(
       }
     }
   }
+}
+
+// The judgment of a declaration the walk did not reach because an earlier
+// declaration's confirmed scope misses files.
+function notWalked(declaration: Contextual, incomplete: string): Answer {
+  const reason = `Not walked: the confirmed scope of ${incomplete} misses files, so the run stops before this declaration's contextual work.`;
+  const review: ScopeReview = {
+    status: "blocked",
+    explanation: reason,
+    evidence: [
+      `The maintainer reported the scope of ${incomplete} incomplete.`,
+    ],
+    additionalPaths: [],
+  };
+  return {
+    status: "blocked",
+    explanation: reason,
+    evidence: [
+      `The maintainer reported the scope of ${incomplete} incomplete in adopt's terminal walk-through.`,
+    ],
+    ...(declaration.discovery
+      ? { scopeValidity: { afterFixes: review, current: review } }
+      : {}),
+  };
 }
 
 // The answer to a question before the run starts, or undefined when the

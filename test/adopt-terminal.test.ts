@@ -392,8 +392,18 @@ else { appendFileSync(process.argv[2], 'rebase\\n'); result('changed', 'Set the 
   assert.equal(readFileSync(log, "utf8"), "rebase\n");
 });
 
-test("a scope the person reports incomplete stops the run, which the person abandons", async (t) => {
-  const { f } = await discoveryFixture(t, cli, []);
+test("a scope the person reports incomplete stops the walk and the run, which the person abandons", async (t) => {
+  // A second contextual declaration follows the discovered one.
+  const { f } = await discoveryFixture(t, cli, [], {
+    declarations: {
+      "project-readme": {
+        kind: "file",
+        target: "README.md",
+        guidance: "guidance/readme.md",
+      },
+    },
+    files: { "guidance/readme.md": guidance },
+  });
   const session = terminal(t, f, [source]);
   await session.expect("Version [v1.0.0]: ");
   session.type("");
@@ -414,10 +424,11 @@ test("a scope the person reports incomplete stops the run, which the person aban
   session.type("tools/README.md");
   await session.expect("File: ");
   session.type("");
-  // The walk ends there: no later answer can confirm the scope.
+  // The walk ends there: no later answer can confirm the scope, and no
+  // later declaration's work can complete the run.
   assert.doesNotMatch(
     await session.expect("Submitting the assessment"),
-    /Is project-docs done\?/,
+    /Is project-docs done\?|Contextual work 2 of 2/,
   );
   assert.match(
     await session.expect("Abandon the run, or stop? [abandon/stop]: "),
@@ -487,7 +498,12 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
   await session.expect("Answer the scope questions again.");
   // A drafted exclusion the person lists is included, and a path keeps its
   // spaces.
-  await list("app/README.md", "tools/README.md", "docs/User Guide.md");
+  await list(
+    "app/README.md",
+    "tools/README.md",
+    "docs/User Guide.md",
+    "docs/Trailing.md ",
+  );
   await session.expect("Start the run? [Y/n]: ");
   session.type("");
   const walk = await session.expect(
@@ -496,6 +512,7 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
   const targets = /Edit only: (.*)\n/.exec(walk)![1]!.split(", ").sort();
   assert.deepEqual(targets, [
     "app/README.md",
+    "docs/Trailing.md ",
     "docs/User Guide.md",
     "tools/README.md",
   ]);
