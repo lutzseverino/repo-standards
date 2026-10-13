@@ -159,7 +159,7 @@ test("a retired state, scope evidence, or run record format is rejected with the
   assert.equal(scope.format, "repo-standards/scope-history/v5");
   assert.equal(
     f.run<Status>(["status", "--json"]).report.format,
-    "repo-standards/status/v7",
+    "repo-standards/status/v8",
   );
   const retainedInspection = f.run<Inspection>(["inspect", "--json"]).report;
   assert.equal(retainedInspection.format, "repo-standards/inspection/v7");
@@ -282,7 +282,7 @@ test("a retired state, scope evidence, or run record format is rejected with the
   }
   assert.equal(
     f.run<Status>(["status", "--json"]).report.format,
-    "repo-standards/status/v7",
+    "repo-standards/status/v8",
   );
 
   // An archived report of an abandoned run is a run record too.

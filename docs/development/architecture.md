@@ -669,13 +669,24 @@ run's `history`, or scope evidence with any other field or another `evidence`
 marker, fails state integrity; nothing reads an earlier run from committed
 evidence.
 
-`status --json`, in `repo-standards/status/v7`, also reports `scopeProposal`: the
+`status --json`, in `repo-standards/status/v8`, also reports `scopeProposal`: the
 last complete run's confirmed `repo-standards/scope/v2` proposal, or null when
 there is none. It reads committed scope evidence, carries no identity, and is
 available independently of source flags and checkout location. While an update
 is incomplete or abandoned, its clean HEAD at start supplies the last complete
 proposal, verified against that commit's lock; its candidate proposal is never
-reported as complete. The status summary remains unchanged.
+reported as complete.
+
+`status` prints its Markdown summary by default, including whether the adoption
+run is ready to commit. Every JSON status report includes `readyToCommit` and
+`readinessReasons`: the verdict is true exactly when no run is active, a last
+complete run exists, there is no state error, and every path in its change set
+is among Git's uncommitted changes. Reasons name each failing condition,
+including each changed path absent from the uncommitted changes. Staged,
+unstaged, and non-ignored untracked changes count, including deletions and both
+ends of renames. The verdict reads local Git state without running checks or
+changing the project; it neither certifies continuing compliance nor changes
+the report's exit status.
 
 ## Updates, interruption, and retirement
 

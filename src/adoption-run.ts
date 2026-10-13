@@ -22,6 +22,7 @@ import type { InspectOptions, inspect } from "./inspection.js";
 import {
   observe,
   requireSupportedGit,
+  uncommittedPaths,
   type Content,
   type HashInventory,
   type Observation,
@@ -545,6 +546,31 @@ export function abandon(project: string, cliVersion: string) {
 // The recorded pin is the active run's, or else the last complete adoption's.
 // Without either, no pin is recorded and any CLI reports.
 export function status(project: string, cliVersion: string) {
+  const report = statusRecord(project, cliVersion);
+  const readinessReasons: string[] = [];
+  if (report.active) readinessReasons.push("An adoption run is active.");
+  if (!report.lastComplete)
+    readinessReasons.push("No complete adoption run is recorded.");
+  if (report.stateError)
+    readinessReasons.push(
+      `Recorded adoption state has an error: ${report.stateError.code}: ${report.stateError.message}`,
+    );
+  if (!report.active && report.lastComplete && !report.stateError) {
+    const paths = uncommittedPaths(projectRoot(project));
+    for (const { path } of report.changeSet ?? [])
+      if (!paths.has(path))
+        readinessReasons.push(
+          `Changed path is not among the uncommitted changes: ${path}.`,
+        );
+  }
+  return {
+    ...report,
+    readyToCommit: readinessReasons.length === 0,
+    readinessReasons,
+  };
+}
+
+function statusRecord(project: string, cliVersion: string) {
   const root = projectRoot(project);
   const lock = lockPath(root);
   requireRecordedCli(root, lock, cliVersion);

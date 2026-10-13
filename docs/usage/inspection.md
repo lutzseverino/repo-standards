@@ -581,7 +581,7 @@ derivation. Scope-history v5 is the only format written and read.
 Retained inspection reads the committed durable state, which is
 `repo-standards/state/v7`, the only state format, with the last complete run's
 [work evidence](script-protocol.md#observed-adoption-scope) as
-identities and deltas; `status` echoes it as `repo-standards/status/v7`.
+identities and deltas; `status` echoes it as `repo-standards/status/v8`.
 Retained inspection rejects a committed state, retained scope history, or
 integrity lock in an older format with `RETIRED_FORMAT` before reading anything
 else; nothing is converted. Inspecting a source instead previews a

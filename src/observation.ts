@@ -159,6 +159,27 @@ export function git(
   return result;
 }
 
+// Include staged, unstaged and untracked paths, and both ends of a rename.
+export function uncommittedPaths(root: string) {
+  const status = git(root, [
+    "status",
+    "--porcelain=v1",
+    "-z",
+    "--untracked-files=all",
+    "--ignore-submodules=all",
+  ]);
+  if (status.status !== 0)
+    throw new ProductError("PROJECT_READ", "Cannot report actual Git changes.");
+  const records = status.stdout.split("\0").filter(Boolean);
+  const paths = new Set<string>();
+  for (let index = 0; index < records.length; index++) {
+    const record = records[index]!;
+    paths.add(record.slice(3));
+    if (/^[RC]|^.[RC]/.test(record)) paths.add(records[++index]!);
+  }
+  return paths;
+}
+
 // Older Git follows symbolic .gitignore files, whose referent discovery does
 // not bind. Gate commands before they can observe repository state.
 export function requireSupportedGit(command?: "resume") {

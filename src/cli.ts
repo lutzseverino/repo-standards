@@ -201,7 +201,10 @@ if (args.length === 1 && args[0] === "--version") {
               : retained
                 ? await inspectRetained(options.project, version, options.scope)
                 : await inspect(options, version);
-    if (flags.has("--summary"))
+    if (
+      flags.has("--summary") ||
+      (args[0] === "status" && !flags.has("--json"))
+    )
       process.stdout.write(
         args[0] === "status"
           ? statusSummary(report as StatusRecord)
