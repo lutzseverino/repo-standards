@@ -119,7 +119,10 @@ result, with the probe's reason: in the run's `deferred`, and at completion in
 durable state, where `status --json` reports it as `deferred` and the adoption
 record's Operations table lists it with the result `deferred`; see
 [summarize status](#summarize-status). Retry and recovery keep the deferral its
-start chose.
+start chose. A retry of a start interrupted before installation repeats the
+inspection, probes included, and its identity check, so a probe whose answer
+changed since inspection makes it stale like any other change; nothing was
+installed yet, so abandon the run and inspect again.
 
 Every later run, an update or the unchanged selection applied again, probes
 every remote setup again, including deferred ones. A ready one runs as any fix
