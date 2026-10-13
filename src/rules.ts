@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
+import { hash } from "./acquisition.js";
 import { file, lockPath, projectRoot } from "./adoption-files.js";
 import type { Files } from "./adoption-files.js";
 import { ProductError } from "./errors.js";
@@ -177,7 +178,7 @@ function lookup(
   root: string,
   local: string,
   declarations: readonly Declaration[],
-  files: Readonly<Record<string, unknown>>,
+  files: Readonly<Record<string, { sha256: string }>>,
 ): RulesReport {
   return {
     format: formats.rules,
@@ -185,14 +186,20 @@ function lookup(
     rules: withRules(declarations).flatMap((declaration) => {
       const covered = coverage(declarationTargets(declaration), local);
       const installed = rulesPath(declaration.id);
-      // The recorded adoption verified every installed file against the lock.
       if (!covered || !files[installed]) return [];
+      // The bytes printed are the ones the lock records, read once.
+      const bytes = readFileSync(join(root, installed));
+      if (hash(bytes) !== files[installed].sha256)
+        throw new ProductError(
+          "STATE_INTEGRITY",
+          `Retained product material changed: ${installed}. Restore it from the adopting project's committed baseline.`,
+        );
       return [
         {
           declaration: declaration.id,
           coverage: covered,
           path: installed,
-          content: readFileSync(join(root, installed), "utf8"),
+          content: bytes.toString("utf8"),
         },
       ];
     }),
