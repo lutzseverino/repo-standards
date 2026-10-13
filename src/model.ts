@@ -1,4 +1,5 @@
-// A trusted script as checks, fixes and readiness probes declare it.
+// A trusted script as checks, fixes, readiness probes and discovery scripts
+// declare it.
 export interface Script {
   run: {
     executable: string;
@@ -46,6 +47,7 @@ export type SourceDeclaration =
         kind: "repository";
         guidance: string;
         discovery: string;
+        "discovery-script"?: Script;
       });
 export interface SourceProfile {
   description: string;

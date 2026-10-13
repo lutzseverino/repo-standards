@@ -23,7 +23,7 @@ protocols.
   `rules` lookup by path, and how failed checks cite them.
 - [Author format](author-format.md): the `repo-standards/v2` source format,
   its declarations, profiles, checks and fixes, and validation errors.
-- [Script protocol](script-protocol.md): how trusted checks and fixes run,
-  report results, and are observed during adoption.
+- [Script protocol](script-protocol.md): how trusted checks, fixes and
+  discovery scripts run, report results, and are observed.
 - [Assessment protocol](assessment-protocol.md): contextual work requests,
   agent assessment submissions, and discovery scope reviews.

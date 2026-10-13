@@ -125,7 +125,11 @@ function readScope(path: string, root: string): ScopeProposal {
     lstatSync(location).size > 2 * 1024 * 1024
   )
     invalid("Scope proposal must be a regular JSON file of at most 2 MiB.");
-  const input = readFileSync(location, "utf8");
+  return parseScope(readFileSync(location, "utf8"));
+}
+
+// A proposal's JSON text, from a file or a discovery script's output.
+export function parseScope(input: string): ScopeProposal {
   let value: unknown;
   try {
     value = JSON.parse(input);
@@ -191,6 +195,21 @@ function readScope(path: string, root: string): ScopeProposal {
   };
 }
 
+// Candidate paths follow author target syntax. The rules are returned for
+// checking the targets the candidates resolve to.
+function candidatePaths(root: string, entries: Entry[]) {
+  const fields = new Fields((code, message) => {
+    throw new ProductError(code, message);
+  });
+  const paths = new Paths(root, fields);
+  for (const entry of entries)
+    for (const candidate of entry.candidates) {
+      if (!paths.explicit({ data: candidate.path, offset: 0, path: entry.id }))
+        invalid("Invalid candidate path.");
+    }
+  return paths;
+}
+
 // Project scope reuses author target syntax/ownership validation; source
 // declarations themselves remain unchanged and are retained independently.
 function materializeScope(
@@ -226,15 +245,7 @@ function materializeScope(
         ].join(" "),
       );
   }
-  const fields = new Fields((code, message) => {
-    throw new ProductError(code, message);
-  });
-  const paths = new Paths(root, fields);
-  for (const entry of proposal?.declarations ?? [])
-    for (const candidate of entry.candidates) {
-      if (!paths.explicit({ data: candidate.path, offset: 0, path: entry.id }))
-        invalid("Invalid candidate path.");
-    }
+  const paths = candidatePaths(root, proposal?.declarations ?? []);
   const targets: Target[] = [];
   const resolved: ResolvedProfile = {
     ...profile,
@@ -244,7 +255,11 @@ function materializeScope(
         (entry) => entry.id === declaration.id,
       );
       if (!entry) return [];
-      const { discovery: _discovery, ...concrete } = declaration;
+      const {
+        discovery: _discovery,
+        "discovery-script": _script,
+        ...concrete
+      } = declaration;
       return [
         { ...concrete, targets: { paths: included(entry), directories: [] } },
       ];
@@ -310,6 +325,46 @@ function validateScopeEvidence(
         );
     }
   return absence.sort(byPath);
+}
+
+// Why inspection would reject a drafted entry if it were submitted, apart from
+// how its targets fit those of the other declarations, or null when it would
+// not.
+export function scopeEntryRejection(
+  root: string,
+  observation: ScopeObservation,
+  entry: Entry,
+) {
+  try {
+    const paths = candidatePaths(root, [entry]);
+    paths.conflicts(
+      included(entry).map(
+        (path) =>
+          paths.target({ data: path, offset: 0, path: entry.id }) ??
+          invalid("Invalid discovered target."),
+      ),
+      "scope",
+    );
+    validateScopeEvidence(
+      { format: formats.scope, declarations: [entry] },
+      observation,
+      observeNamed(root, included(entry)),
+    );
+    return null;
+  } catch (error) {
+    if (
+      error instanceof ObservedScopeError ||
+      (error instanceof ProductError &&
+        [
+          "INVALID_SCOPE",
+          "UNSAFE_PATH",
+          "RESERVED_TARGET",
+          "TARGET_OVERLAP",
+        ].includes(error.code))
+    )
+      return error.message;
+    throw error;
+  }
 }
 
 export function concreteScope(

@@ -204,8 +204,11 @@ resolution semantics.
 Repository guidance retains `guidance` for contextual work and chooses exactly
 one of explicit `targets` or `discovery`, a regular source-file reference containing
 criteria for identifying applicable project files. Both references use the existing
-safe, readable source-reference contract. Other kinds, operations, declaration
-identities, and complete replacement/exclusion semantics remain unchanged.
+safe, readable source-reference contract. A discovery declaration may also name
+a `discovery-script`, declared like a check without an ID, that inspection runs
+read-only to draft its scope proposal and open questions. Other kinds,
+operations, declaration identities, and complete replacement/exclusion
+semantics remain unchanged.
 
 The Resolver alone interprets the author format. Source resolution preserves
 unresolved discovery without manufacturing empty or broad executable targets.
@@ -234,8 +237,9 @@ conflicts separately from the need for project inspection, discovery, and semant
 review. A valid source does not prove concrete scope safety or semantic completeness
 in an unfamiliar project. Discovery resolves to individual file paths, retaining
 the existing disjoint ownership rules. Explicit directory targets remain disjoint;
-there is no protection language, exact-descendant subtraction, discovery script,
-or additional ownership model.
+there is no protection language, exact-descendant subtraction, or additional
+ownership model. A discovery script only drafts a proposal; it never decides
+scope.
 
 ## Publication and compatibility
 
@@ -261,18 +265,18 @@ are recorded independently of the exact CLI package pin.
 
 ## CLI and bootstrap
 
-| Operation         | Observable result                                                                                                                                                                                                                                 |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `source validate` | Validates a local source and all its profiles without running author code.                                                                                                                                                                        |
-| `source search`   | Finds public GitHub candidates and metadata.                                                                                                                                                                                                      |
-| `inspect`         | Describes the exact selection, the update comparison and class, proposed changes, guidance, operations, prerequisites, and conflicts without modifying the project or running author code. `--summary` renders the report as a Markdown proposal. |
-| `start`           | Validates the inspection identity and its confirmation and advances adoption until completion, a problem, or required contextual work.                                                                                                            |
-| `resume`          | Continues the existing run, including accepting `--assessment <file>`, explicitly retrying interrupted work, and continuing with `--confirmed` from a fix that needs confirmation.                                                                |
-| `status`          | Reports current pins, progress, and historical evidence without any network request or implying continuing compliance. `--summary` renders the last complete or active run as a Markdown record.                                                  |
-| `abandon`         | Ends an incomplete run while retaining its changes and report.                                                                                                                                                                                    |
-| `outdated`        | Reports, for each pin, whether a newer stable CLI or standards version is published and by how many stable releases, without blocking or changing anything outside the ignored product cache.                                                     |
-| `check`           | Runs every retained check of the last complete adoption against the working tree, outside any run and without confirmation, and reports each result; fails when any check does not pass or changes the project.                                   |
-| `rules`           | Prints the installed rules covering a path and the rules of every repository-wide declaration, from the last complete adoption, without any network request.                                                                                      |
+| Operation         | Observable result                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `source validate` | Validates a local source and all its profiles without running author code.                                                                                                                                                                                                                                                                                          |
+| `source search`   | Finds public GitHub candidates and metadata.                                                                                                                                                                                                                                                                                                                        |
+| `inspect`         | Describes the exact selection, the update comparison and class, proposed changes, guidance, operations, prerequisites, and conflicts without modifying the project. It runs no author code except remote setup readiness probes and, when discovery is required, declared discovery scripts, both read-only. `--summary` renders the report as a Markdown proposal. |
+| `start`           | Validates the inspection identity and its confirmation and advances adoption until completion, a problem, or required contextual work.                                                                                                                                                                                                                              |
+| `resume`          | Continues the existing run, including accepting `--assessment <file>`, explicitly retrying interrupted work, and continuing with `--confirmed` from a fix that needs confirmation.                                                                                                                                                                                  |
+| `status`          | Reports current pins, progress, and historical evidence without any network request or implying continuing compliance. `--summary` renders the last complete or active run as a Markdown record.                                                                                                                                                                    |
+| `abandon`         | Ends an incomplete run while retaining its changes and report.                                                                                                                                                                                                                                                                                                      |
+| `outdated`        | Reports, for each pin, whether a newer stable CLI or standards version is published and by how many stable releases, without blocking or changing anything outside the ignored product cache.                                                                                                                                                                       |
+| `check`           | Runs every retained check of the last complete adoption against the working tree, outside any run and without confirmation, and reports each result; fails when any check does not pass or changes the project.                                                                                                                                                     |
+| `rules`           | Prints the installed rules covering a path and the rules of every repository-wide declaration, from the last complete adoption, without any network request.                                                                                                                                                                                                        |
 
 `--summary` is a peer of `--json` on `inspect` and `status`; combining them is a
 usage error. One renderer module produces both summaries, and the same report
@@ -865,10 +869,18 @@ with an available, exact, or contextual update.
 ## Discovery adoption
 
 [ADR 0003](../adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md)
-records the decision behind discovery.
+records the decision behind discovery, and
+[ADR 0019](../adr/0019-run-declared-discovery-scripts-read-only.md) the
+discovery scripts that draft its proposals.
 
 Where a declaration requests discovery, agent-discovered individual file paths
-replace fixed author-supplied contextual scope. One complete inspection binds
+replace fixed author-supplied contextual scope. When discovery is required,
+inspection runs each declared discovery script in a temporary copy of the
+observed project, with its prerequisite and timeout, and reports its draft
+entry and open questions in `discovery.draft`. A script that fails, times out
+or changes the copy fails inspection with `DISCOVERY_SCRIPT_FAILED`; the
+project is unchanged. The draft authorizes nothing until the agent or adopter
+answers its questions and submits it with `--scope`. One complete inspection binds
 source declarations and concrete scope, rationale, exclusions, the full
 eligible project snapshot, named targets and ancestors, and relevant
 observation/ignore inputs. Initial starts retain the clean committed-project,

@@ -1,4 +1,5 @@
 import { ProductError } from "./errors.js";
+import type { Script } from "./model.js";
 import { formats, requireFormat } from "./formats.js";
 import {
   scopeEvidence,
@@ -27,6 +28,7 @@ export interface RetainedProfile {
     id: string;
     kind?: string;
     discovery?: string;
+    "discovery-script"?: Script;
     targets?: { paths?: string[]; directories?: string[] };
   }[];
 }

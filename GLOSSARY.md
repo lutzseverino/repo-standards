@@ -89,7 +89,13 @@ _Avoid_: Global guidance, glob rule
 **Discovery guidance**:
 Author-provided criteria for identifying where a contextual declaration
 applies in an adopting project.
-_Avoid_: Discovery script, built-in project classification
+_Avoid_: Built-in project classification
+
+**Discovery script**:
+An author script, declared like a check, that inspection runs read-only to
+draft a discovery declaration's scope proposal and the questions it cannot
+answer. It never decides scope.
+_Avoid_: Discovery hook, scope classifier
 
 **System skill**:
 A product-owned Agent Skill that exposes shared Repository Standards behavior
@@ -103,7 +109,8 @@ _Avoid_: System skill, adoption hook
 
 **Inspection**:
 A read-only evaluation of a standards selection and adopting project that
-executes no author code other than readiness probes.
+executes no author code other than readiness probes and discovery scripts,
+which must leave the project unchanged.
 _Avoid_: Dry-run adoption, validation
 
 **Inspection identity**:
@@ -131,7 +138,8 @@ _Avoid_: Critical change, risky change
 
 **Scope proposal**:
 An agent's evidence-backed identification of the project paths to which
-contextual guidance applies, reviewed before authorizing that scope.
+contextual guidance applies, possibly completed from a discovery script's
+draft, and reviewed before authorizing that scope.
 _Avoid_: Confirmed scope, automatic project classification
 
 **Adoption**:

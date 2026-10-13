@@ -12,6 +12,14 @@ The proposal format, its validation, and the fields the CLI derives are defined
 by the
 [scope contract](https://github.com/lutzseverino/repo-standards/blob/v6.0.0/docs/usage/inspection.md#discover-contextual-file-scope).
 
+## Start from a script's draft
+
+When a declaration names a discovery script, the inspection ran it and
+returns its entry in `discovery.draft`. Treat the draft as a starting point.
+Review its candidates against the same criteria below, ask the maintainer each
+question in its `unresolved`, and record the answers as candidate decisions
+and coverage. A proposal whose `unresolved` is not empty never starts a run.
+
 ## Judge the candidates
 
 1. Read each declaration's discovery guidance, which says where its contextual

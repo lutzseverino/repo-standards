@@ -21,7 +21,8 @@ formats.
 This implementation supports discovery authoring, validation, and
 [two-pass scope inspection](inspection.md#discover-contextual-file-scope).
 A selected profile with unresolved discovery returns guidance, eligible evidence,
-a discovery request identity, and a `DISCOVERY_REQUIRED` start blocker.
+a discovery request identity, the draft of each
+[discovery script](#discovery-scripts), and a `DISCOVERY_REQUIRED` start blocker.
 `inspect --scope` validates an evidence-backed `repo-standards/scope/v2` proposal
 and presents concrete paths in the complete inspection. Initial adoption passes
 the same proposal to `start --scope`, bound to that inspection’s identity.
@@ -81,12 +82,12 @@ All four forms may contain optional `checks` and `fixes` lists. Omitted lists
 resolve to empty lists, and every form but an exact skill may name optional
 [`rules`](#rules-and-adoption-guidance). Their remaining fields are:
 
-| Form                | Required fields                                                                                                                                                                                                              |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Exact file          | `kind: file`, one `target`, and `exact` referencing a regular source file                                                                                                                                                    |
-| Contextual file     | `kind: file`, one `target`, and `guidance`, its adoption guidance, referencing a regular source file                                                                                                                         |
-| Exact skill         | `kind: skill`, `name`, and `source` referencing a whole directory containing a regular `SKILL.md`                                                                                                                            |
-| Repository guidance | `kind: repository`, `guidance`, its adoption guidance, referencing a regular file, and exactly one scope mode: explicit `targets` containing both `paths` and `directories` lists, or `discovery` referencing a regular file |
+| Form                | Required fields                                                                                                                                                                                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Exact file          | `kind: file`, one `target`, and `exact` referencing a regular source file                                                                                                                                                                                          |
+| Contextual file     | `kind: file`, one `target`, and `guidance`, its adoption guidance, referencing a regular source file                                                                                                                                                               |
+| Exact skill         | `kind: skill`, `name`, and `source` referencing a whole directory containing a regular `SKILL.md`                                                                                                                                                                  |
+| Repository guidance | `kind: repository`, `guidance`, its adoption guidance, referencing a regular file, and exactly one scope mode: explicit `targets` containing both `paths` and `directories` lists, or `discovery` referencing a regular file, optionally with a `discovery-script` |
 
 A file must have exactly one of `exact` or `guidance`. Repository guidance
 requires exactly one of `targets` or `discovery`, and explicit targets need at
@@ -168,7 +169,9 @@ or adapt project content during the run, such as preserving useful facts while
 moving them. `guidance/find-projects.md` describes where that guidance applies: for
 example, evidence of maintained projects including projects missing READMEs, and
 criteria for distinguishing fixtures, generated output, and organizational
-directories. Discovery is agent-interpreted prose, never an executable hook.
+directories. Discovery guidance is prose that an agent or person interprets.
+A declaration may also name a [discovery script](#discovery-scripts) that
+drafts the proposal; the prose remains valid with or without one.
 
 A source-resolved discovery declaration has a `discovery` reference and no
 `targets`; this is unresolved scope, not an empty or whole-repository entitlement.
@@ -178,6 +181,35 @@ coverage requires agent interpretation and adopter review. Discovered directory
 trees, globs, root scope, `protect` fields, and subtracting exact descendants
 from contextual trees are unsupported. Explicit directory scopes remain disjoint,
 including from exact configuration beneath them.
+
+### Discovery scripts
+
+```yaml
+project-documentation:
+  kind: repository
+  guidance: guidance/documentation.md
+  discovery: guidance/find-projects.md
+  discovery-script:
+    run:
+      executable: node
+      script: discovery/find-projects.mjs
+      resources: [discovery/data]
+      arguments: []
+    prerequisite:
+      version-arguments: ["--version"]
+      version: ">=24.0.0"
+    timeout-seconds: 60
+```
+
+A declaration with `discovery` may name a `discovery-script`, declared like a
+[check](#checks-and-fixes) without an `id`: `run`, `prerequisite` and
+`timeout-seconds` have the same fields and rules. A `discovery-script` without
+`discovery` is `INVALID_DECLARATION`. Source validation checks its fields and
+references and never runs it. When discovery is required, inspection runs it
+read-only to draft the declaration's scope proposal and its open questions; it
+never decides scope. The
+[discovery script protocol](script-protocol.md#discovery-scripts) defines its
+input, output and failures.
 
 ### Paths and ownership
 
@@ -347,33 +379,33 @@ fields point to their containing mapping; unreadable root documents use 1:1
 and an empty path. Independent errors are collected across all profiles;
 structurally invalid YAML may limit what can be determined.
 
-| Code                        | Meaning                                                                                                       |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `SOURCE_READ`               | Source document or referenced material cannot be read                                                         |
-| `YAML_SYNTAX`               | Invalid YAML, unsupported tag, or multiple documents                                                          |
-| `YAML_STRUCTURE`            | Unresolved/recursive alias or YAML expansion/depth limit                                                      |
-| `DUPLICATE_IDENTITY`        | Duplicate YAML key or operation ID                                                                            |
-| `UNKNOWN_FIELD`             | Field outside the author schema                                                                               |
-| `REQUIRED_FIELD`            | Required field omitted                                                                                        |
-| `INVALID_TYPE`              | Wrong mapping, list, scalar, or string type                                                                   |
-| `INVALID_FORMAT`            | Format identity other than `repo-standards/v2`                                                                |
-| `INVALID_VERSION`           | Malformed SemVer range                                                                                        |
-| `INCOMPATIBLE_CLI`          | Running CLI does not satisfy the source range; the message recommends an open-ended minimum                   |
-| `EMPTY_PROFILES`            | No complete named profile                                                                                     |
-| `INVALID_ID`                | Declaration, skill, or operation identity is malformed                                                        |
-| `INVALID_DECLARATION`       | Unknown kind, file without exactly one content mode, or repository guidance without exactly one scope mode    |
-| `SKILL_INVOCATION_MISMATCH` | Skill's Claude Code and Codex invocation settings disagree; message names the skill and both effective values |
-| `INVALID_EXCLUSION`         | Invalid exclusion value, level, or default identity                                                           |
-| `INVALID_EXECUTABLE`        | Executable violates the documented name/path syntax                                                           |
-| `INVALID_TIMEOUT`           | Timeout is not a positive safe integer                                                                        |
-| `EMPTY_TARGETS`             | Repository guidance has no targets                                                                            |
-| `UNSAFE_PATH`               | Path can escape its root or uses unsupported path syntax                                                      |
-| `MISSING_REFERENCE`         | Referenced file or directory does not exist                                                                   |
-| `REFERENCE_TYPE`            | Referenced entry has the wrong filesystem type                                                                |
-| `SOURCE_SYMLINK`            | Source document or selected material contains a symlink                                                       |
-| `RESERVED_NAME`             | An author tries to supply a product-owned system skill, or names a declaration with rules `readme`            |
-| `RESERVED_TARGET`           | Target overlaps reserved storage                                                                              |
-| `TARGET_OVERLAP`            | Two resolved targets overlap, including folded collisions                                                     |
+| Code                        | Meaning                                                                                                                                          |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SOURCE_READ`               | Source document or referenced material cannot be read                                                                                            |
+| `YAML_SYNTAX`               | Invalid YAML, unsupported tag, or multiple documents                                                                                             |
+| `YAML_STRUCTURE`            | Unresolved/recursive alias or YAML expansion/depth limit                                                                                         |
+| `DUPLICATE_IDENTITY`        | Duplicate YAML key or operation ID                                                                                                               |
+| `UNKNOWN_FIELD`             | Field outside the author schema                                                                                                                  |
+| `REQUIRED_FIELD`            | Required field omitted                                                                                                                           |
+| `INVALID_TYPE`              | Wrong mapping, list, scalar, or string type                                                                                                      |
+| `INVALID_FORMAT`            | Format identity other than `repo-standards/v2`                                                                                                   |
+| `INVALID_VERSION`           | Malformed SemVer range                                                                                                                           |
+| `INCOMPATIBLE_CLI`          | Running CLI does not satisfy the source range; the message recommends an open-ended minimum                                                      |
+| `EMPTY_PROFILES`            | No complete named profile                                                                                                                        |
+| `INVALID_ID`                | Declaration, skill, or operation identity is malformed                                                                                           |
+| `INVALID_DECLARATION`       | Unknown kind, file without exactly one content mode, repository guidance without exactly one scope mode, or a discovery script without discovery |
+| `SKILL_INVOCATION_MISMATCH` | Skill's Claude Code and Codex invocation settings disagree; message names the skill and both effective values                                    |
+| `INVALID_EXCLUSION`         | Invalid exclusion value, level, or default identity                                                                                              |
+| `INVALID_EXECUTABLE`        | Executable violates the documented name/path syntax                                                                                              |
+| `INVALID_TIMEOUT`           | Timeout is not a positive safe integer                                                                                                           |
+| `EMPTY_TARGETS`             | Repository guidance has no targets                                                                                                               |
+| `UNSAFE_PATH`               | Path can escape its root or uses unsupported path syntax                                                                                         |
+| `MISSING_REFERENCE`         | Referenced file or directory does not exist                                                                                                      |
+| `REFERENCE_TYPE`            | Referenced entry has the wrong filesystem type                                                                                                   |
+| `SOURCE_SYMLINK`            | Source document or selected material contains a symlink                                                                                          |
+| `RESERVED_NAME`             | An author tries to supply a product-owned system skill, or names a declaration with rules `readme`                                               |
+| `RESERVED_TARGET`           | Target overlaps reserved storage                                                                                                                 |
+| `TARGET_OVERLAP`            | Two resolved targets overlap, including folded collisions                                                                                        |
 
 ## Alice's complete example
 

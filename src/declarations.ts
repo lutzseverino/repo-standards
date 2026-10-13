@@ -245,6 +245,7 @@ export class Declarations {
           "checks",
           "fixes",
           "discovery",
+          "discovery-script",
         ]);
         const guidance = this.paths.reference(
           f.get(declaration, "guidance"),
@@ -280,6 +281,16 @@ export class Declarations {
             targets: { paths, directories },
           });
         }
+        if (entries.has("discovery-script") && !entries.has("discovery"))
+          f.error(
+            "INVALID_DECLARATION",
+            "A discovery script requires discovery.",
+            f.get(declaration, "discovery-script"),
+          );
+        const scriptValue = entries.get("discovery-script");
+        if (scriptValue)
+          f.map(scriptValue, ["run", "prerequisite", "timeout-seconds"]);
+        const script = scriptValue ? this.script(scriptValue) : undefined;
         if (entries.has("discovery")) {
           const discovery = this.paths.reference(
             f.get(declaration, "discovery"),
@@ -291,6 +302,7 @@ export class Declarations {
             guidance,
             ...ruled,
             discovery,
+            ...(script ? { "discovery-script": script } : {}),
           });
         }
       } else {

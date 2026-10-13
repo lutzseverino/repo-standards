@@ -4,7 +4,8 @@ Every active declaration may own checks and repeat-safe fixes as described in
 [Author format](author-format.md#checks-and-fixes). Inspection displays their
 scripts, literal arguments, resources and prerequisites without executing them;
 it runs only the read-only readiness probes of
-[remote setup](#remote-setup-probes) fixes.
+[remote setup](#remote-setup-probes) fixes and
+[discovery scripts](#discovery-scripts).
 The maintainer's request to adopt authorizes their execution. Scripts are trusted code
 with the invoking user's host, environment and network access. Declared
 resources control retention, not sandbox access.
@@ -31,11 +32,12 @@ After installation the CLI invokes this argument vector directly:
 The current directory is the adopting-project root. Arguments containing spaces,
 empty strings, wildcard characters or shell expressions retain their literal
 values. There is no shell, author-defined environment override, or custom
-working directory. The process inherits the CLI environment. Retained scripts
-live under `.repo-standards/inputs/source/` at their original source-relative
-paths. Declared resources keep the same layout; scripts can locate them relative
-to their own retained path. Other profiles and unrelated source material are
-not retained.
+working directory. The process inherits the CLI environment, except that `PWD`
+names its current directory. Retained scripts live under
+`.repo-standards/inputs/source/` at their original source-relative paths.
+Declared resources keep the same layout; scripts can locate them relative to
+their own retained path. Other profiles and unrelated source material are not
+retained.
 
 ## JSON input on stdin
 
@@ -196,6 +198,67 @@ Use `status --json` and the incomplete report to review actual changes and
 successful, failed or uncertain work. Follow the recovery instructions in
 [Adoption](adoption.md#completion-and-incomplete-results). No process error,
 blocked result, failed check or contextual handoff asserts complete adoption.
+
+## Discovery scripts
+
+A discovery declaration's optional
+[discovery script](author-format.md#discovery-scripts) drafts its scope
+proposal. `inspect` runs it only when discovery is required, which means
+inspection without `--scope`. Each active declaration that names a script runs
+it, in declaration ID order. Inspection first runs its prerequisite probe as
+[above](#prerequisites-and-invocation). An unmet prerequisite fails inspection
+with `DISCOVERY_SCRIPT_FAILED`, the probe's code as its `reason`, and the
+probe's output as its `stdout` and `stderr`. The script does not run.
+
+The script runs in a temporary copy of the files and directories the discovery
+observation holds: the project's tracked and non-ignored content, without Git
+metadata or `.repo-standards`. A symbolic link whose target leaves the copy is
+omitted. The copy is its current directory and
+`projectRoot`, and relative executables resolve from it. The argument vector is
+the same as an operation's, with the script's absolute path in the acquired or
+retained source. The script reads one JSON object on stdin:
+
+```json
+{
+  "format": "repo-standards/discovery/v1",
+  "declaration": "project-docs",
+  "projectRoot": "/tmp/repo-standards-discovery-1a2b3c/project",
+  "standards": {
+    "repository": "https://github.com/alice/standards",
+    "version": "v1.0.0",
+    "commit": "40-character-resolved-commit-sha"
+  },
+  "profile": "work"
+}
+```
+
+It prints a `repo-standards/scope/v2` proposal holding exactly one entry, for
+its declaration, and exits with status `0`. Its evidence paths are
+project-relative paths of eligible files and directories, and the membership
+questions it cannot answer go in `unresolved`. The script only drafts: the
+person or agent answers its questions and submits the completed proposal, as
+[the inspection contract](inspection.md#discover-contextual-file-scope)
+describes.
+
+The script must not change the copy. Inspection fails with
+`DISCOVERY_SCRIPT_FAILED` when the script:
+
+| `reason`         | The script                                                                |
+| ---------------- | ------------------------------------------------------------------------- |
+| `TIMEOUT`        | Ran longer than its timeout                                               |
+| `PROCESS_ERROR`  | Could not start, exceeded an output limit, or left processes in its group |
+| `SIGNAL`         | Ended by a signal                                                         |
+| `NONZERO_EXIT`   | Exited with a status other than `0`                                       |
+| `PROJECT_WRITE`  | Added, removed or changed anything in the copy                            |
+| `PROTOCOL_ERROR` | Printed other than one valid entry for its declaration                    |
+
+A valid entry passes the checks `inspect --scope` applies to a submitted entry,
+except how its targets fit those of other declarations. The error's details
+name the `declaration`, the `reason`, and the script's `stdout` and `stderr`,
+each limited to 1 MiB. Inspection stops processes the script or its probe left
+in their group before it removes the copy. The project is unchanged in every
+case. The copy protects the project, not the host: a discovery script is
+trusted code like every other author script.
 
 ## Observed adoption scope
 

@@ -106,7 +106,9 @@ them again only when the inspection report requires confirmation.
    and range. Explain that probes and scripts execute trusted code with the
    user's host, environment and network access; resources are retention, not a
    sandbox. Inspection runs none of them but the read-only readiness probes of
-   remote setup fixes; operation prerequisites remain unverified until start. Surface all blockers. Reconcile them before reinspection; preserve
+   remote setup fixes and declared discovery scripts, which run in a copy of the
+   project; operation prerequisites remain unverified until start. Surface all
+   blockers. Reconcile them before reinspection; preserve
    existing work and let the maintainer handle prerequisite installation.
 4. Read the report's `confirmation`. When `confirmation.required` is false,
    start without asking: use the same executable and flags for

@@ -1,5 +1,10 @@
 # Use agent discovery with confirmed concrete scope
 
+Status: superseded in part by
+[ADR 0019](0019-run-declared-discovery-scripts-read-only.md), which replaces
+the exclusion of author-executed discovery hooks with read-only discovery
+scripts.
+
 Authors need contextual standards that apply across unfamiliar project layouts,
 but maintained-project membership is a semantic judgment. Authors therefore
 provide discovery guidance, agents propose evidence-backed concrete scope, and
