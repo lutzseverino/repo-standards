@@ -10,15 +10,15 @@ export const formats = {
   scopeHistory: "repo-standards/scope-history/v5",
   run: "repo-standards/run/v6",
   status: "repo-standards/status/v8",
-  inspection: "repo-standards/inspection/v7",
+  inspection: "repo-standards/inspection/v8",
   scope: "repo-standards/scope/v2",
-  workRequest: "repo-standards/work-request/v3",
+  workRequest: "repo-standards/work-request/v4",
   assessment: "repo-standards/assessment/v3",
   operation: "repo-standards/operation/v2",
   result: "repo-standards/result/v2",
   outdated: "repo-standards/outdated/v1",
   outdatedCache: "repo-standards/outdated-cache/v1",
-  check: "repo-standards/check/v1",
+  check: "repo-standards/check/v2",
   rules: "repo-standards/rules/v1",
 } as const;
 

@@ -166,7 +166,7 @@ test("one confirmed discovery scope starts initial adoption, passes concrete fil
     false,
   );
   const request = started.workRequest;
-  assert.equal(request!.format, "repo-standards/work-request/v3");
+  assert.equal(request!.format, "repo-standards/work-request/v4");
   assert.equal(request!.scope!.inspection, started.inspection);
   assert.equal(request!.scope!.afterFixes, request!.snapshot);
   const discovery = request!.declarations[0]!.discovery;

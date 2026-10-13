@@ -146,7 +146,7 @@ test("check runs every retained check with a run's inputs, reports each result, 
   const passed = cli.run(["check", "--json"], f.project.root, process.env);
   assert.equal(passed.status, 0, passed.stdout + passed.stderr);
   const report = JSON.parse(passed.stdout) as CheckReport;
-  assert.equal(report.format, "repo-standards/check/v1");
+  assert.equal(report.format, "repo-standards/check/v2");
   assert.equal(report.outcome, "passed");
   assert.deepEqual(report.selection, inspection.selection);
   assert.deepEqual(

@@ -158,6 +158,8 @@ export interface WorkRequest {
   declarations: {
     id: string;
     guidance: Inspection["guidance"][number] & RetainedReference;
+    // The declaration's installed rules, when it has any.
+    rules?: string;
     discovery?: NonNullable<Inspection["discovery"]>["declarations"][number] &
       RetainedReference;
     allowedTargets: { paths: string[]; directories: string[] };

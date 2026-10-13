@@ -35,11 +35,11 @@ work is what it checks.
 
 ## Report
 
-With `--json`, `check` prints one `repo-standards/check/v1` object:
+With `--json`, `check` prints one `repo-standards/check/v2` object:
 
 ```json
 {
-  "format": "repo-standards/check/v1",
+  "format": "repo-standards/check/v2",
   "outcome": "failed",
   "selection": {
     "cli": { "package": "@lutzseverino/repo-standards", "version": "6.0.0" },

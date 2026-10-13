@@ -131,6 +131,18 @@ async function contextualAdoption(t: TestContext) {
   const inspection = f.inspect(args);
   const started = f.json<Run>(startArgs(inspection.identity, args));
   assert.equal(started.report.phase, "contextual", started.result.stdout);
+  // Contextual work is asked against each declaration's installed rules.
+  assert.deepEqual(
+    started.report.workRequest!.declarations.map(({ id, rules }) => [
+      id,
+      rules,
+    ]),
+    [
+      ["docs", ".repo-standards/rules/docs.md"],
+      ["hosting", ".repo-standards/rules/hosting.md"],
+      ["source-layout", ".repo-standards/rules/source-layout.md"],
+    ],
+  );
   const assessmentFile = join(f.remote.support.root, "assessment.json");
   const satisfied = (id: string, discovered: boolean) => ({
     id,

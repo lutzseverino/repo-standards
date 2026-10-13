@@ -40,8 +40,9 @@ function withRules(declarations: readonly Declaration[]): WithRules[] {
   );
 }
 
-// The declarations whose installed rules a check's failure cites, by ID.
-export function citedRules(declarations: readonly Declaration[]) {
+// The installed rules of each declaration that has rules, by ID: what a
+// failed check and contextual work cite.
+export function installedRules(declarations: readonly Declaration[]) {
   return new Map(withRules(declarations).map(({ id }) => [id, rulesPath(id)]));
 }
 

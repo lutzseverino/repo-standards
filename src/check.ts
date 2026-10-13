@@ -19,7 +19,7 @@ import {
   requireRecordedCli,
   type RecordedSelection,
 } from "./recorded-state.js";
-import { citedRules } from "./rules.js";
+import { installedRules } from "./rules.js";
 import { acquireWorker } from "./run-lock.js";
 import { concreteScope } from "./scope.js";
 
@@ -84,7 +84,7 @@ export async function check(
       );
     const { selection, resolved } = recorded;
     recorded.source();
-    const cited = citedRules(resolved.declarations);
+    const cited = installedRules(resolved.declarations);
     const scope = concreteScope(resolved);
     const requireUnchanged = readOnlyGuard(
       root,

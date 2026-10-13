@@ -2,7 +2,7 @@
 
 After exact installation and serial fixes, a profile with contextual file or
 repository guidance returns an incomplete `contextual` run with a
-`repo-standards/work-request/v3` object in `workRequest`. The CLI never runs a
+`repo-standards/work-request/v4` object in `workRequest`. The CLI never runs a
 model. This handoff uses the run's started selection and preserves the run,
 installed baselines, and post-fix project snapshot for subsequent commands.
 
@@ -20,14 +20,17 @@ The request contains:
 - `declarations`: every active contextual declaration, sorted by ID. Each entry
   contains `id`, `guidance` (source-relative `source`, SHA-256 and executable
   state, and the `retained` project path of its bytes, under
-  `.repo-standards/inputs/source/`), and `allowedTargets` with explicit `paths` and
+  `.repo-standards/inputs/source/`), `rules` (the project path of the
+  declaration's [installed rules](rules.md), present only when it has rules),
+  and `allowedTargets` with explicit `paths` and
   `directories`. Directory entries allow the directory and its descendants;
   file paths allow only that exact path. No glob interpretation occurs.
 - `requiredEvidence`: the fields the agent supplies for each declaration:
   `status`, `explanation`, and `evidence`.
 
 Contextual work applies the selected guidance to the adopting project's actual
-content within the allowed targets. Exact files and skills remain author-owned;
+content within the allowed targets, so that it satisfies the declaration's
+rules. Exact files and skills remain author-owned;
 excluded and unrelated content remains outside the contextual scope. The
 `adopt-standards` skill's
 [assessment reference](../../skills/adopt-standards/references/assessment.md)
@@ -176,9 +179,9 @@ reconcile before a new adoption. The last complete state retains its
 interval and retry history as historical evidence, without asserting ongoing
 compliance.
 
-## Discovery work-request/v3 and assessment/v3
+## Discovery work-request/v4 and assessment/v3
 
-Active discovery uses the same `repo-standards/work-request/v3` and
+Active discovery uses the same `repo-standards/work-request/v4` and
 `repo-standards/assessment/v3` formats as explicit selections. The
 request adds `scope` with the run's `inspection` identity, `afterFixes`
 snapshot identity, and accepted `proposal`. Each discovered declaration also

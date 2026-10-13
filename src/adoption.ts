@@ -46,7 +46,7 @@ import type {
 } from "./adoption-run.js";
 import { record } from "./records.js";
 import { deferredRemoteSetup, withoutDeferred } from "./remote-setup.js";
-import { citedRules } from "./rules.js";
+import { installedRules } from "./rules.js";
 export { abandon, status } from "./adoption-run.js";
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 const retainedSource = ".repo-standards/inputs/source";
@@ -74,7 +74,11 @@ function workRequest(
     selection: `sha256:${hash(json(run.selection))}`,
     snapshot: workSnapshot(root, run, report.resolved),
     // Guidance is referenced by path and hash; its bytes are the retained input.
+    // Rules are named by their installed path.
     declarations: report.guidance.map((guidance) => {
+      const rules = installedRules(report.resolved.declarations).get(
+        guidance.id,
+      );
       const discoveryGuidance = discovery?.declarations.find(
         (entry) => entry.id === guidance.id,
       );
@@ -84,6 +88,7 @@ function workRequest(
           ...guidance,
           retained: `${retainedSource}/${guidance.source}`,
         },
+        ...(rules ? { rules } : {}),
         ...(discoveryGuidance
           ? {
               discovery: {
@@ -555,7 +560,7 @@ async function advance(
     .filter((evidence) => evidence.result?.status === "failed");
   if (failed.length) {
     // Each failed check names its declaration's installed rules, if any.
-    const cited = citedRules(report.resolved.declarations);
+    const cited = installedRules(report.resolved.declarations);
     const checks = failed.map(({ operation }) => {
       const rules = cited.get(operation.declaration);
       return `${operation.declaration}/${operation.id}${rules ? ` (rules: ${rules})` : ""}`;

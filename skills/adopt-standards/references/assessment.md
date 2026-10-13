@@ -12,11 +12,13 @@ format, freshness, and the diagnostics are defined by the
    Additional-path evidence alone grants no authority: when more files are
    needed or a confirmed target is mistaken, write none of them.
 2. For each declaration in the request, read its retained guidance, at
-   `guidance.retained`, and its `allowedTargets`. A directory entry allows the
+   `guidance.retained`, its installed rules at `rules` when present, and its
+   `allowedTargets`. A directory entry allows the
    directory and everything beneath it; a path allows only that file.
 3. Inspect the real project files you need to understand the project's
    purpose, commands, and behavior.
-4. Apply the guidance usefully within the allowed targets. Preserve project
+4. Apply the guidance usefully within the allowed targets, so that the
+   targets satisfy the rules. Preserve project
    facts, exact content and skills, excluded content such as an employer's
    files, and unrelated work. Keep your notes and the submission outside the
    project or in `.repo-standards/local/`; any other new file is an observed

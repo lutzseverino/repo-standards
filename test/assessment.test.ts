@@ -115,7 +115,7 @@ test("contextual handoff identifies the run, retained guidance, allowed targets 
   assert.equal(f.run.outcome, "incomplete");
   assert.equal(f.run.operations.length, 0);
   const request = f.run.workRequest;
-  assert.equal(request!.format, "repo-standards/work-request/v3");
+  assert.equal(request!.format, "repo-standards/work-request/v4");
   assert.equal("scope" in request!, false);
   assert.equal(request!.run, f.run.id);
   assert.match(request!.selection, /^sha256:/);
