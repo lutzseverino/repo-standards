@@ -1,4 +1,5 @@
 import {
+  chmodSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
@@ -52,11 +53,17 @@ function reread(path: string) {
   unstable();
 }
 
-type Copied =
+// Each entry's change time is recorded once the copy is complete, so a change
+// to anything about it, timestamps included, is seen.
+type Copied = { ctime: bigint } & (
   | { type: "directory"; mode: number }
   | { type: "symlink"; target: string }
-  | { type: "file"; size: number; sha256: string; mode: number };
-const mode = (path: string) => lstatSync(path).mode & 0o7777;
+  | { type: "file"; size: number; sha256: string; mode: number }
+);
+const status = (path: string) => {
+  const stat = lstatSync(path, { bigint: true });
+  return { stat, ctime: stat.ctimeNs, mode: Number(stat.mode & 0o7777n) };
+};
 
 // Copies the observed files and returns what the copy holds, by path, with
 // the root as ".".
@@ -65,7 +72,7 @@ function copyObserved(root: string, observation: ScopeObservation, to: string) {
   const directory = (path: string) => {
     mkdirSync(join(to, path), { recursive: true });
     for (let at = path; !copied.has(at); at = dirname(at)) {
-      copied.set(at, { type: "directory", mode: mode(join(to, at)) });
+      copied.set(at, { type: "directory", mode: 0, ctime: 0n });
       if (at === ".") break;
     }
   };
@@ -78,7 +85,7 @@ function copyObserved(root: string, observation: ScopeObservation, to: string) {
       const within = relative(to, resolve(dirname(target), state.target));
       if (within.split(sep)[0] !== ".." && !isAbsolute(within)) {
         symlinkSync(state.target, target);
-        copied.set(path, { type: "symlink", target: state.target });
+        copied.set(path, { type: "symlink", target: state.target, ctime: 0n });
       }
     } else if (state.type === "file") {
       const bytes = reread(join(root, path));
@@ -88,14 +95,20 @@ function copyObserved(root: string, observation: ScopeObservation, to: string) {
         type: "file",
         size: bytes.length,
         sha256: state.sha256,
-        mode: mode(target),
+        mode: 0,
+        ctime: 0n,
       });
     }
+  }
+  for (const [path, copy] of copied) {
+    const { ctime, mode } = status(join(to, path));
+    if (copy.type !== "symlink") copy.mode = mode;
+    copy.ctime = ctime;
   }
   return copied;
 }
 
-// Whether the script changed its copy, permissions included. The scan stops
+// Whether the script changed its copy, permissions and timestamps included. The scan stops
 // at the first entry the copy did not hold, so it reads no more than was
 // copied, and an entry it cannot read is a change.
 function changed(to: string, copied: Map<string, Copied>) {
@@ -106,29 +119,49 @@ function changed(to: string, copied: Map<string, Copied>) {
       const copy = copied.get(path);
       if (!copy) return true;
       seen++;
-      const stat = lstatSync(join(to, path));
+      const { stat, ctime, mode } = status(join(to, path));
+      if (ctime !== copy.ctime) return true;
       if (copy.type === "directory")
-        return (
-          !stat.isDirectory() ||
-          (stat.mode & 0o7777) !== copy.mode ||
-          differs(path)
-        );
+        return !stat.isDirectory() || mode !== copy.mode || differs(path);
       if (copy.type === "symlink")
         return (
           !stat.isSymbolicLink() || readlinkSync(join(to, path)) !== copy.target
         );
       return (
         !stat.isFile() ||
-        stat.size !== copy.size ||
-        (stat.mode & 0o7777) !== copy.mode ||
+        stat.size !== BigInt(copy.size) ||
+        mode !== copy.mode ||
         hash(readFileSync(join(to, path))) !== copy.sha256
       );
     });
   try {
     const root = copied.get(".") as Copied & { mode: number };
-    return mode(to) !== root.mode || differs(".") || seen !== copied.size;
+    const { ctime, mode } = status(to);
+    return (
+      ctime !== root.ctime ||
+      mode !== root.mode ||
+      differs(".") ||
+      seen !== copied.size
+    );
   } catch {
     return true;
+  }
+}
+
+// A script may take permissions away from its copy; give them back so the copy
+// can be removed.
+function release(directory: string) {
+  chmodSync(directory, 0o700);
+  for (const entry of readdirSync(directory, { withFileTypes: true }))
+    if (entry.isDirectory()) release(join(directory, entry.name));
+}
+
+function remove(work: string) {
+  try {
+    rmSync(work, { recursive: true, force: true });
+  } catch {
+    release(work);
+    rmSync(work, { recursive: true, force: true });
   }
 }
 
@@ -230,6 +263,6 @@ export async function draftScope(options: {
     if (rejection) invalid(rejection);
     return entry!;
   } finally {
-    rmSync(work, { recursive: true, force: true });
+    remove(work);
   }
 }

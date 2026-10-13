@@ -248,6 +248,20 @@ for (const [name, yaml, script, reason] of [
       ] as const,
   ),
   [
+    "takes away a directory's permissions",
+    source(),
+    draft('(await import("node:fs")).chmodSync("app", 0o000);'),
+    "PROJECT_WRITE",
+  ],
+  [
+    "only touches a file",
+    source(),
+    draft(
+      '(await import("node:fs")).utimesSync("app/package.json", new Date(0), new Date(0));',
+    ),
+    "PROJECT_WRITE",
+  ],
+  [
     "creates a deep tree",
     source(),
     draft(
