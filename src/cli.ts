@@ -17,6 +17,7 @@ import { outdated } from "./outdated.js";
 import { check, checkSummary } from "./check.js";
 import { rules, rulesSummary } from "./rules.js";
 import { adopt, adoptSummary } from "./adopt.js";
+import { adoptInTerminal, processTerminal } from "./adopt-terminal.js";
 import { inspectionSummary, statusSummary } from "./summary.js";
 import type { InspectionReport, StatusRecord } from "./summary.js";
 
@@ -28,7 +29,7 @@ if (args.length === 1 && args[0] === "--version") {
   console.log(version);
 } else if (args.length === 0 || (args.length === 1 && args[0] === "--help")) {
   console.log(
-    "Usage: repo-standards adopt [<GitHub URL>] [--standards-version <tag>] [--profile <name>] [--answers <file>] [--project <directory>] [--json]\n       repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json | --summary]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --identity <inspection identity> [--confirmed] [--defer-remote-setup] [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file> | --confirmed] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json | --summary]\n       repo-standards outdated [--project <directory>] [--json]\n       repo-standards check [--project <directory>] [--json]\n       repo-standards rules <path> [--project <directory>] [--json]\n\nAdopt adopts a standards source, or updates the current selection when no source is given: without an answers file it prints its questions as an answers-file template with the next steps and changes nothing; with a filled answers file it asks what remains, then starts or continues the run, and prints what the run needs next. Inspect, start, and resume are the lower-level commands it drives. Start binds to the identity of the inspection it carries out. Pass --confirmed only when the inspection reports confirmation.required, after the maintainer confirms its confirmation-required changes. Inspection probes each remote setup before any write; a start stops when one is not ready, unless --defer-remote-setup completes adoption without it, and every later run applies it once it is ready. An update is one run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment; when a fix stopped the run because overwriting a setting needs confirmation, resume --confirmed reruns that fix allowed to overwrite, after the maintainer confirms. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project. Check runs the adopted checks against the working tree and fails when any does not pass. Rules prints the installed rules that cover a path, named from the current directory, and the rules of repository-wide declarations. --summary renders an inspection or status as Markdown instead of JSON.",
+    "Usage: repo-standards adopt [<GitHub URL>] [--standards-version <tag>] [--profile <name>] [--answers <file>] [--project <directory>] [--json]\n       repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json | --summary]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --identity <inspection identity> [--confirmed] [--defer-remote-setup] [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file> | --confirmed] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json | --summary]\n       repo-standards outdated [--project <directory>] [--json]\n       repo-standards check [--project <directory>] [--json]\n       repo-standards rules <path> [--project <directory>] [--json]\n\nAdopt adopts a standards source, or updates the current selection when no source is given. In a terminal, without --answers or --json, it asks its questions, walks each contextual declaration through its rules, adoption guidance and checks, and writes the assessment from the answers; otherwise, without an answers file it prints its questions as an answers-file template with the next steps and changes nothing; with a filled answers file it asks what remains, then starts or continues the run, and prints what the run needs next. Inspect, start, and resume are the lower-level commands it drives. Start binds to the identity of the inspection it carries out. Pass --confirmed only when the inspection reports confirmation.required, after the maintainer confirms its confirmation-required changes. Inspection probes each remote setup before any write; a start stops when one is not ready, unless --defer-remote-setup completes adoption without it, and every later run applies it once it is ready. An update is one run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment; when a fix stopped the run because overwriting a setting needs confirmation, resume --confirmed reruns that fix allowed to overwrite, after the maintainer confirms. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project. Check runs the adopted checks against the working tree and fails when any does not pass. Rules prints the installed rules that cover a path, named from the current directory, and the rules of repository-wide declarations. --summary renders an inspection or status as Markdown instead of JSON.",
   );
 } else if (args[0] === "adopt") {
   const flags = new Map<string, string>();
@@ -55,28 +56,42 @@ if (args.length === 1 && args[0] === "--version") {
         "USAGE",
         `Unknown, duplicate, or incomplete option: ${usage}. Use repo-standards adopt [<GitHub URL>] [--standards-version <tag>] [--profile <name>] [--answers <file>] [--project <directory>] [--json].`,
       );
-    const report = await adopt(
-      {
-        project: flags.get("--project") ?? ".",
-        ...(flags.has("source") ? { source: flags.get("source")! } : {}),
-        ...(flags.has("--standards-version")
-          ? { standardsVersion: flags.get("--standards-version")! }
-          : {}),
-        ...(flags.has("--profile") ? { profile: flags.get("--profile")! } : {}),
-        ...(flags.has("--answers") ? { answers: flags.get("--answers")! } : {}),
-      },
-      version,
-    );
-    if (flags.has("--json")) console.log(JSON.stringify(report, null, 2));
-    else process.stdout.write(adoptSummary(report));
-    // Printing the template is the whole request without an answers file.
+    const options = {
+      project: flags.get("--project") ?? ".",
+      ...(flags.has("source") ? { source: flags.get("source")! } : {}),
+      ...(flags.has("--standards-version")
+        ? { standardsVersion: flags.get("--standards-version")! }
+        : {}),
+      ...(flags.has("--profile") ? { profile: flags.get("--profile")! } : {}),
+      ...(flags.has("--answers") ? { answers: flags.get("--answers")! } : {}),
+    };
+    // A person at a terminal is asked; an answers file or JSON is for an
+    // agent.
     if (
-      report.outcome !== "complete" &&
-      (report.outcome !== "answers-required" ||
-        flags.has("--answers") ||
-        report.run)
-    )
-      process.exitCode = 1;
+      !flags.has("--answers") &&
+      !flags.has("--json") &&
+      process.stdin.isTTY &&
+      process.stdout.isTTY
+    ) {
+      const outcome = await adoptInTerminal(
+        options,
+        version,
+        processTerminal(),
+      );
+      if (outcome !== "complete") process.exitCode = 1;
+    } else {
+      const report = await adopt(options, version);
+      if (flags.has("--json")) console.log(JSON.stringify(report, null, 2));
+      else process.stdout.write(adoptSummary(report));
+      // Printing the template is the whole request without an answers file.
+      if (
+        report.outcome !== "complete" &&
+        (report.outcome !== "answers-required" ||
+          flags.has("--answers") ||
+          report.run)
+      )
+        process.exitCode = 1;
+    }
   } catch (error) {
     const diagnostic =
       error instanceof ProductError
@@ -91,7 +106,12 @@ if (args.length === 1 && args[0] === "--version") {
         JSON.stringify({ valid: false, errors: [diagnostic] }, null, 2),
       );
     else console.error(`[${diagnostic.code}] ${diagnostic.message}`);
-    process.exitCode = diagnostic.code === "USAGE" ? 2 : 1;
+    process.exitCode =
+      diagnostic.code === "USAGE"
+        ? 2
+        : diagnostic.code === "INTERRUPTED"
+          ? 130
+          : 1;
   }
 } else if (
   args[0] === "outdated" ||

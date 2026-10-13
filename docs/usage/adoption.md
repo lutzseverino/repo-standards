@@ -10,10 +10,12 @@ explicit retry and abandonment as described below.
 
 ## Adopt with one command
 
-`adopt` adopts a standards source, or updates an adopted project, for an agent.
-It drives the [inspect and start](#inspect-and-start) and
+`adopt` adopts a standards source, or updates an adopted project, for a person
+at a terminal or for an agent. It drives the [inspect and start](#inspect-and-start) and
 [resume](#recover-or-abandon-an-interrupted-run) commands below, which remain
-the lower-level interface, and prints the agent's next steps at every stage:
+the lower-level interface. In a terminal it asks its questions and
+[walks the person through contextual work](#in-a-terminal); otherwise it
+prints the agent's next steps at every stage:
 
 ```sh
 npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
@@ -26,7 +28,9 @@ the source cannot be reached, it proposes the current version and profile and
 applies them again from the retained standards, as `inspect` and `start` do
 without source flags.
 
-Without an answers file, `adopt` prints its questions as an answers-file
+Run with a terminal as its input and output, and without `--answers` or
+`--json`, `adopt` asks a person its questions; see [In a terminal](#in-a-terminal).
+Otherwise, without an answers file, `adopt` prints its questions as an answers-file
 template, with the inspection of the selection it proposes and the next steps,
 and changes nothing. It runs what inspection runs: remote setup readiness
 probes and, when discovery is required, declared discovery scripts. The agent
@@ -49,6 +53,48 @@ recover the run with it. With an active run,
 `adopt --answers <file>` continues it, advancing it by at most one step: a
 confirmed fix, or submitted assessments. A source, version, or profile that
 differs from the active run's selection fails with `ACTIVE_RUN`.
+
+### In a terminal
+
+In a terminal, `adopt` asks the answers file's questions one at a time, each
+with its context and its proposed answer as the default: the version, newest
+stable release first; the profile, listing each description; each discovery
+declaration's scope; remote setup deferral when a probe is not ready; and the
+confirmation of confirmation-required changes, showing each discarded edit's
+diff. A discovery script's open questions are asked as prompts, and the person
+accepts the drafted files or lists the files the declaration covers, with the
+reason. `adopt` then shows the inspection and asks to start the run, which
+answers `inspection`. Declining a confirmation or the start changes nothing.
+
+Once the run waits for contextual work, `adopt` walks each contextual
+declaration in turn:
+
+1. It shows the declaration's allowed targets, installed rules, adoption
+   guidance and, for a discovered declaration, discovery guidance.
+2. It waits while the person edits, until they press Enter or type `blocked`.
+3. It runs the declaration's checks against the working tree and shows each
+   result. While a check fails, it shows the failure and the declaration's
+   rules again, and waits for another edit.
+4. Once the checks pass, it asks a discovered declaration whether its
+   confirmed scope still covers every file it should, then whether the
+   declaration is done, or blocked with a reason.
+
+These checks run read-only inside the waiting run, as `check` runs them, and
+record nothing: the run's own check round after the assessment decides.
+`adopt` writes the assessment from the answers, citing each check result and
+the maintainer's confirmation, and submits it. When the run's checks then fail,
+it walks the failing declarations again. A blocked declaration leaves the run
+incomplete, its reason naming the declaration; running `adopt` again walks the
+contextual work again.
+
+An interruption at a prompt, `Ctrl-C` or the end of input, exits with
+status 130. Answers given before the start are held only in memory, so nothing was
+changed; once a run has started, running `adopt` again continues it where it
+stopped. A run interrupted during its operations is incomplete: `adopt` shows
+its reason and asks whether to retry the interrupted work, as `resume --retry`
+does, abandon the run, or stop. A run whose confirmed scope is incomplete can
+only be abandoned. A fix that stops the run for confirmation asks whether it
+may overwrite the setting.
 
 ### Answers file
 
@@ -103,12 +149,13 @@ For contextual work, the agent edits the allowed targets, answers each
 runtime. It refreshes the work request at the current project, submits the
 assessments, and runs the checks. A run that has just reached contextual work
 asks for new assessments; after failed checks, the answers just submitted are
-carried for renewal. `adopt` never retries or abandons a run: its next steps
-name the pinned `resume --retry` and `abandon`, which need the maintainer's
-explicit instruction.
+carried for renewal. Without a terminal, `adopt` never retries or abandons a
+run: its next steps name the pinned `resume --retry` and `abandon`, which need
+the maintainer's explicit instruction.
 
 Exit status is 0 for a complete run and for a template printed without an
-answers file, 1 for every other result or rejection, and 2 for invalid usage.
+answers file, 1 for every other result or rejection, 2 for invalid usage, and
+130 for a terminal session the person interrupted.
 Rejections use the common `valid: false` / `errors` diagnostic format with
 `--json`.
 

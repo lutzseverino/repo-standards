@@ -1306,6 +1306,39 @@ export function withStartRun(
   return AdoptionRunSession.scope(projectRoot(project), "start", callback);
 }
 
+// Reads the installation of the active run while it waits for contextual work
+// and its assessment, holding the worker lock around the callback, which must
+// leave the run unchanged.
+export async function withWaitingRun<T>(
+  project: string,
+  cliVersion: string,
+  callback: (installation: Installation) => Promise<T>,
+) {
+  const root = projectRoot(project);
+  const lock = lockPath(root);
+  requireRecordedCli(root, lock, cliVersion);
+  requireSupportedGit();
+  rejectUnsupportedRecords(root, lock, activeRunExemption(lock));
+  const release = acquireWorker(lock);
+  try {
+    if (!existsSync(lock))
+      throw new ProductError(
+        "NO_ACTIVE_RUN",
+        "No adoption run is active. Read status.",
+      );
+    const run = readRun(root, lock, true);
+    requirePinnedCli(root, run.selection.cli.version, cliVersion);
+    if (!canResumeAssessment(run))
+      throw new ProductError(
+        "RESUME_UNAVAILABLE",
+        "The active run does not wait for contextual work. Read status.",
+      );
+    return await callback(readInstallation(root, run));
+  } finally {
+    release();
+  }
+}
+
 export function withResumedRun(
   project: string,
   cliVersion: string,

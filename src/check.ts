@@ -21,6 +21,8 @@ import {
 } from "./recorded-state.js";
 import { installedRules } from "./rules.js";
 import { acquireWorker } from "./run-lock.js";
+import { withWaitingRun } from "./adoption-run.js";
+import type { ResolvedProfile } from "./model.js";
 import { concreteScope } from "./scope.js";
 
 // Runs the retained checks of the last complete adoption against the current
@@ -32,7 +34,8 @@ import { concreteScope } from "./scope.js";
 // the project, product state, HEAD and the index, and fails, naming the probe
 // or check and the changed paths, when that observation changed or can no
 // longer be made. It writes only its logs, under the ignored local directory,
-// and records nothing.
+// and records nothing. A terminal adoption runs one contextual declaration's
+// checks the same way while its run waits for contextual work.
 
 const logs = ".repo-standards/local/checks";
 
@@ -84,93 +87,7 @@ export async function check(
       );
     const { selection, resolved } = recorded;
     recorded.source();
-    const cited = installedRules(resolved.declarations);
-    const scope = concreteScope(resolved);
-    const requireUnchanged = readOnlyGuard(
-      root,
-      scope,
-      "CHECK_MUTATION",
-      "Checks must leave project content unchanged",
-    );
-    let group: number | undefined;
-    const requireStopped = (actor: string, error: string | null) => {
-      if (error === "AUTHOR_PROCESS_ACTIVE" || error === "PROCESS_STATE")
-        throw new ProductError(
-          error,
-          `${actor} left author process group ${group} with live processes, or its state cannot be read. Stop them before checking again.`,
-        );
-    };
-    const prerequisites = await preflight(
-      root,
-      resolved,
-      (spawned) => {
-        group = spawned;
-      },
-      ["checks"],
-    );
-    requireStopped(
-      "A prerequisite probe",
-      prerequisites.at(-1)?.process.error ?? null,
-    );
-    requireUnchanged("A prerequisite probe");
-    if (prerequisites.some((probe) => probe.code))
-      throw new ProductError(
-        "PREREQUISITES_BLOCKED",
-        "Resolve the reported executable and version problems; prerequisites are never installed automatically.",
-        prerequisites,
-      );
-    safeDirectory(root, logs);
-    rmSync(join(root, logs), { recursive: true, force: true });
-    const checks: CheckResult[] = [];
-    for (const selected of operations(resolved, "checks")) {
-      const actor = `Check ${selected.declaration}/${selected.operation.id}`;
-      const evidence = await execute(
-        root,
-        selected,
-        selection,
-        resolved,
-        (spawned) => {
-          group = spawned;
-        },
-      );
-      const log = `${logs}/${checks.length}`;
-      const keepLogs = () => {
-        write(root, `${log}.stdout`, file(evidence.stdout));
-        write(root, `${log}.stderr`, file(evidence.stderr));
-      };
-      // Observe before keeping the logs, so a change the check made is
-      // reported as its change; its logs are then kept where possible.
-      try {
-        requireStopped(actor, evidence.process.error);
-        requireUnchanged(actor);
-      } catch (error) {
-        try {
-          keepLogs();
-        } catch {
-          /* Report the check's change, not the logs. */
-        }
-        throw error;
-      }
-      keepLogs();
-      const status = evidence.result
-        ? (evidence.result.status as CheckResult["status"])
-        : "error";
-      checks.push({
-        declaration: selected.declaration,
-        id: selected.operation.id,
-        status,
-        message:
-          evidence.result?.message ??
-          `The check did not return a successful process and protocol result (${[evidence.error, evidence.process.error].filter(Boolean).join(": ")}). Read its logs.`,
-        error: evidence.error,
-        rules:
-          status === "passed"
-            ? null
-            : (cited.get(selected.declaration) ?? null),
-        stdout: `${log}.stdout`,
-        stderr: `${log}.stderr`,
-      });
-    }
+    const checks = await runChecks(root, resolved, selection);
     return {
       format: formats.check,
       outcome: checks.every((result) => result.status === "passed")
@@ -182,6 +99,127 @@ export async function check(
   } finally {
     release();
   }
+}
+
+// Runs one contextual declaration's retained checks against the working tree
+// while its run waits for contextual work, as adopt does in a terminal before
+// asking whether the declaration is done. It records nothing in the run: the
+// run's own check round after the assessment decides.
+export async function checkContextual(
+  project: string,
+  cliVersion: string,
+  declaration: string,
+) {
+  return withWaitingRun(project, cliVersion, ({ report }) =>
+    runChecks(
+      projectRoot(project),
+      report.resolved,
+      report.selection,
+      declaration,
+    ),
+  );
+}
+
+// Runs the checks of a resolved selection, or of one of its declarations,
+// each whatever earlier checks returned, observing that each leaves the
+// project unchanged, and keeps their logs.
+async function runChecks(
+  root: string,
+  resolved: Pick<ResolvedProfile, "declarations">,
+  selection: { standards: unknown; profile: string },
+  declaration?: string,
+) {
+  const cited = installedRules(resolved.declarations);
+  const scope = concreteScope(resolved);
+  const selected = {
+    declarations: resolved.declarations.filter(
+      (entry) => declaration === undefined || entry.id === declaration,
+    ),
+  };
+  const requireUnchanged = readOnlyGuard(
+    root,
+    scope,
+    "CHECK_MUTATION",
+    "Checks must leave project content unchanged",
+  );
+  let group: number | undefined;
+  const requireStopped = (actor: string, error: string | null) => {
+    if (error === "AUTHOR_PROCESS_ACTIVE" || error === "PROCESS_STATE")
+      throw new ProductError(
+        error,
+        `${actor} left author process group ${group} with live processes, or its state cannot be read. Stop them before checking again.`,
+      );
+  };
+  const prerequisites = await preflight(
+    root,
+    selected,
+    (spawned) => {
+      group = spawned;
+    },
+    ["checks"],
+  );
+  requireStopped(
+    "A prerequisite probe",
+    prerequisites.at(-1)?.process.error ?? null,
+  );
+  requireUnchanged("A prerequisite probe");
+  if (prerequisites.some((probe) => probe.code))
+    throw new ProductError(
+      "PREREQUISITES_BLOCKED",
+      "Resolve the reported executable and version problems; prerequisites are never installed automatically.",
+      prerequisites,
+    );
+  safeDirectory(root, logs);
+  rmSync(join(root, logs), { recursive: true, force: true });
+  const checks: CheckResult[] = [];
+  for (const operation of operations(selected, "checks")) {
+    const actor = `Check ${operation.declaration}/${operation.operation.id}`;
+    const evidence = await execute(
+      root,
+      operation,
+      selection,
+      resolved,
+      (spawned) => {
+        group = spawned;
+      },
+    );
+    const log = `${logs}/${checks.length}`;
+    const keepLogs = () => {
+      write(root, `${log}.stdout`, file(evidence.stdout));
+      write(root, `${log}.stderr`, file(evidence.stderr));
+    };
+    // Observe before keeping the logs, so a change the check made is
+    // reported as its change; its logs are then kept where possible.
+    try {
+      requireStopped(actor, evidence.process.error);
+      requireUnchanged(actor);
+    } catch (error) {
+      try {
+        keepLogs();
+      } catch {
+        /* Report the check's change, not the logs. */
+      }
+      throw error;
+    }
+    keepLogs();
+    const status = evidence.result
+      ? (evidence.result.status as CheckResult["status"])
+      : "error";
+    checks.push({
+      declaration: operation.declaration,
+      id: operation.operation.id,
+      status,
+      message:
+        evidence.result?.message ??
+        `The check did not return a successful process and protocol result (${[evidence.error, evidence.process.error].filter(Boolean).join(": ")}). Read its logs.`,
+      error: evidence.error,
+      rules:
+        status === "passed" ? null : (cited.get(operation.declaration) ?? null),
+      stdout: `${log}.stdout`,
+      stderr: `${log}.stderr`,
+    });
+  }
+  return checks;
 }
 
 // A message or profile on one line, so it cannot pass for another line.
