@@ -13,7 +13,8 @@ alternatives.
 - [Use agent discovery with confirmed concrete scope](0003-use-agent-discovery-with-confirmed-concrete-scope.md):
   agents propose evidence-backed file paths from author discovery guidance;
   amended by ADR 0017, adopters review the proposal with the inspection and no
-  longer confirm it.
+  longer confirm it; superseded in part by ADR 0019, which allows discovery
+  scripts.
 - [Amend scope without redefining installed ownership](0004-amend-scope-without-redefining-installed-ownership.md):
   superseded by ADR 0009; an active run accepted confirmed additions to its
   discovered scope while keeping its selection and installed expectations.
@@ -62,3 +63,7 @@ alternatives.
 - [Add a private Astro site workspace](0018-add-a-private-astro-site-workspace.md):
   a static website shares repository tooling and deploys independently to
   GitHub Pages from `main`.
+- [Run declared discovery scripts read-only during inspection](0019-run-declared-discovery-scripts-read-only.md):
+  a discovery declaration may name a script, declared and bounded like a check,
+  that inspection runs in a copy of the project to draft a scope proposal and
+  its open questions; it never decides scope.

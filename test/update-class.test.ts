@@ -206,7 +206,7 @@ test("an update is exact when only exact content or the selection changes, inclu
   assert.deepEqual(exactRules.contextualChanges, []);
 });
 
-test("each change to guidance, rules, discovery guidance, operations, retired declarations, or confirmed scope makes the update contextual", async (t) => {
+test("each change to guidance, rules, discovery guidance or script, operations, retired declarations, or confirmed scope makes the update contextual", async (t) => {
   const f = await adopted(t);
   // An active discovery declaration without a confirmed proposal has no scope
   // that can equal the retained one yet.
@@ -242,6 +242,30 @@ test("each change to guidance, rules, discovery guidance, operations, retired de
       "discovery guidance",
       declarations,
       { "discovery.md": "Include the README of every deployed project.\n" },
+      ["discovery"],
+    ],
+    [
+      "discovery script",
+      {
+        ...declarations,
+        docs: {
+          ...declarations.docs,
+          "discovery-script": {
+            run: {
+              executable: "node",
+              script: "draft.mjs",
+              resources: [],
+              arguments: [],
+            },
+            prerequisite: {
+              "version-arguments": ["--version"],
+              version: ">=24.0.0",
+            },
+            "timeout-seconds": 5,
+          },
+        },
+      },
+      { "draft.mjs": "process.exit(1);\n" },
       ["discovery"],
     ],
     [

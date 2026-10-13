@@ -47,17 +47,23 @@ export async function preflight(
   for (const { declaration, phase, operation } of phases.flatMap((phase) =>
     operations(resolved, phase),
   )) {
-    const probe = await probePrerequisite(root, operation, onSpawn);
+    const { version, code, process } = await probePrerequisite(
+      root,
+      operation,
+      onSpawn,
+    );
     evidence.push({
       declaration,
       phase,
       operation: operation.id,
       executable: operation.run.executable,
-      ...probe,
+      version,
+      code,
+      process,
     });
     if (
-      probe.process.error === "AUTHOR_PROCESS_ACTIVE" ||
-      probe.process.error === "PROCESS_STATE"
+      process.error === "AUTHOR_PROCESS_ACTIVE" ||
+      process.error === "PROCESS_STATE"
     )
       break;
   }
@@ -65,7 +71,8 @@ export async function preflight(
 }
 
 // Invokes a script's executable with its version arguments and compares the
-// first version either output stream reports with the declared range.
+// first version either output stream reports with the declared range; the
+// output explains a code.
 export async function probePrerequisite(
   root: string,
   script: Script,
@@ -108,7 +115,8 @@ export async function probePrerequisite(
           : !semver.satisfies(version, script.prerequisite.version)
             ? "VERSION_INCOMPATIBLE"
             : null;
-  return { version, code, process: result.outcome };
+  const { stdout, stderr } = result;
+  return { version, code, process: result.outcome, stdout, stderr };
 }
 
 export interface OperationEvidence {
@@ -132,6 +140,19 @@ export interface OperationEvidence {
   stdout: string;
   stderr: string;
 }
+// Why an author process did not complete successfully, or null when it did.
+export function processError(outcome: OperationEvidence["process"]) {
+  return outcome.timedOut
+    ? "TIMEOUT"
+    : outcome.error
+      ? "PROCESS_ERROR"
+      : outcome.signal
+        ? "SIGNAL"
+        : outcome.exitCode !== 0
+          ? "NONZERO_EXIT"
+          : null;
+}
+
 // A fix may overwrite an existing setting with a different value only when the
 // maintainer confirmed that overwrite; otherwise it reports
 // `confirmation-required` without changing anything. A check or probe never
@@ -172,15 +193,7 @@ export async function execute(
     operation: identity,
     process: process.outcome,
     result: null,
-    error: process.outcome.timedOut
-      ? "TIMEOUT"
-      : process.outcome.error
-        ? "PROCESS_ERROR"
-        : process.outcome.signal
-          ? "SIGNAL"
-          : process.outcome.exitCode !== 0
-            ? "NONZERO_EXIT"
-            : null,
+    error: processError(process.outcome),
     stdout: process.stdout,
     stderr: process.stderr,
   };
@@ -219,8 +232,9 @@ export async function execute(
 }
 
 // Use a process group so a timed-out interpreter and its children cannot keep
-// adoption waiting on inherited pipes. Author processes still have host access.
-function invoke(
+// adoption waiting on inherited pipes. Author processes still have host access;
+// PWD names their working directory, not the CLI's.
+export function invoke(
   executable: string,
   args: string[],
   cwd: string,
@@ -236,6 +250,7 @@ function invoke(
   }>((resolve) => {
     const child = spawn(executable, args, {
       cwd,
+      env: { ...process.env, PWD: cwd },
       detached: true,
       stdio: ["pipe", "pipe", "pipe"],
     });

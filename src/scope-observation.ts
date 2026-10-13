@@ -7,6 +7,7 @@ import {
   opendirSync,
   readSync,
   readlinkSync,
+  type Stats,
 } from "node:fs";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import { homedir } from "node:os";
@@ -84,6 +85,52 @@ export function scopeEvidence(
 
 // One bounded observation is compared with a second before issuing a report.
 // Only eligible files and named boundaries are read, never ignored siblings.
+// Reads the regular file an lstat found, without following a link, blocking
+// on a special file or reading past the byte limit, and fails as unstable when
+// the file is replaced or changes while it is read.
+export function readStable(path: string, before: Stats) {
+  const fd = openSync(
+    path,
+    constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
+  );
+  try {
+    const opened = fstatSync(fd);
+    if (
+      !opened.isFile() ||
+      opened.ino !== before.ino ||
+      opened.dev !== before.dev ||
+      opened.size !== before.size
+    )
+      throw new ProductError(
+        "OBSERVATION_UNSTABLE",
+        "Discovery evidence changed while opening it.",
+      );
+    const buffer = Buffer.alloc(
+      Math.min(before.size + 1, limits.fileBytes + 1),
+    );
+    let length = 0;
+    while (length < buffer.length) {
+      const read = readSync(fd, buffer, length, buffer.length - length, null);
+      if (!read) break;
+      length += read;
+    }
+    const content = buffer.subarray(0, length);
+    const after = fstatSync(fd);
+    if (
+      content.length !== before.size ||
+      after.mtimeMs !== before.mtimeMs ||
+      after.ctimeMs !== before.ctimeMs
+    )
+      throw new ProductError(
+        "OBSERVATION_UNSTABLE",
+        "Discovery evidence changed while reading it.",
+      );
+    return { content, mode: after.mode };
+  } finally {
+    closeSync(fd);
+  }
+}
+
 export function observeScope(
   root: string,
   named: string[] = [],
@@ -127,56 +174,12 @@ export function observeScope(
           "OBSERVATION_LIMIT",
           "Discovery observation exceeds the byte limit.",
         );
-      const fd = openSync(
-        path,
-        constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK,
-      );
-      try {
-        const opened = fstatSync(fd);
-        if (
-          !opened.isFile() ||
-          opened.ino !== before.ino ||
-          opened.dev !== before.dev ||
-          opened.size !== before.size
-        )
-          throw new ProductError(
-            "OBSERVATION_UNSTABLE",
-            "Discovery evidence changed while opening it.",
-          );
-        const buffer = Buffer.alloc(
-          Math.min(before.size + 1, limits.fileBytes + 1),
-        );
-        let length = 0;
-        while (length < buffer.length) {
-          const read = readSync(
-            fd,
-            buffer,
-            length,
-            buffer.length - length,
-            null,
-          );
-          if (!read) break;
-          length += read;
-        }
-        const content = buffer.subarray(0, length);
-        const after = fstatSync(fd);
-        if (
-          content.length !== before.size ||
-          after.mtimeMs !== before.mtimeMs ||
-          after.ctimeMs !== before.ctimeMs
-        )
-          throw new ProductError(
-            "OBSERVATION_UNSTABLE",
-            "Discovery evidence changed while reading it.",
-          );
-        return {
-          type: "file",
-          sha256: hash(content),
-          executable: (after.mode & 0o111) !== 0,
-        };
-      } finally {
-        closeSync(fd);
-      }
+      const { content, mode } = readStable(path, before);
+      return {
+        type: "file",
+        sha256: hash(content),
+        executable: (mode & 0o111) !== 0,
+      };
     } catch (error) {
       if (error instanceof ProductError) throw error;
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {

@@ -35,6 +35,7 @@ import {
   type RemoteSetup,
 } from "./remote-setup.js";
 import { validateScope } from "./scope.js";
+import { draftScope } from "./discovery-script.js";
 import {
   judgeTargetOwnership,
   type OwnedTarget,
@@ -351,10 +352,34 @@ export async function inspectForStart(
     });
     const { proposal, resolved, named, namedObservation, absence } = scope;
     blockers.push(...scope.blockers);
+    const selection = {
+      cli: { package: "@lutzseverino/repo-standards", version: cliVersion },
+      standards: source.identity,
+      profile: options.profile,
+    };
+    // Without a proposal, each declared discovery script drafts its
+    // declaration's entry for the agent or person to review and complete.
+    const drafted = [];
+    if (scopeObservation && !proposal)
+      for (const declaration of discoveryDeclarations)
+        if (declaration["discovery-script"])
+          drafted.push(
+            await draftScope({
+              root,
+              observation: scopeObservation,
+              sourceRoot: source.root,
+              declaration: declaration.id,
+              script: declaration["discovery-script"],
+              selection,
+            }),
+          );
     const discovery = scopeObservation
       ? {
           identity: requestIdentity!,
           ...(proposal ? { proposal, absence, namedObservation } : {}),
+          ...(drafted.length
+            ? { draft: { format: formats.scope, declarations: drafted } }
+            : {}),
           declarations: discoveryDeclarations.map((declaration) => ({
             id: declaration.id,
             source: declaration.discovery,
@@ -364,11 +389,6 @@ export async function inspectForStart(
           observation: scopeObservation,
         }
       : undefined;
-    const selection = {
-      cli: { package: "@lutzseverino/repo-standards", version: cliVersion },
-      standards: source.identity,
-      profile: options.profile,
-    };
     // Retain a normalized source with only the selected profile. The resolver
     // remains the sole interpreter when this source is used in a fresh checkout.
     const inputs: Record<string, Observation> = dictionary();
@@ -402,6 +422,10 @@ export async function inspectForStart(
           ...declaration.fixes,
           ...declaration.checks,
           ...remoteSetupFixes([declaration]).map(({ probe }) => probe),
+          ...("discovery-script" in declaration &&
+          declaration["discovery-script"]
+            ? [declaration["discovery-script"]]
+            : []),
         ].flatMap((script) => [script.run.script, ...script.run.resources]),
       ];
       for (const path of paths) inputs[path] = observe(join(source.root, path));
@@ -739,7 +763,7 @@ export async function inspectForStart(
         : {}),
       discardedEdits,
       // Discarding a person's edits is the only confirmation-required change
-      // inspection can see; it runs no source code to find others.
+      // inspection can see; it runs no fix to find others.
       confirmation: {
         required: discardedEdits.length > 0,
         reasons: discardedEdits.map((target) => ({

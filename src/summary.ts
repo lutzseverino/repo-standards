@@ -1,6 +1,7 @@
 import type { Declaration } from "./model.js";
 import type { Blocker, HashInventory } from "./observation.js";
 import type { ScopeChange } from "./scope-evidence.js";
+import type { ScopeProposal } from "./scope.js";
 import { declarationTargets, installationTarget } from "./targets.js";
 
 // One renderer turns an inspection report or a status record into a Markdown
@@ -62,7 +63,11 @@ export interface InspectionReport {
     records: { path: string; format: string; expected: string }[];
     files: string[];
   };
-  discovery?: { declarations: { id: string }[]; proposal?: unknown };
+  discovery?: {
+    declarations: { id: string }[];
+    proposal?: unknown;
+    draft?: ScopeProposal;
+  };
   scopeChanges?: ScopeChange[];
   retired?: Declaration[];
   remoteSetup: {
@@ -211,6 +216,27 @@ function scopeTable(changes: ScopeChange[]) {
       list(change.additions.map(code), "none"),
       list(change.removals.map(code), "none"),
     ]),
+  );
+}
+
+function draftTable(draft: ScopeProposal) {
+  return table(
+    ["Declaration", "Included", "Excluded", "Open questions"],
+    draft.declarations.map((entry) => {
+      const paths = (decision: string) =>
+        list(
+          entry.candidates
+            .filter((candidate) => candidate.decision === decision)
+            .map((candidate) => code(candidate.path)),
+          "none",
+        );
+      return [
+        code(entry.id),
+        paths("include"),
+        paths("exclude"),
+        entry.unresolved.map(text).join(" ") || "none",
+      ];
+    }),
   );
 }
 
@@ -449,8 +475,11 @@ export function inspectionSummary(report: InspectionReport) {
   const discovered =
     report.discovery?.declarations.map((declaration) => declaration.id) ?? [];
   let scope: string;
+  const draft = report.discovery?.draft;
   if (discovered.length && !report.discovery!.proposal)
-    scope = "Discovery scope is not confirmed.";
+    scope = draft
+      ? `Discovery scope is not confirmed. Discovery scripts drafted these entries; answer their open questions in the proposal.\n\n${draftTable(draft)}`
+      : "Discovery scope is not confirmed.";
   else if (!update) {
     const confirmed = report.resolved.declarations
       .filter((declaration) => discovered.includes(declaration.id))

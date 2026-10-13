@@ -12,6 +12,7 @@ export const formats = {
   status: "repo-standards/status/v8",
   inspection: "repo-standards/inspection/v8",
   scope: "repo-standards/scope/v2",
+  discovery: "repo-standards/discovery/v1",
   workRequest: "repo-standards/work-request/v4",
   assessment: "repo-standards/assessment/v3",
   operation: "repo-standards/operation/v2",

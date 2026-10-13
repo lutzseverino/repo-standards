@@ -22,11 +22,12 @@ import { declarationTargets, type Targets } from "./targets.js";
 //
 // An update's class says whether anything an adopter reviews in context
 // changes. It is exact only when every declaration's guidance, discovery
-// guidance, operations (definition, script, arguments, resources and any
-// remote setup probe), and confirmed scope, and every contextual declaration's
-// rules, are hash-identical to the retained inputs and no declaration retires;
-// any difference makes it contextual. Exact content, an exact declaration's
-// rules, skills and the selection itself never affect the class.
+// guidance and script, operations (definition, script, arguments, resources
+// and any remote setup probe), and confirmed scope, and every contextual
+// declaration's rules, are hash-identical to the retained inputs and no
+// declaration retires; any difference makes it contextual. Exact content, an
+// exact declaration's rules, skills and the selection itself never affect the
+// class.
 type UpdateClass = "exact" | "contextual";
 type ContextualChange =
   "guidance" | "rules" | "discovery" | "operations" | "scope" | "retired";
@@ -94,6 +95,12 @@ function candidateFiles(candidate: UpdateCandidate, path: string): FileHashes {
   return sorted(files);
 }
 
+// A discovery declaration's discovery guidance and optional script.
+interface Discovery {
+  discovery: string;
+  "discovery-script"?: Script | undefined;
+}
+
 // The reviewable material of one declaration, built field by field so that
 // the comparison does not depend on how either side was serialized.
 function material(
@@ -103,7 +110,7 @@ function material(
     fixes?: Operation[];
     checks?: Operation[];
   },
-  discovery: string | undefined,
+  discovery: Discovery | undefined,
   scope: Targets | undefined,
   files: (path: string) => FileHashes,
 ) {
@@ -128,6 +135,7 @@ function material(
         ? { probe: script(operation["remote-setup"].probe) }
         : null,
     }));
+  const discoveryScript = discovery?.["discovery-script"];
   const guided = declaration.guidance !== undefined;
   return {
     guidance: guided ? JSON.stringify(files(declaration.guidance!)) : null,
@@ -137,7 +145,12 @@ function material(
         ? JSON.stringify(files(declaration.rules))
         : null,
     discovery:
-      discovery === undefined ? null : JSON.stringify(files(discovery)),
+      discovery === undefined
+        ? null
+        : JSON.stringify({
+            guidance: files(discovery.discovery),
+            script: discoveryScript ? script(discoveryScript) : null,
+          }),
     operations: JSON.stringify({
       fixes: operations(declaration.fixes),
       checks: operations(declaration.checks),
@@ -163,7 +176,7 @@ function targets(declaration: Declaration | undefined): Targets | undefined {
 // discovered with.
 function declarationChanges(
   recorded: RecordedAdoption,
-  discovery: ReadonlyMap<string, string>,
+  discovery: ReadonlyMap<string, Discovery>,
   candidate: UpdateCandidate,
   next: SourceDeclaration,
 ): ContextualChange[] {
@@ -177,7 +190,7 @@ function declarationChanges(
     : material({}, undefined, undefined, () => ({}));
   const after = material(
     next,
-    "discovery" in next ? next.discovery : undefined,
+    "discovery" in next ? next : undefined,
     targets(
       candidate.resolved.find((declaration) => declaration.id === next.id),
     ),
@@ -259,10 +272,12 @@ export function compareUpdate(
     (old) =>
       !candidate.declarations.some((declaration) => declaration.id === old.id),
   );
-  const discovery = new Map<string, string>(
+  const discovery = new Map<string, Discovery>(
     (recorded.scopeEvidence?.sourceResolved?.declarations ?? []).flatMap(
-      (declaration) =>
-        declaration.discovery ? [[declaration.id, declaration.discovery]] : [],
+      ({ id, discovery, "discovery-script": script }) =>
+        discovery
+          ? [[id, { discovery, "discovery-script": script }] as const]
+          : [],
     ),
   );
   const contextualChanges: DeclarationChanges[] = [

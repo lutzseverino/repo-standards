@@ -470,6 +470,19 @@ The `adopt-standards` skill's
 [discovery reference](../../skills/adopt-standards/references/discovery.md)
 describes building one.
 
+A declaration may name a
+[discovery script](script-protocol.md#discovery-scripts). Then this first
+inspection runs it read-only and returns its entry in `discovery.draft`, a
+`repo-standards/scope/v2` proposal with one entry per script, in declaration ID
+order. A draft is a starting point, never an accepted scope: the report keeps
+`DISCOVERY_REQUIRED`, and the `--summary` proposal lists each draft's included
+and excluded candidates and open questions. Answer the questions in
+`unresolved` with the maintainer, complete the entries of declarations without
+a script, and inspect the proposal with `--scope` as below. Inspection with
+`--scope` runs no script. A script that fails, times out or changes its copy of
+the project fails inspection with `DISCOVERY_SCRIPT_FAILED`, and the project is
+unchanged.
+
 Write the JSON proposal **outside the adopting project**, then inspect it:
 
 ```sh
