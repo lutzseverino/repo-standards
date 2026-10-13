@@ -10,9 +10,11 @@ import {
 } from "./adopt.js";
 import { projectRoot } from "./adoption-files.js";
 import { abandon, resume } from "./adoption.js";
-import { checkContextual, type CheckResult } from "./check.js";
+import type { Judgment, ScopeReview } from "./assessment.js";
+import { checkContextual } from "./check.js";
 import { ProductError } from "./errors.js";
 import { record } from "./records.js";
+import type { Candidate } from "./scope.js";
 
 // Guided adoption in a terminal: adopt asks a person the questions an answers
 // file holds, one stage at a time with each default proposed, then walks each
@@ -64,41 +66,21 @@ export function processTerminal(): Terminal {
 }
 
 const pinnedCli = ".repo-standards/runtime/node_modules/.bin/repo-standards";
+const editing =
+  "Edit the files now. Press Enter when you are done, or type blocked: ";
+const fixing = "Fix it, then press Enter to check again, or type blocked: ";
 
 type Contextual = NonNullable<AdoptReport["contextual"]>[number];
-interface ScopeReview {
-  status: "valid" | "blocked";
-  explanation: string;
-  evidence: string[];
-  additionalPaths: string[];
-}
-interface Judgment {
-  status: "satisfied" | "blocked";
-  explanation: string;
-  evidence: string[];
-  scopeValidity?: { afterFixes: ScopeReview; current: ScopeReview };
+// A judgment adopt writes; the question names its declaration.
+type Answer = Omit<Judgment, "id">;
+interface Session {
+  root: string;
+  cliVersion: string;
 }
 
-export async function adoptInTerminal(
-  options: AdoptOptions,
-  cliVersion: string,
-  terminal: Terminal,
-): Promise<AdoptReport["outcome"]> {
-  const root = projectRoot(options.project);
-  const answers: Answers = new Map();
-  // This session's judgments, kept for declarations a later walk skips.
-  const judged = new Map<string, Judgment>();
-  let presented: string | undefined;
-  let submitted = false;
-  const { write } = terminal;
-
-  // A line the person must not leave empty.
-  const required = async (prompt: string) => {
-    for (;;) {
-      const typed = await terminal.ask(prompt);
-      if (typed) return typed;
-    }
-  };
+// The ways adopt asks a person through a terminal.
+type Prompts = ReturnType<typeof prompts>;
+function prompts({ write, ask }: Terminal) {
   // One of the choices, or the fallback when the person types nothing.
   const choose = async <T extends string>(
     prompt: string,
@@ -106,52 +88,56 @@ export async function adoptInTerminal(
     fallback?: T,
   ) => {
     for (;;) {
-      const typed = (await terminal.ask(prompt)).toLowerCase();
+      const typed = (await ask(prompt)).toLowerCase();
       if (!typed && fallback) return fallback;
       const chosen = Object.hasOwn(choices, typed) ? choices[typed] : undefined;
       if (chosen) return chosen;
       write(`Type ${Object.keys(choices).join(", ")}.\n`);
     }
   };
-  const yes = (prompt: string, fallback: "yes" | "no") =>
-    choose(prompt, { y: "yes", yes: "yes", n: "no", no: "no" }, fallback).then(
-      (answer) => answer === "yes",
-    );
-  const completed = () => {
-    write(
-      `\nThe adoption is complete. Its changes are uncommitted.\nReview them with git status and git diff, then commit them through the project's normal workflow. ${pinnedCli} status says whether the run is ready to commit, and ${pinnedCli} status --summary renders its adoption record.\n`,
-    );
-    return "complete" as const;
+  return {
+    write,
+    ask,
+    choose,
+    // A line the person must not leave empty.
+    required: async (prompt: string) => {
+      for (;;) {
+        const typed = await ask(prompt);
+        if (typed) return typed;
+      }
+    },
+    yes: async (prompt: string, fallback: "yes" | "no") =>
+      (await choose(
+        prompt,
+        { y: "yes", yes: "yes", n: "no", no: "no" },
+        fallback,
+      )) === "yes",
+    // One of the names, or the proposed one when the person types nothing.
+    named: async (label: string, proposed: string | null, names: string[]) => {
+      for (;;) {
+        const typed =
+          (await ask(`${label}${proposed ? ` [${proposed}]` : ""}: `)) ||
+          proposed;
+        if (typed && names.includes(typed)) return typed;
+        if (typed) write(`Choose one of: ${names.join(", ")}.\n`);
+      }
+    },
   };
-  // A run that needs the maintainer's decision: a retry of its interrupted
-  // work, which continues the session, or abandonment, or stopping here.
-  // A run's confirmed scope never changes, so retrying it cannot help.
-  const decide = async (reason: string) => {
-    write(`\nThe run is incomplete: ${reason}\n`);
-    const scope = reason.startsWith("SCOPE_INCOMPLETE:");
-    const choice = scope
-      ? await choose("Abandon the run, or stop? [abandon/stop]: ", {
-          abandon: "abandon",
-          stop: "stop",
-        })
-      : await choose(
-          "Retry the interrupted work, abandon the run, or stop? [retry/abandon/stop]: ",
-          { retry: "retry", abandon: "abandon", stop: "stop" },
-        );
-    if (choice === "retry") {
-      write("Retrying the run's interrupted work.\n");
-      const run = await resume(root, cliVersion, undefined, true);
-      return run.outcome === "complete" ? completed() : undefined;
-    }
-    if (choice === "abandon") {
-      abandon(root, cliVersion);
-      write(
-        `Abandoned the run. Its changes stay in the project, and ${pinnedCli} status shows its report.${scope ? " Commit or discard the changes, then run adopt again to confirm a new scope." : ""}\n`,
-      );
-    } else
-      write(`Run adopt again to decide, or read ${pinnedCli} status first.\n`);
-    return "incomplete" as const;
-  };
+}
+
+export async function adoptInTerminal(
+  options: AdoptOptions,
+  cliVersion: string,
+  terminal: Terminal,
+): Promise<AdoptReport["outcome"]> {
+  const prompt = prompts(terminal);
+  const { write } = prompt;
+  const session = { root: projectRoot(options.project), cliVersion };
+  const answers: Answers = new Map();
+  // This session's judgments, kept for declarations a later walk skips.
+  const judged = new Map<string, Answer>();
+  let presented: string | undefined;
+  let submitted = false;
 
   write("Repository Standards adoption\n");
   for (;;) {
@@ -188,7 +174,10 @@ export async function adoptInTerminal(
           };
           write(`\nFix ${fix} stopped the run: ${reason}\n`);
           if (
-            await yes("Allow the fix to overwrite the setting? [y/N]: ", "no")
+            await prompt.yes(
+              "Allow the fix to overwrite the setting? [y/N]: ",
+              "no",
+            )
           ) {
             answers.set(question!.id, identity);
             write("Running the fix again, allowed to overwrite.\n");
@@ -200,7 +189,7 @@ export async function adoptInTerminal(
           return report.outcome;
         }
         if (report.blockers.length) {
-          showBlockers(terminal, report);
+          showBlockers(prompt, report);
           return report.outcome;
         }
         const asked = report.answers.questions.filter((question) =>
@@ -216,7 +205,7 @@ export async function adoptInTerminal(
           for (const question of scopes)
             answers.set(
               question.id,
-              await askScope(terminal, root, question, report, required),
+              await askScope(prompt, session.root, question, report),
             );
           continue;
         }
@@ -225,127 +214,36 @@ export async function adoptInTerminal(
           presented = report.inspection.identity;
         }
         for (const question of asked) {
-          switch (question.id) {
-            case "version": {
-              write(`\n${question.question}\n${question.context}\n`);
-              const releases = question.choices as string[] | undefined;
-              if (releases)
-                write(
-                  `Stable releases: ${releases.slice(0, 10).join(", ")}${releases.length > 10 ? `, and ${releases.length - 10} more` : ""}.\n`,
-                );
-              const proposed = question.answer as string | null;
-              for (;;) {
-                const version =
-                  (await terminal.ask(
-                    `Version${proposed ? ` [${proposed}]` : ""}: `,
-                  )) || proposed;
-                if (!version) continue;
-                if (releases && !releases.includes(version)) {
-                  write(`Choose a stable release, such as ${releases[0]}.\n`);
-                  continue;
-                }
-                answers.set("version", version);
-                break;
-              }
-              break;
-            }
-            case "profile": {
-              write(`\n${question.question}\n${question.context}\n`);
-              const profiles = question.choices as {
-                name: string;
-                description: string;
-              }[];
-              for (const { name, description } of profiles)
-                write(`  ${name}: ${description}\n`);
-              const names = profiles.map(({ name }) => name);
-              const proposed = question.answer as string | null;
-              for (;;) {
-                const profile =
-                  (await terminal.ask(
-                    `Profile${proposed ? ` [${proposed}]` : ""}: `,
-                  )) || proposed;
-                if (profile && names.includes(profile)) {
-                  answers.set("profile", profile);
-                  break;
-                }
-                if (profile) write(`Choose one of: ${names.join(", ")}.\n`);
-              }
-              break;
-            }
-            case "remote-setup":
-              write("\nRemote setup is not ready:\n");
-              for (const entry of question.details as {
-                declaration: string;
-                id: string;
-                reason: string;
-              }[])
-                write(`- ${entry.declaration}/${entry.id}: ${entry.reason}\n`);
-              write(`${question.context}\n`);
-              answers.set(
-                "remote-setup",
-                await choose(
-                  "Defer it, or resolve it first? [defer/resolve]: ",
-                  { defer: "defer", resolve: "resolve" },
-                ),
-              );
-              break;
-            case "confirmation":
-              write("\nThe run discards these edits:\n");
-              for (const entry of report.discarded ?? []) {
-                write(`\n${entry.target}:\n`);
-                for (const changed of entry.files)
-                  write(
-                    changed.diff !== undefined
-                      ? `${changed.diff.trimEnd()}\n`
-                      : `${changed.path}: its ${changed.binary ? "binary " : ""}content is replaced.\n`,
-                  );
-                if (!entry.files.length)
-                  write(
-                    `It is replaced whole with ${entry.replacement ?? "its candidate content"}.\n`,
-                  );
-              }
-              if (!(await yes("Discard these edits? [y/N]: ", "no"))) {
-                write("Nothing was changed.\n");
-                return report.outcome;
-              }
-              answers.set("confirmation", report.inspection!.identity);
-              break;
-            case "inspection":
-              write(
-                "\nThe run carries out the inspection above: it installs its changes and runs its operations, trusted scripts with your access to this host, its environment, and the network.\n",
-              );
-              if (!(await yes("Start the run? [Y/n]: ", "yes"))) {
-                write("Nothing was changed.\n");
-                return report.outcome;
-              }
-              answers.set("inspection", question.answer);
-              write(
-                "Starting the run: it installs the exact content and runs the fixes.\n",
-              );
-              break;
+          const answer = await askSelection(prompt, question, report);
+          if (answer === undefined) {
+            write("Nothing was changed.\n");
+            return report.outcome;
           }
+          answers.set(question.id, answer);
         }
         continue;
       }
       case "blocked":
         if (report.run)
           write(`\nThe run stopped before writing anything: ${reason}\n`);
-        else if (report.blockers.length) showBlockers(terminal, report);
+        else if (report.blockers.length) showBlockers(prompt, report);
         else
           write(
             "\nNothing was changed. Resolve the remote setup that is not ready, then run adopt again.\n",
           );
         return report.outcome;
       case "contextual": {
+        // A run's confirmed scope never changes, so walking it again cannot
+        // help.
         if (reason.startsWith("SCOPE_INCOMPLETE:")) {
-          const outcome = await decide(reason);
+          const outcome = await decide(prompt, session, reason);
           if (outcome) return outcome;
           continue;
         }
-        const blocked = [...judged].filter(
-          ([, judgment]) => judgment.status === "blocked",
-        );
         if (submitted && reason.startsWith("ASSESSMENT_BLOCKED:")) {
+          const blocked = [...judged].filter(
+            ([, judgment]) => judgment.status === "blocked",
+          );
           write(
             `\nThe run is incomplete. Blocked: ${blocked.map(([id, judgment]) => `${id}: ${judgment.explanation}`).join("; ")}\nResolve it, then run adopt again to continue.\n`,
           );
@@ -367,12 +265,11 @@ export async function adoptInTerminal(
           judged.set(
             declaration.id,
             await walkDeclaration(
-              terminal,
-              { root, cliVersion },
+              prompt,
+              session,
               declaration,
               `${index + 1} of ${walk.length}`,
               failed.filter((check) => check.declaration === declaration.id),
-              { required, choose, yes },
             ),
           );
         for (const { id } of declarations)
@@ -382,9 +279,9 @@ export async function adoptInTerminal(
         continue;
       }
       case "complete":
-        return completed();
+        return completed(prompt);
       case "incomplete": {
-        const outcome = await decide(reason);
+        const outcome = await decide(prompt, session, reason);
         if (outcome) return outcome;
         continue;
       }
@@ -392,39 +289,143 @@ export async function adoptInTerminal(
   }
 }
 
-function showBlockers(terminal: Terminal, report: AdoptReport) {
-  terminal.write(
+// The answer to a question before the run starts, or undefined when the
+// person declines to confirm the discarded edits or to start the run.
+async function askSelection(
+  { write, choose, yes, named }: Prompts,
+  question: Question,
+  report: AdoptReport,
+): Promise<unknown> {
+  switch (question.id) {
+    case "version": {
+      write(`\n${question.question}\n${question.context}\n`);
+      const releases = question.choices as string[] | undefined;
+      if (releases)
+        write(
+          `Stable releases: ${releases.slice(0, 10).join(", ")}${releases.length > 10 ? `, and ${releases.length - 10} more` : ""}.\n`,
+        );
+      const proposed = question.answer as string | null;
+      // Without the release list, the proposed version is the only one.
+      return named(
+        "Version",
+        proposed,
+        releases ?? (proposed ? [proposed] : []),
+      );
+    }
+    case "profile": {
+      write(`\n${question.question}\n${question.context}\n`);
+      const profiles = question.choices as {
+        name: string;
+        description: string;
+      }[];
+      for (const { name, description } of profiles)
+        write(`  ${name}: ${description}\n`);
+      return named(
+        "Profile",
+        question.answer as string | null,
+        profiles.map(({ name }) => name),
+      );
+    }
+    case "remote-setup":
+      write("\nRemote setup is not ready:\n");
+      for (const entry of question.details as {
+        declaration: string;
+        id: string;
+        reason: string;
+      }[])
+        write(`- ${entry.declaration}/${entry.id}: ${entry.reason}\n`);
+      write(`${question.context}\n`);
+      return choose("Defer it, or resolve it first? [defer/resolve]: ", {
+        defer: "defer",
+        resolve: "resolve",
+      });
+    case "confirmation":
+      write("\nThe run discards these edits:\n");
+      for (const entry of report.discarded ?? []) {
+        write(`\n${entry.target}:\n`);
+        for (const changed of entry.files)
+          write(
+            changed.diff !== undefined
+              ? `${changed.diff.trimEnd()}\n`
+              : `${changed.path}: its ${changed.binary ? "binary " : ""}content is replaced.\n`,
+          );
+        if (!entry.files.length)
+          write(
+            `It is replaced whole with ${entry.replacement ?? "its candidate content"}.\n`,
+          );
+      }
+      return (await yes("Discard these edits? [y/N]: ", "no"))
+        ? report.inspection!.identity
+        : undefined;
+    default:
+      // The inspection the person is shown, which the run carries out.
+      write(
+        "\nThe run carries out the inspection above: it installs its changes and runs its operations, trusted scripts with your access to this host, its environment, and the network.\n",
+      );
+      if (!(await yes("Start the run? [Y/n]: ", "yes"))) return undefined;
+      write(
+        "Starting the run: it installs the exact content and runs the fixes.\n",
+      );
+      return question.answer;
+  }
+}
+
+function completed({ write }: Prompts) {
+  write(
+    `\nThe adoption is complete. Its changes are uncommitted.\nReview them with git status and git diff, then commit them through the project's normal workflow. ${pinnedCli} status says whether the run is ready to commit, and ${pinnedCli} status --summary renders its adoption record.\n`,
+  );
+  return "complete" as const;
+}
+
+// A run that needs the maintainer's decision: a retry of its interrupted
+// work, after which the session continues, abandonment, or stopping here. A
+// run's confirmed scope never changes, so retrying it cannot help.
+async function decide(
+  prompt: Prompts,
+  { root, cliVersion }: Session,
+  reason: string,
+) {
+  const { write, choose } = prompt;
+  write(`\nThe run is incomplete: ${reason}\n`);
+  const scope = reason.startsWith("SCOPE_INCOMPLETE:");
+  const choice = scope
+    ? await choose("Abandon the run, or stop? [abandon/stop]: ", {
+        abandon: "abandon",
+        stop: "stop",
+      })
+    : await choose(
+        "Retry the interrupted work, abandon the run, or stop? [retry/abandon/stop]: ",
+        { retry: "retry", abandon: "abandon", stop: "stop" },
+      );
+  if (choice === "retry") {
+    write("Retrying the run's interrupted work.\n");
+    const run = await resume(root, cliVersion, undefined, true);
+    return run.outcome === "complete" ? completed(prompt) : undefined;
+  }
+  if (choice === "abandon") {
+    abandon(root, cliVersion);
+    write(
+      `Abandoned the run. Its changes stay in the project, and ${pinnedCli} status shows its report.${scope ? " Commit or discard the changes, then run adopt again to confirm a new scope." : ""}\n`,
+    );
+  } else
+    write(`Run adopt again to decide, or read ${pinnedCli} status first.\n`);
+  return "incomplete" as const;
+}
+
+function showBlockers({ write }: Prompts, report: AdoptReport) {
+  write(
     `\nAdoption cannot start until these are resolved. Nothing was changed.\n${report.blockers.map((blocker) => `- ${blocker.code}${blocker.path === undefined ? "" : ` ${blocker.path}`}: ${blocker.message}\n`).join("")}`,
   );
-}
-
-interface Prompts {
-  required: (prompt: string) => Promise<string>;
-  choose: <T extends string>(
-    prompt: string,
-    choices: Record<string, T>,
-    fallback?: T,
-  ) => Promise<T>;
-  yes: (prompt: string, fallback: "yes" | "no") => Promise<boolean>;
-}
-
-interface Candidate {
-  path: string;
-  decision: "include" | "exclude";
-  reason: string;
-  evidence: string[];
 }
 
 // A discovery declaration's scope entry, from its draft, if any, and the
 // person's answers to its open questions and the files it covers.
 async function askScope(
-  terminal: Terminal,
+  { write, ask, required }: Prompts,
   root: string,
   question: Question,
   report: AdoptReport,
-  required: Prompts["required"],
 ) {
-  const { write } = terminal;
   const id = question.id.slice("scope:".length);
   write(`\n${question.question}\n`);
   const entry = report.discovery?.find((discovery) => discovery.id === id);
@@ -458,7 +459,7 @@ async function askScope(
     .filter((candidate) => candidate.decision === "include")
     .map((candidate) => candidate.path);
   const listed = (
-    await terminal.ask(
+    await ask(
       `Files ${id} covers, separated by spaces${drafted.length ? ` [${drafted.join(" ")}]` : ""}: `,
     )
   )
@@ -502,22 +503,19 @@ async function askScope(
 // One contextual declaration, walked until the person reports it done with
 // its checks passing, or blocked.
 async function walkDeclaration(
-  terminal: Terminal,
-  { root, cliVersion }: { root: string; cliVersion: string },
+  { write, ask, required, choose, yes }: Prompts,
+  { root, cliVersion }: Session,
   declaration: Contextual,
   position: string,
   failed: NonNullable<AdoptReport["failedChecks"]>,
-  { required, choose, yes }: Prompts,
-): Promise<Judgment> {
-  const { write } = terminal;
+): Promise<Answer> {
   const { id, allowedTargets, rules, guidance, discovery } = declaration;
   const targets = [
     ...allowedTargets.paths,
     ...allowedTargets.directories.map((directory) => `${directory}/`),
   ];
-  write(
-    `\nContextual work ${position}: ${id}\nEdit only: ${targets.join(", ") || "no files"}\n`,
-  );
+  const scope = targets.join(", ") || "no files";
+  write(`\nContextual work ${position}: ${id}\nEdit only: ${scope}\n`);
   const showRules = (heading: string) =>
     write(
       rules
@@ -534,37 +532,15 @@ async function walkDeclaration(
     );
   for (const check of failed)
     write(`Failed after the assessment: ${check.id}: ${check.message}\n`);
-  const edit =
-    "Edit the files now. Press Enter when you are done, or type blocked: ";
-  let prompt = failed.length
-    ? "Fix it, then press Enter to check again, or type blocked: "
-    : edit;
-  const blocked = async (
-    evidence: string[],
-    reviewed?: Judgment["scopeValidity"],
-  ): Promise<Judgment> => {
-    const explanation = await required(`Why is ${id} blocked? `);
-    const scopeValidity =
-      reviewed ?? (discovery ? await reviewScope() : undefined);
-    return {
-      status: "blocked",
-      explanation,
-      evidence: [
-        ...evidence,
-        "The maintainer marked it blocked in adopt's terminal walk-through.",
-      ],
-      ...(scopeValidity ? { scopeValidity } : {}),
-    };
-  };
   // The person's review of a discovered declaration's confirmed scope, after
   // the run's fixes and now.
   const reviewScope = async () => {
-    const scope = targets.join(", ") || "no files";
+    const evidence = [`The confirmed scope: ${scope}.`];
     let review: ScopeReview = {
       status: "valid",
       explanation:
         "The maintainer confirmed in adopt's terminal walk-through, after the run's fixes, that the confirmed scope covers every file the declaration should.",
-      evidence: [`The confirmed scope: ${scope}.`],
+      evidence,
       additionalPaths: [],
     };
     if (
@@ -590,17 +566,37 @@ async function walkDeclaration(
       review = {
         status: "blocked",
         explanation: `The maintainer reports files the confirmed scope misses: ${missing.join(", ")}.`,
-        evidence: [`The confirmed scope: ${scope}.`],
+        evidence,
         additionalPaths: missing,
       };
     }
     return { afterFixes: review, current: review };
   };
+  const blocked = async (
+    evidence: string[],
+    reviewed?: Answer["scopeValidity"],
+  ): Promise<Answer> => {
+    const explanation = await required(`Why is ${id} blocked? `);
+    const scopeValidity =
+      reviewed ?? (discovery ? await reviewScope() : undefined);
+    return {
+      status: "blocked",
+      explanation,
+      evidence: [
+        ...evidence,
+        "The maintainer marked it blocked in adopt's terminal walk-through.",
+      ],
+      ...(scopeValidity ? { scopeValidity } : {}),
+    };
+  };
+  let prompt = failed.length ? fixing : editing;
   for (;;) {
-    if ((await terminal.ask(prompt)).toLowerCase() === "blocked")
-      return blocked([]);
+    // Only Enter or blocked answers the wait; anything else asks again.
+    const typed = (await ask(prompt)).toLowerCase();
+    if (typed === "blocked") return blocked([]);
+    if (typed) continue;
     write(`Running the checks of ${id}.\n`);
-    const results: CheckResult[] = await checkContextual(root, cliVersion, id);
+    const results = await checkContextual(root, cliVersion, id);
     if (!results.length) write(`${id} declares no checks.\n`);
     for (const result of results)
       write(
@@ -611,7 +607,7 @@ async function walkDeclaration(
     );
     if (results.some((result) => result.status !== "passed")) {
       showRules("Its rules");
-      prompt = "Fix it, then press Enter to check again, or type blocked: ";
+      prompt = fixing;
       continue;
     }
     const scopeValidity = discovery ? await reviewScope() : undefined;
@@ -631,6 +627,6 @@ async function walkDeclaration(
         ...(scopeValidity ? { scopeValidity } : {}),
       };
     if (answer === "blocked") return blocked(evidence, scopeValidity);
-    prompt = edit;
+    prompt = editing;
   }
 }

@@ -87,8 +87,8 @@ it walks the failing declarations again. A blocked declaration leaves the run
 incomplete, its reason naming the declaration; running `adopt` again walks the
 contextual work again.
 
-An interruption at a prompt, `Ctrl-C` or the end of input, exits with
-status 130. Answers given before the start are held only in memory, so nothing was
+An interruption at a prompt, `Ctrl-C` or the end of input, fails with
+`INTERRUPTED` and exit status 130. Answers given before the start are held only in memory, so nothing was
 changed; once a run has started, running `adopt` again continues it where it
 stopped. A run interrupted during its operations is incomplete: `adopt` shows
 its reason and asks whether to retry the interrupted work, as `resume --retry`

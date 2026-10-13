@@ -183,6 +183,13 @@ test("a blocked declaration leaves the run incomplete, and adopt resumes an inte
   );
   assert.doesNotMatch(resumed, /Which standards version/);
   assert.match(resumed, /Contextual work 1 of 1: project-readme/);
+  // Only Enter or blocked answers the wait: a typo asks again, running no
+  // check.
+  second.type("blokced");
+  assert.doesNotMatch(
+    await second.expect("Press Enter when you are done, or type blocked: "),
+    /Running the checks/,
+  );
   second.type("blocked");
   await second.expect("Why is project-readme blocked? ");
   second.type("The project has no name yet.");
