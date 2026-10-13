@@ -2,7 +2,11 @@ import type { Declaration } from "./model.js";
 import type { Blocker, HashInventory } from "./observation.js";
 import type { ScopeChange } from "./scope-evidence.js";
 import type { ScopeProposal } from "./scope.js";
-import { declarationTargets, installationTarget } from "./targets.js";
+import {
+  declarationTargets,
+  installationTarget,
+  type InstallationOwner,
+} from "./targets.js";
 
 // One renderer turns an inspection report or a status record into a Markdown
 // summary. It is a pure function of that input, so the same input renders the
@@ -54,8 +58,8 @@ export interface InspectionReport {
     action: string;
     link: SkillLink;
   }[];
-  removed?: { id: string; target: string; files: ChangedFile[] }[];
-  kept?: { id: string; target: string }[];
+  removed?: (InstallationOwner & { target: string; files: ChangedFile[] })[];
+  kept?: (InstallationOwner & { target: string })[];
   discardedEdits: string[];
   confirmation: { required: boolean };
   retiredState?: {
@@ -327,10 +331,14 @@ export function inspectionSummary(report: InspectionReport) {
             action === "create" ? "created" : "replaced",
           ],
         ];
-  const fileRows = (entry: { id: string; files: ChangedFile[] }) =>
+  const ownerLabel = (owner: InstallationOwner) =>
+    owner.systemSkill === undefined
+      ? code(owner.id)
+      : `system skill ${code(owner.systemSkill)}`;
+  const fileRows = (entry: InstallationOwner & { files: ChangedFile[] }) =>
     entry.files.flatMap((file) => {
       const change = fileChange(file);
-      return change ? [[code(entry.id), code(file.path), change]] : [];
+      return change ? [[ownerLabel(entry), code(file.path), change]] : [];
     });
   const exactRows = [
     ...report.exact.flatMap((entry) => [
@@ -365,7 +373,7 @@ export function inspectionSummary(report: InspectionReport) {
       "Changed declarations",
       [
         exactRows.length
-          ? `Exact content:\n\n${table(["Declaration", "Path", "Change"], exactRows)}`
+          ? `Exact content:\n\n${table(["Owner", "Path", "Change"], exactRows)}`
           : "No exact content changes.",
         guidanceRows.length
           ? `Contextual declarations:\n\n${table(["Declaration", "Targets", "Changes"], guidanceRows)}`
@@ -397,8 +405,8 @@ export function inspectionSummary(report: InspectionReport) {
         [
           "These targets leave the selection with edits. They stay in place, and the project now owns them:",
           table(
-            ["Declaration", "Path"],
-            report.kept.map((entry) => [code(entry.id), code(entry.target)]),
+            ["Owner", "Path"],
+            report.kept.map((entry) => [ownerLabel(entry), code(entry.target)]),
           ),
         ].join("\n\n"),
       ),

@@ -16,6 +16,11 @@ export interface SystemSkill {
   link: string;
 }
 
+// The declaration or product skill that installed a recorded target. A
+// system skill has no declaration ID, including when it leaves the selection.
+export type InstallationOwner =
+  { id: string; systemSkill?: never } | { id?: never; systemSkill: string };
+
 // The shared skill location every installed skill, system or author, lives in.
 export function skillTarget(name: string) {
   return `.agents/skills/${name}`;
@@ -59,9 +64,15 @@ function systemSkill(name: string): SystemSkill {
 }
 
 // The system skills adoption installs, each from this CLI's packaged copy:
-// the adoption skill and the update notice, in name order.
+// the adoption skill and the rules/update-notice skill, in name order.
 export const installedSystemSkills: readonly SystemSkill[] = [
   "adopt-standards",
+  "repository-standards",
+].map(systemSkill);
+
+// Earlier product skills whose recorded targets an update may retire. They
+// are no longer installed or reserved against standards declarations.
+export const retiredSystemSkills: readonly SystemSkill[] = [
   "standards-updates",
 ].map(systemSkill);
 

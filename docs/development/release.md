@@ -324,7 +324,7 @@ the parent names, or any parent criterion remains unverified. The parent remains
 
 ## Authoring skill release
 
-Each release carries the `adopt-standards`, `standards-updates`, and
+Each release carries the `adopt-standards`, `repository-standards`, and
 `author-standards` skills, their references, and the matching
 author and protocol documentation. Before packaging another version, update the
 standalone authoring guide (`skills/author-standards/references/cli.md`), the

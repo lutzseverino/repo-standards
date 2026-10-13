@@ -555,7 +555,7 @@ test("inspect --summary lists removed retired targets, each discarded edit, and 
 
 Exact content:
 
-| Declaration | Path | Change |
+| Owner | Path | Change |
 | --- | --- | --- |
 | \`instructions\` | \`AGENTS.md\` | modified |
 | \`notes\` | \`NOTES.md\` | deleted |
@@ -576,7 +576,7 @@ Confirmation required: starting this run needs the maintainer's confirmation of 
 
 These targets leave the selection with edits. They stay in place, and the project now owns them:
 
-| Declaration | Path |
+| Owner | Path |
 | --- | --- |
 | \`legacy\` | \`LEGACY.md\` |
 
@@ -591,7 +591,7 @@ These targets leave the selection with edits. They stay in place, and the projec
     ),
     summary,
   );
-  assert.ok(!summary.includes("| `standards-updates` |"), summary);
+  assert.ok(!summary.includes("| `repository-standards` |"), summary);
 });
 
 test("inspect --summary gives each skill and link its action, and keeps an edited skill whole with its link", async (t) => {
@@ -634,7 +634,7 @@ test("inspect --summary gives each skill and link its action, and keeps an edite
   for (const row of [
     "| `review` | `.agents/skills/review/SKILL.md` | created |\n| `review` | `.claude/skills/review` | replaced |",
     "| `adopt-standards` | `.claude/skills/adopt-standards` | replaced |",
-    "| `standards-updates` | `.claude/skills/standards-updates` | created |",
+    "| `repository-standards` | `.claude/skills/repository-standards` | created |",
   ]) {
     assert.ok(initial.includes(row), initial);
   }
@@ -655,7 +655,7 @@ test("inspect --summary gives each skill and link its action, and keeps an edite
 
 These targets leave the selection with edits. They stay in place, and the project now owns them:
 
-| Declaration | Path |
+| Owner | Path |
 | --- | --- |
 | \`legacy\` | \`.agents/skills/legacy\` |
 | \`legacy\` | \`.claude/skills/legacy\` |

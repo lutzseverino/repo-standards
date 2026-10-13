@@ -37,9 +37,19 @@ product remains neutral for independently authored standards.
 
 The product does not implement an author's adoption procedure. All authors use
 the same resolution and adoption interfaces. Authors cannot replace system
-skills or provide adoption hooks. `adopt-standards`, `standards-updates`, and
+skills or provide adoption hooks. `adopt-standards`, `repository-standards`, and
 `author-standards` are product-owned system skill names reserved within the
 standards format.
+
+The model-invocable `repository-standards` skill replaces `standards-updates`.
+Before changing a project file it looks up the source's installed rules with
+`rules <path>` and follows them. During contextual work in an active run it
+reads the installed rules index and the rules named by the work request,
+because `rules` reads only a complete adoption. The skill adds no requirements
+of its own. Inspection identifies removed and kept product targets by `systemSkill`,
+separately from a declaration's `id`; summaries name their owner. An update
+removes an unedited old notice skill and its link under
+the ordinary retired-target policy; edited copies remain project-owned.
 
 ## Deep modules
 
@@ -58,7 +68,7 @@ standards format.
 | Scope evidence           | A run and the recorded adoption it updates produce the retained scope evidence: the current run, with its project observation kept without derived evidence and its named observation as a delta, and its scope change against the previous run. The projected historical scope is rebuilt on read.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Available updates        | A selection and the newest published stable CLI and standards versions produce per-pin availability, cached in the ignored product cache. It never blocks and writes nothing else; it fails only under a CLI other than the selection's CLI pin, before any lookup.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Summary renderer         | An inspection report or a status record produces one deterministic Markdown document. It describes and never prescribes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Update notice            | The `standards-updates` system skill runs `outdated` with the project runtime, reinstalling the pinned runtime once when it is missing or reports `CLI_PIN_MISMATCH`, and reports each available update to the agent. It starts no update: one starts only on the maintainer's instruction, through adoption orchestration, as a change separate from the current work.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Update notice            | The `repository-standards` system skill runs `outdated` with the project runtime, reinstalling the pinned runtime once when it is missing or reports `CLI_PIN_MISMATCH`, and reports each available update to the agent. It starts no update: one starts only on the maintainer's instruction, through adoption orchestration, as a change separate from the current work.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | Adoption orchestration   | The `adopt-standards` system skill presents inspection and its summary, obtains confirmation only when the inspection requires it, performs requested contextual work, and submits evidence through the CLI.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 These responsibilities do not mandate separate packages or class hierarchies.
@@ -174,7 +184,7 @@ locations.
 Author skills' `SKILL.md` frontmatter `disable-model-invocation` and
 `agents/openai.yaml` `policy.allow_implicit_invocation` must agree; an absent
 setting means model-invocable. Product skills state both settings explicitly:
-`adopt-standards` is manual only, and `standards-updates` and `author-standards`
+`adopt-standards` is manual only, and `repository-standards` and `author-standards`
 are model-invocable.
 
 Source and target paths are repository-relative and cannot escape their roots.
@@ -189,7 +199,7 @@ cannot be symbolic links during adoption, with one exception: a skill link
 holding exactly the text the product writes at its path. Concrete targets,
 including the skill link of each declared skill, cannot overlap, including
 case-folded collisions. Product-owned state, every system-skill path
-(`.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, and
+(`.agents/skills/adopt-standards`, `.agents/skills/repository-standards`, and
 `.agents/skills/author-standards`), and each system skill's link path
 (`.claude/skills/<name>`) are reserved, including equal paths,
 ancestors, descendants, and collisions under the same case-folded and
@@ -339,7 +349,7 @@ workflow.
 The thin user-installed bootstrap obtains one exact CLI version outside the
 project for first inspection. An omitted version selects the latest stable
 once and discloses it. Adoption installs that version and the matching
-repository-local `adopt-standards` and `standards-updates` skills. Existing
+repository-local `adopt-standards` and `repository-standards` skills. Existing
 projects use their own pin.
 Adoption does not automatically install `author-standards`; reserving that
 identity does not manage unrelated global skill installations or change

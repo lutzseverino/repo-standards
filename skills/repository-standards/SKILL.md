@@ -1,11 +1,36 @@
 ---
-name: standards-updates
-description: Report available Repository Standards updates in an adopting project. Use at the start of work in a project with a .repo-standards/selection.yaml, or when asked whether its CLI or standards pins are out of date.
+name: repository-standards
+description: Look up installed rules before changing a file in a project with .repo-standards/. Report available CLI and standards updates at the start of work, or when asked about its pins.
 disable-model-invocation: false
 ---
 
-This skill reports available updates. It never starts one: an update starts
-only on the maintainer's instruction.
+This skill looks up the standards source's installed rules and reports available
+updates. Requirements come from those rules; this skill adds none of its own.
+An update starts only on the maintainer's instruction.
+
+## Before changing a file
+
+From the adopting project's Git root, run its pinned CLI for each path you
+will change, including a file you will create or delete:
+
+```sh
+.repo-standards/runtime/node_modules/.bin/repo-standards rules <path>
+```
+
+Follow the rules it prints. The lookup includes repository-wide rules and
+needs no network. If the runtime is missing or reports `CLI_PIN_MISMATCH`,
+restore it as described under **Read the pins**, then retry the lookup.
+
+During an adoption or update, `rules` reports `ACTIVE_RUN`: it reads only a
+complete adoption. For the run's contextual work, read
+`.repo-standards/rules/README.md` and the installed rules it lists for the path
+and for the whole repository. The run's contextual work request also names
+each declaration's installed rules. These are the candidate selection's
+rules, installed before contextual work; follow them together with the run's
+adoption guidance. A selection without rules has no rules directory.
+
+For any other lookup failure, report the diagnostic and resolve it before
+changing the file; an update-notice failure below does not prevent rule lookup.
 
 ## Read the pins
 

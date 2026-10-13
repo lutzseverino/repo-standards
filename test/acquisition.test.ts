@@ -136,7 +136,7 @@ test("public inspection acquires a source larger than the anonymous API allowanc
 test("a self-adopted remote source ignores unselected links without extracting them", (t) => {
   const names = [
     "adopt-standards",
-    "standards-updates",
+    "repository-standards",
     ...Array.from({ length: 26 }, (_, index) => `author-${index}`),
   ];
   const remote = remoteFixture(

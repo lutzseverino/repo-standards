@@ -739,7 +739,7 @@ test("tampered retained declarations, inputs and scope history fail every reader
 
 // A committed adoption shaped as CLI 4.0.0 left it: durable state in the
 // retired state/v6 format, which records no skill links, an earlier CLI pin,
-// that CLI's own adopt-standards skill, no standards-updates skill, and no
+// that CLI's own adopt-standards skill, no repository-standards skill, and no
 // skill links. Its ignored runtime, local and cache content stays in place.
 // The pin differs from the CLI under test, whose package version is raised only
 // at release.
@@ -769,7 +769,9 @@ async function retiredProject(t: TestContext) {
     stringify(lock.selection),
   );
   rmSync(join(root, ".claude"), { recursive: true });
-  rmSync(join(root, ".agents/skills/standards-updates"), { recursive: true });
+  rmSync(join(root, ".agents/skills/repository-standards"), {
+    recursive: true,
+  });
   writeFileSync(
     join(root, ".agents/skills/adopt-standards/SKILL.md"),
     "# The system skill of CLI 4.0.0\n",
@@ -782,7 +784,7 @@ async function retiredProject(t: TestContext) {
   return { root, remote, env, raw, run };
 }
 
-const installedSkills = ["adopt-standards", "review", "standards-updates"];
+const installedSkills = ["adopt-standards", "repository-standards", "review"];
 
 test("a project on a retired format inspects a fresh adoption that removes its product state, and its start links every installed skill", async (t) => {
   const f = await retiredProject(t);
@@ -844,7 +846,7 @@ test("a project on a retired format inspects a fresh adoption that removes its p
     ]),
     [
       ["adopt-standards", "replace", "create"],
-      ["standards-updates", "create", "create"],
+      ["repository-standards", "create", "create"],
     ],
   );
   const summary = f.raw([...inspectionArgs.slice(0, -1), "--summary"]).stdout;
@@ -925,7 +927,7 @@ test("a project on a retired format inspects a fresh adoption that removes its p
       changed.join("\n"),
     );
   }
-  for (const name of ["adopt-standards", "standards-updates"]) {
+  for (const name of ["adopt-standards", "repository-standards"]) {
     assert.deepEqual(
       installedTree(join(root, ".agents/skills", name)),
       installedTree(

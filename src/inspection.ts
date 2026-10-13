@@ -47,6 +47,8 @@ import {
   installationTarget,
   installedSystemSkills,
   linkTextAt,
+  retiredSystemSkills,
+  type InstallationOwner,
 } from "./targets.js";
 import { unifiedDiff } from "./unified-diff.js";
 import { compareUpdate } from "./update-comparison.js";
@@ -553,7 +555,9 @@ export async function inspectForStart(
       for (const directory of directories)
         recordedTargets.push({
           path: directory,
-          kind: installedSystemSkills.some(({ target }) => target === directory)
+          kind: [...installedSystemSkills, ...retiredSystemSkills].some(
+            ({ target }) => target === directory,
+          )
             ? "system-skill"
             : "skill",
           baseline: {
@@ -638,18 +642,25 @@ export async function inspectForStart(
       ...(link ? { link: linkAction(link) } : {}),
     }));
     // Each removed and each kept target, including a skill link, is
-    // attributed to the declaration that installed it.
-    const installer = (target: string) =>
-      previous!.resolved.declarations.find(
+    // attributed to the declaration or retired system skill that installed it.
+    const installer = (target: string): InstallationOwner => {
+      const declaration = previous!.resolved.declarations.find(
         (declaration) =>
           installationTarget(declaration) === target ||
           declarationLink(declaration) === target,
-      )!.id;
+      );
+      if (declaration) return { id: declaration.id };
+      return {
+        systemSkill: retiredSystemSkills.find(
+          (skill) => skill.target === target || skill.link === target,
+        )!.name,
+      };
+    };
     const removed = previous
       ? baselineOnly
           .filter((path) => ownership.get(path)!.action === "replace")
           .map((target) => ({
-            id: installer(target),
+            ...installer(target),
             target,
             files: changedFiles(target, observed.get(target)!.value, {
               type: "missing",
@@ -659,7 +670,7 @@ export async function inspectForStart(
     const kept = previous
       ? baselineOnly
           .filter((path) => ownership.get(path)!.kept)
-          .map((target) => ({ id: installer(target), target }))
+          .map((target) => ({ ...installer(target), target }))
       : undefined;
     if (!proposal)
       for (const declaration of discoveryDeclarations)
