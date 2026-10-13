@@ -157,9 +157,12 @@ test("Mira service source retains check resources and preserves fix output on ex
   }
   assert.equal(
     readFileSync(
-      join(project.root, ".agents/skills/adopt-standards/SKILL.md"),
+      join(project.root, ".agents/skills/repository-standards/SKILL.md"),
       "utf8",
     ),
-    readFileSync(join(packageRoot, "skills/adopt-standards/SKILL.md"), "utf8"),
+    readFileSync(
+      join(packageRoot, "skills/repository-standards/SKILL.md"),
+      "utf8",
+    ),
   );
 });

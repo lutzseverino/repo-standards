@@ -13,8 +13,9 @@ protocols.
   for standards sources without selecting or adopting them.
 - [Inspection](inspection.md): the read-only bootstrap and inspection, its
   report and identity, update inspection, summaries, and discovery scope.
-- [Adoption](adoption.md): adoption and updates, confirmation-required changes, durable and local
-  state, completion, status summaries, recovery commands, and fresh adoption.
+- [Adoption](adoption.md): adoption and updates with `adopt` and its answers
+  file, confirmation-required changes, durable and local state, completion,
+  status summaries, recovery commands, and fresh adoption.
 - [Available updates](available-updates.md): the read-only `outdated` report
   of newer CLI and standards versions and its cache.
 - [Adopted checks](check.md): running the adopted checks on demand with

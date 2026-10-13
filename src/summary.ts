@@ -131,7 +131,7 @@ export interface StatusRecord {
 }
 
 // Inline code that holds any text, including backticks.
-function code(value: string) {
+export function code(value: string) {
   const longest = Math.max(
     0,
     ...[...value.matchAll(/`+/g)].map((match) => match[0].length),
@@ -145,7 +145,7 @@ function code(value: string) {
 // Recorded prose, such as messages and next actions, as literal Markdown text
 // on one line: inline markup is escaped, and so is a leading marker that would
 // start a heading, list, or quote.
-function text(value: string) {
+export function text(value: string) {
   return value
     .replace(/\r?\n/g, " ")
     .replace(/[\\`*_<>[\]~&]/g, (character) => `\\${character}`)
@@ -157,7 +157,7 @@ function cell(value: string) {
   return value.replace(/\r?\n/g, " ").replace(/\|/g, "\\|");
 }
 
-function table(headings: string[], rows: string[][]) {
+export function table(headings: string[], rows: string[][]) {
   return [
     `| ${headings.join(" | ")} |`,
     `| ${headings.map(() => "---").join(" | ")} |`,
@@ -165,7 +165,7 @@ function table(headings: string[], rows: string[][]) {
   ].join("\n");
 }
 
-function section(heading: string, body: string) {
+export function section(heading: string, body: string) {
   return `## ${heading}\n\n${body}`;
 }
 

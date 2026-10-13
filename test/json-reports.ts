@@ -63,6 +63,7 @@ export type State = Omit<
 export type { Run } from "../src/adoption-run.ts";
 export type { CheckReport } from "../src/check.ts";
 export type { RulesReport } from "../src/rules.ts";
+export type { AdoptReport, AnswersFile } from "../src/adopt.ts";
 export type { RetainedScopeEvidence as ScopeEvidence } from "../src/scope-evidence.ts";
 
 // The CLI error envelope and package manifests have no exported product type.

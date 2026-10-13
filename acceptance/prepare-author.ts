@@ -255,7 +255,7 @@ try {
     "Skill installation must leave the authoring workspace empty",
   );
   assert.equal(
-    existsSync(join(isolatedHome, ".agents/skills/adopt-standards")),
+    existsSync(join(isolatedHome, ".agents/skills/repository-standards")),
     false,
   );
   if (version) {

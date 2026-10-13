@@ -102,12 +102,10 @@ test("release packaging is repeatable, its artifacts match their recorded hashes
 
 test("the package ships each product skill whole, with its invocation settings and no delivery vocabulary", () => {
   assert.deepEqual(readdirSync(join(installed, "skills")).sort(), [
-    "adopt-standards",
     "author-standards",
     "repository-standards",
   ]);
   for (const [name, disabled, implicit] of [
-    ["adopt-standards", true, false],
     ["repository-standards", false, true],
     ["author-standards", false, true],
   ] as const) {
@@ -151,92 +149,6 @@ test("the package ships each product skill whole, with its invocation settings a
         `skills/${name}/${resource} uses workflow vocabulary`,
       );
     }
-  }
-});
-
-test("the adoption skill routes only to its own references and links contracts at the released version", () => {
-  const skill = join(installed, "skills/adopt-standards");
-  const resources = files(skill).filter((path) => path.endsWith(".md"));
-  // It routes only to its own references, never into a package docs/
-  // directory, and links contracts at this exact version.
-  assert.doesNotMatch(
-    readFileSync(join(skill, "SKILL.md"), "utf8").replace(
-      /\(https:\/\/github\.com\/lutzseverino\/repo-standards\/blob\/v[^)]+\)/g,
-      "",
-    ),
-    /\bdocs\//,
-  );
-  // The skill tells the agent to keep the external CLI directory, so its
-  // installation prints that directory expanded.
-  assert.match(
-    readFileSync(join(skill, "SKILL.md"), "utf8"),
-    /^printf '[^'\n]*%s\\n' "\$cli_dir"$/m,
-  );
-  const contractLinks = resources.flatMap((resource) =>
-    [
-      ...readFileSync(join(skill, resource), "utf8").matchAll(
-        /\]\(https:\/\/github\.com\/lutzseverino\/repo-standards\/blob\/v([^/)]+)\/([^)#]+)(?:#([^)]+))?\)/g,
-      ),
-    ].map((match) => ({
-      resource,
-      version: match[1]!,
-      path: match[2]!,
-      anchor: match[3],
-    })),
-  );
-  assert.ok(
-    contractLinks.length > 0,
-    "The adoption references link the contracts they rely on",
-  );
-  // An adopting project installs the skill alone, so its local links stay inside
-  // the skill and its product repository links name this release's tag.
-  for (const resource of resources) {
-    const content = readFileSync(join(skill, resource), "utf8");
-    for (const match of content.matchAll(/\]\(([^\s)]+)\)/g)) {
-      const target = match[1]!;
-      if (/^[a-z][a-z0-9+.-]*:/i.test(target)) {
-        if (
-          target.startsWith("https://github.com/lutzseverino/repo-standards/")
-        ) {
-          assert.match(
-            target,
-            new RegExp(
-              `^https://github\\.com/lutzseverino/repo-standards/blob/v${bundle.version.replaceAll(".", "\\.")}/`,
-            ),
-            `${resource} links ${target} at a moving or other revision`,
-          );
-        }
-        continue;
-      }
-      const linked = resolve(skill, dirname(resource), target.split("#")[0]!);
-      assert.ok(
-        !relative(skill, linked).startsWith(".."),
-        `${resource} links ${target} outside the skill`,
-      );
-    }
-  }
-  for (const link of contractLinks) {
-    assert.equal(
-      link.version,
-      bundle.version,
-      `${link.resource} links a contract at another version`,
-    );
-    assert.match(
-      link.path,
-      /^docs\/usage\//,
-      `${link.resource} links ${link.path}, which is not a contract`,
-    );
-    assert.ok(
-      existsSync(join(installed, link.path)),
-      `${link.resource} links missing ${link.path}`,
-    );
-    if (link.anchor)
-      assert.ok(
-        headingAnchors(readFileSync(join(installed, link.path), "utf8")).has(
-          link.anchor,
-        ),
-        `${link.resource} links missing ${link.path}#${link.anchor}`,
-      );
   }
 });
 
@@ -357,7 +269,7 @@ test("the package carries only product material, and its usage documents resolve
     }
   }
   // Usage documents hold contracts and human how-to. Instructions to an agent
-  // live in the adoption skill's references.
+  // live in the next steps adopt prints.
   for (const documentPath of packaged.filter((entry) =>
     entry.startsWith("docs/usage/"),
   )) {

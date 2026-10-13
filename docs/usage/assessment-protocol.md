@@ -31,10 +31,10 @@ The request contains:
 Contextual work applies the selected guidance to the adopting project's actual
 content within the allowed targets, so that it satisfies the declaration's
 rules. Exact files and skills remain author-owned;
-excluded and unrelated content remains outside the contextual scope. The
-`adopt-standards` skill's
-[assessment reference](../../skills/adopt-standards/references/assessment.md)
-describes doing and judging this work.
+excluded and unrelated content remains outside the contextual scope.
+[`adopt`](adoption.md#adopt-with-one-command) prints each contextual
+declaration's rules and adoption guidance with next steps for doing and judging
+this work, and submits the assessment from its answers file.
 
 After contextual edits, refresh the request from the project root:
 

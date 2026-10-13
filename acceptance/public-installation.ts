@@ -366,7 +366,7 @@ try {
       distribution,
       skillSha256: createHash("sha256")
         .update(
-          readFileSync(join(installed, "skills/adopt-standards/SKILL.md")),
+          readFileSync(join(installed, "skills/repository-standards/SKILL.md")),
         )
         .digest("hex"),
       checkoutCommit,

@@ -75,9 +75,9 @@ executables and supplied author material alongside owning behavior tests.
 `pnpm release:pack` stages the distributable package outside the checkout, with
 the usage documents at their canonical `docs/usage/` paths. A packaged document
 reaches unpackaged material through absolute repository URLs. An adopting
-project installs `adopt-standards` without the package's documents, so its
-references link the contracts they rely on through absolute repository URLs at
-the release's `v<version>` tag. The source README links
+project installs the `repository-standards` skill without the package's
+documents, so a contract it links uses an absolute repository URL at the
+release's `v<version>` tag. The source README links
 repository documents relatively, and staging rewrites each of its links that
 leaves the package into an absolute repository URL on `main`; links inside the
 package stay relative. A README link that leaves the repository or names
@@ -324,14 +324,13 @@ the parent names, or any parent criterion remains unverified. The parent remains
 
 ## Authoring skill release
 
-Each release carries the `adopt-standards`, `repository-standards`, and
-`author-standards` skills, their references, and the matching
-author and protocol documentation. Before packaging another version, update the
-standalone authoring guide (`skills/author-standards/references/cli.md`), the
-version-pinned contract links in `skills/adopt-standards/references/`, and the
-public installation commands in [installation](../usage/installation.md) to its
-exact version; the release test checks the bundled guide and the contract links
-against the installed executable's package version.
+Each release carries the `repository-standards` and `author-standards`
+skills, their references, and the matching author and protocol documentation.
+Before packaging another version, update the standalone authoring guide
+(`skills/author-standards/references/cli.md`) and the public installation
+commands in [installation](../usage/installation.md) to its exact version; the
+release test checks the bundled guide against the installed executable's
+package version.
 
 After publication, the workflow also runs
 `node acceptance/prepare-author.ts <version> <evidence.json>` on macOS and Linux.

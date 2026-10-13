@@ -142,6 +142,13 @@ contextual guidance applies, possibly completed from a discovery script's
 draft, and reviewed before authorizing that scope.
 _Avoid_: Confirmed scope, automatic project classification
 
+**Answers file**:
+The questions an adoption asks, each with its context and choices, and the
+answers an agent records from the maintainer, from which adoption proceeds
+without a terminal. It confirms a confirmation-required change only by naming
+the inspection identity the maintainer confirmed.
+_Avoid_: Configuration file, approval file
+
 **Adoption**:
 The deliberate application of one resolved profile to an adopting project,
 including exact installation, contextual work, declared fixes, and checks.

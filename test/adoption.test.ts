@@ -217,7 +217,7 @@ test("a fresh checkout restores the exact runtime and inspects retained standard
   assert.equal(report.retained, true);
   assert.deepEqual(
     report.systemSkills.map(({ action }: { action: string }) => action),
-    ["match", "match"],
+    ["match"],
   );
   assert.deepEqual(report.discardedEdits, []);
   assert.deepEqual(snapshot(checkout.root), before);
@@ -294,19 +294,16 @@ test("confirmed exact adoption installs whole skills, claims matching files and 
     ),
     "Skill resource",
   );
-  // Both system skills install as the package ships them.
-  for (const name of ["adopt-standards", "repository-standards"]) {
-    assert.deepEqual(
-      installedTree(join(project.root, ".agents/skills", name)),
-      installedTree(
-        join(
-          cli.root,
-          "node_modules/@lutzseverino/repo-standards/skills",
-          name,
-        ),
+  // The system skill installs as the package ships it.
+  assert.deepEqual(
+    installedTree(join(project.root, ".agents/skills/repository-standards")),
+    installedTree(
+      join(
+        cli.root,
+        "node_modules/@lutzseverino/repo-standards/skills/repository-standards",
       ),
-    );
-  }
+    ),
+  );
   assert.equal(
     existsSync(join(project.root, ".agents/skills/author-standards")),
     false,
@@ -368,12 +365,6 @@ test("every installed skill, system and author, gets a relative link that Git re
   const inspection = f.inspect();
   assert.deepEqual(inspection.systemSkills, [
     {
-      name: "adopt-standards",
-      target: ".agents/skills/adopt-standards",
-      action: "create",
-      link: { target: ".claude/skills/adopt-standards", action: "create" },
-    },
-    {
       name: "repository-standards",
       target: ".agents/skills/repository-standards",
       action: "create",
@@ -394,13 +385,11 @@ test("every installed skill, system and author, gets a relative link that Git re
   const { result, report } = f.json<Run>(startArgs(inspection.identity));
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const links = {
-    ".claude/skills/adopt-standards": "../../.agents/skills/adopt-standards",
     ".claude/skills/repository-standards":
       "../../.agents/skills/repository-standards",
     ".claude/skills/review": "../../.agents/skills/review",
   };
   assert.deepEqual(readdirSync(join(project.root, ".claude/skills")).sort(), [
-    "adopt-standards",
     "repository-standards",
     "review",
   ]);
@@ -439,7 +428,7 @@ test("fresh adoption over previously installed content claims byte-identical ski
   const packagedSkill = readFileSync(
     join(
       cli.root,
-      "node_modules/@lutzseverino/repo-standards/skills/adopt-standards/SKILL.md",
+      "node_modules/@lutzseverino/repo-standards/skills/repository-standards/SKILL.md",
     ),
     "utf8",
   );
@@ -466,21 +455,23 @@ profiles:`,
         "AGENTS.md": "Expected",
         ".agents/skills/review/SKILL.md": "# Review\nReview the code.",
         ".agents/skills/review/scripts/run.sh": "#!/bin/sh\n",
-        ".agents/skills/adopt-standards/SKILL.md": packagedSkill,
+        ".agents/skills/repository-standards/SKILL.md": packagedSkill,
         ".repo-standards/selection.yaml": "profile: work\n",
       },
     },
   );
   const { project } = f;
-  for (const name of ["adopt-standards", "repository-standards"])
-    cpSync(
-      join(cli.root, "node_modules/@lutzseverino/repo-standards/skills", name),
-      join(project.root, ".agents/skills", name),
-      { recursive: true },
-    );
+  cpSync(
+    join(
+      cli.root,
+      "node_modules/@lutzseverino/repo-standards/skills/repository-standards",
+    ),
+    join(project.root, ".agents/skills/repository-standards"),
+    { recursive: true },
+  );
   chmodSync(join(project.root, ".agents/skills/review/scripts/run.sh"), 0o755);
   // The earlier adoption also left a skill link for each installed skill.
-  const links = ["adopt-standards", "repository-standards", "review"].map(
+  const links = ["repository-standards", "review"].map(
     (name) => `.claude/skills/${name}`,
   );
   mkdirSync(join(project.root, ".claude/skills"), { recursive: true });
@@ -502,12 +493,6 @@ profiles:`,
     "match",
   );
   assert.deepEqual(blocked.systemSkills, [
-    {
-      name: "adopt-standards",
-      target: ".agents/skills/adopt-standards",
-      action: "match",
-      link: { target: ".claude/skills/adopt-standards", action: "match" },
-    },
     {
       name: "repository-standards",
       target: ".agents/skills/repository-standards",
@@ -532,7 +517,7 @@ profiles:`,
   );
   assert.deepEqual(
     inspection.systemSkills.map(({ action }: { action: string }) => action),
-    ["match", "match"],
+    ["match"],
   );
   const claimed = [
     ".agents/skills/review/SKILL.md",
@@ -570,29 +555,25 @@ profiles:`,
     "SKILL.md",
     "scripts/run.sh",
   ]);
-  for (const system of [
-    ".agents/skills/adopt-standards",
-    ".agents/skills/repository-standards",
-  ]) {
-    assert.deepEqual(
-      state.skills[system],
-      cli.systemSkillFiles
-        .filter((path) => path.startsWith(`${system}/`))
-        .map((path) => path.slice(system.length + 1)),
-    );
-  }
+  const system = ".agents/skills/repository-standards";
+  assert.deepEqual(
+    state.skills[system],
+    cli.systemSkillFiles
+      .filter((path) => path.startsWith(`${system}/`))
+      .map((path) => path.slice(system.length + 1)),
+  );
   assert.equal(
     state.baselines[".agents/skills/review/scripts/run.sh"]!.executable,
     true,
   );
-  assert.ok(state.baselines[".agents/skills/adopt-standards/SKILL.md"]);
+  assert.ok(state.baselines[".agents/skills/repository-standards/SKILL.md"]);
 });
 
 test("start rejects every invalid initial project state without mutation", async (t) => {
   const packagedSkill = readFileSync(
     join(
       cli.root,
-      "node_modules/@lutzseverino/repo-standards/skills/adopt-standards/SKILL.md",
+      "node_modules/@lutzseverino/repo-standards/skills/repository-standards/SKILL.md",
     ),
     "utf8",
   );
@@ -678,15 +659,15 @@ test("start rejects every invalid initial project state without mutation", async
       code: "UNTRACKED_REPLACEMENT",
       files: {
         ".gitignore": "/.agents/\n",
-        ".agents/skills/adopt-standards/SKILL.md": packagedSkill,
+        ".agents/skills/repository-standards/SKILL.md": packagedSkill,
       },
       setup: (root) =>
         cpSync(
           join(
             cli.root,
-            "node_modules/@lutzseverino/repo-standards/skills/adopt-standards",
+            "node_modules/@lutzseverino/repo-standards/skills/repository-standards",
           ),
-          join(root, ".agents/skills/adopt-standards"),
+          join(root, ".agents/skills/repository-standards"),
           { recursive: true },
         ),
     },
@@ -714,8 +695,8 @@ test("start rejects every invalid initial project state without mutation", async
       name: "ignored system skill resource",
       code: "UNTRACKED_REPLACEMENT",
       files: {
-        ".gitignore": "/.agents/skills/adopt-standards/notes.md\n",
-        ".agents/skills/adopt-standards/notes.md": "Local",
+        ".gitignore": "/.agents/skills/repository-standards/notes.md\n",
+        ".agents/skills/repository-standards/notes.md": "Local",
       },
     },
     {
@@ -780,11 +761,11 @@ test("start rejects every invalid initial project state without mutation", async
 test("initial adoption replaces differing tracked files, author skills, and the system skill, and lists each replacement", async (t) => {
   const packaged = join(
     cli.root,
-    "node_modules/@lutzseverino/repo-standards/skills/adopt-standards",
+    "node_modules/@lutzseverino/repo-standards/skills/repository-standards",
   );
   const packagedSkill = readFileSync(join(packaged, "SKILL.md"), "utf8");
   const review = ".agents/skills/review";
-  const system = ".agents/skills/adopt-standards";
+  const system = ".agents/skills/repository-standards";
   const cases: {
     name: string;
     files: Record<string, string>;
@@ -921,11 +902,7 @@ test("skill links follow target ownership and leave the project its own skills",
   };
   // A linked ancestor makes each link unsafe, and, as for any target behind
   // one, leaves nothing tracked at its path.
-  const behindLink = [
-    "adopt-standards",
-    "repository-standards",
-    "review",
-  ].flatMap((name) =>
+  const behindLink = ["repository-standards", "review"].flatMap((name) =>
     ["UNSAFE_TARGET", "UNTRACKED_REPLACEMENT"].map((code) => ({
       code,
       path: `.claude/skills/${name}`,
@@ -1028,7 +1005,7 @@ test("skill links follow target ownership and leave the project its own skills",
         project: {
           "README.md": "Project",
           [`${link}/SKILL.md`]: "Hand-made copy",
-          ".claude/skills/adopt-standards": "Placeholder",
+          ".claude/skills/repository-standards": "Placeholder",
           ".agents/skills/mine/SKILL.md": "Mine",
           ".claude/skills/notes.md": "Notes",
           ".claude/settings.json": "{}\n",
@@ -1039,17 +1016,14 @@ test("skill links follow target ownership and leave the project its own skills",
       assert.deepEqual(inspection.start.blockers, []);
       assert.deepEqual(
         inspection.systemSkills.map(({ link }) => link),
-        [
-          { target: ".claude/skills/adopt-standards", action: "replace" },
-          { target: ".claude/skills/repository-standards", action: "create" },
-        ],
+        [{ target: ".claude/skills/repository-standards", action: "replace" }],
       );
       assert.deepEqual(inspection.exact[0]!.link, {
         target: link,
         action: "replace",
       });
       assert.deepEqual(inspection.discardedEdits, [
-        ".claude/skills/adopt-standards",
+        ".claude/skills/repository-standards",
         link,
       ]);
       const result = f.run(
@@ -1057,14 +1031,14 @@ test("skill links follow target ownership and leave the project its own skills",
       );
       assert.equal(result.status, 0, result.stdout + result.stderr);
       assert.equal((JSON.parse(result.stdout) as Run).outcome, "complete");
-      for (const name of ["adopt-standards", "repository-standards", "review"])
+      for (const name of ["repository-standards", "review"])
         assert.equal(
           readlinkSync(join(project.root, `.claude/skills/${name}`)),
           `../../.agents/skills/${name}`,
         );
       assert.deepEqual(
         readdirSync(join(project.root, ".claude/skills")).sort(),
-        ["adopt-standards", "notes.md", "repository-standards", "review"],
+        ["notes.md", "repository-standards", "review"],
       );
       assert.equal(
         readFileSync(join(project.root, ".claude/skills/notes.md"), "utf8"),
@@ -1081,7 +1055,6 @@ test("skill links follow target ownership and leave the project its own skills",
         readFileSync(join(project.root, ".repo-standards/state.json"), "utf8"),
       ) as State;
       assert.deepEqual(Object.keys(state.links), [
-        ".claude/skills/adopt-standards",
         ".claude/skills/repository-standards",
         link,
       ]);
@@ -1090,7 +1063,6 @@ test("skill links follow target ownership and leave the project its own skills",
           .map(({ path }: { path: string }) => path)
           .filter((path: string) => path.startsWith(".claude/")),
         [
-          ".claude/skills/adopt-standards",
           ".claude/skills/repository-standards",
           ".claude/skills/review",
           ".claude/skills/review/SKILL.md",
@@ -1390,15 +1362,15 @@ test("final integrity failures preserve work and report an incomplete locked run
     },
     {
       branch: "skill link",
-      target: ".claude/skills/adopt-standards",
+      target: ".claude/skills/repository-standards",
       mutation: (path: string) =>
         `fs.unlinkSync(${JSON.stringify(path)}); write(${JSON.stringify(path)}, 'Unexpected');`,
-      named: ".claude/skills/adopt-standards",
+      named: ".claude/skills/repository-standards",
     },
     {
       branch: "skill inventory",
-      target: ".agents/skills/adopt-standards/added.txt",
-      named: ".agents/skills/adopt-standards",
+      target: ".agents/skills/repository-standards/added.txt",
+      named: ".agents/skills/repository-standards",
       added: true,
     },
     {

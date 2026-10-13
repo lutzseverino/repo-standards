@@ -135,7 +135,6 @@ test("public inspection acquires a source larger than the anonymous API allowanc
 
 test("a self-adopted remote source ignores unselected links without extracting them", (t) => {
   const names = [
-    "adopt-standards",
     "repository-standards",
     ...Array.from({ length: 26 }, (_, index) => `author-${index}`),
   ];
@@ -218,7 +217,7 @@ syncBuiltinESMExports();\n`,
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const extracted = JSON.parse(readFileSync(inventory, "utf8")) as string[];
   assert.ok(extracted.includes("readme.md"));
-  assert.ok(extracted.includes(".agents/skills/adopt-standards/SKILL.md"));
+  assert.ok(extracted.includes(".agents/skills/repository-standards/SKILL.md"));
   assert.ok(!extracted.some((path) => path.startsWith(".claude/skills/")));
   assert.ok(!extracted.includes("elsewhere"));
 });

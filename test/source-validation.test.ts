@@ -277,7 +277,7 @@ test("the installed CLI exposes version and help and rejects unsupported command
   t.after(() => source.close());
   assert.equal(cli.run(["--version"], source.root).stdout.trim(), cli.version);
   assert.match(cli.run(["--help"], source.root).stdout, /source validate/);
-  assert.equal(cli.run(["adopt", source.root], source.root).status, 2);
+  assert.equal(cli.run(["validate", source.root], source.root).status, 2);
   assert.equal(
     cli.run(["source", "validate", "--profile", "personal"], source.root)
       .status,
@@ -555,7 +555,7 @@ profiles:
           directories: []
       reserved:
         kind: skill
-        name: adopt-standards
+        name: repository-standards
         source: skill
 `;
   const source = sourceFixture(yaml, {

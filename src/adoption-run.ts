@@ -376,7 +376,7 @@ function clearStoppedProcess(run: Run) {
   delete run.processGroupIdentity;
 }
 
-function canResumeAssessment(run: Run) {
+export function canResumeAssessment(run: Run) {
   return (
     !!run.continuation &&
     (run.phase === "contextual" ||
