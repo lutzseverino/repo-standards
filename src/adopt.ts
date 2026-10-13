@@ -19,6 +19,7 @@ import {
   isStableVersion,
 } from "./acquisition.js";
 import { lockPath, projectRoot, safe } from "./adoption-files.js";
+import { linkTextAt } from "./targets.js";
 import { start, status, resume, submitAssessment } from "./adoption.js";
 import { canResumeAssessment, confirmationStop } from "./adoption-run.js";
 import type { Run } from "./adoption-run.js";
@@ -99,6 +100,9 @@ export interface AdoptReport {
   discarded?: {
     target: string;
     files: { path: string; diff?: string; binary?: boolean }[];
+    // What replaces a target the inspection reports no file changes for: a
+    // system skill or a skill link.
+    replacement?: string;
   }[];
   // Each active discovery declaration's discovery and adoption guidance.
   discovery?: { id: string; discovery: Text; guidance: Text }[];
@@ -501,22 +505,16 @@ async function prepare(
       proposing,
     );
 
-  // A scope answer is complete once it has no open question. Inspection reads
-  // the complete answers as one proposal, written outside the project.
+  // Once the answers file supplies every scope entry, inspection reads them as
+  // one proposal, written outside the project, and validates each; an entry
+  // is complete once it has no open question.
   const scopeAnswer = (id: string) => {
     const answer = given.get(`scope:${id}`);
     return answer === null || answer === undefined ? undefined : record(answer);
   };
   const proposed =
     discovery.length > 0 &&
-    discovery.every(({ id }) => {
-      const answer = scopeAnswer(id);
-      return (
-        answer !== undefined &&
-        Array.isArray(answer.unresolved) &&
-        answer.unresolved.length === 0
-      );
-    });
+    discovery.every(({ id }) => scopeAnswer(id) !== undefined);
   const temporary = proposed
     ? mkdtempSync(join(externalPath(tmpdir(), root), "repo-standards-adopt-"))
     : undefined;
@@ -614,9 +612,8 @@ async function prepare(
         answer,
       });
       if (stale) missing.push("confirmation");
-      discarded = inspection.discardedEdits.map((target) => ({
-        target,
-        files: [...inspection.exact, ...(inspection.removed ?? [])]
+      discarded = inspection.discardedEdits.map((target) => {
+        const files = [...inspection.exact, ...(inspection.removed ?? [])]
           .filter((entry) => entry.target === target)
           .flatMap((entry) =>
             entry.files.map((changed) => ({
@@ -624,8 +621,20 @@ async function prepare(
               ...(changed.diff === undefined ? {} : { diff: changed.diff }),
               ...(changed.binary ? { binary: true } : {}),
             })),
-          ),
-      }));
+          );
+        const skill = inspection.systemSkills.find(
+          (entry) => entry.target === target,
+        );
+        const link = linkTextAt(target);
+        const replacement = files.length
+          ? undefined
+          : skill
+            ? `this CLI's packaged ${skill.name} skill`
+            : link
+              ? `a skill link to ${link}`
+              : undefined;
+        return { target, files, ...(replacement ? { replacement } : {}) };
+      });
     }
     const blockers = inspection.start.blockers.filter(
       (blocker) =>
@@ -866,7 +875,10 @@ function withSteps(
 ): AdoptReport {
   const { root, cliVersion } = context;
   const cli = continuationCommand(root, cliVersion);
-  const answers = context.answersPath ?? "<answers file>";
+  const answers =
+    context.answersPath === undefined
+      ? "<answers file>"
+      : shellArgument(context.answersPath);
   const again = code(`${cli} adopt --answers ${answers}`);
   const invoke = (args: string) => code(`${cli} ${args}`);
   const ids = new Set(report.answers.questions.map((question) => question.id));
@@ -899,7 +911,7 @@ function withSteps(
         );
       if (ids.has("confirmation"))
         steps.push(
-          "Show the maintainer each discarded edit with its diff. Answer `confirmation` with the inspection identity only after they confirm discarding them.",
+          "Show the maintainer each discarded edit with its diff, or its current content where there is none. Answer `confirmation` with the inspection identity only after they confirm discarding them.",
         );
       if (ids.has("remote-setup"))
         steps.push(
@@ -976,6 +988,13 @@ function withSteps(
       break;
   }
   return { ...report, nextSteps: steps };
+}
+
+// A command argument as a shell reads it back verbatim.
+function shellArgument(value: string) {
+  return /^[\w@%+=:,./-]+$/.test(value)
+    ? value
+    : `'${value.replaceAll("'", "'\\''")}'`;
 }
 
 // A fence longer than any backtick run in its content.
@@ -1093,6 +1112,11 @@ export function adoptSummary(report: AdoptReport) {
                   ? fenced(changed.diff, "diff")
                   : `${code(changed.path)}: ${changed.binary ? "binary content" : "content"} is replaced.`,
               ),
+              ...(entry.files.length
+                ? []
+                : [
+                    `The run replaces it whole with ${text(entry.replacement ?? "its candidate content")}. The inspection reports no file diff for it: show the maintainer its current content in the project.`,
+                  ]),
             ].join("\n\n"),
           )
           .join("\n\n"),

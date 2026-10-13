@@ -75,7 +75,7 @@ file, and so must a source given with it.
 ### Stages and results
 
 `adopt` prints Markdown for the agent: what it needs, the selection, missing
-answers, blockers, the inspection summary with each discarded edit's diff, the
+answers, blockers, the inspection summary with each discarded edit's diff, or what replaces a skill or skill link it has none for, the
 discovery and adoption guidance of discovery declarations, the run and its
 failed checks, each contextual declaration's installed rules and adoption
 guidance, the answers file, and the next steps. `--json` prints the same as a

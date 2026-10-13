@@ -8,7 +8,13 @@ import type {
 import assert from "node:assert/strict";
 import { after, test, type TestContext } from "node:test";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
 import { directoryFixture, installCli, snapshot } from "./installed-cli.ts";
@@ -175,8 +181,15 @@ function readmeSource(external: string) {
 test("adopt without an answers file prints a complete template and changes nothing", async (t) => {
   const outside = directoryFixture("repo-standards-adopt-source-");
   t.after(() => outside.close());
+  // The project also holds its own copy of the system skill, which the run
+  // replaces whole.
   const f = await fixture(t, readmeSource(outside.root), {
     profiles: { work: {}, personal: { "project-readme": { exclude: true } } },
+    project: {
+      "AGENTS.md": "Local agent notes\n",
+      "README.md": "Project notes\n",
+      ".agents/skills/repository-standards/SKILL.md": "# Local copy\n",
+    },
   });
   f.remote.publish("v1.1.0");
   f.releases("v1.0.0", "v1.1.0");
@@ -237,10 +250,16 @@ test("adopt without an answers file prints a complete template and changes nothi
   ]);
   assert.deepEqual(question(report, "confirmation").details, {
     identity: report.inspection!.identity,
-    targets: ["AGENTS.md"],
+    targets: [".agents/skills/repository-standards", "AGENTS.md"],
   });
   assert.deepEqual(report.missing, ["remote-setup", "confirmation"]);
-  assert.match(report.discarded![0]!.files[0]!.diff!, /-Local agent notes/);
+  // A replaced skill has no file diff; what replaces it is named instead.
+  assert.deepEqual(report.discarded![0], {
+    target: ".agents/skills/repository-standards",
+    files: [],
+    replacement: "this CLI's packaged repository-standards skill",
+  });
+  assert.match(report.discarded![1]!.files[0]!.diff!, /-Local agent notes/);
   assert.ok(report.nextSteps.length > 2);
 
   // An agent reads it as Markdown: the inspection, the discarded edit, the
@@ -299,6 +318,22 @@ test("an answers file adopts through missing answers, confirmation, contextual w
   assert.equal(incomplete.report.outcome, "answers-required");
   assert.deepEqual(incomplete.report.missing, ["confirmation"]);
   assert.deepEqual(snapshot(f.root), before);
+
+  // A continuation command quotes an answers path the shell would split.
+  const spaced = join(f.external.root, "review notes");
+  mkdirSync(spaced);
+  writeFileSync(
+    join(spaced, "answers.json"),
+    readFileSync(f.answersPath, "utf8"),
+  );
+  const quoted = f.adopt(["--answers", join(spaced, "answers.json")]);
+  assert.deepEqual(quoted.report.missing, ["confirmation"]);
+  assert.ok(
+    quoted.report.nextSteps.some((step) =>
+      step.includes(`adopt --answers '${join(spaced, "answers.json")}'`),
+    ),
+    quoted.report.nextSteps.join("\n"),
+  );
 
   // A confirmation naming another inspection confirms nothing.
   const stale = f.adopt(
@@ -628,6 +663,17 @@ test("adopt asks a discovery script's open questions as answers-file fields and 
   const open = f.adopt(f.answer(template.answers));
   assert.equal(open.result.status, 1);
   assert.deepEqual(open.report.missing, ["scope:project-docs"]);
+  assert.deepEqual(snapshot(f.root), before);
+
+  // A malformed entry is the proposal inspection rejects, never a start.
+  const malformed = f.adopt(
+    f.answer(template.answers, { "scope:project-docs": {} }),
+  );
+  assert.equal(malformed.result.status, 1);
+  assert.equal(
+    (malformed.report as unknown as ErrorReport).errors[0]!.code,
+    "INVALID_SCOPE",
+  );
   assert.deepEqual(snapshot(f.root), before);
 
   // Answered, the scope is confirmed and the run starts its contextual work.
