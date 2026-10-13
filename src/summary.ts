@@ -90,6 +90,8 @@ interface RunRecord {
   previousComplete?: { lastComplete: { run: string } };
 }
 export interface StatusRecord {
+  readyToCommit: boolean;
+  readinessReasons: string[];
   selection: Selection | null;
   lastComplete: {
     run: string;
@@ -584,6 +586,21 @@ export function statusSummary(record: StatusRecord) {
         ),
       );
   }
+  parts.splice(
+    1,
+    0,
+    section(
+      "Ready to commit",
+      `Ready to commit: ${record.readyToCommit ? "yes" : "no"}.${
+        record.readinessReasons.length
+          ? "\n\n" +
+            record.readinessReasons
+              .map((reason) => `- ${text(reason)}`)
+              .join("\n")
+          : ""
+      }`,
+    ),
+  );
   if (record.abandoned.length)
     parts.push(
       section(

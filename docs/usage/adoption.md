@@ -335,7 +335,7 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Integrity lock, `.repo-standards/lock.json`                          | `repo-standards/lock/v1`                                         |
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v5`                                |
 | Run record, local run report, and archived abandoned report          | `repo-standards/run/v6`                                          |
-| `status` report                                                      | `repo-standards/status/v7`                                       |
+| `status` report                                                      | `repo-standards/status/v8`                                       |
 | Inspection report                                                    | `repo-standards/inspection/v7`                                   |
 | Work request and assessment                                          | `repo-standards/work-request/v3`, `repo-standards/assessment/v3` |
 
@@ -436,6 +436,26 @@ fails, the report identifies the uncertainty for manual recovery.
 
 ## Summarize status
 
+`status` prints a Markdown record with a **Ready to commit** verdict.
+`status --summary` prints the same record; `status --json` returns
+`readyToCommit`, a boolean, and `readinessReasons`, the failing conditions as
+messages (empty when ready). The verdict is true only when:
+
+- no adoption run is active;
+- a last complete run is recorded;
+- there is no `stateError`;
+- every path in that run's `changeSet` is among Git's uncommitted changes.
+
+Staged, unstaged, and non-ignored untracked paths count as uncommitted, including
+deleted paths and both ends of a rename. A path already committed or reverted
+makes the verdict false, even when unrelated changes remain. A complete run
+with an empty change set satisfies the path condition. The verdict describes
+readiness for the project's commit workflow; it does not run checks or certify
+ongoing compliance. Producing a status report still exits 0 when the verdict is
+false; CLI pin, format, and integrity failures still fail as documented below.
+Readiness depends on the checkout's current Git status, so the verdict can
+differ between checkouts holding the same committed adoption state.
+
 `status --summary` renders the status record as Markdown on stdout instead of
 JSON. After a complete run it is the record of that run: the selection, every
 operation with its result and message, each path the run changed, once, with
@@ -449,8 +469,8 @@ record without prescribing anything, and combining `--summary` with `--json` is
 a usage error.
 
 The changed paths are the run's net change set, which completion keeps in
-durable state as `changeSet`, so the record renders from committed state alone,
-in any checkout. Each entry names a path whose state at completion differs from
+durable state as `changeSet`, so the changed-path table renders from committed
+state alone, in any checkout. Each entry names a path whose state at completion differs from
 its state before the run, and the phases that changed it: `installation` for
 exact files and skill files, including the system skills' and a retired
 declaration's removed target, that the run created, replaced, or removed; `fixes` and `agent` for the paths their intervals
@@ -465,7 +485,8 @@ The JSON status record of a complete discovery-backed adoption includes
 run made relative to the run before it, read from the retained scope evidence,
 or every confirmed path for the first discovery-backed run.
 
-Every `status --json` report uses `repo-standards/status/v7` and includes
+Every `status --json` report uses `repo-standards/status/v8` (raised from v7 for
+`readyToCommit` and `readinessReasons`) and includes
 `scopeProposal`: the last complete run's confirmed proposal, in the public
 `repo-standards/scope/v2` format, or null when that run had no confirmed proposal
 or no adoption has completed. It preserves the confirmed candidates, decisions,

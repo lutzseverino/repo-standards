@@ -169,13 +169,19 @@ test("status --summary renders an active run with its phase, operations and next
 // The complete-run record rendered from status --json, with the given operation
 // and changed-path sections between its fixed sections.
 function expectedRecord(
-  status: Pick<Status, "selection" | "lastComplete">,
+  status: Pick<Status, "selection" | "lastComplete" | "changeSet">,
   operations: string,
   changedPaths: string,
   scopeChanges: string,
 ) {
   const { selection, lastComplete } = status;
   return `# Repository Standards adoption record
+
+## Ready to commit
+
+Ready to commit: no.
+
+${status.changeSet!.map(({ path }) => `- Changed path is not among the uncommitted changes: ${path}.`).join("\n")}
 
 ## Selection
 

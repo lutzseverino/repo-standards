@@ -19,6 +19,7 @@ import {
   hashInventory,
   targetBoundaryObservation,
   targetObservation,
+  uncommittedPaths,
 } from "./observation.js";
 import type {
   Blocker,
@@ -314,22 +315,7 @@ export function actualChanges(
   root: string,
   affected: Record<string, HashInventory>,
 ) {
-  const status = git(root, [
-    "status",
-    "--porcelain=v1",
-    "-z",
-    "--untracked-files=all",
-    "--ignore-submodules=all",
-  ]);
-  if (status.status !== 0)
-    throw new ProductError("PROJECT_READ", "Cannot report actual Git changes.");
-  const records = status.stdout.split("\0").filter(Boolean);
-  const paths = new Set<string>();
-  for (let index = 0; index < records.length; index++) {
-    const record = records[index]!;
-    paths.add(record.slice(3));
-    if (/^[RC]|^.[RC]/.test(record)) paths.add(records[++index]!);
-  }
+  const paths = uncommittedPaths(root);
   // Git omits ignored material. List product storage and changed exact trees
   // independently, without following links or expanding installed dependencies.
   function collect(path: string) {
