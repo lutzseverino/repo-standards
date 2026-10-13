@@ -275,3 +275,42 @@ console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: 'ready'
 function sourceManifest(f: Awaited<ReturnType<typeof fixture>>) {
   return readFileSync(join(f.remote.source.root, "standards.yaml"), "utf8");
 }
+
+test("with start blockers no probe runs, and every remote setup, even an undiscovered declaration's, is not checked", async (t) => {
+  const external = directoryFixture("repo-standards-remote-");
+  t.after(() => external.close());
+  const probes = join(external.root, "probes.log");
+  const f = await adoptionFixture(
+    t,
+    cli,
+    manifest({
+      docs: {
+        kind: "repository",
+        guidance: "content.md",
+        discovery: "content.md",
+        fixes: [
+          {
+            ...operation("labels", { script: "remote/fix.mjs" }),
+            "remote-setup": {
+              probe: (({ id: _id, ...declared }) => declared)(
+                operation("probe", {
+                  script: "remote/probe.mjs",
+                  arguments: [join(external.root, "ready"), probes],
+                }),
+              ),
+            },
+          },
+        ],
+      },
+    }),
+    { files, project: { "README.md": "Project" } },
+  );
+  const inspection = f.inspect();
+  assert.ok(
+    inspection.start.blockers.some(({ code }) => code === "DISCOVERY_REQUIRED"),
+  );
+  assert.deepEqual(inspection.remoteSetup, [
+    { declaration: "docs", id: "labels", status: "not-checked" },
+  ]);
+  assert.equal(existsSync(probes), false);
+});

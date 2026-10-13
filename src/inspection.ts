@@ -664,7 +664,7 @@ export async function inspectForStart(
       }
     // Remote setup probes run once nothing blocks the start, before any write.
     const remoteSetup: RemoteSetup[] = blockers.length
-      ? remoteSetupFixes(resolved.declarations).map(({ declaration, fix }) => ({
+      ? remoteSetupFixes(profile.declarations).map(({ declaration, fix }) => ({
           declaration,
           id: fix.id,
           status: "not-checked",
