@@ -20,7 +20,15 @@ import {
 } from "./acquisition.js";
 import { lockPath, projectRoot, safe } from "./adoption-files.js";
 import { linkTextAt } from "./targets.js";
-import { start, status, resume, submitAssessment } from "./adoption.js";
+import {
+  inspectRetained,
+  resume,
+  start,
+  startRetained,
+  status,
+  submitAssessment,
+} from "./adoption.js";
+import { readRecordedAdoption, type RetainedSource } from "./recorded-state.js";
 import { canResumeAssessment, confirmationStop } from "./adoption-run.js";
 import type { Run } from "./adoption-run.js";
 import { ProductError } from "./errors.js";
@@ -400,17 +408,35 @@ async function prepare(
     const value = given.get(id);
     return typeof value === "string" ? value : undefined;
   };
+  // Without its source, an adopted project applies its current selection
+  // again from the retained inputs, as inspect and start do without source
+  // flags.
+  const current =
+    recorded !== undefined && sourceKey(source) === sourceKey(recorded.source)
+      ? recorded
+      : undefined;
+  const unavailable = (error: unknown) =>
+    error instanceof ProductError &&
+    ["SOURCE_UNAVAILABLE", "QUOTA_EXHAUSTED"].includes(error.code);
   let version = options.standardsVersion ?? answered("version");
   let profile: string | undefined;
   let releases: string[] | undefined;
+  let lookupFailure: string | undefined;
   if (version === undefined) {
-    releases = await stableReleases(source);
-    if (proposing) version = releases[0];
+    try {
+      releases = await stableReleases(source);
+    } catch (error) {
+      if (!current || !unavailable(error)) throw error;
+      lookupFailure = (error as ProductError).message;
+    }
+    if (proposing) version = releases?.[0] ?? current?.version;
   }
   const versionQuestion: Question = {
     id: "version",
     question: "Which standards version should the project adopt?",
-    context: `A stable release of ${source}${recorded ? `; the project adopts ${recorded.version} now` : ""}. The template proposes the newest stable release.`,
+    context: lookupFailure
+      ? `The releases of ${source} cannot be read: ${lookupFailure} The template proposes the current version, ${current!.version}, which the retained standards apply again.`
+      : `A stable release of ${source}${recorded ? `; the project adopts ${recorded.version} now` : ""}. The template proposes the newest stable release.`,
     ...(releases ? { choices: releases } : {}),
     answer: version ?? null,
   };
@@ -438,11 +464,24 @@ async function prepare(
       proposing,
     );
 
-  const acquired = await acquireSource(source, version, root);
+  let retained: RetainedSource | undefined;
+  let acquired: Awaited<ReturnType<typeof acquireSource>>;
+  try {
+    acquired = await acquireSource(source, version, root);
+  } catch (error) {
+    if (current?.version !== version || !unavailable(error)) throw error;
+    retained = readRecordedAdoption(root)!.source();
+    acquired = retained;
+  }
   let profileQuestion: Question;
   let discovery: NonNullable<AdoptReport["discovery"]> = [];
   try {
-    const validation = validateSource(acquired.root, cliVersion, acquired);
+    const validation = validateSource(
+      acquired.root,
+      cliVersion,
+      acquired,
+      retained?.manifest,
+    );
     if (!validation.valid)
       throw new ProductError(
         "INVALID_STANDARDS",
@@ -465,12 +504,14 @@ async function prepare(
     if (profile !== undefined && !Object.hasOwn(profiles, profile))
       throw new ProductError(
         "UNKNOWN_PROFILE",
-        `Unknown profile ${profile}. Available profiles: ${names.join(", ")}.`,
+        `Unknown profile ${profile}. Available profiles: ${names.join(", ")}.${retained ? " The source is unavailable, and its retained standards hold only the current profile." : ""}`,
       );
     profileQuestion = {
       id: "profile",
       question: "Which profile should the project adopt?",
-      context: `Each profile of ${source} ${version} is a complete selection of its standards.${recorded ? ` The project adopts ${recorded.profile} now.` : ""}`,
+      context: retained
+        ? `The source is unavailable, so its retained standards apply the current profile, ${current!.profile}, again.`
+        : `Each profile of ${source} ${version} is a complete selection of its standards.${recorded ? ` The project adopts ${recorded.profile} now.` : ""}`,
       choices: names.map((name) => ({
         name,
         description: profiles[name]!.description,
@@ -540,7 +581,9 @@ async function prepare(
       project: root,
       ...(scope ? { scope } : {}),
     };
-    const inspection = await inspect(inspectOptions, cliVersion);
+    const inspection = retained
+      ? await inspectRetained(root, cliVersion, scope)
+      : await inspect(inspectOptions, cliVersion);
     const questions = [versionQuestion, profileQuestion];
     const missing: string[] = [];
     for (const { id } of discovery) {
@@ -669,13 +712,22 @@ async function prepare(
       (notReady.length && given.get("remote-setup") === "resolve")
     )
       return withSteps(context, { ...inspected, outcome: "blocked" }, false);
-    const run = await start(
-      inspectOptions,
-      cliVersion,
-      identity,
-      confirmation.required,
-      notReady.length > 0,
-    );
+    const run = retained
+      ? await startRetained(
+          root,
+          cliVersion,
+          identity,
+          confirmation.required,
+          scope,
+          notReady.length > 0,
+        )
+      : await start(
+          inspectOptions,
+          cliVersion,
+          identity,
+          confirmation.required,
+          notReady.length > 0,
+        );
     // A retry of a start interrupted before its installation was prepared
     // reads the proposal again.
     keep = existsSync(lockPath(root)) && !run.continuation;
@@ -887,7 +939,11 @@ function withSteps(
   template: boolean,
 ): AdoptReport {
   const { root, cliVersion } = context;
-  const cli = continuationCommand(root, cliVersion);
+  // Before a run installs it, nothing establishes the project's runtime, so
+  // only a run's steps name it.
+  const cli = report.run
+    ? continuationCommand(root, cliVersion)
+    : `npx ${packageName}@${cliVersion}`;
   const answers =
     context.answersPath === undefined
       ? "<answers file>"

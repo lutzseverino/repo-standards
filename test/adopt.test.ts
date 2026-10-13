@@ -602,6 +602,27 @@ test("adopt without a source updates an adopted project, offering the newest sta
     readFileSync(join(f.root, ".repo-standards/selection.yaml"), "utf8"),
   ) as { standards: { version: string } };
   assert.equal(selection.standards.version, "v1.1.0");
+  commit(f.root);
+
+  // Without its source, the project applies its current selection again
+  // from the retained standards.
+  for (const url of Object.keys(f.remote.responses))
+    delete f.remote.responses[url];
+  f.remote.save();
+  const offline = f.adopt([]);
+  assert.equal(offline.result.status, 0, offline.result.stdout);
+  assert.equal(question(offline.report, "version").answer, "v1.1.0");
+  assert.match(
+    question(offline.report, "version").context,
+    /cannot be read: .* retained standards apply again/,
+  );
+  assert.equal(question(offline.report, "profile").answer, "work");
+  const reapplied = f.adopt(f.answer(offline.report.answers));
+  assert.equal(reapplied.report.outcome, "complete", reapplied.result.stdout);
+  assert.equal(
+    readFileSync(join(f.root, "AGENTS.md"), "utf8"),
+    "Updated agent guidance\n",
+  );
 });
 
 const discovery = "Projects have a package manifest; fixtures do not count.";

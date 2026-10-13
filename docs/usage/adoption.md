@@ -21,7 +21,10 @@ npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
 
 The full form is `adopt [<GitHub URL>] [--standards-version <tag>]
 [--profile <name>] [--answers <file>] [--project <directory>] [--json]`. In an
-adopted project, `adopt` without a source updates the current selection.
+adopted project, `adopt` without a source updates the current selection. When
+the source cannot be reached, it proposes the current version and profile and
+applies them again from the retained standards, as `inspect` and `start` do
+without source flags.
 
 Without an answers file, `adopt` prints its questions as an answers-file
 template, with the inspection of the selection it proposes and the next steps,
@@ -39,9 +42,10 @@ present to the maintainer first.
 
 `adopt` installs the exact CLI that ran it into the project's
 [runtime](#durable-and-local-state) and records it as the CLI pin, so no CLI
-needs installing outside the project. Once a run has started, its next steps
-continue and recover the run with that pinned runtime,
-`.repo-standards/runtime/node_modules/.bin/repo-standards`. With an active run,
+needs installing outside the project. Before a run, its next steps name the
+same exact CLI through `npx`; once a run has installed the pinned runtime,
+`.repo-standards/runtime/node_modules/.bin/repo-standards`, they continue and
+recover the run with it. With an active run,
 `adopt --answers <file>` continues it, advancing it by at most one step: a
 confirmed fix, or submitted assessments. A source, version, or profile that
 differs from the active run's selection fails with `ACTIVE_RUN`.
