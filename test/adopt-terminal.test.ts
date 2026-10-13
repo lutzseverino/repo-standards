@@ -298,7 +298,7 @@ test("adopt in a terminal asks a discovery script's open questions and reviews t
   assert.match(scope, /Open question: Is tools a maintained project\?/);
   session.type("No, tools holds scripts.");
   await session.expect(
-    "Files project-docs covers, separated by spaces [app/README.md]: ",
+    "Does project-docs cover exactly the drafted files, app/README.md? [Y/n]: ",
   );
   session.type("");
   await session.expect("Start the run? [Y/n]: ");
@@ -386,7 +386,7 @@ test("a scope the person reports incomplete stops the run, which the person aban
   await session.expect("Profile [work]: ");
   session.type("");
   await session.expect(
-    "Files project-docs covers, separated by spaces [app/README.md]: ",
+    "Does project-docs cover exactly the drafted files, app/README.md? [Y/n]: ",
   );
   session.type("");
   await session.expect("Start the run? [Y/n]: ");
@@ -396,8 +396,10 @@ test("a scope the person reports incomplete stops the run, which the person aban
   session.type("");
   await session.expect("still cover every file project-docs should? [Y/n]: ");
   session.type("n");
-  await session.expect("Which files does it miss? Separate them with spaces: ");
+  await session.expect("File: ");
   session.type("tools/README.md");
+  await session.expect("File: ");
+  session.type("");
   await session.expect("Is project-docs done? [Y/n/blocked]: ");
   session.type("");
   assert.match(
@@ -410,4 +412,125 @@ test("a scope the person reports incomplete stops the run, which the person aban
   assert.equal(status(f).active, null);
   // The run's work stays in the project.
   assert.equal(readFileSync(join(f.root, "app/README.md"), "utf8"), "# App\n");
+});
+
+test("a person lists the files a discovery declaration covers, and a rejected path asks again", async (t) => {
+  const f = await fixture(
+    t,
+    cli,
+    {
+      "project-docs": {
+        kind: "repository",
+        guidance: "guidance.md",
+        discovery: "discovery.md",
+        "discovery-script": (({ id: _id, ...declared }) => declared)(
+          operation("draft", { script: "draft.mjs" }),
+        ),
+      },
+    },
+    {
+      files: {
+        "guidance.md": "Document each maintained project.",
+        "discovery.md": "Projects have a package manifest.",
+        "draft.mjs": `import { readFileSync } from "node:fs";
+const input = JSON.parse(readFileSync(0, "utf8"));
+process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declarations: [{
+  id: input.declaration,
+  coverage: "The app is maintained.",
+  candidates: [
+    { path: "app/README.md", decision: "include", reason: "Its manifest makes it a project.", evidence: ["app/package.json"] },
+    { path: "tools/README.md", decision: "exclude", reason: "Tools has no manifest.", evidence: ["tools/run.sh"] },
+  ],
+  unresolved: [],
+}] }));
+`,
+      },
+      project: { "app/package.json": "{}", "tools/run.sh": "echo tools" },
+    },
+  );
+  const session = terminal(t, f, [source]);
+  await session.expect("Version [v1.0.0]: ");
+  session.type("");
+  await session.expect("Profile [work]: ");
+  session.type("");
+  const list = async (...paths: string[]) => {
+    await session.expect(
+      "Does project-docs cover exactly the drafted files, app/README.md? [Y/n]: ",
+    );
+    session.type("n");
+    for (const path of [...paths, ""]) {
+      await session.expect("File: ");
+      session.type(path);
+    }
+    await session.expect("Why do these files make up its scope? ");
+    session.type("The maintainer documents these.");
+  };
+  // A path inspection rejects asks the scope question again.
+  await list("../outside.md");
+  await session.expect("Answer the scope questions again.");
+  // A drafted exclusion the person lists is included, and a path keeps its
+  // spaces.
+  await list("app/README.md", "tools/README.md", "docs/User Guide.md");
+  await session.expect("Start the run? [Y/n]: ");
+  session.type("");
+  const walk = await session.expect(
+    "Press Enter when you are done, or type blocked: ",
+  );
+  const targets = /Edit only: (.*)\n/.exec(walk)![1]!.split(", ").sort();
+  assert.deepEqual(targets, [
+    "app/README.md",
+    "docs/User Guide.md",
+    "tools/README.md",
+  ]);
+  session.press("\x03");
+  assert.equal(await session.exit(), 130);
+});
+
+test("a failed check outside contextual work stops the session instead of assessing again", async (t) => {
+  const f = await fixture(
+    t,
+    cli,
+    {
+      "agent-guidance": {
+        kind: "file",
+        target: "AGENTS.md",
+        exact: "content/AGENTS.md",
+        checks: [operation("tooling", { script: "checks/tooling.mjs" })],
+      },
+      "project-readme": {
+        kind: "file",
+        target: "README.md",
+        guidance: "guidance/readme.md",
+      },
+    },
+    {
+      files: {
+        "content/AGENTS.md": "Standard agent guidance\n",
+        "guidance/readme.md": guidance,
+        "checks/tooling.mjs": `console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: 'failed', message: 'The tool is missing.' }));
+`,
+      },
+      project: { "README.md": "Project notes\n" },
+    },
+  );
+  const session = terminal(t, f, [source]);
+  await session.expect("Version [v1.0.0]: ");
+  session.type("");
+  await session.expect("Profile [work]: ");
+  session.type("");
+  await session.expect("Start the run? [Y/n]: ");
+  session.type("");
+  await session.expect("Press Enter when you are done, or type blocked: ");
+  session.type("");
+  await session.expect("Is project-readme done? [Y/n/blocked]: ");
+  session.type("");
+  assert.match(
+    await session.expect("then run adopt again."),
+    /Failed: agent-guidance\/tooling: The tool is missing\.\nThese checks are not of contextual work/,
+  );
+  assert.equal(await session.exit(), 1);
+  assert.match(
+    status(f).active!.reason,
+    /CHECKS_FAILED: .*agent-guidance\/tooling/,
+  );
 });

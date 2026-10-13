@@ -62,8 +62,8 @@ stable release first; the profile, listing each description; each discovery
 declaration's scope; remote setup deferral when a probe is not ready; and the
 confirmation of confirmation-required changes, showing each discarded edit's
 diff. A discovery script's open questions are asked as prompts, and the person
-accepts the drafted files or lists the files the declaration covers, with the
-reason. `adopt` then shows the inspection and asks to start the run, which
+accepts the drafted files or lists the files the declaration covers, one per
+line, with the reason. A scope that inspection rejects is asked again. `adopt` then shows the inspection and asks to start the run, which
 answers `inspection`. Declining a confirmation or the start changes nothing.
 
 Once the run waits for contextual work, `adopt` walks each contextual
@@ -83,7 +83,8 @@ These checks run read-only inside the waiting run, as `check` runs them, and
 record nothing: the run's own check round after the assessment decides.
 `adopt` writes the assessment from the answers, citing each check result and
 the maintainer's confirmation, and submits it. When the run's checks then fail,
-it walks the failing declarations again. A blocked declaration leaves the run
+it walks the failing declarations again; a failed check of a declaration
+without contextual work stops the session, since no contextual edit fixes it. A blocked declaration leaves the run
 incomplete, its reason naming the declaration; running `adopt` again walks the
 contextual work again.
 

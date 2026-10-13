@@ -69,6 +69,15 @@ const pinnedCli = ".repo-standards/runtime/node_modules/.bin/repo-standards";
 const editing =
   "Edit the files now. Press Enter when you are done, or type blocked: ";
 const fixing = "Fix it, then press Enter to check again, or type blocked: ";
+// The codes with which inspection rejects a scope entry or its paths.
+const scopeRejections = [
+  "INVALID_SCOPE",
+  "UNSAFE_PATH",
+  "RESERVED_TARGET",
+  "TARGET_OVERLAP",
+  "CASE_CONFLICT",
+  "UNSAFE_TARGET",
+];
 
 type Contextual = NonNullable<AdoptReport["contextual"]>[number];
 // A judgment adopt writes; the question names its declaration.
@@ -112,6 +121,15 @@ function prompts({ write, ask }: Terminal) {
         { y: "yes", yes: "yes", n: "no", no: "no" },
         fallback,
       )) === "yes",
+    // Paths, one per line, which may hold spaces; an empty line ends them.
+    paths: async (prompt: string) => {
+      const paths: string[] = [];
+      for (;;) {
+        const typed = await ask(prompt);
+        if (!typed) return [...new Set(paths)];
+        paths.push(typed);
+      }
+    },
     // One of the names, or the proposed one when the person types nothing.
     named: async (label: string, proposed: string | null, names: string[]) => {
       for (;;) {
@@ -151,7 +169,7 @@ export async function adoptInTerminal(
       );
       if (
         !(error instanceof ProductError) ||
-        error.code !== "INVALID_SCOPE" ||
+        !scopeRejections.includes(error.code) ||
         !scopes.length
       )
         throw error;
@@ -254,6 +272,17 @@ export async function adoptInTerminal(
         let walk = declarations;
         if (reason.startsWith("CHECKS_FAILED:")) {
           write("\nThe run's checks failed after the assessment.\n");
+          // Contextual work cannot fix the checks of other declarations, so
+          // assessing it again would only run the same checks again.
+          const elsewhere = failed.filter(
+            (check) => !declarations.some(({ id }) => id === check.declaration),
+          );
+          if (elsewhere.length) {
+            write(
+              `${elsewhere.map((check) => `Failed: ${check.declaration}/${check.id}: ${check.message}\n`).join("")}These checks are not of contextual work, which cannot change what they check. Read ${pinnedCli} status, resolve them, then run adopt again.\n`,
+            );
+            return report.outcome;
+          }
           walk = declarations.filter(
             ({ id }) =>
               !judged.has(id) ||
@@ -421,7 +450,7 @@ function showBlockers({ write }: Prompts, report: AdoptReport) {
 // A discovery declaration's scope entry, from its draft, if any, and the
 // person's answers to its open questions and the files it covers.
 async function askScope(
-  { write, ask, required }: Prompts,
+  { write, required, yes, paths: list }: Prompts,
   root: string,
   question: Question,
   report: AdoptReport,
@@ -458,36 +487,36 @@ async function askScope(
   const drafted = (draft?.candidates ?? [])
     .filter((candidate) => candidate.decision === "include")
     .map((candidate) => candidate.path);
-  const listed = (
-    await ask(
-      `Files ${id} covers, separated by spaces${drafted.length ? ` [${drafted.join(" ")}]` : ""}: `,
-    )
-  )
-    .split(/\s+/)
-    .filter(Boolean);
-  const paths = [...new Set(listed.length ? listed : drafted)];
-  const changed =
-    !draft ||
-    paths.length !== drafted.length ||
-    paths.some((path) => !drafted.includes(path));
-  const why = changed
-    ? await required("Why do these files make up its scope? ")
-    : undefined;
+  const accepted =
+    draft !== undefined &&
+    (await yes(
+      `Does ${id} cover exactly the drafted files, ${drafted.join(", ") || "none"}? [Y/n]: `,
+      "yes",
+    ));
+  if (!accepted)
+    write(
+      `List the files ${id} covers, one per line; an empty line ends the list.\n`,
+    );
+  const paths = accepted ? drafted : await list("File: ");
+  const why = accepted
+    ? undefined
+    : await required("Why do these files make up its scope? ");
   const coverage = [draft?.coverage, why, ...notes]
     .filter((text) => text)
     .join(" ");
-  const kept = (draft?.candidates ?? []).flatMap((candidate): Candidate[] =>
-    paths.includes(candidate.path) || candidate.decision === "exclude"
-      ? [candidate]
-      : [
-          {
-            ...candidate,
-            decision: "exclude",
-            reason:
-              "The maintainer excluded it in adopt's terminal walk-through.",
-          },
-        ],
-  );
+  // Each drafted candidate is included exactly when the person lists it.
+  const kept = (draft?.candidates ?? []).map((candidate): Candidate => {
+    const included = paths.includes(candidate.path);
+    return included === (candidate.decision === "include")
+      ? candidate
+      : {
+          ...candidate,
+          decision: included ? "include" : "exclude",
+          reason: included
+            ? why!
+            : "The maintainer excluded it in adopt's terminal walk-through.",
+        };
+  });
   const added = paths
     .filter((path) => !kept.some((candidate) => candidate.path === path))
     .map((path): Candidate => ({
@@ -503,7 +532,7 @@ async function askScope(
 // One contextual declaration, walked until the person reports it done with
 // its checks passing, or blocked.
 async function walkDeclaration(
-  { write, ask, required, choose, yes }: Prompts,
+  { write, ask, required, choose, yes, paths }: Prompts,
   { root, cliVersion }: Session,
   declaration: Contextual,
   position: string,
@@ -549,17 +578,11 @@ async function walkDeclaration(
         "yes",
       ))
     ) {
-      const missing = [
-        ...new Set(
-          (
-            await required(
-              "Which files does it miss? Separate them with spaces: ",
-            )
-          )
-            .split(/\s+/)
-            .filter(Boolean),
-        ),
-      ];
+      write(
+        "List the files it misses, one per line; an empty line ends the list.\n",
+      );
+      let missing: string[] = [];
+      while (!missing.length) missing = await paths("File: ");
       write(
         "A run's confirmed scope never changes, so the run stops incomplete: abandon it, then adopt again with a new scope.\n",
       );
