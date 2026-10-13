@@ -125,7 +125,7 @@ export interface AdoptReport {
 type Answers = Map<string, unknown>;
 
 const questionId =
-  /^(?:version|profile|remote-setup|confirmation|(?:scope|assessment):[^/\s]+|fix:[^/\s]+\/[^/\s]+)$/;
+  /^(?:version|profile|remote-setup|confirmation|inspection|(?:scope|assessment):[^/\s]+|fix:[^/\s]+\/[^/\s]+)$/;
 const questionKeys = ["id", "question", "context", "choices", "details"];
 
 function malformed(message: string): never {
@@ -637,6 +637,17 @@ async function prepare(
         return { target, files, ...(replacement ? { replacement } : {}) };
       });
     }
+    // The answers file names the inspection it was written against, so a run
+    // starts only after the agent had the inspection it carries out to
+    // present. A new or changed inspection goes back for another round trip.
+    questions.push({
+      id: "inspection",
+      question: "Which inspection does the run carry out?",
+      context: `The identity of the inspection above, ${identity}, which this answers file was written against. Present that inspection to the maintainer before running adopt with it. adopt starts a run only when this answer names the current inspection; when the inspection changes, it prints the new one to present.`,
+      answer: identity,
+    });
+    if (!proposing && given.get("inspection") !== identity)
+      missing.push("inspection");
     const blockers = inspection.start.blockers.filter(
       (blocker) =>
         !["DISCOVERY_REQUIRED", "UNRESOLVED_SCOPE"].includes(blocker.code),
@@ -902,7 +913,7 @@ function withSteps(
       );
       if (report.inspection)
         steps.push(
-          "Present the inspection to the maintainer as what the run will do: its changes, discarded edits, and the operations that run trusted scripts with the user's access to the host, environment, and network.",
+          "Present the inspection to the maintainer as what the run will do: its changes, discarded edits, and the operations that run trusted scripts with the user's access to the host, environment, and network. The answers file's `inspection` answer names it; the run starts only that inspection.",
         );
       steps.push(
         "Ask the maintainer each question, with its context and choices, and record their answers. The version, profile, discovery questions, remote setup deferral, and confirmations are theirs to decide; never answer them yourself.",

@@ -33,7 +33,9 @@ filled answers file, `adopt` names each missing answer, asks the questions that
 follow from the answers, and starts the run once none remain and nothing blocks
 it. A question that depends on an answer appears once that answer is given: the
 profile's questions follow the profile, and remote setup readiness follows a
-complete scope, since inspection probes only an unblocked selection.
+complete scope, since inspection probes only an unblocked selection. A run
+starts only an inspection the answers file names, so the agent has it to
+present to the maintainer first.
 
 `adopt` installs the exact CLI that ran it into the project's
 [runtime](#durable-and-local-state) and records it as the CLI pin, so no CLI
@@ -63,6 +65,7 @@ wrong kind with `ANSWERS_FORMAT`, and an answers file inside the project with
 | `scope:<declaration>`      | For each active discovery declaration.                   | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`. A discovery script's draft is proposed; it stays missing while it has open questions or until an answers file carries it back. |
 | `remote-setup`             | When a remote setup probe is not ready.                  | `defer` to complete adoption without it, or `resolve` to stop, writing nothing.                                                                                                                                                                          |
 | `confirmation`             | When the inspection requires confirmation.               | The inspection identity the maintainer confirmed. `details` names the identity and the discarded edits.                                                                                                                                                  |
+| `inspection`               | Once inspected; the template carries the identity.       | The identity of the inspection the answers file was written against. A run starts only when it names the current inspection; a new or changed inspection is printed again to present first.                                                              |
 | `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.             | The run's inspection identity, once the maintainer confirms the overwrite its `context` names.                                                                                                                                                           |
 | `assessment:<declaration>` | For each declaration of contextual work.                 | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration.                                                                             |
 

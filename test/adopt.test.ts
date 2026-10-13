@@ -239,6 +239,7 @@ test("adopt without an answers file prints a complete template and changes nothi
       ["profile", "work"],
       ["remote-setup", null],
       ["confirmation", null],
+      ["inspection", report.inspection!.identity],
     ],
   );
   assert.deepEqual(question(report, "remote-setup").choices, [
@@ -542,7 +543,25 @@ test("adopt without a source updates an adopted project, offering the newest sta
   );
   const first = f.adopt([source]).report;
   assert.deepEqual(first.missing, []);
-  const adopted = f.adopt(f.answer(first.answers));
+  // Answers written before the inspection, such as a staged template's
+  // version and profile, return it to be presented before any run starts.
+  const before = snapshot(f.root);
+  const unseen = f.adopt(
+    f.answer({
+      ...first.answers,
+      questions: first.answers.questions.filter(
+        ({ id }) => id === "version" || id === "profile",
+      ),
+    }),
+  );
+  assert.equal(unseen.report.outcome, "answers-required");
+  assert.deepEqual(unseen.report.missing, ["inspection"]);
+  assert.equal(
+    question(unseen.report, "inspection").answer,
+    unseen.report.inspection!.identity,
+  );
+  assert.deepEqual(snapshot(f.root), before);
+  const adopted = f.adopt(f.answer(unseen.report.answers));
   assert.equal(adopted.report.outcome, "complete", adopted.result.stdout);
   commit(f.root);
 
@@ -661,10 +680,11 @@ test("adopt asks a discovery script's open questions as answers-file fields and 
   assert.deepEqual(template.missing, ["scope:project-docs"]);
   assert.equal(template.discovery![0]!.discovery.content, discovery);
 
-  // An answer with an open question is still missing.
+  // An answer with an open question is still missing, and the proposal it
+  // makes is a new inspection to present.
   const open = f.adopt(f.answer(template.answers));
   assert.equal(open.result.status, 1);
-  assert.deepEqual(open.report.missing, ["scope:project-docs"]);
+  assert.deepEqual(open.report.missing, ["scope:project-docs", "inspection"]);
   assert.deepEqual(snapshot(f.root), before);
 
   // A malformed entry is the proposal inspection rejects, never a start.
@@ -678,8 +698,9 @@ test("adopt asks a discovery script's open questions as answers-file fields and 
   );
   assert.deepEqual(snapshot(f.root), before);
 
-  // Answered, the scope is confirmed and the run starts its contextual work.
-  const answered = f.adopt(
+  // Answered, the scope changes the inspection, which goes back to be
+  // presented; returned, the run starts its contextual work.
+  const confirmed = f.adopt(
     f.answer(template.answers, {
       // An answer naming another declaration is still the question's.
       "scope:project-docs": {
@@ -690,6 +711,9 @@ test("adopt asks a discovery script's open questions as answers-file fields and 
       },
     }),
   );
+  assert.deepEqual(confirmed.report.missing, ["inspection"]);
+  assert.deepEqual(snapshot(f.root), before);
+  const answered = f.adopt(f.answer(confirmed.report.answers));
   assert.equal(answered.report.outcome, "contextual", answered.result.stdout);
   assert.deepEqual(answered.report.contextual![0]!.allowedTargets, {
     paths: ["app/README.md"],
@@ -787,12 +811,15 @@ test("a drafted scope without open questions is an answer only once the answers 
   );
   assert.equal(early.result.status, 1);
   assert.equal(early.report.outcome, "answers-required");
-  assert.deepEqual(early.report.missing, ["scope:project-docs"]);
+  assert.deepEqual(early.report.missing, ["scope:project-docs", "inspection"]);
   assert.deepEqual(question(early.report, "scope:project-docs").answer, draft);
   assert.deepEqual(snapshot(f.root), before);
 
-  // Carried back, the draft is the confirmed scope.
-  const started = f.adopt(f.answer(early.report.answers));
+  // Carried back, the draft is the confirmed scope, whose inspection is
+  // presented before the run starts.
+  const scoped = f.adopt(f.answer(early.report.answers));
+  assert.deepEqual(scoped.report.missing, ["inspection"]);
+  const started = f.adopt(f.answer(scoped.report.answers));
   assert.equal(started.report.outcome, "contextual", started.result.stdout);
   assert.deepEqual(started.report.contextual![0]!.allowedTargets, {
     paths: ["app/README.md"],
