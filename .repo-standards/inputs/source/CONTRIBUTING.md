@@ -10,8 +10,6 @@ templates. Specifications and implementation tickets live in the issue tracker;
 repository documents keep durable domain language, decisions, usage guidance,
 and development knowledge.
 
-Write multi-line issue bodies to a file and pass it with `--body-file`.
-
 Use short, descriptive issue titles in sentence case and the project's
 terminology. Name the observed failure for bugs, the desired capability for
 features, the action for implementation tickets, and the capability being
@@ -29,6 +27,10 @@ Before implementing, read the whole issue, its discussion, its parent
 specification, and its blockers, and clarify contradictions. Start a ticket
 only after its blockers are closed.
 
+Every ticket merges into its base branch on its own, with its checks passing.
+Expand–contract batches that can't each stay green become a single ticket, not
+tickets sharing an integration branch.
+
 When adding a native blocker, pass the blocking issue's numeric database ID as
 `issue_id`, not its issue number or `node_id`.
 
@@ -37,33 +39,58 @@ When adding a native blocker, pass the blocking issue's numeric database ID as
 Applying `ready-for-agent` or `ready-for-human` is the review action and needs
 the repository `admin`, `maintain`, or `triage` role. After revising a contract
 or posting an Agent Brief, wait for the issue-contract workflow's revision
-notice before applying readiness. Editing a contract removes its readiness. A
-specification or ticket can be ready while its blockers are open. The
-readiness of an issue that runs over its tickets (a specification or any issue
-with sub-issues) covers them: apply it after they are published, and apply it
-again when a ticket is published later. To re-apply readiness the issue still
-carries, remove `ready-for-agent` and add it back. Apply that readiness only once
-the latest ticket link appears in the issue's timeline. Readiness recorded in
-the same second as that link holds the issue; the factory's skip reason says to
-remove `ready-for-agent` and add it back.
+notice before applying readiness. Editing a contract removes its readiness. The
+workflow keeps one workflow state label on an issue: authorized readiness or a
+newly applied state replaces the previous one, and an issue left with none gets
+`needs-triage` on every run, even if it has never carried a state. This applies
+to open intake requests, specifications, tickets, and unrecognized issues;
+Wayfinder maps and children stay outside workflow states. The validator's own
+`needs-triage` is a fallback and never supersedes authorized readiness bound to
+the current revision, even when applied after its review. A person's later
+workflow state still supersedes readiness. A closed issue loses `needs-triage`
+and keeps its other labels and feedback unchanged.
+A specification or ticket can be ready while its blockers are open. A parent (a
+specification or any issue with sub-issues) never runs; its readiness releases
+its tickets, which each also need their own readiness. Apply the parent's
+readiness after its tickets are published, and again when a ticket is
+published later. To re-apply readiness the parent still carries, remove
+`ready-for-agent` and add it back. Apply that readiness only once the latest
+ticket link appears in the parent's timeline. Readiness recorded in the same
+second as that link holds the tickets; the factory's skip reason says to remove
+`ready-for-agent` and add it back.
 
-The factory picks up ready issues. Without a `model:` label it runs the
-factory's default model. Name a stronger model with `model:<slug>` or
-`model:<provider>/<slug>`, optionally followed by `@<effort>`, when the work
-needs design judgment, has an ambiguous scope, or makes a long cross-cutting
-change; create the label if the repository lacks it. A `claude-*` or `gpt-*`
-slug needs no provider. Add `run:orchestrated` to a ticket for an implementer
-and a reviewer that are different agents; a specification always runs that
-way.
+The factory picks up ready issues and runs each ticket on its own. In a
+repository a factory serves, whoever applies `ready-for-agent` to a non-parent
+issue must apply exactly one `model:` label they chose, before readiness or
+together with it, even when it names the host's default model. A parent needs
+no `model:` label of its own, and `ready-for-human` needs none.
 
-An orchestrated run over tickets uses the parent's `model:` label, or the
-host's default model without one, for every ticket. A ticket's label does not
-choose a separate model inside that run. At pickup, an open ticket naming a
-different provider, model or effort holds its parent unclaimed; label the
-parent and its tickets with one model, or remove the tickets' `model:` labels.
-Equivalent spellings name the same model after parsing, with `high` as the
-default effort. An open ticket with an unusable or several `model:` labels
-also holds its parent, with the ticket's correction in the skip reason.
+Choose a stronger model when the work needs design judgment, has an ambiguous
+scope, or makes a long cross-cutting change. Name the chosen model with
+`model:<slug>` or `model:<provider>/<slug>`, optionally followed by
+`@<effort>`; create the label if the repository lacks it. A `claude-*` or
+`gpt-*` slug needs no provider.
+
+For a non-parent issue in a repository a factory serves, the triage notes after
+its Agent Brief suggest one `model:` label with a one-line reason, for the
+reviewer to apply or replace. The suggestion is a triage note, not a field of
+the brief.
+
+The factory runs an unlabelled ticket on the host's default model; a parent's
+label chooses none of its tickets' models.
+
+The factory accepts readiness only from a person. Readiness that an agent's
+tool applies through a GitHub App or bot account never starts a run, so the
+issue waits until a person applies readiness.
+
+In a repository a factory serves, `.factory/config.json` names the factory's
+labels: `ready-for-agent` is the ready label, an agent adds
+`factory:needs-input` with its question, and the factory adds `factory:running`
+while it holds an issue, `factory:failed` after a run fails for good, and
+`factory:paused` when it pauses a run. `factory:paused` means the factory
+paused the run and resumes it by itself, and its comment on the issue says why,
+so nobody removes the label by hand. Remove `factory:failed` to run the issue
+again once its failure note or the factory's comment is dealt with.
 
 ## Development setup
 
@@ -74,6 +101,35 @@ local setup, and development commands.
 
 Add or update tests for changed behavior where applicable. Run the required
 checks documented in the development guide before requesting review.
+
+## Findings
+
+Every agent run records findings: implementation (inside or outside the
+factory), release, review, and adoption or update. A
+finding is a defect, gap, or stale instruction the run observed outside the
+work it is responsible for. Fix defects inside the change's responsibility in
+the change. An adoption run's own contextual work in the adopting repository
+is not a finding.
+
+Before filing, check for an open issue that already reports the finding and
+link it instead of creating a duplicate. Otherwise, open one issue per finding
+through the target repository's issue forms, labelled `needs-triage`. File it
+in the repository responsible for the affected material or tooling. Each issue
+cites the run's pull request or issue and distinguishes what the run observed
+from what it only read in code. Leave the issues to triage.
+
+Link every filed or existing issue in this order:
+
+1. A run with a pull request links them from a comment on that pull request.
+   For adoption, use its check-outcomes comment.
+2. A run without a pull request links them from the issue it was working on,
+   if there is one, such as a release run's planning issue.
+3. Only a run with neither a pull request nor an issue lists them in its final
+   message.
+
+If filing fails, list each unfiled finding in the same place the links would
+go, name its target repository, and state that it was not filed. Findings never
+block or delay the run's pull request or other work.
 
 ## Titles and commits
 
@@ -94,6 +150,12 @@ Mark breaking changes with `!` and explain their impact and migration in the
 message body. Prefer Conventional Commits during development; temporary
 work-in-progress commits are allowed.
 
+No commit or pull request credits an agent, a model, or a tool as an author or
+a source. Omit every `Co-authored-by:` trailer, for any co-author, including
+people and bots; any "Generated with …" or "Generated by …" attribution line;
+and agent session links. The `model:` labels and the merging account already
+record who did the work.
+
 ## Pull requests
 
 Keep each pull request focused. Describe the problem and resulting change,
@@ -101,8 +163,6 @@ report the checks you ran and their outcomes, and link the relevant issue.
 A Direct change is work without a ticket, requested by the maintainer in a
 thread or making a minor correction, such as a typo, broken link, or formatting
 fix. Write `Direct change:` and a meaningful reason instead of the issue link.
-
-Write multi-line pull request bodies to a file and pass it with `--body-file`.
 
 Keep the pull request template's sections in order: Summary, Evidence, Merge
 Danger, and Related issue. Include checks and outcomes in Evidence, and
@@ -121,8 +181,10 @@ holds unrelated uncommitted edits, run them in a clean checkout of that commit,
 such as a temporary Git worktree. Run a check that reads a diff, such as
 `git diff --check`, over the whole change against the base.
 
-Write the body with the `pr` skill, in the pull request template's sections:
-the skill's Summary, Evidence and Merge Danger, then Related issue.
+For an ordinary pull request, write the body with the `pr` skill, in the pull
+request template's sections: the skill's Summary, Evidence and Merge Danger,
+then Related issue. For an adoption pull request, use the adoption record as
+described below.
 
 ### Adoption pull requests
 
@@ -145,14 +207,12 @@ byte, starting with its `# Repository Standards adoption record` heading. The
 record's Operations table lists the standards source's fixes and checks with
 their results. Post one check-outcomes comment with the repository's own
 validation outcomes, confirmation that the run-state conditions for opening
-the pull request hold, and findings links or unfiled findings as described
-below. The record stays the body; for a breaking (`!`) title, add Impact and
-Migration sections after the record.
+the pull request hold, and findings links or unfiled findings under the
+[findings rule](#findings). The record stays the body; for a breaking (`!`)
+title, add Impact and Migration sections after the record.
+Write the check-outcomes comment under the [comment rules](#comments).
 
-A finding is a defect, gap, or stale instruction the adoption or update run
-observed in the standards or tooling it used. The run's own contextual work in
-the adopting repository is not a finding. File each finding in the right
-repository:
+For adoption or update findings, use these target repositories:
 
 - For the standards source's guidance, discovery, checks, fixes, installed
   files, or drafter, use the source repository identified by the source URL in
@@ -160,32 +220,28 @@ repository:
 - For the Repository Standards CLI or the `adopt-standards` skill, use
   `lutzseverino/repo-standards`.
 
-Before filing, check for an open issue that already reports the finding and
-link it instead of creating a duplicate. Otherwise, open one issue per finding
-through the target repository's issue forms, labelled `needs-triage`. Cite the
-adoption pull request and distinguish what the run observed from what it only
-read in code. Link every filed or existing issue from the check-outcomes
-comment.
-
-If an issue cannot be created in its target repository, list each unfiled
-finding in that comment, name its target repository, and state that it was not
-filed. Findings never block or delay the adoption pull request; it still
-proceeds when findings cannot be filed.
-
 ### Merging
 
 Merge a pull request once every required check passes on its latest head and
-every review thread is answered with its fix or a reasoned decline.
-A review request is the pull request's opening, for the head it opened with,
-or a later `@codex review` comment; a push is not one. When Codex does not
+every review thread is answered with its fix or a reasoned decline under the
+[comment rules](#comments).
+The optional repository-owned `.github/pull-request-reviewer.json` configures
+its reviewer and wait bounds; [`babysit`](.agents/skills/babysit/SKILL.md)
+documents its schema. A review request is the pull request's opening when
+`request.onOpen` is true, or a later comment whose whole trimmed body equals
+`request.comment`; a push is not one. When the configured reviewer does not
 review the latest head, because it is unavailable, no review was requested
-after the head's push, Codex did not respond on the pull request within 5
-minutes of the latest review request, or no review arrived within 30 minutes
+after the head's push, it did not respond within `bounds.responseMinutes` of
+the latest review request, or no review arrived within `bounds.reviewMinutes`
 of it, the pull request merges once those conditions hold, and the merging
-agent comments on it that Codex did not review that head and why.
-Squash-merge pull requests into their base branch, using the PR title as the
-commit subject and its description as the body. Preserve issue references and
-breaking-change explanations in the final message.
+agent comments on it that the configured reviewer did not review that head
+and why, under the [comment rules](#comments). Without the file, no reviewer
+wait or comment about an absent review is required.
+Squash-merge pull requests into their base branch, passing the subject
+`<title> (#<number>)` and the current PR body explicitly, with the body passed
+byte for byte through a file or stdin. GitHub's default squash message must
+never apply, because it can add co-author trailers. Preserve issue references
+and breaking-change explanations in the final message.
 
 Fix a review finding about a defect in what the change is responsible for.
 Decline a finding that does not hold. A real finding may also be declined when
@@ -193,8 +249,78 @@ it is outside the change's ticket or scope; when it guards a rule another layer
 owns, such as by duplicating that layer's validation; or when it guards against
 the owner misconfiguring files only the owner writes, or a component corrupting
 state it owns itself, which lie outside the threat model. Answer a decline with
-its reason in its review thread. Open a follow-up issue for a declined finding
-only when it is worth keeping, and leave it to triage.
+its reason in its review thread under the [comment rules](#comments). Record real findings declined because they
+are outside the change's ticket or scope, or because another layer owns the
+rule they guard, under the [findings rule](#findings). Do not file findings
+declined because they do not hold or lie outside the threat model.
+
+## Credentials
+
+An agent run uses only the credentials it was given. It never looks for, tests,
+or uses another identity, whether a token, a CLI login, an environment variable,
+a connector, or an app, including one reached through the agent provider's own
+login. Searching for one, such as listing credential environment variables or
+probing other `gh` configurations, counts as looking. When a push, merge, or API
+call is refused for permission, the refusal stands: the agent stops and asks
+the owner, as for any answer only the owner can give, and never retries under
+another identity.
+
+## Comments
+
+When an agent needs an answer only the owner can give, post the question as one
+issue comment under these rules, add `factory:needs-input`, and stop without a
+pull request if none is open, or leaving the open pull request unmerged and
+linked from the question. Work without an issue asks on its pull request instead,
+with no label. The agent neither closes the pull request nor waits for the answer.
+This owner handoff ends the agent's babysitting of the pull request.
+
+With no open pull request, the owner answers and removes the label to return
+the issue to the frontier as a fresh first attempt. While the run's pull request
+is open, removing the label starts no run in a repository a factory serves.
+The owner finishes the pull request, for example by merging it or pushing the
+refused change, or can close it before removing the label. Wait for
+`factory:running` to disappear, then remove the label so a fresh first attempt
+continues its branch. If the answer changes the implementation contract, edit
+the contract; that drops readiness and requires review again.
+
+An agent that stops without a pull request and without a question under
+`factory:needs-input` comments one short paragraph on the issue explaining why
+it stopped, in its own words. Never paste log output, environment values or
+tokens into that note: this repository and repositories that adopt these rules
+may be public.
+
+An agent comments on an issue or pull request to record a decision, an outcome,
+or a question that needs an answer, never to narrate progress. Consolidate
+everything the agent has to say on one occasion into one comment. In an Agent
+Brief comment, the brief's heading comes right after the triage disclaimer, and
+triage notes follow the brief.
+
+Every comment an agent writes on an issue or pull request starts with this AI
+disclaimer line, `>` included, followed by a blank line:
+
+```markdown
+> _This was generated by AI._
+```
+
+During triage, use the triage skill's line in the same form instead:
+
+<!-- prettier-ignore -->
+```markdown
+> *This was generated by AI during triage.*
+```
+
+Issue and pull request titles and bodies are exempt: their own format rules govern them.
+A review request comment is also exempt and holds only the request.
+
+Comments, issue and pull request titles, and their bodies never contain secret,
+token, or credential values. Write `<REDACTED>` in their place.
+
+Write the configured reviewer's request phrase only in a comment that
+requests a review. That comment holds exactly `request.comment` from
+`.github/pull-request-reviewer.json`, with no disclaimer. The phrase never
+appears in prose, quotations, or code spans in any other comment, issue or
+pull request title, or body. To mention the request, describe it as "the review
+request comment".
 
 ## Documentation
 
@@ -218,6 +344,6 @@ as a tag, run ID, or commit permalink. Delete a superseded document other than
 an ADR rather than keeping it under a historical label, and repair the links to
 it.
 
-An ADR is never deleted. When a later ADR supersedes it, keep it and add a
-status line under its title that names and links the superseding ADR. A
-superseded ADR is maintained material, not a point-in-time record.
+An ADR is never deleted. When a later ADR supersedes it, keep it and mark it
+superseded, naming and linking the superseding ADR. A superseded ADR is
+maintained material, not a point-in-time record.

@@ -23,7 +23,7 @@ import {
 // standard output.
 
 const usage =
-  "Usage: node discovery/draft-documentation-scope.mjs [--project <path>] [--root <path>]...";
+  "Usage: node discovery/draft-documentation-scope.mjs [--project <path>] [--profile <name>] [--root <path>]...";
 const proposalFormat = "repo-standards/scope/v2";
 const declarationId = "documentation";
 // The declaration fields that decide its targets.
@@ -100,19 +100,23 @@ function series(items, conjunction = "and") {
 
 function parseArguments(argv) {
   let project = process.cwd();
+  let profile;
   const roots = [];
   for (let position = 0; position < argv.length; position += 1) {
     const option = argv[position];
-    if (option !== "--project" && option !== "--root")
+    if (!["--project", "--profile", "--root"].includes(option))
       fail(`Unknown argument ${option}. ${usage}`);
     const value = argv[position + 1];
     if (value === undefined || value === "")
-      fail(`${option} needs a path. ${usage}`);
+      fail(
+        `${option} needs ${option === "--profile" ? "a name" : "a path"}. ${usage}`,
+      );
     position += 1;
     if (option === "--project") project = value;
+    else if (option === "--profile") profile = value;
     else roots.push(value);
   }
-  return { project: resolve(project), roots };
+  return { project: resolve(project), profile, roots };
 }
 
 function absolutePath(projectRoot, path) {
@@ -200,19 +204,19 @@ function scalar(value) {
   return double ? double[1] : null;
 }
 
-// The declarations the manifest's one profile resolves to, with the fields
-// that decide their targets. As Repository Standards resolves them, a profile
+// The declarations the selected profile resolves to, with the fields that
+// decide their targets. As Repository Standards resolves them, a profile
 // declaration replaces the default of its ID, adds a new one, or, with
-// `exclude: true`, removes it. The source's one profile selects every default
-// declaration unchanged. The retained manifest holds the selected profile
-// alone; Repository Standards 4.0.0 writes it with empty defaults and the
-// profile's resolved declarations. The manifest's block mappings are read by
-// indentation, and only the key paths below matter:
+// `exclude: true`, removes it. `--profile` names the selected profile, and a
+// manifest with one profile needs no name. The retained manifest holds the
+// selected profile alone; Repository Standards 4.0.0 writes it with empty
+// defaults and the profile's resolved declarations. The manifest's block
+// mappings are read by indentation, and only the key paths below matter:
 // `defaults.declarations.<id>.<field>` and
 // `profiles.<profile>.declarations.<id>.<field>`. A field that decides a
 // target holds a single-line value on its own line, plain or quoted; any other
 // form fails rather than being misread.
-function manifestDeclarations() {
+function manifestDeclarations(profile) {
   const { path: manifest, text } = readManifest();
   const unreadable = (id) =>
     fail(`${manifest} declares ${id} in a form the drafter cannot read.`);
@@ -294,13 +298,12 @@ function manifestDeclarations() {
       else declaration[field] = value;
     }
   }
-  if (profiles.size !== 1) {
-    fail(
-      `${manifest} declares ${profiles.size} profiles; the drafter reads a manifest with one profile.`,
-    );
-  }
   const resolved = new Map(defaults);
-  for (const [id, declaration] of [...profiles.values()][0]) {
+  for (const [id, declaration] of selectedProfile(
+    manifest,
+    profiles,
+    profile,
+  )) {
     if (declaration.exclude) resolved.delete(id);
     else resolved.set(id, declaration);
   }
@@ -314,6 +317,24 @@ function manifestDeclarations() {
     fail(`${manifest} declares no ${declarationId} repository declaration.`);
   }
   return declarations;
+}
+
+// The declarations of the profile `--profile` names, or of the manifest's one
+// profile when it names none.
+function selectedProfile(manifest, profiles, name) {
+  const names = series([...profiles.keys()].map(code));
+  if (name !== undefined) {
+    if (!profiles.has(name))
+      fail(
+        `${manifest} declares no ${code(name)} profile; it declares ${names}.`,
+      );
+    return profiles.get(name);
+  }
+  if (profiles.size !== 1)
+    fail(
+      `${manifest} declares ${profiles.size} profiles (${names}); pass the selected one with --profile.`,
+    );
+  return [...profiles.values()][0];
 }
 
 // The targets the other declarations own, and the declaration that owns a
@@ -771,9 +792,9 @@ function draftOutsideRoots(draft, context, roots) {
     draft.otherQuestions.push(questions.outside(group, files));
 }
 
-function draftDocumentationScope(project, rootArguments) {
+function draftDocumentationScope(project, profile, rootArguments) {
   const projectRoot = projectRootOf(project);
-  const { declaredTargets, owner } = ownership(manifestDeclarations());
+  const { declaredTargets, owner } = ownership(manifestDeclarations(profile));
   const kept = keptTree(projectRoot);
   const context = { projectRoot, kept, owner };
   const roots = decidedRoots(rootArguments, kept, owner);
@@ -808,9 +829,9 @@ function draftDocumentationScope(project, rootArguments) {
 }
 
 try {
-  const { project, roots } = parseArguments(process.argv.slice(2));
+  const { project, profile, roots } = parseArguments(process.argv.slice(2));
   process.stdout.write(
-    `${JSON.stringify(draftDocumentationScope(project, roots), null, 2)}\n`,
+    `${JSON.stringify(draftDocumentationScope(project, profile, roots), null, 2)}\n`,
   );
 } catch (error) {
   process.stderr.write(

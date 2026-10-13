@@ -228,6 +228,22 @@ function validateTitle(title, bodyContent, sections, errors) {
   }
 }
 
+function validateAttribution(text, location, errors) {
+  for (const line of text.split(/\r\n?|\n/)) {
+    if (/^\s*co-authored-by:/i.test(line)) {
+      errors.push(
+        `Remove the co-author trailer from the PR ${location}; CONTRIBUTING.md#titles-and-commits forbids co-author trailers.`,
+      );
+    }
+    const attributionText = line.replace(/^(?:[^\p{L}\p{N}]|\d+[.)]\s*)+/u, "");
+    if (/^generated\s+(?:with|by)\b/i.test(attributionText)) {
+      errors.push(
+        `Remove the attribution line from the PR ${location}; CONTRIBUTING.md#titles-and-commits forbids attribution lines.`,
+      );
+    }
+  }
+}
+
 function annotationValue(value) {
   return value.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
 }
@@ -268,6 +284,8 @@ function main() {
 
   const body = typeof pullRequest.body === "string" ? pullRequest.body : "";
   const errors = [];
+  validateAttribution(pullRequest.title, "title", errors);
+  validateAttribution(body, "body", errors);
   const document = interpretMarkdown(body);
   const sections = document.sections(recognizedSections, {
     hierarchy: "matching",

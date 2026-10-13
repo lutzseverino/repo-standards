@@ -11,6 +11,16 @@ Bring the documentation in line with the documentation rules in
 In the root documentation README, each category README's description states
 what belongs in that category.
 
+The root usage index, `docs/usage/README.md`, is a newcomer entry document. Its
+one-sentence purpose says what the project is and who it is for, before anything
+else. It contains no term defined in the repository's root `GLOSSARY.md` or in a
+context glossary listed in its `GLOSSARY-MAP.md`, matched case-insensitively as
+a whole word; a hyphen-joined compound, such as `on-demand`, is one word. For a
+standards source or
+another tool applied to a repository, explain what adopting it changes. Define
+a project-specific term before using it anywhere in this index, as in the
+Repository README.
+
 The root `docs/development/README.md` is required because `CONTRIBUTING.md`
 links to it. Its Setup and validation section states the project's real
 prerequisites, setup, development commands, and required validation, or links
@@ -38,7 +48,8 @@ before the complete inspection. The updated conventions use the new names.
 
 Assess documents against their actual audience and topic. Mechanical checks
 cover categories, directory READMEs, required entry points, local link targets,
-the index entry form, one index per document, the development guide's order,
+the index entry form, the root usage purpose's absence of glossary terms,
+one index per document, the development guide's order,
 and that every Markdown document under a documentation root is in the confirmed
 scope unless another declaration, such as an exact file, owns it. They do not
 prove correctness or usefulness, and they do not check where records are kept.

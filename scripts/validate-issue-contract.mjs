@@ -7,23 +7,146 @@ import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { lexer } from "../vendor/marked/marked.esm.js";
 import {
-  categoryLabels,
-  identifyContract,
-  isSpecification,
-  issueMarkdown,
-  issueReferences,
-  normalizeMarkdown,
-  parentSectionReference,
-  parseSections,
-  wayfinderChildLabels,
-} from "../operations/lib/issue-contract-kind.mjs";
-import {
+  interpretMarkdown,
   markdownInlineText,
   markdownTokenSpans,
 } from "../operations/lib/rendered-markdown.mjs";
 
+// How the validator identifies an issue's contract kind and the parent its
+// `Parent` section names, with the issue Markdown parsing they rest on.
+const categoryLabels = new Set(["bug", "enhancement"]);
+const wayfinderChildLabels = new Set([
+  "wayfinder:research",
+  "wayfinder:prototype",
+  "wayfinder:grilling",
+  "wayfinder:task",
+]);
+const issueNonRenderedElements = ["head", "title"];
+const contractSectionNames = new Set([
+  "acceptance criteria",
+  "actual behavior",
+  "additional context",
+  "blocked by",
+  "decisions so far",
+  "destination",
+  "desired outcome",
+  "environment",
+  "expected behavior",
+  "further notes",
+  "implementation decisions",
+  "not yet specified",
+  "notes",
+  "out of scope",
+  "parent",
+  "problem",
+  "problem statement",
+  "proposed approach",
+  "question",
+  "solution",
+  "steps to reproduce",
+  "testing decisions",
+  "user stories",
+  "what to build",
+]);
+
+// Whether an issue's contract is a directly authored specification: it carries
+// no Wayfinder or triage category label, and its body's recognized contract
+// headings identify a specification. Labels are names or GitHub label objects.
+function isSpecification({ labels, body }) {
+  const names = (labels ?? []).map((label) =>
+    typeof label === "string" ? label : label.name,
+  );
+  return (
+    !names.some(
+      (name) => name === "wayfinder:map" || wayfinderChildLabels.has(name),
+    ) &&
+    !names.some((name) => categoryLabels.has(name)) &&
+    identifyContract(parseSections(body ?? "")) === "specification"
+  );
+}
+
+// The first issue reference in the body's `Parent` section, as an API path
+// such as `/repos/<owner>/<name>/issues/<n>`, or null. An issue with no native
+// parent counts as the child of the issue it references.
+function parentSectionReference(body, repository) {
+  return (
+    issueReferences(parseSections(body).get("parent"), repository)[0] ?? null
+  );
+}
+
+// The distinct issue references in Markdown, as API paths; a bare `#<n>`
+// resolves against `repository`, written `<owner>/<name>`.
+function issueReferences(value = "", repository) {
+  const references = [];
+  const seen = new Set();
+  const expression =
+    /https:\/\/github\.com\/([^/\s]+)\/([^/\s]+)\/issues\/(\d+)|(?:^|[\s(])#(\d+)\b/gim;
+  for (const match of markdownReferenceText(value).matchAll(expression)) {
+    const reference = match[4]
+      ? `/repos/${repository}/issues/${match[4]}`
+      : `/repos/${match[1]}/${match[2]}/issues/${match[3]}`;
+    if (!seen.has(reference)) {
+      seen.add(reference);
+      references.push(reference);
+    }
+  }
+  return references;
+}
+
+function markdownReferenceText(markdown) {
+  return issueMarkdown(markdown).content.text({
+    includeCode: false,
+    includeKeyboardInput: true,
+    includeImageAlt: false,
+    includeLinkTargets: true,
+  }).text;
+}
+
+function identifyContract(sections) {
+  const headings = new Map([
+    ["problem statement", "specification"],
+    ["solution", "specification"],
+    ["user stories", "specification"],
+    ["what to build", "implementation ticket"],
+    ["blocked by", "implementation ticket"],
+    ["steps to reproduce", "bug report"],
+    ["expected behavior", "bug report"],
+    ["actual behavior", "bug report"],
+    ["problem", "feature request"],
+    ["desired outcome", "feature request"],
+  ]);
+  for (const heading of sections.keys()) {
+    if (headings.has(heading)) return headings.get(heading);
+  }
+  return null;
+}
+
+function parseSections(markdown, acceptedNames = contractSectionNames) {
+  markdown = normalizeMarkdown(markdown);
+  const occurrences = issueMarkdown(markdown).sections(acceptedNames, {
+    hierarchy: "outermost",
+    nameSource: "markdown",
+  });
+  const sections = new Map();
+  for (const [name, matches] of occurrences) {
+    sections.set(name, matches.at(-1).source);
+  }
+  return sections;
+}
+
+function issueMarkdown(markdown) {
+  return interpretMarkdown(markdown, {
+    additionalNonRenderedElements: issueNonRenderedElements,
+  });
+}
+
+function normalizeMarkdown(value) {
+  return value.replace(/\r\n?/g, "\n");
+}
+
 const feedbackMarker = "<!-- repo-canon:issue-contract-feedback -->";
 const feedbackStatePrefix = "<!-- repo-canon:issue-contract-state ";
+const needsAttentionHeading = "## Issue contract needs attention";
 const readyLabels = new Set(["ready-for-agent", "ready-for-human"]);
 const workflowLabels = new Set([
   "needs-triage",
@@ -95,43 +218,69 @@ const wayfinderChildFields = new Set(["parent", "question"]);
 // - `issueEvents`: the complete authoritative issue-event timeline;
 // - `permissions`: each looked-up login's repository `{ role }`, `null` when
 //   GitHub reports none, with an `error` when the lookup failed.
-// The last three are read only for a structurally complete contract, and
-// `bodyRevision` only for a direct-body contract. Permissions cover every actor
-// on a readiness-label event, the recorded reviewer, and an opening sender.
+// The timeline is read whenever the issue uses workflow state, permissions only
+// for a structurally complete contract, and `bodyRevision` only for a
+// direct-body contract. Permissions cover every actor on a readiness-label
+// event, the recorded reviewer, and an opening sender.
 
-// Decides one issue event from its snapshot without network or file access.
+// Decides one issue from its snapshot without network or file access. The
+// decision reads the issue's current state; the triggering event supplies only
+// what that state cannot show: a deleted Agent Brief, the creation review's
+// facts (the labels the issue was opened with, and whether a `labeled` run's
+// sender is the opener), and a readiness label the timeline has not recorded.
 // Returns the labels to remove and add, the feedback comment write (`null` for
 // none, a `null` `commentId` to create it), and the exit code with its message.
 export function decideIssueContract(snapshot) {
-  const { event, comments } = snapshot;
+  if (snapshot.issue.state === "closed") {
+    const needsTriage = (snapshot.issue.labels ?? []).some(
+      (label) => labelName(label) === "needs-triage",
+    );
+    return issueDecision({
+      exitCode: 0,
+      message: needsTriage
+        ? "Skipped closed issue validation; removed needs-triage."
+        : "Skipped closed issue; issue contract validation handles open issues only.",
+      removeLabels: needsTriage ? ["needs-triage"] : [],
+    });
+  }
+
+  const { comments } = snapshot;
   const result = assessStructure(snapshot);
+  const previousFeedback = findFeedback(comments);
+  const timeline = result.usesWorkflowState ? issueTimeline(snapshot) : null;
+  const stateWrites = (kept = null) =>
+    timeline
+      ? settledStates(result.labels, timeline, kept)
+      : { removeLabels: readinessLabels(result.labels), addLabels: [] };
 
   if (!result.valid) {
     return issueDecision({
       exitCode: 1,
       message: result.errors.join("\n"),
-      removeLabels: readinessLabels(result.labels),
-      addLabels: result.usesWorkflowState
-        ? reviewReturnLabels(result.labels)
-        : [],
-      feedback: feedbackChange(comments, invalidFeedback(result.errors)),
+      ...stateWrites(),
+      feedback: feedbackChange(
+        comments,
+        invalidFeedback(result.errors, previousFeedback),
+      ),
     });
   }
 
-  const previousFeedback = findFeedback(comments);
   if (!result.contract) {
     return issueDecision({
       exitCode: 0,
       message: `Valid ${result.kind}.`,
-      feedback: previousFeedback
-        ? feedbackChange(comments, resolvedFeedback(result.kind))
+      ...stateWrites(),
+      feedback: previousFeedback?.body.includes(needsAttentionHeading)
+        ? feedbackChange(
+            comments,
+            resolvedFeedback(result.kind, previousFeedback),
+          )
         : null,
     });
   }
 
   const contract = contractRevision(snapshot, result);
   const revision = contract.revision;
-  const timeline = issueTimeline(snapshot);
   const readiness = assessReadiness({
     snapshot,
     result,
@@ -144,10 +293,7 @@ export function decideIssueContract(snapshot) {
     return issueDecision({
       exitCode: 1,
       message: readiness.error,
-      removeLabels: readinessLabels(result.labels),
-      addLabels: result.usesWorkflowState
-        ? reviewReturnLabels(result.labels)
-        : [],
+      ...stateWrites(),
       feedback: feedbackChange(
         comments,
         awaitingReviewFeedback(
@@ -157,7 +303,6 @@ export function decideIssueContract(snapshot) {
           readiness.sourceInvalidation,
           {
             reason: readiness.error,
-            rejected: Boolean(readiness.rejectionReason),
             rejectedCreationLabel: readiness.rejectedCreationLabel,
           },
         ),
@@ -165,55 +310,39 @@ export function decideIssueContract(snapshot) {
     });
   }
 
-  const supersedingState =
-    readiness.approved && result.usesWorkflowState
-      ? stateAppliedAfterReview(
-          result.labels,
-          readiness.reviewEventId,
-          timeline,
-          event,
-        )
-      : null;
-  if (supersedingState) {
+  const supersedingStates = readiness.approved
+    ? stateAppliedAfterReview(result.labels, readiness.reviewEventId, timeline)
+    : [];
+  if (supersedingStates.length > 0) {
+    const superseding = supersedingStates
+      .map((label) => `\`${label}\``)
+      .join(" and ");
     return issueDecision({
       exitCode: 0,
-      message: `Valid ${result.kind}; \`${supersedingState}\` superseded ${readiness.label}.`,
-      removeLabels: replacedWorkflowStates(result.labels, supersedingState),
+      message: `Valid ${result.kind}; ${superseding} superseded ${readiness.label}.`,
+      ...stateWrites(supersedingStates),
       feedback: feedbackChange(
         comments,
         awaitingReviewFeedback(
           result.kind,
           revision,
-          readiness.reviewEventId,
+          readiness.observedEventId,
           readiness.sourceInvalidation,
           {
-            reason: `\`${supersedingState}\` was applied after the review and supersedes its readiness.`,
+            reason:
+              supersedingStates.length === 1
+                ? `${superseding} was applied after the review and supersedes its readiness.`
+                : `${superseding} were applied after the review and supersede its readiness.`,
           },
         ),
       ),
     });
   }
 
-  let removeLabels = [];
-  let addLabels = [];
-  if (readiness.approved && result.usesWorkflowState) {
-    removeLabels = replacedWorkflowStates(result.labels, readiness.label);
-  } else if (
-    event.action === "unlabeled" &&
-    readinessTransitionLabel(event) &&
-    result.usesWorkflowState
-  ) {
-    const remainingStates = [...result.labels].filter((label) =>
-      workflowLabels.has(label),
-    );
-    if (remainingStates.length === 0) addLabels = ["needs-triage"];
-  }
-
   return issueDecision({
     exitCode: 0,
     message: `Valid ${result.kind}${readiness.approved ? ` with ${readiness.label} bound to ${revision}` : "; awaiting authorized review"}.`,
-    removeLabels,
-    addLabels,
+    ...stateWrites(readiness.approved ? [readiness.label] : null),
     feedback: feedbackChange(
       comments,
       readiness.approved
@@ -232,7 +361,6 @@ export function decideIssueContract(snapshot) {
             readiness.sourceInvalidation,
             {
               reason: readiness.rejectionReason,
-              rejected: true,
               rejectedCreationLabel: readiness.rejectedCreationLabel,
             },
           ),
@@ -282,49 +410,43 @@ function issueDecision({
   return { exitCode, message, removeLabels, addLabels, feedback };
 }
 
-// Validates the structure against the authoritative labels. A readiness-label
-// event validates the labels as that transition left them.
+// Validates the structure against the authoritative labels. The number of
+// workflow states is not structure: the decision settles it. A `wontfix` that
+// a later state replaces does not make the issue a `wontfix` outcome; without a
+// timeline yet, as when the adapter first reads the issue, it does.
 function assessStructure(snapshot) {
-  const { event, issue, comments } = snapshot;
+  const { issue, comments } = snapshot;
   const relationships = resolveRelationships(snapshot);
-  const transitionLabel = readinessTransitionLabel(event);
-  const validationIssue =
-    transitionLabel && ["labeled", "unlabeled"].includes(event.action)
-      ? {
-          ...issue,
-          labels: (issue.labels ?? [])
-            .filter((label) => {
-              const name = labelName(label);
-              if (!workflowLabels.has(name)) return true;
-              return event.action === "labeled"
-                ? name === transitionLabel
-                : name === "needs-triage";
-            })
-            .concat(
-              event.action === "unlabeled" ? [{ name: "needs-triage" }] : [],
-            ),
-        }
-      : issue;
-  const result = validate({
-    issue: validationIssue,
+  const timeline = Array.isArray(snapshot.issueEvents)
+    ? issueTimeline(snapshot)
+    : null;
+  const states = (issue.labels ?? [])
+    .map(labelName)
+    .filter((label) => workflowLabels.has(label) && !readyLabels.has(label));
+  return validate({
+    issue,
+    wontfixSettled:
+      !timeline || timeline.latestApplied(states).includes("wontfix"),
     comments,
     blockedBy: relationships.blockedBy,
     parent: relationships.parent,
     relationshipErrors: relationships.errors,
   });
-  result.labels = new Set((issue.labels ?? []).map(labelName));
-  return result;
 }
 
 function readinessTransitionLabel(event) {
   return readyLabels.has(event.label?.name) ? event.label.name : null;
 }
 
-// The selected contract whose revision, timeline, and reviewer permissions the
-// decision needs, or null when the structure alone decides.
-function revisionContract(snapshot) {
+// What the decision reads beyond the issue and its discussion: the timeline
+// whenever the issue uses workflow state, and, for a structurally complete
+// contract, that contract's revision and reviewer permissions.
+function snapshotNeeds(snapshot) {
   const result = assessStructure(snapshot);
-  return result.valid && result.contract ? result.contract : null;
+  return {
+    contract: result.valid && result.contract ? result.contract : null,
+    timeline: result.usesWorkflowState,
+  };
 }
 
 // The explicit references the adapter looks up: the first `Parent` reference
@@ -393,7 +515,14 @@ function markdownVisibleText(markdown) {
   return issueMarkdown(markdown).content.text().text;
 }
 
-function validate({ issue, comments, blockedBy, parent, relationshipErrors }) {
+function validate({
+  issue,
+  wontfixSettled,
+  comments,
+  blockedBy,
+  parent,
+  relationshipErrors,
+}) {
   const labels = new Set((issue.labels ?? []).map(labelName));
   const body = issue.body ?? "";
   let sections = parseSections(body);
@@ -419,8 +548,16 @@ function validate({ issue, comments, blockedBy, parent, relationshipErrors }) {
   const hasTriageCategory = [...labels].some((label) =>
     categoryLabels.has(label),
   );
-  if (hasTriageCategory && labels.has("wontfix")) {
+  // A readiness label beside `wontfix` is decided against the Agent Brief, so
+  // the timeline settles which of the two states stays.
+  if (
+    hasTriageCategory &&
+    labels.has("wontfix") &&
+    wontfixSettled &&
+    !(brief && readinessLabels(labels).length > 0)
+  ) {
     validateTriagedLabels(labels, null, errors);
+    requireAgentBriefForReadiness(labels, errors);
     return outcome("triaged wontfix request", errors, labels, true);
   }
   if (brief && hasTriageCategory) {
@@ -651,7 +788,6 @@ function labelName(label) {
 
 function validateTriagedLabels(labels, expectedCategory, errors) {
   const categories = [...labels].filter((label) => categoryLabels.has(label));
-  const states = [...labels].filter((label) => workflowLabels.has(label));
   if (categories.length !== 1)
     errors.push("Apply exactly one category label: `bug` or `enhancement`.");
   if (
@@ -662,8 +798,6 @@ function validateTriagedLabels(labels, expectedCategory, errors) {
       `Use the \`${expectedCategory}\` category for this issue form.`,
     );
   }
-  if (states.length !== 1)
-    errors.push("Apply exactly one workflow state label.");
 }
 
 function requireAgentBriefForReadiness(labels, errors) {
@@ -693,7 +827,12 @@ function latestAgentBrief(comments) {
 function validateAgentBrief(body, labels, errors) {
   body = normalizeMarkdown(body);
   const heading = agentBriefHeading(body);
-  if (!isAgentBriefPreamble(body.slice(0, heading.index))) {
+  const preamble = agentBriefPreamble(body.slice(0, heading.index));
+  if (preamble === "notes-before-brief") {
+    errors.push(
+      "Put the `## Agent Brief` heading directly after the triage disclaimer and move other notes below the brief.",
+    );
+  } else if (preamble !== "disclaimer-only") {
     errors.push(
       "Start the Agent Brief comment with `> *This was generated by AI during triage.*`.",
     );
@@ -745,14 +884,23 @@ function parseBriefFields(body) {
   return fields;
 }
 
-function isAgentBriefPreamble(markdown) {
+// The text before the Agent Brief heading: `disclaimer-only` when it is the
+// triage disclaimer blockquote alone, `notes-before-brief` when it starts with
+// that disclaimer and more content follows, and `missing` otherwise.
+function agentBriefPreamble(markdown) {
   const blocks = lexer(markdown).filter((token) => token.type !== "space");
-  if (blocks.length !== 1 || blocks[0].type !== "blockquote") return false;
   const quoteBlocks =
-    blocks[0].tokens?.filter((token) => token.type !== "space") ?? [];
-  if (quoteBlocks.length !== 1 || quoteBlocks[0].type !== "paragraph")
-    return false;
-  const inline = quoteBlocks[0].tokens ?? [];
+    blocks[0]?.type === "blockquote"
+      ? (blocks[0].tokens?.filter((token) => token.type !== "space") ?? [])
+      : [];
+  if (!isTriageDisclaimer(quoteBlocks[0])) return "missing";
+  return blocks.length === 1 && quoteBlocks.length === 1
+    ? "disclaimer-only"
+    : "notes-before-brief";
+}
+
+function isTriageDisclaimer(block) {
+  const inline = block?.type === "paragraph" ? (block.tokens ?? []) : [];
   return (
     inline.length === 1 &&
     inline[0].type === "em" &&
@@ -812,8 +960,9 @@ function assessReadiness({
     readyLabels.has(label),
   );
   const latestEvent = timeline.latestReadinessTransition();
+  const observedEvent = timeline.latestObservedTransition();
   const observedEventId =
-    latestEvent?.id == null ? null : String(latestEvent.id);
+    observedEvent?.id == null ? null : String(observedEvent.id);
   if (currentReadyLabels.length > 1) {
     return {
       valid: false,
@@ -876,6 +1025,7 @@ function assessReadiness({
       label: recorded.label,
       reviewer: recorded.reviewer,
       reviewEventId: recorded.reviewEventId,
+      observedEventId,
       sourceInvalidation,
     };
   }
@@ -906,7 +1056,6 @@ function assessReadiness({
         observedEventId,
         sourceInvalidation,
         error,
-        rejectionReason: authority.error ? null : error,
         rejectedCreationLabel:
           !authority.error && creationEvent ? grant.label : null,
       };
@@ -917,6 +1066,7 @@ function assessReadiness({
       label: grant.label,
       reviewer: grant.reviewer,
       reviewEventId: grant.reviewEventId,
+      observedEventId,
       sourceInvalidation,
     };
   }
@@ -1110,13 +1260,8 @@ function reviewerLogins({ event, comments, issueEvents }) {
   return [...logins];
 }
 
-function feedbackState(body = "") {
-  const line = normalizeMarkdown(body)
-    .split("\n")
-    .find(
-      (candidate) =>
-        candidate.startsWith(feedbackStatePrefix) && candidate.endsWith(" -->"),
-    );
+function feedbackState(body) {
+  const line = feedbackStateLine(body);
   if (!line) return null;
   try {
     return JSON.parse(line.slice(feedbackStatePrefix.length, -4));
@@ -1125,53 +1270,56 @@ function feedbackState(body = "") {
   }
 }
 
+function feedbackStateLine(body = "") {
+  return (
+    normalizeMarkdown(body)
+      .split("\n")
+      .find(
+        (candidate) =>
+          candidate.startsWith(feedbackStatePrefix) &&
+          candidate.endsWith(" -->"),
+      ) ?? null
+  );
+}
+
 function readinessLabels(labels) {
   return [...labels].filter((label) => readyLabels.has(label));
 }
 
-function reviewReturnLabels(labels) {
-  const hadReadiness = [...labels].some((label) => readyLabels.has(label));
-  const remainingStates = [...labels].filter(
-    (label) => workflowLabels.has(label) && !readyLabels.has(label),
+// The label writes that leave the issue one workflow state: the `kept` states
+// when the decision names them, otherwise the non-readiness state applied
+// latest. States the timeline cannot order yet all stay. An issue left with
+// none gets `needs-triage`, whether or not it has carried a state before.
+function settledStates(labels, timeline, kept = null) {
+  const states = [...labels].filter((label) => workflowLabels.has(label));
+  const staying =
+    kept ??
+    timeline.latestApplied(states.filter((label) => !readyLabels.has(label)));
+  return {
+    removeLabels: states.filter((label) => !staying.includes(label)),
+    addLabels: staying.length > 0 ? [] : ["needs-triage"],
+  };
+}
+
+// The non-readiness states applied after the review, which supersede it: the
+// latest such state when there are several.
+function stateAppliedAfterReview(labels, reviewEventId, timeline) {
+  return timeline.latestApplied(
+    [...labels].filter(
+      (label) =>
+        workflowLabels.has(label) &&
+        !readyLabels.has(label) &&
+        !timeline.isValidatorFallback(label) &&
+        timeline.appliedAfter(label, reviewEventId),
+    ),
   );
-  return hadReadiness && remainingStates.length === 0 ? ["needs-triage"] : [];
 }
 
-// A non-readiness state labeled after the review in the timeline supersedes it,
-// whatever its timestamp; states labeled before the review, or with the issue
-// at its creation second, are replaced by it. A present state whose latest
-// recorded change is not its application also supersedes, unless it is the
-// triggering label with a payload time before the review or at the issue's
-// creation, or a label the issue was opened with. A triggering label
-// recorded before the review supersedes only without a payload time or with one
-// in a strictly later second than the review.
-function stateAppliedAfterReview(
-  labels,
-  reviewEventId,
-  timeline,
-  currentEvent,
-) {
-  const appliedLater = [];
-  for (const label of labels) {
-    if (!workflowLabels.has(label) || readyLabels.has(label)) continue;
-    const recordedLater = timeline.appliedAfterReview(label, reviewEventId);
-    if (recordedLater) appliedLater.push(label);
-    const recorded = timeline.latestChangeIsApplication(label);
-    const triggering =
-      currentEvent.action === "labeled" && currentEvent.label?.name === label;
-    if (triggering) {
-      if (!recordedLater && timeline.triggerFollowsReview(label, reviewEventId))
-        return label;
-      continue;
-    }
-    if (!timeline.openedWith(label) && !recorded) return label;
-  }
-  return timeline.latestApplied(appliedLater);
-}
-
-function replacedWorkflowStates(labels, keptLabel) {
-  return [...labels].filter(
-    (label) => workflowLabels.has(label) && label !== keptLabel,
+// The validator's own removal of a label, which cleans up a recorded decision.
+function isValidatorRemoval(candidate) {
+  return (
+    candidate.event === "unlabeled" &&
+    candidate.actor?.login === "github-actions[bot]"
   );
 }
 
@@ -1185,9 +1333,11 @@ function isReadinessTransition(candidate) {
 // The one owner of every "did A happen after B" question about issue events,
 // including which transition is latest and what the creation snapshot holds.
 // It follows the one ordering rule: the timeline's order decides when GitHub
-// has recorded both events. Timestamps are used only for what has no timeline
-// position (the feedback comment, Agent Brief comments, and a label change the
-// timeline has not recorded yet) and to recognize labels applied at creation.
+// has recorded both events. A carried label whose application it has not
+// recorded follows every recorded event only when its latest recorded change
+// is a removal or nothing. A label the issue was opened with is the exception.
+// Timestamps are used only for what has no timeline position (the feedback
+// comment and Agent Brief comments) and to recognize labels applied at creation.
 // The creation snapshot (this issue's own `opened:` review ID and the labels it
 // was opened with) is at position zero and the Nth event at position N. Agent
 // Brief comments are ordered among themselves by comment ID, in
@@ -1204,19 +1354,6 @@ function issueTimeline({ event, issue, issueEvents }) {
       ({ id }) => String(id) === String(eventId),
     );
     return index < 0 ? null : index + 1;
-  }
-
-  function review(reviewEventId) {
-    const reviewPosition = position(reviewEventId);
-    const at =
-      reviewPosition === 0
-        ? issue.created_at
-        : issueEvents[reviewPosition - 1]?.created_at;
-    return {
-      position: reviewPosition,
-      at,
-      known: reviewPosition !== null && Boolean(at),
-    };
   }
 
   function lastApplication(label) {
@@ -1237,11 +1374,6 @@ function issueTimeline({ event, issue, issueEvents }) {
   // label was applied with the issue at its creation.
   function atCreation(time) {
     return Boolean(time) && time === issue.created_at;
-  }
-
-  // Not before the review, and not in the issue's creation second.
-  function notBefore(time, reviewAt) {
-    return time >= reviewAt && !atCreation(time);
   }
 
   // Whether the run's sender is the issue's opener.
@@ -1270,8 +1402,46 @@ function issueTimeline({ event, issue, issueEvents }) {
     return barrier === null ? null : issueEvents.slice(barrier);
   }
 
+  // Where a carried label was applied, for ordering it against a review: its
+  // timeline position, with one applied at the issue's creation at zero.
+  function applicationPosition(label) {
+    const position = timelinePosition(label);
+    return position !== Infinity && atCreation(lastApplication(label)?.at)
+      ? 0
+      : position;
+  }
+
+  // Where a carried label's application stands in the timeline: its position,
+  // zero for an unrecorded label the issue was opened with, and after every
+  // recorded event for any other label whose latest recorded change is a
+  // removal or nothing.
+  function timelinePosition(label) {
+    if (!latestChangeIsApplication(label))
+      return openedWith(label) ? 0 : Infinity;
+    return lastApplication(label).position;
+  }
+
+  function openedWith(label) {
+    return (
+      event.action === "opened" &&
+      (event.issue?.labels ?? []).some(
+        (candidate) => labelName(candidate) === label,
+      )
+    );
+  }
+
   function latestReadinessTransition() {
     return issueEvents.findLast(isReadinessTransition) ?? null;
+  }
+
+  // The latest readiness transition other than the validator's own removal.
+  function latestObservedTransition() {
+    return (
+      issueEvents.findLast(
+        (candidate) =>
+          isReadinessTransition(candidate) && !isValidatorRemoval(candidate),
+      ) ?? null
+    );
   }
 
   // Whether the label's latest recorded change is its application.
@@ -1286,27 +1456,13 @@ function issueTimeline({ event, issue, issueEvents }) {
 
   return {
     latestReadinessTransition,
+    latestObservedTransition,
 
     // Removing readiness is part of the validator's rejection cleanup, not
     // another review attempt. Every other readiness transition replaces it.
+    // The creation review recorded which opener's label it rejected, so that
+    // label's creation event, first after no barrier, does not replace it.
     rejectionUnchanged(observedEventId, rejectedCreationLabel) {
-      // The creation review recorded which opener's label it rejected. Its
-      // other creation run can replay that label while history is still empty.
-      // Every other human readiness trigger replaces the rejection.
-      const readinessTrigger =
-        ["labeled", "unlabeled"].includes(event.action) &&
-        readinessTransitionLabel(event);
-      const creationTrigger =
-        event.action === "labeled" &&
-        sentByOpener() &&
-        event.label?.name === rejectedCreationLabel;
-      if (
-        readinessTrigger &&
-        event.sender?.login !== "github-actions[bot]" &&
-        !creationTrigger
-      ) {
-        return false;
-      }
       const observed = eventsAfter(observedEventId);
       if (observed === null) return false;
       const transitions = observed.filter(isReadinessTransition);
@@ -1318,11 +1474,7 @@ function issueTimeline({ event, issue, issueEvents }) {
       ) {
         transitions.shift();
       }
-      return transitions.every(
-        (candidate) =>
-          candidate.event === "unlabeled" &&
-          candidate.actor?.login === "github-actions[bot]",
-      );
+      return transitions.every(isValidatorRemoval);
     },
 
     // Whether a review event follows an earlier barrier in the timeline. No
@@ -1388,21 +1540,25 @@ function issueTimeline({ event, issue, issueEvents }) {
       };
     },
 
-    // Whether the label's latest application follows the review in the
-    // timeline, whatever its timestamp, and was not applied with the issue at
-    // its creation.
-    appliedAfterReview(label, reviewEventId) {
-      const reviewPosition = position(reviewEventId);
-      const application = lastApplication(label);
+    // The validator's fallback only fills a missing state; it never
+    // supersedes readiness. A removal followed by an unrecorded application
+    // cannot establish the actor, so it still follows the ordering rule.
+    isValidatorFallback(label) {
       return (
-        reviewPosition !== null &&
-        application !== null &&
-        application.position > reviewPosition &&
-        !atCreation(application.at)
+        label === "needs-triage" &&
+        latestChangeIsApplication(label) &&
+        lastApplication(label)?.event.actor?.login === "github-actions[bot]"
       );
     },
 
-    latestChangeIsApplication,
+    // Whether the label's application follows the review, whatever its
+    // timestamp.
+    appliedAfter(label, reviewEventId) {
+      const reviewPosition = position(reviewEventId);
+      return (
+        reviewPosition !== null && applicationPosition(label) > reviewPosition
+      );
+    },
 
     // Whether the label's latest application, by anyone, is the sender's,
     // follows the barrier, and is the label's latest recorded change.
@@ -1417,36 +1573,19 @@ function issueTimeline({ event, issue, issueEvents }) {
 
     sentByOpener,
 
-    // Whether the triggering label's payload time places it after the review:
-    // in a strictly later second when its application is recorded.
-    triggerFollowsReview(label, reviewEventId) {
-      const reviewPoint = review(reviewEventId);
-      if (!reviewPoint.known) return true;
-      const payloadAt = event.issue?.updated_at;
-      if (!payloadAt) return true;
-      return latestChangeIsApplication(label)
-        ? payloadAt > reviewPoint.at
-        : notBefore(payloadAt, reviewPoint.at);
-    },
-
-    openedWith(label) {
-      return (
-        event.action === "opened" &&
-        (event.issue?.labels ?? []).some(
-          (candidate) => labelName(candidate) === label,
-        )
-      );
-    },
-
-    // The label whose latest application is latest in the timeline.
+    // The label applied latest, or every label tied for latest when the
+    // timeline has recorded none of their applications.
     latestApplied(labels) {
-      let latest = null;
+      let latest = [];
+      let latestPosition = -1;
       for (const label of labels) {
-        const applied = lastApplication(label);
-        if (!latest || applied.position > latest.position)
-          latest = { label, position: applied.position };
+        const position = timelinePosition(label);
+        if (position > latestPosition) {
+          latest = [label];
+          latestPosition = position;
+        } else if (position === latestPosition) latest.push(label);
       }
-      return latest?.label ?? null;
+      return latest;
     },
   };
 }
@@ -1467,8 +1606,15 @@ function findFeedback(comments) {
     );
 }
 
-function invalidFeedback(errors) {
-  return `${feedbackMarker}\n## Issue contract needs attention\n\n${errors.map((error) => `- ${error}`).join("\n")}\n\nFix the items above. Structural validation will re-run, but only an authorized reviewer can grant readiness.`;
+// The previous feedback's state line, which structural notices carry forward
+// so the recorded review survives them.
+function carriedState(previousFeedback) {
+  const line = feedbackStateLine(previousFeedback?.body);
+  return line ? `${line}\n` : "";
+}
+
+function invalidFeedback(errors, previousFeedback) {
+  return `${feedbackMarker}\n${carriedState(previousFeedback)}${needsAttentionHeading}\n\n${errors.map((error) => `- ${error}`).join("\n")}\n\nFix the items above. Structural validation will re-run, but only an authorized reviewer can grant readiness.`;
 }
 
 function awaitingReviewFeedback(
@@ -1476,7 +1622,7 @@ function awaitingReviewFeedback(
   revision,
   observedEventId = null,
   sourceInvalidation = null,
-  { reason = null, rejected = false, rejectedCreationLabel = null } = {},
+  { reason = null, rejectedCreationLabel = null } = {},
 ) {
   const state = JSON.stringify({
     status: "awaiting-review",
@@ -1485,7 +1631,7 @@ function awaitingReviewFeedback(
     reviewer: null,
     observedEventId,
     sourceInvalidation,
-    ...(rejected && reason
+    ...(reason
       ? {
           rejectionReason: reason,
           ...(rejectedCreationLabel ? { rejectedCreationLabel } : {}),
@@ -1517,8 +1663,8 @@ function approvedFeedback(
   return `${feedbackMarker}\n${feedbackStatePrefix}${state} -->\n## Issue contract readiness recorded\n\nThe ${kind} at revision \`${revision}\` was reviewed by @${reviewer}, whose repository role authorizes triage, and is bound to \`${label}\`. Editing or replacing the contract or removing readiness invalidates this association.`;
 }
 
-function resolvedFeedback(kind) {
-  return `${feedbackMarker}\n## Issue contract structure corrected\n\nThe ${kind} now has the required structure. A fresh authorized review is still required before restoring readiness.`;
+function resolvedFeedback(kind, previousFeedback) {
+  return `${feedbackMarker}\n${carriedState(previousFeedback)}## Issue contract structure corrected\n\nThe ${kind} now has the required structure. A fresh authorized review is still required before restoring readiness.`;
 }
 
 // While a human readiness trigger is unrecorded, the adapter re-reads the
@@ -1582,9 +1728,10 @@ async function runIssueContractValidation(environment) {
     return;
   }
   if (issue.state === "closed") {
-    console.log(
-      "Skipped closed issue; issue contract validation handles open issues only.",
-    );
+    const decision = decideIssueContract({ issue });
+    for (const label of decision.removeLabels)
+      await api.removeLabel(issueNumber, label);
+    console.log(decision.message);
     return;
   }
 
@@ -1606,11 +1753,14 @@ async function runIssueContractValidation(environment) {
   )) {
     snapshot.relatedIssues[reference] = await api.getOptionalUrl(reference);
   }
-  const contract = revisionContract(snapshot);
-  if (contract) {
-    if (contract.type === "issue-body")
-      snapshot.bodyRevision = await api.getIssueBodyRevision(issueNumber);
+  let needs = snapshotNeeds(snapshot);
+  if (needs.timeline) {
     snapshot.issueEvents = await api.listEvents(issueNumber);
+    needs = snapshotNeeds(snapshot);
+  }
+  if (needs.contract?.type === "issue-body")
+    snapshot.bodyRevision = await api.getIssueBodyRevision(issueNumber);
+  if (needs.contract) {
     for (
       let waited = 0;
       waited < triggerWaitBound && readinessTriggerUnrecorded(snapshot);

@@ -2,7 +2,7 @@ name: Issue contracts
 
 on:
   issues:
-    types: [opened, edited, reopened, labeled, unlabeled]
+    types: [opened, edited, reopened, closed, labeled, unlabeled]
   issue_comment:
     types: [created, edited, deleted]
 

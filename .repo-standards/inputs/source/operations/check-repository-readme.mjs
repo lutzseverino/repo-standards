@@ -2,6 +2,12 @@ import { lstatSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { interpretMarkdown } from "./lib/rendered-markdown.mjs";
 import { resolvedLocalPath } from "./lib/local-markdown-links.mjs";
+import {
+  glossaryCorrections,
+  glossaryTerms,
+  isOneSentence,
+  readmeDescription,
+} from "./lib/entry-document.mjs";
 
 const resultFormat = "repo-standards/result/v2";
 const recognizedSections = [
@@ -152,6 +158,19 @@ function checkStructure(projectRoot, markdown, license) {
   const document = interpretMarkdown(markdown);
   const parsedHeadings = document.headings;
   const title = parsedHeadings.find((heading) => heading.level === 1) ?? null;
+  const description = readmeDescription(document);
+  if (description === null || !isOneSentence(description)) {
+    corrections.push(
+      "Make the Repository README description after its title one sentence.",
+    );
+  }
+  if (description !== null) {
+    corrections.push(
+      ...glossaryCorrections(description, glossaryTerms(projectRoot)).map(
+        (correction) => `Repository README description: ${correction}`,
+      ),
+    );
+  }
   if (!title?.centered) {
     corrections.push(
       "Center the Repository README title in a nonempty HTML h1 or a centered block.",
