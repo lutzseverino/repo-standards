@@ -9,8 +9,9 @@ Use TypeScript, ESM, Node.js 24 and pnpm at the versions in `.node-version` and
 `package.json`, with npm and Git 2.32 or newer on `PATH`. Run `pnpm install --frozen-lockfile`; npm registry access or
 cached dependencies are required. The root package remains the published CLI;
 `site/` is a private pnpm workspace. Installation from the root installs both
-projects. The factory sandbox image already supplies Node.js, pnpm, npm and Git;
-the site needs no additional system tools.
+projects. `.factory/Dockerfile` supplies Node.js, pnpm and npm; the host-installed
+factory adds Git and agent tools in its own layer. The site needs no additional
+system tools.
 
 Run `pnpm --dir site dev` for the website at `http://localhost:4321`.
 `pnpm --dir site check` runs `astro check`, and `pnpm --dir site build` writes

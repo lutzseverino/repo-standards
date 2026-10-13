@@ -11,7 +11,8 @@ by its respective authors:
   skill setup files `docs/agents/issue-tracker.md`,
   `docs/agents/triage-labels.md`, and `docs/agents/domain.md` are copies of the
   collection's setup seeds under the same notice.
-- HumanLayer's pinned `show-me` skill retains its
+- The `pr` skill's Summary section reproduces material from HumanLayer's
+  `show-me` skill, covered by HumanLayer's
   [MIT License and copyright notice](vendor/humanlayer-skills/LICENSE).
   Adoption installs the same notice beside the copied skills, at
   `.agents/skills/LICENSE.humanlayer-skills` in the adopting repository.

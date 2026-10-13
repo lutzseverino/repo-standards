@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
-// Waits for a pull request's checks and Codex's review of its head commit,
-// polling GitHub with `gh`. It prints nothing while waiting and one line when
+// Waits for a pull request's checks and the configured reviewer's review of
+// its head commit, polling GitHub with `gh`. It prints nothing while waiting and one line when
 // it exits, starting with the head's full SHA, plus one line per failing
 // check, and its exit code names the outcome:
 //
-//   0  checks settled and Codex reviewed the head
+//   0  checks settled and the reviewer reviewed the head, or none is configured
 //   1  usage or `gh` error
 //   2  one or more checks failed, including a workflow whose latest run failed
 //      with no check from that run or attempt
-//   3  checks settled and Codex is unavailable
-//   4  checks settled and Codex did not review this head
+//   3  checks settled and the configured reviewer is unavailable
+//   4  checks settled and the configured reviewer did not review this head
 //   5  still waiting at the invocation limit; run it again
 //
 // Checks settled means checks passed or no check arrived within 5 minutes
@@ -22,107 +22,29 @@
 // Usage: node wait.mjs <number> [--repo <owner/name>] [--limit <seconds>]
 //        [--interval <seconds>]
 //
-// The default limit, 540 seconds, keeps one invocation inside Claude Code's
-// 10-minute foreground limit, with each look at GitHub bounded to 45 seconds.
-// One invocation covers 9 minutes waited: a typical wait takes one, and the
-// worst case, the 30-minute review bound plus checks, takes at most four.
+// The default limit, 540 seconds, keeps one invocation inside a 10-minute
+// foreground limit, with each look at GitHub bounded to 45 seconds.
+// One invocation covers 9 minutes waited; repository data sets review bounds.
+// Run from the repository root to read .github/pull-request-reviewer.json.
 // A head with no recorded push and no check or run never settles its checks.
 import { execFile } from "node:child_process";
 import { realpathSync } from "node:fs";
 
-const codexBot = "chatgpt-codex-connector[bot]";
-const summaryMarker = "<!-- codex-pull-request-review-summary -->";
-const unavailableReplies = [
-  "create an environment for this repo",
-  "create a Codex account",
-];
-const reviewRequest = /@codex (security )?review\b/i;
-const responseBoundMs = 5 * 60_000;
-const reviewBoundMs = 30 * 60_000;
-const checksBoundMs = 5 * 60_000;
+import {
+  readReviewer,
+  reviewRequestedAt,
+  reviewerState,
+  reviewerPhrase,
+} from "./reviewer.mjs";
+export { reviewRequestedAt } from "./reviewer.mjs";
 
+const checksBoundMs = 5 * 60_000;
 const settledCodes = {
   reviewed: 0,
   unavailable: 3,
   "not requested": 4,
   "no response": 4,
   "not reviewing": 4,
-};
-
-// The time of the latest review request: the pull request's opening, or a
-// later `@codex review` comment from anyone but Codex. A push is no request.
-export const reviewRequestedAt = (openedAt, comments) =>
-  Math.max(
-    openedAt,
-    ...comments
-      .filter(
-        (comment) =>
-          comment.login !== codexBot && reviewRequest.test(comment.body),
-      )
-      .map((comment) => Date.parse(comment.createdAt)),
-  );
-
-// Reads the Status and Commit cells of each row of Codex's summary table,
-// with the completion time a Completed status carries; without one it is NaN,
-// which is never at or after a request.
-const summaryRows = (body) => {
-  const rows = body
-    .split("\n")
-    .filter((line) => line.trim().startsWith("|"))
-    .map((line) =>
-      line
-        .trim()
-        .replace(/^\||\|$/g, "")
-        .split("|")
-        .map((cell) => cell.trim()),
-    );
-  const header = rows[0] ?? [];
-  const status = header.indexOf("Status");
-  const commit = header.indexOf("Commit");
-  if (status < 0 || commit < 0) return [];
-  return rows.slice(1).flatMap((row) => {
-    const sha = /`([0-9a-f]{7,40})`/.exec(row[commit] ?? "")?.[1];
-    if (!sha) return [];
-    const completed = /\bCompleted\b/.test(row[status]);
-    const datetime = /<relative-time\b[^>]*\bdatetime="([^"]+)"/.exec(row[status])?.[1];
-    return [
-      {
-        completed,
-        completedAt: completed && datetime ? Date.parse(datetime) : NaN,
-        sha,
-      },
-    ];
-  });
-};
-
-const codexState = ({ head, requestedAt, pushedAt, comments, now }) => {
-  const codexComments = comments.filter(
-    (comment) => comment.login === codexBot,
-  );
-  const headRows = codexComments
-    .filter((comment) => comment.body.includes(summaryMarker))
-    .flatMap((comment) => summaryRows(comment.body))
-    .filter((row) => head.startsWith(row.sha));
-  if (headRows.some((row) => row.completedAt >= requestedAt)) {
-    return "reviewed";
-  }
-  if (
-    codexComments.some(
-      (comment) =>
-        unavailableReplies.some((reply) => comment.body.includes(reply)) &&
-        Date.parse(comment.createdAt) >= requestedAt,
-    )
-  ) {
-    return "unavailable";
-  }
-  if (pushedAt > requestedAt) return "not requested";
-  const waited = now - requestedAt;
-  if (codexComments.length === 0 && waited >= responseBoundMs) {
-    return "no response";
-  }
-  if (waited >= reviewBoundMs) return "not reviewing";
-  if (headRows.some((row) => !row.completed)) return "reviewing";
-  return "pending";
 };
 
 // A job or attempt link and its run link share this Actions run URL.
@@ -144,12 +66,12 @@ const workflowRunLink = (link) =>
 // recorded that push. The checks stay pending while the head has none and
 // its push is unrecorded or less than 5 minutes old, or while any check or run
 // is unfinished: a new head's checks and a queued rerun can be missing from
-// the rollup while their runs are already
-// listed. A failed check ends the wait unless Codex is reviewing, so its
-// findings arrive with the failures. It
+// the rollup while their runs are already listed. A failed check ends the wait
+// immediately. It
 // returns `code: null` while the outcome is unsettled and the invocation limit
 // is not reached.
 export const decide = ({
+  reviewer,
   head,
   checks,
   runs = [],
@@ -157,11 +79,24 @@ export const decide = ({
   pushedAt,
   pushRecorded,
   comments,
+  reviews = [],
   now,
   startedAt,
   limitMs,
 }) => {
-  const codex = codexState({ head, requestedAt, pushedAt, comments, now });
+  const state = reviewer
+    ? reviewerState(reviewer, {
+        head,
+        requestedAt,
+        pushedAt,
+        comments,
+        reviews,
+        now,
+      })
+    : undefined;
+  const review = reviewer
+    ? { reviewer: state, reviewerPhrase: reviewerPhrase(reviewer, state) }
+    : {};
   const latestRuns = new Map();
   const workflowsByLink = new Map();
   const workflowsByName = new Map();
@@ -209,31 +144,26 @@ export const decide = ({
       (!pushRecorded || now - pushedAt < checksBoundMs)) ||
     checks.some((check) => check.state === "pending") ||
     runs.some((run) => run.status !== "completed");
-  if (!checksPending && failing.length > 0 && codex !== "reviewing") {
-    return { code: 2, codex, failing };
+  if (failing.length > 0) {
+    return { code: 2, ...review, failing };
   }
-  if (!checksPending && codex in settledCodes) {
-    const outcome = { code: settledCodes[codex], codex, failing };
+  if (!checksPending && !reviewer) {
+    const outcome = { code: 0, failing };
+    if (checks.length === 0) outcome.noChecks = true;
+    return outcome;
+  }
+  if (!checksPending && state in settledCodes) {
+    const outcome = { code: settledCodes[state], ...review, failing };
     if (checks.length === 0) outcome.noChecks = true;
     return outcome;
   }
   if (now - startedAt >= limitMs) {
-    return { code: 5, codex, failing, checksPending };
+    return { code: 5, ...review, failing, checksPending };
   }
-  return { code: null, codex, failing, checksPending };
-};
-
-const codexPhrases = {
-  reviewed: "Codex reviewed",
-  unavailable: "Codex unavailable",
-  "not requested": "Codex review not requested for this head",
-  "no response": "Codex did not respond within 5 minutes",
-  "not reviewing": "Codex did not review within 30 minutes",
-  pending: "Codex review pending",
+  return { code: null, ...review, failing, checksPending };
 };
 
 // The lines the script prints for a decided outcome.
-// A failing check is listed even while the script still waits.
 export const report = (outcome, head) => {
   const count = outcome.failing.length;
   const failed = `${count} check${count === 1 ? "" : "s"} failed`;
@@ -241,7 +171,7 @@ export const report = (outcome, head) => {
   if (outcome.code === 5) {
     const pending = [
       outcome.checksPending && "checks",
-      !(outcome.codex in settledCodes) && "Codex",
+      outcome.reviewer && !(outcome.reviewer in settledCodes) && "reviewer",
     ].filter(Boolean);
     const waiting = `still waiting on ${pending.join(" and ")}; run again`;
     line = count === 0 ? waiting : `${failed}, ${waiting}`;
@@ -251,7 +181,7 @@ export const report = (outcome, head) => {
       : count === 0
         ? "checks passed"
         : failed;
-    line = `${checks}, ${codexPhrases[outcome.codex]}`;
+    line = [checks, outcome.reviewerPhrase].filter(Boolean).join(", ");
   }
   return [
     `${head}: ${line}`,
@@ -357,7 +287,8 @@ const parseArguments = (argv) => {
 };
 
 // Whether GitHub recorded the push of the pull request's head, with its time
-// for Codex: the recorded time, else the committer date, never before opening.
+// for the reviewer: the recorded time, else the committer date, never before
+// opening.
 const pushTime = async (pull) => {
   const head = pull.headRefOid;
   const activity = await gh([
@@ -367,8 +298,8 @@ const pushTime = async (pull) => {
   const recorded = activity.find((entry) => entry.after === head);
   const pushedAt =
     recorded?.timestamp ??
-    (await gh(["api", `repos/{owner}/{repo}/commits/${head}`])).commit
-      .committer.date;
+    (await gh(["api", `repos/{owner}/{repo}/commits/${head}`])).commit.committer
+      .date;
   return {
     pushedAt: Math.max(Date.parse(pushedAt), Date.parse(pull.createdAt)),
     pushRecorded: Boolean(recorded),
@@ -378,8 +309,8 @@ const pushTime = async (pull) => {
 // Reads one look at the pull request. The head's workflow runs are read by
 // its SHA, which also finds `pull_request_target` runs; its push time is
 // cached per head only when GitHub recorded it.
-const look = async (number, pushTimes) => {
-  const [pull, pages] = await Promise.all([
+const look = async (number, pushTimes, reviewer) => {
+  const [pull, pages, reviewPages, reviewCommentPages] = await Promise.all([
     gh([
       "pr",
       "view",
@@ -387,18 +318,42 @@ const look = async (number, pushTimes) => {
       "--json",
       "headRefOid,headRefName,createdAt,statusCheckRollup",
     ]),
-    gh([
-      "api",
-      `repos/{owner}/{repo}/issues/${number}/comments?per_page=100`,
-      "--paginate",
-      "--slurp",
-    ]),
+    reviewer
+      ? gh([
+          "api",
+          `repos/{owner}/{repo}/issues/${number}/comments?per_page=100`,
+          "--paginate",
+          "--slurp",
+        ])
+      : [],
+    reviewer
+      ? gh([
+          "api",
+          `repos/{owner}/{repo}/pulls/${number}/reviews?per_page=100`,
+          "--paginate",
+          "--slurp",
+        ])
+      : [],
+    reviewer
+      ? gh([
+          "api",
+          `repos/{owner}/{repo}/pulls/${number}/comments?per_page=100`,
+          "--paginate",
+          "--slurp",
+        ])
+      : [],
   ]);
   const comments = pages.flat().map((comment) => ({
     login: comment.user?.login,
     createdAt: comment.created_at,
     body: comment.body ?? "",
   }));
+  const commentsByReview = new Map();
+  for (const comment of reviewCommentPages.flat()) {
+    const comments = commentsByReview.get(comment.pull_request_review_id) ?? [];
+    comments.push(comment);
+    commentsByReview.set(comment.pull_request_review_id, comments);
+  }
   const head = pull.headRefOid;
   const [runs, push] = await Promise.all([
     gh([
@@ -416,7 +371,14 @@ const look = async (number, pushTimes) => {
     runs: runs
       .flatMap((page) => page.workflow_runs)
       .map(
-        ({ workflow_id, name, status, conclusion, run_started_at, html_url }) => ({
+        ({
+          workflow_id,
+          name,
+          status,
+          conclusion,
+          run_started_at,
+          html_url,
+        }) => ({
           workflow_id,
           name,
           status,
@@ -425,7 +387,16 @@ const look = async (number, pushTimes) => {
           html_url,
         }),
       ),
-    requestedAt: reviewRequestedAt(Date.parse(pull.createdAt), comments),
+    reviewer,
+    reviews: reviewPages.flat().map((review) => ({
+      ...review,
+      comments: commentsByReview.get(review.id) ?? [],
+    })),
+    requestedAt: reviewRequestedAt(
+      Date.parse(pull.createdAt),
+      comments,
+      reviewer,
+    ),
     ...push,
     comments,
   };
@@ -434,8 +405,10 @@ const look = async (number, pushTimes) => {
 const main = async () => {
   const startedAt = Date.now();
   let options;
+  let reviewer;
   try {
     options = parseArguments(process.argv.slice(2));
+    reviewer = readReviewer();
   } catch (error) {
     process.stderr.write(`${error.message}\n`);
     return 1;
@@ -446,7 +419,7 @@ const main = async () => {
   for (;;) {
     let state;
     try {
-      state = await look(options.number, pushTimes);
+      state = await look(options.number, pushTimes, reviewer);
     } catch (error) {
       process.stderr.write(`wait.mjs: ${error.message}\n`);
       return 1;

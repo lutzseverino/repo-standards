@@ -3,11 +3,11 @@
 Draft the documentation scope with the drafter this source ships. With
 Node.js 24, run it from either supported location. From the root of a clone of
 the standards source checked out at the selected commit, pass the adopting
-repository's path:
+repository's path and the selected profile, `standard` or `factory`:
 
 ```sh
 node discovery/draft-documentation-scope.mjs --project /path/to/adopting-repository \
-  > /tmp/documentation-scope.json
+  --profile standard > /tmp/documentation-scope.json
 ```
 
 Or run the retained copy under `.repo-standards/inputs/source/` from the

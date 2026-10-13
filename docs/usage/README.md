@@ -1,9 +1,15 @@
 # Usage
 
-This directory explains how to install, author, discover, inspect, adopt, and
-update with Repository Standards, report available updates, run adopted
-checks, and look up installed rules, and defines its public formats and
-protocols.
+Repository Standards gives maintainers a CLI and agent skills to publish and
+apply versioned repository conventions.
+
+A standards source is a repository's published conventions; a profile
+selects a complete set. Adoption installs shared files and skills, adapts project
+documentation, and runs the publisher's checks and setup commands. Inspection
+previews that work, and an update applies a new selection to an already
+configured repository. Source discovery finds publishers without applying their
+conventions. Installed rules state the requirements files must keep satisfying;
+an assessment records an agent's judgment that project-specific work meets them.
 
 - [Installation](installation.md): public npm installation, the standalone
   bootstrap, the authoring skill, and fresh-checkout restoration.

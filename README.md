@@ -1,11 +1,18 @@
 <div align="center">
   <h1>Repository Standards</h1>
-  <p>A CLI and agent skills for publishing and applying versioned repository standards.</p>
+  <p>A CLI and agent skills for maintainers who publish and apply versioned repository standards.</p>
   <p>
     <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
     <img src="https://img.shields.io/badge/Node.js-24-5FA04E?logo=node.js&logoColor=white" alt="Node.js 24">
   </p>
 </div>
+
+A standards source is a repository's published, versioned conventions. A
+profile selects a complete set of those conventions. Adoption applies that set:
+it installs shared files and skills, adapts project documentation, and runs the
+publisher's checks and setup commands. An inspection previews those changes;
+an update applies a new selection to an already configured repository. Rules
+are the installed requirements that files must keep satisfying.
 
 ## Installation
 

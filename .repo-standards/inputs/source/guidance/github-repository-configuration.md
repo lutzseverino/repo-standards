@@ -19,3 +19,9 @@ remotes, require authenticated access and the needed permissions, apply only
 missing settings, and read the result back. Review blocked and partial results
 before retrying. Operation evidence describes the state at execution time; it
 does not provide remote freshness, rollback, or an ownership baseline.
+
+The optional repository-owned `.github/pull-request-reviewer.json` configures
+pull request review waits, as [`babysit`](../.agents/skills/babysit/SKILL.md)
+documents. Its read-only check passes without the file and validates the schema
+when present. The declaration owns no reviewer file or preset. Choose a
+reviewer, or leave it absent, according to the repository's own setup.
