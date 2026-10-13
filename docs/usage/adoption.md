@@ -79,12 +79,13 @@ declaration in turn:
    confirmed scope still covers every file it should, then whether the
    declaration is done, or blocked with a reason.
 
-These checks run read-only inside the waiting run, as `check` runs them, and
-record nothing: the run's own check round after the assessment decides.
+These checks run read-only inside the waiting run, as `check` runs them, from
+its installation once verified, and record nothing: the run's own check round after the assessment decides.
 `adopt` writes the assessment from the answers, citing each check result and
 the maintainer's confirmation, and submits it. When the run's checks then fail,
-it walks the failing declarations again; a failed check of a declaration
-without contextual work stops the session, since no contextual edit fixes it. A blocked declaration leaves the run
+it walks the failing declarations again. A failed check of a declaration
+without contextual work, which no contextual edit fixes, waits for the person
+to resolve it and then runs every check again with the same assessment. A blocked declaration leaves the run
 incomplete, its reason naming the declaration; running `adopt` again walks the
 contextual work again.
 
@@ -95,7 +96,8 @@ stopped. A run interrupted during its operations is incomplete: `adopt` shows
 its reason and asks whether to retry the interrupted work, as `resume --retry`
 does, abandon the run, or stop. A run whose confirmed scope is incomplete can
 only be abandoned. A fix that stops the run for confirmation asks whether it
-may overwrite the setting.
+may overwrite the setting. Choosing to resolve remote setup that is not ready
+stops at once, writing nothing.
 
 ### Answers file
 

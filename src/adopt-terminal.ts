@@ -238,6 +238,12 @@ export async function adoptInTerminal(
             return report.outcome;
           }
           answers.set(question.id, answer);
+          if (answer === "resolve") {
+            write(
+              "Nothing was changed. Resolve the remote setup that is not ready, then run adopt again.\n",
+            );
+            return "blocked";
+          }
         }
         continue;
       }
@@ -272,16 +278,28 @@ export async function adoptInTerminal(
         let walk = declarations;
         if (reason.startsWith("CHECKS_FAILED:")) {
           write("\nThe run's checks failed after the assessment.\n");
-          // Contextual work cannot fix the checks of other declarations, so
-          // assessing it again would only run the same checks again.
+          // Contextual work cannot fix the checks of other declarations: the
+          // person resolves them, and the same assessment runs every check
+          // again.
           const elsewhere = failed.filter(
             (check) => !declarations.some(({ id }) => id === check.declaration),
           );
           if (elsewhere.length) {
             write(
-              `${elsewhere.map((check) => `Failed: ${check.declaration}/${check.id}: ${check.message}\n`).join("")}These checks are not of contextual work, which cannot change what they check. Read ${pinnedCli} status, resolve them, then run adopt again.\n`,
+              `${elsewhere.map((check) => `Failed: ${check.declaration}/${check.id}: ${check.message}\n`).join("")}These checks are not of contextual work, which cannot change what they check.\n`,
             );
-            return report.outcome;
+            if (
+              (await prompt.choose(
+                "Resolve them, then press Enter to run every check again, or type stop: ",
+                { stop: "stop" },
+                "again",
+              )) === "stop"
+            ) {
+              write(
+                `Read ${pinnedCli} status, resolve them, then run adopt again.\n`,
+              );
+              return report.outcome;
+            }
           }
           walk = declarations.filter(
             ({ id }) =>

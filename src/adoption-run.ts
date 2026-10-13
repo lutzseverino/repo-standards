@@ -1306,9 +1306,9 @@ export function withStartRun(
   return AdoptionRunSession.scope(projectRoot(project), "start", callback);
 }
 
-// Reads the installation of the active run while it waits for contextual work
-// and its assessment, holding the worker lock around the callback, which must
-// leave the run unchanged.
+// Reads and verifies the installation of the active run while it waits for
+// contextual work and its assessment, holding the worker lock around the
+// callback, which must leave the run unchanged.
 export async function withWaitingRun<T>(
   project: string,
   cliVersion: string,
@@ -1333,7 +1333,11 @@ export async function withWaitingRun<T>(
         "RESUME_UNAVAILABLE",
         "The active run does not wait for contextual work. Read status.",
       );
-    return await callback(readInstallation(root, run));
+    // The callback may run retained scripts, so the installation, which
+    // holds them, is verified first, as a resume verifies it.
+    const installation = readInstallation(root, run);
+    verifyInstallation(root, installation);
+    return await callback(installation);
   } finally {
     release();
   }

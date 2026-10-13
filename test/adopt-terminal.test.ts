@@ -4,7 +4,7 @@ import { after, test, type TestContext } from "node:test";
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { directoryFixture, installCli } from "./installed-cli.ts";
+import { directoryFixture, installCli, snapshot } from "./installed-cli.ts";
 import { operation } from "./remote-fixture.ts";
 import {
   discoveryFixture,
@@ -486,7 +486,10 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
   assert.equal(await session.exit(), 130);
 });
 
-test("a failed check outside contextual work stops the session instead of assessing again", async (t) => {
+test("a failed check outside contextual work waits for the person to resolve it, then runs every check again", async (t) => {
+  const outside = directoryFixture("repo-standards-adopt-terminal-");
+  t.after(() => outside.close());
+  const tool = join(outside.root, "tool");
   const f = await fixture(
     t,
     cli,
@@ -495,7 +498,12 @@ test("a failed check outside contextual work stops the session instead of assess
         kind: "file",
         target: "AGENTS.md",
         exact: "content/AGENTS.md",
-        checks: [operation("tooling", { script: "checks/tooling.mjs" })],
+        checks: [
+          operation("tooling", {
+            script: "checks/tooling.mjs",
+            arguments: [tool],
+          }),
+        ],
       },
       "project-readme": {
         kind: "file",
@@ -507,7 +515,9 @@ test("a failed check outside contextual work stops the session instead of assess
       files: {
         "content/AGENTS.md": "Standard agent guidance\n",
         "guidance/readme.md": guidance,
-        "checks/tooling.mjs": `console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: 'failed', message: 'The tool is missing.' }));
+        "checks/tooling.mjs": `import { existsSync } from 'node:fs';
+const found = existsSync(process.argv[2]);
+console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: found ? 'passed' : 'failed', message: found ? 'The tool is installed.' : 'The tool is missing.' }));
 `,
       },
       project: { "README.md": "Project notes\n" },
@@ -524,13 +534,76 @@ test("a failed check outside contextual work stops the session instead of assess
   session.type("");
   await session.expect("Is project-readme done? [Y/n/blocked]: ");
   session.type("");
+  // No contextual edit fixes it, so nothing is walked again; once the
+  // person resolves it, the same assessment runs every check again.
+  const failed = await session.expect(
+    "Resolve them, then press Enter to run every check again, or type stop: ",
+  );
   assert.match(
-    await session.expect("then run adopt again."),
+    failed,
     /Failed: agent-guidance\/tooling: The tool is missing\.\nThese checks are not of contextual work/,
   );
-  assert.equal(await session.exit(), 1);
   assert.match(
     status(f).active!.reason,
     /CHECKS_FAILED: .*agent-guidance\/tooling/,
   );
+  writeFileSync(tool, "");
+  session.type("");
+  assert.doesNotMatch(
+    await session.expect("The adoption is complete."),
+    /Contextual work/,
+  );
+  assert.equal(await session.exit(), 0, session.rest());
+});
+
+test("resolving remote setup that is not ready stops before any other question", async (t) => {
+  const outside = directoryFixture("repo-standards-adopt-terminal-");
+  t.after(() => outside.close());
+  const f = await fixture(t, cli, readmeSource(outside.root));
+  const before = snapshot(f.root);
+  const session = terminal(t, f, [source]);
+  await session.expect("Version [v1.0.0]: ");
+  session.type("");
+  await session.expect("Profile [work]: ");
+  session.type("");
+  await session.expect("Defer it, or resolve it first? [defer/resolve]: ");
+  session.type("resolve");
+  assert.doesNotMatch(
+    await session.expect("Nothing was changed. Resolve the remote setup"),
+    /Discard these edits|Start the run/,
+  );
+  assert.equal(await session.exit(), 1);
+  assert.deepEqual(snapshot(f.root), before);
+});
+
+test("a walk's checks run only from a verified installation", async (t) => {
+  const outside = directoryFixture("repo-standards-adopt-terminal-");
+  t.after(() => outside.close());
+  const ran = join(outside.root, "ran");
+  const f = await fixture(t, cli, {
+    "project-readme": {
+      kind: "file",
+      target: "README.md",
+      guidance: "guidance/readme.md",
+      rules: "rules/readme.md",
+      checks: [operation("heading", { script: "checks/readme.mjs" })],
+    },
+  });
+  const session = terminal(t, f, [source]);
+  await session.expect("Version [v1.0.0]: ");
+  session.type("");
+  await session.expect("Profile [work]: ");
+  session.type("");
+  await session.expect("Start the run? [Y/n]: ");
+  session.type("");
+  await session.expect("Press Enter when you are done, or type blocked: ");
+  // A retained check script changed while the person edits is never run.
+  writeFileSync(
+    join(f.root, ".repo-standards/inputs/source/checks/readme.mjs"),
+    `import { writeFileSync } from 'node:fs';\nwriteFileSync(${JSON.stringify(ran)}, '');\n`,
+  );
+  session.type("");
+  await session.expect(/\[[A-Z_]+\] /);
+  assert.equal(await session.exit(), 1);
+  assert.equal(existsSync(ran), false);
 });
