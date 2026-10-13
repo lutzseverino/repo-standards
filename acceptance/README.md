@@ -140,11 +140,12 @@ into a public-source session.
 Save the answers file outside the adopting project, disclose the pins, exact
 content, contextual scope and trusted operations, and record the maintainer's
 answers, including confirmation when the inspection requires it. Pass the
-answers file to the same session's `adopt` to start that selection. After
-installation, use `--local` before the public CLI arguments, as the next steps
-name the pinned runtime:
+answers file to the same session's `adopt` to start that selection; its
+installation writes the pinned runtime. After that, use `--local` before the
+public CLI arguments, as the next steps name the pinned runtime:
 
 ```sh
+node acceptance/cli.ts SESSION adopt --answers /outside/answers.json
 node acceptance/cli.ts SESSION --local adopt --answers /outside/answers.json
 node acceptance/cli.ts SESSION --local status --json
 ```
