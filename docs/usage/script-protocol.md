@@ -258,7 +258,8 @@ name the `declaration`, the `reason`, and the script's `stdout` and `stderr`,
 each limited to 1 MiB. Inspection stops processes the script or its probe left
 in their group before it removes the copy. A group that survives being killed
 fails inspection with `AUTHOR_PROCESS_ACTIVE`, naming the group and the copy,
-which is left in place. The project is unchanged in every case. The copy protects the project, not the host: a discovery script is
+which is left in place, as it is when process state cannot be read
+(`PROCESS_STATE`). The project is unchanged in every case. The copy protects the project, not the host: a discovery script is
 trusted code like every other author script.
 
 ## Observed adoption scope

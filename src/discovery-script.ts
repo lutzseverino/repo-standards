@@ -225,8 +225,15 @@ export async function draftScope(options: {
       group = spawnedGroup;
     };
     const settle = async (error: string | null) => {
-      if (error !== "AUTHOR_PROCESS_ACTIVE" || (await stop(group))) return;
+      if (error !== "AUTHOR_PROCESS_ACTIVE" && error !== "PROCESS_STATE")
+        return;
+      // Until the group is known to be gone, a process may still use the
+      // copy, so it is kept if stopping fails, PROCESS_STATE included.
       kept = true;
+      if (await stop(group)) {
+        kept = false;
+        return;
+      }
       throw new ProductError(
         "AUTHOR_PROCESS_ACTIVE",
         `The discovery script of ${declaration} left author process group ${group} running after it was killed. Stop it, remove ${work}, then inspect again.`,
