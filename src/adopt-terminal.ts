@@ -631,10 +631,12 @@ async function walkDeclaration(
     };
   };
   let prompt = failed.length ? fixing : editing;
+  // The latest check results, the evidence of a block that follows them.
+  let evidence: string[] = [];
   for (;;) {
     // Only Enter or blocked answers the wait; anything else asks again.
     const typed = (await ask(prompt)).toLowerCase();
-    if (typed === "blocked") return blocked([]);
+    if (typed === "blocked") return blocked(evidence);
     if (typed) continue;
     write(`Running the checks of ${id}.\n`);
     const results = await checkContextual(root, cliVersion, id);
@@ -643,7 +645,7 @@ async function walkDeclaration(
       write(
         `${result.status[0]!.toUpperCase()}${result.status.slice(1)}: ${result.id}: ${result.message}${result.status === "passed" ? "" : ` Output: ${result.stdout}, ${result.stderr}`}\n`,
       );
-    const evidence = results.map(
+    evidence = results.map(
       (result) => `Check ${result.id} ${result.status}: ${result.message}`,
     );
     if (results.some((result) => result.status !== "passed")) {
@@ -652,6 +654,17 @@ async function walkDeclaration(
       continue;
     }
     const scopeValidity = discovery ? await reviewScope() : undefined;
+    // A scope that misses files stops the run, however the work is judged.
+    if (scopeValidity?.current.status === "blocked")
+      return {
+        status: "blocked",
+        explanation: scopeValidity.current.explanation,
+        evidence: [
+          ...evidence,
+          "The maintainer reported the confirmed scope incomplete in adopt's terminal walk-through.",
+        ],
+        scopeValidity,
+      };
     const answer = await choose(
       `Is ${id} done? [Y/n/blocked]: `,
       { y: "done", yes: "done", n: "edit", no: "edit", blocked: "blocked" },

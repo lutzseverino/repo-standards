@@ -190,6 +190,11 @@ test("a blocked declaration leaves the run incomplete, and adopt resumes an inte
     await second.expect("Press Enter when you are done, or type blocked: "),
     /Running the checks/,
   );
+  // A block after a failed check keeps that check's result as evidence.
+  second.type("");
+  await second.expect(
+    "Fix it, then press Enter to check again, or type blocked: ",
+  );
   second.type("blocked");
   await second.expect("Why is project-readme blocked? ");
   second.type("The project has no name yet.");
@@ -200,6 +205,15 @@ test("a blocked declaration leaves the run incomplete, and adopt resumes an inte
   assert.equal(await second.exit(), 1);
   const blocked = status(f).active!;
   assert.equal(blocked.outcome, "incomplete");
+  assert.ok(
+    (
+      status(f) as unknown as {
+        active: { assessments: { declarations: { evidence: string[] }[] }[] };
+      }
+    ).active.assessments[0]!.declarations[0]!.evidence.includes(
+      "Check heading failed: README.md has no top-level heading.",
+    ),
+  );
   assert.match(blocked.reason, /ASSESSMENT_BLOCKED: .*project-readme/);
 
   // Once resolved, the same command completes the run.
@@ -400,8 +414,11 @@ test("a scope the person reports incomplete stops the run, which the person aban
   session.type("tools/README.md");
   await session.expect("File: ");
   session.type("");
-  await session.expect("Is project-docs done? [Y/n/blocked]: ");
-  session.type("");
+  // The walk ends there: no later answer can confirm the scope.
+  assert.doesNotMatch(
+    await session.expect("Submitting the assessment"),
+    /Is project-docs done\?/,
+  );
   assert.match(
     await session.expect("Abandon the run, or stop? [abandon/stop]: "),
     /The run is incomplete: SCOPE_INCOMPLETE: /,
