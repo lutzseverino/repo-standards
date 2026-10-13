@@ -213,7 +213,8 @@ makes it a **contextual update** (`contextual`). `contextualChanges` lists each
 differing declaration by ID with what differs, in the order `guidance`,
 `discovery`, `operations`, and `scope`, or `retired` for a declaration the
 candidate no longer declares; it is empty for an exact update. Operations
-compare their complete definitions, including prerequisite probes and timeouts.
+compare their complete definitions, including prerequisite probes, timeouts,
+and any remote setup readiness probe.
 An active discovery declaration differs in `scope` until a scope proposal
 confirms its paths, so a report still awaiting that proposal is contextual.
 The class describes the update; it does not decide how the update is handled.

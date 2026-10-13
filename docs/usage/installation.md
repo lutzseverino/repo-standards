@@ -75,7 +75,7 @@ required for supported public sources.
 The standards format, including [remote setup](adoption.md#remote-setup), names
 no hosting platform: a source's own probes and fixes decide what a platform
 needs. Source acquisition is the known blocker to platform independence: it
-accepts only public `github.com` sources, and that behavior is unchanged.
+accepts only public `github.com` sources.
 
 Read the installed `skills/adopt-standards/SKILL.md` with your agent, then follow
 [inspection](inspection.md) and [adoption](adoption.md) to disclose the report,

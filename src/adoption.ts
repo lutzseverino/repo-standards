@@ -119,7 +119,7 @@ function workSnapshot(
 
 // The operations a run executes: every check and fix but deferred remote
 // setup, which runs neither its prerequisite nor its fix.
-function executed(report: Inspection) {
+function executedProfile(report: Inspection) {
   return withoutDeferred(
     report.resolved,
     deferredRemoteSetup(report.remoteSetup),
@@ -395,7 +395,7 @@ async function startRun(
     initial.recorded,
   );
   const prerequisites = await session.prerequisites((onSpawn) =>
-    preflight(root, executed(initial.report), onSpawn),
+    preflight(root, executedProfile(initial.report), onSpawn),
   );
   if (prerequisites.some((probe) => probe.code))
     throw new ProductError(
@@ -484,7 +484,7 @@ async function advance(
     ? ["checks"]
     : ["fixes", "checks"];
   for (const phase of phases) {
-    for (const selected of operations(executed(report), phase)) {
+    for (const selected of operations(executedProfile(report), phase)) {
       const overwriteAllowed =
         phase === "fixes" &&
         confirmedFix?.declaration === selected.declaration &&
@@ -599,7 +599,7 @@ export async function resume(
       const root = projectRoot(project);
       if (retry) {
         const prerequisites = await session.prerequisites((onSpawn) =>
-          preflight(root, executed(installation.report), onSpawn),
+          preflight(root, executedProfile(installation.report), onSpawn),
         );
         if (prerequisites.some((probe) => probe.code))
           throw new ProductError(
