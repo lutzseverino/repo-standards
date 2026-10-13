@@ -526,9 +526,10 @@ async function prepare(
         scope,
         JSON.stringify({
           format: formats.scope,
+          // The question names the declaration, whatever the answer holds.
           declarations: discovery.map(({ id }) => ({
-            id,
             ...scopeAnswer(id),
+            id,
           })),
         }),
       );
@@ -806,9 +807,10 @@ async function describeRun(
       context,
       await submitAssessment(root, cliVersion, {
         format: formats.assessment,
+        // The question names the declaration, whatever the answer holds.
         declarations: assessments.map((question) => ({
-          id: question.id.slice("assessment:".length),
           ...record(question.answer),
+          id: question.id.slice("assessment:".length),
         })),
       }),
       { ...base, answers: { ...base.answers, questions: assessments } },

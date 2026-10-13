@@ -66,8 +66,10 @@ wrong kind with `ANSWERS_FORMAT`, and an answers file inside the project with
 | `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.             | The run's inspection identity, once the maintainer confirms the overwrite its `context` names.                                                                                                                                                           |
 | `assessment:<declaration>` | For each declaration of contextual work.                 | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration.                                                                             |
 
-An answers file confirms a confirmation-required change only by naming the
-identity the maintainer confirmed. An answer naming another identity, such as
+The question's ID names the declaration of a `scope:` or `assessment:`
+answer; an `id` inside the answer is ignored. An answers file confirms a
+confirmation-required change only by naming the identity the maintainer
+confirmed. An answer naming another identity, such as
 one confirmed before the inspection changed, stays missing, and the run does
 not start or continue. Version and profile flags must agree with the answers
 file, and so must a source given with it.

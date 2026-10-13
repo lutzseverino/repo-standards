@@ -470,7 +470,9 @@ test("an answers file adopts through missing answers, confirmation, contextual w
   );
 
   // A failed check names the installed rules it cites, and the answers stay.
+  // An answer naming another declaration is still the question's.
   const assessment = {
+    id: "elsewhere",
     status: "satisfied",
     explanation: "README.md now names the project under a top-level heading.",
     evidence: ["README.md"],
@@ -679,8 +681,10 @@ test("adopt asks a discovery script's open questions as answers-file fields and 
   // Answered, the scope is confirmed and the run starts its contextual work.
   const answered = f.adopt(
     f.answer(template.answers, {
+      // An answer naming another declaration is still the question's.
       "scope:project-docs": {
         ...draft,
+        id: "elsewhere",
         coverage: `${draft.coverage} Tools holds scripts, not a project.`,
         unresolved: [],
       },
