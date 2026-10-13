@@ -50,7 +50,9 @@ repo-standards-bootstrap --cli-version 6.0.0 inspect \
 Use the full bootstrap path if `$HOME/.local/bin` is not on `PATH`. Omit
 `--cli-version 6.0.0` to select the greatest published stable version once;
 stderr discloses the exact selection. Keep that version for
-start. Inspection does not change project content or run author operations.
+start. Inspection does not change project content or run author operations;
+the only author scripts it runs are read-only
+[remote setup](adoption.md#remote-setup) readiness probes.
 Discovery is optional and is not an endorsement of any source.
 
 Public source acquisition uses a bounded set of GitHub REST requests to resolve
@@ -69,6 +71,11 @@ reported reset rather than repeatedly restarting a failed command. A rejected
 token (HTTP 401) is `SOURCE_UNAVAILABLE`, without anonymous retry. `outdated`
 reports either failure as `unknown` and still exits 0. Credentials are not
 required for supported public sources.
+
+The standards format, including [remote setup](adoption.md#remote-setup), names
+no hosting platform: a source's own probes and fixes decide what a platform
+needs. Source acquisition is the known blocker to platform independence: it
+accepts only public `github.com` sources, and that behavior is unchanged.
 
 Read the installed `skills/adopt-standards/SKILL.md` with your agent, then follow
 [inspection](inspection.md) and [adoption](adoption.md) to disclose the report,

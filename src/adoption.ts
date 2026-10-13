@@ -45,6 +45,7 @@ import type {
   WorkRequest,
 } from "./adoption-run.js";
 import { record } from "./records.js";
+import { deferredRemoteSetup, withoutDeferred } from "./remote-setup.js";
 export { abandon, status } from "./adoption-run.js";
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 const retainedSource = ".repo-standards/inputs/source";
@@ -116,16 +117,28 @@ function workSnapshot(
   return `sha256:${hash(json(observeWork(root, concreteScope(resolved))) + `retry:${run.retryHistory?.length ?? 0}`)}`;
 }
 
+// The operations a run executes: every check and fix but deferred remote
+// setup, which runs neither its prerequisite nor its fix.
+function executed(report: Inspection) {
+  return withoutDeferred(
+    report.resolved,
+    deferredRemoteSetup(report.remoteSetup),
+  );
+}
+
 const staleDiscovery =
   "Selection, project state, or the scope proposal changed since the inspection. Inspect again with the proposal, review it against the fresh discovery evidence, and start with the new identity.";
 
 // A start binds to the identity of the inspection it carries out. It carries
 // the maintainer's confirmation exactly when that inspection reports a
-// confirmation-required change: never by habit, and never without it.
+// confirmation-required change: never by habit, and never without it. A
+// remote setup that is not ready stops it unless the adopter defers remote
+// setup. A retry passes null for both: its run already began with them.
 function verifyInspection(
   report: Inspection,
   identity: string,
   confirmed: boolean | null,
+  deferRemoteSetup: boolean | null,
 ) {
   if (report.identity !== identity)
     throw new ProductError(
@@ -139,6 +152,13 @@ function verifyInspection(
       "START_BLOCKED",
       "Resolve all inspection blockers before starting adoption.",
       report.start.blockers,
+    );
+  const deferred = deferredRemoteSetup(report.remoteSetup);
+  if (deferRemoteSetup === false && deferred.length)
+    throw new ProductError(
+      "REMOTE_SETUP_NOT_READY",
+      `Remote setup is not ready: ${deferred.map(({ declaration, id, reason }) => `${declaration}/${id}: ${reason}`).join(" ")} Resolve it and inspect again, or start again with --defer-remote-setup to complete adoption without it; every later run applies it once it is ready.`,
+      deferred,
     );
   const { required, reasons } = report.confirmation;
   if (confirmed === null) return;
@@ -289,6 +309,7 @@ export async function start(
   cliVersion: string,
   identity: string,
   confirmed: boolean,
+  deferRemoteSetup = false,
 ) {
   return withStartRun(options.project, (session) =>
     startRun(
@@ -297,6 +318,7 @@ export async function start(
       identity,
       confirmed,
       session,
+      deferRemoteSetup,
     ),
   );
 }
@@ -307,6 +329,7 @@ export async function startRetained(
   identity: string,
   confirmed: boolean,
   scope?: string,
+  deferRemoteSetup = false,
 ) {
   return withStartRun(project, (session) =>
     startRun(
@@ -315,19 +338,22 @@ export async function startRetained(
       identity,
       confirmed,
       session,
+      deferRemoteSetup,
     ),
   );
 }
 
 // A retry of a start that stopped before preparing its installation passes
-// null for confirmation: the run began under this identity, so its start
-// already carried any confirmation the identity's report requires.
+// null for confirmation and deferral: the run began under this identity, so
+// its start already carried any confirmation or deferral the identity's
+// report requires.
 async function startRun(
   input: StartInput,
   cliVersion: string,
   identity: string,
   confirmed: boolean | null,
   session: AdoptionRunSession,
+  deferRemoteSetup: boolean | null = null,
 ) {
   const inspectSelection = async () => {
     try {
@@ -347,7 +373,7 @@ async function startRun(
   };
   const initial = await inspectSelection();
   const root = initial.root;
-  verifyInspection(initial.report, identity, confirmed);
+  verifyInspection(initial.report, identity, confirmed, deferRemoteSetup);
   const proposalPath =
     input.kind === "retained" ? input.scope : input.options.scope;
   const scope =
@@ -369,7 +395,7 @@ async function startRun(
     initial.recorded,
   );
   const prerequisites = await session.prerequisites((onSpawn) =>
-    preflight(root, initial.report.resolved, onSpawn),
+    preflight(root, executed(initial.report), onSpawn),
   );
   if (prerequisites.some((probe) => probe.code))
     throw new ProductError(
@@ -390,7 +416,7 @@ async function startRun(
   // target checks under the lock before creating any project material. The
   // materials come from this inspection, whose identity binds their hashes.
   const inspected = await inspectSelection();
-  verifyInspection(inspected.report, identity, confirmed);
+  verifyInspection(inspected.report, identity, confirmed, deferRemoteSetup);
   const installation = planInstallation(root, inspected, identity, runtime);
   session.prepareInstallation(installation);
   install(root, session, installation);
@@ -458,7 +484,7 @@ async function advance(
     ? ["checks"]
     : ["fixes", "checks"];
   for (const phase of phases) {
-    for (const selected of operations(report.resolved, phase)) {
+    for (const selected of operations(executed(report), phase)) {
       const overwriteAllowed =
         phase === "fixes" &&
         confirmedFix?.declaration === selected.declaration &&
@@ -573,7 +599,7 @@ export async function resume(
       const root = projectRoot(project);
       if (retry) {
         const prerequisites = await session.prerequisites((onSpawn) =>
-          preflight(root, installation.report.resolved, onSpawn),
+          preflight(root, executed(installation.report), onSpawn),
         );
         if (prerequisites.some((probe) => probe.code))
           throw new ProductError(

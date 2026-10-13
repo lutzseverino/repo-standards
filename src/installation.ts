@@ -22,14 +22,11 @@ import type { Baseline, Files } from "./adoption-files.js";
 import type { AdoptionRunSession, Run } from "./adoption-run.js";
 import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
-import {
-  hiddenIndexPaths,
-  observeProductState,
-  productInventory,
-  type inspectForStart,
-} from "./inspection.js";
+import { productInventory, type inspectForStart } from "./inspection.js";
 import {
   git,
+  hiddenIndexPaths,
+  observeProductState,
   hashInventory,
   inventoryPaths,
   matchesInventory,
@@ -762,6 +759,7 @@ export function completionFiles(
         .slice(operationStart)
         .filter((evidence) => evidence.operation.phase === "checks"),
       assessments: run.assessments,
+      deferred: run.deferred,
     }),
   );
   const lock = file(

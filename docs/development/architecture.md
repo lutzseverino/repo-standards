@@ -375,11 +375,30 @@ confirmation that identity requires. The `adopt-standards` skill asks the
 maintainer only when the report or a fix requires confirmation.
 
 Fixes report the confirmation-required changes inspection cannot see, because
-it runs no source code: a fix that would change or remove an existing setting
+it runs no fix: a fix that would change or remove an existing setting
 holding a different value returns `confirmation-required` without changing
 anything, unless its request allows overwriting. The run stops there,
 resumably, as the [script execution contract](#script-execution-contract)
 describes.
+
+A fix that changes the hosting platform's settings can declare itself
+remote setup, with a readiness probe declared like a check. When the report has
+no start blockers, inspection runs every remote setup probe read-only, after
+its own prerequisite, from the project root with its script read from the
+acquired or retained source, and reports each in `remoteSetup` as `ready`, or
+`not-ready` with the probe's reason; with blockers each is `not-checked`.
+Inspection observes the project around each probe as `check` does around a
+check and fails with `PROBE_MUTATION` when a probe changed it. The identity
+binds `remoteSetup`, so a probe whose answer changes makes the start stale. A
+start whose inspection has a not-ready remote setup fails with
+`REMOTE_SETUP_NOT_READY` before any write, including the run record, unless it
+passes `--defer-remote-setup`. A deferred remote setup runs neither its fix nor
+its fix's prerequisite probe; the run records it in `deferred`, not as an
+operation result, and completion keeps it in durable state's `deferred`, which
+`status` and the adoption record list. Every later run probes it again and
+applies it once ready, recording no deferral for it. The concept names no
+platform; source acquisition accepting only public `github.com` sources is the
+known blocker to platform independence, and it is unchanged.
 
 For an established adoption, inspection is an update. It reports every changed
 selection component, in the order CLI, standards, source, and profile, together
@@ -431,7 +450,8 @@ unless its committed records use a retired format, when the run removes it.
 [ADR 0010](../adr/0010-replace-tracked-content-block-only-untracked.md) records
 the decision.
 
-All prerequisite executables and versions are checked before project changes.
+All prerequisite executables and versions, except those of deferred remote
+setup, are checked before project changes.
 Version probes run installed executables directly using declared arguments;
 the first SemVer-like output version is compared with the declared range.
 Missing executables, failed probes, unreadable versions, or incompatible
@@ -449,7 +469,9 @@ environment values, shell interpretation, or custom working directories.
 One versioned JSON input, `repo-standards/operation/v2`, conveys the operation
 identity, project root, standards identity, profile, active resolved
 declarations, allowed targets, and whether a fix may overwrite an existing
-setting, `overwriteAllowed`, false for every check. The script returns one
+setting, `overwriteAllowed`, false for every check and readiness probe. A
+readiness probe runs in the `probes` phase as its fix's operation and reports
+`ready` or `not-ready`. The script returns one
 versioned JSON result, `repo-standards/result/v2`, on standard output and human
 logs on standard error. A check reports `passed`, `failed`, or `blocked`; a fix
 reports `unchanged`, `changed`, `blocked`, or, only when overwriting is not
@@ -503,9 +525,10 @@ and [assessment](../usage/assessment-protocol.md#observation-and-replay) protoco
 
 ## Adoption sequence and agent interface
 
-1. Verify inspection freshness, the required confirmation, and all prerequisites.
+1. Verify inspection freshness, the required confirmation, remote setup
+   readiness or its deferral, and all prerequisites.
 2. Install exact content, runtime state, pinned system skills, and skill links.
-3. Run declared fixes serially.
+3. Run declared fixes serially, except deferred remote setup.
 4. Return a contextual work request if required.
 5. Validate the submitted agent assessment and observed changes, binding it to
    the run and deriving its changed paths.

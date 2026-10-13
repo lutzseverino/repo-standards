@@ -19,6 +19,7 @@ import {
   retiredRun,
 } from "./formats.js";
 import type { Declaration } from "./model.js";
+import type { DeferredRemoteSetup } from "./remote-setup.js";
 import {
   git,
   targetObservation,
@@ -74,6 +75,9 @@ interface RecordedState extends ExecutionEvidence {
   links: Record<string, string>;
   checks: unknown[];
   assessments: unknown[];
+  // The remote setup the last complete run deferred. State an earlier CLI
+  // wrote has none.
+  deferred?: DeferredRemoteSetup[];
 }
 type RecordedFile = Extract<Observation, { type: "file" }>;
 
@@ -159,6 +163,7 @@ function decodeState(
     !validLinks(state.links, state.skills) ||
     !Array.isArray(state.checks) ||
     !Array.isArray(state.assessments) ||
+    (state.deferred !== undefined && !Array.isArray(state.deferred)) ||
     !validExecutionEvidence(state)
   ) {
     invalid();

@@ -357,3 +357,44 @@ export function matchesInventory(value: Observation, files: string[]) {
     JSON.stringify([...plannedInventory(files)].sort())
   );
 }
+
+export function hiddenIndexPaths(root: string) {
+  const flags = git(root, ["ls-files", "-v", "-z"]);
+  if (flags.status !== 0)
+    throw new ProductError("PROJECT_READ", "Cannot inspect Git index flags.");
+  return flags.stdout
+    .split("\0")
+    .filter((entry) => /^[a-zS] /.test(entry))
+    .map((entry) => entry.slice(2));
+}
+
+export function productStateObservation(root: string, blockers: Blocker[]) {
+  const directories = ["local", "cache", "runtime/node_modules"].map(
+    (path) => `.repo-standards/${path}`,
+  );
+  const excluded = new Set(directories.map((path) => join(root, path)));
+  // Generated descendants do not bind confirmation, but each root must still
+  // be a safe directory boundary. Missing ignored directories are allowed.
+  for (const path of directories) {
+    const value = targetBoundaryObservation(root, path, blockers, excluded);
+    if (value.type === "file")
+      blockers.push({
+        code: "TARGET_TYPE",
+        path,
+        message: "Generated product state requires a directory at this path.",
+      });
+  }
+  return targetObservation(root, ".repo-standards", blockers, excluded);
+}
+
+export function observeProductState(root: string) {
+  const blockers: Blocker[] = [];
+  const observed = productStateObservation(root, blockers);
+  if (blockers.length)
+    throw new ProductError(
+      "FINAL_INTEGRITY",
+      "Unsafe product state.",
+      blockers,
+    );
+  return observed;
+}

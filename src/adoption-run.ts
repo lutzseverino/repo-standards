@@ -75,6 +75,10 @@ import {
   type Installation,
 } from "./installation.js";
 import { dictionary, record } from "./records.js";
+import {
+  deferredRemoteSetup,
+  type DeferredRemoteSetup,
+} from "./remote-setup.js";
 
 // Persisted labels are shared by several producers. Keep their serialized
 // values stable so existing incomplete runs remain readable.
@@ -99,6 +103,8 @@ export interface Run {
   affected: Record<string, HashInventory>;
   prerequisites: PrerequisiteEvidence[];
   operations: OperationEvidence[];
+  // The remote setup this run defers, as its start chose.
+  deferred: DeferredRemoteSetup[];
   observations: RecordedInterval[];
   outcome: "complete" | "incomplete";
   phase: string;
@@ -644,6 +650,7 @@ function statusRecord(project: string, cliVersion: string) {
       links: state.links,
       checks: state.checks,
       assessments: state.assessments,
+      deferred: state.deferred ?? [],
       ...(changedScope ? { scopeChanges: changedScope } : {}),
       active,
       abandoned,
@@ -803,6 +810,7 @@ export class AdoptionRunSession {
       outcome: "incomplete",
       prerequisites: [],
       operations: [],
+      deferred: deferredRemoteSetup(report.remoteSetup),
       assessments: [],
       phase: "prerequisites",
       reason: "Run in progress or interrupted.",

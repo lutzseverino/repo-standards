@@ -1,9 +1,7 @@
 import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { hash } from "./acquisition.js";
 import {
   file,
-  json,
   lockPath,
   projectRoot,
   safeDirectory,
@@ -12,13 +10,8 @@ import {
 import { ProductError } from "./errors.js";
 import { execute, operations, preflight } from "./execution.js";
 import { formats } from "./formats.js";
-import { hiddenIndexPaths, observeProductState } from "./inspection.js";
-import {
-  git,
-  hashInventory,
-  requireSupportedGit,
-  type HashInventory,
-} from "./observation.js";
+import { requireSupportedGit } from "./observation.js";
+import { readOnlyGuard } from "./read-only.js";
 import {
   activeRunExemption,
   readRecordedAdoption,
@@ -26,14 +19,8 @@ import {
   requireRecordedCli,
   type RecordedSelection,
 } from "./recorded-state.js";
-import { record } from "./records.js";
 import { acquireWorker } from "./run-lock.js";
-import { concreteScope, type Scope } from "./scope.js";
-import {
-  changedBoundaries,
-  observedChanges,
-  observeWork,
-} from "./work-observation.js";
+import { concreteScope } from "./scope.js";
 
 // Runs the retained checks of the last complete adoption against the current
 // working tree, on demand and outside any run. The adoption already disclosed
@@ -65,84 +52,6 @@ export interface CheckReport {
   checks: CheckResult[];
 }
 
-// The staged entries and hidden paths of the index, as a run verifies them.
-function indexState(root: string) {
-  const index = git(root, ["ls-files", "--stage", "-z"]);
-  if (index.status !== 0)
-    throw new ProductError("PROJECT_READ", "Cannot read the Git index.", {
-      path: "@git/index",
-    });
-  return hash(index.stdout + json(hiddenIndexPaths(root)));
-}
-
-// What a check must leave unchanged. A failure fails the first observation
-// with its own diagnostic; the caller treats a later failure as a change.
-function observeUnchanged(root: string, scope: Scope) {
-  // The index first, so an unreadable index is named as such.
-  const index = indexState(root);
-  const head = git(root, ["rev-parse", "--verify", "--quiet", "HEAD"]);
-  return {
-    work: observeWork(root, scope),
-    product: hashInventory(observeProductState(root)),
-    head: head.status === 0 ? head.stdout.trim() : null,
-    index,
-  };
-}
-type Unchanged = ReturnType<typeof observeUnchanged>;
-
-// The paths a failed observation names, if any: its own, or its blockers'.
-function failedPaths(error: ProductError) {
-  const details = error.details;
-  const entries = Array.isArray(details)
-    ? details
-    : details && typeof details === "object"
-      ? [details]
-      : [];
-  return [
-    ...new Set(
-      entries
-        .map(record)
-        .flatMap(({ path }) => (typeof path === "string" ? [path] : [])),
-    ),
-  ].sort();
-}
-
-function treeChanges(
-  path: string,
-  before: HashInventory,
-  after: HashInventory,
-): string[] {
-  if (before.type === "directory" && after.type === "directory") {
-    return [
-      ...new Set([
-        ...Object.keys(before.entries),
-        ...Object.keys(after.entries),
-      ]),
-    ]
-      .sort()
-      .flatMap((name) =>
-        treeChanges(
-          `${path}/${name}`,
-          before.entries[name] ?? { type: "missing" },
-          after.entries[name] ?? { type: "missing" },
-        ),
-      );
-  }
-  return json(before) === json(after) ? [] : [path];
-}
-
-function changes(before: Unchanged, after: Unchanged) {
-  return [
-    ...new Set([
-      ...observedChanges(before.work, after.work),
-      ...changedBoundaries(before.work, after.work),
-      ...treeChanges(".repo-standards", before.product, after.product),
-      ...(before.head === after.head ? [] : ["@git/HEAD"]),
-      ...(before.index === after.index ? [] : ["@git/index"]),
-    ]),
-  ].sort();
-}
-
 export async function check(
   project: string,
   cliVersion: string,
@@ -172,47 +81,12 @@ export async function check(
     const { selection, resolved } = recorded;
     recorded.source();
     const scope = concreteScope(resolved);
-    const before = observeUnchanged(root, scope);
-    const requireUnchanged = (actor: string) => {
-      let after: Unchanged;
-      // The first observation succeeded, so a later one that cannot be made
-      // or finds the project unsafe is a change the probe or check made.
-      try {
-        after = observeUnchanged(root, scope);
-      } catch (error) {
-        // Any failure, a product diagnostic or a system error such as EACCES,
-        // keeps its code when it has one.
-        const product = error instanceof ProductError ? error : undefined;
-        const code =
-          product?.code ??
-          (typeof (error as NodeJS.ErrnoException | null)?.code === "string"
-            ? (error as NodeJS.ErrnoException).code!
-            : null);
-        const message = error instanceof Error ? error.message : String(error);
-        const paths = product ? failedPaths(product) : [];
-        throw new ProductError(
-          "CHECK_MUTATION",
-          `${actor} left the project unsafe or unreadable${paths.length ? `: ${paths.join(", ")}` : ""}. ${code ? `${code}: ` : ""}${message} Checks must leave project content unchanged; the changes are preserved for review.`,
-          {
-            paths,
-            cause: {
-              code,
-              message,
-              ...(product?.details === undefined
-                ? {}
-                : { details: product.details }),
-            },
-          },
-        );
-      }
-      const changed = changes(before, after);
-      if (changed.length)
-        throw new ProductError(
-          "CHECK_MUTATION",
-          `${actor} changed the project: ${changed.join(", ")}. Checks must leave project content unchanged; the changes are preserved for review.`,
-          { paths: changed },
-        );
-    };
+    const requireUnchanged = readOnlyGuard(
+      root,
+      scope,
+      "CHECK_MUTATION",
+      "Checks must leave project content unchanged",
+    );
     let group: number | undefined;
     const requireStopped = (actor: string, error: string | null) => {
       if (error === "AUTHOR_PROCESS_ACTIVE" || error === "PROCESS_STATE")

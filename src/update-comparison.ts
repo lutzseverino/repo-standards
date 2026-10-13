@@ -1,5 +1,10 @@
 import { ProductError } from "./errors.js";
-import type { Declaration, Operation, SourceDeclaration } from "./model.js";
+import type {
+  Declaration,
+  Operation,
+  Script,
+  SourceDeclaration,
+} from "./model.js";
 import {
   matchesInventory,
   type Blocker,
@@ -17,7 +22,8 @@ import { declarationTargets, type Targets } from "./targets.js";
 //
 // An update's class says whether anything an adopter reviews in context
 // changes. It is exact only when every declaration's guidance, discovery
-// guidance, operations (definition, script, arguments and resources), and
+// guidance, operations (definition, script, arguments, resources and any
+// remote setup probe), and
 // confirmed scope are hash-identical to the retained inputs and no declaration
 // retires; any difference makes it contextual. Exact content, skills and the
 // selection itself never affect the class.
@@ -96,20 +102,26 @@ function material(
   scope: Targets | undefined,
   files: (path: string) => FileHashes,
 ) {
+  const script = (declared: Script) => ({
+    executable: declared.run.executable,
+    script: declared.run.script,
+    scriptFiles: files(declared.run.script),
+    arguments: declared.run.arguments,
+    resources: declared.run.resources.map((path) => ({
+      path,
+      files: files(path),
+    })),
+    versionArguments: declared.prerequisite["version-arguments"],
+    version: declared.prerequisite.version,
+    timeout: declared["timeout-seconds"],
+  });
   const operations = (list: Operation[] = []) =>
     list.map((operation) => ({
       id: operation.id,
-      executable: operation.run.executable,
-      script: operation.run.script,
-      scriptFiles: files(operation.run.script),
-      arguments: operation.run.arguments,
-      resources: operation.run.resources.map((path) => ({
-        path,
-        files: files(path),
-      })),
-      versionArguments: operation.prerequisite["version-arguments"],
-      version: operation.prerequisite.version,
-      timeout: operation["timeout-seconds"],
+      ...script(operation),
+      remoteSetup: operation["remote-setup"]
+        ? { probe: script(operation["remote-setup"].probe) }
+        : null,
     }));
   const guided = declaration.guidance !== undefined;
   return {

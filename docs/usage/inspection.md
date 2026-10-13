@@ -171,6 +171,7 @@ described [below](#discover-contextual-file-scope):
 | `operations`         | Ordered fixes and checks, literal arguments, the script by path and hash, resource hash inventories, timeout, and declared prerequisite probe/range.                                                                                                                                                                                                                                                               |
 | `project`            | Hash inventories of the affected targets, of each system skill target in `systemSkills` by path, of each installed skill's link in `skillLinks` by path, and of the durable product state. The project root, Git HEAD, index, and status are not reported.                                                                                                                                                         |
 | `inputs`, `manifest` | Hash inventories of the selected source material, and the hash of the normalized single-profile metadata, that adoption retains.                                                                                                                                                                                                                                                                                   |
+| `remoteSetup`        | Each [remote setup](adoption.md#remote-setup) fix by `declaration` and fix `id`, in execution order, with its readiness `status`: `ready`, `not-ready` with the probe's `reason`, or `not-checked` when the report has start blockers. See [remote setup readiness](#remote-setup-readiness).                                                                                                                      |
 | `start`              | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available.                                                                                                          |
 | `identity`           | SHA-256 of deterministic report content, prefixed with `sha256:`.                                                                                                                                                                                                                                                                                                                                                  |
 
@@ -249,8 +250,10 @@ the replacement entry retains both complete root observations, including any
 directory inventory. The type conflict remains a start blocker.
 Operations list all fixes before all checks; within each phase, declarations
 appear by ID and operations retain their declared list order.
-Contextual content stays project-owned. All author prerequisites remain
-`not-checked`: inspection cannot establish them without running probes.
+Contextual content stays project-owned. All operation prerequisites remain
+`not-checked`: inspection runs no operation and probes no operation
+prerequisite. The only author scripts it runs are
+[remote setup readiness probes](#remote-setup-readiness).
 
 Identity has no timestamp, random acquisition path, or checkout location. It
 binds what the run reads: the exact selection, resolved declarations and
@@ -301,6 +304,43 @@ listing them in its `details`, and changes nothing; after the maintainer
 confirms, `start --identity <identity> --confirmed` proceeds. The report binds
 `confirmation` into its identity, so a start's confirmation always refers to
 the inspection it names.
+
+### Remote setup readiness
+
+When the report has no start blockers, inspection runs the readiness probe of
+every [remote setup](adoption.md#remote-setup) fix, in execution order, before
+anything is written. Each probe first has its own prerequisite probed, then runs
+as the [script protocol](script-protocol.md#remote-setup-probes) describes,
+from the project root, with its script read from the acquired or retained
+source. A probe that reports `ready` is ready. Anything else is `not-ready`
+with a `reason`: the probe's message, the prerequisite's code and an
+explanation, such as `EXECUTABLE_MISSING: gh is not installed or not on PATH.`,
+or the execution error's code.
+
+```json
+"remoteSetup": [
+  {
+    "declaration": "github",
+    "id": "labels",
+    "status": "not-ready",
+    "reason": "Sign in with gh auth login."
+  }
+]
+```
+
+Probes must leave the project unchanged. Inspection observes the project,
+product state, HEAD and the index around each probe, as `check` does around a
+check, and fails with `PROBE_MUTATION`, naming the probe and the changed paths,
+when a probe changed them; the changes are preserved for review. A probe that
+leaves its processes running fails the inspection with `AUTHOR_PROCESS_ACTIVE`.
+With start blockers, no probe runs and each remote setup is `not-checked`.
+
+The report binds `remoteSetup`, readiness and reasons, into its identity, so
+start runs the probes again and fails with `STALE_INSPECTION` when a probe's
+answer changed. Keep a probe's reason stable for the same state. A start whose
+inspection has a `not-ready` entry fails with `REMOTE_SETUP_NOT_READY` and
+writes nothing unless it passes `--defer-remote-setup`; see
+[remote setup](adoption.md#remote-setup).
 
 Known blockers include missing commits, dirty Git state, symlink or non-directory
 ancestors, special files, case-folded existing-path conflicts, file/directory type
@@ -391,6 +431,9 @@ of JSON. It has these sections, in order:
   the selection, listing each with its declaration as now owned by the project.
 - **Operations**: every fix and check with its literal argument vector,
   prerequisite probe and range, and timeout.
+- **Remote setup**: present only when the selection declares remote setup,
+  listing each fix by declaration with its readiness, ready, not ready, or not
+  checked, and the probe's reason.
 - **Scope changes**: discovered-scope additions and removals by declaration,
   the confirmed discovered scope of an initial adoption, or that discovery
   scope is not confirmed yet.

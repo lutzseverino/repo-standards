@@ -105,8 +105,8 @@ them again only when the inspection report requires confirmation.
    vector, project-root working directory, timeout, prerequisite version probe
    and range. Explain that probes and scripts execute trusted code with the
    user's host, environment and network access; resources are retention, not a
-   sandbox. Inspection runs none of them; prerequisites remain unverified until
-   start. Surface all blockers. Reconcile them before reinspection; preserve
+   sandbox. Inspection runs none of them but the read-only readiness probes of
+   remote setup fixes; operation prerequisites remain unverified until start. Surface all blockers. Reconcile them before reinspection; preserve
    existing work and let the maintainer handle prerequisite installation.
 4. Read the report's `confirmation`. When `confirmation.required` is false,
    start without asking: use the same executable and flags for
@@ -123,8 +123,18 @@ them again only when the inspection report requires confirmation.
    without `--confirmed` when the inspection requires it, and rejects it when
    the inspection does not; never pass it by habit.
 
+Read the report's `remoteSetup` before starting. Each `not-ready` entry is a
+remote setup fix, one that changes the hosting platform's settings, that cannot
+apply yet, with the probe's reason, such as a missing tool, sign-in, or role.
+Present each reason and ask the maintainer whether to resolve it and inspect
+again, or to defer remote setup and complete adoption locally. Only after they
+choose to defer, start with `--defer-remote-setup` added; without it, `start`
+fails with `REMOTE_SETUP_NOT_READY` and writes nothing. Every later run applies
+deferred remote setup once its probe is ready, and `status` lists what remains
+deferred.
+
 Changed inputs or a stale rejection require a new inspection; ask again only
-when the new report requires confirmation.
+when the new report requires confirmation or deferral.
 
 A fix can also require confirmation: one that would overwrite an existing
 setting with a different value stops the run instead, with a `reason` starting

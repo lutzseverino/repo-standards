@@ -1411,3 +1411,137 @@ profiles:
     ],
   );
 });
+
+test("a fix declares remote setup with a readiness probe declared like a check", (t) => {
+  const remoteSetup = (script: string) => `
+            remote-setup:
+              probe:
+                run:
+                  executable: node
+                  script: ${script}
+                  resources: [data]
+                  arguments: ["--probe"]
+                prerequisite:
+                  version-arguments: ["--version"]
+                  version: ">=24.0.0"
+                timeout-seconds: 10`;
+  const fix = (id: string, probe: string) => `
+          - id: ${id}
+            run:
+              executable: node
+              script: fix.js
+              resources: []
+              arguments: []
+            prerequisite:
+              version-arguments: ["--version"]
+              version: ">=24.0.0"
+            timeout-seconds: 30${probe}`;
+  const declaration = (fixes: string, checks = "") => `
+defaults:
+  declarations:
+    labels:
+      kind: file
+      target: AGENTS.md
+      exact: content.md
+      fixes:${fixes}${checks}
+profiles:
+  work:
+    description: Work
+    declarations: {}
+`;
+  const files = {
+    "content.md": "Content",
+    "fix.js": "",
+    "probe.js": "",
+    "data/value.txt": "Data",
+  };
+  const valid = sourceFixture(
+    header + declaration(fix("labels", remoteSetup("probe.js"))),
+    files,
+  );
+  t.after(() => valid.close());
+  const accepted = cli.run(["source", "validate", "--json"], valid.root);
+  assert.equal(accepted.status, 0, accepted.stdout);
+  const report = JSON.parse(accepted.stdout) as SourceValidation;
+  const labels = report.profiles.work!.declarations[0]!;
+  assert.deepEqual(labels.fixes[0]!["remote-setup"], {
+    probe: {
+      run: {
+        executable: "node",
+        script: "probe.js",
+        resources: ["data"],
+        arguments: ["--probe"],
+      },
+      prerequisite: { "version-arguments": ["--version"], version: ">=24.0.0" },
+      "timeout-seconds": 10,
+    },
+  });
+
+  const invalid = sourceFixture(
+    header +
+      declaration(
+        fix("missing", remoteSetup("absent.js")) +
+          fix(
+            "malformed",
+            `
+            remote-setup:
+              probe:
+                run: {executable: "node --eval", script: probe.js, resources: [], arguments: []}
+                prerequisite: {version-arguments: [], version: someday}
+                timeout-seconds: 0
+                id: probe`,
+          ) +
+          fix("empty", `\n            remote-setup: {}`) +
+          fix("flag", `\n            remote-setup: true`),
+        `
+      checks:
+          - id: remote
+            run: {executable: node, script: probe.js, resources: [], arguments: []}
+            prerequisite: {version-arguments: [], version: "*"}
+            timeout-seconds: 1
+            remote-setup:
+              probe: {}`,
+      ),
+    files,
+  );
+  t.after(() => invalid.close());
+  const rejected = cli.run(["source", "validate", "--json"], invalid.root);
+  assert.equal(rejected.status, 1, rejected.stdout);
+  const errors = (JSON.parse(rejected.stdout) as SourceValidation).errors.map(
+    ({ code, path }) => [code, path],
+  );
+  for (const expected of [
+    [
+      "MISSING_REFERENCE",
+      "/defaults/declarations/labels/fixes/0/remote-setup/probe/run/script",
+    ],
+    [
+      "INVALID_EXECUTABLE",
+      "/defaults/declarations/labels/fixes/1/remote-setup/probe/run/executable",
+    ],
+    [
+      "INVALID_VERSION",
+      "/defaults/declarations/labels/fixes/1/remote-setup/probe/prerequisite/version",
+    ],
+    [
+      "INVALID_TIMEOUT",
+      "/defaults/declarations/labels/fixes/1/remote-setup/probe/timeout-seconds",
+    ],
+    [
+      "UNKNOWN_FIELD",
+      "/defaults/declarations/labels/fixes/1/remote-setup/probe/id",
+    ],
+    [
+      "REQUIRED_FIELD",
+      "/defaults/declarations/labels/fixes/2/remote-setup/probe",
+    ],
+    ["INVALID_TYPE", "/defaults/declarations/labels/fixes/3/remote-setup"],
+    ["UNKNOWN_FIELD", "/defaults/declarations/labels/checks/0/remote-setup"],
+  ])
+    assert.ok(
+      errors.some(
+        ([code, path]) => code === expected[0] && path === expected[1],
+      ),
+      `Missing ${expected.join(" ")}: ${JSON.stringify(errors)}`,
+    );
+});

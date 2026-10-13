@@ -247,6 +247,48 @@ confirmation instead, unless its request allows overwriting. See the
 [public script protocol](script-protocol.md) for the
 versioned input/result protocol and execution rules. Source validation does not execute these operations.
 
+### Remote setup
+
+A fix that changes the hosting platform's settings, rather than project files,
+can declare itself remote setup with an optional `remote-setup` mapping. It
+holds exactly one field, `probe`: a readiness probe declared like a check,
+with exactly `run`, `prerequisite`, and `timeout-seconds`, validated as above,
+and no `id`; the probe belongs to its fix.
+
+```yaml
+fixes:
+  - id: labels
+    run:
+      executable: gh
+      script: fixes/labels.sh
+      resources: [fixes/labels.json]
+      arguments: []
+    prerequisite:
+      version-arguments: ["--version"]
+      version: ">=2.40.0"
+    timeout-seconds: 60
+    remote-setup:
+      probe:
+        run:
+          executable: gh
+          script: probes/labels.sh
+          resources: []
+          arguments: []
+        prerequisite:
+          version-arguments: ["--version"]
+          version: ">=2.40.0"
+        timeout-seconds: 30
+```
+
+Only fixes take `remote-setup`; on a check it is an unknown field. Inspection
+runs the probe read-only before anything is written, and the adopter can defer
+a remote setup that is not ready and complete adoption without it; see
+[remote setup](adoption.md#remote-setup) and the probe's
+[protocol](script-protocol.md#remote-setup-probes). The probe's script and
+resources are selected material, retained like an operation's. Remote setup
+names no platform: the probe states what readiness means, such as a reachable
+remote, a signed-in tool, or a sufficient role.
+
 ## Results and diagnostics
 
 Exit status is `0` for a valid source, `1` for source validation errors, and `2`
@@ -258,7 +300,8 @@ With `--json`, stdout is one JSON object, and expected validation failures do
 not write stderr. A successful report contains `valid: true`, `errors: []`,
 normalized root `source` metadata, and `profiles`, keyed by profile name. Each
 profile has its description and the complete source-resolved declarations array.
-Declarations include their `id` and explicit `checks` and `fixes` arrays.
+Declarations include their `id` and explicit `checks` and `fixes` arrays; a
+remote setup fix keeps its `remote-setup` probe.
 The source retains its authored format identity. A successful report also includes
 `scope.verified` describing the source-owned facts checked, `scope.limitations`
 explaining project-specific limits, and `scope.discoveryRequired`, a mapping of

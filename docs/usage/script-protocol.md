@@ -2,14 +2,17 @@
 
 Every active declaration may own checks and repeat-safe fixes as described in
 [Author format](author-format.md#checks-and-fixes). Inspection displays their
-scripts, literal arguments, resources and prerequisites without executing them.
+scripts, literal arguments, resources and prerequisites without executing them;
+it runs only the read-only readiness probes of
+[remote setup](#remote-setup-probes) fixes.
 The maintainer's request to adopt authorizes their execution. Scripts are trusted code
 with the invoking user's host, environment and network access. Declared
 resources control retention, not sandbox access.
 
 ## Prerequisites and invocation
 
-Before changing project content, start invokes every operation's executable
+Before changing project content, start invokes every operation's executable,
+except a deferred [remote setup](#remote-setup-probes) fix's,
 with its literal `prerequisite.version-arguments`, from the project root.
 It compares the first complete SemVer-like version observed in either output
 stream with the declared npm SemVer range. Version fragments from different
@@ -57,7 +60,8 @@ The CLI supplies one UTF-8 JSON object and closes stdin:
 
 `declarations` contains every active, fully resolved declaration, including its
 ID and complete checks/fixes lists; the empty array above is abbreviated.
-`operation.phase` is `fixes` or `checks`. `allowedTargets` describes this
+`operation.phase` is `fixes` or `checks`, or `probes` for a
+[readiness probe](#remote-setup-probes). `allowedTargets` describes this
 operation's owning declaration: file targets are explicit paths, skills are
 whole `.agents/skills/<name>` directories, and repository guidance retains its
 explicit paths and directory trees. All targets are project-relative. Authors
@@ -127,10 +131,37 @@ observed interval changed any path, the result is a protocol error: the run
 stops with `PROTOCOL_ERROR`, naming the changed paths, and `resume --confirmed`
 does not accept it. Recover with `resume --retry`, or abandon the run.
 
+## Remote setup probes
+
+A [remote setup](author-format.md#remote-setup) fix's readiness probe runs
+during inspection, before anything is written, so it reads its script from the
+acquired source, or from the retained inputs when inspection uses retained
+standards. Its prerequisite is probed first, as an operation's is. The probe
+is invoked like a check, from the project root, with the same input: its
+`operation` is `{ "declaration": <id>, "phase": "probes", "id": <fix id> }`,
+`allowedTargets` are its fix's declaration's, and `overwriteAllowed` is always
+`false`.
+
+A probe status is `ready` or `not-ready`; `message` explains it, and for
+`not-ready` it is the reason the adopter reads, such as
+`Sign in with gh auth login.` Keep the reason stable for the same state: it is
+part of the inspection identity. A probe must not change anything, in the
+project or on the platform. Inspection fails with `PROBE_MUTATION` when a probe
+changed the project, as `check` fails with `CHECK_MUTATION`. A missing or
+incompatible executable, an execution error, or a protocol error makes the
+remote setup `not-ready`, with the code as its reason, and does not stop
+inspection; only a change to the project, or processes the probe leaves
+running, does. Probes run in every inspection, including later runs that apply a
+deferred remote setup once its probe reports `ready`.
+
+A deferred remote setup's fix does not run, and its prerequisite is not
+probed, in that run. A remote setup that is ready runs as any other fix, with
+the fix protocol above.
+
 ## Ordering, integrity and incomplete work
 
 Declarations execute by ID; operations execute in their listed order. All fixes
-run before contextual work. Checks run after a satisfied, current [agent assessment](assessment-protocol.md);
+but deferred remote setup run before contextual work. Checks run after a satisfied, current [agent assessment](assessment-protocol.md);
 profiles without contextual declarations run checks immediately after fixes.
 Excluded declarations and their operations never run. Fixes stop at the first
 block, execution error, or `confirmation-required` result. Ordinary failed checks allow remaining checks to
