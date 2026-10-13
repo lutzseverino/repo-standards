@@ -17,7 +17,7 @@ const profile =
 
 for (const name of [
   "adopt-standards",
-  "standards-updates",
+  "repository-standards",
   "author-standards",
 ]) {
   test(`authors cannot supply the product-owned ${name} skill`, (t) => {
@@ -131,7 +131,7 @@ test("all file and repository guidance forms reject system-skill targets, their 
   // Each system skill's own paths, the ancestors they share once, and the
   // case-folded and Unicode-normalized variants for one name.
   const targets = [
-    ...["adopt-standards", "standards-updates", "author-standards"].flatMap(
+    ...["adopt-standards", "repository-standards", "author-standards"].flatMap(
       (name) => [
         `.agents/skills/${name}`,
         `.agents/skills/${name}/SKILL.md`,

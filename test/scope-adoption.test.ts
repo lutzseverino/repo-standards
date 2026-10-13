@@ -393,7 +393,7 @@ test("an unfamiliar layout completes a useful migration around exact configurati
   );
   // Each system skill's link is installation's alone: agent work beside it
   // neither changes nor claims it.
-  const links = ["adopt-standards", "standards-updates"].map(
+  const links = ["adopt-standards", "repository-standards"].map(
     (name) =>
       [`.claude/skills/${name}`, `../../.agents/skills/${name}`] as const,
   );

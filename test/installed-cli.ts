@@ -93,7 +93,7 @@ export function installCli() {
       version: packed.version,
       // The project paths of the packaged system skills' files, sorted, which
       // adoption installs as whole skills.
-      systemSkillFiles: ["adopt-standards", "standards-updates"].flatMap(
+      systemSkillFiles: ["adopt-standards", "repository-standards"].flatMap(
         (name) =>
           installedTree(
             join(
@@ -104,7 +104,7 @@ export function installCli() {
           ).map(([path]) => `.agents/skills/${name}/${path}`),
       ),
       // The skill links adoption installs for the system skills, sorted.
-      systemSkillLinks: ["adopt-standards", "standards-updates"].map(
+      systemSkillLinks: ["adopt-standards", "repository-standards"].map(
         (name) => `.claude/skills/${name}`,
       ),
       run(args: string[], cwd: string, env: NodeJS.ProcessEnv = process.env) {

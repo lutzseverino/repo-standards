@@ -7,6 +7,13 @@ declaration's `rules` field; see
 Its adoption guidance holds the run's one-time steps and is kept only with the
 retained inputs.
 
+Adoption installs the model-invocable `repository-standards` system skill for
+agents. Before changing a file it runs the pinned CLI's `rules <path>` and
+follows the printed rules, including repository-wide rules. The skill also
+reports [available updates](available-updates.md); it states no requirements
+of its own. Standards sources need no pointer to the rules in their agent
+guidance.
+
 ## What adoption installs
 
 Adoption installs the rules of every active declaration at
@@ -50,7 +57,11 @@ The command reads only the last complete adoption, which it verifies against
 the lock as `status` does, and makes no network call. It needs the
 [pinned CLI](adoption.md#fresh-checkout-and-source-disappearance). Without a complete adoption
 it fails with `NO_SELECTION`, and during an active or incomplete run with
-`ACTIVE_RUN`.
+`ACTIVE_RUN`. During contextual work in such a run, the skill reads the
+installed index and its covering rules directly, including repository-wide
+rules; the contextual work request also names the declaration's rules. These
+are the candidate selection's rules, installed before contextual work, rather
+than the previous complete adoption's rules.
 
 The text output starts with `Rules covering <path>:`, then gives each
 declaration a heading naming its ID, its installed rules file, and whether it

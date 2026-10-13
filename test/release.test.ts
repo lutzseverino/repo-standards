@@ -104,11 +104,11 @@ test("the package ships each product skill whole, with its invocation settings a
   assert.deepEqual(readdirSync(join(installed, "skills")).sort(), [
     "adopt-standards",
     "author-standards",
-    "standards-updates",
+    "repository-standards",
   ]);
   for (const [name, disabled, implicit] of [
     ["adopt-standards", true, false],
-    ["standards-updates", false, true],
+    ["repository-standards", false, true],
     ["author-standards", false, true],
   ] as const) {
     const skill = join(installed, "skills", name);

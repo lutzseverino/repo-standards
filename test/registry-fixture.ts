@@ -1,7 +1,7 @@
 import type { PackageManifest } from "./json-reports.ts";
 import { createHash } from "node:crypto";
 import { execFileSync, spawn, spawnSync } from "node:child_process";
-import { cpSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { directoryFixture, sourceFixture } from "./installed-cli.ts";
 
@@ -9,7 +9,11 @@ import { directoryFixture, sourceFixture } from "./installed-cli.ts";
 // dependencies, and writes a portable lock using an HTTP tarball and integrity.
 // An open registry keeps its test process alive, so register close() in the
 // test's teardown before any further setup that could fail.
-export async function registryFixture(cliRoot: string, versions?: string[]) {
+export async function registryFixture(
+  cliRoot: string,
+  versions?: string[],
+  legacyNoticeVersion?: string,
+) {
   const support = sourceFixture("");
   const installedPackage = join(
     cliRoot,
@@ -33,6 +37,26 @@ export async function registryFixture(cliRoot: string, versions?: string[]) {
         join(directory, "skills/adopt-standards/SKILL.md"),
         `${readFileSync(join(directory, "skills/adopt-standards/SKILL.md"), "utf8")}\nFixture CLI ${version}.\n`,
       );
+      // An earlier CLI using the same record formats but the retired notice
+      // skill, to exercise a real installed CLI transition through adoption.
+      if (version === legacyNoticeVersion) {
+        const targets = join(directory, "dist/targets.js");
+        writeFileSync(
+          targets,
+          readFileSync(targets, "utf8").replaceAll(
+            '"repository-standards"',
+            '"standards-updates"',
+          ),
+        );
+        renameSync(
+          join(directory, "skills/repository-standards"),
+          join(directory, "skills/standards-updates"),
+        );
+        writeFileSync(
+          join(directory, "skills/standards-updates/SKILL.md"),
+          "---\nname: standards-updates\ndescription: Report available updates.\ndisable-model-invocation: false\n---\n\nReport available updates on the maintainer's instruction.\n",
+        );
+      }
       execFileSync(
         "npm",
         ["pack", "--ignore-scripts", "--pack-destination", support.root],

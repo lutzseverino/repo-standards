@@ -833,7 +833,7 @@ test("a proposal is rejected for its format, its declarations, its evidence, and
     [".agents/skills/author-standards/SKILL.md", "RESERVED_TARGET"],
     // A system skill's link path and its ancestors are reserved too.
     [".claude/skills/adopt-standards", "RESERVED_TARGET"],
-    [".claude/skills/standards-updates/README.md", "RESERVED_TARGET"],
+    [".claude/skills/repository-standards/README.md", "RESERVED_TARGET"],
     [".claude", "RESERVED_TARGET"],
   ] as const) {
     rejected(

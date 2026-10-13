@@ -74,6 +74,87 @@ profiles:
     declarations: {}
 `;
 
+for (const edited of [false, true]) {
+  test(`a CLI update replaces standards-updates and ${edited ? "keeps edited" : "removes unedited"} old content with its link`, async (t) => {
+    const legacyVersion = "5.99.0";
+    const registry = await registryFixture(
+      cli.root,
+      [legacyVersion, cli.version],
+      legacyVersion,
+    );
+    t.after(() => registry.close());
+    const legacy = installCandidate(legacyVersion, {
+      ...process.env,
+      ...registry.env,
+    });
+    t.after(() => legacy.close());
+    const f = await adoptionFixture(t, cli, manifest({}), { registry });
+    const inspected = legacy.run(inspectionArgs, f.root, f.env);
+    assert.equal(inspected.status, 0, inspected.stdout + inspected.stderr);
+    const inspection = JSON.parse(inspected.stdout) as Inspection;
+    const adopted = legacy.run(startArgs(inspection.identity), f.root, f.env);
+    assert.equal(adopted.status, 0, adopted.stdout + adopted.stderr);
+    assert.equal(
+      existsSync(join(f.root, ".agents/skills/standards-updates/SKILL.md")),
+      true,
+    );
+    assert.equal(
+      existsSync(join(f.root, ".agents/skills/repository-standards")),
+      false,
+    );
+    if (edited) {
+      writeFileSync(
+        join(f.root, ".agents/skills/standards-updates/local.md"),
+        "Local notice customization.\n",
+      );
+    }
+    commit(f.root);
+
+    const update = f.inspect();
+    assert.deepEqual(update.start.blockers, []);
+    assert.deepEqual(
+      (edited ? update.kept! : update.removed!).map(({ target }) => target),
+      [".agents/skills/standards-updates", ".claude/skills/standards-updates"],
+    );
+    const updated = f.json<Run>(startArgs(update.identity));
+    assert.equal(updated.report.outcome, "complete", updated.result.stdout);
+    assert.equal(
+      existsSync(join(f.root, ".agents/skills/standards-updates")),
+      edited,
+    );
+    assert.equal(
+      lstatSync(join(f.root, ".claude/skills/standards-updates"), {
+        throwIfNoEntry: false,
+      })?.isSymbolicLink() ?? false,
+      edited,
+    );
+    if (edited)
+      assert.equal(
+        readFileSync(
+          join(f.root, ".agents/skills/standards-updates/local.md"),
+          "utf8",
+        ),
+        "Local notice customization.\n",
+      );
+    assert.equal(
+      readlinkSync(join(f.root, ".claude/skills/repository-standards")),
+      "../../.agents/skills/repository-standards",
+    );
+    const state = JSON.parse(
+      readFileSync(join(f.root, ".repo-standards/state.json"), "utf8"),
+    ) as State;
+    assert.ok(state.skills[".agents/skills/repository-standards"]);
+    assert.equal(state.skills[".agents/skills/standards-updates"], undefined);
+    assert.equal(state.links[".claude/skills/standards-updates"], undefined);
+    assert.ok(
+      !Object.keys(state.baselines).some((path) =>
+        path.includes("standards-updates"),
+      ),
+    );
+    assert.equal(f.json<Status>(["status", "--json"]).result.status, 0);
+  });
+}
+
 test("a confirmed standards update advances only the standards pin, replaces whole owned skills, and removes retired and excluded content", async (t) => {
   const v1 = source(
     "v1",
@@ -241,7 +322,10 @@ test("an update whose source adds a skill links it as exact content", async (t) 
       },
       {
         action: "match",
-        link: { target: ".claude/skills/standards-updates", action: "match" },
+        link: {
+          target: ".claude/skills/repository-standards",
+          action: "match",
+        },
       },
     ],
   );
@@ -394,7 +478,7 @@ test("retiring a skill removes its link, and an update leaves the project its ow
   ) as State;
   assert.deepEqual(Object.keys(state.links).sort(), [
     ".claude/skills/adopt-standards",
-    ".claude/skills/standards-updates",
+    ".claude/skills/repository-standards",
   ]);
   assert.ok(
     state.changeSet.some(
@@ -2881,8 +2965,8 @@ test("retry resumes an interrupted removal of retired targets and an interrupted
         [
           "adopt-standards",
           ...(initialFiles ? ["legacy"] : []),
+          "repository-standards",
           "review",
-          "standards-updates",
         ],
       );
       if (!initialFiles) {

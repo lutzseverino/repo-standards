@@ -64,6 +64,27 @@ const skillSource = yaml.replace(
   "kind: skill\n      name: review\n      source: skill",
 );
 
+test("adoption installs repository-standards for rule lookup and update notices in both agents", async (t) => {
+  const f = await adoptionFixture(t, cli, yaml, {
+    files: { "content.md": "Expected" },
+  });
+  f.adopt();
+  const skill = join(f.root, ".agents/skills/repository-standards");
+  assert.equal(existsSync(skill), true);
+  assert.equal(
+    readlinkSync(join(f.root, ".claude/skills/repository-standards")),
+    "../../.agents/skills/repository-standards",
+  );
+  assert.equal(
+    existsSync(join(f.root, ".agents/skills/standards-updates")),
+    false,
+  );
+  assert.equal(
+    existsSync(join(f.root, ".claude/skills/standards-updates")),
+    false,
+  );
+});
+
 test("start binds to an inspection identity, and the retired --confirm form is a usage error, before any project mutation", async (t) => {
   const f = await adoptionFixture(t, cli, yaml, {
     files: { "content.md": "Expected" },
@@ -274,7 +295,7 @@ test("confirmed exact adoption installs whole skills, claims matching files and 
     "Skill resource",
   );
   // Both system skills install as the package ships them.
-  for (const name of ["adopt-standards", "standards-updates"]) {
+  for (const name of ["adopt-standards", "repository-standards"]) {
     assert.deepEqual(
       installedTree(join(project.root, ".agents/skills", name)),
       installedTree(
@@ -311,7 +332,7 @@ test("confirmed exact adoption installs whole skills, claims matching files and 
     "SKILL.md",
     "resources/check.txt",
   ]);
-  assert.deepEqual(state.skills[".agents/skills/standards-updates"], [
+  assert.deepEqual(state.skills[".agents/skills/repository-standards"], [
     "SKILL.md",
     "agents/openai.yaml",
   ]);
@@ -353,10 +374,10 @@ test("every installed skill, system and author, gets a relative link that Git re
       link: { target: ".claude/skills/adopt-standards", action: "create" },
     },
     {
-      name: "standards-updates",
-      target: ".agents/skills/standards-updates",
+      name: "repository-standards",
+      target: ".agents/skills/repository-standards",
       action: "create",
-      link: { target: ".claude/skills/standards-updates", action: "create" },
+      link: { target: ".claude/skills/repository-standards", action: "create" },
     },
   ]);
   assert.deepEqual(
@@ -374,14 +395,14 @@ test("every installed skill, system and author, gets a relative link that Git re
   assert.equal(result.status, 0, result.stdout + result.stderr);
   const links = {
     ".claude/skills/adopt-standards": "../../.agents/skills/adopt-standards",
+    ".claude/skills/repository-standards":
+      "../../.agents/skills/repository-standards",
     ".claude/skills/review": "../../.agents/skills/review",
-    ".claude/skills/standards-updates":
-      "../../.agents/skills/standards-updates",
   };
   assert.deepEqual(readdirSync(join(project.root, ".claude/skills")).sort(), [
     "adopt-standards",
+    "repository-standards",
     "review",
-    "standards-updates",
   ]);
   for (const [path, text] of Object.entries(links)) {
     assert.ok(lstatSync(join(project.root, path)).isSymbolicLink(), path);
@@ -451,7 +472,7 @@ profiles:`,
     },
   );
   const { project } = f;
-  for (const name of ["adopt-standards", "standards-updates"])
+  for (const name of ["adopt-standards", "repository-standards"])
     cpSync(
       join(cli.root, "node_modules/@lutzseverino/repo-standards/skills", name),
       join(project.root, ".agents/skills", name),
@@ -459,7 +480,7 @@ profiles:`,
     );
   chmodSync(join(project.root, ".agents/skills/review/scripts/run.sh"), 0o755);
   // The earlier adoption also left a skill link for each installed skill.
-  const links = ["adopt-standards", "review", "standards-updates"].map(
+  const links = ["adopt-standards", "repository-standards", "review"].map(
     (name) => `.claude/skills/${name}`,
   );
   mkdirSync(join(project.root, ".claude/skills"), { recursive: true });
@@ -488,10 +509,10 @@ profiles:`,
       link: { target: ".claude/skills/adopt-standards", action: "match" },
     },
     {
-      name: "standards-updates",
-      target: ".agents/skills/standards-updates",
+      name: "repository-standards",
+      target: ".agents/skills/repository-standards",
       action: "match",
-      link: { target: ".claude/skills/standards-updates", action: "match" },
+      link: { target: ".claude/skills/repository-standards", action: "match" },
     },
   ]);
   assert.deepEqual(
@@ -551,7 +572,7 @@ profiles:`,
   ]);
   for (const system of [
     ".agents/skills/adopt-standards",
-    ".agents/skills/standards-updates",
+    ".agents/skills/repository-standards",
   ]) {
     assert.deepEqual(
       state.skills[system],
@@ -900,12 +921,15 @@ test("skill links follow target ownership and leave the project its own skills",
   };
   // A linked ancestor makes each link unsafe, and, as for any target behind
   // one, leaves nothing tracked at its path.
-  const behindLink = ["adopt-standards", "standards-updates", "review"].flatMap(
-    (name) =>
-      ["UNSAFE_TARGET", "UNTRACKED_REPLACEMENT"].map((code) => ({
-        code,
-        path: `.claude/skills/${name}`,
-      })),
+  const behindLink = [
+    "adopt-standards",
+    "repository-standards",
+    "review",
+  ].flatMap((name) =>
+    ["UNSAFE_TARGET", "UNTRACKED_REPLACEMENT"].map((code) => ({
+      code,
+      path: `.claude/skills/${name}`,
+    })),
   );
   const blocked: {
     name: string;
@@ -1017,7 +1041,7 @@ test("skill links follow target ownership and leave the project its own skills",
         inspection.systemSkills.map(({ link }) => link),
         [
           { target: ".claude/skills/adopt-standards", action: "replace" },
-          { target: ".claude/skills/standards-updates", action: "create" },
+          { target: ".claude/skills/repository-standards", action: "create" },
         ],
       );
       assert.deepEqual(inspection.exact[0]!.link, {
@@ -1033,14 +1057,14 @@ test("skill links follow target ownership and leave the project its own skills",
       );
       assert.equal(result.status, 0, result.stdout + result.stderr);
       assert.equal((JSON.parse(result.stdout) as Run).outcome, "complete");
-      for (const name of ["adopt-standards", "review", "standards-updates"])
+      for (const name of ["adopt-standards", "repository-standards", "review"])
         assert.equal(
           readlinkSync(join(project.root, `.claude/skills/${name}`)),
           `../../.agents/skills/${name}`,
         );
       assert.deepEqual(
         readdirSync(join(project.root, ".claude/skills")).sort(),
-        ["adopt-standards", "notes.md", "review", "standards-updates"],
+        ["adopt-standards", "notes.md", "repository-standards", "review"],
       );
       assert.equal(
         readFileSync(join(project.root, ".claude/skills/notes.md"), "utf8"),
@@ -1058,7 +1082,7 @@ test("skill links follow target ownership and leave the project its own skills",
       ) as State;
       assert.deepEqual(Object.keys(state.links), [
         ".claude/skills/adopt-standards",
-        ".claude/skills/standards-updates",
+        ".claude/skills/repository-standards",
         link,
       ]);
       assert.deepEqual(
@@ -1067,9 +1091,9 @@ test("skill links follow target ownership and leave the project its own skills",
           .filter((path: string) => path.startsWith(".claude/")),
         [
           ".claude/skills/adopt-standards",
+          ".claude/skills/repository-standards",
           ".claude/skills/review",
           ".claude/skills/review/SKILL.md",
-          ".claude/skills/standards-updates",
         ],
       );
       assert.equal(

@@ -59,9 +59,15 @@ function systemSkill(name: string): SystemSkill {
 }
 
 // The system skills adoption installs, each from this CLI's packaged copy:
-// the adoption skill and the update notice, in name order.
+// the adoption skill and the rules/update-notice skill, in name order.
 export const installedSystemSkills: readonly SystemSkill[] = [
   "adopt-standards",
+  "repository-standards",
+].map(systemSkill);
+
+// Earlier product skills whose recorded targets an update may retire. They
+// are no longer installed or reserved against standards declarations.
+export const retiredSystemSkills: readonly SystemSkill[] = [
   "standards-updates",
 ].map(systemSkill);
 

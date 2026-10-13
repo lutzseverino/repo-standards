@@ -26,7 +26,7 @@ standards pin, whether a newer stable version is published and how many stable
 releases separate it from the pin. It is read-only apart from its ignored
 cache, needs no clean tree, and reports `unknown` with a reason when a lookup
 fails. It states availability only. Whether to update is the maintainer's
-decision; the `standards-updates` skill reports available updates without
+decision; the `repository-standards` skill reports available updates without
 starting one.
 If any command fails with `RETIRED_FORMAT` or `RETIRED_RUN`, follow
 [Recovery](references/recovery.md#adopt-fresh-from-a-retired-format).

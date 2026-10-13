@@ -113,7 +113,7 @@ installation's matching `docs/usage/author-format.md` and
 Node.js 24, npm, and registry access are required. Installing the skill does not
 install its CLI, change an adopting project's runtime pin, or install authoring
 into adopting projects. Adoption continues to manage its matching local
-`adopt-standards` and `standards-updates` skills independently.
+`adopt-standards` and `repository-standards` skills independently.
 
 Direct installation is independent of the
 [skills.sh directory](https://skills.sh/lutzseverino/repo-standards/author-standards).
@@ -128,6 +128,12 @@ from public npm. The
 provides isolated installation without changing your real global skills.
 
 ## Restore and update
+
+The model-invocable `repository-standards` skill looks up
+[installed rules](rules.md) before changing a project file and reports
+[available updates](available-updates.md). It replaces `standards-updates`;
+an update removes the old skill and its Claude link when unedited. Edited old
+copies stay as project-owned content under the normal retirement policy.
 
 After reviewing all adoption output, commit through your project's usual
 workflow, including retained inputs, runtime manifest/lock, state, exact content,

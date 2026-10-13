@@ -591,7 +591,7 @@ These targets leave the selection with edits. They stay in place, and the projec
     ),
     summary,
   );
-  assert.ok(!summary.includes("| `standards-updates` |"), summary);
+  assert.ok(!summary.includes("| `repository-standards` |"), summary);
 });
 
 test("inspect --summary gives each skill and link its action, and keeps an edited skill whole with its link", async (t) => {
@@ -634,7 +634,7 @@ test("inspect --summary gives each skill and link its action, and keeps an edite
   for (const row of [
     "| `review` | `.agents/skills/review/SKILL.md` | created |\n| `review` | `.claude/skills/review` | replaced |",
     "| `adopt-standards` | `.claude/skills/adopt-standards` | replaced |",
-    "| `standards-updates` | `.claude/skills/standards-updates` | created |",
+    "| `repository-standards` | `.claude/skills/repository-standards` | created |",
   ]) {
     assert.ok(initial.includes(row), initial);
   }

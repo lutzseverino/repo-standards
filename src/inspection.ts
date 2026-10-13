@@ -47,6 +47,7 @@ import {
   installationTarget,
   installedSystemSkills,
   linkTextAt,
+  retiredSystemSkills,
 } from "./targets.js";
 import { unifiedDiff } from "./unified-diff.js";
 import { compareUpdate } from "./update-comparison.js";
@@ -553,7 +554,9 @@ export async function inspectForStart(
       for (const directory of directories)
         recordedTargets.push({
           path: directory,
-          kind: installedSystemSkills.some(({ target }) => target === directory)
+          kind: [...installedSystemSkills, ...retiredSystemSkills].some(
+            ({ target }) => target === directory,
+          )
             ? "system-skill"
             : "skill",
           baseline: {
@@ -638,13 +641,16 @@ export async function inspectForStart(
       ...(link ? { link: linkAction(link) } : {}),
     }));
     // Each removed and each kept target, including a skill link, is
-    // attributed to the declaration that installed it.
+    // attributed to the declaration or retired system skill that installed it.
     const installer = (target: string) =>
       previous!.resolved.declarations.find(
         (declaration) =>
           installationTarget(declaration) === target ||
           declarationLink(declaration) === target,
-      )!.id;
+      )?.id ??
+      retiredSystemSkills.find(
+        (skill) => skill.target === target || skill.link === target,
+      )!.name;
     const removed = previous
       ? baselineOnly
           .filter((path) => ownership.get(path)!.action === "replace")

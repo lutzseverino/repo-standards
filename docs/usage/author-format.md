@@ -114,7 +114,7 @@ every path of the adopting project. Exact skills target
 `.agents/skills/<name>` as a whole, and adoption also installs the skill's
 [skill link](adoption.md#skill-links) at `.claude/skills/<name>`, which is a
 target of the skill too: no other target may overlap it. `adopt-standards`,
-`standards-updates`, and `author-standards` are product-owned system skill names reserved against author
+`repository-standards`, and `author-standards` are product-owned system skill names reserved against author
 skills. Author skill content remains ordinary Agent Skill material; source
 validation verifies its directory, `SKILL.md` references, and invocation agreement, not prose quality or
 skill behavior.
@@ -234,7 +234,7 @@ Within each resolved profile, no explicit target can equal, contain, or be conta
 by another target, including two entries of one repository declaration.
 Comparison also catches case-insensitive and Unicode-normalized collisions.
 Product state (`.repo-standards`), every system skill target
-(`.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, and
+(`.agents/skills/adopt-standards`, `.agents/skills/repository-standards`, and
 `.agents/skills/author-standards`) and its skill link
 (`.claude/skills/<name>`), Git metadata (`.git`), and their ancestors and descendants are reserved targets.
 These restrictions apply to exact files, contextual files, and repository
@@ -244,7 +244,7 @@ other than the one selected for inspection.
 
 Reservation applies within the standards format; it does not manage unrelated
 global skill installations. Adoption installs the `adopt-standards` and
-`standards-updates` system skills matched to the project's exact CLI pin. It
+`repository-standards` system skills matched to the project's exact CLI pin. It
 does not automatically install `author-standards` or change runtime ownership,
 integrity baselines, or update behavior.
 
