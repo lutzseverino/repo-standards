@@ -370,8 +370,8 @@ export async function adoptInTerminal(
           reviewedAfterFixes.clear();
         }
         // Each discovered scope is reviewed as the run's fixes left the
-        // project, before any contextual edit. A confirmed scope that misses
-        // files stops the run, so nothing more is asked once one does.
+        // project, before any contextual edit. An incomplete confirmed scope
+        // stops the run, so nothing more is asked once one is reported.
         let incomplete: string | undefined;
         for (const declaration of declarations) {
           if (!declaration.discovery || incomplete) continue;
@@ -422,7 +422,7 @@ export async function adoptInTerminal(
           reviewedNow.add(declaration.id);
           if (current.status === "blocked") incomplete = declaration.id;
         }
-        // Once a scope misses files, every declaration it stopped is judged
+        // Once a scope is incomplete, every declaration it stopped is judged
         // blocked, naming it.
         if (incomplete) {
           const stop = incomplete;
@@ -471,11 +471,11 @@ export async function adoptInTerminal(
 }
 
 // A scope review not asked because another declaration's confirmed scope
-// misses files.
+// is incomplete.
 function unreviewed(incomplete: string): ScopeReview {
   return {
     status: "blocked",
-    explanation: `Not reviewed: the confirmed scope of ${incomplete} misses files, so the run stops.`,
+    explanation: `Not reviewed: the confirmed scope of ${incomplete} is incomplete, so the run stops.`,
     evidence: [
       `The maintainer reported the scope of ${incomplete} incomplete.`,
     ],
@@ -484,7 +484,7 @@ function unreviewed(incomplete: string): ScopeReview {
 }
 
 // The judgment of a declaration the walk did not reach because a confirmed
-// scope misses files.
+// scope is incomplete.
 function notWalked(
   declaration: Contextual,
   incomplete: string,
@@ -493,7 +493,7 @@ function notWalked(
   const review = unreviewed(incomplete);
   return {
     status: "blocked",
-    explanation: `Not walked: the confirmed scope of ${incomplete} misses files, so the run stops before this declaration's contextual work.`,
+    explanation: `Not walked: the confirmed scope of ${incomplete} is incomplete, so the run stops before this declaration's contextual work.`,
     evidence: [
       `The maintainer reported the scope of ${incomplete} incomplete in adopt's terminal walk-through.`,
     ],
@@ -821,7 +821,7 @@ function targetList({ allowedTargets }: Contextual) {
 // The person's review of a discovered declaration's confirmed scope at one
 // point of the run.
 async function reviewScope(
-  { write, yes, paths }: Prompts,
+  { write, yes, paths, required }: Prompts,
   declaration: Contextual,
   question: string,
   when: string,
@@ -835,16 +835,16 @@ async function reviewScope(
       additionalPaths: [],
     };
   write(
-    "List the files it misses, one per line; an empty line ends the list.\n",
+    "List any files it misses, one per line; an empty line ends the list, which may be empty.\n",
   );
-  let missing: string[] = [];
-  while (!missing.length) missing = await paths("File: ");
+  const missing = await paths("File: ");
+  const reason = await required("Why is the confirmed scope incomplete? ");
   write(
     "A run's confirmed scope never changes, so the run stops incomplete: abandon it, then adopt again with a new scope.\n",
   );
   return {
     status: "blocked",
-    explanation: `The maintainer reports files the confirmed scope misses ${when}: ${missing.join(", ")}.`,
+    explanation: `The maintainer reports that the confirmed scope is incomplete ${when}: ${reason}${missing.length ? ` Missing files: ${missing.join(", ")}.` : ""}`,
     evidence,
     additionalPaths: missing,
   };
