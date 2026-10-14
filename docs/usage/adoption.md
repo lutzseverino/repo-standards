@@ -58,7 +58,8 @@ differs from the active run's selection fails with `ACTIVE_RUN`.
 
 In a terminal, `adopt` asks the answers file's questions one at a time, each
 with its context and its proposed answer as the default: the version, newest
-stable release first; the profile, listing each description; each discovery
+stable release first; the profile, listing each description, by name or by its
+number in the list; each discovery
 declaration's scope; remote setup deferral when a probe is not ready; and the
 confirmation of confirmation-required changes, showing each discarded edit's
 diff. A discovery script's open questions are asked as prompts, and the person

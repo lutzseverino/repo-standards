@@ -71,12 +71,13 @@ test("adopt in a terminal asks its questions, walks contextual work until its ch
   session.type("");
   assert.match(
     await session.expect("Profile: "),
-    /Which profile should the project adopt\?[\s\S]*work: work\n[\s\S]*personal: personal\n/,
+    /Which profile should the project adopt\?[\s\S]*1\. work: work\n[\s\S]*2\. personal: personal\n/,
   );
   session.type("missing");
   await session.expect("Choose one of: work, personal.");
   await session.expect("Profile: ");
-  session.type("work");
+  // A profile is chosen by its name or its number in the list.
+  session.type("1");
 
   // The inspection, then the remote setup that is not ready, and the edit the
   // run discards.

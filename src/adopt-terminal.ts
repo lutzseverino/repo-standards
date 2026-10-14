@@ -67,6 +67,16 @@ const pinnedCli = ".repo-standards/runtime/node_modules/.bin/repo-standards";
 const editing =
   "Edit the files now. Press Enter when you are done, or type blocked: ";
 const fixing = "Fix it, then press Enter to check again, or type blocked: ";
+// The inspection blockers a listed scope file can cause, such as a directory
+// listed as a file; other blockers on it, such as its Git index state, are
+// resolved outside adopt.
+const scopeBlockers = [
+  "TARGET_TYPE",
+  "UNSAFE_TARGET",
+  "CASE_CONFLICT",
+  "TARGET_OVERLAP",
+  "RESERVED_TARGET",
+];
 // The codes with which inspection rejects a scope entry or its paths.
 const scopeRejections = [
   "INVALID_SCOPE",
@@ -134,13 +144,21 @@ function prompts({ write, ask: line }: Terminal) {
     },
     // One of the names, or the proposed one when the person types nothing.
     // A name may begin or end with a space, so the line as typed is a name
-    // before its trimmed form is.
+    // before its trimmed form is; a name no line can hold, such as one with a
+    // line break, is chosen by its number in the list.
     named: async (label: string, proposed: string | null, names: string[]) => {
       for (;;) {
         const typed = await line(
           `${label}${proposed ? ` [${proposed}]` : ""}: `,
         );
-        const name = names.includes(typed) ? typed : typed.trim() || proposed;
+        const number = /^\s*([1-9][0-9]*)\s*$/.exec(typed)?.[1];
+        const name = names.includes(typed)
+          ? typed
+          : names.includes(typed.trim())
+            ? typed.trim()
+            : number && Number(number) <= names.length
+              ? names[Number(number) - 1]!
+              : typed.trim() || proposed;
         if (name && names.includes(name)) return name;
         if (name) write(`Choose one of: ${names.join(", ")}.\n`);
       }
@@ -208,7 +226,9 @@ export async function adoptInTerminal(
       ? []
       : report.blockers.filter(
           (blocker) =>
-            blocker.path !== undefined && included.includes(blocker.path),
+            scopeBlockers.includes(blocker.code) &&
+            blocker.path !== undefined &&
+            included.includes(blocker.path),
         );
     if (rejected.length) {
       write(
@@ -512,8 +532,8 @@ async function askSelection(
         name: string;
         description: string;
       }[];
-      for (const { name, description } of profiles)
-        write(`  ${name}: ${description}\n`);
+      for (const [index, { name, description }] of profiles.entries())
+        write(`  ${index + 1}. ${name}: ${description}\n`);
       return named(
         "Profile",
         question.answer as string | null,
