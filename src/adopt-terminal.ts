@@ -123,12 +123,12 @@ function prompts({ write, ask: line }: Terminal) {
         fallback,
       )) === "yes",
     // Paths, one per line as typed, since a path may begin or end with a
-    // space; a blank line ends them.
+    // space or be only spaces; an empty line ends them.
     paths: async (prompt: string) => {
       const paths: string[] = [];
       for (;;) {
         const typed = await line(prompt);
-        if (!typed.trim()) return [...new Set(paths)];
+        if (!typed) return [...new Set(paths)];
         paths.push(typed);
       }
     },

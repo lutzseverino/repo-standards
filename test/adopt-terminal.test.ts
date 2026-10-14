@@ -724,11 +724,13 @@ test("a walk's checks may not change the run's records", async (t) => {
   await session.expect("Start the run? [Y/n]: ");
   session.type("");
   await session.expect("Press Enter when you are done, or type blocked: ");
-  // A retained check that rewrites the run's local report reports passed.
+  // A retained check that rewrites the run's local report, and changes the
+  // project too, fails for the records first.
   writeFileSync(
     join(f.root, ".repo-standards/inputs/source/checks/readme.mjs"),
     `import { appendFileSync } from 'node:fs';
 appendFileSync('.repo-standards/local/run.json', ' ');
+appendFileSync('README.md', 'changed');
 console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: 'passed', message: 'Fine.' }));
 `,
   );

@@ -1342,12 +1342,22 @@ export async function withWaitingRun<T>(
     const records = () =>
       json([observe(lock), safe(root, ".repo-standards/local/run.json")]);
     const before = records();
-    const result = await callback(installation);
-    if (records() !== before)
-      throw new ProductError(
-        "FINAL_INTEGRITY",
-        "The active adoption run's records changed while its contextual checks ran. Preserve the project and read status.",
-      );
+    // A change to the records outranks any failure of the callback.
+    const requireRecords = () => {
+      if (records() !== before)
+        throw new ProductError(
+          "FINAL_INTEGRITY",
+          "The active adoption run's records changed while its contextual checks ran. Preserve the project and read status.",
+        );
+    };
+    let result: T;
+    try {
+      result = await callback(installation);
+    } catch (error) {
+      requireRecords();
+      throw error;
+    }
+    requireRecords();
     return result;
   } finally {
     release();
