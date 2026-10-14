@@ -159,6 +159,12 @@ export async function adoptInTerminal(
   // The session's reviews of each discovered scope as the run's fixes left
   // the project, kept for a renewed assessment.
   const reviewedAfterFixes = new Map<string, ScopeReview>();
+  // A retry runs the fixes again and renews the work request, so the
+  // session's scope reviews and judgments are asked again.
+  const renew = () => {
+    reviewedAfterFixes.clear();
+    judged.clear();
+  };
   let presented: string | undefined;
   let submitted = false;
 
@@ -265,9 +271,7 @@ export async function adoptInTerminal(
         // A run's confirmed scope never changes, so walking it again cannot
         // help.
         if (reason.startsWith("SCOPE_INCOMPLETE:")) {
-          const outcome = await decide(prompt, session, reason, () =>
-            reviewedAfterFixes.clear(),
-          );
+          const outcome = await decide(prompt, session, reason, renew);
           if (outcome) return outcome;
           continue;
         }
@@ -412,9 +416,7 @@ export async function adoptInTerminal(
       case "complete":
         return completed(prompt);
       case "incomplete": {
-        const outcome = await decide(prompt, session, reason, () =>
-          reviewedAfterFixes.clear(),
-        );
+        const outcome = await decide(prompt, session, reason, renew);
         if (outcome) return outcome;
         continue;
       }
@@ -566,7 +568,6 @@ async function decide(
       );
   if (choice === "retry") {
     write("Retrying the run's interrupted work.\n");
-    // A retry runs the fixes again, so the scope is reviewed again too.
     afterRetry();
     const run = await resume(root, cliVersion, undefined, true);
     return run.outcome === "complete" ? completed(prompt) : undefined;
