@@ -1306,6 +1306,64 @@ export function withStartRun(
   return AdoptionRunSession.scope(projectRoot(project), "start", callback);
 }
 
+// Reads and verifies the installation of the active run while it waits for
+// contextual work and its assessment, holding the worker lock around the
+// callback, which must leave the run unchanged.
+export async function withWaitingRun<T>(
+  project: string,
+  cliVersion: string,
+  callback: (installation: Installation) => Promise<T>,
+) {
+  const root = projectRoot(project);
+  const lock = lockPath(root);
+  requireRecordedCli(root, lock, cliVersion);
+  requireSupportedGit();
+  rejectUnsupportedRecords(root, lock, activeRunExemption(lock));
+  const release = acquireWorker(lock);
+  try {
+    if (!existsSync(lock))
+      throw new ProductError(
+        "NO_ACTIVE_RUN",
+        "No adoption run is active. Read status.",
+      );
+    const run = readRun(root, lock, true);
+    requirePinnedCli(root, run.selection.cli.version, cliVersion);
+    if (!canResumeAssessment(run))
+      throw new ProductError(
+        "RESUME_UNAVAILABLE",
+        "The active run does not wait for contextual work. Read status.",
+      );
+    // The callback may run retained scripts, so the installation, which
+    // holds them, is verified first, as a resume verifies it.
+    const installation = readInstallation(root, run);
+    verifyInstallation(root, installation);
+    // The run's records must leave the callback unchanged, as they must an
+    // author process during a run.
+    const records = () =>
+      json([observe(lock), safe(root, ".repo-standards/local/run.json")]);
+    const before = records();
+    // A change to the records outranks any failure of the callback.
+    const requireRecords = () => {
+      if (records() !== before)
+        throw new ProductError(
+          "FINAL_INTEGRITY",
+          "The active adoption run's records changed while its contextual checks ran. Preserve the project and read status.",
+        );
+    };
+    let result: T;
+    try {
+      result = await callback(installation);
+    } catch (error) {
+      requireRecords();
+      throw error;
+    }
+    requireRecords();
+    return result;
+  } finally {
+    release();
+  }
+}
+
 export function withResumedRun(
   project: string,
   cliVersion: string,

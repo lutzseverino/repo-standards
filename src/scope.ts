@@ -17,7 +17,7 @@ import {
 // declaration, its candidates with their evidence paths, its coverage, and
 // unresolved questions. Everything mechanical is derived from the observation
 // the proposal is inspected against.
-interface Candidate {
+export interface Candidate {
   path: string;
   decision: "include" | "exclude";
   reason: string;

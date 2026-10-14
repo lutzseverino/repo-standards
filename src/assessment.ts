@@ -7,7 +7,7 @@ export interface ScopeConfirmation {
   inspection: string;
   afterFixes: string;
 }
-interface ScopeReview {
+export interface ScopeReview {
   status: "valid" | "blocked";
   explanation: string;
   evidence: string[];
@@ -43,7 +43,7 @@ export interface WorkRequest {
     allowedTargets: { paths: string[]; directories: string[] };
   }[];
 }
-type Judgment = Omit<Assessment["declarations"][number], "changedPaths">;
+export type Judgment = Omit<Assessment["declarations"][number], "changedPaths">;
 function object(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }

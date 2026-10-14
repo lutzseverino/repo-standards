@@ -477,10 +477,13 @@ async function advance(
         "SCOPE_INCOMPLETE",
         "Agent scope review reports incomplete coverage after fixes or at assessment. Additional files are not authorized; preserve work and reconcile the reported scope problem.",
       );
-    if (accepted.declarations.some((entry) => entry.status === "blocked"))
+    const blocked = accepted.declarations
+      .filter((entry) => entry.status === "blocked")
+      .map((entry) => entry.id);
+    if (blocked.length)
       throw new ProductError(
         "ASSESSMENT_BLOCKED",
-        "Agent reports blocked contextual work. Resolve the explanation and submit renewed evidence before checks.",
+        `The assessment reports blocked contextual work: ${blocked.join(", ")}. Resolve the explanation and submit renewed evidence before checks.`,
       );
     session.record({ type: "assessment-accepted" });
     session.journal.requireAuthorized();

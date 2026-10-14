@@ -130,7 +130,13 @@ export interface AdoptReport {
   nextSteps: string[];
 }
 
-type Answers = Map<string, unknown>;
+// Answers by question ID, from an answers file or a terminal.
+export type Answers = Map<string, unknown>;
+
+// How adopt is answered: an answers-file template that only proposes, a
+// filled answers file, or a person at a terminal, whom adopt asks one stage
+// of questions at a time, proposing defaults.
+type Mode = "template" | "answers" | "terminal";
 
 const questionId =
   /^(?:version|profile|remote-setup|confirmation|inspection|(?:scope|assessment):[^/\s]+|fix:[^/\s]+\/[^/\s]+)$/;
@@ -329,18 +335,21 @@ function productText(root: string, path: string): Text {
 
 const unanswered = (question: Question) => question.answer === null;
 
+// Adopts with the answers file the options name, or, given `asked`, with the
+// answers a person gave at a terminal.
 export async function adopt(
   options: AdoptOptions,
   cliVersion: string,
+  asked?: Answers,
 ): Promise<AdoptReport> {
   const root = projectRoot(options.project);
   const file =
-    options.answers === undefined
+    options.answers === undefined || asked
       ? undefined
       : readAnswers(options.answers, root);
-  const given: Answers = new Map(
-    file?.questions.map((question) => [question.id, question.answer]),
-  );
+  const given: Answers =
+    asked ??
+    new Map(file?.questions.map((question) => [question.id, question.answer]));
   if (
     options.source !== undefined &&
     file &&
@@ -364,10 +373,11 @@ export async function adopt(
         "USAGE",
         `${flag} ${value} conflicts with the answers file's ${id} ${String(given.get(id))}.`,
       );
-  const context = {
+  const context: Context = {
     root,
     cliVersion,
     given,
+    mode: asked ? "terminal" : file ? "answers" : "template",
     answersPath:
       options.answers === undefined ? undefined : resolve(options.answers),
   };
@@ -384,6 +394,7 @@ interface Context {
   root: string;
   cliVersion: string;
   given: Answers;
+  mode: Mode;
   answersPath: string | undefined;
 }
 
@@ -394,7 +405,7 @@ async function prepare(
   options: AdoptOptions,
   file: AnswersFile | undefined,
 ): Promise<AdoptReport> {
-  const { root, cliVersion, given } = context;
+  const { root, cliVersion, given, mode } = context;
   const recorded = recordedSelection(root);
   const source = options.source ?? file?.source ?? recorded?.source;
   if (source === undefined)
@@ -402,8 +413,13 @@ async function prepare(
       "USAGE",
       "Name the standards source to adopt: repo-standards adopt https://github.com/OWNER/STANDARDS.",
     );
-  // Without an answers file, the template proposes each default as the answer.
-  const proposing = file === undefined;
+  // The template proposes each default as the answer, and a terminal offers
+  // it as the default.
+  const proposing = mode !== "answers";
+  // A terminal asks each question it has no answer to, starting with the
+  // version and then the profile, on which the later questions depend.
+  const asking = (id: string, flag: string | undefined) =>
+    mode === "terminal" && flag === undefined && !given.has(id);
   const answered = (id: string) => {
     const value = given.get(id);
     return typeof value === "string" ? value : undefined;
@@ -457,11 +473,14 @@ async function prepare(
     outcome,
     ...rest,
   });
-  if (version === undefined)
+  if (version === undefined || asking("version", options.standardsVersion))
     return withSteps(
       context,
-      report("answers-required", [versionQuestion]),
-      proposing,
+      {
+        ...report("answers-required", [versionQuestion]),
+        missing: ["version"],
+      },
+      mode === "template",
     );
 
   let retained: RetainedSource | undefined;
@@ -539,11 +558,14 @@ async function prepare(
   } finally {
     acquired.close();
   }
-  if (profile === undefined)
+  if (profile === undefined || asking("profile", options.profile))
     return withSteps(
       context,
-      report("answers-required", [versionQuestion, profileQuestion]),
-      proposing,
+      {
+        ...report("answers-required", [versionQuestion, profileQuestion]),
+        missing: ["profile"],
+      },
+      mode === "template",
     );
 
   // Once the answers file supplies every scope entry, inspection reads them as
@@ -620,7 +642,7 @@ async function prepare(
       // A drafted entry an answers file has not carried back is not yet an
       // answer: inspection read no proposal for it. The template proposes it,
       // as it proposes the other defaults.
-      if ((!proposing && scopeAnswer(id) === undefined) || open.length)
+      if ((mode !== "template" && scopeAnswer(id) === undefined) || open.length)
         missing.push(`scope:${id}`);
     }
     const notReady = deferredRemoteSetup(inspection.remoteSetup);
@@ -689,7 +711,7 @@ async function prepare(
       context: `The identity of the inspection above, ${identity}, which this answers file was written against. Present that inspection to the maintainer before running adopt with it. adopt starts a run only when this answer names the current inspection; when the inspection changes, it prints the new one to present.`,
       answer: identity,
     });
-    if (!proposing && given.get("inspection") !== identity)
+    if (mode !== "template" && given.get("inspection") !== identity)
       missing.push("inspection");
     const blockers = inspection.start.blockers.filter(
       (blocker) =>
@@ -705,8 +727,8 @@ async function prepare(
       ...(discovery.length ? { discovery } : {}),
     });
     inspected.missing = [...new Set([...inspected.missing, ...missing])];
-    if (proposing || inspected.missing.length)
-      return withSteps(context, inspected, proposing);
+    if (mode === "template" || inspected.missing.length)
+      return withSteps(context, inspected, mode === "template");
     if (
       blockers.length ||
       (notReady.length && given.get("remote-setup") === "resolve")
