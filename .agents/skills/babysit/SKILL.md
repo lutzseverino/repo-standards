@@ -6,6 +6,15 @@ description: Babysit an opened pull request through checks and review until it m
 Take the pull request to its merge. `CONTRIBUTING.md` holds the merge
 conditions and the wording rules.
 
+The bundled scripts require Node.js 24. The wait reads the optional
+`.github/pull-request-reviewer.json`, whose schema the
+`github-repository-configuration` rules state; without the file, it reports
+only checks.
+
+Before the first wait, apply the
+[Merging request rule](../../../CONTRIBUTING.md#merging) to the pull request's
+head, using step 4 to post any required request.
+
 1. Wait with `node <this skill's directory>/wait.mjs <number>`, run in the
    repository root in the foreground until it exits; it waits for the checks
    and the configured reviewer's review of the head, silently. Use a command
@@ -28,9 +37,9 @@ conditions and the wording rules.
 3. Fix the real findings `CONTRIBUTING.md` does not let you decline, and answer
    every review thread as it requires, following its
    [comment rules](../../../CONTRIBUTING.md#comments).
-4. Apply the [Merging request rule](../../../CONTRIBUTING.md#merging) to the
-   new head. When it requires a request, comment using the configured reviewer's
-   `request.comment` and following the
+4. Apply the [Merging request rule](../../../CONTRIBUTING.md#merging) to each
+   new head after a fix push. When it requires a request, comment using the
+   configured reviewer's `request.comment` and following the
    [comment rules](../../../CONTRIBUTING.md#comments). After any push or
    re-request, return to step 1.
 5. Once the merge conditions hold on the latest head, run
@@ -44,64 +53,3 @@ conditions and the wording rules.
    otherwise fix the invocation or other `gh` error and
    run it again.
 6. Stop.
-
-## Reviewer configuration
-
-The optional repository-owned `.github/pull-request-reviewer.json` is data
-only. Repo Canon installs no file or preset; its check validates the file when
-present. The factory does not read it. Without the file, the wait reports only
-checks.
-
-Every field below is required except `finished` and `bounds.reviewRequests`.
-Unknown fields are invalid.
-
-- `version`: `1`.
-- `account`: the reviewer's nonempty GitHub login, including `[bot]` when part
-  of the login.
-- `request.comment`: a nonempty, trimmed string. A request comment's whole
-  trimmed body must equal it; a mention within other text never counts.
-- `request.onOpen`: boolean; whether opening the pull request counts as a
-  request. A push never counts.
-- `finished`: optional object with a nonempty `commentMarker` and a `line`
-  regular expression, interpreted with the Unicode flag and named `sha` and
-  `at` groups. A matching line in a comment by `account` containing the marker
-  completes a review when `sha` prefixes the head and `at` parses as a time at
-  or after the latest request. A GitHub review by `account` on the exact head
-  also completes a review, even without `finished`, when it approves or
-  requests changes, has a nonempty body, or has an inline comment that starts
-  a new thread. A pending review never completes one. A `COMMENTED` review
-  with an empty body and only replies to existing threads never completes one.
-- `unavailable`: array of nonempty reply texts; an empty array is valid. A
-  comment by `account` at or after the request containing one of these texts
-  marks the reviewer unavailable. Any comment by `account` at or after the
-  request counts as a response, except a request comment, which is never a
-  response.
-- `bounds.responseMinutes` and `bounds.reviewMinutes`: positive finite numbers
-  measured from the latest request.
-- `bounds.reviewRequests`: optional positive integer; the total request bound
-  defined in [Merging](../../../CONTRIBUTING.md#merging).
-
-For example, a repository that uses Codex can configure:
-
-```json
-{
-  "version": 1,
-  "account": "chatgpt-codex-connector[bot]",
-  "request": {
-    "comment": "@codex review",
-    "onOpen": true
-  },
-  "finished": {
-    "commentMarker": "<!-- codex-pull-request-review-summary -->",
-    "line": "\\bCompleted\\b.*datetime=\"(?<at>[^\"]+)\".*`(?<sha>[0-9a-f]{7,40})`"
-  },
-  "unavailable": [
-    "create an environment for this repo",
-    "create a Codex account"
-  ],
-  "bounds": {
-    "responseMinutes": 5,
-    "reviewMinutes": 30
-  }
-}
-```

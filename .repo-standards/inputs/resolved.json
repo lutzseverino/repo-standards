@@ -46,7 +46,6 @@
               "operations/lib/local-markdown-links.mjs",
               "operations/lib/documentation-model.mjs",
               "operations/lib/entry-document.mjs",
-              "discovery/draft-documentation-scope.mjs",
               "vendor/marked",
               "vendor/parse5"
             ],
@@ -64,6 +63,7 @@
       "fixes": [],
       "kind": "repository",
       "guidance": "guidance/documentation.md",
+      "rules": "rules/documentation.md",
       "targets": {
         "paths": [
           "GLOSSARY.md",
@@ -88,7 +88,6 @@
           "docs/adr/0018-add-a-private-astro-site-workspace.md",
           "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
           "docs/adr/README.md",
-          "docs/agents/project.md",
           "docs/development/README.md",
           "docs/development/architecture.md",
           "docs/development/release.md",
@@ -130,7 +129,8 @@
       "fixes": [],
       "kind": "file",
       "target": ".factory/Dockerfile",
-      "guidance": "guidance/factory-sandbox-image.md"
+      "guidance": "guidance/factory-sandbox-image.md",
+      "rules": "rules/factory-sandbox-image.md"
     },
     {
       "id": "factory-sandbox-image-workflow",
@@ -157,7 +157,7 @@
             "executable": "node",
             "script": "operations/check-pull-request-reviewer.mjs",
             "resources": [
-              ".agents/skills/babysit/reviewer.mjs"
+              "operations/lib/pull-request-reviewer.mjs"
             ],
             "arguments": []
           },
@@ -194,7 +194,26 @@
             ],
             "version": ">=24.0.0 <25.0.0"
           },
-          "timeout-seconds": 30
+          "timeout-seconds": 30,
+          "remote-setup": {
+            "probe": {
+              "run": {
+                "executable": "node",
+                "script": "operations/probe-github-labels.mjs",
+                "resources": [
+                  "operations/lib/github-operation.mjs"
+                ],
+                "arguments": []
+              },
+              "prerequisite": {
+                "version-arguments": [
+                  "--version"
+                ],
+                "version": ">=24.0.0 <25.0.0"
+              },
+              "timeout-seconds": 30
+            }
+          }
         },
         {
           "id": "pull-request-integration",
@@ -212,11 +231,31 @@
             ],
             "version": ">=24.0.0 <25.0.0"
           },
-          "timeout-seconds": 30
+          "timeout-seconds": 30,
+          "remote-setup": {
+            "probe": {
+              "run": {
+                "executable": "node",
+                "script": "operations/probe-github-pr-integration.mjs",
+                "resources": [
+                  "operations/lib/github-operation.mjs"
+                ],
+                "arguments": []
+              },
+              "prerequisite": {
+                "version-arguments": [
+                  "--version"
+                ],
+                "version": ">=24.0.0 <25.0.0"
+              },
+              "timeout-seconds": 30
+            }
+          }
         }
       ],
       "kind": "repository",
       "guidance": "guidance/github-repository-configuration.md",
+      "rules": "rules/github-repository-configuration.md",
       "targets": {
         "paths": [],
         "directories": []
@@ -343,6 +382,15 @@
       "exact": ".github/workflows/pr-metadata.yml"
     },
     {
+      "id": "project-agent-guidance",
+      "checks": [],
+      "fixes": [],
+      "kind": "file",
+      "target": "docs/agents/project.md",
+      "guidance": "guidance/project-agent-guidance.md",
+      "rules": "rules/project-agent-guidance.md"
+    },
+    {
       "id": "project-readmes",
       "checks": [
         {
@@ -370,6 +418,7 @@
       "fixes": [],
       "kind": "repository",
       "guidance": "guidance/project-readmes.md",
+      "rules": "rules/project-readmes.md",
       "targets": {
         "paths": [
           "site/README.md"
@@ -399,7 +448,8 @@
       "fixes": [],
       "kind": "file",
       "target": "LICENSE",
-      "guidance": "guidance/repository-license.md"
+      "guidance": "guidance/repository-license.md",
+      "rules": "rules/repository-license.md"
     },
     {
       "id": "repository-readme",
@@ -430,7 +480,8 @@
       "fixes": [],
       "kind": "file",
       "target": "README.md",
-      "guidance": "guidance/repository-readme.md"
+      "guidance": "guidance/repository-readme.md",
+      "rules": "rules/repository-readme.md"
     },
     {
       "id": "skill-babysit",

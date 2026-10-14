@@ -16,7 +16,7 @@ jobs:
   validate:
     name: Validate issue contract
     if: github.event.issue.pull_request == null
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.REPO_CANON_RUNS_ON && fromJSON(vars.REPO_CANON_RUNS_ON) || 'ubuntu-latest' }}
     permissions:
       contents: read
       issues: write

@@ -1,6 +1,5 @@
-import { execFileSync } from "node:child_process";
-import { lstatSync, readFileSync, realpathSync } from "node:fs";
-import { isAbsolute, posix, resolve, sep } from "node:path";
+import { lstatSync, readFileSync, readdirSync } from "node:fs";
+import { isAbsolute, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   declarationTargets,
@@ -15,15 +14,15 @@ import {
 
 // Drafts the documentation scope of a repository from its tree, as a
 // Repository Standards scope proposal for the `documentation` declaration.
-// The agent runs it from the standards source at the selected commit, or from
-// the inputs an adopting repository retains when that source is unavailable;
-// the CLI never runs it. It decides only what the documentation rules decide,
-// through the documentation model the check uses, and lists every other case
-// as an unresolved question. It reads the project and writes the proposal to
-// standard output.
+// It is that declaration's discovery script: Repository Standards runs it
+// during inspection in a copy of the project, which holds the files Git keeps
+// without Git metadata or `.repo-standards`, and passes a discovery request on
+// standard input. It decides only what the documentation rules decide, through
+// the documentation model the check uses, and lists every other case as an
+// unresolved question. It reads the copy and writes the proposal to standard
+// output.
 
-const usage =
-  "Usage: node discovery/draft-documentation-scope.mjs [--project <path>] [--profile <name>] [--root <path>]...";
+const requestFormat = "repo-standards/discovery/v1";
 const proposalFormat = "repo-standards/scope/v2";
 const declarationId = "documentation";
 // The declaration fields that decide its targets.
@@ -33,30 +32,27 @@ const contextMap = "GLOSSARY-MAP.md";
 const directoryIndex = "README.md";
 
 // Paths Repository Standards reserves, which no declaration's scope can hold:
-// its product state and its system skills.
+// its product state and its system skills, with their skill links.
 const reservedPaths = [
   ".repo-standards",
-  ".agents/skills/adopt-standards",
-  ".agents/skills/standards-updates",
-  ".agents/skills/author-standards",
+  ...["repository-standards", "author-standards"].flatMap((name) => [
+    `.agents/skills/${name}`,
+    `.claude/skills/${name}`,
+  ]),
 ];
 
+// The system skills of Repository Standards 6.x, which an update from it still
+// holds while this draft runs and removes in the same run.
+const retiredPaths = ["adopt-standards", "standards-updates"].flatMap(
+  (name) => [`.agents/skills/${name}`, `.claude/skills/${name}`],
+);
+
 // The other declarations' targets come from the source manifest beside this
-// script, the one the selected commit ships. Without it, a drafter that an
-// adopting repository retains under `.repo-standards/inputs/source` reads the
-// manifest Repository Standards retains beside those inputs, resolved to the
-// selected profile.
-const sourceRoot = fileURLToPath(new URL("..", import.meta.url));
-const manifestPaths = [
-  fileURLToPath(new URL("../standards.yaml", import.meta.url)),
-];
-if (
-  sourceRoot.endsWith(`${sep}.repo-standards${sep}inputs${sep}source${sep}`)
-) {
-  manifestPaths.push(
-    fileURLToPath(new URL("../../standards.yaml", import.meta.url)),
-  );
-}
+// script, which the declaration retains with it, so it lies beside the script
+// in the acquired source and in the retained one alike.
+const manifestPath = fileURLToPath(
+  new URL("../standards.yaml", import.meta.url),
+);
 
 function fail(message) {
   throw new Error(message);
@@ -70,8 +66,11 @@ function isWithin(path, directory) {
   return path === directory || isInside(path, directory);
 }
 
+// Whether the draft leaves a path out as reserved or retired.
 function isReserved(path) {
-  return reservedPaths.some((reserved) => isWithin(path, reserved));
+  return [...reservedPaths, ...retiredPaths].some((reserved) =>
+    isWithin(path, reserved),
+  );
 }
 
 function baseName(path) {
@@ -98,25 +97,36 @@ function series(items, conjunction = "and") {
   return `${items.slice(0, -1).join(", ")}, ${conjunction} ${items.at(-1)}`;
 }
 
-function parseArguments(argv) {
-  let project = process.cwd();
-  let profile;
-  const roots = [];
-  for (let position = 0; position < argv.length; position += 1) {
-    const option = argv[position];
-    if (!["--project", "--profile", "--root"].includes(option))
-      fail(`Unknown argument ${option}. ${usage}`);
-    const value = argv[position + 1];
-    if (value === undefined || value === "")
-      fail(
-        `${option} needs ${option === "--profile" ? "a name" : "a path"}. ${usage}`,
-      );
-    position += 1;
-    if (option === "--project") project = value;
-    else if (option === "--profile") profile = value;
-    else roots.push(value);
+// The discovery request on standard input: its project root, the copy to
+// draft, and the selected profile.
+function readRequest(argv) {
+  if (argv.length > 0)
+    fail(
+      `Unknown argument ${argv[0]}. The drafter takes no arguments; it reads a ${requestFormat} request on standard input.`,
+    );
+  let request;
+  try {
+    request = JSON.parse(readFileSync(0, "utf8"));
+  } catch {
+    return fail(`Standard input must hold a ${requestFormat} request.`);
   }
-  return { project: resolve(project), profile, roots };
+  if (request?.format !== requestFormat)
+    fail(`Standard input must hold a ${requestFormat} request.`);
+  if (request.declaration !== declarationId)
+    fail(
+      `The request names the ${code(String(request.declaration))} declaration; the drafter drafts ${code(declarationId)}.`,
+    );
+  if (
+    typeof request.projectRoot !== "string" ||
+    !isAbsolute(request.projectRoot)
+  )
+    fail("The request's projectRoot must be an absolute path.");
+  if (request.profile != null && typeof request.profile !== "string")
+    fail("The request's profile must be a profile name.");
+  return {
+    projectRoot: request.projectRoot,
+    profile: request.profile ?? undefined,
+  };
 }
 
 function absolutePath(projectRoot, path) {
@@ -138,44 +148,15 @@ function entryAt(projectRoot, path) {
   }
 }
 
-function git(directory, args) {
-  return execFileSync("git", args, {
-    cwd: directory,
-    encoding: "utf8",
-    maxBuffer: 256 * 1024 * 1024,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-}
-
-// The top level of the Git working tree that holds the project, which
-// Repository Standards inspects as the project root.
-function projectRootOf(project) {
+// The manifest beside the drafter, with its path.
+function readManifest() {
   try {
-    return realpathSync(
-      git(project, ["rev-parse", "--show-toplevel"]).replace(/\n$/, ""),
-    );
+    return { path: manifestPath, text: readFileSync(manifestPath, "utf8") };
   } catch {
     return fail(
-      `Cannot find the Git working tree of ${project}; draft the scope of a Git repository.`,
+      `Cannot read the standards manifest ${manifestPath} beside the drafter.`,
     );
   }
-}
-
-// The first manifest that exists, with its path. A manifest that exists but
-// cannot be read ends the search.
-function readManifest() {
-  const tried = [];
-  for (const path of manifestPaths) {
-    tried.push(path);
-    try {
-      return { path, text: readFileSync(path, "utf8") };
-    } catch (error) {
-      if (error.code !== "ENOENT") break;
-    }
-  }
-  return fail(
-    `Cannot read a standards manifest at ${tried.join(" or ")}; run the drafter from the standards source at the selected commit, or from the retained inputs of an adopting repository.`,
-  );
 }
 
 // Whether a manifest key path holds declarations or a declaration's fields:
@@ -207,11 +188,8 @@ function scalar(value) {
 // The declarations the selected profile resolves to, with the fields that
 // decide their targets. As Repository Standards resolves them, a profile
 // declaration replaces the default of its ID, adds a new one, or, with
-// `exclude: true`, removes it. `--profile` names the selected profile, and a
-// manifest with one profile needs no name. The retained manifest holds the
-// selected profile alone; Repository Standards 4.0.0 writes it with empty
-// defaults and the profile's resolved declarations. The manifest's block
-// mappings are read by indentation, and only the key paths below matter:
+// `exclude: true`, removes it. The request names the selected profile, and a
+// manifest with one profile needs no name. The manifest's block mappings are read by indentation, and only the key paths below matter:
 // `defaults.declarations.<id>.<field>` and
 // `profiles.<profile>.declarations.<id>.<field>`. A field that decides a
 // target holds a single-line value on its own line, plain or quoted; any other
@@ -319,7 +297,7 @@ function manifestDeclarations(profile) {
   return declarations;
 }
 
-// The declarations of the profile `--profile` names, or of the manifest's one
+// The declarations of the profile the request names, or of the manifest's one
 // profile when it names none.
 function selectedProfile(manifest, profiles, name) {
   const names = series([...profiles.keys()].map(code));
@@ -332,7 +310,7 @@ function selectedProfile(manifest, profiles, name) {
   }
   if (profiles.size !== 1)
     fail(
-      `${manifest} declares ${profiles.size} profiles (${names}); pass the selected one with --profile.`,
+      `${manifest} declares ${profiles.size} profiles (${names}); the request must name the selected one.`,
     );
   return [...profiles.values()][0];
 }
@@ -360,37 +338,24 @@ function ownership(declarations) {
   };
 }
 
-// The regular files Git keeps: tracked and untracked files that no ignore rule
-// excludes, outside the reserved paths, reached through real directories only.
-// These, and their directories, are the paths the CLI's discovery observation
-// offers as evidence.
+// The regular files of the copy, outside the reserved and retired paths,
+// reached through real directories only, and the directories that hold them.
+// The copy holds the files Git keeps, tracked or not ignored, so these are the
+// paths the CLI's discovery observation offers as evidence.
 function keptTree(projectRoot) {
-  const realDirectories = new Map();
-  const isRealDirectory = (directory) => {
-    if (!realDirectories.has(directory)) {
-      realDirectories.set(
-        directory,
-        entryAt(projectRoot, directory)?.isDirectory() === true &&
-          (parentOf(directory) === "" || isRealDirectory(parentOf(directory))),
-      );
-    }
-    return realDirectories.get(directory);
-  };
   const files = new Set();
-  for (const path of git(projectRoot, [
-    "ls-files",
-    "--cached",
-    "--others",
-    "--exclude-standard",
-    "-z",
-  ]).split("\0")) {
-    if (!path || isReserved(path)) continue;
-    if (
-      (parentOf(path) === "" || isRealDirectory(parentOf(path))) &&
-      entryAt(projectRoot, path)?.isFile()
-    )
-      files.add(path);
-  }
+  const visit = (directory) => {
+    for (const entry of readdirSync(absolutePath(projectRoot, directory), {
+      withFileTypes: true,
+    })) {
+      const path = directory ? `${directory}/${entry.name}` : entry.name;
+      // Git metadata, which the copy never holds, is no evidence either.
+      if (path === ".git" || isReserved(path)) continue;
+      if (entry.isDirectory()) visit(path);
+      else if (entry.isFile()) files.add(path);
+    }
+  };
+  visit("");
   const directories = new Set();
   for (const path of files) {
     for (
@@ -403,59 +368,11 @@ function keptTree(projectRoot) {
   return { files, directories };
 }
 
-// The documentation roots: `docs`, which always is one, and each directory the
-// agent decided is one. A decided root is a repository-relative directory that
-// holds a file Git keeps, outside `docs`, the reserved paths, and every other
-// root, since a documentation root never lies inside another. No other
-// declaration may own it or its index, which names it as a root.
-function decidedRoots(values, kept, owner) {
-  const roots = [];
-  for (const value of values) {
-    const path = value.replace(/\/+$/, "");
-    if (
-      !path ||
-      isAbsolute(path) ||
-      path.includes("\\") ||
-      posix.normalize(path) !== path ||
-      path === "." ||
-      path === ".." ||
-      path.startsWith("../")
-    ) {
-      fail(`--root ${value} must be a repository-relative directory path.`);
-    }
-    if (
-      isWithin(path, repositoryDocumentationRoot) ||
-      isInside(repositoryDocumentationRoot, path)
-    ) {
-      fail(
-        `--root ${value} cannot be used: ${repositoryDocumentationRoot} is always a documentation root, and a documentation root never lies inside another.`,
-      );
-    }
-    if (isReserved(path))
-      fail(`--root ${value} lies in a path Repository Standards reserves.`);
-    if (!kept.directories.has(path))
-      fail(`--root ${value} is not a directory that holds a file Git keeps.`);
-    const declaration = owner(path) ?? owner(`${path}/${directoryIndex}`);
-    if (declaration)
-      fail(
-        `--root ${value} cannot be used: the ${declaration} declaration owns it or its ${directoryIndex}.`,
-      );
-    if (!roots.includes(path)) roots.push(path);
-  }
-  for (const root of roots) {
-    const outer = roots.find((other) => isInside(root, other));
-    if (outer)
-      fail(
-        `--root ${root} lies inside --root ${outer}; a documentation root never lies inside another.`,
-      );
-  }
-  return [repositoryDocumentationRoot, ...roots].sort();
-}
+const documentationRoot = code(repositoryDocumentationRoot);
 
 const reasons = {
-  file: (root) => `A file under the documentation root ${code(root)}.`,
-  rootIndex: (root) =>
-    `The index of the documentation root ${code(root)}, to create.`,
+  file: `A file under the documentation root ${documentationRoot}.`,
+  rootIndex: `The index of the documentation root ${documentationRoot}, to create.`,
   directoryIndex: (directory) =>
     `The index of the documentation directory ${code(directory)}, to create.`,
   developmentGuide:
@@ -469,34 +386,33 @@ const reasons = {
 
 const questions = {
   root: (candidate, directories, outer) =>
-    `Is ${code(candidate)} a documentation root${outer.length > 0 ? `, if ${series(outer.map(code), "or")} is not` : ""}? Its ${series(directories.map(code))} ${directories.length === 1 ? "directory holds" : "directories hold"} Markdown documents. If it is, draft again with ${code(`--root ${candidate}`)}.`,
+    `Is ${code(candidate)} a documentation root${outer.length > 0 ? `, if ${series(outer.map(code), "or")} is not` : ""}? Its ${series(directories.map(code))} ${directories.length === 1 ? "directory holds" : "directories hold"} Markdown documents. If it is, include its files and a new index for each of its directories without one, as this draft does for ${documentationRoot}. If it is not, its ${directoryIndex} files stay out of this scope.`,
   outside: (group, files) =>
     `Which of these Markdown files ${group === "." ? "at the repository root" : `under ${code(group)}`} are documentation this scope must cover, such as a document to move into a documentation category: ${series(files.map(code))}? Include each one, with its destination when it moves.`,
-  stray: (entry, root) =>
-    `${code(entry)} lies directly under the documentation root ${code(root)}, outside the ${series(documentationCategories)} categories. Which category does it move to? Include each destination path and any new directory's index; the files Git keeps in it are already included.`,
-  unkept: (directory, root) =>
-    `${code(directory)} under the documentation root ${code(root)} holds no file that Git keeps, but the documentation check reads it. Should it be removed, or kept by Git and drafted again?`,
-  ignored: (path, root) =>
-    `Git ignores ${code(path)}, which lies under the documentation root ${code(root)}. Should it be removed, moved outside the root, or kept by Git and drafted again?`,
-  special: (path, root) =>
-    `${code(path)} under the documentation root ${code(root)} is a symbolic link or special file, which the scope cannot hold. Should it be replaced with a regular file or removed?`,
+  stray: (entry) =>
+    `${code(entry)} lies directly under the documentation root ${documentationRoot}, outside the ${series(documentationCategories)} categories. Which category does it move to? Include each destination path and any new directory's index; the files Git keeps in it are already included.`,
+  unkept: (directory) =>
+    `${code(directory)} under the documentation root ${documentationRoot} holds no file that Git keeps, but the documentation check reads it. Should it be removed, or should Git keep a file in it?`,
+  special: (path) =>
+    `${code(path)} under the documentation root ${documentationRoot} is a symbolic link or special file, which the scope cannot hold. Should it be replaced with a regular file or removed?`,
   glossary: (path) =>
     `Is ${code(path)} a domain glossary or context map of this repository? Include it if it is.`,
-  ambiguous: (root) =>
-    `The documentation check cannot tell that ${code(root)} is a documentation root without a ${series(documentationCategories, "or")} directory index. Which category will hold its documents? Include that category's ${code(directoryIndex)}.`,
   notDirectory: (directory) =>
     `${code(directory)} must be a directory to hold its documentation index, but it is not. Should it be removed or renamed?`,
   notIndex: (path) =>
     `${code(path)} must be a file, the documentation index of its directory, but it is a directory. Should it be removed or renamed?`,
-  strayOwned: (entry, root) =>
-    `${code(entry)} lies directly under the documentation root ${code(root)}, outside the ${series(documentationCategories)} categories, but its files belong to other declarations or to Repository Standards, so this scope cannot move it. Is ${code(root)} a documentation root after all?`,
   unsupported: (index, directory) =>
-    `Repository Standards accepts the new ${code(index)} only with evidence inside ${code(directory)}, where Git keeps no file yet. Should that directory's first content be committed in a separate reviewed change before drafting again?`,
+    `Repository Standards accepts the new ${code(index)} only with evidence inside ${code(directory)}, where Git keeps no file yet. Should that directory's first content be committed in a separate reviewed change before adopting again?`,
 };
 
-function coverage(roots) {
-  const plural = roots.length > 1;
-  return `Drafted from the repository tree by ${code("discovery/draft-documentation-scope.mjs")}: every file Git keeps under the documentation ${plural ? "roots" : "root"} ${series(roots.map(code))}, a new index for each of ${plural ? "their" : "its"} directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each ${directoryIndex} outside the documentation roots. Link-repair files and move destinations enter when the work needs them.`;
+// What the draft covers, and the retired skills it leaves out because the run
+// that drafts it removes them.
+function coverage(retired) {
+  const left =
+    retired.length > 0
+      ? ` The retired Repository Standards ${retired.length === 1 ? "skill" : "skills"} ${series(retired.map(code))} ${retired.length === 1 ? "is" : "are"} left out too, because the run that drafts this scope removes ${retired.length === 1 ? "it" : "them"}.`
+      : "";
+  return `Drafted from the repository tree by ${code("discovery/draft-documentation-scope.mjs")}: every file Git keeps under the documentation root ${documentationRoot}, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each ${directoryIndex} outside the documentation roots. Link-repair files and move destinations enter when the work needs them.${left}`;
 }
 
 // A draft in progress: its candidates by path, the new indexes among them by
@@ -543,13 +459,13 @@ class Draft {
       .map(([path, directory]) => questions.unsupported(path, directory));
   }
 
-  proposal(roots) {
+  proposal(retired) {
     return {
       format: proposalFormat,
       declarations: [
         {
           id: declarationId,
-          coverage: coverage(roots),
+          coverage: coverage(retired),
           candidates: [...this.candidates.values()].sort(byPath),
           unresolved: [
             ...this.unresolved.values(),
@@ -566,7 +482,7 @@ class Draft {
 // Standards requires to hold a file for a missing README; without one, the
 // index is still drafted, citing nothing. A directory path that is not a
 // directory cannot hold an index, which is a question.
-function createIndex(draft, context, directory, root) {
+function createIndex(draft, context, directory) {
   const path = `${directory}/${directoryIndex}`;
   if (context.owner(path) || draft.candidates.has(path)) return;
   const entry = entryAt(context.projectRoot, directory);
@@ -576,7 +492,8 @@ function createIndex(draft, context, directory, root) {
   }
   let reason = reasons.directoryIndex(directory);
   if (path === developmentGuide) reason = reasons.developmentGuide;
-  else if (directory === root) reason = reasons.rootIndex(root);
+  else if (directory === repositoryDocumentationRoot)
+    reason = reasons.rootIndex;
   draft.include(
     path,
     reason,
@@ -585,36 +502,22 @@ function createIndex(draft, context, directory, root) {
   draft.createdIndexes.set(path, directory);
 }
 
-// Every entry under a root, by the tree walk the check uses.
-function draftRoot(draft, context, root) {
+// Every entry under the documentation root, by the tree walk the check uses.
+// Each regular file there is one the copy holds, so Git keeps it.
+function draftRoot(draft, context) {
   const { kept, owner } = context;
-  const { directories } = documentationTree(context.projectRoot, root);
+  const { directories } = documentationTree(
+    context.projectRoot,
+    repositoryDocumentationRoot,
+  );
   const skipped = [];
   for (const { path: directory, entries } of directories) {
     if (skipped.some((other) => isWithin(directory, other))) continue;
-    if (directory !== root && isReserved(directory)) {
-      skipped.push(directory);
-      continue;
-    }
-    const directoryOwner = directory === root ? null : owner(directory);
-    if (directoryOwner) {
-      for (const path of kept.files) {
-        if (isInside(path, directory))
-          draft.exclude(path, reasons.owned(directoryOwner));
-      }
-      skipped.push(directory);
-      continue;
-    }
     if (
-      directory !== root &&
-      !kept.directories.has(directory) &&
-      !reservedPaths.some(
-        (reserved) =>
-          isInside(reserved, directory) &&
-          entryAt(context.projectRoot, reserved),
-      )
+      directory !== repositoryDocumentationRoot &&
+      !kept.directories.has(directory)
     ) {
-      draft.ask(directory, questions.unkept(directory, root));
+      draft.ask(directory, questions.unkept(directory));
       skipped.push(directory);
       continue;
     }
@@ -631,30 +534,28 @@ function draftRoot(draft, context, root) {
       }
       const declaration = owner(path);
       if (declaration) {
-        if (kept.files.has(path))
-          draft.exclude(path, reasons.owned(declaration));
-      } else if (!entry.isFile()) {
-        draft.ask(path, questions.special(path, root));
-      } else if (kept.files.has(path)) {
-        draft.include(path, reasons.file(root), [path]);
+        if (entry.isFile()) draft.exclude(path, reasons.owned(declaration));
+      } else if (entry.isFile()) {
+        draft.include(path, reasons.file, [path]);
       } else {
-        draft.ask(path, questions.ignored(path, root));
+        draft.ask(path, questions.special(path));
       }
     }
-    if (!indexed) createIndex(draft, context, directory, root);
+    if (!indexed) createIndex(draft, context, directory);
   }
-  if (directories.length === 0) createIndex(draft, context, root, root);
+  if (directories.length === 0)
+    createIndex(draft, context, repositoryDocumentationRoot);
 }
 
 // The repository root's glossary and context map are decided, and so is each
 // context glossary that context map lists by file or directory. Any other
 // glossary or context map is a question.
-function draftGlossaries(draft, context, roots, model) {
+function draftGlossaries(draft, context, model) {
   const glossaries = [...context.kept.files]
     .filter(
       (path) =>
         [glossary, contextMap].includes(baseName(path)) &&
-        !roots.some((root) => isInside(path, root)) &&
+        !isInside(path, repositoryDocumentationRoot) &&
         !context.owner(path),
     )
     .sort();
@@ -684,52 +585,25 @@ function draftGlossaries(draft, context, roots, model) {
 
 // Top-level entries outside the categories move into one; no rule decides
 // which. Their files are already included as move sources, and a moved
-// directory needs no new index where it is now. An entry with nothing to move
-// but files of other declarations or Repository Standards cannot move in this
-// scope. A decided root without a category is ambiguous to the check, which
-// then also reads the indexes inside it as candidate roots; only the decided
-// roots are asked about.
-function askStrayEntries(draft, context, model, roots) {
-  const holdsOthersFiles = (entry) =>
-    [...context.kept.files].some(
-      (path) => isWithin(path, entry) && context.owner(path),
-    ) ||
-    reservedPaths.some(
-      (reserved) =>
-        isWithin(reserved, entry) && entryAt(context.projectRoot, reserved),
-    );
-  for (const root of model.roots.filter((candidate) =>
-    roots.includes(candidate.path),
-  )) {
-    const included = draft.included();
-    for (const entry of root.strayEntries) {
-      if (draft.isAsked(entry)) continue;
-      const moves = included.some(
-        (path) => isWithin(path, entry) && !draft.createdIndexes.has(path),
-      );
-      draft.ask(
-        entry,
-        !moves && holdsOthersFiles(entry)
-          ? questions.strayOwned(entry, root.path)
-          : questions.stray(entry, root.path),
-      );
-      for (const path of draft.createdIndexes.keys()) {
-        if (isInside(path, entry)) draft.candidates.delete(path);
-      }
+// directory needs no new index where it is now.
+function askStrayEntries(draft, model) {
+  const root = model.roots.find(
+    (candidate) => candidate.path === repositoryDocumentationRoot,
+  );
+  for (const entry of root?.strayEntries ?? []) {
+    if (draft.isAsked(entry)) continue;
+    draft.ask(entry, questions.stray(entry));
+    for (const path of draft.createdIndexes.keys()) {
+      if (isInside(path, entry)) draft.candidates.delete(path);
     }
-  }
-  for (const root of model.ambiguousRoots.filter((candidate) =>
-    roots.includes(candidate),
-  )) {
-    draft.ask(root, questions.ambiguous(root));
   }
 }
 
-// A directory outside the roots whose category-named directories hold
-// Markdown documents may be a documentation root; no rule decides it, unless
-// another declaration owns it or its index. A candidate inside another can be
-// a root only if the outer one is not.
-function askCandidateRoots(draft, context, roots) {
+// A directory outside the documentation root whose category-named directories
+// hold Markdown documents may be a documentation root; no rule decides it,
+// unless another declaration owns it or its index. A candidate inside another
+// can be a root only if the outer one is not.
+function askCandidateRoots(draft, context) {
   const { kept, owner } = context;
   const categoryDirectories = [...kept.directories]
     .filter((directory) =>
@@ -737,7 +611,7 @@ function askCandidateRoots(draft, context, roots) {
     )
     .filter(
       (directory) =>
-        !roots.some((root) => isWithin(directory, root)) && !owner(directory),
+        !isWithin(directory, repositoryDocumentationRoot) && !owner(directory),
     )
     .filter((directory) =>
       [...kept.files].some(
@@ -750,9 +624,8 @@ function askCandidateRoots(draft, context, roots) {
   const candidates = candidatesWithCategories
     .filter(
       (candidate) =>
-        !roots.some(
-          (root) => isWithin(candidate, root) || isInside(root, candidate),
-        ),
+        !isWithin(candidate, repositoryDocumentationRoot) &&
+        !isInside(repositoryDocumentationRoot, candidate),
     )
     .filter(
       (candidate) =>
@@ -767,21 +640,22 @@ function askCandidateRoots(draft, context, roots) {
   }
 }
 
-// A README outside the roots is never in this scope: the check reads every
-// README in the scope as a documentation root's index. Other Markdown files
-// outside the roots may be documentation to cover or move, one question per
-// top-level directory.
-function draftOutsideRoots(draft, context, roots) {
+// A README outside the documentation root is never in this scope: the check
+// reads every README in the scope as a documentation root's index. The
+// question about a candidate root decides its READMEs instead. Other Markdown
+// files outside the documentation root may be documentation to cover or move,
+// one question per top-level directory.
+function draftOutsideRoot(draft, context) {
   const groups = new Map();
   for (const path of [...context.kept.files].sort()) {
     if (
       !isMarkdownPath(path) ||
-      roots.some((root) => isInside(path, root)) ||
+      isInside(path, repositoryDocumentationRoot) ||
       context.owner(path)
     )
       continue;
     if (baseName(path) === directoryIndex) {
-      draft.exclude(path, reasons.outsideIndex);
+      if (!draft.isAsked(path)) draft.exclude(path, reasons.outsideIndex);
       continue;
     }
     if ([glossary, contextMap].includes(baseName(path))) continue;
@@ -792,22 +666,20 @@ function draftOutsideRoots(draft, context, roots) {
     draft.otherQuestions.push(questions.outside(group, files));
 }
 
-function draftDocumentationScope(project, profile, rootArguments) {
-  const projectRoot = projectRootOf(project);
+function draftDocumentationScope({ projectRoot, profile }) {
   const { declaredTargets, owner } = ownership(manifestDeclarations(profile));
   const kept = keptTree(projectRoot);
   const context = { projectRoot, kept, owner };
-  const roots = decidedRoots(rootArguments, kept, owner);
   const draft = new Draft();
 
-  for (const root of roots) draftRoot(draft, context, root);
+  draftRoot(draft, context);
   const guideDirectory = parentOf(developmentGuide);
   if (
     !draft.candidates.has(developmentGuide) &&
     !draft.isAsked(guideDirectory) &&
     !draft.isAsked(developmentGuide)
   ) {
-    createIndex(draft, context, guideDirectory, repositoryDocumentationRoot);
+    createIndex(draft, context, guideDirectory);
   }
   for (const path of [glossary, contextMap]) {
     if (kept.files.has(path) && !owner(path))
@@ -821,17 +693,18 @@ function draftDocumentationScope(project, profile, rootArguments) {
   const model = documentationModel(projectRoot, draft.included(), {
     declaredTargets,
   });
-  draftGlossaries(draft, context, roots, model);
-  askStrayEntries(draft, context, model, roots);
-  askCandidateRoots(draft, context, roots);
-  draftOutsideRoots(draft, context, roots);
-  return draft.proposal(roots);
+  draftGlossaries(draft, context, model);
+  askStrayEntries(draft, model);
+  askCandidateRoots(draft, context);
+  draftOutsideRoot(draft, context);
+  return draft.proposal(
+    retiredPaths.filter((path) => entryAt(projectRoot, path)).sort(),
+  );
 }
 
 try {
-  const { project, profile, roots } = parseArguments(process.argv.slice(2));
   process.stdout.write(
-    `${JSON.stringify(draftDocumentationScope(project, profile, roots), null, 2)}\n`,
+    `${JSON.stringify(draftDocumentationScope(readRequest(process.argv.slice(2))), null, 2)}\n`,
   );
 } catch (error) {
   process.stderr.write(

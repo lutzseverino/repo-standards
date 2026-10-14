@@ -1,8 +1,5 @@
 import { readFileSync } from "node:fs";
-import {
-  readReviewer,
-  reviewerTarget,
-} from "../.agents/skills/babysit/reviewer.mjs";
+import { readReviewer, reviewerTarget } from "./lib/pull-request-reviewer.mjs";
 
 try {
   const request = JSON.parse(readFileSync(0, "utf8"));
@@ -23,7 +20,7 @@ try {
       message = `${reviewerTarget} is valid.`;
   } catch (error) {
     status = "failed";
-    message = `Correct ${reviewerTarget}: ${error.message}`;
+    message = `Correct ${reviewerTarget} to match the github-repository-configuration rules: ${error.message}`;
   }
   process.stdout.write(
     `${JSON.stringify({ format: "repo-standards/result/v2", status, message })}\n`,

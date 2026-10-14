@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:6874c4b28e8a7e27d67b61bdd865086b74617de013ddac8060541164aa9b7c2c",
+  "inspection": "sha256:193b6b26106bd5f4630940223e1cf049b3a79b5aa9b0677b9823a8ccc3aa1e16",
   "resolved": {
     "description": "The standard profile plus the factory's repository files, for a repository a factory serves",
     "declarations": [
@@ -50,7 +50,6 @@
                 "operations/lib/local-markdown-links.mjs",
                 "operations/lib/documentation-model.mjs",
                 "operations/lib/entry-document.mjs",
-                "discovery/draft-documentation-scope.mjs",
                 "vendor/marked",
                 "vendor/parse5"
               ],
@@ -68,6 +67,7 @@
         "fixes": [],
         "kind": "repository",
         "guidance": "guidance/documentation.md",
+        "rules": "rules/documentation.md",
         "targets": {
           "paths": [
             "GLOSSARY.md",
@@ -92,7 +92,6 @@
             "docs/adr/0018-add-a-private-astro-site-workspace.md",
             "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
             "docs/adr/README.md",
-            "docs/agents/project.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
             "docs/development/release.md",
@@ -134,7 +133,8 @@
         "fixes": [],
         "kind": "file",
         "target": ".factory/Dockerfile",
-        "guidance": "guidance/factory-sandbox-image.md"
+        "guidance": "guidance/factory-sandbox-image.md",
+        "rules": "rules/factory-sandbox-image.md"
       },
       {
         "id": "factory-sandbox-image-workflow",
@@ -161,7 +161,7 @@
               "executable": "node",
               "script": "operations/check-pull-request-reviewer.mjs",
               "resources": [
-                ".agents/skills/babysit/reviewer.mjs"
+                "operations/lib/pull-request-reviewer.mjs"
               ],
               "arguments": []
             },
@@ -198,7 +198,26 @@
               ],
               "version": ">=24.0.0 <25.0.0"
             },
-            "timeout-seconds": 30
+            "timeout-seconds": 30,
+            "remote-setup": {
+              "probe": {
+                "run": {
+                  "executable": "node",
+                  "script": "operations/probe-github-labels.mjs",
+                  "resources": [
+                    "operations/lib/github-operation.mjs"
+                  ],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            }
           },
           {
             "id": "pull-request-integration",
@@ -216,11 +235,31 @@
               ],
               "version": ">=24.0.0 <25.0.0"
             },
-            "timeout-seconds": 30
+            "timeout-seconds": 30,
+            "remote-setup": {
+              "probe": {
+                "run": {
+                  "executable": "node",
+                  "script": "operations/probe-github-pr-integration.mjs",
+                  "resources": [
+                    "operations/lib/github-operation.mjs"
+                  ],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            }
           }
         ],
         "kind": "repository",
         "guidance": "guidance/github-repository-configuration.md",
+        "rules": "rules/github-repository-configuration.md",
         "targets": {
           "paths": [],
           "directories": []
@@ -347,6 +386,15 @@
         "exact": ".github/workflows/pr-metadata.yml"
       },
       {
+        "id": "project-agent-guidance",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "docs/agents/project.md",
+        "guidance": "guidance/project-agent-guidance.md",
+        "rules": "rules/project-agent-guidance.md"
+      },
+      {
         "id": "project-readmes",
         "checks": [
           {
@@ -374,6 +422,7 @@
         "fixes": [],
         "kind": "repository",
         "guidance": "guidance/project-readmes.md",
+        "rules": "rules/project-readmes.md",
         "targets": {
           "paths": [
             "site/README.md"
@@ -403,7 +452,8 @@
         "fixes": [],
         "kind": "file",
         "target": "LICENSE",
-        "guidance": "guidance/repository-license.md"
+        "guidance": "guidance/repository-license.md",
+        "rules": "rules/repository-license.md"
       },
       {
         "id": "repository-readme",
@@ -434,7 +484,8 @@
         "fixes": [],
         "kind": "file",
         "target": "README.md",
-        "guidance": "guidance/repository-readme.md"
+        "guidance": "guidance/repository-readme.md",
+        "rules": "rules/repository-readme.md"
       },
       {
         "id": "skill-babysit",
@@ -646,7 +697,6 @@
                 "operations/lib/local-markdown-links.mjs",
                 "operations/lib/documentation-model.mjs",
                 "operations/lib/entry-document.mjs",
-                "discovery/draft-documentation-scope.mjs",
                 "vendor/marked",
                 "vendor/parse5"
               ],
@@ -664,7 +714,31 @@
         "fixes": [],
         "kind": "repository",
         "guidance": "guidance/documentation.md",
-        "discovery": "discovery/documentation.md"
+        "rules": "rules/documentation.md",
+        "discovery": "discovery/documentation.md",
+        "discovery-script": {
+          "run": {
+            "executable": "node",
+            "script": "discovery/draft-documentation-scope.mjs",
+            "resources": [
+              "standards.yaml",
+              "operations/lib/rendered-markdown.mjs",
+              "operations/lib/local-markdown-links.mjs",
+              "operations/lib/documentation-model.mjs",
+              "operations/lib/entry-document.mjs",
+              "vendor/marked",
+              "vendor/parse5"
+            ],
+            "arguments": []
+          },
+          "prerequisite": {
+            "version-arguments": [
+              "--version"
+            ],
+            "version": ">=24.0.0 <25.0.0"
+          },
+          "timeout-seconds": 60
+        }
       },
       {
         "id": "domain-configuration",
@@ -688,7 +762,8 @@
         "fixes": [],
         "kind": "file",
         "target": ".factory/Dockerfile",
-        "guidance": "guidance/factory-sandbox-image.md"
+        "guidance": "guidance/factory-sandbox-image.md",
+        "rules": "rules/factory-sandbox-image.md"
       },
       {
         "id": "factory-sandbox-image-workflow",
@@ -715,7 +790,7 @@
               "executable": "node",
               "script": "operations/check-pull-request-reviewer.mjs",
               "resources": [
-                ".agents/skills/babysit/reviewer.mjs"
+                "operations/lib/pull-request-reviewer.mjs"
               ],
               "arguments": []
             },
@@ -752,7 +827,26 @@
               ],
               "version": ">=24.0.0 <25.0.0"
             },
-            "timeout-seconds": 30
+            "timeout-seconds": 30,
+            "remote-setup": {
+              "probe": {
+                "run": {
+                  "executable": "node",
+                  "script": "operations/probe-github-labels.mjs",
+                  "resources": [
+                    "operations/lib/github-operation.mjs"
+                  ],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            }
           },
           {
             "id": "pull-request-integration",
@@ -770,11 +864,31 @@
               ],
               "version": ">=24.0.0 <25.0.0"
             },
-            "timeout-seconds": 30
+            "timeout-seconds": 30,
+            "remote-setup": {
+              "probe": {
+                "run": {
+                  "executable": "node",
+                  "script": "operations/probe-github-pr-integration.mjs",
+                  "resources": [
+                    "operations/lib/github-operation.mjs"
+                  ],
+                  "arguments": []
+                },
+                "prerequisite": {
+                  "version-arguments": [
+                    "--version"
+                  ],
+                  "version": ">=24.0.0 <25.0.0"
+                },
+                "timeout-seconds": 30
+              }
+            }
           }
         ],
         "kind": "repository",
         "guidance": "guidance/github-repository-configuration.md",
+        "rules": "rules/github-repository-configuration.md",
         "discovery": "discovery/github-repository-configuration.md"
       },
       {
@@ -898,6 +1012,15 @@
         "exact": ".github/workflows/pr-metadata.yml"
       },
       {
+        "id": "project-agent-guidance",
+        "checks": [],
+        "fixes": [],
+        "kind": "file",
+        "target": "docs/agents/project.md",
+        "guidance": "guidance/project-agent-guidance.md",
+        "rules": "rules/project-agent-guidance.md"
+      },
+      {
         "id": "project-readmes",
         "checks": [
           {
@@ -925,6 +1048,7 @@
         "fixes": [],
         "kind": "repository",
         "guidance": "guidance/project-readmes.md",
+        "rules": "rules/project-readmes.md",
         "discovery": "discovery/project-readmes.md"
       },
       {
@@ -949,7 +1073,8 @@
         "fixes": [],
         "kind": "file",
         "target": "LICENSE",
-        "guidance": "guidance/repository-license.md"
+        "guidance": "guidance/repository-license.md",
+        "rules": "rules/repository-license.md"
       },
       {
         "id": "repository-readme",
@@ -980,7 +1105,8 @@
         "fixes": [],
         "kind": "file",
         "target": "README.md",
-        "guidance": "guidance/repository-readme.md"
+        "guidance": "guidance/repository-readme.md",
+        "rules": "rules/repository-readme.md"
       },
       {
         "id": "skill-babysit",
@@ -1145,13 +1271,13 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:42d095ba6114d56fa244410959815d89ec99759184ebf4eb26f5163fc3e7a2a5",
+    "identity": "sha256:3f6424b93ebe15ab54f1a5e93c5e4bbb7343688b543f5bbc23dd0fdc45ee467b",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Reviewed against current manifests and source: docs is the sole documentation root; acceptance and examples are fixture/harness material; skills holds shipped skill instructions, not documentation to relocate. No glossary rename or move is needed.",
+          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. The retired Repository Standards skills `.agents/skills/adopt-standards`, `.agents/skills/standards-updates`, `.claude/skills/adopt-standards`, and `.claude/skills/standards-updates` are left out too, because the run that drafts this scope removes them. Reviewed all additional Markdown: acceptance fixtures, example source inputs, and packaged product skills are excluded based on acceptance/README.md, docs/usage/authoring.md and package.json. docs/agents/project.md is excluded because project-agent-guidance now owns it. No project links to CONTRIBUTING.md#documentation require repair.",
           "candidates": [
             {
               "path": "GLOSSARY.md",
@@ -1172,8 +1298,9 @@
             {
               "path": "acceptance/projects/bob/CONTRIBUTING.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/projects/bob/CONTRIBUTING.md"
               ]
             },
@@ -1188,8 +1315,9 @@
             {
               "path": "acceptance/projects/forge/INDEX.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/projects/forge/INDEX.md"
               ]
             },
@@ -1204,24 +1332,27 @@
             {
               "path": "acceptance/projects/forge/groups/developer-tools.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/projects/forge/groups/developer-tools.md"
               ]
             },
             {
               "path": "acceptance/projects/forge/guides/hammer.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/projects/forge/guides/hammer.md"
               ]
             },
             {
               "path": "acceptance/projects/harbor/CONTRIBUTING.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/projects/harbor/CONTRIBUTING.md"
               ]
             },
@@ -1236,16 +1367,18 @@
             {
               "path": "acceptance/projects/harbor/docs/operations.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/projects/harbor/docs/operations.md"
               ]
             },
             {
               "path": "acceptance/projects/orchard/CATALOG.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/projects/orchard/CATALOG.md"
               ]
             },
@@ -1260,48 +1393,54 @@
             {
               "path": "acceptance/projects/orchard/legacy/pear-operations.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/projects/orchard/legacy/pear-operations.md"
               ]
             },
             {
               "path": "acceptance/projects/orchard/teams/runtime.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/projects/orchard/teams/runtime.md"
               ]
             },
             {
               "path": "acceptance/projects/relay/groups/messaging-runtime.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/projects/relay/groups/messaging-runtime.md"
               ]
             },
             {
               "path": "acceptance/projects/relay/notes/relay-limitations.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/projects/relay/notes/relay-limitations.md"
               ]
             },
             {
               "path": "acceptance/sources/wayfinder/guidance/service-discovery.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/sources/wayfinder/guidance/service-discovery.md"
               ]
             },
             {
               "path": "acceptance/sources/wayfinder/guidance/service-readiness.md",
               "decision": "exclude",
-              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "reason": "Synthetic acceptance fixture or source guidance, not documentation of the adopting repository.",
               "evidence": [
+                "acceptance/README.md",
                 "acceptance/sources/wayfinder/guidance/service-readiness.md"
               ]
             },
@@ -1499,8 +1638,8 @@
             },
             {
               "path": "docs/agents/project.md",
-              "decision": "include",
-              "reason": "A file under the documentation root `docs`.",
+              "decision": "exclude",
+              "reason": "Owned by the `project-agent-guidance` declaration.",
               "evidence": [
                 "docs/agents/project.md"
               ]
@@ -1636,72 +1775,81 @@
             {
               "path": "examples/alice/defaults/files/AGENTS.md",
               "decision": "exclude",
-              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
                 "examples/alice/defaults/files/AGENTS.md"
               ]
             },
             {
               "path": "examples/alice/defaults/files/CONTRIBUTING.md",
               "decision": "exclude",
-              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
                 "examples/alice/defaults/files/CONTRIBUTING.md"
               ]
             },
             {
               "path": "examples/alice/defaults/guidance/readme.md",
               "decision": "exclude",
-              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
                 "examples/alice/defaults/guidance/readme.md"
               ]
             },
             {
               "path": "examples/alice/defaults/guidance/source-layout.md",
               "decision": "exclude",
-              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
                 "examples/alice/defaults/guidance/source-layout.md"
               ]
             },
             {
               "path": "examples/alice/defaults/skills/review/SKILL.md",
               "decision": "exclude",
-              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
                 "examples/alice/defaults/skills/review/SKILL.md"
               ]
             },
             {
               "path": "examples/alice/profiles/work/files/AGENTS.md",
               "decision": "exclude",
-              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
                 "examples/alice/profiles/work/files/AGENTS.md"
               ]
             },
             {
               "path": "examples/atlas/guidance/project-discovery.md",
               "decision": "exclude",
-              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
                 "examples/atlas/guidance/project-discovery.md"
               ]
             },
             {
               "path": "examples/atlas/guidance/project-documentation.md",
               "decision": "exclude",
-              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
                 "examples/atlas/guidance/project-documentation.md"
               ]
             },
             {
               "path": "examples/mira/guidance/operations.md",
               "decision": "exclude",
-              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "reason": "Executable example source input, preserved for its independent publisher contract, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
                 "examples/mira/guidance/operations.md"
               ]
             },
@@ -1716,48 +1864,60 @@
             {
               "path": "skills/author-standards/SKILL.md",
               "decision": "exclude",
-              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
+                "package.json",
                 "skills/author-standards/SKILL.md"
               ]
             },
             {
               "path": "skills/author-standards/references/cli.md",
               "decision": "exclude",
-              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
+                "package.json",
                 "skills/author-standards/references/cli.md"
               ]
             },
             {
               "path": "skills/author-standards/references/operations.md",
               "decision": "exclude",
-              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
+                "package.json",
                 "skills/author-standards/references/operations.md"
               ]
             },
             {
               "path": "skills/author-standards/references/profiles.md",
               "decision": "exclude",
-              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
+                "package.json",
                 "skills/author-standards/references/profiles.md"
               ]
             },
             {
               "path": "skills/author-standards/references/revision.md",
               "decision": "exclude",
-              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
+                "package.json",
                 "skills/author-standards/references/revision.md"
               ]
             },
             {
               "path": "skills/repository-standards/SKILL.md",
               "decision": "exclude",
-              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "reason": "Packaged product skill and its resources, not adopting-project documentation.",
               "evidence": [
+                "docs/usage/authoring.md",
+                "package.json",
                 "skills/repository-standards/SKILL.md"
               ]
             }
@@ -1766,41 +1926,32 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "The github.com origin identifies lutzseverino/repo-standards. Remote reconciliation is authorized by the requested adoption; this declaration intentionally owns no project-content paths. Reviewer data is repository owned and read only.",
+          "coverage": "Intentional empty project-file scope: remote configuration fixes own GitHub settings only. origin names lutzseverino/repo-standards, public and personal-owned; session gh has admin access. gh variable list returns no repository variables; REPO_CANON_RUNS_ON is absent and there is no organization owner to supply an inherited value. The requested adoption authorizes standard remote setup.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "The root package is the CLI and is covered by repository-readme. The only additional maintained Project is the private site workspace, identified by pnpm-workspace.yaml, site/package.json, Astro configuration and site/src. Acceptance and examples are harness/fixtures; src, scripts, operations, bootstrap and skills are parts of the root CLI, not separate Projects. Vendor material is third-party code.",
+          "coverage": "The root CLI is covered by repository-readme. pnpm-workspace.yaml identifies site as the only internal workspace with independent commands and maintained source. acceptance fixtures, examples, packaged skills, vendor and organizational directories are not additional maintained Projects.",
           "candidates": [
             {
-              "path": "acceptance",
+              "path": "acceptance/README.md",
               "decision": "exclude",
-              "reason": "Product acceptance harness and synthetic fixtures rather than an independently maintained Project.",
+              "reason": "Acceptance journey and fixture instructions organize validation evidence; not an independent app, service, library or tool.",
               "evidence": [
                 "acceptance/README.md",
                 "package.json"
               ]
             },
             {
-              "path": "examples",
-              "decision": "exclude",
-              "reason": "Standards-source examples and fixtures for the root CLI.",
-              "evidence": [
-                "docs/development/architecture.md",
-                "package.json"
-              ]
-            },
-            {
               "path": "site/README.md",
               "decision": "include",
-              "reason": "Private Astro workspace with its own purpose, scripts, configuration and maintained source.",
+              "reason": "The private Astro site workspace is a maintained app with its own build, check, dev and deployment commands.",
               "evidence": [
                 "pnpm-workspace.yaml",
                 "site/README.md",
-                "site/astro.config.mjs",
-                "site/package.json"
+                "site/package.json",
+                "site/src"
               ]
             }
           ],
@@ -1921,19 +2072,14 @@
           "sha256": "67684e283ccbce967f5293ec19de6fc85c7bf24dbf41137ae1dfd47977e97a47",
           "executable": false
         },
-        "docs/agents/project.md": {
-          "type": "file",
-          "sha256": "3103e76761ca77ff34e3bc97b4b2e06f80c7f5dae06fd06588741d0f29e4a532",
-          "executable": false
-        },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "426da103c822df752422ff8025e51a99a46f1d93e0edff43d9037c810fdf1353",
+          "sha256": "1b0589530be74c058a3350eefa9354d207ee985b7872172a810ab18aa1fa43bf",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "518c8f01c76c87dd09324acbbf0455f1db74fd536f9b75bbca8d14f04c4496e8",
+          "sha256": "e0b148be50ee89e99f73ef612762b5dc980d8b817906f79134781dd437b0a722",
           "executable": false
         },
         "docs/development/release.md": {
@@ -2012,19 +2158,19 @@
       {
         "id": "documentation",
         "source": "discovery/documentation.md",
-        "sha256": "44330076ff9e94837aca4f1788816209b122c86b0be9a99ea89cc312ac9e386e",
+        "sha256": "30809f225f7c71cd138e7cac835b350e85950b271aad9352aa94808c93864765",
         "executable": false
       },
       {
         "id": "github-repository-configuration",
         "source": "discovery/github-repository-configuration.md",
-        "sha256": "f407019d545c7800ac72ff489ab7427dd4760709dc7a3b2ef6c54a0fdb68d479",
+        "sha256": "05f27e38f22870239eac4f15f63d9ff758c87ff3c8c5098dc7b8cd66a5685616",
         "executable": false
       },
       {
         "id": "project-readmes",
         "source": "discovery/project-readmes.md",
-        "sha256": "f5dac3063de1a68ae17dc93578ee9481ae746acfc4d4b16f84811de5af8ab858",
+        "sha256": "a2cf9e7206712b7b169ebcf901d40ded7fa655100b3afbcf825296e46291b47a",
         "executable": false
       }
     ],
@@ -2072,22 +2218,22 @@
         },
         ".agents/skills/babysit/SKILL.md": {
           "type": "file",
-          "sha256": "14e03172858f7ba2d025d02b0e5ec483ee77390270aaa6224ec447dcd055275f",
+          "sha256": "b6900b4378f0b8b9c46b6c7c6b56cad36e62b4f740e59b835559f21baaeda5f3",
           "executable": false
         },
         ".agents/skills/babysit/merge.mjs": {
           "type": "file",
-          "sha256": "d4a4352b95376f44db1dba5e8e13368846458e91789035874b927b499938e302",
+          "sha256": "f1ba69545f9e7234666e76e1bb64283378419f9e6af963753d141107438b8d3e",
           "executable": false
         },
         ".agents/skills/babysit/reviewer.mjs": {
           "type": "file",
-          "sha256": "1802605d9778698b5d6d6599323648b9329df1b821e18760f13b02c237bf8482",
+          "sha256": "43c0834119e5caad5478abe6216e46ccd9813d8019a2097e7d0bc8616ff94373",
           "executable": false
         },
         ".agents/skills/babysit/wait.mjs": {
           "type": "file",
-          "sha256": "fdedab285461067819b691168af2707e4afc7b44eb1ca9671a6bc840ca05e281",
+          "sha256": "041dd8a31517f0592b2a16d72030d7a95f94d7b643f676f52929895f92eacc46",
           "executable": false
         },
         ".agents/skills/code-review/SKILL.md": {
@@ -2422,7 +2568,7 @@
         },
         ".factory/Dockerfile": {
           "type": "file",
-          "sha256": "0f782da6754ac41d3ce9fd66fc76bf6056fc5ca0a223ab63d0f3abca1bd1a80c",
+          "sha256": "a61e429b56610165047745a8f3bbcc37a62721cee24e50637f9b6676107118bf",
           "executable": false
         },
         ".factory/config.json": {
@@ -2452,7 +2598,7 @@
         },
         ".github/PULL_REQUEST_TEMPLATE.md": {
           "type": "file",
-          "sha256": "4ca0528fa7bab99c0107da587058aebf6cb94c2e9a5760b725f50a3e2c29d2ec",
+          "sha256": "7dcc5881eef1c342a08519750b9beae700f4620d1fdf23c2eb0d9b2dfaec5fd0",
           "executable": false
         },
         ".github/pull-request-reviewer.json": {
@@ -2522,7 +2668,7 @@
         },
         "CONTRIBUTING.md": {
           "type": "file",
-          "sha256": "88565885f90c94d74e06ce36de942532992297b80e1af0a97e26574829c6d529",
+          "sha256": "c25bf00e0380c8ea900f794f68e7f45c0027eae4614f3588d0dc606fec188645",
           "executable": false
         },
         "GLOSSARY.md": {
@@ -2542,7 +2688,7 @@
         },
         "acceptance/README.md": {
           "type": "file",
-          "sha256": "364997c48099d10104da52c2c125317708c0149d732433826ebbb8c20f00fc8c",
+          "sha256": "fba28dbe9e3b7ee372633f82062a91d2989797db86d086d960f6688192da45fd",
           "executable": false
         },
         "acceptance/cli.ts": {
@@ -2887,12 +3033,12 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "426da103c822df752422ff8025e51a99a46f1d93e0edff43d9037c810fdf1353",
+          "sha256": "1b0589530be74c058a3350eefa9354d207ee985b7872172a810ab18aa1fa43bf",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "518c8f01c76c87dd09324acbbf0455f1db74fd536f9b75bbca8d14f04c4496e8",
+          "sha256": "e0b148be50ee89e99f73ef612762b5dc980d8b817906f79134781dd437b0a722",
           "executable": false
         },
         "docs/development/release.md": {
@@ -2997,7 +3143,7 @@
         },
         "examples/alice/standards.yaml": {
           "type": "file",
-          "sha256": "3ed511ba9ecc3a142e36833cc13827ca09b32fdac7f9f4e6ea468773d0a1eb5c",
+          "sha256": "9045d935cddd30b3ac69ae450cd09c62f4f985fce81711a5fe00e69d7e344fb7",
           "executable": false
         },
         "examples/atlas/files/catalog.json": {
@@ -3602,7 +3748,7 @@
         },
         "test/source-validation.test.ts": {
           "type": "file",
-          "sha256": "c46217d02aca7161b29906c343bc3db14880860a255007d78f2d80e905c02f48",
+          "sha256": "a30876f9c64a4cb1aaa806fc0dd1c065ac2d062b28a6fdffd4594066f070709b",
           "executable": false
         },
         "test/status.test.ts": {
@@ -5287,7 +5433,7 @@
       "id": "documentation",
       "additions": [],
       "removals": [
-        ".sandcastle/Dockerfile"
+        "docs/agents/project.md"
       ]
     }
   ]

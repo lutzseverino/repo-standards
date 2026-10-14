@@ -198,12 +198,10 @@ described below.
 ### Adoption pull requests
 
 An adoption pull request holds one completed Repository Standards adoption or
-update run and nothing else: the run's `changeSet` paths and `.repo-standards/`.
-Before opening it, read `status --json` with the project's pinned
-`.repo-standards/runtime/node_modules/.bin/repo-standards`. Open it only when
-`active` is `null`, `lastComplete` is present, there is no `stateError`, and
-every `changeSet` path is among the uncommitted changes; otherwise finish or
-recover the run with the `adopt-standards` skill.
+update run and nothing else. Open it once the project's pinned
+`.repo-standards/runtime/node_modules/.bin/repo-standards status` reports the
+run ready to commit. Otherwise finish or recover the run with
+`repo-standards adopt`, using the pinned runtime once a run has started.
 
 Title it `chore: adopt <source> <version> with CLI <version>`, naming the
 source by the repository name in its URL and the versions from the record's
@@ -215,8 +213,8 @@ Its body is the adoption record: the output of `status --summary`, byte for
 byte, starting with its `# Repository Standards adoption record` heading. The
 record's Operations table lists the standards source's fixes and checks with
 their results. Post one check-outcomes comment with the repository's own
-validation outcomes, confirmation that the run-state conditions for opening
-the pull request hold, and findings links or unfiled findings under the
+validation outcomes, confirmation of the ready-to-commit verdict, and findings
+links or unfiled findings under the
 [findings rule](#findings). The record stays the body; for a breaking (`!`)
 title, add Impact and Migration sections after the record.
 Write the check-outcomes comment under the [comment rules](#comments).
@@ -226,7 +224,7 @@ For adoption or update findings, use these target repositories:
 - For the standards source's guidance, discovery, checks, fixes, installed
   files, or drafter, use the source repository identified by the source URL in
   the adoption record's Selection.
-- For the Repository Standards CLI or the `adopt-standards` skill, use
+- For the Repository Standards CLI and its `adopt` command, use
   `lutzseverino/repo-standards`.
 
 ### Merging
@@ -235,15 +233,21 @@ Merge a pull request once every required check passes on its latest head and
 every review thread is answered with its fix or a reasoned decline under the
 [comment rules](#comments).
 The optional repository-owned `.github/pull-request-reviewer.json` configures
-its reviewer and wait bounds; [`babysit`](.agents/skills/babysit/SKILL.md)
-documents its schema. A review request is the pull request's opening when
+its reviewer and wait bounds; the `github-repository-configuration` rules
+state its schema. A review request is the pull request's opening when
 `request.onOpen` is true, or a later comment whose whole trimmed body equals
 `request.comment`; a push is not one.
 
-After the opening, an agent must post the review request comment for a new
-head only when its push fixes, fully or partly, a review finding these rules
-do not let it decline, and the request bound has not been reached. No other
-push gets a request: a push that only follows declines, changes only tests,
+When `request.onOpen` is false and the pull request has had no review request,
+an agent must post the review request comment for its head before it first
+waits on the pull request. The request bound cannot stop this first request,
+since none has been counted yet.
+
+After that first request, an agent must post the review request comment for a
+new head when its push fixes, fully or partly, a review finding these rules do
+not let it decline, and the request bound has not been reached.
+
+No other push gets a request: a push that only follows declines, changes only tests,
 documentation or wording, or only fixes a failing check gets none.
 The optional `bounds.reviewRequests` is a positive integer limiting the total
 review requests a pull request gets. Count the opening when `request.onOpen`
@@ -353,29 +357,3 @@ requests a review. That comment holds exactly `request.comment` from
 appears in prose, quotations, or code spans in any other comment, issue or
 pull request title, or body. To mention the request, describe it as "the review
 request comment".
-
-## Documentation
-
-Documentation categories are `usage`, `development`, `adr`, and `agents` under
-each applicable documentation root. Create a directory when it has content.
-Every documentation directory has a README index: a one-sentence purpose, then
-one `[Title](path): description` item per entry. List each document under a
-documentation root in exactly one index: its directory's README, or for a
-directory README, its parent's. Other documents link to that index or cite a
-document in context, and never repeat the list. The installed
-`docs/agents/README.md` stays as is and cites the optional
-`docs/agents/project.md` in context. The root `docs/development/README.md`
-gives its purpose, then a Setup and validation section, then its index. Keep
-durable research with its usage or development topic. Glossaries remain outside
-`docs`, at the repository or context root.
-
-Documentation holds maintained material only. A point-in-time record, such as
-an account of one release, adoption, or validation run, stays with the pull
-request, release, or CI run it records, and documents cite it by identity, such
-as a tag, run ID, or commit permalink. Delete a superseded document other than
-an ADR rather than keeping it under a historical label, and repair the links to
-it.
-
-An ADR is never deleted. When a later ADR supersedes it, keep it and mark it
-superseded, naming and linking the superseding ADR. A superseded ADR is
-maintained material, not a point-in-time record.
