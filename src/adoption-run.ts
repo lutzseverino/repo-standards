@@ -1337,7 +1337,18 @@ export async function withWaitingRun<T>(
     // holds them, is verified first, as a resume verifies it.
     const installation = readInstallation(root, run);
     verifyInstallation(root, installation);
-    return await callback(installation);
+    // The run's records must leave the callback unchanged, as they must an
+    // author process during a run.
+    const records = () =>
+      json([observe(lock), safe(root, ".repo-standards/local/run.json")]);
+    const before = records();
+    const result = await callback(installation);
+    if (records() !== before)
+      throw new ProductError(
+        "FINAL_INTEGRITY",
+        "The active adoption run's records changed while its contextual checks ran. Preserve the project and read status.",
+      );
+    return result;
   } finally {
     release();
   }

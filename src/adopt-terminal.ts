@@ -265,7 +265,9 @@ export async function adoptInTerminal(
         // A run's confirmed scope never changes, so walking it again cannot
         // help.
         if (reason.startsWith("SCOPE_INCOMPLETE:")) {
-          const outcome = await decide(prompt, session, reason);
+          const outcome = await decide(prompt, session, reason, () =>
+            reviewedAfterFixes.clear(),
+          );
           if (outcome) return outcome;
           continue;
         }
@@ -311,8 +313,12 @@ export async function adoptInTerminal(
               !judged.has(id) ||
               failed.some((check) => check.declaration === id),
           );
-        } else if (!reason.startsWith("CONTEXTUAL_REQUIRED:"))
+        } else if (!reason.startsWith("CONTEXTUAL_REQUIRED:")) {
           write(`\nThe run did not accept the last assessment: ${reason}\n`);
+          // The rejected answers may hold the cause, such as a path the
+          // assessment refuses, so the scope is reviewed again.
+          reviewedAfterFixes.clear();
+        }
         // Each discovered scope is reviewed as the run's fixes left the
         // project, before any contextual edit. A confirmed scope that misses
         // files stops the run, so nothing more is asked once one does.
@@ -406,7 +412,9 @@ export async function adoptInTerminal(
       case "complete":
         return completed(prompt);
       case "incomplete": {
-        const outcome = await decide(prompt, session, reason);
+        const outcome = await decide(prompt, session, reason, () =>
+          reviewedAfterFixes.clear(),
+        );
         if (outcome) return outcome;
         continue;
       }
@@ -542,6 +550,7 @@ async function decide(
   prompt: Prompts,
   { root, cliVersion }: Session,
   reason: string,
+  afterRetry: () => void,
 ) {
   const { write, choose } = prompt;
   write(`\nThe run is incomplete: ${reason}\n`);
@@ -557,6 +566,8 @@ async function decide(
       );
   if (choice === "retry") {
     write("Retrying the run's interrupted work.\n");
+    // A retry runs the fixes again, so the scope is reviewed again too.
+    afterRetry();
     const run = await resume(root, cliVersion, undefined, true);
     return run.outcome === "complete" ? completed(prompt) : undefined;
   }

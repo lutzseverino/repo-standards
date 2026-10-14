@@ -705,3 +705,63 @@ test("a scope the person reports incomplete after the contextual work stops the 
   assert.equal(scopeValidity.afterFixes!.status, "valid");
   assert.deepEqual(scopeValidity.current!.additionalPaths, ["tools/README.md"]);
 });
+
+test("a walk's checks may not change the run's records", async (t) => {
+  const f = await fixture(t, cli, {
+    "project-readme": {
+      kind: "file",
+      target: "README.md",
+      guidance: "guidance/readme.md",
+      rules: "rules/readme.md",
+      checks: [operation("heading", { script: "checks/readme.mjs" })],
+    },
+  });
+  const session = terminal(t, f, [source]);
+  await session.expect("Version [v1.0.0]: ");
+  session.type("");
+  await session.expect("Profile [work]: ");
+  session.type("");
+  await session.expect("Start the run? [Y/n]: ");
+  session.type("");
+  await session.expect("Press Enter when you are done, or type blocked: ");
+  // A retained check that rewrites the run's local report reports passed.
+  writeFileSync(
+    join(f.root, ".repo-standards/inputs/source/checks/readme.mjs"),
+    `import { appendFileSync } from 'node:fs';
+appendFileSync('.repo-standards/local/run.json', ' ');
+console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: 'passed', message: 'Fine.' }));
+`,
+  );
+  session.type("");
+  await session.expect("[FINAL_INTEGRITY] ");
+  assert.equal(await session.exit(), 1);
+});
+
+test("a scope review the assessment rejects is asked again", async (t) => {
+  const { f } = await discoveryFixture(t, cli, []);
+  const session = terminal(t, f, [source]);
+  await session.expect("Version [v1.0.0]: ");
+  session.type("");
+  await session.expect("Profile [work]: ");
+  session.type("");
+  await session.expect(
+    "Does project-docs cover exactly the drafted files, app/README.md? [Y/n]: ",
+  );
+  session.type("");
+  await session.expect("Start the run? [Y/n]: ");
+  session.type("");
+  await session.expect("cover every file project-docs should? [Y/n]: ");
+  session.type("n");
+  await session.expect("File: ");
+  session.type("../outside.md");
+  await session.expect("File: ");
+  session.type("");
+  // The path is refused, and the person is asked again rather than the same
+  // answer being submitted again.
+  await session.expect(
+    "The run did not accept the last assessment: ASSESSMENT_FORMAT",
+  );
+  await session.expect("cover every file project-docs should? [Y/n]: ");
+  session.press("\x03");
+  assert.equal(await session.exit(), 130);
+});
