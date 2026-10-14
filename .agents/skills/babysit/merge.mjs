@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 // Usage: node merge.mjs <number> <head SHA>, from the repository root.
-// Exit codes: 0 merged, 1 usage or gh error, 2 head changed; wait again.
+// Exit codes: 0 merged, 1 usage or gh error, 2 head changed; wait again,
+// 3 not merged; needs the owner.
 import { spawnSync } from "node:child_process";
 
 function gh(args, input) {
@@ -14,10 +15,32 @@ function gh(args, input) {
   return result;
 }
 
-function readPullRequest(number) {
-  const result = gh(["pr", "view", number, "--json", "title,body,headRefOid"]);
+function readPullRequest(number, fields = "title,body,headRefOid") {
+  const result = gh(["pr", "view", number, "--json", fields]);
   if (result.status !== 0) throw new Error(result.stderr.trim());
   return JSON.parse(result.stdout);
+}
+
+function isMergeQueueEnabled(number) {
+  const result = gh([
+    "api",
+    "graphql",
+    "-f",
+    "query=query($owner: String!, $name: String!, $number: Int!) { repository(owner: $owner, name: $name) { pullRequest(number: $number) { isMergeQueueEnabled } } }",
+    "-F",
+    "owner={owner}",
+    "-F",
+    "name={repo}",
+    "-F",
+    `number=${number}`,
+  ]);
+  if (result.status !== 0) throw new Error(result.stderr.trim());
+  return JSON.parse(result.stdout).data.repository.pullRequest.isMergeQueueEnabled;
+}
+
+function needsOwner(message) {
+  console.error(message);
+  process.exitCode = 3;
 }
 
 function retry() {
@@ -36,6 +59,11 @@ function main() {
   }
   const pullRequest = readPullRequest(number);
   if (pullRequest.headRefOid !== head) return retry();
+  if (isMergeQueueEnabled(number)) {
+    return needsOwner(
+      "The base branch requires a merge queue, which cannot apply the explicit squash message CONTRIBUTING.md requires; needs the owner.",
+    );
+  }
   const result = gh(
     [
       "pr",
@@ -54,6 +82,9 @@ function main() {
   if (result.status !== 0) {
     if (readPullRequest(number).headRefOid !== head) return retry();
     throw new Error(result.stderr.trim());
+  }
+  if (readPullRequest(number, "state").state !== "MERGED") {
+    return needsOwner("The pull request did not merge; needs the owner.");
   }
   process.stdout.write(result.stdout);
 }

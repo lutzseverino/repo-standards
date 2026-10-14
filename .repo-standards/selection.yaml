@@ -3,6 +3,6 @@ cli:
   version: 6.0.0
 standards:
   repository: https://github.com/lutzseverino/repo-canon
-  version: v0.11.1
-  commit: 778c7974b93d177ff2b2d2fc47aa86cf3f85294b
+  version: v0.12.0
+  commit: dd480fa81c297196a59cc26e134400ed1295f1a7
 profile: factory

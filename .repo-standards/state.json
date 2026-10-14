@@ -15,8 +15,8 @@
         "id": "canonical-labels"
       },
       "operationIndex": 0,
-      "before": "sha256:1dee9cb0d6a10c11a94dd7607a4be51fd7c907d51a49ea2f364b3e58bbd49dea",
-      "after": "sha256:1dee9cb0d6a10c11a94dd7607a4be51fd7c907d51a49ea2f364b3e58bbd49dea",
+      "before": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
+      "after": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -35,8 +35,8 @@
         "id": "pull-request-integration"
       },
       "operationIndex": 1,
-      "before": "sha256:1dee9cb0d6a10c11a94dd7607a4be51fd7c907d51a49ea2f364b3e58bbd49dea",
-      "after": "sha256:1dee9cb0d6a10c11a94dd7607a4be51fd7c907d51a49ea2f364b3e58bbd49dea",
+      "before": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
+      "after": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -46,7 +46,6 @@
       "scope": {
         "documentation": {
           "paths": [
-            ".sandcastle/Dockerfile",
             "GLOSSARY.md",
             "docs/README.md",
             "docs/adr/0001-separate-authorship-from-adoption.md",
@@ -117,66 +116,9 @@
           "directories": []
         }
       },
-      "before": "sha256:1dee9cb0d6a10c11a94dd7607a4be51fd7c907d51a49ea2f364b3e58bbd49dea",
-      "after": "sha256:624d0edc023342b9da694648475c1a7565036b984947e2b0ae9cc0e9d9cf7a8c",
-      "changes": {
-        ".factory/Dockerfile": {
-          "before": {
-            "type": "missing"
-          },
-          "after": {
-            "type": "file",
-            "sha256": "0f782da6754ac41d3ce9fd66fc76bf6056fc5ca0a223ab63d0f3abca1bd1a80c",
-            "executable": false
-          }
-        },
-        ".sandcastle/Dockerfile": {
-          "before": {
-            "type": "file",
-            "sha256": "3fe7eb47e688f69c5723fc0a813bae535da7b727902cb5d13efa9a16b01d3cc2",
-            "executable": false
-          },
-          "after": {
-            "type": "missing"
-          }
-        },
-        "README.md": {
-          "before": {
-            "type": "file",
-            "sha256": "70355f177878f4cb167d485dee516734aaf32f4e96a8e63b8235f7ec66e6c476",
-            "executable": false
-          },
-          "after": {
-            "type": "file",
-            "sha256": "836ef660f16672a5b9b7db87651bdcb68d94b47a1ffe93de5b9f0668febe7527",
-            "executable": false
-          }
-        },
-        "docs/development/README.md": {
-          "before": {
-            "type": "file",
-            "sha256": "0c90463294d8dc8a7bf51f493653ccc64dbc9cc674fc66375d2342359309ed10",
-            "executable": false
-          },
-          "after": {
-            "type": "file",
-            "sha256": "23e2207083b03261ef54ff3174930603ddd88cac6b913281dd0255a3cb2dffd6",
-            "executable": false
-          }
-        },
-        "docs/usage/README.md": {
-          "before": {
-            "type": "file",
-            "sha256": "228e1687fa7c1b18311255464267ee8457a078086ea27fbce50a2802d0c6baa3",
-            "executable": false
-          },
-          "after": {
-            "type": "file",
-            "sha256": "6956cfc60e22d5e8b5c4a587ef1702a4ec137f5d5fdbb02436c6bdc30667f943",
-            "executable": false
-          }
-        }
-      },
+      "before": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
+      "after": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
+      "changes": {},
       "boundaryChanges": {},
       "violations": []
     },
@@ -185,7 +127,6 @@
       "scope": {
         "documentation": {
           "paths": [
-            ".sandcastle/Dockerfile",
             "GLOSSARY.md",
             "docs/README.md",
             "docs/adr/0001-separate-authorship-from-adoption.md",
@@ -256,115 +197,8 @@
           "directories": []
         }
       },
-      "before": "sha256:624d0edc023342b9da694648475c1a7565036b984947e2b0ae9cc0e9d9cf7a8c",
-      "after": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
-      "changes": {
-        "README.md": {
-          "before": {
-            "type": "file",
-            "sha256": "836ef660f16672a5b9b7db87651bdcb68d94b47a1ffe93de5b9f0668febe7527",
-            "executable": false
-          },
-          "after": {
-            "type": "file",
-            "sha256": "1b75b111d88dc17d63226ffcf0edf89f8dc7127e50270ee2b8dd5a38608c6484",
-            "executable": false
-          }
-        },
-        "docs/usage/README.md": {
-          "before": {
-            "type": "file",
-            "sha256": "6956cfc60e22d5e8b5c4a587ef1702a4ec137f5d5fdbb02436c6bdc30667f943",
-            "executable": false
-          },
-          "after": {
-            "type": "file",
-            "sha256": "6d6f5c509f3d8540be42afab136bd7011d9e9c0ab8b22d2aee1bcb706df72c96",
-            "executable": false
-          }
-        }
-      },
-      "boundaryChanges": {},
-      "violations": []
-    },
-    {
-      "phase": "agent",
-      "scope": {
-        "documentation": {
-          "paths": [
-            ".sandcastle/Dockerfile",
-            "GLOSSARY.md",
-            "docs/README.md",
-            "docs/adr/0001-separate-authorship-from-adoption.md",
-            "docs/adr/0002-finish-authoring-at-a-validated-source.md",
-            "docs/adr/0003-use-agent-discovery-with-confirmed-concrete-scope.md",
-            "docs/adr/0004-amend-scope-without-redefining-installed-ownership.md",
-            "docs/adr/0005-retain-work-evidence-as-identities-and-deltas.md",
-            "docs/adr/0006-gate-selection-with-the-author-range-only.md",
-            "docs/adr/0007-write-and-read-one-evidence-format.md",
-            "docs/adr/0008-bind-confirmation-identity-to-what-the-run-reads.md",
-            "docs/adr/0009-correct-scope-by-adopting-again.md",
-            "docs/adr/0010-replace-tracked-content-block-only-untracked.md",
-            "docs/adr/0011-retain-only-the-current-run.md",
-            "docs/adr/0012-bind-content-not-location.md",
-            "docs/adr/0013-expose-installed-skills-through-skill-links.md",
-            "docs/adr/0014-leave-available-updates-to-the-maintainer.md",
-            "docs/adr/0015-leave-delivery-to-standards-sources.md",
-            "docs/adr/0016-keep-edited-content-that-leaves-the-selection.md",
-            "docs/adr/0017-confirm-only-confirmation-required-changes.md",
-            "docs/adr/0018-add-a-private-astro-site-workspace.md",
-            "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
-            "docs/adr/README.md",
-            "docs/agents/project.md",
-            "docs/development/README.md",
-            "docs/development/architecture.md",
-            "docs/development/release.md",
-            "docs/usage/README.md",
-            "docs/usage/adoption.md",
-            "docs/usage/assessment-protocol.md",
-            "docs/usage/author-format.md",
-            "docs/usage/authoring.md",
-            "docs/usage/available-updates.md",
-            "docs/usage/check.md",
-            "docs/usage/discovery.md",
-            "docs/usage/inspection.md",
-            "docs/usage/installation.md",
-            "docs/usage/rules.md",
-            "docs/usage/script-protocol.md"
-          ],
-          "directories": []
-        },
-        "factory-sandbox-image": {
-          "paths": [
-            ".factory/Dockerfile"
-          ],
-          "directories": []
-        },
-        "github-repository-configuration": {
-          "paths": [],
-          "directories": []
-        },
-        "project-readmes": {
-          "paths": [
-            "site/README.md"
-          ],
-          "directories": []
-        },
-        "repository-license": {
-          "paths": [
-            "LICENSE"
-          ],
-          "directories": []
-        },
-        "repository-readme": {
-          "paths": [
-            "README.md"
-          ],
-          "directories": []
-        }
-      },
-      "before": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
-      "after": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
+      "before": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
+      "after": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -374,7 +208,6 @@
       "scope": {
         "documentation": {
           "paths": [
-            ".sandcastle/Dockerfile",
             "GLOSSARY.md",
             "docs/README.md",
             "docs/adr/0001-separate-authorship-from-adoption.md",
@@ -423,8 +256,8 @@
         "id": "documentation-navigation"
       },
       "operationIndex": 2,
-      "before": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
-      "after": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
+      "before": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
+      "after": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -443,8 +276,8 @@
         "id": "pull-request-reviewer"
       },
       "operationIndex": 3,
-      "before": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
-      "after": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
+      "before": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
+      "after": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -465,8 +298,8 @@
         "id": "project-readme-structure"
       },
       "operationIndex": 4,
-      "before": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
-      "after": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
+      "before": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
+      "after": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -487,8 +320,8 @@
         "id": "repository-readme-structure"
       },
       "operationIndex": 5,
-      "before": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
-      "after": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
+      "before": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
+      "after": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -498,7 +331,6 @@
       "scope": {
         "documentation": {
           "paths": [
-            ".sandcastle/Dockerfile",
             "GLOSSARY.md",
             "docs/README.md",
             "docs/adr/0001-separate-authorship-from-adoption.md",
@@ -569,8 +401,8 @@
           "directories": []
         }
       },
-      "before": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
-      "after": "sha256:383ab8806d250afe5263a15ca994ac28e655bc0538b19e02fc6f708ebc6ec38b",
+      "before": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
+      "after": "sha256:4bdb5b5ffec5808eda284222006bc0617a2b6feb31e836b4ab76681f83aefc45",
       "changes": {},
       "boundaryChanges": {},
       "violations": []
@@ -655,7 +487,7 @@
       "result": {
         "format": "repo-standards/result/v2",
         "status": "passed",
-        "message": "No pull request reviewer is configured."
+        "message": ".github/pull-request-reviewer.json is valid."
       },
       "error": null,
       "stdout": ".repo-standards/local/operations/3.stdout",
@@ -707,24 +539,6 @@
   "retryHistory": [],
   "changeSet": [
     {
-      "path": ".agents/skills/ask-matt/PHASE-BOUNDARIES.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/ask-matt/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/ask-matt/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
       "path": ".agents/skills/babysit/SKILL.md",
       "phases": [
         "installation"
@@ -749,313 +563,7 @@
       ]
     },
     {
-      "path": ".agents/skills/grill-me/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/grill-me/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/handoff/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/handoff/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/implement-spec/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/implement-spec/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/retro/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/retro/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/setup-matt-pocock-skills/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/setup-matt-pocock-skills/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/setup-matt-pocock-skills/domain.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/setup-matt-pocock-skills/issue-tracker-github.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/setup-matt-pocock-skills/issue-tracker-gitlab.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/setup-matt-pocock-skills/issue-tracker-local.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/setup-matt-pocock-skills/triage-labels.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/show-me/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/show-me/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/teach/GLOSSARY-FORMAT.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/teach/LEARNING-RECORD-FORMAT.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/teach/MISSION-FORMAT.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/teach/RESOURCES-FORMAT.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/teach/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/teach/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/to-questionnaire/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/to-questionnaire/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/wait-what/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/wait-what/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/wizard/SKILL.md",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/wizard/agents/openai.yaml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".agents/skills/wizard/template.sh",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/ask-matt",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/grill-me",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/handoff",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/implement-spec",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/retro",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/setup-matt-pocock-skills",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/show-me",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/teach",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/to-questionnaire",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/wait-what",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".claude/skills/wizard",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".factory/Dockerfile",
-      "phases": [
-        "agent"
-      ]
-    },
-    {
-      "path": ".factory/config.json",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".github/scripts/validate-pr-metadata.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".github/workflows/issue-contracts.yml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".github/workflows/sandbox-image.yml",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".sandcastle/.gitignore",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".sandcastle/Dockerfile",
-      "phases": [
-        "agent"
-      ]
-    },
-    {
-      "path": ".sandcastle/adapter.ts",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".sandcastle/factory.ts",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": ".sandcastle/main.ts",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "AGENTS.md",
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
       "phases": [
         "installation"
       ]
@@ -1065,43 +573,13 @@
       "phases": [
         "installation"
       ]
-    },
-    {
-      "path": "README.md",
-      "phases": [
-        "agent"
-      ]
-    },
-    {
-      "path": "docs/development/README.md",
-      "phases": [
-        "agent"
-      ]
-    },
-    {
-      "path": "docs/usage/README.md",
-      "phases": [
-        "agent"
-      ]
-    },
-    {
-      "path": "operations/lib/issue-contract-kind.mjs",
-      "phases": [
-        "installation"
-      ]
-    },
-    {
-      "path": "scripts/validate-issue-contract.mjs",
-      "phases": [
-        "installation"
-      ]
     }
   ],
   "lastComplete": {
-    "run": "eb69e65e-c0aa-4a9a-8d8b-a5c2373c4fb1",
-    "inspection": "sha256:0d2aa1ae5abee94c564a18b78a96a2f3dd59a987a7969d885db895f62c022392",
-    "completedAt": "2026-10-13T23:47:20.626Z",
-    "head": "24c6a4c467b379ce2bd494bde12fa24414838e4c"
+    "run": "1a6fc86f-4336-4e47-a5e8-bb7c80916176",
+    "inspection": "sha256:6874c4b28e8a7e27d67b61bdd865086b74617de013ddac8060541164aa9b7c2c",
+    "completedAt": "2026-10-14T14:18:01.970Z",
+    "head": "7225c76742c71b4d341c66d2a7f16562b3190fb2"
   },
   "baselines": {
     "docs/agents/README.md": {
@@ -1117,7 +595,7 @@
       "executable": false
     },
     "CONTRIBUTING.md": {
-      "sha256": "88565885f90c94d74e06ce36de942532992297b80e1af0a97e26574829c6d529",
+      "sha256": "c25bf00e0380c8ea900f794f68e7f45c0027eae4614f3588d0dc606fec188645",
       "executable": false
     },
     "docs/agents/domain.md": {
@@ -1197,7 +675,7 @@
       "executable": false
     },
     ".github/PULL_REQUEST_TEMPLATE.md": {
-      "sha256": "4ca0528fa7bab99c0107da587058aebf6cb94c2e9a5760b725f50a3e2c29d2ec",
+      "sha256": "7dcc5881eef1c342a08519750b9beae700f4620d1fdf23c2eb0d9b2dfaec5fd0",
       "executable": false
     },
     "operations/lib/rendered-markdown.mjs": {
@@ -1205,19 +683,19 @@
       "executable": false
     },
     ".agents/skills/babysit/SKILL.md": {
-      "sha256": "14e03172858f7ba2d025d02b0e5ec483ee77390270aaa6224ec447dcd055275f",
+      "sha256": "b6900b4378f0b8b9c46b6c7c6b56cad36e62b4f740e59b835559f21baaeda5f3",
       "executable": false
     },
     ".agents/skills/babysit/merge.mjs": {
-      "sha256": "d4a4352b95376f44db1dba5e8e13368846458e91789035874b927b499938e302",
+      "sha256": "f1ba69545f9e7234666e76e1bb64283378419f9e6af963753d141107438b8d3e",
       "executable": false
     },
     ".agents/skills/babysit/reviewer.mjs": {
-      "sha256": "1802605d9778698b5d6d6599323648b9329df1b821e18760f13b02c237bf8482",
+      "sha256": "43c0834119e5caad5478abe6216e46ccd9813d8019a2097e7d0bc8616ff94373",
       "executable": false
     },
     ".agents/skills/babysit/wait.mjs": {
-      "sha256": "fdedab285461067819b691168af2707e4afc7b44eb1ca9671a6bc840ca05e281",
+      "sha256": "041dd8a31517f0592b2a16d72030d7a95f94d7b643f676f52929895f92eacc46",
       "executable": false
     },
     ".agents/skills/code-review/SKILL.md": {
@@ -1614,7 +1092,7 @@
       "result": {
         "format": "repo-standards/result/v2",
         "status": "passed",
-        "message": "No pull request reviewer is configured."
+        "message": ".github/pull-request-reviewer.json is valid."
       },
       "error": null,
       "stdout": ".repo-standards/local/operations/3.stdout",
@@ -1667,46 +1145,41 @@
     {
       "format": "repo-standards/assessment/v3",
       "scope": {
-        "inspection": "sha256:0d2aa1ae5abee94c564a18b78a96a2f3dd59a987a7969d885db895f62c022392",
-        "afterFixes": "sha256:8ff5fa65a6548a60b2758117270526c577d29cd921d37b5397be439ebbf38c7d"
+        "inspection": "sha256:6874c4b28e8a7e27d67b61bdd865086b74617de013ddac8060541164aa9b7c2c",
+        "afterFixes": "sha256:4fbe3f5fd1fe6bad3075831d8ac964baf66b2dae003af41556164f58b4d216aa"
       },
-      "run": "eb69e65e-c0aa-4a9a-8d8b-a5c2373c4fb1",
-      "selection": "sha256:57b8b83a7c7eac6f45ca5f5addf501f2c3f30a8a42dad5d487425d29173b8189",
-      "snapshot": "sha256:840465192bf70f2b42506baedfb27aaf9e508048f2eae8281fbbe128cc7829ea",
+      "run": "1a6fc86f-4336-4e47-a5e8-bb7c80916176",
+      "selection": "sha256:7cad71149b53257c9ca476ec8ecaf13b436c6f09913397a5c5c0493d3e17a3d3",
+      "snapshot": "sha256:4fbe3f5fd1fe6bad3075831d8ac964baf66b2dae003af41556164f58b4d216aa",
       "declarations": [
         {
           "id": "documentation",
           "status": "satisfied",
-          "explanation": "The newcomer usage index explains the CLI audience and what applying conventions changes, then defines its vocabulary. Existing indexed usage, development, ADR and agent documents remain maintained. The development setup describes the separate toolchain and agent layers; the retired sandbox file is removed.",
-          "changedPaths": [
-            ".sandcastle/Dockerfile",
-            "docs/development/README.md",
-            "docs/usage/README.md"
-          ],
+          "explanation": "The maintained documentation already uses audience-specific usage, development, ADR and agent categories with indexes and a root glossary; no contextual edit or migration is needed.",
+          "changedPaths": [],
           "evidence": [
-            "docs/usage/README.md starts with a single accessible purpose sentence and defines standards source, profile, adoption, inspection, update, discovery, rules and assessment before its links.",
-            "docs/development/README.md names Node 24, pnpm, npm and Git, frozen-lockfile installation, focused validation and required Linux CI checks.",
-            ".sandcastle/Dockerfile was removed after preserving its Node 24.11.1 and pnpm 11.20.0 toolchain in .factory/Dockerfile.",
-            "docs/README.md and directory indexes retain category navigation; ADRs and GLOSSARY.md are preserved."
+            "docs/README.md explains each category; docs/usage/README.md identifies maintainers, defines standards source/profile/adoption before using them, and gives the public adopt entry point.",
+            "docs/development/README.md provides Node.js 24, pinned pnpm, frozen installation, development and validation commands matching package.json and pnpm-workspace.yaml; docs/agents/project.md keeps the main-branch and architecture constraints.",
+            "docs/adr/README.md indexes decisions, including preserved superseded ADRs 0003 and 0004 with their successor links. GLOSSARY.md defines the current product terminology; no CONTEXT files remain.",
+            "docs/usage documents are maintained command/format guides, docs/development holds architecture and release procedure, and ADRs retain rationale. Observed release/adoption records are linked to their events rather than stored as an evidence category.",
+            "The current scope was redrafted from v0.12.0. Acceptance/examples contain synthetic fixtures and harness guidance, and skills contains shipped skill resources; these remain in their functional package locations. Exact shared agent files remain owned by their declarations."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Reviewed the accepted candidates against repository content: docs is the only documentation root, site the only non-root maintained project, and remote setup has intentionally empty scope. Retired skill packages, examples and acceptance fixtures are not documentation projects.",
+              "explanation": "Reviewed docs as the sole root, glossary, indexes, fixture exclusions and links after fixes and again at the refreshed snapshot. All required paths are covered; no moves, new indexes or link repairs are needed.",
               "evidence": [
-                "pnpm-workspace.yaml and site/package.json establish the website workspace; acceptance/README.md and examples establish synthetic fixtures.",
-                "docs indexes and the root glossary cover maintained documentation; exact-owned docs/agents files remain outside contextual ownership.",
-                ".sandcastle/Dockerfile is covered for migration deletion and .factory/Dockerfile by its explicit declaration."
+                "Fresh drafter includes all non-exact docs files and GLOSSARY.md; exact agent documentation is separately owned.",
+                "Post-fix and refreshed trees contain the same maintained roots and exclusions. Retired .sandcastle/Dockerfile is absent and no longer in the scope."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Reviewed the accepted candidates against repository content: docs is the only documentation root, site the only non-root maintained project, and remote setup has intentionally empty scope. Retired skill packages, examples and acceptance fixtures are not documentation projects.",
+              "explanation": "Reviewed docs as the sole root, glossary, indexes, fixture exclusions and links after fixes and again at the refreshed snapshot. All required paths are covered; no moves, new indexes or link repairs are needed.",
               "evidence": [
-                "pnpm-workspace.yaml and site/package.json establish the website workspace; acceptance/README.md and examples establish synthetic fixtures.",
-                "docs indexes and the root glossary cover maintained documentation; exact-owned docs/agents files remain outside contextual ownership.",
-                ".sandcastle/Dockerfile is covered for migration deletion and .factory/Dockerfile by its explicit declaration."
+                "Fresh drafter includes all non-exact docs files and GLOSSARY.md; exact agent documentation is separately owned.",
+                "Post-fix and refreshed trees contain the same maintained roots and exclusions. Retired .sandcastle/Dockerfile is absent and no longer in the scope."
               ],
               "additionalPaths": []
             }
@@ -1715,44 +1188,42 @@
         {
           "id": "factory-sandbox-image",
           "status": "satisfied",
-          "explanation": "The Debian-based toolchain image provides only the Node/npm runtime and pnpm required by this repository, without project dependencies or agent tooling.",
-          "changedPaths": [
-            ".factory/Dockerfile"
-          ],
+          "explanation": "The unchanged Debian-based toolchain image already supplies Node.js 24 and the pinned package manager, satisfying the new delivery runtime requirement.",
+          "changedPaths": [],
           "evidence": [
-            ".factory/Dockerfile uses node:24.11.1-bookworm, matching .node-version; its single RUN installs pnpm@11.20.0, matching package.json.",
-            "docs/development/README.md Setup and validation lines 7-14 identify Node 24, package manager pins, npm and Git; Scriptorium v1.0.1 supplies Git and agent tools.",
-            "The Dockerfile has no COPY, ADD, user setup, working directory, CMD or ENTRYPOINT, so it builds with no context and accepts the host agent layer."
+            ".factory/Dockerfile starts FROM node:24.11.1-bookworm, matching .node-version 24.11.1 and package.json engines >=24 <25. It installs pnpm@11.20.0 globally, matching package.json packageManager.",
+            "docs/development/README.md Setup and validation names Node.js, npm and pinned pnpm, explains TypeScript/project dependency installation through pnpm install --frozen-lockfile, and delegates Git and agent tools to the factory layer.",
+            "The installed .agents/skills/babysit/SKILL.md invokes wait.mjs and merge.mjs with node; retained v0.12.0 image guidance requires major 24. The Node base supplies this runtime without an additional install.",
+            "The Dockerfile has only FROM and a package-source RUN, with no COPY, ADD, agent tool setup, user, entrypoint or repository dependency installation. Assessment is from file/toolchain inspection; no fresh container build or in-container version probe was run."
           ]
         },
         {
           "id": "github-repository-configuration",
           "status": "satisfied",
-          "explanation": "Remote setup fixes reported unchanged canonical labels and PR integration. Reviewer data remains absent until the explicitly requested separate PR.",
+          "explanation": "The existing remote configuration satisfies the required labels, PR metadata requirement and squash settings; the reviewer file remains repository-owned.",
           "changedPaths": [],
           "evidence": [
-            "canonical-labels returned unchanged for lutzseverino/repo-standards.",
-            "pull-request-integration returned unchanged, preserving required checks and squash configuration.",
-            ".github/pull-request-reviewer.json has not been added to the adoption."
+            "canonical-labels completed with exit 0/status unchanged and readback saying GitHub labels already match for lutzseverino/repo-standards.",
+            "pull-request-integration completed with exit 0/status unchanged and readback saying PR integration already matches; the workflow is already on main, so this is neither unavailable nor deferred.",
+            ".github/pull-request-reviewer.json specifies chatgpt-codex-connector[bot], opening as a request, and response/review bounds of 5/30 minutes. The optional reviewRequests field remains absent, preserving the owner configuration.",
+            "This declaration intentionally has no project-content scope. Remote observations describe execution-time state only; unrelated labels/settings are preserved."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Reviewed the accepted candidates against repository content: docs is the only documentation root, site the only non-root maintained project, and remote setup has intentionally empty scope. Retired skill packages, examples and acceptance fixtures are not documentation projects.",
+              "explanation": "The origin still identifies the same authorized repository and empty project-content scope remains intentional after fixes and at the refreshed snapshot.",
               "evidence": [
-                "pnpm-workspace.yaml and site/package.json establish the website workspace; acceptance/README.md and examples establish synthetic fixtures.",
-                "docs indexes and the root glossary cover maintained documentation; exact-owned docs/agents files remain outside contextual ownership.",
-                ".sandcastle/Dockerfile is covered for migration deletion and .factory/Dockerfile by its explicit declaration."
+                "Both remote fix outcomes are unchanged for lutzseverino/repo-standards.",
+                "Reviewer configuration is data inspected read-only; no project-content path is required."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Reviewed the accepted candidates against repository content: docs is the only documentation root, site the only non-root maintained project, and remote setup has intentionally empty scope. Retired skill packages, examples and acceptance fixtures are not documentation projects.",
+              "explanation": "The origin still identifies the same authorized repository and empty project-content scope remains intentional after fixes and at the refreshed snapshot.",
               "evidence": [
-                "pnpm-workspace.yaml and site/package.json establish the website workspace; acceptance/README.md and examples establish synthetic fixtures.",
-                "docs indexes and the root glossary cover maintained documentation; exact-owned docs/agents files remain outside contextual ownership.",
-                ".sandcastle/Dockerfile is covered for migration deletion and .factory/Dockerfile by its explicit declaration."
+                "Both remote fix outcomes are unchanged for lutzseverino/repo-standards.",
+                "Reviewer configuration is data inspected read-only; no project-content path is required."
               ],
               "additionalPaths": []
             }
@@ -1761,30 +1232,29 @@
         {
           "id": "project-readmes",
           "status": "satisfied",
-          "explanation": "The existing website README accurately describes its private workspace, commands, Astro configuration and Pages deployment and links shared contributor setup.",
+          "explanation": "The private site workspace is the only non-root Project, and its existing README accurately explains its purpose, commands, configuration and shared workflow.",
           "changedPaths": [],
           "evidence": [
-            "site/README.md links ../docs/development/README.md and ../CONTRIBUTING.md and states the working directory for its pnpm commands.",
-            "site/package.json and site/astro.config.mjs establish Astro/React and the configured public site; pnpm-workspace.yaml includes site."
+            "pnpm-workspace.yaml lists site; site/package.json is private and names Astro dev/check/build/preview scripts. site/README.md gives each command from repository root and links root development and contribution guides.",
+            "site/src/pages/index.astro is the documented placeholder, site/astro.config.mjs configures React, Tailwind and the documented site URL, and site/components.json/tsconfig.json define shadcn and the alias. README explains dist output and deployment.",
+            "The root CLI is covered by repository-readme. Acceptance harness and synthetic projects, example standards, vendor modules, and root CLI implementation directories do not establish additional maintained Projects."
           ],
           "scopeValidity": {
             "afterFixes": {
               "status": "valid",
-              "explanation": "Reviewed the accepted candidates against repository content: docs is the only documentation root, site the only non-root maintained project, and remote setup has intentionally empty scope. Retired skill packages, examples and acceptance fixtures are not documentation projects.",
+              "explanation": "Reviewed manifests and maintained source after fixes and again at the refreshed snapshot. site remains the sole non-root Project; its README exists and no missing Project README was found.",
               "evidence": [
-                "pnpm-workspace.yaml and site/package.json establish the website workspace; acceptance/README.md and examples establish synthetic fixtures.",
-                "docs indexes and the root glossary cover maintained documentation; exact-owned docs/agents files remain outside contextual ownership.",
-                ".sandcastle/Dockerfile is covered for migration deletion and .factory/Dockerfile by its explicit declaration."
+                "pnpm-workspace.yaml and site/package.json identify the private site workspace; site/README.md remains covered.",
+                "Root CLI components, acceptance/examples fixtures and vendor code retain their reviewed exclusions."
               ],
               "additionalPaths": []
             },
             "current": {
               "status": "valid",
-              "explanation": "Reviewed the accepted candidates against repository content: docs is the only documentation root, site the only non-root maintained project, and remote setup has intentionally empty scope. Retired skill packages, examples and acceptance fixtures are not documentation projects.",
+              "explanation": "Reviewed manifests and maintained source after fixes and again at the refreshed snapshot. site remains the sole non-root Project; its README exists and no missing Project README was found.",
               "evidence": [
-                "pnpm-workspace.yaml and site/package.json establish the website workspace; acceptance/README.md and examples establish synthetic fixtures.",
-                "docs indexes and the root glossary cover maintained documentation; exact-owned docs/agents files remain outside contextual ownership.",
-                ".sandcastle/Dockerfile is covered for migration deletion and .factory/Dockerfile by its explicit declaration."
+                "pnpm-workspace.yaml and site/package.json identify the private site workspace; site/README.md remains covered.",
+                "Root CLI components, acceptance/examples fixtures and vendor code retain their reviewed exclusions."
               ],
               "additionalPaths": []
             }
@@ -1793,23 +1263,23 @@
         {
           "id": "repository-license",
           "status": "satisfied",
-          "explanation": "The existing single MIT license is preserved.",
+          "explanation": "The root LICENSE already holds a single clear MIT license and needs no change.",
           "changedPaths": [],
           "evidence": [
-            "Root LICENSE contains the MIT grant and Copyright (c) 2026 Jasper Lutz Severino; no competing root license exists."
+            "LICENSE contains MIT License and Copyright (c) 2026 Jasper Lutz Severino, with the permission and warranty terms intact.",
+            "Root license inventory contains only LICENSE; nested source/vendor licenses are independent. package.json declares MIT and README.md links LICENSE as MIT License."
           ]
         },
         {
           "id": "repository-readme",
           "status": "satisfied",
-          "explanation": "The README now states its maintainer audience in one sentence, explains what applying conventions changes and defines vocabulary before use, while preserving real installation, capabilities, CLI example, badges and navigation.",
-          "changedPaths": [
-            "README.md"
-          ],
+          "explanation": "The existing root README meets the newcomer guidance and accurately describes the current product; its product documentation continues to describe CLI 7.0.0 while the independent adoption runtime remains 6.0.0.",
+          "changedPaths": [],
           "evidence": [
-            "README.md retains Node 24 and TypeScript badges, npm installation and source validate example supported by package.json.",
-            "Its new opening paragraph defines standards source, profile, adoption, inspection, update and rules.",
-            "Documentation, Contributing and License remain single resolving links, with MIT matching LICENSE."
+            "README.md has a centered title, a one-sentence maintainer-facing description and TypeScript/Node.js 24 badges matching source language and package.json engines.",
+            "It defines standards source, profile, adoption, inspection, update and rules before the command and feature descriptions; installation and representative update use unversioned npx package commands supported by src/adopt.ts and src/cli.ts.",
+            "Features start with verbs and describe inspection, assessments, updates, checks, rules and discovery present in current source. Documentation/Contributing/License sections are plain single links to docs/README.md, CONTRIBUTING.md and MIT LICENSE in the required order.",
+            "User installation is distinguished from contributor setup by its prerequisites and linked development guide; the unchanged product package is 7.0.0, independent of .repo-standards runtime pin 6.0.0."
           ]
         }
       ]
