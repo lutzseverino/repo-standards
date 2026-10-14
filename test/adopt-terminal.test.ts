@@ -317,29 +317,37 @@ test("adopt in a terminal asks a discovery script's open questions and reviews t
   session.type("");
   await session.expect("Start the run? [Y/n]: ");
   session.type("");
+  // The scope is reviewed as the fixes left it, before any edit, and again
+  // once the contextual work is done.
   const walk = await session.expect(
-    "Edit the files now. Press Enter when you are done, or type blocked: ",
+    "After the run's fixes, before any contextual edit, did its confirmed scope, app/README.md, cover every file project-docs should? [Y/n]: ",
   );
   assert.match(walk, /Edit only: app\/README\.md/);
+  session.type("");
+  await session.expect(
+    "Edit the files now. Press Enter when you are done, or type blocked: ",
+  );
   writeFileSync(join(f.root, "app/README.md"), "# App\n");
   session.type("");
   assert.match(
-    await session.expect(
-      "Does its confirmed scope, app/README.md, still cover every file project-docs should? [Y/n]: ",
-    ),
+    await session.expect("Is project-docs done? [Y/n/blocked]: "),
     /project-docs declares no checks\./,
   );
   session.type("");
-  await session.expect("Is project-docs done? [Y/n/blocked]: ");
+  await session.expect(
+    "Now that the contextual work is done, does the confirmed scope of project-docs, app/README.md, cover every file it should? [Y/n]: ",
+  );
   session.type("");
   await session.expect("The adoption is complete.");
   assert.equal(await session.exit(), 0, session.rest());
   const [judgment] = status(f).assessments![0]!.declarations;
-  assert.equal(
-    (judgment as { scopeValidity: { current: { status: string } } })
-      .scopeValidity.current.status,
-    "valid",
-  );
+  const { scopeValidity } = judgment as unknown as {
+    scopeValidity: Record<string, { status: string; explanation: string }>;
+  };
+  assert.equal(scopeValidity.afterFixes!.status, "valid");
+  assert.match(scopeValidity.afterFixes!.explanation, /after the run's fixes/);
+  assert.equal(scopeValidity.current!.status, "valid");
+  assert.match(scopeValidity.current!.explanation, /after the contextual work/);
 });
 
 test("adopt in a terminal reruns a fix allowed to overwrite a setting once the person confirms", async (t) => {
@@ -415,10 +423,7 @@ test("a scope the person reports incomplete stops the walk and the run, which th
   session.type("");
   await session.expect("Start the run? [Y/n]: ");
   session.type("");
-  await session.expect("Press Enter when you are done, or type blocked: ");
-  writeFileSync(join(f.root, "app/README.md"), "# App\n");
-  session.type("");
-  await session.expect("still cover every file project-docs should? [Y/n]: ");
+  await session.expect("cover every file project-docs should? [Y/n]: ");
   session.type("n");
   await session.expect("File: ");
   session.type("tools/README.md");
@@ -428,7 +433,7 @@ test("a scope the person reports incomplete stops the walk and the run, which th
   // later declaration's work can complete the run.
   assert.doesNotMatch(
     await session.expect("Submitting the assessment"),
-    /Is project-docs done\?|Contextual work 2 of 2/,
+    /Press Enter when you are done|Contextual work 2 of 2/,
   );
   assert.match(
     await session.expect("Abandon the run, or stop? [abandon/stop]: "),
@@ -439,7 +444,9 @@ test("a scope the person reports incomplete stops the walk and the run, which th
   assert.equal(await session.exit(), 1);
   assert.equal(status(f).active, null);
   // The run's work stays in the project.
-  assert.equal(readFileSync(join(f.root, "app/README.md"), "utf8"), "# App\n");
+  assert.ok(
+    existsSync(join(f.root, ".agents/skills/repository-standards/SKILL.md")),
+  );
 });
 
 test("a person lists the files a discovery declaration covers, and a rejected path asks again", async (t) => {
@@ -507,7 +514,7 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
   await session.expect("Start the run? [Y/n]: ");
   session.type("");
   const walk = await session.expect(
-    "Press Enter when you are done, or type blocked: ",
+    "cover every file project-docs should? [Y/n]: ",
   );
   const targets = /Edit only: (.*)\n/.exec(walk)![1]!.split(", ").sort();
   assert.deepEqual(targets, [

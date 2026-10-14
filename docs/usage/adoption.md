@@ -70,14 +70,19 @@ Once the run waits for contextual work, `adopt` walks each contextual
 declaration in turn:
 
 1. It shows the declaration's allowed targets, installed rules, adoption
-   guidance and, for a discovered declaration, discovery guidance.
+   guidance and, for a discovered declaration, discovery guidance. For a
+   discovered declaration, it asks whether the confirmed scope covered every
+   file it should as the run's fixes left the project.
 2. It waits while the person edits, until they press Enter or type `blocked`.
 3. It runs the declaration's checks against the working tree and shows each
    result. While a check fails, it shows the failure and the declaration's
    rules again, and waits for another edit.
-4. Once the checks pass, it asks a discovered declaration whether its
-   confirmed scope still covers every file it should, then whether the
-   declaration is done, or blocked with a reason.
+4. Once the checks pass, it asks whether the declaration is done, or blocked
+   with a reason.
+
+Once every declaration is walked, it asks again, for each discovered
+declaration, whether the confirmed scope covers every file it should now.
+A scope that misses files ends the walk: the run can only stop incomplete.
 
 These checks run read-only inside the waiting run, as `check` runs them, from
 its installation once verified, and record nothing: the run's own check round after the assessment decides.

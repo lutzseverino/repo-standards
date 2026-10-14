@@ -327,6 +327,23 @@ export async function adoptInTerminal(
           if (judgment.scopeValidity?.current.status === "blocked")
             incomplete ??= declaration.id;
         }
+        // With all contextual work done, each discovered declaration's scope
+        // is reviewed as the project now is.
+        if (!incomplete)
+          for (const declaration of declarations) {
+            const judgment = judged.get(declaration.id);
+            if (!declaration.discovery || !judgment?.scopeValidity) continue;
+            const current = await reviewScope(
+              prompt,
+              declaration,
+              `Now that the contextual work is done, does the confirmed scope of ${declaration.id}, ${targetList(declaration)}, cover every file it should? [Y/n]: `,
+              "after the contextual work",
+            );
+            judged.set(declaration.id, {
+              ...judgment,
+              scopeValidity: { ...judgment.scopeValidity, current },
+            });
+          }
         for (const { id } of declarations)
           answers.set(`assessment:${id}`, judged.get(id));
         submitted = true;
@@ -582,18 +599,15 @@ async function askScope(
 // One contextual declaration, walked until the person reports it done with
 // its checks passing, or blocked.
 async function walkDeclaration(
-  { write, ask, required, choose, yes, paths }: Prompts,
+  prompt: Prompts,
   { root, cliVersion }: Session,
   declaration: Contextual,
   position: string,
   failed: NonNullable<AdoptReport["failedChecks"]>,
 ): Promise<Answer> {
-  const { id, allowedTargets, rules, guidance, discovery } = declaration;
-  const targets = [
-    ...allowedTargets.paths,
-    ...allowedTargets.directories.map((directory) => `${directory}/`),
-  ];
-  const scope = targets.join(", ") || "no files";
+  const { write, ask, required, choose } = prompt;
+  const { id, rules, guidance, discovery } = declaration;
+  const scope = targetList(declaration);
   write(`\nContextual work ${position}: ${id}\nEdit only: ${scope}\n`);
   const showRules = (heading: string) =>
     write(
@@ -611,47 +625,32 @@ async function walkDeclaration(
     );
   for (const check of failed)
     write(`Failed after the assessment: ${check.id}: ${check.message}\n`);
-  // The person's review of a discovered declaration's confirmed scope, after
-  // the run's fixes and now.
-  const reviewScope = async () => {
-    const evidence = [`The confirmed scope: ${scope}.`];
-    let review: ScopeReview = {
-      status: "valid",
-      explanation:
-        "The maintainer confirmed in adopt's terminal walk-through, after the run's fixes, that the confirmed scope covers every file the declaration should.",
-      evidence,
-      additionalPaths: [],
+  // A discovered declaration's scope is reviewed as the run's fixes left the
+  // project, before any edit; the current review, once all contextual work
+  // is done, replaces the second copy. A scope that misses files stops the
+  // run, so the walk ends there.
+  const afterFixes = discovery
+    ? await reviewScope(
+        prompt,
+        declaration,
+        `After the run's fixes, before any contextual edit, did its confirmed scope, ${scope}, cover every file ${id} should? [Y/n]: `,
+        "after the run's fixes",
+      )
+    : undefined;
+  const scopeValidity = afterFixes
+    ? { afterFixes, current: afterFixes }
+    : undefined;
+  if (afterFixes?.status === "blocked")
+    return {
+      status: "blocked",
+      explanation: afterFixes.explanation,
+      evidence: [
+        "The maintainer reported the confirmed scope incomplete in adopt's terminal walk-through.",
+      ],
+      scopeValidity: scopeValidity!,
     };
-    if (
-      !(await yes(
-        `Does its confirmed scope, ${scope}, still cover every file ${id} should? [Y/n]: `,
-        "yes",
-      ))
-    ) {
-      write(
-        "List the files it misses, one per line; an empty line ends the list.\n",
-      );
-      let missing: string[] = [];
-      while (!missing.length) missing = await paths("File: ");
-      write(
-        "A run's confirmed scope never changes, so the run stops incomplete: abandon it, then adopt again with a new scope.\n",
-      );
-      review = {
-        status: "blocked",
-        explanation: `The maintainer reports files the confirmed scope misses: ${missing.join(", ")}.`,
-        evidence,
-        additionalPaths: missing,
-      };
-    }
-    return { afterFixes: review, current: review };
-  };
-  const blocked = async (
-    evidence: string[],
-    reviewed?: Answer["scopeValidity"],
-  ): Promise<Answer> => {
+  const blocked = async (evidence: string[]): Promise<Answer> => {
     const explanation = await required(`Why is ${id} blocked? `);
-    const scopeValidity =
-      reviewed ?? (discovery ? await reviewScope() : undefined);
     return {
       status: "blocked",
       explanation,
@@ -662,12 +661,14 @@ async function walkDeclaration(
       ...(scopeValidity ? { scopeValidity } : {}),
     };
   };
-  let prompt = failed.length ? fixing : editing;
+  let wait = failed.length ? fixing : editing;
   // The latest check results, the evidence of a block that follows them.
-  let evidence: string[] = [];
+  let evidence = failed.map(
+    (check) => `Check ${check.id} failed: ${check.message}`,
+  );
   for (;;) {
     // Only Enter or blocked answers the wait; anything else asks again.
-    const typed = (await ask(prompt)).toLowerCase();
+    const typed = (await ask(wait)).toLowerCase();
     if (typed === "blocked") return blocked(evidence);
     if (typed) continue;
     write(`Running the checks of ${id}.\n`);
@@ -682,21 +683,9 @@ async function walkDeclaration(
     );
     if (results.some((result) => result.status !== "passed")) {
       showRules("Its rules");
-      prompt = fixing;
+      wait = fixing;
       continue;
     }
-    const scopeValidity = discovery ? await reviewScope() : undefined;
-    // A scope that misses files stops the run, however the work is judged.
-    if (scopeValidity?.current.status === "blocked")
-      return {
-        status: "blocked",
-        explanation: scopeValidity.current.explanation,
-        evidence: [
-          ...evidence,
-          "The maintainer reported the confirmed scope incomplete in adopt's terminal walk-through.",
-        ],
-        scopeValidity,
-      };
     const answer = await choose(
       `Is ${id} done? [Y/n/blocked]: `,
       { y: "done", yes: "done", n: "edit", no: "edit", blocked: "blocked" },
@@ -712,7 +701,49 @@ async function walkDeclaration(
         ],
         ...(scopeValidity ? { scopeValidity } : {}),
       };
-    if (answer === "blocked") return blocked(evidence, scopeValidity);
-    prompt = editing;
+    if (answer === "blocked") return blocked(evidence);
+    wait = editing;
   }
+}
+
+// A declaration's allowed targets, as a person reads them.
+function targetList({ allowedTargets }: Contextual) {
+  return (
+    [
+      ...allowedTargets.paths,
+      ...allowedTargets.directories.map((directory) => `${directory}/`),
+    ].join(", ") || "no files"
+  );
+}
+
+// The person's review of a discovered declaration's confirmed scope at one
+// point of the run.
+async function reviewScope(
+  { write, yes, paths }: Prompts,
+  declaration: Contextual,
+  question: string,
+  when: string,
+): Promise<ScopeReview> {
+  const evidence = [`The confirmed scope: ${targetList(declaration)}.`];
+  if (await yes(question, "yes"))
+    return {
+      status: "valid",
+      explanation: `The maintainer confirmed in adopt's terminal walk-through that, ${when}, the confirmed scope covers every file the declaration should.`,
+      evidence,
+      additionalPaths: [],
+    };
+  write(
+    "List the files it misses, one per line; an empty line ends the list.\n",
+  );
+  let missing: string[] = [];
+  while (!missing.length) missing = await paths("File: ");
+  write(
+    "A run's confirmed scope never changes, so the run stops incomplete: abandon it, then adopt again with a new scope.\n",
+  );
+  return {
+    status: "blocked",
+    explanation: `The maintainer reports files the confirmed scope misses ${when}: ${missing.join(", ")}.`,
+    evidence,
+    additionalPaths: missing,
+  };
 }
