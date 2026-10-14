@@ -692,7 +692,7 @@ test("all four forms resolve through inheritance, replacement, addition and excl
         },
         prerequisite: {
           "version-arguments": ["--version"],
-          version: ">=3.12.0 <4.0.0",
+          version: ">=3.9.0 <4.0.0",
         },
         "timeout-seconds": 60,
       },
