@@ -133,13 +133,16 @@ function prompts({ write, ask: line }: Terminal) {
       }
     },
     // One of the names, or the proposed one when the person types nothing.
+    // A name may begin or end with a space, so the line as typed is a name
+    // before its trimmed form is.
     named: async (label: string, proposed: string | null, names: string[]) => {
       for (;;) {
-        const typed =
-          (await ask(`${label}${proposed ? ` [${proposed}]` : ""}: `)) ||
-          proposed;
-        if (typed && names.includes(typed)) return typed;
-        if (typed) write(`Choose one of: ${names.join(", ")}.\n`);
+        const typed = await line(
+          `${label}${proposed ? ` [${proposed}]` : ""}: `,
+        );
+        const name = names.includes(typed) ? typed : typed.trim() || proposed;
+        if (name && names.includes(name)) return name;
+        if (name) write(`Choose one of: ${names.join(", ")}.\n`);
       }
     },
   };
@@ -514,7 +517,7 @@ async function askSelection(
         for (const changed of entry.files)
           write(
             changed.diff !== undefined
-              ? `${changed.diff.trimEnd()}\n`
+              ? `${changed.diff}${changed.diff.endsWith("\n") ? "" : "\n"}`
               : `${changed.path}: its ${changed.binary ? "binary " : ""}content is replaced.\n`,
           );
         if (!entry.files.length)
