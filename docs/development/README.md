@@ -67,6 +67,41 @@ macOS passes.
 parts replaces a local full-suite run, so open the PR once focused checks pass.
 Run additional local tests to diagnose failures when needed.
 
+#### Running the full suite on a constrained host
+
+The three Linux parts are the gate. A full local run is sensitive to host load:
+`pnpm test` runs every test file in parallel at Node's default concurrency, one
+fewer than the available parallelism, and most files pack and install the CLI
+and start adoption fixtures, each with its own local registry process and runtime
+install. Fixed wall-clock limits then expire on a shared or saturated host: the
+product's 10-second `npm --version` and `git --version` probes, its 120-second
+runtime install, and the test harness's 60-second wait for terminal output. The
+failures that follow, such as `NPM_REQUIRED`, `GIT_REQUIRED`, `RUNTIME_INSTALL`,
+terminal timeouts, or a stale snapshot, come from load alone and say nothing
+about the change. The product's limits stay sized for an adopter's machine; do
+not raise them to suit the test suite.
+
+To run the full suite with limited concurrency, build first, then run Node's
+test runner directly:
+
+```sh
+pnpm build
+node --test --test-concurrency=<n> test/*.test.ts
+```
+
+`pnpm test` and `pnpm validate` offer no way to set the concurrency, because
+Node rejects `--test-concurrency` in `NODE_OPTIONS` and ignores it after the
+file pattern, which is where `pnpm test --test-concurrency=<n>` puts it. With
+`n` set to `1`, test files run one at a time. Choose `n` so the host stays well
+below saturation while the suite runs: start at half the available
+parallelism, and lower it until runs stop failing with the load symptoms above.
+A standard GitHub-hosted Linux runner runs each CI part at the default
+concurrency, which is the reference point for a host that needs no limit.
+
+A test that fails only in a full local run is a load symptom, not a finding,
+when its focused rerun and the three Linux parts pass. Treat it as a finding
+only when it also fails in a full run with limited concurrency.
+
 ## Documents
 
 - [Website project](../../site/README.md): local site commands, source layout,
