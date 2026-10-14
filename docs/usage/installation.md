@@ -10,9 +10,26 @@ from <https://nodejs.org/en/download> or select it with your version manager.
 Author operations may require additional executables and versions; inspection
 discloses these, and start checks them before changing the project.
 
+## Adopt without a manual installation
+
+From a committed, clean Git working tree, ask your agent to run this command
+with your standards source's public GitHub URL, or run it yourself:
+
+```sh
+npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
+```
+
+At a terminal, `adopt` asks questions and walks you through edits and checks.
+Without a terminal, it prints an answers-file template and the agent's next
+steps. It installs and pins the exact CLI it ran into the project's runtime,
+leaving changes uncommitted. No product checkout, TypeScript compiler, pnpm,
+or manual external CLI installation is needed. Follow the
+[adoption guide](adoption.md) for both paths, remote setup deferral, and updates.
+
 ## Install outside your project
 
-No product checkout, TypeScript compiler, or pnpm is needed:
+For authoring commands or the lower-level inspection and adoption run
+interface, you can install the CLI separately:
 
 ```sh
 npm install --global --ignore-scripts --registry=https://registry.npmjs.org \
@@ -77,12 +94,9 @@ no hosting platform: a source's own probes and fixes decide what a platform
 needs. Source acquisition is the known blocker to platform independence: it
 accepts only public `github.com` sources.
 
-An agent adopts with [`adopt`](adoption.md#adopt-with-one-command), which
-prints its questions as an answers-file template with the next steps, installs
-the exact CLI that ran into the project's runtime, and leaves changes
-uncommitted with HEAD unchanged. The standalone bootstrap only inspects; to
-drive [inspection](inspection.md) and [adoption](adoption.md) yourself, retain
-an external installation of its selected exact CLI for start and recovery.
+The standalone bootstrap only inspects; to drive [inspection](inspection.md)
+and [inspect and start](adoption.md#inspect-and-start) directly, retain an
+external installation of its selected exact CLI for start and recovery.
 
 ## Install the authoring skill
 
@@ -152,10 +166,9 @@ its npm package and dependencies to be available or cached; new standards
 versions still require the source. These are independent availability limits.
 Status reports historical adoption evidence, not ongoing compliance.
 
-Use the pinned CLI to change the standards version, source, or profile, and an
-externally installed candidate exact CLI to change the CLI pin, alone or together
-with them. Follow [Update the selection](adoption.md#update-the-selection); each
-update is one inspection and one run.
+Use [`adopt`](adoption.md#updates-with-adopt) again to update the standards
+version, source, profile, or CLI pin. Each update is one inspection and one
+run; no manual external CLI installation is required.
 
 Windows, private sources, SSH and Git hosts other than public GitHub are
 unsupported. Trusted author scripts have normal host and network access;

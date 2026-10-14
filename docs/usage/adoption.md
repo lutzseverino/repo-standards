@@ -1,25 +1,30 @@
 # Adoption
 
-Initial adoption and deliberate updates install exact files and whole author
-skills, install each declaration's [rules](rules.md), and execute trusted fixes
-and checks. Profiles with contextual declarations return a work request after
-fixes, carrying their adoption guidance: one-time instructions for the run,
-kept only with the retained inputs. The run continues through the public
-[assessment protocol](assessment-protocol.md). Interrupted adoption supports
-explicit retry and abandonment as described below.
+Use `adopt` for your first adoption and every update. Ask your agent to run it,
+or run it yourself in a terminal: both paths select a version and profile,
+review the proposed changes, and complete the same adoption run.
 
 ## Adopt with one command
 
-`adopt` adopts a standards source, or updates an adopted project, for a person
-at a terminal or for an agent. It drives the [inspect and start](#inspect-and-start) and
-[resume](#recover-or-abandon-an-interrupted-run) commands below, which remain
-the lower-level interface. In a terminal it asks its questions and
-[walks the person through contextual work](#in-a-terminal); otherwise it
-prints the agent's next steps at every stage:
+Use macOS or Linux with Node.js 24, npm, and Git 2.32 or newer. Run from a Git
+working tree with an existing commit and no uncommitted changes; substitute
+your standards source's public GitHub URL:
 
 ```sh
 npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
 ```
+
+- **In a terminal:** `adopt` asks questions, shows the proposed changes, and
+  [walks you through contextual work](#in-a-terminal), running checks after
+  your edits and writing the assessment from your answers.
+- **With an agent:** `adopt` prints an [answers-file template](#answers-file)
+  and next steps. The agent relays the questions to you, fills the file, makes
+  the requested edits, and submits assessments with the same command.
+
+Adoption installs exact files, whole author skills, and each declaration's
+[rules](rules.md), adapts project-owned content, and runs the publisher's
+trusted fixes and checks. Review the resulting changes and commit them through
+your project's usual workflow; `adopt` leaves them uncommitted.
 
 The full form is `adopt [<GitHub URL>] [--standards-version <tag>]
 [--profile <name>] [--answers <file>] [--project <directory>] [--json]`. In an
@@ -111,6 +116,72 @@ does, abandon the run, or stop. A run whose confirmed scope is incomplete can
 only be abandoned. A fix that stops the run for confirmation asks whether it
 may overwrite the setting. Choosing to resolve remote setup that is not ready
 stops at once, writing nothing.
+
+### With an agent
+
+Run the one-liner through your agent without a terminal. Save the printed JSON
+template outside the project, fill its answers from the maintainer's choices,
+and continue with the exact command in the next steps, for example:
+
+```sh
+npx @lutzseverino/repo-standards@6.0.0 adopt --answers /tmp/adoption-answers.json
+```
+
+Use the CLI version printed by your own run. Once the pinned runtime is
+installed, the next steps use it instead:
+
+```sh
+.repo-standards/runtime/node_modules/.bin/repo-standards adopt --answers /tmp/adoption-answers.json
+```
+
+For contextual work, follow the returned rules and adoption guidance, edit only
+the allowed targets, and add each declaration's assessment to the answers
+file before continuing. Confirmation-required changes need the maintainer's
+confirmation of the printed identity; an agent cannot decide to discard edits
+on its own.
+
+### Defer remote setup
+
+Before writing anything, `adopt` probes setup that changes the hosting
+platform's settings. If a tool, remote, sign-in, or role is missing, choose
+`defer` at the terminal prompt or answer the answers file's `remote-setup`
+question with `defer`. Adoption can then complete locally; `status` and the
+adoption record list what was deferred. Choosing `resolve` stops without
+writing, so you can fix readiness first.
+
+A later `adopt` run probes remote setup again and applies it once ready. See
+the [remote setup reference](#remote-setup) for readiness, records, and recovery.
+
+### Updates with adopt
+
+In an adopted project, omit the source to update the current selection:
+
+```sh
+npx @lutzseverino/repo-standards adopt
+```
+
+This offers the newest stable standards release and the profiles, with the
+same terminal prompts or answers-file path. Pass a new source URL to change
+sources, or use `--standards-version` and `--profile` to choose them explicitly.
+Running through `npx` installs and pins the CLI it ran. To keep the current
+CLI pin while updating standards, use the project runtime instead:
+
+```sh
+.repo-standards/runtime/node_modules/.bin/repo-standards adopt
+```
+
+Each update reviews changes, obtains confirmation when required, and completes
+one run. See [Update the selection](#update-the-selection) for the detailed
+update contract and lower-level commands.
+
+## Protocol reference
+
+`adopt` drives [inspection](inspection.md), [inspect and start](#inspect-and-start),
+and [resume](#recover-or-abandon-an-interrupted-run). These remain available
+for callers that need the lower-level adoption run interface described below.
+The [script protocol](script-protocol.md) defines author operations; the
+[assessment protocol](assessment-protocol.md) defines contextual work evidence.
+Neither protocol needs to be read to start with `adopt`.
 
 ### Answers file
 
@@ -304,7 +375,7 @@ An update is one inspected run from the current selection to a
 candidate selection. The candidate can change the CLI pin, the standards pin,
 the source, the profile, any combination of them, or none of them. The
 inspection report lists every changed component together with the previous
-selection, and every update uses the same inspect and start sequence, with
+selection. `adopt` drives the same inspect and start sequence, with
 [confirmation](#confirmation-required-changes) only when the report requires it.
 The report also states whether the update is an exact update, which changes
 only exact content, skills, or the selection, or a contextual update, which

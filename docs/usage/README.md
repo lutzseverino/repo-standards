@@ -3,25 +3,32 @@
 Repository Standards gives maintainers a CLI and agent skills to publish and
 apply versioned repository conventions.
 
-A standards source is a repository's published conventions; a profile
-selects a complete set. Adoption installs shared files and skills, adapts project
+Start with `adopt` to apply a standards source: a repository's published
+conventions. Ask your agent to run the command below with its public GitHub URL,
+or run it yourself in a terminal. It installs and pins the CLI it ran without
+a manual external installation.
+
+```sh
+npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
+```
+
+A profile selects a complete set of conventions. Adoption installs shared files and skills, adapts project
 documentation, and runs the publisher's checks and setup commands. Inspection
 previews that work, and an update applies a new selection to an already
 configured repository. Source discovery finds publishers without applying their
 conventions. Installed rules state the requirements files must keep satisfying;
 an assessment records an agent's judgment that project-specific work meets them.
 
-- [Installation](installation.md): public npm installation, the standalone
-  bootstrap, the authoring skill, and fresh-checkout restoration.
+- [Adoption](adoption.md): `adopt` in a terminal or with an agent's answers
+  file, remote setup deferral, updates, and the lower-level adoption run reference.
+- [Installation](installation.md): prerequisites, adoption without a manual
+  install, optional CLI tools, the authoring skill, and fresh-checkout restoration.
 - [Authoring](authoring.md): validating and publishing a standards source,
   and where the `author-standards` skill and author contracts fit.
 - [Source discovery](discovery.md): searching the public `repo-standards` topic
   for standards sources without selecting or adopting them.
 - [Inspection](inspection.md): the read-only bootstrap and inspection, its
   report and identity, update inspection, summaries, and discovery scope.
-- [Adoption](adoption.md): adoption and updates with `adopt` and its answers
-  file, confirmation-required changes, durable and local state, completion,
-  status summaries, recovery commands, and fresh adoption.
 - [Available updates](available-updates.md): the read-only `outdated` report
   of newer CLI and standards versions and its cache.
 - [Adopted checks](check.md): running the adopted checks on demand with
