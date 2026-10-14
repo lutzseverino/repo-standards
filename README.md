@@ -16,15 +16,19 @@ are the installed requirements that files must keep satisfying.
 
 ## Installation
 
-On macOS or Linux, use Node.js 24, npm, and Git 2.32 or newer:
+On macOS or Linux, use Node.js 24, npm, and Git 2.32 or newer. From your
+committed, clean Git working tree, ask your agent to run this command with your
+standards source's public GitHub URL, or run it yourself:
 
 ```sh
-npm install --global --ignore-scripts @lutzseverino/repo-standards
-repo-standards --version
+npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
 ```
 
-See [installation](docs/usage/installation.md) for the standalone bootstrap,
-authoring skill, and fresh-checkout restoration.
+At a terminal, `adopt` asks questions and guides your edits. For an agent, it
+prints an answers-file template and next steps. It installs and pins the CLI
+it ran; no manual CLI installation is needed. See
+[adoption](docs/usage/adoption.md) for both paths and
+[installation](docs/usage/installation.md) for prerequisites and other tools.
 
 ## Features
 
@@ -39,16 +43,16 @@ authoring skill, and fresh-checkout restoration.
 
 ## Usage
 
-Validate a local standards source:
+Update an adopted project with the same command, omitting the source:
 
 ```sh
-repo-standards source validate /path/to/standards-repository --json
+npx @lutzseverino/repo-standards adopt
 ```
 
-Authors publish complete profiles in separate standards repositories. Adopting
-projects select one profile and inspect it before starting exact installation,
-contextual work, and trusted checks and fixes. Read [authoring](docs/usage/authoring.md)
-and [adoption](docs/usage/adoption.md) for these distinct workflows, the
+Choose a version and profile, review the proposed changes, and follow the
+prompts or your agent's questions. Setup that changes your hosting platform's
+settings can be deferred while adoption completes locally. Authors publish complete profiles in separate standards
+repositories; read [authoring](docs/usage/authoring.md) for that workflow, the
 [author format](docs/usage/author-format.md) for the source format, and the
 [architecture contracts](docs/development/architecture.md) for the product's
 behavior.
