@@ -12,6 +12,6 @@
 
 ## Related issue
 
-<!-- Link the issue, using Closes #123 when appropriate. For work without a ticket, write Direct change: followed by its reason instead. -->
+<!-- Link the issue with a closing reference, such as Closes #123, if the pull request finishes it; for partial work, use a nonclosing reference, such as Part of #123. For work without a ticket, write Direct change: followed by its reason instead. -->
 
 <!-- For a breaking change, mark the title with ! and explain its impact and migration in the body. -->

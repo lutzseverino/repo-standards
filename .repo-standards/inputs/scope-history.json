@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:0d2aa1ae5abee94c564a18b78a96a2f3dd59a987a7969d885db895f62c022392",
+  "inspection": "sha256:6874c4b28e8a7e27d67b61bdd865086b74617de013ddac8060541164aa9b7c2c",
   "resolved": {
     "description": "The standard profile plus the factory's repository files, for a repository a factory serves",
     "declarations": [
@@ -70,7 +70,6 @@
         "guidance": "guidance/documentation.md",
         "targets": {
           "paths": [
-            ".sandcastle/Dockerfile",
             "GLOSSARY.md",
             "docs/README.md",
             "docs/adr/0001-separate-authorship-from-adoption.md",
@@ -1146,23 +1145,14 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:7e21a1a6838d4957e820a4807a17047a95cfc6627579edf1c921c2b228eb0670",
+    "identity": "sha256:42d095ba6114d56fa244410959815d89ec99759184ebf4eb26f5163fc3e7a2a5",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
         {
           "id": "documentation",
-          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Reviewed unresolved groups: acceptance and examples are executable acceptance fixtures; skills and .agents are workflow instruction packages, not user documentation. docs is the sole documentation root. The old sandbox Dockerfile is included for the v0.11 migration removal accompanying the development setup update.",
+          "coverage": "Drafted from the repository tree by `discovery/draft-documentation-scope.mjs`: every file Git keeps under the documentation root `docs`, a new index for each of its directories without one, the development guide, and the domain glossaries and context maps the rules identify. Paths other declarations own are left out, and so is each README.md outside the documentation roots. Link-repair files and move destinations enter when the work needs them. Reviewed against current manifests and source: docs is the sole documentation root; acceptance and examples are fixture/harness material; skills holds shipped skill instructions, not documentation to relocate. No glossary rename or move is needed.",
           "candidates": [
-            {
-              "path": ".sandcastle/Dockerfile",
-              "decision": "include",
-              "reason": "Remove the retired contextual sandbox file as required by the v0.11.0 migration; its toolchain is preserved in .factory/Dockerfile and the development guide describes the new image.",
-              "evidence": [
-                ".sandcastle/Dockerfile",
-                "docs/development/README.md"
-              ]
-            },
             {
               "path": "GLOSSARY.md",
               "decision": "include",
@@ -1180,11 +1170,27 @@
               ]
             },
             {
+              "path": "acceptance/projects/bob/CONTRIBUTING.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/projects/bob/CONTRIBUTING.md"
+              ]
+            },
+            {
               "path": "acceptance/projects/bob/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "acceptance/projects/bob/README.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/forge/INDEX.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/projects/forge/INDEX.md"
               ]
             },
             {
@@ -1196,6 +1202,30 @@
               ]
             },
             {
+              "path": "acceptance/projects/forge/groups/developer-tools.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/projects/forge/groups/developer-tools.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/forge/guides/hammer.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/projects/forge/guides/hammer.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/harbor/CONTRIBUTING.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/projects/harbor/CONTRIBUTING.md"
+              ]
+            },
+            {
               "path": "acceptance/projects/harbor/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
@@ -1204,11 +1234,75 @@
               ]
             },
             {
+              "path": "acceptance/projects/harbor/docs/operations.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/projects/harbor/docs/operations.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/orchard/CATALOG.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/projects/orchard/CATALOG.md"
+              ]
+            },
+            {
               "path": "acceptance/projects/orchard/generated/site/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "acceptance/projects/orchard/generated/site/README.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/orchard/legacy/pear-operations.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/projects/orchard/legacy/pear-operations.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/orchard/teams/runtime.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/projects/orchard/teams/runtime.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/relay/groups/messaging-runtime.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/projects/relay/groups/messaging-runtime.md"
+              ]
+            },
+            {
+              "path": "acceptance/projects/relay/notes/relay-limitations.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/projects/relay/notes/relay-limitations.md"
+              ]
+            },
+            {
+              "path": "acceptance/sources/wayfinder/guidance/service-discovery.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/sources/wayfinder/guidance/service-discovery.md"
+              ]
+            },
+            {
+              "path": "acceptance/sources/wayfinder/guidance/service-readiness.md",
+              "decision": "exclude",
+              "reason": "Acceptance harness and deliberately varied adoption fixtures, kept in their authored layout.",
+              "evidence": [
+                "acceptance/sources/wayfinder/guidance/service-readiness.md"
               ]
             },
             {
@@ -1540,11 +1634,131 @@
               ]
             },
             {
+              "path": "examples/alice/defaults/files/AGENTS.md",
+              "decision": "exclude",
+              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "evidence": [
+                "examples/alice/defaults/files/AGENTS.md"
+              ]
+            },
+            {
+              "path": "examples/alice/defaults/files/CONTRIBUTING.md",
+              "decision": "exclude",
+              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "evidence": [
+                "examples/alice/defaults/files/CONTRIBUTING.md"
+              ]
+            },
+            {
+              "path": "examples/alice/defaults/guidance/readme.md",
+              "decision": "exclude",
+              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "evidence": [
+                "examples/alice/defaults/guidance/readme.md"
+              ]
+            },
+            {
+              "path": "examples/alice/defaults/guidance/source-layout.md",
+              "decision": "exclude",
+              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "evidence": [
+                "examples/alice/defaults/guidance/source-layout.md"
+              ]
+            },
+            {
+              "path": "examples/alice/defaults/skills/review/SKILL.md",
+              "decision": "exclude",
+              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "evidence": [
+                "examples/alice/defaults/skills/review/SKILL.md"
+              ]
+            },
+            {
+              "path": "examples/alice/profiles/work/files/AGENTS.md",
+              "decision": "exclude",
+              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "evidence": [
+                "examples/alice/profiles/work/files/AGENTS.md"
+              ]
+            },
+            {
+              "path": "examples/atlas/guidance/project-discovery.md",
+              "decision": "exclude",
+              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "evidence": [
+                "examples/atlas/guidance/project-discovery.md"
+              ]
+            },
+            {
+              "path": "examples/atlas/guidance/project-documentation.md",
+              "decision": "exclude",
+              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "evidence": [
+                "examples/atlas/guidance/project-documentation.md"
+              ]
+            },
+            {
+              "path": "examples/mira/guidance/operations.md",
+              "decision": "exclude",
+              "reason": "Independent standards-source examples used for product validation; authored guidance and files must retain their fixture layout.",
+              "evidence": [
+                "examples/mira/guidance/operations.md"
+              ]
+            },
+            {
               "path": "site/README.md",
               "decision": "exclude",
               "reason": "A README.md outside the documentation roots, which the documentation check would read as a documentation root's index. If it is a Project README, the `project-readmes` declaration's proposal covers it.",
               "evidence": [
                 "site/README.md"
+              ]
+            },
+            {
+              "path": "skills/author-standards/SKILL.md",
+              "decision": "exclude",
+              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "evidence": [
+                "skills/author-standards/SKILL.md"
+              ]
+            },
+            {
+              "path": "skills/author-standards/references/cli.md",
+              "decision": "exclude",
+              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "evidence": [
+                "skills/author-standards/references/cli.md"
+              ]
+            },
+            {
+              "path": "skills/author-standards/references/operations.md",
+              "decision": "exclude",
+              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "evidence": [
+                "skills/author-standards/references/operations.md"
+              ]
+            },
+            {
+              "path": "skills/author-standards/references/profiles.md",
+              "decision": "exclude",
+              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "evidence": [
+                "skills/author-standards/references/profiles.md"
+              ]
+            },
+            {
+              "path": "skills/author-standards/references/revision.md",
+              "decision": "exclude",
+              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "evidence": [
+                "skills/author-standards/references/revision.md"
+              ]
+            },
+            {
+              "path": "skills/repository-standards/SKILL.md",
+              "decision": "exclude",
+              "reason": "Shipped product skill instructions and bundled references, retained at the package paths rather than moved into docs.",
+              "evidence": [
+                "skills/repository-standards/SKILL.md"
               ]
             }
           ],
@@ -1552,35 +1766,36 @@
         },
         {
           "id": "github-repository-configuration",
-          "coverage": "The origin is the requested lutzseverino/repo-standards repository. Remote setup is authorized by this adoption; it owns no project files, and reviewer data is deferred to the requested separate PR.",
+          "coverage": "The github.com origin identifies lutzseverino/repo-standards. Remote reconciliation is authorized by the requested adoption; this declaration intentionally owns no project-content paths. Reviewer data is repository owned and read only.",
           "candidates": [],
           "unresolved": []
         },
         {
           "id": "project-readmes",
-          "coverage": "The root CLI is covered by repository-readme. site is the only separate maintained project, with its own package, Astro configuration, source and commands. acceptance and examples are fixtures; bootstrap, skills, scripts and src are components of the root CLI.",
+          "coverage": "The root package is the CLI and is covered by repository-readme. The only additional maintained Project is the private site workspace, identified by pnpm-workspace.yaml, site/package.json, Astro configuration and site/src. Acceptance and examples are harness/fixtures; src, scripts, operations, bootstrap and skills are parts of the root CLI, not separate Projects. Vendor material is third-party code.",
           "candidates": [
             {
               "path": "acceptance",
               "decision": "exclude",
-              "reason": "Acceptance harness and synthetic fixture projects, not maintained product projects.",
+              "reason": "Product acceptance harness and synthetic fixtures rather than an independently maintained Project.",
               "evidence": [
-                "acceptance/README.md"
+                "acceptance/README.md",
+                "package.json"
               ]
             },
             {
               "path": "examples",
               "decision": "exclude",
-              "reason": "Packaged independent standards source examples, not separate maintained applications.",
+              "reason": "Standards-source examples and fixtures for the root CLI.",
               "evidence": [
-                "examples",
+                "docs/development/architecture.md",
                 "package.json"
               ]
             },
             {
               "path": "site/README.md",
               "decision": "include",
-              "reason": "A private pnpm workspace with Astro/React source, dedicated manifest, build configuration and development commands.",
+              "reason": "Private Astro workspace with its own purpose, scripts, configuration and maintained source.",
               "evidence": [
                 "pnpm-workspace.yaml",
                 "site/README.md",
@@ -1596,11 +1811,6 @@
     "absence": [],
     "named": {
       "targets": {
-        ".sandcastle/Dockerfile": {
-          "type": "file",
-          "sha256": "3fe7eb47e688f69c5723fc0a813bae535da7b727902cb5d13efa9a16b01d3cc2",
-          "executable": false
-        },
         "GLOSSARY.md": {
           "type": "file",
           "sha256": "9d28749655392a4c787471260706623cd51502daa27927ab2a815b20706ba7da",
@@ -1718,27 +1928,27 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "0c90463294d8dc8a7bf51f493653ccc64dbc9cc674fc66375d2342359309ed10",
+          "sha256": "426da103c822df752422ff8025e51a99a46f1d93e0edff43d9037c810fdf1353",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "ea849b0d1886f633abd7fae900701a0d6e0ef0280e5013a9386a1e4977115b56",
+          "sha256": "518c8f01c76c87dd09324acbbf0455f1db74fd536f9b75bbca8d14f04c4496e8",
           "executable": false
         },
         "docs/development/release.md": {
           "type": "file",
-          "sha256": "e86921e700ac25d651f85290b2baa20c2fa7685ea95f67990d3137c36f86d41e",
+          "sha256": "10452d9c209ad280c35d0b873a9158e67d922f21762cc92f6f7dada283d28cef",
           "executable": false
         },
         "docs/usage/README.md": {
           "type": "file",
-          "sha256": "228e1687fa7c1b18311255464267ee8457a078086ea27fbce50a2802d0c6baa3",
+          "sha256": "83ed9e9a6e5264a9241a1139efa35ed8c985dcf38162b0b3e4235bdfea77e544",
           "executable": false
         },
         "docs/usage/adoption.md": {
           "type": "file",
-          "sha256": "ffbcfd01b6653948b19edd6b3c77b0b97501683e4e7194cdd1c81db3de3aba3b",
+          "sha256": "b929d08d2c43687e6256d42604790b375b931a6b86c8c1ac359528610db24128",
           "executable": false
         },
         "docs/usage/assessment-protocol.md": {
@@ -1748,12 +1958,12 @@
         },
         "docs/usage/author-format.md": {
           "type": "file",
-          "sha256": "01ed5b589e7bbc21ecce50f8752065ddb1cd8ae6f4e21bf40d611b79ed9c02ad",
+          "sha256": "06d6e0b4fef8e516b034dd643658eca2dfc9c15a781b1a591838596b371e9e14",
           "executable": false
         },
         "docs/usage/authoring.md": {
           "type": "file",
-          "sha256": "02ce50c82a4c1521dbd288cd513b663b9f821c6a4567628b0a469e6bfd90a008",
+          "sha256": "c84a81b9cab5953c5a1bc54a1770df464e6e6be4851ae83856b3090bc992f01e",
           "executable": false
         },
         "docs/usage/available-updates.md": {
@@ -1763,7 +1973,7 @@
         },
         "docs/usage/check.md": {
           "type": "file",
-          "sha256": "1a81b19cc4a54fcb805124d28a8461b3f669b42a51bdd671c9913b1d5cedaf65",
+          "sha256": "cecc00961ed0f5e492828db9eb165cfe0726791cbc19284feafcae72fc55f8ee",
           "executable": false
         },
         "docs/usage/discovery.md": {
@@ -1773,12 +1983,12 @@
         },
         "docs/usage/inspection.md": {
           "type": "file",
-          "sha256": "83119d51a9d175fe683ea0e7cf4295cd5632bd6f79dfbadc2cc9c5c5c607beac",
+          "sha256": "2183f5f296cce180b495663dfb60cd89502225e662092feb6b48ddd468b32d8d",
           "executable": false
         },
         "docs/usage/installation.md": {
           "type": "file",
-          "sha256": "e68be55e4519d218f340e7386c399f0d9fca152500ce66186a26d5de723d4593",
+          "sha256": "7cb398ec6c0628087d4704e294ac8acb20eb029ab549aed945c4ceb2864f9fed",
           "executable": false
         },
         "docs/usage/rules.md": {
@@ -1860,29 +2070,24 @@
           "sha256": "9a369755463ded9523d50bf1a338490d156860c7b3516ca27b465427d113bf61",
           "executable": false
         },
-        ".agents/skills/ask-matt/PHASE-BOUNDARIES.md": {
-          "type": "file",
-          "sha256": "a8aa20158609ef39e2b308b6ba0660c91066838d07a867202e63a7744a88a3ed",
-          "executable": false
-        },
-        ".agents/skills/ask-matt/SKILL.md": {
-          "type": "file",
-          "sha256": "32b3c71d6dbb5a7c15147e8a503a9df28e9a567f45eba6a6bb42aa903225c6ff",
-          "executable": false
-        },
-        ".agents/skills/ask-matt/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "bdffbc5a0a99ed1b6ef3253d251d755fd18162b9845972e380007f844b09b05c",
-          "executable": false
-        },
         ".agents/skills/babysit/SKILL.md": {
           "type": "file",
-          "sha256": "eebfa0487ceb788e590d150a54e5b88051f649b3d01b40ec777d2cb82ed30e25",
+          "sha256": "14e03172858f7ba2d025d02b0e5ec483ee77390270aaa6224ec447dcd055275f",
+          "executable": false
+        },
+        ".agents/skills/babysit/merge.mjs": {
+          "type": "file",
+          "sha256": "d4a4352b95376f44db1dba5e8e13368846458e91789035874b927b499938e302",
+          "executable": false
+        },
+        ".agents/skills/babysit/reviewer.mjs": {
+          "type": "file",
+          "sha256": "1802605d9778698b5d6d6599323648b9329df1b821e18760f13b02c237bf8482",
           "executable": false
         },
         ".agents/skills/babysit/wait.mjs": {
           "type": "file",
-          "sha256": "a2274402df4d4f3f13f7f8e94545a6924b2c0bbcf9b3bb4c5f1c551650304138",
+          "sha256": "fdedab285461067819b691168af2707e4afc7b44eb1ca9671a6bc840ca05e281",
           "executable": false
         },
         ".agents/skills/code-review/SKILL.md": {
@@ -1950,16 +2155,6 @@
           "sha256": "f6bf2aa996c6e6f53fdd0708e18a0d16a56aed8322cca59fedbe3c0d2c75f06b",
           "executable": false
         },
-        ".agents/skills/grill-me/SKILL.md": {
-          "type": "file",
-          "sha256": "caaf8b8de1684f96e26b28f3c29189db5c89cce4b73e1c93d86164f66ef88637",
-          "executable": false
-        },
-        ".agents/skills/grill-me/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "c061e39c3e0f9d865fb1b97556d485704af2a8a58f4b8221a8917a5c2074a32b",
-          "executable": false
-        },
         ".agents/skills/grill-with-docs/SKILL.md": {
           "type": "file",
           "sha256": "7de372c13488f1ee96cc11cd8907b56b6809cc93eef776eeddd37de6b6cbe3fe",
@@ -1978,26 +2173,6 @@
         ".agents/skills/grilling/agents/openai.yaml": {
           "type": "file",
           "sha256": "1411d7df7d99b7e621a1ff8283c8133cc2464be63d064e52d8ce169c6800ee9b",
-          "executable": false
-        },
-        ".agents/skills/handoff/SKILL.md": {
-          "type": "file",
-          "sha256": "7c62de979fdc7ac32fb5ddb2146156c917f80ee070d30fadc9d40343c4b6ed25",
-          "executable": false
-        },
-        ".agents/skills/handoff/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "5c479fd562c691851690e8b18c8501045bef0943c10743d636b2fae26add1d28",
-          "executable": false
-        },
-        ".agents/skills/implement-spec/SKILL.md": {
-          "type": "file",
-          "sha256": "7a22dd2e60b8fcece478ced9d2533582adf3520d695acd3ab715341535c9e56d",
-          "executable": false
-        },
-        ".agents/skills/implement-spec/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "fd41efb42c60c96320d6531be7e4bf15cbf5518cd652d57dff27ccffa46988e9",
           "executable": false
         },
         ".agents/skills/implement/SKILL.md": {
@@ -2070,61 +2245,6 @@
           "sha256": "9b4c470d63221c1f68f22df70b83e2f12401b317babe0d1b7b5f24a974474d0d",
           "executable": false
         },
-        ".agents/skills/retro/SKILL.md": {
-          "type": "file",
-          "sha256": "33fbc28568e3146f20fd908b12998bc0ab30aa4f4c87288199a40793efa94696",
-          "executable": false
-        },
-        ".agents/skills/retro/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "cb6fb9d7e6b4be5975f41f6def1dd00a1255bad5d9b02696b124c924a8b8745c",
-          "executable": false
-        },
-        ".agents/skills/setup-matt-pocock-skills/SKILL.md": {
-          "type": "file",
-          "sha256": "9a0c21694be19fa3eefc39343355d3af7414716ba364882c7432c2f821eac3e9",
-          "executable": false
-        },
-        ".agents/skills/setup-matt-pocock-skills/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "9527de0110541c45712319025155aeab8dc7d77c6ed6e5e83271bab1851ab939",
-          "executable": false
-        },
-        ".agents/skills/setup-matt-pocock-skills/domain.md": {
-          "type": "file",
-          "sha256": "593a7042218689f1d24df89df14eaf0a20e19e0d0a7d479a01947ac78f0784b9",
-          "executable": false
-        },
-        ".agents/skills/setup-matt-pocock-skills/issue-tracker-github.md": {
-          "type": "file",
-          "sha256": "afd6852a80185217bd28aa5cbe456bef1e85be25be7bd1fba382d5b8ee428325",
-          "executable": false
-        },
-        ".agents/skills/setup-matt-pocock-skills/issue-tracker-gitlab.md": {
-          "type": "file",
-          "sha256": "ea175f73d193b3f55819c0ed9bbccf6ee0e70ad8f928e3d7607596c53380acd6",
-          "executable": false
-        },
-        ".agents/skills/setup-matt-pocock-skills/issue-tracker-local.md": {
-          "type": "file",
-          "sha256": "7dcda20a2eb4bdc89b95d1143423c0691309921cadae3132e6424f371030506e",
-          "executable": false
-        },
-        ".agents/skills/setup-matt-pocock-skills/triage-labels.md": {
-          "type": "file",
-          "sha256": "4f53c9b40ce2651e3611aa090eaedbd6dbc9b71ef8c5f7e65eac0d8263190d0d",
-          "executable": false
-        },
-        ".agents/skills/show-me/SKILL.md": {
-          "type": "file",
-          "sha256": "434a2346cc95e313b0d367d477dda2e23ba642dd2181757415a09500664af100",
-          "executable": false
-        },
-        ".agents/skills/show-me/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
-          "executable": false
-        },
         ".agents/skills/standards-updates/SKILL.md": {
           "type": "file",
           "sha256": "3262164c280f6d05c33fcfed23934dc17955038680ad19a89fef26a5cb4e0999",
@@ -2153,46 +2273,6 @@
         ".agents/skills/tdd/tests.md": {
           "type": "file",
           "sha256": "859f9e592c188fda4fc7277dd180e4ce9c7a2e13f6efe1f6f29eccc9d28c106a",
-          "executable": false
-        },
-        ".agents/skills/teach/GLOSSARY-FORMAT.md": {
-          "type": "file",
-          "sha256": "9b99859ec28437668130d8f2ce5a342938970f8a1ed4fd38c3eab4f4b5fff210",
-          "executable": false
-        },
-        ".agents/skills/teach/LEARNING-RECORD-FORMAT.md": {
-          "type": "file",
-          "sha256": "701fa34b6748aa89e6c960ffb815257f481a7d77fb2900f9028f7edf3fdd6052",
-          "executable": false
-        },
-        ".agents/skills/teach/MISSION-FORMAT.md": {
-          "type": "file",
-          "sha256": "8cacbb3c0644d3ae0ea4965564797099401a6930a23f7cf462918576587f2418",
-          "executable": false
-        },
-        ".agents/skills/teach/RESOURCES-FORMAT.md": {
-          "type": "file",
-          "sha256": "e9cacf34026e11a8d1c8f9de88abe5bcbf654f4ebdb25cae8c0de0d5f48f44ec",
-          "executable": false
-        },
-        ".agents/skills/teach/SKILL.md": {
-          "type": "file",
-          "sha256": "a32df9dcdfc0c4fdc1c98e1ed3940c5f56b84c1aa90ff60346f32b8b53915b43",
-          "executable": false
-        },
-        ".agents/skills/teach/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "5856f3ae8aec742f1499c640aecdd5f1d6af5fa210a7c6ec794de8263a6f733f",
-          "executable": false
-        },
-        ".agents/skills/to-questionnaire/SKILL.md": {
-          "type": "file",
-          "sha256": "b5eb929842ee0e93d867c5e906d183d350f2f2d149eaeaa86967d94d8eda1d3b",
-          "executable": false
-        },
-        ".agents/skills/to-questionnaire/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "9e8a06c38c8842eea8d4922cb9d1ead8e3ace647bab259b943c994a1b4742bc2",
           "executable": false
         },
         ".agents/skills/to-spec/SKILL.md": {
@@ -2235,16 +2315,6 @@
           "sha256": "2e683717720cf456d165d0bb1a68bb600d0b6a8ccb61841c172e50d26f95351c",
           "executable": false
         },
-        ".agents/skills/wait-what/SKILL.md": {
-          "type": "file",
-          "sha256": "d961bb37defd975c539427edb8f450cdbccdcdd552e213c1ece46676a7970905",
-          "executable": false
-        },
-        ".agents/skills/wait-what/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "b41faadf741d51e4ea184148b2d1854d93f947aaf754c7844f70a00f04194999",
-          "executable": false
-        },
         ".agents/skills/wayfinder/SKILL.md": {
           "type": "file",
           "sha256": "fee6e1d0c50f0e736b4ef8a599060c959afae904c9a97d82c97f049fcc3aa0f1",
@@ -2253,21 +2323,6 @@
         ".agents/skills/wayfinder/agents/openai.yaml": {
           "type": "file",
           "sha256": "88bc81a11a6d52ac67aeaa76b8b619e387020d47c5133a4dd4927fd15c4ad073",
-          "executable": false
-        },
-        ".agents/skills/wizard/SKILL.md": {
-          "type": "file",
-          "sha256": "bdf31d48211ea559878f95a4f344aeabf8d85897488ba564382bab0b000daac1",
-          "executable": false
-        },
-        ".agents/skills/wizard/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "98f44d682d58e262f160dc59a8befc365e0aa65820dd0261864af26aa8e59d83",
-          "executable": false
-        },
-        ".agents/skills/wizard/template.sh": {
-          "type": "file",
-          "sha256": "33cbe9dfb1d0e9185b60248a52aabed14bc64785a00cac695e302e739dd6c153",
           "executable": false
         },
         ".agents/skills/writing-for-agents/SKILL-MECHANICS.md": {
@@ -2289,10 +2344,6 @@
           "type": "symlink",
           "target": "../../.agents/skills/adopt-standards"
         },
-        ".claude/skills/ask-matt": {
-          "type": "symlink",
-          "target": "../../.agents/skills/ask-matt"
-        },
         ".claude/skills/babysit": {
           "type": "symlink",
           "target": "../../.agents/skills/babysit"
@@ -2313,10 +2364,6 @@
           "type": "symlink",
           "target": "../../.agents/skills/domain-modeling"
         },
-        ".claude/skills/grill-me": {
-          "type": "symlink",
-          "target": "../../.agents/skills/grill-me"
-        },
         ".claude/skills/grill-with-docs": {
           "type": "symlink",
           "target": "../../.agents/skills/grill-with-docs"
@@ -2325,17 +2372,9 @@
           "type": "symlink",
           "target": "../../.agents/skills/grilling"
         },
-        ".claude/skills/handoff": {
-          "type": "symlink",
-          "target": "../../.agents/skills/handoff"
-        },
         ".claude/skills/implement": {
           "type": "symlink",
           "target": "../../.agents/skills/implement"
-        },
-        ".claude/skills/implement-spec": {
-          "type": "symlink",
-          "target": "../../.agents/skills/implement-spec"
         },
         ".claude/skills/improve-codebase-architecture": {
           "type": "symlink",
@@ -2353,18 +2392,6 @@
           "type": "symlink",
           "target": "../../.agents/skills/research"
         },
-        ".claude/skills/retro": {
-          "type": "symlink",
-          "target": "../../.agents/skills/retro"
-        },
-        ".claude/skills/setup-matt-pocock-skills": {
-          "type": "symlink",
-          "target": "../../.agents/skills/setup-matt-pocock-skills"
-        },
-        ".claude/skills/show-me": {
-          "type": "symlink",
-          "target": "../../.agents/skills/show-me"
-        },
         ".claude/skills/standards-updates": {
           "type": "symlink",
           "target": "../../.agents/skills/standards-updates"
@@ -2372,14 +2399,6 @@
         ".claude/skills/tdd": {
           "type": "symlink",
           "target": "../../.agents/skills/tdd"
-        },
-        ".claude/skills/teach": {
-          "type": "symlink",
-          "target": "../../.agents/skills/teach"
-        },
-        ".claude/skills/to-questionnaire": {
-          "type": "symlink",
-          "target": "../../.agents/skills/to-questionnaire"
         },
         ".claude/skills/to-spec": {
           "type": "symlink",
@@ -2393,21 +2412,23 @@
           "type": "symlink",
           "target": "../../.agents/skills/triage"
         },
-        ".claude/skills/wait-what": {
-          "type": "symlink",
-          "target": "../../.agents/skills/wait-what"
-        },
         ".claude/skills/wayfinder": {
           "type": "symlink",
           "target": "../../.agents/skills/wayfinder"
         },
-        ".claude/skills/wizard": {
-          "type": "symlink",
-          "target": "../../.agents/skills/wizard"
-        },
         ".claude/skills/writing-for-agents": {
           "type": "symlink",
           "target": "../../.agents/skills/writing-for-agents"
+        },
+        ".factory/Dockerfile": {
+          "type": "file",
+          "sha256": "0f782da6754ac41d3ce9fd66fc76bf6056fc5ca0a223ab63d0f3abca1bd1a80c",
+          "executable": false
+        },
+        ".factory/config.json": {
+          "type": "file",
+          "sha256": "9de48af731c45f963a613a6b77668ce9727834ae5a2d9b92af1c5ffcb18a1c07",
+          "executable": false
         },
         ".github/ISSUE_TEMPLATE/bug-report.yml": {
           "type": "file",
@@ -2434,9 +2455,14 @@
           "sha256": "4ca0528fa7bab99c0107da587058aebf6cb94c2e9a5760b725f50a3e2c29d2ec",
           "executable": false
         },
+        ".github/pull-request-reviewer.json": {
+          "type": "file",
+          "sha256": "556b981cb82beee87a3759dac0f8d3723ed6805e69d9f03f3abbdf743cc72c51",
+          "executable": false
+        },
         ".github/scripts/validate-pr-metadata.mjs": {
           "type": "file",
-          "sha256": "65b6f02602bdafe9b8c0f9cd33ac517ced92211eb2782c8327757406d747ed5e",
+          "sha256": "967c93f5cb5057d50e1fd7b7315fd520ae10558e47f45ef5d286e79ab5fadcf0",
           "executable": false
         },
         ".github/workflows/deploy-site.yml": {
@@ -2446,7 +2472,7 @@
         },
         ".github/workflows/issue-contracts.yml": {
           "type": "file",
-          "sha256": "c6e020c97c69fe08db18e1a0fc15a3a3e25681955ace994117065427cf21f270",
+          "sha256": "440fa7d07a8bbf9f5efe5232b2f863d5767a3ff8616b340f078af1bb1a88439f",
           "executable": false
         },
         ".github/workflows/pr-metadata.yml": {
@@ -2461,7 +2487,7 @@
         },
         ".github/workflows/sandbox-image.yml": {
           "type": "file",
-          "sha256": "6f424ecd4512b723d09e4930b342e7ac56767d752573cff62ef2923adaeaec22",
+          "sha256": "71f03ceb1ed50d8d82563c0ef971926cb52bb241b1eb8041f9f7c26e6679722e",
           "executable": false
         },
         ".github/workflows/validate.yml": {
@@ -2489,39 +2515,14 @@
           "sha256": "8448f109f016570ee298c8e285ad24adfe1450321ace5e667a8a48dc042c70ab",
           "executable": false
         },
-        ".sandcastle/.gitignore": {
-          "type": "file",
-          "sha256": "95f8dff762dbd253b540e84c6f40919cdac8c5a7f5a0fab1150d501e4cc8edb4",
-          "executable": false
-        },
-        ".sandcastle/Dockerfile": {
-          "type": "file",
-          "sha256": "3fe7eb47e688f69c5723fc0a813bae535da7b727902cb5d13efa9a16b01d3cc2",
-          "executable": false
-        },
-        ".sandcastle/adapter.ts": {
-          "type": "file",
-          "sha256": "dd649f49e13e072b160c19619a74d28d9fefdd9689a06c4e898d227f91ff036c",
-          "executable": false
-        },
-        ".sandcastle/factory.ts": {
-          "type": "file",
-          "sha256": "df0208bb8de5d48180449b0c77983c3828207dd9bb7f0a4a69567819bbe6faf4",
-          "executable": false
-        },
-        ".sandcastle/main.ts": {
-          "type": "file",
-          "sha256": "ad0cd80ad2d86a1ad855aa7f6ff48118af4eff6cf87dbb866d590551c1dc1620",
-          "executable": false
-        },
         "AGENTS.md": {
           "type": "file",
-          "sha256": "f6145c198fbd884a665182cce07f2694817f5100d396dfe0091b87387fbd213f",
+          "sha256": "b07aea42b68e26527216b901bd262e69347e6993d387ad04c6a234766e728937",
           "executable": false
         },
         "CONTRIBUTING.md": {
           "type": "file",
-          "sha256": "4c40b422177119c96e4752532bd1e0050aeaee766d9a007ac354bbdc6c0b6d76",
+          "sha256": "88565885f90c94d74e06ce36de942532992297b80e1af0a97e26574829c6d529",
           "executable": false
         },
         "GLOSSARY.md": {
@@ -2536,7 +2537,7 @@
         },
         "README.md": {
           "type": "file",
-          "sha256": "70355f177878f4cb167d485dee516734aaf32f4e96a8e63b8235f7ec66e6c476",
+          "sha256": "d253ee40942ecb404e17fccade40e213b1db00d6931f3eaf4406c7305203e606",
           "executable": false
         },
         "acceptance/README.md": {
@@ -2746,7 +2747,7 @@
         },
         "acceptance/sources/wayfinder/standards.yaml": {
           "type": "file",
-          "sha256": "342931658984d9c0486bd921bc56adcc8861dbe5cfbe24e8f4049c8b63ca53e8",
+          "sha256": "db9729f22b9a7116254bcb6dac322e5274f4e31d5c49dce40e4c2a293a1392ba",
           "executable": false
         },
         "bootstrap/repo-standards": {
@@ -2886,27 +2887,27 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "0c90463294d8dc8a7bf51f493653ccc64dbc9cc674fc66375d2342359309ed10",
+          "sha256": "426da103c822df752422ff8025e51a99a46f1d93e0edff43d9037c810fdf1353",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "ea849b0d1886f633abd7fae900701a0d6e0ef0280e5013a9386a1e4977115b56",
+          "sha256": "518c8f01c76c87dd09324acbbf0455f1db74fd536f9b75bbca8d14f04c4496e8",
           "executable": false
         },
         "docs/development/release.md": {
           "type": "file",
-          "sha256": "e86921e700ac25d651f85290b2baa20c2fa7685ea95f67990d3137c36f86d41e",
+          "sha256": "10452d9c209ad280c35d0b873a9158e67d922f21762cc92f6f7dada283d28cef",
           "executable": false
         },
         "docs/usage/README.md": {
           "type": "file",
-          "sha256": "228e1687fa7c1b18311255464267ee8457a078086ea27fbce50a2802d0c6baa3",
+          "sha256": "83ed9e9a6e5264a9241a1139efa35ed8c985dcf38162b0b3e4235bdfea77e544",
           "executable": false
         },
         "docs/usage/adoption.md": {
           "type": "file",
-          "sha256": "ffbcfd01b6653948b19edd6b3c77b0b97501683e4e7194cdd1c81db3de3aba3b",
+          "sha256": "b929d08d2c43687e6256d42604790b375b931a6b86c8c1ac359528610db24128",
           "executable": false
         },
         "docs/usage/assessment-protocol.md": {
@@ -2916,12 +2917,12 @@
         },
         "docs/usage/author-format.md": {
           "type": "file",
-          "sha256": "01ed5b589e7bbc21ecce50f8752065ddb1cd8ae6f4e21bf40d611b79ed9c02ad",
+          "sha256": "06d6e0b4fef8e516b034dd643658eca2dfc9c15a781b1a591838596b371e9e14",
           "executable": false
         },
         "docs/usage/authoring.md": {
           "type": "file",
-          "sha256": "02ce50c82a4c1521dbd288cd513b663b9f821c6a4567628b0a469e6bfd90a008",
+          "sha256": "c84a81b9cab5953c5a1bc54a1770df464e6e6be4851ae83856b3090bc992f01e",
           "executable": false
         },
         "docs/usage/available-updates.md": {
@@ -2931,7 +2932,7 @@
         },
         "docs/usage/check.md": {
           "type": "file",
-          "sha256": "1a81b19cc4a54fcb805124d28a8461b3f669b42a51bdd671c9913b1d5cedaf65",
+          "sha256": "cecc00961ed0f5e492828db9eb165cfe0726791cbc19284feafcae72fc55f8ee",
           "executable": false
         },
         "docs/usage/discovery.md": {
@@ -2941,12 +2942,12 @@
         },
         "docs/usage/inspection.md": {
           "type": "file",
-          "sha256": "83119d51a9d175fe683ea0e7cf4295cd5632bd6f79dfbadc2cc9c5c5c607beac",
+          "sha256": "2183f5f296cce180b495663dfb60cd89502225e662092feb6b48ddd468b32d8d",
           "executable": false
         },
         "docs/usage/installation.md": {
           "type": "file",
-          "sha256": "e68be55e4519d218f340e7386c399f0d9fca152500ce66186a26d5de723d4593",
+          "sha256": "7cb398ec6c0628087d4704e294ac8acb20eb029ab549aed945c4ceb2864f9fed",
           "executable": false
         },
         "docs/usage/rules.md": {
@@ -2996,7 +2997,7 @@
         },
         "examples/alice/standards.yaml": {
           "type": "file",
-          "sha256": "2a58de65ca17f513d039c2944ce9fd6e281dc260e9c3723863ce1541ecc9742e",
+          "sha256": "3ed511ba9ecc3a142e36833cc13827ca09b32fdac7f9f4e6ea468773d0a1eb5c",
           "executable": false
         },
         "examples/atlas/files/catalog.json": {
@@ -3021,7 +3022,7 @@
         },
         "examples/atlas/standards.yaml": {
           "type": "file",
-          "sha256": "e58ac07c54b497e8034b8f6cfedf0c41200b109894a4daf87dfc56b41038438c",
+          "sha256": "3662ceeb52b419f9f26866a52133b3bf00842a3d921b689e0790804818744b85",
           "executable": false
         },
         "examples/mira/files/editorconfig": {
@@ -3051,12 +3052,7 @@
         },
         "examples/mira/standards.yaml": {
           "type": "file",
-          "sha256": "5ae0c35ed550615a4966e7b5095e8246b5099746a69c82f022eb0de4216a0e11",
-          "executable": false
-        },
-        "operations/lib/issue-contract-kind.mjs": {
-          "type": "file",
-          "sha256": "c0d3a558cbb1f905a519a4b3c1a5f358f22a9d78a06452a6ecbd9fac931293a2",
+          "sha256": "e97493fe9ac95f6c1f3c00cd7149417b76f30dcc456f19c99066f568ab4c77e9",
           "executable": false
         },
         "operations/lib/rendered-markdown.mjs": {
@@ -3066,7 +3062,7 @@
         },
         "package.json": {
           "type": "file",
-          "sha256": "30eb4c59bd21f1dc56d2727a545f97ae3be8264411dd1cb6dd26c1ba0323d736",
+          "sha256": "7f9b0faf5e8b49588785bc1b2d4ff44948ea3b7541f8058e5503fadfa10305ba",
           "executable": false
         },
         "pnpm-lock.yaml": {
@@ -3101,7 +3097,7 @@
         },
         "scripts/validate-issue-contract.mjs": {
           "type": "file",
-          "sha256": "ff9aea07640827ba4074e74c2b8f0ecaec32047e32d435a630c42eb03f5d4b8c",
+          "sha256": "f7e604f218f7aab8eaa53e537aa8bdd079f9208be4f8866b5333278d92d9ea3e",
           "executable": false
         },
         "scripts/verify-npm-publisher.ts": {
@@ -3166,7 +3162,7 @@
         },
         "skills/author-standards/SKILL.md": {
           "type": "file",
-          "sha256": "21beb3df34810a6657d64d2fad2ca8ba2c296589f33ff9beeff7deb06491afaf",
+          "sha256": "40f0ad7c525b311ebaeb445d4e6a2de3182fc0e2badea90691672e0a63a97cdc",
           "executable": false
         },
         "skills/author-standards/agents/openai.yaml": {
@@ -3176,7 +3172,7 @@
         },
         "skills/author-standards/references/cli.md": {
           "type": "file",
-          "sha256": "e91782cc3a68f4998d037716bb58a475602e17f9fcd4bc7d55325d4813d3c2da",
+          "sha256": "bff44a5b79d3f0050cb322fd57c2a87729494e6ad227d7ae0ff1678d67428841",
           "executable": false
         },
         "skills/author-standards/references/operations.md": {
@@ -3209,9 +3205,14 @@
           "sha256": "e6b8f006e1fa57a6c9aa24925f6c26c71cf16fcc84c00e97dcb141fc983d4ffa",
           "executable": false
         },
+        "src/adopt-terminal.ts": {
+          "type": "file",
+          "sha256": "3501896089252a3f1e32cd2191ad66e7460b5e278f21a8d05a48ea00b037651d",
+          "executable": false
+        },
         "src/adopt.ts": {
           "type": "file",
-          "sha256": "ea86b17c04c15df90019a16c1bc88e1dad8ec7f199901bbbd232c676a13ef314",
+          "sha256": "cca08758de4058de891beddefdd1cb349e2d7b49cf3451e2735e48948451dcae",
           "executable": false
         },
         "src/adoption-files.ts": {
@@ -3221,27 +3222,27 @@
         },
         "src/adoption-run.ts": {
           "type": "file",
-          "sha256": "96766db312b968242bc1f9513aa8b7a8c0ae7189e8f183df5a8db072550ffa00",
+          "sha256": "85b3747b12b174a137e3f59bda25eb1805c92c5cba5449a2d127ccb4ce29feac",
           "executable": false
         },
         "src/adoption.ts": {
           "type": "file",
-          "sha256": "ffa958fdbc6b5ec16f422a811a68d5f850fcd0b1266e8b6b304e0d8452af92d2",
+          "sha256": "5c5643dd438d4f0ace1336c22834b77e08f1b4fffdb0ed5f095237e77338f884",
           "executable": false
         },
         "src/assessment.ts": {
           "type": "file",
-          "sha256": "50cc48f82bc2b49401d9031fddd8e446aa0bc699ba7b27ac9e40f2e80a61901f",
+          "sha256": "7d16be93635ec844902bcffa8f729389c31daf6541e4562461244e0c8b2c53fa",
           "executable": false
         },
         "src/check.ts": {
           "type": "file",
-          "sha256": "548e4290edbf8de2642e0b25c40a39633deffed043174dcbdbb06bce4a5d1b7b",
+          "sha256": "0cc60cf1f69795f464e7656edc5bc1e5fed1ac1c9d7f35193205bfcf64944e87",
           "executable": false
         },
         "src/cli.ts": {
           "type": "file",
-          "sha256": "43daf3a5f7190b7c9d1eebd2d57527391bd1baf1f84ec633058fcc912aacf10a",
+          "sha256": "bbbc677d10fb8a00a5d2c35592e4810f818b0a0501e68af930f23aa478eae1f7",
           "executable": false
         },
         "src/declarations.ts": {
@@ -3356,7 +3357,7 @@
         },
         "src/scope.ts": {
           "type": "file",
-          "sha256": "f3994da5f6776afb79dbdd0cf7221c9d5e898e1a2d2a6d84178e5597be41fdb8",
+          "sha256": "22bacbdafc2fedaa552cbbee3449c37dfb1ffc512f69a124b0d78b5b1e314144",
           "executable": false
         },
         "src/skill-invocation.ts": {
@@ -3414,9 +3415,19 @@
           "sha256": "c016e084574cbb9a932bca3736e2c372b2a94dc7f57e15534e8678910b6cf7e9",
           "executable": false
         },
+        "test/adopt-fixture.ts": {
+          "type": "file",
+          "sha256": "5e7856c01e7902c6d5b0dcca153111af17d3863defb17bcda7a0eff640b8a3be",
+          "executable": false
+        },
+        "test/adopt-terminal.test.ts": {
+          "type": "file",
+          "sha256": "bcb33ec25c92b35ad33ff81395c7ff5bab1fadefba1aa477f4693b72ca6760f6",
+          "executable": false
+        },
         "test/adopt.test.ts": {
           "type": "file",
-          "sha256": "c692510fadce10ca4a3b0e73ecbc4edec1d16ae498daf42aab7015e16e833efc",
+          "sha256": "6b7e1c4701b16cfe7c1c6d5473dfa08c1b84425fb1c6aa548b18062a86e48d41",
           "executable": false
         },
         "test/adoption-faults.ts": {
@@ -3604,6 +3615,11 @@
           "sha256": "fe3ec56cf31f6ec4f3ab70bd822c8a6a9b8051d98038744229c21da635de9d1a",
           "executable": false
         },
+        "test/terminal.ts": {
+          "type": "file",
+          "sha256": "01124126b9fe68e24ba501c488627eb4107eceb598d14db9f8981ba97690c779",
+          "executable": false
+        },
         "test/update-class.test.ts": {
           "type": "file",
           "sha256": "328fdaa2fc5091bc9c8a2e850a5a348a93c9a738be9d865a5ef6818f2bd1cc28",
@@ -3664,12 +3680,12 @@
         ".": [
           ".agents",
           ".claude",
+          ".factory",
           ".github",
           ".gitignore",
           ".node-version",
           ".oxlintrc.json",
           ".prettierignore",
-          ".sandcastle",
           "AGENTS.md",
           "CONTRIBUTING.md",
           "GLOSSARY.md",
@@ -3699,35 +3715,24 @@
           ".agents/skills/LICENSE.humanlayer-skills",
           ".agents/skills/LICENSE.mattpocock-skills",
           ".agents/skills/adopt-standards",
-          ".agents/skills/ask-matt",
           ".agents/skills/babysit",
           ".agents/skills/code-review",
           ".agents/skills/codebase-design",
           ".agents/skills/diagnosing-bugs",
           ".agents/skills/domain-modeling",
-          ".agents/skills/grill-me",
           ".agents/skills/grill-with-docs",
           ".agents/skills/grilling",
-          ".agents/skills/handoff",
           ".agents/skills/implement",
-          ".agents/skills/implement-spec",
           ".agents/skills/improve-codebase-architecture",
           ".agents/skills/pr",
           ".agents/skills/prototype",
           ".agents/skills/research",
-          ".agents/skills/retro",
-          ".agents/skills/setup-matt-pocock-skills",
-          ".agents/skills/show-me",
           ".agents/skills/standards-updates",
           ".agents/skills/tdd",
-          ".agents/skills/teach",
-          ".agents/skills/to-questionnaire",
           ".agents/skills/to-spec",
           ".agents/skills/to-tickets",
           ".agents/skills/triage",
-          ".agents/skills/wait-what",
           ".agents/skills/wayfinder",
-          ".agents/skills/wizard",
           ".agents/skills/writing-for-agents"
         ],
         ".agents/skills/adopt-standards": [
@@ -3744,16 +3749,10 @@
           ".agents/skills/adopt-standards/references/recovery.md",
           ".agents/skills/adopt-standards/references/review.md"
         ],
-        ".agents/skills/ask-matt": [
-          ".agents/skills/ask-matt/PHASE-BOUNDARIES.md",
-          ".agents/skills/ask-matt/SKILL.md",
-          ".agents/skills/ask-matt/agents"
-        ],
-        ".agents/skills/ask-matt/agents": [
-          ".agents/skills/ask-matt/agents/openai.yaml"
-        ],
         ".agents/skills/babysit": [
           ".agents/skills/babysit/SKILL.md",
+          ".agents/skills/babysit/merge.mjs",
+          ".agents/skills/babysit/reviewer.mjs",
           ".agents/skills/babysit/wait.mjs"
         ],
         ".agents/skills/code-review": [
@@ -3792,13 +3791,6 @@
         ".agents/skills/domain-modeling/agents": [
           ".agents/skills/domain-modeling/agents/openai.yaml"
         ],
-        ".agents/skills/grill-me": [
-          ".agents/skills/grill-me/SKILL.md",
-          ".agents/skills/grill-me/agents"
-        ],
-        ".agents/skills/grill-me/agents": [
-          ".agents/skills/grill-me/agents/openai.yaml"
-        ],
         ".agents/skills/grill-with-docs": [
           ".agents/skills/grill-with-docs/SKILL.md",
           ".agents/skills/grill-with-docs/agents"
@@ -3813,23 +3805,9 @@
         ".agents/skills/grilling/agents": [
           ".agents/skills/grilling/agents/openai.yaml"
         ],
-        ".agents/skills/handoff": [
-          ".agents/skills/handoff/SKILL.md",
-          ".agents/skills/handoff/agents"
-        ],
-        ".agents/skills/handoff/agents": [
-          ".agents/skills/handoff/agents/openai.yaml"
-        ],
         ".agents/skills/implement": [
           ".agents/skills/implement/SKILL.md",
           ".agents/skills/implement/agents"
-        ],
-        ".agents/skills/implement-spec": [
-          ".agents/skills/implement-spec/SKILL.md",
-          ".agents/skills/implement-spec/agents"
-        ],
-        ".agents/skills/implement-spec/agents": [
-          ".agents/skills/implement-spec/agents/openai.yaml"
         ],
         ".agents/skills/implement/agents": [
           ".agents/skills/implement/agents/openai.yaml"
@@ -3866,32 +3844,6 @@
         ".agents/skills/research/agents": [
           ".agents/skills/research/agents/openai.yaml"
         ],
-        ".agents/skills/retro": [
-          ".agents/skills/retro/SKILL.md",
-          ".agents/skills/retro/agents"
-        ],
-        ".agents/skills/retro/agents": [
-          ".agents/skills/retro/agents/openai.yaml"
-        ],
-        ".agents/skills/setup-matt-pocock-skills": [
-          ".agents/skills/setup-matt-pocock-skills/SKILL.md",
-          ".agents/skills/setup-matt-pocock-skills/agents",
-          ".agents/skills/setup-matt-pocock-skills/domain.md",
-          ".agents/skills/setup-matt-pocock-skills/issue-tracker-github.md",
-          ".agents/skills/setup-matt-pocock-skills/issue-tracker-gitlab.md",
-          ".agents/skills/setup-matt-pocock-skills/issue-tracker-local.md",
-          ".agents/skills/setup-matt-pocock-skills/triage-labels.md"
-        ],
-        ".agents/skills/setup-matt-pocock-skills/agents": [
-          ".agents/skills/setup-matt-pocock-skills/agents/openai.yaml"
-        ],
-        ".agents/skills/show-me": [
-          ".agents/skills/show-me/SKILL.md",
-          ".agents/skills/show-me/agents"
-        ],
-        ".agents/skills/show-me/agents": [
-          ".agents/skills/show-me/agents/openai.yaml"
-        ],
         ".agents/skills/standards-updates": [
           ".agents/skills/standards-updates/SKILL.md",
           ".agents/skills/standards-updates/agents"
@@ -3907,24 +3859,6 @@
         ],
         ".agents/skills/tdd/agents": [
           ".agents/skills/tdd/agents/openai.yaml"
-        ],
-        ".agents/skills/teach": [
-          ".agents/skills/teach/GLOSSARY-FORMAT.md",
-          ".agents/skills/teach/LEARNING-RECORD-FORMAT.md",
-          ".agents/skills/teach/MISSION-FORMAT.md",
-          ".agents/skills/teach/RESOURCES-FORMAT.md",
-          ".agents/skills/teach/SKILL.md",
-          ".agents/skills/teach/agents"
-        ],
-        ".agents/skills/teach/agents": [
-          ".agents/skills/teach/agents/openai.yaml"
-        ],
-        ".agents/skills/to-questionnaire": [
-          ".agents/skills/to-questionnaire/SKILL.md",
-          ".agents/skills/to-questionnaire/agents"
-        ],
-        ".agents/skills/to-questionnaire/agents": [
-          ".agents/skills/to-questionnaire/agents/openai.yaml"
         ],
         ".agents/skills/to-spec": [
           ".agents/skills/to-spec/SKILL.md",
@@ -3949,27 +3883,12 @@
         ".agents/skills/triage/agents": [
           ".agents/skills/triage/agents/openai.yaml"
         ],
-        ".agents/skills/wait-what": [
-          ".agents/skills/wait-what/SKILL.md",
-          ".agents/skills/wait-what/agents"
-        ],
-        ".agents/skills/wait-what/agents": [
-          ".agents/skills/wait-what/agents/openai.yaml"
-        ],
         ".agents/skills/wayfinder": [
           ".agents/skills/wayfinder/SKILL.md",
           ".agents/skills/wayfinder/agents"
         ],
         ".agents/skills/wayfinder/agents": [
           ".agents/skills/wayfinder/agents/openai.yaml"
-        ],
-        ".agents/skills/wizard": [
-          ".agents/skills/wizard/SKILL.md",
-          ".agents/skills/wizard/agents",
-          ".agents/skills/wizard/template.sh"
-        ],
-        ".agents/skills/wizard/agents": [
-          ".agents/skills/wizard/agents/openai.yaml"
         ],
         ".agents/skills/writing-for-agents": [
           ".agents/skills/writing-for-agents/SKILL-MECHANICS.md",
@@ -3984,40 +3903,34 @@
         ],
         ".claude/skills": [
           ".claude/skills/adopt-standards",
-          ".claude/skills/ask-matt",
           ".claude/skills/babysit",
           ".claude/skills/code-review",
           ".claude/skills/codebase-design",
           ".claude/skills/diagnosing-bugs",
           ".claude/skills/domain-modeling",
-          ".claude/skills/grill-me",
           ".claude/skills/grill-with-docs",
           ".claude/skills/grilling",
-          ".claude/skills/handoff",
           ".claude/skills/implement",
-          ".claude/skills/implement-spec",
           ".claude/skills/improve-codebase-architecture",
           ".claude/skills/pr",
           ".claude/skills/prototype",
           ".claude/skills/research",
-          ".claude/skills/retro",
-          ".claude/skills/setup-matt-pocock-skills",
-          ".claude/skills/show-me",
           ".claude/skills/standards-updates",
           ".claude/skills/tdd",
-          ".claude/skills/teach",
-          ".claude/skills/to-questionnaire",
           ".claude/skills/to-spec",
           ".claude/skills/to-tickets",
           ".claude/skills/triage",
-          ".claude/skills/wait-what",
           ".claude/skills/wayfinder",
-          ".claude/skills/wizard",
           ".claude/skills/writing-for-agents"
+        ],
+        ".factory": [
+          ".factory/Dockerfile",
+          ".factory/config.json"
         ],
         ".github": [
           ".github/ISSUE_TEMPLATE",
           ".github/PULL_REQUEST_TEMPLATE.md",
+          ".github/pull-request-reviewer.json",
           ".github/scripts",
           ".github/workflows"
         ],
@@ -4037,13 +3950,6 @@
           ".github/workflows/release.yml",
           ".github/workflows/sandbox-image.yml",
           ".github/workflows/validate.yml"
-        ],
-        ".sandcastle": [
-          ".sandcastle/.gitignore",
-          ".sandcastle/Dockerfile",
-          ".sandcastle/adapter.ts",
-          ".sandcastle/factory.ts",
-          ".sandcastle/main.ts"
         ],
         "acceptance": [
           "acceptance/README.md",
@@ -4346,7 +4252,6 @@
           "operations/lib"
         ],
         "operations/lib": [
-          "operations/lib/issue-contract-kind.mjs",
           "operations/lib/rendered-markdown.mjs"
         ],
         "scripts": [
@@ -4415,6 +4320,7 @@
         ],
         "src": [
           "src/acquisition.ts",
+          "src/adopt-terminal.ts",
           "src/adopt.ts",
           "src/adoption-files.ts",
           "src/adoption-run.ts",
@@ -4458,6 +4364,8 @@
         "test": [
           "test/acceptance-sources.test.ts",
           "test/acquisition.test.ts",
+          "test/adopt-fixture.ts",
+          "test/adopt-terminal.test.ts",
           "test/adopt.test.ts",
           "test/adoption-faults.ts",
           "test/adoption-fixture.ts",
@@ -4496,6 +4404,7 @@
           "test/source-validation.test.ts",
           "test/status.test.ts",
           "test/summary.test.ts",
+          "test/terminal.ts",
           "test/update-class.test.ts",
           "test/update.test.ts"
         ],
@@ -4531,12 +4440,6 @@
         ".agents/skills/adopt-standards/references": {
           "type": "directory"
         },
-        ".agents/skills/ask-matt": {
-          "type": "directory"
-        },
-        ".agents/skills/ask-matt/agents": {
-          "type": "directory"
-        },
         ".agents/skills/babysit": {
           "type": "directory"
         },
@@ -4567,12 +4470,6 @@
         ".agents/skills/domain-modeling/agents": {
           "type": "directory"
         },
-        ".agents/skills/grill-me": {
-          "type": "directory"
-        },
-        ".agents/skills/grill-me/agents": {
-          "type": "directory"
-        },
         ".agents/skills/grill-with-docs": {
           "type": "directory"
         },
@@ -4585,19 +4482,7 @@
         ".agents/skills/grilling/agents": {
           "type": "directory"
         },
-        ".agents/skills/handoff": {
-          "type": "directory"
-        },
-        ".agents/skills/handoff/agents": {
-          "type": "directory"
-        },
         ".agents/skills/implement": {
-          "type": "directory"
-        },
-        ".agents/skills/implement-spec": {
-          "type": "directory"
-        },
-        ".agents/skills/implement-spec/agents": {
           "type": "directory"
         },
         ".agents/skills/implement/agents": {
@@ -4627,24 +4512,6 @@
         ".agents/skills/research/agents": {
           "type": "directory"
         },
-        ".agents/skills/retro": {
-          "type": "directory"
-        },
-        ".agents/skills/retro/agents": {
-          "type": "directory"
-        },
-        ".agents/skills/setup-matt-pocock-skills": {
-          "type": "directory"
-        },
-        ".agents/skills/setup-matt-pocock-skills/agents": {
-          "type": "directory"
-        },
-        ".agents/skills/show-me": {
-          "type": "directory"
-        },
-        ".agents/skills/show-me/agents": {
-          "type": "directory"
-        },
         ".agents/skills/standards-updates": {
           "type": "directory"
         },
@@ -4655,18 +4522,6 @@
           "type": "directory"
         },
         ".agents/skills/tdd/agents": {
-          "type": "directory"
-        },
-        ".agents/skills/teach": {
-          "type": "directory"
-        },
-        ".agents/skills/teach/agents": {
-          "type": "directory"
-        },
-        ".agents/skills/to-questionnaire": {
-          "type": "directory"
-        },
-        ".agents/skills/to-questionnaire/agents": {
           "type": "directory"
         },
         ".agents/skills/to-spec": {
@@ -4687,22 +4542,10 @@
         ".agents/skills/triage/agents": {
           "type": "directory"
         },
-        ".agents/skills/wait-what": {
-          "type": "directory"
-        },
-        ".agents/skills/wait-what/agents": {
-          "type": "directory"
-        },
         ".agents/skills/wayfinder": {
           "type": "directory"
         },
         ".agents/skills/wayfinder/agents": {
-          "type": "directory"
-        },
-        ".agents/skills/wizard": {
-          "type": "directory"
-        },
-        ".agents/skills/wizard/agents": {
           "type": "directory"
         },
         ".agents/skills/writing-for-agents": {
@@ -4717,6 +4560,9 @@
         ".claude/skills": {
           "type": "directory"
         },
+        ".factory": {
+          "type": "directory"
+        },
         ".github": {
           "type": "directory"
         },
@@ -4727,9 +4573,6 @@
           "type": "directory"
         },
         ".github/workflows": {
-          "type": "directory"
-        },
-        ".sandcastle": {
           "type": "directory"
         },
         "acceptance": {
@@ -5032,12 +4875,6 @@
         ".agents/skills/adopt-standards/references/.gitignore": {
           "type": "missing"
         },
-        ".agents/skills/ask-matt/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/ask-matt/agents/.gitignore": {
-          "type": "missing"
-        },
         ".agents/skills/babysit/.gitignore": {
           "type": "missing"
         },
@@ -5068,12 +4905,6 @@
         ".agents/skills/domain-modeling/agents/.gitignore": {
           "type": "missing"
         },
-        ".agents/skills/grill-me/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/grill-me/agents/.gitignore": {
-          "type": "missing"
-        },
         ".agents/skills/grill-with-docs/.gitignore": {
           "type": "missing"
         },
@@ -5086,19 +4917,7 @@
         ".agents/skills/grilling/agents/.gitignore": {
           "type": "missing"
         },
-        ".agents/skills/handoff/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/handoff/agents/.gitignore": {
-          "type": "missing"
-        },
         ".agents/skills/implement/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/implement-spec/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/implement-spec/agents/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/implement/agents/.gitignore": {
@@ -5128,24 +4947,6 @@
         ".agents/skills/research/agents/.gitignore": {
           "type": "missing"
         },
-        ".agents/skills/retro/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/retro/agents/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/setup-matt-pocock-skills/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/setup-matt-pocock-skills/agents/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/show-me/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/show-me/agents/.gitignore": {
-          "type": "missing"
-        },
         ".agents/skills/standards-updates/.gitignore": {
           "type": "missing"
         },
@@ -5156,18 +4957,6 @@
           "type": "missing"
         },
         ".agents/skills/tdd/agents/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/teach/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/teach/agents/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/to-questionnaire/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/to-questionnaire/agents/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/to-spec/.gitignore": {
@@ -5188,22 +4977,10 @@
         ".agents/skills/triage/agents/.gitignore": {
           "type": "missing"
         },
-        ".agents/skills/wait-what/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/wait-what/agents/.gitignore": {
-          "type": "missing"
-        },
         ".agents/skills/wayfinder/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/wayfinder/agents/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/wizard/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/wizard/agents/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/writing-for-agents/.gitignore": {
@@ -5218,6 +4995,9 @@
         ".claude/skills/.gitignore": {
           "type": "missing"
         },
+        ".factory/.gitignore": {
+          "type": "missing"
+        },
         ".github/.gitignore": {
           "type": "missing"
         },
@@ -5229,11 +5009,6 @@
         },
         ".github/workflows/.gitignore": {
           "type": "missing"
-        },
-        ".sandcastle/.gitignore": {
-          "type": "file",
-          "sha256": "95f8dff762dbd253b540e84c6f40919cdac8c5a7f5a0fab1150d501e4cc8edb4",
-          "executable": false
         },
         "acceptance/.gitignore": {
           "type": "missing"
@@ -5510,12 +5285,10 @@
   "scopeChanges": [
     {
       "id": "documentation",
-      "additions": [
-        ".sandcastle/Dockerfile",
-        "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
-        "docs/usage/rules.md"
-      ],
-      "removals": []
+      "additions": [],
+      "removals": [
+        ".sandcastle/Dockerfile"
+      ]
     }
   ]
 }

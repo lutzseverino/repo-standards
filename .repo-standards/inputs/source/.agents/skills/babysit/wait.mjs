@@ -43,6 +43,7 @@ const settledCodes = {
   reviewed: 0,
   unavailable: 3,
   "not requested": 4,
+  "request bound reached": 4,
   "no response": 4,
   "not reviewing": 4,
 };

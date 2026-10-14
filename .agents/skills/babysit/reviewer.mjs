@@ -52,7 +52,7 @@ const validateReviewer = (reviewer) => {
   objectFields(
     reviewer.bounds,
     ["responseMinutes", "reviewMinutes"],
-    [],
+    ["reviewRequests"],
     "reviewer.bounds",
   );
   for (const key of ["responseMinutes", "reviewMinutes"]) {
@@ -61,6 +61,14 @@ const validateReviewer = (reviewer) => {
         `reviewer.bounds.${key} must be a positive finite number.`,
       );
   }
+  if (
+    Object.hasOwn(reviewer.bounds, "reviewRequests") &&
+    (!Number.isInteger(reviewer.bounds.reviewRequests) ||
+      reviewer.bounds.reviewRequests <= 0)
+  )
+    throw new Error(
+      "reviewer.bounds.reviewRequests must be a positive integer.",
+    );
   if (Object.hasOwn(reviewer, "finished")) {
     objectFields(
       reviewer.finished,
@@ -94,11 +102,16 @@ const validateReviewer = (reviewer) => {
 };
 
 // Repository data determines requests, completion and bounded review waits.
+const requestComments = (comments, reviewer) =>
+  comments.filter(
+    (comment) => comment.body.trim() === reviewer.request.comment,
+  );
+
 export const reviewRequestedAt = (openedAt, comments, reviewer) => {
   if (!reviewer) return null;
-  const requests = comments
-    .filter((comment) => comment.body.trim() === reviewer.request.comment)
-    .map((comment) => Date.parse(comment.createdAt));
+  const requests = requestComments(comments, reviewer).map((comment) =>
+    Date.parse(comment.createdAt),
+  );
   if (reviewer.request.onOpen) requests.push(openedAt);
   return requests.length ? Math.max(...requests) : null;
 };
@@ -142,8 +155,11 @@ export const reviewerState = (
     if (finished) return "reviewed";
   }
   if (requestedAt === null) return "not requested";
+  // GitHub times have second resolution, so a same-second reply responds.
   const responses = replies.filter(
-    (comment) => Date.parse(comment.createdAt) > requestedAt,
+    (comment) =>
+      Date.parse(comment.createdAt) >= requestedAt &&
+      comment.body.trim() !== reviewer.request.comment,
   );
   if (
     replies.some(
@@ -153,7 +169,14 @@ export const reviewerState = (
     )
   )
     return "unavailable";
-  if (pushedAt > requestedAt) return "not requested";
+  if (pushedAt > requestedAt) {
+    const requests =
+      Number(reviewer.request.onOpen) +
+      requestComments(comments, reviewer).length;
+    return requests >= reviewer.bounds.reviewRequests
+      ? "request bound reached"
+      : "not requested";
+  }
   const waited = now - requestedAt;
   if (
     responses.length === 0 &&
@@ -169,6 +192,7 @@ export const reviewerPhrase = (reviewer, state) =>
     reviewed: "reviewer reviewed",
     unavailable: "reviewer unavailable",
     "not requested": "review not requested for this head",
+    "request bound reached": `review not requested for this head; review request bound reached (${reviewer.bounds.reviewRequests})`,
     "no response": `reviewer did not respond within ${reviewer.bounds.responseMinutes} minutes`,
     "not reviewing": `reviewer did not review within ${reviewer.bounds.reviewMinutes} minutes`,
     pending: "review pending",

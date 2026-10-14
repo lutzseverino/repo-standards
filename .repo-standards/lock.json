@@ -7,12 +7,12 @@
     },
     "standards": {
       "repository": "https://github.com/lutzseverino/repo-canon",
-      "version": "v0.11.1",
-      "commit": "778c7974b93d177ff2b2d2fc47aa86cf3f85294b"
+      "version": "v0.12.0",
+      "commit": "dd480fa81c297196a59cc26e134400ed1295f1a7"
     },
     "profile": "factory"
   },
-  "inspection": "sha256:0d2aa1ae5abee94c564a18b78a96a2f3dd59a987a7969d885db895f62c022392",
+  "inspection": "sha256:6874c4b28e8a7e27d67b61bdd865086b74617de013ddac8060541164aa9b7c2c",
   "files": {
     "docs/agents/README.md": {
       "sha256": "a78a8a4934c9de37cfcd11be23ce3dd58462108fa53b6cdaead4af18ca7e773b",
@@ -27,7 +27,7 @@
       "executable": false
     },
     "CONTRIBUTING.md": {
-      "sha256": "88565885f90c94d74e06ce36de942532992297b80e1af0a97e26574829c6d529",
+      "sha256": "c25bf00e0380c8ea900f794f68e7f45c0027eae4614f3588d0dc606fec188645",
       "executable": false
     },
     "docs/agents/domain.md": {
@@ -107,7 +107,7 @@
       "executable": false
     },
     ".github/PULL_REQUEST_TEMPLATE.md": {
-      "sha256": "4ca0528fa7bab99c0107da587058aebf6cb94c2e9a5760b725f50a3e2c29d2ec",
+      "sha256": "7dcc5881eef1c342a08519750b9beae700f4620d1fdf23c2eb0d9b2dfaec5fd0",
       "executable": false
     },
     "operations/lib/rendered-markdown.mjs": {
@@ -115,19 +115,19 @@
       "executable": false
     },
     ".agents/skills/babysit/SKILL.md": {
-      "sha256": "14e03172858f7ba2d025d02b0e5ec483ee77390270aaa6224ec447dcd055275f",
+      "sha256": "b6900b4378f0b8b9c46b6c7c6b56cad36e62b4f740e59b835559f21baaeda5f3",
       "executable": false
     },
     ".agents/skills/babysit/merge.mjs": {
-      "sha256": "d4a4352b95376f44db1dba5e8e13368846458e91789035874b927b499938e302",
+      "sha256": "f1ba69545f9e7234666e76e1bb64283378419f9e6af963753d141107438b8d3e",
       "executable": false
     },
     ".agents/skills/babysit/reviewer.mjs": {
-      "sha256": "1802605d9778698b5d6d6599323648b9329df1b821e18760f13b02c237bf8482",
+      "sha256": "43c0834119e5caad5478abe6216e46ccd9813d8019a2097e7d0bc8616ff94373",
       "executable": false
     },
     ".agents/skills/babysit/wait.mjs": {
-      "sha256": "fdedab285461067819b691168af2707e4afc7b44eb1ca9671a6bc840ca05e281",
+      "sha256": "041dd8a31517f0592b2a16d72030d7a95f94d7b643f676f52929895f92eacc46",
       "executable": false
     },
     ".agents/skills/code-review/SKILL.md": {
@@ -375,7 +375,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/CONTRIBUTING.md": {
-      "sha256": "88565885f90c94d74e06ce36de942532992297b80e1af0a97e26574829c6d529",
+      "sha256": "c25bf00e0380c8ea900f794f68e7f45c0027eae4614f3588d0dc606fec188645",
       "executable": false
     },
     ".repo-standards/inputs/source/guidance/documentation.md": {
@@ -447,7 +447,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/guidance/factory-sandbox-image.md": {
-      "sha256": "30a80d34f74e944625c8a4dd8557241ab215e2af374d0cbfa15c52e2be2f8400",
+      "sha256": "2cbf27a17e5079cde8c31595cb8efe5d54d68b9236a3fa51f56a18e74423220a",
       "executable": false
     },
     ".repo-standards/inputs/source/.github/workflows/sandbox-image.yml": {
@@ -499,7 +499,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/.agents/skills/babysit/reviewer.mjs": {
-      "sha256": "1802605d9778698b5d6d6599323648b9329df1b821e18760f13b02c237bf8482",
+      "sha256": "43c0834119e5caad5478abe6216e46ccd9813d8019a2097e7d0bc8616ff94373",
       "executable": false
     },
     ".repo-standards/inputs/source/.github/ISSUE_TEMPLATE/implementation-ticket.yml": {
@@ -539,7 +539,7 @@
       "executable": false
     },
     ".repo-standards/inputs/source/.github/PULL_REQUEST_TEMPLATE.md": {
-      "sha256": "4ca0528fa7bab99c0107da587058aebf6cb94c2e9a5760b725f50a3e2c29d2ec",
+      "sha256": "7dcc5881eef1c342a08519750b9beae700f4620d1fdf23c2eb0d9b2dfaec5fd0",
       "executable": false
     },
     ".repo-standards/inputs/source/guidance/repository-license.md": {
@@ -555,15 +555,15 @@
       "executable": false
     },
     ".repo-standards/inputs/source/.agents/skills/babysit/SKILL.md": {
-      "sha256": "14e03172858f7ba2d025d02b0e5ec483ee77390270aaa6224ec447dcd055275f",
+      "sha256": "b6900b4378f0b8b9c46b6c7c6b56cad36e62b4f740e59b835559f21baaeda5f3",
       "executable": false
     },
     ".repo-standards/inputs/source/.agents/skills/babysit/merge.mjs": {
-      "sha256": "d4a4352b95376f44db1dba5e8e13368846458e91789035874b927b499938e302",
+      "sha256": "f1ba69545f9e7234666e76e1bb64283378419f9e6af963753d141107438b8d3e",
       "executable": false
     },
     ".repo-standards/inputs/source/.agents/skills/babysit/wait.mjs": {
-      "sha256": "fdedab285461067819b691168af2707e4afc7b44eb1ca9671a6bc840ca05e281",
+      "sha256": "041dd8a31517f0592b2a16d72030d7a95f94d7b643f676f52929895f92eacc46",
       "executable": false
     },
     ".repo-standards/inputs/source/vendor/mattpocock-skills/skills/engineering/code-review/SKILL.md": {
@@ -775,15 +775,15 @@
       "executable": false
     },
     ".repo-standards/inputs/resolved.json": {
-      "sha256": "2ed80397ed098cd7b65fd896064303212dc28737b7b420568b2ead5ac546978d",
+      "sha256": "b4beb84fd62e82058d6059580584ea11ddf5bae6cc9fcf52981223e9a23eb1f5",
       "executable": false
     },
     ".repo-standards/inputs/scope-history.json": {
-      "sha256": "4d6fcea0274d4b58c38d3ed4bd6e1956536c70ab92391532f3bc012559679d74",
+      "sha256": "42226b74ba7b6f88be4b3179d43dd23c2966e304371f29deed7c21ca749186d2",
       "executable": false
     },
     ".repo-standards/selection.yaml": {
-      "sha256": "8cd8a1ec698fc68579b43908b2431031f6ca80ed43c59062f876b7b22e8f9198",
+      "sha256": "96e85bd7e7d6b84e477986af5fc9bbd49f0346ab46b7a71e223b2f1c164ec583",
       "executable": false
     },
     ".repo-standards/.gitignore": {
@@ -800,7 +800,7 @@
     }
   },
   "state": {
-    "sha256": "3e75f8ffe8abb12587161fea582c6b5acd566c7956d29c1917f71315d0df6de8",
+    "sha256": "acdfaf465451610e6d574c066a04e939c469b46dc7ab340f8c72e5f5a682d156",
     "executable": false
   }
 }

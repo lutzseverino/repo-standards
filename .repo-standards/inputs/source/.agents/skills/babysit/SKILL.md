@@ -28,15 +28,18 @@ conditions and the wording rules.
 3. Fix the real findings `CONTRIBUTING.md` does not let you decline, and answer
    every review thread as it requires, following its
    [comment rules](../../../CONTRIBUTING.md#comments).
-4. When pushed fixes change enough to warrant another look, comment
-   to re-request review of the new head when a reviewer is configured, using
-   its `request.comment` and following the
+4. Apply the [Merging request rule](../../../CONTRIBUTING.md#merging) to the
+   new head. When it requires a request, comment using the configured reviewer's
+   `request.comment` and following the
    [comment rules](../../../CONTRIBUTING.md#comments). After any push or
    re-request, return to step 1.
 5. Once the merge conditions hold on the latest head, run
    `node <this skill's directory>/merge.mjs <number> <SHA>`, where `<SHA>` is
    the full SHA that starts the wait's latest line. Exit `0` means merged;
-   `2` means the head changed, so return to step 1; `1` means follow
+   `2` means the head changed, so return to step 1; `3` means it did not merge
+   and needs the owner, so hand off with a question under
+   [Comments](../../../CONTRIBUTING.md#comments), without retrying the merge;
+   `1` means follow
    [Credentials](../../../CONTRIBUTING.md#credentials) for a permission refusal;
    otherwise fix the invocation or other `gh` error and
    run it again.
@@ -49,7 +52,8 @@ only. Repo Canon installs no file or preset; its check validates the file when
 present. The factory does not read it. Without the file, the wait reports only
 checks.
 
-Every field below is required except `finished`. Unknown fields are invalid.
+Every field below is required except `finished` and `bounds.reviewRequests`.
+Unknown fields are invalid.
 
 - `version`: `1`.
 - `account`: the reviewer's nonempty GitHub login, including `[bot]` when part
@@ -69,10 +73,13 @@ Every field below is required except `finished`. Unknown fields are invalid.
   with an empty body and only replies to existing threads never completes one.
 - `unavailable`: array of nonempty reply texts; an empty array is valid. A
   comment by `account` at or after the request containing one of these texts
-  marks the reviewer unavailable. Any comment by `account` after the
-  request counts as a response.
+  marks the reviewer unavailable. Any comment by `account` at or after the
+  request counts as a response, except a request comment, which is never a
+  response.
 - `bounds.responseMinutes` and `bounds.reviewMinutes`: positive finite numbers
   measured from the latest request.
+- `bounds.reviewRequests`: optional positive integer; the total request bound
+  defined in [Merging](../../../CONTRIBUTING.md#merging).
 
 For example, a repository that uses Codex can configure:
 
