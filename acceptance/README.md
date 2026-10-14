@@ -100,7 +100,7 @@ restoration, retained-source use and independent updates described in
 
 ### Earlier fixture-based acceptance
 
-Use macOS and Linux with Node.js 24, npm, Git and Python >=3.12,<4. From a product
+Use macOS and Linux with Node.js 24, npm, Git and Python >=3.9,<4. From a product
 checkout, install dependencies with `pnpm install --frozen-lockfile` and build
 with `pnpm build`. Keep this setup process running:
 

@@ -6,10 +6,12 @@ Repository Standards CLI and website.
 ## Setup and validation
 
 Use TypeScript, ESM, Node.js 24 and pnpm at the versions in `.node-version` and
-`package.json`, with npm and Git 2.32 or newer on `PATH`. Run `pnpm install --frozen-lockfile`; npm registry access or
-cached dependencies are required. The root package remains the published CLI;
+`package.json`, with npm, Git 2.32 or newer and `python3` 3.9 or newer on `PATH`. The Alice
+example test runs the example's `python3` check and needs that Python. Run
+`pnpm install --frozen-lockfile`; npm registry access or cached dependencies
+are required. The root package remains the published CLI;
 `site/` is a private pnpm workspace. Installation from the root installs both
-projects. `.factory/Dockerfile` supplies Node.js, pnpm and npm; the host-installed
+projects. `.factory/Dockerfile` supplies Node.js, pnpm, npm and `python3`; the host-installed
 factory adds Git and agent tools in its own layer. The site needs no additional
 system tools.
 
