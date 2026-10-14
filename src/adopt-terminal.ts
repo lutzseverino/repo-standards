@@ -195,6 +195,29 @@ export async function adoptInTerminal(
     for (const id of answers.keys())
       if (id.startsWith("assessment:") || id.startsWith("fix:"))
         answers.delete(id);
+    // A blocker on a file the person included in a scope, such as a
+    // directory listed as a file, asks the scope questions again.
+    const included = [...answers].flatMap(([id, answer]) =>
+      id.startsWith("scope:")
+        ? (record(answer).candidates as Candidate[])
+            .filter((candidate) => candidate.decision === "include")
+            .map((candidate) => candidate.path)
+        : [],
+    );
+    const rejected = report.run
+      ? []
+      : report.blockers.filter(
+          (blocker) =>
+            blocker.path !== undefined && included.includes(blocker.path),
+        );
+    if (rejected.length) {
+      write(
+        `\nInspection rejects the scope:\n${rejected.map((blocker) => `- ${blocker.code} ${blocker.path}: ${blocker.message}\n`).join("")}Answer the scope questions again.\n`,
+      );
+      for (const id of answers.keys())
+        if (id.startsWith("scope:")) answers.delete(id);
+      continue;
+    }
     const reason = report.run?.reason ?? "";
     switch (report.outcome) {
       case "answers-required": {

@@ -508,6 +508,12 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
   // A path inspection rejects asks the scope question again.
   await list("../outside.md");
   await session.expect("Answer the scope questions again.");
+  // So does a directory listed as a file.
+  await list("tools");
+  assert.match(
+    await session.expect("Answer the scope questions again."),
+    /individual regular files or absent files: tools\./,
+  );
   // A drafted exclusion the person lists is included, and a path keeps its
   // spaces.
   await list(
