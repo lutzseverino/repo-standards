@@ -319,13 +319,18 @@ test("adopt in a terminal asks a discovery script's open questions and reviews t
   session.type("");
   // The scope is reviewed as the fixes left it, before any edit, and again
   // once the contextual work is done.
-  const walk = await session.expect(
-    "After the run's fixes, before any contextual edit, did its confirmed scope, app/README.md, cover every file project-docs should? [Y/n]: ",
+  assert.match(
+    await session.expect(
+      "Before any contextual edit, does it cover every file project-docs should? [Y/n]: ",
+    ),
+    /The confirmed scope of project-docs, as the run's fixes left the project\.\n/,
   );
-  assert.match(walk, /Edit only: app\/README\.md/);
   session.type("");
-  await session.expect(
-    "Edit the files now. Press Enter when you are done, or type blocked: ",
+  assert.match(
+    await session.expect(
+      "Edit the files now. Press Enter when you are done, or type blocked: ",
+    ),
+    /Edit only: app\/README\.md/,
   );
   writeFileSync(join(f.root, "app/README.md"), "# App\n");
   session.type("");
@@ -513,8 +518,10 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
   );
   await session.expect("Start the run? [Y/n]: ");
   session.type("");
+  await session.expect("cover every file project-docs should? [Y/n]: ");
+  session.type("");
   const walk = await session.expect(
-    "cover every file project-docs should? [Y/n]: ",
+    "Press Enter when you are done, or type blocked: ",
   );
   const targets = /Edit only: (.*)\n/.exec(walk)![1]!.split(", ").sort();
   assert.deepEqual(targets, [
@@ -647,4 +654,54 @@ test("a walk's checks run only from a verified installation", async (t) => {
   await session.expect(/\[[A-Z_]+\] /);
   assert.equal(await session.exit(), 1);
   assert.equal(existsSync(ran), false);
+});
+
+test("a scope the person reports incomplete after the contextual work stops the run", async (t) => {
+  const { f } = await discoveryFixture(t, cli, []);
+  const session = terminal(t, f, [source]);
+  await session.expect("Version [v1.0.0]: ");
+  session.type("");
+  await session.expect("Profile [work]: ");
+  session.type("");
+  await session.expect(
+    "Does project-docs cover exactly the drafted files, app/README.md? [Y/n]: ",
+  );
+  session.type("");
+  await session.expect("Start the run? [Y/n]: ");
+  session.type("");
+  await session.expect("cover every file project-docs should? [Y/n]: ");
+  session.type("");
+  await session.expect("Press Enter when you are done, or type blocked: ");
+  writeFileSync(join(f.root, "app/README.md"), "# App\n");
+  session.type("");
+  await session.expect("Is project-docs done? [Y/n/blocked]: ");
+  session.type("");
+  await session.expect(
+    "Now that the contextual work is done, does the confirmed scope of project-docs, app/README.md, cover every file it should? [Y/n]: ",
+  );
+  session.type("n");
+  await session.expect("File: ");
+  session.type("tools/README.md");
+  await session.expect("File: ");
+  session.type("");
+  assert.match(
+    await session.expect("Abandon the run, or stop? [abandon/stop]: "),
+    /The run is incomplete: SCOPE_INCOMPLETE: /,
+  );
+  session.type("stop");
+  assert.equal(await session.exit(), 1);
+  // The assessment records both reviews as the person gave them.
+  const run = status(f).active as unknown as {
+    assessments: {
+      declarations: {
+        scopeValidity: Record<
+          string,
+          { status: string; additionalPaths: string[] }
+        >;
+      }[];
+    }[];
+  };
+  const { scopeValidity } = run.assessments[0]!.declarations[0]!;
+  assert.equal(scopeValidity.afterFixes!.status, "valid");
+  assert.deepEqual(scopeValidity.current!.additionalPaths, ["tools/README.md"]);
 });

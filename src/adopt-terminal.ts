@@ -156,6 +156,9 @@ export async function adoptInTerminal(
   const answers: Answers = new Map();
   // This session's judgments, kept for declarations a later walk skips.
   const judged = new Map<string, Answer>();
+  // The session's reviews of each discovered scope as the run's fixes left
+  // the project, kept for a renewed assessment.
+  const reviewedAfterFixes = new Map<string, ScopeReview>();
   let presented: string | undefined;
   let submitted = false;
 
@@ -310,40 +313,90 @@ export async function adoptInTerminal(
           );
         } else if (!reason.startsWith("CONTEXTUAL_REQUIRED:"))
           write(`\nThe run did not accept the last assessment: ${reason}\n`);
+        // Each discovered scope is reviewed as the run's fixes left the
+        // project, before any contextual edit. A confirmed scope that misses
+        // files stops the run, so nothing more is asked once one does.
         let incomplete: string | undefined;
-        for (const [index, declaration] of walk.entries()) {
-          const judgment: Answer = incomplete
-            ? notWalked(declaration, incomplete)
-            : await walkDeclaration(
+        for (const declaration of declarations) {
+          if (!declaration.discovery || incomplete) continue;
+          let review = reviewedAfterFixes.get(declaration.id);
+          if (!review) {
+            write(
+              `\nThe confirmed scope of ${declaration.id}, as the run's fixes left the project.\n`,
+            );
+            review = await reviewScope(
+              prompt,
+              declaration,
+              `Before any contextual edit, does it cover every file ${declaration.id} should? [Y/n]: `,
+              "after the run's fixes",
+            );
+            reviewedAfterFixes.set(declaration.id, review);
+          }
+          if (review.status === "blocked") incomplete = declaration.id;
+        }
+        if (!incomplete)
+          for (const [index, declaration] of walk.entries())
+            judged.set(
+              declaration.id,
+              await walkDeclaration(
                 prompt,
                 session,
                 declaration,
                 `${index + 1} of ${walk.length}`,
                 failed.filter((check) => check.declaration === declaration.id),
-              );
-          judged.set(declaration.id, judgment);
-          // A confirmed scope that misses files stops the run, so the walk
-          // stops with it.
-          if (judgment.scopeValidity?.current.status === "blocked")
-            incomplete ??= declaration.id;
+                reviewedAfterFixes.get(declaration.id),
+              ),
+            );
+        // With all contextual work done, each discovered scope is reviewed
+        // as the project now is.
+        const reviewedNow = new Set<string>();
+        for (const declaration of declarations) {
+          if (!declaration.discovery || incomplete) continue;
+          const judgment = judged.get(declaration.id)!;
+          const current = await reviewScope(
+            prompt,
+            declaration,
+            `Now that the contextual work is done, does the confirmed scope of ${declaration.id}, ${targetList(declaration)}, cover every file it should? [Y/n]: `,
+            "after the contextual work",
+          );
+          judged.set(declaration.id, {
+            ...judgment,
+            scopeValidity: { ...judgment.scopeValidity!, current },
+          });
+          reviewedNow.add(declaration.id);
+          if (current.status === "blocked") incomplete = declaration.id;
         }
-        // With all contextual work done, each discovered declaration's scope
-        // is reviewed as the project now is.
-        if (!incomplete)
+        // Once a scope misses files, every declaration it stopped is judged
+        // blocked, naming it.
+        if (incomplete) {
+          const stop = incomplete;
           for (const declaration of declarations) {
             const judgment = judged.get(declaration.id);
-            if (!declaration.discovery || !judgment?.scopeValidity) continue;
-            const current = await reviewScope(
-              prompt,
-              declaration,
-              `Now that the contextual work is done, does the confirmed scope of ${declaration.id}, ${targetList(declaration)}, cover every file it should? [Y/n]: `,
-              "after the contextual work",
-            );
-            judged.set(declaration.id, {
-              ...judgment,
-              scopeValidity: { ...judgment.scopeValidity, current },
-            });
+            const afterFixes = reviewedAfterFixes.get(declaration.id);
+            if (declaration.id === stop && afterFixes?.status === "blocked")
+              judged.set(declaration.id, {
+                status: "blocked",
+                explanation: afterFixes.explanation,
+                evidence: [
+                  "The maintainer reported the confirmed scope incomplete in adopt's terminal walk-through.",
+                ],
+                scopeValidity: { afterFixes, current: afterFixes },
+              });
+            else if (!judgment)
+              judged.set(
+                declaration.id,
+                notWalked(declaration, stop, afterFixes),
+              );
+            else if (declaration.discovery && !reviewedNow.has(declaration.id))
+              judged.set(declaration.id, {
+                ...judgment,
+                scopeValidity: {
+                  ...judgment.scopeValidity!,
+                  current: unreviewed(stop),
+                },
+              });
           }
+        }
         for (const { id } of declarations)
           answers.set(`assessment:${id}`, judged.get(id));
         submitted = true;
@@ -361,26 +414,35 @@ export async function adoptInTerminal(
   }
 }
 
-// The judgment of a declaration the walk did not reach because an earlier
-// declaration's confirmed scope misses files.
-function notWalked(declaration: Contextual, incomplete: string): Answer {
-  const reason = `Not walked: the confirmed scope of ${incomplete} misses files, so the run stops before this declaration's contextual work.`;
-  const review: ScopeReview = {
+// A scope review not asked because another declaration's confirmed scope
+// misses files.
+function unreviewed(incomplete: string): ScopeReview {
+  return {
     status: "blocked",
-    explanation: reason,
+    explanation: `Not reviewed: the confirmed scope of ${incomplete} misses files, so the run stops.`,
     evidence: [
       `The maintainer reported the scope of ${incomplete} incomplete.`,
     ],
     additionalPaths: [],
   };
+}
+
+// The judgment of a declaration the walk did not reach because a confirmed
+// scope misses files.
+function notWalked(
+  declaration: Contextual,
+  incomplete: string,
+  afterFixes: ScopeReview | undefined,
+): Answer {
+  const review = unreviewed(incomplete);
   return {
     status: "blocked",
-    explanation: reason,
+    explanation: `Not walked: the confirmed scope of ${incomplete} misses files, so the run stops before this declaration's contextual work.`,
     evidence: [
       `The maintainer reported the scope of ${incomplete} incomplete in adopt's terminal walk-through.`,
     ],
     ...(declaration.discovery
-      ? { scopeValidity: { afterFixes: review, current: review } }
+      ? { scopeValidity: { afterFixes: afterFixes ?? review, current: review } }
       : {}),
   };
 }
@@ -604,6 +666,7 @@ async function walkDeclaration(
   declaration: Contextual,
   position: string,
   failed: NonNullable<AdoptReport["failedChecks"]>,
+  afterFixes: ScopeReview | undefined,
 ): Promise<Answer> {
   const { write, ask, required, choose } = prompt;
   const { id, rules, guidance, discovery } = declaration;
@@ -625,30 +688,11 @@ async function walkDeclaration(
     );
   for (const check of failed)
     write(`Failed after the assessment: ${check.id}: ${check.message}\n`);
-  // A discovered declaration's scope is reviewed as the run's fixes left the
-  // project, before any edit; the current review, once all contextual work
-  // is done, replaces the second copy. A scope that misses files stops the
-  // run, so the walk ends there.
-  const afterFixes = discovery
-    ? await reviewScope(
-        prompt,
-        declaration,
-        `After the run's fixes, before any contextual edit, did its confirmed scope, ${scope}, cover every file ${id} should? [Y/n]: `,
-        "after the run's fixes",
-      )
-    : undefined;
+  // The current review, once all contextual work is done, replaces the
+  // second copy of the after-fixes review.
   const scopeValidity = afterFixes
     ? { afterFixes, current: afterFixes }
     : undefined;
-  if (afterFixes?.status === "blocked")
-    return {
-      status: "blocked",
-      explanation: afterFixes.explanation,
-      evidence: [
-        "The maintainer reported the confirmed scope incomplete in adopt's terminal walk-through.",
-      ],
-      scopeValidity: scopeValidity!,
-    };
   const blocked = async (evidence: string[]): Promise<Answer> => {
     const explanation = await required(`Why is ${id} blocked? `);
     return {

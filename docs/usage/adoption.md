@@ -66,13 +66,13 @@ accepts the drafted files or lists the files the declaration covers, one per
 line, with the reason. A scope that inspection rejects is asked again. `adopt` then shows the inspection and asks to start the run, which
 answers `inspection`. Declining a confirmation or the start changes nothing.
 
-Once the run waits for contextual work, `adopt` walks each contextual
-declaration in turn:
+Once the run waits for contextual work, `adopt` first asks, for each
+discovered declaration, whether its confirmed scope covers every file it should
+as the run's fixes left the project, before any edit. It keeps these answers
+for the rest of the session. Then it walks each contextual declaration in turn:
 
 1. It shows the declaration's allowed targets, installed rules, adoption
-   guidance and, for a discovered declaration, discovery guidance. For a
-   discovered declaration, it asks whether the confirmed scope covered every
-   file it should as the run's fixes left the project.
+   guidance and, for a discovered declaration, discovery guidance.
 2. It waits while the person edits, until they press Enter or type `blocked`.
 3. It runs the declaration's checks against the working tree and shows each
    result. While a check fails, it shows the failure and the declaration's
@@ -82,7 +82,8 @@ declaration in turn:
 
 Once every declaration is walked, it asks again, for each discovered
 declaration, whether the confirmed scope covers every file it should now.
-A scope that misses files ends the walk: the run can only stop incomplete.
+A scope that misses files ends the questions at once, and the declarations it
+stops are assessed blocked, naming it: the run can only stop incomplete.
 
 These checks run read-only inside the waiting run, as `check` runs them, from
 its installation once verified, and record nothing: the run's own check round after the assessment decides.
