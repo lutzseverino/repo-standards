@@ -1,6 +1,6 @@
 # Discover Project README scope
 
-The source's Project README guidance, `guidance/project-readmes.md`, defines a
+The source's Project README rules, `rules/project-readmes.md`, define a
 Project. Inspect the complete repository evidence for Projects: manifests,
 workspace and build configuration, existing documentation, maintained source,
 and meaningful component boundaries. Directory names and conventional layouts

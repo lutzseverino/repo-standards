@@ -9,7 +9,8 @@ function failProcess(message) {
   throw new Error(message);
 }
 
-export function readFixesRequest(operationName) {
+// Fixes and their readiness probes share one input; only the phase differs.
+export function readOperationRequest(operationName, phase) {
   let request;
   try {
     request = JSON.parse(readFileSync(0, "utf8"));
@@ -19,8 +20,8 @@ export function readFixesRequest(operationName) {
   if (request?.format !== "repo-standards/operation/v2") {
     failProcess(`${operationName} requires repo-standards/operation/v2 input.`);
   }
-  if (request.operation?.phase !== "fixes") {
-    failProcess(`${operationName} must run as a fixes operation.`);
+  if (request.operation?.phase !== phase) {
+    failProcess(`${operationName} must run as a ${phase} operation.`);
   }
   const { paths, directories } = request.allowedTargets ?? {};
   if (
@@ -250,7 +251,7 @@ export function prepareGithubRepository(request, operationName) {
   );
   if (!authentication.ok) {
     return {
-      blocked: `${operationName} requires authenticated github.com access through gh.`,
+      blocked: `${operationName} requires authenticated github.com access through gh; sign in with gh auth login --hostname github.com.`,
     };
   }
 
@@ -276,4 +277,57 @@ export function prepareGithubRepository(request, operationName) {
     };
   }
   return { identity: inferred.identity, repository };
+}
+
+// The repository roles the GitHub fixes need, as GitHub reports them in the
+// repository's permissions. A fix and its readiness probe check the same role.
+export const labelManagementRole = {
+  access: "write, maintain, or admin access",
+  granted: (permissions) =>
+    Boolean(permissions.push || permissions.maintain || permissions.admin),
+};
+
+export const repositoryAdministrationRole = {
+  access: "admin access",
+  purpose: " to manage repository rules and merge settings",
+  granted: (permissions) => Boolean(permissions.admin),
+};
+
+// Everything a GitHub fix needs before it reads or writes its own settings:
+// the tools, one confirmed repository, authenticated access, and its role.
+// None of it changes anything, locally or on GitHub.
+export function prepareGithubSetup(request, operationName, role) {
+  const prepared = prepareGithubRepository(request, operationName);
+  if (prepared.blocked) return prepared;
+  if (!role.granted(prepared.repository.permissions ?? {})) {
+    return {
+      blocked: `${operationName} requires ${role.access} to ${prepared.identity}${role.purpose ?? ""}.`,
+    };
+  }
+  return prepared;
+}
+
+// A remote setup's readiness probe: ready exactly when its fix would get past
+// preparation, and otherwise not ready with the reason the fix would block.
+export function probeGithubSetup(operationName, role) {
+  try {
+    const prepared = prepareGithubSetup(
+      readOperationRequest(operationName, "probes"),
+      operationName,
+      role,
+    );
+    if (prepared.blocked) {
+      writeOperationResult("not-ready", prepared.blocked);
+      return;
+    }
+    writeOperationResult(
+      "ready",
+      `${operationName} can run for ${prepared.identity} with ${role.access}.`,
+    );
+  } catch (error) {
+    process.stderr.write(
+      `${error instanceof Error ? error.message : String(error)}\n`,
+    );
+    process.exitCode = 1;
+  }
 }

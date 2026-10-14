@@ -4,8 +4,9 @@ import {
   requireOverwriteConfirmation,
   githubApi,
   jsonFrom,
-  prepareGithubRepository,
-  readFixesRequest,
+  prepareGithubSetup,
+  readOperationRequest,
+  repositoryAdministrationRole,
   writeOperationResult as result,
 } from "./lib/github-operation.mjs";
 
@@ -460,20 +461,17 @@ function deferredRequirement(identity, defaultBranch) {
 }
 
 function setupIntegration(request) {
-  const prepared = prepareGithubRepository(request, operationName);
+  const prepared = prepareGithubSetup(
+    request,
+    operationName,
+    repositoryAdministrationRole,
+  );
   if (prepared.blocked) {
     result("blocked", prepared.blocked);
     return;
   }
   const inferred = { identity: prepared.identity };
   const repository = prepared.repository;
-  if (!repository.permissions?.admin) {
-    result(
-      "blocked",
-      `${operationName} requires admin access to ${inferred.identity} to manage repository rules and merge settings.`,
-    );
-    return;
-  }
   if (
     typeof repository.default_branch !== "string" ||
     repository.default_branch.length === 0
@@ -722,7 +720,7 @@ function setupIntegration(request) {
 }
 
 try {
-  setupIntegration(readFixesRequest(operationName));
+  setupIntegration(readOperationRequest(operationName, "fixes"));
 } catch (error) {
   process.stderr.write(
     `${error instanceof Error ? error.message : String(error)}\n`,

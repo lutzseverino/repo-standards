@@ -4,8 +4,9 @@ import {
   requireOverwriteConfirmation,
   githubApi,
   jsonFrom,
-  prepareGithubRepository,
-  readFixesRequest,
+  labelManagementRole,
+  prepareGithubSetup,
+  readOperationRequest,
   writeOperationResult as result,
 } from "./lib/github-operation.mjs";
 
@@ -142,21 +143,16 @@ function mutateLabel(identity, action, projectRoot) {
 }
 
 function setupLabels(request) {
-  const prepared = prepareGithubRepository(request, operationName);
+  const prepared = prepareGithubSetup(
+    request,
+    operationName,
+    labelManagementRole,
+  );
   if (prepared.blocked) {
     result("blocked", prepared.blocked);
     return;
   }
   const inferred = { identity: prepared.identity };
-  const repository = prepared.repository;
-  const permissions = repository.permissions ?? {};
-  if (!permissions.push && !permissions.maintain && !permissions.admin) {
-    result(
-      "blocked",
-      `GitHub label setup requires write, maintain, or admin access to ${inferred.identity}.`,
-    );
-    return;
-  }
 
   const before = readLabels(inferred.identity, request.projectRoot);
   if (before.error) {
@@ -253,12 +249,12 @@ function setupLabels(request) {
   }
   result(
     "changed",
-    `GitHub label setup changed ${inferred.identity}: ${effects}. Readback confirmed all 15 canonical labels; unrelated labels were preserved.`,
+    `GitHub label setup changed ${inferred.identity}: ${effects}. Readback confirmed all ${canonicalLabels.length} canonical labels; unrelated labels were preserved.`,
   );
 }
 
 try {
-  setupLabels(readFixesRequest(operationName));
+  setupLabels(readOperationRequest(operationName, "fixes"));
 } catch (error) {
   process.stderr.write(
     `${error instanceof Error ? error.message : String(error)}\n`,

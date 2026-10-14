@@ -30,8 +30,8 @@
 import { execFile } from "node:child_process";
 import { realpathSync } from "node:fs";
 
+import { readReviewer } from "./pull-request-reviewer.mjs";
 import {
-  readReviewer,
   reviewRequestedAt,
   reviewerState,
   reviewerPhrase,
