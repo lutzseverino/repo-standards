@@ -1,6 +1,6 @@
 # Repository Standards — architecture contracts
 
-This document describes the current contracts of CLI 6.0.0; individual tickets
+This document describes the current contracts of CLI 7.0.0; individual tickets
 state implementation scope, and the [architecture decisions](../adr/README.md)
 record the rationale.
 
@@ -116,7 +116,7 @@ format: repo-standards/v2
 name: alice-standards
 description: Alice's repository standards
 requires:
-  repo-standards: ">=6.0.0"
+  repo-standards: ">=7.0.0"
 
 defaults:
   declarations:
@@ -274,7 +274,7 @@ version is selected from its source. Retained inputs are validated against the
 running CLI's supported source formats, which carry the compatibility promise,
 so a CLI update over retained standards never fails on the retained range.
 Validation diagnostics and the authoring guide recommend an open-ended minimum,
-such as `>=6.0.0`. Source Git provenance and SHA-256 hashes of retained inputs
+such as `>=7.0.0`. Source Git provenance and SHA-256 hashes of retained inputs
 are recorded independently of the exact CLI package pin.
 
 ## CLI and bootstrap
@@ -1109,3 +1109,26 @@ These mechanisms are removed, not deprecated
   fix status `confirmation-required`). A script returning the retired result
   format fails with `PROTOCOL_ERROR`; no compatibility reader accepts it
   ([ADR 0007](../adr/0007-write-and-read-one-evidence-format.md)).
+
+## Removed in 7.0.0
+
+These mechanisms are removed, not deprecated.
+
+- The `adopt-standards` system skill. `adopt` prints its procedure as the next
+  steps of each stage and installs the exact CLI it ran, so nothing is installed
+  outside the project by hand.
+- The `standards-updates` system skill. The model-invocable
+  `repository-standards` skill carries the same update notice
+  ([ADR 0014](../adr/0014-leave-available-updates-to-the-maintainer.md)) and rule
+  lookup. An update removes an unedited copy of either retired skill and its
+  link; an edited copy stays project-owned. Neither name is reserved.
+- Plain `status` printing JSON. It prints the Markdown record with the
+  **Ready to commit** verdict, as `status --summary` does; `status --json`
+  returns the structured report.
+- The formats `repo-standards/inspection/v7`, `repo-standards/status/v7`,
+  `repo-standards/check/v1`, and `repo-standards/work-request/v3`. 7.0.0
+  replaced them with `inspection/v8` (remote setup readiness and `rules`
+  contextual changes), `status/v8` (`readyToCommit`, `readinessReasons`, and
+  deferred remote setup), `check/v2` (`rules` on a check that did not pass),
+  and `work-request/v4` (each declaration's installed `rules`). Durable state,
+  lock, run, and scope-history formats are unchanged.
