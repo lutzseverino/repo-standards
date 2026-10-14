@@ -435,6 +435,8 @@ test("a scope the person reports incomplete stops the walk and the run, which th
   session.type("tools/README.md");
   await session.expect("File: ");
   session.type("");
+  await session.expect("Why is the confirmed scope incomplete? ");
+  session.type("The tools project needs documentation too.");
   // The walk ends there: no later answer can confirm the scope, and no
   // later declaration's work can complete the run.
   assert.doesNotMatch(
@@ -663,8 +665,16 @@ test("a walk's checks run only from a verified installation", async (t) => {
   assert.equal(existsSync(ran), false);
 });
 
-test("a scope the person reports incomplete after the contextual work stops the run", async (t) => {
-  const { f } = await discoveryFixture(t, cli, []);
+test("a scope can be blocked before contextual work without missing files and requires a reason", async (t) => {
+  const { f } = await discoveryFixture(t, cli, [], {
+    declarations: {
+      "tools-docs": {
+        kind: "repository",
+        targets: { paths: ["tools/run.sh"], directories: [] },
+        guidance: "guidance.md",
+      },
+    },
+  });
   const session = terminal(t, f, [source]);
   await session.expect("Version [v1.0.0]: ");
   session.type("");
@@ -677,41 +687,95 @@ test("a scope the person reports incomplete after the contextual work stops the 
   await session.expect("Start the run? [Y/n]: ");
   session.type("");
   await session.expect("cover every file project-docs should? [Y/n]: ");
-  session.type("");
-  await session.expect("Press Enter when you are done, or type blocked: ");
-  writeFileSync(join(f.root, "app/README.md"), "# App\n");
-  session.type("");
-  await session.expect("Is project-docs done? [Y/n/blocked]: ");
-  session.type("");
-  await session.expect(
-    "Now that the contextual work is done, does the confirmed scope of project-docs, app/README.md, cover every file it should? [Y/n]: ",
-  );
   session.type("n");
   await session.expect("File: ");
-  session.type("tools/README.md");
-  await session.expect("File: ");
   session.type("");
-  assert.match(
-    await session.expect("Abandon the run, or stop? [abandon/stop]: "),
-    /The run is incomplete: SCOPE_INCOMPLETE: /,
+  await session.expect("Why is the confirmed scope incomplete? ", 5_000);
+  session.type("");
+  await session.expect("Why is the confirmed scope incomplete? ");
+  session.type("   ");
+  await session.expect("Why is the confirmed scope incomplete? ");
+  assert.deepEqual(status(f).active!.assessments, []);
+  const reason = "The app is a fixture and its README must be withdrawn.";
+  session.type(reason);
+  const stopped = await session.expect(
+    "Abandon the run, or stop? [abandon/stop]: ",
   );
+  assert.match(stopped, /The run is incomplete: SCOPE_INCOMPLETE: /);
+  assert.doesNotMatch(stopped, /Contextual work|Now that the contextual work/);
   session.type("stop");
   assert.equal(await session.exit(), 1);
-  // The assessment records both reviews as the person gave them.
-  const run = status(f).active as unknown as {
-    assessments: {
-      declarations: {
-        scopeValidity: Record<
-          string,
-          { status: string; additionalPaths: string[] }
-        >;
-      }[];
-    }[];
-  };
-  const { scopeValidity } = run.assessments[0]!.declarations[0]!;
-  assert.equal(scopeValidity.afterFixes!.status, "valid");
-  assert.deepEqual(scopeValidity.current!.additionalPaths, ["tools/README.md"]);
+  const run = status(f).active!;
+  assert.match(run.reason, /SCOPE_INCOMPLETE/);
+  const [judgment, unwalked] = run.assessments[0]!.declarations;
+  assert.equal(judgment!.id, "project-docs");
+  assert.equal(judgment!.status, "blocked");
+  assert.ok(judgment!.explanation.includes(reason));
+  for (const review of Object.values(judgment!.scopeValidity!)) {
+    assert.equal(review.status, "blocked");
+    assert.deepEqual(review.additionalPaths, []);
+    assert.ok(review.explanation.includes(reason));
+    assert.deepEqual(review.evidence, ["The confirmed scope: app/README.md."]);
+  }
+  assert.equal(unwalked!.id, "tools-docs");
+  assert.equal(unwalked!.status, "blocked");
+  assert.match(unwalked!.explanation, /project-docs/);
 });
+
+for (const missing of [[], ["tools/README.md", "tools/NOTES.md"]])
+  test(`a scope reported incomplete after contextual work stops the run with ${missing.length ? "missing files" : "no missing files"}`, async (t) => {
+    const { f } = await discoveryFixture(t, cli, []);
+    const session = terminal(t, f, [source]);
+    await session.expect("Version [v1.0.0]: ");
+    session.type("");
+    await session.expect("Profile [work]: ");
+    session.type("");
+    await session.expect(
+      "Does project-docs cover exactly the drafted files, app/README.md? [Y/n]: ",
+    );
+    session.type("");
+    await session.expect("Start the run? [Y/n]: ");
+    session.type("");
+    await session.expect("cover every file project-docs should? [Y/n]: ");
+    session.type("");
+    await session.expect("Press Enter when you are done, or type blocked: ");
+    writeFileSync(join(f.root, "app/README.md"), "# App\n");
+    session.type("");
+    await session.expect("Is project-docs done? [Y/n/blocked]: ");
+    session.type("");
+    await session.expect(
+      "Now that the contextual work is done, does the confirmed scope of project-docs, app/README.md, cover every file it should? [Y/n]: ",
+    );
+    session.type("n");
+    for (const path of [...missing, ""]) {
+      await session.expect("File: ");
+      session.type(path);
+    }
+    await session.expect("Why is the confirmed scope incomplete? ");
+    const reason = missing.length
+      ? "The tools project needs documentation too."
+      : "Whether the app is maintained is unresolved.";
+    session.type(reason);
+    assert.match(
+      await session.expect("Abandon the run, or stop? [abandon/stop]: "),
+      /The run is incomplete: SCOPE_INCOMPLETE: /,
+    );
+    session.type("stop");
+    assert.equal(await session.exit(), 1);
+    // The assessment records both reviews as the person gave them.
+    const run = status(f).active!;
+    assert.match(run.reason, /SCOPE_INCOMPLETE/);
+    const scopeValidity = run.assessments[0]!.declarations[0]!.scopeValidity!;
+    assert.equal(scopeValidity.afterFixes.status, "valid");
+    assert.equal(scopeValidity.current.status, "blocked");
+    assert.deepEqual(scopeValidity.current.additionalPaths, missing);
+    assert.ok(scopeValidity.current.explanation.includes(reason));
+    for (const path of missing)
+      assert.ok(scopeValidity.current.explanation.includes(path));
+    assert.deepEqual(scopeValidity.current.evidence, [
+      "The confirmed scope: app/README.md.",
+    ]);
+  });
 
 test("a walk's checks may not change the run's records", async (t) => {
   const f = await fixture(t, cli, {
@@ -765,6 +829,8 @@ test("a scope review the assessment rejects is asked again", async (t) => {
   session.type("../outside.md");
   await session.expect("File: ");
   session.type("");
+  await session.expect("Why is the confirmed scope incomplete? ");
+  session.type("This file must be covered too.");
   // The path is refused, and the person is asked again rather than the same
   // answer being submitted again.
   await session.expect(

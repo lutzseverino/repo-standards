@@ -83,8 +83,14 @@ for the rest of the session. Then it walks each contextual declaration in turn:
 
 Once every declaration is walked, it asks again, for each discovered
 declaration, whether the confirmed scope covers every file it should now.
-A scope that misses files ends the questions at once, and the declarations it
-stops are assessed blocked, naming it: the run can only stop incomplete.
+At either review, a scope can be blocked because it misses files, membership
+is unresolved, or a confirmed target must be withdrawn. The person lists any
+missing files, one per line, ending with an empty line; the list may be empty.
+Then `adopt` asks for a reason, asking again if it is empty. The review records
+the reason and any missing files, with the confirmed scope as evidence.
+A blocked scope ends the questions at once, and the declarations it stops
+are assessed blocked, naming it: the run stops `SCOPE_INCOMPLETE`, where the
+person can abandon or stop.
 
 These checks run read-only inside the waiting run, as `check` runs them, from
 its installation once verified, and record nothing: the run's own check round after the assessment decides.
