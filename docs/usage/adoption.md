@@ -31,7 +31,13 @@ The full form is `adopt [<GitHub URL>] [--standards-version <tag>]
 adopted project, `adopt` without a source updates the current selection. When
 the source cannot be reached, it proposes the current version and profile and
 applies them again from the retained standards, as `inspect` and `start` do
-without source flags.
+without source flags; its report says so next to the selection. When GitHub
+refuses to list the source's releases because the API quota is exhausted or it
+rejected the token in `GH_TOKEN` or `GITHUB_TOKEN`, `adopt` fails with
+`QUOTA_EXHAUSTED` or `SOURCE_UNAVAILABLE` and writes nothing instead. To apply
+the current version again on purpose, pass it with
+`--standards-version <current version>`, which still applies it from the
+retained standards when the source cannot be read.
 
 Run with a terminal as its input and output, and without `--answers` or
 `--json`, `adopt` asks a person its questions; see [In a terminal](#in-a-terminal).

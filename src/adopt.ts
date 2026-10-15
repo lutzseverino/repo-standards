@@ -15,6 +15,7 @@ import {
   acquireSource,
   externalPath,
   github,
+  GithubRefusal,
   githubSource,
   isStableVersion,
 } from "./acquisition.js";
@@ -442,6 +443,14 @@ async function prepare(
     try {
       releases = await stableReleases(source);
     } catch (error) {
+      // Only a source that cannot be reached proposes the current version.
+      // GitHub refusing the lookup would pass it off as the newest, so a
+      // reapplication is then explicit.
+      if (current && error instanceof GithubRefusal)
+        throw new ProductError(
+          error.code,
+          `${error.message} To apply the current version, ${current.version}, again, pass --standards-version ${current.version}.`,
+        );
       if (!current || !unavailable(error)) throw error;
       lookupFailure = (error as ProductError).message;
     }
@@ -456,6 +465,7 @@ async function prepare(
     ...(releases ? { choices: releases } : {}),
     answer: version ?? null,
   };
+  if (lookupFailure) unreadReleases.add(versionQuestion);
   const report = (
     outcome: AdoptReport["outcome"],
     questions: Question[],
@@ -1098,6 +1108,11 @@ function fenced(content: string, language = "") {
   return `${fence}${language}\n${content}${content.endsWith("\n") ? "" : "\n"}${fence}`;
 }
 
+// The version questions whose source's releases could not be read, so their
+// proposal is the current version. The Markdown report says so next to the
+// selection; the JSON report keeps its shape and carries it in the context.
+const unreadReleases = new WeakSet<Question>();
+
 const statements: Record<AdoptReport["outcome"], string> = {
   "answers-required":
     "The adoption needs answers. Nothing was changed by this command.",
@@ -1117,28 +1132,34 @@ export function adoptSummary(report: AdoptReport) {
       : statements[report.outcome],
   ];
   const { selection } = report;
+  const questions = new Map(
+    report.answers.questions.map((question) => [question.id, question]),
+  );
+  const version = questions.get("version");
   parts.push(
     section(
       "Selection",
-      table(
-        ["Component", "Value"],
-        [
-          ["CLI", code(`${packageName}@${selection.cli}`)],
-          ["Source", code(selection.source)],
+      [
+        table(
+          ["Component", "Value"],
           [
-            "Version",
-            selection.version ? code(selection.version) : "unanswered",
+            ["CLI", code(`${packageName}@${selection.cli}`)],
+            ["Source", code(selection.source)],
+            [
+              "Version",
+              selection.version ? code(selection.version) : "unanswered",
+            ],
+            [
+              "Profile",
+              selection.profile ? code(selection.profile) : "unanswered",
+            ],
           ],
-          [
-            "Profile",
-            selection.profile ? code(selection.profile) : "unanswered",
-          ],
-        ],
-      ),
+        ),
+        ...(version && unreadReleases.has(version)
+          ? [text(version.context)]
+          : []),
+      ].join("\n\n"),
     ),
-  );
-  const questions = new Map(
-    report.answers.questions.map((question) => [question.id, question]),
   );
   if (report.missing.length)
     parts.push(

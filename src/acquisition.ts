@@ -75,6 +75,12 @@ const githubHeaders = {
 };
 const githubOrigin = "https://api.github.com";
 
+// GitHub refused a request it received: the quota is exhausted, or it
+// rejected the token. Unlike an unreachable source, the same request fails
+// again until the quota resets or the token changes. Its code stays the
+// documented one.
+export class GithubRefusal extends ProductError {}
+
 interface GithubRequestOptions {
   timeoutMs?: number;
   connectionMessage?: string;
@@ -130,17 +136,21 @@ export async function github(
       (response.headers.get("x-ratelimit-remaining") === "0" ||
         response.headers.has("retry-after")))
   )
-    throw new ProductError(
+    throw new GithubRefusal(
       "QUOTA_EXHAUSTED",
       `The GitHub API quota is exhausted.${quotaRetry(response.headers)} Retry later, or provide a token in GH_TOKEN or GITHUB_TOKEN.`,
     );
-  if (response.status === 401 && token)
-    throw new ProductError(
+  if (response.status === 401 && token) {
+    if (response.redirected && new URL(response.url).origin !== githubOrigin)
+      throw new ProductError(
+        "SOURCE_UNAVAILABLE",
+        "The GitHub redirect target returned HTTP 401. Check the redirect target and retry.",
+      );
+    throw new GithubRefusal(
       "SOURCE_UNAVAILABLE",
-      response.redirected && new URL(response.url).origin !== githubOrigin
-        ? "The GitHub redirect target returned HTTP 401. Check the redirect target and retry."
-        : "GitHub rejected the token in GH_TOKEN or GITHUB_TOKEN. Check the token and retry.",
+      "GitHub rejected the token in GH_TOKEN or GITHUB_TOKEN. Check the token and retry.",
     );
+  }
   if (!response.ok)
     throw new ProductError(
       "SOURCE_UNAVAILABLE",
