@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { directoryFixture, installCli, snapshot } from "./installed-cli.ts";
-import { operation } from "./remote-fixture.ts";
+import { commit, operation } from "./remote-fixture.ts";
 import {
   discoveryFixture,
   fixture,
@@ -628,6 +628,42 @@ test("resolving remote setup that is not ready stops before any other question",
   assert.doesNotMatch(
     await session.expect("Nothing was changed. Resolve the remote setup"),
     /Discard these edits|Start the run/,
+  );
+  assert.equal(await session.exit(), 1);
+  assert.deepEqual(snapshot(f.root), before);
+});
+
+test("an exhausted GitHub API quota fails the update instead of offering the current version", async (t) => {
+  const f = await fixture(
+    t,
+    cli,
+    {
+      "agent-guidance": {
+        kind: "file",
+        target: "AGENTS.md",
+        exact: "content/AGENTS.md",
+      },
+    },
+    { project: { "README.md": "Project notes\n" } },
+  );
+  const template = f.adopt([source]).report;
+  const adopted = f.adopt(f.answer(template.answers));
+  assert.equal(adopted.report.outcome, "complete", adopted.result.stdout);
+  commit(f.root);
+  for (const url of Object.keys(f.remote.responses))
+    f.remote.responses[url] = {
+      status: 403,
+      headers: { "x-ratelimit-remaining": "0" },
+      body: {},
+    };
+  f.remote.save();
+  const before = snapshot(f.root);
+  const session = terminal(t, f);
+  assert.doesNotMatch(
+    await session.expect(
+      /\[QUOTA_EXHAUSTED\][\s\S]*pass --standards-version v1\.0\.0\./,
+    ),
+    /Version \[/,
   );
   assert.equal(await session.exit(), 1);
   assert.deepEqual(snapshot(f.root), before);

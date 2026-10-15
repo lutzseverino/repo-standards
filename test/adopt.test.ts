@@ -28,6 +28,10 @@ import {
 const cli = installCli();
 after(() => cli.close());
 
+// The Selection section of a Markdown adoption report.
+const selectionPart = (summary: string) =>
+  summary.split("\n## ").find((part) => part.startsWith("Selection\n")) ?? "";
+
 test("adopt without an answers file prints a complete template and changes nothing", async (t) => {
   const outside = directoryFixture("repo-standards-adopt-source-");
   t.after(() => outside.close());
@@ -443,6 +447,7 @@ test("adopt without a source updates an adopted project, offering the newest sta
     question(update.report, "version").context,
     /adopts v1\.0\.0 now/,
   );
+  assert.doesNotMatch(selectionPart(f.run(["adopt"]).stdout), /cannot be read/);
   const updated = f.adopt(f.answer(update.report.answers));
   assert.equal(updated.report.outcome, "complete", updated.result.stdout);
   assert.equal(
@@ -468,12 +473,122 @@ test("adopt without a source updates an adopted project, offering the newest sta
     /cannot be read: .* retained standards apply again/,
   );
   assert.equal(question(offline.report, "profile").answer, "work");
+  // The Markdown report says, next to the selection, that the proposal is
+  // the current version rather than the newest.
+  assert.match(
+    selectionPart(f.run(["adopt"]).stdout),
+    /\| Version +\| `v1\.1\.0` +\|[\s\S]*The releases of https:\/\/github\.com\/alice\/standards cannot be read: .* The template proposes the current version, v1\.1\.0, which the retained standards apply again\./,
+  );
   const reapplied = f.adopt(f.answer(offline.report.answers));
   assert.equal(reapplied.report.outcome, "complete", reapplied.result.stdout);
   assert.equal(
     readFileSync(join(f.root, "AGENTS.md"), "utf8"),
     "Updated agent guidance\n",
   );
+});
+
+test("adopt fails when GitHub refuses the release lookup, rather than proposing the current version", async (t) => {
+  const f = await fixture(
+    t,
+    cli,
+    {
+      "agent-guidance": {
+        kind: "file",
+        target: "AGENTS.md",
+        exact: "content/AGENTS.md",
+      },
+    },
+    { project: { "README.md": "Project notes\n" } },
+  );
+  const first = f.adopt([source]).report;
+  assert.deepEqual(first.missing, []);
+  const adopted = f.adopt(f.answer(first.answers));
+  assert.equal(adopted.report.outcome, "complete", adopted.result.stdout);
+  commit(f.root);
+  f.remote.publish("v1.1.0");
+  f.releases("v1.1.0", "v1.0.0");
+  const readable = { ...f.remote.responses };
+  // GitHub answers every REST request with the same refusal.
+  const refuse = (response: (typeof readable)[string]) => {
+    for (const url of Object.keys(readable)) f.remote.responses[url] = response;
+    f.remote.save();
+  };
+  const before = snapshot(f.root);
+  const refused = (env: NodeJS.ProcessEnv, code: string, message: RegExp) => {
+    const outputs = [
+      f.run(["adopt"], env),
+      f.run(["adopt", "--json"], env),
+      f.run(
+        ["adopt", ...f.answer(first.answers, { version: null }), "--json"],
+        env,
+      ),
+    ];
+    for (const result of outputs) {
+      assert.equal(result.status, 1, result.stdout + result.stderr);
+      const diagnostic = result.stdout.startsWith("{")
+        ? (JSON.parse(result.stdout) as ErrorReport).errors[0]!
+        : {
+            code: /\[(\w+)\]/.exec(result.stderr)?.[1],
+            message: result.stderr,
+          };
+      assert.equal(diagnostic.code, code);
+      assert.match(diagnostic.message, message);
+      assert.match(
+        diagnostic.message,
+        /To apply the current version, v1\.0\.0, again, pass --standards-version v1\.0\.0\./,
+      );
+      assert.doesNotMatch(result.stdout, /answers-required|v1\.0\.0 → /);
+      assert.deepEqual(snapshot(f.root), before);
+    }
+  };
+
+  refuse({
+    status: 403,
+    headers: {
+      "x-ratelimit-remaining": "0",
+      "x-ratelimit-reset": "2000000000",
+    },
+    body: {},
+  });
+  refused(
+    f.env,
+    "QUOTA_EXHAUSTED",
+    /quota is exhausted\. Retry at 2033-05-18T03:33:20\.000Z\. .*GH_TOKEN or GITHUB_TOKEN/,
+  );
+  refuse({ status: 429, headers: { "retry-after": "120" }, body: {} });
+  refused(
+    f.env,
+    "QUOTA_EXHAUSTED",
+    /quota is exhausted\. Retry after 120 seconds\. .*GH_TOKEN or GITHUB_TOKEN/,
+  );
+  refuse({ status: 401, body: {} });
+  refused(
+    { ...f.env, GH_TOKEN: "rejected-token" },
+    "SOURCE_UNAVAILABLE",
+    /GitHub rejected the token in GH_TOKEN or GITHUB_TOKEN/,
+  );
+
+  // Under the exhausted quota, naming the current version applies it again
+  // from the retained standards.
+  refuse({
+    status: 403,
+    headers: {
+      "x-ratelimit-remaining": "0",
+      "x-ratelimit-reset": "2000000000",
+    },
+    body: {},
+  });
+  const explicit = f.adopt(["--standards-version", "v1.0.0"]);
+  assert.equal(explicit.result.status, 0, explicit.result.stdout);
+  assert.equal(explicit.report.selection.version, "v1.0.0");
+  assert.equal(question(explicit.report, "profile").answer, "work");
+  const reapplied = f.adopt(f.answer(explicit.report.answers));
+  assert.equal(reapplied.report.outcome, "complete", reapplied.result.stdout);
+
+  // Readable again, the release list proposes the newest release.
+  Object.assign(f.remote.responses, readable);
+  f.remote.save();
+  assert.equal(f.adopt([]).report.selection.version, "v1.1.0");
 });
 
 test("adopt asks a discovery script's open questions as answers-file fields and starts once they are answered", async (t) => {
