@@ -11,8 +11,8 @@ An update starts only on the maintainer's instruction.
 ## At the start of any work
 
 At the start of any work in the project, including work that changes no file,
-such as triaging an issue, writing tickets, applying labels, or asking the
-owner a question, run the pinned CLI's `rules` with no path once, from the
+such as applying labels on a hosting platform or asking the owner a
+question, run the pinned CLI's `rules` with no path once, from the
 Git root, alongside the update notice under **Read the pins**:
 
 ```sh
