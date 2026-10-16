@@ -19,8 +19,10 @@ another Git working tree.
 The report states availability only. It updates nothing and does not recommend
 an update; whether to update is the maintainer's decision. Adoption installs the
 model-invocable `repository-standards` system skill, which reports this result to
-an agent, also looks up [installed rules](rules.md) before file changes, and starts no update; `outdated` remains the complete interface without
-an agent. Apply an update through inspection and start as described in
+an agent, also reads the repository-wide [installed rules](rules.md) at the
+start of any work and looks up the rules covering a file before changing it,
+and starts no update; `outdated` remains the complete interface without an
+agent. Apply an update through inspection and start as described in
 [Adoption](adoption.md).
 
 ## Pinned CLI

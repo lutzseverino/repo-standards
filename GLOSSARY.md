@@ -64,7 +64,9 @@ _Avoid_: Generated guidance, merged content
 **Rules**:
 The installed, human-readable statement of what a standard requires of a file
 or repository area, which its checks and assessments cite. Rules outlast the
-adoption run that installs them.
+adoption run that installs them. The rules of a repository-wide declaration
+govern any work in the project, not only the files a declaration covers; `rules`
+with no path prints them.
 _Avoid_: Guidance, when meaning lasting requirements; skill instructions
 
 **Adoption guidance**:
