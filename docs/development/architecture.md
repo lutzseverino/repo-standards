@@ -43,9 +43,11 @@ retired `adopt-standards` and `standards-updates` names are released: they are
 neither installed nor reserved.
 
 The model-invocable `repository-standards` skill replaces `standards-updates`.
-Before changing a project file it looks up the source's installed rules with
-`rules <path>` and follows them. During contextual work in an active run it
-reads the installed rules index and the rules named by the work request,
+At the start of any work, including work that changes no file, it reads the
+repository-wide installed rules with `rules` and no path, alongside the update
+notice, and follows them. Before changing a project file it looks up the
+source's installed rules with `rules <path>` and follows them. During
+contextual work in an active run it reads the installed rules index and the rules named by the work request,
 because `rules` reads only a complete adoption. The skill adds no requirements
 of its own. Inspection identifies removed and kept product targets by `systemSkill`,
 separately from a declaration's `id`; summaries name their owner. An update
@@ -291,7 +293,7 @@ are recorded independently of the exact CLI package pin.
 | `abandon`         | Ends an incomplete run while retaining its changes and report.                                                                                                                                                                                                                                                                                                                                                                   |
 | `outdated`        | Reports, for each pin, whether a newer stable CLI or standards version is published and by how many stable releases, without blocking or changing anything outside the ignored product cache.                                                                                                                                                                                                                                    |
 | `check`           | Runs every retained check of the last complete adoption against the working tree, outside any run and without confirmation, and reports each result; fails when any check does not pass or changes the project.                                                                                                                                                                                                                  |
-| `rules`           | Prints the installed rules covering a path and the rules of every repository-wide declaration, from the last complete adoption, without any network request.                                                                                                                                                                                                                                                                     |
+| `rules [<path>]`  | Prints the installed rules covering a path and the rules of every repository-wide declaration, or with no path only the repository-wide rules, which govern any work in the project, from the last complete adoption, without any network request.                                                                                                                                                                               |
 
 `--summary` is a peer of `--json` on `inspect` and `status`; combining them is a
 usage error. One renderer module produces both summaries, and the same report

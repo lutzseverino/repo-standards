@@ -42,6 +42,8 @@ const rules = {
   "rules/hosting.md": "# Hosting rules\n\nProtect the default branch.\n",
 };
 
+const trackerRules = "# Tracker rules\n\nLabel every ticket.\n";
+
 function review(explanation: string) {
   return {
     status: "valid",
@@ -51,7 +53,7 @@ function review(explanation: string) {
   };
 }
 
-async function contextualAdoption(t: TestContext) {
+async function contextualAdoption(t: TestContext, tracker = false) {
   const f = await adoptionFixture(
     t,
     cli,
@@ -81,6 +83,16 @@ async function contextualAdoption(t: TestContext) {
         discovery: "discovery/hosting.md",
       },
       licence: { kind: "file", target: "LICENSE", exact: "licence.txt" },
+      ...(tracker
+        ? {
+            tracker: {
+              kind: "repository" as const,
+              guidance: "guidance/hosting.md",
+              rules: "rules/tracker.md",
+              discovery: "discovery/hosting.md",
+            },
+          }
+        : {}),
     }),
     {
       files: {
@@ -92,6 +104,7 @@ async function contextualAdoption(t: TestContext) {
         "discovery/docs.md": "Find the guides.",
         "discovery/hosting.md": "Propose no paths.",
         ...rules,
+        ...(tracker ? { "rules/tracker.md": trackerRules } : {}),
       },
       project: {
         Makefile: "all:\n",
@@ -123,6 +136,16 @@ async function contextualAdoption(t: TestContext) {
         candidates: [],
         unresolved: [] as string[],
       },
+      ...(tracker
+        ? [
+            {
+              id: "tracker",
+              coverage: "Tracker rules govern no project file.",
+              candidates: [],
+              unresolved: [] as string[],
+            },
+          ]
+        : []),
     ],
   };
   const scopeFile = join(f.remote.support.root, "scope.json");
@@ -141,6 +164,7 @@ async function contextualAdoption(t: TestContext) {
       ["docs", ".repo-standards/rules/docs.md"],
       ["hosting", ".repo-standards/rules/hosting.md"],
       ["source-layout", ".repo-standards/rules/source-layout.md"],
+      ...(tracker ? [["tracker", ".repo-standards/rules/tracker.md"]] : []),
     ],
   );
   const assessmentFile = join(f.remote.support.root, "assessment.json");
@@ -166,6 +190,7 @@ async function contextualAdoption(t: TestContext) {
         satisfied("docs", true),
         satisfied("hosting", true),
         satisfied("source-layout", false),
+        ...(tracker ? [satisfied("tracker", true)] : []),
       ],
     }),
   );
@@ -399,6 +424,82 @@ test("an update that removes a declaration removes its rules and its index entry
   assert.equal(existsSync(join(root, ".repo-standards/rules")), false);
 });
 
+test("rules with no path prints only the repository-wide rules, and fails as a path lookup does", async (t) => {
+  const f = await contextualAdoption(t, true);
+  const root = f.project.root;
+  const json = f.json<RulesReport>(["rules", "--json"]);
+  assert.equal(json.result.status, 0, json.result.stdout);
+  assert.equal(json.report.format, "repo-standards/rules/v1");
+  assert.equal(json.report.path, null);
+  assert.deepEqual(json.report.rules, [
+    {
+      declaration: "hosting",
+      coverage: "repository",
+      path: ".repo-standards/rules/hosting.md",
+      content: rules["rules/hosting.md"],
+    },
+    {
+      declaration: "tracker",
+      coverage: "repository",
+      path: ".repo-standards/rules/tracker.md",
+      content: trackerRules,
+    },
+  ]);
+  const text = f.run(["rules"]);
+  assert.equal(text.status, 0, text.stderr);
+  assert.equal(
+    text.stdout,
+    `Repository-wide rules:
+
+## hosting (.repo-standards/rules/hosting.md), the whole repository
+
+${rules["rules/hosting.md"]}
+## tracker (.repo-standards/rules/tracker.md), the whole repository
+
+${trackerRules}`,
+  );
+  assert.equal(f.run(["rules", "--project", "."]).status, 0);
+
+  // A repository-wide rules file edited after adoption fails the lookup.
+  const hosting = join(root, ".repo-standards/rules/hosting.md");
+  writeFileSync(hosting, "# Edited\n");
+  const edited = f.run(["rules", "--json"]);
+  assert.equal(edited.status, 1, edited.stdout);
+  assert.equal(
+    (JSON.parse(edited.stdout) as { errors: { code: string }[] }).errors[0]!
+      .code,
+    "STATE_INTEGRITY",
+  );
+  writeFileSync(hosting, rules["rules/hosting.md"]);
+});
+
+test("rules with no path reports when no repository-wide rules are installed, and during a run", async (t) => {
+  const f = await exactAdoption(t);
+  const adopted = f.json<Run>(startArgs(f.inspect().identity));
+  assert.equal(adopted.report.outcome, "complete", adopted.result.stdout);
+  commit(f.project.root);
+  const text = f.run(["rules"]);
+  assert.equal(text.status, 0, text.stderr);
+  assert.equal(text.stdout, "No repository-wide rules are installed.\n");
+  const json = f.json<RulesReport>(["rules", "--json"]);
+  assert.equal(json.report.path, null);
+  assert.deepEqual(json.report.rules, []);
+
+  // An active run reports ACTIVE_RUN.
+  const stopped = f.json<Run>(startArgs(f.inspect().identity), {
+    ...f.env,
+    CHECK_STATUS: "failed",
+  });
+  assert.equal(stopped.report.outcome, "incomplete", stopped.result.stdout);
+  const active = f.run(["rules", "--json"]);
+  assert.equal(active.status, 1, active.stdout);
+  assert.equal(
+    (JSON.parse(active.stdout) as { errors: { code: string }[] }).errors[0]!
+      .code,
+    "ACTIVE_RUN",
+  );
+});
+
 test("rules reads only a complete adoption", (t) => {
   const project = sourceFixture("", { "README.md": "Project" });
   t.after(() => project.close());
@@ -408,6 +509,12 @@ test("rules reads only a complete adoption", (t) => {
   assert.equal(
     (JSON.parse(result.stdout) as { errors: { code: string }[] }).errors[0]!
       .code,
+    "NO_SELECTION",
+  );
+  const bare = cli.run(["rules", "--json"], project.root);
+  assert.equal(bare.status, 1, bare.stdout);
+  assert.equal(
+    (JSON.parse(bare.stdout) as { errors: { code: string }[] }).errors[0]!.code,
     "NO_SELECTION",
   );
 });

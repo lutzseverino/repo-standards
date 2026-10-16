@@ -67,3 +67,6 @@ alternatives.
   a discovery declaration may name a script, declared and bounded like a check,
   that inspection runs in a copy of the project to draft a scope proposal and
   its open questions; it never decides scope.
+- [Read repository-wide rules at the start of any work](0020-read-repository-wide-rules-at-the-start-of-work.md):
+  the `repository-standards` skill runs `rules` with no path at the start of
+  any work, so rules that govern work changing no file reach the agent.

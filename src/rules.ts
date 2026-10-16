@@ -109,7 +109,8 @@ export function plannedRules(
 
 export interface RulesReport {
   format: typeof formats.rules;
-  path: string;
+  // The project-relative path looked up, or null for the repository-wide rules.
+  path: string | null;
   rules: {
     declaration: string;
     coverage: "path" | "directory" | "repository";
@@ -118,9 +119,11 @@ export interface RulesReport {
   }[];
 }
 
-// How a declaration covers a project path, if it does.
-function coverage(targets: Targets, path: string) {
+// How a declaration covers a project path, if it does. Without a path, only a
+// repository-wide declaration does.
+function coverage(targets: Targets, path: string | null) {
   if (repositoryWide(targets)) return "repository" as const;
+  if (path === null) return undefined;
   if (targets.paths.includes(path)) return "path" as const;
   if (
     targets.directories.some(
@@ -147,13 +150,13 @@ function projectPath(root: string, path: string) {
 export function rules(
   project: string,
   cliVersion: string,
-  path: string,
+  path?: string,
 ): RulesReport {
   const root = projectRoot(project);
   const lock = lockPath(root);
   requireRecordedCli(root, lock, cliVersion);
   rejectUnsupportedRecords(root, lock, activeRunExemption(lock));
-  const local = projectPath(root, path);
+  const local = path === undefined ? null : projectPath(root, path);
   // As for check, the worker lock keeps a run from starting mid-read.
   const release = acquireWorker(lock);
   try {
@@ -176,7 +179,7 @@ export function rules(
 
 function lookup(
   root: string,
-  local: string,
+  local: string | null,
   declarations: readonly Declaration[],
   files: Readonly<Record<string, { sha256: string }>>,
 ): RulesReport {
@@ -211,11 +214,14 @@ function lookup(
   };
 }
 
-// The rules covering a path as text: each declaration's heading, then its
-// rules as installed.
+// The rules covering a path, or the repository-wide rules without one, as
+// text: each declaration's heading, then its rules as installed.
 export function rulesSummary(report: RulesReport) {
-  if (!report.rules.length) return `No installed rules cover ${report.path}.\n`;
-  return `Rules covering ${report.path}:\n${report.rules
+  if (!report.rules.length)
+    return report.path === null
+      ? "No repository-wide rules are installed.\n"
+      : `No installed rules cover ${report.path}.\n`;
+  return `${report.path === null ? "Repository-wide rules:" : `Rules covering ${report.path}:`}\n${report.rules
     .map(
       (entry) =>
         `\n## ${entry.declaration} (${entry.path}), ${entry.coverage === "repository" ? "the whole repository" : `covering ${report.path}`}\n\n${entry.content}${entry.content.endsWith("\n") ? "" : "\n"}`,

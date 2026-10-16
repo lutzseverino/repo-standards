@@ -1,14 +1,18 @@
 # Installed rules
 
 A declaration's rules state what it requires of the files it covers, for as
-long as the project stays adopted. A standards source names them with a
-declaration's `rules` field; see
+long as the project stays adopted. The rules of a repository-wide declaration
+cover the whole repository, so they govern any work in the project, including
+work that changes no file, such as triaging an issue or writing a ticket. A
+standards source names them with a declaration's `rules` field; see
 [rules and adoption guidance](author-format.md#rules-and-adoption-guidance).
 Its adoption guidance holds the run's one-time steps and is kept only with the
 retained inputs.
 
 Adoption installs the model-invocable `repository-standards` system skill for
-agents. Before changing a file it runs the pinned CLI's `rules <path>` and
+agents. At the start of any work, including work that changes no file, it
+runs the pinned CLI's `rules` with no path and follows the printed
+repository-wide rules. Before changing a file it runs `rules <path>` and
 follows the printed rules, including repository-wide rules. The skill also
 reports [available updates](available-updates.md); it states no requirements
 of its own. Standards sources need no pointer to the rules in their agent
@@ -44,7 +48,7 @@ contextual update and that declaration is assessed again.
 ## Look up the rules for a path
 
 ```text
-repo-standards rules <path> [--project <directory>] [--json]
+repo-standards rules [<path>] [--project <directory>] [--json]
 ```
 
 `rules` prints the installed rules covering `<path>`, followed in declaration
@@ -69,11 +73,21 @@ covers the path or the whole repository, followed by the rules as installed.
 When nothing covers the path it prints `No installed rules cover <path>.` and
 exits `0`.
 
+With no path, `rules` prints only the rules of the repository-wide
+declarations, in declaration ID order. The text output starts with
+`Repository-wide rules:` and gives each declaration the same heading, naming
+the whole repository. When no declaration is repository-wide, including a
+selection without rules, it prints `No repository-wide rules are installed.`
+and exits `0`. It reads and verifies the recorded adoption exactly as the
+path lookup does and fails the same way: `NO_SELECTION`, `ACTIVE_RUN`, the
+pinned CLI error, and `STATE_INTEGRITY` for an edited rules file. `rules
+<path>` still appends the repository-wide rules.
+
 With `--json`, stdout is one `repo-standards/rules/v1` object:
 
 | Field   | Value                                                                                                                                                                    |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `path`  | The project-relative path looked up.                                                                                                                                     |
+| `path`  | The project-relative path looked up, or `null` with no path.                                                                                                             |
 | `rules` | Each covering declaration in ID order: its `declaration` ID, its `coverage` (`path`, `directory`, or `repository`), the installed rules `path`, and the rules `content`. |
 
 Errors use the same envelope and exit codes as [`check`](check.md#report).
