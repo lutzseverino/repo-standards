@@ -7,21 +7,38 @@
   </p>
 </div>
 
-A standards source is a repository's published, versioned conventions. A
-profile selects a complete set of those conventions. Adoption applies that set:
-it installs shared files and skills, adapts project documentation, and runs the
-publisher's checks and setup commands. An inspection previews those changes;
-an update applies a new selection to an already configured repository. Rules
-are the installed requirements that files must keep satisfying.
+Repository Standards gives a repository a maintainer's shared conventions in
+one command: contribution and agent instructions, skills, templates, and checks
+that keep files in line, taken from a published, versioned set.
+[Repo Canon](https://github.com/lutzseverino/repo-canon) is a ready-made set of
+conventions to start from.
+
+A standards source is a repository's published, versioned conventions; Repo
+Canon is one. A profile selects a complete set of those conventions. Adoption
+applies that set: it installs shared files and skills, adapts project
+documentation, and runs the publisher's checks and setup commands. An
+inspection previews those changes; an update applies a new selection to an
+already configured repository. Rules are the installed requirements that files
+must keep satisfying.
 
 ## Installation
 
-On macOS or Linux, use Node.js 24, npm, and Git 2.32 or newer. From your
-committed, clean Git working tree, ask your agent to run this command with your
-standards source's public GitHub URL, or run it yourself:
+On macOS or Linux, use Node.js 24, npm, and Git 2.32 or newer. To adopt Repo
+Canon, give your coding agent this prompt in your repository:
+
+```text
+Adopt Repo Canon in this repository. First check that the Git working tree is
+clean and committed; if it isn't, stop and tell me. Then run
+`npx @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon`
+and follow the next steps it prints. Ask me each question it raises instead of
+answering for me, and leave its changes uncommitted for me to review.
+```
+
+To run it yourself, use the same command in a terminal, from your committed,
+clean Git working tree:
 
 ```sh
-npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
+npx @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon
 ```
 
 At a terminal, `adopt` asks questions and guides your edits. For an agent, it
@@ -29,6 +46,14 @@ prints an answers-file template and next steps. It installs and pins the CLI
 it ran; no manual CLI installation is needed. See
 [adoption](docs/usage/adoption.md) for both paths and
 [installation](docs/usage/installation.md) for prerequisites and other tools.
+
+## Author your own standards source
+
+To publish your own conventions instead, author them in a separate standards
+repository: read [authoring](docs/usage/authoring.md) for that workflow and the
+[author format](docs/usage/author-format.md) for the source format. Adopt a
+published source with the same command and its public GitHub URL in place of
+Repo Canon's.
 
 ## Features
 
@@ -51,11 +76,9 @@ npx @lutzseverino/repo-standards adopt
 
 Choose a version and profile, review the proposed changes, and follow the
 prompts or your agent's questions. Setup that changes your hosting platform's
-settings can be deferred while adoption completes locally. Authors publish complete profiles in separate standards
-repositories; read [authoring](docs/usage/authoring.md) for that workflow, the
-[author format](docs/usage/author-format.md) for the source format, and the
-[architecture contracts](docs/development/architecture.md) for the product's
-behavior.
+settings can be deferred while adoption completes locally. The
+[architecture contracts](docs/development/architecture.md) describe the
+product's behavior.
 
 ## Documentation
 
