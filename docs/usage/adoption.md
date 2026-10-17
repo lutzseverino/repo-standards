@@ -130,7 +130,7 @@ template outside the project, fill its answers from the maintainer's choices,
 and continue with the exact command in the next steps, for example:
 
 ```sh
-npx @lutzseverino/repo-standards@7.0.0 adopt --answers /tmp/adoption-answers.json
+npx @lutzseverino/repo-standards@7.1.0 adopt --answers /tmp/adoption-answers.json
 ```
 
 Use the CLI version printed by your own run. Once the pinned runtime is
@@ -408,11 +408,11 @@ retained standards, or pass them to change the standards version, source, or
 profile in the same run:
 
 ```sh
-candidate_dir="$HOME/.local/share/repo-standards/cli-7.0.0"
+candidate_dir="$HOME/.local/share/repo-standards/cli-7.1.0"
 mkdir -p "$candidate_dir"
 (cd "$candidate_dir" && npm install --prefix "$candidate_dir" \
   --ignore-scripts --save-exact --no-audit --no-fund \
-  @lutzseverino/repo-standards@7.0.0)
+  @lutzseverino/repo-standards@7.1.0)
 "$candidate_dir/node_modules/.bin/repo-standards" inspect --json
 ```
 

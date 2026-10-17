@@ -33,7 +33,7 @@ interface, you can install the CLI separately:
 
 ```sh
 npm install --global --ignore-scripts --registry=https://registry.npmjs.org \
-  @lutzseverino/repo-standards@7.0.0
+  @lutzseverino/repo-standards@7.1.0
 repo-standards --version
 repo-standards source validate /path/to/your/standards-repository --json
 repo-standards source search --json
@@ -49,7 +49,7 @@ Alternatively download the standalone bootstrap from the matching GitHub release
 ```sh
 mkdir -p "$HOME/.local/bin"
 curl --fail --location \
-  https://github.com/lutzseverino/repo-standards/releases/download/v7.0.0/repo-standards-bootstrap \
+  https://github.com/lutzseverino/repo-standards/releases/download/v7.1.0/repo-standards-bootstrap \
   --output "$HOME/.local/bin/repo-standards-bootstrap"
 chmod 755 "$HOME/.local/bin/repo-standards-bootstrap"
 ```
@@ -59,13 +59,13 @@ and bootstrap bytes. The bootstrap requires only Node.js 24 and npm to obtain
 the CLI. From a committed adopting project, inspect the public learning source:
 
 ```sh
-repo-standards-bootstrap --cli-version 7.0.0 inspect \
+repo-standards-bootstrap --cli-version 7.1.0 inspect \
   --source https://github.com/lutzseverino/repo-standards-example \
   --standards-version v2.0.0 --profile service --json
 ```
 
 Use the full bootstrap path if `$HOME/.local/bin` is not on `PATH`. Omit
-`--cli-version 7.0.0` to select the greatest published stable version once;
+`--cli-version 7.1.0` to select the greatest published stable version once;
 stderr discloses the exact selection. Keep that version for
 start. Inspection does not change project content or run author operations;
 the only author scripts it runs are read-only
@@ -108,7 +108,7 @@ Use the conventional [skills CLI](https://github.com/vercel-labs/skills) to
 install the skill from the product's public release tag:
 
 ```sh
-npx skills@1.5.25 add https://github.com/lutzseverino/repo-standards/tree/v7.0.0/skills/author-standards \
+npx skills@1.5.25 add https://github.com/lutzseverino/repo-standards/tree/v7.1.0/skills/author-standards \
   --skill author-standards --global --agent codex --copy
 ```
 
@@ -121,7 +121,7 @@ or surrounding npm package. Invoke `author-standards` in your agent and describe
 how you work. Optional references supply candidates for discussion, not policy.
 
 The bundled `references/cli.md` explains installing the exact compatible npm CLI
-`@lutzseverino/repo-standards@7.0.0` in an external directory, then reading that
+`@lutzseverino/repo-standards@7.1.0` in an external directory, then reading that
 installation's matching `docs/usage/author-format.md` and
 `docs/usage/script-protocol.md`.
 Node.js 24, npm, and registry access are required. Installing the skill does not
