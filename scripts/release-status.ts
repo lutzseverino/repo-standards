@@ -143,7 +143,25 @@ async function inspect(runId: string) {
   const { jobs } = github(`actions/runs/${runId}/jobs?per_page=100`) as {
     jobs: { name: string; conclusion: string }[];
   };
-  for (const name of ["validate (ubuntu-latest)", "validate (macos-latest)"]) {
+  const legacyValidation = [
+    "validate (ubuntu-latest)",
+    "validate (macos-latest)",
+  ];
+  const matrixValidation = [
+    "validate (ubuntu-latest, 24)",
+    "validate (ubuntu-latest, 26)",
+    "validate (macos-latest, 24)",
+    "validate (macos-latest, 26)",
+  ];
+  // A matrix run must pass the entire supported OS/runtime matrix. Never let
+  // legacy check names hide a failed or missing matrix cell; historical runs
+  // still use the original two-job contract.
+  const requiredValidation = jobs.some((job) =>
+    matrixValidation.includes(job.name),
+  )
+    ? matrixValidation
+    : legacyValidation;
+  for (const name of requiredValidation) {
     assert.ok(
       jobs.some((job) => job.name === name && job.conclusion === "success"),
       `Original ${name} must have passed; verification-only runs cannot supply a validated bundle`,
