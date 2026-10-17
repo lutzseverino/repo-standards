@@ -41,7 +41,8 @@ test("validation rejects an import whose every specifier is an inline type, beca
   const result = check({
     "a.ts":
       "import { type B } from './b.js';\nexport type A = B;\nexport const a = 1;\n",
-    "b.ts": "import { a } from './a.js';\nexport type B = typeof a;\n",
+    "b.ts":
+      "import { a } from './a.js';\nexport type B = typeof a;\nexport class C { constructor(public value: B) {} }\n",
   });
   assert.equal(result.status, 1, result.stdout + result.stderr);
   assert.match(
@@ -54,7 +55,8 @@ test("validation ignores type-only imports and exports in a cycle", () => {
   const result = check({
     "a.ts":
       "import type { B } from './b.js';\nexport type { B };\nexport const a = 1;\n",
-    "b.ts": "import { a } from './a.js';\nexport type B = typeof a;\n",
+    "b.ts":
+      "import { a } from './a.js';\nexport type B = typeof a;\nexport class C { constructor(public value: B) {} }\n",
     "c.ts":
       "export type { B } from './b.js';\nexport type * from './b.js';\nimport './a.js';\n",
   });

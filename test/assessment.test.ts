@@ -29,7 +29,10 @@ after(() => cli.close());
 const check = (id: string) =>
   operation(id, {
     script: "check.mjs",
-    prerequisite: { "version-arguments": ["--version"], version: ">=24 <25" },
+    prerequisite: {
+      "version-arguments": ["--version"],
+      version: ">=24 <25 || >=26 <27",
+    },
   });
 async function fixture(
   t: TestContext,

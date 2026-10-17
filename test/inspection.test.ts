@@ -1251,5 +1251,58 @@ test("inspection without npm on PATH fails with setup instructions before any ot
   assert.equal(result.status, 1);
   const report = JSON.parse(result.stdout) as ErrorReport;
   assert.equal(report.errors[0]!.code, "NPM_REQUIRED");
-  assert.match(report.errors[0]!.message, /Node\.js 24.*PATH/);
+  assert.match(report.errors[0]!.message, /Node\.js 24 or 26.*PATH/);
+});
+
+test("public inspection and adoption reject unsupported and prerelease runtimes before mutation", (t) => {
+  const project = sourceFixture("");
+  t.after(() => project.close());
+  const remote = remoteFixture(simpleSource(), {
+    "content.md": "Instructions",
+  });
+  t.after(() => remote.close());
+  const preload = join(project.root, "runtime.mjs");
+  for (const version of [
+    "22.21.0",
+    "23.0.0",
+    "25.0.0",
+    "27.0.0",
+    "28.0.0",
+    "24.0.0-rc.1",
+    "26.0.0-rc.1",
+  ]) {
+    writeFileSync(
+      preload,
+      `Object.defineProperty(process.versions, 'node', { value: '${version}' });`,
+    );
+    for (const command of ["inspect", "adopt"]) {
+      const result = cli.run(
+        command === "inspect"
+          ? inspectionArgs
+          : ["adopt", ...inspectionArgs.slice(2)],
+        project.root,
+        {
+          ...remote.env,
+          NODE_OPTIONS: `${remote.env.NODE_OPTIONS} --import=${preload}`,
+        },
+      );
+      assert.equal(result.status, 1, `${command} ${version}`);
+      const report = JSON.parse(result.stdout) as ErrorReport;
+      assert.equal(report.errors[0]!.code, "NODE_REQUIRED");
+      assert.match(
+        report.errors[0]!.message,
+        /Node\.js 24 or 26.*https:\/\/nodejs.org/,
+      );
+    }
+  }
+});
+
+test("packaged engine metadata admits exactly stable Node.js 24 and 26", () => {
+  const { engines } = JSON.parse(
+    readFileSync(
+      join(cli.root, "node_modules/@lutzseverino/repo-standards/package.json"),
+      "utf8",
+    ),
+  ) as { engines: { node: string } };
+  assert.equal(engines.node, ">=24 <25 || >=26 <27");
 });

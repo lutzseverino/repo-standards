@@ -32,6 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
+        node: [24, 26]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -39,7 +40,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: .node-version
+          node-version: ${{ matrix.node }}
       - name: Verify release version, notes, and unused tag
         env:
           RELEASE_VERSION: ${{ inputs.version }}
@@ -53,22 +54,22 @@ jobs:
       - run: npm install --global pnpm@11.20.0
       - run: pnpm install --frozen-lockfile
       - run: pnpm validate
-      - if: runner.os == 'Linux'
+      - if: runner.os == 'Linux' && matrix.node == 24
         run: pnpm release:pack
-      - if: runner.os == 'Linux'
+      - if: runner.os == 'Linux' && matrix.node == 24
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: release-bundle
           path: release/
           if-no-files-found: error
-      - if: runner.os == 'Linux'
+      - if: runner.os == 'Linux' && matrix.node == 24
         name: Retain the supplied release notes for publication and recovery
         env:
           RELEASE_NOTES: ${{ inputs.notes }}
         run: |
           mkdir release-notes
           printf '%s\n' "$RELEASE_NOTES" > release-notes/release-notes.md
-      - if: runner.os == 'Linux'
+      - if: runner.os == 'Linux' && matrix.node == 24
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: release-notes
@@ -147,12 +148,13 @@ jobs:
         # Use the Intel pool for anonymous public acquisition; shared arm64
         # egress repeatedly exhausted GitHub API quota during release acceptance.
         os: [ubuntu-latest, macos-26-intel]
+        node: [24, 26]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: .node-version
+          node-version: ${{ matrix.node }}
       - name: Record unauthenticated public GitHub API quota
         continue-on-error: true
         run: |
@@ -182,7 +184,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: public-installation-${{ matrix.os }}
+          name: public-installation-${{ matrix.os }}-node-${{ matrix.node }}
           path: |
             public-api-quota.json
             public-installation.json

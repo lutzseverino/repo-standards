@@ -6,8 +6,12 @@ review the proposed changes, and complete the same adoption run.
 
 ## Adopt with one command
 
-Use macOS or Linux with Node.js 24, npm, and Git 2.32 or newer. Run from a Git
+Use macOS or Linux with Node.js 24 or 26, npm, and Git 2.32 or newer. Run from a Git
 working tree with an existing commit and no uncommitted changes.
+
+Only stable 24.x and 26.x are supported, with their bundled npm. Node.js 22
+is outside the support policy; odd majors, prereleases and future majors are
+also excluded.
 
 Optionally, set a GitHub token before you start. Without one, the CLI uses
 GitHub's anonymous API quota, which every user and tool on your IP address
@@ -269,7 +273,7 @@ Rejections use the common `valid: false` / `errors` diagnostic format with
 ## Inspect and start
 
 [`adopt`](#adopt-with-one-command) drives these commands and needs no CLI
-installed outside the project. To run them yourself, use Node.js 24, npm, Git,
+installed outside the project. To run them yourself, use Node.js 24 or 26, npm, Git,
 and an [externally installed exact CLI](inspection.md#keep-the-disclosed-cli-for-start-and-recovery).
 First inspect the public GitHub selection:
 

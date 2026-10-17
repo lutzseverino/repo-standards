@@ -198,7 +198,7 @@ project-documentation:
       arguments: []
     prerequisite:
       version-arguments: ["--version"]
-      version: ">=24.0.0"
+      version: ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
     timeout-seconds: 60
 ```
 

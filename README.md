@@ -3,7 +3,7 @@
   <p>A CLI and agent skills for maintainers who publish and apply versioned repository standards.</p>
   <p>
     <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
-    <img src="https://img.shields.io/badge/Node.js-24-5FA04E?logo=node.js&logoColor=white" alt="Node.js 24">
+    <img src="https://img.shields.io/badge/Node.js-24%20%7C%2026-5FA04E?logo=node.js&logoColor=white" alt="Node.js 24 or 26">
   </p>
 </div>
 
@@ -23,8 +23,9 @@ must keep satisfying.
 
 ## Installation
 
-On macOS or Linux, use Node.js 24, npm, and Git 2.32 or newer. To adopt Repo
-Canon, give your coding agent this prompt in your repository:
+On macOS or Linux, use stable Node.js 24 or 26 with its bundled npm, and Git
+2.32 or newer. Node.js 22, odd majors, prereleases and future majors are excluded.
+To adopt Repo Canon, give your coding agent this prompt in your repository:
 
 ```text
 Adopt Repo Canon in this repository. First check that the Git working tree is

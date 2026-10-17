@@ -5,10 +5,14 @@ carries its release notes, and its assets carry the publication identities. The
 commands below require the named version to have been published to public npm;
 a release bundle alone is not publication.
 
-Use macOS or Linux with Node.js 24, npm, and Git 2.32 or newer on `PATH`. Install Node.js 24
+Use macOS or Linux with Node.js 24 or 26, npm, and Git 2.32 or newer on `PATH`. Install Node.js 24 or 26
 from <https://nodejs.org/en/download> or select it with your version manager.
 Author operations may require additional executables and versions; inspection
 discloses these, and start checks them before changing the project.
+
+Only stable 24.x and 26.x are supported, with their bundled npm. Node.js 22
+is outside the support policy; odd majors, prereleases and future majors are
+also excluded.
 
 ## Adopt without a manual installation
 
@@ -67,7 +71,7 @@ chmod 755 "$HOME/.local/bin/repo-standards-bootstrap"
 ```
 
 The release also includes `SHA256SUMS` and `release.json` identifying its package
-and bootstrap bytes. The bootstrap requires only Node.js 24 and npm to obtain
+and bootstrap bytes. The bootstrap requires only Node.js 24 or 26 and npm to obtain
 the CLI. From a committed adopting project, inspect the public learning source:
 
 ```sh
@@ -145,7 +149,7 @@ The bundled `references/cli.md` explains installing the exact compatible npm CLI
 `@lutzseverino/repo-standards@7.1.0` in an external directory, then reading that
 installation's matching `docs/usage/author-format.md` and
 `docs/usage/script-protocol.md`.
-Node.js 24, npm, and registry access are required. Installing the skill does not
+Node.js 24 or 26, npm, and registry access are required. Installing the skill does not
 install its CLI, change an adopting project's runtime pin, or install authoring
 into adopting projects. Adoption continues to manage its matching local
 `repository-standards` skill independently.

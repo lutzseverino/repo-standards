@@ -1,3 +1,4 @@
+import { satisfies } from "semver";
 import { spawnSync } from "node:child_process";
 import { readdirSync, realpathSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
@@ -192,10 +193,10 @@ export async function inspectForStart(
   retained?: RecordedAdoption,
   observations?: SourceObservations,
 ) {
-  if (process.versions.node.split(".")[0] !== "24")
+  if (!satisfies(process.versions.node, ">=24 <25 || >=26 <27"))
     throw new ProductError(
       "NODE_REQUIRED",
-      "Node.js 24 is required. Select Node.js 24 with your version manager or install it from https://nodejs.org/en/download, then retry.",
+      "Node.js 24 or 26 is required. Select Node.js 24 or 26 with your version manager or install it from https://nodejs.org/en/download, then retry.",
     );
   const npm = spawnSync("npm", ["--version"], {
     cwd: homedir(),
@@ -209,7 +210,7 @@ export async function inspectForStart(
   )
     throw new ProductError(
       "NPM_REQUIRED",
-      "npm is required. Reinstall the npm bundled with Node.js 24 from https://nodejs.org/en/download and ensure npm is on PATH.",
+      "npm is required. Reinstall the npm bundled with Node.js 24 or 26 from https://nodejs.org/en/download and ensure npm is on PATH.",
     );
   const location = git(resolve(options.project), [
     "rev-parse",

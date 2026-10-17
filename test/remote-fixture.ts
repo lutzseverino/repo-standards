@@ -299,7 +299,10 @@ export function operation(id: string, options: OperationOptions = {}) {
     script = "run.mjs",
     resources = [],
     arguments: args = [],
-    prerequisite = { "version-arguments": ["--version"], version: "^24" },
+    prerequisite = {
+      "version-arguments": ["--version"],
+      version: ">=24 <25 || >=26 <27",
+    },
     "timeout-seconds": timeout = 5,
   } = options;
   return {
