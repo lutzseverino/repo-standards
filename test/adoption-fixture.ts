@@ -3,6 +3,7 @@ import type { Inspection, Run } from "./json-reports.ts";
 import assert from "node:assert/strict";
 import type { installCli } from "./installed-cli.ts";
 import { sourceFixture } from "./installed-cli.ts";
+import { githubFixture } from "./github-fixture.ts";
 import { registryFixture } from "./registry-fixture.ts";
 import {
   commit,
@@ -20,6 +21,9 @@ export interface AdoptionOptions {
   executables?: string[] | undefined;
   repository?: string | undefined;
   recordRequests?: boolean | undefined;
+  // Serve GitHub REST and Git over local HTTP, recording every request in
+  // the remote's requestFile.
+  http?: boolean | undefined;
   // The project before adoption, committed unless the caller prepares and
   // commits it.
   project?: Record<string, string> | undefined;
@@ -37,13 +41,16 @@ export async function adoptionFixture(
   yaml: string,
   options: AdoptionOptions = {},
 ) {
-  const remote = remoteFixture(
-    yaml,
-    options.files,
-    options.executables,
-    options.repository,
-    options.recordRequests,
-  );
+  const remote: ReturnType<typeof remoteFixture> & { requestFile?: string } =
+    options.http
+      ? await githubFixture(yaml, options.files ?? {}, {})
+      : remoteFixture(
+          yaml,
+          options.files,
+          options.executables,
+          options.repository,
+          options.recordRequests,
+        );
   const project = sourceFixture("", options.project);
   t.after(() => {
     remote.close();

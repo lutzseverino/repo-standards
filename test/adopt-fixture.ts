@@ -21,7 +21,7 @@ export const reason = "Sign in to the hosting platform.";
 // A readme check that passes once README.md starts with a heading, a probe
 // that is ready once its marker exists outside the project, and remote setup
 // that records each application outside it, as a hosting platform would.
-const files = {
+export const readmeFiles = {
   "content/AGENTS.md": "Standard agent guidance\n",
   "guidance/readme.md": guidance,
   "rules/readme.md": rules,
@@ -50,6 +50,7 @@ export async function fixture(
     files?: Record<string, string>;
     project?: Record<string, string>;
     profiles?: Record<string, object>;
+    http?: boolean;
   } = {},
 ) {
   const external = directoryFixture("repo-standards-adopt-");
@@ -59,11 +60,12 @@ export async function fixture(
     cli,
     manifest(declarations, options.profiles),
     {
-      files: options.files ?? files,
+      files: options.files ?? readmeFiles,
       project: options.project ?? {
         "AGENTS.md": "Local agent notes\n",
         "README.md": "Project notes\n",
       },
+      http: options.http,
     },
   );
   // Publishes the release list, one page per list of tags. A full page of
@@ -176,8 +178,14 @@ export async function discoveryFixture(
   t: TestContext,
   cli: InstalledCli,
   unresolved: string[],
-  // Declarations and source files beside the discovery declaration.
-  others: { declarations?: object; files?: Record<string, string> } = {},
+  // Declarations and source files beside the discovery declaration, the
+  // source's profiles, and whether GitHub is served over local HTTP.
+  others: {
+    declarations?: object;
+    files?: Record<string, string>;
+    profiles?: Record<string, object>;
+    http?: boolean;
+  } = {},
 ) {
   const f = await fixture(
     t,
@@ -216,6 +224,8 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
         "fixtures/fake/package.json": "{}",
         "tools/run.sh": "echo tools",
       },
+      ...(others.profiles ? { profiles: others.profiles } : {}),
+      ...(others.http ? { http: true } : {}),
     },
   );
   const draft = {

@@ -1718,7 +1718,7 @@ test("changes to unrelated tracked content during the final source acquisition i
 const fetch = globalThis.fetch;
 let acquisitions = 0;
 globalThis.fetch = async (url, options) => {
-  if (String(url).includes('/git/trees/') && ++acquisitions === 2) writeFileSync(${JSON.stringify(join(project.root, "README.md"))}, 'Changed during acquisition');
+  if (String(url).includes('/git/ref/tags/') && ++acquisitions === 2) writeFileSync(${JSON.stringify(join(project.root, "README.md"))}, 'Changed during acquisition');
   return fetch(url, options);
 };
 `,

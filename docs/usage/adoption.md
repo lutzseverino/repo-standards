@@ -7,8 +7,22 @@ review the proposed changes, and complete the same adoption run.
 ## Adopt with one command
 
 Use macOS or Linux with Node.js 24, npm, and Git 2.32 or newer. Run from a Git
-working tree with an existing commit and no uncommitted changes; substitute
-your standards source's public GitHub URL:
+working tree with an existing commit and no uncommitted changes.
+
+Optionally, set a GitHub token before you start. Without one, the CLI uses
+GitHub's anonymous API quota, which every user and tool on your IP address
+shares, so repeated adoption rounds and other users can exhaust it; a token
+raises the allowance. The CLI reads `GH_TOKEN`, or `GITHUB_TOKEN` when
+`GH_TOKEN` is unset or empty, and sends it only on its GitHub REST requests.
+Signing in to `gh` alone does not authenticate them. Adoption of a public
+source needs no credentials; see
+[GitHub requests and tokens](installation.md#github-requests-and-tokens).
+
+```sh
+export GH_TOKEN=<token>
+```
+
+Then run `adopt`, substituting your standards source's public GitHub URL:
 
 ```sh
 npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS

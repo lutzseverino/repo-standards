@@ -18,7 +18,7 @@ export interface HttpResponse {
 // recorded requests retain comparisons, never credential values.
 export async function githubFixture(
   yaml: string,
-  files: Record<string, string>,
+  files: Record<string, string | Buffer>,
   tokens: NodeJS.ProcessEnv,
 ) {
   const remote = remoteFixture(yaml, files);

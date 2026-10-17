@@ -18,6 +18,7 @@ import {
   GithubRefusal,
   githubSource,
   isStableVersion,
+  type SourceObservations,
 } from "./acquisition.js";
 import { lockPath, projectRoot, safe } from "./adoption-files.js";
 import { linkTextAt } from "./targets.js";
@@ -493,10 +494,15 @@ async function prepare(
       mode === "template",
     );
 
+  // This invocation observes the source's repository and tag once, for the
+  // profile, the inspection and the start's first inspection; the start
+  // observes the tag again after acquiring the runtime. Each invocation
+  // observes them anew, while the immutable snapshot is reused across them.
+  const observations: SourceObservations = new Map();
   let retained: RetainedSource | undefined;
   let acquired: Awaited<ReturnType<typeof acquireSource>>;
   try {
-    acquired = await acquireSource(source, version, root);
+    acquired = await acquireSource(source, version, root, observations);
   } catch (error) {
     if (current?.version !== version || !unavailable(error)) throw error;
     retained = readRecordedAdoption(root)!.source();
@@ -615,7 +621,7 @@ async function prepare(
     };
     const inspection = retained
       ? await inspectRetained(root, cliVersion, scope)
-      : await inspect(inspectOptions, cliVersion);
+      : await inspect(inspectOptions, cliVersion, observations);
     const questions = [versionQuestion, profileQuestion];
     const missing: string[] = [];
     for (const { id } of discovery) {
@@ -759,6 +765,7 @@ async function prepare(
           identity,
           confirmation.required,
           notReady.length > 0,
+          observations,
         );
     // A retry of a start interrupted before its installation was prepared
     // reads the proposal again.

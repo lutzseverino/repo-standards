@@ -110,18 +110,22 @@ test("inspection authenticates every REST endpoint, keeps Git anonymous, and pre
   remote.save();
   let identity: string | undefined;
   const outputs: string[] = [];
-  for (const [env, expected] of [
-    [{}, "absent"],
-    [{ GH_TOKEN: "", GITHUB_TOKEN: "" }, "absent"],
-    [{ GH_TOKEN: tokens.GH_TOKEN }, "gh"],
-    [{ GITHUB_TOKEN: tokens.GITHUB_TOKEN }, "github"],
-    [{ GH_TOKEN: "", GITHUB_TOKEN: tokens.GITHUB_TOKEN }, "github"],
-    [tokens, "gh"],
-  ] as const) {
+  for (const [index, [env, expected]] of (
+    [
+      [{}, "absent"],
+      [{ GH_TOKEN: "", GITHUB_TOKEN: "" }, "absent"],
+      [{ GH_TOKEN: tokens.GH_TOKEN }, "gh"],
+      [{ GITHUB_TOKEN: tokens.GITHUB_TOKEN }, "github"],
+      [{ GH_TOKEN: "", GITHUB_TOKEN: tokens.GITHUB_TOKEN }, "github"],
+      [tokens, "gh"],
+    ] as const
+  ).entries()) {
     const before = requests(remote).length;
+    // An empty snapshot cache, so that each inspection reaches every endpoint.
     const result = cli.run(inspectionArgs, project.root, {
       ...remote.env,
       ...env,
+      XDG_CACHE_HOME: join(remote.support.root, `cache-${index}`),
     });
     outputs.push(result.stdout, result.stderr);
     assert.equal(result.status, 0, "Inspection succeeds");
@@ -154,17 +158,21 @@ test("inspection trims tokens, treats whitespace as absent, and never scans an u
     project.close();
   });
   const outputs: string[] = [];
-  for (const [env, expected] of [
-    [{ GH_TOKEN: " \t ", GITHUB_TOKEN: tokens.GITHUB_TOKEN }, "github"],
-    [{ GH_TOKEN: `  ${tokens.GH_TOKEN}  `, GITHUB_TOKEN: " " }, "gh"],
-    [{ GH_TOKEN: tokens.GH_TOKEN, GITHUB_TOKEN: "b" }, "gh"],
-    [{ GH_TOKEN: "", GITHUB_TOKEN: `  ${tokens.GITHUB_TOKEN}  ` }, "github"],
-    [{ GH_TOKEN: " \t ", GITHUB_TOKEN: "  " }, "absent"],
-  ] as const) {
+  for (const [index, [env, expected]] of (
+    [
+      [{ GH_TOKEN: " \t ", GITHUB_TOKEN: tokens.GITHUB_TOKEN }, "github"],
+      [{ GH_TOKEN: `  ${tokens.GH_TOKEN}  `, GITHUB_TOKEN: " " }, "gh"],
+      [{ GH_TOKEN: tokens.GH_TOKEN, GITHUB_TOKEN: "b" }, "gh"],
+      [{ GH_TOKEN: "", GITHUB_TOKEN: `  ${tokens.GITHUB_TOKEN}  ` }, "github"],
+      [{ GH_TOKEN: " \t ", GITHUB_TOKEN: "  " }, "absent"],
+    ] as const
+  ).entries()) {
     const before = requests(remote).length;
+    // An empty snapshot cache, so that each inspection reaches every endpoint.
     const result = cli.run(inspectionArgs, project.root, {
       ...remote.env,
       ...env,
+      XDG_CACHE_HOME: join(remote.support.root, `cache-${index}`),
     });
     outputs.push(result.stdout, result.stderr);
     assert.equal(
@@ -430,11 +438,17 @@ test("authenticated search fails the whole page when quota runs out in the page,
     remote.responses[key] = original;
     remote.save();
   }
-  for (const env of [{}, { GITHUB_TOKEN: tokens.GITHUB_TOKEN }, tokens]) {
+  for (const [index, env] of [
+    {},
+    { GITHUB_TOKEN: tokens.GITHUB_TOKEN },
+    tokens,
+  ].entries()) {
     const before = requests(remote).length;
+    // An empty snapshot cache, so that each search reaches every endpoint.
     const result = cli.run(["source", "search", "--json"], project.root, {
       ...remote.env,
       ...env,
+      XDG_CACHE_HOME: join(remote.support.root, `search-cache-${index}`),
     });
     outputs.push(result.stdout, result.stderr);
     assert.equal(result.status, 0);
