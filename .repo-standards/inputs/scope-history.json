@@ -1,7 +1,7 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:193b6b26106bd5f4630940223e1cf049b3a79b5aa9b0677b9823a8ccc3aa1e16",
+  "inspection": "sha256:da19c57423de49fed892e1e2d47623ec5cbe3c110a553331aff5103b172043a5",
   "resolved": {
     "description": "The standard profile plus the factory's repository files, for a repository a factory serves",
     "declarations": [
@@ -91,6 +91,7 @@
             "docs/adr/0017-confirm-only-confirmation-required-changes.md",
             "docs/adr/0018-add-a-private-astro-site-workspace.md",
             "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
+            "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
             "docs/adr/README.md",
             "docs/development/README.md",
             "docs/development/architecture.md",
@@ -1271,7 +1272,7 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:3f6424b93ebe15ab54f1a5e93c5e4bbb7343688b543f5bbc23dd0fdc45ee467b",
+    "identity": "sha256:58c01a2759a611c0dbb0c2345d11f97bbd60a77ef09361a2c4c5744f1a8eec8c",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
@@ -1602,6 +1603,14 @@
               "reason": "A file under the documentation root `docs`.",
               "evidence": [
                 "docs/adr/0019-run-declared-discovery-scripts-read-only.md"
+              ]
+            },
+            {
+              "path": "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
+              "decision": "include",
+              "reason": "A file under the documentation root `docs`.",
+              "evidence": [
+                "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md"
               ]
             },
             {
@@ -1964,7 +1973,7 @@
       "targets": {
         "GLOSSARY.md": {
           "type": "file",
-          "sha256": "9d28749655392a4c787471260706623cd51502daa27927ab2a815b20706ba7da",
+          "sha256": "2674bf1a27300a14b982f642a437e901079a1115319f32e23dcdb4e466f3504e",
           "executable": false
         },
         "docs/README.md": {
@@ -2067,9 +2076,14 @@
           "sha256": "4418bdff2008273f3d2cedb9a3c29bedcd7851ac915ed0aad83e19fbae6b8f77",
           "executable": false
         },
+        "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md": {
+          "type": "file",
+          "sha256": "4384a310cecc27e73613108419c80d1799ce5352d7b12203910c60cc3785d121",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "67684e283ccbce967f5293ec19de6fc85c7bf24dbf41137ae1dfd47977e97a47",
+          "sha256": "58e3cd239bdbc47cfa4835cec5576ee6d615063a184ee67a2a79c5bf3dcd4e96",
           "executable": false
         },
         "docs/development/README.md": {
@@ -2079,7 +2093,7 @@
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "e0b148be50ee89e99f73ef612762b5dc980d8b817906f79134781dd437b0a722",
+          "sha256": "fa9c515a20ffc2e2403dccfc7d5a58f1a7a900419afdc9020033ce2bfbd34015",
           "executable": false
         },
         "docs/development/release.md": {
@@ -2094,7 +2108,7 @@
         },
         "docs/usage/adoption.md": {
           "type": "file",
-          "sha256": "b929d08d2c43687e6256d42604790b375b931a6b86c8c1ac359528610db24128",
+          "sha256": "d9da4a457594423f6f99a1303ab19254daafa3603c5775cc045526ce1e011a90",
           "executable": false
         },
         "docs/usage/assessment-protocol.md": {
@@ -2114,12 +2128,12 @@
         },
         "docs/usage/available-updates.md": {
           "type": "file",
-          "sha256": "cac87a0823e8c0a0ba3472757a58692eb68b6b580d10552406fd9ffbb88137d3",
+          "sha256": "463e9a92965f0334b2d9b67cab220e4c0207b49ac85acf2b1aac5f033e8e5b04",
           "executable": false
         },
         "docs/usage/check.md": {
           "type": "file",
-          "sha256": "cecc00961ed0f5e492828db9eb165cfe0726791cbc19284feafcae72fc55f8ee",
+          "sha256": "e44dbc1297a3f1eb3e0fbf82efef2d7d8755d7eadbefb02a627693677cf738a6",
           "executable": false
         },
         "docs/usage/discovery.md": {
@@ -2129,17 +2143,17 @@
         },
         "docs/usage/inspection.md": {
           "type": "file",
-          "sha256": "2183f5f296cce180b495663dfb60cd89502225e662092feb6b48ddd468b32d8d",
+          "sha256": "ae6f196cadcd2f5c8e45e6f6b65dec5cb89ebe63daef0276b5435fb44d371db7",
           "executable": false
         },
         "docs/usage/installation.md": {
           "type": "file",
-          "sha256": "7cb398ec6c0628087d4704e294ac8acb20eb029ab549aed945c4ceb2864f9fed",
+          "sha256": "85a2a3e0fbf15cff6715a9697f5aaabb7a38c82222b45a25a40b09a67244f722",
           "executable": false
         },
         "docs/usage/rules.md": {
           "type": "file",
-          "sha256": "deca4853ff6f78f8dbd88c20cab1226786f66082a3cd87912e14632922ed0b17",
+          "sha256": "22447d686953e1596b18ec737fed15f7c119c4b60565a1a7609ac9e57f043b5f",
           "executable": false
         },
         "docs/usage/script-protocol.md": {
@@ -2158,7 +2172,7 @@
       {
         "id": "documentation",
         "source": "discovery/documentation.md",
-        "sha256": "30809f225f7c71cd138e7cac835b350e85950b271aad9352aa94808c93864765",
+        "sha256": "0e84c6f5a53f8799568bef21f593c9544a7177428bbda6c8d5be0c594af1f9f7",
         "executable": false
       },
       {
@@ -2186,39 +2200,9 @@
           "sha256": "0e7ac423bf2c6e223b7c5b156f8cf72da49d748e56a1641402c31f22ad07dbb5",
           "executable": false
         },
-        ".agents/skills/adopt-standards/SKILL.md": {
-          "type": "file",
-          "sha256": "8abd386956435fec093e74982de0687bd5d9b4be6e77ef28bc3a670f1c415224",
-          "executable": false
-        },
-        ".agents/skills/adopt-standards/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
-          "executable": false
-        },
-        ".agents/skills/adopt-standards/references/assessment.md": {
-          "type": "file",
-          "sha256": "b0e4fdafd427a18ba834deaa98e4a695884d5e9cd0f959df7f5fbd469e07d881",
-          "executable": false
-        },
-        ".agents/skills/adopt-standards/references/discovery.md": {
-          "type": "file",
-          "sha256": "0170d35348f3b671a1c28da5ca624e32bc71bae32198f16bd42d3b419fb9c980",
-          "executable": false
-        },
-        ".agents/skills/adopt-standards/references/recovery.md": {
-          "type": "file",
-          "sha256": "27d88ef16bccb4538b25c40068b57eb9eeb769320fb1a87b78a33057e7924e06",
-          "executable": false
-        },
-        ".agents/skills/adopt-standards/references/review.md": {
-          "type": "file",
-          "sha256": "9a369755463ded9523d50bf1a338490d156860c7b3516ca27b465427d113bf61",
-          "executable": false
-        },
         ".agents/skills/babysit/SKILL.md": {
           "type": "file",
-          "sha256": "b6900b4378f0b8b9c46b6c7c6b56cad36e62b4f740e59b835559f21baaeda5f3",
+          "sha256": "f17de7f5068281d3ef188e08861d106d9ef3aff377f76e62f792284d9c89feca",
           "executable": false
         },
         ".agents/skills/babysit/merge.mjs": {
@@ -2226,14 +2210,19 @@
           "sha256": "f1ba69545f9e7234666e76e1bb64283378419f9e6af963753d141107438b8d3e",
           "executable": false
         },
+        ".agents/skills/babysit/pull-request-reviewer.mjs": {
+          "type": "file",
+          "sha256": "661a5832f8386352d9f9f7e4f58c6f467a63b56b6b49edb41514266a4ed858d1",
+          "executable": false
+        },
         ".agents/skills/babysit/reviewer.mjs": {
           "type": "file",
-          "sha256": "43c0834119e5caad5478abe6216e46ccd9813d8019a2097e7d0bc8616ff94373",
+          "sha256": "bda1879ccbf256b0da6ab17857e158555068bde14f4f277307ba3d99a110275d",
           "executable": false
         },
         ".agents/skills/babysit/wait.mjs": {
           "type": "file",
-          "sha256": "041dd8a31517f0592b2a16d72030d7a95f94d7b643f676f52929895f92eacc46",
+          "sha256": "93e4f0658510fb799009bf7681ff1844679ed496db648fb6fd8fe90ec9d72124",
           "executable": false
         },
         ".agents/skills/code-review/SKILL.md": {
@@ -2381,6 +2370,16 @@
           "sha256": "5af65e43ab41a350436697b81e27b7f848d36782043b73c322bb2c9fa9cc55dc",
           "executable": false
         },
+        ".agents/skills/repository-standards/SKILL.md": {
+          "type": "file",
+          "sha256": "d181a5dd3e3e2e5d5d5a3c5c86f170da4361d567321b8f82340a128920ad388d",
+          "executable": false
+        },
+        ".agents/skills/repository-standards/agents/openai.yaml": {
+          "type": "file",
+          "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935",
+          "executable": false
+        },
         ".agents/skills/research/SKILL.md": {
           "type": "file",
           "sha256": "985569f15739c713d6784887c3d186d4ef9ac85bec5ad9c068d25bf0739928e4",
@@ -2389,16 +2388,6 @@
         ".agents/skills/research/agents/openai.yaml": {
           "type": "file",
           "sha256": "9b4c470d63221c1f68f22df70b83e2f12401b317babe0d1b7b5f24a974474d0d",
-          "executable": false
-        },
-        ".agents/skills/standards-updates/SKILL.md": {
-          "type": "file",
-          "sha256": "3262164c280f6d05c33fcfed23934dc17955038680ad19a89fef26a5cb4e0999",
-          "executable": false
-        },
-        ".agents/skills/standards-updates/agents/openai.yaml": {
-          "type": "file",
-          "sha256": "8619a54e8c098122a7f3881394f84ca89b684366e848233a29ad18b6ec363935",
           "executable": false
         },
         ".agents/skills/tdd/SKILL.md": {
@@ -2486,10 +2475,6 @@
           "sha256": "eacb24b2a618cfb81dacb0416f4fdd75ddf3a8060f8ddb99aae1b1e301907e4b",
           "executable": false
         },
-        ".claude/skills/adopt-standards": {
-          "type": "symlink",
-          "target": "../../.agents/skills/adopt-standards"
-        },
         ".claude/skills/babysit": {
           "type": "symlink",
           "target": "../../.agents/skills/babysit"
@@ -2534,13 +2519,13 @@
           "type": "symlink",
           "target": "../../.agents/skills/prototype"
         },
+        ".claude/skills/repository-standards": {
+          "type": "symlink",
+          "target": "../../.agents/skills/repository-standards"
+        },
         ".claude/skills/research": {
           "type": "symlink",
           "target": "../../.agents/skills/research"
-        },
-        ".claude/skills/standards-updates": {
-          "type": "symlink",
-          "target": "../../.agents/skills/standards-updates"
         },
         ".claude/skills/tdd": {
           "type": "symlink",
@@ -2618,12 +2603,12 @@
         },
         ".github/workflows/issue-contracts.yml": {
           "type": "file",
-          "sha256": "440fa7d07a8bbf9f5efe5232b2f863d5767a3ff8616b340f078af1bb1a88439f",
+          "sha256": "edcc96d6d8e040a55cd30ea2109d1291322a85bb66ea9d3a5dbbb43fa00a4588",
           "executable": false
         },
         ".github/workflows/pr-metadata.yml": {
           "type": "file",
-          "sha256": "597e2f3433f75fa25a2a24c9db6be3432c91740a2638ecb3541e549c518e6c82",
+          "sha256": "cb718da096023298e44b962dbb60a42fb0dce52ec0c98f25b9a6307d9e94eac3",
           "executable": false
         },
         ".github/workflows/release.yml": {
@@ -2633,7 +2618,7 @@
         },
         ".github/workflows/sandbox-image.yml": {
           "type": "file",
-          "sha256": "71f03ceb1ed50d8d82563c0ef971926cb52bb241b1eb8041f9f7c26e6679722e",
+          "sha256": "598ab9931a8cfc63a3e1d2487fb151eca9b134a5e9a4e3bfa20d4b87b96399b3",
           "executable": false
         },
         ".github/workflows/validate.yml": {
@@ -2668,12 +2653,12 @@
         },
         "CONTRIBUTING.md": {
           "type": "file",
-          "sha256": "c25bf00e0380c8ea900f794f68e7f45c0027eae4614f3588d0dc606fec188645",
+          "sha256": "a1e6d09d5957e84812609c295f5a0fdbf9777ac9e005338758b74940c4bec7cc",
           "executable": false
         },
         "GLOSSARY.md": {
           "type": "file",
-          "sha256": "9d28749655392a4c787471260706623cd51502daa27927ab2a815b20706ba7da",
+          "sha256": "2674bf1a27300a14b982f642a437e901079a1115319f32e23dcdb4e466f3504e",
           "executable": false
         },
         "LICENSE": {
@@ -2683,7 +2668,7 @@
         },
         "README.md": {
           "type": "file",
-          "sha256": "d253ee40942ecb404e17fccade40e213b1db00d6931f3eaf4406c7305203e606",
+          "sha256": "0eb01e2757a769c7109311c119bbfb7f1b757eef9c1d689eda6f623fed587074",
           "executable": false
         },
         "acceptance/README.md": {
@@ -3001,9 +2986,14 @@
           "sha256": "4418bdff2008273f3d2cedb9a3c29bedcd7851ac915ed0aad83e19fbae6b8f77",
           "executable": false
         },
+        "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md": {
+          "type": "file",
+          "sha256": "4384a310cecc27e73613108419c80d1799ce5352d7b12203910c60cc3785d121",
+          "executable": false
+        },
         "docs/adr/README.md": {
           "type": "file",
-          "sha256": "67684e283ccbce967f5293ec19de6fc85c7bf24dbf41137ae1dfd47977e97a47",
+          "sha256": "58e3cd239bdbc47cfa4835cec5576ee6d615063a184ee67a2a79c5bf3dcd4e96",
           "executable": false
         },
         "docs/agents/README.md": {
@@ -3038,7 +3028,7 @@
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "e0b148be50ee89e99f73ef612762b5dc980d8b817906f79134781dd437b0a722",
+          "sha256": "fa9c515a20ffc2e2403dccfc7d5a58f1a7a900419afdc9020033ce2bfbd34015",
           "executable": false
         },
         "docs/development/release.md": {
@@ -3053,7 +3043,7 @@
         },
         "docs/usage/adoption.md": {
           "type": "file",
-          "sha256": "b929d08d2c43687e6256d42604790b375b931a6b86c8c1ac359528610db24128",
+          "sha256": "d9da4a457594423f6f99a1303ab19254daafa3603c5775cc045526ce1e011a90",
           "executable": false
         },
         "docs/usage/assessment-protocol.md": {
@@ -3073,12 +3063,12 @@
         },
         "docs/usage/available-updates.md": {
           "type": "file",
-          "sha256": "cac87a0823e8c0a0ba3472757a58692eb68b6b580d10552406fd9ffbb88137d3",
+          "sha256": "463e9a92965f0334b2d9b67cab220e4c0207b49ac85acf2b1aac5f033e8e5b04",
           "executable": false
         },
         "docs/usage/check.md": {
           "type": "file",
-          "sha256": "cecc00961ed0f5e492828db9eb165cfe0726791cbc19284feafcae72fc55f8ee",
+          "sha256": "e44dbc1297a3f1eb3e0fbf82efef2d7d8755d7eadbefb02a627693677cf738a6",
           "executable": false
         },
         "docs/usage/discovery.md": {
@@ -3088,17 +3078,17 @@
         },
         "docs/usage/inspection.md": {
           "type": "file",
-          "sha256": "2183f5f296cce180b495663dfb60cd89502225e662092feb6b48ddd468b32d8d",
+          "sha256": "ae6f196cadcd2f5c8e45e6f6b65dec5cb89ebe63daef0276b5435fb44d371db7",
           "executable": false
         },
         "docs/usage/installation.md": {
           "type": "file",
-          "sha256": "7cb398ec6c0628087d4704e294ac8acb20eb029ab549aed945c4ceb2864f9fed",
+          "sha256": "85a2a3e0fbf15cff6715a9697f5aaabb7a38c82222b45a25a40b09a67244f722",
           "executable": false
         },
         "docs/usage/rules.md": {
           "type": "file",
-          "sha256": "deca4853ff6f78f8dbd88c20cab1226786f66082a3cd87912e14632922ed0b17",
+          "sha256": "22447d686953e1596b18ec737fed15f7c119c4b60565a1a7609ac9e57f043b5f",
           "executable": false
         },
         "docs/usage/script-protocol.md": {
@@ -3208,7 +3198,7 @@
         },
         "package.json": {
           "type": "file",
-          "sha256": "7f9b0faf5e8b49588785bc1b2d4ff44948ea3b7541f8058e5503fadfa10305ba",
+          "sha256": "275961bc8f21595bf3d6eafd3fe4297d1b0df870b921f12b8cb421e361cf73f1",
           "executable": false
         },
         "pnpm-lock.yaml": {
@@ -3318,7 +3308,7 @@
         },
         "skills/author-standards/references/cli.md": {
           "type": "file",
-          "sha256": "bff44a5b79d3f0050cb322fd57c2a87729494e6ad227d7ae0ff1678d67428841",
+          "sha256": "de43f531e6abe4e870ebc3d10fcf0b6796ba7fde4c9ecba69b21867beb47754d",
           "executable": false
         },
         "skills/author-standards/references/operations.md": {
@@ -3338,7 +3328,7 @@
         },
         "skills/repository-standards/SKILL.md": {
           "type": "file",
-          "sha256": "d181a5dd3e3e2e5d5d5a3c5c86f170da4361d567321b8f82340a128920ad388d",
+          "sha256": "4e331d32a27f003027cfbcfce376f49c8e0743142dc6cd653fe7e31052f61450",
           "executable": false
         },
         "skills/repository-standards/agents/openai.yaml": {
@@ -3348,7 +3338,7 @@
         },
         "src/acquisition.ts": {
           "type": "file",
-          "sha256": "e6b8f006e1fa57a6c9aa24925f6c26c71cf16fcc84c00e97dcb141fc983d4ffa",
+          "sha256": "c46c3f51ff65bcf8db89bb82a334a0ec3341c78816b9bb4c324a61aaf8b0a6d2",
           "executable": false
         },
         "src/adopt-terminal.ts": {
@@ -3358,7 +3348,7 @@
         },
         "src/adopt.ts": {
           "type": "file",
-          "sha256": "cca08758de4058de891beddefdd1cb349e2d7b49cf3451e2735e48948451dcae",
+          "sha256": "630dced49bb98f206073d2a739658decf12b8e45dd6f0cadefaec076be549e49",
           "executable": false
         },
         "src/adoption-files.ts": {
@@ -3373,7 +3363,7 @@
         },
         "src/adoption.ts": {
           "type": "file",
-          "sha256": "5c5643dd438d4f0ace1336c22834b77e08f1b4fffdb0ed5f095237e77338f884",
+          "sha256": "e51d797decdc3e17be5c91d5956f4017e715e270a47d56f7f56e773e8285009c",
           "executable": false
         },
         "src/assessment.ts": {
@@ -3388,7 +3378,7 @@
         },
         "src/cli.ts": {
           "type": "file",
-          "sha256": "bbbc677d10fb8a00a5d2c35592e4810f818b0a0501e68af930f23aa478eae1f7",
+          "sha256": "66389439e564e1d2c17b262edb9264db5d25d4eba572e159a3065c005e49d842",
           "executable": false
         },
         "src/declarations.ts": {
@@ -3423,7 +3413,7 @@
         },
         "src/inspection.ts": {
           "type": "file",
-          "sha256": "589512429ff8983ca92f418c879ca4a8b8e4e0178dd1bdc5a2c130396cb616b2",
+          "sha256": "90041059c7b06d95f518836c978480871f9c4729f5c5838b3765a2f2bc83dcf5",
           "executable": false
         },
         "src/installation.ts": {
@@ -3483,7 +3473,7 @@
         },
         "src/rules.ts": {
           "type": "file",
-          "sha256": "ae53f539abd686371c965a5fc750e0bb34b6d36b62b6f78a002eda728c0fea29",
+          "sha256": "96c9ff17600255be8ec836157ff702e0b21393b108fbbefd3a02ab83348ed725",
           "executable": false
         },
         "src/run-lock.ts": {
@@ -3563,17 +3553,17 @@
         },
         "test/adopt-fixture.ts": {
           "type": "file",
-          "sha256": "5e7856c01e7902c6d5b0dcca153111af17d3863defb17bcda7a0eff640b8a3be",
+          "sha256": "115a17704f6531512d3f1e67347dc72e2d6cff37fe5578ab2c493976978a2d61",
           "executable": false
         },
         "test/adopt-terminal.test.ts": {
           "type": "file",
-          "sha256": "bcb33ec25c92b35ad33ff81395c7ff5bab1fadefba1aa477f4693b72ca6760f6",
+          "sha256": "2fc2834d75275a67d42335d9ada40f30931bedd82d8cf46bc7d2c57fedcab20a",
           "executable": false
         },
         "test/adopt.test.ts": {
           "type": "file",
-          "sha256": "6b7e1c4701b16cfe7c1c6d5473dfa08c1b84425fb1c6aa548b18062a86e48d41",
+          "sha256": "66520a0817a31c5f91c16431d0cddb0600fc3229db01e60a3b02bf2ef377a9a3",
           "executable": false
         },
         "test/adoption-faults.ts": {
@@ -3583,12 +3573,12 @@
         },
         "test/adoption-fixture.ts": {
           "type": "file",
-          "sha256": "ec227fb0b041190d18d02c49231d97ba30c0b4624ee819019c17aa321ce8fe22",
+          "sha256": "2badd6bc5da0b1c5ec23943877b9cd851e8e4f0f66427657ae6aded3611b00ce",
           "executable": false
         },
         "test/adoption.test.ts": {
           "type": "file",
-          "sha256": "addec8d678d2030a439591a9b431d4c725fb9588918612e501466107f429a71a",
+          "sha256": "953d9957f4acc9a062d1dc90d8ad0c14349a27807087500dc2102f3bc50d8149",
           "executable": false
         },
         "test/assessment.test.ts": {
@@ -3638,12 +3628,12 @@
         },
         "test/github-fixture.ts": {
           "type": "file",
-          "sha256": "657101f576da1e2783b875b6b91dda01563077611bf5bccb3a93ccade3478f15",
+          "sha256": "8ad8d29f367a5003d4751ed9e68002ae71a5bfaeb0ea5d3d68de05339d6535d3",
           "executable": false
         },
         "test/github-token.test.ts": {
           "type": "file",
-          "sha256": "75dc4a3aa90ee9f3a4abccc37e5ef1adb3998c49b51774ab1ed1a1a4b3f40335",
+          "sha256": "b34d8586af6ba4a41d421fb1b962b080ec4b6a61b30e5192a55be6beae7787e7",
           "executable": false
         },
         "test/import-cycles.test.ts": {
@@ -3716,6 +3706,11 @@
           "sha256": "ad2b43129d1f44d55742484f22667470705be7efb77f933685d802545afdf36f",
           "executable": false
         },
+        "test/request-budget.test.ts": {
+          "type": "file",
+          "sha256": "255ebc6452bcad54516d0bb6cee765ee7c30a754a7fea38619782c2d76810c43",
+          "executable": false
+        },
         "test/retired-formats.test.ts": {
           "type": "file",
           "sha256": "7a58d7f1d097891543c8f27c7efb7265da3c4dd22f291538b990b41b854136da",
@@ -3723,7 +3718,7 @@
         },
         "test/rules.test.ts": {
           "type": "file",
-          "sha256": "8240bd0fa315eb40809e681550036dbd7669519df40288f19dc51e6d42e9c4f2",
+          "sha256": "a3be3041c0ea36dbc381d3dee911c7e72f5c45297eff39b506020209a1d90a47",
           "executable": false
         },
         "test/runtime-acquisition.test.ts": {
@@ -3860,7 +3855,6 @@
         ".agents/skills": [
           ".agents/skills/LICENSE.humanlayer-skills",
           ".agents/skills/LICENSE.mattpocock-skills",
-          ".agents/skills/adopt-standards",
           ".agents/skills/babysit",
           ".agents/skills/code-review",
           ".agents/skills/codebase-design",
@@ -3872,8 +3866,8 @@
           ".agents/skills/improve-codebase-architecture",
           ".agents/skills/pr",
           ".agents/skills/prototype",
+          ".agents/skills/repository-standards",
           ".agents/skills/research",
-          ".agents/skills/standards-updates",
           ".agents/skills/tdd",
           ".agents/skills/to-spec",
           ".agents/skills/to-tickets",
@@ -3881,23 +3875,10 @@
           ".agents/skills/wayfinder",
           ".agents/skills/writing-for-agents"
         ],
-        ".agents/skills/adopt-standards": [
-          ".agents/skills/adopt-standards/SKILL.md",
-          ".agents/skills/adopt-standards/agents",
-          ".agents/skills/adopt-standards/references"
-        ],
-        ".agents/skills/adopt-standards/agents": [
-          ".agents/skills/adopt-standards/agents/openai.yaml"
-        ],
-        ".agents/skills/adopt-standards/references": [
-          ".agents/skills/adopt-standards/references/assessment.md",
-          ".agents/skills/adopt-standards/references/discovery.md",
-          ".agents/skills/adopt-standards/references/recovery.md",
-          ".agents/skills/adopt-standards/references/review.md"
-        ],
         ".agents/skills/babysit": [
           ".agents/skills/babysit/SKILL.md",
           ".agents/skills/babysit/merge.mjs",
+          ".agents/skills/babysit/pull-request-reviewer.mjs",
           ".agents/skills/babysit/reviewer.mjs",
           ".agents/skills/babysit/wait.mjs"
         ],
@@ -3983,19 +3964,19 @@
         ".agents/skills/prototype/agents": [
           ".agents/skills/prototype/agents/openai.yaml"
         ],
+        ".agents/skills/repository-standards": [
+          ".agents/skills/repository-standards/SKILL.md",
+          ".agents/skills/repository-standards/agents"
+        ],
+        ".agents/skills/repository-standards/agents": [
+          ".agents/skills/repository-standards/agents/openai.yaml"
+        ],
         ".agents/skills/research": [
           ".agents/skills/research/SKILL.md",
           ".agents/skills/research/agents"
         ],
         ".agents/skills/research/agents": [
           ".agents/skills/research/agents/openai.yaml"
-        ],
-        ".agents/skills/standards-updates": [
-          ".agents/skills/standards-updates/SKILL.md",
-          ".agents/skills/standards-updates/agents"
-        ],
-        ".agents/skills/standards-updates/agents": [
-          ".agents/skills/standards-updates/agents/openai.yaml"
         ],
         ".agents/skills/tdd": [
           ".agents/skills/tdd/SKILL.md",
@@ -4048,7 +4029,6 @@
           ".claude/skills"
         ],
         ".claude/skills": [
-          ".claude/skills/adopt-standards",
           ".claude/skills/babysit",
           ".claude/skills/code-review",
           ".claude/skills/codebase-design",
@@ -4060,8 +4040,8 @@
           ".claude/skills/improve-codebase-architecture",
           ".claude/skills/pr",
           ".claude/skills/prototype",
+          ".claude/skills/repository-standards",
           ".claude/skills/research",
-          ".claude/skills/standards-updates",
           ".claude/skills/tdd",
           ".claude/skills/to-spec",
           ".claude/skills/to-tickets",
@@ -4291,6 +4271,7 @@
           "docs/adr/0017-confirm-only-confirmation-required-changes.md",
           "docs/adr/0018-add-a-private-astro-site-workspace.md",
           "docs/adr/0019-run-declared-discovery-scripts-read-only.md",
+          "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md",
           "docs/adr/README.md"
         ],
         "docs/agents": [
@@ -4541,6 +4522,7 @@
           "test/release.test.ts",
           "test/remote-fixture.ts",
           "test/remote-setup.test.ts",
+          "test/request-budget.test.ts",
           "test/retired-formats.test.ts",
           "test/rules.test.ts",
           "test/runtime-acquisition.test.ts",
@@ -4575,15 +4557,6 @@
           "type": "directory"
         },
         ".agents/skills": {
-          "type": "directory"
-        },
-        ".agents/skills/adopt-standards": {
-          "type": "directory"
-        },
-        ".agents/skills/adopt-standards/agents": {
-          "type": "directory"
-        },
-        ".agents/skills/adopt-standards/references": {
           "type": "directory"
         },
         ".agents/skills/babysit": {
@@ -4652,16 +4625,16 @@
         ".agents/skills/prototype/agents": {
           "type": "directory"
         },
+        ".agents/skills/repository-standards": {
+          "type": "directory"
+        },
+        ".agents/skills/repository-standards/agents": {
+          "type": "directory"
+        },
         ".agents/skills/research": {
           "type": "directory"
         },
         ".agents/skills/research/agents": {
-          "type": "directory"
-        },
-        ".agents/skills/standards-updates": {
-          "type": "directory"
-        },
-        ".agents/skills/standards-updates/agents": {
           "type": "directory"
         },
         ".agents/skills/tdd": {
@@ -4998,7 +4971,7 @@
         },
         "info": {
           "type": "file",
-          "sha256": "321dffcb77a68a6c079d35da12944866b895b4cc9fb3b1fae72fe9468c7eafeb",
+          "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1",
           "executable": false
         },
         ".gitignore": {
@@ -5010,15 +4983,6 @@
           "type": "missing"
         },
         ".agents/skills/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/adopt-standards/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/adopt-standards/agents/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/adopt-standards/references/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/babysit/.gitignore": {
@@ -5087,16 +5051,16 @@
         ".agents/skills/prototype/agents/.gitignore": {
           "type": "missing"
         },
+        ".agents/skills/repository-standards/.gitignore": {
+          "type": "missing"
+        },
+        ".agents/skills/repository-standards/agents/.gitignore": {
+          "type": "missing"
+        },
         ".agents/skills/research/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/research/agents/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/standards-updates/.gitignore": {
-          "type": "missing"
-        },
-        ".agents/skills/standards-updates/agents/.gitignore": {
           "type": "missing"
         },
         ".agents/skills/tdd/.gitignore": {
@@ -5431,10 +5395,10 @@
   "scopeChanges": [
     {
       "id": "documentation",
-      "additions": [],
-      "removals": [
-        "docs/agents/project.md"
-      ]
+      "additions": [
+        "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md"
+      ],
+      "removals": []
     }
   ]
 }

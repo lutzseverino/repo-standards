@@ -1,6 +1,6 @@
 # Installed rules
 
-These rules come from https://github.com/lutzseverino/repo-canon v0.14.0, profile factory.
+These rules come from https://github.com/lutzseverino/repo-canon v0.14.1, profile factory.
 Repository Standards installs and verifies them; adopt again to change them.
 Run `repo-standards rules <path>` to print the rules that cover a path.
 
@@ -26,6 +26,7 @@ Run `repo-standards rules <path>` to print the rules that cover a path.
   - `docs/adr/0017-confirm-only-confirmation-required-changes.md`
   - `docs/adr/0018-add-a-private-astro-site-workspace.md`
   - `docs/adr/0019-run-declared-discovery-scripts-read-only.md`
+  - `docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md`
   - `docs/adr/README.md`
   - `docs/development/README.md`
   - `docs/development/architecture.md`
