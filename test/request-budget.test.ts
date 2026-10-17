@@ -122,6 +122,10 @@ function annotate(f: Fixture, tag: string, depth = 1) {
     git(
       remote.source.root,
       "-c",
+      "user.name=Test",
+      "-c",
+      "user.email=test@example.invalid",
+      "-c",
       "tag.gpgSign=false",
       "-c",
       "advice.nestedTag=false",
