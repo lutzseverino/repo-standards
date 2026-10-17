@@ -314,8 +314,23 @@ test("standards results and process errors remain distinct and stop only the req
           instructions: {
             ...exact,
             [example.phase]: [
-              operation("first", { ...scripted, "timeout-seconds": 1 }),
-              operation("last", scripted),
+              // This budget also covers the prerequisite version probe. A
+              // delayed probe must still reach the result being tested.
+              operation("first", {
+                ...scripted,
+                prerequisite: {
+                  ...scripted.prerequisite,
+                  "version-arguments":
+                    example.name === "blocked fix"
+                      ? [
+                          "-e",
+                          "setTimeout(() => console.log(process.version), 1100)",
+                        ]
+                      : scripted.prerequisite["version-arguments"],
+                },
+                "timeout-seconds": 5,
+              }),
+              operation("last", { ...scripted, "timeout-seconds": 5 }),
             ],
           },
         },
@@ -330,7 +345,11 @@ else console.log(JSON.stringify({format:'repo-standards/result/v2',status:input.
         example.code ? 1 : 0,
         result.stdout + result.stderr,
       );
-      assert.equal(report.operations.length, example.count);
+      assert.equal(
+        report.operations.length,
+        example.count,
+        result.stdout + result.stderr,
+      );
       if (example.code)
         assert.ok(report.reason.startsWith(example.code + ":"), report.reason);
       assert.equal(
