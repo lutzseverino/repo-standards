@@ -139,8 +139,11 @@ original workflow artifact has expired and must be recovered from archival input
 
 Start from the original failed `Release` run, not the current branch HEAD. Use
 `gh run view <run-id> --repo lutzseverino/repo-standards --json headSha,jobs,url`
-to establish the original commit and that **both validation jobs passed**.
-If validation did not pass, correct the failure and validate before publishing.
+to establish the original commit and that **every required validation job passed**.
+For the current workflow, require all four Linux/macOS × Node.js 24/26 matrix
+cells. For historical runs before the Node.js matrix, require both original
+Linux and macOS validation jobs. If validation did not pass, correct the failure
+and validate before publishing.
 A run's overall failure does not mean its npm publication failed.
 
 Download that run's `release-bundle` into a fresh directory:
