@@ -30,8 +30,9 @@ Canon, give your coding agent this prompt in your repository:
 Adopt Repo Canon in this repository. First check that the Git working tree is
 clean and committed; if it isn't, stop and tell me. Then run
 `npx @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon`
-and follow the next steps it prints. Ask me each question it raises instead of
-answering for me, and leave its changes uncommitted for me to review.
+and follow the next steps it prints. Bring me every decision it leaves to me
+instead of making it yourself, and leave its changes uncommitted for me to
+review.
 ```
 
 To run it yourself, use the same command in a terminal, from your committed,
