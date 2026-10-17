@@ -22,7 +22,7 @@ an assessment records an agent's judgment that project-specific work meets them.
 - [Adoption](adoption.md): `adopt` in a terminal or with an agent's answers
   file, remote setup deferral, updates, and the lower-level adoption run reference.
 - [Installation](installation.md): prerequisites, adoption without a manual
-  install, optional CLI tools, the authoring skill, and fresh-checkout restoration.
+  install, optional CLI tools, the adoption and authoring skills, and fresh-checkout restoration.
 - [Authoring](authoring.md): validating and publishing a standards source,
   and where the `author-standards` skill and author contracts fit.
 - [Source discovery](discovery.md): searching the public `repo-standards` topic
