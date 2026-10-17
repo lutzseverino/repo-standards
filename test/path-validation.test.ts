@@ -15,7 +15,11 @@ requires: {repo-standards: ">=1.0.0"}
 const profile =
   "profiles:\n  personal:\n    description: Personal\n    declarations: {}\n";
 
-for (const name of ["repository-standards", "author-standards"]) {
+for (const name of [
+  "repository-standards",
+  "author-standards",
+  "adopt-repository-standards",
+]) {
   test(`authors cannot supply the product-owned ${name} skill`, (t) => {
     const source = sourceFixture(
       header +
@@ -48,24 +52,29 @@ for (const name of ["repository-standards", "author-standards"]) {
   });
 }
 
-test("authors may supply a skill named for the retired adopt-standards system skill", (t) => {
-  const source = sourceFixture(
-    header +
-      `defaults:
+for (const name of ["adopt-standards", "standards-updates"]) {
+  test(`authors may supply a skill named for the retired ${name} system skill`, (t) => {
+    const source = sourceFixture(
+      header +
+        `defaults:
   declarations:
     adoption:
       kind: skill
-      name: adopt-standards
+      name: ${name}
       source: skill
 ` +
-      profile,
-    { "skill/SKILL.md": "# Adoption skill" },
-  );
-  t.after(() => source.close());
-  const result = cli.run(["source", "validate", "--json"], source.root);
-  assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.deepEqual((JSON.parse(result.stdout) as SourceValidation).errors, []);
-});
+        profile,
+      { "skill/SKILL.md": "# Adoption skill" },
+    );
+    t.after(() => source.close());
+    const result = cli.run(["source", "validate", "--json"], source.root);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.deepEqual(
+      (JSON.parse(result.stdout) as SourceValidation).errors,
+      [],
+    );
+  });
+}
 
 test("unreadable selected files are reported for every reference kind", (t) => {
   if (process.getuid?.() === 0) {
@@ -146,7 +155,11 @@ test("all file and repository guidance forms reject system-skill targets, their 
   // Each system skill's own paths, the ancestors they share once, and the
   // case-folded and Unicode-normalized variants for one name.
   const targets = [
-    ...["repository-standards", "author-standards"].flatMap((name) => [
+    ...[
+      "repository-standards",
+      "author-standards",
+      "adopt-repository-standards",
+    ].flatMap((name) => [
       `.agents/skills/${name}`,
       `.agents/skills/${name}/SKILL.md`,
       `.claude/skills/${name}`,

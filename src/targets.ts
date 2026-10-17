@@ -78,11 +78,12 @@ export const retiredSystemSkills: readonly SystemSkill[] = [
 ].map(systemSkill);
 
 // Every system skill: no author skill may take its name, and no declared
-// target may overlap its target or its link. Adoption installs all but
-// author-standards.
+// target may overlap its target or its link. Standalone entry and authoring
+// skills are reserved but are not installed by adoption.
 export const systemSkills: readonly SystemSkill[] = [
   ...installedSystemSkills,
   systemSkill("author-standards"),
+  systemSkill("adopt-repository-standards"),
 ];
 
 // The one installation target of an exact file or skill, or none for

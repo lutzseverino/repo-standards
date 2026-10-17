@@ -304,10 +304,9 @@ test("confirmed exact adoption installs whole skills, claims matching files and 
       ),
     ),
   );
-  assert.equal(
-    existsSync(join(project.root, ".agents/skills/author-standards")),
-    false,
-  );
+  for (const name of ["author-standards", "adopt-repository-standards"])
+    for (const directory of [".agents/skills", ".claude/skills"])
+      assert.equal(existsSync(join(project.root, directory, name)), false);
   const manifest = JSON.parse(
     readFileSync(
       join(project.root, ".repo-standards/runtime/package.json"),
@@ -334,6 +333,10 @@ test("confirmed exact adoption installs whole skills, claims matching files and 
     "agents/openai.yaml",
   ]);
   assert.equal(state.skills[".agents/skills/author-standards"], undefined);
+  assert.equal(
+    state.skills[".agents/skills/adopt-repository-standards"],
+    undefined,
+  );
   assert.equal(
     readFileSync(
       join(project.root, ".repo-standards/inputs/source/LICENSE"),

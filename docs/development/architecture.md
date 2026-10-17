@@ -37,7 +37,8 @@ product remains neutral for independently authored standards.
 
 The product does not implement an author's adoption procedure. All authors use
 the same resolution and adoption interfaces. Authors cannot replace system
-skills or provide adoption hooks. `repository-standards` and `author-standards`
+skills or provide adoption hooks. `repository-standards`, `author-standards`,
+and `adopt-repository-standards`
 are product-owned system skill names reserved within the standards format. The
 retired `adopt-standards` and `standards-updates` names are released: they are
 neither installed nor reserved.
@@ -57,6 +58,15 @@ the ordinary retired-target policy; edited copies remain project-owned.
 `adopt` replaces the manual-only `adopt-standards` skill: that skill's
 procedure is the next steps `adopt` prints at each stage. An update removes the
 unedited old adoption skill and its link under the same retired-target policy.
+
+The model-invocable `adopt-repository-standards` system skill is a standalone
+entry point for adopting a standards source. It uses the user-named source or
+Repo Canon as the fallback, requires a clean, committed Git working tree, and
+delegates to the unversioned `npx @lutzseverino/repo-standards adopt <source>`
+command and its printed next steps. Decisions stay with the maintainer and
+changes stay uncommitted for review. It carries no adoption procedure of its
+own. Like `author-standards`, it is distributed independently through release-tag
+skill installation and is not installed into adopting projects by adoption.
 
 ## Deep modules
 
@@ -191,7 +201,8 @@ locations.
 Author skills' `SKILL.md` frontmatter `disable-model-invocation` and
 `agents/openai.yaml` `policy.allow_implicit_invocation` must agree; an absent
 setting means model-invocable. Product skills state both settings explicitly:
-`repository-standards` and `author-standards` are model-invocable.
+`repository-standards`, `author-standards`, and `adopt-repository-standards`
+are model-invocable.
 
 Source and target paths are repository-relative and cannot escape their roots.
 The source root, `standards.yaml`, and selected material, including retained
@@ -205,14 +216,14 @@ cannot be symbolic links during adoption, with one exception: a skill link
 holding exactly the text the product writes at its path. Concrete targets,
 including the skill link of each declared skill, cannot overlap, including
 case-folded collisions. Product-owned state, every system-skill path
-(`.agents/skills/repository-standards` and
-`.agents/skills/author-standards`), and each system skill's link path
+(`.agents/skills/repository-standards`, `.agents/skills/author-standards`, and
+`.agents/skills/adopt-repository-standards`), and each system skill's link path
 (`.claude/skills/<name>`) are reserved, including equal paths,
 ancestors, descendants, and collisions under the same case-folded and
 Unicode-normalized comparison. This applies to
 exact files, contextual files, and repository guidance as well as author skills,
 across defaults and all profiles, including those not selected for inspection.
-Reserving `author-standards` does not change the schema or the two-level
+Reserving the standalone entry and authoring skills does not change the schema or the two-level
 resolution semantics.
 
 ### Source resolution and validation limits
