@@ -59,7 +59,7 @@ test("Alice author example checks actual README headings through installed adopt
 
   writeFileSync(
     join(project.root, "README.md"),
-    "# Bob\nA delivery queue.\n## Setup\nUse Node.js 24.\n## Usage\nRun the worker.\n## Development\nRun the queue tests.\n",
+    "# Bob\nA delivery queue.\n## Setup\nUse Node.js 24 or 26.\n## Usage\nRun the worker.\n## Development\nRun the queue tests.\n",
   );
   cli.run(["resume", "--json"], project.root, env);
   writeFileSync(submission, JSON.stringify(assessment()));

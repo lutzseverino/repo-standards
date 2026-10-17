@@ -100,7 +100,8 @@ Write the notes in Markdown for adopters: what changed, breaking changes with
 their migration, and the parent specification. Leave site-only changes out of
 the CLI's release notes; the private site deploys independently from `main` through
 Deploy site. GitHub limits a dispatch's inputs to 65,535 characters in total. The workflow refuses to publish without
-notes. It validates on macOS and Linux, produces one bundle, retains the
+notes. It validates on macOS and Linux under both Node.js 24 and 26, produces one bundle
+on Linux with Node.js 24, retains the
 notes as the `release-notes` artifact, authenticates through OIDC, publishes its
 tarball, and attaches that bundle to the matching GitHub `v<version>` release,
 whose body is the supplied notes. The workflow then runs public npm smoke
@@ -278,7 +279,7 @@ different claim.
 ## Published acceptance
 
 Run `node acceptance/public-installation.ts <version> <evidence.json>` on macOS
-and Linux after publication. It installs the public package outside a project,
+and Linux under both stable Node.js 24 and 26 after publication. It installs the public package outside a project,
 validates packaged examples, discovers the public learning source, and exercises
 explicit and omitted bootstrap versions without project mutation. It uses real
 npm and GitHub, with no acquisition fixtures for those public paths.
@@ -333,7 +334,7 @@ release test checks the bundled guide against the installed executable's
 package version.
 
 After publication, the workflow also runs
-`node acceptance/prepare-author.ts <version> <evidence.json>` on macOS and Linux.
+`node acceptance/prepare-author.ts <version> <evidence.json>` on macOS and Linux under both supported Node.js majors.
 It acquires the skill through the public release-tag URL documented in
 [installation](../usage/installation.md#install-the-authoring-skill), independently of the
 npm package; then obtains the compatible public CLI/docs in an external directory.

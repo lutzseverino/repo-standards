@@ -100,9 +100,14 @@ restoration, retained-source use and independent updates described in
 
 ### Earlier fixture-based acceptance
 
-Use macOS and Linux with Node.js 24, npm, Git and Python >=3.9,<4. From a product
+Use macOS and Linux with Node.js 24 or 26, npm, Git and Python >=3.9,<4. From a product
 checkout, install dependencies with `pnpm install --frozen-lockfile` and build
-with `pnpm build`. Keep this setup process running:
+with `pnpm build`.
+
+Only stable 24.x and 26.x are supported, with their bundled npm. Node.js 22
+is outside the support policy; odd majors, prereleases and future majors are
+also excluded. Run the fixture journeys on both supported majors.
+Keep this setup process running:
 
 ```sh
 node acceptance/prepare.ts alice bob
@@ -195,7 +200,7 @@ context differences as complete profiles. Accepted generated operations,
 ordinary-work author skills, revision, and resumption extend that journey below.
 Public skill installation/discovery is a separate ticket.
 
-From the product checkout with Node.js 24 and npm, run:
+From the product checkout with Node.js 24 or 26 and npm, run:
 
 ```sh
 node acceptance/prepare-author.ts

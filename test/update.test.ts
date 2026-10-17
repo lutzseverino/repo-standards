@@ -1621,7 +1621,7 @@ test("an update failure preserves actual work and the previous last-complete evi
       checks:
         - id: verify
           run: {executable: ${JSON.stringify(process.execPath)}, script: check.mjs, resources: [], arguments: []}
-          prerequisite: {version-arguments: [--version], version: ">=24 <25"}
+          prerequisite: {version-arguments: [--version], version: ">=24 <25 || >=26 <27"}
           timeout-seconds: 5`,
   );
   const f = await adoptionFixture(t, cli, v1, {
@@ -1691,7 +1691,7 @@ test("an inspection of the unchanged selection starts a run that re-applies it f
       checks:
         - id: verify
           run: {executable: ${JSON.stringify(process.execPath)}, script: check.mjs, resources: [], arguments: []}
-          prerequisite: {version-arguments: [--version], version: ">=24 <25"}
+          prerequisite: {version-arguments: [--version], version: ">=24 <25 || >=26 <27"}
           timeout-seconds: 5`,
     ),
     {

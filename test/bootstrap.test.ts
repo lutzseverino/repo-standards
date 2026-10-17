@@ -188,13 +188,53 @@ test("bootstrap prerequisite failures give setup instructions before package acq
     });
   assert.match(
     run().stderr,
-    /Node\.js 24 and npm are required.*https:\/\/nodejs.org/,
+    /Node\.js 24 or 26 and npm are required.*https:\/\/nodejs.org/,
   );
-  writeFileSync(join(bin, "node"), "#!/bin/sh\necho 22\n");
+  const preload = join(support.root, "runtime.mjs");
+  writeFileSync(
+    join(bin, "node"),
+    `#!/bin/sh\nexec '${process.execPath}' --import '${preload}' "$@"\n`,
+  );
   chmodSync(join(bin, "node"), 0o755);
-  assert.match(run().stderr, /Node\.js 24 is required/);
-  writeFileSync(join(bin, "node"), "#!/bin/sh\necho 24\n");
-  assert.match(run().stderr, /npm is required.*PATH/);
+  for (const version of [
+    "22.21.0",
+    "23.0.0",
+    "25.0.0",
+    "27.0.0",
+    "28.0.0",
+    "24.0.0-rc.1",
+    "26.0.0-rc.1",
+  ]) {
+    writeFileSync(
+      preload,
+      `Object.defineProperty(process.versions, 'node', { value: '${version}' });`,
+    );
+    const result = run();
+    assert.equal(result.status, 1, version);
+    assert.match(result.stderr, /Node\.js 24 or 26 is required/, version);
+  }
+  for (const version of ["24.11.1", "26.12.0"]) {
+    writeFileSync(
+      preload,
+      `Object.defineProperty(process.versions, 'node', { value: '${version}' });`,
+    );
+    assert.match(run().stderr, /npm is required.*Node\.js 24 or 26.*PATH/);
+  }
+  writeFileSync(join(bin, "npm"), "#!/bin/sh\nexit 0\n");
+  chmodSync(join(bin, "npm"), 0o755);
+  for (const version of ["24.11.1", "26.12.0"]) {
+    writeFileSync(
+      preload,
+      `Object.defineProperty(process.versions, 'node', { value: '${version}' });`,
+    );
+    const result = spawnSync("/bin/sh", [bootstrap, "--help"], {
+      cwd: support.root,
+      env: { ...process.env, PATH: bin },
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /Usage: repo-standards-bootstrap/);
+  }
 });
 
 test("exact-version bootstrap can inspect using the configured npm cache with the registry unavailable", async (t) => {

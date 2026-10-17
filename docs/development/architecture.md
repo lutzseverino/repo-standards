@@ -11,7 +11,7 @@ and agent-guided workflows.
 
 The product is Repository Standards, its GitHub repository is
 `lutzseverino/repo-standards`, and its CLI is `repo-standards`. The repository is
-public and MIT-licensed. Implementation uses TypeScript, ESM, Node.js 24, and
+public and MIT-licensed. Implementation uses TypeScript, ESM, Node.js 24 or 26, and
 pnpm. Inspection, start, resume, and check require Git 2.32 or newer, checked before
 observing project state, so Git never follows a symbolic `.gitignore` whose
 referent the identity does not bind. The product supports macOS and Linux.
@@ -416,7 +416,7 @@ The CLI is published as `@lutzseverino/repo-standards` with executable
 `repo-standards`. Publishing access to the npm scope is a release prerequisite.
 Each project has an isolated runtime installation
 with a committed package manifest and npm lockfile. Fresh checkouts restore it
-with `npm ci --ignore-scripts`. Node.js 24 and npm are prerequisites; missing
+with `npm ci --ignore-scripts`. Node.js 24 or 26 and npm are prerequisites; missing
 prerequisites produce setup instructions. The project's own implementation
 language and package manager remain independent.
 

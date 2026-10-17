@@ -5,8 +5,10 @@ Repository Standards CLI and website.
 
 ## Setup and validation
 
-Use TypeScript, ESM, Node.js 24 and pnpm at the versions in `.node-version` and
-`package.json`, with npm, Git 2.32 or newer and `python3` 3.9 or newer on `PATH`. The Alice
+Use TypeScript, ESM, stable Node.js 24 or 26 and pnpm. The default Node.js 24
+baseline and pnpm versions are in `.node-version` and `package.json`.
+Keep the bundled npm, Git 2.32 or newer and `python3` 3.9 or newer on `PATH`.
+Node.js 22, odd majors, prereleases and future majors are excluded. The Alice
 example test runs the example's `python3` check and needs that Python. Run
 `pnpm install --frozen-lockfile`; npm registry access or cached dependencies
 are required. The root package remains the published CLI;
@@ -38,15 +40,17 @@ install current `dist/` output; rebuild after changing product code.
 
 ### Continuous integration
 
-Each PR runs three parallel Linux test parts using Node's `--test-shard` over
+Each PR runs three parallel Linux test parts on each of Node.js 24 and 26 using Node's `--test-shard` over
 the same files as `pnpm test`, with every file in exactly one part. Part 2 runs
 `test/update.test.ts`; parts 1 and 3 split all remaining `test/*.test.ts` files
-into two shards. All parts use Node's default test concurrency. The required
+into two shards. All parts use Node's default test concurrency. The six explicit checks name `node 24` or `node 26` and the part. Three aggregate
+gates preserve the existing required-check settings: the required
 checks are `validate (linux, 1/3)`, `validate (linux, 2/3)` and
-`validate (linux, 3/3)`. Each part typechecks, lints, checks formatting, rejects any
+`validate (linux, 3/3)`. Each aggregate requires all six matrix jobs to succeed, including cancelled or
+skipped failures. Each part typechecks, lints, checks formatting, rejects any
 runtime cycle of static imports among the source modules (type-only imports
-are exempt), and builds before testing. A separate Linux `site` job runs
-`astro check` and the site build on every pull request, without path filtering.
+are exempt), and builds before testing. Separate Linux `site` jobs run
+`astro check` and the site build on both supported majors on every pull request, without path filtering.
 Root oxlint covers the site's TypeScript, React and Astro scripts; Astro checking
 covers templates. Root Prettier loads `prettier-plugin-astro` for `.astro` files
 and checks the site along with the rest of the authored repository. No site
@@ -58,18 +62,18 @@ against temporary Git repositories. PR branches trigger Validate only through
 The Deploy site workflow builds and publishes to GitHub Pages on every push to
 `main`, separately from Release.
 
-macOS runs the full `pnpm validate` after merge on pushes to `main` and in the
+macOS runs the full `pnpm validate` on both supported majors after merge on pushes to `main` and in the
 release workflow. A macOS failure on `main` is a bug: open an issue and fix it
 in a new PR. Merges continue; the release workflow blocks publication until
 macOS passes.
 
-`pnpm validate` includes the format check in the full local run. Passing all three Linux
-parts replaces a local full-suite run, so open the PR once focused checks pass.
+`pnpm validate` includes the format check in the full local run. Passing all six Linux
+matrix jobs through the three required gates replaces a local full-suite run, so open the PR once focused checks pass.
 Run additional local tests to diagnose failures when needed.
 
 #### Running the full suite on a constrained host
 
-The three Linux parts are the gate. A full local run is sensitive to host load:
+The three Linux aggregate checks gate all six matrix jobs. A full local run is sensitive to host load:
 `pnpm test` runs every test file in parallel at Node's default concurrency, one
 fewer than the available parallelism, and most files pack and install the CLI
 and start adoption fixtures, each with its own local registry process and runtime

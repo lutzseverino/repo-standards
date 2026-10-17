@@ -2,15 +2,15 @@
 # Standalone bootstrap: copy this file outside the project and invoke it directly.
 set -eu
 if ! command -v node >/dev/null 2>&1; then
-  echo 'Node.js 24 and npm are required. Install Node.js 24 from https://nodejs.org/en/download, reopen your shell, and retry.' >&2
+  echo 'Node.js 24 or 26 and npm are required. Install Node.js 24 or 26 from https://nodejs.org/en/download, reopen your shell, and retry.' >&2
   exit 1
 fi
-if [ "$(node -p 'process.versions.node.split(".")[0]')" != '24' ]; then
-  echo 'Node.js 24 is required. Select Node.js 24 with your version manager or install it from https://nodejs.org/en/download, then retry.' >&2
+if [ "$(node -p '/^(24|26)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(process.versions.node)')" != 'true' ]; then
+  echo 'Node.js 24 or 26 is required. Select Node.js 24 or 26 with your version manager or install it from https://nodejs.org/en/download, then retry.' >&2
   exit 1
 fi
 if ! command -v npm >/dev/null 2>&1; then
-  echo 'npm is required. Install the npm bundled with Node.js 24 from https://nodejs.org/en/download, ensure npm is on PATH, and retry.' >&2
+  echo 'npm is required. Install the npm bundled with Node.js 24 or 26 from https://nodejs.org/en/download, ensure npm is on PATH, and retry.' >&2
   exit 1
 fi
 exec node --input-type=module - "$@" <<'REPO_STANDARDS_BOOTSTRAP'
@@ -51,7 +51,7 @@ try {
     if (result.error || result.status !== 0) throw new Error(`npm ${args[0]} failed. Check npm, registry access, and the requested package version. ${result.stderr || result.error?.message || ''}`);
     return result.stdout.trim();
   }
-  if (!/^\d+\.\d+\.\d+/.test(npm(['--version']))) throw new Error('npm is unavailable. Reinstall the npm bundled with Node.js 24.');
+  if (!/^\d+\.\d+\.\d+/.test(npm(['--version']))) throw new Error('npm is unavailable. Reinstall the npm bundled with Node.js 24 or 26.');
   // npm creates a cache even for a config query. Read the original resolved
   // cache from the overridden settings, with query writes confined to temporary.
   const configuration = npm(['config', 'list', '--long', '--json=false', '--prefix', temporary]);

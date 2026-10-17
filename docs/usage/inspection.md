@@ -6,13 +6,17 @@ retained inspection. Public release status is recorded in the product repository
 
 ## Obtain the CLI outside the adopting project
 
-Use macOS or Linux with Node.js 24, npm, and Git 2.32 or newer on `PATH`. Node.js 24 installers
+Use macOS or Linux with Node.js 24 or 26, npm, and Git 2.32 or newer on `PATH`. Node.js 24 or 26 installers
 at <https://nodejs.org/en/download> include npm. Missing prerequisites produce
 actionable setup instructions. Before observing project state, `inspect`,
 `start`, [`resume`](adoption.md#recover-or-abandon-an-interrupted-run), and
 [`check`](check.md) check the Git version. An older Git fails with `GIT_VERSION_UNSUPPORTED`,
 which names the installed version and the minimum, 2.32. This minimum ensures
 Git does not follow symbolic `.gitignore` files whose referent is not bound.
+
+Only stable 24.x and 26.x are supported, with their bundled npm. Node.js 22
+is outside the support policy; odd majors, prereleases and future majors are
+also excluded.
 
 The executable `bootstrap/repo-standards` is a standalone POSIX shell file with
 an embedded Node.js program. It needs no product checkout, pnpm, or installed

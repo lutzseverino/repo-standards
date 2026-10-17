@@ -7,11 +7,15 @@ the [behavior exercise guide](operations.md), and the [revision/resumption guide
 obtain the format and script-protocol documentation from the
 same npm installation as the executable.
 
-Use macOS or Linux with Node.js 24 and npm. This skill supports
+Use macOS or Linux with Node.js 24 or 26 and npm. This skill supports
 `@lutzseverino/repo-standards@7.1.0` and its one source format,
 `repo-standards/v2`. Check `node --version`
 first. When prerequisites or registry access are unavailable, explain the blocker
 and continue preference review if useful; leave validation explicitly pending.
+
+Only stable 24.x and 26.x are supported, with their bundled npm. Node.js 22
+is outside the support policy; odd majors, prereleases and future majors are
+also excluded.
 
 Install the exact CLI in an external directory, separate from the source and
 any adopting project:

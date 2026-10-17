@@ -5,8 +5,10 @@
 // its module. The compiled module is then parsed, so only real module
 // requests count. Dynamic import() loads lazily and is not followed.
 // Run with: node --experimental-vm-modules scripts/check-import-cycles.ts [source-directory]
-import { readFileSync, readdirSync } from "node:fs";
-import { stripTypeScriptTypes } from "node:module";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { fileURLToPath } from "node:url";
 import { dirname, join, relative, resolve } from "node:path";
 import vm from "node:vm";
 
@@ -23,16 +25,43 @@ const modules = readdirSync(root, { recursive: true, encoding: "utf8" })
   .filter((path) => path.endsWith(".ts") && !path.endsWith(".d.ts"))
   .map((path) => join(root, path))
   .sort();
-const imports = new Map(
-  modules.map((path) => {
-    const compiled = stripTypeScriptTypes(readFileSync(path, "utf8"), {
-      mode: "transform",
-    });
+// Use the pinned build compiler: Node.js 26 no longer transforms TypeScript,
+// and strip-only mode cannot handle this project's parameter properties.
+// noCheck allows graph fixtures without requiring their imports to typecheck.
+const output = mkdtempSync(join(tmpdir(), "repo-standards-imports-"));
+const imports = new Map<string, string[]>();
+try {
+  if (modules.length)
+    execFileSync(
+      process.execPath,
+      [
+        fileURLToPath(
+          new URL("../node_modules/typescript/bin/tsc", import.meta.url),
+        ),
+        "--ignoreConfig",
+        "--noCheck",
+        "--target",
+        "ES2024",
+        "--module",
+        "preserve",
+        "--verbatimModuleSyntax",
+        "--rootDir",
+        root,
+        "--outDir",
+        output,
+        ...modules,
+      ],
+      { stdio: "pipe" },
+    );
+  for (const path of modules) {
+    const compiled = readFileSync(
+      join(output, relative(root, path).replace(/\.ts$/, ".js")),
+      "utf8",
+    );
     const requests = new vm.SourceTextModule(compiled, { identifier: path })
       .moduleRequests;
-    if (!requests)
-      throw new Error("Module parsing needs Node.js 24.4 or later.");
-    return [
+    if (!requests) throw new Error("Module parsing needs Node.js 24.4+ or 26.");
+    imports.set(
       path,
       requests
         .map((request) => request.specifier)
@@ -41,9 +70,11 @@ const imports = new Map(
           resolve(dirname(path), specifier.replace(/\.js$/, ".ts")),
         )
         .filter((target) => modules.includes(target)),
-    ];
-  }),
-);
+    );
+  }
+} finally {
+  rmSync(output, { recursive: true, force: true });
+}
 
 // Depth-first search; a module reached again while still on the path closes a cycle.
 const finished = new Set<string>();
