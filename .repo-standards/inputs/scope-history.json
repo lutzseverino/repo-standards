@@ -1,9 +1,9 @@
 {
   "format": "repo-standards/scope-history/v5",
   "evidence": "historical",
-  "inspection": "sha256:da19c57423de49fed892e1e2d47623ec5cbe3c110a553331aff5103b172043a5",
+  "inspection": "sha256:53fd1d33bd6f021ab3c9ec4d75080ad92a2d0e151f54304b6e0924aabec53220",
   "resolved": {
-    "description": "The standard profile plus the factory's repository files, for a repository a factory serves",
+    "description": "The standard profile plus the factory's repository files and workflow rules, for a repository a factory serves",
     "declarations": [
       {
         "id": "agent-configuration-index",
@@ -59,7 +59,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30
           }
@@ -146,6 +146,18 @@
         "exact": ".github/workflows/sandbox-image.yml"
       },
       {
+        "id": "factory-workflow",
+        "checks": [],
+        "fixes": [],
+        "kind": "repository",
+        "guidance": "guidance/factory-workflow.md",
+        "rules": "rules/factory-workflow.md",
+        "targets": {
+          "paths": [],
+          "directories": []
+        }
+      },
+      {
         "id": "feature-request-template",
         "checks": [],
         "fixes": [],
@@ -170,7 +182,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30
           }
@@ -197,7 +209,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30,
             "remote-setup": {
@@ -214,7 +226,7 @@
                   "version-arguments": [
                     "--version"
                   ],
-                  "version": ">=24.0.0 <25.0.0"
+                  "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
                 },
                 "timeout-seconds": 30
               }
@@ -234,7 +246,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30,
             "remote-setup": {
@@ -251,7 +263,7 @@
                   "version-arguments": [
                     "--version"
                   ],
-                  "version": ">=24.0.0 <25.0.0"
+                  "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
                 },
                 "timeout-seconds": 30
               }
@@ -415,7 +427,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30
           }
@@ -477,7 +489,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30
           }
@@ -651,7 +663,7 @@
     ]
   },
   "sourceResolved": {
-    "description": "The standard profile plus the factory's repository files, for a repository a factory serves",
+    "description": "The standard profile plus the factory's repository files and workflow rules, for a repository a factory serves",
     "declarations": [
       {
         "id": "agent-configuration-index",
@@ -707,7 +719,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30
           }
@@ -736,7 +748,7 @@
             "version-arguments": [
               "--version"
             ],
-            "version": ">=24.0.0 <25.0.0"
+            "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
           },
           "timeout-seconds": 60
         }
@@ -775,6 +787,15 @@
         "exact": ".github/workflows/sandbox-image.yml"
       },
       {
+        "id": "factory-workflow",
+        "checks": [],
+        "fixes": [],
+        "kind": "repository",
+        "guidance": "guidance/factory-workflow.md",
+        "rules": "rules/factory-workflow.md",
+        "discovery": "discovery/factory-workflow.md"
+      },
+      {
         "id": "feature-request-template",
         "checks": [],
         "fixes": [],
@@ -799,7 +820,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30
           }
@@ -826,7 +847,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30,
             "remote-setup": {
@@ -843,7 +864,7 @@
                   "version-arguments": [
                     "--version"
                   ],
-                  "version": ">=24.0.0 <25.0.0"
+                  "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
                 },
                 "timeout-seconds": 30
               }
@@ -863,7 +884,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30,
             "remote-setup": {
@@ -880,7 +901,7 @@
                   "version-arguments": [
                     "--version"
                   ],
-                  "version": ">=24.0.0 <25.0.0"
+                  "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
                 },
                 "timeout-seconds": 30
               }
@@ -1041,7 +1062,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30
           }
@@ -1098,7 +1119,7 @@
               "version-arguments": [
                 "--version"
               ],
-              "version": ">=24.0.0 <25.0.0"
+              "version": ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
             },
             "timeout-seconds": 30
           }
@@ -1272,7 +1293,7 @@
     ]
   },
   "discovery": {
-    "identity": "sha256:58c01a2759a611c0dbb0c2345d11f97bbd60a77ef09361a2c4c5744f1a8eec8c",
+    "identity": "sha256:305e24b71310bb9ebf2ec627aaa9ab220869a315e03f27a2a5ec93a40bbe9f16",
     "proposal": {
       "format": "repo-standards/scope/v2",
       "declarations": [
@@ -1934,6 +1955,12 @@
           "unresolved": []
         },
         {
+          "id": "factory-workflow",
+          "coverage": "Intentionally empty content scope. The factory workflow declaration governs work throughout this factory-profile repository, including tracker work that changes no files. .factory/config.json stays owned by its separate exact declaration.",
+          "candidates": [],
+          "unresolved": []
+        },
+        {
           "id": "github-repository-configuration",
           "coverage": "Intentional empty project-file scope: remote configuration fixes own GitHub settings only. origin names lutzseverino/repo-standards, public and personal-owned; session gh has admin access. gh variable list returns no repository variables; REPO_CANON_RUNS_ON is absent and there is no organization owner to supply an inherited value. The requested adoption authorizes standard remote setup.",
           "candidates": [],
@@ -2088,17 +2115,17 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "1b0589530be74c058a3350eefa9354d207ee985b7872172a810ab18aa1fa43bf",
+          "sha256": "b5229355228a9ecf6c977eedadb50d839a32b4381dd98dcf6b7606db9efb8ea4",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "fa9c515a20ffc2e2403dccfc7d5a58f1a7a900419afdc9020033ce2bfbd34015",
+          "sha256": "a7d74704fbe7ddf0829f18e565167be11293a0c63a78cd16afef4b916774a62c",
           "executable": false
         },
         "docs/development/release.md": {
           "type": "file",
-          "sha256": "10452d9c209ad280c35d0b873a9158e67d922f21762cc92f6f7dada283d28cef",
+          "sha256": "d90023e26d4e70288ea90c2694c052b0775fb4b494463126ce9aaea3348d9f3a",
           "executable": false
         },
         "docs/usage/README.md": {
@@ -2108,7 +2135,7 @@
         },
         "docs/usage/adoption.md": {
           "type": "file",
-          "sha256": "d9da4a457594423f6f99a1303ab19254daafa3603c5775cc045526ce1e011a90",
+          "sha256": "a6e48c3d1df2527bebeb28b0f2357c8e5350bcdefe86756800f3bd9b27b03151",
           "executable": false
         },
         "docs/usage/assessment-protocol.md": {
@@ -2118,7 +2145,7 @@
         },
         "docs/usage/author-format.md": {
           "type": "file",
-          "sha256": "06d6e0b4fef8e516b034dd643658eca2dfc9c15a781b1a591838596b371e9e14",
+          "sha256": "95bb4da781d506e035548edc73422349b2d899eb9be7cc8afa6530bff76720e1",
           "executable": false
         },
         "docs/usage/authoring.md": {
@@ -2133,7 +2160,7 @@
         },
         "docs/usage/check.md": {
           "type": "file",
-          "sha256": "e44dbc1297a3f1eb3e0fbf82efef2d7d8755d7eadbefb02a627693677cf738a6",
+          "sha256": "5a318ba4fa10ee0abdd7751a4b4cff1e68ac2d12b72f61276f13145e413f2828",
           "executable": false
         },
         "docs/usage/discovery.md": {
@@ -2143,12 +2170,12 @@
         },
         "docs/usage/inspection.md": {
           "type": "file",
-          "sha256": "ae6f196cadcd2f5c8e45e6f6b65dec5cb89ebe63daef0276b5435fb44d371db7",
+          "sha256": "babef24c0feaa9198df89f45033ae25ee20a7ad903d65fd53c373ae34d0258bb",
           "executable": false
         },
         "docs/usage/installation.md": {
           "type": "file",
-          "sha256": "85a2a3e0fbf15cff6715a9697f5aaabb7a38c82222b45a25a40b09a67244f722",
+          "sha256": "88f20974e286fa95af98353fc99464926b7c3cda769f72121c2db79ac365f217",
           "executable": false
         },
         "docs/usage/rules.md": {
@@ -2173,6 +2200,12 @@
         "id": "documentation",
         "source": "discovery/documentation.md",
         "sha256": "0e84c6f5a53f8799568bef21f593c9544a7177428bbda6c8d5be0c594af1f9f7",
+        "executable": false
+      },
+      {
+        "id": "factory-workflow",
+        "source": "discovery/factory-workflow.md",
+        "sha256": "6f8e546cfa909fd4fd090d8555de882d8a786975c088d649a490192f30ad3b7a",
         "executable": false
       },
       {
@@ -2372,7 +2405,7 @@
         },
         ".agents/skills/repository-standards/SKILL.md": {
           "type": "file",
-          "sha256": "d181a5dd3e3e2e5d5d5a3c5c86f170da4361d567321b8f82340a128920ad388d",
+          "sha256": "4e331d32a27f003027cfbcfce376f49c8e0743142dc6cd653fe7e31052f61450",
           "executable": false
         },
         ".agents/skills/repository-standards/agents/openai.yaml": {
@@ -2613,7 +2646,7 @@
         },
         ".github/workflows/release.yml": {
           "type": "file",
-          "sha256": "a7c6e8f9cdb7dba73237c21a336cdc6aff72e7be7aef5d4343c3f780e6b7b97c",
+          "sha256": "bf37a41a98d19441f3306271ee194914abb33397553d6a88dfad0d745858ae07",
           "executable": false
         },
         ".github/workflows/sandbox-image.yml": {
@@ -2623,7 +2656,7 @@
         },
         ".github/workflows/validate.yml": {
           "type": "file",
-          "sha256": "55624d80c0994450becec61639e0200a3b441cf67298f3c5b0bfad07c916718d",
+          "sha256": "496041c7cdd7c9ccceebeb375ba6a1a0c258cc1cb48b5c3b770ea7cdf7b7f21a",
           "executable": false
         },
         ".gitignore": {
@@ -2668,12 +2701,12 @@
         },
         "README.md": {
           "type": "file",
-          "sha256": "0eb01e2757a769c7109311c119bbfb7f1b757eef9c1d689eda6f623fed587074",
+          "sha256": "c37336ed92b4bde30a2b52ca41fdafc787d9767f040b161cd7a665a128266578",
           "executable": false
         },
         "acceptance/README.md": {
           "type": "file",
-          "sha256": "fba28dbe9e3b7ee372633f82062a91d2989797db86d086d960f6688192da45fd",
+          "sha256": "45a9066876e4436ee93f54255f57700bc21faec1831f4eca043ef41d75ac8e2b",
           "executable": false
         },
         "acceptance/cli.ts": {
@@ -2708,7 +2741,7 @@
         },
         "acceptance/projects/bob/package.json": {
           "type": "file",
-          "sha256": "3e1af56c905fc2ed5297ebf1ed62f2c814ea3c5755eb99d46964fcc7ca320e50",
+          "sha256": "f8563de3ff7d8615610f0f6443d8b3af0d5fbfa19f47f707a9101f32bf1b4dc3",
           "executable": false
         },
         "acceptance/projects/bob/src/cli.mjs": {
@@ -2878,12 +2911,12 @@
         },
         "acceptance/sources/wayfinder/standards.yaml": {
           "type": "file",
-          "sha256": "db9729f22b9a7116254bcb6dac322e5274f4e31d5c49dce40e4c2a293a1392ba",
+          "sha256": "f43d76afa9fca6feb971917e37f8824d7145d723d0799bd9b364935a9335d14a",
           "executable": false
         },
         "bootstrap/repo-standards": {
           "type": "file",
-          "sha256": "8f593d792119f9e9a623b20c1e2d680f7a0e641c54819367c7ebe2fca575c46a",
+          "sha256": "9d40afa6059d5dd8d8b6fb5b101bf60dc9d2bc9147b4cec85592db02b43b64bb",
           "executable": true
         },
         "docs/README.md": {
@@ -3023,17 +3056,17 @@
         },
         "docs/development/README.md": {
           "type": "file",
-          "sha256": "1b0589530be74c058a3350eefa9354d207ee985b7872172a810ab18aa1fa43bf",
+          "sha256": "b5229355228a9ecf6c977eedadb50d839a32b4381dd98dcf6b7606db9efb8ea4",
           "executable": false
         },
         "docs/development/architecture.md": {
           "type": "file",
-          "sha256": "fa9c515a20ffc2e2403dccfc7d5a58f1a7a900419afdc9020033ce2bfbd34015",
+          "sha256": "a7d74704fbe7ddf0829f18e565167be11293a0c63a78cd16afef4b916774a62c",
           "executable": false
         },
         "docs/development/release.md": {
           "type": "file",
-          "sha256": "10452d9c209ad280c35d0b873a9158e67d922f21762cc92f6f7dada283d28cef",
+          "sha256": "d90023e26d4e70288ea90c2694c052b0775fb4b494463126ce9aaea3348d9f3a",
           "executable": false
         },
         "docs/usage/README.md": {
@@ -3043,7 +3076,7 @@
         },
         "docs/usage/adoption.md": {
           "type": "file",
-          "sha256": "d9da4a457594423f6f99a1303ab19254daafa3603c5775cc045526ce1e011a90",
+          "sha256": "a6e48c3d1df2527bebeb28b0f2357c8e5350bcdefe86756800f3bd9b27b03151",
           "executable": false
         },
         "docs/usage/assessment-protocol.md": {
@@ -3053,7 +3086,7 @@
         },
         "docs/usage/author-format.md": {
           "type": "file",
-          "sha256": "06d6e0b4fef8e516b034dd643658eca2dfc9c15a781b1a591838596b371e9e14",
+          "sha256": "95bb4da781d506e035548edc73422349b2d899eb9be7cc8afa6530bff76720e1",
           "executable": false
         },
         "docs/usage/authoring.md": {
@@ -3068,7 +3101,7 @@
         },
         "docs/usage/check.md": {
           "type": "file",
-          "sha256": "e44dbc1297a3f1eb3e0fbf82efef2d7d8755d7eadbefb02a627693677cf738a6",
+          "sha256": "5a318ba4fa10ee0abdd7751a4b4cff1e68ac2d12b72f61276f13145e413f2828",
           "executable": false
         },
         "docs/usage/discovery.md": {
@@ -3078,12 +3111,12 @@
         },
         "docs/usage/inspection.md": {
           "type": "file",
-          "sha256": "ae6f196cadcd2f5c8e45e6f6b65dec5cb89ebe63daef0276b5435fb44d371db7",
+          "sha256": "babef24c0feaa9198df89f45033ae25ee20a7ad903d65fd53c373ae34d0258bb",
           "executable": false
         },
         "docs/usage/installation.md": {
           "type": "file",
-          "sha256": "85a2a3e0fbf15cff6715a9697f5aaabb7a38c82222b45a25a40b09a67244f722",
+          "sha256": "88f20974e286fa95af98353fc99464926b7c3cda769f72121c2db79ac365f217",
           "executable": false
         },
         "docs/usage/rules.md": {
@@ -3158,7 +3191,7 @@
         },
         "examples/atlas/standards.yaml": {
           "type": "file",
-          "sha256": "3662ceeb52b419f9f26866a52133b3bf00842a3d921b689e0790804818744b85",
+          "sha256": "d73ebac67cb244869ce01d39d518a0819400291a15355d7c8a91bd4fb7541b40",
           "executable": false
         },
         "examples/mira/files/editorconfig": {
@@ -3188,7 +3221,7 @@
         },
         "examples/mira/standards.yaml": {
           "type": "file",
-          "sha256": "e97493fe9ac95f6c1f3c00cd7149417b76f30dcc456f19c99066f568ab4c77e9",
+          "sha256": "b90e0cb0860aa2a3836ac114343e537fef034687b954da94aaef9e172e4bb216",
           "executable": false
         },
         "operations/lib/rendered-markdown.mjs": {
@@ -3198,7 +3231,7 @@
         },
         "package.json": {
           "type": "file",
-          "sha256": "275961bc8f21595bf3d6eafd3fe4297d1b0df870b921f12b8cb421e361cf73f1",
+          "sha256": "f1d5568b832b58ad0a44efcde3882fd8fc61bf15dc0ce134b65cee0f3e7c8805",
           "executable": false
         },
         "pnpm-lock.yaml": {
@@ -3213,7 +3246,7 @@
         },
         "scripts/check-import-cycles.ts": {
           "type": "file",
-          "sha256": "82e08ffbf718054f0f484773527d9f85635b158bcfafdf3a2acdac5298b5fb9a",
+          "sha256": "b7f550ea9211da4fcecc0140bee85627d6cdab852ae115b1b5e4843d282c8c4d",
           "executable": false
         },
         "scripts/pack-package.ts": {
@@ -3228,7 +3261,7 @@
         },
         "scripts/release-status.ts": {
           "type": "file",
-          "sha256": "eee8d0055696e098ea1f8f96e70ce42462e56a34874be6a75064ebecaefd359e",
+          "sha256": "2fc24c6209cf5542730901bfb146918d7e9b2be026cc0b458ec7c2ac3e190846",
           "executable": false
         },
         "scripts/validate-issue-contract.mjs": {
@@ -3308,7 +3341,7 @@
         },
         "skills/author-standards/references/cli.md": {
           "type": "file",
-          "sha256": "de43f531e6abe4e870ebc3d10fcf0b6796ba7fde4c9ecba69b21867beb47754d",
+          "sha256": "163fbce9659217c02cd8e1874e17e2db538cefca3239d6055c342fbdd2a03fa6",
           "executable": false
         },
         "skills/author-standards/references/operations.md": {
@@ -3413,7 +3446,7 @@
         },
         "src/inspection.ts": {
           "type": "file",
-          "sha256": "90041059c7b06d95f518836c978480871f9c4729f5c5838b3765a2f2bc83dcf5",
+          "sha256": "c64f9e6ba77b600db674b83d198bf2afb647a449a32ff66867808a985c33d7a6",
           "executable": false
         },
         "src/installation.ts": {
@@ -3583,12 +3616,12 @@
         },
         "test/assessment.test.ts": {
           "type": "file",
-          "sha256": "537c8ac92da0f6b7470e03f0c5cd10657f70b91ccaf4bd20435625a93739041c",
+          "sha256": "d4ddbdb150f4a65426a6c4353b744452df8a23617b506cab82a68d95d91126ca",
           "executable": false
         },
         "test/bootstrap.test.ts": {
           "type": "file",
-          "sha256": "aa3b0acf330fbdee43d794ef6db8f02865e980489d7395297e26eee4552c1cab",
+          "sha256": "c2a8e87782c6677a8783f9b600431d77b48327cc57ad69f2744e9415c5ef6639",
           "executable": false
         },
         "test/check.test.ts": {
@@ -3618,12 +3651,12 @@
         },
         "test/examples.test.ts": {
           "type": "file",
-          "sha256": "f85b8319fb71015c7db82f3b8c765e04de6e650b29d6d6de7b1321929de66f99",
+          "sha256": "8cfeba13e756ae9a5e3c2d361c07b13afdbd7ccfa73cc23776606952cd542ad0",
           "executable": false
         },
         "test/execution.test.ts": {
           "type": "file",
-          "sha256": "042f95c67d93c692a5c4750df5a34f8ed9cbe819c74f104107596dd3885098d2",
+          "sha256": "d519f069dae4f2d5e7cc90f5a6d42a5bb0fd4af6b7f6567153349c666f4c350b",
           "executable": false
         },
         "test/github-fixture.ts": {
@@ -3638,12 +3671,12 @@
         },
         "test/import-cycles.test.ts": {
           "type": "file",
-          "sha256": "1eeb4f578d5281c28108caf7a31ff3228a90864da6884e8c2d7237acd53cde1c",
+          "sha256": "8d0abd5d02f8544b78cec93110765df99aa5774f92f8ca7bcebb8fdc19d9502a",
           "executable": false
         },
         "test/inspection.test.ts": {
           "type": "file",
-          "sha256": "1b1cc7ef702a3813fee2a75376137be6bb84d33009f16e81d03ae4d564fa527c",
+          "sha256": "efdd31b057f2d880153fd6ec8e7548ea70778f2f8b7091fc919163eeed5ed443",
           "executable": false
         },
         "test/installed-cli.ts": {
@@ -3688,7 +3721,7 @@
         },
         "test/release-acceptance.test.ts": {
           "type": "file",
-          "sha256": "9d29e07eafd4e54af5658b354c3f82101de6899e2ba075c77cd5e7bc2376b6a5",
+          "sha256": "9e311af6deeb88458e525a34a2b36b9e971ca3534c393c57407d44c7c7cedcc0",
           "executable": false
         },
         "test/release.test.ts": {
@@ -3698,7 +3731,7 @@
         },
         "test/remote-fixture.ts": {
           "type": "file",
-          "sha256": "21a4233002f819157df2c75987d618cc96de97464d86064da046b09c26054650",
+          "sha256": "d28834ca6606d18347cfc320b22aba0b4b484bb25160f8417410482c372227b6",
           "executable": false
         },
         "test/remote-setup.test.ts": {
@@ -3733,7 +3766,7 @@
         },
         "test/scope-inspection.test.ts": {
           "type": "file",
-          "sha256": "87fe18ad9d9a6a9a03feb025456534da3a26fa8530fdefdceb732261cd61277b",
+          "sha256": "1dd88d4284a8f46cc9ccffecd4c20e15f244d82105d573b9baa358a8f9bfdaec",
           "executable": false
         },
         "test/search.test.ts": {
@@ -3768,7 +3801,7 @@
         },
         "test/update.test.ts": {
           "type": "file",
-          "sha256": "fe949a6cfc5c52c2d9b0359621eb62f3aa5a9651e76364efcca737e5c78a1d9a",
+          "sha256": "27b284e986c70ddd4042119c98f7e08cf89c559040b24f01721e323812685019",
           "executable": false
         },
         "tsconfig.build.json": {
@@ -5392,13 +5425,5 @@
       }
     }
   },
-  "scopeChanges": [
-    {
-      "id": "documentation",
-      "additions": [
-        "docs/adr/0020-read-repository-wide-rules-at-the-start-of-work.md"
-      ],
-      "removals": []
-    }
-  ]
+  "scopeChanges": []
 }
