@@ -12,6 +12,18 @@ discloses these, and start checks them before changing the project.
 
 ## Adopt without a manual installation
 
+Optionally, set a GitHub token before you start. Without one, the CLI uses
+GitHub's anonymous API quota, which every user and tool on your IP address
+shares, so repeated adoption rounds and other users can exhaust it; a token
+raises the allowance. The CLI reads `GH_TOKEN`, or `GITHUB_TOKEN` when
+`GH_TOKEN` is unset or empty, and sends it only on its GitHub REST requests.
+Signing in to `gh` alone does not authenticate them. Public sources need no
+credentials; see [GitHub requests and tokens](#github-requests-and-tokens).
+
+```sh
+export GH_TOKEN=<token>
+```
+
 From a committed, clean Git working tree, ask your agent to run this command
 with your standards source's public GitHub URL, or run it yourself:
 
@@ -72,10 +84,28 @@ the only author scripts it runs are read-only
 [remote setup](adoption.md#remote-setup) readiness probes.
 Discovery is optional and is not an endorsement of any source.
 
+The standards format, including [remote setup](adoption.md#remote-setup), names
+no hosting platform: a source's own probes and fixes decide what a platform
+needs. Source acquisition is the known blocker to platform independence: it
+accepts only public `github.com` sources.
+
+The standalone bootstrap only inspects; to drive [inspection](inspection.md)
+and [inspect and start](adoption.md#inspect-and-start) directly, retain an
+external installation of its selected exact CLI for start and recovery.
+
+## GitHub requests and tokens
+
 Public source acquisition uses a bounded set of GitHub REST requests to resolve
 the repository, immutable tag, commit and tree, then obtains all source objects
 through Git's anonymous smart protocol. The number of REST requests does not grow
-with the source's file count. Every GitHub REST request, including inspection,
+with the source's file count. The CLI keeps each verified source outside the
+project, in `$XDG_CACHE_HOME/repo-standards/` or `~/.cache/repo-standards/`,
+and reuses it only once its bytes match their Git identities. A later command
+or answer round then makes two REST requests, resolving the repository and its
+tag afresh, and a complete guided adoption with a lightweight tag makes at most
+16, plus one per annotated tag object and per additional page of releases.
+Deleting the cache only makes the next command acquire the source again.
+Every GitHub REST request, including inspection,
 start, source search and the `outdated` releases lookup, uses `GH_TOKEN`, or
 otherwise `GITHUB_TOKEN`, as bearer authorization when present. Values are
 trimmed; empty or whitespace-only values count as absent. A token uses the authenticated API quota instead of the shared
@@ -88,15 +118,6 @@ reported reset rather than repeatedly restarting a failed command. A rejected
 token (HTTP 401) is `SOURCE_UNAVAILABLE`, without anonymous retry. `outdated`
 reports either failure as `unknown` and still exits 0. Credentials are not
 required for supported public sources.
-
-The standards format, including [remote setup](adoption.md#remote-setup), names
-no hosting platform: a source's own probes and fixes decide what a platform
-needs. Source acquisition is the known blocker to platform independence: it
-accepts only public `github.com` sources.
-
-The standalone bootstrap only inspects; to drive [inspection](inspection.md)
-and [inspect and start](adoption.md#inspect-and-start) directly, retain an
-external installation of its selected exact CLI for start and recovery.
 
 ## Install the authoring skill
 

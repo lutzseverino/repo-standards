@@ -3,7 +3,7 @@ import { readdirSync, realpathSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
-import { acquireSource, hash } from "./acquisition.js";
+import { acquireSource, hash, type SourceObservations } from "./acquisition.js";
 import { lockPath } from "./adoption-files.js";
 import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
@@ -166,8 +166,13 @@ export function productInventory(root: string): string[] {
   );
 }
 
-export async function inspect(options: InspectOptions, cliVersion: string) {
-  return (await inspectForStart(options, cliVersion)).report;
+export async function inspect(
+  options: InspectOptions,
+  cliVersion: string,
+  observations?: SourceObservations,
+) {
+  return (await inspectForStart(options, cliVersion, undefined, observations))
+    .report;
 }
 
 // Start reads the materials it installs from the same acquisition and
@@ -179,10 +184,13 @@ export async function inspect(options: InspectOptions, cliVersion: string) {
 // retained standards passes the recorded adoption it read them from. Committed
 // product state in a retired format is not read: the inspection is a fresh
 // adoption whose run removes that state, bound like an update's product state.
+// Source observations shared with earlier acquisitions reuse their repository
+// and tag resolution; the project is always observed again.
 export async function inspectForStart(
   options: InspectOptions,
   cliVersion: string,
   retained?: RecordedAdoption,
+  observations?: SourceObservations,
 ) {
   if (process.versions.node.split(".")[0] !== "24")
     throw new ProductError(
@@ -222,7 +230,12 @@ export async function inspectForStart(
   const retainedSource = retained?.source();
   const source =
     retainedSource ??
-    (await acquireSource(options.source, options.standardsVersion, root));
+    (await acquireSource(
+      options.source,
+      options.standardsVersion,
+      root,
+      observations,
+    ));
   try {
     const head = git(root, ["rev-parse", "--verify", "HEAD"]);
     const status = git(root, [

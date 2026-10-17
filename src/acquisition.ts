@@ -2,10 +2,12 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import {
   chmodSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
   realpathSync,
+  renameSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -114,15 +116,26 @@ export async function github(
 ): Promise<unknown> {
   const token =
     process.env.GH_TOKEN?.trim() || process.env.GITHUB_TOKEN?.trim();
-  let response: Response;
-  try {
-    response = await fetch(`${githubOrigin}${path}`, {
+  const request = () =>
+    fetch(`${githubOrigin}${path}`, {
       headers: {
         ...githubHeaders,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       signal: AbortSignal.timeout(options.timeoutMs ?? 30_000),
     });
+  let response: Response;
+  try {
+    try {
+      response = await request();
+    } catch (error) {
+      // A pooled connection that GitHub closed while the process was busy,
+      // such as during a runtime install, fails before any response. The GET
+      // is sent once more, on a new connection.
+      const code = ((error as Error).cause as NodeJS.ErrnoException)?.code;
+      if (code !== "UND_ERR_SOCKET" && code !== "ECONNRESET") throw error;
+      response = await request();
+    }
   } catch {
     throw new ProductError(
       "SOURCE_UNAVAILABLE",
@@ -280,18 +293,108 @@ export function githubSource(repository: string) {
   return { owner: match[1]!, name: match[2]! };
 }
 
-export async function acquireSource(
+// A source's mutable observations: its public repository identity and the
+// commit its version tag names. Acquisitions sharing one map, such as those of
+// one guided adoption invocation, observe each source and tag once; a new map
+// observes them again. Immutable material is reused through the snapshot cache
+// instead, across processes.
+export type SourceObservations = Map<string, Promise<TagObservation>>;
+
+interface TagObservation {
+  identity: StandardsIdentity;
+  api: string;
+  // The annotated tag objects traversed from the tag to its commit.
+  annotations: string[];
+}
+
+// A directory of the external product cache, created on first use. The cache
+// holds tag observations, verified source snapshots and annotated tag
+// objects: public Git objects and identities, never credentials.
+function cacheDirectory(name: string, project?: string) {
+  const directory = externalPath(
+    join(
+      process.env.XDG_CACHE_HOME || join(homedir(), ".cache"),
+      "repo-standards",
+      name,
+    ),
+    project,
+  );
+  mkdirSync(directory, { recursive: true });
+  return directory;
+}
+
+function objectId(type: string, bytes: Buffer) {
+  return createHash("sha1")
+    .update(`${type} ${bytes.length}\0`)
+    .update(bytes)
+    .digest("hex");
+}
+
+// A Git object's bytes, only once they hash to its identity.
+function gitObject(directory: string, type: string, sha: string) {
+  const bytes = git(directory, ["cat-file", type, sha], true) as Buffer;
+  if (objectId(type, bytes) !== sha)
+    throw new ProductError(
+      "SOURCE_INTEGRITY",
+      `Git object bytes do not match their identity: ${sha}.`,
+    );
+  return bytes;
+}
+
+function annotationPath(repository: string, sha: string, project?: string) {
+  return join(
+    cacheDirectory("annotations", project),
+    hash(`${repository.toLowerCase()}\n${sha}`),
+  );
+}
+
+// The object a cached annotated tag names, when its bytes hash to its
+// identity. A damaged entry is removed, and the tag is read from GitHub.
+function cachedAnnotation(repository: string, sha: string, project?: string) {
+  const path = annotationPath(repository, sha, project);
+  let bytes: Buffer;
+  try {
+    bytes = readFileSync(path);
+  } catch {
+    return undefined;
+  }
+  if (objectId("tag", bytes) !== sha) {
+    rmSync(path, { force: true });
+    return undefined;
+  }
+  const header = bytes.toString("utf8").split("\n\n")[0]!.split("\n");
+  const field = (name: string) =>
+    header.find((line) => line.startsWith(`${name} `))?.slice(name.length + 1);
+  return { type: field("type"), sha: field("object") };
+}
+
+// Keeps each traversed annotated tag object the fetch obtained. A tag GitHub
+// reports but Git did not fetch is read from GitHub again next time.
+function retainAnnotations(
+  objects: string,
   repository: string,
-  version: string,
+  annotations: string[],
   project?: string,
 ) {
-  const { owner, name } = githubSource(repository);
-  if (!isStableVersion(version)) {
-    throw new ProductError(
-      "INVALID_STANDARDS_VERSION",
-      "Choose an exact stable SemVer tag, such as v1.2.3. Branches, ranges, and prereleases are unsupported.",
-    );
+  for (const sha of annotations) {
+    try {
+      const bytes = gitObject(objects, "tag", sha);
+      const path = annotationPath(repository, sha, project);
+      const partial = `${path}.${process.pid}.partial`;
+      writeFileSync(partial, bytes, { mode: 0o600 });
+      renameSync(partial, path);
+    } catch {
+      // An annotation the cache cannot keep is observed again.
+    }
   }
+}
+
+async function observeTag(
+  owner: string,
+  name: string,
+  version: string,
+  project?: string,
+): Promise<TagObservation> {
   const metadata = record(await github(`/repos/${owner}/${name}`));
   if (
     metadata.private !== false ||
@@ -312,6 +415,7 @@ export async function acquireSource(
       "INVALID_SOURCE",
       "GitHub did not return the requested exact tag.",
     );
+  const annotations: string[] = [];
   let object = record(ref.object);
   for (let depth = 0; object.type === "tag" && depth < 10; depth++) {
     if (typeof object.sha !== "string" || !shaPattern.test(object.sha))
@@ -319,9 +423,10 @@ export async function acquireSource(
         "INVALID_SOURCE",
         "Invalid annotated tag identity.",
       );
-    object = record(
-      record(await github(`${api}/git/tags/${object.sha}`)).object,
-    );
+    annotations.push(object.sha);
+    object =
+      cachedAnnotation(canonical, object.sha, project) ??
+      record(record(await github(`${api}/git/tags/${object.sha}`)).object);
   }
   if (
     object.type !== "commit" ||
@@ -337,17 +442,8 @@ export async function acquireSource(
     version,
     commit: object.sha,
   };
-  const cache = externalPath(
-    join(
-      process.env.XDG_CACHE_HOME || join(homedir(), ".cache"),
-      "repo-standards",
-      "tags",
-    ),
-    project,
-  );
-  mkdirSync(cache, { recursive: true });
   const observation = join(
-    cache,
+    cacheDirectory("tags", project),
     `${hash(`${canonical.toLowerCase()}\n${version}`)}.json`,
   );
   try {
@@ -374,6 +470,183 @@ export async function acquireSource(
         `Previously observed ${canonical} ${version} at ${previous.commit}; it now resolves to ${identity.commit}. Choose a new immutable version.`,
       );
   }
+  return { identity, api, annotations };
+}
+
+// The entries of a complete source tree listing, once each is a safe path of
+// a supported kind, with every path and ancestor they name.
+function sourceListing(listing: unknown[]) {
+  const paths = new Set<string>();
+  const spellings = new Map<string, string>();
+  const listed = [];
+  for (const value of listing) {
+    const entry = record(value);
+    if (
+      typeof entry.path !== "string" ||
+      /[\\\p{Cc}]/u.test(entry.path) ||
+      /^[A-Za-z]:/.test(entry.path) ||
+      entry.path
+        .split("/")
+        .some(
+          (part) =>
+            !part ||
+            part === "." ||
+            part === ".." ||
+            part.toLowerCase() === ".git",
+        )
+    ) {
+      throw new ProductError(
+        "UNSAFE_SOURCE",
+        "The source tree contains an unsafe path.",
+      );
+    }
+    listed.push({
+      mode: entry.mode,
+      type: entry.type,
+      sha: entry.sha,
+      path: entry.path,
+    });
+    const parts = entry.path.split("/");
+    for (let length = 1; length <= parts.length; length++) {
+      const path = parts.slice(0, length).join("/");
+      const key = foldPath(path);
+      const previous = spellings.get(key);
+      if (previous !== undefined && previous !== path)
+        throw new ProductError(
+          "UNSAFE_SOURCE",
+          `Source paths alias on supported filesystems: ${previous} and ${path}.`,
+        );
+      spellings.set(key, path);
+      paths.add(path);
+    }
+  }
+  const entries: GitTreeEntry[] = [];
+  for (const { mode, type, sha, path } of listed) {
+    if (
+      mode === "120000" &&
+      (path === "standards.yaml" || isRootLicense(path.split("/")[0]!))
+    )
+      throw new ProductError(
+        "SOURCE_SYMLINK",
+        `The selected source contains a symbolic link: ${path}.`,
+      );
+    if (
+      typeof mode !== "string" ||
+      typeof type !== "string" ||
+      typeof sha !== "string" ||
+      (!(type === "tree" && mode === "040000") &&
+        (type !== "blob" ||
+          !["100644", "100755", "120000"].includes(mode) ||
+          !shaPattern.test(sha)))
+    ) {
+      throw new ProductError(
+        "UNSAFE_SOURCE",
+        `Unsupported source entry: ${path}. Submodules and special files are unsupported.`,
+      );
+    }
+    entries.push({ mode, type, sha, path });
+  }
+  return { entries, paths };
+}
+
+// Writes each blob of a verified tree under the snapshot root once its bytes
+// hash to its Git identity, returning the paths of its symbolic links, which
+// are never extracted.
+function extract(objects: string, entries: GitTreeEntry[], root: string) {
+  const symlinks = new Set<string>();
+  for (const entry of entries) {
+    if (entry.type === "tree") continue;
+    let bytes: Buffer;
+    try {
+      bytes = git(objects, ["cat-file", "blob", entry.sha], true) as Buffer;
+    } catch (error) {
+      if (
+        error instanceof ProductError &&
+        error.code === "SOURCE_UNAVAILABLE"
+      ) {
+        throw new ProductError(
+          "SOURCE_INTEGRITY",
+          `The fetched Git source is missing the identified bytes: ${entry.path}.`,
+        );
+      }
+      throw error;
+    }
+    if (objectId("blob", bytes) !== entry.sha)
+      throw new ProductError(
+        "SOURCE_INTEGRITY",
+        `Source bytes do not match Git identity: ${entry.path}.`,
+      );
+    if (entry.mode === "120000") {
+      symlinks.add(entry.path);
+      // Keep ancestors visible when a selected tree contains only links.
+      mkdirSync(dirname(join(root, entry.path)), { recursive: true });
+      continue;
+    }
+    const target = join(root, entry.path);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, bytes, { flag: "wx" });
+    chmodSync(target, entry.mode === "100755" ? 0o755 : 0o644);
+  }
+  return symlinks;
+}
+
+// A cached snapshot supplies bytes only once every object it holds hashes to
+// its Git identity, from the commit the tag observation resolved to each tree
+// and blob, and its tree passes the same source checks as a fresh one. A
+// missing, incomplete or damaged snapshot is discarded and acquired again.
+function reuseSnapshot(
+  cached: string,
+  identity: StandardsIdentity,
+  root: string,
+) {
+  if (!existsSync(cached)) return undefined;
+  const objects = join(cached, "git");
+  try {
+    const provenance = record(
+      JSON.parse(readFileSync(join(cached, "provenance.json"), "utf8")),
+    );
+    const commit = gitObject(objects, "commit", identity.commit).toString();
+    const tree = /^tree ([a-f0-9]{40})\n/.exec(commit)?.[1];
+    if (
+      typeof provenance.repository !== "string" ||
+      provenance.repository.toLowerCase() !==
+        identity.repository.toLowerCase() ||
+      provenance.commit !== identity.commit ||
+      tree === undefined ||
+      provenance.tree !== tree
+    )
+      throw new ProductError(
+        "SOURCE_INTEGRITY",
+        "The cached snapshot does not match its provenance.",
+      );
+    gitObject(objects, "tree", tree);
+    const entries = gitTree(objects, identity.commit);
+    for (const entry of entries)
+      if (entry.type === "tree") gitObject(objects, "tree", entry.sha);
+    const { paths } = sourceListing(entries);
+    return { paths, symlinks: extract(objects, entries, root) };
+  } catch (error) {
+    if (error instanceof ProductError && error.code === "GIT_REQUIRED")
+      throw error;
+    // A fresh acquisition reports a source that is itself unsafe.
+    rmSync(cached, { recursive: true, force: true });
+    rmSync(root, { recursive: true, force: true });
+    mkdirSync(root);
+    return undefined;
+  }
+}
+
+// Resolves the tag's commit and tree through GitHub, fetches their objects
+// through Git, verifies them against the tree listing, and keeps them in the
+// snapshot cache.
+async function fetchSnapshot(
+  observed: TagObservation,
+  cached: string,
+  root: string,
+  project?: string,
+) {
+  const { identity, api, annotations } = observed;
+  const { repository: canonical, version } = identity;
   const commit = record(await github(`${api}/git/commits/${identity.commit}`));
   const treeSha = record(commit.tree).sha;
   if (
@@ -393,13 +666,9 @@ export async function acquireSource(
       "INVALID_SOURCE",
       "GitHub must provide a complete source tree.",
     );
-  const temporary = mkdtempSync(
-    join(externalPath(tmpdir(), project), "repo-standards-source-"),
-  );
-  const root = join(temporary, "snapshot");
-  const objects = join(temporary, "objects");
+  const staging = mkdtempSync(join(dirname(cached), ".staging-"));
+  const objects = join(staging, "git");
   try {
-    mkdirSync(root);
     git(objects, ["init", "--bare", "--quiet"]);
     git(objects, [
       "-c",
@@ -423,76 +692,7 @@ export async function acquireSource(
         "The fetched Git tag does not match its observed commit and tree identity.",
       );
     }
-    const paths = new Set<string>();
-    const spellings = new Map<string, string>();
-    const listed = [];
-    for (const value of listing) {
-      const entry = record(value);
-      if (
-        typeof entry.path !== "string" ||
-        /[\\\p{Cc}]/u.test(entry.path) ||
-        /^[A-Za-z]:/.test(entry.path) ||
-        entry.path
-          .split("/")
-          .some(
-            (part) =>
-              !part ||
-              part === "." ||
-              part === ".." ||
-              part.toLowerCase() === ".git",
-          )
-      ) {
-        throw new ProductError(
-          "UNSAFE_SOURCE",
-          "The source tree contains an unsafe path.",
-        );
-      }
-      listed.push({
-        mode: entry.mode,
-        type: entry.type,
-        sha: entry.sha,
-        path: entry.path,
-      });
-      const parts = entry.path.split("/");
-      for (let length = 1; length <= parts.length; length++) {
-        const path = parts.slice(0, length).join("/");
-        const key = foldPath(path);
-        const previous = spellings.get(key);
-        if (previous !== undefined && previous !== path)
-          throw new ProductError(
-            "UNSAFE_SOURCE",
-            `Source paths alias on supported filesystems: ${previous} and ${path}.`,
-          );
-        spellings.set(key, path);
-        paths.add(path);
-      }
-    }
-    const advertisedEntries: GitTreeEntry[] = [];
-    for (const { mode, type, sha, path } of listed) {
-      if (
-        mode === "120000" &&
-        (path === "standards.yaml" || isRootLicense(path.split("/")[0]!))
-      )
-        throw new ProductError(
-          "SOURCE_SYMLINK",
-          `The selected source contains a symbolic link: ${path}.`,
-        );
-      if (
-        typeof mode !== "string" ||
-        typeof type !== "string" ||
-        typeof sha !== "string" ||
-        (!(type === "tree" && mode === "040000") &&
-          (type !== "blob" ||
-            !["100644", "100755", "120000"].includes(mode) ||
-            !shaPattern.test(sha)))
-      ) {
-        throw new ProductError(
-          "UNSAFE_SOURCE",
-          `Unsupported source entry: ${path}. Submodules and special files are unsupported.`,
-        );
-      }
-      advertisedEntries.push({ mode, type, sha, path });
-    }
+    const { entries: advertisedEntries, paths } = sourceListing(listing);
     const fetchedEntries = gitTree(objects, identity.commit);
     const comparable = (entry: GitTreeEntry) =>
       `${entry.mode} ${entry.type} ${entry.sha}\t${entry.path}`;
@@ -504,45 +704,66 @@ export async function acquireSource(
         "The GitHub tree listing does not match the fetched commit tree.",
       );
     }
-    const symlinks = new Set<string>();
-    for (const entry of fetchedEntries) {
-      if (entry.type === "tree") continue;
-      let bytes: Buffer;
-      try {
-        bytes = git(objects, ["cat-file", "blob", entry.sha], true) as Buffer;
-      } catch (error) {
-        if (
-          error instanceof ProductError &&
-          error.code === "SOURCE_UNAVAILABLE"
-        ) {
-          throw new ProductError(
-            "SOURCE_INTEGRITY",
-            `The fetched Git source is missing the identified bytes: ${entry.path}.`,
-          );
-        }
-        throw error;
-      }
-      const oid = createHash("sha1")
-        .update(`blob ${bytes.length}\0`)
-        .update(bytes)
-        .digest("hex");
-      if (oid !== entry.sha)
-        throw new ProductError(
-          "SOURCE_INTEGRITY",
-          `Source bytes do not match Git identity: ${entry.path}.`,
-        );
-      if (entry.mode === "120000") {
-        symlinks.add(entry.path);
-        // Keep ancestors visible when a selected tree contains only links.
-        mkdirSync(dirname(join(root, entry.path)), { recursive: true });
-        continue;
-      }
-      const target = join(root, entry.path);
-      mkdirSync(dirname(target), { recursive: true });
-      writeFileSync(target, bytes, { flag: "wx" });
-      chmodSync(target, entry.mode === "100755" ? 0o755 : 0o644);
+    const symlinks = extract(objects, fetchedEntries, root);
+    retainAnnotations(objects, canonical, annotations, project);
+    try {
+      writeFileSync(
+        join(staging, "provenance.json"),
+        JSON.stringify({
+          repository: canonical,
+          commit: identity.commit,
+          tree: treeSha,
+        }),
+      );
+      renameSync(staging, cached);
+    } catch {
+      // Another acquisition cached the same snapshot first.
     }
-    rmSync(objects, { recursive: true, force: true });
+    return { paths, symlinks };
+  } finally {
+    rmSync(staging, { recursive: true, force: true });
+  }
+}
+
+// The verified snapshot of a stable version of a public GitHub source, from
+// the snapshot cache when it holds the commit the tag names now, and otherwise
+// acquired fresh. Each call observes the repository and tag unless its
+// observations already hold them, and extracts its own copy, which close()
+// removes.
+export async function acquireSource(
+  repository: string,
+  version: string,
+  project?: string,
+  observations?: SourceObservations,
+) {
+  const { owner, name } = githubSource(repository);
+  if (!isStableVersion(version)) {
+    throw new ProductError(
+      "INVALID_STANDARDS_VERSION",
+      "Choose an exact stable SemVer tag, such as v1.2.3. Branches, ranges, and prereleases are unsupported.",
+    );
+  }
+  const key = `${owner.toLowerCase()}/${name.toLowerCase()}\n${version}`;
+  let observation = observations?.get(key);
+  if (!observation) {
+    observation = observeTag(owner, name, version, project);
+    observations?.set(key, observation);
+  }
+  const observed = await observation;
+  const { identity } = observed;
+  const cached = join(
+    cacheDirectory("snapshots", project),
+    hash(`${identity.repository.toLowerCase()}\n${identity.commit}`),
+  );
+  const temporary = mkdtempSync(
+    join(externalPath(tmpdir(), project), "repo-standards-source-"),
+  );
+  const root = join(temporary, "snapshot");
+  try {
+    mkdirSync(root);
+    const { paths, symlinks } =
+      reuseSnapshot(cached, identity, root) ??
+      (await fetchSnapshot(observed, cached, root, project));
     return {
       root,
       identity,

@@ -62,7 +62,7 @@ unedited old adoption skill and its link under the same retired-target policy.
 
 | Module                   | Interface and responsibility                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Source acquisition       | A public GitHub identity and stable version produce an immutable source snapshot and provenance. Search provides candidates without establishing trust.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Source acquisition       | A public GitHub identity and stable version produce an immutable source snapshot and provenance, freshly acquired or reused from the verified snapshot cache. Search provides candidates without establishing trust.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | Resolver                 | A source and profile produce one validated source-resolved selection, or structured errors. Discovery references remain distinct from executable targets until project scope is confirmed. This is the sole interpreter of the author format.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | Repository state         | A resolved selection and observed project produce an inspection, its update comparison and class, freshness identities, and durable adoption progress. The update comparison takes the verified recorded adoption, the candidate selection and materials, and the project's observed product state. It rejects a recorded tag that now resolves to a different commit, and returns the whole update part of an inspection, which is the changed selection components, the previous selection, the retired declarations, the update class and contextual changes, and the product-state-integrity blocker. Scope changes stay with inspection, which holds the scope proposal. Inspection also runs each remote setup's readiness probe through execution, read-only, and reports its readiness.                                                                                                                                                                                                                                                                                                             |
 | Declaration targets      | A resolved declaration produces the targets it applies to, as paths and directory trees: an exact file's or skill's one installation target, or contextual guidance's targets. It also produces each skill's link and the text the product writes there, and holds the system skills: each reserved name, target, and link, and the ones adoption installs. Every other module asks it rather than deriving a skill's target or link, a declaration's targets, or the system skills itself.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
@@ -279,6 +279,52 @@ Validation diagnostics and the authoring guide recommend an open-ended minimum,
 such as `>=7.0.0`. Source Git provenance and SHA-256 hashes of retained inputs
 are recorded independently of the exact CLI package pin.
 
+### Source reuse and the request budget
+
+Acquisition keeps each verified source in the external product cache,
+`$XDG_CACHE_HOME/repo-standards/` or `~/.cache/repo-standards/`, under the
+external-path restrictions of temporary storage: never inside the adopting
+project, never committed, and holding no credentials. A cached snapshot is the
+Git objects of one commit, keyed by the canonical repository and commit, with
+its provenance of repository, commit and tree. Annotated tag objects are kept
+by object ID. Each acquisition extracts its own copy of a snapshot into
+temporary storage, so repeated consumers and separate processes share it.
+
+Mutable observations are never cached. An acquisition resolves the
+repository's public identity and the selected tag through GitHub, and checks
+the tag against the tag observation record, before it reuses anything. One
+guided adoption invocation observes them once, shared by profile and guidance
+reading, inspection and the start's first inspection; every invocation and
+terminal round observes them again. After acquiring the runtime, start
+observes the tag again, rejecting a tag moved meanwhile before installing
+anything, and repeats every project check under the run lock. A cached
+snapshot supplies bytes only once its commit, each tree and each blob hash to
+their Git identities, starting from the commit the tag names now, and its tree
+passes the same path, link and entry-kind checks as a fresh acquisition. A
+missing, incomplete or damaged snapshot is discarded and acquired again.
+Inspection is never cached: project observation, scope validation and drafts,
+readiness probes, ownership, blockers and identities are recomputed at each
+boundary, so cached and fresh acquisition produce the same inspection, and a
+changed project or scope still invalidates stale answers and confirmations.
+
+Guided adoption resolves the newest stable release for a request without a
+version, across every page of the release list. Its answers file carries the
+selected version, so a release published during the adoption does not change
+it, while a later independent request finds it. Release lookups are not
+cached, so GitHub refusing one fails visibly as before.
+
+A cold acquisition makes `4 + d` GitHub REST requests for `d` annotated tag
+objects: the repository, the tag reference, each tag object, the commit and the
+tree, however many files the source holds. A warm one makes two. A guided
+adoption of four invocations, through profile selection, scope, remote setup
+deferral and start, and one contextual continuation, makes at most 16 source
+and release REST requests with a lightweight tag, one more per annotated tag
+object and one more per additional release page; an unchanged update of up to
+five invocations stays within the same ceiling. Contextual continuation makes
+none. Source-authored probes, discovery scripts, fixes and checks make their
+own requests, outside this budget. The tests measure it across separate CLI
+processes.
+
 ## CLI and bootstrap
 
 | Operation         | Observable result                                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -317,7 +363,9 @@ authenticate the separate Git smart-protocol object downloads. Both token
 variables are removed from Git
 subprocess environments, including acquisition, observation and discovery, so
 credential helpers cannot read the REST credentials. The parent process retains
-them for REST requests. Private sources
+them for REST requests. A request whose pooled connection closed before any
+response, such as one GitHub closed during a runtime install, is sent once
+more on a new connection; no other failure is retried. Private sources
 remain rejected by acquisition's `private !== false` check. A 429, or a 403 with
 `x-ratelimit-remaining: 0` or `retry-after`, is `QUOTA_EXHAUSTED`; its message names
 the usable reset time or retry delay and both token variables, preferring

@@ -11,7 +11,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { isAbsolute, join, relative, resolve } from "node:path";
-import { externalPath, hash } from "./acquisition.js";
+import { externalPath, hash, type SourceObservations } from "./acquisition.js";
 import { execute, operations, preflight } from "./execution.js";
 import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
@@ -310,12 +310,15 @@ function prepareRuntime(directory: string, version: string, project: string) {
   );
 }
 
+// Observations shared with the inspection that produced the identity let the
+// start's first inspection reuse its tag resolution.
 export async function start(
   options: InspectOptions,
   cliVersion: string,
   identity: string,
   confirmed: boolean,
   deferRemoteSetup = false,
+  observations?: SourceObservations,
 ) {
   return withStartRun(options.project, (session) =>
     startRun(
@@ -325,6 +328,7 @@ export async function start(
       confirmed,
       session,
       deferRemoteSetup,
+      observations,
     ),
   );
 }
@@ -360,12 +364,13 @@ async function startRun(
   confirmed: boolean | null,
   session: AdoptionRunSession,
   deferRemoteSetup: boolean | null = null,
+  observations?: SourceObservations,
 ) {
-  const inspectSelection = async () => {
+  const inspectSelection = async (shared?: SourceObservations) => {
     try {
       return await (input.kind === "retained"
         ? retainedInspection(input.project, cliVersion, input.scope)
-        : inspectForStart(input.options, cliVersion));
+        : inspectForStart(input.options, cliVersion, undefined, shared));
     } catch (error) {
       // The inspected proposal fit the project it was inspected against.
       if (error instanceof ObservedScopeError)
@@ -377,7 +382,7 @@ async function startRun(
       throw error;
     }
   };
-  const initial = await inspectSelection();
+  const initial = await inspectSelection(observations);
   const root = initial.root;
   verifyInspection(initial.report, identity, confirmed, deferRemoteSetup);
   const proposalPath =
@@ -419,8 +424,10 @@ async function startRun(
       )
     : undefined;
   // Network/package acquisition can take time. Repeat all Git, source and
-  // target checks under the lock before creating any project material. The
-  // materials come from this inspection, whose identity binds their hashes.
+  // target checks under the lock before creating any project material,
+  // observing the source's tag again so that a tag moved meanwhile is
+  // rejected. The materials come from this inspection, whose identity binds
+  // their hashes.
   const inspected = await inspectSelection();
   verifyInspection(inspected.report, identity, confirmed, deferRemoteSetup);
   const installation = planInstallation(root, inspected, identity, runtime);
