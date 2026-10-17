@@ -258,6 +258,7 @@ function releaseFixture(
     noPushAccess?: boolean;
     duplicateDraft?: boolean;
     runStatus?: string;
+    validationJobs?: { name: string; conclusion: string }[];
     notes?: "absent" | "empty" | "unnamed";
     draftBody?: string;
   } = {},
@@ -315,8 +316,12 @@ function releaseFixture(
       fs.cpSync(${JSON.stringify(original)}, args[args.indexOf('--dir') + 1], { recursive: true });
     } else if (args[0] === 'api') {
       const endpoint = args[1];
-      if (endpoint.endsWith('/jobs?per_page=100')) console.log(JSON.stringify({ jobs: [
-        { name: 'validate (ubuntu-latest)', conclusion: 'success' }, { name: 'validate (macos-latest)', conclusion: 'success' }] }));
+      if (endpoint.endsWith('/jobs?per_page=100')) console.log(JSON.stringify({ jobs: ${JSON.stringify(
+        options.validationJobs ?? [
+          { name: "validate (ubuntu-latest)", conclusion: "success" },
+          { name: "validate (macos-latest)", conclusion: "success" },
+        ],
+      )} }));
       else if (endpoint.endsWith('/actions/runs/123')) console.log(JSON.stringify({ path: '.github/workflows/release.yml', head_sha: '${"a".repeat(40)}', status: ${JSON.stringify(options.runStatus ?? "completed")} }));
       else if (endpoint.includes('/git/ref/') && ${JSON.stringify(options.tag === "absent")}) { console.error('gh: Not Found (HTTP 404)'); process.exit(1); }
       else if (endpoint.includes('/git/ref/')) console.log(JSON.stringify({ object: { type: 'commit', sha: '${(options.tag === "mismatch" ? "b" : "a").repeat(40)}' } }));
@@ -351,6 +356,53 @@ function releaseFixture(
     output,
     runStatus: () => f.run("scripts/release-status.ts", ["123", output]),
   };
+}
+
+const matrixValidationJobs = [
+  "validate (ubuntu-latest, 24)",
+  "validate (ubuntu-latest, 26)",
+  "validate (macos-latest, 24)",
+  "validate (macos-latest, 26)",
+].map((name) => ({ name, conclusion: "success" }));
+
+test("release status verifies a published bundle from the complete supported OS/runtime matrix", (t) => {
+  const f = releaseFixture(t, {
+    github: "published",
+    validationJobs: matrixValidationJobs,
+  });
+  const result = f.runStatus();
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(
+    readFileSync(join(f.output, "status.json"), "utf8"),
+  ) as ReleaseStatus;
+  assert.equal(report.state, "published");
+});
+
+for (const cell of matrixValidationJobs) {
+  for (const outcome of ["failure", "missing"] as const) {
+    test(`release status rejects a ${outcome} matrix validation ${cell.name} even beside successful legacy jobs`, (t) => {
+      const validationJobs = [
+        ...matrixValidationJobs.flatMap((job) =>
+          job.name !== cell.name
+            ? [job]
+            : outcome === "missing"
+              ? []
+              : [{ ...job, conclusion: "failure" }],
+        ),
+        { name: "validate (ubuntu-latest)", conclusion: "success" },
+        { name: "validate (macos-latest)", conclusion: "success" },
+      ];
+      const f = releaseFixture(t, { github: "published", validationJobs });
+      const result = f.runStatus();
+      assert.equal(result.status, 1, result.stdout + result.stderr);
+      const report = JSON.parse(
+        readFileSync(join(f.output, "status.json"), "utf8"),
+      ) as ReleaseStatus;
+      assert.equal(report.state, "unknown");
+      assert.ok(report.failure?.includes(cell.name));
+      assert.doesNotMatch(report.nextAction, /'gh'|'npm'/);
+    });
+  }
 }
 
 test("release status verifies the original bundle and prints the missing GitHub release action without publishing", (t) => {
