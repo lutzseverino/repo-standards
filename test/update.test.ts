@@ -43,6 +43,7 @@ import {
   remoteFixture,
   startArgs,
   versionArgs,
+  writeInfoExclude,
 } from "./remote-fixture.ts";
 import { installCandidate, registryFixture } from "./registry-fixture.ts";
 import {
@@ -2399,10 +2400,7 @@ test("updates validate excluded directory roots and reject changed boundaries be
       const args = f.inspectArgs;
       // Ignore the entries themselves, including files and links, so Git status
       // cannot supply the freshness or safety signal under test.
-      writeFileSync(
-        join(f.project.root, ".git/info/exclude"),
-        generated.join("\n") + "\n",
-      );
+      writeInfoExclude(f.project.root, generated.join("\n") + "\n");
       for (const path of paths) {
         const target = join(f.project.root, path);
         const saved = join(f.remote.support.root, "saved-directory");
@@ -2579,10 +2577,7 @@ test("an update identity binds unexpected durable bytes that Git status cannot s
   const f = await pendingUpdate(t);
   // Keep Git status identical while changing an ignored durable file, so
   // freshness must come from the product-state observation itself.
-  writeFileSync(
-    join(f.project.root, ".git/info/exclude"),
-    ".repo-standards/runtime/extra.txt\n",
-  );
+  writeInfoExclude(f.project.root, ".repo-standards/runtime/extra.txt\n");
   const extra = join(f.project.root, ".repo-standards/runtime/extra.txt");
   writeFileSync(extra, "First unexpected bytes");
   const first = JSON.parse(f.run(f.inspectArgs).stdout) as Inspection;

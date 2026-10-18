@@ -32,6 +32,7 @@ import {
   manifest,
   operation,
   startArgs,
+  writeInfoExclude,
 } from "./remote-fixture.ts";
 import { filesystemFault, killAfterRename } from "./adoption-faults.ts";
 import { adoptionFixture } from "./adoption-fixture.ts";
@@ -497,6 +498,8 @@ test("an unfamiliar layout completes a useful migration around exact configurati
 
 test("missing, invalid, unresolved, stale and dirty discovery starts preserve the project before mutation", async (t) => {
   const f = await fixture(t);
+  // The observed ignore input exists before the inspection that binds it.
+  writeInfoExclude(f.project.root, "# initial observation input\n");
   const inspection = f.inspect().report;
   const reject = (report: { errors: { code: string }[] }, code: string) => {
     assert.equal(report.errors[0]!.code, code);
@@ -548,10 +551,7 @@ test("missing, invalid, unresolved, stale and dirty discovery starts preserve th
   }
   // A proposal confirmed against an earlier observation is stale once the
   // project changes; start rejects it and asks for a fresh review.
-  writeFileSync(
-    join(f.project.root, ".git/info/exclude"),
-    "# new observation input\n",
-  );
+  writeInfoExclude(f.project.root, "# new observation input\n");
   const stale = f.start<ErrorReport>(inspection.identity).report;
   reject(stale, "STALE_INSPECTION");
   assert.match(
@@ -978,6 +978,7 @@ test("explained empty discovery scope retains its operations, and committed evid
   const globalIgnore = join(f.remote.support.root, "global-ignore");
   writeFileSync(globalIgnore, "*.log\n");
   git(f.project.root, "config", "core.excludesFile", globalIgnore);
+  writeInfoExclude(f.project.root, "# fixture exclusions\n");
   const entry = f.proposal.declarations[0]!;
   entry.candidates = [
     {

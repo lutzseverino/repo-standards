@@ -33,6 +33,7 @@ import {
   operation,
   startArgs,
   versionArgs,
+  writeInfoExclude,
 } from "./remote-fixture.ts";
 import { filesystemFault } from "./adoption-faults.ts";
 import { adoptionFixture } from "./adoption-fixture.ts";
@@ -1005,9 +1006,10 @@ test("work evidence records an ignore input change by its role and content state
 if (input.operation.phase === 'fixes') writeFileSync('.git/info/exclude', '# changed by a fix\\n');
 ${result}`,
   );
-  const exclude = join(f.project.root, ".git/info/exclude");
+  const exclude = writeInfoExclude(f.project.root, "# initial exclusions\n");
   const original = readFileSync(exclude);
-  // Git's template decides the input's mode; the fix rewrites only its bytes.
+  // The fix rewrites only the input's bytes, so its mode is whatever the
+  // fixture created.
   const executable = (statSync(exclude).mode & 0o111) !== 0;
   const started = f.start();
   assert.equal(started.result.status, 1, started.result.stdout);
