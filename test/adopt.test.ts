@@ -1,9 +1,15 @@
-import type { ErrorReport, PackageManifest, Status } from "./json-reports.ts";
+import type {
+  AdoptReport,
+  ErrorReport,
+  PackageManifest,
+  Status,
+} from "./json-reports.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
+  cpSync,
   mkdirSync,
   readFileSync,
   rmSync,
@@ -12,7 +18,7 @@ import {
 import { join } from "node:path";
 import { parse } from "yaml";
 import { directoryFixture, installCli, snapshot } from "./installed-cli.ts";
-import { commit, operation } from "./remote-fixture.ts";
+import { commit, git, operation } from "./remote-fixture.ts";
 import {
   discovery,
   discoveryFixture,
@@ -31,6 +37,11 @@ after(() => cli.close());
 // The Selection section of a Markdown adoption report.
 const selectionPart = (summary: string) =>
   summary.split("\n## ").find((part) => part.startsWith("Selection\n")) ?? "";
+
+const stepCommands = (report: AdoptReport) =>
+  report.nextSteps.flatMap((step) =>
+    [...step.matchAll(/`([^`]+)`/g)].map((match) => match[1]!),
+  );
 
 test("adopt without an answers file prints a complete template and changes nothing", async (t) => {
   const outside = directoryFixture("repo-standards-adopt-source-");
@@ -155,6 +166,235 @@ test("adopt without an answers file prints a complete template and changes nothi
     (JSON.parse(local.stdout) as ErrorReport).errors[0]!.code,
     "UNSUPPORTED_SOURCE",
   );
+});
+
+test("self-adoption answer rounds use an external exact CLI and preserve the target project", async (t) => {
+  const f = await fixture(
+    t,
+    cli,
+    {},
+    {
+      project: {
+        "package.json": JSON.stringify({
+          name: "@lutzseverino/repo-standards",
+          version: cli.version,
+          bin: { "repo-standards": "dist/cli.js" },
+        }),
+      },
+    },
+  );
+  const root = join(f.external.root, "product checkout's notes");
+  cpSync(f.root, root, { recursive: true });
+  const before = snapshot(root);
+  const template = JSON.parse(
+    cli.run(["adopt", source, "--project", root, "--json"], f.root, f.env)
+      .stdout,
+  ) as AdoptReport;
+  assert.equal(template.outcome, "answers-required");
+  const commands = stepCommands(template);
+  const setup = commands.find((command) => command.startsWith("adoption_cli="));
+  assert.ok(setup, template.nextSteps.join("\n"));
+  // Execute the printed acquisition against the fixture registry, with npm
+  // lifecycle scripts disabled, rather than relying on a prebuilt checkout.
+  const acquired = spawnSync(
+    "sh",
+    ["-c", `{\n${setup}\n} >&2\nprintf '%s' "$adoption_cli"`],
+    { cwd: root, env: f.env, encoding: "utf8" },
+  );
+  assert.equal(acquired.status, 0, acquired.stderr);
+  const installation = acquired.stdout;
+  t.after(() => rmSync(installation, { recursive: true, force: true }));
+  const env = { ...f.env, adoption_cli: installation };
+  const version = spawnSync(
+    join(installation, "node_modules/.bin/repo-standards"),
+    ["--version"],
+    { cwd: root, env, encoding: "utf8" },
+  );
+  assert.equal(version.stdout.trim(), cli.version);
+  assert.deepEqual(snapshot(root), before);
+
+  const answers = join(f.external.root, "maintainer's answers.json");
+  const invoke = commands.find((command) =>
+    command.includes(" adopt --answers"),
+  );
+  assert.ok(invoke, template.nextSteps.join("\n"));
+  // Supply only an incomplete answer so this round cannot start a run.
+  const partial = { ...template.answers, questions: [] };
+  writeFileSync(answers, JSON.stringify(partial));
+  const continued = spawnSync(
+    "sh",
+    ["-c", `${invoke.replace("<answers file>", '"$answers_file"')} --json`],
+    { cwd: f.root, env: { ...env, answers_file: answers }, encoding: "utf8" },
+  );
+  assert.equal(continued.status, 1, continued.stdout + continued.stderr);
+  const report = JSON.parse(continued.stdout) as AdoptReport;
+  assert.equal(report.outcome, "answers-required");
+  assert.equal(report.selection.cli, cli.version);
+  assert.deepEqual(report.missing, ["version"]);
+  // Later rounds print the concrete answers path, including its shell quotes.
+  const next = stepCommands(report).find((command) =>
+    command.includes(" adopt --answers"),
+  )!;
+  const repeated = spawnSync("sh", ["-c", `${next} --json`], {
+    cwd: f.root,
+    env,
+    encoding: "utf8",
+  });
+  assert.equal(repeated.status, 1, repeated.stdout + repeated.stderr);
+  assert.equal(
+    (JSON.parse(repeated.stdout) as AdoptReport).inspection?.identity,
+    report.inspection?.identity,
+  );
+  assert.deepEqual(snapshot(root), before);
+
+  // Complete only this isolated, operation-free adoption, then verify that
+  // an update without a source remains read-only until answers start a run.
+  writeFileSync(answers, JSON.stringify(template.answers));
+  const completed = spawnSync("sh", ["-c", `${next} --json`], {
+    cwd: f.root,
+    env,
+    encoding: "utf8",
+  });
+  assert.equal(completed.status, 0, completed.stdout + completed.stderr);
+  assert.equal(
+    (JSON.parse(completed.stdout) as AdoptReport).outcome,
+    "complete",
+  );
+  commit(root);
+  const adopted = snapshot(root);
+  const updated = cli.run(["adopt", "--project", root, "--json"], f.root, env);
+  assert.equal(updated.status, 0, updated.stdout + updated.stderr);
+  const update = JSON.parse(updated.stdout) as AdoptReport;
+  assert.equal(update.outcome, "answers-required");
+  assert.ok(
+    stepCommands(update).some((command) =>
+      command.includes("$adoption_cli/node_modules/.bin/repo-standards"),
+    ),
+  );
+  assert.deepEqual(snapshot(root), adopted);
+});
+
+test("ordinary adopting projects can execute their pinned npx answer-round command", async (t) => {
+  const f = await fixture(
+    t,
+    cli,
+    {},
+    {
+      project: {
+        "package.json": JSON.stringify({
+          name: "another-project",
+          version: cli.version,
+        }),
+      },
+    },
+  );
+  const template = f.adopt([source]).report;
+  f.answer(template.answers, { version: null });
+  const pending = f.adopt(["--answers", f.answersPath]).report;
+  const command = stepCommands(pending).find((value) =>
+    value.includes(" adopt --answers"),
+  )!;
+  assert.ok(
+    command.startsWith(`npx @lutzseverino/repo-standards@${cli.version} `),
+  );
+  const before = snapshot(f.root);
+  const result = spawnSync("sh", ["-c", `${command} --json`], {
+    cwd: f.root,
+    env: {
+      ...f.env,
+      npm_config_yes: "true",
+      npm_config_cache: join(f.external.root, "npm-cache"),
+    },
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 1, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout) as AdoptReport;
+  assert.equal(report.outcome, "answers-required");
+  assert.equal(report.selection.cli, cli.version);
+  assert.deepEqual(snapshot(f.root), before);
+});
+
+test("self-adoption recovery uses the matching runtime or the external exact CLI", async (t) => {
+  const f = await fixture(
+    t,
+    cli,
+    {
+      "project-readme": {
+        kind: "file",
+        target: "README.md",
+        guidance: "guidance/readme.md",
+        fixes: [operation("failing", { script: "fix.mjs" })],
+      },
+    },
+    {
+      files: {
+        "guidance/readme.md": guidance,
+        "fix.mjs": `console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: 'failed', message: 'Fixture failure.' }));`,
+      },
+      project: {
+        "README.md": "# Project\n",
+        "package.json": JSON.stringify({
+          name: "@lutzseverino/repo-standards",
+          version: cli.version,
+        }),
+      },
+    },
+  );
+  const template = f.adopt([source]).report;
+  const stopped = f.adopt(f.answer(template.answers));
+  assert.equal(stopped.report.outcome, "incomplete", stopped.result.stdout);
+  const pinnedStatus = stepCommands(stopped.report).find((command) =>
+    command.endsWith(" status"),
+  )!;
+  assert.ok(pinnedStatus.startsWith(".repo-standards/runtime/"));
+  const status = spawnSync("sh", ["-c", `${pinnedStatus} --json`], {
+    cwd: f.root,
+    env: f.env,
+    encoding: "utf8",
+  });
+  assert.equal(status.status, 0, status.stdout + status.stderr);
+  assert.equal(
+    (JSON.parse(status.stdout) as Status).active!.id,
+    stopped.report.run!.id,
+  );
+
+  // Model interrupted installation: manifests remain, but no executable is
+  // available. Generated recovery must work even from an unrelated directory.
+  rmSync(join(f.root, ".repo-standards/runtime/node_modules"), {
+    recursive: true,
+  });
+  const head = git(f.root, "rev-parse", "HEAD");
+  const index = readFileSync(join(f.root, ".git/index"));
+  const missingRuntime = f.adopt(["--answers", f.answersPath]).report;
+  assert.equal(missingRuntime.outcome, "incomplete");
+  const commands = stepCommands(missingRuntime);
+  const env = { ...f.env, adoption_cli: cli.root };
+  for (const action of ["resume --retry", "abandon"]) {
+    const command = commands.find((value) =>
+      value.includes(` ${action} --project`),
+    );
+    assert.ok(command, missingRuntime.nextSteps.join("\n"));
+    const result = spawnSync("sh", ["-c", `${command} --json`], {
+      cwd: f.external.root,
+      env,
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    const report = JSON.parse(result.stdout) as {
+      outcome: string;
+      abandoned?: boolean;
+      reason: string;
+    };
+    assert.equal(report.outcome, "incomplete");
+    if (action === "abandon") assert.equal(report.abandoned, true);
+    else
+      assert.match(
+        report.reason,
+        /FINAL_INTEGRITY:.*runtime dependencies changed/,
+      );
+  }
+  assert.equal(git(f.root, "rev-parse", "HEAD"), head);
+  assert.deepEqual(readFileSync(join(f.root, ".git/index")), index);
 });
 
 test("an answers file adopts through missing answers, confirmation, contextual work and completion with the pinned CLI", async (t) => {
