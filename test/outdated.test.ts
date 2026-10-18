@@ -419,3 +419,186 @@ test("invalid outdated usage exits 2 with a structured diagnostic", (t) => {
     );
   }
 });
+
+// The Pins table of the plain report, one object per pin, keyed by the table's
+// headings, with each cell's inline code unwrapped.
+function pinRows(markdown: string) {
+  const [heading, , ...rows] = markdown
+    .split("\n## ")
+    .find((part) => part.startsWith("Pins\n"))!
+    .split("\n\n")[1]!
+    .trimEnd()
+    .split("\n");
+  const keys = heading!
+    .split("|")
+    .slice(1, -1)
+    .map((cell) => cell.trim());
+  return Object.fromEntries(
+    rows.map((row) => {
+      const cells = row
+        .split("|")
+        .slice(1, -1)
+        .map((cell) => cell.trim().replace(/^`(.*)`$/, "$1"));
+      return [
+        cells[0]!,
+        Object.fromEntries(keys.map((key, index) => [key, cells[index]!])),
+      ];
+    }),
+  );
+}
+
+function plain(root: string, env: NodeJS.ProcessEnv, ...args: string[]) {
+  const logged = remote.requestLog().length;
+  const result = cli.run(["outdated", ...args], root, env);
+  return { result, requests: remote.requestLog().slice(logged) };
+}
+
+test("plain outdated renders Markdown that agrees with the JSON report, identically for the same report", (t) => {
+  const root = checkout(t);
+  publishReleases(t, { body: releases });
+  const project = snapshot(root);
+  const status = gitStatus(root);
+  const first = plain(root, environment());
+  assert.equal(
+    first.result.status,
+    0,
+    first.result.stdout + first.result.stderr,
+  );
+  assert.equal(first.result.stderr, "");
+  assert.equal(first.requests.length, 2);
+  assert.match(
+    first.result.stdout,
+    /^# Repository Standards available updates\n\n## Pins\n\n/,
+  );
+  assert.doesNotMatch(first.result.stdout, /^\s*[{[]/);
+  assert.doesNotMatch(first.result.stdout, /## Unknown results/);
+  assert.equal(first.result.stdout.endsWith("|\n"), true);
+  const rows = pinRows(first.result.stdout);
+  assert.equal(rows.CLI!.Lookup, "fresh");
+
+  // The report now comes from the cache, so every later rendering of it is the
+  // same bytes and none makes a request.
+  const second = plain(root, environment());
+  const third = plain(root, environment());
+  const { report, requests } = outdated(root, environment());
+  assert.deepEqual([second.requests, third.requests, requests], [[], [], []]);
+  assert.equal(second.result.stdout, third.result.stdout);
+  assert.equal(
+    second.result.stdout,
+    first.result.stdout.replaceAll("| fresh |", "| cached |"),
+  );
+
+  const rendered = pinRows(second.result.stdout);
+  for (const [name, pin, subject] of [
+    ["CLI", report.cli, report.cli.package],
+    ["Standards source", report.standards, report.standards.repository],
+  ] as const) {
+    assert.deepEqual(rendered[name], {
+      Pin: name,
+      Subject: subject,
+      Pinned: pin.pinned,
+      Newest: pin.newest,
+      Update: pin.update,
+      "Newer stable releases": String(pin.newerStableReleases),
+      "Checked at": pin.checkedAt,
+      Lookup: pin.cached ? "cached" : "fresh",
+    });
+  }
+  assert.equal(report.cli.update, "available");
+  assert.equal(report.standards.update, "available");
+
+  // Rendering writes only the ignored cache.
+  assert.equal(gitStatus(root), status);
+  rmSync(join(root, ".repo-standards/cache"), { recursive: true });
+  assert.deepEqual(snapshot(root), project);
+});
+
+test("plain outdated renders no update for pins at their newest versions", async (t) => {
+  const root = checkout(t);
+  publishReleases(t, {
+    body: releases.filter((release) => release.tag_name === "v1.0.0"),
+  });
+  const current = await registryFixture(cli.root, [cli.version]);
+  t.after(() => current.close());
+  const { result } = plain(root, environment(current.env));
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const rows = pinRows(result.stdout);
+  for (const name of ["CLI", "Standards source"]) {
+    assert.equal(rows[name]!.Update, "none");
+    assert.equal(rows[name]!["Newer stable releases"], "0");
+  }
+  assert.equal(rows.CLI!.Newest, cli.version);
+  assert.equal(rows["Standards source"]!.Newest, "v1.0.0");
+  assert.doesNotMatch(result.stdout, /## Unknown results/);
+});
+
+test("plain outdated reports an unanswered pin with its reason beside the answered one", (t) => {
+  const root = checkout(t);
+  publishReleases(t, {
+    status: 403,
+    headers: { "x-ratelimit-remaining": "0" },
+    body: { message: "API rate limit exceeded" },
+  });
+  const { result } = plain(root, environment());
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const rows = pinRows(result.stdout);
+  assert.equal(rows.CLI!.Update, "available");
+  assert.equal(rows.CLI!.Newest, minor);
+  assert.deepEqual(rows["Standards source"], {
+    Pin: "Standards source",
+    Subject: "https://github.com/alice/standards",
+    Pinned: "v1.0.0",
+    Newest: "unknown",
+    Update: "unknown",
+    "Newer stable releases": "unknown",
+    "Checked at": "unknown",
+    Lookup: "unknown",
+  });
+  const { report } = outdated(root, environment());
+  assert.match(
+    result.stdout,
+    /## Unknown results\n\n\| Pin \| Code \| Message \|\n\| --- \| --- \| --- \|\n\| Standards source \| `QUOTA_EXHAUSTED` \| .*GH\\_TOKEN.* \|\n$/,
+  );
+  assert.equal(report.standards.reason!.code, "QUOTA_EXHAUSTED");
+});
+
+test("plain outdated without a selection reports both pins unknown with the reason, with no request or change", (t) => {
+  const project = sourceFixture("", { "README.md": "Not adopted" });
+  t.after(() => project.close());
+  commit(project.root);
+  const before = snapshot(project.root);
+  const { result, requests } = plain(project.root, environment());
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.deepEqual(requests, []);
+  assert.deepEqual(snapshot(project.root), before);
+  const rows = pinRows(result.stdout);
+  assert.equal(rows.CLI!.Subject, "@lutzseverino/repo-standards");
+  assert.equal(rows["Standards source"]!.Subject, "not recorded");
+  for (const row of Object.values(rows)) {
+    assert.equal(row.Pinned, "not recorded");
+    assert.equal(row.Update, "unknown");
+  }
+  assert.match(result.stdout, /\| CLI \| `NO_SELECTION` \| .* \|\n/);
+  assert.match(
+    result.stdout,
+    /\| Standards source \| `NO_SELECTION` \| .* \|\n/,
+  );
+});
+
+test("outdated --json is unchanged beside the plain report, and usage errors stay structured", (t) => {
+  const root = checkout(t);
+  publishReleases(t, undefined);
+  const json = plain(root, environment(), "--json");
+  assert.equal(json.result.status, 0, json.result.stdout + json.result.stderr);
+  const report = JSON.parse(json.result.stdout) as OutdatedReport;
+  assert.deepEqual(Object.keys(report), ["format", "cli", "standards"]);
+  assert.equal(report.format, "repo-standards/outdated/v1");
+  assert.equal(report.standards.reason!.code, "SOURCE_UNAVAILABLE");
+  assert.equal(json.result.stdout, JSON.stringify(report, null, 2) + "\n");
+
+  // A usage error without --json is a diagnostic on stderr and exits 2.
+  const usage = plain(root, environment(), "--source", "x");
+  assert.equal(usage.result.status, 2);
+  assert.equal(usage.result.stdout, "");
+  assert.match(usage.result.stderr, /^\[USAGE\] /);
+});

@@ -1,6 +1,7 @@
 # Check for available updates
 
 ```sh
+.repo-standards/runtime/node_modules/.bin/repo-standards outdated
 .repo-standards/runtime/node_modules/.bin/repo-standards outdated --json
 ```
 
@@ -11,8 +12,9 @@ standards version newer than the pinned one. It reads
 `.repo-standards/selection.yaml`, looks up the newest stable versions, and
 compares each to its pin. It runs no author code, needs no
 clean working tree, and changes nothing in the project except its own ignored
-cache, so it is safe to run at the start of any session. It returns JSON with or
-without `--json`; the flag also makes invalid usage and the
+cache, so it is safe to run at the start of any session. Without `--json` it
+renders a [Markdown report](#output-formats); with `--json` it returns the
+[JSON report](#report) and also makes invalid usage and the
 [pinned CLI](#pinned-cli) failure structured. `--project <directory>` selects
 another Git working tree.
 
@@ -24,6 +26,36 @@ start of any work and looks up the rules covering a file before changing it,
 and starts no update; `outdated` remains the complete interface without an
 agent. Apply an update through inspection and start as described in
 [Adoption](adoption.md).
+
+## Output formats
+
+Without `--json`, `outdated` prints a Markdown report. The same report renders
+the same bytes, and rendering makes no request and changes nothing beyond what
+the JSON form does. The report holds:
+
+- A Pins table with one row for the CLI package and one for the standards
+  source: the pinned and newest versions, the update (`available`, `none` or
+  `unknown`), the number of newer stable releases, when the answer was looked up
+  and whether the lookup was `fresh` or `cached`. A value the report does not
+  have reads `unknown`, and a pin or source the selection does not record reads
+  `not recorded`.
+- An Unknown results table, present only when a pin could not be answered: the
+  pin, the reason's code and its message. It covers a missing selection and a
+  failed lookup of either pin while the other is still answered.
+
+The values agree with the [JSON report](#report), which carries every field
+the Markdown does and stays the interface for scripts. Both formats state
+availability only; neither prescribes or starts an update. `status` keeps its
+own Markdown record and says nothing about available updates.
+
+### Migration from the JSON default
+
+Before this change, `outdated` printed the JSON report with or without
+`--json`. It now prints Markdown unless `--json` is given, a breaking change to
+the command's default output. Scripts that parse the report add `--json`; the
+flag has always been accepted, and the JSON report and its `repo-standards/outdated/v1`
+format are unchanged. The `repository-standards` system skill already passes
+`--json`.
 
 ## Pinned CLI
 
@@ -78,7 +110,7 @@ older than the 100 most recent, are not counted.
 
 ## Report
 
-The report has format `repo-standards/outdated/v1` and one entry per pin: `cli`,
+With `--json`, the report has format `repo-standards/outdated/v1` and one entry per pin: `cli`,
 which also names the `package`, and `standards`, which also names the source
 `repository`.
 
