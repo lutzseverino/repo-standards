@@ -106,6 +106,25 @@ A test that fails only in a full local run is a load symptom, not a finding,
 when its focused rerun and the three Linux parts pass. Treat it as a finding
 only when it also fails in a full run with limited concurrency.
 
+### Self-adoption and updates
+
+This repository is both the CLI package and an adopting project. When the
+requested CLI version matches its root package version, pinned `npx` from the
+checkout can resolve the local package and fail with `repo-standards: not found`.
+An unbuilt checkout lacks `dist/cli.js`; building alone is not a reliable
+workaround. `--project` does not affect npm's working-directory package
+resolution, which happens before the CLI launches.
+
+Follow [Adopting in the product checkout](../usage/adoption.md#adopting-in-the-product-checkout):
+acquire the exact published candidate in an external directory with npm install
+scripts disabled, then invoke that executable with `--project` naming this
+clean, committed checkout. Keep its installation and answers outside the tree,
+and reuse the same candidate through answer rounds and recovery until the
+matching project runtime is usable. This needs no build or self-dependency and
+leaves the tree clean until an actual adoption run starts. To keep the current
+CLI pin, an already restored matching project runtime can launch the update
+directly.
+
 ## Documents
 
 - [Website project](../../site/README.md): local site commands, source layout,

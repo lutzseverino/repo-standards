@@ -74,9 +74,10 @@ starts only an inspection the answers file names, so the agent has it to
 present to the maintainer first.
 
 `adopt` installs the exact CLI that ran it into the project's
-[runtime](#durable-and-local-state) and records it as the CLI pin, so no CLI
-needs installing outside the project. Before a run, its next steps name the
-same exact CLI through `npx`; once a run has installed the pinned runtime,
+[runtime](#durable-and-local-state) and records it as the CLI pin. Ordinary
+projects need no external installation. Before a run, its next steps name the
+same exact CLI through `npx`, except for the
+[product checkout collision](#adopting-in-the-product-checkout); once a run has installed the pinned runtime,
 `.repo-standards/runtime/node_modules/.bin/repo-standards`, they continue and
 recover the run with it. With an active run,
 `adopt --answers <file>` continues it, advancing it by at most one step: a
@@ -197,6 +198,52 @@ CLI pin while updating standards, use the project runtime instead:
 Each update reviews changes, obtains confirmation when required, and completes
 one run. See [Update the selection](#update-the-selection) for the detailed
 update contract and lower-level commands.
+
+### Adopting in the product checkout
+
+When the project's root `package.json` names `@lutzseverino/repo-standards`
+at the requested CLI version, npm can satisfy pinned `npx` from that local
+package. In an unbuilt product checkout its `dist/cli.js` is absent, so the
+command can exit 127 with `repo-standards: not found`. Building alone is not a
+reliable remedy. Adding `--project` does not fix this: npm resolves its package
+from the working directory before the CLI reads that option.
+
+Use the supported [external exact-CLI installation](inspection.md#keep-the-disclosed-cli-for-start-and-recovery)
+instead. Start with a clean, committed checkout. Replace the project path and
+`7.2.0` with the intended checkout and exact published candidate version:
+
+```sh
+adoption_project="/absolute/path/to/repo-standards"
+adoption_cli=$(mktemp -d /tmp/repo-standards-cli.XXXXXX)
+(cd "$adoption_cli" && npm install --prefix "$adoption_cli" \
+  --ignore-scripts --save-exact --no-audit --no-fund \
+  @lutzseverino/repo-standards@7.2.0)
+"$adoption_cli/node_modules/.bin/repo-standards" --version
+"$adoption_cli/node_modules/.bin/repo-standards" adopt \
+  --project "$adoption_project" --json
+```
+
+This updates an existing selection; for an initial adoption, supply the source
+URL too. The package is acquired outside the checkout with install scripts
+disabled, without a build or a self-dependency. Keep the installation and answers
+outside the project: template generation changes no tracked content, HEAD or
+index. Save and fill the printed template at, for example,
+`$adoption_cli/answers.json`, then continue in the same shell:
+
+```sh
+"$adoption_cli/node_modules/.bin/repo-standards" adopt \
+  --answers "$adoption_cli/answers.json" --project "$adoption_project" --json
+```
+
+Reuse that exact candidate for every answer round and interrupted-installation
+recovery; keep the external installation until the run completes. Generated
+next steps use `adoption_cli` and explicitly name the target project for this
+collision. Set the variable again if you change shells. Once an active run has
+a matching usable project runtime, its next steps switch to that runtime.
+If it is unavailable, use the external executable with `resume --retry` or
+`abandon`, and the same `--project`, on the maintainer's instruction as
+[recovery](#recover-or-abandon-an-interrupted-run) describes. Do not change the
+candidate version midway through a run.
 
 ## Protocol reference
 

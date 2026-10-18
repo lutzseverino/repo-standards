@@ -295,29 +295,46 @@ async function stableReleases(source: string) {
   return versions;
 }
 
-// The command an agent continues with: the pinned runtime once it holds this
-// CLI, which recovery uses, and otherwise this exact CLI through npx.
-function continuationCommand(root: string, cliVersion: string) {
+// Before a run, use the exact candidate; after start, prefer its installed
+// runtime. npm can satisfy npx from the product checkout itself, even when
+// that checkout has no executable, so it needs an external installation.
+function continuationCommand(root: string, cliVersion: string, active = true) {
+  if (active)
+    try {
+      const manifest = record(
+        JSON.parse(
+          readFileSync(
+            join(
+              root,
+              ".repo-standards/runtime/node_modules",
+              packageName,
+              "package.json",
+            ),
+            "utf8",
+          ),
+        ),
+      );
+      if (manifest.version === cliVersion && existsSync(join(root, pinnedCli)))
+        return { invoke: (args: string) => `${pinnedCli} ${args}` };
+    } catch {
+      // No usable pinned runtime yet.
+    }
   try {
     const manifest = record(
-      JSON.parse(
-        readFileSync(
-          join(
-            root,
-            ".repo-standards/runtime/node_modules",
-            packageName,
-            "package.json",
-          ),
-          "utf8",
-        ),
-      ),
+      JSON.parse(readFileSync(join(root, "package.json"), "utf8")),
     );
-    if (manifest.version === cliVersion && existsSync(join(root, pinnedCli)))
-      return pinnedCli;
+    if (manifest.name === packageName && manifest.version === cliVersion)
+      return {
+        setup: `adoption_cli=$(mktemp -d /tmp/repo-standards-cli.XXXXXX) && (cd "$adoption_cli" && npm install --prefix "$adoption_cli" --ignore-scripts --save-exact --no-audit --no-fund ${packageName}@${cliVersion})`,
+        invoke: (args: string) =>
+          `"$adoption_cli/node_modules/.bin/repo-standards" ${args} --project ${shellArgument(root)}`,
+      };
   } catch {
-    // No usable pinned runtime yet.
+    // A project without a matching package identity uses ordinary npx.
   }
-  return `npx ${packageName}@${cliVersion}`;
+  return {
+    invoke: (args: string) => `npx ${packageName}@${cliVersion} ${args}`,
+  };
 }
 
 // The text of a product file the run wrote, such as installed rules or
@@ -793,11 +810,13 @@ async function continueRun(
       sourceKey(source) !== sourceKey(standards.repository)) ||
     (typeof version === "string" && version !== standards.version) ||
     (typeof chosen === "string" && chosen !== profile)
-  )
+  ) {
+    const continuation = continuationCommand(root, cliVersion);
     throw new ProductError(
       "ACTIVE_RUN",
-      `A run adopting ${standards.repository} ${standards.version} with profile ${profile} is active. Continue it with an answers file for it, or, with the maintainer's instruction, abandon it with ${continuationCommand(root, cliVersion)} abandon before adopting another selection.`,
+      `A run adopting ${standards.repository} ${standards.version} with profile ${profile} is active. Continue it with an answers file for it, or, with the maintainer's instruction, abandon it with ${continuation.invoke("abandon")} before adopting another selection.${continuation.setup ? ` First set adoption_cli to the external installation of CLI ${cliVersion} that started the run; if unavailable, acquire it outside the project with ${continuation.setup}.` : ""}`,
     );
+  }
   return describeRun(context, run, runReport(run), true);
 }
 
@@ -980,17 +999,19 @@ function withSteps(
   const { root, cliVersion } = context;
   // Before a run installs it, nothing establishes the project's runtime, so
   // only a run's steps name it.
-  const cli = report.run
-    ? continuationCommand(root, cliVersion)
-    : `npx ${packageName}@${cliVersion}`;
+  const cli = continuationCommand(root, cliVersion, !!report.run);
   const answers =
     context.answersPath === undefined
       ? "<answers file>"
       : shellArgument(context.answersPath);
-  const again = code(`${cli} adopt --answers ${answers}`);
-  const invoke = (args: string) => code(`${cli} ${args}`);
+  const invoke = (args: string) => code(cli.invoke(args));
+  const again = invoke(`adopt --answers ${answers}`);
   const ids = new Set(report.answers.questions.map((question) => question.id));
   const steps: string[] = [`Work from the project root, ${code(root)}.`];
+  if (cli.setup)
+    steps.push(
+      `This checkout's package name and version match CLI ${cliVersion}, so pinned npx can select its local package and fail to find the executable. Set ${code("adoption_cli")} to the external installation directory of that exact CLI and keep it for every answer round and recovery until the matching project runtime is available. If you need to acquire it, run ${code(cli.setup)}. Keep that installation and the answers file outside the project. The commands below use this shell variable and explicitly name the target project; --project alone does not change npm's package resolution.`,
+    );
   const reason = report.run?.reason ?? "";
   switch (report.outcome) {
     case "answers-required":
