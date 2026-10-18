@@ -356,9 +356,10 @@ the authoring acceptance.
 it. At the first release containing it, record the exact public `v<version>` as
 its **first containing tag** in the release notes and replace `<release-tag>` in
 the [adoption skill installation section](../usage/installation.md#install-the-adoption-skill)
-with that tag. Remove the unreleased notice there only after verifying the tag
-contains the skill. The existing Release workflow creates the tag at the
-reviewed commit, publishing the skills tree with it. No separate registry,
+with that tag. Remove the unreleased notices there and beside the README's
+optional skill link only after verifying the tag contains the skill. The
+existing Release workflow creates the tag at the reviewed commit, publishing
+the skills tree with it. No separate registry,
 publishing service, or release dispatch is needed for the skill.
 
 On macOS and Linux, verify direct installation from that public tag independently
@@ -370,7 +371,9 @@ complete installed inventory and resource hashes. Compare the contents against
 the tagged skill; only `SKILL.md` and `agents/openai.yaml` belong to this skill.
 Record `disable-model-invocation: false` and
 `policy.allow_implicit_invocation: true` from the installed metadata and verify
-the approved entry text. A local-directory installation is candidate evidence
+the single-sentence pointer to `adopt`, with the user-named source or Repo Canon
+fallback and no restated adoption rules. The CLI owns all adopting-agent
+guidance. A local-directory installation is candidate evidence
 only, regardless of whether npm already carries the CLI.
 
 Record a dated observation of the
@@ -381,8 +384,9 @@ neither invalidates a successful direct installation nor proves a listing exists
 
 After a containing public release exists, complete these README follow-ups:
 
-- Repository Standards: keep the prompt from #284 and add one “or install the
-  adoption skill” alternative beside it, linking the published installation section.
+- Repository Standards: retain the single-sentence CLI pointer and optional
+  skill link from #307, updating the linked installation route and publication
+  notice only after verifying the first containing tag.
 - Repo Canon (`lutzseverino/repo-canon`): **Add the adoption skill alternative to
   the README**, beside the prompt from lutzseverino/repo-canon#507, linking the
   product's published installation instructions. This is separate work in that

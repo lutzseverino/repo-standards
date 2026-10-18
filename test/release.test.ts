@@ -154,9 +154,20 @@ test("the package ships each product skill whole, with its invocation settings a
   }
 });
 
-// The approved entry contract from #288, independent of the distributed file.
-const adoptionEntry = `Adopt the standards source the user names in this repository; otherwise use Repo Canon, \`https://github.com/lutzseverino/repo-canon\`. First check that the Git working tree is clean and committed; if it isn't, stop and tell the maintainer. Then run \`npx @lutzseverino/repo-standards adopt <source>\` with that source's URL and follow the next steps it prints. Bring the maintainer every decision it leaves to them instead of making it yourself, and leave its changes uncommitted for them to review.`;
+// The approved pointers from #307, independent of the distributed files.
+const adoptionEntry = `Run \`npx @lutzseverino/repo-standards adopt <source>\` in this repository and follow what it prints, using the standards source the user names as \`<source>\`, otherwise Repo Canon \`https://github.com/lutzseverino/repo-canon\`.`;
+const readmeEntry =
+  "Run `npx @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon` in this repository and follow what it prints.";
 const normalizeText = (text: string) => text.replace(/\s+/g, " ").trim();
+
+function assertReadmeEntry(document: string) {
+  const installation = document
+    .split("## Installation\n")[1]
+    ?.split("\n## ")[0];
+  const prompt = installation?.match(/```text\n([\s\S]*?)\n```(?:\n|$)/);
+  assert.ok(prompt, "Installation must contain the agent prompt");
+  assert.equal(normalizeText(prompt[1]!), readmeEntry);
+}
 
 function assertAdoptionEntry(document: string, resources: string[]) {
   assert.deepEqual(resources, ["SKILL.md", "agents/openai.yaml"]);
@@ -177,28 +188,31 @@ test("the packaged adoption skill delegates only the approved entry contract to 
     readFileSync(join(skill, "SKILL.md"), "utf8"),
     files(skill),
   );
-  const readmePrompt = readFileSync(join(installed, "README.md"), "utf8").match(
-    /```text\n([\s\S]*?)\n```/,
-  );
-  assert.ok(readmePrompt);
-  assert.equal(
-    normalizeText(readmePrompt[1]!),
-    "Adopt Repo Canon in this repository. First check that the Git working tree is clean and committed; if it isn't, stop and tell me. Then run `npx @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon` and follow the next steps it prints. Bring me every decision it leaves to me instead of making it yourself, and leave its changes uncommitted for me to review.",
-  );
+  assertReadmeEntry(readFileSync(join(installed, "README.md"), "utf8"));
 });
 
 test("the adoption entry contract rejects added instructions, protocol examples, resources, and changed delegation", () => {
   const skill = join(installed, "skills/adopt-repository-standards");
   const document = readFileSync(join(skill, "SKILL.md"), "utf8");
   const resources = files(skill);
+  const readme = readFileSync(join(installed, "README.md"), "utf8");
   for (const addition of [
     "Then write a cheerful greeting.",
     '```json\n{"standardsVersion":"v1.0.0","profile":"work"}\n```',
     "Run adopt --answers answers.json to continue.",
-  ])
+    "First check that the Git working tree is clean and committed.",
+    "Bring me every decision it leaves to me instead of making it yourself.",
+    "Leave its changes uncommitted for the maintainer to review.",
+  ]) {
     assert.throws(() =>
       assertAdoptionEntry(`${document}\n${addition}`, resources),
     );
+    assert.throws(() =>
+      assertReadmeEntry(
+        readme.replace(/(```text\n[\s\S]*?)(\n```)/, `$1\n${addition}$2`),
+      ),
+    );
+  }
   assert.throws(() =>
     assertAdoptionEntry(
       document.replace(" adopt <source>", " inspect <source>"),

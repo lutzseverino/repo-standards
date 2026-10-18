@@ -28,13 +28,10 @@ On macOS or Linux, use stable Node.js 24 or 26 with its bundled npm, and Git
 To adopt Repo Canon, give your coding agent this prompt in your repository:
 
 ```text
-Adopt Repo Canon in this repository. First check that the Git working tree is
-clean and committed; if it isn't, stop and tell me. Then run
-`npx @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon`
-and follow the next steps it prints. Bring me every decision it leaves to me
-instead of making it yourself, and leave its changes uncommitted for me to
-review.
+Run `npx @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon` in this repository and follow what it prints.
 ```
+
+Or [install the adoption skill from a verified release tag](docs/usage/installation.md#install-the-adoption-skill) (currently unreleased).
 
 To run it yourself, use the same command in a terminal, from your committed,
 clean Git working tree:

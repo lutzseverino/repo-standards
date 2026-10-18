@@ -168,6 +168,77 @@ test("adopt without an answers file prints a complete template and changes nothi
   );
 });
 
+test("adopt stops and tells the maintainer about an uncommitted project before a new run", async (t) => {
+  const cases = [
+    {
+      name: "no commit",
+      code: "NO_COMMIT",
+      prepare: (root: string) => git(root, "update-ref", "-d", "HEAD"),
+    },
+    {
+      name: "unstaged tracked changes",
+      code: "DIRTY_PROJECT",
+      prepare: (root: string) =>
+        writeFileSync(join(root, "README.md"), "Pending work\n"),
+    },
+    {
+      name: "staged changes",
+      code: "DIRTY_PROJECT",
+      prepare: (root: string) => {
+        writeFileSync(join(root, "README.md"), "Staged work\n");
+        git(root, "add", "README.md");
+      },
+    },
+    {
+      name: "untracked content",
+      code: "DIRTY_PROJECT",
+      prepare: (root: string) =>
+        writeFileSync(join(root, "notes.md"), "Pending notes\n"),
+    },
+  ];
+  for (const scenario of cases)
+    await t.test(scenario.name, async (t) => {
+      const f = await fixture(t, cli, {
+        "agent-guidance": {
+          kind: "file",
+          target: "SHARED.md",
+          exact: "content/AGENTS.md",
+        },
+      });
+      scenario.prepare(f.root);
+      const before = snapshot(f.root);
+      const status = git(f.root, "status", "--porcelain=v1");
+
+      const template = f.adopt([source]);
+      assert.equal(template.result.status, 0, template.result.stdout);
+      assert.equal(template.report.outcome, "answers-required");
+      const answers = f.answer(template.report.answers);
+      const blocked = f.adopt(answers);
+      assert.equal(blocked.result.status, 1, blocked.result.stdout);
+      assert.equal(blocked.report.outcome, "blocked");
+
+      for (const { report } of [template, blocked]) {
+        assert.ok(report.blockers.some(({ code }) => code === scenario.code));
+        assert.equal(report.run, undefined);
+        assert.match(report.nextSteps.at(-1)!, /Stop and tell the maintainer/);
+        assert.match(report.nextSteps.at(-1)!, /clean, committed/);
+        assert.doesNotMatch(
+          report.nextSteps.join("\n"),
+          /committing or reconciling|Run `.*adopt --answers/,
+        );
+      }
+      // Markdown carries the same stop instruction as JSON, for both the
+      // template and a fully answered request that cannot start.
+      for (const args of [[source], answers]) {
+        const text = f.run(["adopt", ...args]);
+        assert.ok(text.stdout.includes(`\`${scenario.code}\``));
+        assert.match(text.stdout, /Stop and tell the maintainer/);
+      }
+      assert.deepEqual(snapshot(f.root), before);
+      assert.equal(git(f.root, "status", "--porcelain=v1"), status);
+    });
+});
+
 test("self-adoption answer rounds use an external exact CLI and preserve the target project", async (t) => {
   const f = await fixture(
     t,
@@ -401,9 +472,13 @@ test("an answers file adopts through missing answers, confirmation, contextual w
   const outside = directoryFixture("repo-standards-adopt-source-");
   t.after(() => outside.close());
   const f = await fixture(t, cli, readmeSource(outside.root));
+  const head = git(f.root, "rev-parse", "HEAD");
   const template = f.adopt([source]).report;
   const identity = template.inspection!.identity;
   const before = snapshot(f.root);
+  const initialSteps = template.nextSteps.join("\n");
+  assert.match(initialSteps, /Present the inspection to the maintainer/);
+  assert.match(initialSteps, /only after they confirm discarding them/);
 
   // An incomplete answers file names its missing answers and changes nothing.
   const incomplete = f.adopt(
@@ -552,6 +627,11 @@ test("an answers file adopts through missing answers, confirmation, contextual w
   const waiting = f.adopt(answers, true);
   assert.equal(waiting.report.outcome, "contextual");
   assert.deepEqual(waiting.report.missing, ["assessment:project-readme"]);
+  const waitingSteps = waiting.report.nextSteps.join("\n");
+  assert.match(waitingSteps, /Answer each assessment with your own judgment/);
+  assert.match(waitingSteps, /answer that assessment `blocked`/);
+  assert.match(waitingSteps, /decision the maintainer needs to make/);
+  assert.doesNotMatch(waitingSteps, /Stop and tell the maintainer/);
 
   // The active run adopts only its own selection.
   const other = f.adopt(
@@ -606,6 +686,19 @@ test("an answers file adopts through missing answers, confirmation, contextual w
   const complete = f.adopt(submission, true);
   assert.equal(complete.result.status, 0, complete.result.stdout);
   assert.equal(complete.report.outcome, "complete");
+  assert.match(
+    complete.report.nextSteps.at(-1)!,
+    /Do not commit.*hand the changes to the maintainer for review/,
+  );
+  const steps = complete.report.nextSteps.join("\n");
+  assert.match(steps, /git --no-optional-locks diff --no-ext-diff/);
+  assert.match(steps, /ls-files --others --exclude-standard -z/);
+  assert.match(steps, /read each new file's complete content/);
+  assert.match(steps, /uncommitted and unstaged/);
+  assert.match(steps, /Report script outcomes and your assessments separately/);
+  assert.equal(git(f.root, "rev-parse", "HEAD"), head);
+  assert.equal(git(f.root, "diff", "--cached"), "");
+  assert.notEqual(git(f.root, "status", "--porcelain=v1"), "");
   const status = JSON.parse(
     spawnSync(f.pinned, ["status", "--json"], {
       cwd: f.root,
