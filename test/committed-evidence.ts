@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
+import { parseDocument, visit as visitYaml } from "yaml";
 import { git } from "./remote-fixture.ts";
 
 export type CommittedInterval = Omit<RecordedInterval, "before" | "after"> & {
@@ -274,7 +275,8 @@ export function growCommittedState(root: string, bytes: number) {
 // Committed evidence binds content, not location: no file the adoption leaves
 // for the project's normal workflow to commit names an absolute path or a
 // relative path with a parent segment, as a JSON key or string value, and none
-// names a given machine location anywhere in its text. The parent-segment check
+// names a given machine location anywhere outside exact authored string values.
+// The parent-segment check
 // is deliberately strict: the product writes only normalized paths, and a skill
 // link's text, which resolves inside the project. Absolute
 // paths the standards source itself declares, such as an operation's
@@ -322,8 +324,27 @@ export function assertNoMachineLocation(
   }
   for (const path of committed) {
     const text = readFileSync(join(root, path), "utf8");
+    let observedText = text;
+    if (authored.length && /\.(json|ya?ml)$/.test(path)) {
+      const ranges: [number, number][] = [];
+      visitYaml(parseDocument(text), {
+        Scalar(key, node) {
+          if (
+            key !== "key" &&
+            typeof node.value === "string" &&
+            authored.includes(node.value) &&
+            node.range
+          )
+            ranges.push([node.range[0], node.range[1]]);
+        },
+      });
+      // Mask only the scalar's source bytes, preserving keys, comments and all
+      // other text, including a different path sharing the authored prefix.
+      for (const [start, end] of ranges.sort((a, b) => b[0] - a[0]))
+        observedText = observedText.slice(0, start) + observedText.slice(end);
+    }
     for (const machine of locations)
-      if (text.includes(machine)) located.push(`${path}: ${machine}`);
+      if (observedText.includes(machine)) located.push(`${path}: ${machine}`);
     if (path.endsWith(".json")) visit(path, JSON.parse(text) as unknown);
   }
   assert.deepEqual(
