@@ -157,7 +157,7 @@ template outside the project, fill its answers from the maintainer's choices,
 and continue with the exact command in the next steps, for example:
 
 ```sh
-npx @lutzseverino/repo-standards@7.2.0 adopt --answers /tmp/adoption-answers.json
+npx @lutzseverino/repo-standards@8.0.0 adopt --answers /tmp/adoption-answers.json
 ```
 
 Use the CLI version printed by your own run. Once the pinned runtime is
@@ -218,14 +218,14 @@ from the working directory before the CLI reads that option.
 
 Use the supported [external exact-CLI installation](inspection.md#keep-the-disclosed-cli-for-start-and-recovery)
 instead. Start with a clean, committed checkout. Replace the project path and
-`7.2.0` with the intended checkout and exact published candidate version:
+`8.0.0` with the intended checkout and exact published candidate version:
 
 ```sh
 adoption_project="/absolute/path/to/repo-standards"
 adoption_cli=$(mktemp -d /tmp/repo-standards-cli.XXXXXX)
 (cd "$adoption_cli" && npm install --prefix "$adoption_cli" \
   --ignore-scripts --save-exact --no-audit --no-fund \
-  @lutzseverino/repo-standards@7.2.0)
+  @lutzseverino/repo-standards@8.0.0)
 "$adoption_cli/node_modules/.bin/repo-standards" --version
 "$adoption_cli/node_modules/.bin/repo-standards" adopt \
   --project "$adoption_project" --json
@@ -481,11 +481,11 @@ retained standards, or pass them to change the standards version, source, or
 profile in the same run:
 
 ```sh
-candidate_dir="$HOME/.local/share/repo-standards/cli-7.2.0"
+candidate_dir="$HOME/.local/share/repo-standards/cli-8.0.0"
 mkdir -p "$candidate_dir"
 (cd "$candidate_dir" && npm install --prefix "$candidate_dir" \
   --ignore-scripts --save-exact --no-audit --no-fund \
-  @lutzseverino/repo-standards@7.2.0)
+  @lutzseverino/repo-standards@8.0.0)
 "$candidate_dir/node_modules/.bin/repo-standards" inspect --json
 ```
 
