@@ -216,15 +216,17 @@ function lookup(
 
 // The rules covering a path, or the repository-wide rules without one, as
 // text: each declaration's heading, then its rules as installed.
+// The project root is the empty project-relative path, shown as ".".
 export function rulesSummary(report: RulesReport) {
+  const path = report.path === "" ? "." : report.path;
   if (!report.rules.length)
-    return report.path === null
+    return path === null
       ? "No repository-wide rules are installed.\n"
-      : `No installed rules cover ${report.path}.\n`;
-  return `${report.path === null ? "Repository-wide rules:" : `Rules covering ${report.path}:`}\n${report.rules
+      : `No installed rules cover ${path}.\n`;
+  return `${path === null ? "Repository-wide rules:" : `Rules covering ${path}:`}\n${report.rules
     .map(
       (entry) =>
-        `\n## ${entry.declaration} (${entry.path}), ${entry.coverage === "repository" ? "the whole repository" : `covering ${report.path}`}\n\n${entry.content}${entry.content.endsWith("\n") ? "" : "\n"}`,
+        `\n## ${entry.declaration} (${entry.path}), ${entry.coverage === "repository" ? "the whole repository" : `covering ${path}`}\n\n${entry.content}${entry.content.endsWith("\n") ? "" : "\n"}`,
     )
     .join("")}`;
 }
