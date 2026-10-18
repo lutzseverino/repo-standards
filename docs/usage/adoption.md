@@ -39,6 +39,14 @@ npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
   and next steps. The agent relays the questions to you, fills the file, makes
   the requested edits, and submits assessments with the same command.
 
+The CLI owns the adopting agent's instructions; the README prompt and optional
+`adopt-repository-standards` skill only point to it. Before a new run, Git
+blockers make its next steps stop the agent and notify the maintainer to resolve
+the pending work. Active runs continue with their expected uncommitted changes.
+On completion, its agent guidance hands those changes to the maintainer for
+review without committing them. Terminal completion addresses a person who can
+review and commit through the project's normal workflow.
+
 Adoption installs exact files, whole author skills, and each declaration's
 [rules](rules.md), adapts project-owned content, and runs the publisher's
 trusted fixes and checks. Review the resulting changes and commit them through

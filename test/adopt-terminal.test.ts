@@ -135,6 +135,9 @@ test("adopt in a terminal asks its questions, walks contextual work until its ch
   );
   session.type("");
   await session.expect("The adoption is complete.");
+  await session.expect(
+    "Review them with git status and git diff, then commit them through the project's normal workflow.",
+  );
   assert.equal(await session.exit(), 0, session.rest());
 
   // The assessment is the maintainer's, and the run is ready to commit.

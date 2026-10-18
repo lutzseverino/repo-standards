@@ -37,7 +37,7 @@ import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
 import { inspect } from "./inspection.js";
 import type { Blocker } from "./observation.js";
-import { requireSupportedGit } from "./observation.js";
+import { observeGitStart, requireSupportedGit } from "./observation.js";
 import { record } from "./records.js";
 import { deferredRemoteSetup } from "./remote-setup.js";
 import { validateSource } from "./resolver.js";
@@ -507,6 +507,7 @@ async function prepare(
       {
         ...report("answers-required", [versionQuestion]),
         missing: ["version"],
+        blockers: observeGitStart(root).blockers,
       },
       mode === "template",
     );
@@ -597,6 +598,7 @@ async function prepare(
       {
         ...report("answers-required", [versionQuestion, profileQuestion]),
         missing: ["profile"],
+        blockers: observeGitStart(root).blockers,
       },
       mode === "template",
     );
@@ -1008,6 +1010,17 @@ function withSteps(
   const again = invoke(`adopt --answers ${answers}`);
   const ids = new Set(report.answers.questions.map((question) => question.id));
   const steps: string[] = [`Work from the project root, ${code(root)}.`];
+  if (
+    !report.run &&
+    report.blockers.some(
+      ({ code }) => code === "NO_COMMIT" || code === "DIRTY_PROJECT",
+    )
+  ) {
+    steps.push(
+      "Stop and tell the maintainer about the Git blockers above: a new adoption run requires a clean, committed project. Leave their pending work unchanged; the maintainer must resolve it before adoption can start.",
+    );
+    return { ...report, nextSteps: steps };
+  }
   if (cli.setup)
     steps.push(
       `This checkout's package name and version match CLI ${cliVersion}, so pinned npx can select its local package and fail to find the executable. Set ${code("adoption_cli")} to the external installation directory of that exact CLI and keep it for every answer round and recovery until the matching project runtime is available. If you need to acquire it, run ${code(cli.setup)}. Keep that installation and the answers file outside the project. The commands below use this shell variable and explicitly name the target project; --project alone does not change npm's package resolution.`,
@@ -1048,7 +1061,7 @@ function withSteps(
         );
       if (report.blockers.length)
         steps.push(
-          "Resolve each blocker above before the run can start, such as committing or reconciling uncommitted changes.",
+          "Resolve each blocker above with the maintainer before the run can start.",
         );
       steps.push(
         `Run ${again}. It names any missing answers, asks the questions your answers raise, such as discovery once a profile is chosen, and starts the run once none remain.`,
@@ -1061,7 +1074,7 @@ function withSteps(
         );
       else if (report.blockers.length)
         steps.push(
-          "Resolve each blocker above, such as committing or reconciling uncommitted changes; adoption writes nothing until they are resolved.",
+          "Resolve each blocker above with the maintainer; adoption writes nothing until they are resolved.",
         );
       else
         steps.push(
@@ -1101,7 +1114,7 @@ function withSteps(
         "Review every output before the maintainer commits it: run `git --no-optional-locks diff --no-ext-diff --no-textconv --binary` and `git --no-optional-locks ls-files --others --exclude-standard -z`, and read each new file's complete content. A list of names or hashes is not a review.",
         "Leave the changes uncommitted and unstaged, and keep review artifacts outside the project.",
         `Report script outcomes and your assessments separately. ${invoke("status")} says whether the run is ready to commit, and ${invoke("status --summary")} renders its adoption record.`,
-        "The maintainer commits the adoption through the project's normal workflow. Run adopt again later to update the selection.",
+        "Do not commit; hand the changes to the maintainer for review and their project's normal workflow. Run adopt again later to update the selection.",
       );
       break;
     case "incomplete":

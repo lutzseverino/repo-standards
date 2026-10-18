@@ -132,10 +132,10 @@ standards source, and the project-local `repository-standards` looks up installe
 rules and reports updates after adoption. Adoption installs only the last of
 these automatically.
 
-`adopt-repository-standards` delegates to `adopt` and follows the CLI's next
-steps. It uses the standards source you name, with Repo Canon as the fallback,
-checks for a clean, committed Git working tree, and leaves decisions and review
-with the maintainer.
+`adopt-repository-standards` is a single-sentence pointer to `adopt`, using the
+standards source you name, with Repo Canon as the fallback. The CLI owns all
+adopting-agent guidance, including blockers, maintainer decisions, contextual
+assessments, and the final review handoff.
 
 This skill is unreleased; **v7.1.0 does not contain it**. For published installation,
 replace `<release-tag>` below with a public release tag that contains

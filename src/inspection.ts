@@ -15,6 +15,7 @@ import {
   hiddenIndexPaths,
   inventoryPaths,
   observe,
+  observeGitStart,
   observeProductState,
   productStateObservation,
   targetObservation,
@@ -238,28 +239,7 @@ export async function inspectForStart(
       observations,
     ));
   try {
-    const head = git(root, ["rev-parse", "--verify", "HEAD"]);
-    const status = git(root, [
-      "status",
-      "--porcelain=v1",
-      "-z",
-      "--untracked-files=all",
-      "--ignore-submodules=all",
-    ]);
-    if (status.status !== 0)
-      throw new ProductError("PROJECT_READ", "Cannot inspect Git status.");
-    const blockers: Blocker[] = [];
-    if (head.status !== 0)
-      blockers.push({
-        code: "NO_COMMIT",
-        message: "Create an initial commit before starting adoption.",
-      });
-    if (status.stdout)
-      blockers.push({
-        code: "DIRTY_PROJECT",
-        message:
-          "Commit or reconcile all index, working tree, and untracked changes before starting adoption.",
-      });
+    const { head, status, blockers } = observeGitStart(root);
     const index = git(root, ["ls-files", "--stage", "-z"]);
     if (index.status !== 0)
       throw new ProductError("PROJECT_READ", "Cannot inspect the Git index.");

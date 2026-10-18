@@ -60,12 +60,18 @@ procedure is the next steps `adopt` prints at each stage. An update removes the
 unedited old adoption skill and its link under the same retired-target policy.
 
 The model-invocable `adopt-repository-standards` system skill is a standalone
-entry point for adopting a standards source. It uses the user-named source or
-Repo Canon as the fallback, requires a clean, committed Git working tree, and
-delegates to the unversioned `npx @lutzseverino/repo-standards adopt <source>`
-command and its printed next steps. Decisions stay with the maintainer and
-changes stay uncommitted for review. It carries no adoption procedure of its
-own. Like `author-standards`, it is distributed independently through release-tag
+entry point for adopting a standards source. Its body is one sentence pointing
+to the unversioned `npx @lutzseverino/repo-standards adopt <source>` command,
+using the user-named source or Repo Canon as the fallback, and following what
+it prints. The README prompt is also a one-sentence pointer. The CLI owns all
+adopting-agent instructions: a new run's `NO_COMMIT` or `DIRTY_PROJECT` blockers
+stop the agent and notify the maintainer, including in answers templates;
+active runs continue with their expected uncommitted changes. Completion
+requires complete-output review, leaves changes uncommitted and unstaged, and
+hands them to the maintainer for review without committing. The terminal's
+completion message addresses a human who can review and commit normally.
+Neither entry point carries adoption rules of its own. Like `author-standards`,
+the skill is distributed independently through release-tag
 skill installation and is not installed into adopting projects by adoption.
 
 ## Deep modules
