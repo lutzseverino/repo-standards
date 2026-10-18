@@ -291,8 +291,9 @@ Publication reaches the registry and release downloads eventually, so before
 its assertions the script polls for the exact version's npm `dist` metadata,
 then the release's `release.json` and `repo-standards-bootstrap` assets. It
 retries only not-found results (npm `E404`, HTTP 404) every 10 seconds; any
-other failure stops acceptance at once. The whole wait is bounded at 300
-seconds from the first observation, and the last attempt starts at the bound.
+other failure stops acceptance at once. npm and all release assets share one
+600-second propagation budget from the first observation; each subject uses
+the remaining time, and the last attempt starts at the bound.
 Each attempt has its own 60-second timeout, so the wait ends at most about a
 minute past the bound; a subject observed by that last attempt is accepted. A
 subject still missing then fails acceptance with a diagnostic naming the
