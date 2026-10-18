@@ -32,6 +32,7 @@ import {
   inspectionArgs,
   remoteFixture,
   startArgs,
+  writeInfoExclude,
 } from "./remote-fixture.ts";
 import { adoptionFixture } from "./adoption-fixture.ts";
 
@@ -864,6 +865,7 @@ test("discovery requests become stale after project, selection, and consulted ig
     project.close();
   });
   git(project.root, "config", "core.ignorecase", "false");
+  writeInfoExclude(project.root, "# initial exclusions\n");
   commit(project.root);
   const request = () => {
     const result = cli.run(inspectionArgs, project.root, remote.env);
@@ -908,10 +910,7 @@ test("discovery requests become stale after project, selection, and consulted ig
   assert.notEqual(second.discovery!.identity, first.discovery!.identity);
   // The same proposal inspected against the changed project is a new inspection.
   assert.notEqual(proposed(), confirmed);
-  writeFileSync(
-    join(project.root, ".git/info/exclude"),
-    "# no classification change\n",
-  );
+  writeInfoExclude(project.root, "# no classification change\n");
   const third = request();
   assert.notEqual(third.discovery!.identity, second.discovery!.identity);
   const ignore = join(remote.support.root, "global-ignore");
@@ -1207,7 +1206,7 @@ test("ignore inputs bind their content by role, not their location, and reports 
   assert.notEqual(changed.identity, first.identity);
   // An ignored symbolic .gitignore is bound by the hash of its target, never
   // the machine-local target itself.
-  writeFileSync(join(project.root, ".git/info/exclude"), "app/.gitignore\n");
+  writeInfoExclude(project.root, "app/.gitignore\n");
   symlinkSync(moved, join(project.root, "app/.gitignore"));
   const linked = request();
   assert.deepEqual(linked.discovery!.observation.ignores["app/.gitignore"], {

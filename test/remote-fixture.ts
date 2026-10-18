@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { chmodSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { stringify } from "yaml";
 import { directoryFixture, sourceFixture } from "./installed-cli.ts";
@@ -10,6 +10,20 @@ export function git(root: string, ...args: string[]) {
     cwd: root,
     encoding: "utf8",
   }).trim();
+}
+
+// Write the repository's info-exclude input with exactly these bytes. Git need
+// not create its directory, so a scenario that depends on the file supplies it
+// rather than inheriting Git's template payload. Git resolves the path, so a
+// linked worktree writes the shared Git directory's input.
+export function writeInfoExclude(root: string, contents: string) {
+  const path = resolve(
+    root,
+    git(root, "rev-parse", "--git-path", "info/exclude"),
+  );
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, contents);
+  return path;
 }
 
 export function commit(root: string) {
