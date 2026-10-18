@@ -8,8 +8,8 @@ import {
   type InstallationOwner,
 } from "./targets.js";
 
-// One renderer turns an inspection report or a status record into a Markdown
-// summary. It is a pure function of that input, so the same input renders the
+// One renderer turns an inspection report, a status record or an outdated
+// report into a Markdown summary. It is a pure function of that input, so the same input renders the
 // same bytes. It describes what the input records and nothing else: it names
 // no workflow and does not say what to do with an update.
 
@@ -609,6 +609,88 @@ function activeSummary(run: RunRecord, execution: string | undefined) {
       ),
     ),
   ];
+}
+
+// The availability report of `outdated`: one entry per pin, as the command
+// reports it. A pin that could not be answered carries a reason instead of
+// versions.
+interface PinAvailability {
+  pinned: string | null;
+  update: string;
+  reason?: { code: string; message: string };
+  newest?: string;
+  newerStableReleases?: number;
+  checkedAt?: string;
+  cached?: boolean;
+}
+export interface OutdatedReport {
+  cli: PinAvailability & { package: string };
+  standards: PinAvailability & { repository: string | null };
+}
+
+export function outdatedSummary(report: OutdatedReport) {
+  const pins = [
+    { name: "CLI", subject: report.cli.package, pin: report.cli },
+    {
+      name: "Standards source",
+      subject: report.standards.repository,
+      pin: report.standards,
+    },
+  ];
+  const known = (value: string | number | undefined) =>
+    value === undefined
+      ? "unknown"
+      : typeof value === "string"
+        ? code(value)
+        : String(value);
+  const parts = [
+    "# Repository Standards available updates",
+    section(
+      "Pins",
+      table(
+        [
+          "Pin",
+          "Subject",
+          "Pinned",
+          "Newest",
+          "Update",
+          "Newer stable releases",
+          "Checked at",
+          "Lookup",
+        ],
+        pins.map(({ name, subject, pin }) => [
+          name,
+          subject === null ? "not recorded" : code(subject),
+          pin.pinned === null ? "not recorded" : code(pin.pinned),
+          known(pin.newest),
+          pin.update,
+          known(pin.newerStableReleases),
+          pin.checkedAt ?? "unknown",
+          pin.cached === undefined
+            ? "unknown"
+            : pin.cached
+              ? "cached"
+              : "fresh",
+        ]),
+      ),
+    ),
+  ];
+  const unknown = pins.filter(({ pin }) => pin.reason);
+  if (unknown.length)
+    parts.push(
+      section(
+        "Unknown results",
+        table(
+          ["Pin", "Code", "Message"],
+          unknown.map(({ name, pin }) => [
+            name,
+            code(pin.reason!.code),
+            text(pin.reason!.message),
+          ]),
+        ),
+      ),
+    );
+  return parts.join("\n\n") + "\n";
 }
 
 export function statusSummary(record: StatusRecord) {
