@@ -159,6 +159,34 @@ export function git(
   return result;
 }
 
+// The Git state that permits a new adoption, shared by inspection and
+// selection-question reports that cannot inspect a profile yet.
+export function observeGitStart(root: string) {
+  const head = git(root, ["rev-parse", "--verify", "HEAD"]);
+  const status = git(root, [
+    "status",
+    "--porcelain=v1",
+    "-z",
+    "--untracked-files=all",
+    "--ignore-submodules=all",
+  ]);
+  if (status.status !== 0)
+    throw new ProductError("PROJECT_READ", "Cannot inspect Git status.");
+  const blockers: Blocker[] = [];
+  if (head.status !== 0)
+    blockers.push({
+      code: "NO_COMMIT",
+      message: "Create an initial commit before starting adoption.",
+    });
+  if (status.stdout)
+    blockers.push({
+      code: "DIRTY_PROJECT",
+      message:
+        "Commit or reconcile all index, working tree, and untracked changes before starting adoption.",
+    });
+  return { head, status, blockers };
+}
+
 // Include staged, unstaged and untracked paths, and both ends of a rename.
 export function uncommittedPaths(root: string) {
   const status = git(root, [

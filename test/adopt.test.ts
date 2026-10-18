@@ -239,6 +239,49 @@ test("adopt stops and tells the maintainer about an uncommitted project before a
     });
 });
 
+test("adopt reports Git blockers before asking for a profile from a multi-profile source", async (t) => {
+  for (const noCommit of [false, true])
+    await t.test(noCommit ? "no commit" : "dirty tree", async (t) => {
+      const f = await fixture(
+        t,
+        cli,
+        {},
+        {
+          profiles: { work: {}, personal: {} },
+        },
+      );
+      if (noCommit) git(f.root, "update-ref", "-d", "HEAD");
+      else writeFileSync(join(f.root, "README.md"), "Pending work\n");
+      const before = snapshot(f.root);
+      const status = git(f.root, "status", "--porcelain=v1");
+      const code = noCommit ? "NO_COMMIT" : "DIRTY_PROJECT";
+
+      const { result, report } = f.adopt([source]);
+      assert.equal(result.status, 0, result.stdout + result.stderr);
+      assert.equal(report.outcome, "answers-required");
+      assert.deepEqual(report.missing, ["profile"]);
+      assert.equal(question(report, "profile").answer, null);
+      assert.ok(report.blockers.some((blocker) => blocker.code === code));
+      assert.equal(report.run, undefined);
+      assert.match(report.nextSteps.at(-1)!, /Stop and tell the maintainer/);
+      assert.match(
+        report.nextSteps.at(-1)!,
+        /Leave their pending work unchanged/,
+      );
+      assert.doesNotMatch(
+        report.nextSteps.join("\n"),
+        /Ask the maintainer each question|Run `.*adopt --answers/,
+      );
+
+      const text = f.run(["adopt", source]);
+      assert.equal(text.status, 0, text.stderr);
+      assert.ok(text.stdout.includes(`\`${code}\``));
+      assert.match(text.stdout, /Stop and tell the maintainer/);
+      assert.deepEqual(snapshot(f.root), before);
+      assert.equal(git(f.root, "status", "--porcelain=v1"), status);
+    });
+});
+
 test("self-adoption answer rounds use an external exact CLI and preserve the target project", async (t) => {
   const f = await fixture(
     t,

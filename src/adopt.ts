@@ -37,7 +37,7 @@ import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
 import { inspect } from "./inspection.js";
 import type { Blocker } from "./observation.js";
-import { requireSupportedGit } from "./observation.js";
+import { observeGitStart, requireSupportedGit } from "./observation.js";
 import { record } from "./records.js";
 import { deferredRemoteSetup } from "./remote-setup.js";
 import { validateSource } from "./resolver.js";
@@ -507,6 +507,7 @@ async function prepare(
       {
         ...report("answers-required", [versionQuestion]),
         missing: ["version"],
+        blockers: observeGitStart(root).blockers,
       },
       mode === "template",
     );
@@ -597,6 +598,7 @@ async function prepare(
       {
         ...report("answers-required", [versionQuestion, profileQuestion]),
         missing: ["profile"],
+        blockers: observeGitStart(root).blockers,
       },
       mode === "template",
     );
