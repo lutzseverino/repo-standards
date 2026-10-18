@@ -71,7 +71,9 @@ The text output starts with `Rules covering <path>:`, then gives each
 declaration a heading naming its ID, its installed rules file, and whether it
 covers the path or the whole repository, followed by the rules as installed.
 When nothing covers the path it prints `No installed rules cover <path>.` and
-exits `0`.
+exits `0`. A path that resolves to the project root is shown as `.` in both,
+as in `Rules covering .:`; its JSON `path` is `""`, unlike the `null` of a
+lookup with no path.
 
 With no path, `rules` prints only the rules of the repository-wide
 declarations, in declaration ID order. The text output starts with

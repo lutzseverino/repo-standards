@@ -290,6 +290,42 @@ ${installed.hosting}
 
 ${installed["source-layout"]}`,
   );
+
+  // The project root named explicitly is shown as "." and keeps its JSON
+  // path, whichever way it is named; no path is still the repository-wide
+  // lookup.
+  const hostingOnly = [["hosting", "repository"]];
+  const rootLookup = lookup(".");
+  assert.equal(rootLookup.path, "");
+  assert.deepEqual(covering(rootLookup), hostingOnly);
+  const rootText = cli.run(["rules", "."], root, f.env);
+  assert.equal(rootText.status, 0, rootText.stderr);
+  assert.equal(
+    rootText.stdout,
+    `Rules covering .:
+
+## hosting (.repo-standards/rules/hosting.md), the whole repository
+
+${installed.hosting}`,
+  );
+  for (const [path, cwd] of [
+    ["..", join(root, "docs")],
+    [root, join(root, "src")],
+  ] as const) {
+    assert.equal(
+      cli.run(["rules", path], cwd, f.env).stdout,
+      rootText.stdout,
+      path,
+    );
+    assert.equal(lookup(path, cwd).path, "");
+  }
+  const wide = cli.run(["rules", "--json"], root, f.env);
+  assert.equal((JSON.parse(wide.stdout) as RulesReport).path, null);
+  assert.match(
+    cli.run(["rules"], root, f.env).stdout,
+    /^Repository-wide rules:\n/,
+  );
+
   const outside = cli.run(["rules", "../elsewhere.md"], root, f.env);
   assert.equal(outside.status, 2, outside.stdout);
   assert.match(outside.stderr, /\[USAGE\].*inside the project/);
@@ -401,6 +437,8 @@ test("an update that removes a declaration removes its rules and its index entry
   assert.deepEqual(uncovered.report.rules, []);
   const text = f.run(["rules", "CONTRIBUTING.md"]);
   assert.equal(text.stdout, "No installed rules cover CONTRIBUTING.md.\n");
+  assert.equal(f.run(["rules", "."]).stdout, "No installed rules cover ..\n");
+  assert.equal(f.json<RulesReport>(["rules", ".", "--json"]).report.path, "");
 
   // Every rules file is gone once no declaration has rules.
   f.remote.addVersion(
