@@ -2,8 +2,9 @@
 
 Each version's [GitHub release](https://github.com/lutzseverino/repo-standards/releases)
 carries its release notes, and its assets carry the publication identities. The
-commands below require the named version to have been published to public npm;
-a release bundle alone is not publication.
+CLI installation commands below require the named version to have been published
+to public npm; a release bundle alone is not publication. Standalone skill
+installation uses a public Git release tag independently of npm publication.
 
 Use macOS or Linux with Node.js 24 or 26, npm, and Git 2.32 or newer on `PATH`. Install Node.js 24 or 26
 from <https://nodejs.org/en/download> or select it with your version manager.
@@ -122,6 +123,51 @@ reported reset rather than repeatedly restarting a failed command. A rejected
 token (HTTP 401) is `SOURCE_UNAVAILABLE`, without anonymous retry. `outdated`
 reports either failure as `unknown` and still exits 0. Credentials are not
 required for supported public sources.
+
+## Install the adoption skill
+
+The product provides three separate skills: `adopt-repository-standards` starts
+adoption in an adopting project, `author-standards` helps publishers author a
+standards source, and the project-local `repository-standards` looks up installed
+rules and reports updates after adoption. Adoption installs only the last of
+these automatically.
+
+`adopt-repository-standards` delegates to `adopt` and follows the CLI's next
+steps. It uses the standards source you name, with Repo Canon as the fallback,
+checks for a clean, committed Git working tree, and leaves decisions and review
+with the maintainer.
+
+This skill is unreleased; **v7.1.0 does not contain it**. For published installation,
+replace `<release-tag>` below with a public release tag that contains
+`skills/adopt-repository-standards`. A tag that predates the skill cannot install
+it. Use the same [skills CLI](https://github.com/vercel-labs/skills) route as for
+authoring:
+
+```sh
+npx skills@1.5.25 add https://github.com/lutzseverino/repo-standards/tree/<release-tag>/skills/adopt-repository-standards \
+  --skill adopt-repository-standards --global --agent codex --copy
+```
+
+Global installation makes the skill available before and across adopting
+projects. Select your supported agent with `--agent`; `codex` is the acceptance
+route. Invoke `adopt-repository-standards` by name or ask naturally, for example,
+“Set up shared repository conventions in this repository.” The installation
+contains only `SKILL.md` and `agents/openai.yaml`, with implicit invocation enabled
+in both settings. The macOS or Linux, Node.js 24, npm, and Git prerequisites above
+still apply. Installing this skill does not install the CLI or alter a project's
+runtime pin; `adopt` manages its own runtime when invoked.
+
+For unreleased development only, replace the public URL with a local directory
+containing this skill. That establishes candidate installation, not installation
+from a published release.
+
+Direct installation is independent of the
+[adoption skill directory page](https://skills.sh/lutzseverino/repo-standards/adopt-repository-standards).
+As with the authoring listing below, the [directory FAQ](https://skills.sh/docs/faq)
+describes discovery through skills CLI installation telemetry. The link is a
+directory location, not evidence that indexing has happened. After publication,
+record direct release-tag installation separately from a dated directory
+observation; listing, indexing time, and ranking are not release guarantees.
 
 ## Install the authoring skill
 

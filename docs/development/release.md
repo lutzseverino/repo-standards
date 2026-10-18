@@ -326,9 +326,10 @@ systems checked, and the outcome. Keep the notes above it unchanged.
 Do not label the release complete while publication, either OS, real-agent work
 the parent names, or any parent criterion remains unverified. The parent remains open and unchanged.
 
-## Authoring skill release
+## Product skill release
 
-Each release carries the `repository-standards` and `author-standards`
+Each release carries the `repository-standards`, `author-standards`, and
+`adopt-repository-standards`
 skills, their references, and the matching author and protocol documentation.
 Before packaging another version, update the standalone authoring guide
 (`skills/author-standards/references/cli.md`) and the public installation
@@ -347,3 +348,41 @@ When the parent specification names them, fresh real-agent creation, revision,
 and resumption remain separate acceptance work. Record direct installation independently of dated skills.sh observations.
 A ready PR, candidate test run, or public Git branch alone does not complete
 the authoring acceptance.
+
+### Adoption entry skill publication
+
+`adopt-repository-standards` is an unreleased candidate; v7.1.0 does not contain
+it. At the first release containing it, record the exact public `v<version>` as
+its **first containing tag** in the release notes and replace `<release-tag>` in
+the [adoption skill installation section](../usage/installation.md#install-the-adoption-skill)
+with that tag. Remove the unreleased notice there only after verifying the tag
+contains the skill. The existing Release workflow creates the tag at the
+reviewed commit, publishing the skills tree with it. No separate registry,
+publishing service, or release dispatch is needed for the skill.
+
+On macOS and Linux, verify direct installation from that public tag independently
+of npm: run the documented `skills@1.5.25 add` command with isolated child-process
+home and agent configuration directories, outside a product checkout and an
+adopting project. Disable telemetry for acceptance and leave real global skills
+untouched. Record the tag, resolved commit, command, tool versions, OS, outcome,
+complete installed inventory and resource hashes. Compare the contents against
+the tagged skill; only `SKILL.md` and `agents/openai.yaml` belong to this skill.
+Record `disable-model-invocation: false` and
+`policy.allow_implicit_invocation: true` from the installed metadata and verify
+the approved entry text. A local-directory installation is candidate evidence
+only, regardless of whether npm already carries the CLI.
+
+Record a dated observation of the
+[skills.sh directory location](https://skills.sh/lutzseverino/repo-standards/adopt-repository-standards)
+and `npx skills@1.5.25 find adopt-repository-standards` separately, including any
+absence or error. Discovery uses installation telemetry, so an indexing delay
+neither invalidates a successful direct installation nor proves a listing exists.
+
+After a containing public release exists, complete these README follow-ups:
+
+- Repository Standards: keep the prompt from #284 and add one “or install the
+  adoption skill” alternative beside it, linking the published installation section.
+- Repo Canon (`lutzseverino/repo-canon`): **Add the adoption skill alternative to
+  the README**, beside the prompt from lutzseverino/repo-canon#507, linking the
+  product's published installation instructions. This is separate work in that
+  repository, not a change to make or an issue to file during this implementation.
