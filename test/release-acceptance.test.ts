@@ -28,7 +28,11 @@ interface AcceptanceEvidence {
   }[];
   commands: { status: number; args: string[] }[];
   propagation: {
+    intervalMs: number;
+    boundMs: number;
     attempts: {
+      subject: string;
+      at: string;
       elapsedMs: number;
       result: string;
       status: number;
@@ -710,19 +714,33 @@ for (const [name, options, failure] of [
 // advances a fake clock by each requested wait instead of sleeping.
 function publicFixture(
   t: TestContext,
-  missing: { npm?: number; releaseJson?: number } = {},
+  missing: {
+    npm?: number;
+    npmAvailableAtMs?: number;
+    npmError?: string;
+    releaseJson?: number;
+    bootstrap?: number;
+    assetStatus?: number;
+    assetObservationMs?: number;
+  } = {},
 ) {
   const f = fixture(t);
+  const clock = join(f.root, "clock");
+  writeFileSync(clock, "0");
   f.executable(
     "npm",
     `
     const fs = require('node:fs'), path = require('node:path');
     if (process.argv[2] === '--version') console.log('11.19.0');
     else if (process.argv[2] === 'view') {
+      if (${JSON.stringify(missing.npmError ?? "")}) {
+        console.error(${JSON.stringify(missing.npmError ?? "")});
+        process.exit(1);
+      }
       const counter = ${JSON.stringify(join(f.root, "npm-views"))};
       const views = fs.existsSync(counter) ? Number(fs.readFileSync(counter, 'utf8')) : 0;
       fs.writeFileSync(counter, String(views + 1));
-      if (views < ${missing.npm ?? 0}) {
+      if (views < ${missing.npm ?? 0} || Number(fs.readFileSync(${JSON.stringify(clock)}, 'utf8')) < ${missing.npmAvailableAtMs ?? 0}) {
         console.log(JSON.stringify({ error: { code: 'E404', summary: 'No match found for version' } }));
         console.error('npm error code E404');
         process.exit(1);
@@ -741,14 +759,23 @@ function publicFixture(
   );
   writeFileSync(
     f.preload,
-    `let now = 1789232918000;
+    `import { writeFileSync } from 'node:fs';
+    let now = 1789232918000;
     Date.now = () => now;
     const wait = globalThis.setTimeout;
-    globalThis.setTimeout = (callback, delay = 0, ...args) => { now += delay; return wait(callback, 0, ...args); };
+    globalThis.setTimeout = (callback, delay = 0, ...args) => {
+      now += delay;
+      writeFileSync(${JSON.stringify(clock)}, String(now - 1789232918000));
+      return wait(callback, 0, ...args);
+    };
     let releaseJsonMissing = ${missing.releaseJson ?? 0};
+    let bootstrapMissing = ${missing.bootstrap ?? 0};
     globalThis.fetch = async url => {
       if (!String(url).startsWith('https://github.com/lutzseverino/repo-standards/releases/download/')) throw new Error('Unexpected network request');
+      now += ${missing.assetObservationMs ?? 0};
+      if (${missing.assetStatus ?? 0}) return new Response('Unavailable', { status: ${missing.assetStatus ?? 200} });
       if (String(url).endsWith('/release.json') && releaseJsonMissing-- > 0) return new Response('Not Found', { status: 404 });
+      if (String(url).endsWith('/repo-standards-bootstrap') && bootstrapMissing-- > 0) return new Response('Not Found', { status: 404 });
       return new Response('{}');
     };`,
   );
@@ -833,6 +860,30 @@ test("public CLI acceptance waits for the published version and release assets a
   assert.match(result.stdout, /E404/);
 });
 
+test("public CLI acceptance observes npm availability at 327 seconds on the next 10-second poll", (t) => {
+  const f = publicFixture(t, { npmAvailableAtMs: 327_000 });
+  const result = f.runAcceptance();
+  assert.equal(result.status, 1, result.stderr);
+  const evidence = JSON.parse(
+    readFileSync(f.evidence, "utf8"),
+  ) as AcceptanceEvidence;
+  // The simulated installation intentionally fails a later version assertion.
+  assert.match(evidence.failure, /1\.0\.0/);
+  assert.equal(evidence.propagation.intervalMs, 10_000);
+  assert.equal(evidence.propagation.boundMs, 600_000);
+  const npm = evidence.propagation.attempts.filter((attempt) =>
+    attempt.subject.includes("npm registry"),
+  );
+  assert.equal(npm.length, 34);
+  assert.equal(npm.at(-2)!.elapsedMs, 320_000);
+  assert.deepEqual(npm.at(-1), {
+    subject: `@lutzseverino/repo-standards@${f.version} on the npm registry`,
+    at: "2026-09-12T17:14:08.000Z",
+    elapsedMs: 330_000,
+    result: "available",
+  });
+});
+
 test("public CLI acceptance fails after the propagation bound naming the version and the elapsed wait", (t) => {
   const f = publicFixture(t, { npm: Infinity });
   const result = f.runAcceptance();
@@ -845,10 +896,13 @@ test("public CLI acceptance fails after the propagation bound naming the version
     evidence.failure.includes(`@lutzseverino/repo-standards@${f.version}`),
     evidence.failure,
   );
-  assert.match(evidence.failure, /300 seconds/);
+  assert.match(
+    evidence.failure,
+    /600 seconds.*waited 600 seconds; last result: E404/,
+  );
   const attempts = evidence.propagation.attempts;
-  assert.equal(attempts.length, 31);
-  assert.equal(attempts.at(-1)!.elapsedMs, 300_000);
+  assert.equal(attempts.length, 61);
+  assert.equal(attempts.at(-1)!.elapsedMs, 600_000);
   assert.ok(
     attempts.every((attempt: { result: string }) => attempt.result === "E404"),
   );
@@ -859,3 +913,78 @@ test("public CLI acceptance fails after the propagation bound naming the version
   );
   assert.deepEqual(evidence.downloads, []);
 });
+
+for (const bootstrap of [1, Infinity]) {
+  test(`public CLI acceptance shares the npm deadline across successive assets with ${bootstrap} missing bootstrap observations`, (t) => {
+    const f = publicFixture(t, { npm: 33, releaseJson: 26, bootstrap });
+    const result = f.runAcceptance();
+    assert.equal(result.status, 1, result.stderr);
+    const evidence = JSON.parse(
+      readFileSync(f.evidence, "utf8"),
+    ) as AcceptanceEvidence;
+    const attempts = evidence.propagation.attempts;
+    assert.equal(attempts.length, 63);
+    assert.deepEqual(
+      attempts
+        .slice(-3)
+        .map(({ elapsedMs, result }) => ({ elapsedMs, result })),
+      [
+        { elapsedMs: 590_000, result: "available" },
+        { elapsedMs: 590_000, result: "HTTP 404" },
+        {
+          elapsedMs: 600_000,
+          result: bootstrap === 1 ? "available" : "HTTP 404",
+        },
+      ],
+    );
+    if (bootstrap === 1) assert.match(evidence.failure, /1\.0\.0/);
+    else {
+      assert.match(
+        evidence.failure,
+        /repo-standards-bootstrap did not appear within the 600 seconds propagation bound; waited 600 seconds; last result: HTTP 404/,
+      );
+      assert.match(evidence.nextAction, /public-installation\.ts/);
+    }
+  });
+}
+
+test("public CLI acceptance shortens the final interval and lets the last asset observation finish after the bound", (t) => {
+  const f = publicFixture(t, {
+    releaseJson: Infinity,
+    assetObservationMs: 4_000,
+  });
+  const result = f.runAcceptance();
+  assert.equal(result.status, 1, result.stderr);
+  const evidence = JSON.parse(
+    readFileSync(f.evidence, "utf8"),
+  ) as AcceptanceEvidence;
+  assert.deepEqual(
+    evidence.propagation.attempts.slice(-2).map(({ elapsedMs }) => elapsedMs),
+    [592_000, 604_000],
+  );
+  assert.match(
+    evidence.failure,
+    /release\.json did not appear within the 600 seconds propagation bound; waited 604 seconds; last result: HTTP 404/,
+  );
+});
+
+for (const missing of [{ npmError: "E403" }, { assetStatus: 500 }]) {
+  test(`public CLI acceptance stops immediately for ${JSON.stringify(missing)}`, (t) => {
+    const f = publicFixture(t, missing);
+    const result = f.runAcceptance();
+    assert.equal(result.status, 1, result.stderr);
+    const evidence = JSON.parse(
+      readFileSync(f.evidence, "utf8"),
+    ) as AcceptanceEvidence;
+    assert.equal(evidence.passed, false);
+    assert.match(evidence.failure, /E403|Cannot download/);
+    assert.ok(
+      evidence.propagation.attempts.every(({ elapsedMs }) => elapsedMs === 0),
+    );
+    assert.equal(
+      evidence.commands.filter(({ args }) => args[0] === "view").length,
+      1,
+    );
+    assert.equal(evidence.downloads.length, missing.assetStatus ? 1 : 0);
+  });
+}

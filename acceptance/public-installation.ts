@@ -60,7 +60,7 @@ const downloads: { url: string; status: number; sha256: string }[] = [];
 // Poll each subject at a fixed interval, bounding the whole wait.
 const propagation = {
   intervalMs: 10_000,
-  boundMs: 300_000,
+  boundMs: 600_000,
   attempts: [] as {
     subject: string;
     at: string;
