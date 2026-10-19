@@ -70,3 +70,6 @@ alternatives.
 - [Read repository-wide rules at the start of any work](0020-read-repository-wide-rules-at-the-start-of-work.md):
   the `repository-standards` skill runs `rules` with no path at the start of
   any work, so rules that govern work changing no file reach the agent.
+- [Let agents decide what Git can undo](0021-let-agents-decide-what-git-can-undo.md):
+  agents decide reversible adoption choices and confirm discarded edits after
+  review; remote setting overwrites remain the maintainer's decision.

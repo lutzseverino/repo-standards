@@ -23,7 +23,8 @@ The product supports both journeys:
 2. An adopting project inspects one complete profile, adopts it, commits the
    resulting material through its own workflow, and later deliberately updates
    its selection, in any combination of its pins, source, and profile, through
-   one run, confirmed by the maintainer only for a confirmation-required change.
+   one run; the agent reviews discarded edits recoverable from Git, and the
+   maintainer confirms a remote setting overwrite.
 
 The maintainer's own standards are published separately as Repo Canon; the
 product remains neutral for independently authored standards.
@@ -61,14 +62,23 @@ unedited old adoption skill and its link under the same retired-target policy.
 
 The model-invocable `adopt-repository-standards` system skill is a standalone
 entry point for adopting a standards source. Its body is one sentence pointing
-to the unversioned `npx @lutzseverino/repo-standards adopt <source>` command,
+to the unversioned `npx --yes @lutzseverino/repo-standards adopt <source> --json` command,
 using the user-named source or Repo Canon as the fallback, and following what
 it prints. The README prompt is also a one-sentence pointer. The CLI owns all
 adopting-agent instructions: a new run's `NO_COMMIT` or `DIRTY_PROJECT` blockers
 stop the agent and notify the maintainer, including in answers templates;
-active runs continue with their expected uncommitted changes. Completion
+active runs continue with their expected uncommitted changes. Pre-start steps
+leave project files unedited until the run starts. The agent decides version,
+profile, scope, start, discarded edits and remote setup deferral from the request
+and project evidence, recording decisions in its handoff. Only an unsettled
+profile choice needs clarification; a fix's remote setting overwrite still
+needs the maintainer's decision. Repeat-safe recovery uses `resume --retry`
+without another approval; abandonment remains the maintainer's decision.
+Completion
 requires complete-output review, leaves changes uncommitted and unstaged, and
-hands them to the maintainer for review without committing. The terminal's
+hands them to the maintainer for review without committing. Its status verdict
+describes uncommitted changes and must be recorded before committing; after
+committing, those changes report not ready. The terminal's
 completion message addresses a human who can review and commit normally.
 Neither entry point carries adoption rules of its own. Like `author-standards`,
 the skill is distributed independently through release-tag
@@ -92,7 +102,7 @@ skill installation and is not installed into adopting projects by adoption.
 | Available updates        | A selection and the newest published stable CLI and standards versions produce per-pin availability, cached in the ignored product cache. It never blocks and writes nothing else; it fails only under a CLI other than the selection's CLI pin, before any lookup.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Summary renderer         | An inspection report, a status record or an outdated report produces one deterministic Markdown document. It describes and never prescribes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | Update notice            | The `repository-standards` system skill runs `outdated` with the project runtime, reinstalling the pinned runtime once when it is missing or reports `CLI_PIN_MISMATCH`, and reports each available update to the agent. It starts no update: one starts only on the maintainer's instruction, through guided adoption, as a change separate from the current work.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Guided adoption          | `adopt` takes an optional source, version, profile, and answers file and the project's state, and produces the questions the adoption still asks as an answers-file template, the next steps, and the start, or one step of the active run: a confirmed fix or submitted assessments. It drives inspect, start, and resume, and in a terminal also a waiting run's contextual checks and abandon, interprets no author format, and writes nothing in the project itself; the start it drives pins the exact CLI that ran. An answers file confirms a confirmation-required change only by naming the inspection identity the maintainer confirmed. In a terminal it asks a person the same questions, one stage at a time, and walks each contextual declaration: it shows the rules and adoption guidance, waits for the edit, runs the declaration's checks, asks whether it is done or blocked, and writes the assessment from the answers; it retries or abandons an interrupted run only on the person's choice.                                                                                       |
+| Guided adoption          | `adopt` takes an optional source, version, profile, and answers file and the project's state, and produces the questions the adoption still asks as an answers-file template, the next steps, and the start, or one step of the active run: a confirmed fix or submitted assessments. It drives inspect, start, and resume, and in a terminal also a waiting run's contextual checks and abandon, interprets no author format, and writes nothing in the project itself; the start it drives pins the exact CLI that ran. An answers file confirms a confirmation-required change only by naming the inspection identity the agent reviewed for discarded edits, or the maintainer confirmed for a remote setting overwrite. In a terminal it asks a person the same questions, one stage at a time, and walks each contextual declaration: it shows the rules and adoption guidance, waits for the edit, runs the declaration's checks, asks whether it is done or blocked, and writes the assessment from the answers; it retries or abandons an interrupted run only on the person's choice.             |
 
 These responsibilities do not mandate separate packages or class hierarchies.
 They share the resolver's result. Other modules do not independently interpret
@@ -460,9 +470,11 @@ the same content starts a run in another
 ([ADR 0012](../adr/0012-bind-content-not-location.md)). Reports carry hash
 inventories and diffs, not file bytes.
 
-Asking to adopt or update is the maintainer's consent; an adoption waits for
-the maintainer only for a confirmation-required change
-([ADR 0017](../adr/0017-confirm-only-confirmation-required-changes.md)).
+Asking to adopt or update is the maintainer's consent. The agent reviews and
+confirms discarded edits, which Git can restore; only a fix's remote setting
+overwrite waits for the maintainer's decision
+([ADR 0021](../adr/0021-let-agents-decide-what-git-can-undo.md), amending
+[ADR 0017](../adr/0017-confirm-only-confirmation-required-changes.md)).
 Inspection reports the ones it can see in its deterministic `confirmation`
 result, computed without running source code: `required` exactly when
 `discardedEdits` is not empty, with one `discarded-edit` reason per target, at
@@ -475,9 +487,10 @@ inspection requires confirmation, failing with `CONFIRMATION_REQUIRED`
 otherwise, and accepted only then, failing with `CONFIRMATION_NOT_REQUIRED`
 when it does not. A retry of a start interrupted before its installation was
 prepared repeats the identity check only: the run's start already carried the
-confirmation that identity requires. `adopt` asks the maintainer only when the
-report or a fix requires confirmation, and its answers file confirms only by
-naming the identity the maintainer confirmed.
+confirmation that identity requires. An agent answers the inspection's
+confirmation after reviewing discarded edits; a fix's remote overwrite requires
+the maintainer's decision. The answers file confirms either with the run's
+inspection identity.
 
 Fixes report the confirmation-required changes inspection cannot see, because
 it runs no fix: a fix that would change or remove an existing setting
@@ -948,7 +961,7 @@ The product is complete only when all of these pass:
     diagnostic.
 15. Adopt and update through `adopt` and an answers file: print a complete
     template without changing the project, name missing answers, start only
-    with the inspection identity the maintainer confirmed when confirmation is
+    with the inspection identity confirmed after review when confirmation is
     required, complete contextual work from the answers file's assessments, and
     pin the exact CLI that ran.
 16. Adopt in a scripted terminal session, contextual work included: show a

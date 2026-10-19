@@ -29,16 +29,16 @@ credentials; see [GitHub requests and tokens](#github-requests-and-tokens).
 export GH_TOKEN=<token>
 ```
 
-From a committed, clean Git working tree, ask your agent to run this command
-with your standards source's public GitHub URL, or run it yourself:
+From a committed, clean Git working tree, give your agent this command with
+your standards source's public GitHub URL:
 
 ```sh
-npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
+npx --yes @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS --json
 ```
 
-At a terminal, `adopt` asks questions and walks you through edits and checks.
-Without a terminal, it prints an answers-file template and the agent's next
-steps. It installs and pins the exact CLI it ran into the project's runtime,
+The flags avoid npm's installation prompt and print the answers-file template
+even in a terminal. To run it yourself, omit `--json`; `adopt` asks questions
+and walks you through edits and checks. It installs and pins the exact CLI it ran into the project's runtime,
 leaving changes uncommitted. No product checkout, TypeScript compiler, pnpm,
 or manual external CLI installation is needed. Follow the
 [adoption guide](adoption.md) for both paths, remote setup deferral, and updates.
@@ -134,8 +134,11 @@ these automatically.
 
 `adopt-repository-standards` is a single-sentence pointer to `adopt`, using the
 standards source you name, with Repo Canon as the fallback. The CLI owns all
-adopting-agent guidance, including blockers, maintainer decisions, contextual
-assessments, and the final review handoff.
+adopting-agent guidance. The entry command uses `npx --yes` and `adopt --json`
+so npm and a terminal cannot start an interactive conversation. The agent
+decides what Git can undo and records its decisions in the review handoff;
+only an unsettled profile choice or a remote setting overwrite needs your
+answer. See [adoption with an agent](adoption.md#with-an-agent).
 
 This skill is unreleased; **v7.2.0 does not contain it**. Its first containing
 release is planned as **v8.0.0**. After that public tag is verified to contain
@@ -220,6 +223,8 @@ The model-invocable `repository-standards` skill looks up
 an update removes the old skill and its Claude link when unedited. Edited old
 copies stay as project-owned content under the normal retirement policy.
 
+Record the `status` ready-to-commit verdict before committing: it describes
+uncommitted changes, and after the commit reports them not ready.
 After reviewing all adoption output, commit through your project's usual
 workflow, including retained inputs, runtime manifest/lock, state, exact content,
 skills and contextual changes. Dependencies and local execution records remain

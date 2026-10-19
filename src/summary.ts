@@ -391,7 +391,7 @@ export function inspectionSummary(report: InspectionReport) {
           report.discardedEdits.map((path) => `- ${code(path)}`).join("\n"),
           ...(report.confirmation.required
             ? [
-                "Confirmation required: starting this run needs the maintainer's confirmation of these discarded edits.",
+                "Confirmation required: starting this run needs confirmation of these discarded edits after review.",
               ]
             : []),
         ].join("\n\n"),

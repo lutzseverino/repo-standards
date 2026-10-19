@@ -169,7 +169,7 @@ described [below](#discover-contextual-file-scope):
 | `retiredState`       | For a fresh adoption over [retired](adoption.md#adopt-fresh-from-a-retired-format) committed product state, the `target` `.repo-standards`, which the run removes whole; its retired `records`, each by `path`, retired `format`, and the `expected` format this CLI reads; and the project path of each of its `files`, sorted, without its ignored generated directories.                                        |
 | `kept`               | For an update, each edited installed target the selection no longer installs and the run keeps, including the link of a kept skill, by its installer (`id` for a declaration, or `systemSkill` for a retired system skill) and `target`, sorted by path. The project owns it from then on.                                                                                                                         |
 | `discardedEdits`     | Each target whose replacement or removal discards content that is not its installed baseline, in the order of the target blockers. At initial adoption there is no baseline, so every replaced existing target is listed.                                                                                                                                                                                          |
-| `confirmation`       | Whether `start` needs the maintainer's confirmation. `required` is true exactly when `discardedEdits` is not empty, and `reasons` has one `{ "change": "discarded-edit", "target": <path> }` entry per discarded edit, in the same order. See [confirmation](#confirmation).                                                                                                                                       |
+| `confirmation`       | Whether `start` needs confirmation after reviewing discarded edits. `required` is true exactly when `discardedEdits` is not empty, and `reasons` has one `{ "change": "discarded-edit", "target": <path> }` entry per discarded edit, in the same order. See [confirmation](#confirmation).                                                                                                                        |
 | `guidance`           | Guidance by source-relative `source` path, SHA-256 and executable state, with its explicit project paths or directory trees.                                                                                                                                                                                                                                                                                       |
 | `operations`         | Ordered fixes and checks, literal arguments, the script by path and hash, resource hash inventories, timeout, and declared prerequisite probe/range.                                                                                                                                                                                                                                                               |
 | `project`            | Hash inventories of the affected targets, of each system skill target in `systemSkills` by path, of each installed skill's link in `skillLinks` by path, and of the durable product state. The project root, Git HEAD, index, and status are not reported.                                                                                                                                                         |
@@ -289,9 +289,11 @@ the project or selection no longer produces it.
 
 ### Confirmation
 
-A run waits for the maintainer only when it makes a confirmation-required
-change: one that discards a person's work or overwrites a setting someone
-chose. Asking to adopt or update a selection is otherwise the consent.
+Asking to adopt or update a selection is the maintainer's consent. An agent
+reviews and confirms discarded edits recoverable from Git; a person at a
+terminal confirms their own review. Only a fix's overwrite of a remote setting
+someone chose waits for the maintainer's decision, because Git cannot restore
+remote state.
 Inspection finds the discarded edits deterministically, from the same
 observation as `discardedEdits`, without running source code. `confirmation`
 is required for every discarded edit, including at an initial adoption, where
@@ -311,8 +313,8 @@ When `required` is false, `start --identity <identity>` proceeds with the
 identity alone, and adding `--confirmed` fails with
 `CONFIRMATION_NOT_REQUIRED`. When it is true, `start` without `--confirmed`
 fails with `CONFIRMATION_REQUIRED`, naming each reason in its message and
-listing them in its `details`, and changes nothing; after the maintainer
-confirms, `start --identity <identity> --confirmed` proceeds. The report binds
+listing them in its `details`, and changes nothing; after review and
+confirmation, `start --identity <identity> --confirmed` proceeds. The report binds
 `confirmation` into its identity, so a start's confirmation always refers to
 the inspection it names.
 
@@ -437,7 +439,7 @@ of JSON. It has these sections, in order:
 - **Discarded edits**: present only when a replacement or removal discards
   content that is not the target's installed baseline, listing each such
   target, then, when `confirmation.required` is true, a line stating that
-  starting the run needs the maintainer's confirmation of these discarded edits.
+  starting the run needs confirmation of these discarded edits after review.
 - **Kept targets**: present only when an update keeps edited targets that leave
   the selection, listing each with its declaration as now owned by the project.
 - **Operations**: every fix and check with its literal argument vector,
@@ -485,8 +487,8 @@ inspection runs it read-only and returns its entry in `discovery.draft`, a
 order. A draft is a starting point, never an accepted scope: the report keeps
 `DISCOVERY_REQUIRED`, and the `--summary` proposal lists each draft's included
 and excluded candidates and open questions. Answer the questions in
-`unresolved` with the maintainer, complete the entries of declarations without
-a script, and inspect the proposal with `--scope` as below. Inspection with
+`unresolved` from project evidence, with reasons, complete the entries of
+declarations without a script, and inspect the proposal with `--scope` as below. Inspection with
 `--scope` runs no script. A script that fails, times out or changes its copy of
 the project fails inspection with `DISCOVERY_SCRIPT_FAILED`, and the project is
 unchanged.

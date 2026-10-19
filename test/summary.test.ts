@@ -573,7 +573,7 @@ Replacing or removing these targets discards content that is not their installed
 - \`.claude/skills/repository-standards\`
 - \`AGENTS.md\`
 
-Confirmation required: starting this run needs the maintainer's confirmation of these discarded edits.
+Confirmation required: starting this run needs confirmation of these discarded edits after review.
 
 ## Kept targets
 
