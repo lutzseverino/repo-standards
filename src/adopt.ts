@@ -1037,7 +1037,10 @@ function withSteps(
   const again = invoke(`adopt --answers ${answers}`);
   const ids = new Set(report.answers.questions.map((question) => question.id));
   const steps: string[] = [`Work from the project root, ${code(root)}.`];
-  if (!report.run && ["answers-required", "blocked"].includes(report.outcome))
+  if (
+    report.outcome === "blocked" ||
+    (!report.run && report.outcome === "answers-required")
+  )
     steps.push(
       "Make no project edits until the run starts. Write files implied by your answers, such as optional scope files, during contextual work.",
     );

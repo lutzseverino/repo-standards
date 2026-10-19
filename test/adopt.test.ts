@@ -131,6 +131,7 @@ test("adopt without an answers file prints a complete template and changes nothi
     targets: [".agents/skills/repository-standards", "AGENTS.md"],
   });
   assert.deepEqual(report.missing, ["remote-setup", "confirmation"]);
+  assert.doesNotMatch(report.inspection!.summary, /maintainer's confirmation/);
   // A replaced skill has no file diff; what replaces it is named instead.
   assert.deepEqual(report.discarded![0], {
     target: ".agents/skills/repository-standards",
@@ -178,6 +179,38 @@ test("adopt without an answers file prints a complete template and changes nothi
     (JSON.parse(local.stdout) as ErrorReport).errors[0]!.code,
     "UNSUPPORTED_SOURCE",
   );
+});
+
+test("a start stopped before writing keeps the pre-start no-edit instruction", async (t) => {
+  const f = await fixture(
+    t,
+    cli,
+    {
+      "agent-guidance": {
+        kind: "file",
+        target: "AGENTS.md",
+        exact: "content/AGENTS.md",
+        checks: [
+          operation("verify", {
+            executable: "repo-standards-missing-tool",
+            script: "checks/readme.mjs",
+          }),
+        ],
+      },
+    },
+    { project: { "README.md": "# Project\n" } },
+  );
+  const template = f.adopt([source]).report;
+  const before = snapshot(f.root);
+  const stopped = f.adopt(f.answer(template.answers));
+  assert.equal(stopped.result.status, 1, stopped.result.stdout);
+  assert.equal(stopped.report.outcome, "blocked");
+  assert.match(stopped.report.run!.reason, /PREREQUISITES_BLOCKED/);
+  assert.match(
+    stopped.report.nextSteps.join("\n"),
+    /Make no project edits until the run starts/,
+  );
+  assert.deepEqual(snapshot(f.root), before);
 });
 
 test("adopt stops and tells the maintainer about an uncommitted project before a new run", async (t) => {
