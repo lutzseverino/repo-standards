@@ -1,4 +1,5 @@
 import type {
+  Lock,
   Diagnostic,
   ErrorReport,
   Inspection,
@@ -2390,6 +2391,82 @@ test("update inspections reject unexpected durable product files before creating
         rmSync(join(f.project.root, path));
         commit(f.project.root);
       }
+    });
+});
+
+// A project adopted by CLI 9.0.0 or earlier records no attributes file: the
+// file is absent from the project and from the lock's recorded files.
+function adoptedBeforeAttributes(root: string) {
+  const path = ".repo-standards/.gitattributes";
+  const lock = join(root, ".repo-standards/lock.json");
+  const value = JSON.parse(readFileSync(lock, "utf8")) as Lock;
+  delete value.files[path];
+  writeFileSync(lock, JSON.stringify(value, null, 2) + "\n");
+  rmSync(join(root, path));
+  commit(root);
+  return path;
+}
+
+test("a CLI update of a project that records no attributes file writes and records it", async (t) => {
+  const f = await pendingUpdate(t, "cli");
+  const path = adoptedBeforeAttributes(f.project.root);
+  const inspection = JSON.parse(f.run(f.inspectArgs).stdout) as Inspection;
+  assert.equal(inspection.start.eligible, true, JSON.stringify(inspection));
+  const started = f.run(startArgs(inspection.identity, f.inspectArgs));
+  assert.equal(started.status, 0, started.stdout + started.stderr);
+  assert.equal(
+    readFileSync(join(f.project.root, path), "utf8"),
+    "** linguist-generated\n",
+  );
+  const lock = JSON.parse(
+    readFileSync(join(f.project.root, ".repo-standards/lock.json"), "utf8"),
+  ) as Lock;
+  assert.ok(lock.files[path]);
+  const summary = f.run(["status", "--summary"]);
+  assert.equal(summary.status, 0, summary.stdout + summary.stderr);
+  assert.doesNotMatch(
+    summary.stdout,
+    /\.gitattributes/,
+    "product state is not a changed path",
+  );
+  // The recorded file is verified: the next inspection is eligible with it
+  // present and fails once it changes.
+  commit(f.project.root);
+  const next = JSON.parse(f.run(f.inspectArgs).stdout) as Inspection;
+  assert.equal(next.start.eligible, true, JSON.stringify(next));
+  writeFileSync(join(f.project.root, path), "** text\n");
+  const changed = f.run(f.inspectArgs);
+  assert.equal(changed.status, 1);
+  const [error] = (JSON.parse(changed.stdout) as ErrorReport).errors;
+  assert.equal(error!.code, "STATE_INTEGRITY");
+  assert.match(error!.message, /\.repo-standards\/\.gitattributes/);
+});
+
+test("update inspections reject an unrecorded attributes file and leave it unchanged", async (t) => {
+  for (const kind of ["standards", "cli"] as const)
+    await t.test(kind, async (t) => {
+      const f = await pendingUpdate(t, kind);
+      const path = adoptedBeforeAttributes(f.project.root);
+      const content = "** linguist-generated\n";
+      writeFileSync(join(f.project.root, path), content);
+      commit(f.project.root);
+      const result = f.run(f.inspectArgs);
+      assert.equal(result.status, 0, result.stdout + result.stderr);
+      const inspection = JSON.parse(result.stdout) as Inspection;
+      assert.equal(inspection.start.eligible, false);
+      assert.ok(
+        inspection.start.blockers.some(
+          (blocker: { code: string }) => blocker.code === "STATE_INTEGRITY",
+        ),
+      );
+      const rejected = f.run(startArgs(inspection.identity, f.inspectArgs));
+      assert.equal(rejected.status, 1);
+      assert.equal(
+        (JSON.parse(rejected.stdout) as ErrorReport).errors[0]!.code,
+        "START_BLOCKED",
+      );
+      assert.equal(readFileSync(join(f.project.root, path), "utf8"), content);
+      assert.equal(git(f.project.root, "status", "--porcelain=v1"), "");
     });
 });
 

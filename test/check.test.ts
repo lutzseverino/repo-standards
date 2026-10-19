@@ -848,4 +848,14 @@ else { appendFileSync(${JSON.stringify(unexpected)}, args.join(' ') + '\\n'); pr
     assert.equal(check().code, "STATE_INTEGRITY");
     git(f.project.root, "checkout", "--quiet", ".");
   });
+  for (const change of ["edited", "deleted"])
+    await t.test(`${change} attributes file`, () => {
+      const attributes = join(f.project.root, ".repo-standards/.gitattributes");
+      if (change === "edited") writeFileSync(attributes, "** text\n");
+      else rmSync(attributes);
+      const error = check();
+      assert.equal(error.code, "STATE_INTEGRITY");
+      assert.match(error.message, /\.repo-standards\/\.gitattributes/);
+      git(f.project.root, "checkout", "--quiet", ".");
+    });
 });

@@ -31,6 +31,9 @@ import { dictionary, record } from "./records.js";
 export type Baseline = Pick<Content, "sha256" | "executable">;
 export type Files = Record<string, Content>;
 export const ignore = "/runtime/node_modules/\n/local/\n/cache/\n";
+// Marks product state as generated for GitHub language statistics. It sets no
+// Git-native attribute, so Git observations of product state are unaffected.
+export const attributes = "** linguist-generated\n";
 
 export function json(value: unknown) {
   return JSON.stringify(value, null, 2) + "\n";
