@@ -127,7 +127,7 @@ async function adopted(t: TestContext, profile = "work") {
 
 test("check runs every retained check with a run's inputs, reports each result, and changes nothing", async (t) => {
   const f = await adopted(t);
-  const { started, inspection } = f.adopt();
+  const { started, report: run, inspection } = f.adopt();
   assert.equal(started.status, 0, started.stdout + started.stderr);
   commit(f.project.root);
   writeFileSync(join(f.project.root, "README.md"), "Uncommitted work");
@@ -178,6 +178,20 @@ test("check runs every retained check with a run's inputs, reports each result, 
   assert.deepEqual(evidence.args, ["literal argument"]);
   assert.equal(evidence.input.format, "repo-standards/operation/v2");
   assert.equal(evidence.input.overwriteAllowed, false);
+  // Every check gets its run's request, except that `check` invoked it.
+  report.checks.forEach((result, index) => {
+    const read = (stderr: string) =>
+      JSON.parse(
+        readFileSync(join(f.project.root, stderr), "utf8"),
+      ) as OperationLog;
+    const inRun = read(run.operations[index + 1]!.stderr);
+    const underCheck = read(result.stderr);
+    assert.equal(inRun.input.invocation, "run");
+    assert.equal(underCheck.input.invocation, "check");
+    assert.deepEqual({ ...underCheck.input, invocation: "run" }, inRun.input);
+    assert.deepEqual(underCheck.args, inRun.args);
+    assert.equal(underCheck.cwd, inRun.cwd);
+  });
   assert.deepEqual(evidence.input.operation, {
     declaration: "instructions",
     phase: "checks",

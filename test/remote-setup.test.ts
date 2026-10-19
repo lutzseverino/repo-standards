@@ -100,7 +100,10 @@ async function fixture(
             .map(
               (line) =>
                 JSON.parse(line) as {
-                  input: { operation: unknown; overwriteAllowed: boolean };
+                  input: {
+                    operation: unknown;
+                    overwriteAllowed: boolean;
+                  };
                   cwd: string;
                 },
             )
@@ -132,6 +135,7 @@ test("a remote setup that is not ready stops start before any write unless it is
     id: "labels",
   });
   assert.equal(probed[0]!.input.overwriteAllowed, false);
+  assert.equal("invocation" in probed[0]!.input, false);
   assert.equal(probed[0]!.cwd, f.root);
   assert.match(
     f.run([...inspectionArgs.slice(0, -1), "--summary"]).stdout,

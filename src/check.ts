@@ -182,6 +182,7 @@ async function runChecks(
       (spawned) => {
         group = spawned;
       },
+      { invocation: "check" },
     );
     const log = `${logs}/${checks.length}`;
     const keepLogs = () => {

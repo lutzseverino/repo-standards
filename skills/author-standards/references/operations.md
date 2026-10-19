@@ -84,7 +84,8 @@ For each active operation with a concrete fixture selection:
    complete resolved declarations, its actual owning declaration/phase/operation
    ID, absolute fixture `projectRoot`, the owner's exact `allowedTargets`, and
    `overwriteAllowed`: `false` for a check, and for a fix each value it
-   exercises.
+   exercises. For a check, also set `invocation`: `"run"` or `"check"`, each
+   value the check reads; a fix has none.
    Supply syntactically valid, explicitly synthetic standards provenance in the
    protocol's repository/version/commit fields; this is fixture metadata, not a
    publication claim. File owners allow one path, skill owners their whole target

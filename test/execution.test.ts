@@ -169,6 +169,20 @@ console.log(JSON.stringify({format: 'repo-standards/result/v2', status: input.op
   assert.equal(evidence.cwd, f.project.root);
   assert.equal(evidence.input.format, "repo-standards/operation/v2");
   assert.equal(evidence.input.overwriteAllowed, false);
+  assert.equal(
+    "invocation" in evidence.input,
+    false,
+    "a fix has no invocation",
+  );
+  const logged = (index: number) =>
+    JSON.parse(
+      readFileSync(
+        join(f.project.root, report.operations[index]!.stderr),
+        "utf8",
+      ),
+    ) as OperationLog;
+  for (const index of [3, 4, 5])
+    assert.equal(logged(index).input.invocation, "run");
   assert.equal(evidence.input.projectRoot, f.project.root);
   assert.deepEqual(evidence.input.standards, inspection.selection.standards);
   assert.equal(evidence.input.profile, "work");

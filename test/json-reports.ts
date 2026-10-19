@@ -94,6 +94,7 @@ export interface OperationLog {
     declarations: Declaration[];
     allowedTargets: Targets;
     overwriteAllowed: boolean;
+    invocation?: string;
   };
   cwd: string;
   args: string[];
