@@ -139,8 +139,7 @@ export async function probeRemoteSetup(
       selection,
       resolved,
       onSpawn,
-      false,
-      sourceRoot,
+      { sourceRoot },
     );
     requireStopped(actor, evidence.process.error);
     requireUnchanged(actor);

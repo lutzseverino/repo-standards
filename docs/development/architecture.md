@@ -588,6 +588,10 @@ One versioned JSON input, `repo-standards/operation/v2`, conveys the operation
 identity, project root, standards identity, profile, active resolved
 declarations, allowed targets, and whether a fix may overwrite an existing
 setting, `overwriteAllowed`, false for every check and readiness probe. A
+check's input also carries `invocation`, `"run"` when an adoption run invokes
+it and `"check"` when `repo-standards check` does; fix and probe inputs omit
+it. Older CLIs omit it too, and scripts ignore request fields they do not read,
+so the field is additive within `operation/v2`. A
 readiness probe runs in the `probes` phase as its fix's operation and reports
 `ready` or `not-ready`. The script returns one
 versioned JSON result, `repo-standards/result/v2`, on standard output and human

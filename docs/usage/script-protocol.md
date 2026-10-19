@@ -56,7 +56,8 @@ The CLI supplies one UTF-8 JSON object and closes stdin:
   "profile": "work",
   "declarations": [],
   "allowedTargets": { "paths": ["README.md"], "directories": [] },
-  "overwriteAllowed": false
+  "overwriteAllowed": false,
+  "invocation": "run"
 }
 ```
 
@@ -72,6 +73,17 @@ must respect that scope, the active profile, and exclusions.
 setting that holds a different value; it is `true` only when the maintainer
 confirmed that overwrite, as described [below](#overwriting-a-setting), and
 always `false` for a check.
+
+`invocation` tells a check what invoked it: `"run"` for an adoption run,
+including checks-only continuation after an accepted assessment and
+`resume --retry`, and `"check"` for [`repo-standards check`](check.md). Only
+checks receive it; fix and readiness probe requests have no `invocation`. A
+source may use it to apply a rule only within a run. CLIs before the release
+that added the field omit it, so a script that reads it must handle its
+absence.
+
+A script must ignore request fields it does not read. The CLI may add fields to
+`repo-standards/operation/v2` without a new format version.
 
 ## JSON result on stdout
 
@@ -142,7 +154,7 @@ standards. Its prerequisite is probed first, as an operation's is. The probe
 is invoked like a check, from the project root, with the same input: its
 `operation` is `{ "declaration": <id>, "phase": "probes", "id": <fix id> }`,
 `allowedTargets` are its fix's declaration's, and `overwriteAllowed` is always
-`false`.
+`false`. It has no `invocation`.
 
 A probe status is `ready` or `not-ready`; `message` explains it, and for
 `not-ready` it is the reason the adopter reads, such as

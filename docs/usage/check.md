@@ -25,8 +25,10 @@ describes:
   check runs, listing every probe in the diagnostic's `details`.
 - Each check receives the same `repo-standards/operation/v2` input as in a run,
   with the selection's standards and profile, every active resolved declaration,
-  its declaration's allowed targets, and `overwriteAllowed: false`. It uses
-  the same arguments, working directory, timeout and output limits.
+  its declaration's allowed targets, and `overwriteAllowed: false`, except that
+  it carries `invocation: "check"` where a run's carries `"run"`. A source may
+  use that field to skip rules that only hold within a run. It uses the same
+  arguments, working directory, timeout and output limits.
 - Declarations run by ID and checks in their listed order.
 
 Unlike a run, `check` runs every check whatever earlier checks returned, so one

@@ -510,14 +510,9 @@ async function advance(
       const evidence = await session.authorProcess(
         { phase, declaration: selected.declaration, id: selected.operation.id },
         (onSpawn) =>
-          execute(
-            root,
-            selected,
-            report.selection,
-            report.resolved,
-            onSpawn,
+          execute(root, selected, report.selection, report.resolved, onSpawn, {
             overwriteAllowed,
-          ),
+          }),
         verifyInstalled,
       );
       if (evidence.error)

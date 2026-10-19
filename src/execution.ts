@@ -157,15 +157,23 @@ export function processError(outcome: OperationEvidence["process"]) {
 // maintainer confirmed that overwrite; otherwise it reports
 // `confirmation-required` without changing anything. A check or probe never
 // may. Scripts run from the retained inputs, except a probe inspection runs
-// before anything is retained, from the acquired source.
+// before anything is retained, from the acquired source. Only a check's
+// request says what invoked it: an adoption run (the default) or `check`.
 export async function execute(
   root: string,
   selected: SelectedOperation,
   selection: { standards: unknown; profile: string },
   resolved: Pick<ResolvedProfile, "declarations">,
   onSpawn?: (group: number) => void,
-  overwriteAllowed = false,
-  sourceRoot = join(root, ".repo-standards/inputs/source"),
+  {
+    overwriteAllowed = false,
+    sourceRoot = join(root, ".repo-standards/inputs/source"),
+    invocation = "run",
+  }: {
+    overwriteAllowed?: boolean;
+    sourceRoot?: string;
+    invocation?: "run" | "check";
+  } = {},
 ) {
   const { declaration, phase, operation } = selected;
   const identity = { declaration, phase, id: operation.id };
@@ -180,6 +188,7 @@ export async function execute(
       resolved.declarations.find((item) => item.id === declaration)!,
     ),
     overwriteAllowed,
+    ...(phase === "checks" && { invocation }),
   };
   const process = await invoke(
     operation.run.executable,
