@@ -37,6 +37,10 @@ export function observeWork(root: string, scope: Scope) {
   return first;
 }
 export type WorkObservation = ReturnType<typeof observeWork>;
+// What every rejection of a change outside the run's authority asks of the
+// agent: undo it in place, since a restored path is no longer a change.
+export const restoreInstruction =
+  "Restore each to its state before the run (remove a file the run added, or restore an edited file's committed content), then run adopt again.";
 export function observedChanges(
   before: WorkObservation,
   after: WorkObservation,

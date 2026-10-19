@@ -639,8 +639,12 @@ observation identities, applicable concrete scope, changed paths, violations,
 and interruption evidence.
 Retry closes the outgoing interval before replay, retains agent changes even
 when fixes subsequently overwrite the same files, and requires renewed
-assessment and checks. Detected scope violations cannot be erased by retry;
-abandon and reconcile before a new adoption. Installation, process
+assessment and checks. Detected scope violations cannot be erased by retry,
+but restoring a violating path to its state before the run reconciles them: a
+violation stands only while its path's net change over the run's intervals,
+from its state before the earliest interval that changed it, is nonzero, and
+the agent's observed changes are those net changes. Intervals keep their
+violations as observed. Installation, process
 liveness, concurrency, clean initial starts, and abandonment keep their existing
 contracts. See the [script](../usage/script-protocol.md#observed-adoption-scope)
 and [assessment](../usage/assessment-protocol.md#observation-and-replay) protocols.

@@ -37,6 +37,7 @@ const check = (id: string) =>
 async function fixture(
   t: TestContext,
   script = `console.log(JSON.stringify({format:'repo-standards/result/v2',status:'passed',message:'Verified'}));`,
+  more: Record<string, string> = {},
 ) {
   const f = await adoptionFixture(
     t,
@@ -83,6 +84,7 @@ async function fixture(
         "CONTRIBUTING.md": "Employer policy",
         ".gitignore": "ignored/\n",
         "src/old.ts": "// Old",
+        ...more,
       },
     },
   );
@@ -442,6 +444,120 @@ test("observed out-of-scope tracked and untracked changes block completion while
   assert.equal(f.resume(submission()).result.status, 0);
 });
 
+// The agent's out-of-scope work, then the project restored in place. Each
+// rejection says to restore, and names every path still changed.
+function assertRestoreInstruction(reason: string, ...paths: string[]) {
+  assert.ok(reason.startsWith("ASSESSMENT_SCOPE:"), reason);
+  for (const path of paths) assert.ok(reason.includes(path), reason);
+  assert.match(reason, /Restore each to its state before the run/);
+  assert.match(reason, /remove a file the run added/);
+  assert.match(reason, /restore an edited file's committed content/);
+  assert.doesNotMatch(reason, /abandon/);
+}
+
+test("an out-of-scope file the agent added and removed again reconciles and the run completes", async (t) => {
+  const f = await fixture(t);
+  contextualWork(f.project.root);
+  const postern = join(f.project.root, "postern.md");
+  writeFileSync(postern, "Invited by reviewer guidance");
+  f.resume();
+  const rejected = f.resume(submission());
+  assertRestoreInstruction(rejected.report.reason, "postern.md");
+  rmSync(postern);
+  // The reconciled violation stops nothing: not the refresh, nor the assessment.
+  assert.equal(f.resume().result.status, 1);
+  const accepted = f.resume(submission());
+  assert.equal(accepted.result.status, 0, accepted.result.stdout);
+  assert.equal(accepted.report.outcome, "complete");
+  const status = JSON.parse(
+    cli.run(["status", "--json"], f.project.root, f.env).stdout,
+  ) as Status;
+  assert.deepEqual(
+    status.assessments![0]!.declarations.flatMap(
+      ({ changedPaths }) => changedPaths,
+    ),
+    ["src/queue.ts", "README.md"],
+  );
+  assert.equal(
+    status.changeSet!.some(({ path }) => path === "postern.md"),
+    false,
+  );
+  // The recorded intervals keep both violations as observed.
+  const recorded = status.observations!.filter(({ violations }) =>
+    violations?.includes("postern.md"),
+  );
+  assert.equal(recorded.length, 2);
+});
+
+test("an out-of-scope edit to a tracked file reconciles once its committed content is restored", async (t) => {
+  const f = await fixture(t);
+  contextualWork(f.project.root);
+  const target = join(f.project.root, "CONTRIBUTING.md");
+  writeFileSync(target, "Employer policy\nAn edit nobody asked for");
+  f.resume();
+  assertRestoreInstruction(
+    f.resume(submission()).report.reason,
+    "CONTRIBUTING.md",
+  );
+  // A partial restore still differs from the state before the run.
+  writeFileSync(target, "Employer policy\n");
+  f.resume();
+  assertRestoreInstruction(
+    f.resume(submission()).report.reason,
+    "CONTRIBUTING.md",
+  );
+  git(f.project.root, "checkout", "--quiet", "--", "CONTRIBUTING.md");
+  f.resume();
+  const accepted = f.resume(submission());
+  assert.equal(accepted.result.status, 0, accepted.result.stdout);
+  assert.equal(accepted.report.outcome, "complete");
+});
+
+test("an out-of-scope directory reconciles once restored, whether created, re-moded or replaced by a file", async (t) => {
+  for (const [name, steps, restore] of [
+    [
+      "created and removed",
+      [
+        (root: string) => {
+          mkdirSync(join(root, "scratch"));
+          writeFileSync(join(root, "scratch/note.md"), "Scratch");
+        },
+      ],
+      (root: string) => rmSync(join(root, "scratch"), { recursive: true }),
+    ],
+    [
+      "mode changed",
+      [(root: string) => chmodSync(join(root, "docs"), 0o700)],
+      (root: string) => chmodSync(join(root, "docs"), 0o755),
+    ],
+    [
+      "created, then replaced by a file",
+      [
+        (root: string) => mkdirSync(join(root, "scratch")),
+        (root: string) => {
+          rmSync(join(root, "scratch"), { recursive: true });
+          writeFileSync(join(root, "scratch"), "A file where a directory was");
+        },
+      ],
+      (root: string) => rmSync(join(root, "scratch")),
+    ],
+  ] as const)
+    await t.test(name, async (st) => {
+      const f = await fixture(st, undefined, { "docs/guide.md": "Guide" });
+      contextualWork(f.project.root);
+      for (const step of steps) {
+        step(f.project.root);
+        f.resume();
+      }
+      assertRestoreInstruction(f.resume(submission()).report.reason);
+      restore(f.project.root);
+      f.resume();
+      const accepted = f.resume(submission());
+      assert.equal(accepted.result.status, 0, accepted.result.stdout);
+      assert.equal(accepted.report.outcome, "complete");
+    });
+});
+
 test("changed content invalidates prior assessment and every check runs again after renewed evidence", async (t) => {
   const f = await fixture(
     t,
@@ -495,8 +611,10 @@ test("contextual work cannot corrupt installed exact content", async (t) => {
   );
   assert.equal(readFileSync(target, "utf8"), "Corrupted");
   writeFileSync(target, before);
-  // Restoring the bytes cannot erase the recorded out-of-scope agent changes.
-  assert.match(f.resume(valid).report.reason, /^ASSESSMENT_SCOPE:/);
+  // Restoring the bytes leaves nothing to attribute, so the run continues.
+  const restored = f.resume(valid);
+  assert.equal(restored.result.status, 0, restored.result.stdout);
+  assert.equal(restored.report.outcome, "complete");
 });
 
 test("checks after assessment still reject mutation", async (t) => {

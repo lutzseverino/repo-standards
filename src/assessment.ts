@@ -1,4 +1,4 @@
-import { permits } from "./work-observation.js";
+import { permits, restoreInstruction } from "./work-observation.js";
 import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
 import { targetObservation } from "./observation.js";
@@ -175,16 +175,18 @@ export function validateAssessment(
       `Submit evidence for every contextual declaration. Missing: ${missing.join(", ")}.`,
     );
   const changed = [...new Set(observation.changedPaths)].sort();
-  for (const path of changed) {
-    if (
+  const outside = changed.filter(
+    (path) =>
       !request.declarations.some(({ allowedTargets }) =>
         permits(allowedTargets, path),
-      )
-    )
-      throw new ProductError(
-        "ASSESSMENT_SCOPE",
-        `Observed contextual change is outside allowed targets: ${path}. Preserve and reconcile that work before resubmission.`,
-      );
+      ),
+  );
+  if (outside.length)
+    throw new ProductError(
+      "ASSESSMENT_SCOPE",
+      `Observed contextual changes are outside allowed targets: ${outside.join(", ")}. ${restoreInstruction}`,
+    );
+  for (const path of changed) {
     const blockers: Parameters<typeof targetObservation>[2] = [];
     targetObservation(root, path, blockers);
     if (blockers.length)

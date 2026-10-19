@@ -1125,6 +1125,10 @@ function withSteps(
         steps.push(
           "The run installed exact content and ran fixes. Its contextual work above is yours.",
         );
+      else if (reason.startsWith("ASSESSMENT_SCOPE:"))
+        steps.push(
+          `The run did not accept the assessment: ${reason} Undo each named change in place, keeping your work on the allowed targets; nothing else needs correcting.`,
+        );
       else
         steps.push(
           `The run did not accept the assessment: ${reason} Correct the answers or the content.`,
@@ -1155,6 +1159,13 @@ function withSteps(
       if (reason.startsWith("SCOPE_INCOMPLETE:"))
         steps.push(
           `A run's confirmed scope never changes. With the maintainer's instruction, abandon the run with ${invoke("abandon")}, commit or discard its changes, restoring what it installed, and run adopt again with a new scope answer.`,
+        );
+      else if (
+        /^(ASSESSMENT_SCOPE|OPERATION_SCOPE|CHECK_MUTATION):/.test(reason)
+      )
+        steps.push(
+          `Read ${invoke("status")} and explain the run's reason and actual changes to the maintainer. Restore each path the reason names to its state before the run: remove a file the run added, or restore an edited file's committed content. A restored path no longer stops the run.`,
+          `Only on the maintainer's explicit instruction, run ${invoke("resume --retry")}, which repeats trusted operations and needs renewed assessments, then ${again}. An operation that writes the path again stops the run again.`,
         );
       else
         steps.push(

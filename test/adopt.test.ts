@@ -1257,3 +1257,55 @@ test("a drafted scope without open questions is an answer only once the answers 
     directories: [],
   });
 });
+
+test("adopt reconciles an out-of-scope file the agent removed again and completes with the resubmitted assessment", async (t) => {
+  const outside = directoryFixture("repo-standards-adopt-source-");
+  t.after(() => outside.close());
+  const f = await fixture(t, cli, readmeSource(outside.root));
+  const template = f.adopt([source]).report;
+  const contextual = f.adopt(
+    f.answer(template.answers, {
+      "remote-setup": "defer",
+      confirmation: template.inspection!.identity,
+    }),
+  ).report;
+  assert.equal(contextual.outcome, "contextual");
+  const assessment = {
+    status: "satisfied",
+    explanation: "README.md now names the project under a top-level heading.",
+    evidence: ["README.md"],
+  };
+  const answers = f.answer(contextual.answers, {
+    "assessment:project-readme": assessment,
+  });
+
+  // The agent's work leaves a file outside every allowed target.
+  writeFileSync(join(f.root, "README.md"), "# Project\n\nProject notes\n");
+  writeFileSync(join(f.root, "postern.md"), "Invited by reviewer guidance");
+  const rejected = f.adopt(answers, true);
+  assert.equal(rejected.result.status, 1);
+  const reason = rejected.report.run!.reason;
+  assert.match(reason, /^ASSESSMENT_SCOPE:.*postern\.md/);
+  assert.match(reason, /Restore each to its state before the run/);
+  const steps = rejected.report.nextSteps.join("\n");
+  assert.match(steps, /Undo each named change in place/);
+  assert.doesNotMatch(`${reason}\n${steps}`, /abandon/);
+
+  // Once the file is removed, the same answers complete the run.
+  rmSync(join(f.root, "postern.md"));
+  const complete = f.adopt(answers, true);
+  assert.equal(complete.result.status, 0, complete.result.stdout);
+  assert.equal(complete.report.outcome, "complete");
+  const status = JSON.parse(
+    spawnSync(f.pinned, ["status", "--json"], {
+      cwd: f.root,
+      env: f.env,
+      encoding: "utf8",
+    }).stdout,
+  ) as Status & { readyToCommit: boolean };
+  assert.equal(status.readyToCommit, true);
+  assert.equal(
+    status.changeSet!.some(({ path }) => path === "postern.md"),
+    false,
+  );
+});

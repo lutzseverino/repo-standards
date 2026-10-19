@@ -160,22 +160,34 @@ explicit directory target is itself an observed change: the CLI attributes the
 directory path alongside the files changed within it. Incomplete observation
 blocks progression.
 
-The derived `changedPaths` is the union of **observed agent changes across all
-agent intervals in this run**, under each owning declaration. It excludes work
-observed only during fixes and verified restoration recorded in `restoredExact`.
-If the agent edits `README.md` and a retried fix restores earlier bytes, the
-earlier agent change is still attributed, and the current file needs renewed
-assessment. Refresh and retry preserve earlier intervals; neither can turn an
-out-of-scope change into valid completion. Replaying fixes requires a new
-submission against the retried request, and fresh checks, even when the current
-bytes happen to match an earlier snapshot.
+The derived `changedPaths` is the **net observed agent changes across all
+agent intervals in this run**, under each owning declaration: each path an agent
+interval changed whose state now differs from its state before the earliest
+interval of the run that changed it. It excludes work observed only during
+fixes and verified restoration recorded in `restoredExact`. A path the run
+changed and then restored, in or out of scope, has nothing to attribute. If the
+agent edits `README.md` and a retried fix writes its earlier bytes back, the
+file is no longer attributed; if it differs from its pre-run state, the current
+file needs renewed assessment. Refresh and retry preserve earlier intervals;
+neither can turn an out-of-scope change that still stands into valid
+completion. Replaying fixes requires a new submission against the retried
+request, and fresh checks, even when the current bytes happen to match an
+earlier snapshot.
+
+An out-of-scope change stops the run with `ASSESSMENT_SCOPE`, naming each path
+whose state still differs from before the run. Restore each path in place:
+remove a file the run added, or restore an edited file's committed content, and
+a directory the run created is removed again. Then run `adopt` again with the
+answers, or resume and submit the assessment again. A reconciled violation stops
+nothing, and the run continues without abandonment.
 
 Run records and state v7 store each interval's applicable concrete scope
 separately from operation outcomes and assessment submissions. State v7 holds
 the last complete run's interval, operation, retry, check and assessment
 evidence only; a completion does not carry the preceding run's evidence. A
-recorded out-of-scope interval remains an incomplete result; abandon and
-reconcile before a new adoption. The last complete state retains its
+recorded out-of-scope interval remains an incomplete result until the project
+is restored to its state before the run, which reconciles it; the interval keeps
+its changes and violations as observed. The last complete state retains its
 interval and retry history as historical evidence, without asserting ongoing
 compliance.
 
