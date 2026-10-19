@@ -269,8 +269,10 @@ machinery and unchanged `repo-standards/operation/v2` input and
 `repo-standards/result/v2` output. Each fix's observed added, deleted, edited,
 and executable-state-changed files must fit **its owning declaration**, not the
 union of all declarations. A violation reports `OPERATION_SCOPE`, the operation,
-and offending paths. Checks report `CHECK_MUTATION` for observed writes, even
-within their allowed targets. A successful process/result does not override
+and the offending paths that still differ from their state before the run.
+Checks report `CHECK_MUTATION` for observed writes, even within their allowed
+targets. Restoring such a path in place reconciles the violation, as described
+below. A successful process/result does not override
 scope or exact-integrity failure. Exact bytes, executable state, and complete
 skill inventories (including directory paths and added empty directories) stay protected against their own declaration's fixes too.
 
@@ -324,8 +326,14 @@ later. Checks may not create or remove even empty directories.
 
 Retry retains intervals and earlier agent evidence before repeating fixes; it
 cannot authorize new scope or hide a recorded violation. A recorded scope or
-check-mutation violation requires abandonment and reconciliation before a new
-adoption. An incomplete observation must first become readable and complete. Restoring
+check-mutation violation is reconciled when its path, a file or a boundary
+directory, is back at the state it had before the earliest interval of the run
+that changed it: remove a file the run added, restore an edited file's committed
+content, or remove a directory the run created. Reconciled violations stop
+nothing, and the intervals keep them as observed. A path that still differs, a
+changed directory mode, or a directory replaced by a file still violates until
+restored. A fix or check that writes the path again records a new violation and
+fails as before. An incomplete observation must first become readable and complete. Restoring
 corrupted exact content is permitted only after verifying the immutable
 installation expectations; `restoredExact` records those restored identities
 separately from contextual work. `restoredBoundaries` covers only recreated

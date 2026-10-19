@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import { after, test } from "node:test";
 import type { TestContext } from "node:test";
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   readFileSync,
@@ -655,6 +656,96 @@ test("a fix may remove a directory whose files its authority removed, and every 
         phase === "checks" ? f.assess(started.workRequest!).report : started;
       assert.match(failed.reason, new RegExp(code));
     });
+});
+
+test("a fix or check change restored in place is reconciled, and a repeated write violates again", async (t) => {
+  for (const [name, phase, mutation, restore] of [
+    [
+      "added file",
+      "fixes",
+      "writeFileSync('added.txt', 'Added');",
+      (root: string) => rmSync(join(root, "added.txt")),
+    ],
+    [
+      "edited tracked file",
+      "fixes",
+      "writeFileSync('OTHER.md', 'Edited');",
+      (root: string) => git(root, "checkout", "--quiet", "--", "OTHER.md"),
+    ],
+    [
+      "created directory",
+      "fixes",
+      "mkdirSync('unrelated');",
+      (root: string) => rmSync(join(root, "unrelated"), { recursive: true }),
+    ],
+    [
+      "directory mode",
+      "fixes",
+      "chmodSync('empty', 0o751);",
+      (root: string) => chmodSync(join(root, "empty"), 0o755),
+    ],
+    [
+      "directory replaced by a file",
+      "fixes",
+      "rmSync('empty', {recursive:true}); writeFileSync('empty', 'File');",
+      (root: string) => {
+        rmSync(join(root, "empty"));
+        mkdirSync(join(root, "empty"), { mode: 0o755 });
+        chmodSync(join(root, "empty"), 0o755);
+      },
+    ],
+    [
+      "check mutation",
+      "checks",
+      "writeFileSync('new.md', 'Written by a check');",
+      (root: string) => rmSync(join(root, "new.md")),
+    ],
+  ] as const)
+    for (const repeated of [false, true])
+      await t.test(
+        `${name}${repeated ? ", written again" : ""}`,
+        async (st) => {
+          const f = await fixture(
+            st,
+            `${prelude}
+const marker = '.repo-standards/local/attempted-${phase}';
+if (input.operation.phase === '${phase}' && (${repeated} || !existsSync(marker))) {
+  writeFileSync(marker, 'attempted'); ${mutation}
+}
+${result}`,
+          );
+          mkdirSync(join(f.project.root, "empty"), { mode: 0o755 });
+          chmodSync(join(f.project.root, "empty"), 0o755);
+          const started = f.start().report;
+          const first =
+            phase === "checks"
+              ? f.assess(started.workRequest!).report
+              : started;
+          const code =
+            phase === "checks" ? "CHECK_MUTATION" : "OPERATION_SCOPE";
+          assert.match(first.reason, new RegExp(`^${code}:`));
+          restore(f.project.root);
+          // Nothing the restoration left stops the next command.
+          const retried = f.run<Run>(["resume", "--retry", "--json"]);
+          const outcome = retried.report;
+          const recorded = outcome.observations.find(
+            (interval) => interval.violations?.length,
+          );
+          assert.ok(recorded, "the original violation stays recorded");
+          if (repeated) {
+            assert.match(
+              phase === "checks"
+                ? f.assess(outcome.workRequest!).report.reason
+                : outcome.reason,
+              new RegExp(`^${code}:`),
+            );
+            return;
+          }
+          assert.equal(outcome.phase, "contextual", outcome.reason);
+          const complete = f.assess(outcome.workRequest!);
+          assert.equal(complete.result.status, 0, complete.result.stdout);
+        },
+      );
 });
 
 test("verified restoration of an exact file leaves only its installation in the change set", async (t) => {

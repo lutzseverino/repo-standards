@@ -1029,8 +1029,9 @@ history. Retry discards the run's accepted assessment: a new submission against
 the retried request is required, even if project bytes match.
 Retry records separate
 fix and agent observation intervals, retaining earlier observed agent edits
-even when replayed fixes overwrite the same files. Retry cannot erase
-recorded scope violations or create scope authority; see the
+even when replayed fixes overwrite the same files. Retry cannot hide
+recorded scope violations or create scope authority, though restoring a
+violating path to its state before the run reconciles its violation; see the
 [observed execution contract](script-protocol.md#observed-adoption-scope). Submit a new assessment separately after retry;
 `--retry` and `--assessment` cannot be combined. Plain `resume` and
 `resume --assessment` remain the contextual interface and never implicitly retry

@@ -10,6 +10,7 @@ import {
   observeWork,
   observedChanges,
   permits,
+  restoreInstruction,
   type WorkObservation,
 } from "./work-observation.js";
 
@@ -220,20 +221,59 @@ function finishInterval(
   ].sort();
 }
 
+// A path's net change over the run: its state before the earliest interval that
+// changed it, and its state at the latest observation. Fixes, checks and agent
+// work all count, in the namespace of files or of boundary directories.
+function netChanges(
+  intervals: readonly RecordedInterval[],
+  key: "changes" | "boundaryChanges",
+) {
+  const net = new Map<string, Delta>();
+  for (const interval of intervals)
+    for (const [path, delta] of Object.entries(interval[key] ?? {}))
+      net.set(path, {
+        before: net.has(path) ? net.get(path)!.before : delta.before,
+        after: delta.after,
+      });
+  return net;
+}
+
+function differs(delta: Delta) {
+  return JSON.stringify(delta.before) !== JSON.stringify(delta.after);
+}
+
+// A recorded violation stands until the project is restored: it is reconciled
+// once every namespace that changed its path is back at the state it had
+// before the run first changed it. Recorded intervals keep their violations as
+// observed; only the judgment of them follows the net change.
+function standing(intervals: readonly RecordedInterval[]) {
+  const nets = [
+    netChanges(intervals, "changes"),
+    netChanges(intervals, "boundaryChanges"),
+  ];
+  return (path: string) => {
+    const deltas = nets.flatMap((net) => net.get(path) ?? []);
+    return deltas.length === 0 || deltas.some(differs);
+  };
+}
+
 function requireValidIntervals(intervals: RecordedInterval[]) {
-  const invalid = intervals.find((interval) => interval.violations?.length);
-  if (!invalid) return;
-  const operation = invalid.operation;
-  const code =
-    invalid.phase === "agent"
-      ? "ASSESSMENT_SCOPE"
-      : invalid.phase === "checks"
-        ? "CHECK_MUTATION"
-        : "OPERATION_SCOPE";
-  throw new ProductError(
-    code,
-    `${operation ? `Operation ${operation.declaration}/${operation.id}` : "Agent work"} changed paths outside its authorized ${invalid.phase} scope: ${invalid.violations!.join(", ")}. Work and interval evidence are preserved; abandon and reconcile before a new adoption.`,
-  );
+  const stands = standing(intervals);
+  for (const interval of intervals) {
+    const paths = interval.violations?.filter(stands) ?? [];
+    if (!paths.length) continue;
+    const operation = interval.operation;
+    const code =
+      interval.phase === "agent"
+        ? "ASSESSMENT_SCOPE"
+        : interval.phase === "checks"
+          ? "CHECK_MUTATION"
+          : "OPERATION_SCOPE";
+    throw new ProductError(
+      code,
+      `${operation ? `Operation ${operation.declaration}/${operation.id}` : "Agent work"} changed paths outside its authorized ${interval.phase} scope: ${paths.join(", ")}. Work and interval evidence are preserved. ${restoreInstruction}`,
+    );
+  }
 }
 
 // The identity of the observation the last interval ends at: its before while
@@ -275,8 +315,9 @@ export interface JournalRecord {
 // Every interval is observed over the resolved profile's concrete scope. Opening
 // and continuing persist the record through the caller's save; closing does not
 // (see close). Opening a gap and each close check violations across the whole
-// journal, so a detected violation is reported again until the run is
-// abandoned; continuing leaves the check to its caller.
+// journal, so a detected violation is reported again until the project is
+// restored to its state before the run; continuing leaves the check to its
+// caller.
 export class WorkEvidenceJournal {
   readonly #root: string;
   readonly #resolved: ResolvedProfile;
@@ -411,8 +452,11 @@ export class WorkEvidenceJournal {
     requireValidIntervals(this.#run.observations);
   }
 
-  // The paths agent work changed, excluding verified restoration of exact content.
+  // The paths agent work changed, excluding verified restoration of exact
+  // content, and only those whose state now differs from before the run: work
+  // restored in place has nothing to attribute.
   agentChanges() {
+    const net = netChanges(this.#run.observations, "changes");
     return [
       ...new Set(
         this.#run.observations
@@ -423,7 +467,7 @@ export class WorkEvidenceJournal {
             ),
           ),
       ),
-    ];
+    ].filter((path) => differs(net.get(path)!));
   }
 
   // The paths and boundaries an operation's closed interval changed.
@@ -539,8 +583,6 @@ function changeSet(
       );
     paths.set(path, entry);
   };
-  const differs = (delta: Delta) =>
-    JSON.stringify(delta.before) !== JSON.stringify(delta.after);
   for (const [path, delta] of Object.entries(installed))
     if (differs(delta)) change(path, delta, "installation");
   for (const interval of intervals) {

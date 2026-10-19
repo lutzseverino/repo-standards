@@ -1166,6 +1166,17 @@ export class AdoptionRunSession {
     if (error instanceof ProductError && error.code === "SCOPE_INCOMPLETE")
       run.nextAction =
         "Additional paths grant no authority, and an active run cannot change its confirmed scope. Preserve the work, abandon the run, commit or discard its changes, and adopt again with a new confirmed scope.";
+    if (
+      error instanceof ProductError &&
+      ["ASSESSMENT_SCOPE", "OPERATION_SCOPE", "CHECK_MUTATION"].includes(
+        error.code,
+      )
+    )
+      run.nextAction = `Restore each path the reason names to its state before the run: remove a file the run added, or restore an edited file's committed content. ${
+        canResumeAssessment(run)
+          ? "Then refresh with resume, and submit renewed evidence with resume --assessment <file>."
+          : "Then use resume --retry."
+      }`;
     if (confirmationStop(run)) run.nextAction = confirmationNextAction(run);
     try {
       this.#save();
