@@ -44,6 +44,7 @@ import {
   type ObservationStore,
   type RecordedInterval,
 } from "./work-evidence.js";
+import { observationIdentity } from "./scope-observation.js";
 import {
   acquireWorker,
   executing,
@@ -75,10 +76,7 @@ import {
   type Installation,
 } from "./installation.js";
 import { dictionary, record } from "./records.js";
-import {
-  deferredRemoteSetup,
-  type DeferredRemoteSetup,
-} from "./remote-setup.js";
+import { deferredRemoteSetup, type DeferredFix } from "./remote-setup.js";
 
 // Persisted labels are shared by several producers. Keep their serialized
 // values stable so existing incomplete runs remain readable.
@@ -103,8 +101,9 @@ export interface Run {
   affected: Record<string, HashInventory>;
   prerequisites: PrerequisiteEvidence[];
   operations: OperationEvidence[];
-  // The remote setup this run defers, as its start chose.
-  deferred: DeferredRemoteSetup[];
+  // The fixes this run defers: remote setup that is not ready, as its start
+  // chose, and each fix whose overwrite the maintainer declined.
+  deferred: DeferredFix[];
   observations: RecordedInterval[];
   outcome: "complete" | "incomplete";
   phase: string;
@@ -322,6 +321,72 @@ function archiveLocalReport(root: string, run: Run) {
   return archiveEvidence(root, run, `report-${value.sha256}.json`, value);
 }
 
+// The saved installation and the observation the run's last interval ends at,
+// archived with an abandoned run's report so that adopting again in place can
+// verify what the run left and carry its changes.
+const archivedInstallation = "installation.json";
+const archivedObservation = "observation.json";
+function archiveRunContext(
+  root: string,
+  run: Run,
+  installation: string,
+  observation?: WorkObservation,
+) {
+  archiveEvidence(root, run, archivedInstallation, file(installation));
+  if (observation)
+    archiveEvidence(root, run, archivedObservation, file(json(observation)));
+}
+
+// The context an abandoned run archived, verified against its report, or
+// nothing when the run archived none or it changed. Its intervals are those
+// up to the archived observation, which may precede an interval abandonment
+// recorded after the run stopped.
+export function archivedContext(
+  root: string,
+  run: Run,
+):
+  | {
+      installation: Installation;
+      observation?: WorkObservation;
+      intervals: RecordedInterval[];
+    }
+  | undefined {
+  const directory = join(
+    dirname(lockPath(root)),
+    "repo-standards-reports",
+    run.id,
+  );
+  try {
+    const installation = readFileSync(
+      join(directory, archivedInstallation),
+      "utf8",
+    );
+    if (!run.continuation || hash(installation) !== run.continuation)
+      return undefined;
+    if (!run.observations.length)
+      return {
+        installation: JSON.parse(installation) as Installation,
+        intervals: [],
+      };
+    const observation = JSON.parse(
+      readFileSync(join(directory, archivedObservation), "utf8"),
+    ) as WorkObservation;
+    const identity = observationIdentity(observation);
+    for (let count = run.observations.length; count > 0; count--) {
+      const intervals = run.observations.slice(0, count);
+      if (keptIdentity(intervals) === identity)
+        return {
+          installation: JSON.parse(installation) as Installation,
+          observation,
+          intervals,
+        };
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function archiveRunEvidence(root: string, run: Run) {
   const archived: Record<string, string> = {};
   const report = archiveLocalReport(root, run);
@@ -405,6 +470,28 @@ export function confirmationStop(run: Run) {
     : undefined;
 }
 
+// The stops a changed scope answer recovers from by replacing the run in
+// place: a scope review that reports incomplete coverage, agent work outside
+// the allowed targets, and a blocked assessment.
+export function scopeStop(run: Run) {
+  return (
+    run.outcome === "incomplete" &&
+    !!run.continuation &&
+    !!run.installation?.complete &&
+    /^(SCOPE_INCOMPLETE|ASSESSMENT_SCOPE|ASSESSMENT_BLOCKED):/.test(run.reason)
+  );
+}
+
+// The scope proposal a run's start confirmed, when it discovered scope and its
+// saved installation is intact; recovery reports a damaged one.
+export function confirmedProposal(root: string, run: Run) {
+  try {
+    return readInstallation(root, run).report.discovery?.proposal;
+  } catch {
+    return undefined;
+  }
+}
+
 // A fix's request for the maintainer's confirmation to overwrite a setting,
 // as the run stops for it and as a resume without confirmation refuses it.
 export function fixConfirmationRequired(
@@ -422,7 +509,7 @@ export function fixConfirmationRequired(
 
 function confirmationNextAction(run: Run) {
   const stop = confirmationStop(run)!;
-  return `Ask the maintainer to confirm the overwrite fix ${stop.operation.declaration}/${stop.operation.id} reports, then continue with resume --confirmed, which reruns that fix allowed to overwrite. Without confirmation, abandon the run to preserve its work and report.`;
+  return `Ask the maintainer whether fix ${stop.operation.declaration}/${stop.operation.id} may overwrite the setting it reports. Once they confirm, continue with resume --confirmed, which reruns that fix allowed to overwrite; if they decline, continue with resume --defer, which records the fix as deferred and continues with the next fix.`;
 }
 
 // Run records, active or archived after abandonment, are read in their single
@@ -452,6 +539,11 @@ function readRun(root: string, path: string, active: boolean): Run {
   return run as Run;
 }
 
+// The reports of the runs abandoned or replaced in this checkout.
+export function archivedRuns(root: string) {
+  return abandonedReports(root, lockPath(root));
+}
+
 function abandonedReports(root: string, lock: string): Run[] {
   const directory = join(dirname(lock), "repo-standards-reports");
   if (!existsSync(directory)) return [];
@@ -461,7 +553,14 @@ function abandonedReports(root: string, lock: string): Run[] {
     .map((name) => readRun(root, join(directory, name), false));
 }
 
-export function abandon(project: string, cliVersion: string) {
+// Abandons the active run, or, when another run replaces it in place,
+// archives it as replaced. Either way its changes stay in the checkout, and its
+// report and the context that adopting again in place reads are archived.
+export function abandon(
+  project: string,
+  cliVersion: string,
+  replacing = false,
+) {
   const root = projectRoot(project);
   const lock = lockPath(root);
   requireRecordedCli(root, lock, cliVersion);
@@ -493,21 +592,40 @@ export function abandon(project: string, cliVersion: string) {
         "This adoption completed before interruption. Use resume --retry to verify and release its remaining progress record.",
       );
     let installation: Installation | undefined;
+    // A run stopped with its last interval closed recorded its work there:
+    // later changes are not its own, so adopting again in place exempts only
+    // what that interval recorded. An open interval is the run's own work in
+    // progress until abandonment closes it.
+    const stopped = run.observations.at(-1)?.after
+      ? run.observations.at(-1)!.after
+      : undefined;
+    // The archived report is never continued, so the journal keeps its final
+    // observation in memory and neither saves nor checks it.
+    const store = memoryStore(keptObservations(root));
     try {
-      // The archived report is never continued, so the journal keeps its final
-      // observation in memory and neither saves nor checks it.
       installation = readInstallation(root, run);
       new WorkEvidenceJournal(
         root,
         installation.report.resolved,
         run,
-        memoryStore(keptObservations(root)),
+        store,
+        undefined,
+        installation.inherited,
       ).continueInterrupted();
     } catch {
       run.uncertain.push(
         "The final abandoned observation could not be completed; earlier interval evidence is preserved.",
       );
     }
+    let observation: WorkObservation | undefined;
+    const identity = stopped ?? keptIdentity(run.observations);
+    if (identity)
+      try {
+        observation = store.read(identity);
+      } catch {
+        // Without its last observation, the run's changes cannot be adopted
+        // over in place.
+      }
     // Local reports in retired product state the run has not removed are the
     // earlier CLI's, not this run's.
     const earlierReports = installation
@@ -529,11 +647,19 @@ export function abandon(project: string, cliVersion: string) {
         "RECOVERY_BLOCKED",
         "Cannot preserve candidate completion state. Resolve local/incomplete-state.json storage before abandonment; the run remains active.",
       );
+    if (installation && (observation || !identity))
+      archiveRunContext(
+        root,
+        run,
+        readContext(root, run.continuation!, "Saved installation"),
+        observation,
+      );
     run.abandoned = true;
-    run.reason = `ABANDONED: ${run.reason}`;
+    run.reason = `${replacing ? "REPLACED" : "ABANDONED"}: ${run.reason}`;
     run.changes = actualChanges(root, run.affected);
-    run.nextAction =
-      "Review the archived report with status and reconcile the preserved project changes through the normal workflow. A new adoption starts from a fresh inspection, bound to its identity.";
+    run.nextAction = replacing
+      ? "Replaced in place: adopt inspects the unchanged selection with a new confirmed scope and starts a new run over the preserved changes, whose change set covers this run's."
+      : "Review the archived report with status. Run adopt in this checkout to adopt again in place over the preserved changes, or reconcile them through the normal workflow; a new adoption starts from a fresh inspection, bound to its identity.";
     const directory = join(dirname(lock), "repo-standards-reports");
     mkdirSync(directory, { recursive: true });
     const path = join(directory, `${run.id}.json`);
@@ -726,6 +852,7 @@ type Progress =
   | { type: "assessment-submitted"; assessment: Assessment }
   | { type: "assessment-accepted" }
   | { type: "operation-accepted"; description: string }
+  | { type: "fix-deferred"; deferral: DeferredFix }
   | { type: "final-verification" };
 
 export class AdoptionRunSession {
@@ -774,6 +901,7 @@ export class AdoptionRunSession {
       this.#state(),
       keptObservations(this.#root),
       () => this.#save(),
+      installation.inherited,
     );
   }
 
@@ -905,6 +1033,12 @@ export class AdoptionRunSession {
         break;
       case "operation-accepted":
         run.completed.push(event.description);
+        break;
+      case "fix-deferred":
+        run.deferred.push(structuredClone(event.deferral));
+        run.completed.push(
+          `fixes: ${event.deferral.declaration}/${event.deferral.id} (deferred)`,
+        );
         break;
       case "final-verification":
         run.phase = "verification";
@@ -1165,7 +1299,7 @@ export class AdoptionRunSession {
     }
     if (error instanceof ProductError && error.code === "SCOPE_INCOMPLETE")
       run.nextAction =
-        "Additional paths grant no authority, and an active run cannot change its confirmed scope. Preserve the work, abandon the run, commit or discard its changes, and adopt again with a new confirmed scope.";
+        "Additional paths grant no authority, and an active run cannot change its confirmed scope. Run adopt with a changed scope answer: it replaces this run in place, over its preserved changes, with a new run and a new confirmed scope.";
     if (
       error instanceof ProductError &&
       ["ASSESSMENT_SCOPE", "OPERATION_SCOPE", "CHECK_MUTATION"].includes(
@@ -1193,7 +1327,12 @@ export class AdoptionRunSession {
       session: AdoptionRunSession,
       installation?: Installation,
     ) => Promise<void>,
-    resume?: { cliVersion: string; retry: boolean; confirmed: boolean },
+    resume?: {
+      cliVersion: string;
+      retry: boolean;
+      confirmed: boolean;
+      defer: boolean;
+    },
   ) {
     const lock = lockPath(root);
     if (resume) {
@@ -1232,12 +1371,12 @@ export class AdoptionRunSession {
         // run continues only with it, or by explicit retry, which stops
         // there again.
         const stop = confirmationStop(run);
-        if (resume.confirmed && !stop)
+        if ((resume.confirmed || resume.defer) && !stop)
           throw new ProductError(
             "CONFIRMATION_NOT_REQUIRED",
-            "This run is not stopped for a fix's confirmation. Read status and resume without --confirmed.",
+            `This run is not stopped for a fix's confirmation. Read status and resume without ${resume.defer ? "--defer" : "--confirmed"}.`,
           );
-        if (stop && !resume.confirmed && !resume.retry)
+        if (stop && !resume.confirmed && !resume.defer && !resume.retry)
           throw fixConfirmationRequired(
             stop.operation,
             stop.message,
@@ -1384,10 +1523,12 @@ export function withResumedRun(
     session: AdoptionRunSession,
     installation?: Installation,
   ) => Promise<void>,
+  defer = false,
 ) {
   return AdoptionRunSession.scope(projectRoot(project), "resume", callback, {
     cliVersion,
     retry,
     confirmed,
+    defer,
   });
 }

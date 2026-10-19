@@ -281,8 +281,9 @@ survives unrelated work between inspection and start; a change to an affected
 file's bytes or executable bit, a retained input, or the product-state inventory changes
 it. The discovery observation spans the tracked and non-ignored tree, so for a
 discovery-backed selection most commits change the identity. Start still
-requires a clean committed tree, and the run records the project root and HEAD
-at start for provenance. Repeated unchanged inspection has the same identity.
+requires a clean committed tree, except over the changes an abandoned or
+replaced run of the same selection preserved, and the run records the project
+root and HEAD at start for provenance. Repeated unchanged inspection has the same identity.
 `start --identity <identity>` checks this identity on every start, before it
 checks [confirmation](#confirmation), and fails with `STALE_INSPECTION` when
 the project or selection no longer produces it.
@@ -374,6 +375,16 @@ and each one requires [confirmation](#confirmation). Existing product
 state blocks initial adoption with `EXISTING_ADOPTION`, unless it is retired,
 when the run removes it; see
 [adopting afresh over installed content](adoption.md#adopt-afresh-over-installed-content).
+
+An inspection of the selection an abandoned or replaced run adopted, in a
+checkout that still holds what that run left, [adopts again in place](adoption.md#adopt-again-in-place).
+The run's verified product state is not an existing adoption, and an update's
+last complete adoption is read from the HEAD the run started from. The Git
+start blockers exempt exactly the uncommitted paths the run's last
+observation recorded, and those paths count as recoverable content at their
+targets rather than untracked replacement content. Every other uncommitted path
+blocks with `DIRTY_PROJECT`, naming it. The report's shape and identity are
+those of any inspection: what the checkout holds is what it binds.
 Established projects can use `inspect --json` with their pinned CLI to inspect
 the unchanged selection from retained material. Starting that inspection
 starts a run that applies the selection again. It requires a complete prior

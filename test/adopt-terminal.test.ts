@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { directoryFixture, installCli, snapshot } from "./installed-cli.ts";
-import { commit, operation } from "./remote-fixture.ts";
+import { commit, git, operation } from "./remote-fixture.ts";
 import {
   discoveryFixture,
   fixture,
@@ -21,6 +21,10 @@ const cli = installCli();
 after(() => cli.close());
 
 type Fixture = Awaited<ReturnType<typeof fixture>>;
+
+// The incomplete-run menu of a run stopped for its scope.
+const scopeMenu =
+  "Change the scope and adopt again in place, abandon the run, or stop? [scope/abandon/stop]: ";
 
 // adopt in a terminal session, run by this test's CLI or the project's
 // pinned runtime.
@@ -417,16 +421,40 @@ else { appendFileSync(process.argv[2], 'rebase\\n'); result('changed', 'Set the 
   session.type("");
   await session.expect("Start the run? [Y/n]: ");
   session.type("");
-  assert.ok(
-    (
-      await session.expect("Allow the fix to overwrite the setting? [y/N]: ")
-    ).includes(message),
-  );
+  const prompt =
+    "Overwrite the setting, defer the fix, or stop? [overwrite/defer/stop]: ";
+  assert.ok((await session.expect(prompt)).includes(message));
   assert.equal(existsSync(log), false);
-  session.type("y");
+  session.type("overwrite");
   await session.expect("The adoption is complete.");
   assert.equal(await session.exit(), 0, session.rest());
   assert.equal(readFileSync(log, "utf8"), "rebase\n");
+
+  // Declined, the fix is deferred: the run completes without it and records
+  // the deferral, and the next run runs it again.
+  commit(f.root);
+  const declined = terminal(t, f, [], true);
+  for (const question of [
+    "Version [v1.0.0]: ",
+    "Profile [work]: ",
+    "Start the run? [Y/n]: ",
+  ]) {
+    await declined.expect(question);
+    declined.type("");
+  }
+  await declined.expect(prompt);
+  declined.type("defer");
+  await declined.expect("Deferring the fix");
+  await declined.expect("The adoption is complete.");
+  assert.equal(await declined.exit(), 0, declined.rest());
+  assert.equal(readFileSync(log, "utf8"), "rebase\n");
+  assert.deepEqual(status(f).deferred, [
+    {
+      declaration: "agent-guidance",
+      id: "setting",
+      reason: `The maintainer declined the overwrite: ${message}`,
+    },
+  ]);
 });
 
 test("a scope the person reports incomplete stops the walk and the run, which the person abandons", async (t) => {
@@ -467,11 +495,14 @@ test("a scope the person reports incomplete stops the walk and the run, which th
     /Press Enter when you are done|Contextual work 2 of 2/,
   );
   assert.match(
-    await session.expect("Abandon the run, or stop? [abandon/stop]: "),
+    await session.expect(scopeMenu),
     /The run is incomplete: SCOPE_INCOMPLETE: /,
   );
   session.type("abandon");
   await session.expect("Abandoned the run.");
+  await session.expect(
+    "Run adopt again in this checkout to adopt again in place over them.",
+  );
   assert.equal(await session.exit(), 1);
   assert.equal(status(f).active, null);
   // The run's work stays in the project.
@@ -724,6 +755,72 @@ test("a walk's checks run only from a verified installation", async (t) => {
   assert.equal(existsSync(ran), false);
 });
 
+test("a person changes a scope reported incomplete, and adopt replaces the run in place and completes it", async (t) => {
+  const { f } = await discoveryFixture(t, cli, []);
+  const head = git(f.root, "rev-parse", "HEAD");
+  const session = terminal(t, f, [source]);
+  await session.expect("Version [v1.0.0]: ");
+  session.type("");
+  await session.expect("Profile [work]: ");
+  session.type("");
+  await session.expect(
+    "Does project-docs cover exactly the drafted files, app/README.md? [Y/n]: ",
+  );
+  session.type("");
+  await session.expect("Start the run? [Y/n]: ");
+  session.type("");
+  await session.expect("cover every file project-docs should? [Y/n]: ");
+  session.type("");
+  await session.expect("Press Enter when you are done, or type blocked: ");
+  writeFileSync(join(f.root, "app/README.md"), "# App\n");
+  session.type("");
+  await session.expect("Is project-docs done? [Y/n/blocked]: ");
+  session.type("");
+  await session.expect("cover every file it should? [Y/n]: ");
+  session.type("n");
+  await session.expect("File: ");
+  session.type("tools/README.md");
+  await session.expect("File: ");
+  session.type("");
+  await session.expect("Why is the confirmed scope incomplete? ");
+  session.type("The tools project needs documentation too.");
+  await session.expect(scopeMenu);
+  const replacedRun = status(f).active!.id;
+  session.type("scope");
+  await session.expect(
+    "Does project-docs cover exactly the confirmed files, app/README.md? [Y/n]: ",
+  );
+  session.type("n");
+  for (const path of ["app/README.md", "tools/README.md", ""]) {
+    await session.expect("File: ");
+    session.type(path);
+  }
+  await session.expect("Why do these files make up its scope? ");
+  session.type("The app and the tools are both maintained.");
+  // The replacement asks only to start the new inspection.
+  await session.expect("Start the run? [Y/n]: ");
+  session.type("");
+  await session.expect("cover every file project-docs should? [Y/n]: ");
+  session.type("");
+  await session.expect("Press Enter when you are done, or type blocked: ");
+  writeFileSync(join(f.root, "tools/README.md"), "# Tools\n");
+  session.type("");
+  await session.expect("Is project-docs done? [Y/n/blocked]: ");
+  session.type("");
+  await session.expect("cover every file it should? [Y/n]: ");
+  session.type("");
+  await session.expect("The adoption is complete.");
+  assert.equal(await session.exit(), 0, session.rest());
+  assert.equal(git(f.root, "rev-parse", "HEAD"), head);
+  const record = status(f);
+  assert.equal(record.readyToCommit, true, record.readinessReasons.join());
+  assert.equal(record.abandoned[0]!.id, replacedRun);
+  assert.match(record.abandoned[0]!.reason, /^REPLACED: SCOPE_INCOMPLETE:/);
+  const changed = record.changeSet!.map(({ path }) => path);
+  for (const path of ["app/README.md", "tools/README.md"])
+    assert.ok(changed.includes(path), changed.join(", "));
+});
+
 test("a scope can be blocked before contextual work without missing files and requires a reason", async (t) => {
   const { f } = await discoveryFixture(t, cli, [], {
     declarations: {
@@ -757,9 +854,7 @@ test("a scope can be blocked before contextual work without missing files and re
   assert.deepEqual(status(f).active!.assessments, []);
   const reason = "The app is a fixture and its README must be withdrawn.";
   session.type(reason);
-  const stopped = await session.expect(
-    "Abandon the run, or stop? [abandon/stop]: ",
-  );
+  const stopped = await session.expect(scopeMenu);
   assert.match(stopped, /The run is incomplete: SCOPE_INCOMPLETE: /);
   assert.doesNotMatch(stopped, /Contextual work|Now that the contextual work/);
   session.type("stop");
@@ -816,7 +911,7 @@ for (const missing of [[], ["tools/README.md", "tools/NOTES.md"]])
       : "Whether the app is maintained is unresolved.";
     session.type(reason);
     assert.match(
-      await session.expect("Abandon the run, or stop? [abandon/stop]: "),
+      await session.expect(scopeMenu),
       /The run is incomplete: SCOPE_INCOMPLETE: /,
     );
     session.type("stop");

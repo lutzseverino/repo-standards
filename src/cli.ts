@@ -33,7 +33,7 @@ if (args.length === 1 && args[0] === "--version") {
   console.log(version);
 } else if (args.length === 0 || (args.length === 1 && args[0] === "--help")) {
   console.log(
-    "Usage: repo-standards adopt [<GitHub URL>] [--standards-version <tag>] [--profile <name>] [--answers <file>] [--project <directory>] [--json]\n       repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json | --summary]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --identity <inspection identity> [--confirmed] [--defer-remote-setup] [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file> | --confirmed] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json | --summary]\n       repo-standards outdated [--project <directory>] [--json]\n       repo-standards check [--project <directory>] [--json]\n       repo-standards rules [<path>] [--project <directory>] [--json]\n\nAdopt adopts a standards source, or updates the current selection when no source is given. In a terminal, without --answers or --json, it asks its questions, walks each contextual declaration through its rules, adoption guidance and checks, and writes the assessment from the answers; otherwise, without an answers file it prints its questions as an answers-file template with the next steps and changes nothing; with a filled answers file it asks what remains, then starts or continues the run, and prints what the run needs next. Inspect, start, and resume are the lower-level commands it drives. Start binds to the identity of the inspection it carries out. Pass --confirmed only when the inspection reports confirmation.required, after the maintainer confirms its confirmation-required changes. Inspection probes each remote setup before any write; a start stops when one is not ready, unless --defer-remote-setup completes adoption without it, and every later run applies it once it is ready. An update is one run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment; when a fix stopped the run because overwriting a setting needs confirmation, resume --confirmed reruns that fix allowed to overwrite, after the maintainer confirms. Use resume --retry for interrupted work, or abandon to preserve its changes and report. Outdated reports available CLI and standards updates without changing the project, as Markdown, or as JSON with --json. Check runs the adopted checks against the working tree and fails when any does not pass. Rules prints the installed rules that cover a path, named from the current directory, and the rules of repository-wide declarations; without a path it prints only the repository-wide rules, which govern any work in the project. --summary renders an inspection or status as Markdown instead of JSON.",
+    "Usage: repo-standards adopt [<GitHub URL>] [--standards-version <tag>] [--profile <name>] [--answers <file>] [--project <directory>] [--json]\n       repo-standards source validate [directory] [--json]\n       repo-standards source search [--page <1-34>] [--json]\n       repo-standards inspect [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] [--project <directory>] [--json | --summary]\n       repo-standards start [--scope <file>] [--source <GitHub URL> --standards-version <tag> --profile <name>] --identity <inspection identity> [--confirmed] [--defer-remote-setup] [--project <directory>] [--json]\n       repo-standards resume [--retry | --assessment <file> | --confirmed | --defer] [--project <directory>] [--json]\n       repo-standards abandon [--project <directory>] [--json]\n       repo-standards status [--project <directory>] [--json | --summary]\n       repo-standards outdated [--project <directory>] [--json]\n       repo-standards check [--project <directory>] [--json]\n       repo-standards rules [<path>] [--project <directory>] [--json]\n\nAdopt adopts a standards source, or updates the current selection when no source is given. In a terminal, without --answers or --json, it asks its questions, walks each contextual declaration through its rules, adoption guidance and checks, and writes the assessment from the answers; otherwise, without an answers file it prints its questions as an answers-file template with the next steps and changes nothing; with a filled answers file it asks what remains, then starts or continues the run, and prints what the run needs next. Inspect, start, and resume are the lower-level commands it drives. Start binds to the identity of the inspection it carries out. Pass --confirmed only when the inspection reports confirmation.required, after the maintainer confirms its confirmation-required changes. Inspection probes each remote setup before any write; a start stops when one is not ready, unless --defer-remote-setup completes adoption without it, and every later run applies it once it is ready. An update is one run: pass source flags to select a standards version, source, or profile, and run a candidate exact CLI to change the CLI pin, in any combination. Omit source flags to use retained standards; inspecting the unchanged selection with the pinned CLI starts a run that re-applies it. Active v2 discovery declarations require a fresh --scope proposal for every adoption and update. Resume refreshes contextual work requests or submits assessment; when a fix stopped the run because overwriting a setting needs confirmation, resume --confirmed reruns that fix allowed to overwrite, after the maintainer confirms, and resume --defer records the fix as deferred, after the maintainer declines, and continues with the next fix. Use resume --retry for interrupted work, or abandon to preserve its changes and report; abandon exits 0 once the run is abandoned. adopt in that checkout adopts again in place over the preserved changes, and so does adopt with a changed scope answer while a run is stopped for its scope. Outdated reports available CLI and standards updates without changing the project, as Markdown, or as JSON with --json. Check runs the adopted checks against the working tree and fails when any does not pass. Rules prints the installed rules that cover a path, named from the current directory, and the rules of repository-wide declarations; without a path it prints only the repository-wide rules, which govern any work in the project. --summary renders an inspection or status as Markdown instead of JSON.",
   );
 } else if (args[0] === "adopt") {
   const flags = new Map<string, string>();
@@ -200,6 +200,7 @@ if (args.length === 1 && args[0] === "--version") {
         (key === "--json" ||
           (key === "--retry" && args[0] === "resume") ||
           (key === "--confirmed" && ["start", "resume"].includes(args[0])) ||
+          (key === "--defer" && args[0] === "resume") ||
           (key === "--defer-remote-setup" && args[0] === "start") ||
           (key === "--summary" && ["inspect", "status"].includes(args[0]))) &&
         !flags.has(key)
@@ -246,6 +247,17 @@ if (args.length === 1 && args[0] === "--version") {
         "USAGE",
         "Confirmation continues a run stopped for a fix's confirmation; use resume --confirmed alone, without --retry or --assessment.",
       );
+    if (
+      args[0] === "resume" &&
+      flags.has("--defer") &&
+      (flags.has("--retry") ||
+        flags.has("--assessment") ||
+        flags.has("--confirmed"))
+    )
+      throw new ProductError(
+        "USAGE",
+        "Deferral continues a run stopped for a fix's confirmation after the maintainer declines it; use resume --defer alone, without --retry, --assessment, or --confirmed.",
+      );
     const selectionKeys = ["--source", "--standards-version", "--profile"];
     const selectionCount = selectionKeys.filter((key) => flags.has(key)).length;
     const retained =
@@ -282,6 +294,7 @@ if (args.length === 1 && args[0] === "--version") {
               flags.get("--assessment"),
               flags.has("--retry"),
               flags.has("--confirmed"),
+              flags.has("--defer"),
             )
           : args[0] === "status"
             ? status(options.project, version)
@@ -315,7 +328,12 @@ if (args.length === 1 && args[0] === "--version") {
           : inspectionSummary(report as InspectionReport),
       );
     else console.log(JSON.stringify(report, null, 2));
-    if ("outcome" in report && report.outcome === "incomplete")
+    // An abandoned run stays incomplete, but abandoning it succeeded.
+    if (
+      "outcome" in report &&
+      report.outcome === "incomplete" &&
+      args[0] !== "abandon"
+    )
       process.exitCode = 1;
   } catch (error) {
     const diagnostic =

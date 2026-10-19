@@ -16,8 +16,10 @@ export type RemoteSetup = { declaration: string; id: string } & (
   | { status: "not-checked" }
 );
 
-// A remote setup a run defers: recorded as deferred, never as a fix result.
-export interface DeferredRemoteSetup {
+// A fix a run defers, recorded as deferred, never as a fix result: remote
+// setup that is not ready, or a fix whose overwrite of a setting the
+// maintainer declined. The reason says which.
+export interface DeferredFix {
   declaration: string;
   id: string;
   reason: string;
@@ -41,9 +43,7 @@ export function remoteSetupFixes(
   );
 }
 
-export function deferredRemoteSetup(
-  remoteSetup: RemoteSetup[],
-): DeferredRemoteSetup[] {
+export function deferredRemoteSetup(remoteSetup: RemoteSetup[]): DeferredFix[] {
   return remoteSetup.flatMap((entry) =>
     entry.status === "not-ready"
       ? [{ declaration: entry.declaration, id: entry.id, reason: entry.reason }]

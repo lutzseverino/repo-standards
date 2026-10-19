@@ -556,7 +556,12 @@ test("self-adoption recovery uses the matching runtime or the external exact CLI
       env,
       encoding: "utf8",
     });
-    assert.equal(result.status, 1, result.stdout + result.stderr);
+    // An abandonment succeeds; the retry does not.
+    assert.equal(
+      result.status,
+      action === "abandon" ? 0 : 1,
+      result.stdout + result.stderr,
+    );
     const report = JSON.parse(result.stdout) as {
       outcome: string;
       abandoned?: boolean;

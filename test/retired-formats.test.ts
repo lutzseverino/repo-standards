@@ -1124,7 +1124,7 @@ test("a fresh adoption stopped before removing retired product state blocks chec
   const abandoned = f.run<Run>(["abandon", "--json"]);
   assert.equal(
     abandoned.result.status,
-    1,
+    0,
     abandoned.result.stdout + abandoned.result.stderr,
   );
   assert.equal(abandoned.report.abandoned, true);

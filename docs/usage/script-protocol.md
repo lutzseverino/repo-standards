@@ -136,7 +136,10 @@ the run stops resumably at the fix, recording its result, and the fixes after
 it wait. Once the maintainer confirms, `resume --confirmed` invokes the same
 fix again with `overwriteAllowed: true`, and the fix makes the change; the run
 then continues with the fixes after it, each asking for its own confirmation
-when it needs one. A fix invoked with
+when it needs one. Once the maintainer declines, `resume --defer` records the
+whole fix as deferred, invokes it no further in that run, and continues with
+the fixes after it; every later run invokes it again, with
+`overwriteAllowed: false`. A fix invoked with
 `overwriteAllowed: true` must not return `confirmation-required`; that result is
 a protocol error. A check never returns it.
 

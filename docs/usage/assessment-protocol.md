@@ -179,7 +179,11 @@ whose state still differs from before the run. Restore each path in place:
 remove a file the run added, or restore an edited file's committed content, and
 a directory the run created is removed again. Then run `adopt` again with the
 answers, or resume and submit the assessment again. A reconciled violation stops
-nothing, and the run continues without abandonment.
+nothing, and the run continues without abandonment. When a named path belongs
+in a discovered declaration's scope, change that scope answer instead: `adopt`
+[adopts again in place](adoption.md#adopt-again-in-place) with the new scope,
+and the new run's `changedPaths` include the agent changes the replaced run
+left that still differ from their state before it.
 
 Run records and state v7 store each interval's applicable concrete scope
 separately from operation outcomes and assessment submissions. State v7 holds

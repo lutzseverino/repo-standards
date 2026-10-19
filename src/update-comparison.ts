@@ -233,10 +233,12 @@ function stateIntegrityBlockers(
   return blockers;
 }
 
+// The product-state inventory is checked when it is the recorded adoption's,
+// and not when an incomplete run's verified installation holds it.
 export function compareUpdate(
   recorded: RecordedAdoption,
   candidate: UpdateCandidate,
-  productState: Observation,
+  productState: Observation | undefined,
 ) {
   const [recordedStandards, candidateStandards] = [
     recorded.selection.standards,
@@ -265,7 +267,9 @@ export function compareUpdate(
     source: !sameSource,
     profile: candidate.selection.profile !== recorded.selection.profile,
   };
-  const blockers = stateIntegrityBlockers(recorded, productState);
+  const blockers = productState
+    ? stateIntegrityBlockers(recorded, productState)
+    : [];
   // Retirement compares source declarations: an active discovery declaration
   // awaiting its scope proposal is still declared.
   const retired = recorded.resolved.declarations.filter(

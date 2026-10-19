@@ -135,7 +135,8 @@ _Avoid_: Prerequisite, check
 **Confirmation-required change**:
 A change an inspection or fix reports that discards a person's work or
 overwrites a setting someone chose. An agent reviews and confirms discarded
-edits recoverable from Git; a remote setting overwrite waits for the maintainer.
+edits recoverable from Git; a remote setting overwrite waits for the maintainer,
+whose decline defers the whole fix.
 _Avoid_: Critical change, risky change
 
 **Scope proposal**:
@@ -176,6 +177,18 @@ _Avoid_: Successful script run, committed change
 An adoption run in which at least one required phase did not succeed, with the
 actual work and a safe next action reported.
 _Avoid_: Rollback, generic failure
+
+**Preserved changes**:
+The uncommitted changes an abandoned or replaced adoption run left in its
+checkout, exactly as its last observation recorded them, with its verified
+installation.
+_Avoid_: Leftovers, dirty state
+
+**Replacement run**:
+An adoption run of the same selection that starts in place over another run's
+preserved changes, with a new confirmed scope or after that run's abandonment,
+and whose change set covers both runs.
+_Avoid_: Scope amendment, re-adoption
 
 **Pin**:
 One of the two version components of a selection: the exact CLI version or the
