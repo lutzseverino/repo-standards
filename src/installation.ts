@@ -22,7 +22,7 @@ import type { Baseline, Files } from "./adoption-files.js";
 import type { AdoptionRunSession, Run } from "./adoption-run.js";
 import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
-import { productInventory, type inspectForStart } from "./inspection.js";
+import type { inspectForStart } from "./inspection.js";
 import {
   git,
   hiddenIndexPaths,
@@ -32,6 +32,7 @@ import {
   matchesInventory,
   observe,
   plannedInventory,
+  productInventory,
   type Content,
   type HashInventory,
   type Observation,
@@ -40,7 +41,11 @@ import { plannedRules, rulesDirectory } from "./rules.js";
 import { committedScopeEvidence, type ScopeRun } from "./scope-evidence.js";
 import type { Scope } from "./scope.js";
 import { installedSystemSkills, linkTextAt, skillTarget } from "./targets.js";
-import { completedEvidence, type Delta } from "./work-evidence.js";
+import {
+  completedEvidence,
+  type Delta,
+  type InheritedChange,
+} from "./work-evidence.js";
 import { dictionary, record } from "./records.js";
 
 // Installation is the plan of an adoption run's exact content, retained
@@ -82,17 +87,22 @@ export interface Installation {
   // The durable state of the last complete adoption, which an update keeps in
   // place until its completion replaces it.
   previousState?: Content;
+  // The changes a run this one replaces in place left in the checkout, which
+  // its change set covers together with its own.
+  inherited?: InheritedChange[];
 }
 
 // Plans the installation of the inspection a start is bound to. A replaced
 // runtime was prepared in its directory, with the system skills it packages, by
 // target; otherwise the installed runtime is kept, and the system skills are
-// the ones the inspecting CLI, which is the pinned one, packages.
+// the ones the inspecting CLI, which is the pinned one, packages. A run that
+// replaces another in place inherits the changes that run left.
 export function planInstallation(
   root: string,
   inspected: StartInspection,
   confirmation: string,
   runtime?: { directory: string; skills: Record<string, Observation> },
+  inherited: InheritedChange[] = [],
 ): Installation {
   const { report, materials, recorded } = inspected;
   const files: Files = dictionary();
@@ -222,6 +232,7 @@ export function planInstallation(
     runtimeHash: hash(json(installedRuntime)),
     replaceTrees,
     ...(recorded ? { previousState: recorded.stateFile } : {}),
+    ...(inherited.length ? { inherited } : {}),
     before: Object.fromEntries(
       [
         ...new Set([
@@ -710,7 +721,9 @@ export function exactContent(installation: Installation): Scope[string] {
 // under `.repo-standards/` is the product's own, not a project path the run
 // changes. Only the leaves of a tree are compared: an empty directory has
 // none, and as untracked content it never reaches a start.
-function installationDeltas(installation: Installation): Record<string, Delta> {
+export function installationDeltas(
+  installation: Installation,
+): Record<string, Delta> {
   const before: Record<string, HashInventory> = dictionary();
   const leaves = (path: string, value: HashInventory) => {
     if (value.type === "directory")
@@ -756,7 +769,11 @@ export function completionFiles(
 ) {
   const state = file(
     json({
-      ...completedEvidence(run, installationDeltas(installation)),
+      ...completedEvidence(
+        run,
+        installationDeltas(installation),
+        installation.inherited,
+      ),
       lastComplete: {
         run: run.id,
         inspection: run.inspection,

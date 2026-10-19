@@ -1,6 +1,16 @@
-import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { hash, type acquireSource } from "./acquisition.js";
+import { externalPath, hash, type acquireSource } from "./acquisition.js";
 import {
   inventory,
   json,
@@ -19,8 +29,9 @@ import {
   retiredRun,
 } from "./formats.js";
 import type { Declaration } from "./model.js";
-import type { DeferredRemoteSetup } from "./remote-setup.js";
+import type { DeferredFix } from "./remote-setup.js";
 import {
+  committedFiles,
   git,
   targetObservation,
   type Blocker,
@@ -75,9 +86,9 @@ interface RecordedState extends ExecutionEvidence {
   links: Record<string, string>;
   checks: unknown[];
   assessments: unknown[];
-  // The remote setup the last complete run deferred. State an earlier CLI
-  // wrote has none.
-  deferred?: DeferredRemoteSetup[];
+  // The fixes the last complete run deferred. State an earlier CLI wrote has
+  // none.
+  deferred?: DeferredFix[];
 }
 type RecordedFile = Extract<Observation, { type: "file" }>;
 
@@ -196,18 +207,78 @@ function decode(lock: Observation, observed: Observation) {
   return { pinned, state, stateFile: observed };
 }
 
+// Where a recorded adoption's product files are read: the working tree, or
+// the commit an incomplete or abandoned run started from. Each file is observed
+// without following links, with whether it was safe to read, and the retained
+// inputs can be laid out as a project directory for use as a source.
+interface ProductFiles {
+  observe(path: string): { value: Observation; safe: boolean };
+  inventory(path: string): string[];
+  inputs(): { root: string; close(): void };
+}
+
+function workingTree(root: string): ProductFiles {
+  return {
+    observe(path) {
+      const blockers: Blocker[] = [];
+      const value = targetObservation(root, path, blockers);
+      return { value, safe: blockers.length === 0 };
+    },
+    inventory: (path) => inventory(root, path),
+    inputs: () => ({ root, close() {} }),
+  };
+}
+
+// A commit's product files, read as Git stores them. Its retained inputs are
+// written to temporary storage outside the project for as long as the source
+// they make is open.
+function commitFiles(root: string, commit: string): ProductFiles {
+  const files = committedFiles(root, commit, ".repo-standards");
+  return {
+    observe(path) {
+      const value = files.get(path) ?? { type: "missing" };
+      return { value, safe: value.type !== "unsafe" };
+    },
+    inventory: (path) =>
+      [...files.keys()]
+        .filter((name) => name.startsWith(path + "/"))
+        .map((name) => name.slice(path.length + 1))
+        .sort(),
+    inputs() {
+      const directory = mkdtempSync(
+        join(externalPath(tmpdir(), root), "repo-standards-committed-"),
+      );
+      for (const [path, value] of files)
+        if (path.startsWith(`${inputs}/`) && value.type === "file") {
+          mkdirSync(dirname(join(directory, path)), { recursive: true });
+          writeFileSync(
+            join(directory, path),
+            Buffer.from(value.content, value.encoding),
+            { mode: value.executable ? 0o755 : 0o644 },
+          );
+        }
+      return {
+        root: directory,
+        close: () => rmSync(directory, { recursive: true, force: true }),
+      };
+    },
+  };
+}
+
 // Every product file the lock records, observed without following links and
 // matched against its recorded hash and mode before anything reads it.
-function verifiedProductFiles(root: string, files: Record<string, Baseline>) {
+function verifiedProductFiles(
+  product: ProductFiles,
+  files: Record<string, Baseline>,
+) {
   const verified: Record<string, RecordedFile> = dictionary();
   for (const [path, expected] of Object.entries(files).filter(([path]) =>
     path.startsWith(".repo-standards/"),
   )) {
     relativePath(path);
-    const blockers: Blocker[] = [];
-    const actual = targetObservation(root, path, blockers);
+    const { value: actual, safe } = product.observe(path);
     if (
-      blockers.length ||
+      !safe ||
       actual.type !== "file" ||
       actual.sha256 !== expected?.sha256 ||
       actual.executable !== expected.executable
@@ -376,16 +447,70 @@ export function activeRunExemption(runRecord: string) {
 
 // Reads the recorded adoption of the project at root, or nothing when neither
 // the lock nor durable state exists. Unsupported record formats are rejected first.
+// When the checkout holds what an abandoned run left, the state-integrity
+// failure names the way forward from there.
 export function readRecordedAdoption(
   root: string,
 ): RecordedAdoption | undefined {
+  try {
+    return readFrom(root, workingTree(root));
+  } catch (error) {
+    if (!(error instanceof ProductError) || error.code !== "STATE_INTEGRITY")
+      throw error;
+    const preserved = abandonedOver(root);
+    if (!preserved) throw error;
+    throw new ProductError(
+      error.code,
+      `${error.message} The checkout holds the uncommitted changes that abandoned run ${preserved} left in place of the recorded adoption. Run adopt in this checkout to adopt again in place over them, or commit or discard them through the project's normal workflow.`,
+      error.details,
+    );
+  }
+}
+
+// The recorded adoption in a commit, such as the HEAD an incomplete or
+// abandoned update started from, while the working tree holds that run's
+// product state. The format gate still reads the working tree's records.
+export function readCommittedAdoption(
+  root: string,
+  commit: string,
+): RecordedAdoption | undefined {
+  return readFrom(root, commitFiles(root, commit));
+}
+
+// The abandoned run whose installation wrote the working tree's lock, read
+// without verification, to name the way forward from what it left.
+function abandonedOver(root: string) {
+  const inspection = (
+    unverifiedRecord(join(root, lockFile)) as
+      { inspection?: unknown } | undefined
+  )?.inspection;
+  const archive = join(dirname(lockPath(root)), "repo-standards-reports");
+  if (
+    typeof inspection !== "string" ||
+    !lstatSync(archive, { throwIfNoEntry: false })?.isDirectory()
+  )
+    return undefined;
+  for (const name of readdirSync(archive).sort())
+    if (name.endsWith(".json")) {
+      const run = unverifiedRecord(join(archive, name)) as
+        { id?: unknown; inspection?: unknown; abandoned?: unknown } | undefined;
+      if (run?.abandoned === true && run.inspection === inspection)
+        return typeof run.id === "string" ? run.id : undefined;
+    }
+  return undefined;
+}
+
+function readFrom(
+  root: string,
+  product: ProductFiles,
+): RecordedAdoption | undefined {
   rejectUnsupportedRecords(root, lockPath(root));
-  const lock = targetObservation(root, lockFile, []);
-  const state = targetObservation(root, stateFile, []);
+  const lock = product.observe(lockFile).value;
+  const state = product.observe(stateFile).value;
   if (lock.type === "missing" && state.type === "missing") return undefined;
   const decoded = decode(lock, state);
   const { pinned } = decoded;
-  const verified = verifiedProductFiles(root, pinned.files);
+  const verified = verifiedProductFiles(product, pinned.files);
   const resolved = recordedResolution(verified[resolvedFile]);
   const scope = verified[scopeFile];
   return {
@@ -400,7 +525,7 @@ export function readRecordedAdoption(
         path.startsWith(`${inputs}/`),
       );
       if (
-        json(inventory(root, inputs)) !==
+        json(product.inventory(inputs)) !==
         json(recorded.map((path) => path.slice(inputs.length + 1)).sort())
       )
         throw new ProductError(
@@ -416,16 +541,19 @@ export function readRecordedAdoption(
         }
       const manifest = verified[manifestFile];
       if (!manifest) unreadable();
+      const layout = product.inputs();
       return {
         root: join(
-          root,
-          existsSync(join(root, retainedSource)) ? retainedSource : inputs,
+          layout.root,
+          existsSync(join(layout.root, retainedSource))
+            ? retainedSource
+            : inputs,
         ),
         identity: pinned.selection.standards,
         paths,
         symlinks: new Set<string>(),
         manifest: text(manifest),
-        close() {},
+        close: () => layout.close(),
       };
     },
   };

@@ -429,11 +429,58 @@ test("an incomplete or abandoned standards update keeps the last complete propos
     f.run<Status>(["status", "--json"]).report.scopeProposal,
     first.discovery!.proposal,
   );
-  assert.equal(f.run<Run>(["abandon", "--json"]).report.abandoned, true);
+  const abandon = f.run<Run>(["abandon", "--json"]);
+  assert.equal(abandon.result.status, 0, abandon.result.stdout);
+  assert.equal(abandon.report.abandoned, true);
   const abandoned = f.run<Status>(["status", "--json"]);
   assert.equal(abandoned.result.status, 0, abandoned.result.stdout);
   assert.equal(abandoned.report.stateError!.code, "STATE_INTEGRITY");
+  // The state error names the way forward from the abandoned update.
+  assert.match(
+    abandoned.report.stateError!.message,
+    new RegExp(
+      `abandoned run ${started.report.id} .*Run adopt in this checkout to adopt again in place`,
+    ),
+  );
   assert.deepEqual(abandoned.report.scopeProposal, first.discovery!.proposal);
+
+  // Retained standards are the last complete selection, not the abandoned
+  // update's, so its changes block them and the blocker says why.
+  const retained = f.run<Inspection>(["inspect", "--json"]).report;
+  const dirty = retained.start.blockers.find(
+    ({ code }) => code === "DIRTY_PROJECT",
+  )!;
+  assert.match(dirty.message, /keeps that run's selection/);
+
+  // The same update inspects over the abandoned run's changes in place,
+  // against the last complete adoption at the HEAD it started from.
+  const again = f.run<Inspection>([
+    ...updateArgs,
+    "--scope",
+    f.scopeFile,
+  ]).report;
+  assert.deepEqual(again.start.blockers, []);
+  assert.deepEqual(again.update, ["standards"]);
+  assert.equal(again.previousSelection!.standards.version, "v1.0.0");
+  const restarted = f.run<Run>(
+    startArgs(again.identity, [...updateArgs, "--scope", f.scopeFile]),
+  );
+  assert.equal(restarted.report.phase, "contextual", restarted.result.stdout);
+  assert.equal(
+    restarted.report.previousComplete!.lastComplete.inspection,
+    first.identity,
+  );
+  assert.equal(f.complete().result.status, 0);
+  const updated = f.run<Status & { readyToCommit: boolean }>([
+    "status",
+    "--json",
+  ]).report;
+  assert.equal(updated.stateError, undefined);
+  assert.equal(updated.selection!.standards.version, "v1.1.0");
+  assert.equal(updated.readyToCommit, true, updated.readinessReasons.join());
+  assert.deepEqual(updated.scopeChanges, [
+    { id: "docs", additions: [], removals: ["apps/old/README.md"] },
+  ]);
 });
 
 test("repeated updates retain only the current run without growing, and status reports its scope change", async (t) => {

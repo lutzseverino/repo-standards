@@ -627,7 +627,7 @@ test("scope-validity omissions, copied identities and additional file needs bloc
   assert.equal(complete.result.status, 0, complete.result.stdout);
 });
 
-test("a blocked scope review is corrected by abandoning the run and adopting again with a new confirmed scope", async (t) => {
+test("a blocked scope review can still be corrected by abandoning the run, discarding its changes, and adopting again with a new confirmed scope", async (t) => {
   const f = await fixture(t);
   f.start(f.inspect().report.identity);
   const needsMore = assessment();
@@ -641,7 +641,7 @@ test("a blocked scope review is corrected by abandoning the run and adopting aga
   assert.match(blocked.report.reason, /SCOPE_INCOMPLETE/);
   assert.match(
     blocked.report.nextAction,
-    /Preserve the work, abandon the run, commit or discard its changes, and adopt again with a new confirmed scope/,
+    /Run adopt with a changed scope answer: it replaces this run in place/,
   );
 
   const abandoned = f.run<Run>(["abandon", "--json"]);

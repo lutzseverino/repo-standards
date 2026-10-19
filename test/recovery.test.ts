@@ -467,7 +467,7 @@ test("abandon preserves actual work, historical evidence and an accessible repor
     "Unfinished contextual work",
   );
   const abandoned = f.report<Run>(["abandon", "--json"]);
-  assert.equal(abandoned.result.status, 1, abandoned.result.stdout);
+  assert.equal(abandoned.result.status, 0, abandoned.result.stdout);
   assert.equal(abandoned.report.outcome, "incomplete");
   assert.equal(abandoned.report.abandoned, true);
   assert.equal(abandoned.report.phase, "contextual");
@@ -493,12 +493,15 @@ test("abandon preserves actual work, historical evidence and an accessible repor
       .code,
     "NO_ACTIVE_RUN",
   );
-  // The abandoned run no longer holds the project; its uncommitted product
-  // state does, until it is reconciled.
+  // The abandoned run no longer holds the project; its preserved changes do,
+  // and an inspection adopts again in place over them. The earlier inspection
+  // saw the project before them.
   assert.equal(
     f.report<ErrorReport>(f.startArgs).report.errors[0]!.code,
-    "STATE_INTEGRITY",
+    "STALE_INSPECTION",
   );
+  const again = f.report<Inspection>(inspectionArgs).report;
+  assert.deepEqual(again.start.blockers, []);
 });
 
 test("abandon closes the last interval in its archived report and keeps no observation beside the journal", async (t) => {

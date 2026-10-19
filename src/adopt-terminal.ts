@@ -23,7 +23,8 @@ import type { Candidate } from "./scope.js";
 // is done, or blocked with a reason; the assessment is written from those
 // answers. Before a run starts nothing is written, and once it has, the run
 // holds everything, so running adopt again after an interruption continues
-// where the run stopped.
+// where the run stopped. A run stopped for its scope is replaced in place
+// once the person changes the scope.
 
 export interface Terminal {
   write: (text: string) => void;
@@ -210,9 +211,14 @@ export async function adoptInTerminal(
       for (const id of scopes) answers.delete(id);
       continue;
     }
-    // Answers that advance a run apply once.
+    // Answers that advance a run apply once, and a started run holds its
+    // scope, which only a changed answer replaces.
     for (const id of answers.keys())
-      if (id.startsWith("assessment:") || id.startsWith("fix:"))
+      if (
+        id.startsWith("assessment:") ||
+        id.startsWith("fix:") ||
+        (report.run && id.startsWith("scope:"))
+      )
         answers.delete(id);
     // A blocker on a file the person included in a scope, such as a
     // directory listed as a file, asks the scope questions again.
@@ -249,18 +255,24 @@ export async function adoptInTerminal(
             identity: string;
           };
           write(`\nFix ${fix} stopped the run: ${reason}\n`);
-          if (
-            await prompt.yes(
-              "Allow the fix to overwrite the setting? [y/N]: ",
-              "no",
-            )
-          ) {
+          const choice = await prompt.choose(
+            "Overwrite the setting, defer the fix, or stop? [overwrite/defer/stop]: ",
+            { overwrite: "overwrite", defer: "defer", stop: "stop" },
+          );
+          if (choice === "overwrite") {
             answers.set(question!.id, identity);
             write("Running the fix again, allowed to overwrite.\n");
             continue;
           }
+          if (choice === "defer") {
+            answers.set(question!.id, "defer");
+            write(
+              "Deferring the fix: the run records it as deferred and continues with the next fix. Every later run runs it again.\n",
+            );
+            continue;
+          }
           write(
-            `The run stays stopped at this fix. Run adopt again to confirm it, or abandon the run with ${pinnedCli} abandon.\n`,
+            "The run stays stopped at this fix. Run adopt again to overwrite the setting or defer the fix.\n",
           );
           return report.outcome;
         }
@@ -316,9 +328,16 @@ export async function adoptInTerminal(
         return report.outcome;
       case "contextual": {
         // A run's confirmed scope never changes, so walking it again cannot
-        // help.
+        // help; a changed scope replaces the run.
         if (reason.startsWith("SCOPE_INCOMPLETE:")) {
-          const outcome = await decide(prompt, session, reason, renew);
+          const outcome = await decide(
+            prompt,
+            session,
+            reason,
+            renew,
+            report,
+            answers,
+          );
           if (outcome) return outcome;
           continue;
         }
@@ -327,8 +346,21 @@ export async function adoptInTerminal(
             ([, judgment]) => judgment.status === "blocked",
           );
           write(
-            `\nThe run is incomplete. Blocked: ${blocked.map(([id, judgment]) => `${id}: ${judgment.explanation}`).join("; ")}\nResolve it, then run adopt again to continue.\n`,
+            `\nThe run is incomplete. Blocked: ${blocked.map(([id, judgment]) => `${id}: ${judgment.explanation}`).join("; ")}\n`,
           );
+          if (
+            scopeQuestions(report).length &&
+            (await prompt.choose(
+              "Change the scope and adopt again in place, or stop? [scope/stop]: ",
+              { scope: "scope", stop: "stop" },
+            )) === "scope"
+          ) {
+            await changeScope(prompt, session, report, answers);
+            renew();
+            submitted = false;
+            continue;
+          }
+          write("Resolve it, then run adopt again to continue.\n");
           return report.outcome;
         }
         const declarations = report.contextual!;
@@ -463,7 +495,14 @@ export async function adoptInTerminal(
       case "complete":
         return completed(prompt);
       case "incomplete": {
-        const outcome = await decide(prompt, session, reason, renew);
+        const outcome = await decide(
+          prompt,
+          session,
+          reason,
+          renew,
+          report,
+          answers,
+        );
         if (outcome) return outcome;
         continue;
       }
@@ -592,27 +631,68 @@ function completed({ write }: Prompts) {
   return "complete" as const;
 }
 
-// A run that needs the maintainer's decision: a retry of its interrupted
-// work, after which the session continues, abandonment, or stopping here. A
-// run's confirmed scope never changes, so retrying it cannot help.
+// The scope questions of a run stopped for its scope.
+const scopeQuestions = (report: AdoptReport) =>
+  report.answers.questions.filter((question) =>
+    question.id.startsWith("scope:"),
+  );
+
+// The person's new scope for each discovered declaration of a run stopped for
+// its scope; the next adopt replaces the run in place with it.
+async function changeScope(
+  prompt: Prompts,
+  { root }: Session,
+  report: AdoptReport,
+  answers: Answers,
+) {
+  for (const question of scopeQuestions(report))
+    answers.set(question.id, await askScope(prompt, root, question, report));
+  prompt.write(
+    "Adopting again in place: the run is replaced, its changes stay, and the unchanged selection is inspected with the new scope.\n",
+  );
+}
+
+// A run that needs the maintainer's decision: a changed scope, which replaces
+// a run stopped for its scope in place, a retry of its interrupted work, after
+// which the session continues, abandonment, or stopping here. A run's confirmed
+// scope never changes, so retrying it cannot help.
 async function decide(
   prompt: Prompts,
-  { root, cliVersion }: Session,
+  session: Session,
   reason: string,
   afterRetry: () => void,
+  report: AdoptReport,
+  answers: Answers,
 ) {
+  const { root, cliVersion } = session;
   const { write, choose } = prompt;
   write(`\nThe run is incomplete: ${reason}\n`);
   const scope = reason.startsWith("SCOPE_INCOMPLETE:");
+  const scoped = scopeQuestions(report).length > 0;
   const choice = scope
-    ? await choose("Abandon the run, or stop? [abandon/stop]: ", {
-        abandon: "abandon",
-        stop: "stop",
-      })
-    : await choose(
-        "Retry the interrupted work, abandon the run, or stop? [retry/abandon/stop]: ",
-        { retry: "retry", abandon: "abandon", stop: "stop" },
-      );
+    ? scoped
+      ? await choose(
+          "Change the scope and adopt again in place, abandon the run, or stop? [scope/abandon/stop]: ",
+          { scope: "scope", abandon: "abandon", stop: "stop" },
+        )
+      : await choose("Abandon the run, or stop? [abandon/stop]: ", {
+          abandon: "abandon",
+          stop: "stop",
+        })
+    : scoped
+      ? await choose(
+          "Change the scope and adopt again in place, retry the interrupted work, abandon the run, or stop? [scope/retry/abandon/stop]: ",
+          { scope: "scope", retry: "retry", abandon: "abandon", stop: "stop" },
+        )
+      : await choose(
+          "Retry the interrupted work, abandon the run, or stop? [retry/abandon/stop]: ",
+          { retry: "retry", abandon: "abandon", stop: "stop" },
+        );
+  if (choice === "scope") {
+    await changeScope(prompt, session, report, answers);
+    afterRetry();
+    return undefined;
+  }
   if (choice === "retry") {
     write("Retrying the run's interrupted work.\n");
     afterRetry();
@@ -622,7 +702,7 @@ async function decide(
   if (choice === "abandon") {
     abandon(root, cliVersion);
     write(
-      `Abandoned the run. Its changes stay in the project, and ${pinnedCli} status shows its report.${scope ? " Commit or discard the changes, then run adopt again to confirm a new scope." : ""}\n`,
+      `Abandoned the run. Its changes stay in the project, and ${pinnedCli} status shows its report. Run adopt again in this checkout to adopt again in place over them.\n`,
     );
   } else
     write(`Run adopt again to decide, or read ${pinnedCli} status first.\n`);
@@ -645,8 +725,10 @@ async function askScope(
 ) {
   const id = question.id.slice("scope:".length);
   write(`\n${question.question}\n`);
-  const entry = report.discovery?.find((discovery) => discovery.id === id);
-  if (entry)
+  const entry =
+    report.discovery?.find((discovery) => discovery.id === id) ??
+    report.contextual?.find((contextual) => contextual.id === id);
+  if (entry?.discovery)
     write(
       `Discovery guidance, ${entry.discovery.path}:\n${entry.discovery.content.trimEnd()}\nAdoption guidance, ${entry.guidance.path}:\n${entry.guidance.content.trimEnd()}\n`,
     );
@@ -658,9 +740,11 @@ async function askScope(
           candidates: Candidate[];
           unresolved: string[];
         });
+  // A run stopped for its scope asks again from its confirmed scope.
+  const label = report.run ? "confirmed" : "drafted";
   if (draft) {
     write(
-      `The discovery script drafted this scope.\nCoverage: ${draft.coverage}\n`,
+      `${report.run ? "The run's confirmed scope." : "The discovery script drafted this scope."}\nCoverage: ${draft.coverage}\n`,
     );
     for (const candidate of draft.candidates)
       write(
@@ -678,7 +762,7 @@ async function askScope(
   const accepted =
     draft !== undefined &&
     (await yes(
-      `Does ${id} cover exactly the drafted files, ${drafted.join(", ") || "none"}? [Y/n]: `,
+      `Does ${id} cover exactly the ${label} files, ${drafted.join(", ") || "none"}? [Y/n]: `,
       "yes",
     ));
   if (!accepted)
@@ -841,7 +925,7 @@ async function reviewScope(
   const missing = await paths("File: ");
   const reason = await required("Why is the confirmed scope incomplete? ");
   write(
-    "A run's confirmed scope never changes, so the run stops incomplete: abandon it, then adopt again with a new scope.\n",
+    "A run's confirmed scope never changes, so the run stops incomplete. Change the scope then, and adopt replaces the run in place over its changes.\n",
   );
   return {
     status: "blocked",

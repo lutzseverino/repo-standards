@@ -31,8 +31,9 @@ alternatives.
   confirmation binds the content a run reads rather than Git HEAD, the index,
   or status.
 - [Correct scope by adopting again, not by amending a run](0009-correct-scope-by-adopting-again.md):
-  a mistaken confirmed scope is corrected by abandoning the run and adopting
-  again with a new scope.
+  a mistaken confirmed scope is corrected by a new run with a new scope;
+  amended by ADR 0022, that run replaces the stopped one in place instead of
+  needing it abandoned and resolved by hand.
 - [Replace tracked content; block only untracked](0010-replace-tracked-content-block-only-untracked.md):
   the product replaces or removes tracked content at any installation target,
   lists each overwrite that discards edits in the inspection, and
@@ -73,3 +74,7 @@ alternatives.
 - [Let agents decide what Git can undo](0021-let-agents-decide-what-git-can-undo.md):
   agents decide reversible adoption choices and confirm discarded edits after
   review; remote setting overwrites remain the maintainer's decision.
+- [Replace a stopped run in place](0022-replace-a-stopped-run-in-place.md):
+  a changed scope answer, or adopting after abandonment, starts a new run over
+  the stopped run's recorded changes, whose change set covers both; a declined
+  overwrite defers its fix, and abandonment exits 0.

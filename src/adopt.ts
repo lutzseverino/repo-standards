@@ -23,6 +23,7 @@ import {
 import { lockPath, projectRoot, safe } from "./adoption-files.js";
 import { linkTextAt } from "./targets.js";
 import {
+  abandon,
   inspectRetained,
   resume,
   start,
@@ -31,13 +32,24 @@ import {
   submitAssessment,
 } from "./adoption.js";
 import { readRecordedAdoption, type RetainedSource } from "./recorded-state.js";
-import { canResumeAssessment, confirmationStop } from "./adoption-run.js";
+import {
+  canResumeAssessment,
+  confirmationStop,
+  confirmedProposal,
+  scopeStop,
+} from "./adoption-run.js";
 import type { Run } from "./adoption-run.js";
 import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
 import { inspect } from "./inspection.js";
 import type { Blocker } from "./observation.js";
 import { observeGitStart, requireSupportedGit } from "./observation.js";
+import {
+  findPreservedRun,
+  preservedStartBlockers,
+  type PreservedRun,
+} from "./preserved-run.js";
+import { parseScope } from "./scope.js";
 import { record } from "./records.js";
 import { deferredRemoteSetup } from "./remote-setup.js";
 import { validateSource } from "./resolver.js";
@@ -56,10 +68,12 @@ import { readYaml, type Diagnostic } from "./yaml.js";
 // questions the adoption asks as an answers-file template, with the agent's
 // next steps, and changes nothing. With a filled file it asks what remains,
 // starts the run once nothing does, and advances an active run by at most one
-// step: a confirmed fix or a submitted assessment. Questions that depend on an
-// answer, such as discovery after a profile, appear once it is given. An
-// answers file confirms a confirmation-required change only by naming the
-// inspection identity the maintainer confirmed.
+// step: a confirmed or deferred fix or a submitted assessment. Questions that
+// depend on an answer, such as discovery after a profile, appear once it is
+// given. An answers file confirms a confirmation-required change only by
+// naming the inspection identity the maintainer confirmed. A run stopped for
+// its scope is replaced in place by a changed scope answer, and an abandoned
+// run's preserved changes are adopted over in place.
 
 const packageName = "@lutzseverino/repo-standards";
 const pinnedCli = ".repo-standards/runtime/node_modules/.bin/repo-standards";
@@ -415,6 +429,8 @@ interface Context {
   given: Answers;
   mode: Mode;
   answersPath: string | undefined;
+  // The run whose preserved changes a start adopts over in place.
+  preserved?: string;
 }
 
 // Before a run: the selection questions, then those its inspection raises,
@@ -432,15 +448,46 @@ async function prepare(
       "USAGE",
       "Name the standards source to adopt: repo-standards adopt https://github.com/OWNER/STANDARDS.",
     );
+  // Over the changes an abandoned or replaced run of this source and CLI left,
+  // adopt adopts again in place, answering its selection by default.
+  const lookup = findPreservedRun(root);
+  const preserved: PreservedRun | undefined =
+    lookup.preserved &&
+    lookup.preserved.run.selection.cli.version === cliVersion &&
+    sourceKey(lookup.preserved.run.selection.standards.repository) ===
+      sourceKey(source)
+      ? lookup.preserved
+      : undefined;
+  if (preserved) context.preserved = preserved.run.id;
+  const defaults: Answers = new Map(
+    preserved
+      ? [
+          ["version", preserved.run.selection.standards.version],
+          ["profile", preserved.run.selection.profile],
+          ...(
+            preserved.installation.report.discovery?.proposal?.declarations ??
+            []
+          ).map(({ id, ...entry }): [string, unknown] => [
+            `scope:${id}`,
+            entry,
+          ]),
+        ]
+      : [],
+  );
+  const gitBlockers = () =>
+    preservedStartBlockers(observeGitStart(root).blockers, lookup, preserved);
   // The template proposes each default as the answer, and a terminal offers
   // it as the default.
   const proposing = mode !== "answers";
   // A terminal asks each question it has no answer to, starting with the
   // version and then the profile, on which the later questions depend.
   const asking = (id: string, flag: string | undefined) =>
-    mode === "terminal" && flag === undefined && !given.has(id);
+    mode === "terminal" &&
+    flag === undefined &&
+    !given.has(id) &&
+    !defaults.has(id);
   const answered = (id: string) => {
-    const value = given.get(id);
+    const value = given.get(id) ?? defaults.get(id);
     return typeof value === "string" ? value : undefined;
   };
   // Without its source, an adopted project applies its current selection
@@ -478,9 +525,11 @@ async function prepare(
     id: "version",
     question: "Which standards version should the project adopt?",
     context: [
-      lookupFailure
-        ? `The releases of ${source} cannot be read: ${lookupFailure} The template proposes the current version, ${current!.version}, which the retained standards apply again.`
-        : `A stable release of ${source}${recorded ? `; the project adopts ${recorded.version} now` : ""}. The template proposes the newest stable release.`,
+      preserved
+        ? `Adopting again in place over the changes run ${preserved.run.id} preserved keeps its version, ${preserved.run.selection.standards.version}.`
+        : lookupFailure
+          ? `The releases of ${source} cannot be read: ${lookupFailure} The template proposes the current version, ${current!.version}, which the retained standards apply again.`
+          : `A stable release of ${source}${recorded ? `; the project adopts ${recorded.version} now` : ""}. The template proposes the newest stable release.`,
       ...(mode === "terminal"
         ? []
         : [
@@ -514,7 +563,7 @@ async function prepare(
       {
         ...report("answers-required", [versionQuestion]),
         missing: ["version"],
-        blockers: observeGitStart(root).blockers,
+        blockers: gitBlockers(),
       },
       mode === "template",
     );
@@ -530,7 +579,13 @@ async function prepare(
     acquired = await acquireSource(source, version, root, observations);
   } catch (error) {
     if (current?.version !== version || !unavailable(error)) throw error;
-    retained = readRecordedAdoption(root)!.source();
+    // Over a preserved update, the retained standards are the last complete
+    // adoption's, which apply only that adoption's version again.
+    const recordedAdoption = preserved
+      ? preserved.previous
+      : readRecordedAdoption(root);
+    if (recordedAdoption?.selection.standards.version !== version) throw error;
+    retained = recordedAdoption.source();
     acquired = retained;
   }
   let profileQuestion: Question;
@@ -570,9 +625,11 @@ async function prepare(
       id: "profile",
       question: "Which profile should the project adopt?",
       context: [
-        retained
-          ? `The source is unavailable, so its retained standards apply the current profile, ${current!.profile}, again.`
-          : `Each profile of ${source} ${version} is a complete selection of its standards.${recorded ? ` The project adopts ${recorded.profile} now.` : ""}`,
+        preserved
+          ? `Adopting again in place over the changes run ${preserved.run.id} preserved keeps its profile, ${preserved.run.selection.profile}.`
+          : retained
+            ? `The source is unavailable, so its retained standards apply the current profile, ${current!.profile}, again.`
+            : `Each profile of ${source} ${version} is a complete selection of its standards.${recorded ? ` The project adopts ${recorded.profile} now.` : ""}`,
         ...(mode === "terminal"
           ? []
           : [
@@ -612,16 +669,24 @@ async function prepare(
       {
         ...report("answers-required", [versionQuestion, profileQuestion]),
         missing: ["profile"],
-        blockers: observeGitStart(root).blockers,
+        blockers: gitBlockers(),
       },
       mode === "template",
     );
+
+  // Only the preserved run's own selection adopts again in place.
+  if (
+    preserved &&
+    (version !== preserved.run.selection.standards.version ||
+      profile !== preserved.run.selection.profile)
+  )
+    delete context.preserved;
 
   // Once the answers file supplies every scope entry, inspection reads them as
   // one proposal, written outside the project, and validates each; an entry
   // is complete once it has no open question.
   const scopeAnswer = (id: string) => {
-    const answer = given.get(`scope:${id}`);
+    const answer = given.get(`scope:${id}`) ?? defaults.get(`scope:${id}`);
     return answer === null || answer === undefined ? undefined : record(answer);
   };
   const proposed =
@@ -697,6 +762,19 @@ async function prepare(
         missing.push(`scope:${id}`);
     }
     const notReady = deferredRemoteSetup(inspection.remoteSetup);
+    // Adopting again in place keeps the preserved run's deferral of remote
+    // setup that is still not ready.
+    const remoteSetup =
+      given.get("remote-setup") ??
+      (notReady.some((entry) =>
+        preserved?.run.deferred.some(
+          (deferred) =>
+            deferred.declaration === entry.declaration &&
+            deferred.id === entry.id,
+        ),
+      )
+        ? "defer"
+        : null);
     if (notReady.length)
       questions.push({
         id: "remote-setup",
@@ -709,7 +787,7 @@ async function prepare(
             : " Answer defer without asking: it changes nothing remotely. Report each reason in the handoff."),
         choices: ["defer", "resolve"],
         details: notReady,
-        answer: given.get("remote-setup") ?? null,
+        answer: remoteSetup,
       });
     const { confirmation, identity } = inspection;
     let discarded: AdoptReport["discarded"];
@@ -791,10 +869,7 @@ async function prepare(
     inspected.missing = [...new Set([...inspected.missing, ...missing])];
     if (mode === "template" || inspected.missing.length)
       return withSteps(context, inspected, mode === "template");
-    if (
-      blockers.length ||
-      (notReady.length && given.get("remote-setup") === "resolve")
-    )
+    if (blockers.length || (notReady.length && remoteSetup === "resolve"))
       return withSteps(context, { ...inspected, outcome: "blocked" }, false);
     const run = retained
       ? await startRetained(
@@ -846,7 +921,54 @@ async function continueRun(
       `A run adopting ${standards.repository} ${standards.version} with profile ${profile} is active. Continue it with an answers file for it, or, with the maintainer's instruction, abandon it with ${continuation.invoke("abandon")} before adopting another selection.${continuation.setup ? ` First set adoption_cli to the external installation of CLI ${cliVersion} that started the run; if unavailable, acquire it outside the project with ${continuation.setup}.` : ""}`,
     );
   }
+  // A run stopped for its scope and given a changed scope answer is replaced
+  // in place: archived as abandonment archives it, its changes preserved, and
+  // the unchanged selection inspected with the new scope.
+  if (scopeStop(run) && changesScope(given, confirmedProposal(root, run))) {
+    abandon(root, cliVersion, true);
+    requireSupportedGit();
+    return prepare(context, options, file);
+  }
   return describeRun(context, run, runReport(run), true);
+}
+
+// Whether the answers change a confirmed scope entry. An answer is compared as
+// a proposal reads it, so one inspection would reject fails here, before the
+// run is replaced.
+function changesScope(
+  given: Answers,
+  proposal: ReturnType<typeof confirmedProposal>,
+) {
+  return (proposal?.declarations ?? []).some((confirmed) => {
+    const answer = given.get(`scope:${confirmed.id}`);
+    if (answer === undefined || answer === null) return false;
+    const [entry] = parseScope(
+      JSON.stringify({
+        format: formats.scope,
+        declarations: [{ ...record(answer), id: confirmed.id }],
+      }),
+    ).declarations;
+    return JSON.stringify(entry) !== JSON.stringify(confirmed);
+  });
+}
+
+// The scope questions of a run stopped for its scope: each confirmed entry,
+// which a changed answer replaces in place.
+function scopeQuestions(context: Context, run: Run): Question[] {
+  if (!scopeStop(run)) return [];
+  return (confirmedProposal(context.root, run)?.declarations ?? []).map(
+    ({ id, ...entry }) => ({
+      id: `scope:${id}`,
+      question: `Which project files does ${id} cover?`,
+      context:
+        "The run's confirmed scope, which never changes within the run. When the contextual work needs a file this scope misses, change this answer to include it, with a reason and evidence, and run adopt again: adopt replaces the run in place, archiving its report and keeping its changes, inspects the unchanged selection with the new scope, and starts a new run over those changes." +
+        (context.mode === "terminal"
+          ? ""
+          : " A scope answer is Git-undoable, so change it without asking, and record the change and its reasons in the handoff."),
+      details: { unresolved: [] },
+      answer: context.given.get(`scope:${id}`) ?? entry,
+    }),
+  );
 }
 
 // The report of a run, before describing what it asks.
@@ -909,17 +1031,25 @@ async function describeRun(
     const fix = `${stop.operation.declaration}/${stop.operation.id}`;
     const id = `fix:${fix}`;
     const answer = given.get(id) ?? null;
-    if (advance && answer === run.inspection)
+    if (advance && (answer === run.inspection || answer === "defer"))
       return describeRun(
         context,
-        await resume(root, cliVersion, undefined, false, true),
+        await resume(
+          root,
+          cliVersion,
+          undefined,
+          false,
+          answer !== "defer",
+          answer === "defer",
+        ),
         base,
         false,
       );
     const question: Question = {
       id,
-      question: `Does the maintainer confirm that fix ${fix} overwrites this setting?`,
-      context: `${stop.message} The fix changed nothing. Only after the maintainer confirms the overwrite, answer with this run's inspection identity, ${run.inspection}; the run then reruns the fix allowed to overwrite.`,
+      question: `Does the maintainer confirm that fix ${fix} overwrites this setting, or defer it?`,
+      context: `${stop.message} The fix changed nothing. Only after the maintainer confirms the overwrite, answer with this run's inspection identity, ${run.inspection}; the run then reruns the fix allowed to overwrite. When the maintainer declines it, answer defer: the run records the fix as deferred, with a reason naming the declined settings, and continues with the next fix, and every later run runs it again.`,
+      choices: [run.inspection, "defer"],
       details: { fix, identity: run.inspection },
       answer,
     };
@@ -928,15 +1058,25 @@ async function describeRun(
       {
         ...report,
         outcome: "answers-required",
-        missing: answer === run.inspection ? [] : [id],
+        missing: answer === run.inspection || answer === "defer" ? [] : [id],
         answers: { ...report.answers, questions: [question] },
       },
       false,
     );
   }
   const request = run.workRequest;
+  const scopes = scopeQuestions(context, run);
   if (!request || !canResumeAssessment(run))
-    return withSteps(context, report, false);
+    return withSteps(
+      context,
+      scopes.length
+        ? {
+            ...report,
+            answers: { ...report.answers, questions: scopes },
+          }
+        : report,
+      false,
+    );
   const assessments = request.declarations.map(
     ({ id, allowedTargets, discovery }): Question => ({
       id: `assessment:${id}`,
@@ -1012,7 +1152,7 @@ async function describeRun(
           : {}),
       })),
       ...(failedChecks.length ? { failedChecks } : {}),
-      answers: { ...report.answers, questions },
+      answers: { ...report.answers, questions: [...questions, ...scopes] },
     },
     false,
   );
@@ -1044,6 +1184,10 @@ function withSteps(
     steps.push(
       "Make no project edits until the run starts. Write files implied by your answers, such as optional scope files, during contextual work.",
     );
+  if (!report.run && context.preserved)
+    steps.push(
+      `This adoption adopts again in place over the changes run ${context.preserved} preserved: its start exempts exactly the uncommitted state that run recorded from the Git start blockers, reruns the fixes, keeps the contextual work for you to reassess, and its change set covers every change since the HEAD that run started from. Leave those changes as they are: nothing needs to be abandoned, committed, or cloned afresh.`,
+    );
   if (
     !report.run &&
     report.blockers.some(
@@ -1051,7 +1195,9 @@ function withSteps(
     )
   ) {
     steps.push(
-      "Stop and tell the maintainer about the Git blockers above: a new adoption run requires a clean, committed project. Leave their pending work unchanged; the maintainer must resolve it before adoption can start.",
+      context.preserved
+        ? `Stop and tell the maintainer about the Git blockers above: adopting again in place exempts only the uncommitted state run ${context.preserved} recorded, and the blockers name changes it did not record. Leave their pending work unchanged; the maintainer must commit or reconcile it before adoption can start.`
+        : "Stop and tell the maintainer about the Git blockers above: a new adoption run requires a clean, committed project. Leave their pending work unchanged; the maintainer must resolve it before adoption can start.",
     );
     return { ...report, nextSteps: steps };
   }
@@ -1060,12 +1206,16 @@ function withSteps(
       `This checkout's package name and version match CLI ${cliVersion}, so pinned npx can select its local package and fail to find the executable. Set ${code("adoption_cli")} to the external installation directory of that exact CLI and keep it for every answer round and recovery until the matching project runtime is available. If you need to acquire it, run ${code(cli.setup)}. Keep that installation and the answers file outside the project. The commands below use this shell variable and explicitly name the target project; --project alone does not change npm's package resolution.`,
     );
   const reason = report.run?.reason ?? "";
+  // A run stopped for its scope carries its scope questions, which a changed
+  // answer recovers by replacing the run in place.
+  const scoped = !!report.run && [...ids].some((id) => id.startsWith("scope:"));
+  const scopeStep = `To cover files the confirmed scope misses, change the \`scope:\` answers above to include them, with reasons and evidence from the project, and run ${again}. adopt replaces this run in place: it archives the run's report, keeps its changes, inspects the unchanged selection with the new scope, and starts a new run over them; nothing needs to be abandoned, committed, or cloned afresh. A scope answer is Git-undoable, so change it without asking, and record the change in the handoff. Answer the new inspection's questions as before; the new run reruns the fixes and asks for renewed assessments.`;
   switch (report.outcome) {
     case "answers-required":
       if (report.run) {
         steps.push(
           "Present each setting with its current and standard values from the fix's message to the maintainer, and ask whether to overwrite it.",
-          `Only after they confirm, answer its question with the run's inspection identity and run ${again}; the fix reruns allowed to overwrite. If they decline, obtain their instruction to abandon, then run ${invoke("abandon")}, which keeps the run's changes and report.`,
+          `Only after they confirm, answer its question with the run's inspection identity and run ${again}; the fix reruns allowed to overwrite. If they decline, answer \`defer\` and run ${again}: the run records the fix as deferred, with a reason naming the declined settings, continues with the next fix, and completes without it; every later run runs it again. Record the maintainer's decision in the handoff.`,
         );
         break;
       }
@@ -1117,6 +1267,7 @@ function withSteps(
       steps.push(`Run ${again}.`);
       break;
     case "contextual":
+      if (scoped) steps.push(scopeStep);
       if (report.failedChecks?.length)
         steps.push(
           "The checks above failed. Correct the content so that it satisfies the rules they cite, and renew each affected assessment.",
@@ -1127,7 +1278,7 @@ function withSteps(
         );
       else if (reason.startsWith("ASSESSMENT_SCOPE:"))
         steps.push(
-          `The run did not accept the assessment: ${reason} Undo each named change in place, keeping your work on the allowed targets; nothing else needs correcting.`,
+          `The run did not accept the assessment: ${reason} Undo each named change in place, keeping your work on the allowed targets; nothing else needs correcting.${scoped ? " When a named path belongs in a discovered declaration's scope, change that scope answer instead, as above." : ""}`,
         );
       else
         steps.push(
@@ -1156,11 +1307,10 @@ function withSteps(
       );
       break;
     case "incomplete":
-      if (reason.startsWith("SCOPE_INCOMPLETE:"))
-        steps.push(
-          `A run's confirmed scope never changes. With the maintainer's instruction, abandon the run with ${invoke("abandon")}, commit or discard its changes, restoring what it installed, and run adopt again with a new scope answer.`,
-        );
-      else if (
+      if (scoped) steps.push(scopeStep);
+      if (reason.startsWith("SCOPE_INCOMPLETE:") && scoped) {
+        // The scope answers are the recovery.
+      } else if (
         /^(ASSESSMENT_SCOPE|OPERATION_SCOPE|CHECK_MUTATION):/.test(reason)
       )
         steps.push(
@@ -1214,7 +1364,7 @@ export function adoptSummary(report: AdoptReport) {
   const parts = [
     "# Repository Standards adoption",
     report.outcome === "answers-required" && report.run
-      ? "The run waits for the maintainer's confirmation."
+      ? "The run waits for the maintainer's decision on a fix's overwrite."
       : statements[report.outcome],
   ];
   const { selection } = report;

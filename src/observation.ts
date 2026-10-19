@@ -59,12 +59,16 @@ export function hashInventory(value: Observation): HashInventory {
 }
 
 export function content(path: string): Content {
-  const bytes = readFileSync(path);
+  return bytesContent(readFileSync(path), (lstatSync(path).mode & 0o111) !== 0);
+}
+
+// Content from its bytes and executable mode, wherever they were read.
+export function bytesContent(bytes: Buffer, executable: boolean): Content {
   const utf8 = bytes.toString("utf8");
   const encoding = Buffer.from(utf8).equals(bytes) ? "utf8" : "base64";
   return {
     sha256: hash(bytes),
-    executable: (lstatSync(path).mode & 0o111) !== 0,
+    executable,
     encoding,
     content: encoding === "utf8" ? utf8 : bytes.toString("base64"),
   };
@@ -107,22 +111,25 @@ export function observe(
   }
 }
 
+function gitBase(project: string) {
+  return ["--no-optional-locks", "-c", "core.fsmonitor=false", "-C", project];
+}
+
+const gitProcessEnvironment = () => ({
+  ...gitEnvironment(),
+  GIT_OPTIONAL_LOCKS: "0",
+});
+
 export function git(
   project: string,
   args: string[],
   input?: string,
   timeout?: number,
 ) {
-  const base = [
-    "--no-optional-locks",
-    "-c",
-    "core.fsmonitor=false",
-    "-C",
-    project,
-  ];
+  const base = gitBase(project);
   const options = {
     encoding: "utf8" as const,
-    env: { ...gitEnvironment(), GIT_OPTIONAL_LOCKS: "0" },
+    env: gitProcessEnvironment(),
     maxBuffer: 32 * 1024 * 1024,
     ...(timeout === undefined ? {} : { timeout }),
     ...(input === undefined ? {} : { input }),
@@ -157,6 +164,49 @@ export function git(
       "Install Git and inspect an existing Git working tree.",
     );
   return result;
+}
+
+// The files a commit holds under a directory, by project path, as Git stores
+// them: each regular file's bytes and executable mode, read without filters,
+// and any other entry, such as a link, as unsafe.
+export function committedFiles(
+  project: string,
+  commit: string,
+  directory: string,
+): Map<string, Observation> {
+  const listed = git(project, ["ls-tree", "-r", "-z", commit, "--", directory]);
+  if (listed.status !== 0)
+    throw new ProductError(
+      "PROJECT_READ",
+      `Cannot read ${directory} in commit ${commit}.`,
+    );
+  const files = new Map<string, Observation>();
+  for (const entry of listed.stdout.split("\0").filter(Boolean)) {
+    const [mode, type, object] = entry.slice(0, entry.indexOf("\t")).split(" ");
+    const path = entry.slice(entry.indexOf("\t") + 1);
+    if (type !== "blob" || (mode !== "100644" && mode !== "100755")) {
+      files.set(path, { type: "unsafe" });
+      continue;
+    }
+    const blob = spawnSync(
+      "git",
+      [...gitBase(project), "cat-file", "blob", object!],
+      {
+        env: gitProcessEnvironment(),
+        maxBuffer: 64 * 1024 * 1024,
+      },
+    );
+    if (blob.error || blob.status !== 0)
+      throw new ProductError(
+        "PROJECT_READ",
+        `Cannot read ${path} in commit ${commit}.`,
+      );
+    files.set(path, {
+      type: "file",
+      ...bytesContent(blob.stdout, mode === "100755"),
+    });
+  }
+  return files;
 }
 
 // The Git state that permits a new adoption, shared by inspection and
@@ -413,6 +463,13 @@ export function productStateObservation(root: string, blockers: Blocker[]) {
       });
   }
   return targetObservation(root, ".repo-standards", blockers, excluded);
+}
+
+// The durable product state's inventory, by project path.
+export function productInventory(root: string): string[] {
+  return inventoryPaths(observeProductState(root)).map(
+    (path) => `.repo-standards/${path}`,
+  );
 }
 
 export function observeProductState(root: string) {

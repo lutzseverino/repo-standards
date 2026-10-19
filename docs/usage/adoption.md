@@ -129,7 +129,9 @@ Then `adopt` asks for a reason, asking again if it is empty. The review records
 the reason and any missing files, with the confirmed scope as evidence.
 A blocked scope ends the questions at once, and the declarations it stops
 are assessed blocked, naming it: the run stops `SCOPE_INCOMPLETE`, where the
-person can abandon or stop.
+person can change the scope, abandon the run, or stop. Changing it asks the
+scope question again from the confirmed scope, and `adopt` then
+[adopts again in place](#adopt-again-in-place) with the new scope.
 
 These checks run read-only inside the waiting run, as `check` runs them, from
 its installation once verified, and record nothing: the run's own check round after the assessment decides.
@@ -146,10 +148,11 @@ An interruption at a prompt, `Ctrl-C` or the end of input, fails with
 changed; once a run has started, running `adopt` again continues it where it
 stopped. A run interrupted during its operations is incomplete: `adopt` shows
 its reason and asks whether to retry the interrupted work, as `resume --retry`
-does, abandon the run, or stop. A run whose confirmed scope is incomplete can
-only be abandoned. A fix that stops the run for confirmation asks whether it
-may overwrite the setting. Choosing to resolve remote setup that is not ready
-stops at once, writing nothing.
+does, abandon the run, or stop. A run stopped for its scope also offers to
+change the scope, which replaces the run in place. A fix that stops the run for
+confirmation asks whether to overwrite the setting, defer the fix, or stop.
+Choosing to resolve remote setup that is not ready stops at once, writing
+nothing.
 
 ### With an agent
 
@@ -192,11 +195,15 @@ installed, the next steps use it instead:
 For contextual work, follow the returned rules and adoption guidance, edit only
 the allowed targets, and add each declaration's assessment to the answers
 file before continuing. An assessment stays `blocked` when the project does
-not support the facts it needs. Interrupted or incomplete runs retry their
-repeat-safe operations with `resume --retry` without another approval;
-abandonment remains your decision. A fix's confirmation-required overwrite of
-a remote setting still needs your decision, with each setting's current and
-standard values presented first, because Git cannot restore remote state.
+not support the facts it needs. When the work needs a file the confirmed scope
+misses, the agent changes the scope answer without asking, since Git can undo
+it, and `adopt` [adopts again in place](#adopt-again-in-place). Interrupted or
+incomplete runs retry their repeat-safe operations with `resume --retry` without
+another approval; abandonment remains your decision. A fix's
+confirmation-required overwrite of a remote setting still needs your decision,
+with each setting's current and standard values presented first, because Git
+cannot restore remote state. When you decline it, the agent answers `defer`,
+and the run completes without that fix.
 
 On completion, the agent reviews every output and leaves it uncommitted and
 unstaged for your normal workflow. The `status` ready-to-commit verdict describes
@@ -304,16 +311,16 @@ fields, an ID of no question kind below, a repeated ID, and an answer of the
 wrong kind with `ANSWERS_FORMAT`, and an answers file inside the project with
 `ANSWERS_LOCATION`. A file of at most 2 MiB is read.
 
-| `id`                       | Asked when                                               | `answer`                                                                                                                                                                                                                                                 |
-| -------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `version`                  | Always; the template proposes the newest stable release. | A stable tag from `choices`, the source's stable releases newest first.                                                                                                                                                                                  |
-| `profile`                  | Always; proposed for an update or a single profile.      | A profile `name` from `choices`, each with its `description`.                                                                                                                                                                                            |
-| `scope:<declaration>`      | For each active discovery declaration.                   | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`. A discovery script's draft is proposed; it stays missing while it has open questions or until an answers file carries it back. |
-| `remote-setup`             | When a remote setup probe is not ready.                  | `defer` to complete adoption without it, or `resolve` to stop, writing nothing.                                                                                                                                                                          |
-| `confirmation`             | When the inspection requires confirmation.               | The inspection identity confirmed after reviewing discarded edits, by the agent or a person at a terminal. `details` names the identity and the discarded edits.                                                                                         |
-| `inspection`               | Once inspected; the template carries the identity.       | The identity of the inspection the answers file was written against. A run starts only when it names the current inspection; a new or changed inspection is printed again for review first.                                                              |
-| `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.             | The run's inspection identity, once the maintainer confirms the overwrite its `context` names.                                                                                                                                                           |
-| `assessment:<declaration>` | For each declaration of contextual work.                 | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration.                                                                             |
+| `id`                       | Asked when                                                                       | `answer`                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`                  | Always; the template proposes the newest stable release.                         | A stable tag from `choices`, the source's stable releases newest first.                                                                                                                                                                                                                                                                                                    |
+| `profile`                  | Always; proposed for an update or a single profile.                              | A profile `name` from `choices`, each with its `description`.                                                                                                                                                                                                                                                                                                              |
+| `scope:<declaration>`      | For each active discovery declaration, and while a run is stopped for its scope. | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`. A discovery script's draft is proposed; it stays missing while it has open questions or until an answers file carries it back. A stopped run proposes its confirmed entry, and a changed one [replaces the run in place](#adopt-again-in-place). |
+| `remote-setup`             | When a remote setup probe is not ready.                                          | `defer` to complete adoption without it, or `resolve` to stop, writing nothing.                                                                                                                                                                                                                                                                                            |
+| `confirmation`             | When the inspection requires confirmation.                                       | The inspection identity confirmed after reviewing discarded edits, by the agent or a person at a terminal. `details` names the identity and the discarded edits.                                                                                                                                                                                                           |
+| `inspection`               | Once inspected; the template carries the identity.                               | The identity of the inspection the answers file was written against. A run starts only when it names the current inspection; a new or changed inspection is printed again for review first.                                                                                                                                                                                |
+| `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.                                     | One of `choices`: the run's inspection identity, once the maintainer confirms the overwrite its `context` names, or `defer`, once they decline it, which [defers the fix](#defer-a-declined-overwrite).                                                                                                                                                                    |
+| `assessment:<declaration>` | For each declaration of contextual work.                                         | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration.                                                                                                                                                                                               |
 
 The question's ID names the declaration of a `scope:` or `assessment:`
 answer; an `id` inside the answer is ignored. An answers file confirms a
@@ -334,11 +341,11 @@ guidance, the answers file, and the next steps. `--json` prints the same as a
 
 | `outcome`          | Meaning                                                                                                                                                                                                                         |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `answers-required` | Questions in `missing` need answers, including a fix's confirmation in an active run; before a run, nothing was changed.                                                                                                        |
+| `answers-required` | Questions in `missing` need answers, including a fix's confirmation or deferral in an active run; before a run, nothing was changed.                                                                                            |
 | `blocked`          | Inspection `blockers`, a `resolve` remote setup answer, or a start that stopped before writing anything, with its `run.reason`.                                                                                                 |
 | `contextual`       | The run waits for contextual work: `contextual` lists each declaration's allowed targets, rules, and adoption guidance, and `failedChecks` each failure of the latest check round, which cites its rules in the run's `reason`. |
 | `complete`         | The run completed; its changes are uncommitted.                                                                                                                                                                                 |
-| `incomplete`       | The run needs recovery, such as a repeat-safe retry, or the maintainer's decision about abandonment or scope correction.                                                                                                        |
+| `incomplete`       | The run needs recovery, such as a repeat-safe retry or a changed scope answer that replaces it in place, or the maintainer's decision about abandonment.                                                                        |
 
 For contextual work, the agent edits the allowed targets, answers each
 `assessment:<declaration>`, and runs `adopt --answers <file>` with the pinned
@@ -346,8 +353,11 @@ runtime. It refreshes the work request at the current project, submits the
 assessments, and runs the checks. A run that has just reached contextual work
 asks for new assessments; after failed checks, the answers just submitted are
 carried for renewal. Without a terminal, `adopt` never retries or abandons a
-run: its next steps name the pinned `resume --retry` and `abandon`, which need
-the maintainer's explicit instruction.
+run itself: its next steps name the pinned `resume --retry`, which the agent
+runs without asking because its operations are repeat-safe, and `abandon`,
+which needs the maintainer's instruction. A run stopped for its scope carries
+its `scope:<declaration>` questions, answered with its confirmed scope; a
+changed answer [replaces the run in place](#adopt-again-in-place).
 
 Exit status is 0 for a complete run and for a template printed without an
 answers file, 1 for every other result or rejection, 2 for invalid usage, and
@@ -439,6 +449,31 @@ and `abandon` ends the run as it ends any other. `resume --confirmed` is
 accepted only by a run stopped for a fix's confirmation, failing with
 `CONFIRMATION_NOT_REQUIRED` otherwise, and cannot be combined with `--retry` or
 `--assessment`.
+
+### Defer a declined overwrite
+
+When the maintainer declines the overwrite, defer the fix instead of ending
+the run:
+
+```sh
+repo-standards resume --defer --json
+```
+
+`adopt` does the same for the answer `defer` to the fix's `fix:<declaration>/<id>`
+question, and its terminal for the choice `defer`. The run records the whole
+fix as deferred, never as a script result, with the reason
+`The maintainer declined the overwrite:` followed by the fix's message, which
+names each declined setting. It then continues with the fixes after it, to
+contextual work or checks and completion, as a confirmed fix would. A retry
+of the same run skips the deferred fix. At completion, durable state keeps the
+deferral in `deferred`, which `status --json` reports and the adoption record's
+Operations table lists with the result `deferred`, as it lists
+[deferred remote setup](#remote-setup). Every later run runs the fix again and
+stops again for confirmation while the setting still differs. `resume --defer`
+is accepted only by a run stopped for a fix's confirmation, failing with
+`CONFIRMATION_NOT_REQUIRED` otherwise, and cannot be combined with `--retry`,
+`--assessment`, or `--confirmed`. A fix applies whole or not at all: no run
+creates a fix's missing settings while skipping its overwrites.
 
 ### Remote setup
 
@@ -763,9 +798,10 @@ Neither dependencies nor run records belong in commits.
 `start` prints a `repo-standards/run/v6` JSON report. Its fields include `id`,
 `inspection`, `selection`, `root`, `head`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
 `uncertain`, `nextAction`, `prerequisites`, `operations`, `deferred`, `assessments`, and contextual
-`workRequest` when required. `deferred` lists each
-[remote setup](#remote-setup) the run defers, by `declaration`, fix `id`, and
-the probe's `reason`. `root` and `head` record the canonical project
+`workRequest` when required. `deferred` lists each fix the run defers, by
+`declaration`, fix `id`, and `reason`: [remote setup](#remote-setup) that is
+not ready, with the probe's reason, and each
+[declined overwrite](#defer-a-declined-overwrite). `root` and `head` record the canonical project
 root and HEAD at start for provenance; the inspection identity binds neither,
 and neither is committed. The report carries no file bytes: `affected` holds
 the hash inventories of the targets at start, `completion` the hashes of the
@@ -847,14 +883,15 @@ differ between checkouts holding the same committed adoption state.
 
 `status --summary` renders the status record as Markdown on stdout instead of
 JSON. After a complete run it is the record of that run: the selection, every
-operation with its result and message, then each deferred
-[remote setup](#remote-setup) with the result `deferred` and the probe's reason,
+operation with its result and message, then each deferred fix with the result
+`deferred` and its reason, such as [remote setup](#remote-setup) with the
+probe's reason or a [declined overwrite](#defer-a-declined-overwrite),
 each path the run changed, once, with
 the phases that changed it, the discovered-scope additions and removals the run
 made, and the run, inspection, HEAD-at-start, and completion identities. During
 an active run it renders the run's selection, outcome, phase, execution and
 reason, its completed and uncertain work, operations and results, then its
-deferred remote setup, changed paths, next action, and identities. Abandoned runs and a state error are listed
+deferred fixes, changed paths, next action, and identities. Abandoned runs and a state error are listed
 when present. The same record renders the same bytes, the summary describes the
 record without prescribing anything, and combining `--summary` with `--json` is
 a usage error.
@@ -868,12 +905,14 @@ declaration's removed target, that the run created, replaced, or removed; `fixes
 recorded. A path that a later phase returned to its state before the run is not
 listed, verified restoration of installed content after an interruption keeps
 only the installation's attribution, and product state under `.repo-standards/`
-is not listed. The JSON status record of a complete adoption includes the same
+is not listed. A run that [adopts again in place](#adopt-again-in-place)
+covers the changes of the run it replaced too, relative to the HEAD that run
+started from. The JSON status record of a complete adoption includes the same
 `changeSet`.
 
 The JSON status record of a complete adoption also includes `deferred`: each
-remote setup its last complete run deferred, by `declaration`, fix `id`, and
-`reason`, or an empty list. An active run reports its own `deferred`.
+fix its last complete run deferred, by `declaration`, fix `id`, and `reason`,
+or an empty list. An active run reports its own `deferred`.
 
 The JSON status record of a complete discovery-backed adoption includes
 `scopeChanges`: the additions and removals by declaration that its last complete
@@ -1069,7 +1108,8 @@ violating path to its state before the run reconciles its violation; see the
 uncertain process outcomes. A run stopped because a fix needs confirmation to
 overwrite a setting continues with
 [`resume --confirmed`](#confirmation-required-changes) once the maintainer
-confirms. A failed completion write remains incomplete until
+confirms, or with [`resume --defer`](#defer-a-declined-overwrite) once they
+decline. A failed completion write remains incomplete until
 its candidate state is verified and recovery finishes.
 
 `abandon` ends an incomplete run while keeping its work:
@@ -1089,12 +1129,17 @@ relative to Git's directory for the working tree, including when that directory
 lives outside the working tree, as in a linked worktree.
 `archivedFiles` maps original report and operation-log paths, which stay
 project-relative, to their archived copies, including logs written before their operation result reached the journal.
-Abandonment reports `outcome: incomplete` with `abandoned: true` and exit status 1;
-it does not assert successful adoption or replace last-complete evidence. The
+Abandonment reports `outcome: incomplete` with `abandoned: true` and exits 0
+once the run is abandoned; every refusal, such as `NO_ACTIVE_RUN` or a live
+author process, exits 1. The report does not assert successful adoption or
+replace last-complete evidence. The
 CLI releases the run only after preserving any candidate completion state and
-archiving its report. Failed preservation blocks abandonment and keeps the run
-active for reconciliation. Preserved changes stay in the working tree for the
-project's normal workflow. A new initial adoption still requires a clean
+archiving its report, with the run's saved installation and the observation
+its last interval ends at, which adopting again in place reads. Failed
+preservation blocks abandonment and keeps the run active for reconciliation.
+Preserved changes stay in the working tree. Run `adopt` in that checkout to
+[adopt again in place](#adopt-again-in-place) over them, or reconcile them
+through the project's normal workflow; any other new run requires a clean
 project without conflicting product state and a fresh inspection.
 An archived run report is moved out of Git's directory only when it carries a
 [retired format](#adopt-fresh-from-a-retired-format), because this CLI cannot
@@ -1106,12 +1151,50 @@ A run's confirmed scope never changes while the run is active, and retry
 repeats work under it. A structurally valid blocked scope review, reporting that
 coverage needs files outside the scope or that a confirmed target is mistaken,
 leaves the run incomplete with `SCOPE_INCOMPLETE`; its additional paths grant no
-authority. A different scope takes a new run: `abandon` ends the current one and
-keeps its changes, the next `start` requires a clean committed project, and the
-new run starts from its own inspection, with a new discovery proposal,
-confirmed only when that inspection requires it. Content the abandoned run installed, once restored to its
-committed state, is installed again by the new run; an abandoned run's product
-state is not a complete adoption.
+authority. Agent work outside the allowed targets, `ASSESSMENT_SCOPE`, and a
+blocked assessment, `ASSESSMENT_BLOCKED`, also stop the run. A different scope
+takes a new run, and `adopt` starts it in place.
+
+### Adopt again in place
+
+While a run is stopped for one of these reasons, its `adopt` report carries
+each discovered declaration's `scope:<declaration>` question, answered with the
+confirmed scope entry. Change that answer to cover the files the work needs,
+such as a path `ASSESSMENT_SCOPE` names, and run `adopt --answers <file>` again.
+In a terminal, choose to change the scope from the incomplete-run menu. A scope
+answer is Git-undoable, so an agent changes it without asking. `adopt` then
+replaces the run in the same checkout:
+
+1. It archives the run's report as abandonment does, marked `abandoned: true`
+   with a reason starting `REPLACED:`, keeping its changes.
+2. It inspects the unchanged selection with the new scope, defaulting the
+   version, profile, and remote setup deferral to the replaced run's, and asks
+   for the new inspection's identity before starting.
+3. It starts a new run over the replaced run's changes.
+
+`adopt` in a checkout where a run was abandoned does the same from step 2,
+defaulting the scope to the abandoned run's as well; so do `inspect` and
+`start` of that selection. A start over a run's preserved changes requires
+the checkout to still hold what the run left: its HEAD and index, its verified
+installation, and each uncommitted path outside product state in the state the
+run's last observation recorded. The Git start blockers exempt exactly those
+paths. Any other uncommitted change still blocks with `DIRTY_PROJECT`, naming
+its path, and the agent stops and tells the maintainer. Selecting another CLI,
+source, version, or profile does not adopt in place. The last complete
+adoption an update replaces is read from the HEAD the run started from, since
+the checkout's product state is the run's own.
+
+The new run keeps the installed runtime, reruns every fix, which is
+repeat-safe, and asks for renewed assessments: the preserved contextual work
+stays in the tree, is attributed to agent work, and must lie within the new
+scope. Its change set and adoption record cover every change relative to the
+HEAD the first run started from, with the phases that made each. The
+replaced run's own evidence stays in its archived report.
+
+Without changing the scope, a run stopped for `ASSESSMENT_SCOPE` also recovers
+by restoring each named path, as its next steps say. Abandoning, committing or
+discarding the changes, and adopting again from a clean checkout remains
+possible, but no stop requires it.
 
 ## Fresh checkout and source disappearance
 
@@ -1150,8 +1233,10 @@ reports. Only `inspect` and `start` accept a different exact CLI, as a candidate
 CLI pin change.
 After an abandoned update, `status` still returns the archived report. If the
 preserved product files do not represent complete adoption, `stateError`
-describes that condition; historical evidence comes from the matching archived
-run and does not certify the candidate selection as complete.
+describes that condition and names the abandoned run and the way forward,
+adopting again in place; historical evidence comes from the matching archived
+run and does not certify the candidate selection as complete. `check` and
+`rules` name the same way forward in their `STATE_INTEGRITY` diagnostic.
 It does not claim ongoing compliance after subsequent project edits. While an
 initial run is incomplete, no last-complete adoption is reported. `adopt`'s
 next steps guide these same commands and confirmation requirements.

@@ -1,5 +1,9 @@
 # Correct scope by adopting again, not by amending a run
 
+Amended by [ADR 0022](0022-replace-a-stopped-run-in-place.md): the new run
+replaces the stopped one in place, without abandoning it and resolving its
+changes first.
+
 Scope amendment let an active run add discovered scope without abandoning its
 progress, at the cost of a preview command, an amendment format, a third
 inspection format, revalidation, and replay. No real adoption used it. With

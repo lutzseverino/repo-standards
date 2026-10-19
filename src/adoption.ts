@@ -37,6 +37,7 @@ import {
   type Installation,
 } from "./installation.js";
 import { readRecordedAdoption } from "./recorded-state.js";
+import { findPreservedRun } from "./preserved-run.js";
 import { retainedScopeProjection } from "./scope-evidence.js";
 import type {
   AdoptionRunSession,
@@ -123,13 +124,14 @@ function workSnapshot(
   return `sha256:${hash(json(observeWork(root, concreteScope(resolved))) + `retry:${run.retryHistory?.length ?? 0}`)}`;
 }
 
-// The operations a run executes: every check and fix but deferred remote
-// setup, which runs neither its prerequisite nor its fix.
-function executedProfile(report: Inspection) {
-  return withoutDeferred(
-    report.resolved,
-    deferredRemoteSetup(report.remoteSetup),
-  );
+// The operations a run executes: every check and fix but the deferred ones,
+// remote setup that is not ready, which runs neither its prerequisite nor its
+// fix, and, once the run defers them, fixes whose overwrite was declined.
+function executedProfile(
+  report: Inspection,
+  deferred = deferredRemoteSetup(report.remoteSetup),
+) {
+  return withoutDeferred(report.resolved, deferred);
 }
 
 const staleDiscovery =
@@ -414,10 +416,12 @@ async function startRun(
       "Resolve the reported executable and version problems; prerequisites are never installed automatically.",
     );
   // Initial adoption installs the runtime; an update replaces it only when
-  // the CLI pin changes and otherwise keeps the installed runtime.
+  // the CLI pin changes and otherwise keeps the installed runtime. A start
+  // over a preserved run keeps the runtime that run installed.
   const replaceRuntime =
-    initial.report.update === undefined ||
-    initial.report.update.includes("cli");
+    !initial.preserved &&
+    (initial.report.update === undefined ||
+      initial.report.update.includes("cli"));
   const runtime = replaceRuntime
     ? session.acquireRuntime((directory) =>
         prepareRuntime(directory, cliVersion, root),
@@ -430,17 +434,32 @@ async function startRun(
   // their hashes.
   const inspected = await inspectSelection();
   verifyInspection(inspected.report, identity, confirmed, deferRemoteSetup);
-  const installation = planInstallation(root, inspected, identity, runtime);
+  if (inspected.preserved?.run !== initial.preserved?.run)
+    throw new ProductError(
+      "STALE_INSPECTION",
+      "The preserved changes the inspection adopts over in place changed. Inspect again and start with the new identity.",
+    );
+  const installation = planInstallation(
+    root,
+    inspected,
+    identity,
+    runtime,
+    inspected.preserved?.changes,
+  );
   session.prepareInstallation(installation);
   install(root, session, installation);
   await advance(root, session, installation);
 }
 
 // How a resumed run continues: with an assessment, or a refreshed work request
-// when none is submitted, or from the fix the maintainer confirmed overwriting.
+// when none is submitted, from the fix the maintainer confirmed overwriting, or
+// after the fix whose overwrite they declined, which the run defers.
 type Continuation =
   | { kind: "assessment"; assessment?: unknown }
-  | { kind: "confirmed"; fix: { declaration: string; id: string } };
+  | {
+      kind: "confirmed" | "deferred";
+      fix: { declaration: string; id: string };
+    };
 
 async function advance(
   root: string,
@@ -451,9 +470,12 @@ async function advance(
   const { report } = installation;
   const resumed = continuation?.kind === "assessment";
   const assessment = resumed ? continuation.assessment : undefined;
-  // A confirmed continuation skips the fixes accepted before the stop.
+  // A confirmed continuation skips the fixes accepted before the stop, and a
+  // deferred one also the deferred fix.
   let confirmedFix =
     continuation?.kind === "confirmed" ? continuation.fix : null;
+  let deferredFix = continuation?.kind === "deferred" ? continuation.fix : null;
+  const deferred = session.observation.deferred;
   const verifyInstalled = () => verifyInstallation(root, installation);
   // A resumed assessment is validated before the journal's violations are checked.
   if (resumed) session.journal.continue();
@@ -501,6 +523,14 @@ async function advance(
     : ["fixes", "checks"];
   for (const phase of phases) {
     for (const selected of operations(executedProfile(report), phase)) {
+      const matches = (fix: { declaration: string; id: string }) =>
+        fix.declaration === selected.declaration &&
+        fix.id === selected.operation.id;
+      if (phase === "fixes" && deferredFix) {
+        if (matches(deferredFix)) deferredFix = null;
+        continue;
+      }
+      if (phase === "fixes" && deferred.some(matches)) continue;
       const overwriteAllowed =
         phase === "fixes" &&
         confirmedFix?.declaration === selected.declaration &&
@@ -596,12 +626,14 @@ export async function resume(
   assessmentPath?: string,
   retry = false,
   confirmed = false,
+  defer = false,
 ) {
   return resumeRun(
     project,
     cliVersion,
     retry,
     confirmed,
+    defer,
     assessmentPath === undefined
       ? undefined
       : () => {
@@ -626,7 +658,7 @@ export async function submitAssessment(
   cliVersion: string,
   assessment: unknown,
 ) {
-  return resumeRun(project, cliVersion, false, false, () => assessment);
+  return resumeRun(project, cliVersion, false, false, false, () => assessment);
 }
 
 // A resumed run continues with the assessment the reader returns, or with a
@@ -636,6 +668,7 @@ async function resumeRun(
   cliVersion: string,
   retry: boolean,
   confirmed: boolean,
+  defer: boolean,
   readAssessment?: () => unknown,
 ) {
   return withResumedRun(
@@ -657,7 +690,11 @@ async function resumeRun(
       const root = projectRoot(project);
       if (retry) {
         const prerequisites = await session.prerequisites((onSpawn) =>
-          preflight(root, executedProfile(installation.report), onSpawn),
+          preflight(
+            root,
+            executedProfile(installation.report, session.observation.deferred),
+            onSpawn,
+          ),
         );
         if (prerequisites.some((probe) => probe.code))
           throw new ProductError(
@@ -670,18 +707,36 @@ async function resumeRun(
           install(root, session, installation);
         return advance(root, session, installation);
       }
-      // The session accepts confirmation only for a run stopped for it.
+      // The session accepts confirmation and deferral only for a run stopped
+      // for it.
       if (confirmed)
         return advance(root, session, installation, {
           kind: "confirmed",
           fix: confirmationStop(session.observation)!.operation,
         });
+      if (defer) {
+        const stop = confirmationStop(session.observation)!;
+        const { declaration, id } = stop.operation;
+        session.record({
+          type: "fix-deferred",
+          deferral: {
+            declaration,
+            id,
+            reason: `The maintainer declined the overwrite: ${stop.message}`,
+          },
+        });
+        return advance(root, session, installation, {
+          kind: "deferred",
+          fix: stop.operation,
+        });
+      }
       session.record({ type: "assessment-reading" });
       await advance(root, session, installation, {
         kind: "assessment",
         assessment: readAssessment?.(),
       });
     },
+    defer,
   );
 }
 
@@ -704,7 +759,9 @@ async function retainedInspection(
       "NO_SELECTION",
       "No complete adoption is recorded. Inspect a public source with --source, --standards-version and --profile.",
     );
-  const recorded = readRecordedAdoption(root)!;
+  // Over a preserved update, the recorded adoption is the one at its start.
+  const recorded =
+    findPreservedRun(root).preserved?.previous ?? readRecordedAdoption(root)!;
   const { selection, scopeEvidence } = recorded;
   const inspected = await inspectForStart(
     {

@@ -16,7 +16,6 @@ import {
   inventoryPaths,
   observe,
   observeGitStart,
-  observeProductState,
   productStateObservation,
   targetObservation,
 } from "./observation.js";
@@ -30,6 +29,13 @@ import {
   type RecordedAdoption,
 } from "./recorded-state.js";
 import { scopeChanges } from "./scope-evidence.js";
+import {
+  findPreservedRun,
+  preservedChanges,
+  preservedStartBlockers,
+  preservesSelection,
+  requirePreservedCommit,
+} from "./preserved-run.js";
 import { observeScope } from "./scope-observation.js";
 import {
   probeRemoteSetup,
@@ -162,12 +168,6 @@ export interface InspectOptions {
   scope?: string;
 }
 
-export function productInventory(root: string): string[] {
-  return inventoryPaths(observeProductState(root)).map(
-    (path) => `.repo-standards/${path}`,
-  );
-}
-
 export async function inspect(
   options: InspectOptions,
   cliVersion: string,
@@ -186,6 +186,11 @@ export async function inspect(
 // retained standards passes the recorded adoption it read them from. Committed
 // product state in a retired format is not read: the inspection is a fresh
 // adoption whose run removes that state, bound like an update's product state.
+// Over the changes an abandoned or replaced run of the same selection left, the
+// inspection adopts again in place: the last complete adoption is the one at
+// the HEAD that run started from, the run's verified product state is not an
+// existing adoption, and the uncommitted paths it recorded neither block the
+// start nor count as untracked replacement content.
 // Source observations shared with earlier acquisitions reuse their repository
 // and tag resolution; the project is always observed again.
 export async function inspectForStart(
@@ -226,9 +231,24 @@ export async function inspectForStart(
   const retiredRecords = retained
     ? []
     : rejectUnsupportedRecords(root, lockPath(root), { retiredState: true });
+  const lookup = findPreservedRun(root);
+  const preserved =
+    lookup.preserved &&
+    preservesSelection(lookup.preserved, {
+      cli: cliVersion,
+      source: options.source,
+      version: options.standardsVersion,
+      profile: options.profile,
+    })
+      ? lookup.preserved
+      : undefined;
   const previous =
     retained ??
-    (retiredRecords.length ? undefined : readRecordedAdoption(root));
+    (preserved
+      ? preserved.previous
+      : retiredRecords.length
+        ? undefined
+        : readRecordedAdoption(root));
   const retainedSource = retained?.source();
   const source =
     retainedSource ??
@@ -239,7 +259,15 @@ export async function inspectForStart(
       observations,
     ));
   try {
-    const { head, status, blockers } = observeGitStart(root);
+    if (preserved)
+      requirePreservedCommit(
+        preserved,
+        options.standardsVersion,
+        source.identity.commit,
+      );
+    const start = observeGitStart(root);
+    const { head, status } = start;
+    const blockers = preservedStartBlockers(start.blockers, lookup, preserved);
     const index = git(root, ["ls-files", "--stage", "-z"]);
     if (index.status !== 0)
       throw new ProductError("PROJECT_READ", "Cannot inspect the Git index.");
@@ -251,12 +279,15 @@ export async function inspectForStart(
         message:
           "Clear assume-unchanged or skip-worktree flags and reconcile local content before adoption; Git status may hide changes.",
       });
-    const tracked = new Set(
-      index.stdout
+    // What the preserved run recorded is its own output over a committed
+    // start, as recoverable as tracked content.
+    const tracked = new Set([
+      ...index.stdout
         .split("\0")
         .filter(Boolean)
         .map((entry) => entry.slice(entry.indexOf("\t") + 1)),
-    );
+      ...(preserved?.recorded ?? []),
+    ]);
     for (const entry of index.stdout
       .split("\0")
       .filter((entry) => entry.startsWith("160000 ")))
@@ -267,7 +298,7 @@ export async function inspectForStart(
           "Initial inspection cannot establish clean nested submodule state without running nested Git behavior.",
       });
     const productState =
-      previous || retiredRecords.length
+      previous || retiredRecords.length || preserved
         ? productStateObservation(root, blockers)
         : targetObservation(root, ".repo-standards", blockers);
     // Each target is observed once, keeping its safety blockers for its block;
@@ -300,7 +331,12 @@ export async function inspectForStart(
       skillLinks[path] = observeTarget(path, linkTextAt(path));
     };
     for (const { link } of installedSystemSkills) observeLink(link);
-    if (!previous && !retiredRecords.length && productState.type !== "missing")
+    if (
+      !previous &&
+      !retiredRecords.length &&
+      !preserved &&
+      productState.type !== "missing"
+    )
       blockers.push({
         code: "EXISTING_ADOPTION",
         path: ".repo-standards",
@@ -437,7 +473,8 @@ export async function inspectForStart(
             resolved: resolved.declarations,
             inputs,
           },
-          productState,
+          // The preserved run's installation was verified as its own.
+          preserved ? undefined : productState,
         )
       : undefined;
     if (comparison) blockers.push(...comparison.blockers);
@@ -861,6 +898,15 @@ export async function inspectForStart(
         hidden,
       },
       recorded: previous,
+      // A start over a preserved run carries the changes it left.
+      ...(preserved
+        ? {
+            preserved: {
+              run: preserved.run.id,
+              changes: preservedChanges(preserved),
+            },
+          }
+        : {}),
     };
   } finally {
     source.close();

@@ -79,6 +79,14 @@ export interface ChangedPath {
   phases: ChangePhase[];
 }
 
+// A change a replaced run left in the checkout, which the run replacing it in
+// place carries: the path's state before the replaced run, its state as that
+// run left it, and the phases that changed it.
+export interface InheritedChange extends ChangedPath {
+  before: unknown;
+  after: unknown;
+}
+
 export interface ExecutionEvidence {
   format: typeof formats.state;
   observations: RecordedInterval[];
@@ -324,20 +332,25 @@ export class WorkEvidenceJournal {
   readonly #run: JournalRecord;
   readonly #store: ObservationStore;
   readonly #save: () => void;
+  readonly #inherited: readonly InheritedChange[];
   #kept: WorkObservation | undefined;
 
+  // A run that replaces another in place inherits the changes that run left,
+  // which its own intervals then continue from.
   constructor(
     root: string,
     resolved: ResolvedProfile,
     run: JournalRecord,
     store: ObservationStore,
     save: () => void = () => {},
+    inherited: readonly InheritedChange[] = [],
   ) {
     this.#root = root;
     this.#resolved = resolved;
     this.#run = run;
     this.#store = store;
     this.#save = save;
+    this.#inherited = inherited;
   }
 
   #observe() {
@@ -447,27 +460,74 @@ export class WorkEvidenceJournal {
   }
 
   // Requires every recorded interval to have stayed within its authority,
-  // reporting the first violation.
+  // reporting the first violation, and every inherited change that still
+  // stands to lie within this run's authority for the phases that made it:
+  // the contextual scope for agent work, and a declaration's targets for
+  // fixes.
   requireAuthorized() {
     requireValidIntervals(this.#run.observations);
+    const net = this.#net();
+    const contextual = contextualScope(this.#resolved);
+    const declared = concreteScope(this.#resolved);
+    const within = (scope: Scope, path: string) =>
+      Object.values(scope).some((targets) => permits(targets, path));
+    for (const [phase, scope, code] of [
+      ["agent", contextual, "ASSESSMENT_SCOPE"],
+      ["fixes", declared, "OPERATION_SCOPE"],
+    ] as const) {
+      const paths = this.#inherited
+        .filter(
+          (change) =>
+            change.phases.includes(phase) &&
+            differs(net(change.path)) &&
+            !within(scope, change.path),
+        )
+        .map(({ path }) => path);
+      if (paths.length)
+        throw new ProductError(
+          code,
+          `The replaced run's ${phase === "agent" ? "agent work" : "fixes"} changed paths outside this run's authorized ${phase} scope: ${paths.join(", ")}. ${restoreInstruction}`,
+        );
+    }
+  }
+
+  // A path's net change since before the run, or, for a run that replaces
+  // another in place, since before the run it replaces.
+  #net() {
+    const net = netChanges(this.#run.observations, "changes");
+    const inherited = new Map(
+      this.#inherited.map((change) => [change.path, change]),
+    );
+    return (path: string): Delta => {
+      const earlier = inherited.get(path);
+      const own = net.get(path);
+      return {
+        before: earlier ? earlier.before : own?.before,
+        after: own ? own.after : earlier?.after,
+      };
+    };
   }
 
   // The paths agent work changed, excluding verified restoration of exact
   // content, and only those whose state now differs from before the run: work
-  // restored in place has nothing to attribute.
+  // restored in place has nothing to attribute. A run that replaces another
+  // in place also attributes the agent work it inherits.
   agentChanges() {
-    const net = netChanges(this.#run.observations, "changes");
+    const net = this.#net();
     return [
-      ...new Set(
-        this.#run.observations
+      ...new Set([
+        ...this.#inherited
+          .filter((change) => change.phases.includes("agent"))
+          .map(({ path }) => path),
+        ...this.#run.observations
           .filter((interval) => interval.phase === "agent")
           .flatMap((interval) =>
             Object.keys(interval.changes ?? {}).filter(
               (path) => !interval.restoredExact?.[path],
             ),
           ),
-      ),
-    ].filter((path) => differs(net.get(path)!));
+      ]),
+    ].filter((path) => differs(net(path)));
   }
 
   // The paths and boundaries an operation's closed interval changed.
@@ -557,18 +617,23 @@ export class WorkEvidenceJournal {
 }
 
 // The run's net change set: each path whose state at the end of the run differs
-// from its state before it, once, with every phase that changed it. Installation
-// precedes the intervals, which are in order, so a path's first before and last
-// after bound the run. Verified restoration returns exact content to its
-// installed state, so it undoes every attribution but installation's.
-function changeSet(
+// from its state before it, once, with every phase that changed it, together
+// with both states. The changes a replaced run left precede installation,
+// which precedes the intervals, which are in order, so a path's first before
+// and last after bound the run, or, for a run that replaces another in place,
+// that run too. Verified restoration returns exact content to its installed
+// state, so it undoes every attribution but installation's.
+export function netChangeSet(
+  inherited: readonly InheritedChange[],
   installed: Record<string, Delta>,
-  intervals: RecordedInterval[],
-): ChangedPath[] {
+  intervals: readonly RecordedInterval[],
+): InheritedChange[] {
   const paths = new Map<
     string,
     { before: unknown; after: unknown; phases: Set<ChangePhase> }
   >();
+  for (const { path, before, after, phases } of inherited)
+    paths.set(path, { before, after, phases: new Set(phases) });
   const change = (path: string, delta: Delta, phase?: ChangePhase) => {
     const entry = paths.get(path) ?? {
       before: delta.before,
@@ -600,6 +665,8 @@ function changeSet(
     .map(([path, entry]) => ({
       path,
       phases: changePhases.filter((phase) => entry.phases.has(phase)),
+      before: entry.before,
+      after: entry.after,
     }));
 }
 
@@ -607,7 +674,8 @@ function changeSet(
 // The run already records its intervals in the committed shape, so they are
 // carried without transformation, together with the run's net change set over
 // the paths its installation plans, each with its state before and as
-// installed, and its intervals. Last-complete,
+// installed, and its intervals, after any changes a replaced run left. The
+// replaced run's own evidence stays in its archived report. Last-complete,
 // installed baselines, skills, checks and assessments stay with their own
 // owners.
 export function completedEvidence(
@@ -617,13 +685,16 @@ export function completedEvidence(
     retryHistory?: unknown[];
   },
   installed: Record<string, Delta>,
+  inherited: readonly InheritedChange[] = [],
 ): ExecutionEvidence {
   return {
     format: formats.state,
     observations: structuredClone(run.observations),
     operations: structuredClone(run.operations),
     retryHistory: structuredClone(run.retryHistory ?? []),
-    changeSet: changeSet(installed, run.observations),
+    changeSet: netChangeSet(inherited, installed, run.observations).map(
+      ({ path, phases }) => ({ path, phases }),
+    ),
   };
 }
 
