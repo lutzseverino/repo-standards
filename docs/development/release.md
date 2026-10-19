@@ -352,15 +352,14 @@ the authoring acceptance.
 
 ### Adoption entry skill publication
 
-`adopt-repository-standards` is an unreleased candidate; v7.1.0 does not contain
-it. At the first release containing it, record the exact public `v<version>` as
-its **first containing tag** in the release notes and replace `<release-tag>` in
-the [adoption skill installation section](../usage/installation.md#install-the-adoption-skill)
-with that tag. Remove the unreleased notices there and beside the README's
-optional skill link only after verifying the tag contains the skill. The
-existing Release workflow creates the tag at the reviewed commit, publishing
-the skills tree with it. No separate registry,
-publishing service, or release dispatch is needed for the skill.
+`adopt-repository-standards` has **v8.0.0** as its first containing public tag;
+that tag contains `SKILL.md` and `agents/openai.yaml`. The installation guide
+and README no longer need unreleased notices for this skill. Keep the
+[adoption skill installation command](../usage/installation.md#install-the-adoption-skill)
+pinned to each new release while preserving v8.0.0 as the first containing tag.
+The existing Release workflow creates the tag at the reviewed commit,
+publishing the skills tree with it. No separate registry, publishing service,
+or release dispatch is needed for the skill.
 
 On macOS and Linux, verify direct installation from that public tag independently
 of npm: run the documented `skills@1.5.25 add` command with isolated child-process

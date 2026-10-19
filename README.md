@@ -31,7 +31,7 @@ To adopt Repo Canon, give your coding agent this prompt in your repository:
 Run `npx --yes @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon --json` in this repository and follow what it prints.
 ```
 
-Or [install the adoption skill from a verified release tag](docs/usage/installation.md#install-the-adoption-skill) (currently unreleased).
+Or [install the adoption skill from a verified release tag](docs/usage/installation.md#install-the-adoption-skill).
 
 To run it yourself, run `adopt` in a terminal, from your committed,
 clean Git working tree:
