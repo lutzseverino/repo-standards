@@ -713,6 +713,7 @@ cannot silently redefine installation baselines.
   cache/      (ignored)
   local/      (ignored)
   .gitignore
+  .gitattributes
 .agents/skills/
   repository-standards/
   <author skills>/

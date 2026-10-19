@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { stringify } from "yaml";
 import { hash } from "./acquisition.js";
 import {
+  attributes,
   baselines,
   file,
   flatten,
@@ -182,6 +183,7 @@ export function planInstallation(
   );
   files[".repo-standards/selection.yaml"] = file(stringify(report.selection));
   files[".repo-standards/.gitignore"] = file(ignore);
+  files[".repo-standards/.gitattributes"] = file(attributes);
   for (const name of ["package.json", "package-lock.json"]) {
     const value = observe(
       runtime

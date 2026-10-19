@@ -4,12 +4,14 @@ import type {
   ErrorReport,
   FileInventory,
   Inspection,
+  Lock,
   PackageManifest,
   Run,
   State,
   Status,
 } from "./json-reports.ts";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { after, test } from "node:test";
 import {
   chmodSync,
@@ -354,6 +356,37 @@ test("confirmed exact adoption installs whole skills, claims matching files and 
     existsSync(join(project.root, ".repo-standards/inputs/source/excluded.md")),
     false,
   );
+  // Product state is marked generated for GitHub language statistics by a
+  // recorded product file that sets no other attribute.
+  const attributes = "** linguist-generated\n";
+  assert.equal(
+    readFileSync(join(project.root, ".repo-standards/.gitattributes"), "utf8"),
+    attributes,
+  );
+  const lock = JSON.parse(
+    readFileSync(join(project.root, ".repo-standards/lock.json"), "utf8"),
+  ) as Lock;
+  assert.deepEqual(lock.files[".repo-standards/.gitattributes"], {
+    sha256: createHash("sha256").update(attributes).digest("hex"),
+    executable: false,
+  });
+  const attribute = (name: string) =>
+    git(project.root, "check-attr", "-a", "--", name).trim();
+  for (const name of [
+    "lock.json",
+    "state.json",
+    "selection.yaml",
+    "inputs/source/LICENSE",
+    "rules/README.md",
+    "runtime/package.json",
+    ".gitignore",
+    ".gitattributes",
+  ])
+    assert.equal(
+      attribute(`.repo-standards/${name}`),
+      `.repo-standards/${name}: linguist-generated: set`,
+    );
+  assert.equal(attribute("AGENTS.md"), "");
   const status = f.json<Status>(["status", "--json"]).report;
   assert.equal(status.selection!.cli.version, cli.version);
   assert.equal(status.lastComplete.inspection, inspection.identity);
@@ -1381,6 +1414,11 @@ test("final integrity failures preserve work and report an incomplete locked run
       target: ".repo-standards/unexpected.txt",
       named: "product state inventory",
       added: true,
+    },
+    {
+      branch: "attributes file",
+      target: ".repo-standards/.gitattributes",
+      named: ".repo-standards/.gitattributes",
     },
     {
       branch: "runtime dependencies",
