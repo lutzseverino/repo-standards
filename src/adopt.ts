@@ -333,7 +333,7 @@ function continuationCommand(root: string, cliVersion: string, active = true) {
     // A project without a matching package identity uses ordinary npx.
   }
   return {
-    invoke: (args: string) => `npx ${packageName}@${cliVersion} ${args}`,
+    invoke: (args: string) => `npx --yes ${packageName}@${cliVersion} ${args}`,
   };
 }
 
@@ -477,9 +477,16 @@ async function prepare(
   const versionQuestion: Question = {
     id: "version",
     question: "Which standards version should the project adopt?",
-    context: lookupFailure
-      ? `The releases of ${source} cannot be read: ${lookupFailure} The template proposes the current version, ${current!.version}, which the retained standards apply again.`
-      : `A stable release of ${source}${recorded ? `; the project adopts ${recorded.version} now` : ""}. The template proposes the newest stable release.`,
+    context: [
+      lookupFailure
+        ? `The releases of ${source} cannot be read: ${lookupFailure} The template proposes the current version, ${current!.version}, which the retained standards apply again.`
+        : `A stable release of ${source}${recorded ? `; the project adopts ${recorded.version} now` : ""}. The template proposes the newest stable release.`,
+      ...(mode === "terminal"
+        ? []
+        : [
+            "Choose the proposed newest stable release unless the maintainer's request names another; record your choice in the handoff.",
+          ]),
+    ].join(" "),
     ...(releases ? { choices: releases } : {}),
     answer: version ?? null,
   };
@@ -562,9 +569,16 @@ async function prepare(
     profileQuestion = {
       id: "profile",
       question: "Which profile should the project adopt?",
-      context: retained
-        ? `The source is unavailable, so its retained standards apply the current profile, ${current!.profile}, again.`
-        : `Each profile of ${source} ${version} is a complete selection of its standards.${recorded ? ` The project adopts ${recorded.profile} now.` : ""}`,
+      context: [
+        retained
+          ? `The source is unavailable, so its retained standards apply the current profile, ${current!.profile}, again.`
+          : `Each profile of ${source} ${version} is a complete selection of its standards.${recorded ? ` The project adopts ${recorded.profile} now.` : ""}`,
+        ...(mode === "terminal"
+          ? []
+          : [
+              "Choose from the profile descriptions, the maintainer's request, and repository evidence. Ask the maintainer only when these do not settle it. Record your choice and reasons in the handoff.",
+            ]),
+      ].join(" "),
       choices: names.map((name) => ({
         name,
         description: profiles[name]!.description,
@@ -668,7 +682,9 @@ async function prepare(
             : `Interpret its discovery guidance and write its scope entry: coverage, candidates, and unresolved.`,
           `Each candidate has a path, a decision of include or exclude, a reason, and evidence paths of existing project files and directories; an included candidate is one file.`,
           open.length
-            ? `Ask the maintainer each open question in unresolved, record the answers as candidate decisions and coverage, and empty unresolved.`
+            ? mode === "terminal"
+              ? `Ask the maintainer each open question in unresolved, record the answers as candidate decisions and coverage, and empty unresolved.`
+              : `Decide each open question in unresolved from project evidence, with reasons, without asking the maintainer; record the decisions as candidates and coverage, and empty unresolved.`
             : `An entry whose unresolved is empty is complete.`,
         ].join(" "),
         details: { unresolved: open },
@@ -687,7 +703,10 @@ async function prepare(
         question:
           "Defer the remote setup that is not ready, or stop and resolve it first?",
         context:
-          "Remote setup changes the hosting platform's settings, and its probe says it cannot apply yet. Deferred, adoption completes locally without it, and every later run applies it once its probe is ready. Resolved, adopt writes nothing until it is.",
+          "Remote setup changes the hosting platform's settings, and its probe says it cannot apply yet. Deferred, adoption completes locally without it, and every later run applies it once its probe is ready. Resolved, adopt writes nothing until it is." +
+          (mode === "terminal"
+            ? ""
+            : " Answer defer without asking: it changes nothing remotely. Report each reason in the handoff."),
         choices: ["defer", "resolve"],
         details: notReady,
         answer: given.get("remote-setup") ?? null,
@@ -700,14 +719,19 @@ async function prepare(
       const stale = answer !== null && answer !== identity;
       questions.push({
         id: "confirmation",
-        question: "Does the maintainer confirm discarding these edits?",
+        question:
+          mode === "terminal"
+            ? "Does the maintainer confirm discarding these edits?"
+            : "Do you confirm discarding these Git-recoverable edits after review?",
         context: [
           ...(stale
             ? [
                 `The answer names ${answer}, but this inspection is ${identity}: what the run discards changed since that confirmation.`,
               ]
             : []),
-          `The run replaces or removes each target in details with content that discards edits. Only after the maintainer confirms discarding them, answer with this inspection's identity, ${identity}.`,
+          mode === "terminal"
+            ? `The run replaces or removes each target in details with content that discards edits. Only after the maintainer confirms discarding them, answer with this inspection's identity, ${identity}.`
+            : `The run replaces or removes each target in details with content that discards edits. A new run starts from a clean, committed tree, so Git can restore them. Review each discarded edit with its diff, or its current content where there is none, then answer with this inspection's identity, ${identity}, without asking. List each discarded edit with its diff or current content in the handoff.`,
         ].join(" "),
         details: { identity, targets: inspection.discardedEdits },
         answer,
@@ -738,12 +762,15 @@ async function prepare(
       });
     }
     // The answers file names the inspection it was written against, so a run
-    // starts only after the agent had the inspection it carries out to
-    // present. A new or changed inspection goes back for another round trip.
+    // starts only after the agent reviewed the inspection it carries out.
+    // A new or changed inspection goes back for another answer round.
     questions.push({
       id: "inspection",
       question: "Which inspection does the run carry out?",
-      context: `The identity of the inspection above, ${identity}, which this answers file was written against. Present that inspection to the maintainer before running adopt with it. adopt starts a run only when this answer names the current inspection; when the inspection changes, it prints the new one to present.`,
+      context:
+        mode === "terminal"
+          ? `The identity of the inspection above, ${identity}, which this answers file was written against. Present that inspection to the maintainer before running adopt with it. adopt starts a run only when this answer names the current inspection; when the inspection changes, it prints the new one to present.`
+          : `Answer with the current inspection identity without asking for approval: ${identity}. Review the inspection and summarize its changes, discarded edits, and operations that run trusted scripts with the user's access to the host, environment, and network in the handoff. adopt starts only the current inspection; review a changed inspection and answer with its new identity.`,
       answer: identity,
     });
     if (mode !== "template" && given.get("inspection") !== identity)
@@ -1010,6 +1037,10 @@ function withSteps(
   const again = invoke(`adopt --answers ${answers}`);
   const ids = new Set(report.answers.questions.map((question) => question.id));
   const steps: string[] = [`Work from the project root, ${code(root)}.`];
+  if (!report.run && ["answers-required", "blocked"].includes(report.outcome))
+    steps.push(
+      "Make no project edits until the run starts. Write files implied by your answers, such as optional scope files, during contextual work.",
+    );
   if (
     !report.run &&
     report.blockers.some(
@@ -1030,7 +1061,7 @@ function withSteps(
     case "answers-required":
       if (report.run) {
         steps.push(
-          "Present the setting and both values the fix's message names to the maintainer, and ask whether to overwrite it.",
+          "Present each setting with its current and standard values from the fix's message to the maintainer, and ask whether to overwrite it.",
           `Only after they confirm, answer its question with the run's inspection identity and run ${again}; the fix reruns allowed to overwrite. If they decline, obtain their instruction to abandon, then run ${invoke("abandon")}, which keeps the run's changes and report.`,
         );
         break;
@@ -1042,22 +1073,22 @@ function withSteps(
       );
       if (report.inspection)
         steps.push(
-          "Present the inspection to the maintainer as what the run will do: its changes, discarded edits, and the operations that run trusted scripts with the user's access to the host, environment, and network. The answers file's `inspection` answer names it; the run starts only that inspection.",
+          "Summarize the inspection in the handoff: its changes, discarded edits, and the operations that run trusted scripts with the user's access to the host, environment, and network. Answer `inspection` with the current identity without asking for approval; the run starts only that inspection.",
         );
       steps.push(
-        "Ask the maintainer each question, with its context and choices, and record their answers. The version, profile, discovery questions, remote setup deferral, and confirmations are theirs to decide; never answer them yourself.",
+        "Decide the answers from each question's context and choices, and record your decisions and reasons in the handoff. Choose the proposed newest stable version unless the maintainer requested another. Choose the profile from its descriptions, the request, and repository evidence; ask the maintainer only when these do not settle it.",
       );
       if ([...ids].some((id) => id.startsWith("scope:")))
         steps.push(
-          "For each scope answer, judge the candidates against the discovery guidance above, inspecting the real project, not only its inventory. Explain exclusions such as fixtures and generated output, and resolve membership questions with the maintainer. An explained empty scope is valid.",
+          "For each scope answer, judge the candidates against the discovery guidance above, inspecting the real project, not only its inventory. Explain exclusions such as fixtures and generated output, and resolve membership questions from project evidence, with reasons, without asking. An explained empty scope is valid.",
         );
       if (ids.has("confirmation"))
         steps.push(
-          "Show the maintainer each discarded edit with its diff, or its current content where there is none. Answer `confirmation` with the inspection identity only after they confirm discarding them.",
+          "Review each discarded edit with its diff, or its current content where there is none. A new run starts from a clean, committed tree, so Git can restore it. Answer `confirmation` with the inspection identity after your review, without asking. List each discarded edit with its diff or current content in the handoff.",
         );
       if (ids.has("remote-setup"))
         steps.push(
-          "Present each not-ready remote setup reason, such as a missing tool, sign-in, or role. Answer `defer` only on the maintainer's choice to complete adoption without it.",
+          "Answer `defer` for remote setup that is not ready, without asking: it changes nothing remotely, and every later run applies it once ready. Report each reason, such as a missing tool, sign-in, or role, in the handoff.",
         );
       if (report.blockers.length)
         steps.push(
@@ -1078,7 +1109,7 @@ function withSteps(
         );
       else
         steps.push(
-          "Resolve each not-ready remote setup reason with the maintainer, or answer `remote-setup` with `defer` on their choice.",
+          "Answer `remote-setup` with `defer` for setup that is not ready, without asking; it changes nothing remotely, and every later run applies it once ready. Report each reason in the handoff.",
         );
       steps.push(`Run ${again}.`);
       break;
@@ -1113,7 +1144,7 @@ function withSteps(
       steps.push(
         "Review every output before the maintainer commits it: run `git --no-optional-locks diff --no-ext-diff --no-textconv --binary` and `git --no-optional-locks ls-files --others --exclude-standard -z`, and read each new file's complete content. A list of names or hashes is not a review.",
         "Leave the changes uncommitted and unstaged, and keep review artifacts outside the project.",
-        `Report script outcomes and your assessments separately. ${invoke("status")} says whether the run is ready to commit, and ${invoke("status --summary")} renders its adoption record.`,
+        `Report script outcomes and your assessments separately. ${invoke("status")} says whether the run is ready to commit, and ${invoke("status --summary")} renders its adoption record. The ready-to-commit verdict describes the uncommitted changes. Record it before committing: once the changes are committed, status reports them not ready.`,
         "Do not commit; hand the changes to the maintainer for review and their project's normal workflow. Run adopt again later to update the selection.",
       );
       break;
@@ -1125,7 +1156,7 @@ function withSteps(
       else
         steps.push(
           `Read ${invoke("status")} and explain the run's phase, reason, actual changes, and completed and uncertain work to the maintainer. While execution is active, wait for it; stop a surviving process only on their instruction.`,
-          `Only on the maintainer's explicit instruction, run ${invoke("resume --retry")}, which repeats trusted operations and needs renewed assessments, then ${again}; or run ${invoke("abandon")}, which keeps the project content and archives the run's report.`,
+          `Run ${invoke("resume --retry")}: its trusted operations are repeat-safe, so retry without asking, renew the assessments, then ${again}. Record the retry in the handoff. Abandon only on the maintainer's instruction with ${invoke("abandon")}, which keeps the project content and archives the run's report.`,
         );
       break;
   }
@@ -1160,7 +1191,7 @@ const statements: Record<AdoptReport["outcome"], string> = {
   blocked: "The adoption cannot start yet. Nothing was changed.",
   contextual: "The run waits for contextual work and its assessment.",
   complete: "The adoption is complete. Its changes are uncommitted.",
-  incomplete: "The run is incomplete and needs the maintainer's decision.",
+  incomplete: "The run is incomplete; follow the recovery steps below.",
 };
 
 // The report as Markdown for the agent: what it asks, what to read, the
@@ -1268,7 +1299,7 @@ export function adoptSummary(report: AdoptReport) {
               ...(entry.files.length
                 ? []
                 : [
-                    `The run replaces it whole with ${text(entry.replacement ?? "its candidate content")}. The inspection reports no file diff for it: show the maintainer its current content in the project.`,
+                    `The run replaces it whole with ${text(entry.replacement ?? "its candidate content")}. The inspection reports no file diff for it: review its current content in the project and include it in the handoff.`,
                   ]),
             ].join("\n\n"),
           )

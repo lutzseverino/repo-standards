@@ -155,9 +155,9 @@ test("the package ships each product skill whole, with its invocation settings a
 });
 
 // The approved pointers from #307, independent of the distributed files.
-const adoptionEntry = `Run \`npx @lutzseverino/repo-standards adopt <source>\` in this repository and follow what it prints, using the standards source the user names as \`<source>\`, otherwise Repo Canon \`https://github.com/lutzseverino/repo-canon\`.`;
+const adoptionEntry = `Run \`npx --yes @lutzseverino/repo-standards adopt <source> --json\` in this repository and follow what it prints, using the standards source the user names as \`<source>\`, otherwise Repo Canon \`https://github.com/lutzseverino/repo-canon\`.`;
 const readmeEntry =
-  "Run `npx @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon` in this repository and follow what it prints.";
+  "Run `npx --yes @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon --json` in this repository and follow what it prints.";
 const normalizeText = (text: string) => text.replace(/\s+/g, " ").trim();
 
 function assertReadmeEntry(document: string) {
@@ -212,6 +212,12 @@ test("the adoption entry contract rejects added instructions, protocol examples,
         readme.replace(/(```text\n[\s\S]*?)(\n```)/, `$1\n${addition}$2`),
       ),
     );
+  }
+  for (const flag of [" --yes", " --json"]) {
+    assert.throws(() =>
+      assertAdoptionEntry(document.replace(flag, ""), resources),
+    );
+    assert.throws(() => assertReadmeEntry(readme.replace(flag, "")));
   }
   assert.throws(() =>
     assertAdoptionEntry(

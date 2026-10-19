@@ -52,6 +52,21 @@ function status(f: Fixture) {
   };
 }
 
+test("adopt --json in a terminal prints the answers-file template and changes nothing", async (t) => {
+  const f = await fixture(t, cli, {});
+  const before = snapshot(f.root);
+  const session = terminal(t, f, [source, "--json"]);
+  const output = await session.expect(/\{[\s\S]*\n\}/);
+  assert.equal(await session.exit(), 0, session.rest());
+  const report = JSON.parse(output) as {
+    outcome: string;
+    answers: { format: string };
+  };
+  assert.equal(report.outcome, "answers-required");
+  assert.equal(report.answers.format, "repo-standards/answers/v1");
+  assert.deepEqual(snapshot(f.root), before);
+});
+
 test("adopt in a terminal asks its questions, walks contextual work until its checks pass, and completes", async (t) => {
   const outside = directoryFixture("repo-standards-adopt-terminal-");
   t.after(() => outside.close());
@@ -64,8 +79,13 @@ test("adopt in a terminal asks its questions, walks contextual work until its ch
 
   // The version defaults to the newest stable release; the profiles are
   // listed with their descriptions.
+  const opening = await session.expect("Version [v1.1.0]: ");
   assert.match(
-    await session.expect("Version [v1.1.0]: "),
+    opening,
+    /An agent runs adopt with --json to get the answers-file template\.[\s\S]*Which standards version/,
+  );
+  assert.match(
+    opening,
     /Which standards version should the project adopt\?[\s\S]*Stable releases: v1\.1\.0, v1\.0\.0/,
   );
   session.type("");

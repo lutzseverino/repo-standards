@@ -35,9 +35,9 @@ npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
 - **In a terminal:** `adopt` asks questions, shows the proposed changes, and
   [walks you through contextual work](#in-a-terminal), running checks after
   your edits and writing the assessment from your answers.
-- **With an agent:** `adopt` prints an [answers-file template](#answers-file)
-  and next steps. The agent relays the questions to you, fills the file, makes
-  the requested edits, and submits assessments with the same command.
+- **With an agent:** `adopt --json` prints an [answers-file template](#answers-file)
+  and next steps, even in a terminal. The agent decides what Git can undo,
+  fills the file, makes the requested edits, and submits assessments.
 
 The CLI owns the adopting agent's instructions; the README prompt and optional
 `adopt-repository-standards` skill only point to it. Before a new run, Git
@@ -71,15 +71,16 @@ Otherwise, without an answers file, `adopt` prints its questions as an answers-f
 template, with the inspection of the selection it proposes and the next steps,
 and changes nothing. It runs what inspection runs: remote setup readiness
 probes and, when discovery is required, declared discovery scripts. The agent
-saves the template outside the project, relays each question to the
-maintainer, records their answers, and runs `adopt --answers <file>`. With a
+saves the template outside the project, records its decisions, and runs
+`adopt --answers <file>`. Project files stay unedited until the run starts;
+files implied by answers are written during contextual work. With a
 filled answers file, `adopt` names each missing answer, asks the questions that
 follow from the answers, and starts the run once none remain and nothing blocks
 it. A question that depends on an answer appears once that answer is given: the
 profile's questions follow the profile, and remote setup readiness follows a
 complete scope, since inspection probes only an unblocked selection. A run
-starts only an inspection the answers file names, so the agent has it to
-present to the maintainer first.
+starts only an inspection the answers file names, so the agent reviews the
+current inspection before starting and summarizes it in the handoff.
 
 `adopt` installs the exact CLI that ran it into the project's
 [runtime](#durable-and-local-state) and records it as the CLI pin. Ordinary
@@ -152,12 +153,33 @@ stops at once, writing nothing.
 
 ### With an agent
 
-Run the one-liner through your agent without a terminal. Save the printed JSON
-template outside the project, fill its answers from the maintainer's choices,
-and continue with the exact command in the next steps, for example:
+The agent entry command uses `--yes` to avoid npm's installation prompt and
+`--json` to select the answers-file route even in a terminal:
 
 ```sh
-npx @lutzseverino/repo-standards@8.0.0 adopt --answers /tmp/adoption-answers.json
+npx --yes @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS --json
+```
+
+The printed template stays outside the project. The agent chooses the proposed
+newest stable version unless your request names another, and a profile from
+its descriptions, your request, and repository evidence. Only an unsettled
+profile choice comes back to you. It reviews each scope draft against discovery
+guidance and the real project, deciding unresolved membership from evidence
+with reasons. Project files stay unedited until the run starts, including
+optional files implied by a scope answer.
+
+The agent reviews the inspection and answers with its current identity to
+start. It reviews each discarded edit's diff, or current content where no diff
+is available, and confirms the identity itself: the clean, committed starting
+tree makes those edits recoverable from Git. It defers remote setup that is not
+ready, changing nothing remotely; every later run applies it once ready. Its
+handoff records these decisions, the inspection's trusted script operations,
+each discarded edit with its diff or current content, and each deferral reason.
+
+Continue with the exact command in the next steps, for example:
+
+```sh
+npx --yes @lutzseverino/repo-standards@8.0.0 adopt --answers /tmp/adoption-answers.json
 ```
 
 Use the CLI version printed by your own run. Once the pinned runtime is
@@ -169,9 +191,17 @@ installed, the next steps use it instead:
 
 For contextual work, follow the returned rules and adoption guidance, edit only
 the allowed targets, and add each declaration's assessment to the answers
-file before continuing. Confirmation-required changes need the maintainer's
-confirmation of the printed identity; an agent cannot decide to discard edits
-on its own.
+file before continuing. An assessment stays `blocked` when the project does
+not support the facts it needs. Interrupted or incomplete runs retry their
+repeat-safe operations with `resume --retry` without another approval;
+abandonment remains your decision. A fix's confirmation-required overwrite of
+a remote setting still needs your decision, with each setting's current and
+standard values presented first, because Git cannot restore remote state.
+
+On completion, the agent reviews every output and leaves it uncommitted and
+unstaged for your normal workflow. The `status` ready-to-commit verdict describes
+the uncommitted changes: record it before committing, because afterwards
+`status` reports those changes not ready.
 
 ### Defer remote setup
 
@@ -280,15 +310,15 @@ wrong kind with `ANSWERS_FORMAT`, and an answers file inside the project with
 | `profile`                  | Always; proposed for an update or a single profile.      | A profile `name` from `choices`, each with its `description`.                                                                                                                                                                                            |
 | `scope:<declaration>`      | For each active discovery declaration.                   | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`. A discovery script's draft is proposed; it stays missing while it has open questions or until an answers file carries it back. |
 | `remote-setup`             | When a remote setup probe is not ready.                  | `defer` to complete adoption without it, or `resolve` to stop, writing nothing.                                                                                                                                                                          |
-| `confirmation`             | When the inspection requires confirmation.               | The inspection identity the maintainer confirmed. `details` names the identity and the discarded edits.                                                                                                                                                  |
-| `inspection`               | Once inspected; the template carries the identity.       | The identity of the inspection the answers file was written against. A run starts only when it names the current inspection; a new or changed inspection is printed again to present first.                                                              |
+| `confirmation`             | When the inspection requires confirmation.               | The inspection identity confirmed after reviewing discarded edits, by the agent or a person at a terminal. `details` names the identity and the discarded edits.                                                                                         |
+| `inspection`               | Once inspected; the template carries the identity.       | The identity of the inspection the answers file was written against. A run starts only when it names the current inspection; a new or changed inspection is printed again for review first.                                                              |
 | `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.             | The run's inspection identity, once the maintainer confirms the overwrite its `context` names.                                                                                                                                                           |
 | `assessment:<declaration>` | For each declaration of contextual work.                 | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration.                                                                             |
 
 The question's ID names the declaration of a `scope:` or `assessment:`
 answer; an `id` inside the answer is ignored. An answers file confirms a
-confirmation-required change only by naming the identity the maintainer
-confirmed. An answer naming another identity, such as
+confirmation-required change only by naming the identity the agent reviewed for
+discarded edits, or the maintainer confirmed for a remote setting overwrite. An answer naming another identity, such as
 one confirmed before the inspection changed, stays missing, and the run does
 not start or continue. Version and profile flags must agree with the answers
 file, and so must a source given with it.
@@ -308,7 +338,7 @@ guidance, the answers file, and the next steps. `--json` prints the same as a
 | `blocked`          | Inspection `blockers`, a `resolve` remote setup answer, or a start that stopped before writing anything, with its `run.reason`.                                                                                                 |
 | `contextual`       | The run waits for contextual work: `contextual` lists each declaration's allowed targets, rules, and adoption guidance, and `failedChecks` each failure of the latest check round, which cites its rules in the run's `reason`. |
 | `complete`         | The run completed; its changes are uncommitted.                                                                                                                                                                                 |
-| `incomplete`       | The run needs recovery or the maintainer's decision, such as a retry, abandonment, or scope correction.                                                                                                                         |
+| `incomplete`       | The run needs recovery, such as a repeat-safe retry, or the maintainer's decision about abandonment or scope correction.                                                                                                        |
 
 For contextual work, the agent edits the allowed targets, answers each
 `assessment:<declaration>`, and runs `adopt --answers <file>` with the pinned
@@ -356,9 +386,9 @@ working tree. Store inspection reports outside the project to keep it clean.
 ### Confirmation-required changes
 
 Asking to adopt or update a selection is the maintainer's consent, so most runs
-start with the identity alone. A run waits for the maintainer only when it
-makes a confirmation-required change: one that discards a person's work or
-overwrites a setting someone chose. Inspection finds the discarded edits: the
+start with the identity alone. An agent reviews and confirms discarded edits
+recoverable from Git; a fix's remote setting overwrite waits for the maintainer
+because Git cannot restore that state. Inspection finds the discarded edits: the
 report's [`confirmation`](inspection.md#report-and-inspection-identity) says
 whether the run discards any, with one reason for each target in
 `discardedEdits`, at an initial adoption as at an update. Breaking source changes, scope proposals,
@@ -367,7 +397,7 @@ no confirmation.
 
 When `confirmation.required` is true, `start` without `--confirmed` fails with
 `CONFIRMATION_REQUIRED`, naming each discarded edit, and changes nothing. After
-the maintainer confirms the discarded edits, start the same inspection with
+the discarded edits have been reviewed and confirmed, start the same inspection with
 `--confirmed` added:
 
 ```sh
@@ -377,9 +407,10 @@ repo-standards start --source https://github.com/OWNER/STANDARDS \
 ```
 
 `start` accepts `--confirmed` only when the inspection requires it, and fails
-with `CONFIRMATION_NOT_REQUIRED` otherwise, so the flag always means the
-maintainer confirmed the reported changes. The CLI cannot establish whether an
-agent obtained that confirmation truthfully. The identity binds every start,
+with `CONFIRMATION_NOT_REQUIRED` otherwise. For discarded edits, the agent
+confirms after reviewing what Git can restore; a person using the terminal
+confirms their own review. The CLI enforces the identity, but cannot verify
+that review occurred. The identity binds every start,
 confirmed or not: a project that changed since inspection fails with
 `STALE_INSPECTION` either way.
 

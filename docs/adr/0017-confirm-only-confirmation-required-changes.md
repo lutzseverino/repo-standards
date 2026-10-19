@@ -1,5 +1,9 @@
 # Confirm only confirmation-required changes
 
+Amended by [ADR 0021](0021-let-agents-decide-what-git-can-undo.md): the agent
+reviews and confirms discarded edits recoverable from Git; the maintainer
+confirms remote setting overwrites.
+
 Amends [ADR 0003](0003-use-agent-discovery-with-confirmed-concrete-scope.md)
 and [ADR 0010](0010-replace-tracked-content-block-only-untracked.md).
 

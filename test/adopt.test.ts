@@ -85,6 +85,18 @@ test("adopt without an answers file prints a complete template and changes nothi
     { name: "personal", description: "personal" },
   ]);
   assert.deepEqual(staged.report.missing, ["profile"]);
+  assert.match(
+    question(staged.report, "profile").context,
+    /Choose from the profile descriptions, the maintainer's request, and repository evidence/,
+  );
+  assert.match(
+    question(staged.report, "profile").context,
+    /Ask the maintainer only when these do not settle it/,
+  );
+  assert.match(
+    staged.report.nextSteps.join("\n"),
+    /Make no project edits until the run starts/,
+  );
 
   // With the profile, it holds every question the selection asks: remote
   // setup that is not ready, and the confirmation of a discarded edit.
@@ -149,7 +161,7 @@ test("adopt without an answers file prints a complete template and changes nothi
   assert.match(
     text.stdout,
     new RegExp(
-      `npx @lutzseverino/repo-standards@${cli.version.replaceAll(".", "\\.")} adopt --answers`,
+      `npx --yes @lutzseverino/repo-standards@${cli.version.replaceAll(".", "\\.")} adopt --answers`,
     ),
   );
   assert.deepEqual(snapshot(f.root), before);
@@ -220,6 +232,10 @@ test("adopt stops and tells the maintainer about an uncommitted project before a
       for (const { report } of [template, blocked]) {
         assert.ok(report.blockers.some(({ code }) => code === scenario.code));
         assert.equal(report.run, undefined);
+        assert.match(
+          report.nextSteps.join("\n"),
+          /Make no project edits until the run starts/,
+        );
         assert.match(report.nextSteps.at(-1)!, /Stop and tell the maintainer/);
         assert.match(report.nextSteps.at(-1)!, /clean, committed/);
         assert.doesNotMatch(
@@ -409,7 +425,9 @@ test("ordinary adopting projects can execute their pinned npx answer-round comma
     value.includes(" adopt --answers"),
   )!;
   assert.ok(
-    command.startsWith(`npx @lutzseverino/repo-standards@${cli.version} `),
+    command.startsWith(
+      `npx --yes @lutzseverino/repo-standards@${cli.version} `,
+    ),
   );
   const before = snapshot(f.root);
   const result = spawnSync("sh", ["-c", `${command} --json`], {
@@ -481,6 +499,18 @@ test("self-adoption recovery uses the matching runtime or the external exact CLI
   const index = readFileSync(join(f.root, ".git/index"));
   const missingRuntime = f.adopt(["--answers", f.answersPath]).report;
   assert.equal(missingRuntime.outcome, "incomplete");
+  assert.match(
+    missingRuntime.nextSteps.join("\n"),
+    /Run `.*resume --retry.*repeat-safe.*without asking/,
+  );
+  assert.match(
+    missingRuntime.nextSteps.join("\n"),
+    /Abandon only on the maintainer's instruction/,
+  );
+  assert.doesNotMatch(
+    missingRuntime.nextSteps.join("\n"),
+    /Only on the maintainer's explicit instruction, run/,
+  );
   const commands = stepCommands(missingRuntime);
   const env = { ...f.env, adoption_cli: cli.root };
   for (const action of ["resume --retry", "abandon"]) {
@@ -520,8 +550,37 @@ test("an answers file adopts through missing answers, confirmation, contextual w
   const identity = template.inspection!.identity;
   const before = snapshot(f.root);
   const initialSteps = template.nextSteps.join("\n");
-  assert.match(initialSteps, /Present the inspection to the maintainer/);
-  assert.match(initialSteps, /only after they confirm discarding them/);
+  assert.match(initialSteps, /Summarize the inspection.*handoff/);
+  assert.match(initialSteps, /trusted scripts.*host, environment, and network/);
+  assert.match(initialSteps, /Review each discarded edit.*diff/);
+  assert.match(initialSteps, /Answer `confirmation`.*after your review/);
+  assert.match(initialSteps, /List each discarded edit.*diff.*handoff/);
+  assert.match(initialSteps, /Answer `defer`.*Report each reason/);
+  assert.match(initialSteps, /Make no project edits until the run starts/);
+  assert.doesNotMatch(
+    initialSteps,
+    /Ask the maintainer each question|only after they confirm|on the maintainer's choice/,
+  );
+  assert.match(
+    question(template, "version").context,
+    /Choose the proposed newest stable release unless the maintainer's request names another/,
+  );
+  assert.match(
+    question(template, "inspection").context,
+    /Answer with the current inspection identity without asking for approval/,
+  );
+  assert.match(
+    question(template, "confirmation").context,
+    /Review each discarded edit.*diff/,
+  );
+  assert.doesNotMatch(
+    question(template, "confirmation").context,
+    /maintainer confirms/,
+  );
+  assert.match(
+    question(template, "remote-setup").context,
+    /Answer defer.*Report each reason/,
+  );
 
   // An incomplete answers file names its missing answers and changes nothing.
   const incomplete = f.adopt(
@@ -530,6 +589,11 @@ test("an answers file adopts through missing answers, confirmation, contextual w
   assert.equal(incomplete.result.status, 1);
   assert.equal(incomplete.report.outcome, "answers-required");
   assert.deepEqual(incomplete.report.missing, ["confirmation"]);
+  assert.match(incomplete.report.nextSteps.join("\n"), /after your review/);
+  assert.match(
+    incomplete.report.nextSteps.join("\n"),
+    /Make no project edits until the run starts/,
+  );
   assert.deepEqual(snapshot(f.root), before);
 
   // A continuation command quotes an answers path the shell would split.
@@ -573,6 +637,18 @@ test("an answers file adopts through missing answers, confirmation, contextual w
   assert.equal(resolve.result.status, 1);
   assert.equal(resolve.report.outcome, "blocked");
   assert.deepEqual(resolve.report.missing, []);
+  assert.match(
+    resolve.report.nextSteps.join("\n"),
+    /Answer `remote-setup` with `defer`.*Report each reason/,
+  );
+  assert.match(
+    resolve.report.nextSteps.join("\n"),
+    /Make no project edits until the run starts/,
+  );
+  assert.doesNotMatch(
+    resolve.report.nextSteps.join("\n"),
+    /with the maintainer|on their choice/,
+  );
   assert.deepEqual(snapshot(f.root), before);
 
   // An answer of the wrong kind, and a flag the answers file contradicts, are
@@ -739,6 +815,11 @@ test("an answers file adopts through missing answers, confirmation, contextual w
   assert.match(steps, /read each new file's complete content/);
   assert.match(steps, /uncommitted and unstaged/);
   assert.match(steps, /Report script outcomes and your assessments separately/);
+  assert.match(
+    steps,
+    /ready-to-commit verdict describes the uncommitted changes/,
+  );
+  assert.match(steps, /Record it before committing.*committed.*not ready/);
   assert.equal(git(f.root, "rev-parse", "HEAD"), head);
   assert.equal(git(f.root, "diff", "--cached"), "");
   assert.notEqual(git(f.root, "status", "--porcelain=v1"), "");
@@ -975,6 +1056,15 @@ test("adopt asks a discovery script's open questions as answers-file fields and 
   const template = f.adopt([source]).report;
   const scope = question(template, "scope:project-docs");
   assert.deepEqual(scope.answer, draft);
+  assert.match(
+    scope.context,
+    /Decide each open question.*project evidence.*reasons.*without asking/,
+  );
+  assert.doesNotMatch(scope.context, /Ask the maintainer/);
+  assert.match(
+    template.nextSteps.join("\n"),
+    /resolve membership questions from project evidence, with reasons, without asking/,
+  );
   assert.deepEqual(scope.details, {
     unresolved: ["Is tools a maintained project?"],
   });
@@ -1071,6 +1161,12 @@ else { appendFileSync(process.argv[2], 'rebase\\n'); result('changed', 'Set the 
   const fix = question(stopped.report, "fix:agent-guidance/setting");
   assert.equal(fix.answer, null);
   assert.ok(fix.context.includes(message));
+  assert.match(fix.context, /Only after the maintainer confirms the overwrite/);
+  assert.match(
+    stopped.report.nextSteps.join("\n"),
+    /each setting.*current and standard values.*maintainer/,
+  );
+  assert.match(stopped.report.nextSteps.join("\n"), /Only after they confirm/);
   assert.deepEqual(stopped.report.missing, ["fix:agent-guidance/setting"]);
   const { identity } = fix.details as { identity: string };
 

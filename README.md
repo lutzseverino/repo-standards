@@ -28,12 +28,12 @@ On macOS or Linux, use stable Node.js 24 or 26 with its bundled npm, and Git
 To adopt Repo Canon, give your coding agent this prompt in your repository:
 
 ```text
-Run `npx @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon` in this repository and follow what it prints.
+Run `npx --yes @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon --json` in this repository and follow what it prints.
 ```
 
 Or [install the adoption skill from a verified release tag](docs/usage/installation.md#install-the-adoption-skill) (currently unreleased).
 
-To run it yourself, use the same command in a terminal, from your committed,
+To run it yourself, run `adopt` in a terminal, from your committed,
 clean Git working tree:
 
 ```sh
@@ -59,7 +59,7 @@ Repo Canon's.
 - Validate independently authored standards and complete profiles.
 - Inspect published GitHub versions, exact replacements, and contextual scope.
 - Adopt through disclosed operations and agent assessments, retaining evidence.
-- Update any pin, the source, or the profile in one run, confirmed only when it discards edits.
+- Update any pin, the source, or the profile in one run, reviewing discarded edits from Git.
 - Report available updates and render inspections and runs as Markdown summaries.
 - Run the adopted checks on demand against the working tree.
 - Install each declaration's rules and print the rules that cover a path.
@@ -74,7 +74,7 @@ npx @lutzseverino/repo-standards adopt
 ```
 
 Choose a version and profile, review the proposed changes, and follow the
-prompts or your agent's questions. Setup that changes your hosting platform's
+prompts or the agent's decisions. Setup that changes your hosting platform's
 settings can be deferred while adoption completes locally. The
 [architecture contracts](docs/development/architecture.md) describe the
 product's behavior.

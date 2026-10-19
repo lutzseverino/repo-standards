@@ -134,8 +134,8 @@ _Avoid_: Prerequisite, check
 
 **Confirmation-required change**:
 A change an inspection or fix reports that discards a person's work or
-overwrites a setting someone chose; the only reason an adoption waits for the
-maintainer.
+overwrites a setting someone chose. An agent reviews and confirms discarded
+edits recoverable from Git; a remote setting overwrite waits for the maintainer.
 _Avoid_: Critical change, risky change
 
 **Scope proposal**:
@@ -146,9 +146,10 @@ _Avoid_: Confirmed scope, automatic project classification
 
 **Answers file**:
 The questions an adoption asks, each with its context and choices, and the
-answers an agent records from the maintainer, from which adoption proceeds
-without a terminal. It confirms a confirmation-required change only by naming
-the inspection identity the maintainer confirmed.
+answers an agent records from its decisions or the maintainer, from which
+adoption proceeds without a terminal. A confirmation names the inspection
+identity reviewed by the agent for discarded edits, or confirmed by the
+maintainer for a remote setting overwrite.
 _Avoid_: Configuration file, approval file
 
 **Adoption**:
