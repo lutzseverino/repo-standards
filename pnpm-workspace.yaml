@@ -7,3 +7,6 @@ allowBuilds:
   # Both use optional prebuilt platform packages on the supported platforms.
   esbuild: false
   sharp: false
+
+minimumReleaseAgeExclude:
+  - "@lutzseverino/postern@1.0.0"

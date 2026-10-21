@@ -114,7 +114,7 @@ supported public sources and never make private sources supported. Git object
 downloads use Git's separate anonymous smart protocol and do not send the token.
 Both token variables are removed from every Git subprocess environment so a
 GitHub CLI credential helper cannot consume the REST token. The CLI keeps them
-available to its REST helper.
+available to its HTTP boundaries.
 The token is never recorded in reports, inspection identity, retained inputs,
 caches, or logs; the same inspection has the same identity with or without it.
 

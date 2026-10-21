@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@lutzseverino/postern':
+        specifier: 1.0.0
+        version: 1.0.0
       koffi:
         specifier: 3.2.1
         version: 3.2.1
@@ -758,6 +761,10 @@ packages:
     resolution: {integrity: sha512-ZmZNiBO6bkOSh3QNzgfvb1cMY0yMobn6ZQrSMqbAce21qyYL8niIbyipz9N/PIRDciGhsV0wUxnZsxIO+yWsHQ==}
     cpu: [x64]
     os: [win32]
+
+  '@lutzseverino/postern@1.0.0':
+    resolution: {integrity: sha512-j6Jk/TFf67/R2dxvCHSpDwikPo8Hk2A+fDpUrd332vrlBoMQqksT/AHVkU8csJpwKwG/fntxFdfE74aT09ckgg==}
+    engines: {node: ^24.0.0 || ^26.0.0}
 
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     resolution: {integrity: sha512-oTXEIha4SsuXdTA4Iyskj0kpdx2yVXdhd75c2v3xGrHFfVMsbhTPZU/nMPL4sWKo4pBHm3aucLaqGlF696dTyQ==}
@@ -3437,6 +3444,8 @@ snapshots:
 
   '@koromix/koffi-win32-x64@3.2.1':
     optional: true
+
+  '@lutzseverino/postern@1.0.0': {}
 
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
     optional: true

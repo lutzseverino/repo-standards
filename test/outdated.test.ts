@@ -50,13 +50,62 @@ const releasesUrl = `${remote.prefix}/releases?per_page=100`;
 // GitHub lists releases newest first. Drafts, prereleases (by flag or by tag),
 // and non-SemVer tags are not stable releases.
 const releases = [
-  { tag_name: "v2.0.0-rc.1", draft: false, prerelease: false },
-  { tag_name: "v1.9.0", draft: true, prerelease: false },
-  { tag_name: "v1.8.0", draft: false, prerelease: true },
-  { tag_name: "nightly", draft: false, prerelease: false },
-  { tag_name: "v1.1.0", draft: false, prerelease: false },
-  { tag_name: "v1.0.1", draft: false, prerelease: false },
-  { tag_name: "v1.0.0", draft: false, prerelease: false },
+  {
+    id: 1,
+    name: null,
+    published_at: "2026-10-01T00:00:00Z",
+    tag_name: "v2.0.0-rc.1",
+    draft: false,
+    prerelease: false,
+  },
+  {
+    id: 1,
+    name: null,
+    published_at: "2026-10-01T00:00:00Z",
+    tag_name: "v1.9.0",
+    draft: true,
+    prerelease: false,
+  },
+  {
+    id: 1,
+    name: null,
+    published_at: "2026-10-01T00:00:00Z",
+    tag_name: "v1.8.0",
+    draft: false,
+    prerelease: true,
+  },
+  {
+    id: 1,
+    name: null,
+    published_at: "2026-10-01T00:00:00Z",
+    tag_name: "nightly",
+    draft: false,
+    prerelease: false,
+  },
+  {
+    id: 1,
+    name: null,
+    published_at: "2026-10-01T00:00:00Z",
+    tag_name: "v1.1.0",
+    draft: false,
+    prerelease: false,
+  },
+  {
+    id: 1,
+    name: null,
+    published_at: "2026-10-01T00:00:00Z",
+    tag_name: "v1.0.1",
+    draft: false,
+    prerelease: false,
+  },
+  {
+    id: 1,
+    name: null,
+    published_at: "2026-10-01T00:00:00Z",
+    tag_name: "v1.0.0",
+    draft: false,
+    prerelease: false,
+  },
 ];
 const adopted = sourceFixture("", { "README.md": "Project" });
 let registry: Awaited<ReturnType<typeof registryFixture>>;
@@ -195,6 +244,52 @@ test("outdated reports the newest stable CLI and standards versions and the stab
       .filter((request) => request.url.startsWith("https://api.github.com/"))
       .map((request) => request.url),
     [releasesUrl],
+  );
+});
+
+test("outdated finds stable releases past the first hundred entries", (t) => {
+  const root = checkout(t);
+  const page2 = `${releasesUrl}&page=2`;
+  const release = {
+    id: 1,
+    tag_name: "v1.0.0",
+    name: null,
+    published_at: "2026-10-01T00:00:00Z",
+    draft: false,
+    prerelease: false,
+  };
+  publishReleases(t, {
+    body: Array.from({ length: 100 }, (_, index) => ({
+      ...release,
+      id: index + 1,
+      tag_name: `v8.0.0-beta.${index}`,
+      prerelease: true,
+    })),
+    headers: { link: `<${page2}>; rel="next"` },
+  });
+  remote.responses[page2] = {
+    body: [
+      { ...release, id: 101, tag_name: "v9.0.0", draft: true },
+      { ...release, id: 102, tag_name: "v7.0.0", prerelease: true },
+      { ...release, id: 103, tag_name: "v1.2.0" },
+      release,
+    ],
+  };
+  remote.save();
+  t.after(() => {
+    delete remote.responses[page2];
+    remote.save();
+  });
+  const { result, report, requests } = outdated(root, environment());
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(report.standards.update, "available");
+  assert.equal(report.standards.newest, "v1.2.0");
+  assert.equal(report.standards.newerStableReleases, 1);
+  assert.deepEqual(
+    requests
+      .filter((request) => request.url.startsWith(remote.prefix))
+      .map((request) => request.url),
+    [releasesUrl, page2],
   );
 });
 

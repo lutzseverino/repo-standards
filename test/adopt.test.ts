@@ -924,8 +924,14 @@ test("adopt without a source updates an adopted project, offering the newest sta
   // next page of the release list.
   f.releases(
     Array.from({ length: 100 }, (_, index) => `v2.0.0-rc.${100 - index}`),
-    ["v1.1.0", "v1.0.0"],
+    ["v4.0.0", "v3.0.0", "v1.1.0", "v1.0.0"],
   );
+  const page = f.remote.responses[
+    `${f.remote.prefix}/releases?per_page=100&page=2`
+  ]!.body as { draft: boolean; prerelease: boolean }[];
+  page[0]!.draft = true;
+  page[1]!.prerelease = true;
+  f.remote.save();
   const update = f.adopt([]);
   assert.equal(update.result.status, 0, update.result.stderr);
   assert.deepEqual(update.report.selection, {
@@ -1054,7 +1060,7 @@ test("adopt fails when GitHub refuses the release lookup, rather than proposing 
   refused(
     f.env,
     "QUOTA_EXHAUSTED",
-    /quota is exhausted\. Retry after 120 seconds\. .*GH_TOKEN or GITHUB_TOKEN/,
+    /quota is exhausted\. Retry at \d{4}-\d{2}-\d{2}T\S+\. .*GH_TOKEN or GITHUB_TOKEN/,
   );
   refuse({ status: 401, body: {} });
   refused(

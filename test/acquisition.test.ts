@@ -93,6 +93,90 @@ test("direct inspection resolves annotated tags and canonical repository identit
   );
 });
 
+test("inspection peels nested annotated tags beyond ten objects and rereads them with a warm snapshot", (t) => {
+  const remote = remoteFixture(
+    yaml,
+    { "readme.md": "README" },
+    [],
+    "alice/standards",
+    true,
+  );
+  const project = sourceFixture("");
+  t.after(() => {
+    remote.close();
+    project.close();
+  });
+  const annotations = Array.from({ length: 12 }, (_, index) =>
+    (index + 1).toString(16).padStart(40, "0"),
+  );
+  remote.responses[`${remote.prefix}/git/ref/tags/v1.0.0`] = {
+    body: {
+      ref: "refs/tags/v1.0.0",
+      object: { type: "tag", sha: annotations[0] },
+    },
+  };
+  annotations.forEach((sha, index) => {
+    remote.responses[`${remote.prefix}/git/tags/${sha}`] = {
+      body: {
+        object:
+          index + 1 === annotations.length
+            ? { type: "commit", sha: remote.sha }
+            : { type: "tag", sha: annotations[index + 1] },
+      },
+    };
+  });
+  remote.save();
+  let identity: string | undefined;
+  for (let round = 0; round < 2; round++) {
+    const before = remote.requests().length;
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    const report = JSON.parse(result.stdout) as Inspection;
+    assert.equal(report.selection.standards.commit, remote.sha);
+    if (identity) assert.equal(report.identity, identity);
+    identity = report.identity;
+    const requests = remote.requests().slice(before);
+    assert.equal(
+      requests.filter((url) => url.includes("/git/tags/")).length,
+      12,
+    );
+    assert.equal(
+      requests.filter((url) => url.includes("/git/commits/")).length,
+      round === 0 ? 1 : 0,
+    );
+  }
+});
+
+test("inspection distinguishes a missing tag from one that names no commit", (t) => {
+  const remote = remoteFixture(yaml, { "readme.md": "README" });
+  const project = sourceFixture("");
+  t.after(() => {
+    remote.close();
+    project.close();
+  });
+  for (const [response, code, message] of [
+    [{ status: 404, body: {} }, "SOURCE_UNAVAILABLE", /HTTP 404/],
+    [
+      { body: { object: { type: "blob", sha: remote.sha } } },
+      "INVALID_SOURCE",
+      /must identify a Git commit/,
+    ],
+    [
+      { body: { object: { type: "commit", sha: "invalid" } } },
+      "INVALID_SOURCE",
+      /must identify a Git commit/,
+    ],
+  ] as const) {
+    remote.responses[`${remote.prefix}/git/ref/tags/v1.0.0`] = response;
+    remote.save();
+    const result = cli.run(inspectionArgs, project.root, remote.env);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    const error = (JSON.parse(result.stdout) as ErrorReport).errors[0]!;
+    assert.equal(error.code, code);
+    assert.match(error.message, message);
+  }
+});
+
 test("public inspection acquires a source larger than the anonymous API allowance without per-blob requests", (t) => {
   const files = Object.fromEntries(
     Array.from({ length: 70 }, (_, index) => [

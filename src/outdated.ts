@@ -1,6 +1,6 @@
 import { compare, gt } from "semver";
 import { parse } from "yaml";
-import { github, isStableVersion } from "./acquisition.js";
+import { publishedReleases, isStableVersion } from "./acquisition.js";
 import {
   file,
   json,
@@ -153,28 +153,20 @@ async function registryVersions(registry: string) {
 }
 
 async function releaseVersions(repository: string) {
-  const releases = await github(
-    `/repos/${githubRepository(repository)}/releases?per_page=100`,
-    {
-      timeoutMs: lookupTimeout,
-      connectionMessage:
-        "Cannot reach public GitHub. Check the connection and retry later.",
-      httpMessage: (status) =>
-        `Public GitHub returned HTTP ${status} for the releases of ${repository}.`,
-      invalidJsonMessage: `Public GitHub did not return a release list for ${repository}.`,
-    },
-  );
-  if (!Array.isArray(releases))
-    throw new ProductError(
-      "SOURCE_UNAVAILABLE",
-      `Public GitHub did not return a release list for ${repository}.`,
-    );
+  const releases = await publishedReleases(githubRepository(repository)!, {
+    timeoutMs: lookupTimeout,
+    connectionMessage:
+      "Cannot reach public GitHub. Check the connection and retry later.",
+    httpMessage: (status) =>
+      `Public GitHub returned HTTP ${status} for the releases of ${repository}.`,
+    invalidJsonMessage: `Public GitHub did not return a release list for ${repository}.`,
+    invalidResponseCode: "SOURCE_UNAVAILABLE",
+  });
   return releases
-    .map(record)
     .filter(
       (release) => release.draft === false && release.prerelease === false,
     )
-    .map((release) => release.tag_name);
+    .map((release) => release.tag);
 }
 
 function readCache(root: string): Record<string, unknown> {
