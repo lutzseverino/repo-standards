@@ -259,7 +259,9 @@ writing, so you can fix readiness first.
 
 A later `adopt` run probes remote setup again and applies it once ready. While
 the same probe still reports it not ready, the update
-[reuses](#reused-answers) the recorded deferral without asking. See the
+[reuses](#reused-answers) the recorded deferral without asking. A
+[headless update](#update-headlessly) defers every remote setup, even one that
+is ready, and the next local `adopt` applies it. See the
 [remote setup reference](#remote-setup) for readiness, records, and recovery.
 
 ### Updates with adopt
@@ -327,6 +329,58 @@ overwrite are never reused, and `version` and `profile` keep their proposals.
 An answer of your own replaces a reused one and is not listed as reused; an
 answer equal to the reused one keeps it reused. The run record, durable state,
 `status`, and the adoption record list every reused answer.
+
+### Update headlessly
+
+`adopt --headless` updates an established adoption without asking anybody,
+even at a terminal, so that a scheduled job or other unattended caller can run
+it:
+
+```sh
+.repo-standards/runtime/node_modules/.bin/repo-standards adopt --headless --json
+```
+
+It keeps the recorded source and profile and takes the newest stable standards
+release, or the tag `--standards-version` names; the CLI pin is the CLI that
+runs it, as for any `adopt`. It takes no source, `--profile`, or `--answers`,
+and rejects them as invalid usage. In a project with no established adoption
+it fails before changing anything, naming the initial `adopt <source>`. It
+fails when the source's releases cannot be read, rather than applying the
+current version again.
+
+Its only answers are the [reused answers](#reused-answers) and the defaults a
+template proposes. It never accepts an answer proposed for review, never
+answers `confirmation`, and never answers a `fix:` question. It defers every
+[remote setup](#remote-setup), ready or not: the run runs neither the fix nor
+its prerequisite probe, and records the deferral with a reason that says a
+headless update never writes to the hosting platform and the next local
+`adopt` applies it once its probe is ready. A deferral of remote setup whose
+probe was ready is not reused later, because reuse needs the probe to still
+report it not ready. The CLI makes no commit, push, branch, pull request, or
+issue, and uses the network only for the source and release reads and the
+npm runtime acquisition that every `adopt` makes, with `GH_TOKEN` or
+`GITHUB_TOKEN` as [above](#adopt-with-one-command).
+
+With every answer reused, nothing blocking, and no confirmation required, it
+completes in one invocation and exits 0, with its changes uncommitted and
+unstaged and `status` reporting them ready to commit. Otherwise it exits 1 with
+the `adopt` report, as JSON with `--json`, whose `outcome`, `missing`,
+`blockers`, `answers`, including answers proposed for review, and `contextual`
+are its open questions. The report carries `headless: true` and lists the
+remote setup it defers in `deferred`. It stops:
+
+- Before writing anything, leaving the working tree, HEAD, and index
+  unchanged, when a confirmation-required change, an answer proposed for
+  review, a profile the source no longer offers, or a start blocker is open.
+- With the run active, when the run reaches contextual work whose assessments
+  are not reused, or a fix returns `confirmation-required`.
+
+To finish it, save the report's answers file outside the project, answer its
+open questions, and run `adopt --answers <file>` in the same checkout, as its
+next steps describe; an agent or a person can do this. A run it left active
+keeps deferring its remote setup. Before a run, that `adopt` starts an ordinary
+run, which applies each remote setup whose probe is ready. `adopt --headless`
+over an active run only reports it.
 
 ### Adopting in the product checkout
 
@@ -425,7 +479,10 @@ failed checks, each contextual declaration's installed rules and adoption
 guidance, the reused answers, the answers file, and the next steps. `--json`
 prints the same as a `repo-standards/adopt/v2` report, whose `reused` lists
 each [reused answer](#reused-answers) by question `id`, `kind`, and the
-`evidence` that made it eligible, and whose `outcome` is one of:
+`evidence` that made it eligible. A [headless update's](#update-headlessly)
+report also carries `headless: true` and `deferred`, each fix its run defers,
+or before a run would defer, by `declaration`, fix `id`, and `reason`. Its
+`outcome` is one of:
 
 | `outcome`          | Meaning                                                                                                                                                                                                                         |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -450,7 +507,8 @@ its `scope:<declaration>` questions, answered with its confirmed scope; a
 changed answer [replaces the run in place](#adopt-again-in-place).
 
 Exit status is 0 for a complete run and for a template printed without an
-answers file because a question is open, 1 for every other result or rejection, 2 for invalid usage, and
+answers file because a question is open, 1 for every other result or rejection, including every
+headless update that stops, 2 for invalid usage, and
 130 for a terminal session the person interrupted.
 Rejections use the common `valid: false` / `errors` diagnostic format with
 `--json`.
@@ -592,7 +650,10 @@ its fix's prerequisite probe. The CLI records it as deferred, not as a script
 result, with the probe's reason: in the run's `deferred`, and at completion in
 durable state, where `status --json` reports it as `deferred` and the adoption
 record's Operations table lists it with the result `deferred`; see
-[summarize status](#summarize-status). Retry and recovery keep the deferral its
+[summarize status](#summarize-status). A
+[headless update](#update-headlessly) defers every remote setup, ready or not,
+in the same way, with a reason saying that it never writes to the hosting
+platform and the next local `adopt` applies it. Retry and recovery keep the deferral its
 start chose. A retry of a start interrupted before installation repeats the
 inspection, probes included, and its identity check, so a probe whose answer
 changed since inspection makes it stale like any other change; nothing was
@@ -905,7 +966,8 @@ Neither dependencies nor run records belong in commits.
 by question `id`, `kind`, and `evidence`: those `adopt` reused for its start and
 each assessment the run reused. `deferred` lists each fix the run defers, by
 `declaration`, fix `id`, and `reason`: [remote setup](#remote-setup) that is
-not ready, with the probe's reason, and each
+not ready, with the probe's reason, or every remote setup in a
+[headless update](#update-headlessly), and each
 [declined overwrite](#defer-a-declined-overwrite). `root` and `head` record the canonical project
 root and HEAD at start for provenance; the inspection identity binds neither,
 and neither is committed. The report carries no file bytes: `affected` holds

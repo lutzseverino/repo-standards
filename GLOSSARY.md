@@ -131,7 +131,8 @@ _Avoid_: Approval token, mutable plan file
 The part of adoption that changes the hosting platform's settings for the
 repository, such as its labels and merge rules, declared by a fix with a
 readiness probe. It can be deferred, so that adoption completes locally
-without it, and a later run applies it once it is ready.
+without it, and a later run applies it once it is ready. A headless update
+defers all of it, even when it is ready.
 _Avoid_: GitHub setup, fixes, when meaning only the remote part
 
 **Readiness probe**:
@@ -170,6 +171,14 @@ answer, a remote setup deferral, or an assessment. Every other recorded answer
 is proposed for review, and a confirmation or a fix's overwrite answer is never
 reused.
 _Avoid_: Cached answer, replayed answer, default
+
+**Headless update**:
+An update of an established adoption that asks nobody, even at a terminal. It
+keeps the recorded source and profile, answers only with reused answers and
+the defaults a template proposes, and defers every remote setup, so it never
+writes to the hosting platform. It completes in one invocation, or stops with
+open questions that an answers file finishes.
+_Avoid_: Unattended adoption, automatic update, CI mode
 
 **Adoption**:
 The deliberate application of one resolved profile to an adopting project,

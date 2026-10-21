@@ -3,22 +3,28 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { after, test, type TestContext } from "node:test";
+import { after, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { directoryFixture, installCli } from "./installed-cli.ts";
-import { commit, git, manifest, operation } from "./remote-fixture.ts";
+import { commit, git, operation } from "./remote-fixture.ts";
 import {
   committedState,
   rewriteCommittedState,
   rewriteRetainedInput,
 } from "./committed-evidence.ts";
 import {
-  discoveryFixture,
+  adoptFirst,
+  complete,
+  coverage,
+  draftScript,
   fixture,
+  judgments,
   question,
   readmeFiles,
-  readmeSource,
+  reuseFixture,
   source,
+  untilStarted,
+  type ReuseFixture,
 } from "./adopt-fixture.ts";
 
 // An update carries the last complete adoption's recorded answers forward:
@@ -29,147 +35,10 @@ import {
 const cli = installCli();
 after(() => cli.close());
 
-type Fixture = Awaited<ReturnType<typeof discoveryFixture>>["f"];
-
-const docsRules = "Each maintained project has a README.\n";
-const draftScript = (
-  coverage: string,
-) => `import { readFileSync } from "node:fs";
-const input = JSON.parse(readFileSync(0, "utf8"));
-process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declarations: [{
-  id: input.declaration,
-  coverage: ${JSON.stringify(coverage)},
-  candidates: [
-    { path: "app/README.md", decision: "include", reason: "Its manifest makes it a project.", evidence: ["app/package.json"] },
-    { path: "fixtures/fake", decision: "exclude", reason: "Fixtures are test data.", evidence: ["fixtures/fake/package.json"] },
-  ],
-  unresolved: [],
-}] }));
-`;
-const coverage = "The app is maintained; the fixture is test data.";
-
-// The discovery declaration with rules, beside an exact declaration with
-// remote setup and a contextual README declaration with rules and a check.
-function declarations(outside: string, readme: object = {}) {
-  const sourced = readmeSource(outside);
-  return {
-    ...sourced,
-    "project-readme": { ...sourced["project-readme"], ...readme },
-    "project-docs": {
-      kind: "repository",
-      guidance: "guidance.md",
-      discovery: "discovery.md",
-      rules: "rules/docs.md",
-      "discovery-script": (({ id: _id, ...declared }) => declared)(
-        operation("draft", { script: "draft.mjs" }),
-      ),
-    },
-  };
-}
-
-async function reuseFixture(t: TestContext) {
-  const outside = directoryFixture("repo-standards-reuse-");
-  t.after(() => outside.close());
-  const { f } = await discoveryFixture(t, cli, [], {
-    declarations: declarations(outside.root),
-    files: { ...readmeFiles, "rules/docs.md": docsRules },
-  });
-  // Publishes a later version whose source differs by the given files and
-  // README declaration fields.
-  const publish = (
-    tag: string,
-    files: Record<string, string>,
-    readme: object = {},
-  ) => {
-    f.remote.addVersion(tag, manifest(declarations(outside.root, readme)), {
-      ...readmeFiles,
-      "rules/docs.md": docsRules,
-      "guidance.md": "Document each maintained project.",
-      "discovery.md":
-        "Projects have a package manifest; fixtures do not count.",
-      "draft.mjs": draftScript(coverage),
-      ...files,
-    });
-  };
-  return { f, outside: outside.root, publish };
-}
-
-const review = {
-  status: "valid",
-  explanation: "The app remains the only maintained project.",
-  evidence: ["Reviewed app/package.json and the excluded fixture."],
-  additionalPaths: [],
-};
-const judgments = {
-  "assessment:project-docs": {
-    status: "satisfied",
-    explanation: "The app's README describes it.",
-    evidence: ["app/README.md starts with its heading."],
-    scopeValidity: { afterFixes: review, current: review },
-  },
-  "assessment:project-readme": {
-    status: "satisfied",
-    explanation: "README.md starts with the project's heading.",
-    evidence: ["README.md starts with # Project."],
-  },
-};
-
-// Answers adopt's rounds, carrying each report's answers back with remote
-// setup deferred, the given answers, and the current inspection, until the
-// run starts or a round leaves the given question unanswered.
-function untilStarted(
-  f: Fixture,
-  first: string[],
-  answers: Record<string, unknown> = {},
-  runtime = true,
-) {
-  let report = f.adopt(first, runtime).report;
-  for (let round = 0; !report.run; round++) {
-    assert.ok(round < 4, JSON.stringify(report.missing));
-    report = f.adopt(
-      f.answer(report.answers, {
-        "remote-setup": "defer",
-        ...answers,
-        ...(report.inspection
-          ? { inspection: report.inspection.identity }
-          : {}),
-      }),
-      runtime,
-    ).report;
-  }
-  return report;
-}
-
-// Completes a run waiting for contextual work with the given answers.
-function complete(
-  f: Fixture,
-  report: AdoptReport,
-  answers: Record<string, unknown>,
-) {
-  const completed = f.adopt(f.answer(report.answers, answers), true);
-  assert.equal(
-    completed.report.outcome,
-    "complete",
-    completed.result.stdout + completed.result.stderr,
-  );
-  commit(f.root);
-  return completed.report;
-}
-
-// The first adoption, with its contextual work done and committed.
-function adoptFirst(f: Fixture) {
-  const started = untilStarted(f, [source], {}, false);
-  assert.equal(started.outcome, "contextual", JSON.stringify(started));
-  assert.deepEqual(started.reused, []);
-  writeFileSync(join(f.root, "README.md"), "# Project\n\nProject notes\n");
-  writeFileSync(join(f.root, "app/README.md"), "# App\n");
-  return complete(f, started, judgments);
-}
-
 const ids = (report: { reused: { id: string }[] }) =>
   report.reused.map((answer) => answer.id);
 
-function pinned(f: Fixture, args: string[]) {
+function pinned(f: ReuseFixture, args: string[]) {
   const result = spawnSync(f.pinned, args, {
     cwd: f.root,
     env: f.env,
@@ -180,7 +49,7 @@ function pinned(f: Fixture, args: string[]) {
 }
 
 // The installed Repo Canon pull request validator's verdict on a body.
-function validateBody(f: Fixture, body: string) {
+function validateBody(f: ReuseFixture, body: string) {
   const event = join(f.external.root, "event.json");
   writeFileSync(
     event,
@@ -204,7 +73,7 @@ function validateBody(f: Fixture, body: string) {
 }
 
 test("an unchanged update reuses the recorded scope, remote setup deferral and assessments, and completes in one run", async (t) => {
-  const { f, outside } = await reuseFixture(t);
+  const { f, outside } = await reuseFixture(t, cli);
   adoptFirst(f);
   const recorded = (
     JSON.parse(pinned(f, ["status", "--json"])) as Status & {
@@ -368,7 +237,7 @@ test("an unchanged update reuses the recorded scope, remote setup deferral and a
 });
 
 test("changed discovery guidance, rules, draft or a deleted path proposes the recorded scope entry for review", async (t) => {
-  const { f, publish } = await reuseFixture(t);
+  const { f, publish } = await reuseFixture(t, cli);
   adoptFirst(f);
   const { id: _id, ...entry } = (
     JSON.parse(pinned(f, ["status", "--json"])) as Status & {
@@ -446,7 +315,7 @@ test("changed discovery guidance, rules, draft or a deleted path proposes the re
 });
 
 test("assessments are reused only while their rules and scoped files are unchanged, including by the run's fixes", async (t) => {
-  const { f, publish } = await reuseFixture(t);
+  const { f, publish } = await reuseFixture(t, cli);
   adoptFirst(f);
   const waiting = (report: AdoptReport, changed: string, kept: string) => {
     assert.equal(report.outcome, "contextual", JSON.stringify(report));
@@ -592,7 +461,7 @@ console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: input.o
 
 // Rewrites the adoption's records as CLI 9.0.0 writes them: state/v7 without
 // reused answers or assessed scopes, and scope-history/v5 without drafts.
-function previousRelease(f: Fixture) {
+function previousRelease(f: ReuseFixture) {
   const {
     reused: _reused,
     assessedScopes: _scopes,
@@ -620,7 +489,7 @@ function previousRelease(f: Fixture) {
 }
 
 test("an update from the previous release's state and scope evidence reuses every answer they prove", async (t) => {
-  const { f } = await reuseFixture(t);
+  const { f } = await reuseFixture(t, cli);
   adoptFirst(f);
   const historyPath = previousRelease(f);
   const updated = f.adopt([], true);
@@ -650,7 +519,7 @@ test("an update from the previous release's state and scope evidence reuses ever
 });
 
 test("previous-release state reuses no assessment whose scope answer changed", async (t) => {
-  const { f } = await reuseFixture(t);
+  const { f } = await reuseFixture(t, cli);
   adoptFirst(f);
   previousRelease(f);
   const {

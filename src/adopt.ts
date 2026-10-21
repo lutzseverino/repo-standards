@@ -56,7 +56,11 @@ import {
 } from "./preserved-run.js";
 import { parseScope } from "./scope.js";
 import { record } from "./records.js";
-import { deferredRemoteSetup } from "./remote-setup.js";
+import {
+  deferredRemoteSetup,
+  headlessRemoteSetup,
+  type DeferredFix,
+} from "./remote-setup.js";
 import {
   classifyRemoteSetup,
   classifyScope,
@@ -89,7 +93,9 @@ import { readYaml, type Diagnostic } from "./yaml.js";
 // given. An answers file confirms a confirmation-required change only by
 // naming the inspection identity the maintainer confirmed. A run stopped for
 // its scope is replaced in place by a changed scope answer, and an abandoned
-// run's preserved changes are adopted over in place.
+// run's preserved changes are adopted over in place. A headless update asks
+// nobody: it updates an established adoption in one invocation, or stops with
+// the open questions an answers file finishes.
 
 const packageName = "@lutzseverino/repo-standards";
 const pinnedCli = ".repo-standards/runtime/node_modules/.bin/repo-standards";
@@ -100,6 +106,8 @@ export interface AdoptOptions {
   profile?: string;
   answers?: string;
   project: string;
+  // A headless update of the established adoption, which asks nobody.
+  headless?: boolean;
 }
 
 // A question the adoption asks, with what the maintainer or agent needs to
@@ -126,6 +134,8 @@ export interface AdoptReport {
   format: typeof formats.adopt;
   outcome:
     "answers-required" | "blocked" | "contextual" | "complete" | "incomplete";
+  // Present only in the report of a headless update.
+  headless?: true;
   selection: {
     cli: string;
     source: string;
@@ -162,6 +172,10 @@ export interface AdoptReport {
   }[];
   // The checks that failed in the run's latest check round.
   failedChecks?: { declaration: string; id: string; message: string }[];
+  // In a headless update, the fixes its run defers: every remote setup, and
+  // any fix whose overwrite the maintainer declined since. Before a run, the
+  // remote setup it would defer: every one its inspection found.
+  deferred?: DeferredFix[];
   answers: AnswersFile;
   nextSteps: string[];
 }
@@ -170,9 +184,11 @@ export interface AdoptReport {
 export type Answers = Map<string, unknown>;
 
 // How adopt is answered: an answers-file template that only proposes, a
-// filled answers file, or a person at a terminal, whom adopt asks one stage
-// of questions at a time, proposing defaults.
-type Mode = "template" | "answers" | "terminal";
+// filled answers file, a person at a terminal, whom adopt asks one stage of
+// questions at a time, proposing defaults, or, in a headless update, nobody:
+// only the recorded answers an update reuses and the defaults a template
+// starts with answer it.
+type Mode = "template" | "answers" | "terminal" | "headless";
 
 const questionId =
   /^(?:version|profile|remote-setup|confirmation|inspection|(?:scope|assessment):[^/\s]+|fix:[^/\s]+\/[^/\s]+)$/;
@@ -417,15 +433,34 @@ export async function adopt(
     root,
     cliVersion,
     given,
-    mode: asked ? "terminal" : file ? "answers" : "template",
+    mode: options.headless
+      ? "headless"
+      : asked
+        ? "terminal"
+        : file
+          ? "answers"
+          : "template",
     answersPath:
       options.answers === undefined ? undefined : resolve(options.answers),
+  };
+  // A headless update starts from an established adoption, whose recorded
+  // selection it updates; an active run is one's update.
+  const established = () => {
+    if (context.mode === "headless")
+      throw new ProductError(
+        "NO_SELECTION",
+        "adopt --headless updates an established adoption, and this project records none. Adopt a standards source first with repo-standards adopt https://github.com/OWNER/STANDARDS.",
+      );
   };
   if (existsSync(lockPath(root))) {
     const run = status(root, cliVersion).active;
     // A run that ended since the lock was seen leaves nothing to continue.
-    if (run) return continueRun(context, options, file, run);
+    if (run) {
+      if (!run.previousComplete) established();
+      return continueRun(context, options, file, run);
+    }
   }
+  if (!recordedSelection(root)) established();
   requireSupportedGit();
   return prepare(context, options, file);
 }
@@ -438,6 +473,8 @@ interface Context {
   answersPath: string | undefined;
   // The run whose preserved changes a start adopts over in place.
   preserved?: string;
+  // The remote setup a headless update defers, once known.
+  deferred?: DeferredFix[];
 }
 
 // Before a run: the selection questions, then those its inspection raises,
@@ -466,8 +503,10 @@ async function prepare(
       ? lookup.preserved
       : undefined;
   if (preserved) context.preserved = preserved.run.id;
+  // A headless update answers nothing from the preserved run: only recorded
+  // answers an update reuses answer it.
   const defaults: Answers = new Map(
-    preserved
+    preserved && mode !== "headless"
       ? [
           ["version", preserved.run.selection.standards.version],
           ["profile", preserved.run.selection.profile],
@@ -483,8 +522,8 @@ async function prepare(
   );
   const gitBlockers = () =>
     preservedStartBlockers(observeGitStart(root).blockers, lookup, preserved);
-  // The template proposes each default as the answer, and a terminal offers
-  // it as the default.
+  // The template proposes each default as the answer, a terminal offers it as
+  // the default, and a headless update takes it.
   const proposing = mode !== "answers";
   // A terminal asks each question it has no answer to, starting with the
   // version and then the profile, on which the later questions depend.
@@ -517,13 +556,14 @@ async function prepare(
     } catch (error) {
       // Only a source that cannot be reached proposes the current version.
       // GitHub refusing the lookup would pass it off as the newest, so a
-      // reapplication is then explicit.
+      // reapplication is then explicit, as it is for a headless update, which
+      // takes the newest release.
       if (current && error instanceof GithubRefusal)
         throw new ProductError(
           error.code,
           `${error.message} To apply the current version, ${current.version}, again, pass --standards-version ${current.version}.`,
         );
-      if (!current || !unavailable(error)) throw error;
+      if (!current || !unavailable(error) || mode === "headless") throw error;
       lookupFailure = (error as ProductError).message;
     }
     if (proposing) version = releases?.[0] ?? current?.version;
@@ -618,11 +658,13 @@ async function prepare(
     const profiles = validation.profiles;
     const names = Object.keys(profiles);
     profile = options.profile ?? answered("profile");
+    // A headless update keeps the recorded profile, and stops for the
+    // profile question when the source no longer offers it.
     if (profile === undefined && proposing)
       profile =
         recorded && names.includes(recorded.profile)
           ? recorded.profile
-          : names.length === 1
+          : names.length === 1 && mode !== "headless"
             ? names[0]
             : undefined;
     if (profile !== undefined && !Object.hasOwn(profiles, profile))
@@ -636,9 +678,11 @@ async function prepare(
       context: [
         preserved
           ? `Adopting again in place over the changes run ${preserved.run.id} preserved keeps its profile, ${preserved.run.selection.profile}.`
-          : retained
-            ? `The source is unavailable, so its retained standards apply the current profile, ${current!.profile}, again.`
-            : `Each profile of ${source} ${version} is a complete selection of its standards.${recorded ? ` The project adopts ${recorded.profile} now.` : ""}`,
+          : mode === "headless" && profile === undefined
+            ? `The source no longer offers the profile the project adopts, ${recorded!.profile}, so a headless update cannot choose one. Each profile of ${source} ${version} is a complete selection of its standards.`
+            : retained
+              ? `The source is unavailable, so its retained standards apply the current profile, ${current!.profile}, again.`
+              : `Each profile of ${source} ${version} is a complete selection of its standards.${recorded ? ` The project adopts ${recorded.profile} now.` : ""}`,
         ...(mode === "terminal"
           ? []
           : [
@@ -881,7 +925,12 @@ async function prepare(
     const recordedSetup = preservedDeferral
       ? undefined
       : classifyRemoteSetup(recordedAnswers, notReady, inspection);
-    const givenSetup = given.get("remote-setup") ?? null;
+    // A headless update defers every remote setup, so it answers this
+    // question itself.
+    const givenSetup =
+      mode === "headless" ? "defer" : (given.get("remote-setup") ?? null);
+    if (mode === "headless")
+      context.deferred = headlessRemoteSetup(inspection.remoteSetup);
     const setupReuse =
       recordedSetup &&
       "reused" in recordedSetup &&
@@ -912,6 +961,9 @@ async function prepare(
               ? `The last complete adoption deferred this remote setup, proposed here as defer for review: ${setupChanged.join(" ")} Carry the answer back to defer it again. `
               : "") +
           "Remote setup changes the hosting platform's settings, and its probe says it cannot apply yet. Deferred, adoption completes locally without it, and every later run applies it once its probe is ready. Resolved, adopt writes nothing until it is." +
+          (mode === "headless"
+            ? " A headless update answers defer: it defers every remote setup, ready or not, and never writes to the hosting platform."
+            : "") +
           (mode === "terminal"
             ? ""
             : " Answer defer without asking: it changes nothing remotely. Report each reason in the handoff."),
@@ -1024,7 +1076,7 @@ async function prepare(
           identity,
           confirmation.required,
           scope,
-          notReady.length > 0,
+          mode === "headless" ? "headless" : notReady.length > 0,
           reused,
         )
       : await start(
@@ -1032,7 +1084,7 @@ async function prepare(
           cliVersion,
           identity,
           confirmation.required,
-          notReady.length > 0,
+          mode === "headless" ? "headless" : notReady.length > 0,
           observations,
           reused,
         );
@@ -1084,7 +1136,9 @@ async function continueRun(
     requireSupportedGit();
     return prepare(context, options, file);
   }
-  return describeRun(context, run, runReport(run), true);
+  // A headless update only reports an active run: it answers nothing a run
+  // asks.
+  return describeRun(context, run, runReport(run), context.mode !== "headless");
 }
 
 // Whether the answers change a confirmed scope entry. An answer is compared as
@@ -1178,6 +1232,7 @@ async function describeRun(
   advance: boolean,
 ): Promise<AdoptReport> {
   const { root, cliVersion, given } = context;
+  context.deferred = run.deferred;
   const report: AdoptReport = {
     ...base,
     reused: run.reused,
@@ -1396,13 +1451,18 @@ async function describeRun(
 }
 
 // The agent's next steps for a report: the adoption procedure from here.
-// The sections they mention precede them.
+// The sections they mention precede them. A headless update's report also
+// marks itself and lists the remote setup it defers.
 function withSteps(
   context: Context,
-  report: AdoptReport,
+  base: AdoptReport,
   template: boolean,
 ): AdoptReport {
   const { root, cliVersion } = context;
+  const headless = context.mode === "headless";
+  const report: AdoptReport = headless
+    ? { ...base, headless: true, deferred: context.deferred ?? [] }
+    : base;
   // Before a run installs it, nothing establishes the project's runtime, so
   // only a run's steps name it.
   const cli = continuationCommand(root, cliVersion, !!report.run);
@@ -1414,6 +1474,19 @@ function withSteps(
   const again = invoke(`adopt --answers ${answers}`);
   const ids = new Set(report.answers.questions.map((question) => question.id));
   const steps: string[] = [`Work from the project root, ${code(root)}.`];
+  if (headless && report.outcome !== "complete")
+    steps.push(
+      `This headless update asked nobody and stopped at the open questions above: the missing answers, blockers, and contextual work. Finish it with ${again} in this checkout, as the steps below describe.${report.run ? " The run keeps deferring the remote setup it deferred." : " The run that answers file starts is an ordinary one: it applies each remote setup whose probe is ready."}`,
+      ...(report.run
+        ? [
+            "Save the answers file above outside the project, such as in a temporary directory.",
+          ]
+        : []),
+    );
+  if (headless && report.run && report.deferred?.length)
+    steps.push(
+      "A headless update defers every remote setup, listed in the deferred fixes above, and never writes to the hosting platform. Report each deferral in the handoff; the next local adopt applies it once its probe is ready.",
+    );
   if (
     report.outcome === "blocked" ||
     (!report.run && report.outcome === "answers-required")
@@ -1461,7 +1534,7 @@ function withSteps(
         break;
       }
       steps.push(
-        template
+        template || headless
           ? "Save the answers file above outside the project, such as in a temporary directory."
           : `Edit the answers file at ${code(answers)}; the answers file above carries your answers.`,
       );
@@ -1514,7 +1587,7 @@ function withSteps(
         );
       else if (report.blockers.length)
         steps.push(
-          ...(template
+          ...(template || headless
             ? [
                 "Save the answers file above outside the project, such as in a temporary directory.",
               ]
@@ -1648,9 +1721,12 @@ const statements: Record<AdoptReport["outcome"], string> = {
 export function adoptSummary(report: AdoptReport) {
   const parts = [
     "# Repository Standards adoption",
-    report.outcome === "answers-required" && report.run
-      ? "The run waits for the maintainer's decision on a fix's overwrite."
-      : statements[report.outcome],
+    (report.headless
+      ? "This headless update asked nobody and wrote nothing to the hosting platform. "
+      : "") +
+      (report.outcome === "answers-required" && report.run
+        ? "The run waits for the maintainer's decision on a fix's overwrite."
+        : statements[report.outcome]),
   ];
   const { selection } = report;
   const questions = new Map(
@@ -1719,6 +1795,20 @@ export function adoptSummary(report: AdoptReport) {
         table(
           ["Run", "Phase", "Reason"],
           [[code(report.run.id), report.run.phase, text(report.run.reason)]],
+        ),
+      ),
+    );
+  if (report.deferred?.length)
+    parts.push(
+      section(
+        "Deferred fixes",
+        table(
+          ["Declaration", "Fix", "Reason"],
+          report.deferred.map((entry) => [
+            code(entry.declaration),
+            code(entry.id),
+            text(entry.reason),
+          ]),
         ),
       ),
     );
