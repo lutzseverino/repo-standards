@@ -85,8 +85,15 @@ _Avoid_: Template, exact content, rules
 **Repository guidance**:
 A contextual declaration over a set of project paths or directory trees,
 identified by explicit targets or project-specific discovery. One whose
-confirmed scope is empty is repository-wide: its rules cover every path.
+confirmed scope is empty is repository-wide: its rules cover every path. One
+whose discovery is optional may instead be confirmed with no scope.
 _Avoid_: Global guidance, glob rule
+
+**No scope**:
+The confirmed scope of an optional discovery declaration that governs nothing
+in the project: none of its rules, checks, or fixes apply, and unlike an empty
+scope it is never repository-wide.
+_Avoid_: Empty scope, skipped declaration
 
 **Discovery guidance**:
 Author-provided criteria for identifying where a contextual declaration

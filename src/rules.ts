@@ -22,8 +22,10 @@ import { declarationTargets, type Targets } from "./targets.js";
 // generated index of what each covers. A declaration covers the paths and
 // directory trees it targets, its confirmed scope when discovered. One that
 // covers none, such as a discovered declaration with empty scope, is
-// repository-wide: its rules cover every path. Lookup reads only the recorded
-// adoption, which verifies every installed file against the lock.
+// repository-wide: its rules cover every path. An optional declaration with no
+// scope keeps no rules, so none are installed and none cover any path. Lookup
+// reads only the recorded adoption, which verifies every installed file
+// against the lock.
 
 export const rulesDirectory = ".repo-standards/rules";
 const index = `${rulesDirectory}/README.md`;

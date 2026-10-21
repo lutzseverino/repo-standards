@@ -401,6 +401,7 @@ export async function inspectForStart(
               observation: scopeObservation,
               sourceRoot: source.root,
               declaration: declaration.id,
+              optional: declaration.optional === true,
               script: declaration["discovery-script"],
               selection,
             }),
@@ -712,8 +713,19 @@ export async function inspectForStart(
           source: declaration.guidance,
           ...fileReference(join(source.root, declaration.guidance)),
         });
+    // A declaration confirmed with no scope runs no operation; one awaiting
+    // its scope still lists what its source declares.
+    const operating = profile.declarations.map(
+      (declaration) =>
+        resolved.declarations.find(
+          (entry) =>
+            entry.id === declaration.id &&
+            entry.kind === "repository" &&
+            entry["no-scope"],
+        ) ?? declaration,
+    );
     for (const phase of ["fixes", "checks"] as const)
-      for (const declaration of profile.declarations) {
+      for (const declaration of operating) {
         for (const operation of declaration[phase]) {
           operations.push({
             declaration: declaration.id,
@@ -733,7 +745,7 @@ export async function inspectForStart(
       }
     // Remote setup probes run once nothing blocks the start, before any write.
     const remoteSetup: RemoteSetup[] = blockers.length
-      ? remoteSetupFixes(profile.declarations).map(({ declaration, fix }) => ({
+      ? remoteSetupFixes(operating).map(({ declaration, fix }) => ({
           declaration,
           id: fix.id,
           status: "not-checked",

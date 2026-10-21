@@ -36,6 +36,7 @@ import {
   canResumeAssessment,
   confirmationStop,
   confirmedProposal,
+  optionalDeclarations,
   scopeStop,
 } from "./adoption-run.js";
 import type { Run } from "./adoption-run.js";
@@ -590,6 +591,8 @@ async function prepare(
   }
   let profileQuestion: Question;
   let discovery: NonNullable<AdoptReport["discovery"]> = [];
+  // The discovery declarations whose scope may be no scope.
+  const optional = new Set<string>();
   try {
     const validation = validateSource(
       acquired.root,
@@ -648,6 +651,10 @@ async function prepare(
       path,
       content: readFileSync(join(acquired.root, path), "utf8"),
     });
+    if (profile !== undefined)
+      for (const declaration of profiles[profile]!.declarations)
+        if ("discovery" in declaration && declaration.optional)
+          optional.add(declaration.id);
     if (profile !== undefined)
       discovery = profiles[profile]!.declarations.flatMap((declaration) =>
         "discovery" in declaration
@@ -733,6 +740,7 @@ async function prepare(
               coverage: draft.coverage,
               candidates: draft.candidates,
               unresolved: draft.unresolved,
+              ...(draft.noScope ? { noScope: true } : {}),
             }
           : null);
       const open = Array.isArray(answer?.unresolved)
@@ -751,8 +759,12 @@ async function prepare(
               ? `Ask the maintainer each open question in unresolved, record the answers as candidate decisions and coverage, and empty unresolved.`
               : `Decide each open question in unresolved from project evidence, with reasons, without asking the maintainer; record the decisions as candidates and coverage, and empty unresolved.`
             : `An entry whose unresolved is empty is complete.`,
+          ...(optional.has(id) ? [noScopeContext(id)] : []),
         ].join(" "),
-        details: { unresolved: open },
+        details: {
+          unresolved: open,
+          ...(optional.has(id) ? { optional: true } : {}),
+        },
         answer,
       });
       // A drafted entry an answers file has not carried back is not yet an
@@ -952,20 +964,30 @@ function changesScope(
   });
 }
 
+// How an optional declaration's scope question offers no scope.
+function noScopeContext(id: string) {
+  return `${id} is optional: when no project file belongs in its scope, answer noScope true with every candidate excluded, and it installs none of its rules and runs none of its checks or fixes. An entry without noScope keeps its scope, and an empty one makes its rules cover the whole repository.`;
+}
+
 // The scope questions of a run stopped for its scope: each confirmed entry,
 // which a changed answer replaces in place.
 function scopeQuestions(context: Context, run: Run): Question[] {
   if (!scopeStop(run)) return [];
+  const optional = optionalDeclarations(context.root, run);
   return (confirmedProposal(context.root, run)?.declarations ?? []).map(
     ({ id, ...entry }) => ({
       id: `scope:${id}`,
       question: `Which project files does ${id} cover?`,
       context:
         "The run's confirmed scope, which never changes within the run. When the contextual work needs a file this scope misses, change this answer to include it, with a reason and evidence, and run adopt again: adopt replaces the run in place, archiving its report and keeping its changes, inspects the unchanged selection with the new scope, and starts a new run over those changes." +
+        (optional.includes(id) ? ` ${noScopeContext(id)}` : "") +
         (context.mode === "terminal"
           ? ""
           : " A scope answer is Git-undoable, so change it without asking, and record the change and its reasons in the handoff."),
-      details: { unresolved: [] },
+      details: {
+        unresolved: [],
+        ...(optional.includes(id) ? { optional: true } : {}),
+      },
       answer: context.given.get(`scope:${id}`) ?? entry,
     }),
   );
@@ -1077,12 +1099,20 @@ async function describeRun(
         : report,
       false,
     );
+  const noScope = (request.scope?.proposal?.declarations ?? [])
+    .filter((entry) => entry.noScope)
+    .map((entry) => entry.id);
   const assessments = request.declarations.map(
     ({ id, allowedTargets, discovery }): Question => ({
       id: `assessment:${id}`,
       question: `Does the project now satisfy ${id}?`,
-      context: `After the contextual work, judge the declaration: answer with status satisfied or blocked, an explanation, and evidence, the concrete project content or command outcomes you observed${discovery ? ", and scopeValidity with an afterFixes and a current review, each with status valid or blocked, explanation, evidence, and additionalPaths" : ""}. Copy no identities or changed paths.`,
-      details: { allowedTargets },
+      context: noScope.includes(id)
+        ? `${id} has no scope: it installs no rules, runs no checks or fixes, and allows no edit. Judge only its scope: answer with status satisfied or blocked, an explanation, and evidence, and scopeValidity with an afterFixes and a current review, each with status valid when no project file belongs in its scope, or blocked with the files that do in additionalPaths. Copy no identities or changed paths.`
+        : `After the contextual work, judge the declaration: answer with status satisfied or blocked, an explanation, and evidence, the concrete project content or command outcomes you observed${discovery ? ", and scopeValidity with an afterFixes and a current review, each with status valid or blocked, explanation, evidence, and additionalPaths" : ""}. Copy no identities or changed paths.`,
+      details: {
+        allowedTargets,
+        ...(noScope.includes(id) ? { noScope: true } : {}),
+      },
       // A run that just reached its contextual work has no assessment yet.
       answer: advance ? (given.get(`assessment:${id}`) ?? null) : null,
     }),
@@ -1289,6 +1319,16 @@ function withSteps(
         "Keep the answers file outside the project, and notes outside it or in `.repo-standards/local/`; any other new file is an observed change.",
         "When the guidance needs work outside the allowed targets, or facts the project does not support, leave it undone and answer that assessment `blocked`, explaining the decision the maintainer needs to make.",
       );
+      if (
+        report.answers.questions.some(
+          (question) =>
+            (question.details as { noScope?: unknown } | undefined)?.noScope ===
+            true,
+        )
+      )
+        steps.push(
+          "A declaration with no scope allows no edit and has no rules: judge only its scope, answering its scope reviews valid when no project file belongs in it, or blocked with the files that do in `additionalPaths`.",
+        );
       if (report.contextual?.some((entry) => entry.discovery))
         steps.push(
           "For a discovered declaration, recheck coverage against the project as fixes left it, and again before running adopt. Never write a file outside the confirmed scope: answer that scope review `blocked` with its `additionalPaths`.",
@@ -1487,6 +1527,14 @@ export function adoptSummary(report: AdoptReport) {
           .join("\n\n"),
       ),
     );
+  // A declaration with no scope is named so by its assessment question.
+  const noScope = (id: string) =>
+    report.answers.questions.some(
+      (question) =>
+        question.id === `assessment:${id}` &&
+        (question.details as { noScope?: unknown } | undefined)?.noScope ===
+          true,
+    );
   if (report.contextual?.length)
     parts.push(
       section(
@@ -1495,7 +1543,9 @@ export function adoptSummary(report: AdoptReport) {
           .map((entry) =>
             [
               `### ${code(entry.id)}`,
-              `Allowed targets: ${[...entry.allowedTargets.paths, ...entry.allowedTargets.directories.map((directory) => `${directory}/`)].map(code).join(", ") || "none"}.`,
+              noScope(entry.id)
+                ? "No scope: it allows no edit, and only its scope is judged."
+                : `Allowed targets: ${[...entry.allowedTargets.paths, ...entry.allowedTargets.directories.map((directory) => `${directory}/`)].map(code).join(", ") || "none"}.`,
               ...(entry.rules
                 ? [
                     `Rules, ${code(entry.rules.path)}:`,

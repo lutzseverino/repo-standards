@@ -210,6 +210,8 @@ export async function draftScope(options: {
   observation: ScopeObservation;
   sourceRoot: string;
   declaration: string;
+  // Whether the declaration is optional, so its draft may propose no scope.
+  optional: boolean;
   script: Script;
   selection: { standards: unknown; profile: string };
 }): Promise<Entry> {
@@ -280,6 +282,10 @@ export async function draftScope(options: {
     const [entry] = entries;
     if (entries.length !== 1 || entry!.id !== declaration)
       invalid(`Its proposal must hold exactly one entry, for ${declaration}.`);
+    if (entry!.noScope && !options.optional)
+      invalid(
+        `Its entry proposes no scope, but ${declaration} is not optional.`,
+      );
     const rejection = scopeEntryRejection(options.root, observation, entry!);
     if (rejection) invalid(rejection);
     return entry!;

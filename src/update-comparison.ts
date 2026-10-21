@@ -27,7 +27,8 @@ import { declarationTargets, type Targets } from "./targets.js";
 // declaration's rules, are hash-identical to the retained inputs and no
 // declaration retires; any difference makes it contextual. Exact content, an
 // exact declaration's rules, skills and the selection itself never affect the
-// class.
+// class. A declaration with no scope has no rules or operations to compare,
+// and its no scope differs from an empty scope.
 type UpdateClass = "exact" | "contextual";
 type ContextualChange =
   "guidance" | "rules" | "discovery" | "operations" | "scope" | "retired";
@@ -111,7 +112,7 @@ function material(
     checks?: Operation[];
   },
   discovery: Discovery | undefined,
-  scope: Targets | undefined,
+  scope: (Targets & { none?: boolean }) | undefined,
   files: (path: string) => FileHashes,
 ) {
   const script = (declared: Script) => ({
@@ -160,14 +161,22 @@ function material(
         ? JSON.stringify({
             paths: [...scope.paths].sort(),
             directories: [...scope.directories].sort(),
+            ...(scope.none ? { none: true } : {}),
           })
         : null,
   };
 }
 
-function targets(declaration: Declaration | undefined): Targets | undefined {
+function targets(
+  declaration: Declaration | undefined,
+): (Targets & { none?: boolean }) | undefined {
   return declaration && "guidance" in declaration
-    ? declarationTargets(declaration)
+    ? {
+        ...declarationTargets(declaration),
+        ...(declaration.kind === "repository" && declaration["no-scope"]
+          ? { none: true }
+          : {}),
+      }
     : undefined;
 }
 
@@ -188,12 +197,15 @@ function declarationChanges(
         retainedFiles(recorded, path),
       )
     : material({}, undefined, undefined, () => ({}));
+  const resolved = candidate.resolved.find(
+    (declaration) => declaration.id === next.id,
+  );
+  // A declaration with no scope keeps none of its source's rules and
+  // operations.
   const after = material(
-    next,
+    resolved?.kind === "repository" && resolved["no-scope"] ? resolved : next,
     "discovery" in next ? next : undefined,
-    targets(
-      candidate.resolved.find((declaration) => declaration.id === next.id),
-    ),
+    targets(resolved),
     (path) => candidateFiles(candidate, path),
   );
   // A guided declaration whose scope is not confirmed yet cannot match.

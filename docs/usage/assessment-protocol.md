@@ -236,7 +236,13 @@ statements. `additionalPaths` is a list of distinct repository-relative filename
 `status: blocked` reports, with its explanation, that coverage needs the files
 listed in `additionalPaths`, that membership is unresolved, or that a target
 must be withdrawn. `valid` requires an empty additional-path list. Every
-discovery declaration needs both reviews, including empty scope. Explicit
+discovery declaration needs both reviews, including empty scope and
+[no scope](inspection.md#no-scope). A declaration with no scope has no rules,
+no operations, and no allowed targets, and the accepted `proposal` marks its
+entry with `noScope`: its assessment judges only that no project file belongs
+in its scope, with both reviews `valid` when none does, or `blocked` with the
+files that do in `additionalPaths`, which stops the run for its scope. It has
+no other contextual work. Explicit
 contextual declarations keep their ordinary entry fields. Missing reviews and a
 submission in another format are rejected.
 

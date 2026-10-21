@@ -33,7 +33,10 @@ export interface Assessment {
   }[];
 }
 export interface WorkRequest {
-  scope?: ScopeConfirmation;
+  // The confirmed proposal names each declaration with no scope.
+  scope?: ScopeConfirmation & {
+    proposal?: { declarations: { id: string; noScope?: true }[] } | undefined;
+  };
   run: string;
   selection: string;
   snapshot: string;

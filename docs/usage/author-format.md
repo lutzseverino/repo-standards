@@ -27,7 +27,9 @@ a discovery request identity, the draft of each
 and presents concrete paths in the complete inspection. Initial adoption passes
 the same proposal to `start --scope`, bound to that inspection’s identity.
 Contextual assessment reviews coverage again after fixes and before
-submission. Empty scope retains the declaration and its operations. Source
+submission. Empty scope retains the declaration and its operations; an
+[optional](#optional-discovery) declaration may instead have no scope, which
+installs none of its rules and runs none of its operations. Source
 validation alone proves neither project-specific safety nor semantic coverage.
 An active run cannot change its confirmed scope; when contextual work needs
 other paths, a new run
@@ -110,7 +112,9 @@ A skill declaration with `rules` fails with `UNKNOWN_FIELD`. A declaration with
 `rules` cannot have the ID `readme`, whose installed rules would collide with
 the index `README.md`; it fails with `RESERVED_NAME`. A repository guidance
 declaration whose confirmed scope is empty is repository-wide: its rules cover
-every path of the adopting project. Exact skills target
+every path of the adopting project. An
+[optional](#optional-discovery) declaration confirmed with no scope installs
+no rules at all. Exact skills target
 `.agents/skills/<name>` as a whole, and adoption also installs the skill's
 [skill link](adoption.md#skill-links) at `.claude/skills/<name>`, which is a
 target of the skill too: no other target may overlap it. `repository-standards`,
@@ -211,6 +215,39 @@ read-only to draft the declaration's scope proposal and its open questions; it
 never decides scope. The
 [discovery script protocol](script-protocol.md#discovery-scripts) defines its
 input, output and failures.
+
+### Optional discovery
+
+```yaml
+hosting-settings:
+  kind: repository
+  guidance: guidance/hosting.md
+  rules: rules/hosting.md
+  discovery: discovery/hosting.md
+  optional: true
+```
+
+A declaration with `discovery` may be marked `optional: true` when an
+adopting project may have nothing it governs. Its confirmed scope may then be
+_no scope_, which a [scope proposal](inspection.md#discover-contextual-file-scope)
+marks with `noScope`. No scope differs from an empty scope:
+
+- an empty scope makes the declaration repository-wide, so its rules cover
+  every path, and its checks and fixes run;
+- no scope installs none of its rules, is never repository-wide, and runs none
+  of its checks or fixes. The adoption still assesses whether no project file
+  belongs in its scope.
+
+A proposal without `noScope` keeps its ordinary meaning for an optional
+declaration too, so an optional declaration's empty scope is still
+repository-wide. Each update confirms the scope again: an update can give an
+optional declaration a scope it had none of, which installs its rules and runs
+its operations, or take its scope away, which removes its installed rules and
+leaves project content in place.
+
+`optional` must be `true`. On repository guidance with explicit `targets` it
+fails with `INVALID_DECLARATION`, and on a file or a skill with
+`UNKNOWN_FIELD`. Only discovered scope can be no scope.
 
 ### Paths and ownership
 

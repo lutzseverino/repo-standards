@@ -148,7 +148,8 @@ compliance. Read the reported discovery requirements per profile. Explain that
 valid discovery references still need agent interpretation and adopter review in
 an adopting project. Initial adoption materializes confirmed individual files
 through the product-owned discovery and assessment interfaces. Exercise useful
-discovery, migration, and empty scope with retained operations where applicable;
+discovery, migration, empty scope with retained operations, and no scope for an
+optional discovery declaration where applicable;
 source validation alone does not verify those journeys. Report each operation's fixture
 outcomes and each author skill's actual review/exercise separately. Missing prerequisites leave
 affected behavior unverified; obtain explicit deferral if the author chooses to

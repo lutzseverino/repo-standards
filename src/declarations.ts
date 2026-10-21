@@ -246,6 +246,7 @@ export class Declarations {
           "fixes",
           "discovery",
           "discovery-script",
+          "optional",
         ]);
         const guidance = this.paths.reference(
           f.get(declaration, "guidance"),
@@ -287,6 +288,20 @@ export class Declarations {
             "A discovery script requires discovery.",
             f.get(declaration, "discovery-script"),
           );
+        // Only discovered scope can be no scope.
+        const optionalValue = entries.get("optional");
+        if (optionalValue && !entries.has("discovery"))
+          f.error(
+            "INVALID_DECLARATION",
+            "Only a discovery declaration can be optional.",
+            optionalValue,
+          );
+        else if (optionalValue && optionalValue.data !== true)
+          f.error(
+            "INVALID_DECLARATION",
+            "optional must be true: it marks a discovery declaration whose confirmed scope may be no scope.",
+            optionalValue,
+          );
         const scriptValue = entries.get("discovery-script");
         if (scriptValue)
           f.map(scriptValue, ["run", "prerequisite", "timeout-seconds"]);
@@ -303,6 +318,9 @@ export class Declarations {
             ...ruled,
             discovery,
             ...(script ? { "discovery-script": script } : {}),
+            ...(optionalValue?.data === true
+              ? { optional: true as const }
+              : {}),
           });
         }
       } else {

@@ -38,7 +38,12 @@ rules file with its declaration and what it covers:
 - a discovered declaration covers its confirmed scope;
 - a declaration that covers no path, such as a discovered declaration whose
   confirmed scope is empty, is repository-wide and covers the whole
-  repository.
+  repository;
+- an [optional](author-format.md#optional-discovery) declaration confirmed
+  with [no scope](inspection.md#no-scope) has no installed rules: the index
+  does not list it, and `rules` never prints it, with or without a path. An
+  update that moves it into a scope installs its rules, and one that moves it
+  out removes them and their index entry.
 
 Rules are installed during the run's exact installation, before its fixes, so
 an agent doing contextual work reads them in place. Contextual work is assessed

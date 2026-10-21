@@ -78,3 +78,7 @@ alternatives.
   a changed scope answer, or adopting after abandonment, starts a new run over
   the stopped run's recorded changes, whose change set covers both; a declined
   overwrite defers its fix, and abandonment exits 0.
+- [Let an optional discovery declaration have no scope](0023-let-an-optional-discovery-declaration-have-no-scope.md):
+  an author marks a discovery declaration optional, and a scope proposal may
+  then give it no scope, which installs none of its rules and runs none of its
+  operations while both scope reviews still judge it.

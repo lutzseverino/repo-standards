@@ -36,6 +36,10 @@ export type Declaration = DeclarationBase &
         kind: "repository";
         guidance: string;
         targets: { paths: string[]; directories: string[] };
+        // An optional discovery declaration confirmed with no scope: it keeps
+        // no rules, checks or fixes, and its empty targets are not
+        // repository-wide.
+        "no-scope"?: true;
       })
   );
 
@@ -48,6 +52,8 @@ export type SourceDeclaration =
         guidance: string;
         discovery: string;
         "discovery-script"?: Script;
+        // Its confirmed scope may be no scope.
+        optional?: true;
       });
 export interface SourceProfile {
   description: string;
