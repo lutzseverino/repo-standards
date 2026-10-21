@@ -1,19 +1,19 @@
 import { isAbsolute, relative } from "node:path";
 import { ProductError } from "./errors.js";
 
-// Each artifact has exactly one format, and it is the one this CLI both writes
-// and reads. Retired formats are neither converted nor read: committed product
+// Each artifact has exactly one format, and it is the one this CLI writes and
+// reads. Retired formats are neither converted nor read: committed product
 // state carrying one is replaced by a fresh adoption.
 export const formats = {
-  state: "repo-standards/state/v7",
+  state: "repo-standards/state/v8",
   lock: "repo-standards/lock/v1",
-  scopeHistory: "repo-standards/scope-history/v5",
-  run: "repo-standards/run/v6",
-  status: "repo-standards/status/v8",
+  scopeHistory: "repo-standards/scope-history/v6",
+  run: "repo-standards/run/v7",
+  status: "repo-standards/status/v9",
   inspection: "repo-standards/inspection/v8",
   scope: "repo-standards/scope/v2",
   discovery: "repo-standards/discovery/v1",
-  workRequest: "repo-standards/work-request/v4",
+  workRequest: "repo-standards/work-request/v5",
   assessment: "repo-standards/assessment/v3",
   operation: "repo-standards/operation/v2",
   result: "repo-standards/result/v2",
@@ -22,7 +22,7 @@ export const formats = {
   check: "repo-standards/check/v2",
   rules: "repo-standards/rules/v1",
   answers: "repo-standards/answers/v1",
-  adopt: "repo-standards/adopt/v1",
+  adopt: "repo-standards/adopt/v2",
 } as const;
 
 type RecordFormat =
@@ -30,6 +30,25 @@ type RecordFormat =
   | typeof formats.lock
   | typeof formats.scopeHistory
   | typeof formats.run;
+
+// The committed formats the previous release wrote, which this CLI also reads
+// as the established adoption an update replaces, so that the update carries
+// its recorded answers forward. A reader treats the keys they lack as absent;
+// nothing writes them.
+export const previousFormats: Partial<Record<RecordFormat, string>> = {
+  [formats.state]: "repo-standards/state/v7",
+  [formats.scopeHistory]: "repo-standards/scope-history/v5",
+};
+
+// Whether a record carries its artifact's current format or the previous one
+// this CLI still reads.
+export function readableFormat(value: unknown, expected: RecordFormat) {
+  const found =
+    value && typeof value === "object"
+      ? (value as { format?: unknown }).format
+      : undefined;
+  return found === expected || found === previousFormats[expected];
+}
 
 // The path a diagnostic names: project-relative when the record is inside the
 // project, such as committed state, and absolute otherwise, such as a run record
@@ -53,6 +72,7 @@ export function formatAge(
   const prefix = expected.slice(0, expected.lastIndexOf("/") + 1);
   if (
     found === expected ||
+    found === previousFormats[expected] ||
     typeof found !== "string" ||
     !found.startsWith(prefix)
   )

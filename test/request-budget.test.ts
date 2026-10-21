@@ -288,43 +288,36 @@ async function journey(t: TestContext, annotated: boolean) {
   );
 
   // An unchanged update reads the releases again and reuses the snapshot.
+  // Its template reuses every recorded answer, so its answers file starts a
+  // run that reuses every assessment and completes.
   const update = step("update template", [], "answers-required", true);
   assert.equal(update.report.selection.version, "v1.0.0");
   assert.equal(update.releases, 1);
+  assert.deepEqual(
+    update.report.reused.map((answer) => answer.id),
+    ["scope:project-docs", "remote-setup"],
+  );
   warm({
     ...update,
     rest: update.rest.filter((path) => !/releases/.test(path)),
   });
-  const updateScope = step(
-    "update scope",
-    f.answer(update.report.answers),
-    "answers-required",
-    true,
-  );
-  warm(updateScope);
-  assert.deepEqual(updateScope.report.missing, ["remote-setup", "inspection"]);
   const updateStart = step(
     "update start",
-    f.answer(updateScope.report.answers, {
-      "remote-setup": "defer",
-      inspection: updateScope.report.inspection!.identity,
-    }),
-    "contextual",
-    true,
-  );
-  warm(updateStart, 2);
-  const updateContinued = step(
-    "update continuation",
-    f.answer(updateStart.report.answers, assessments),
+    f.answer(update.report.answers),
     "complete",
     true,
   );
-  assert.deepEqual(updateContinued.rest, []);
-  const updated =
-    counts["update template"]! +
-    counts["update scope"]! +
-    counts["update start"]! +
-    counts["update continuation"]!;
+  warm(updateStart, 2);
+  assert.deepEqual(
+    updateStart.report.reused.map((answer) => answer.id),
+    [
+      "scope:project-docs",
+      "remote-setup",
+      "assessment:project-docs",
+      "assessment:project-readme",
+    ],
+  );
+  const updated = counts["update template"]! + counts["update start"]!;
   assert.ok(
     updated <= budget(annotations),
     `The update made ${updated} requests: ${JSON.stringify(counts)}`,

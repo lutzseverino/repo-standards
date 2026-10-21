@@ -46,20 +46,48 @@ import type {
   WorkRequest,
 } from "./adoption-run.js";
 import { record } from "./records.js";
-import { deferredRemoteSetup, withoutDeferred } from "./remote-setup.js";
+import {
+  declinedOverwrite,
+  deferredRemoteSetup,
+  withoutDeferred,
+} from "./remote-setup.js";
 import { installedRules } from "./rules.js";
+import {
+  classifyAssessments,
+  declarationSnapshot,
+  sameJudgment,
+  type ReusedAnswer,
+} from "./reused-answers.js";
+import type { WorkObservation } from "./work-observation.js";
 export { abandon, status } from "./adoption-run.js";
 type Inspection = Awaited<ReturnType<typeof inspect>>;
 const retainedSource = ".repo-standards/inputs/source";
 const packageName = "@lutzseverino/repo-standards";
 
+// The work request of a run at the project's current observation. Each
+// contextual declaration whose recorded assessment is provably unchanged
+// carries it to reuse; one whose recorded assessment is not carries it as a
+// proposal, with what changed.
 function workRequest(
   root: string,
   run: Run,
   installation: Installation,
+  observed = observeWork(root, concreteScope(installation.report.resolved)),
 ): WorkRequest {
   const { report } = installation;
   const discovery = report.discovery;
+  const recorded = classifyAssessments(
+    installation.assessmentBases ?? [],
+    observed,
+    report.resolved,
+    (scope, retries) => {
+      try {
+        return snapshotOf(observeWork(root, scope), retries);
+      } catch {
+        return undefined;
+      }
+    },
+  );
   return {
     format: formats.workRequest,
     ...(discovery
@@ -73,7 +101,7 @@ function workRequest(
       : {}),
     run: run.id,
     selection: `sha256:${hash(json(run.selection))}`,
-    snapshot: workSnapshot(root, run, report.resolved),
+    snapshot: snapshotOf(observed, run.retryHistory?.length ?? 0),
     // Guidance is referenced by path and hash; its bytes are the retained input.
     // Rules are named by their installed path.
     declarations: report.guidance.map((guidance) => {
@@ -83,6 +111,7 @@ function workRequest(
       const discoveryGuidance = discovery?.declarations.find(
         (entry) => entry.id === guidance.id,
       );
+      const classified = recorded.get(guidance.id);
       return {
         id: guidance.id,
         guidance: {
@@ -103,6 +132,21 @@ function workRequest(
             (declaration) => declaration.id === guidance.id,
           )!,
         ),
+        ...(classified
+          ? "reused" in classified
+            ? {
+                reused: {
+                  judgment: classified.answer,
+                  evidence: classified.reused,
+                },
+              }
+            : {
+                proposed: {
+                  judgment: classified.answer,
+                  changed: classified.changed,
+                },
+              }
+          : {}),
       };
     }),
     requiredEvidence: [
@@ -116,12 +160,64 @@ function workRequest(
   };
 }
 
+// A work snapshot: the observation of the concrete scope and the run's retry
+// count.
+function snapshotOf(observed: WorkObservation, retries: number) {
+  return `sha256:${hash(json(observed) + `retry:${retries}`)}`;
+}
+
 function workSnapshot(
   root: string,
   run: Run,
   resolved: Inspection["resolved"],
 ) {
-  return `sha256:${hash(json(observeWork(root, concreteScope(resolved))) + `retry:${run.retryHistory?.length ?? 0}`)}`;
+  return snapshotOf(
+    observeWork(root, concreteScope(resolved)),
+    run.retryHistory?.length ?? 0,
+  );
+}
+
+// The assessment answers a request reused: each declaration it carries a
+// recorded assessment to reuse for, whose accepted judgment is that one.
+function reusedAssessments(
+  request: WorkRequest,
+  accepted: { declarations: { id: string }[] },
+): ReusedAnswer[] {
+  return request.declarations.flatMap(({ id, reused }) =>
+    reused &&
+    sameJudgment(
+      accepted.declarations.find((entry) => entry.id === id),
+      reused.judgment,
+    )
+      ? [
+          {
+            id: `assessment:${id}`,
+            kind: "assessment" as const,
+            evidence: reused.evidence,
+          },
+        ]
+      : [],
+  );
+}
+
+// Each contextual declaration's scoped files, by identity, as the run
+// completes.
+function assessedScopes(
+  observed: WorkObservation,
+  installation: Installation,
+): Record<string, string> {
+  const { resolved, guidance } = installation.report;
+  return Object.fromEntries(
+    guidance.map(({ id }) => [
+      id,
+      declarationSnapshot(
+        observed,
+        declarationTargets(
+          resolved.declarations.find((declaration) => declaration.id === id)!,
+        ),
+      ),
+    ]),
+  );
 }
 
 // The operations a run executes: every check and fix but the deferred ones,
@@ -313,7 +409,8 @@ function prepareRuntime(directory: string, version: string, project: string) {
 }
 
 // Observations shared with the inspection that produced the identity let the
-// start's first inspection reuse its tag resolution.
+// start's first inspection reuse its tag resolution. The run records the
+// answers adopt reused for its start.
 export async function start(
   options: InspectOptions,
   cliVersion: string,
@@ -321,6 +418,7 @@ export async function start(
   confirmed: boolean,
   deferRemoteSetup = false,
   observations?: SourceObservations,
+  reused: ReusedAnswer[] = [],
 ) {
   return withStartRun(options.project, (session) =>
     startRun(
@@ -331,6 +429,7 @@ export async function start(
       session,
       deferRemoteSetup,
       observations,
+      reused,
     ),
   );
 }
@@ -342,6 +441,7 @@ export async function startRetained(
   confirmed: boolean,
   scope?: string,
   deferRemoteSetup = false,
+  reused: ReusedAnswer[] = [],
 ) {
   return withStartRun(project, (session) =>
     startRun(
@@ -351,6 +451,8 @@ export async function startRetained(
       confirmed,
       session,
       deferRemoteSetup,
+      undefined,
+      reused,
     ),
   );
 }
@@ -367,12 +469,20 @@ async function startRun(
   session: AdoptionRunSession,
   deferRemoteSetup: boolean | null = null,
   observations?: SourceObservations,
+  reused: ReusedAnswer[] = [],
 ) {
-  const inspectSelection = async (shared?: SourceObservations) => {
+  // The inspection the run installs from also drafts with the proposal, so
+  // the run retains the draft each confirmed entry was decided from.
+  const inspectSelection = async (
+    shared?: SourceObservations,
+    drafts = false,
+  ) => {
     try {
       return await (input.kind === "retained"
-        ? retainedInspection(input.project, cliVersion, input.scope)
-        : inspectForStart(input.options, cliVersion, undefined, shared));
+        ? retainedInspection(input.project, cliVersion, input.scope, drafts)
+        : inspectForStart(input.options, cliVersion, undefined, shared, {
+            drafts,
+          }));
     } catch (error) {
       // The inspected proposal fit the project it was inspected against.
       if (error instanceof ObservedScopeError)
@@ -406,6 +516,7 @@ async function startRun(
     identity,
     startInput,
     initial.recorded,
+    reused,
   );
   const prerequisites = await session.prerequisites((onSpawn) =>
     preflight(root, executedProfile(initial.report), onSpawn),
@@ -432,7 +543,7 @@ async function startRun(
   // observing the source's tag again so that a tag moved meanwhile is
   // rejected. The materials come from this inspection, whose identity binds
   // their hashes.
-  const inspected = await inspectSelection();
+  const inspected = await inspectSelection(undefined, true);
   verifyInspection(inspected.report, identity, confirmed, deferRemoteSetup);
   if (inspected.preserved?.run !== initial.preserved?.run)
     throw new ProductError(
@@ -492,7 +603,11 @@ async function advance(
       snapshot: workSnapshot(root, session.observation, report.resolved),
       changedPaths: session.journal.agentChanges(),
     });
-    session.record({ type: "assessment-submitted", assessment: accepted });
+    session.record({
+      type: "assessment-submitted",
+      assessment: accepted,
+      reused: reusedAssessments(session.observation.workRequest!, accepted),
+    });
     if (
       accepted.declarations.some(
         (entry) =>
@@ -582,11 +697,29 @@ async function advance(
           session.observation,
           report.resolved,
         );
-      session.journal.open();
-      session.pauseForContext(
-        workRequest(root, session.observation, installation),
-        installation,
-      );
+      const request = workRequest(root, session.observation, installation);
+      // When every contextual declaration's recorded assessment is reused,
+      // the run accepts them, bound to this run, and goes on to its checks.
+      if (request.declarations.every((declaration) => declaration.reused)) {
+        const accepted = validateAssessment(
+          root,
+          { workRequest: request },
+          { format: formats.assessment, declarations: [] },
+          {
+            snapshot: request.snapshot,
+            changedPaths: session.journal.agentChanges(),
+          },
+        );
+        session.reuseAssessment(
+          request,
+          installation,
+          accepted,
+          reusedAssessments(request, accepted),
+        );
+      } else {
+        session.journal.open();
+        session.pauseForContext(request, installation);
+      }
     }
   }
   const run = session.observation;
@@ -609,15 +742,26 @@ async function advance(
   verifyInstalled();
   session.journal.continue();
   session.journal.requireAuthorized();
+  // Only a run with contextual work observes the project as it completes.
+  const observed =
+    report.guidance.length || run.assessments.length
+      ? observeWork(root, concreteScope(report.resolved))
+      : undefined;
   if (
+    observed &&
     run.assessments.length &&
-    run.assessments[0]!.snapshot !== workSnapshot(root, run, report.resolved)
+    run.assessments[0]!.snapshot !==
+      snapshotOf(observed, run.retryHistory?.length ?? 0)
   )
     throw new ProductError(
       "STALE_ASSESSMENT",
       "Project content changed after assessment. Refresh the work request, reassess, and rerun checks.",
     );
-  session.complete(installation, operationStart);
+  session.complete(
+    installation,
+    operationStart,
+    observed ? assessedScopes(observed, installation) : {},
+  );
 }
 
 export async function resume(
@@ -722,7 +866,7 @@ async function resumeRun(
           deferral: {
             declaration,
             id,
-            reason: `The maintainer declined the overwrite: ${stop.message}`,
+            reason: `${declinedOverwrite} ${stop.message}`,
           },
         });
         return advance(root, session, installation, {
@@ -748,10 +892,28 @@ export async function inspectRetained(
   return (await retainedInspection(project, cliVersion, scope)).report;
 }
 
+// The retained inspection with its discovery drafts, which adopt compares
+// recorded scope answers with, written even with a proposal when asked.
+export async function inspectRetainedDrafted(
+  project: string,
+  cliVersion: string,
+  scope: string | undefined,
+  drafts: boolean,
+) {
+  const inspected = await retainedInspection(
+    project,
+    cliVersion,
+    scope,
+    drafts,
+  );
+  return { report: inspected.report, drafts: inspected.drafts };
+}
+
 async function retainedInspection(
   project: string,
   cliVersion: string,
   scope?: string,
+  drafts = false,
 ) {
   const root = projectRoot(project);
   if (!existsSync(join(root, ".repo-standards/state.json")))
@@ -773,6 +935,8 @@ async function retainedInspection(
     },
     cliVersion,
     recorded,
+    undefined,
+    { drafts },
   );
   return {
     ...inspected,

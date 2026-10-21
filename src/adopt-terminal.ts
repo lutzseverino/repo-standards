@@ -15,6 +15,7 @@ import { checkContextual } from "./check.js";
 import { ProductError } from "./errors.js";
 import { record } from "./records.js";
 import type { Candidate } from "./scope.js";
+import { reuseReason } from "./summary.js";
 
 // Guided adoption in a terminal: adopt asks a person the questions an answers
 // file holds, one stage at a time with each default proposed, then walks each
@@ -193,6 +194,8 @@ export async function adoptInTerminal(
   };
   let presented: string | undefined;
   let submitted = false;
+  // The reused answers already shown: reused answers are shown, not asked.
+  const shown = new Set<string>();
 
   write("Repository Standards adoption\n");
   write("An agent runs adopt with --json to get the answers-file template.\n");
@@ -249,6 +252,13 @@ export async function adoptInTerminal(
         if (id.startsWith("scope:")) answers.delete(id);
       continue;
     }
+    for (const answer of report.reused)
+      if (!shown.has(answer.id)) {
+        shown.add(answer.id);
+        write(
+          `\nReusing the last complete adoption's answer to ${answer.id}: ${reuseReason(answer)}\n`,
+        );
+      }
     const reason = report.run?.reason ?? "";
     switch (report.outcome) {
       case "answers-required": {
@@ -379,7 +389,25 @@ export async function adoptInTerminal(
           }),
         );
         const failed = report.failedChecks ?? [];
-        let walk = declarations;
+        // A reused assessment keeps the recorded judgment and is walked only
+        // when one of its checks failed.
+        const reused = new Set(
+          report.reused
+            .filter((answer) => answer.kind === "assessment")
+            .map((answer) => answer.id.slice("assessment:".length)),
+        );
+        for (const { id } of declarations)
+          if (reused.has(id) && !judged.has(id))
+            judged.set(
+              id,
+              report.answers.questions.find(
+                (question) => question.id === `assessment:${id}`,
+              )!.answer as Answer,
+            );
+        let walk = declarations.filter(
+          ({ id }) =>
+            !reused.has(id) || failed.some((check) => check.declaration === id),
+        );
         if (reason.startsWith("CHECKS_FAILED:")) {
           write("\nThe run's checks failed after the assessment.\n");
           // Contextual work cannot fix the checks of other declarations: the
@@ -405,7 +433,7 @@ export async function adoptInTerminal(
               return report.outcome;
             }
           }
-          walk = declarations.filter(
+          walk = walk.filter(
             ({ id }) =>
               !judged.has(id) ||
               failed.some((check) => check.declaration === id),
@@ -420,8 +448,12 @@ export async function adoptInTerminal(
         // project, before any contextual edit. An incomplete confirmed scope
         // stops the run, so nothing more is asked once one is reported.
         let incomplete: string | undefined;
+        // A reused assessment keeps its recorded scope reviews too.
+        const kept = (id: string) =>
+          reused.has(id) && !walk.some((entry) => entry.id === id);
         for (const declaration of declarations) {
-          if (!declaration.discovery || incomplete) continue;
+          if (!declaration.discovery || incomplete || kept(declaration.id))
+            continue;
           let review = reviewedAfterFixes.get(declaration.id);
           if (!review) {
             write(
@@ -469,7 +501,8 @@ export async function adoptInTerminal(
         // as the project now is.
         const reviewedNow = new Set<string>();
         for (const declaration of declarations) {
-          if (!declaration.discovery || incomplete) continue;
+          if (!declaration.discovery || incomplete || kept(declaration.id))
+            continue;
           const judgment = judged.get(declaration.id)!;
           const current = await reviewScope(
             prompt,
@@ -791,11 +824,14 @@ async function askScope(
   // Only an optional declaration's scope may be no scope.
   const optional =
     (question.details as { optional?: unknown } | undefined)?.optional === true;
+  // A recorded scope proposed for review names what changed.
+  const changed = (question.details as { changed?: string[] } | undefined)
+    ?.changed;
   // A run stopped for its scope asks again from its confirmed scope.
-  const label = report.run ? "confirmed" : "drafted";
+  const label = report.run ? "confirmed" : changed ? "recorded" : "drafted";
   if (draft) {
     write(
-      `${report.run ? "The run's confirmed scope." : "The discovery script drafted this scope."}${draft.noScope ? " It has no scope." : ""}\nCoverage: ${draft.coverage}\n`,
+      `${report.run ? "The run's confirmed scope." : changed ? `The last complete adoption recorded this scope, proposed for review: ${changed.join(" ")}` : "The discovery script drafted this scope."}${draft.noScope ? " It has no scope." : ""}\nCoverage: ${draft.coverage}\n`,
     );
     for (const candidate of draft.candidates)
       write(

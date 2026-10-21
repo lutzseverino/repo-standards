@@ -434,10 +434,22 @@ test("updates move an optional declaration between scope and no scope, and carry
   assert.ok(!ran(none.run).some((name) => name.startsWith("hosting/")));
   assert.deepEqual(covering(f), [["tracker", "repository"]]);
 
-  // The confirmed no scope, carried forward unchanged, changes nothing.
-  const carried = f.json<Status>(["status", "--json"]).report.scopeProposal!;
-  const again = adopt(f, scopeArgs(f, carried));
-  assert.equal(again.inspection.updateClass, "exact");
+  // The confirmed no scope, carried forward unchanged, changes nothing: with
+  // their rules and scoped files unchanged, the update reuses every recorded
+  // assessment and completes after its checks.
+  const carried = scopeArgs(
+    f,
+    f.json<Status>(["status", "--json"]).report.scopeProposal!,
+  );
+  const inspection = f.inspect(carried);
+  assert.equal(inspection.updateClass, "exact");
+  const again = f.json<Run>(startArgs(inspection.identity, carried));
+  assert.equal(again.report.outcome, "complete", again.result.stdout);
+  assert.deepEqual(
+    again.report.reused.map((answer) => answer.id),
+    ["assessment:hosting", "assessment:tracker"],
+  );
+  commit(root);
   assert.equal(
     existsSync(join(root, ".repo-standards/rules/hosting.md")),
     false,

@@ -156,17 +156,17 @@ test("a retired state, scope evidence, or run record format is rejected with the
   const { root } = f;
   const state = committedState(root);
   const scope = committedScopeEvidence(root);
-  assert.equal(state.format, "repo-standards/state/v7");
-  assert.equal(scope.format, "repo-standards/scope-history/v5");
+  assert.equal(state.format, "repo-standards/state/v8");
+  assert.equal(scope.format, "repo-standards/scope-history/v6");
   assert.equal(
     f.run<Status>(["status", "--json"]).report.format,
-    "repo-standards/status/v8",
+    "repo-standards/status/v9",
   );
   const retainedInspection = f.run<Inspection>(["inspect", "--json"]).report;
   assert.equal(retainedInspection.format, "repo-standards/inspection/v8");
   assert.equal(
     retainedInspection.historicalScope!.format,
-    "repo-standards/scope-history/v5",
+    "repo-standards/scope-history/v6",
   );
 
   const runRecord = join(
@@ -197,14 +197,14 @@ test("a retired state, scope evidence, or run record format is rejected with the
     },
     ...["v1", "v6"].map((version) => ({
       format: `repo-standards/state/${version}`,
-      current: "repo-standards/state/v7",
+      current: "repo-standards/state/v8",
       path: ".repo-standards/state.json",
       plant: (format: string) =>
         rewriteCommittedState(root, { ...state, format }),
     })),
     ...["v1", "v4"].map((version) => ({
       format: `repo-standards/scope-history/${version}`,
-      current: "repo-standards/scope-history/v5",
+      current: "repo-standards/scope-history/v6",
       path: ".repo-standards/inputs/scope-history.json",
       plant: (format: string) =>
         rewriteRetainedInput(
@@ -213,9 +213,9 @@ test("a retired state, scope evidence, or run record format is rejected with the
           { ...scope, format },
         ),
     })),
-    ...["v1", "v5"].map((version) => ({
+    ...["v1", "v6"].map((version) => ({
       format: `repo-standards/run/${version}`,
-      current: "repo-standards/run/v6",
+      current: "repo-standards/run/v7",
       path: relative(root, runRecord),
       plant: (format: string) =>
         writeFileSync(
@@ -283,7 +283,7 @@ test("a retired state, scope evidence, or run record format is rejected with the
   }
   assert.equal(
     f.run<Status>(["status", "--json"]).report.format,
-    "repo-standards/status/v8",
+    "repo-standards/status/v9",
   );
 
   // An archived report of an abandoned run is a run record too.
@@ -313,7 +313,7 @@ test("a retired state, scope evidence, or run record format is rejected with the
     assert.deepEqual(rejected.report.errors[0]!.details, {
       path: relative(root, archived),
       format: "repo-standards/run/v1",
-      expected: "repo-standards/run/v6",
+      expected: "repo-standards/run/v7",
     });
     assert.deepEqual(
       snapshot(root),
@@ -336,28 +336,28 @@ test("newer record formats require the pinned CLI without fresh-adoption advice 
   const records = [
     {
       path: join(root, ".repo-standards/state.json"),
-      format: "repo-standards/state/v8",
-      expected: "repo-standards/state/v7",
+      format: "repo-standards/state/v9",
+      expected: "repo-standards/state/v8",
     },
     {
       path: join(root, ".repo-standards/state.json"),
       format: "repo-standards/state/v10",
-      expected: "repo-standards/state/v7",
+      expected: "repo-standards/state/v8",
     },
     {
       path: join(root, ".repo-standards/inputs/scope-history.json"),
-      format: "repo-standards/scope-history/v6",
-      expected: "repo-standards/scope-history/v5",
+      format: "repo-standards/scope-history/v7",
+      expected: "repo-standards/scope-history/v6",
     },
     {
       path: runRecord,
-      format: "repo-standards/run/v7",
-      expected: "repo-standards/run/v6",
+      format: "repo-standards/run/v8",
+      expected: "repo-standards/run/v7",
     },
     {
       path: archived,
-      format: "repo-standards/run/v7",
-      expected: "repo-standards/run/v6",
+      format: "repo-standards/run/v8",
+      expected: "repo-standards/run/v7",
     },
     {
       path: join(root, ".repo-standards/lock.json"),
@@ -808,7 +808,7 @@ test("a project on a retired format inspects a fresh adoption that removes its p
     {
       path: ".repo-standards/state.json",
       format: "repo-standards/state/v6",
-      expected: "repo-standards/state/v7",
+      expected: "repo-standards/state/v8",
     },
   ]);
   assert.equal(inspection.retiredState!.target, ".repo-standards");
@@ -865,7 +865,7 @@ test("a project on a retired format inspects a fresh adoption that removes its p
   );
   assert.ok(
     summary.includes(
-      "| `.repo-standards/state.json` | `repo-standards/state/v6` | `repo-standards/state/v7` |",
+      "| `.repo-standards/state.json` | `repo-standards/state/v6` | `repo-standards/state/v8` |",
     ),
     summary,
   );
@@ -910,7 +910,7 @@ test("a project on a retired format inspects a fresh adoption that removes its p
   const state = committedState(root) as ReturnType<typeof committedState> & {
     links: Record<string, string>;
   };
-  assert.equal(state.format, "repo-standards/state/v7");
+  assert.equal(state.format, "repo-standards/state/v8");
   assert.deepEqual(
     state.links,
     Object.fromEntries(
@@ -1023,7 +1023,7 @@ test("a retired active run record blocks the fresh-adoption preview and its star
     assert.deepEqual(diagnostic!.details, {
       path: relative(root, runRecord),
       format: "repo-standards/run/v5",
-      expected: "repo-standards/run/v6",
+      expected: "repo-standards/run/v7",
       cli: "3.2.0",
     });
     assert.deepEqual(
@@ -1078,7 +1078,7 @@ test("a fresh adoption interrupted while removing retired product state reports 
   );
   assert.equal(retried.report.outcome, "complete");
   const state = committedState(root);
-  assert.equal(state.format, "repo-standards/state/v7");
+  assert.equal(state.format, "repo-standards/state/v8");
   // The earlier CLI's local reports were not archived as this run's.
   const retries = state.retryHistory as {
     archivedFiles: Record<string, string>;

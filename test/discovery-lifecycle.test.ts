@@ -321,12 +321,18 @@ test("an unchanged v2 selection recomputes retained discovery and reports scope 
     checkoutInspection.identity,
     "--json",
   ]);
+  // Its scoped files are unchanged since the last complete adoption, so the
+  // run reuses the recorded assessment and completes after its checks.
   assert.equal(
     checkoutStart.result.status,
-    1,
+    0,
     checkoutStart.result.stdout + checkoutStart.result.stderr,
   );
-  assert.equal(f.complete(runCheckout).result.status, 0);
+  assert.equal(checkoutStart.report.outcome, "complete");
+  assert.deepEqual(
+    checkoutStart.report.reused.map((answer) => answer.id),
+    ["assessment:docs"],
+  );
   const checkoutState = JSON.parse(
     readFileSync(join(checkout, ".repo-standards/state.json"), "utf8"),
   ) as State;
@@ -353,6 +359,15 @@ test("a completed discovery run reports its proposal even when cleanup was inter
     ) as ScopeProposal;
     proposal.declarations[0]!.coverage += ` Completion ${round + 1}.`;
     writeFileSync(f.scopeFile, JSON.stringify(proposal));
+    // A changed scoped file keeps the update from reusing the recorded
+    // assessment, so the run waits for contextual work.
+    if (round) {
+      writeFileSync(
+        join(f.project.root, "apps/old/README.md"),
+        `# Old project\n\nRound ${round + 1}.\n`,
+      );
+      commit(f.project.root);
+    }
     const inspection = f.run<Inspection>([
       ...args,
       "--scope",

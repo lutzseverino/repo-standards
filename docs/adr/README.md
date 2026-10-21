@@ -14,7 +14,8 @@ alternatives.
   agents propose evidence-backed file paths from author discovery guidance;
   amended by ADR 0017, adopters review the proposal with the inspection and no
   longer confirm it; superseded in part by ADR 0019, which allows discovery
-  scripts.
+  scripts; amended by ADR 0024, an update reuses a scope whose discovery
+  evidence is unchanged.
 - [Amend scope without redefining installed ownership](0004-amend-scope-without-redefining-installed-ownership.md):
   superseded by ADR 0009; an active run accepted confirmed additions to its
   discovered scope while keeping its selection and installed expectations.
@@ -73,7 +74,9 @@ alternatives.
   any work, so rules that govern work changing no file reach the agent.
 - [Let agents decide what Git can undo](0021-let-agents-decide-what-git-can-undo.md):
   agents decide reversible adoption choices and confirm discarded edits after
-  review; remote setting overwrites remain the maintainer's decision.
+  review; remote setting overwrites remain the maintainer's decision; amended
+  by ADR 0024, an update reuses a remote setup deferral while its probe still
+  reports it not ready.
 - [Replace a stopped run in place](0022-replace-a-stopped-run-in-place.md):
   a changed scope answer, or adopting after abandonment, starts a new run over
   the stopped run's recorded changes, whose change set covers both; a declined
@@ -82,3 +85,7 @@ alternatives.
   an author marks a discovery declaration optional, and a scope proposal may
   then give it no scope, which installs none of its rules and runs none of its
   operations while both scope reviews still judge it.
+- [Reuse recorded answers that are provably unchanged](0024-reuse-recorded-answers-that-are-provably-unchanged.md):
+  an update gives a recorded scope answer, remote setup deferral or assessment
+  again without asking when what it was about is unchanged, proposes the rest
+  for review, never replays a confirmation, and records every reused answer.

@@ -157,8 +157,17 @@ The questions an adoption asks, each with its context and choices, and the
 answers an agent records from its decisions or the maintainer, from which
 adoption proceeds without a terminal. A confirmation names the inspection
 identity reviewed by the agent for discarded edits, or confirmed by the
-maintainer for a remote setting overwrite.
+maintainer for a remote setting overwrite. In an update, a reused answer is
+already answered, and another recorded answer is prefilled for review.
 _Avoid_: Configuration file, approval file
+
+**Reused answer**:
+An answer the last complete adoption recorded that an update gives again
+without asking, because what it was about is provably unchanged: a scope
+answer, a remote setup deferral, or an assessment. Every other recorded answer
+is proposed for review, and a confirmation or a fix's overwrite answer is never
+reused.
+_Avoid_: Cached answer, replayed answer, default
 
 **Adoption**:
 The deliberate application of one resolved profile to an adopting project,
@@ -292,5 +301,6 @@ _Avoid_: Diff, changed-path log
 
 **Scope evidence**:
 The retained discovery observations behind the current confirmed scope, with its
-scope change against the previous run.
+scope change against the previous run and the discovery-script draft each
+confirmed entry was decided from.
 _Avoid_: History, cache

@@ -107,6 +107,9 @@ line, with the reason. For an optional declaration, it first asks whether the
 declaration has [no scope](inspection.md#no-scope), proposing yes when the
 draft has none, and asks why unless the draft already says so. A scope that inspection rejects is asked again. `adopt` then shows the inspection and asks to start the run, which
 answers `inspection`. Declining a confirmation or the start changes nothing.
+In an update, each [reused answer](#reused-answers) is shown with why it was
+reused and is not asked, and a recorded answer proposed for review is offered
+as the default, with what changed.
 
 Once the run waits for contextual work, `adopt` first asks, for each
 discovered declaration, whether its confirmed scope covers every file it should
@@ -124,7 +127,8 @@ for the rest of the session. Then it walks each contextual declaration in turn:
 
 A declaration with no scope is not walked: its scope reviews ask whether no
 project file belongs in its scope, and it is assessed satisfied when they say
-none does.
+none does. Nor is a declaration whose recorded assessment is
+[reused](#reused-answers), unless one of its checks fails.
 
 Once every declaration is walked, it asks again, for each discovered
 declaration, whether the confirmed scope covers every file it should now.
@@ -181,9 +185,12 @@ The agent reviews the inspection and answers with its current identity to
 start. It reviews each discarded edit's diff, or current content where no diff
 is available, and confirms the identity itself: the clean, committed starting
 tree makes those edits recoverable from Git. It defers remote setup that is not
-ready, changing nothing remotely; every later run applies it once ready. Its
-handoff records these decisions, the inspection's trusted script operations,
-each discarded edit with its diff or current content, and each deferral reason.
+ready, changing nothing remotely; every later run applies it once ready. In an
+update, it keeps each [reused answer](#reused-answers) unless the project calls
+for another, and validates each recorded answer proposed for review. Its
+handoff records these decisions, the reused answers, the inspection's trusted
+script operations, each discarded edit with its diff or current content, and
+each deferral reason.
 
 Continue with the exact command in the next steps, for example:
 
@@ -225,8 +232,10 @@ question with `defer`. Adoption can then complete locally; `status` and the
 adoption record list what was deferred. Choosing `resolve` stops without
 writing, so you can fix readiness first.
 
-A later `adopt` run probes remote setup again and applies it once ready. See
-the [remote setup reference](#remote-setup) for readiness, records, and recovery.
+A later `adopt` run probes remote setup again and applies it once ready. While
+the same probe still reports it not ready, the update
+[reuses](#reused-answers) the recorded deferral without asking. See the
+[remote setup reference](#remote-setup) for readiness, records, and recovery.
 
 ### Updates with adopt
 
@@ -249,6 +258,46 @@ CLI pin while updating standards, use the project runtime instead:
 Each update reviews changes, obtains confirmation when required, and completes
 one run. See [Update the selection](#update-the-selection) for the detailed
 update contract and lower-level commands.
+
+#### Reused answers
+
+An update carries the last complete adoption's recorded answers forward
+([ADR 0024](https://github.com/lutzseverino/repo-standards/blob/main/docs/adr/0024-reuse-recorded-answers-that-are-provably-unchanged.md)).
+Inspection, discovery scripts and readiness probes still run fresh, and each
+recorded answer is reused without asking only when what it was about is
+provably unchanged:
+
+- A `scope:<declaration>` answer, when the declaration's discovery guidance and
+  rules are hash-identical to the recorded ones, its discovery script's fresh
+  draft equals the draft the recorded entry was decided from, and every
+  candidate and evidence path the entry names still exists. A declaration
+  without a discovery script has no draft. Scope evidence the previous release
+  recorded keeps no drafts, so a fresh draft then matches only the recorded
+  entry itself. The inspection binds a reused entry as it binds any scope
+  answer.
+- The `remote-setup` answer `defer`, when every remote setup that is not ready
+  was deferred as remote setup and its probe, with an unchanged script,
+  arguments, resources and prerequisite, still reports it not ready. The run
+  records the deferral with the fresh reason.
+- An `assessment:<declaration>` answer, when the declaration's rules, or its
+  adoption guidance when it has no rules, and the files in its scope are
+  unchanged since the last complete adoption, judged after the run's fixes, so
+  a fix that changes a scoped file makes it ineligible. Durable state the
+  previous release recorded proves this only by the whole project's work
+  snapshot. When every assessment is reused, the run goes straight to its
+  checks.
+
+The report lists each reused answer in `reused`, with what made it eligible,
+and its question's `details.reused` holds the same evidence. Every other
+recorded answer comes back prefilled for review: its question's context names
+what changed and its `details.changed` lists it; a scope question's
+`details.draft` holds the fresh draft. It stays missing until the answers file
+carries it back, which needs no other confirmation. A `confirmation`, a `fix:`
+overwrite answer, and a fix deferred because the maintainer declined its
+overwrite are never reused, and `version` and `profile` keep their proposals.
+An answer of your own replaces a reused one and is not listed as reused; an
+answer equal to the reused one keeps it reused. The run record, durable state,
+`status`, and the adoption record list every reused answer.
 
 ### Adopting in the product checkout
 
@@ -317,16 +366,16 @@ fields, an ID of no question kind below, a repeated ID, and an answer of the
 wrong kind with `ANSWERS_FORMAT`, and an answers file inside the project with
 `ANSWERS_LOCATION`. A file of at most 2 MiB is read.
 
-| `id`                       | Asked when                                                                       | `answer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| -------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `version`                  | Always; the template proposes the newest stable release.                         | A stable tag from `choices`, the source's stable releases newest first.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `profile`                  | Always; proposed for an update or a single profile.                              | A profile `name` from `choices`, each with its `description`.                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `scope:<declaration>`      | For each active discovery declaration, and while a run is stopped for its scope. | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`, and `noScope` for [no scope](inspection.md#no-scope), which an optional declaration's question offers with `details.optional`. A discovery script's draft is proposed; it stays missing while it has open questions or until an answers file carries it back. A stopped run proposes its confirmed entry, and a changed one [replaces the run in place](#adopt-again-in-place). |
-| `remote-setup`             | When a remote setup probe is not ready.                                          | `defer` to complete adoption without it, or `resolve` to stop, writing nothing.                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `confirmation`             | When the inspection requires confirmation.                                       | The inspection identity confirmed after reviewing discarded edits, by the agent or a person at a terminal. `details` names the identity and the discarded edits.                                                                                                                                                                                                                                                                                                                                          |
-| `inspection`               | Once inspected; the template carries the identity.                               | The identity of the inspection the answers file was written against. A run starts only when it names the current inspection; a new or changed inspection is printed again for review first.                                                                                                                                                                                                                                                                                                               |
-| `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.                                     | One of `choices`: the run's inspection identity, once the maintainer confirms the overwrite its `context` names, or `defer`, once they decline it, which [defers the fix](#defer-a-declined-overwrite).                                                                                                                                                                                                                                                                                                   |
-| `assessment:<declaration>` | For each declaration of contextual work.                                         | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration. `details.noScope` marks a declaration with no scope, which allows no edit.                                                                                                                                                                                                                                                   |
+| `id`                       | Asked when                                                                       | `answer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`                  | Always; the template proposes the newest stable release.                         | A stable tag from `choices`, the source's stable releases newest first.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `profile`                  | Always; proposed for an update or a single profile.                              | A profile `name` from `choices`, each with its `description`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `scope:<declaration>`      | For each active discovery declaration, and while a run is stopped for its scope. | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`, and `noScope` for [no scope](inspection.md#no-scope), which an optional declaration's question offers with `details.optional`. A discovery script's draft is proposed; it stays missing while it has open questions or until an answers file carries it back. In an update, a [reused](#reused-answers) recorded entry is answered, and one proposed for review stays missing until carried back. A stopped run proposes its confirmed entry, and a changed one [replaces the run in place](#adopt-again-in-place). |
+| `remote-setup`             | When a remote setup probe is not ready.                                          | `defer` to complete adoption without it, or `resolve` to stop, writing nothing. In an update, a [reused](#reused-answers) deferral is answered `defer`, and one whose probe changed is proposed as `defer` and stays missing until carried back.                                                                                                                                                                                                                                                                                                                                                                                              |
+| `confirmation`             | When the inspection requires confirmation.                                       | The inspection identity confirmed after reviewing discarded edits, by the agent or a person at a terminal. `details` names the identity and the discarded edits.                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `inspection`               | Once inspected; the template carries the identity.                               | The identity of the inspection the answers file was written against. A run starts only when it names the current inspection; a new or changed inspection is printed again for review first.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.                                     | One of `choices`: the run's inspection identity, once the maintainer confirms the overwrite its `context` names, or `defer`, once they decline it, which [defers the fix](#defer-a-declined-overwrite).                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `assessment:<declaration>` | For each declaration of contextual work.                                         | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration. `details.noScope` marks a declaration with no scope, which allows no edit. A [reused](#reused-answers) recorded judgment is answered; one proposed for review stays missing until the answers file carries an answer.                                                                                                                                                                                                                                            |
 
 The question's ID names the declaration of a `scope:` or `assessment:`
 answer; an `id` inside the answer is ignored. An answers file confirms a
@@ -342,8 +391,10 @@ file, and so must a source given with it.
 answers, blockers, the inspection summary with each discarded edit's diff, or what replaces a skill or skill link it has none for, the
 discovery and adoption guidance of discovery declarations, the run and its
 failed checks, each contextual declaration's installed rules and adoption
-guidance, the answers file, and the next steps. `--json` prints the same as a
-`repo-standards/adopt/v1` report, whose `outcome` is one of:
+guidance, the reused answers, the answers file, and the next steps. `--json`
+prints the same as a `repo-standards/adopt/v2` report, whose `reused` lists
+each [reused answer](#reused-answers) by question `id`, `kind`, and the
+`evidence` that made it eligible, and whose `outcome` is one of:
 
 | `outcome`          | Meaning                                                                                                                                                                                                                         |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -357,8 +408,10 @@ For contextual work, the agent edits the allowed targets, answers each
 `assessment:<declaration>`, and runs `adopt --answers <file>` with the pinned
 runtime. It refreshes the work request at the current project, submits the
 assessments, and runs the checks. A run that has just reached contextual work
-asks for new assessments; after failed checks, the answers just submitted are
-carried for renewal. Without a terminal, `adopt` never retries or abandons a
+asks for new assessments, except those it reuses, which are answered with the
+recorded judgment; after failed checks, the answers just submitted are carried
+for renewal. A reused assessment whose scoped files the contextual work changes
+is proposed for review again instead of submitted. Without a terminal, `adopt` never retries or abandons a
 run itself: its next steps name the pinned `resume --retry`, which the agent
 runs without asking because its operations are repeat-safe, and `abandon`,
 which needs the maintainer's instruction. A run stopped for its scope carries
@@ -517,8 +570,10 @@ installed yet, so abandon the run and inspect again.
 Every later run, an update or the unchanged selection applied again, probes
 every remote setup again, including deferred ones. A ready one runs as any fix
 does, and the completion that follows records no deferral for it. One still
-not ready stops the run again unless it is deferred again. Remote setup names
-no platform; the probe decides readiness.
+not ready stops the run again unless it is deferred again; `adopt`
+[reuses](#reused-answers) the recorded deferral while the same probe still
+reports it not ready. Remote setup names no platform; the probe decides
+readiness.
 
 ## Update the selection
 
@@ -593,7 +648,8 @@ even when the retained range excludes the candidate version.
 When the candidate profile has active discovery declarations, including an
 unchanged selection, the first inspection requires fresh project evidence.
 Build a new `--scope` proposal and pass it to both the complete inspection and
-its start. The report lists discovered-scope additions and removals
+its start; `adopt` builds it from the recorded entries it
+[reuses](#reused-answers) and the answers it asks for. The report lists discovered-scope additions and removals
 relative to the prior complete adoption; removed scope ends governance without
 deleting that project-owned content.
 
@@ -730,8 +786,11 @@ source-resolved declarations, discovery guidance, proposal, rationale, evidence
 paths, derived absence and observation identities, together with the run's scope
 change against the previous run. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
-source availability, as `repo-standards/scope-history/v5` in the
+source availability, as `repo-standards/scope-history/v6` in the
 `repo-standards/inspection/v8` report, and `status` reports its scope change.
+It also keeps each discovery script's draft that the confirmed entry was
+decided from, which a later update compares with the fresh draft to
+[reuse the scope answer](#reused-answers).
 
 Retained scope evidence stores the run's discovery once: its identity, proposal,
 absence, declarations and project observation without the evidence array that
@@ -742,7 +801,9 @@ file is read. The scope change lists, for each discovery declaration whose
 discovered paths changed, the paths added and removed against the previous
 run's confirmed scope; it is computed when the run is planned and stored with
 it. Work intervals and final scope-validity assessments are committed in
-`repo-standards/state/v7`, which holds the current run's evidence only. Neither
+`repo-standards/state/v8`, which holds the current run's evidence only, with
+the answers it reused and each contextual declaration's scoped files, by
+identity, at completion. Neither
 file carries an earlier run, so neither grows with the number of runs; Git
 history keeps the evidence of earlier runs.
 
@@ -761,23 +822,27 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 
 | Artifact                                                             | Format                                                           |
 | -------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Durable state, `.repo-standards/state.json`                          | `repo-standards/state/v7`                                        |
+| Durable state, `.repo-standards/state.json`                          | `repo-standards/state/v8`                                        |
 | Integrity lock, `.repo-standards/lock.json`                          | `repo-standards/lock/v1`                                         |
-| Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v5`                                |
-| Run record, local run report, and archived abandoned report          | `repo-standards/run/v6`                                          |
-| `status` report                                                      | `repo-standards/status/v8`                                       |
+| Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v6`                                |
+| Run record, local run report, and archived abandoned report          | `repo-standards/run/v7`                                          |
+| `status` report                                                      | `repo-standards/status/v9`                                       |
 | Inspection report                                                    | `repo-standards/inspection/v8`                                   |
-| Work request and assessment                                          | `repo-standards/work-request/v4`, `repo-standards/assessment/v3` |
+| Work request and assessment                                          | `repo-standards/work-request/v5`, `repo-standards/assessment/v3` |
 
-Earlier formats are retired: they are not read, converted, or compacted. A
-project whose committed files carry one
+An update also reads `repo-standards/state/v7` and
+`repo-standards/scope-history/v5`, the formats the previous release wrote, as
+the adoption it updates, so that it [reuses](#reused-answers) what those
+records prove. Every other earlier format is retired: it is not read,
+converted, or compacted. A project whose committed files carry one
 [adopts fresh](#adopt-fresh-from-a-retired-format), and a run record in one
 calls for the CLI that wrote it. An agent's assessment
 submission is never committed: one in an earlier format is rejected with
 `ASSESSMENT_FORMAT` until it is written again in the current format.
 
-Discovery-backed updates, including an unchanged selection, use fresh
-proposals and record their scope change against the prior run. Retry repeats
+Discovery-backed updates, including an unchanged selection, inspect fresh
+proposals, whose entries `adopt` [reuses](#reused-answers) when their fresh
+evidence is unchanged, and record their scope change against the prior run. Retry repeats
 fixes under the confirmed scope and cannot authorize additional files; a scope
 that needs to change is [corrected by adopting again](#correct-a-confirmed-scope).
 
@@ -802,10 +867,12 @@ Neither dependencies nor run records belong in commits.
 
 ## Completion and incomplete results
 
-`start` prints a `repo-standards/run/v6` JSON report. Its fields include `id`,
+`start` prints a `repo-standards/run/v7` JSON report. Its fields include `id`,
 `inspection`, `selection`, `root`, `head`, `affected`, `outcome`, `phase`, `reason`, `changes`, `completed`,
-`uncertain`, `nextAction`, `prerequisites`, `operations`, `deferred`, `assessments`, and contextual
-`workRequest` when required. `deferred` lists each fix the run defers, by
+`uncertain`, `nextAction`, `prerequisites`, `operations`, `deferred`, `reused`, `assessments`, and contextual
+`workRequest` when required. `reused` lists each [reused answer](#reused-answers)
+by question `id`, `kind`, and `evidence`: those `adopt` reused for its start and
+each assessment the run reused. `deferred` lists each fix the run defers, by
 `declaration`, fix `id`, and `reason`: [remote setup](#remote-setup) that is
 not ready, with the probe's reason, and each
 [declined overwrite](#defer-a-declined-overwrite). `root` and `head` record the canonical project
@@ -895,10 +962,13 @@ operation with its result and message, then each deferred fix with the result
 probe's reason or a [declined overwrite](#defer-a-declined-overwrite),
 each path the run changed, once, with
 the phases that changed it, the discovered-scope additions and removals the run
-made, and the run, inspection, HEAD-at-start, and completion identities. During
+made, and the run, inspection, HEAD-at-start, and completion identities. A
+`### Reused answers` subsection of its Operations section lists each
+[reused answer](#reused-answers) with why it was eligible, adding no level-1 or
+level-2 heading, so the record stays a Repo Canon adoption record. During
 an active run it renders the run's selection, outcome, phase, execution and
 reason, its completed and uncertain work, operations and results, then its
-deferred fixes, changed paths, next action, and identities. Abandoned runs and a state error are listed
+deferred fixes and reused answers, changed paths, next action, and identities. Abandoned runs and a state error are listed
 when present. The same record renders the same bytes, the summary describes the
 record without prescribing anything, and combining `--summary` with `--json` is
 a usage error.
@@ -919,15 +989,17 @@ started from. The JSON status record of a complete adoption includes the same
 
 The JSON status record of a complete adoption also includes `deferred`: each
 fix its last complete run deferred, by `declaration`, fix `id`, and `reason`,
-or an empty list. An active run reports its own `deferred`.
+or an empty list. An active run reports its own `deferred`. Every JSON status
+record includes `reused`: the [reused answers](#reused-answers) of the active
+run, or else of the last complete run, or an empty list.
 
 The JSON status record of a complete discovery-backed adoption includes
 `scopeChanges`: the additions and removals by declaration that its last complete
 run made relative to the run before it, read from the retained scope evidence,
 or every confirmed path for the first discovery-backed run.
 
-Every `status --json` report uses `repo-standards/status/v8` (raised from v7 for
-`readyToCommit` and `readinessReasons`) and includes
+Every `status --json` report uses `repo-standards/status/v9` (raised from v8 for
+`reused`) and includes
 `scopeProposal`: the last complete run's confirmed proposal, in the public
 `repo-standards/scope/v2` format, or null when that run had no confirmed proposal
 or no adoption has completed. It preserves the confirmed candidates, decisions,
@@ -938,9 +1010,10 @@ The field reads only retained committed evidence and works in a fresh checkout,
 offline, independently of the source flags used for inspection or an update.
 During an incomplete or abandoned update, it reads the last complete adoption's
 evidence from the clean commit at that run's start; the candidate proposal does
-not become the last complete proposal. Carrying decisions into a later draft
-still requires fresh evidence and confirmation. `status --summary` is unchanged
-and does not render the proposal.
+not become the last complete proposal. An update reuses the proposal's entries
+only when fresh evidence reproduces what they were decided from, as
+[reused answers](#reused-answers) describes. `status --summary` does not render
+the proposal.
 
 ## Adopt afresh over installed content
 
@@ -1013,7 +1086,7 @@ further records or writing anything. The diagnostic names the record, its
 retired format, and the format this CLI reads, for example:
 
 ```text
-[RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v6; this CLI reads only repo-standards/state/v7. Adopt fresh: inspect with --source, --standards-version and --profile, and start that inspection, which removes the retired .repo-standards directory.
+[RETIRED_FORMAT] .repo-standards/state.json carries the retired format repo-standards/state/v6; this CLI reads only repo-standards/state/v8. Adopt fresh: inspect with --source, --standards-version and --profile, and start that inspection, which removes the retired .repo-standards directory.
 ```
 
 Run records live in Git's directory: the active run at
@@ -1027,7 +1100,7 @@ one, and its `resume --retry` and `abandon`, which can still continue or end
 the run; this CLI can't:
 
 ```text
-[RETIRED_RUN] The active adoption run record .git/repo-standards-run.lock carries the retired format repo-standards/run/v5; this CLI reads only repo-standards/run/v6. It may hold unfinished work: with the earlier pinned CLI 3.2.0, resume it with resume --retry or end it with abandon, then inspect again.
+[RETIRED_RUN] The active adoption run record .git/repo-standards-run.lock carries the retired format repo-standards/run/v5; this CLI reads only repo-standards/run/v7. It may hold unfinished work: with the earlier pinned CLI 3.2.0, resume it with resume --retry or end it with abandon, then inspect again.
 ```
 
 An archived report in a retired format fails with `RETIRED_FORMAT` and names
@@ -1038,7 +1111,7 @@ A higher version of the same record format fails with `NEWER_FORMAT`, including
 when a future schema no longer exposes the CLI pin where this CLI expects it:
 
 ```text
-[NEWER_FORMAT] .repo-standards/state.json carries the newer format repo-standards/state/v8; this CLI reads only repo-standards/state/v7. Use the pinned CLI to read this record.
+[NEWER_FORMAT] .repo-standards/state.json carries the newer format repo-standards/state/v9; this CLI reads only repo-standards/state/v8. Use the pinned CLI to read this record.
 ```
 
 This diagnostic exits 1, reads no further records, and changes nothing. Use the

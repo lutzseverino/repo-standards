@@ -389,7 +389,7 @@ test("a CLI pin change interrupted before its runtime is installed sends the for
   const run = JSON.parse(readFileSync(runRecord, "utf8")) as Run;
   writeFileSync(
     runRecord,
-    JSON.stringify({ ...run, format: "repo-standards/run/v7" }),
+    JSON.stringify({ ...run, format: "repo-standards/run/v8" }),
   );
   const statePath = join(f.project.root, ".repo-standards/state.json");
   const state = readFileSync(statePath);

@@ -8,6 +8,7 @@ import type {
 import {
   matchesInventory,
   type Blocker,
+  type HashInventory,
   type Observation,
 } from "./observation.js";
 import type { RecordedAdoption, RecordedSelection } from "./recorded-state.js";
@@ -37,7 +38,10 @@ interface DeclarationChanges {
   changes: ContextualChange[];
 }
 
-type FileHashes = Record<string, { sha256: string; executable: boolean }>;
+export type FileHashes = Record<
+  string,
+  { sha256: string; executable: boolean }
+>;
 
 // What the candidate would adopt: its selection, its source-resolved
 // declarations, the declarations whose scope is confirmed, and each referenced
@@ -68,7 +72,10 @@ function sorted(files: FileHashes): FileHashes {
 
 // A referenced path's files, keyed relative to it: '' for a file, '/name' for
 // the files of a directory tree.
-function retainedFiles(recorded: RecordedAdoption, path: string): FileHashes {
+export function retainedFiles(
+  recorded: Pick<RecordedAdoption, "files">,
+  path: string,
+): FileHashes {
   const base = retainedSource + path;
   return sorted(
     Object.fromEntries(
@@ -82,18 +89,45 @@ function retainedFiles(recorded: RecordedAdoption, path: string): FileHashes {
   );
 }
 
-function candidateFiles(candidate: UpdateCandidate, path: string): FileHashes {
+// An observed or inventoried path's files, keyed as retainedFiles keys them.
+export function inventoryFiles(
+  value: Observation | HashInventory | undefined,
+): FileHashes {
   const files: FileHashes = {};
-  function visit(prefix: string, value: Observation) {
+  function visit(prefix: string, value: Observation | HashInventory) {
     if (value.type === "file")
       files[prefix] = { sha256: value.sha256, executable: value.executable };
     else if (value.type === "directory")
       for (const [name, child] of Object.entries(value.entries))
         visit(`${prefix}/${name}`, child);
   }
-  const value = candidate.inputs[path];
   if (value) visit("", value);
   return sorted(files);
+}
+
+function candidateFiles(candidate: UpdateCandidate, path: string): FileHashes {
+  return inventoryFiles(candidate.inputs[path]);
+}
+
+// A script's complete definition with the files of its script and resources,
+// as an operation, readiness probe or discovery script declares it.
+export function scriptMaterial(
+  declared: Script,
+  files: (path: string) => FileHashes,
+) {
+  return {
+    executable: declared.run.executable,
+    script: declared.run.script,
+    scriptFiles: files(declared.run.script),
+    arguments: declared.run.arguments,
+    resources: declared.run.resources.map((path) => ({
+      path,
+      files: files(path),
+    })),
+    versionArguments: declared.prerequisite["version-arguments"],
+    version: declared.prerequisite.version,
+    timeout: declared["timeout-seconds"],
+  };
 }
 
 // A discovery declaration's discovery guidance and optional script.
@@ -115,19 +149,7 @@ function material(
   scope: (Targets & { none?: boolean }) | undefined,
   files: (path: string) => FileHashes,
 ) {
-  const script = (declared: Script) => ({
-    executable: declared.run.executable,
-    script: declared.run.script,
-    scriptFiles: files(declared.run.script),
-    arguments: declared.run.arguments,
-    resources: declared.run.resources.map((path) => ({
-      path,
-      files: files(path),
-    })),
-    versionArguments: declared.prerequisite["version-arguments"],
-    version: declared.prerequisite.version,
-    timeout: declared["timeout-seconds"],
-  });
+  const script = (declared: Script) => scriptMaterial(declared, files);
   const operations = (list: Operation[] = []) =>
     list.map((operation) => ({
       id: operation.id,

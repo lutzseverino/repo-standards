@@ -1,6 +1,6 @@
 import { ProductError } from "./errors.js";
 import { declarationTargets } from "./targets.js";
-import { formats } from "./formats.js";
+import { formats, readableFormat } from "./formats.js";
 import type { ResolvedProfile } from "./model.js";
 import { concreteScope, type Scope } from "./scope.js";
 import { observationIdentity } from "./scope-observation.js";
@@ -88,7 +88,9 @@ export interface InheritedChange extends ChangedPath {
 }
 
 export interface ExecutionEvidence {
-  format: typeof formats.state;
+  // The current format, or the previous release's, which a recorded adoption
+  // is also read in.
+  format: string;
   observations: RecordedInterval[];
   operations: unknown[];
   retryHistory: unknown[];
@@ -755,12 +757,13 @@ function validChangeSet(value: unknown) {
   );
 }
 
-// The execution-evidence slice is read in its single committed format only,
-// and holds the current run alone: a carried earlier run fails validation.
+// The execution-evidence slice is read in its committed format, or the
+// previous release's, and holds the current run alone: a carried earlier run
+// fails validation.
 export function validExecutionEvidence(value: ExecutionEvidence) {
   const state = value as unknown as Record<string, unknown>;
   return (
-    state.format === formats.state &&
+    readableFormat(state, formats.state) &&
     !Object.hasOwn(state, "history") &&
     Array.isArray(state.observations) &&
     Array.isArray(state.operations) &&

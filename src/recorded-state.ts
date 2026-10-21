@@ -23,6 +23,7 @@ import {
   formatAge,
   formats,
   newerFormat,
+  readableFormat,
   recordPath,
   requireFormat,
   retiredFormat,
@@ -30,6 +31,7 @@ import {
 } from "./formats.js";
 import type { Declaration } from "./model.js";
 import type { DeferredFix } from "./remote-setup.js";
+import type { ReusedAnswer } from "./reused-answers.js";
 import {
   committedFiles,
   git,
@@ -89,6 +91,11 @@ interface RecordedState extends ExecutionEvidence {
   // The fixes the last complete run deferred. State an earlier CLI wrote has
   // none.
   deferred?: DeferredFix[];
+  // The recorded answers the run reused, and each contextual declaration's
+  // scoped files at completion, by identity. The previous release's state has
+  // neither.
+  reused?: ReusedAnswer[];
+  assessedScopes?: Record<string, string>;
 }
 type RecordedFile = Extract<Observation, { type: "file" }>;
 
@@ -156,7 +163,8 @@ function validLinks(links: unknown, skills: Record<string, string[]>) {
   );
 }
 
-// Decodes durable state in its single committed format.
+// Decodes durable state in its committed format, or in the previous release's,
+// which lacks the reused answers and assessed scopes.
 function decodeState(
   value: Pick<Content, "content" | "encoding">,
 ): RecordedState {
@@ -175,6 +183,12 @@ function decodeState(
     !Array.isArray(state.checks) ||
     !Array.isArray(state.assessments) ||
     (state.deferred !== undefined && !Array.isArray(state.deferred)) ||
+    (state.format === formats.state
+      ? !Array.isArray(state.reused) ||
+        !state.assessedScopes ||
+        typeof state.assessedScopes !== "object" ||
+        Array.isArray(state.assessedScopes)
+      : state.reused !== undefined || state.assessedScopes !== undefined) ||
     !validExecutionEvidence(state)
   ) {
     invalid();
@@ -422,7 +436,7 @@ export function rejectUnsupportedRecords(
         !lstatSync(join(root, where), { throwIfNoEntry: false })
       )
         continue;
-      if ((value as { format?: unknown } | undefined)?.format !== format) {
+      if (!readableFormat(value, format)) {
         throw new ProductError(
           "STATE_INTEGRITY",
           `${where} is not a readable ${format} record or a retired version of it, so the retired product state cannot be removed. Restore the committed product state.`,

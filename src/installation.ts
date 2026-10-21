@@ -40,6 +40,7 @@ import {
 } from "./observation.js";
 import { plannedRules, rulesDirectory } from "./rules.js";
 import { committedScopeEvidence, type ScopeRun } from "./scope-evidence.js";
+import { assessmentBases, type AssessmentBasis } from "./reused-answers.js";
 import type { Scope } from "./scope.js";
 import { installedSystemSkills, linkTextAt, skillTarget } from "./targets.js";
 import {
@@ -79,6 +80,9 @@ export interface Installation {
   durable: Record<string, Baseline>;
   runtimeHash: string;
   scopeAfterFixes?: string;
+  // The last complete adoption's assessment of each contextual declaration,
+  // with what proves it unchanged, which the run reuses when it is.
+  assessmentBases?: AssessmentBasis[];
   before: Record<string, HashInventory>;
   // Paths the run removes whole before installing the planned files under
   // them: the retired product state directory, an update's retained inputs,
@@ -164,7 +168,7 @@ export function planInstallation(
       ...(report.discovery
         ? {
             sourceResolved: report.sourceResolved!,
-            discovery: report.discovery,
+            discovery: { ...report.discovery, drafts: inspected.drafts },
           }
         : {}),
     };
@@ -233,7 +237,12 @@ export function planInstallation(
     durable,
     runtimeHash: hash(json(installedRuntime)),
     replaceTrees,
-    ...(recorded ? { previousState: recorded.stateFile } : {}),
+    ...(recorded
+      ? {
+          previousState: recorded.stateFile,
+          assessmentBases: assessmentBases(recorded, report),
+        }
+      : {}),
     ...(inherited.length ? { inherited } : {}),
     before: Object.fromEntries(
       [
@@ -768,6 +777,7 @@ export function completionFiles(
   installation: Installation,
   run: Run,
   operationStart: number,
+  assessedScopes: Record<string, string>,
 ) {
   const state = file(
     json({
@@ -790,6 +800,8 @@ export function completionFiles(
         .filter((evidence) => evidence.operation.phase === "checks"),
       assessments: run.assessments,
       deferred: run.deferred,
+      reused: run.reused,
+      assessedScopes,
     }),
   );
   const lock = file(

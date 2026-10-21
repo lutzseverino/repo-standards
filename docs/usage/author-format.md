@@ -35,8 +35,16 @@ An active run cannot change its confirmed scope; when contextual work needs
 other paths, a new run
 [adopts again with a new confirmed scope](adoption.md#correct-a-confirmed-scope).
 Fresh discovery proposals also apply during every update, including one that
-applies an unchanged selection again. Between complete runs, scope can add or remove
-individual paths; removals end governance without deleting project content.
+applies an unchanged selection again. `adopt` reuses the recorded entry in that
+proposal only while the declaration's discovery guidance, rules and fresh
+discovery-script draft are unchanged and every path the entry names exists,
+and otherwise proposes it for review
+([reused answers](adoption.md#reused-answers)): changing discovery guidance,
+rules, or what a discovery script drafts makes adopters review the scope again.
+Changing a contextual declaration's rules, or its adoption guidance when it has
+no rules, likewise makes adopters assess it again. Between complete runs, scope
+can add or remove individual paths; removals end governance without deleting
+project content.
 
 ## Root and profiles
 
