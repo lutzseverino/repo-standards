@@ -582,11 +582,9 @@ console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: input.o
   assert.equal(question(again, "fix:agent-guidance/labels").answer, null);
 });
 
-test("an update from the previous release's state and scope evidence reuses every answer they prove", async (t) => {
-  const { f } = await reuseFixture(t);
-  adoptFirst(f);
-  // The records as CLI 9.0.0 writes them: state/v7 without reused answers
-  // or assessed scopes, and scope-history/v5 without drafts.
+// Rewrites the adoption's records as CLI 9.0.0 writes them: state/v7 without
+// reused answers or assessed scopes, and scope-history/v5 without drafts.
+function previousRelease(f: Fixture) {
   const {
     reused: _reused,
     assessedScopes: _scopes,
@@ -610,6 +608,13 @@ test("an update from the previous release's state and scope evidence reuses ever
   });
   commit(f.root);
 
+  return historyPath;
+}
+
+test("an update from the previous release's state and scope evidence reuses every answer they prove", async (t) => {
+  const { f } = await reuseFixture(t);
+  adoptFirst(f);
+  const historyPath = previousRelease(f);
   const template = f.adopt([], true).report;
   assert.deepEqual(ids(template), ["scope:project-docs", "remote-setup"]);
   assert.equal(
@@ -636,4 +641,80 @@ test("an update from the previous release's state and scope evidence reuses ever
     );
   assert.equal(committedState(f.root).format, "repo-standards/state/v8");
   assert.ok(existsSync(join(f.root, historyPath)));
+});
+
+test("previous-release state reuses no assessment whose scope answer changed", async (t) => {
+  const { f } = await reuseFixture(t);
+  adoptFirst(f);
+  previousRelease(f);
+  const template = f.adopt([], true).report;
+  const { candidates, ...entry } = question(template, "scope:project-docs")
+    .answer as { candidates: object[] };
+  // The whole project is unchanged, but the docs scope gains a file to write.
+  const started = untilStarted(f, [], {
+    "scope:project-docs": {
+      ...entry,
+      candidates: [
+        ...candidates,
+        {
+          path: "tools/README.md",
+          decision: "include",
+          reason: "The tools are maintained too.",
+          evidence: ["tools/run.sh"],
+        },
+      ],
+    },
+  });
+  assert.equal(started.outcome, "contextual", JSON.stringify(started));
+  assert.deepEqual(started.missing, ["assessment:project-docs"]);
+  assert.deepEqual(ids(started), ["remote-setup", "assessment:project-readme"]);
+});
+
+test("a recorded remote setup deferral beside remote setup it never deferred is proposed for review", async (t) => {
+  const outside = directoryFixture("repo-standards-reuse-remote-");
+  t.after(() => outside.close());
+  const setup = (name: string) => ({
+    ...operation(name, {
+      script: "remote/fix.mjs",
+      arguments: [join(outside.root, `${name}.log`)],
+    }),
+    "remote-setup": {
+      probe: (({ id: _id, ...declared }) => declared)(
+        operation("probe", {
+          script: "remote/probe.mjs",
+          arguments: [join(outside.root, `${name}-ready`)],
+        }),
+      ),
+    },
+  });
+  const f = await fixture(
+    t,
+    cli,
+    {
+      "agent-guidance": {
+        kind: "file",
+        target: "AGENTS.md",
+        exact: "content/AGENTS.md",
+        fixes: [setup("labels"), setup("rules")],
+      },
+    },
+    { project: { "README.md": "Project notes\n" } },
+  );
+  // Labels are deferred and the rules are applied.
+  writeFileSync(join(outside.root, "rules-ready"), "");
+  const first = untilStarted(f, [source], {}, false);
+  assert.equal(first.outcome, "complete", JSON.stringify(first));
+  commit(f.root);
+  rmSync(join(outside.root, "rules-ready"));
+  const update = f.adopt([], true).report;
+  assert.deepEqual(update.reused, []);
+  const remote = question(update, "remote-setup");
+  assert.equal(remote.answer, "defer");
+  assert.match(remote.context, /proposed here as defer for review/);
+  assert.match(remote.context, /did not defer agent-guidance\/rules/);
+  assert.ok(update.missing.includes("remote-setup"));
+  // Carried back, the proposal is the agent's own answer.
+  const carried = f.adopt(f.answer(update.answers), true).report;
+  assert.equal(carried.outcome, "complete", JSON.stringify(carried));
+  assert.deepEqual(carried.reused, []);
 });

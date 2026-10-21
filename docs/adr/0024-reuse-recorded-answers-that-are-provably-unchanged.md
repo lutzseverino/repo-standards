@@ -2,7 +2,8 @@
 
 Amends [ADR 0003](0003-use-agent-discovery-with-confirmed-concrete-scope.md),
 as amended by [ADR 0017](0017-confirm-only-confirmation-required-changes.md),
-and [ADR 0021](0021-let-agents-decide-what-git-can-undo.md). Every update asked
+[ADR 0007](0007-write-and-read-one-evidence-format.md), and
+[ADR 0021](0021-let-agents-decide-what-git-can-undo.md). Every update asked
 again for every answer its last complete adoption had already recorded: a
 fresh scope for each discovery declaration, a deferral for remote setup that is
 still not ready, and an assessment of each contextual declaration. An update
@@ -61,7 +62,8 @@ answer in its question's `details`.
 
 An update must complete from the previous release's records, so this CLI also
 reads `state/v7` and `scope-history/v5` as the established adoption it
-updates. Those records keep no drafts and no per-declaration scope identity: a
+updates: the one exception to ADR 0007's single read format, for the formats
+the previous release wrote. Those records keep no drafts and no per-declaration scope identity: a
 fresh draft then matches only the recorded entry itself, and an assessment is
 proven unchanged only by the whole project's work snapshot.
 

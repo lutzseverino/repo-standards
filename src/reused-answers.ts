@@ -89,6 +89,7 @@ function normalized(entry: unknown) {
   }
 }
 
+// Whether two scope entries are the same as a proposal reads them.
 export function sameEntry(a: unknown, b: unknown) {
   const left = normalized(a);
   return left !== undefined && left === normalized(b);
@@ -112,6 +113,8 @@ export interface FreshDiscovery {
   discovery: { sha256: string; executable: boolean };
   rules: FileHashes;
   draft: Entry | undefined;
+  // Whether its scope may be no scope.
+  optional: boolean;
 }
 
 // The source declaration's rules path, if it has rules.
@@ -177,6 +180,8 @@ export function classifyScope(
           : "Its discovery script's draft differs from the recorded entry.",
       );
   }
+  if (answer.noScope && !fresh.optional)
+    changed.push("It is no longer optional, so it cannot keep no scope.");
   const paths = namedPaths(answer);
   const missing = paths.filter((path) => absent(root, path));
   if (missing.length)
@@ -207,6 +212,8 @@ interface FreshSelection {
   inputs: Record<string, HashInventory>;
 }
 
+// The readiness probe of a remote setup fix, as resolved declarations declare
+// it.
 function probeOf(declarations: Declaration[], fix: DeferredFix) {
   return declarations
     .find((declaration) => declaration.id === fix.declaration)
@@ -217,9 +224,10 @@ function probeOf(declarations: Declaration[], fix: DeferredFix) {
 // Classifies the remote setup question against the deferrals the last
 // complete adoption recorded. It is reused when every remote setup that is
 // not ready was deferred, as remote setup, with an unchanged probe definition.
-// It is proposed as defer when each was deferred but a probe definition
-// changed, and is asked as before when one was never deferred. A fix deferred
-// because the maintainer declined its overwrite is not a remote setup deferral.
+// Otherwise, when any of them was deferred, it is proposed as defer, naming
+// each probe that changed and each remote setup never deferred before, and it
+// is asked as before when none was. A fix deferred because the maintainer
+// declined its overwrite is not a remote setup deferral.
 export function classifyRemoteSetup(
   recorded: RecordedAdoption | undefined,
   notReady: DeferredFix[],
@@ -228,6 +236,7 @@ export function classifyRemoteSetup(
   if (!recorded || !notReady.length) return undefined;
   const changed: string[] = [];
   const deferrals: RemoteSetupReuse["deferrals"] = [];
+  let recordedDeferrals = 0;
   for (const entry of notReady) {
     const deferred = (recorded.state.deferred ?? []).some(
       (fix) =>
@@ -237,7 +246,13 @@ export function classifyRemoteSetup(
     );
     const before = probeOf(recorded.resolved.declarations, entry);
     const after = probeOf(fresh.resolved.declarations, entry);
-    if (!deferred || !before || !after) return undefined;
+    if (!deferred || !before || !after) {
+      changed.push(
+        `The last complete adoption did not defer ${entry.declaration}/${entry.id} as remote setup.`,
+      );
+      continue;
+    }
+    recordedDeferrals++;
     const definition = scriptMaterial(after, (path) =>
       inventoryFiles(fresh.inputs[path]),
     );
@@ -252,6 +267,7 @@ export function classifyRemoteSetup(
       );
     deferrals.push({ ...entry, probe: `sha256:${hash(json(definition))}` });
   }
+  if (!recordedDeferrals) return undefined;
   return changed.length
     ? { answer: "defer", changed }
     : { answer: "defer", reused: { deferrals } };
@@ -290,8 +306,14 @@ export interface AssessmentBasis {
     | { basis: "declaration"; snapshot: string }
     // State an earlier CLI wrote binds only the whole project's work
     // snapshot, over the recorded selection's concrete scope and that run's
-    // retry count.
-    | { basis: "project"; snapshot: string; scope: Scope; retries: number };
+    // retry count, so the declaration's targets must also be the recorded ones.
+    | {
+        basis: "project";
+        snapshot: string;
+        scope: Scope;
+        retries: number;
+        targets: Targets;
+      };
 }
 
 // What a contextual declaration's assessment is made against: its rules, or
@@ -337,6 +359,9 @@ export function assessmentBases(
           snapshot: assessment.snapshot,
           scope: concreteScope(recorded.resolved),
           retries: recorded.state.retryHistory.length,
+          targets: declarationTargets(
+            recorded.resolved.declarations.find((entry) => entry.id === id)!,
+          ),
         };
     if (!scope) return [];
     return [
@@ -370,15 +395,22 @@ export function classifyAssessments(
         const declaration = resolved.declarations.find(
           (entry) => entry.id === basis.id,
         )!;
+        const targets = declarationTargets(declaration);
+        const sorted = ({ paths, directories }: Targets) => ({
+          paths: [...paths].sort(),
+          directories: [...directories].sort(),
+        });
         const snapshot =
           basis.scope.basis === "declaration"
-            ? declarationSnapshot(observation, declarationTargets(declaration))
-            : (project ??= {
-                snapshot: projectSnapshot(
-                  basis.scope.scope,
-                  basis.scope.retries,
-                ),
-              }).snapshot;
+            ? declarationSnapshot(observation, targets)
+            : !same(sorted(targets), sorted(basis.scope.targets))
+              ? undefined
+              : (project ??= {
+                  snapshot: projectSnapshot(
+                    basis.scope.scope,
+                    basis.scope.retries,
+                  ),
+                }).snapshot;
         const changed = [
           ...(basis.changedAgainst
             ? [
@@ -434,8 +466,31 @@ function judgmentKey(judgment: Partial<RecordedJudgment>) {
   ]);
 }
 
+// Whether an answer is the given recorded judgment, as the run accepts it.
 export function sameJudgment(a: unknown, b: RecordedJudgment) {
   return !!a && typeof a === "object" && judgmentKey(a) === judgmentKey(b);
+}
+
+// The assessments a work request's declarations reuse: each one whose answer
+// is the recorded judgment it carries to reuse.
+export function reusedAssessments(
+  declarations: {
+    id: string;
+    reused?: { judgment: RecordedJudgment; evidence: AssessmentReuse };
+  }[],
+  answer: (id: string) => unknown,
+): ReusedAnswer[] {
+  return declarations.flatMap(({ id, reused }) =>
+    reused && sameJudgment(answer(id), reused.judgment)
+      ? [
+          {
+            id: `assessment:${id}`,
+            kind: "assessment" as const,
+            evidence: reused.evidence,
+          },
+        ]
+      : [],
+  );
 }
 
 // The fresh discovery of a source declaration, from the inspection report and
@@ -457,7 +512,12 @@ export function freshDiscovery(
   if (!discovery) return undefined;
   const rules = rulesOf(report.sourceResolved?.declarations, id);
   const draft = drafts.find((entry) => entry.id === id);
+  const declaration = report.sourceResolved?.declarations.find(
+    (entry) => entry.id === id,
+  );
   return {
+    optional:
+      !!declaration && "discovery" in declaration && !!declaration.optional,
     discovery: { sha256: discovery.sha256, executable: discovery.executable },
     rules: rules ? inventoryFiles(report.inputs[rules]) : {},
     draft: draft ? (({ id: _id, ...entry }) => entry)(draft) : undefined,

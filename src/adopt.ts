@@ -62,8 +62,8 @@ import {
   classifyScope,
   entryPathsExist,
   freshDiscovery,
+  reusedAssessments,
   sameEntry,
-  sameJudgment,
   type ReusedAnswer,
   type ScopeEntry,
 } from "./reused-answers.js";
@@ -742,8 +742,13 @@ async function prepare(
   const scopeAnswer = (id: string) => {
     const answer = answeredScope(id);
     if (answer) return answer;
+    // A no scope only an optional declaration may have would fail inspection.
     const entry = recordedScope.get(id);
-    return entry && entryPathsExist(root, entry) ? record(entry) : undefined;
+    return entry &&
+      entryPathsExist(root, entry) &&
+      (!entry.noScope || optional.has(id))
+      ? record(entry)
+      : undefined;
   };
   const proposed =
     discovery.length > 0 &&
@@ -1345,20 +1350,10 @@ async function describeRun(
     answer: submitted(question.id) ?? question.answer,
   }));
   // The assessments the request reuses, unless an answer replaces them.
-  const reusedAssessments = request.declarations.flatMap(({ id, reused }) =>
-    reused &&
-    sameJudgment(
+  const reused = reusedAssessments(
+    request.declarations,
+    (id) =>
       questions.find((question) => question.id === `assessment:${id}`)!.answer,
-      reused.judgment,
-    )
-      ? [
-          {
-            id: `assessment:${id}`,
-            kind: "assessment" as const,
-            evidence: reused.evidence,
-          },
-        ]
-      : [],
   );
   return withSteps(
     context,
@@ -1376,7 +1371,7 @@ async function describeRun(
         .map((question) => question.id),
       reused: [
         ...report.reused.filter((answer) => answer.kind !== "assessment"),
-        ...reusedAssessments,
+        ...reused,
       ],
       contextual: request.declarations.map((declaration) => ({
         id: declaration.id,

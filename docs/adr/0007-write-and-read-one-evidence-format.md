@@ -19,3 +19,8 @@ second mode in every later release.
 [ADR 0011](0011-retain-only-the-current-run.md) amends this decision: committed
 state and retained scope evidence hold the current run only, with the scope
 change against the previous run stored, rather than every earlier run.
+
+[ADR 0024](0024-reuse-recorded-answers-that-are-provably-unchanged.md) amends
+this decision for updates: the CLI also reads the durable state and retained
+scope evidence the previous release wrote, as the established adoption an
+update replaces, and writes only its own formats.

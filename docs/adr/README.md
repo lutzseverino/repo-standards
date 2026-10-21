@@ -27,7 +27,8 @@ alternatives.
   from its source.
 - [Write and read one evidence format, as identities and deltas](0007-write-and-read-one-evidence-format.md):
   every report and record carries identities and deltas in exactly one format,
-  and retired formats are not read.
+  and retired formats are not read; amended by ADR 0024, an update also reads
+  the previous release's durable state and scope evidence.
 - [Bind confirmation identity to what the run reads](0008-bind-confirmation-identity-to-what-the-run-reads.md):
   confirmation binds the content a run reads rather than Git HEAD, the index,
   or status.

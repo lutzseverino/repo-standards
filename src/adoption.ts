@@ -55,7 +55,7 @@ import { installedRules } from "./rules.js";
 import {
   classifyAssessments,
   declarationSnapshot,
-  sameJudgment,
+  reusedAssessments,
   type ReusedAnswer,
 } from "./reused-answers.js";
 import type { WorkObservation } from "./work-observation.js";
@@ -174,29 +174,6 @@ function workSnapshot(
   return snapshotOf(
     observeWork(root, concreteScope(resolved)),
     run.retryHistory?.length ?? 0,
-  );
-}
-
-// The assessment answers a request reused: each declaration it carries a
-// recorded assessment to reuse for, whose accepted judgment is that one.
-function reusedAssessments(
-  request: WorkRequest,
-  accepted: { declarations: { id: string }[] },
-): ReusedAnswer[] {
-  return request.declarations.flatMap(({ id, reused }) =>
-    reused &&
-    sameJudgment(
-      accepted.declarations.find((entry) => entry.id === id),
-      reused.judgment,
-    )
-      ? [
-          {
-            id: `assessment:${id}`,
-            kind: "assessment" as const,
-            evidence: reused.evidence,
-          },
-        ]
-      : [],
   );
 }
 
@@ -606,7 +583,10 @@ async function advance(
     session.record({
       type: "assessment-submitted",
       assessment: accepted,
-      reused: reusedAssessments(session.observation.workRequest!, accepted),
+      reused: reusedAssessments(
+        session.observation.workRequest!.declarations,
+        (id) => accepted.declarations.find((entry) => entry.id === id),
+      ),
     });
     if (
       accepted.declarations.some(
@@ -714,7 +694,9 @@ async function advance(
           request,
           installation,
           accepted,
-          reusedAssessments(request, accepted),
+          reusedAssessments(request.declarations, (id) =>
+            accepted.declarations.find((entry) => entry.id === id),
+          ),
         );
       } else {
         session.journal.open();

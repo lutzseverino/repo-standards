@@ -2,8 +2,9 @@ import { isAbsolute, relative } from "node:path";
 import { ProductError } from "./errors.js";
 
 // Each artifact has exactly one format, and it is the one this CLI writes and
-// reads. Retired formats are neither converted nor read: committed product
-// state carrying one is replaced by a fresh adoption.
+// reads, apart from the previous formats below. Retired formats are neither
+// converted nor read: committed product state carrying one is replaced by a
+// fresh adoption.
 export const formats = {
   state: "repo-standards/state/v8",
   lock: "repo-standards/lock/v1",
