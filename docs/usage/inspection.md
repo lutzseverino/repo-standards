@@ -155,7 +155,7 @@ the tag-cache location must resolve outside the project, including via symlinks.
 
 ## Report and inspection identity
 
-Every report has the single format `repo-standards/inspection/v8`. A profile
+Every report has the single format `repo-standards/inspection/v9`. A profile
 with discovery declarations adds the `discovery` and `sourceResolved` fields
 described [below](#discover-contextual-file-scope):
 
@@ -463,6 +463,16 @@ of JSON. It has these sections, in order:
   scope is not confirmed yet.
 - **Retired declarations**: for an update, the declarations that leave
   governance and whose unedited installed targets are removed.
+- **Adopter action**: the [adopter action](https://github.com/lutzseverino/repo-standards/blob/main/GLOSSARY.md#language) the
+  CLI derives from this inspection, and the candidate release's author-written
+  line, or that it sets none. The derived line is deterministic and names the
+  update class, the declarations whose contextual work the run asks for (every
+  declaration of an initial adoption, and in an update each declaration whose
+  inputs differ; a run later reuses the recorded assessment of one whose inputs
+  and scoped files are unchanged) and any remote setup that is not ready. An
+  exact update with nothing pending says nothing is needed beyond reviewing and
+  committing the update. The report carries both in `adopterAction`, as
+  `derived` and, when the release sets one, `authored`.
 - **Blockers**: present only when the report has start blockers.
 - **Identity**: the inspection identity and start eligibility.
 
@@ -477,7 +487,7 @@ record the same way.
 
 A selected repository declaration with `discovery` uses two read-only inspections.
 The first invocation uses the same source, version, profile and project flags
-shown above. Its `repo-standards/inspection/v8` report adds discovery instructions,
+shown above. Its `repo-standards/inspection/v9` report adds discovery instructions,
 eligible evidence, a request identity, and `DISCOVERY_REQUIRED` in `start.blockers`.
 The report still includes exact changes, contextual guidance, and all operations.
 Unresolved declarations remain in `sourceResolved`; they do not manufacture
@@ -648,7 +658,7 @@ because their discovery guidance, rules and fresh draft are unchanged and their
 paths exist, and from the answers it asks for.
 
 After ordinary discovery completion, retained `inspect --json` remains
-`repo-standards/inspection/v8` and exposes `historicalScope` as
+`repo-standards/inspection/v9` and exposes `historicalScope` as
 `repo-standards/scope-history/v6`: the last complete run's accepted inspection
 identity, materialized concrete selection, and, when that run discovered scope,
 its source-resolved declarations and discovery proposal, rationale, guidance,

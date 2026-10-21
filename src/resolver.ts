@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { satisfies, validRange } from "semver";
 import { Fields, readYaml } from "./yaml.js";
 import type { Diagnostic, Value } from "./yaml.js";
+import { validAdopterAction } from "./adopter-action.js";
 import { Declarations } from "./declarations.js";
 import type { SourceProfile } from "./model.js";
 import { isRootLicense, Paths, type SourcePaths } from "./paths.js";
@@ -124,6 +125,21 @@ export function validateSource(
   };
 }
 
+// The optional adopter action: one nonempty line of plain text for an action
+// outside adoption. Older CLIs reject the field, so a source that sets it
+// requires a CLI that accepts it.
+function adopterActionField(root: Value, fields: Fields) {
+  const value = fields.optional(root, "adopter-action");
+  if (!value) return undefined;
+  if (validAdopterAction(value.data)) return value.data;
+  fields.error(
+    "INVALID_TYPE",
+    "Expected adopter-action to be one nonempty line of plain text. A source that sets it must raise requires.repo-standards to the first CLI that accepts the field, because older CLIs reject it as an unknown field.",
+    value,
+  );
+  return undefined;
+}
+
 function resolveDocument(
   root: Value,
   fields: Fields,
@@ -137,6 +153,7 @@ function resolveDocument(
     "name",
     "description",
     "requires",
+    "adopter-action",
     "defaults",
     "profiles",
   ]);
@@ -158,6 +175,7 @@ function resolveDocument(
       `CLI ${cliVersion} does not satisfy ${range}. Declare an open-ended minimum CLI version, such as ">=${cliVersion}", so later CLI versions can select this standards version.`,
       rangeValue,
     );
+  const adopterAction = adopterActionField(root, fields);
   const defaults = fields.get(root, "defaults");
   fields.map(defaults, ["declarations"]);
   const declarations = new Declarations(fields, paths, validateSkill);
@@ -220,6 +238,9 @@ function resolveDocument(
       name,
       description,
       requires: { "repo-standards": range },
+      ...(adopterAction === undefined
+        ? {}
+        : { "adopter-action": adopterAction }),
     },
     profiles,
   };

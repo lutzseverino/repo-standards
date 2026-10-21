@@ -173,6 +173,7 @@ function expectedRecord(
   operations: string,
   changedPaths: string,
   scopeChanges: string,
+  impact: string,
 ) {
   const { selection, lastComplete } = status;
   return `# Repository Standards adoption record
@@ -213,6 +214,8 @@ ${scopeChanges}
 | Inspection | \`${lastComplete.inspection}\` |
 | HEAD at start | \`${lastComplete.head}\` |
 | Completed at | ${lastComplete.completedAt} |
+
+${impact}
 `;
 }
 
@@ -259,6 +262,16 @@ ${[...cli.systemSkillFiles, ...cli.systemSkillLinks].map((path) => `| \`${path}\
       `| Declaration | Added | Removed |
 | --- | --- | --- |
 | \`docs\` | \`apps/a/README.md\` | none |`,
+      `## Impact
+
+Initial adoption: the run asks for contextual work on docs, which needs review before it is committed.
+
+No adopted release sets an author-written adopter action.
+
+## Migration
+
+1. Review the contextual work on docs.
+2. Review and commit the adoption.`,
     ),
   );
 });
@@ -350,6 +363,15 @@ test("the record of an update that only installs exact content lists every insta
 | \`.agents/skills/review/notes.md\` | installation |
 | \`AGENTS.md\` | installation |`,
     "No scope changes.",
+    `## Impact
+
+Exact update: nothing is needed beyond reviewing and committing the update.
+
+No adopted release sets an author-written adopter action.
+
+## Migration
+
+Committing the update is the only step.`,
   );
   const record = run(["status", "--summary"]);
   assert.equal(record.status, 0, record.stderr);
@@ -434,6 +456,15 @@ test("the record of an update lists a removed retired target and a replaced edit
 | \`AGENTS.md\` | installation |
 | \`NOTES.md\` | installation |`,
       "No scope changes.",
+      `## Impact
+
+Contextual update: the run asks for no contextual work, so nothing is needed beyond reviewing and committing the update.
+
+No adopted release sets an author-written adopter action.
+
+## Migration
+
+Committing the update is the only step.`,
     ),
   );
 });

@@ -40,6 +40,11 @@ the JSON form does. The report holds:
   and whether the lookup was `fresh` or `cached`. A value the report does not
   have reads `unknown`, and a pin or source the selection does not record reads
   `not recorded`.
+- An Adopter actions table, present when a newer stable release exists: each
+  newer release with the one-line [adopter action](#adopter-actions) its author
+  wrote, `none` when it sets none, or `unreadable` with the reason code and
+  message when its `standards.yaml` could not be read. A line below it says the
+  line derived from an update comes from `adopt` and `inspect`.
 - An Unknown results table, present only when a pin could not be answered: the
   pin, the reason's code and its message. It covers a missing selection and a
   failed lookup of either pin while the other is still answered.
@@ -51,12 +56,18 @@ own Markdown record and says nothing about available updates.
 
 ### Migration from the JSON default
 
-Before this change, `outdated` printed the JSON report with or without
-`--json`. It now prints Markdown unless `--json` is given, a breaking change to
-the command's default output. Scripts that parse the report add `--json`; the
-flag has always been accepted, and the JSON report and its `repo-standards/outdated/v1`
-format are unchanged. The `repository-standards` system skill already passes
-`--json`.
+Before 8.0.0, `outdated` printed the JSON report with or without `--json`. It
+prints Markdown unless `--json` is given. Scripts that parse the report add
+`--json`; the flag has always been accepted. The `repository-standards` system
+skill already passes `--json`.
+
+### Migration to `outdated/v2`
+
+The JSON report is now `repo-standards/outdated/v2`, and its `standards` entry
+gains `adopterActions` when the lookup answers (see
+[Adopter actions](#adopter-actions)). Scripts that compare the `format` value
+accept `v2`; every other field is unchanged. An older ignored cache is not
+read, so the first invocation looks up again.
 
 ## Pinned CLI
 
@@ -82,9 +93,31 @@ every CLI reports both pins `unknown` as described under
 candidate exact CLI instead; see
 [Update the selection](adoption.md#update-the-selection).
 
+## Adopter actions
+
+An update can ask adopters for something outside adoption. A source author
+writes that as the optional `adopter-action` field of the root `standards.yaml`
+([author format](author-format.md#adopter-action)). For each newer stable
+standards release, `outdated` reads that release's `standards.yaml` at its tag
+once, through the GitHub request helper, and reports the line: an Adopter
+actions table in Markdown and `adopterActions` in JSON, oldest release first.
+Each entry has the release `version` and its `action`, which is `null` when the
+release sets none. A release whose file cannot be read, such as an unreachable
+file or an invalid line, reports a `reason` with a `code` and `message` for that
+release alone, and the report still answers.
+
+`outdated` runs no inspection, so it cannot derive the rest of the line, which
+depends on the update class, the project's declarations and remote setup. That
+line comes from [`adopt` and `inspect`](inspection.md#markdown-summary). The
+adopter actions are present when the standards pin was answered, an empty list
+when no release is newer, and absent when it is `unknown`.
+
 ## Lookups
 
-Each invocation looks up the npm registry and GitHub releases in parallel.
+Each invocation looks up the npm registry and GitHub releases in parallel, then
+reads the `standards.yaml` of each newer stable release, so a pin behind by `n`
+releases costs one registry request, the pages of the release list, and `n`
+file requests. Each file request is bounded to ten seconds too.
 The registry request and each request in the paginated release lookup are
 bounded to ten seconds:
 
@@ -112,19 +145,20 @@ versions are ignored. Tags published without a GitHub release are not counted.
 
 ## Report
 
-With `--json`, the report has format `repo-standards/outdated/v1` and one entry per pin: `cli`,
+With `--json`, the report has format `repo-standards/outdated/v2` and one entry per pin: `cli`,
 which also names the `package`, and `standards`, which also names the source
 `repository`.
 
-| Field                 | Meaning                                                                                                                   |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `pinned`              | The version recorded in the selection, or `null` without a readable selection.                                            |
-| `update`              | `available` when a newer stable version exists, `none` when it does not, or `unknown` when the pin could not be answered. |
-| `newest`              | The highest stable version published.                                                                                     |
-| `newerStableReleases` | How many stable versions newer than the pin are published, up to and including `newest`.                                  |
-| `checkedAt`           | When the answer was looked up.                                                                                            |
-| `cached`              | Whether the answer came from the cache instead of a request.                                                              |
-| `reason`              | For `unknown` only: a stable `code` and a `message`.                                                                      |
+| Field                 | Meaning                                                                                                                           |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `pinned`              | The version recorded in the selection, or `null` without a readable selection.                                                    |
+| `update`              | `available` when a newer stable version exists, `none` when it does not, or `unknown` when the pin could not be answered.         |
+| `newest`              | The highest stable version published.                                                                                             |
+| `newerStableReleases` | How many stable versions newer than the pin are published, up to and including `newest`.                                          |
+| `checkedAt`           | When the answer was looked up.                                                                                                    |
+| `cached`              | Whether the answer came from the cache instead of a request.                                                                      |
+| `reason`              | For `unknown` only: a stable `code` and a `message`.                                                                              |
+| `adopterActions`      | Standards pin only, when answered: each newer release's `version`, author-written `action` or `null`, and `reason` if unreadable. |
 
 ## Degraded results
 
@@ -148,9 +182,10 @@ other pin is still answered:
 Answers are cached in `.repo-standards/cache/outdated.json`, inside the product
 cache directory that `.repo-standards/.gitignore` ignores. Each lookup's answer
 stays valid for 24 hours for the same registry, or for the same source
-repository; a second invocation within that time answers from the cache without
-a request. `unknown` answers are not cached, so the next invocation looks up
-again. The cache is written only when Git confirms that its path is ignored and
+repository, and each release's adopter action stays valid for 24 hours for the
+same release; a second invocation within that time answers from the cache
+without a request. `unknown` answers and unreadable releases are not cached, so
+the next invocation looks up again. The cache is written only when Git confirms that its path is ignored and
 its directory is a safe product-state boundary; otherwise the answer stands
 without a cache. Nothing else is written, the cache never binds an inspection
 identity, and deleting the file forces fresh lookups.

@@ -242,6 +242,11 @@ export class Fields {
     return undefined;
   }
 
+  // A field that may be absent, which is no error.
+  optional(parent: Value, key: string): Value | undefined {
+    return parent.data instanceof Mapping ? parent.data.get(key) : undefined;
+  }
+
   list(value: Value): Value[] {
     if (Array.isArray(value.data)) return value.data as Value[];
     if (value.data !== undefined)

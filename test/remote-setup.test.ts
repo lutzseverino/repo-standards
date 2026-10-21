@@ -126,6 +126,11 @@ test("a remote setup that is not ready stops start before any write unless it is
   const before = snapshot(f.root);
   const inspection = f.inspect();
   assert.deepEqual(inspection.remoteSetup, [notReady]);
+  // The derived line names the remote setup that is not ready.
+  assert.deepEqual(inspection.adopterAction, {
+    derived:
+      "Initial adoption: the run asks for no contextual work. Remote setup is not ready for instructions/labels: resolve it, or defer it and run adopt again once it is ready.",
+  });
   assert.deepEqual(snapshot(f.root), before, "the probe left the project");
   const probed = f.probes();
   assert.equal(probed.length, 1);
@@ -168,6 +173,20 @@ test("a remote setup that is not ready stops start before any write unless it is
   assert.match(
     f.summary(),
     /\| fixes \| `instructions` \| `labels` \| deferred \| Sign in to the hosting platform\. \|/,
+  );
+  // The record ends with the impact of what the run deferred.
+  assert.deepEqual(f.status().impact, {
+    derived:
+      "Initial adoption: the run asks for no contextual work. Remote setup was deferred for instructions/labels: resolve it and run adopt again to apply it.",
+    releases: [{ version: "v1.0.0", action: null }],
+    steps: [
+      "Resolve the remote setup for instructions/labels, then run adopt again to apply it.",
+      "Review and commit the adoption.",
+    ],
+  });
+  assert.match(
+    f.summary(),
+    /\n## Impact\n\nInitial adoption: .* Remote setup was deferred for instructions\/labels: .*\n\n.*\n\n## Migration\n\n1\. Resolve the remote setup for instructions\/labels, then run adopt again to apply it\.\n2\. Review and commit the adoption\.\n$/,
   );
 });
 

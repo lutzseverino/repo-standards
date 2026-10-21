@@ -240,6 +240,14 @@ An update that changes guidance, a contextual declaration's rules, discovery
 guidance, operations, retired declarations, or confirmed scope.
 _Avoid_: Large update, breaking update, separate-ticket update
 
+**Adopter action**:
+The one line that says what adopters must do about an update. The CLI derives
+one from an inspection: the update class, the declarations whose contextual
+work the run asks for, and any remote setup that is not ready or was deferred.
+A source author may also write one in the root `adopter-action` field of
+`standards.yaml`, for an action outside adoption that the CLI cannot check.
+_Avoid_: Release note, upgrade notice, migration guide
+
 **Available update**:
 A published CLI or standards version newer than the corresponding pin of an
 adopting project's selection.

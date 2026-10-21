@@ -467,7 +467,10 @@ test("release pages and annotation chains have counted allowances, source size c
   commit(f.root);
   const independent = measure(f, () => f.adopt([source]));
   assert.equal(independent.value.report.selection.version, "v1.1.0");
-  assert.equal(independent.releases, 2);
+  // Two pages select the newest version, and the update's start reads them
+  // again to find the releases between the selections: none are skipped here,
+  // so no release file is read.
+  assert.equal(independent.releases, 4);
   assert.equal(independent.commits, 1);
 });
 

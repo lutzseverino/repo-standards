@@ -2,6 +2,7 @@ import { cpSync, renameSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { stringify } from "yaml";
 import { hash } from "./acquisition.js";
+import { adoptionImpact, completedFacts } from "./adopter-action.js";
 import {
   attributes,
   baselines,
@@ -802,6 +803,11 @@ export function completionFiles(
       deferred: run.deferred,
       reused: run.reused,
       assessedScopes,
+      impact: adoptionImpact(
+        completedFacts(installation.report, run),
+        run.releases,
+        run.skippedReleases,
+      ),
     }),
   );
   const lock = file(

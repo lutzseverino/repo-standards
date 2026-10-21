@@ -5,6 +5,7 @@ import { join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir } from "node:os";
 import { acquireSource, hash, type SourceObservations } from "./acquisition.js";
+import { derivedAction, inspectedFacts } from "./adopter-action.js";
 import { lockPath } from "./adoption-files.js";
 import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
@@ -839,6 +840,20 @@ export async function inspectForStart(
       },
       ...comparison?.report,
       ...(changedScope ? { scopeChanges: changedScope } : {}),
+      // What adopters must do: the line derived from this inspection and the
+      // candidate release's author-written line.
+      adopterAction: {
+        derived: derivedAction(
+          inspectedFacts({
+            ...comparison?.report,
+            guidance,
+            remoteSetup,
+          }),
+        ),
+        ...(validation.source?.["adopter-action"] === undefined
+          ? {}
+          : { authored: validation.source["adopter-action"] }),
+      },
     };
     if (scopeObservation) {
       const finalHead = git(

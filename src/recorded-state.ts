@@ -8,6 +8,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import { validImpact, type Impact } from "./adopter-action.js";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { externalPath, hash, type acquireSource } from "./acquisition.js";
@@ -96,6 +97,9 @@ interface RecordedState extends ExecutionEvidence {
   // neither.
   reused?: ReusedAnswer[];
   assessedScopes?: Record<string, string>;
+  // What adopters must do about the update the last complete run applied.
+  // The previous release's state has none.
+  impact?: Impact;
 }
 type RecordedFile = Extract<Observation, { type: "file" }>;
 
@@ -187,8 +191,11 @@ function decodeState(
       ? !Array.isArray(state.reused) ||
         !state.assessedScopes ||
         typeof state.assessedScopes !== "object" ||
-        Array.isArray(state.assessedScopes)
-      : state.reused !== undefined || state.assessedScopes !== undefined) ||
+        Array.isArray(state.assessedScopes) ||
+        !validImpact(state.impact)
+      : state.reused !== undefined ||
+        state.assessedScopes !== undefined ||
+        state.impact !== undefined) ||
     !validExecutionEvidence(state)
   ) {
     invalid();

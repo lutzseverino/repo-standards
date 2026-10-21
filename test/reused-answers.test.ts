@@ -75,6 +75,11 @@ function validateBody(f: ReuseFixture, body: string) {
 test("an unchanged update reuses the recorded scope, remote setup deferral and assessments, and completes in one run", async (t) => {
   const { f, outside } = await reuseFixture(t, cli);
   adoptFirst(f);
+  // The first adoption asked for contextual work on both declarations.
+  assert.match(
+    (JSON.parse(pinned(f, ["status", "--json"])) as Status).impact!.derived,
+    /^Initial adoption: the run asks for contextual work on project-docs, project-readme, which needs review/,
+  );
   const recorded = (
     JSON.parse(pinned(f, ["status", "--json"])) as Status & {
       scopeProposal: ScopeProposal;
@@ -124,6 +129,11 @@ test("an unchanged update reuses the recorded scope, remote setup deferral and a
   assert.equal(status.format, "repo-standards/status/v9");
   assert.deepEqual(status.reused, updated.report.reused);
   assert.equal(status.readyToCommit, true);
+  // Every assessment was reused, so only the deferred remote setup is left.
+  assert.equal(
+    status.impact?.derived,
+    "Exact update: the run asks for no contextual work. Remote setup was deferred for agent-guidance/labels: resolve it and run adopt again to apply it.",
+  );
   const summary = pinned(f, ["status", "--summary"]);
   assert.match(summary, /^# Repository Standards adoption record\n/);
   assert.deepEqual(
@@ -136,6 +146,8 @@ test("an unchanged update reuses the recorded scope, remote setup deferral and a
       "## Changed paths",
       "## Scope changes",
       "## Identities",
+      "## Impact",
+      "## Migration",
     ],
   );
   assert.match(summary, /### Reused answers\n\n\| Question \| Kind \| Why \|/);
@@ -460,15 +472,18 @@ console.log(JSON.stringify({ format: 'repo-standards/result/v2', status: input.o
 });
 
 // Rewrites the adoption's records as CLI 9.0.0 writes them: state/v7 without
-// reused answers or assessed scopes, and scope-history/v5 without drafts.
+// reused answers, assessed scopes or impact, and scope-history/v5 without
+// drafts.
 function previousRelease(f: ReuseFixture) {
   const {
     reused: _reused,
     assessedScopes: _scopes,
+    impact: _impact,
     ...state
   } = committedState(f.root) as ReturnType<typeof committedState> & {
     reused: unknown;
     assessedScopes: unknown;
+    impact: unknown;
   };
   rewriteCommittedState(f.root, {
     ...state,
