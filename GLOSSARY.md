@@ -46,6 +46,13 @@ A complete named standards selection resolved from defaults plus that profile's
 replacements and exclusions.
 _Avoid_: Ecosystem profile, partial selection, overlay
 
+**Platform**:
+The hosting platform an adopting project lives on, such as GitHub, named as
+Postern names it. A profile lists the platforms it supports, and the project
+selects its platform separately from its profile; a declaration may apply on
+one platform only.
+_Avoid_: Platform profile, forge, profile name as platform
+
 **Declaration**:
 A named, complete unit of standards material and its associated checks and
 fixes that is inherited, wholly replaced, or excluded during resolution.

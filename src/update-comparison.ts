@@ -54,7 +54,13 @@ interface UpdateCandidate {
 }
 
 // The selection components an update can change, in reporting order.
-const selectionComponents = ["cli", "standards", "source", "profile"] as const;
+const selectionComponents = [
+  "cli",
+  "standards",
+  "source",
+  "profile",
+  "platform",
+] as const;
 type SelectionComponent = (typeof selectionComponents)[number];
 
 const retainedSource = ".repo-standards/inputs/source/";
@@ -300,6 +306,7 @@ export function compareUpdate(
       candidateStandards.commit !== recordedStandards.commit,
     source: !sameSource,
     profile: candidate.selection.profile !== recorded.selection.profile,
+    platform: candidate.selection.platform !== recorded.selection.platform,
   };
   const blockers = productState
     ? stateIntegrityBlockers(recorded, productState)

@@ -12,7 +12,7 @@ The request contains:
 
 - `run`: the adoption run ID.
 - `selection`: a content-derived identity for the exact CLI, standards source,
-  version, commit, and profile selection.
+  version, commit, profile, and platform selection.
 - `snapshot`: a content-derived identity for the current observed project
   content, excluding `.repo-standards/` generated state, and the current retry
   attempt. The CLI binds an accepted assessment to it; the agent never copies

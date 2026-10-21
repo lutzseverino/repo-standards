@@ -91,6 +91,7 @@ export interface OperationLog {
     projectRoot: string;
     standards: RecordedSelection["standards"];
     profile: string;
+    platform: string;
     declarations: Declaration[];
     allowedTargets: Targets;
     overwriteAllowed: boolean;

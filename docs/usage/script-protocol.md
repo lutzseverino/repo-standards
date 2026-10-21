@@ -54,6 +54,7 @@ The CLI supplies one UTF-8 JSON object and closes stdin:
     "commit": "40-character-resolved-commit-sha"
   },
   "profile": "work",
+  "platform": "github",
   "declarations": [],
   "allowedTargets": { "paths": ["README.md"], "directories": [] },
   "overwriteAllowed": false,
@@ -61,8 +62,11 @@ The CLI supplies one UTF-8 JSON object and closes stdin:
 }
 ```
 
-`declarations` contains every active, fully resolved declaration, including its
-ID and complete checks/fixes lists; the empty array above is abbreviated.
+`platform` is the hosting platform the project selected, which a script may
+read to act on that platform; the declarations of other platforms are not
+active. `declarations` contains every active, fully resolved declaration,
+including its ID, any `platform` it names, and complete checks/fixes lists; the
+empty array above is abbreviated.
 `operation.phase` is `fixes` or `checks`, or `probes` for a
 [readiness probe](#remote-setup-probes). `allowedTargets` describes this
 operation's owning declaration: file targets are explicit paths, skills are
@@ -243,7 +247,8 @@ retained source. The script reads one JSON object on stdin:
     "version": "v1.0.0",
     "commit": "40-character-resolved-commit-sha"
   },
-  "profile": "work"
+  "profile": "work",
+  "platform": "github"
 }
 ```
 

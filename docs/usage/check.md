@@ -24,7 +24,8 @@ describes:
   incompatible version fails `check` with `PREREQUISITES_BLOCKED` before any
   check runs, listing every probe in the diagnostic's `details`.
 - Each check receives the same `repo-standards/operation/v2` input as in a run,
-  with the selection's standards and profile, every active resolved declaration,
+  with the selection's standards, profile and platform, every active resolved
+  declaration,
   its declaration's allowed targets, and `overwriteAllowed: false`, except that
   it carries `invocation: "check"` where a run's carries `"run"`. A source may
   use that field to skip rules that only hold within a run. It uses the same
@@ -50,7 +51,8 @@ With `--json`, `check` prints one `repo-standards/check/v2` object:
       "version": "v1.0.0",
       "commit": "40-character-resolved-commit-sha"
     },
-    "profile": "work"
+    "profile": "work",
+    "platform": "github"
   },
   "checks": [
     {
@@ -80,7 +82,8 @@ without rules. `stdout` and
 replaces. `outcome` is `passed` only when every check passed, including when
 there are none.
 
-Without `--json`, `check` prints a readable summary: the selection and the count
+Without `--json`, `check` prints a readable summary: the selection, with its
+profile and platform, and the count
 of each status, then one line per check with its status, declaration, ID and
 message, then its installed rules and the paths of its output logs when it did
 not pass. Line breaks in

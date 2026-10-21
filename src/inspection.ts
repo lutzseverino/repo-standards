@@ -62,6 +62,7 @@ import {
 import { unifiedDiff } from "./unified-diff.js";
 import { compareUpdate } from "./update-comparison.js";
 import { dictionary } from "./records.js";
+import { defaultPlatform, onPlatform } from "./platforms.js";
 
 // Guidance, discovery guidance and scripts are referenced by path and hash.
 function fileReference(path: string) {
@@ -165,8 +166,31 @@ export interface InspectOptions {
   source: string;
   standardsVersion: string;
   profile: string;
+  // The hosting platform, which may be omitted for a profile that supports
+  // only one.
+  platform?: string;
   project: string;
   scope?: string;
+}
+
+// The platform a selection uses: the one given, which the profile must
+// support, or else the profile's only platform.
+function selectedPlatform(
+  profile: string,
+  platforms: string[],
+  given: string | undefined,
+) {
+  if (given !== undefined && !platforms.includes(given))
+    throw new ProductError(
+      "UNKNOWN_PLATFORM",
+      `Profile ${profile} does not support platform ${given}. Its platforms: ${platforms.join(", ")}.`,
+    );
+  if (given !== undefined) return given;
+  if (platforms.length === 1) return platforms[0]!;
+  throw new ProductError(
+    "PLATFORM_REQUIRED",
+    `Profile ${profile} supports several platforms: ${platforms.join(", ")}. Name the project's platform with --platform.`,
+  );
 }
 
 export async function inspect(
@@ -244,6 +268,7 @@ export async function inspectForStart(
       source: options.source,
       version: options.standardsVersion,
       profile: options.profile,
+      ...(options.platform === undefined ? {} : { platform: options.platform }),
     })
       ? lookup.preserved
       : undefined;
@@ -363,12 +388,23 @@ export async function inspectForStart(
           file: relative(source.root, error.file),
         })),
       );
-    const profile = validation.profiles[options.profile];
-    if (!profile)
+    const sourceProfile = validation.profiles[options.profile];
+    if (!sourceProfile)
       throw new ProductError(
         "UNKNOWN_PROFILE",
         `Unknown profile ${options.profile}. Available profiles: ${Object.keys(validation.profiles).join(", ")}.`,
       );
+    const platform = selectedPlatform(
+      options.profile,
+      sourceProfile.platforms,
+      options.platform,
+    );
+    // The profile on its platform: the declarations for other platforms are
+    // left out before scope, and nothing after reads them.
+    const profile = {
+      description: sourceProfile.description,
+      declarations: onPlatform(sourceProfile.declarations, platform),
+    };
     const discoveryDeclarations = profile.declarations.filter(
       (declaration) => "discovery" in declaration,
     );
@@ -379,7 +415,7 @@ export async function inspectForStart(
     // observation, and the durable product state it excludes from that
     // observation. Git HEAD, the index, and the project root are not bound.
     const requestIdentity = scopeObservation
-      ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile }, productState: hashInventory(productState), observation: scopeObservation }))}`
+      ? `sha256:${hash(JSON.stringify({ selection: { cliVersion, standards: source.identity, profile: options.profile, platform }, productState: hashInventory(productState), observation: scopeObservation }))}`
       : undefined;
     const scope = validateScope({
       root,
@@ -393,6 +429,7 @@ export async function inspectForStart(
       cli: { package: "@lutzseverino/repo-standards", version: cliVersion },
       standards: source.identity,
       profile: options.profile,
+      platform,
     };
     // Without a proposal, each declared discovery script drafts its
     // declaration's entry for the agent or person to review and complete.
@@ -427,8 +464,10 @@ export async function inspectForStart(
           observation: scopeObservation,
         }
       : undefined;
-    // Retain a normalized source with only the selected profile. The resolver
-    // remains the sole interpreter when this source is used in a fresh checkout.
+    // Retain a normalized source with only the selected profile on its
+    // platform, which a profile retained for github alone leaves implied. The
+    // resolver remains the sole interpreter when this source is used in a
+    // fresh checkout.
     const inputs: Record<string, Observation> = dictionary();
     const normalized = stringify({
       ...validation.source,
@@ -436,6 +475,7 @@ export async function inspectForStart(
       profiles: {
         [options.profile]: {
           description: profile.description,
+          ...(platform === defaultPlatform ? {} : { platforms: [platform] }),
           declarations: Object.fromEntries(
             profile.declarations.map(({ id, ...declaration }) => [
               id,

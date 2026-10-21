@@ -162,7 +162,7 @@ export function processError(outcome: OperationEvidence["process"]) {
 export async function execute(
   root: string,
   selected: SelectedOperation,
-  selection: { standards: unknown; profile: string },
+  selection: { standards: unknown; profile: string; platform: string },
   resolved: Pick<ResolvedProfile, "declarations">,
   onSpawn?: (group: number) => void,
   {
@@ -183,6 +183,7 @@ export async function execute(
     projectRoot: root,
     standards: selection.standards,
     profile: selection.profile,
+    platform: selection.platform,
     declarations: resolved.declarations,
     allowedTargets: declarationTargets(
       resolved.declarations.find((item) => item.id === declaration)!,

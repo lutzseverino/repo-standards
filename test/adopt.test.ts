@@ -109,6 +109,7 @@ test("adopt without an answers file prints a complete template and changes nothi
     source,
     version: "v1.1.0",
     profile: "work",
+    platform: "github",
   });
   assert.deepEqual(
     report.answers.questions.map(({ id, answer }) => [id, answer]),
@@ -1044,6 +1045,7 @@ test("adopt without a source updates an adopted project, offering the newest sta
     source,
     version: "v1.1.0",
     profile: "work",
+    platform: "github",
   });
   assert.deepEqual(question(update.report, "version").choices, [
     "v1.1.0",

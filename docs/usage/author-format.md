@@ -81,7 +81,8 @@ Impact and Migration sections, and renders each newer release's line in
 the [adopter action](https://github.com/lutzseverino/repo-standards/blob/main/GLOSSARY.md#language) itself.
 
 Each profile requires a nonempty `description` and a `declarations` mapping,
-which may be empty. Declaration IDs, skill names, and operation IDs use
+which may be empty, and may name the hosting [platforms](#platforms) it
+supports. Declaration IDs, skill names, and operation IDs use
 lower-case ASCII kebab-case: letters or digits separated by single hyphens.
 Declaration IDs are local to the source. Operation IDs are unique across the
 checks and fixes of their declaration; another declaration may reuse one.
@@ -104,6 +105,47 @@ not part of the format. Recursive, excessively deep, or excessively expanded
 YAML is rejected with `YAML_STRUCTURE`. Duplicate fields remain invalid, but
 their alternative values are still validated for independent errors; more than
 256 ambiguous interpretations also produces `YAML_STRUCTURE`.
+
+### Platforms
+
+```yaml
+defaults:
+  declarations:
+    ci-workflow:
+      kind: file
+      platform: github
+      target: .github/workflows/check.yml
+      exact: content/check.yml
+profiles:
+  work:
+    description: Work projects
+    platforms: [github]
+    declarations: {}
+```
+
+A profile lists the hosting platforms an adopting project can select it on in
+`platforms`, a nonempty list of distinct platform names. A profile without
+`platforms` supports `github` alone, so a source that names no platform is
+unchanged. The adopting project selects its platform separately from its
+profile; see [choose the hosting platform](adoption.md#choose-the-hosting-platform).
+Do not split a profile per platform, such as `react-github` and
+`react-gitlab`: declare the platform choice inside the profile.
+
+Any declaration may name the one `platform` it applies on, in defaults or a
+profile. On every other platform the declaration is left out of the resolved
+profile, before scope, so it installs nothing, runs no operation and needs no
+discovery. That differs from an [optional](#optional-discovery) declaration's
+no scope, which is confirmed per project. A declaration without `platform`
+applies on every platform of its profile. An exclusion takes no `platform`.
+
+Older CLIs reject `platforms` and `platform` as unknown fields, so a source
+that uses them raises `requires.repo-standards` to the first CLI that accepts
+them. Platforms are named as Postern names them. This CLI supports `github` only, so
+every other name fails with `UNSUPPORTED_PLATFORM`, an empty list with
+`EMPTY_PLATFORMS`, and a repeated platform with `DUPLICATE_IDENTITY`. Until
+another platform is supported, published files stay GitHub-shaped.
+Declarations for different platforms never apply together, so their targets
+may overlap; targets of declarations that can apply together may not.
 
 ## Declarations
 
@@ -421,9 +463,10 @@ output lists profiles; human errors go to stderr as
 With `--json`, stdout is one JSON object, and expected validation failures do
 not write stderr. A successful report contains `valid: true`, `errors: []`,
 normalized root `source` metadata, and `profiles`, keyed by profile name. Each
-profile has its description and the complete source-resolved declarations array.
-Declarations include their `id` and explicit `checks` and `fixes` arrays; a
-remote setup fix keeps its `remote-setup` probe.
+profile has its description, its `platforms`, and the complete source-resolved
+declarations array, which holds the declarations of every platform.
+Declarations include their `id`, any `platform`, and explicit `checks` and
+`fixes` arrays; a remote setup fix keeps its `remote-setup` probe.
 The source retains its authored format identity. A successful report also includes
 `scope.verified` describing the source-owned facts checked, `scope.limitations`
 explaining project-specific limits, and `scope.discoveryRequired`, a mapping of
@@ -451,7 +494,7 @@ structurally invalid YAML may limit what can be determined.
 | `SOURCE_READ`               | Source document or referenced material cannot be read                                                                                            |
 | `YAML_SYNTAX`               | Invalid YAML, unsupported tag, or multiple documents                                                                                             |
 | `YAML_STRUCTURE`            | Unresolved/recursive alias or YAML expansion/depth limit                                                                                         |
-| `DUPLICATE_IDENTITY`        | Duplicate YAML key or operation ID                                                                                                               |
+| `DUPLICATE_IDENTITY`        | Duplicate YAML key, operation ID, or platform of a profile                                                                                       |
 | `UNKNOWN_FIELD`             | Field outside the author schema                                                                                                                  |
 | `REQUIRED_FIELD`            | Required field omitted                                                                                                                           |
 | `INVALID_TYPE`              | Wrong mapping, list, scalar, or string type                                                                                                      |
@@ -459,6 +502,8 @@ structurally invalid YAML may limit what can be determined.
 | `INVALID_VERSION`           | Malformed SemVer range                                                                                                                           |
 | `INCOMPATIBLE_CLI`          | Running CLI does not satisfy the source range; the message recommends an open-ended minimum                                                      |
 | `EMPTY_PROFILES`            | No complete named profile                                                                                                                        |
+| `UNSUPPORTED_PLATFORM`      | A profile or declaration names a platform this CLI does not support                                                                              |
+| `EMPTY_PLATFORMS`           | A profile's `platforms` list is empty                                                                                                            |
 | `INVALID_ID`                | Declaration, skill, or operation identity is malformed                                                                                           |
 | `INVALID_DECLARATION`       | Unknown kind, file without exactly one content mode, repository guidance without exactly one scope mode, or a discovery script without discovery |
 | `SKILL_INVOCATION_MISMATCH` | Skill's Claude Code and Codex invocation settings disagree; message names the skill and both effective values                                    |
@@ -472,7 +517,7 @@ structurally invalid YAML may limit what can be determined.
 | `SOURCE_SYMLINK`            | Source document or selected material contains a symlink                                                                                          |
 | `RESERVED_NAME`             | An author tries to supply a product-owned system skill, or names a declaration with rules `readme`                                               |
 | `RESERVED_TARGET`           | Target overlaps reserved storage                                                                                                                 |
-| `TARGET_OVERLAP`            | Two resolved targets overlap, including folded collisions                                                                                        |
+| `TARGET_OVERLAP`            | Two resolved targets that can apply on one platform overlap, including folded collisions                                                         |
 
 ## Alice's complete example
 

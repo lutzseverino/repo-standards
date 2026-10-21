@@ -186,7 +186,7 @@ export function preservedStartBlockers(
   const stopped = lookup.preserved?.run ?? lookup.abandoned;
   if (!stopped) return blockers;
   const why = lookup.preserved
-    ? `Adopting again in place over them keeps that run's selection: CLI ${stopped.selection.cli.version}, ${stopped.selection.standards.repository} ${stopped.selection.standards.version}, profile ${stopped.selection.profile}.`
+    ? `Adopting again in place over them keeps that run's selection: CLI ${stopped.selection.cli.version}, ${stopped.selection.standards.repository} ${stopped.selection.standards.version}, profile ${stopped.selection.profile}, platform ${stopped.selection.platform}.`
     : `The checkout no longer holds them as the run recorded${lookup.mismatch ? `: ${lookup.mismatch}` : "."} Adopting again in place needs them as the run left them.`;
   return blockers.map((blocker) =>
     blocker.code === "DIRTY_PROJECT"
@@ -209,7 +209,9 @@ export function preservedChanges(preserved: PreservedRun): InheritedChange[] {
 }
 
 // Whether a selection is the one a preserved run adopted: adopting again in
-// place keeps the run's CLI, source, version and profile.
+// place keeps the run's CLI, source, version, profile and platform. A
+// selection that names no platform uses its profile's only one, which the
+// run's same profile then used too.
 export function preservesSelection(
   preserved: PreservedRun,
   selection: {
@@ -217,6 +219,7 @@ export function preservesSelection(
     source: string;
     version: string;
     profile: string;
+    platform?: string;
   },
 ): boolean {
   const key = (url: string) =>
@@ -224,12 +227,13 @@ export function preservesSelection(
       .toLowerCase()
       .replace(/\/$/, "")
       .replace(/\.git$/, "");
-  const { cli, standards, profile } = preserved.run.selection;
+  const { cli, standards, profile, platform } = preserved.run.selection;
   return (
     cli.version === selection.cli &&
     key(standards.repository) === key(selection.source) &&
     standards.version === selection.version &&
-    profile === selection.profile
+    profile === selection.profile &&
+    (selection.platform === undefined || platform === selection.platform)
   );
 }
 

@@ -19,6 +19,7 @@ interface Selection {
   cli: { version: string };
   standards: { repository: string; version: string; commit: string };
   profile: string;
+  platform: string;
 }
 interface OperationDefinition {
   declaration: string;
@@ -186,6 +187,7 @@ function selectionRows(selection: Selection) {
     ["Standards version", code(selection.standards.version)],
     ["Standards commit", code(selection.standards.commit)],
     ["Profile", code(selection.profile)],
+    ["Platform", code(selection.platform)],
   ];
 }
 

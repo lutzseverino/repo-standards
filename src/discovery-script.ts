@@ -213,7 +213,7 @@ export async function draftScope(options: {
   // Whether the declaration is optional, so its draft may propose no scope.
   optional: boolean;
   script: Script;
-  selection: { standards: unknown; profile: string };
+  selection: { standards: unknown; profile: string; platform: string };
 }): Promise<Entry> {
   const { declaration, script, observation } = options;
   const work = mkdtempSync(join(tmpdir(), "repo-standards-discovery-"));
@@ -255,6 +255,7 @@ export async function draftScope(options: {
       projectRoot: project,
       standards: options.selection.standards,
       profile: options.selection.profile,
+      platform: options.selection.platform,
     };
     const { outcome, stdout, stderr } = await invoke(
       script.run.executable,

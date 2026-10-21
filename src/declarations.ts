@@ -4,6 +4,7 @@ import { Fields } from "./yaml.js";
 import type { Value } from "./yaml.js";
 import type { Paths, Target } from "./paths.js";
 import { skillLinkTarget, skillTarget, systemSkills } from "./targets.js";
+import { supportedPlatforms } from "./platforms.js";
 
 const identity = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -37,6 +38,18 @@ export class Declarations {
       this.fields.error(
         "INVALID_ID",
         "Expected a lower-case kebab-case identity.",
+        value,
+      );
+    return name;
+  }
+
+  // A hosting platform this CLI supports.
+  platform(value: Value): string | undefined {
+    const name = this.fields.string(value);
+    if (name !== undefined && !(supportedPlatforms as string[]).includes(name))
+      this.fields.error(
+        "UNSUPPORTED_PLATFORM",
+        `Unsupported platform ${name}. Supported platforms: ${supportedPlatforms.join(", ")}.`,
         value,
       );
     return name;
@@ -163,7 +176,10 @@ export class Declarations {
       );
       const kindValue = f.get(declaration, "kind");
       const kind = f.string(kindValue);
-      const base = { id, checks, fixes };
+      // A declaration for one platform is left out on every other.
+      const platformValue = entries.get("platform");
+      const platform = platformValue ? this.platform(platformValue) : undefined;
+      const base = { id, ...(platform ? { platform } : {}), checks, fixes };
       // Rules are optional on every declaration but a skill. Installed rules
       // are named by declaration ID beside their README.md index, which the
       // ID readme would fold onto.
@@ -187,6 +203,7 @@ export class Declarations {
       if (kind === "file") {
         f.map(declaration, [
           "kind",
+          "platform",
           "target",
           "exact",
           "guidance",
@@ -216,7 +233,14 @@ export class Declarations {
           ...rules(),
         });
       } else if (kind === "skill") {
-        f.map(declaration, ["kind", "name", "source", "checks", "fixes"]);
+        f.map(declaration, [
+          "kind",
+          "platform",
+          "name",
+          "source",
+          "checks",
+          "fixes",
+        ]);
         const nameValue = f.get(declaration, "name");
         const name = this.id(nameValue) ?? "";
         const reserved = systemSkills.some(
@@ -239,6 +263,7 @@ export class Declarations {
       } else if (kind === "repository") {
         f.map(declaration, [
           "kind",
+          "platform",
           "guidance",
           "rules",
           "targets",
@@ -326,6 +351,7 @@ export class Declarations {
       } else {
         f.map(declaration, [
           "kind",
+          "platform",
           "target",
           "exact",
           "guidance",

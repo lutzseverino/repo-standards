@@ -31,7 +31,14 @@ cd /path/to/adopting-project
   --standards-version v1.2.3 --profile work --json
 ```
 
-Replace the source, tag, and profile with a published standards source. The
+Replace the source, tag, and profile with a published standards source. Add
+`--platform <name>` for a profile that supports several
+[platforms](author-format.md#platforms); a profile that supports one selects
+it, and without `--platform` a profile that supports several fails with
+`PLATFORM_REQUIRED`. A platform the profile does not support fails with
+`UNKNOWN_PLATFORM`. The selected platform's declarations are inspected, and the
+others are left out before scope. Without source flags, inspection keeps the
+recorded platform, and `--platform` is a usage error. The
 bootstrap needs the requested CLI package in the configured npm registry.
 The packed CLI also exposes `repo-standards-bootstrap`; installing the product
 package globally installs both executable names.
@@ -161,8 +168,8 @@ described [below](#discover-contextual-file-scope):
 
 | Field                | Meaning                                                                                                                                                                                                                                                                                                                                                                                                            |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `selection`          | Exact CLI package/version, canonical standards URL, version tag, commit SHA, and profile.                                                                                                                                                                                                                                                                                                                          |
-| `source`, `resolved` | Validated metadata and the resolver's complete active profile.                                                                                                                                                                                                                                                                                                                                                     |
+| `selection`          | Exact CLI package/version, canonical standards URL, version tag, commit SHA, profile, and platform.                                                                                                                                                                                                                                                                                                                |
+| `source`, `resolved` | Validated metadata and the resolver's complete active profile on the selected platform.                                                                                                                                                                                                                                                                                                                            |
 | `exact`              | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. A skill also has its `link`: the [skill link](adoption.md#skill-links) `.claude/skills/<name>` as `target`, with its own `create`, `replace`, or `match` `action`. |
 | `systemSkills`       | Each system skill adoption installs, `repository-standards`, by `name` and reserved `.agents/skills/<name>` `target`, with `create`, `replace`, or `match` against the copy packaged with the inspecting exact CLI, and its `link` as in `exact`.                                                                                                                                                                  |
 | `removed`            | For an update, each installed target the selection no longer installs and the run removes, including a retired skill's link, with its installer (`id` for a declaration, or `systemSkill` for a retired system skill) and each file's or link's before and after hash inventories and diff, as in `exact`.                                                                                                         |
@@ -185,8 +192,9 @@ and its entry has no `id`. The summary labels these entries under **Owner** and
 prefixes a product skill's name with `system skill`.
 
 For an established adoption, the report is an update. `update` lists every
-changed selection component, in the order `cli`, `standards`, `source`, and
-`profile`, and is empty for an unchanged selection. The standards component
+changed selection component, in the order `cli`, `standards`, `source`,
+`profile`, and `platform`, and is empty for an unchanged selection. A recorded
+selection without a platform is read as `github`. The standards component
 changes with the version tag or its commit. `previousSelection` records the
 current selection, and `retired` lists declarations that will leave governance.
 The installed targets of retired declarations, and any other installed target
@@ -395,9 +403,10 @@ rejects targets overlapping `.git`, `.repo-standards`, or a system skill.
 ## Inspect updates
 
 Every change to an established selection is one update: the CLI pin, the
-standards version, the source, the profile, or any combination. Pass all three
-source flags to select a standards version, source, or profile. With the
-project's pinned CLI:
+standards version, the source, the profile, the platform, or any combination.
+Pass all three source flags to select a standards version, source, or profile,
+and `--platform` with them to select a platform. With the project's pinned
+CLI:
 
 ```sh
 .repo-standards/runtime/node_modules/.bin/repo-standards inspect \

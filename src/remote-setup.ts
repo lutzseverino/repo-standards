@@ -117,7 +117,7 @@ function prerequisiteReason(
 export async function probeRemoteSetup(
   root: string,
   sourceRoot: string,
-  selection: { standards: unknown; profile: string },
+  selection: { standards: unknown; profile: string; platform: string },
   resolved: { declarations: Declaration[] },
 ): Promise<RemoteSetup[]> {
   const fixes = remoteSetupFixes(resolved.declarations);

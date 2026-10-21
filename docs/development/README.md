@@ -153,9 +153,9 @@ errors. The remaining GitHub boundary refuses credential-reflecting responses.
 Readiness probes and remote setup fixes remain authored scripts owned by the
 standards source. The product adds no platform calls or settings abstraction to
 the probe runner; its read-only, prerequisite, process and mutation guards and
-deferral outcomes are unchanged. The companion
-[platform-choice ticket](https://github.com/lutzseverino/repo-standards/issues/300)
-records the release-source decision alongside the platform decision in its ADR.
+deferral outcomes are unchanged.
+[ADR 0027](../adr/0027-choose-the-platform-inside-each-profile.md) records the
+release-source decision alongside the platform choice inside each profile.
 
 ## Documents
 

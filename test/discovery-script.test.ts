@@ -47,7 +47,7 @@ const draft = (
   scenario = "",
 ) => `import { existsSync, readFileSync } from "node:fs";
 const input = JSON.parse(readFileSync(0, "utf8"));
-if (process.argv[2] !== "--strict" || input.format !== "repo-standards/discovery/v1") process.exit(3);
+if (process.argv[2] !== "--strict" || input.format !== "repo-standards/discovery/v1" || input.platform !== "github") process.exit(3);
 if (input.projectRoot !== process.cwd() || process.env.PWD !== process.cwd()) process.exit(4);
 ${scenario}
 const candidates = ["app", "fixtures/fake"].filter((path) => existsSync(path + "/package.json"));

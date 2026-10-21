@@ -200,6 +200,7 @@ test("check runs every retained check with a run's inputs, reports each result, 
   assert.equal(evidence.input.projectRoot, f.project.root);
   assert.deepEqual(evidence.input.standards, inspection.selection.standards);
   assert.equal(evidence.input.profile, "work");
+  assert.equal(evidence.input.platform, "github");
   assert.deepEqual(
     evidence.input.declarations,
     inspection.resolved.declarations,
@@ -238,7 +239,7 @@ test("check runs every retained check with a run's inputs, reports each result, 
   assert.equal(summary.status, 0, summary.stderr);
   assert.equal(
     summary.stdout,
-    "Checks of https://github.com/alice/standards v1.0.0, profile work: 3 passed.\n" +
+    "Checks of https://github.com/alice/standards v1.0.0, profile work, platform github: 3 passed.\n" +
       "passed  instructions/first: first passed\npassed  instructions/second: second passed\npassed  zulu/third: third passed\n",
   );
 });
@@ -367,7 +368,7 @@ test("the readable summary keeps the profile on one line while JSON keeps it", a
   const lines = readable.stdout.split("\n");
   assert.equal(
     lines[0],
-    "Checks of https://github.com/alice/standards v1.0.0, profile work passed  zulu/forged: injected: 3 passed.",
+    "Checks of https://github.com/alice/standards v1.0.0, profile work passed  zulu/forged: injected, platform github: 3 passed.",
   );
   assert.equal(lines.length, 5);
 });

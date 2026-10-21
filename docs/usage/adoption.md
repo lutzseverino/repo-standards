@@ -1,8 +1,9 @@
 # Adoption
 
 Use `adopt` for your first adoption and every update. Ask your agent to run it,
-or run it yourself in a terminal: both paths select a version and profile,
-review the proposed changes, and complete the same adoption run.
+or run it yourself in a terminal: both paths select a version, a profile and
+its hosting platform, review the proposed changes, and complete the same
+adoption run.
 
 ## Adopt with one command
 
@@ -55,7 +56,8 @@ trusted fixes and checks. Review the resulting changes and commit them through
 your project's usual workflow; `adopt` leaves them uncommitted.
 
 The full form is `adopt [<GitHub URL>] [--standards-version <tag>]
-[--profile <name>] [--answers <file>] [--project <directory>] [--json]`. In an
+[--profile <name>] [--platform <name>] [--answers <file>]
+[--project <directory>] [--json]`. In an
 adopted project, `adopt` without a source updates the current selection. When
 the source cannot be reached, it proposes the current version and profile and
 applies them again from the retained standards, as `inspect` and `start` do
@@ -80,7 +82,9 @@ hold:
   no `remote-setup` answer is `resolve`.
 - No question is open. The answers file answers a question, a
   [reused answer](#reused-answers) does, and so does a default `adopt` proposes
-  as the answer: the version and the profile. A scope draft, or a recorded
+  as the answer: the version, the profile, and a
+  [platform](#choose-the-hosting-platform) carried forward or detected. A
+  scope draft, or a recorded
   answer proposed for review, stays open until an answers file carries it
   back, with or without an answers file.
 
@@ -110,8 +114,38 @@ same exact CLI through `npx`, except for the
 `.repo-standards/runtime/node_modules/.bin/repo-standards`, they continue and
 recover the run with it. With an active run,
 `adopt --answers <file>` continues it, advancing it by at most one step: a
-confirmed fix, or submitted assessments. A source, version, or profile that
-differs from the active run's selection fails with `ACTIVE_RUN`.
+confirmed fix, or submitted assessments. A source, version, profile, or
+platform that differs from the active run's selection fails with `ACTIVE_RUN`.
+
+### Choose the hosting platform
+
+A profile names the hosting platforms it supports, and the project selects its
+platform separately from its profile; see
+[platforms](author-format.md#platforms). The selected platform decides which
+platform-specific declarations the profile adopts. GitHub is the only platform
+this CLI supports, so every profile supports `github` alone today, and
+published files stay GitHub-shaped.
+
+- A profile that supports one platform selects it without asking and without
+  looking at the project's remote. A project without a remote, or with one on
+  another host, adopts as before, and no `platform` question appears.
+- A profile that supports several platforms asks the `platform` question. An
+  answer or `--platform` chooses it, and must be one of the profile's
+  platforms, or `adopt` fails with `UNKNOWN_PLATFORM`. Without one, the
+  platform the project recorded is carried forward while the profile still
+  supports it. Otherwise the `origin` remote's URL proposes the platform it is
+  hosted on, which answers the question in an answers file or template and
+  which a terminal asks the person to confirm or override. Without an `origin`
+  remote, or with one no supported platform serves or the profile does not
+  support, the question stays missing until it is answered, and its
+  `details` say why.
+
+The platform is part of the selection: the lock and `selection.yaml` record
+it, the inspection's identity binds it, and changing it in an update is a
+changed selection component that replaces the previous platform's
+declarations. An inspection or confirmation of another platform does not start
+a run. A selection recorded before platforms existed is read as `github`, and
+the next run records it.
 
 ### In a terminal
 
@@ -340,9 +374,11 @@ it:
 .repo-standards/runtime/node_modules/.bin/repo-standards adopt --headless --json
 ```
 
-It keeps the recorded source and profile and takes the newest stable standards
+It keeps the recorded source, profile and
+[platform](#choose-the-hosting-platform) and takes the newest stable standards
 release, or the tag `--standards-version` names; the CLI pin is the CLI that
-runs it, as for any `adopt`. It takes no source, `--profile`, or `--answers`,
+runs it, as for any `adopt`. It takes no source, `--profile`, `--platform`, or
+`--answers`,
 and rejects them as invalid usage. In a project with no established adoption
 it fails before changing anything, naming the initial `adopt <source>`. It
 fails when the source's releases cannot be read, rather than applying the
@@ -371,7 +407,8 @@ remote setup it defers in `deferred`. It stops:
 
 - Before writing anything, leaving the working tree, HEAD, and index
   unchanged, when a confirmation-required change, an answer proposed for
-  review, a profile the source no longer offers, or a start blocker is open.
+  review, a profile the source no longer offers, a platform the profile no
+  longer supports, or a start blocker is open.
 - With the run active, when the run reaches contextual work whose assessments
   are not reused, or a fix returns `confirmation-required`.
 
@@ -454,6 +491,7 @@ wrong kind with `ANSWERS_FORMAT`, and an answers file inside the project with
 | -------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `version`                  | Always; the template proposes the newest stable release.                         | A stable tag from `choices`, the source's stable releases newest first.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `profile`                  | Always; proposed for an update or a single profile.                              | A profile `name` from `choices`, each with its `description`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `platform`                 | Once a profile that supports several platforms is chosen.                        | A platform from `choices`, the profile's platforms. The recorded platform is carried forward while the profile supports it, and otherwise the `origin` remote's platform is proposed, with `details.detected`; without either, `details.reason` is `no-remote` or `unsupported`. See [Choose the hosting platform](#choose-the-hosting-platform).                                                                                                                                                                                                                                                                                                                                       |
 | `scope:<declaration>`      | For each active discovery declaration, and while a run is stopped for its scope. | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`, and `noScope` for [no scope](inspection.md#no-scope), which an optional declaration's question offers with `details.optional`. A discovery script's draft is proposed, and it stays missing in every mode, the template included, while it has open questions or until an answers file carries it back. In an update, a [reused](#reused-answers) recorded entry is answered, and one proposed for review stays missing until carried back. A stopped run proposes its confirmed entry, and a changed one [replaces the run in place](#adopt-again-in-place). |
 | `remote-setup`             | When a remote setup probe is not ready.                                          | `defer` to complete adoption without it, or `resolve` to stop, writing nothing. In an update, a [reused](#reused-answers) deferral is answered `defer`, and a recorded deferral whose probe changed, or beside remote setup it never deferred, is proposed as `defer` and stays missing until carried back.                                                                                                                                                                                                                                                                                                                                                                             |
 | `confirmation`             | When the inspection requires confirmation.                                       | The inspection identity confirmed after reviewing discarded edits, by the agent or a person at a terminal. `details` names the identity and the discarded edits.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -467,8 +505,8 @@ confirmation-required change only by naming the identity the agent reviewed for
 discarded edits, or the maintainer confirmed for a remote setting overwrite. An answer naming another identity, such as
 one confirmed before the inspection changed, stays missing, and the run does
 not start or continue. Without a confirmation-required change, the run starts
-whatever identity `inspection` names. Version and profile flags must agree with the answers
-file, and so must a source given with it.
+whatever identity `inspection` names. Version, profile and platform flags must
+agree with the answers file, and so must a source given with it.
 
 ### Stages and results
 
@@ -681,8 +719,9 @@ changes guidance, a contextual declaration's rules, discovery guidance,
 operations, retired declarations, or confirmed scope; see [update class](inspection.md#report-and-inspection-identity).
 `inspect --summary` renders the report as a [Markdown proposal](inspection.md#markdown-summary).
 
-To select a standards version, source, or profile, pass all three source flags.
-With the currently pinned CLI:
+To select a standards version, source, or profile, pass all three source flags,
+and `--platform <name>` to select a platform of a profile that supports
+several. With the currently pinned CLI:
 
 ```sh
 .repo-standards/runtime/node_modules/.bin/repo-standards inspect \
@@ -859,7 +898,7 @@ Review and commit these files through the adopting project's normal workflow:
 
 | Path                                                        | Recorded material                                                                                                                                                                                                                     |
 | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.repo-standards/selection.yaml`                            | Exact CLI package/version, canonical source URL, stable tag, commit SHA, and profile.                                                                                                                                                 |
+| `.repo-standards/selection.yaml`                            | Exact CLI package/version, canonical source URL, stable tag, commit SHA, profile, and platform.                                                                                                                                       |
 | `.repo-standards/lock.json`                                 | Inspection identity, immutable source and CLI pins, SHA-256 hashes and executable state for exact and retained material, runtime manifests, and last-complete state.                                                                  |
 | `.repo-standards/state.json`                                | Last-complete run, HEAD at start, completion time, exact baselines, full skill file inventories, skill links, check and assessment evidence bound to the selection and project snapshot, and compact work evidence for this run only. |
 | `.repo-standards/inputs/`                                   | Normalized metadata, the resolved selection, a normalized single-profile manifest, selected source files/trees, and root license material. Other profiles and unrelated source material are omitted.                                  |
@@ -1373,7 +1412,7 @@ installation, and each uncommitted path outside product state in the state the
 run's last observation recorded. The Git start blockers exempt exactly those
 paths. Any other uncommitted change still blocks with `DIRTY_PROJECT`, naming
 its path, and the agent stops and tells the maintainer. Selecting another CLI,
-source, version, or profile does not adopt in place. The last complete
+source, version, profile, or platform does not adopt in place. The last complete
 adoption an update replaces is read from the HEAD the run started from, since
 the checkout's product state is the run's own.
 
