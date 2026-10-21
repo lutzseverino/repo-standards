@@ -48,7 +48,8 @@ project content.
 
 ## Root and profiles
 
-The root requires exactly these fields. Unknown fields at every schema level
+The root requires exactly these fields, and may set one optional field,
+`adopter-action`. Unknown fields at every schema level
 are errors, including adoption hooks, environment overrides, shell options,
 custom working directories, and profile inheritance fields.
 
@@ -60,6 +61,24 @@ custom working directories, and profile inheritance fields.
 | `requires`    | Mapping containing only `repo-standards`, a nonempty npm SemVer range compatible with the running CLI; declare an open-ended minimum such as `>=7.0.0` |
 | `defaults`    | Mapping containing only `declarations`, a mapping of IDs to declarations (possibly empty)                                                              |
 | `profiles`    | Nonempty mapping of profile names to complete profiles                                                                                                 |
+
+### Adopter action
+
+The optional root field `adopter-action` holds one nonempty line of plain text
+that tells adopters of this release what to do outside adoption, such as
+rotating a credential the standards stop using. It is additive within
+`repo-standards/v2`. Validation rejects an empty or blank value, a value with
+more than one line or a control character, and a value that is not a string,
+with `INVALID_TYPE`. The CLI cannot check that the action lies outside
+adoption, which the run already performs: the author is responsible for that.
+
+Older CLIs reject the field as `UNKNOWN_FIELD`, so a source that sets it raises
+`requires.repo-standards` to the first CLI release that accepts it. The CLI
+retains the line with the other source metadata, shows it in the
+[inspection summary](inspection.md#markdown-summary) and the adoption record's
+Impact and Migration sections, and renders each newer release's line in
+[`outdated`](available-updates.md#adopter-actions). It derives the rest of
+the [adopter action](https://github.com/lutzseverino/repo-standards/blob/main/GLOSSARY.md#language) itself.
 
 Each profile requires a nonempty `description` and a `declarations` mapping,
 which may be empty. Declaration IDs, skill names, and operation IDs use

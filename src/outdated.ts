@@ -2,6 +2,11 @@ import { compare, gt } from "semver";
 import { parse } from "yaml";
 import { publishedReleases, isStableVersion } from "./acquisition.js";
 import {
+  releaseAction,
+  validAdopterAction,
+  type ReleaseAction,
+} from "./adopter-action.js";
+import {
   file,
   json,
   projectRoot,
@@ -36,6 +41,13 @@ interface Lookup {
   versions: string[];
 }
 type Answer = { lookup: Lookup; cached: boolean } | { reason: Reason };
+// One release's author-written adopter action as the cache keeps it. An
+// unreadable release is never cached.
+interface ActionLookup {
+  key: string;
+  checkedAt: string;
+  action: string | null;
+}
 // The pins of an adoption selection.
 interface Pins {
   cli: { version: string };
@@ -196,6 +208,60 @@ function fresh(lookup: unknown, key: string, now: number): lookup is Lookup {
   );
 }
 
+function freshAction(
+  lookup: unknown,
+  key: string,
+  now: number,
+): lookup is ActionLookup {
+  const { key: lookupKey, checkedAt, action } = record(lookup);
+  const age = now - Date.parse(typeof checkedAt === "string" ? checkedAt : "");
+  return (
+    lookupKey === key &&
+    (action === null || validAdopterAction(action)) &&
+    age >= 0 &&
+    age < cacheValidity
+  );
+}
+
+// The author-written line of each release newer than the pin, from the cache
+// or from the release's standards.yaml. A release that cannot be read reports
+// its reason and is looked up again next time.
+async function adopterActions(
+  repository: string,
+  newer: string[],
+  cached: unknown,
+  now: number,
+) {
+  const entries = record(cached);
+  const lookups: Record<string, ActionLookup> = {};
+  let fetched = false;
+  const actions = await Promise.all(
+    newer.map(async (version): Promise<ReleaseAction> => {
+      const key = `${repository}@${version}`;
+      const entry = entries[version];
+      if (freshAction(entry, key, now)) {
+        lookups[version] = entry;
+        return { version, action: entry.action };
+      }
+      const read = await releaseAction(
+        githubRepository(repository)!,
+        version,
+        lookupTimeout,
+      );
+      if (!read.reason) {
+        fetched = true;
+        lookups[version] = {
+          key,
+          checkedAt: new Date(now).toISOString(),
+          action: read.action,
+        };
+      }
+      return read;
+    }),
+  );
+  return { actions, lookups, fetched };
+}
+
 async function answer(
   cached: unknown,
   key: string,
@@ -242,7 +308,7 @@ function pin(pinned: string, result: Answer) {
 
 // Write only inside the ignored product cache directory; a cache that cannot
 // be written safely is skipped rather than reported.
-function writeCache(root: string, lookups: Record<string, Lookup>) {
+function writeCache(root: string, lookups: Record<string, unknown>) {
   try {
     const ignored = git(root, ["check-ignore", "--quiet", cachePath]);
     if (ignored.status === 0)
@@ -286,15 +352,32 @@ export async function outdated(project: string, cliVersion: string) {
       releaseVersions(selection.standards.repository),
     ),
   ]);
-  if ([cli, standards].some((result) => "lookup" in result && !result.cached)) {
-    writeCache(
-      root,
-      Object.fromEntries(
+  const newer =
+    "lookup" in standards
+      ? standards.lookup.versions.filter((version) =>
+          gt(version, selection.standards.version),
+        )
+      : undefined;
+  const actions = newer
+    ? await adopterActions(
+        selection.standards.repository,
+        newer,
+        cache.actions,
+        now,
+      )
+    : undefined;
+  if (
+    [cli, standards].some((result) => "lookup" in result && !result.cached) ||
+    actions?.fetched
+  ) {
+    writeCache(root, {
+      ...Object.fromEntries(
         Object.entries({ cli, standards }).flatMap(([name, result]) =>
           "lookup" in result ? [[name, result.lookup]] : [],
         ),
       ),
-    );
+      ...(actions ? { actions: actions.lookups } : {}),
+    });
   }
   return {
     format: formats.outdated,
@@ -302,6 +385,7 @@ export async function outdated(project: string, cliVersion: string) {
     standards: {
       repository: selection.standards.repository,
       ...pin(selection.standards.version, standards),
+      ...(actions ? { adopterActions: actions.actions } : {}),
     },
   };
 }

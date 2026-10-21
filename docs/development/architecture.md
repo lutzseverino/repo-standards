@@ -264,7 +264,7 @@ adoption. Inspection returns a report with a `DISCOVERY_REQUIRED` blocker when
 scope is missing. Initial start receives the same valid proposal and confirmed
 complete inspection identity and reconstructs inspection before mutation. Inspection accepts
 `repo-standards/scope/v2` proposals through `--scope`, returns explicitly versioned
-`repo-standards/inspection/v8` reports, and binds a complete eligible project
+`repo-standards/inspection/v9` reports, and binds a complete eligible project
 snapshot, relevant observation/ignore inputs, and named targets and ancestors.
 A proposal carries only the agent's judgment per active discovery declaration:
 candidates with their decisions, reasons and evidence paths, coverage, and
@@ -374,7 +374,7 @@ processes.
 | `resume`          | Continues the existing run, including accepting `--assessment <file>`, explicitly retrying interrupted work, and continuing from a fix that needs confirmation with `--confirmed`, rerunning it allowed to overwrite, or `--defer`, deferring it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `status`          | Reports current pins, progress, and historical evidence without any network request or implying continuing compliance. `--summary` renders the last complete or active run as a Markdown record.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `abandon`         | Ends an incomplete run while retaining its changes and report, exiting 0 once abandoned and 1 on a refusal; a later `adopt` adopts again in place over those changes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `outdated`        | Reports, for each pin, whether a newer stable CLI or standards version is published and by how many stable releases, without blocking or changing anything outside the ignored product cache. It renders a Markdown report by default and `repo-standards/outdated/v1` JSON with `--json`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `outdated`        | Reports, for each pin, whether a newer stable CLI or standards version is published and by how many stable releases, without blocking or changing anything outside the ignored product cache. It renders a Markdown report by default and `repo-standards/outdated/v2` JSON with `--json`, including each newer standards release's author-written adopter action.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `check`           | Runs every retained check of the last complete adoption against the working tree, outside any run and without confirmation, and reports each result; fails when any check does not pass or changes the project.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `rules [<path>]`  | Prints the installed rules covering a path and the rules of every repository-wide declaration, or with no path only the repository-wide rules, which govern any work in the project, from the last complete adoption, without any network request.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
@@ -383,25 +383,45 @@ usage error. One renderer module produces these summaries and the `outdated`
 report, and the same report or record renders the same bytes. An inspection summary lists the selection
 before and after, the update class, changed declarations and paths, discarded
 edits with whether confirmation is required, operations, scope changes, retired
-declarations, blockers when present, and the identity. A
+declarations, the adopter action, blockers when present, and the identity. A
 status summary lists the selection, operations and their results, the run's net
-change set, scope changes, and identities, or an active run's phase, progress,
-and next action.
+change set, scope changes, identities, and, for a complete adoption, the Impact
+and Migration sections that close the record, or an active run's phase,
+progress, and next action.
 
-`outdated` renders Markdown by default and the v1 JSON report with `--json`,
+The adopter action module derives one line from an inspection: the update
+class, the declarations whose contextual work the run asks for, and remote setup
+that is not ready. The same facts give the same bytes. A source's optional root
+`adopter-action` is validated by the source resolver, retained in the source
+metadata, and shown beside the derived line. An update that starts from the same
+source also reads the `standards.yaml` of every stable release between the
+previous selection and the candidate, through the release list and the GitHub
+request helper, and the run record keeps what it read. At completion the
+derived line is recomputed from the run's result, without the assessments it
+reused and with the fixes it deferred, and durable state keeps it with those
+lines and the migration steps as `impact`, so `status` renders the record
+offline from committed state. An unreadable release, or an unreadable release
+list, is evidence in the record and never fails the run.
+
+`outdated` renders Markdown by default and the v2 JSON report with `--json`,
 as `status` does; unlike `status`, it has no `--summary` flag, because the
 Markdown is its default. The rendering is a pure function of the report the
 command builds, so it adds no lookup, cache write or other project change.
 The Markdown has a Pins table, one row for the CLI package and one for the
 standards source, with the pinned and newest versions, update, newer stable
 release count, lookup time and cache provenance, and, only when a pin is
-unknown, an Unknown results table of reason codes and messages. It states
-availability only. The default output changed from JSON in a major release;
-scripts pass `--json`, whose report, errors and exit statuses are unchanged
-and which remains the system skill's call.
+unknown, an Unknown results table of reason codes and messages. An Adopter
+actions table lists each newer release's author-written line, which `outdated`
+reads from the release's `standards.yaml` once per release through the GitHub
+request helper and caches with the other lookups; an unreadable release reports
+its reason without failing the report. It states availability only. The default output changed from JSON in a major release;
+scripts pass `--json`, whose errors and exit statuses are unchanged and which
+remains the system skill's call. Its format changed to `outdated/v2` when the
+Adopter actions arrived, with the cache format.
 
-`outdated` reads the selection and makes at most one npm registry lookup and one
-release-list lookup across all pages, comparing the newest stable versions
+`outdated` reads the selection and makes at most one npm registry lookup, one
+release-list lookup across all pages and one `standards.yaml` read per newer
+stable release, comparing the newest stable versions
 with each pin and ignoring prereleases and non-SemVer tags. The exact runtime
 dependency `@lutzseverino/postern` 1.x supplies `ReleaseSource` for release lists
 and exact-tag resolution. Repository search, source metadata and commit/tree
@@ -856,6 +876,7 @@ excludes, `info` for the repository info exclude, and each consulted
 | `deferred`                                   | Each fix the run deferred: remote setup that was not ready, or every remote setup in a headless update, or a fix whose overwrite the maintainer declined, with its reason.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `reused`                                     | Each recorded answer of the previous complete adoption the run reused: its question ID, its kind, `scope`, `remote-setup` or `assessment`, and the evidence that made it eligible.                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `assessedScopes`                             | Each contextual declaration's scoped files at completion, as an identity of its targets and their observed states, which a later update compares to reuse its assessment.                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `impact`                                     | What adopters must do about the update: the adopter action derived from the run's result, the author-written lines of the adopted release and of each release since the previous selection, and the migration steps, which `status` renders as the record's Impact and Migration sections.                                                                                                                                                                                                                                                                                                                                      |
 | `changeSet`                                  | The run's net change set: each path whose state at completion differs from its state before the run, or before the run it replaced in place, once, sorted, with the phases that changed it: `installation`, `fixes`, or `agent`. Installation changes are the exact files, skill files, and skill links, including the system skills' and a retired declaration's removed target, that the run created, replaced, or removed; fix and agent changes are the paths their intervals name. Verified restoration of installed content after an interruption keeps only the installation's attribution. Product state is not listed. |
 
 `status --summary` renders a complete run's changed paths from the stored change

@@ -1,5 +1,6 @@
 import { concreteScope, ObservedScopeError } from "./scope.js";
 import { observeWork } from "./work-observation.js";
+import { adoptedReleases } from "./adopter-action.js";
 import { validateAssessment } from "./assessment.js";
 import { spawnSync } from "node:child_process";
 import {
@@ -504,6 +505,11 @@ async function startRun(
       : deferredRemoteSetup(initial.report.remoteSetup),
     initial.recorded,
     reused,
+    await adoptedReleases(
+      initial.report.selection,
+      initial.report.previousSelection,
+      initial.report.source?.["adopter-action"],
+    ),
   );
   // A deferred fix runs neither its prerequisite nor its fix.
   const prerequisites = await session.prerequisites((onSpawn) =>

@@ -879,7 +879,7 @@ paths, derived absence and observation identities, together with the run's scope
 change against the previous run. This file is included in immutable input integrity.
 `inspect --json` exposes it as historical scope after completion, independently of
 source availability, as `repo-standards/scope-history/v6` in the
-`repo-standards/inspection/v8` report, and `status` reports its scope change.
+`repo-standards/inspection/v9` report, and `status` reports its scope change.
 It also keeps each discovery script's draft that the confirmed entry was
 decided from, which a later update compares with the fresh draft to
 [reuse the scope answer](#reused-answers).
@@ -919,7 +919,7 @@ Each artifact has exactly one format, which this CLI both writes and reads:
 | Retained scope evidence, `.repo-standards/inputs/scope-history.json` | `repo-standards/scope-history/v6`                                |
 | Run record, local run report, and archived abandoned report          | `repo-standards/run/v7`                                          |
 | `status` report                                                      | `repo-standards/status/v9`                                       |
-| Inspection report                                                    | `repo-standards/inspection/v8`                                   |
+| Inspection report                                                    | `repo-standards/inspection/v9`                                   |
 | Work request and assessment                                          | `repo-standards/work-request/v5`, `repo-standards/assessment/v3` |
 
 An update also reads `repo-standards/state/v7` and
@@ -1065,6 +1065,26 @@ deferred fixes and reused answers, changed paths, next action, and identities. A
 when present. The same record renders the same bytes, the summary describes the
 record without prescribing anything, and combining `--summary` with `--json` is
 a usage error.
+
+After a complete run the record ends with an `## Impact` section followed by a
+`## Migration` section, after any Abandoned runs. Impact holds the
+[adopter action](https://github.com/lutzseverino/repo-standards/blob/main/GLOSSARY.md#language) the CLI derived: the update class,
+the declarations whose contextual work the run asked for, which excludes each
+[reused](#reused-answers) assessment, and the remote setup that stayed
+deferred. It then lists, oldest first, the author-written
+`adopter-action` line of each release since the previous selection and of the
+adopted release, with the reason for any release whose `standards.yaml` could
+not be read, or for a release list that could not be read. Migration holds the
+ordered steps those lines imply, or says that committing the update is the only
+step. Both always say something meaningful, never a placeholder, so the record
+is a valid pull request body under both a `chore:` and a `chore!:` title. The
+run reads the skipped releases when it starts an update from the same source,
+through the release list and one `standards.yaml` read per skipped release; a
+failure of either is recorded in the record and does not fail the run. The
+JSON status record of a complete adoption carries the same content as
+`impact`: `derived`, `releases` (each with `version`, `action` and, when
+unreadable, `reason`), `skipped` when the release list could not be read, and
+`steps`. An initial adoption records only the adopted release.
 
 The changed paths are the run's net change set, which completion keeps in
 durable state as `changeSet`, so the changed-path table renders from committed

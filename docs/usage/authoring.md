@@ -62,6 +62,16 @@ compatibility with the running CLI and resolves **all** profiles. A stable
 standards version and the adopter's exact CLI package version are independent;
 use a new standards version when you change material or compatibility.
 
+Write an `adopter-action` only for something an adopter must do outside
+adoption, such as rotating a credential or changing a hosting setting the
+standards cannot fix. It is one line of plain text at the root of
+`standards.yaml`. Adoption already tells adopters about the exact content, the
+contextual work and the remote setup it handles, so repeating them adds noise;
+the CLI cannot check that your line lies outside adoption. Because older CLIs
+reject the field as an unknown field, raise `requires.repo-standards` to the
+first CLI release that accepts it in the same release. See
+[the author format](author-format.md#adopter-action).
+
 After validating the committed contents with a compatible installed CLI, publish
 the same commit. The following commands run in your standards repository; replace
 `OWNER/SOURCE` and choose an unused version. They require GitHub CLI access with

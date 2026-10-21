@@ -391,7 +391,7 @@ a different CLI with `CLI_PIN_MISMATCH` before checking record formats.
 Retained inspection also checks exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
 empty-directory edits block updates before mutation.
-Retained inspection is `repo-standards/inspection/v8` with
+Retained inspection is `repo-standards/inspection/v9` with
 `repo-standards/scope-history/v6` after discovery completion, the only
 scope-history format written: it holds the last complete run, its discovery
 stored as its project observation without the derived evidence array, its named

@@ -1,3 +1,4 @@
+import type { Impact, ReleaseAction } from "./adopter-action.js";
 import type { Declaration } from "./model.js";
 import type { ReusedAnswer } from "./reused-answers.js";
 import type { Blocker, HashInventory } from "./observation.js";
@@ -81,6 +82,7 @@ export interface InspectionReport {
     status: string;
     reason?: string;
   }[];
+  adopterAction: { derived: string; authored?: string };
   start: { eligible: boolean | null; blockers: Blocker[] };
   identity: string;
 }
@@ -127,6 +129,7 @@ export interface StatusRecord {
   reused: ReusedAnswer[];
   changeSet?: { path: string; phases: string[] }[];
   scopeChanges?: ScopeChange[];
+  impact?: Impact;
   active: RunRecord | null;
   execution?: string;
   abandoned: RunRecord[];
@@ -592,6 +595,18 @@ export function inspectionSummary(report: InspectionReport) {
       ),
     );
 
+  parts.push(
+    section(
+      "Adopter action",
+      [
+        text(report.adopterAction.derived),
+        report.adopterAction.authored === undefined
+          ? `The ${code(report.selection.standards.version)} release sets no author-written adopter action.`
+          : `Author-written action of ${code(report.selection.standards.version)}: ${text(report.adopterAction.authored)}`,
+      ].join("\n\n"),
+    ),
+  );
+
   if (report.start.blockers.length)
     parts.push(
       section(
@@ -626,6 +641,53 @@ export function inspectionSummary(report: InspectionReport) {
     ),
   );
   return parts.join("\n\n") + "\n";
+}
+
+// The author-written lines of a record's releases that set one or could not
+// be read, in release order.
+function releaseActionsTable(releases: ReleaseAction[]) {
+  const rows = releases.flatMap((release) =>
+    release.action !== null
+      ? [[code(release.version), text(release.action)]]
+      : release.reason
+        ? [
+            [
+              code(release.version),
+              `Unreadable: ${code(release.reason.code)} ${text(release.reason.message)}`,
+            ],
+          ]
+        : [],
+  );
+  return rows.length
+    ? table(["Release", "Adopter action"], rows)
+    : "No adopted release sets an author-written adopter action.";
+}
+
+// What adopters must do, and the steps in order. The two sections end an
+// adoption record and always say something meaningful.
+function impactSections(impact: Impact) {
+  return [
+    section(
+      "Impact",
+      [
+        text(impact.derived),
+        releaseActionsTable(impact.releases),
+        ...(impact.skipped
+          ? [
+              `The releases since the previous selection could not be listed: ${code(impact.skipped.code)} ${text(impact.skipped.message)}`,
+            ]
+          : []),
+      ].join("\n\n"),
+    ),
+    section(
+      "Migration",
+      impact.steps.length === 1
+        ? text(impact.steps[0]!)
+        : impact.steps
+            .map((step, index) => `${index + 1}. ${text(step)}`)
+            .join("\n"),
+    ),
+  ];
 }
 
 function activeSummary(run: RunRecord, execution: string | undefined) {
@@ -697,7 +759,10 @@ interface PinAvailability {
 }
 export interface OutdatedReport {
   cli: PinAvailability & { package: string };
-  standards: PinAvailability & { repository: string | null };
+  standards: PinAvailability & {
+    repository: string | null;
+    adopterActions?: ReleaseAction[];
+  };
 }
 
 export function outdatedSummary(report: OutdatedReport) {
@@ -747,6 +812,27 @@ export function outdatedSummary(report: OutdatedReport) {
       ),
     ),
   ];
+  const actions = report.standards.adopterActions ?? [];
+  if (actions.length)
+    parts.push(
+      section(
+        "Adopter actions",
+        [
+          table(
+            ["Release", "Adopter action"],
+            actions.map((release) => [
+              code(release.version),
+              release.reason
+                ? `unreadable: ${code(release.reason.code)} ${text(release.reason.message)}`
+                : release.action === null
+                  ? "none"
+                  : text(release.action),
+            ]),
+          ),
+          "These are the lines the source's authors wrote for each newer release. The line derived from an update comes from `adopt` and `inspect`, which `outdated` does not run.",
+        ].join("\n\n"),
+      ),
+    );
   const unknown = pins.filter(({ pin }) => pin.reason);
   if (unknown.length)
     parts.push(
@@ -853,5 +939,7 @@ export function statusSummary(record: StatusRecord) {
         ),
       ),
     );
+  if (!record.active && record.impact && !record.stateError)
+    parts.push(...impactSections(record.impact));
   return parts.join("\n\n") + "\n";
 }

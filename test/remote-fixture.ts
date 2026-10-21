@@ -1,5 +1,11 @@
 import { execFileSync } from "node:child_process";
-import { chmodSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { stringify } from "yaml";
@@ -102,7 +108,26 @@ globalThis.fetch = async (url, init) => {
       },
     },
   };
+  // GitHub lists releases newest first.
+  // A list a test sets itself is left as it is.
+  const published: string[] = [];
+  let listed: unknown;
   function publishVersion(tag: string) {
+    if (!published.includes(tag)) published.unshift(tag);
+    const list = `${prefix}/releases?per_page=100`;
+    if (responses[list] === undefined || responses[list] === listed) {
+      listed = {
+        body: published.map((name, index) => ({
+          id: index + 1,
+          name: null,
+          published_at: "2026-10-01T00:00:00Z",
+          tag_name: name,
+          draft: false,
+          prerelease: false,
+        })),
+      };
+      responses[list] = listed as (typeof responses)[string];
+    }
     const publishedSha = git(source.root, "rev-parse", "HEAD");
     const publishedTreeSha = git(source.root, "rev-parse", "HEAD^{tree}");
     git(
@@ -129,6 +154,16 @@ globalThis.fetch = async (url, init) => {
           ) as string,
         };
       });
+    if (existsSync(join(source.root, "standards.yaml")))
+      responses[`${prefix}/contents/standards.yaml?ref=${tag}`] = {
+        body: {
+          type: "file",
+          encoding: "base64",
+          content: readFileSync(join(source.root, "standards.yaml")).toString(
+            "base64",
+          ),
+        },
+      };
     responses[`${prefix}/git/ref/tags/${tag}`] = {
       body: {
         ref: `refs/tags/${tag}`,

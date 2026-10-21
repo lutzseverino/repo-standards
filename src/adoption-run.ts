@@ -75,6 +75,7 @@ import {
   writeCompletion,
   type Installation,
 } from "./installation.js";
+import type { Reason, ReleaseAction } from "./adopter-action.js";
 import { dictionary, record } from "./records.js";
 import type { DeferredFix } from "./remote-setup.js";
 import type {
@@ -113,6 +114,11 @@ export interface Run {
   // The answers the last complete adoption recorded that this run reuses:
   // those adopt reused for its start, and each reused assessment.
   reused: ReusedAnswer[];
+  // The adopted release's author-written adopter action and that of each
+  // release since the previous selection, oldest first, with why the releases
+  // between could not be listed.
+  releases: ReleaseAction[];
+  skippedReleases?: Reason;
   observations: RecordedInterval[];
   outcome: "complete" | "incomplete";
   phase: string;
@@ -560,6 +566,7 @@ function readRun(root: string, path: string, active: boolean): Run {
   if (
     recorded?.format !== formats.run ||
     !Array.isArray(recorded.reused) ||
+    !Array.isArray(recorded.releases) ||
     !Array.isArray(recorded.observations) ||
     !compactIntervals(recorded.observations)
   )
@@ -813,6 +820,7 @@ function statusRecord(project: string, cliVersion: string) {
       assessments: state.assessments,
       deferred: state.deferred ?? [],
       reused: state.reused ?? [],
+      ...(state.impact ? { impact: state.impact } : {}),
       ...(changedScope ? { scopeChanges: changedScope } : {}),
       active,
       abandoned,
@@ -964,6 +972,9 @@ export class AdoptionRunSession {
     deferred: DeferredFix[],
     previous?: RecordedAdoption,
     reused: ReusedAnswer[] = [],
+    adopted: { releases: ReleaseAction[]; skipped?: Reason } = {
+      releases: [],
+    },
   ) {
     this.#assertOpen();
     const root = this.#root;
@@ -994,6 +1005,8 @@ export class AdoptionRunSession {
       operations: [],
       deferred: structuredClone(deferred),
       reused: structuredClone(reused),
+      releases: structuredClone(adopted.releases),
+      ...(adopted.skipped ? { skippedReleases: adopted.skipped } : {}),
       assessments: [],
       phase: "prerequisites",
       reason: "Run in progress or interrupted.",

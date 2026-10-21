@@ -47,6 +47,30 @@ const remote = remoteFixture(
   true,
 );
 const releasesUrl = `${remote.prefix}/releases?per_page=100`;
+const actionUrl = (version: string) =>
+  `${remote.prefix}/contents/standards.yaml?ref=${version}`;
+// A release's standards.yaml as GitHub's contents lookup returns it.
+function standardsFile(adopterAction?: string) {
+  return {
+    body: {
+      type: "file",
+      encoding: "base64",
+      content: Buffer.from(
+        stringify({
+          format: "repo-standards/v2",
+          name: "outdated-standards",
+          description: "Available update fixture",
+          requires: { "repo-standards": ">=1.0.0" },
+          ...(adopterAction === undefined
+            ? {}
+            : { "adopter-action": adopterAction }),
+          defaults: { declarations: {} },
+          profiles: { work: { description: "Work", declarations: {} } },
+        }),
+      ).toString("base64"),
+    },
+  };
+}
 // GitHub lists releases newest first. Drafts, prereleases (by flag or by tag),
 // and non-SemVer tags are not stable releases.
 const releases = [
@@ -117,6 +141,12 @@ after(() => {
 });
 
 before(async () => {
+  // Of the releases newer than the pin, only v1.0.1 sets an adopter action.
+  remote.responses[actionUrl("v1.0.1")] = standardsFile(
+    "Rotate the deploy key before updating.",
+  );
+  remote.responses[actionUrl("v1.1.0")] = standardsFile();
+  remote.save();
   commit(adopted.root);
   // The registry offers a prerelease above every stable version it publishes.
   registry = await registryFixture(cli.root, [
@@ -207,7 +237,7 @@ test("outdated reports the newest stable CLI and standards versions and the stab
   publishReleases(t, { body: releases });
   const { result, report, requests } = outdated(root, environment());
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.equal(report.format, "repo-standards/outdated/v1");
+  assert.equal(report.format, "repo-standards/outdated/v2");
   assert.deepEqual(
     { ...report.cli, checkedAt: undefined },
     {
@@ -230,6 +260,10 @@ test("outdated reports the newest stable CLI and standards versions and the stab
       newerStableReleases: 2,
       cached: false,
       checkedAt: undefined,
+      adopterActions: [
+        { version: "v1.0.1", action: "Rotate the deploy key before updating." },
+        { version: "v1.1.0", action: null },
+      ],
     },
   );
   assert.ok(Number.isFinite(Date.parse(report.cli.checkedAt!)));
@@ -242,8 +276,9 @@ test("outdated reports the newest stable CLI and standards versions and the stab
   assert.deepEqual(
     requests
       .filter((request) => request.url.startsWith("https://api.github.com/"))
-      .map((request) => request.url),
-    [releasesUrl],
+      .map((request) => request.url)
+      .sort(),
+    [releasesUrl, actionUrl("v1.0.1"), actionUrl("v1.1.0")].sort(),
   );
 });
 
@@ -267,6 +302,7 @@ test("outdated finds stable releases past the first hundred entries", (t) => {
     })),
     headers: { link: `<${page2}>; rel="next"` },
   });
+  remote.responses[actionUrl("v1.2.0")] = standardsFile();
   remote.responses[page2] = {
     body: [
       { ...release, id: 101, tag_name: "v9.0.0", draft: true },
@@ -278,6 +314,7 @@ test("outdated finds stable releases past the first hundred entries", (t) => {
   remote.save();
   t.after(() => {
     delete remote.responses[page2];
+    delete remote.responses[actionUrl("v1.2.0")];
     remote.save();
   });
   const { result, report, requests } = outdated(root, environment());
@@ -289,7 +326,7 @@ test("outdated finds stable releases past the first hundred entries", (t) => {
     requests
       .filter((request) => request.url.startsWith(remote.prefix))
       .map((request) => request.url),
-    [releasesUrl, page2],
+    [releasesUrl, page2, actionUrl("v1.2.0")],
   );
 });
 
@@ -321,7 +358,7 @@ test("a second invocation within a day answers from the ignored product cache an
     0,
     first.result.stdout + first.result.stderr,
   );
-  assert.equal(first.requests.length, 2);
+  assert.equal(first.requests.length, 4);
   const second = outdated(root, environment());
   assert.equal(
     second.result.status,
@@ -414,8 +451,8 @@ test("degraded answers are not cached, so the next invocation looks up again", (
   assert.equal(report.standards.cached, false);
   assert.equal(report.cli.cached, true);
   assert.deepEqual(
-    requests.map((request) => request.url),
-    [releasesUrl],
+    requests.map((request) => request.url).sort(),
+    [releasesUrl, actionUrl("v1.0.1"), actionUrl("v1.1.0")].sort(),
   );
 });
 
@@ -468,11 +505,16 @@ test("a GitHub token from the environment is sent as authorization only to GitHu
       )
       .sort(([a], [b]) => a.localeCompare(b));
   };
+  // The release list and the two newer releases' files.
   assert.deepEqual(lookups(environment()), [
+    ["github", "absent"],
+    ["github", "absent"],
     ["github", "absent"],
     ["registry", "absent"],
   ]);
   assert.deepEqual(lookups(environment({ GITHUB_TOKEN: "actions-token" })), [
+    ["github", "GITHUB_TOKEN"],
+    ["github", "GITHUB_TOKEN"],
     ["github", "GITHUB_TOKEN"],
     ["registry", "absent"],
   ]);
@@ -481,6 +523,8 @@ test("a GitHub token from the environment is sent as authorization only to GitHu
       environment({ GH_TOKEN: "cli-token", GITHUB_TOKEN: "actions-token" }),
     ),
     [
+      ["github", "GH_TOKEN"],
+      ["github", "GH_TOKEN"],
       ["github", "GH_TOKEN"],
       ["registry", "absent"],
     ],
@@ -560,14 +604,17 @@ test("plain outdated renders Markdown that agrees with the JSON report, identica
     first.result.stdout + first.result.stderr,
   );
   assert.equal(first.result.stderr, "");
-  assert.equal(first.requests.length, 2);
+  assert.equal(first.requests.length, 4);
   assert.match(
     first.result.stdout,
     /^# Repository Standards available updates\n\n## Pins\n\n/,
   );
   assert.doesNotMatch(first.result.stdout, /^\s*[{[]/);
   assert.doesNotMatch(first.result.stdout, /## Unknown results/);
-  assert.equal(first.result.stdout.endsWith("|\n"), true);
+  assert.equal(
+    first.result.stdout.endsWith("which `outdated` does not run.\n"),
+    true,
+  );
   const rows = pinRows(first.result.stdout);
   assert.equal(rows.CLI!.Lookup, "fresh");
 
@@ -687,8 +734,9 @@ test("outdated --json is unchanged beside the plain report, and usage errors sta
   assert.equal(json.result.status, 0, json.result.stdout + json.result.stderr);
   const report = JSON.parse(json.result.stdout) as OutdatedReport;
   assert.deepEqual(Object.keys(report), ["format", "cli", "standards"]);
-  assert.equal(report.format, "repo-standards/outdated/v1");
+  assert.equal(report.format, "repo-standards/outdated/v2");
   assert.equal(report.standards.reason!.code, "SOURCE_UNAVAILABLE");
+  assert.equal("adopterActions" in report.standards, false);
   assert.equal(json.result.stdout, JSON.stringify(report, null, 2) + "\n");
 
   // A usage error without --json is a diagnostic on stderr and exits 2.
@@ -696,4 +744,106 @@ test("outdated --json is unchanged beside the plain report, and usage errors sta
   assert.equal(usage.result.status, 2);
   assert.equal(usage.result.stdout, "");
   assert.match(usage.result.stderr, /^\[USAGE\] /);
+});
+
+// The Adopter actions table of the plain report: the release and its cell.
+function actionRows(markdown: string) {
+  const section = markdown
+    .split("\n## ")
+    .find((part) => part.startsWith("Adopter actions\n"));
+  return section
+    ?.split("\n\n")[1]!
+    .trimEnd()
+    .split("\n")
+    .slice(2)
+    .map((row) => {
+      const cells = row
+        .split("|")
+        .slice(1, -1)
+        .map((cell) => cell.trim());
+      return [cells[0]!.replace(/^`(.*)`$/, "$1"), cells[1]!];
+    });
+}
+
+test("plain outdated lists each newer release's author-written line, agreeing with the JSON report", (t) => {
+  const root = checkout(t);
+  publishReleases(t, { body: releases });
+  const first = plain(root, environment());
+  assert.equal(
+    first.result.status,
+    0,
+    first.result.stdout + first.result.stderr,
+  );
+  assert.deepEqual(actionRows(first.result.stdout), [
+    ["v1.0.1", "Rotate the deploy key before updating."],
+    ["v1.1.0", "none"],
+  ]);
+  assert.match(
+    first.result.stdout,
+    /The line derived from an update comes from `adopt` and `inspect`/,
+  );
+
+  // Every lookup is cached: later renderings and the JSON report repeat none.
+  const second = plain(root, environment());
+  const { report, requests } = outdated(root, environment());
+  assert.deepEqual([second.requests, requests], [[], []]);
+  assert.deepEqual(report.standards.adopterActions, [
+    { version: "v1.0.1", action: "Rotate the deploy key before updating." },
+    { version: "v1.1.0", action: null },
+  ]);
+  assert.equal(
+    second.result.stdout,
+    first.result.stdout.replaceAll("| fresh |", "| cached |"),
+  );
+});
+
+test("an unreadable release reports its reason without failing the report, and is read again next time", (t) => {
+  const root = checkout(t);
+  publishReleases(t, { body: releases });
+  const readable = remote.responses[actionUrl("v1.0.1")]!;
+  delete remote.responses[actionUrl("v1.0.1")];
+  remote.responses[actionUrl("v1.1.0")] = {
+    body: {
+      type: "file",
+      encoding: "base64",
+      content: Buffer.from(
+        "format: repo-standards/v2\nadopter-action: |\n  two\n  lines\n",
+      ).toString("base64"),
+    },
+  };
+  remote.save();
+  t.after(() => {
+    remote.responses[actionUrl("v1.0.1")] = readable;
+    remote.responses[actionUrl("v1.1.0")] = standardsFile();
+    remote.save();
+  });
+  const first = outdated(root, environment());
+  assert.equal(
+    first.result.status,
+    0,
+    first.result.stdout + first.result.stderr,
+  );
+  assert.equal(first.report.standards.update, "available");
+  const [unavailable, invalid] = first.report.standards.adopterActions!;
+  assert.deepEqual(
+    [unavailable!.version, unavailable!.action, unavailable!.reason!.code],
+    ["v1.0.1", null, "SOURCE_UNAVAILABLE"],
+  );
+  assert.deepEqual(
+    [invalid!.version, invalid!.action, invalid!.reason!.code],
+    ["v1.1.0", null, "INVALID_STANDARDS"],
+  );
+  const markdown = plain(root, environment());
+  assert.deepEqual(
+    actionRows(markdown.result.stdout)!.map(([version]) => version),
+    ["v1.0.1", "v1.1.0"],
+  );
+  assert.match(markdown.result.stdout, /unreadable: `SOURCE_UNAVAILABLE`/);
+  // Neither unreadable release was cached, so both are read again.
+  assert.equal(
+    markdown.requests.filter((request) =>
+      request.url.includes("/contents/standards.yaml"),
+    ).length,
+    2,
+  );
 });
