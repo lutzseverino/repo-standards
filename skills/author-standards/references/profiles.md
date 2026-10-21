@@ -32,6 +32,13 @@ mechanisms the accepted differences need; never invent a policy to demonstrate
 all four. Each profile is the complete selection an adopting project chooses,
 not a partial set to combine with another profile.
 
+A hosting platform is not a profile. When accepted declarations differ by
+platform, keep one profile, list its supported platforms in `platforms`, and
+mark each platform-specific declaration with its one `platform`; the adopting
+project selects its platform separately. Never split a profile into names such
+as `react-github` and `react-gitlab`. This CLI supports `github` only, which a
+profile without `platforms` supports by default.
+
 Review the table with the author alongside the complete source and notes. Trace
 every differing cell to an accepted draft and rationale, including exclusions
 and ownership changes. If no meaningful differences remain accepted, keep a

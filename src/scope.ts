@@ -4,7 +4,7 @@ import { hash } from "./acquisition.js";
 import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
 import { declarationLink, declarationTargets } from "./targets.js";
-import type { ResolvedProfile, SourceProfile } from "./model.js";
+import type { ResolvedProfile, SelectedProfile } from "./model.js";
 import { Paths, type Target } from "./paths.js";
 import { Fields, readYaml, type Diagnostic } from "./yaml.js";
 import {
@@ -49,7 +49,7 @@ interface ScopeBlocker {
 }
 interface ScopeValidationInput {
   root: string;
-  sourceResolved: SourceProfile;
+  sourceResolved: SelectedProfile;
   // The discovery observation the proposal is inspected against; present
   // whenever the selection has active discovery declarations.
   observation?: ScopeObservation | undefined;
@@ -236,7 +236,7 @@ function candidatePaths(root: string, entries: Entry[]) {
 // declarations themselves remain unchanged and are retained independently.
 function materializeScope(
   root: string,
-  profile: SourceProfile,
+  profile: SelectedProfile,
   proposal?: ScopeProposal,
 ): ResolvedProfile {
   const discoveries = profile.declarations

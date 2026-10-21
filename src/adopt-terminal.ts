@@ -660,6 +660,13 @@ async function askSelection(
         profiles.map(({ name }) => name),
       );
     }
+    case "platform": {
+      write(`\n${question.question}\n${question.context}\n`);
+      const platforms = question.choices as string[];
+      for (const [index, name] of platforms.entries())
+        write(`  ${index + 1}. ${name}\n`);
+      return named("Platform", question.answer as string | null, platforms);
+    }
     case "remote-setup":
       write("\nRemote setup is not ready:\n");
       for (const entry of question.details as {

@@ -99,3 +99,7 @@ alternatives.
   a published GitHub action, installed by the adopter's caller workflow, runs
   the newest CLI's headless update and keeps one rolling pull request or issue
   current; the CLI still never commits.
+- [Choose the platform inside each profile](0027-choose-the-platform-inside-each-profile.md):
+  a profile declares the hosting platforms it supports and its
+  platform-specific declarations, the project selects its platform separately
+  as part of the selection, and release-source reads go through Postern.

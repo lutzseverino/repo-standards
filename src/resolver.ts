@@ -9,6 +9,7 @@ import type { SourceProfile } from "./model.js";
 import { isRootLicense, Paths, type SourcePaths } from "./paths.js";
 import { validateSkillInvocation } from "./skill-invocation.js";
 import { dictionary } from "./records.js";
+import { defaultPlatform } from "./platforms.js";
 
 export function validateSource(
   directory: string,
@@ -140,6 +141,35 @@ function adopterActionField(root: Value, fields: Fields) {
   return undefined;
 }
 
+// A profile's platforms: a nonempty list of distinct platforms this CLI
+// supports.
+function profilePlatforms(
+  value: Value,
+  fields: Fields,
+  declarations: Declarations,
+) {
+  const platforms: string[] = [];
+  const items = fields.list(value);
+  if (Array.isArray(value.data) && !items.length)
+    fields.error(
+      "EMPTY_PLATFORMS",
+      "A profile that declares platforms names at least one.",
+      value,
+    );
+  for (const item of items) {
+    const platform = declarations.platform(item);
+    if (platform === undefined) continue;
+    if (platforms.includes(platform))
+      fields.error(
+        "DUPLICATE_IDENTITY",
+        `Duplicate platform: ${platform}.`,
+        item,
+      );
+    else platforms.push(platform);
+  }
+  return platforms;
+}
+
 function resolveDocument(
   root: Value,
   fields: Fields,
@@ -191,10 +221,19 @@ function resolveDocument(
     );
   for (const [id, profile] of entries) {
     fields.string({ ...profile, data: id });
-    fields.map(profile, ["description", "declarations"]);
+    const profileFields = fields.map(profile, [
+      "description",
+      "platforms",
+      "declarations",
+    ]);
     const profileDescription = fields.string(
       fields.get(profile, "description"),
     );
+    // A profile that declares no platforms supports github alone.
+    const platformsValue = profileFields.get("platforms");
+    const platforms = platformsValue
+      ? profilePlatforms(platformsValue, fields, declarations)
+      : [defaultPlatform];
     const replacements = declarations.read(
       fields.get(profile, "declarations"),
       inherited,
@@ -202,17 +241,23 @@ function resolveDocument(
     const resolved = new Map([...inherited, ...replacements]);
     profiles[id] = {
       description: profileDescription ?? "",
+      platforms,
       declarations: [...resolved.entries()]
         .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
         .flatMap(([, declaration]) =>
           declaration === null ? [] : [declaration],
         ),
     };
+    // Declarations for different platforms never apply together, so their
+    // targets may overlap.
     paths.conflicts(
       [...resolved.values()].flatMap((declaration) =>
         declaration === null
           ? []
-          : (declarations.locations.get(declaration) ?? []),
+          : (declarations.locations.get(declaration) ?? []).map((target) => ({
+              ...target,
+              platform: declaration.platform,
+            })),
       ),
       id,
     );

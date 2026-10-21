@@ -746,6 +746,7 @@ profiles:
   assert.deepEqual(report.profiles, {
     inherited: {
       description: "Inherited discovery",
+      platforms: ["github"],
       declarations: [
         {
           id: "documentation",
@@ -759,6 +760,7 @@ profiles:
     },
     explicit: {
       description: "Complete explicit replacement",
+      platforms: ["github"],
       declarations: [
         {
           id: "documentation",
@@ -770,7 +772,11 @@ profiles:
         },
       ],
     },
-    excluded: { description: "No documentation governance", declarations: [] },
+    excluded: {
+      description: "No documentation governance",
+      platforms: ["github"],
+      declarations: [],
+    },
   });
   assert.deepEqual(report.scope!.discoveryRequired, {
     inherited: ["documentation"],

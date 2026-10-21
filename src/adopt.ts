@@ -73,6 +73,11 @@ import {
 } from "./reused-answers.js";
 import { validateSource } from "./resolver.js";
 import {
+  defaultPlatform,
+  detectProjectPlatform,
+  onPlatform,
+} from "./platforms.js";
+import {
   code,
   inspectionSummary,
   reusedTable,
@@ -89,11 +94,12 @@ import { readYaml, type Diagnostic } from "./yaml.js";
 // next steps, and changes nothing. With a filled file it asks what remains,
 // starts the run once nothing does, and advances an active run by at most one
 // step: a confirmed or deferred fix or a submitted assessment. Questions that
-// depend on an answer, such as discovery after a profile, appear once it is
-// given. An answers file confirms a confirmation-required change only by
-// naming the inspection identity the maintainer confirmed. A run stopped for
-// its scope is replaced in place by a changed scope answer, and an abandoned
-// run's preserved changes are adopted over in place. A headless update asks
+// depend on an answer, such as the platform and discovery after a profile,
+// appear once it is given. An answers file confirms a confirmation-required
+// change only by naming the inspection identity the maintainer confirmed. A
+// run stopped for its scope is replaced in place by a changed scope answer,
+// and an abandoned run's preserved changes are adopted over in place. A
+// headless update asks
 // nobody: it updates an established adoption in one invocation, or stops with
 // the open questions an answers file finishes.
 
@@ -104,6 +110,7 @@ export interface AdoptOptions {
   source?: string;
   standardsVersion?: string;
   profile?: string;
+  platform?: string;
   answers?: string;
   project: string;
   // A headless update of the established adoption, which asks nobody.
@@ -141,6 +148,7 @@ export interface AdoptReport {
     source: string;
     version: string | null;
     profile: string | null;
+    platform: string | null;
   };
   // The questions still unanswered, by ID.
   missing: string[];
@@ -191,7 +199,7 @@ export type Answers = Map<string, unknown>;
 type Mode = "template" | "answers" | "terminal" | "headless";
 
 const questionId =
-  /^(?:version|profile|remote-setup|confirmation|inspection|(?:scope|assessment):[^/\s]+|fix:[^/\s]+\/[^/\s]+)$/;
+  /^(?:version|profile|platform|remote-setup|confirmation|inspection|(?:scope|assessment):[^/\s]+|fix:[^/\s]+\/[^/\s]+)$/;
 const questionKeys = ["id", "question", "context", "choices", "details"];
 
 function malformed(message: string): never {
@@ -303,6 +311,11 @@ function recordedSelection(root: string) {
           source: standards.repository,
           version: standards.version,
           profile: value.profile,
+          // A selection an earlier CLI recorded used github.
+          platform:
+            typeof value.platform === "string"
+              ? value.platform
+              : defaultPlatform,
         }
       : undefined;
   } catch {
@@ -418,6 +431,7 @@ export async function adopt(
   for (const [flag, id, value] of [
     ["--standards-version", "version", options.standardsVersion],
     ["--profile", "profile", options.profile],
+    ["--platform", "platform", options.platform],
   ] as const)
     if (
       value !== undefined &&
@@ -510,6 +524,7 @@ async function prepare(
       ? [
           ["version", preserved.run.selection.standards.version],
           ["profile", preserved.run.selection.profile],
+          ["platform", preserved.run.selection.platform],
           ...(
             preserved.installation.report.discovery?.proposal?.declarations ??
             []
@@ -548,6 +563,7 @@ async function prepare(
     ["SOURCE_UNAVAILABLE", "QUOTA_EXHAUSTED"].includes(error.code);
   let version = options.standardsVersion ?? answered("version");
   let profile: string | undefined;
+  let platform: string | undefined;
   let releases: string[] | undefined;
   let lookupFailure: string | undefined;
   if (version === undefined) {
@@ -598,6 +614,7 @@ async function prepare(
         source,
         version: version ?? null,
         profile: profile ?? null,
+        platform: platform ?? null,
       },
       questions,
     ),
@@ -636,6 +653,7 @@ async function prepare(
     acquired = retained;
   }
   let profileQuestion: Question;
+  let platformChoice: PlatformChoice | undefined;
   let discovery: NonNullable<AdoptReport["discovery"]> = [];
   // The discovery declarations whose scope may be no scope.
   const optional = new Set<string>();
@@ -695,28 +713,42 @@ async function prepare(
       })),
       answer: profile ?? null,
     };
+    if (profile !== undefined) {
+      platformChoice = choosePlatform(
+        root,
+        profile,
+        profiles[profile]!.platforms,
+        options.platform ?? answered("platform"),
+        recorded?.platform,
+        !!retained,
+        mode === "headless",
+      );
+      platform = platformChoice.platform;
+    }
     // The discovery and adoption guidance of each declaration whose scope
-    // the adopter decides, from the acquired source.
+    // the adopter decides, from the acquired source, on the chosen platform.
     const read = (path: string) => ({
       path,
       content: readFileSync(join(acquired.root, path), "utf8"),
     });
-    if (profile !== undefined)
-      for (const declaration of profiles[profile]!.declarations)
-        if ("discovery" in declaration && declaration.optional)
-          optional.add(declaration.id);
-    if (profile !== undefined)
-      discovery = profiles[profile]!.declarations.flatMap((declaration) =>
-        "discovery" in declaration
-          ? [
-              {
-                id: declaration.id,
-                discovery: read(declaration.discovery),
-                guidance: read(declaration.guidance),
-              },
-            ]
-          : [],
-      );
+    const declarations =
+      profile !== undefined && platform !== undefined
+        ? onPlatform(profiles[profile]!.declarations, platform)
+        : [];
+    for (const declaration of declarations)
+      if ("discovery" in declaration && declaration.optional)
+        optional.add(declaration.id);
+    discovery = declarations.flatMap((declaration) =>
+      "discovery" in declaration
+        ? [
+            {
+              id: declaration.id,
+              discovery: read(declaration.discovery),
+              guidance: read(declaration.guidance),
+            },
+          ]
+        : [],
+    );
   } finally {
     acquired.close();
   }
@@ -730,12 +762,33 @@ async function prepare(
       },
       mode === "template",
     );
+  // A profile that supports one platform asks nothing about it. A terminal
+  // asks the person to confirm or override a detected platform.
+  const selectionQuestions = [
+    versionQuestion,
+    profileQuestion,
+    ...(platformChoice?.question ? [platformChoice.question] : []),
+  ];
+  if (
+    platform === undefined ||
+    (mode === "terminal" && platformChoice?.detected)
+  )
+    return withSteps(
+      context,
+      {
+        ...report("answers-required", selectionQuestions),
+        missing: ["platform"],
+        blockers: gitBlockers(),
+      },
+      mode === "template",
+    );
 
   // Only the preserved run's own selection adopts again in place.
   if (
     preserved &&
     (version !== preserved.run.selection.standards.version ||
-      profile !== preserved.run.selection.profile)
+      profile !== preserved.run.selection.profile ||
+      platform !== preserved.run.selection.platform)
   )
     delete context.preserved;
 
@@ -806,6 +859,7 @@ async function prepare(
       source,
       standardsVersion: version,
       profile,
+      platform,
       project: root,
       ...(scope ? { scope } : {}),
     };
@@ -821,7 +875,7 @@ async function prepare(
           observations,
           { drafts: drafting },
         );
-    const questions = [versionQuestion, profileQuestion];
+    const questions = [...selectionQuestions];
     const missing: string[] = [];
     const reused: ReusedAnswer[] = [];
     for (const { id } of discovery) {
@@ -1104,6 +1158,90 @@ async function prepare(
   }
 }
 
+// How a profile's platform is chosen: its question, asked only of a profile
+// that supports several platforms, and the platform, unless an explicit
+// choice is required. A platform proposed by detection alone is confirmed in
+// a terminal.
+interface PlatformChoice {
+  platform?: string;
+  question?: Question;
+  detected?: true;
+}
+
+// A profile that supports one platform selects it, asking nothing and
+// detecting nothing, which a project without a remote, or with a remote
+// elsewhere, adopts as before. Otherwise the platform is the one given,
+// else the one the project recorded while the profile still supports it,
+// else the one its origin remote is detected on. No origin remote, a remote
+// no supported platform serves, or one the profile does not support leaves
+// the choice to the adopter. A choice outside the profile's platforms is
+// rejected. A headless update keeps the recorded platform, and stops for the
+// question when the profile no longer supports it.
+function choosePlatform(
+  root: string,
+  profile: string,
+  platforms: string[],
+  given: string | undefined,
+  recorded: string | undefined,
+  retained: boolean,
+  headless: boolean,
+): PlatformChoice {
+  if (given !== undefined && !platforms.includes(given))
+    throw new ProductError(
+      "UNKNOWN_PLATFORM",
+      `Profile ${profile} does not support platform ${given}. Its platforms: ${platforms.join(", ")}.${retained ? " The source is unavailable, and its retained standards hold only the current platform." : ""}`,
+    );
+  const question = (answer: string | null, context?: string, details = {}) => ({
+    id: "platform",
+    question: "Which hosting platform does the project use?",
+    context: [
+      `Profile ${profile} supports the hosting platforms ${platforms.join(", ")} and adopts the declarations of the chosen one.`,
+      ...(context ? [context] : []),
+    ].join(" "),
+    choices: platforms,
+    details,
+    answer,
+  });
+  if (headless && recorded !== undefined && !platforms.includes(recorded))
+    return {
+      question: question(
+        null,
+        `It no longer supports the platform the project adopts, ${recorded}, so a headless update cannot choose one.`,
+      ),
+    };
+  if (platforms.length === 1) return { platform: platforms[0]! };
+  if (given !== undefined)
+    return { platform: given, question: question(given) };
+  if (recorded !== undefined && platforms.includes(recorded))
+    return {
+      platform: recorded,
+      question: question(
+        recorded,
+        `The project's recorded platform, ${recorded}, which the profile still supports, is carried forward.`,
+      ),
+    };
+  const detected = detectProjectPlatform(root);
+  if ("platform" in detected && platforms.includes(detected.platform))
+    return {
+      platform: detected.platform,
+      detected: true,
+      question: question(
+        detected.platform,
+        `The origin remote is hosted on ${detected.platform}, which is proposed. Confirm it, or override it with another of the profile's platforms.`,
+        { detected: detected.platform },
+      ),
+    };
+  return {
+    question: question(
+      null,
+      `${"platform" in detected ? `The origin remote is hosted on ${detected.platform}, which this profile does not support.` : detected.message} Choose the platform explicitly.`,
+      "platform" in detected
+        ? { detected: detected.platform }
+        : { detected: null, reason: detected.reason },
+    ),
+  };
+}
+
 // An active run: its selection must be the one the answers adopt.
 async function continueRun(
   context: Context,
@@ -1112,20 +1250,22 @@ async function continueRun(
   run: Run,
 ) {
   const { root, cliVersion, given } = context;
-  const { standards, profile } = run.selection;
+  const { standards, profile, platform } = run.selection;
   const source = options.source ?? file?.source;
   const version = options.standardsVersion ?? given.get("version");
   const chosen = options.profile ?? given.get("profile");
+  const chosenPlatform = options.platform ?? given.get("platform");
   if (
     (source !== undefined &&
       sourceKey(source) !== sourceKey(standards.repository)) ||
     (typeof version === "string" && version !== standards.version) ||
-    (typeof chosen === "string" && chosen !== profile)
+    (typeof chosen === "string" && chosen !== profile) ||
+    (typeof chosenPlatform === "string" && chosenPlatform !== platform)
   ) {
     const continuation = continuationCommand(root, cliVersion);
     throw new ProductError(
       "ACTIVE_RUN",
-      `A run adopting ${standards.repository} ${standards.version} with profile ${profile} is active. Continue it with an answers file for it, or, with the maintainer's instruction, abandon it with ${continuation.invoke("abandon")} before adopting another selection.${continuation.setup ? ` First set adoption_cli to the external installation of CLI ${cliVersion} that started the run; if unavailable, acquire it outside the project with ${continuation.setup}.` : ""}`,
+      `A run adopting ${standards.repository} ${standards.version} with profile ${profile} on ${platform} is active. Continue it with an answers file for it, or, with the maintainer's instruction, abandon it with ${continuation.invoke("abandon")} before adopting another selection.${continuation.setup ? ` First set adoption_cli to the external installation of CLI ${cliVersion} that started the run; if unavailable, acquire it outside the project with ${continuation.setup}.` : ""}`,
     );
   }
   // A run stopped for its scope and given a changed scope answer is replaced
@@ -1192,13 +1332,14 @@ function scopeQuestions(context: Context, run: Run): Question[] {
 
 // The report of a run, before describing what it asks.
 function runReport(run: Run): AdoptReport {
-  const { cli, standards, profile } = run.selection;
+  const { cli, standards, profile, platform } = run.selection;
   return skeleton(
     {
       cli: cli.version,
       source: standards.repository,
       version: standards.version,
       profile,
+      platform,
     },
     [],
   );
@@ -1547,6 +1688,10 @@ function withSteps(
       steps.push(
         "Decide the answers from each question's context and choices, and record your decisions and reasons in the handoff. Choose the proposed newest stable version unless the maintainer requested another. Choose the profile from its descriptions, the request, and repository evidence; ask the maintainer only when these do not settle it.",
       );
+      if (ids.has("platform"))
+        steps.push(
+          "Answer `platform` with the hosting platform the project lives on, from the choices: keep a platform detected from the origin remote unless the maintainer's request names another, and ask the maintainer only when no remote or request settles it.",
+        );
       if (report.reused.length)
         steps.push(
           "The reused answers above carry the last complete adoption's answers forward because what each was about is unchanged. Keep them unless the project calls for another answer; an answer equal to a reused one stays reused. List them in the handoff.",
@@ -1749,6 +1894,10 @@ export function adoptSummary(report: AdoptReport) {
             [
               "Profile",
               selection.profile ? code(selection.profile) : "unanswered",
+            ],
+            [
+              "Platform",
+              selection.platform ? code(selection.platform) : "unanswered",
             ],
           ],
         ),

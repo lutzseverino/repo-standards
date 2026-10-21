@@ -126,7 +126,7 @@ export async function checkContextual(
 async function runChecks(
   root: string,
   resolved: Pick<ResolvedProfile, "declarations">,
-  selection: { standards: unknown; profile: string },
+  selection: { standards: unknown; profile: string; platform: string },
   declaration?: string,
 ) {
   const cited = installedRules(resolved.declarations);
@@ -231,7 +231,7 @@ function oneLine(text: string) {
 // The readable form of a check report: one line per check after a count. The
 // JSON report keeps the profile and each message as they are.
 export function checkSummary(report: CheckReport) {
-  const { standards, profile } = report.selection;
+  const { standards, profile, platform } = report.selection;
   const counts = (["passed", "failed", "blocked", "error"] as const)
     .map(
       (status) =>
@@ -246,7 +246,7 @@ export function checkSummary(report: CheckReport) {
         `${count} ${status === "error" ? (count === 1 ? "error" : "errors") : status}`,
     );
   const lines = [
-    `Checks of ${standards.repository} ${standards.version}, profile ${oneLine(profile)}: ${counts.length ? counts.join(", ") : "none declared"}.`,
+    `Checks of ${standards.repository} ${standards.version}, profile ${oneLine(profile)}, platform ${platform}: ${counts.length ? counts.join(", ") : "none declared"}.`,
     ...report.checks.map(
       (result) =>
         `${result.status.padEnd(7)} ${result.declaration}/${result.id}: ${oneLine(result.message)}${result.rules ? ` Rules: ${result.rules}` : ""}${result.status === "passed" ? "" : ` Output: ${result.stdout}, ${result.stderr}`}`,

@@ -19,6 +19,9 @@ export interface Operation extends Script {
 
 interface DeclarationBase {
   id: string;
+  // The one hosting platform the declaration applies on; without it, it
+  // applies on every platform of its profile.
+  platform?: string;
   checks: Operation[];
   fixes: Operation[];
 }
@@ -55,11 +58,24 @@ export type SourceDeclaration =
         // Its confirmed scope may be no scope.
         optional?: true;
       });
+// A profile's platforms are the hosting platforms an adopting project can
+// select it on, which default to github alone. Its declarations still hold
+// those of every platform until one is selected.
 export interface SourceProfile {
+  description: string;
+  platforms: string[];
+  declarations: SourceDeclaration[];
+}
+
+// A source profile on its selected platform: the declarations that apply
+// there, before scope.
+export interface SelectedProfile {
   description: string;
   declarations: SourceDeclaration[];
 }
 
+// A profile resolved for one selected platform: its declarations are those
+// that apply on that platform.
 export interface ResolvedProfile {
   description: string;
   declarations: Declaration[];

@@ -235,10 +235,20 @@ export class Paths {
     }
   }
 
-  conflicts(targets: Target[], profile: string) {
+  // Targets of declarations for different platforms never conflict.
+  conflicts(
+    targets: (Target & { platform?: string | undefined })[],
+    profile: string,
+  ) {
     for (let index = 0; index < targets.length; index++) {
       const target = targets[index]!;
       for (const previous of targets.slice(0, index)) {
+        if (
+          target.platform !== undefined &&
+          previous.platform !== undefined &&
+          target.platform !== previous.platform
+        )
+          continue;
         if (overlaps(foldPath(target.path), foldPath(previous.path))) {
           this.fields.error(
             "TARGET_OVERLAP",

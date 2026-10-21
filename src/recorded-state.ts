@@ -51,6 +51,7 @@ import {
   type ExecutionEvidence,
 } from "./work-evidence.js";
 import { dictionary } from "./records.js";
+import { defaultPlatform } from "./platforms.js";
 
 // The one reader of a recorded adoption: everything the last complete adoption
 // left under the product state directory, read and verified together, after the
@@ -65,12 +66,16 @@ export interface RecordedSelection {
   cli: { package: string; version: string };
   standards: { repository: string; version: string; commit: string };
   profile: string;
+  // The hosting platform the project selected.
+  platform: string;
 }
 
 type Baseline = Pick<Content, "sha256" | "executable">;
 interface RecordedLock {
   format: string;
-  selection: RecordedSelection;
+  // A lock an earlier CLI wrote records no platform: its selection used
+  // github, the only platform there was.
+  selection: Omit<RecordedSelection, "platform"> & { platform?: unknown };
   inspection: string;
   files: Record<string, Baseline>;
   state: Baseline;
@@ -221,6 +226,8 @@ function decode(lock: Observation, observed: Observation) {
     pinned.state?.sha256 !== observed.sha256 ||
     pinned.state.executable !== observed.executable ||
     !pinned.selection ||
+    (pinned.selection.platform !== undefined &&
+      typeof pinned.selection.platform !== "string") ||
     !pinned.files
   ) {
     invalid();
@@ -535,7 +542,11 @@ function readFrom(
   const resolved = recordedResolution(verified[resolvedFile]);
   const scope = verified[scopeFile];
   return {
-    selection: pinned.selection,
+    selection: {
+      ...pinned.selection,
+      platform:
+        (pinned.selection.platform as string | undefined) ?? defaultPlatform,
+    },
     files: pinned.files,
     state: decoded.state,
     stateFile: decoded.stateFile,

@@ -186,6 +186,7 @@ console.log(JSON.stringify({format: 'repo-standards/result/v2', status: input.op
   assert.equal(evidence.input.projectRoot, f.project.root);
   assert.deepEqual(evidence.input.standards, inspection.selection.standards);
   assert.equal(evidence.input.profile, "work");
+  assert.equal(evidence.input.platform, "github");
   assert.deepEqual(evidence.input.operation, {
     declaration: "instructions",
     phase: "fixes",
