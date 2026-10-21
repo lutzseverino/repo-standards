@@ -212,14 +212,24 @@ function fileChange({ before, after }: ChangedFile) {
     : "replaced";
 }
 
-function scopeTable(changes: ScopeChange[]) {
+// A confirmed declaration with no scope adds no path and says so.
+function scopeTable(changes: (ScopeChange & { none?: boolean })[]) {
   return table(
     ["Declaration", "Added", "Removed"],
     changes.map((change) => [
       code(change.id),
-      list(change.additions.map(code), "none"),
+      change.none ? "no scope" : list(change.additions.map(code), "none"),
       list(change.removals.map(code), "none"),
     ]),
+  );
+}
+
+function noScope(declarations: Declaration[], id: string) {
+  return declarations.some(
+    (declaration) =>
+      declaration.id === id &&
+      declaration.kind === "repository" &&
+      declaration["no-scope"],
   );
 }
 
@@ -236,7 +246,7 @@ function draftTable(draft: ScopeProposal) {
         );
       return [
         code(entry.id),
-        paths("include"),
+        entry.noScope ? "no scope" : paths("include"),
         paths("exclude"),
         entry.unresolved.map(text).join(" ") || "none",
       ];
@@ -365,7 +375,9 @@ export function inspectionSummary(report: InspectionReport) {
       code(entry.id),
       entry.discoveryRequired
         ? "discovery not confirmed"
-        : list(entry.targets.map(code), "none"),
+        : noScope(report.resolved.declarations, entry.id)
+          ? "no scope"
+          : list(entry.targets.map(code), "none"),
       update ? changedGuidance.get(entry.id)!.join(", ") : "added",
     ]);
   parts.push(
@@ -495,6 +507,7 @@ export function inspectionSummary(report: InspectionReport) {
         id: declaration.id,
         additions: [...declarationTargets(declaration).paths].sort(),
         removals: [],
+        none: noScope([declaration], declaration.id),
       }));
     scope = confirmed.length ? scopeTable(confirmed) : "No discovered scope.";
   } else

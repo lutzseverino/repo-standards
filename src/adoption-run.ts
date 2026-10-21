@@ -492,6 +492,22 @@ export function confirmedProposal(root: string, run: Run) {
   }
 }
 
+// The discovery declarations of a run's start that are optional, so their
+// confirmed scope may be no scope.
+export function optionalDeclarations(root: string, run: Run) {
+  try {
+    return (
+      readInstallation(root, run).report.sourceResolved?.declarations ?? []
+    ).flatMap((declaration) =>
+      "discovery" in declaration && declaration.optional
+        ? [declaration.id]
+        : [],
+    );
+  } catch {
+    return [];
+  }
+}
+
 // A fix's request for the maintainer's confirmation to overwrite a setting,
 // as the run stops for it and as a resume without confirmation refuses it.
 export function fixConfirmationRequired(

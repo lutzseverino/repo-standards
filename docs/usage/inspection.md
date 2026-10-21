@@ -544,8 +544,9 @@ The proposal holds only judgment and has exactly this structure:
 
 Supply exactly one entry per active discovery declaration, and none for explicit
 or excluded declarations; the error names each missing or unknown declaration.
-All fields shown are required; unknown fields, duplicate keys, duplicate list
-entries, and any other proposal format fail. Lists are unordered and normalized;
+All fields shown are required, and an entry may also carry
+[`noScope`](#no-scope); unknown fields, duplicate keys, duplicate list entries, and any other
+proposal format fail. Lists are unordered and normalized;
 explanation text is preserved verbatim, and any change to the proposal's text
 changes the final inspection identity.
 
@@ -554,7 +555,8 @@ an intended new file. Excluded candidates may describe directories or
 exact/reserved paths. Every candidate uses the shared safe, repository-relative
 explicit-path syntax; exclusions cannot use root, parent, absolute, backslash, or
 glob paths. Every entry needs a nonempty coverage explanation, even without
-candidates. Empty scope retains the declaration, guidance, and its fixes/checks.
+candidates. Empty scope retains the declaration, guidance, and its fixes/checks,
+and makes its rules repository-wide.
 Nonempty `unresolved` produces an inspectable report with `UNRESOLVED_SCOPE`,
 never a startable result.
 
@@ -678,3 +680,46 @@ A confirmed scope never changes during a run. When contextual work needs files
 outside it, or a confirmed target is mistaken, a different scope takes a new
 run with a new proposal; see
 [Correct a confirmed scope](adoption.md#correct-a-confirmed-scope).
+
+### No scope
+
+The entry of an [optional](author-format.md#optional-discovery) declaration may
+carry `"noScope": true` to give it no scope:
+
+```json
+{
+  "id": "hosting-settings",
+  "coverage": "The project is not hosted on a platform these settings govern.",
+  "candidates": [
+    {
+      "path": "deploy/hosting.yaml",
+      "decision": "exclude",
+      "reason": "This file configures a local preview server, not hosting.",
+      "evidence": ["deploy/hosting.yaml"]
+    }
+  ],
+  "unresolved": [],
+  "noScope": true
+}
+```
+
+`noScope` must be `true`, and the entry includes no candidate; its coverage
+explanation and evidence-backed exclusions are required as for any entry. No
+scope keeps the declaration and its adoption guidance for its assessment, and
+nothing else: in `resolved` the declaration has empty targets, no `rules`, no
+checks or fixes, and `"no-scope": true`, so the run installs none of its rules,
+lists none of its operations, and runs none of them. Its rules are never
+repository-wide. A `noScope` entry for a declaration that is not optional fails
+with `INVALID_SCOPE`, naming the declaration, and so does one with an included
+candidate. An entry without `noScope` keeps the meaning above for every
+declaration. The `--summary` report shows the declaration's targets and
+confirmed scope as `no scope`, distinct from an empty scope.
+
+An update proposes each scope again. The retained proposal, which `status`
+reports as `scopeProposal`, keeps `noScope`, so an update can carry the
+decision forward. Moving an optional declaration from no scope into a scope,
+or out of one, is a `scope` change of the
+[update class](#report-and-inspection-identity), with `rules` and
+`operations` when it has them: moving in installs its rules and runs its
+operations; moving out removes its installed rules file and index entry, as
+product-owned state, and ends its governance without changing project content.

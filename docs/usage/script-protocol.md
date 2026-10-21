@@ -250,7 +250,10 @@ retained source. The script reads one JSON object on stdin:
 It prints a `repo-standards/scope/v2` proposal holding exactly one entry, for
 its declaration, and exits with status `0`. Its evidence paths are
 project-relative paths of eligible files and directories, and the membership
-questions it cannot answer go in `unresolved`. The script only drafts: the
+questions it cannot answer go in `unresolved`. For an
+[optional](author-format.md#optional-discovery) declaration, the entry may
+propose [no scope](inspection.md#no-scope) with `"noScope": true`; for any
+other declaration such an entry is a `PROTOCOL_ERROR`. The script only drafts: the
 person or agent answers its questions and submits the completed proposal, as
 [the inspection contract](inspection.md#discover-contextual-file-scope)
 describes.
@@ -397,6 +400,9 @@ representation before execution. `allowedTargets.paths` is the confirmed file
 list and `allowedTargets.directories` is empty. The active resolved declarations
 carry those same targets; operations do not interpret discovery guidance. Empty
 scope still executes its fixes and checks and requires contextual coverage review.
+An optional declaration with [no scope](inspection.md#no-scope) executes none:
+its resolved declaration, as every operation's `declarations` input lists it,
+has empty targets, no checks or fixes, no `rules`, and `"no-scope": true`.
 Deletion and creation are separate observed changes: a move grants no implicit
 authority for its destination or link repairs. Excluded candidates and declarations
 grant no deletion authority.

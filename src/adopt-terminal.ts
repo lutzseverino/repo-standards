@@ -89,7 +89,11 @@ const scopeRejections = [
   "OBSERVATION_UNSAFE",
 ];
 
-type Contextual = NonNullable<AdoptReport["contextual"]>[number];
+// A contextual declaration, and whether its confirmed scope is no scope, as
+// its assessment question names it.
+type Contextual = NonNullable<AdoptReport["contextual"]>[number] & {
+  noScope?: boolean;
+};
 // A judgment adopt writes; the question names its declaration.
 type Answer = Omit<Judgment, "id">;
 interface Session {
@@ -363,7 +367,17 @@ export async function adoptInTerminal(
           write("Resolve it, then run adopt again to continue.\n");
           return report.outcome;
         }
-        const declarations = report.contextual!;
+        const declarations: Contextual[] = report.contextual!.map(
+          (declaration) => ({
+            ...declaration,
+            noScope: report.answers.questions.some(
+              (question) =>
+                question.id === `assessment:${declaration.id}` &&
+                (question.details as { noScope?: unknown } | undefined)
+                  ?.noScope === true,
+            ),
+          }),
+        );
         const failed = report.failedChecks ?? [];
         let walk = declarations;
         if (reason.startsWith("CHECKS_FAILED:")) {
@@ -416,22 +430,37 @@ export async function adoptInTerminal(
             review = await reviewScope(
               prompt,
               declaration,
-              `Before any contextual edit, does it cover every file ${declaration.id} should? [Y/n]: `,
+              declaration.noScope
+                ? `Before any contextual edit, does no project file belong in the scope of ${declaration.id}? [Y/n]: `
+                : `Before any contextual edit, does it cover every file ${declaration.id} should? [Y/n]: `,
               "after the run's fixes",
             );
             reviewedAfterFixes.set(declaration.id, review);
           }
           if (review.status === "blocked") incomplete = declaration.id;
         }
+        // A declaration with no scope has no contextual work: only its
+        // scope reviews judge it.
         if (!incomplete)
-          for (const [index, declaration] of walk.entries())
+          for (const declaration of walk)
+            if (declaration.noScope)
+              judged.set(
+                declaration.id,
+                withoutScope(
+                  declaration,
+                  reviewedAfterFixes.get(declaration.id)!,
+                ),
+              );
+        const working = walk.filter((declaration) => !declaration.noScope);
+        if (!incomplete)
+          for (const [index, declaration] of working.entries())
             judged.set(
               declaration.id,
               await walkDeclaration(
                 prompt,
                 session,
                 declaration,
-                `${index + 1} of ${walk.length}`,
+                `${index + 1} of ${working.length}`,
                 failed.filter((check) => check.declaration === declaration.id),
                 reviewedAfterFixes.get(declaration.id),
               ),
@@ -445,7 +474,9 @@ export async function adoptInTerminal(
           const current = await reviewScope(
             prompt,
             declaration,
-            `Now that the contextual work is done, does the confirmed scope of ${declaration.id}, ${targetList(declaration)}, cover every file it should? [Y/n]: `,
+            declaration.noScope
+              ? `Now that the contextual work is done, does no project file belong in the scope of ${declaration.id}? [Y/n]: `
+              : `Now that the contextual work is done, does the confirmed scope of ${declaration.id}, ${targetList(declaration)}, cover every file it should? [Y/n]: `,
             "after the contextual work",
           );
           judged.set(declaration.id, {
@@ -520,6 +551,22 @@ function unreviewed(incomplete: string): ScopeReview {
       `The maintainer reported the scope of ${incomplete} incomplete.`,
     ],
     additionalPaths: [],
+  };
+}
+
+// The judgment of a declaration with no scope, which has no contextual work
+// to walk.
+function withoutScope(
+  declaration: Contextual,
+  afterFixes: ScopeReview,
+): Answer {
+  return {
+    status: "satisfied",
+    explanation: `${declaration.id} has no scope, so it has no contextual work.`,
+    evidence: [
+      "The maintainer confirmed in adopt's terminal walk-through that no project file belongs in its scope.",
+    ],
+    scopeValidity: { afterFixes, current: afterFixes },
   };
 }
 
@@ -739,12 +786,16 @@ async function askScope(
           coverage: string;
           candidates: Candidate[];
           unresolved: string[];
+          noScope?: true;
         });
+  // Only an optional declaration's scope may be no scope.
+  const optional =
+    (question.details as { optional?: unknown } | undefined)?.optional === true;
   // A run stopped for its scope asks again from its confirmed scope.
   const label = report.run ? "confirmed" : "drafted";
   if (draft) {
     write(
-      `${report.run ? "The run's confirmed scope." : "The discovery script drafted this scope."}\nCoverage: ${draft.coverage}\n`,
+      `${report.run ? "The run's confirmed scope." : "The discovery script drafted this scope."}${draft.noScope ? " It has no scope." : ""}\nCoverage: ${draft.coverage}\n`,
     );
     for (const candidate of draft.candidates)
       write(
@@ -755,6 +806,43 @@ async function askScope(
   for (const open of draft?.unresolved ?? []) {
     write(`Open question: ${open}\n`);
     notes.push(`${open} ${await required("Answer: ")}`);
+  }
+  // No scope, unlike an empty one, installs none of its rules and runs none
+  // of its checks or fixes.
+  if (
+    optional &&
+    (await yes(
+      `${id} is optional. Does it have no scope, so that none of its rules install and none of its checks or fixes run? [${draft?.noScope ? "Y/n" : "y/N"}]: `,
+      draft?.noScope ? "yes" : "no",
+    ))
+  ) {
+    const why =
+      draft?.noScope && !notes.length
+        ? undefined
+        : await required("Why does no project file belong in its scope? ");
+    return {
+      coverage: [draft?.coverage, why, ...notes]
+        .filter((text) => text)
+        .join(" "),
+      // An included file with no evidence, one that does not exist yet,
+      // is no candidate once excluded.
+      candidates: (draft?.candidates ?? []).flatMap((candidate): Candidate[] =>
+        candidate.decision === "exclude"
+          ? [candidate]
+          : candidate.evidence.length
+            ? [
+                {
+                  ...candidate,
+                  decision: "exclude",
+                  reason:
+                    "The maintainer gave it no scope in adopt's terminal walk-through.",
+                },
+              ]
+            : [],
+      ),
+      unresolved: [],
+      noScope: true,
+    };
   }
   const drafted = (draft?.candidates ?? [])
     .filter((candidate) => candidate.decision === "include")
@@ -894,7 +982,8 @@ async function walkDeclaration(
 }
 
 // A declaration's allowed targets, as a person reads them.
-function targetList({ allowedTargets }: Contextual) {
+function targetList({ allowedTargets, noScope }: Contextual) {
+  if (noScope) return "no scope";
   return (
     [
       ...allowedTargets.paths,
@@ -915,12 +1004,16 @@ async function reviewScope(
   if (await yes(question, "yes"))
     return {
       status: "valid",
-      explanation: `The maintainer confirmed in adopt's terminal walk-through that, ${when}, the confirmed scope covers every file the declaration should.`,
+      explanation: declaration.noScope
+        ? `The maintainer confirmed in adopt's terminal walk-through that, ${when}, no project file belongs in the declaration's scope.`
+        : `The maintainer confirmed in adopt's terminal walk-through that, ${when}, the confirmed scope covers every file the declaration should.`,
       evidence,
       additionalPaths: [],
     };
   write(
-    "List any files it misses, one per line; an empty line ends the list, which may be empty.\n",
+    declaration.noScope
+      ? "List the files that belong in its scope, one per line; an empty line ends the list, which may be empty.\n"
+      : "List any files it misses, one per line; an empty line ends the list, which may be empty.\n",
   );
   const missing = await paths("File: ");
   const reason = await required("Why is the confirmed scope incomplete? ");

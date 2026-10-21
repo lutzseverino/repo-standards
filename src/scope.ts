@@ -14,9 +14,10 @@ import {
 } from "./scope-observation.js";
 
 // A proposal holds only the agent's judgment: per active discovery
-// declaration, its candidates with their evidence paths, its coverage, and
-// unresolved questions. Everything mechanical is derived from the observation
-// the proposal is inspected against.
+// declaration, its candidates with their evidence paths, its coverage,
+// unresolved questions, and, for an optional declaration, whether it has no
+// scope. Everything mechanical is derived from the observation the proposal
+// is inspected against.
 export interface Candidate {
   path: string;
   decision: "include" | "exclude";
@@ -28,6 +29,10 @@ interface Entry {
   coverage: string;
   candidates: Candidate[];
   unresolved: string[];
+  // No scope, unlike an empty one, installs none of the declaration's rules
+  // and runs none of its checks or fixes. Only an optional declaration may
+  // have it.
+  noScope?: true;
 }
 export interface ScopeProposal {
   format: typeof formats.scope;
@@ -79,15 +84,23 @@ function observeNamed(root: string, named: string[]) {
     throw error;
   }
 }
-function object(value: unknown, keys: string[]): Record<string, unknown> {
+function object(
+  value: unknown,
+  keys: string[],
+  optional: string[] = [],
+): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value))
     invalid("Expected a scope object.");
   const record = value as Record<string, unknown>;
   if (
-    Object.keys(record).some((key) => !keys.includes(key)) ||
+    Object.keys(record).some(
+      (key) => !keys.includes(key) && !optional.includes(key),
+    ) ||
     keys.some((key) => !(key in record))
   )
-    invalid(`Expected exactly these scope fields: ${keys.join(", ")}.`);
+    invalid(
+      `Expected exactly these scope fields: ${keys.join(", ")}${optional.length ? `, and optionally ${optional.join(", ")}` : ""}.`,
+    );
   return record;
 }
 function text(value: unknown): string {
@@ -155,13 +168,16 @@ export function parseScope(input: string): ScopeProposal {
     declarations: list(
       proposal.declarations,
       (value) => {
-        const entry = object(value, [
-          "id",
-          "coverage",
-          "candidates",
-          "unresolved",
-        ]);
-        return {
+        const entry = object(
+          value,
+          ["id", "coverage", "candidates", "unresolved"],
+          ["noScope"],
+        );
+        if ("noScope" in entry && entry.noScope !== true)
+          invalid(
+            "noScope must be true: it marks an optional declaration that has no scope.",
+          );
+        const parsed: Entry = {
           id: text(entry.id),
           coverage: text(entry.coverage),
           candidates: list(
@@ -188,7 +204,13 @@ export function parseScope(input: string): ScopeProposal {
             (candidate) => candidate.path,
           ),
           unresolved: list(entry.unresolved, text, text),
+          ...(entry.noScope === true ? { noScope: true as const } : {}),
         };
+        if (parsed.noScope && included(parsed).length)
+          invalid(
+            `The entry of ${parsed.id} has no scope, so it cannot include a candidate. Exclude each candidate, or remove noScope.`,
+          );
+        return parsed;
       },
       (entry) => entry.id,
     ),
@@ -244,6 +266,22 @@ function materializeScope(
           "Supply exactly one entry per active discovery declaration and none for explicit or excluded declarations.",
         ].join(" "),
       );
+    const required = proposal.declarations
+      .filter(
+        (entry) =>
+          entry.noScope &&
+          !profile.declarations.some(
+            (declaration) =>
+              declaration.id === entry.id &&
+              "discovery" in declaration &&
+              declaration.optional,
+          ),
+      )
+      .map((entry) => entry.id);
+    if (required.length)
+      invalid(
+        `Only an optional declaration can have no scope, and these are not optional: ${required.join(", ")}. Propose their scope, which may be empty, without noScope.`,
+      );
   }
   const paths = candidatePaths(root, proposal?.declarations ?? []);
   const targets: Target[] = [];
@@ -258,8 +296,23 @@ function materializeScope(
       const {
         discovery: _discovery,
         "discovery-script": _script,
+        optional: _optional,
         ...concrete
       } = declaration;
+      // No scope keeps the declaration and its adoption guidance for its
+      // assessment, and none of its rules, checks or fixes.
+      if (entry.noScope) {
+        const { rules: _rules, ...governed } = concrete;
+        return [
+          {
+            ...governed,
+            checks: [],
+            fixes: [],
+            targets: { paths: [], directories: [] },
+            "no-scope": true as const,
+          },
+        ];
+      }
       return [
         { ...concrete, targets: { paths: included(entry), directories: [] } },
       ];
