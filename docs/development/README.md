@@ -38,6 +38,13 @@ particular files, or `pnpm lint --fix` to apply its safe fixes.
 Include observable acceptance tests with the behavior they validate. Tests
 install current `dist/` output; rebuild after changing product code.
 
+The [update action](../usage/automated-updates.md), `action.yml`, runs the
+TypeScript in `action/` with Node.js directly, so it has no build output and
+`pnpm build` does not cover it; `pnpm typecheck` and `pnpm lint` do.
+`test/update-action.test.ts` runs it against a local fake of GitHub's REST API,
+a bare Git remote, and a fake CLI on `PATH`. Only `action/github.ts` may call
+GitHub.
+
 ### Continuous integration
 
 Each PR runs three parallel Linux test parts on each of Node.js 24 and 26 using Node's `--test-shard` over

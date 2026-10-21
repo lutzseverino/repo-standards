@@ -62,6 +62,7 @@ Repo Canon's.
 - Adopt through disclosed operations and agent assessments, retaining evidence.
 - Update any pin, the source, or the profile in one run, reviewing discarded edits from Git.
 - Report available updates and render inspections and runs as Markdown summaries.
+- Propose every available update as one rolling pull request through the opt-in [update action](docs/usage/automated-updates.md).
 - Run the adopted checks on demand against the working tree.
 - Install each declaration's rules and print the rules that cover a path.
 - Discover sources by topic without automatically selecting or adopting them.

@@ -25,7 +25,8 @@ an agent, also reads the repository-wide [installed rules](rules.md) at the
 start of any work and looks up the rules covering a file before changing it,
 and starts no update; `outdated` remains the complete interface without an
 agent. Apply an update through inspection and start as described in
-[Adoption](adoption.md).
+[Adoption](adoption.md). To have every available update proposed as a pull
+request instead, opt in to the [update action](automated-updates.md).
 
 ## Output formats
 
