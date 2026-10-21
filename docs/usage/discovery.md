@@ -12,9 +12,9 @@ prerequisite probes, selects no profile, and starts no adoption. It uses the
 same external temporary snapshots and tag-observation cache as
 [direct inspection](inspection.md#inspect-with-an-already-installed-exact-cli).
 
-For each repository on the requested page, search walks GitHub's release list
-in API order until it finds a published, non-prerelease release with a stable
-SemVer tag. It checks that release's immutable Git snapshot through the same
+For each repository on the requested page, search reads the complete GitHub
+release list through Postern, then selects the first published, non-prerelease
+release with a stable SemVer tag in API order. It checks that release's immutable Git snapshot through the same
 source acquisition and all-profile resolver used by inspection. This is the
 first eligible release in GitHub's list, not a guarantee of the highest SemVer.
 An invalid or incompatible release is reported explicitly; search does not

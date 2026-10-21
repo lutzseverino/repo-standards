@@ -106,9 +106,11 @@ through Git's anonymous smart protocol. The number of REST requests does not gro
 with the source's file count. The CLI keeps each verified source outside the
 project, in `$XDG_CACHE_HOME/repo-standards/` or `~/.cache/repo-standards/`,
 and reuses it only once its bytes match their Git identities. A later command
-or answer round then makes two REST requests, resolving the repository and its
-tag afresh, and a complete guided adoption with a lightweight tag makes at most
-16, plus one per annotated tag object and per additional page of releases.
+or answer round then makes two REST requests, plus one per annotated tag
+object, resolving the repository and its tag afresh. A complete guided adoption
+with a lightweight tag makes at most 16, plus one per additional page of
+releases. Annotated tags add one request per object on each observation,
+including start's second observation after it acquires the runtime.
 Deleting the cache only makes the next command acquire the source again.
 Every GitHub REST request, including inspection,
 start, source search and the `outdated` releases lookup, uses `GH_TOKEN`, or

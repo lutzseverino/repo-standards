@@ -321,9 +321,9 @@ Acquisition keeps each verified source in the external product cache,
 external-path restrictions of temporary storage: never inside the adopting
 project, never committed, and holding no credentials. A cached snapshot is the
 Git objects of one commit, keyed by the canonical repository and commit, with
-its provenance of repository, commit and tree. Annotated tag objects are kept
-by object ID. Each acquisition extracts its own copy of a snapshot into
-temporary storage, so repeated consumers and separate processes share it.
+its provenance of repository, commit and tree. Postern resolves annotated tags
+on each observation; there is no annotation-object cache. Each acquisition
+extracts its own copy of a snapshot into temporary storage, so repeated consumers and separate processes share it.
 
 Mutable observations are never cached. An acquisition resolves the
 repository's public identity and the selected tag through GitHub, and checks
@@ -350,13 +350,14 @@ cached, so GitHub refusing one fails visibly as before.
 
 A cold acquisition makes `4 + d` GitHub REST requests for `d` annotated tag
 objects: the repository, the tag reference, each tag object, the commit and the
-tree, however many files the source holds. A warm one makes two. A guided
+tree, however many files the source holds. A warm one makes `2 + d`. A guided
 adoption of four invocations, through profile selection, scope, remote setup
 deferral and start, and one contextual continuation, makes at most 16 source
-and release REST requests with a lightweight tag, one more per annotated tag
-object and one more per additional release page; an unchanged update of up to
-five invocations stays within the same ceiling. Contextual continuation makes
-none. Source-authored probes, discovery scripts, fixes and checks make their
+and release REST requests with a lightweight tag, plus one per annotated tag
+object on each observation and one per additional release page. The four
+invocations observe tags five times, including the second observation during
+start. An unchanged update has the same per-observation annotation cost.
+Contextual continuation makes none. Source-authored probes, discovery scripts, fixes and checks make their
 own requests, outside this budget. The tests measure it across separate CLI
 processes.
 
@@ -399,21 +400,22 @@ scripts pass `--json`, whose report, errors and exit statuses are unchanged
 and which remains the system skill's call.
 
 `outdated` reads the selection and makes at most one npm registry lookup and one
-GitHub releases lookup, comparing the newest stable versions with each pin and
-ignoring prereleases and non-SemVer tags. Every GitHub REST request, including
-acquisition, discovery and this releases lookup, goes through one helper owning
-headers, credentials and response classification. It sends `GH_TOKEN`, or
-otherwise `GITHUB_TOKEN`, as bearer authorization when present. Values are
-trimmed; empty or whitespace-only values count as absent. A token uses the authenticated API quota, remains outside
+release-list lookup across all pages, comparing the newest stable versions
+with each pin and ignoring prereleases and non-SemVer tags. The exact runtime
+dependency `@lutzseverino/postern` 1.x supplies `ReleaseSource` for release lists
+and exact-tag resolution. Repository search, source metadata and commit/tree
+verification stay on the GitHub-only helper because Postern has no port for
+them. Both boundaries send `GH_TOKEN`, or otherwise `GITHUB_TOKEN`, as bearer
+authorization when present. Values are trimmed; empty or whitespace-only values count as absent. A token uses the authenticated API quota, remains outside
 reports, inspection identity, retained inputs, caches and logs, and does not
 authenticate the separate Git smart-protocol object downloads. Both token
 variables are removed from Git
 subprocess environments, including acquisition, observation and discovery, so
 credential helpers cannot read the REST credentials. The parent process retains
-them for REST requests. A request whose pooled connection closed before any
-response, such as one GitHub closed during a runtime install, is sent once
-more on a new connection; no other failure is retried. Private sources
-remain rejected by acquisition's `private !== false` check. A 429, or a 403 with
+them for REST requests. A Postern read that fails with `unavailable` and no
+response status is sent once more; failures after a response are not retried.
+The GitHub-only helper retains its single retry for a reset pooled connection.
+Private sources remain rejected by acquisition's `private !== false` check. A 429, or a 403 with
 `x-ratelimit-remaining: 0` or `retry-after`, is `QUOTA_EXHAUSTED`; its message names
 the usable reset time or retry delay and both token variables, preferring
 `retry-after` over `x-ratelimit-reset` when both arrive. `inspect`, `start`
@@ -421,9 +423,10 @@ and `search` exit 1 on this failure; search aborts the whole page even when a
 release list or candidate acquisition exhausts quota. Other candidate failures
 remain rejections. A 401 with a token is `SOURCE_UNAVAILABLE`, saying the token
 was rejected, with no anonymous retry. After a cross-origin redirect strips
-authorization, a target's 401 reports the target's failure instead. The response
-credential scan uses only the trimmed token actually sent. Without a token,
-requests remain anonymous.
+authorization, a target's 401 on the GitHub-only helper reports the target's
+failure instead. That helper refuses responses containing the trimmed token
+actually sent; Postern redacts credentials in results and errors. Without a
+token, connections omit the credential option and requests remain anonymous.
 `outdated` caches each answer for 24 hours under
 `.repo-standards/cache/`, and exits 0 whenever it reports: network failure,
 exhausted quota, or a missing selection report `unknown` with a reason for each

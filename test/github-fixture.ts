@@ -11,6 +11,7 @@ export interface HttpResponse {
   reflectToken?: boolean;
   malformed?: boolean;
   disconnect?: boolean;
+  disconnectOnce?: boolean;
 }
 
 // Real local HTTP boundaries for REST, redirects, and anonymous Git smart
@@ -32,6 +33,7 @@ import { appendFileSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { basename, dirname } from 'node:path';
 const source = ${JSON.stringify(remote.source.root)};
+const disconnected = new Set();
 const server = createServer(async (req, res) => {
   const authorization = req.headers.authorization;
   const kind = req.url.startsWith('/git/') ? 'git' : 'rest';
@@ -64,7 +66,7 @@ const server = createServer(async (req, res) => {
   const entries = JSON.parse(readFileSync(${JSON.stringify(join(remote.support.root, "responses.json"))}, 'utf8'));
   const entry = entries['https://api.github.com' + req.url];
   if (!entry) { res.writeHead(500); res.end(); return; }
-  if (entry.disconnect) { req.socket.destroy(); return; }
+  if (entry.disconnect || (entry.disconnectOnce && !disconnected.has(req.url))) { disconnected.add(req.url); req.socket.destroy(); return; }
   res.writeHead(entry.status ?? 200, entry.headers);
   const body = entry.reflectToken ? {message: 'Rejected ' + process.env.GH_TOKEN + ' ' + process.env.GITHUB_TOKEN} : entry.body;
   res.end(entry.malformed ? 'Invalid ' + process.env.GH_TOKEN + ' ' + process.env.GITHUB_TOKEN : JSON.stringify(body));

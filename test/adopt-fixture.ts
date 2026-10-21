@@ -69,7 +69,7 @@ export async function fixture(
     },
   );
   // Publishes the release list, one page per list of tags. A full page of
-  // 100 releases leads to the next.
+  // releases links to the next.
   const releases = (...pages: (string | string[])[]) => {
     const lists =
       typeof pages[0] === "string"
@@ -77,9 +77,18 @@ export async function fixture(
         : (pages as string[][]);
     lists.forEach((tags, index) => {
       f.remote.responses[
-        `${f.remote.prefix}/releases?per_page=100&page=${index + 1}`
+        `${f.remote.prefix}/releases?per_page=100${index === 0 ? "" : `&page=${index + 1}`}`
       ] = {
-        body: tags.map((tag) => ({
+        headers:
+          index + 1 < lists.length
+            ? {
+                link: `<${f.remote.prefix}/releases?per_page=100&page=${index + 2}>; rel="next"`,
+              }
+            : {},
+        body: tags.map((tag, tagIndex) => ({
+          id: index * 100 + tagIndex + 1,
+          name: null,
+          published_at: "2026-10-01T00:00:00Z",
           tag_name: tag,
           draft: false,
           prerelease: /-/.test(tag),

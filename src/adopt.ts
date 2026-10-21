@@ -14,7 +14,7 @@ import { parse } from "yaml";
 import {
   acquireSource,
   externalPath,
-  github,
+  publishedReleases,
   GithubRefusal,
   githubSource,
   isStableVersion,
@@ -298,28 +298,15 @@ function recordedSelection(root: string) {
 // release list.
 async function stableReleases(source: string) {
   const { owner, name } = githubSource(source);
-  const releases: unknown[] = [];
-  for (let page = 1; ; page++) {
-    const listed = await github(
-      `/repos/${owner}/${name}/releases?per_page=100&page=${page}`,
-    );
-    if (!Array.isArray(listed))
-      throw new ProductError(
-        "INVALID_SOURCE",
-        "GitHub did not return a release list.",
-      );
-    releases.push(...(listed as unknown[]));
-    if (listed.length < 100) break;
-  }
+  const releases = await publishedReleases(`${owner}/${name}`);
   const versions = releases
-    .map(record)
     .filter(
       (release) =>
         release.draft === false &&
         release.prerelease === false &&
-        isStableVersion(release.tag_name),
+        isStableVersion(release.tag),
     )
-    .map((release) => release.tag_name as string)
+    .map((release) => release.tag)
     .sort(rcompare);
   if (!versions.length)
     throw new ProductError(

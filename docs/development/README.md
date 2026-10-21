@@ -125,6 +125,31 @@ leaves the tree clean until an actual adoption run starts. To keep the current
 CLI pin, an already restored matching project runtime can launch the update
 directly.
 
+## Release sources
+
+The CLI pins `@lutzseverino/postern` 1.x as an exact runtime dependency.
+Postern's `ReleaseSource` reads all pages of published releases for adoption,
+discovery and update notices, and resolves exact version tags to commits,
+including annotated tags. Repository Standards keeps stable-release selection,
+the single retry for a read that receives no response, product diagnostics,
+tag-movement detection and verified snapshot provenance. Annotation objects are
+read on each observation; only tag observations and verified snapshots are cached.
+
+Repository search, source repository metadata, and commit and tree verification
+remain on the product's GitHub-only HTTP boundary because Postern has no port
+for these reads. Git object fetching stays anonymous through Git. GitHub is the
+only supported source host. Both HTTP boundaries select a trimmed `GH_TOKEN`,
+then `GITHUB_TOKEN`, and otherwise read anonymously; Postern connections omit
+`credential` when no token is present and redact credentials from results and
+errors. The remaining GitHub boundary refuses credential-reflecting responses.
+
+Readiness probes and remote setup fixes remain authored scripts owned by the
+standards source. The product adds no platform calls or settings abstraction to
+the probe runner; its read-only, prerequisite, process and mutation guards and
+deferral outcomes are unchanged. The companion
+[platform-choice ticket](https://github.com/lutzseverino/repo-standards/issues/300)
+records the release-source decision alongside the platform decision in its ADR.
+
 ## Documents
 
 - [Website project](../../site/README.md): local site commands, source layout,

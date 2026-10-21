@@ -36,8 +36,9 @@ const yaml = manifest({
 });
 const searchPath =
   "/search/repositories?q=topic%3Arepo-standards%20is%3Apublic&per_page=30&page=1";
-const releasePath = "/repos/alice/standards/releases?per_page=100&page=1";
+const releasePath = "/repos/alice/standards/releases?per_page=100";
 const released = {
+  id: 1,
   tag_name: "v1.0.0",
   name: "Stable",
   published_at: "2026-10-01T00:00:00Z",
@@ -141,7 +142,14 @@ test("inspection authenticates every REST endpoint, keeps Git anonymous, and pre
       assert.equal(request.matchesGithub, expected === "github");
       assert.equal(request.accept, "application/vnd.github+json");
       assert.equal(request.apiVersion, "2022-11-28");
-      assert.equal(request.userAgent, "repo-standards");
+      assert.equal(
+        request.userAgent,
+        request.path.includes("/git/ref/") ||
+          request.path.includes("/git/tags/") ||
+          request.path.includes("/releases?")
+          ? "@lutzseverino/postern"
+          : "repo-standards",
+      );
     }
     const git = observed.filter((request) => request.kind === "git");
     assert.ok(git.length > 0);
@@ -426,7 +434,7 @@ test("authenticated search fails the whole page when quota runs out in the page,
       if (json) {
         const report = JSON.parse(result.stdout) as ErrorReport;
         assert.equal(report.errors[0]!.code, "QUOTA_EXHAUSTED");
-        assert.match(report.errors[0]!.message, /45 seconds/);
+        assert.match(report.errors[0]!.message, /Retry (at|after)/);
         assert.equal("rejected" in report, false);
       } else assert.match(result.stderr, /QUOTA_EXHAUSTED/);
       assert.ok(
@@ -719,4 +727,91 @@ test("start retains no tokens in inputs, reports, runtime logs or caches, and ou
     remote.env.TMPDIR,
     cli.root,
   ]);
+});
+
+test("Postern release and tag reads retry only once before a response and keep credentials out of failures", async (t) => {
+  const remote = await githubFixture(yaml, { "readme.md": "README" }, tokens);
+  const project = sourceFixture("");
+  t.after(() => {
+    remote.close();
+    project.close();
+  });
+  publishSearch(remote);
+  const tagPath = "/repos/alice/standards/git/ref/tags/v1.0.0";
+  const outputs: string[] = [];
+  for (const [path, args] of [
+    [releasePath, ["source", "search", "--json"]],
+    [tagPath, inspectionArgs],
+  ] as const) {
+    const key = `https://api.github.com${path}`;
+    const original = remote.responses[key]!;
+    remote.responses[key] = { ...original, disconnectOnce: true };
+    remote.save();
+    const before = requests(remote).length;
+    const recovered = cli.run([...args], project.root, {
+      ...remote.env,
+      ...tokens,
+    });
+    outputs.push(recovered.stdout, recovered.stderr);
+    assert.equal(recovered.status, 0, recovered.stdout + recovered.stderr);
+    assert.equal(
+      requests(remote)
+        .slice(before)
+        .filter((request) => request.path === path).length,
+      2,
+    );
+    for (const [response, expected, retry] of [
+      [{ body: {}, disconnect: true }, "SOURCE_UNAVAILABLE", true],
+      [{ body: {}, status: 500 }, "SOURCE_UNAVAILABLE", false],
+      [{ body: {}, status: 403 }, "SOURCE_UNAVAILABLE", false],
+      [{ body: {}, status: 404 }, "SOURCE_UNAVAILABLE", false],
+      [{ body: {}, status: 409 }, "SOURCE_UNAVAILABLE", false],
+      [{ body: {}, status: 422 }, "SOURCE_UNAVAILABLE", false],
+      [
+        { body: {}, status: 401, reflectToken: true },
+        "SOURCE_UNAVAILABLE",
+        false,
+      ],
+      [{ body: {}, malformed: true }, "INVALID_SOURCE", false],
+      [
+        {
+          body: {},
+          status: 429,
+          headers: {
+            "x-ratelimit-reset": "2000000000",
+            "x-ratelimit-remaining": "0",
+          },
+          reflectToken: true,
+        },
+        "QUOTA_EXHAUSTED",
+        false,
+      ],
+    ] as const) {
+      remote.responses[key] = response;
+      remote.save();
+      const logged = requests(remote).length;
+      const result = cli.run([...args], project.root, {
+        ...remote.env,
+        ...tokens,
+      });
+      outputs.push(result.stdout, result.stderr);
+      const report = JSON.parse(result.stdout) as ErrorReport & SearchReport;
+      const error =
+        path === releasePath && expected !== "QUOTA_EXHAUSTED"
+          ? report.rejected[0]!
+          : report.errors[0]!;
+      assert.equal(error.code, expected, result.stdout + result.stderr);
+      if (expected === "QUOTA_EXHAUSTED")
+        assert.match(error.message, /Retry at 2033-05-18T03:33:20.000Z/);
+      assert.equal(
+        requests(remote)
+          .slice(logged)
+          .filter((request) => request.path === path).length,
+        retry ? 2 : 1,
+      );
+    }
+    remote.responses[key] = original;
+    remote.save();
+  }
+  noTokens(outputs, [project.root, remote.support.root, remote.env.TMPDIR]);
 });

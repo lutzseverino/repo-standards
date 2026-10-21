@@ -44,6 +44,7 @@ profiles:
 const searchUrl =
   "https://api.github.com/search/repositories?q=topic%3Arepo-standards%20is%3Apublic&per_page=30&page=1";
 const release = {
+  id: 1,
   tag_name: "v1.0.0",
   name: "First stable",
   html_url: "https://github.com/alice/standards/releases/tag/v1.0.0",
@@ -71,7 +72,7 @@ function discoverable() {
       ],
     },
   };
-  remote.responses[`${remote.prefix}/releases?per_page=100&page=1`] = {
+  remote.responses[`${remote.prefix}/releases?per_page=100`] = {
     body: [release],
   };
   remote.save();
@@ -156,7 +157,7 @@ test("search rejects unsupported and invalid candidates explicitly while keeping
       private: false,
       description: null,
     });
-    remote.responses[`${other.prefix}/releases?per_page=100&page=1`] = {
+    remote.responses[`${other.prefix}/releases?per_page=100`] = {
       body: [
         {
           ...release,
@@ -228,7 +229,7 @@ test("search reports invalid invocation settings under their skill metadata path
         'policy: {allow_implicit_invocation: "true"}\n',
     },
   );
-  remote.responses[`${remote.prefix}/releases?per_page=100&page=1`] = {
+  remote.responses[`${remote.prefix}/releases?per_page=100`] = {
     body: [{ ...release, tag_name: "v2.0.0" }],
   };
   remote.save();
@@ -259,7 +260,10 @@ test("search finds stable published releases across pages and reports sources wi
     remote.close();
     project.close();
   });
-  remote.responses[`${remote.prefix}/releases?per_page=100&page=1`] = {
+  remote.responses[`${remote.prefix}/releases?per_page=100`] = {
+    headers: {
+      link: `<${remote.prefix}/releases?per_page=100&page=2>; rel="next"`,
+    },
     body: Array.from({ length: 100 }, (_, index) => ({
       ...release,
       tag_name: `v2.0.0-beta.${index}`,
@@ -287,7 +291,7 @@ test("search finds stable published releases across pages and reports sources wi
     (JSON.parse(result.stdout) as SearchReport).candidates[0]!.release.version,
     "v1.0.0",
   );
-  remote.responses[`${remote.prefix}/releases?per_page=100&page=1`] = {
+  remote.responses[`${remote.prefix}/releases?per_page=100`] = {
     body: unstable,
   };
   remote.save();
@@ -296,6 +300,39 @@ test("search finds stable published releases across pages and reports sources wi
   ) as SearchReport;
   assert.deepEqual(absent.candidates, []);
   assert.equal(absent.rejected[0]!.code, "NO_STABLE_RELEASE");
+});
+
+test("search reads the whole release list before selecting its first stable release and keeps an absent name null", (t) => {
+  const remote = discoverable();
+  const project = sourceFixture("");
+  t.after(() => {
+    remote.close();
+    project.close();
+  });
+  const page2 = `${remote.prefix}/releases?per_page=100&page=2`;
+  remote.responses[`${remote.prefix}/releases?per_page=100`] = {
+    body: [{ ...release, name: null }],
+    headers: { link: `<${page2}>; rel="next"` },
+  };
+  remote.responses[page2] = { status: 503, body: {} };
+  remote.save();
+  const unavailable = JSON.parse(
+    cli.run(["source", "search", "--json"], project.root, remote.env).stdout,
+  ) as SearchReport;
+  assert.equal(unavailable.rejected[0]!.code, "SOURCE_UNAVAILABLE");
+  remote.responses[page2] = {
+    body: [{ ...release, id: 2, tag_name: "v2.0.0" }],
+  };
+  remote.save();
+  const result = cli.run(
+    ["source", "search", "--json"],
+    project.root,
+    remote.env,
+  );
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  const report = JSON.parse(result.stdout) as SearchReport;
+  assert.equal(report.candidates[0]!.release.version, "v1.0.0");
+  assert.equal(report.candidates[0]!.release.name, null);
 });
 
 test("search paginates candidates and discloses incomplete GitHub results and the search cap", (t) => {
@@ -426,7 +463,7 @@ test("candidate failures remain explicit without falling back from an invalid ne
     "v2.0.0",
     yaml.replace("repo-standards/v2", "repo-standards/v99"),
   );
-  remote.responses[`${remote.prefix}/releases?per_page=100&page=1`] = {
+  remote.responses[`${remote.prefix}/releases?per_page=100`] = {
     body: [{ ...release, tag_name: "v2.0.0" }, release],
   };
   remote.save();
@@ -441,8 +478,7 @@ test("candidate failures remain explicit without falling back from an invalid ne
     [{ body: {} }, "INVALID_SOURCE"],
     [{ body: [{ ...release, published_at: null }] }, "INVALID_SOURCE"],
   ] as const) {
-    remote.responses[`${remote.prefix}/releases?per_page=100&page=1`] =
-      response;
+    remote.responses[`${remote.prefix}/releases?per_page=100`] = response;
     remote.save();
     const result = cli.run(
       ["source", "search", "--json"],

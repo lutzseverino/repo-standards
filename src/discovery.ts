@@ -6,51 +6,38 @@ import {
   gitEnvironment,
   github,
   isStableVersion,
+  publishedReleases,
 } from "./acquisition.js";
 import { ProductError } from "./errors.js";
 import { validateSource } from "./resolver.js";
 import { record } from "./records.js";
 
 async function stableRelease(repository: string) {
-  for (let page = 1; ; page++) {
-    const releases = await github(
-      `/repos/${repository}/releases?per_page=100&page=${page}`,
-    );
-    if (!Array.isArray(releases))
+  const releases = await publishedReleases(repository);
+  for (const release of releases) {
+    const { tag: version, name, publishedAt } = release;
+    if (
+      release.draft !== false ||
+      release.prerelease !== false ||
+      !isStableVersion(version)
+    )
+      continue;
+    if (publishedAt === null || !Number.isFinite(Date.parse(publishedAt)))
       throw new ProductError(
         "INVALID_SOURCE",
-        "GitHub did not return a release list.",
+        "GitHub returned invalid stable release metadata.",
       );
-    for (const release of releases.map(record)) {
-      const { tag_name: version, name, published_at: publishedAt } = release;
-      if (
-        release.draft !== false ||
-        release.prerelease !== false ||
-        !isStableVersion(version)
-      )
-        continue;
-      if (
-        typeof publishedAt !== "string" ||
-        !Number.isFinite(Date.parse(publishedAt)) ||
-        (name !== null && typeof name !== "string")
-      )
-        throw new ProductError(
-          "INVALID_SOURCE",
-          "GitHub returned invalid stable release metadata.",
-        );
-      return {
-        version,
-        name,
-        url: `https://github.com/${repository}/releases/tag/${encodeURIComponent(version)}`,
-        publishedAt,
-      };
-    }
-    if (releases.length < 100)
-      throw new ProductError(
-        "NO_STABLE_RELEASE",
-        "Publish a non-draft GitHub release with a stable SemVer tag to make this source discoverable.",
-      );
+    return {
+      version,
+      name: name || null,
+      url: `https://github.com/${repository}/releases/tag/${encodeURIComponent(version)}`,
+      publishedAt,
+    };
   }
+  throw new ProductError(
+    "NO_STABLE_RELEASE",
+    "Publish a non-draft GitHub release with a stable SemVer tag to make this source discoverable.",
+  );
 }
 
 export async function searchSources(cliVersion: string, page: number) {

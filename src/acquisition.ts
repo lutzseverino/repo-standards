@@ -14,6 +14,11 @@ import {
 import { homedir, tmpdir } from "node:os";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { valid, prerelease } from "semver";
+import {
+  connect,
+  PlatformError,
+  type ReleaseSource,
+} from "@lutzseverino/postern";
 import { foldPath, isRootLicense } from "./paths.js";
 import { ProductError } from "./errors.js";
 import { record } from "./records.js";
@@ -107,7 +112,8 @@ function quotaRetry(headers: Headers): string {
   return "";
 }
 
-// Every GitHub REST call uses this boundary. Credentials are request headers
+// Reads not covered by Postern (search, metadata and commit/tree verification)
+// use this GitHub-only boundary. Credentials are request headers
 // only, never part of a source identity or a diagnostic. Git object fetches
 // below use their separate, anonymous smart-protocol path.
 export async function github(
@@ -195,6 +201,137 @@ export async function github(
       "GitHub returned a response containing credentials. Retry later.",
     );
   return document;
+}
+
+// Postern owns release pagination, tag peeling and credential redaction. This
+// boundary keeps the product's retry and actionable outcomes at every call site.
+async function readReleaseSource<T>(
+  repository: string,
+  read: (source: ReleaseSource) => Promise<T>,
+  path: string,
+  options: GithubRequestOptions & { invalidResponseCode?: string } = {},
+  tag?: string,
+): Promise<T> {
+  const token =
+    process.env.GH_TOKEN?.trim() || process.env.GITHUB_TOKEN?.trim();
+  let invalidTag: ProductError | undefined;
+  const transport = globalThis.fetch;
+  try {
+    const source = connect(`https://github.com/${repository}`, {
+      ...(token ? { credential: token } : {}),
+      ...(options.timeoutMs === undefined
+        ? {}
+        : { timeoutMs: options.timeoutMs }),
+      fetch:
+        tag === undefined
+          ? transport
+          : async (url, init) => {
+              const response = await transport(url, init);
+              // Postern 1.x peels the object but does not verify the returned ref.
+              // Keep the exact-tag provenance check on its existing request.
+              const address =
+                typeof url === "string"
+                  ? url
+                  : url instanceof URL
+                    ? url.href
+                    : url.url;
+              if (response.ok && address === `https://api.github.com${path}`) {
+                let document: unknown;
+                try {
+                  document = await response.clone().json();
+                } catch {
+                  // Postern classifies unreadable JSON.
+                  return response;
+                }
+                if (record(document).ref !== `refs/tags/${tag}`) {
+                  invalidTag = new ProductError(
+                    "INVALID_SOURCE",
+                    "GitHub did not return the requested exact tag.",
+                  );
+                  throw invalidTag;
+                }
+              }
+              return response;
+            },
+    }).releaseSource;
+    try {
+      return await read(source);
+    } catch (error) {
+      if (
+        invalidTag ||
+        !(error instanceof PlatformError) ||
+        error.reason !== "unavailable" ||
+        error.status !== undefined
+      )
+        throw error;
+      return await read(source);
+    }
+  } catch (error) {
+    if (invalidTag) throw invalidTag;
+    if (!(error instanceof PlatformError)) throw error;
+    switch (error.reason) {
+      case "rateLimited":
+        throw new GithubRefusal(
+          "QUOTA_EXHAUSTED",
+          `The GitHub API quota is exhausted.${error.retryAt ? ` Retry at ${error.retryAt}.` : ""} Retry later, or provide a token in GH_TOKEN or GITHUB_TOKEN.`,
+        );
+      case "unauthenticated":
+        if (token)
+          throw new GithubRefusal(
+            "SOURCE_UNAVAILABLE",
+            "GitHub rejected the token in GH_TOKEN or GITHUB_TOKEN. Check the token and retry.",
+          );
+        break;
+      case "unsupported":
+        throw new ProductError(
+          "UNSUPPORTED_SOURCE",
+          "The release source is unsupported. Use a public GitHub repository.",
+        );
+      case "notFound":
+        if (tag !== undefined && error.status === 200)
+          throw new ProductError(
+            "INVALID_SOURCE",
+            "The stable version tag must identify a Git commit.",
+          );
+        break;
+      case "invalidResponse":
+        throw new ProductError(
+          options.invalidResponseCode ?? "INVALID_SOURCE",
+          options.invalidJsonMessage ?? "GitHub did not return a release list.",
+        );
+      case "forbidden":
+      case "conflict":
+      case "rejected":
+      case "unavailable":
+        break;
+      default: {
+        const reason: never = error.reason;
+        throw new Error(`Unmapped platform error reason: ${String(reason)}`, {
+          cause: error,
+        });
+      }
+    }
+    throw new ProductError(
+      "SOURCE_UNAVAILABLE",
+      error.status === undefined
+        ? (options.connectionMessage ??
+            `Cannot reach public GitHub: ${path}. Check your connection and retry.`)
+        : (options.httpMessage?.(error.status) ??
+            `Public GitHub returned HTTP ${error.status} for ${path}. Check the public repository, version tag, and API rate limit.`),
+    );
+  }
+}
+
+export function publishedReleases(
+  repository: string,
+  options: GithubRequestOptions & { invalidResponseCode?: string } = {},
+) {
+  return readReleaseSource(
+    repository,
+    (source) => source.releases(),
+    `/repos/${repository}/releases`,
+    options,
+  );
 }
 
 // GitHub CLI credential helpers can read these variables from Git's inherited
@@ -303,13 +440,11 @@ export type SourceObservations = Map<string, Promise<TagObservation>>;
 interface TagObservation {
   identity: StandardsIdentity;
   api: string;
-  // The annotated tag objects traversed from the tag to its commit.
-  annotations: string[];
 }
 
 // A directory of the external product cache, created on first use. The cache
-// holds tag observations, verified source snapshots and annotated tag
-// objects: public Git objects and identities, never credentials.
+// holds tag observations and verified source snapshots: public Git objects
+// and identities, never credentials.
 function cacheDirectory(name: string, project?: string) {
   const directory = externalPath(
     join(
@@ -341,54 +476,6 @@ function gitObject(directory: string, type: string, sha: string) {
   return bytes;
 }
 
-function annotationPath(repository: string, sha: string, project?: string) {
-  return join(
-    cacheDirectory("annotations", project),
-    hash(`${repository.toLowerCase()}\n${sha}`),
-  );
-}
-
-// The object a cached annotated tag names, when its bytes hash to its
-// identity. A damaged entry is removed, and the tag is read from GitHub.
-function cachedAnnotation(repository: string, sha: string, project?: string) {
-  const path = annotationPath(repository, sha, project);
-  let bytes: Buffer;
-  try {
-    bytes = readFileSync(path);
-  } catch {
-    return undefined;
-  }
-  if (objectId("tag", bytes) !== sha) {
-    rmSync(path, { force: true });
-    return undefined;
-  }
-  const header = bytes.toString("utf8").split("\n\n")[0]!.split("\n");
-  const field = (name: string) =>
-    header.find((line) => line.startsWith(`${name} `))?.slice(name.length + 1);
-  return { type: field("type"), sha: field("object") };
-}
-
-// Keeps each traversed annotated tag object the fetch obtained. A tag GitHub
-// reports but Git did not fetch is read from GitHub again next time.
-function retainAnnotations(
-  objects: string,
-  repository: string,
-  annotations: string[],
-  project?: string,
-) {
-  for (const sha of annotations) {
-    try {
-      const bytes = gitObject(objects, "tag", sha);
-      const path = annotationPath(repository, sha, project);
-      const partial = `${path}.${process.pid}.partial`;
-      writeFileSync(partial, bytes, { mode: 0o600 });
-      renameSync(partial, path);
-    } catch {
-      // An annotation the cache cannot keep is observed again.
-    }
-  }
-}
-
 async function observeTag(
   owner: string,
   name: string,
@@ -407,40 +494,19 @@ async function observeTag(
     );
   const canonical = `https://github.com/${metadata.full_name}`;
   const api = `/repos/${metadata.full_name}`;
-  const ref = record(
-    await github(`${api}/git/ref/tags/${encodeURIComponent(version)}`),
+  const commit = await readReleaseSource(
+    metadata.full_name,
+    (source) => source.tagCommit(version),
+    `${api}/git/ref/tags/${encodeURIComponent(version)}`,
+    {
+      invalidJsonMessage: "The stable version tag must identify a Git commit.",
+    },
+    version,
   );
-  if (ref.ref !== `refs/tags/${version}`)
-    throw new ProductError(
-      "INVALID_SOURCE",
-      "GitHub did not return the requested exact tag.",
-    );
-  const annotations: string[] = [];
-  let object = record(ref.object);
-  for (let depth = 0; object.type === "tag" && depth < 10; depth++) {
-    if (typeof object.sha !== "string" || !shaPattern.test(object.sha))
-      throw new ProductError(
-        "INVALID_SOURCE",
-        "Invalid annotated tag identity.",
-      );
-    annotations.push(object.sha);
-    object =
-      cachedAnnotation(canonical, object.sha, project) ??
-      record(record(await github(`${api}/git/tags/${object.sha}`)).object);
-  }
-  if (
-    object.type !== "commit" ||
-    typeof object.sha !== "string" ||
-    !shaPattern.test(object.sha)
-  )
-    throw new ProductError(
-      "INVALID_SOURCE",
-      "The stable version tag must identify a Git commit.",
-    );
   const identity: StandardsIdentity = {
     repository: canonical,
     version,
-    commit: object.sha,
+    commit,
   };
   const observation = join(
     cacheDirectory("tags", project),
@@ -470,7 +536,7 @@ async function observeTag(
         `Previously observed ${canonical} ${version} at ${previous.commit}; it now resolves to ${identity.commit}. Choose a new immutable version.`,
       );
   }
-  return { identity, api, annotations };
+  return { identity, api };
 }
 
 // The entries of a complete source tree listing, once each is a safe path of
@@ -643,9 +709,8 @@ async function fetchSnapshot(
   observed: TagObservation,
   cached: string,
   root: string,
-  project?: string,
 ) {
-  const { identity, api, annotations } = observed;
+  const { identity, api } = observed;
   const { repository: canonical, version } = identity;
   const commit = record(await github(`${api}/git/commits/${identity.commit}`));
   const treeSha = record(commit.tree).sha;
@@ -705,7 +770,6 @@ async function fetchSnapshot(
       );
     }
     const symlinks = extract(objects, fetchedEntries, root);
-    retainAnnotations(objects, canonical, annotations, project);
     try {
       writeFileSync(
         join(staging, "provenance.json"),
@@ -763,7 +827,7 @@ export async function acquireSource(
     mkdirSync(root);
     const { paths, symlinks } =
       reuseSnapshot(cached, identity, root) ??
-      (await fetchSnapshot(observed, cached, root, project));
+      (await fetchSnapshot(observed, cached, root));
     return {
       root,
       identity,

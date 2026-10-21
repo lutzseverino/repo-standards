@@ -35,8 +35,8 @@ import { terminalSession } from "./terminal.ts";
 
 // The GitHub REST requests the product makes, measured at the fixture's HTTP
 // boundary across separate CLI processes, with Git object fetches counted
-// apart. Releases, repository metadata and tag refs are mutable; commits,
-// trees and annotated tag objects are immutable and reused.
+// apart. Releases, repository metadata and tag refs are mutable; commits
+// and trees are immutable and reused. Annotated tags are read on every observation.
 
 const cli = installCli();
 after(() => cli.close());
@@ -96,7 +96,7 @@ function measure<T>(f: Fixture, command: () => T): Measured & { value: T } {
 }
 
 // A warm answer-only round observes only the repository and its tag.
-function warm(measured: Measured, rounds = 1) {
+function warm(measured: Measured, rounds = 1, annotations = 0) {
   assert.deepEqual(
     {
       metadata: measured.metadata,
@@ -104,7 +104,12 @@ function warm(measured: Measured, rounds = 1) {
       total: measured.rest.length,
       fetches: measured.fetches,
     },
-    { metadata: rounds, refs: rounds, total: 2 * rounds, fetches: 0 },
+    {
+      metadata: rounds,
+      refs: rounds,
+      total: (2 + annotations) * rounds,
+      fetches: 0,
+    },
     measured.rest.join("\n"),
   );
 }
@@ -153,9 +158,10 @@ function annotate(f: Fixture, tag: string, depth = 1) {
 }
 
 // The budget of a guided adoption or update journey: 16 requests with a
-// lightweight tag, one more per annotated tag object, and one more per
-// additional release page.
-const budget = (annotations: number, pages = 1) => 16 + annotations + pages - 1;
+// lightweight tag, five observations per annotation in the adoption journey,
+// and one request per additional release page.
+const budget = (annotations: number, pages = 1) =>
+  16 + 5 * annotations + pages - 1;
 
 const review = {
   status: "valid",
@@ -234,13 +240,13 @@ async function journey(t: TestContext, annotated: boolean) {
     f.answer(template.report.answers, { profile: "work" }),
     "answers-required",
   );
-  warm(profile);
+  warm(profile, 1, annotations);
   assert.deepEqual(profile.report.missing, [
     "scope:project-docs",
     "inspection",
   ]);
   const retry = measure(f, () => f.adopt(["--answers", f.answersPath]));
-  warm(retry);
+  warm(retry, 1, annotations);
   assert.equal(
     retry.value.report.inspection!.identity,
     profile.report.inspection!.identity,
@@ -250,7 +256,7 @@ async function journey(t: TestContext, annotated: boolean) {
     f.answer(profile.report.answers),
     "answers-required",
   );
-  warm(scope);
+  warm(scope, 1, annotations);
   assert.deepEqual(scope.report.missing, ["remote-setup", "inspection"]);
 
   // The start observes the tag once more after acquiring the runtime.
@@ -262,7 +268,7 @@ async function journey(t: TestContext, annotated: boolean) {
     }),
     "contextual",
   );
-  warm(started, 2);
+  warm(started, 2, annotations);
 
   // Contextual continuation makes no source or release request.
   writeFileSync(join(f.root, "README.md"), "# Project\n\nProject notes\n");
@@ -297,17 +303,21 @@ async function journey(t: TestContext, annotated: boolean) {
     update.report.reused.map((answer) => answer.id),
     ["scope:project-docs", "remote-setup"],
   );
-  warm({
-    ...update,
-    rest: update.rest.filter((path) => !/releases/.test(path)),
-  });
+  warm(
+    {
+      ...update,
+      rest: update.rest.filter((path) => !/releases/.test(path)),
+    },
+    1,
+    annotations,
+  );
   const updateStart = step(
     "update start",
     f.answer(update.report.answers),
     "complete",
     true,
   );
-  warm(updateStart, 2);
+  warm(updateStart, 2, annotations);
   assert.deepEqual(
     updateStart.report.reused.map((answer) => answer.id),
     [
@@ -340,8 +350,8 @@ test("a guided adoption and its unchanged update stay within the request budget 
   await journey(t, false);
 });
 
-test("with an annotated tag, adoption, its unchanged update and a cold outdated lookup make at most 35 GitHub requests", async (t) => {
-  assert.ok((await journey(t, true)) <= 35);
+test("annotated tags add a read per observation to adoption and update request budgets", async (t) => {
+  assert.ok((await journey(t, true)) <= 2 * budget(1) + 1);
 });
 
 test("terminal rounds reuse the snapshot and observe only the repository and tag", async (t) => {
@@ -437,16 +447,20 @@ test("release pages and annotation chains have counted allowances, source size c
   assert.equal(cold.fetches, 1);
 
   // An independent request reads the releases again; the annotated tag
-  // objects and snapshot are reused.
+  // objects are reread and the snapshot is reused.
   const again = measure(f, () => f.adopt([source]));
   assert.equal(again.releases, 2);
-  warm({ ...again, rest: again.rest.filter((path) => !/releases/.test(path)) });
+  warm(
+    { ...again, rest: again.rest.filter((path) => !/releases/.test(path)) },
+    1,
+    chain.length,
+  );
 
   // An explicit version reads no release list.
   const explicit = measure(f, () =>
     f.adopt([source, "--standards-version", "v1.0.0"]),
   );
-  warm(explicit);
+  warm(explicit, 1, chain.length);
 
   // A release published meanwhile leaves the continuing answers' version
   // selected, and an independent request finds it.
