@@ -1,6 +1,6 @@
 import { ProductError } from "./errors.js";
 import type { Script } from "./model.js";
-import { formats, requireFormat } from "./formats.js";
+import { formats, readableFormat, requireFormat } from "./formats.js";
 import {
   scopeEvidence,
   type Evidence,
@@ -37,6 +37,10 @@ export interface RetainedDiscovery {
   identity: string;
   proposal?: unknown;
   absence?: unknown;
+  // The draft of each declaration with a discovery script, which its
+  // confirmed entry was decided from. Scope evidence the previous release
+  // wrote keeps none.
+  drafts?: unknown[];
   // A confirmed proposal carries one; the recorded value may be absent.
   namedObservation?: ScopeObservation | undefined;
   declarations: unknown;
@@ -144,16 +148,24 @@ function compactEvidence(stored: Record<string, unknown>) {
     typeof observation === "object" &&
     !Object.hasOwn(discovery, "evidence") &&
     !Object.hasOwn(discovery, "namedObservation") &&
-    !Object.hasOwn(observation, "evidence")
+    !Object.hasOwn(observation, "evidence") &&
+    // The current format keeps the drafts; the previous release's does not.
+    (stored.format === formats.scopeHistory
+      ? Array.isArray(discovery.drafts)
+      : !Object.hasOwn(discovery, "drafts"))
   );
 }
 
-// Retained scope evidence is read in its single committed format only.
+// Retained scope evidence is read in its committed format, or in the previous
+// release's, which keeps no drafts.
 function committedEvidence(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object") unreadable();
   requireFormat(evidencePath, value, formats.scopeHistory);
   const evidence = value as Record<string, unknown>;
-  if (evidence.format !== formats.scopeHistory || !compactEvidence(evidence))
+  if (
+    !readableFormat(evidence, formats.scopeHistory) ||
+    !compactEvidence(evidence)
+  )
     invalid();
   return evidence;
 }
@@ -197,6 +209,7 @@ function retainedDiscovery(value: unknown): RetainedDiscovery {
       ? { proposal: discovery.proposal, absence: discovery.absence }
       : {}),
     ...(delta ? { namedObservation: named(observation, delta) } : {}),
+    ...(discovery.drafts ? { drafts: discovery.drafts as unknown[] } : {}),
     declarations: discovery.declarations,
     evidence: observation.evidence,
     observation,
@@ -302,6 +315,7 @@ function committedDiscovery(discovery: RetainedDiscovery) {
           ),
         }
       : {}),
+    drafts: discovery.drafts ?? [],
     declarations: discovery.declarations,
     observation,
   };

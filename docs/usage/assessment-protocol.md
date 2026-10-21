@@ -2,7 +2,7 @@
 
 After exact installation and serial fixes, a profile with contextual file or
 repository guidance returns an incomplete `contextual` run with a
-`repo-standards/work-request/v4` object in `workRequest`. The CLI never runs a
+`repo-standards/work-request/v5` object in `workRequest`. The CLI never runs a
 model. This handoff uses the run's started selection and preserves the run,
 installed baselines, and post-fix project snapshot for subsequent commands.
 
@@ -24,7 +24,12 @@ The request contains:
   declaration's [installed rules](rules.md), present only when it has rules),
   and `allowedTargets` with explicit `paths` and
   `directories`. Directory entries allow the directory and its descendants;
-  file paths allow only that exact path. No glob interpretation occurs.
+  file paths allow only that exact path. No glob interpretation occurs. In an
+  update, an entry may also carry the last complete adoption's judgment of the
+  declaration, without `id` or changed paths: `reused`, with the `evidence`
+  that its rules, or its adoption guidance when it has no rules, and the files
+  in its scope are unchanged since that adoption, or `proposed`, with what
+  `changed`. See [reused assessments](#reused-assessments).
 - `requiredEvidence`: the fields the agent supplies for each declaration:
   `status`, `explanation`, and `evidence`.
 
@@ -47,6 +52,20 @@ handoff with the current snapshot. It runs neither fixes nor checks. Refreshing
 does not reset the post-fix comparison baseline or excuse out-of-scope edits.
 The assessment is bound to that snapshot, so a change between refreshing and
 submitting makes it stale.
+
+### Reused assessments
+
+An update [reuses](adoption.md#reused-answers) the last complete adoption's
+judgment of a contextual declaration whose rules, or adoption guidance when it
+has no rules, and scoped files are unchanged since that adoption. The run
+judges this after its fixes, so a fix that changes a scoped file makes the
+judgment ineligible, and again at each refresh, so contextual work that changes
+a scoped file does too. When every contextual declaration's judgment is
+reused, the run accepts them, bound to itself like a submitted assessment,
+records them as reused, and runs its checks without returning a work request.
+Otherwise the work request carries each reusable judgment in `reused` and each
+other recorded one in `proposed`, for review; a proposed judgment is no
+answer until the agent submits one.
 
 ## Assessment submission
 
@@ -86,8 +105,10 @@ unrelated project path is itself an out-of-scope change.
 ```
 
 Use exactly the documented fields: the submission holds only the agent's
-judgment. Every contextual declaration needs one entry; unknown or repeated IDs
-are rejected, and a missing declaration is rejected by name. Status is
+judgment. Every contextual declaration needs one entry, except one whose
+recorded judgment the work request reuses: omitting it, or repeating that
+judgment, accepts it as reused, and another judgment replaces it. Unknown or
+repeated IDs are rejected, and a missing declaration is rejected by name. Status is
 `satisfied` or `blocked`. Explanations must be nonempty strings; evidence is a
 nonempty array of distinct, nonempty supporting statements. Evidence is agent
 judgment, not independently verified proof.
@@ -195,9 +216,9 @@ its changes and violations as observed. The last complete state retains its
 interval and retry history as historical evidence, without asserting ongoing
 compliance.
 
-## Discovery work-request/v4 and assessment/v3
+## Discovery work-request/v5 and assessment/v3
 
-Active discovery uses the same `repo-standards/work-request/v4` and
+Active discovery uses the same `repo-standards/work-request/v5` and
 `repo-standards/assessment/v3` formats as explicit selections. The
 request adds `scope` with the run's `inspection` identity, `afterFixes`
 snapshot identity, and accepted `proposal`. Each discovered declaration also

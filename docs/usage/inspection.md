@@ -499,8 +499,11 @@ order. A draft is a starting point, never an accepted scope: the report keeps
 `DISCOVERY_REQUIRED`, and the `--summary` proposal lists each draft's included
 and excluded candidates and open questions. Answer the questions in
 `unresolved` from project evidence, with reasons, complete the entries of
-declarations without a script, and inspect the proposal with `--scope` as below. Inspection with
-`--scope` runs no script. A script that fails, times out or changes its copy of
+declarations without a script, and inspect the proposal with `--scope` as below. The report
+of an inspection with `--scope` carries no draft. `start` still runs each
+script under its lock, and so does `adopt` while it compares a
+[recorded scope answer](adoption.md#reused-answers) with the fresh draft: the
+run retains the draft each confirmed entry was decided from. A script that fails, times out or changes its copy of
 the project fails inspection with `DISCOVERY_SCRIPT_FAILED`, and the project is
 unchanged.
 
@@ -639,14 +642,18 @@ pass for every active discovery declaration: pass `--scope <file>` to the
 update commands described above and to the matching start. The
 selection, product-state inventory, and project observation are bound into the
 request and final inspection identities, so neither a retained historical
-proposal nor an earlier inspection authorizes the new run.
+proposal nor an earlier inspection authorizes the new run. `adopt` writes that
+proposal from the recorded entries it [reuses](adoption.md#reused-answers),
+because their discovery guidance, rules and fresh draft are unchanged and their
+paths exist, and from the answers it asks for.
 
 After ordinary discovery completion, retained `inspect --json` remains
 `repo-standards/inspection/v8` and exposes `historicalScope` as
-`repo-standards/scope-history/v5`: the last complete run's accepted inspection
+`repo-standards/scope-history/v6`: the last complete run's accepted inspection
 identity, materialized concrete selection, and, when that run discovered scope,
 its source-resolved declarations and discovery proposal, rationale, guidance,
-references, and observation identities, with `scopeChanges`, the paths that run
+references, observation identities, and the draft of each discovery script the
+confirmed entry was decided from, with `scopeChanges`, the paths that run
 added and removed against the run before it. After all discovery declarations
 are retired, it holds the no-discovery run and the removals that retirement
 made. Its `evidence: historical` describes prior authorization, even in a fresh
@@ -657,15 +664,17 @@ The committed file holds that one run only; earlier runs stay in Git history. It
 stores the project observation without the evidence array it implies, and the
 named observation as the delta of the confirmed targets and any boundary entry
 naming them adds. Both are rebuilt on read with the product's existing
-derivation. Scope-history v5 is the only format written and read.
+derivation. Scope-history v6 is the only format written; an update also reads
+the previous release's scope-history v5, which keeps no drafts.
 
 Retained inspection reads the committed durable state, which is
-`repo-standards/state/v7`, the only state format, with the last complete run's
-[work evidence](script-protocol.md#observed-adoption-scope) as
-identities and deltas; `status` echoes it as `repo-standards/status/v8`.
-Retained inspection rejects a committed state, retained scope history, or
-integrity lock in an older format with `RETIRED_FORMAT` before reading anything
-else; nothing is converted. Inspecting a source instead previews a
+`repo-standards/state/v8`, the only state format written, with the last
+complete run's [work evidence](script-protocol.md#observed-adoption-scope) as
+identities and deltas; `status` echoes it as `repo-standards/status/v9`. The
+previous release's `repo-standards/state/v7` and scope-history v5 are read as
+the adoption an update replaces. Retained inspection rejects a committed state,
+retained scope history, or integrity lock in any other older format with
+`RETIRED_FORMAT` before reading anything else; nothing is converted. Inspecting a source instead previews a
 [fresh adoption](adoption.md#adopt-fresh-from-a-retired-format) that removes the
 retired product state. An active run record in an older format fails every
 inspection with `RETIRED_RUN`, and an archived one with `RETIRED_FORMAT`. A

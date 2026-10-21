@@ -22,3 +22,8 @@ directory language while retaining location-independent coverage.
 decision: adopters no longer confirm a scope proposal. A proposal is reviewed
 with the inspection, and the run waits for the maintainer only for a
 confirmation-required change.
+
+[ADR 0024](0024-reuse-recorded-answers-that-are-provably-unchanged.md) amends
+the fresh scope of every update: an update reuses a recorded scope answer
+whose discovery guidance, rules and fresh draft are unchanged and whose paths
+still exist, and proposes any other recorded answer for review.

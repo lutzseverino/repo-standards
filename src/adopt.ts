@@ -24,14 +24,18 @@ import { lockPath, projectRoot, safe } from "./adoption-files.js";
 import { linkTextAt } from "./targets.js";
 import {
   abandon,
-  inspectRetained,
+  inspectRetainedDrafted,
   resume,
   start,
   startRetained,
   status,
   submitAssessment,
 } from "./adoption.js";
-import { readRecordedAdoption, type RetainedSource } from "./recorded-state.js";
+import {
+  readRecordedAdoption,
+  type RecordedAdoption,
+  type RetainedSource,
+} from "./recorded-state.js";
 import {
   canResumeAssessment,
   confirmationStop,
@@ -42,7 +46,7 @@ import {
 import type { Run } from "./adoption-run.js";
 import { ProductError } from "./errors.js";
 import { formats } from "./formats.js";
-import { inspect } from "./inspection.js";
+import { inspectForStart } from "./inspection.js";
 import type { Blocker } from "./observation.js";
 import { observeGitStart, requireSupportedGit } from "./observation.js";
 import {
@@ -53,10 +57,21 @@ import {
 import { parseScope } from "./scope.js";
 import { record } from "./records.js";
 import { deferredRemoteSetup } from "./remote-setup.js";
+import {
+  classifyRemoteSetup,
+  classifyScope,
+  entryPathsExist,
+  freshDiscovery,
+  reusedAssessments,
+  sameEntry,
+  type ReusedAnswer,
+  type ScopeEntry,
+} from "./reused-answers.js";
 import { validateSource } from "./resolver.js";
 import {
   code,
   inspectionSummary,
+  reusedTable,
   section,
   table,
   text,
@@ -119,6 +134,10 @@ export interface AdoptReport {
   };
   // The questions still unanswered, by ID.
   missing: string[];
+  // Each recorded answer of the last complete adoption this report reuses,
+  // with what made it eligible: before a run, those its start records; for a
+  // run, those the run reused and the assessments its work request reuses.
+  reused: ReusedAnswer[];
   blockers: Blocker[];
   inspection?: { identity: string; summary: string };
   // Each edit the run discards, with its changed files' diffs.
@@ -689,12 +708,47 @@ async function prepare(
   )
     delete context.preserved;
 
-  // Once the answers file supplies every scope entry, inspection reads them as
-  // one proposal, written outside the project, and validates each; an entry
-  // is complete once it has no open question.
-  const scopeAnswer = (id: string) => {
+  // An update carries the last complete adoption's recorded answers forward:
+  // each is reused when what it was about is provably unchanged, and
+  // otherwise proposed for review. A preserved run's own answers come first.
+  let recordedAnswers: RecordedAdoption | undefined;
+  try {
+    recordedAnswers = preserved
+      ? preserved.previous
+      : readRecordedAdoption(root);
+  } catch {
+    // An unreadable recorded adoption has no answers to reuse; inspection
+    // reports why it cannot be read.
+  }
+  const recordedScope = new Map(
+    (
+      (
+        recordedAnswers?.scopeEvidence?.discovery?.proposal as
+          { declarations?: ScopeEntry[] } | undefined
+      )?.declarations ?? []
+    )
+      .filter((entry) => !defaults.has(`scope:${entry.id}`))
+      .map(({ id, ...entry }) => [id, entry]),
+  );
+  const answeredScope = (id: string) => {
     const answer = given.get(`scope:${id}`) ?? defaults.get(`scope:${id}`);
     return answer === null || answer === undefined ? undefined : record(answer);
+  };
+  // Once the answers file supplies every scope entry, inspection reads them as
+  // one proposal, written outside the project, and validates each; an entry
+  // is complete once it has no open question. A recorded entry whose named
+  // paths all exist stands in for an unanswered one, so that inspection
+  // compares the fresh draft with it.
+  const scopeAnswer = (id: string) => {
+    const answer = answeredScope(id);
+    if (answer) return answer;
+    // A no scope only an optional declaration may have would fail inspection.
+    const entry = recordedScope.get(id);
+    return entry &&
+      entryPathsExist(root, entry) &&
+      (!entry.noScope || optional.has(id))
+      ? record(entry)
+      : undefined;
   };
   const proposed =
     discovery.length > 0 &&
@@ -724,17 +778,49 @@ async function prepare(
       project: root,
       ...(scope ? { scope } : {}),
     };
-    const inspection = retained
-      ? await inspectRetained(root, cliVersion, scope)
-      : await inspect(inspectOptions, cliVersion, observations);
+    // A recorded scope entry is compared with the fresh draft, which the
+    // discovery scripts then write even with a proposal.
+    const drafting = recordedScope.size > 0;
+    const { report: inspection, drafts } = retained
+      ? await inspectRetainedDrafted(root, cliVersion, scope, drafting)
+      : await inspectForStart(
+          inspectOptions,
+          cliVersion,
+          undefined,
+          observations,
+          { drafts: drafting },
+        );
     const questions = [versionQuestion, profileQuestion];
     const missing: string[] = [];
+    const reused: ReusedAnswer[] = [];
     for (const { id } of discovery) {
       const draft = inspection.discovery?.draft?.declarations.find(
         (entry) => entry.id === id,
       );
+      const fresh = recordedScope.has(id)
+        ? freshDiscovery(inspection, drafts, id)
+        : undefined;
+      const classified = fresh
+        ? classifyScope(root, recordedAnswers, id, fresh)
+        : undefined;
+      const answered = answeredScope(id);
+      // An answer equal to the recorded one keeps it reused; another answer
+      // is the agent's own.
+      const reuse =
+        classified &&
+        "reused" in classified &&
+        (answered === undefined || sameEntry(answered, classified.answer))
+          ? classified.reused
+          : undefined;
+      const changed =
+        classified && "changed" in classified && answered === undefined
+          ? classified.changed
+          : undefined;
+      if (reuse)
+        reused.push({ id: `scope:${id}`, kind: "scope", evidence: reuse });
       const answer =
-        scopeAnswer(id) ??
+        answered ??
+        classified?.answer ??
         (draft
           ? {
               coverage: draft.coverage,
@@ -750,9 +836,21 @@ async function prepare(
         id: `scope:${id}`,
         question: `Which project files does ${id} cover?`,
         context: [
-          draft
-            ? `Its discovery script drafted this scope entry; review each candidate against the discovery guidance.`
-            : `Interpret its discovery guidance and write its scope entry: coverage, candidates, and unresolved.`,
+          ...(reuse
+            ? [
+                `The last complete adoption's scope answer is reused: its discovery guidance and rules are unchanged, its discovery script's draft ${reuse.draft === "none" ? "is absent, as it was" : "matches the one the answer was decided from"}, and every path it names exists. Change it only when the project calls for another scope; an answer equal to it stays reused.`,
+              ]
+            : changed
+              ? [
+                  `The last complete adoption recorded this scope entry, proposed here for review: ${changed.join(" ")} Its details hold the fresh draft. Validate the entry against the discovery guidance and the project, correct it, and carry it back as your answer.`,
+                ]
+              : draft
+                ? [
+                    `Its discovery script drafted this scope entry; review each candidate against the discovery guidance.`,
+                  ]
+                : [
+                    `Interpret its discovery guidance and write its scope entry: coverage, candidates, and unresolved.`,
+                  ]),
           `Each candidate has a path, a decision of include or exclude, a reason, and evidence paths of existing project files and directories; an included candidate is one file.`,
           open.length
             ? mode === "terminal"
@@ -764,43 +862,81 @@ async function prepare(
         details: {
           unresolved: open,
           ...(optional.has(id) ? { optional: true } : {}),
+          ...(reuse ? { reused: reuse } : {}),
+          ...(changed
+            ? {
+                changed,
+                draft: fresh?.draft ?? null,
+              }
+            : {}),
         },
         answer,
       });
       // A drafted entry an answers file has not carried back is not yet an
       // answer: inspection read no proposal for it. The template proposes it,
-      // as it proposes the other defaults.
-      if ((mode !== "template" && scopeAnswer(id) === undefined) || open.length)
+      // as it proposes the other defaults. A recorded entry proposed for
+      // review is not an answer until it is carried back, and a reused one
+      // is.
+      if (
+        open.length ||
+        changed ||
+        (!reuse && mode !== "template" && answered === undefined)
+      )
         missing.push(`scope:${id}`);
     }
     const notReady = deferredRemoteSetup(inspection.remoteSetup);
     // Adopting again in place keeps the preserved run's deferral of remote
-    // setup that is still not ready.
+    // setup that is still not ready. Otherwise the last complete adoption's
+    // deferral is reused while the same probe still reports not ready.
+    const preservedDeferral = notReady.some((entry) =>
+      preserved?.run.deferred.some(
+        (deferred) =>
+          deferred.declaration === entry.declaration &&
+          deferred.id === entry.id,
+      ),
+    );
+    const recordedSetup = preservedDeferral
+      ? undefined
+      : classifyRemoteSetup(recordedAnswers, notReady, inspection);
+    const givenSetup = given.get("remote-setup") ?? null;
+    const setupReuse =
+      recordedSetup &&
+      "reused" in recordedSetup &&
+      (givenSetup === null || givenSetup === "defer")
+        ? recordedSetup.reused
+        : undefined;
+    const setupChanged =
+      recordedSetup && "changed" in recordedSetup && givenSetup === null
+        ? recordedSetup.changed
+        : undefined;
+    if (setupReuse)
+      reused.push({
+        id: "remote-setup",
+        kind: "remote-setup",
+        evidence: setupReuse,
+      });
     const remoteSetup =
-      given.get("remote-setup") ??
-      (notReady.some((entry) =>
-        preserved?.run.deferred.some(
-          (deferred) =>
-            deferred.declaration === entry.declaration &&
-            deferred.id === entry.id,
-        ),
-      )
-        ? "defer"
-        : null);
+      givenSetup ?? (preservedDeferral || recordedSetup ? "defer" : null);
     if (notReady.length)
       questions.push({
         id: "remote-setup",
         question:
           "Defer the remote setup that is not ready, or stop and resolve it first?",
         context:
+          (setupReuse
+            ? "The last complete adoption's deferral is reused: each remote setup it deferred is still not ready, with an unchanged probe. "
+            : setupChanged
+              ? `The last complete adoption deferred this remote setup, proposed here as defer for review: ${setupChanged.join(" ")} Carry the answer back to defer it again. `
+              : "") +
           "Remote setup changes the hosting platform's settings, and its probe says it cannot apply yet. Deferred, adoption completes locally without it, and every later run applies it once its probe is ready. Resolved, adopt writes nothing until it is." +
           (mode === "terminal"
             ? ""
             : " Answer defer without asking: it changes nothing remotely. Report each reason in the handoff."),
         choices: ["defer", "resolve"],
-        details: notReady,
+        details: setupReuse ? setupReuse.deferrals : notReady,
         answer: remoteSetup,
       });
+    if (setupChanged) missing.push("remote-setup");
     const { confirmation, identity } = inspection;
     let discarded: AdoptReport["discarded"];
     if (confirmation.required) {
@@ -870,6 +1006,7 @@ async function prepare(
         !["DISCOVERY_REQUIRED", "UNRESOLVED_SCOPE"].includes(blocker.code),
     );
     const inspected = report("answers-required", questions, {
+      reused,
       blockers,
       inspection: {
         identity,
@@ -891,6 +1028,7 @@ async function prepare(
           confirmation.required,
           scope,
           notReady.length > 0,
+          reused,
         )
       : await start(
           inspectOptions,
@@ -899,6 +1037,7 @@ async function prepare(
           confirmation.required,
           notReady.length > 0,
           observations,
+          reused,
         );
     // A retry of a start interrupted before its installation was prepared
     // reads the proposal again.
@@ -1018,6 +1157,7 @@ function skeleton(
     outcome: "incomplete",
     selection,
     missing: questions.filter(unanswered).map((question) => question.id),
+    reused: [],
     blockers: [],
     answers: { format: formats.answers, source: selection.source, questions },
     nextSteps: [],
@@ -1036,6 +1176,7 @@ async function describeRun(
   const { root, cliVersion, given } = context;
   const report: AdoptReport = {
     ...base,
+    reused: run.reused,
     run: {
       id: run.id,
       outcome: run.outcome,
@@ -1102,27 +1243,71 @@ async function describeRun(
   const noScope = (request.scope?.proposal?.declarations ?? [])
     .filter((entry) => entry.noScope)
     .map((entry) => entry.id);
+  // An answer the agent gives itself, which a run that just reached its
+  // contextual work has none of yet.
+  const own = (id: string) =>
+    advance ? (given.get(`assessment:${id}`) ?? null) : null;
   const assessments = request.declarations.map(
-    ({ id, allowedTargets, discovery }): Question => ({
+    ({ id, allowedTargets, discovery, reused, proposed }): Question => ({
       id: `assessment:${id}`,
       question: `Does the project now satisfy ${id}?`,
-      context: noScope.includes(id)
-        ? `${id} has no scope: it installs no rules, runs no checks or fixes, and allows no edit. Judge only its scope: answer with status satisfied or blocked, an explanation, and evidence, and scopeValidity with an afterFixes and a current review, each with status valid when no project file belongs in its scope, or blocked with the files that do in additionalPaths. Copy no identities or changed paths.`
-        : `After the contextual work, judge the declaration: answer with status satisfied or blocked, an explanation, and evidence, the concrete project content or command outcomes you observed${discovery ? ", and scopeValidity with an afterFixes and a current review, each with status valid or blocked, explanation, evidence, and additionalPaths" : ""}. Copy no identities or changed paths.`,
+      context: [
+        ...(reused
+          ? [
+              `The last complete adoption's assessment of ${id} is reused: ${reused.evidence.judgedAgainst.kind === "rules" ? "its rules" : "its adoption guidance"} and the files in its scope are unchanged since it. It needs no contextual work; keep this answer to reuse it, or give another judgment to replace it.`,
+            ]
+          : proposed
+            ? [
+                `The last complete adoption's assessment of ${id} is proposed here for review: ${proposed.changed.join(" ")} Judge the declaration again; the proposal is no answer until you submit one.`,
+              ]
+            : []),
+        noScope.includes(id)
+          ? `${id} has no scope: it installs no rules, runs no checks or fixes, and allows no edit. Judge only its scope: answer with status satisfied or blocked, an explanation, and evidence, and scopeValidity with an afterFixes and a current review, each with status valid when no project file belongs in its scope, or blocked with the files that do in additionalPaths. Copy no identities or changed paths.`
+          : `After the contextual work, judge the declaration: answer with status satisfied or blocked, an explanation, and evidence, the concrete project content or command outcomes you observed${discovery ? ", and scopeValidity with an afterFixes and a current review, each with status valid or blocked, explanation, evidence, and additionalPaths" : ""}. Copy no identities or changed paths.`,
+      ].join(" "),
       details: {
         allowedTargets,
         ...(noScope.includes(id) ? { noScope: true } : {}),
+        ...(reused ? { reused: reused.evidence } : {}),
+        ...(proposed ? { changed: proposed.changed } : {}),
       },
-      // A run that just reached its contextual work has no assessment yet.
-      answer: advance ? (given.get(`assessment:${id}`) ?? null) : null,
+      answer: own(id) ?? reused?.judgment ?? proposed?.judgment ?? null,
     }),
   );
-  if (advance && !assessments.some(unanswered)) {
+  // A reused assessment is answered, and a proposed one is not until the
+  // agent answers it.
+  const unjudged = (question: Question, answered: unknown) => {
+    const declaration = request.declarations.find(
+      ({ id }) => `assessment:${id}` === question.id,
+    )!;
+    return declaration.reused
+      ? false
+      : declaration.proposed
+        ? answered === null || answered === undefined
+        : question.answer === null;
+  };
+  if (
+    advance &&
+    !assessments.some((question) =>
+      unjudged(question, own(question.id.slice("assessment:".length))),
+    )
+  ) {
     // Refresh the work request at the project's current snapshot, then
     // submit the assessment against it.
     const refreshed = await resume(root, cliVersion);
     if (!refreshed.workRequest || !canResumeAssessment(refreshed))
       return describeRun(context, refreshed, base, false);
+    // An assessment reused only until the refresh, because the files in its
+    // scope changed, is proposed again instead of submitted unjudged.
+    if (
+      refreshed.workRequest.declarations.some(
+        ({ id, reused }) =>
+          !reused &&
+          request.declarations.find((entry) => entry.id === id)?.reused &&
+          own(id) === null,
+      )
+    )
+      return describeRun(context, refreshed, base, true);
     return describeRun(
       context,
       await submitAssessment(root, cliVersion, {
@@ -1158,18 +1343,36 @@ async function describeRun(
       : [],
   );
   // A renewed assessment starts from the answers just submitted.
+  const submitted = (id: string) =>
+    base.answers.questions.find((entry) => entry.id === id)?.answer;
   const questions = assessments.map((question) => ({
     ...question,
-    answer:
-      base.answers.questions.find((entry) => entry.id === question.id)
-        ?.answer ?? question.answer,
+    answer: submitted(question.id) ?? question.answer,
   }));
+  // The assessments the request reuses, unless an answer replaces them.
+  const reused = reusedAssessments(
+    request.declarations,
+    (id) =>
+      questions.find((question) => question.id === `assessment:${id}`)!.answer,
+  );
   return withSteps(
     context,
     {
       ...report,
       outcome: "contextual",
-      missing: questions.filter(unanswered).map((question) => question.id),
+      missing: questions
+        .filter((question) =>
+          unjudged(
+            question,
+            submitted(question.id) ??
+              own(question.id.slice("assessment:".length)),
+          ),
+        )
+        .map((question) => question.id),
+      reused: [
+        ...report.reused.filter((answer) => answer.kind !== "assessment"),
+        ...reused,
+      ],
       contextual: request.declarations.map((declaration) => ({
         id: declaration.id,
         allowedTargets: declaration.allowedTargets,
@@ -1261,6 +1464,19 @@ function withSteps(
       steps.push(
         "Decide the answers from each question's context and choices, and record your decisions and reasons in the handoff. Choose the proposed newest stable version unless the maintainer requested another. Choose the profile from its descriptions, the request, and repository evidence; ask the maintainer only when these do not settle it.",
       );
+      if (report.reused.length)
+        steps.push(
+          "The reused answers above carry the last complete adoption's answers forward because what each was about is unchanged. Keep them unless the project calls for another answer; an answer equal to a reused one stays reused. List them in the handoff.",
+        );
+      if (
+        report.answers.questions.some(
+          (question) =>
+            (question.details as { changed?: unknown } | undefined)?.changed,
+        )
+      )
+        steps.push(
+          "A question whose details name what changed proposes the last complete adoption's answer for review. Validate it against the current project and guidance, correct it where needed, and carry it back as your answer.",
+        );
       if ([...ids].some((id) => id.startsWith("scope:")))
         steps.push(
           "For each scope answer, judge the candidates against the discovery guidance above, inspecting the real project, not only its inventory. Explain exclusions such as fixtures and generated output, and resolve membership questions from project evidence, with reasons, without asking. An explained empty scope is valid.",
@@ -1332,6 +1548,20 @@ function withSteps(
       if (report.contextual?.some((entry) => entry.discovery))
         steps.push(
           "For a discovered declaration, recheck coverage against the project as fixes left it, and again before running adopt. Never write a file outside the confirmed scope: answer that scope review `blocked` with its `additionalPaths`.",
+        );
+      if (report.reused.some((answer) => answer.kind === "assessment"))
+        steps.push(
+          "A reused assessment carries the last complete adoption's judgment forward because its rules and scoped files are unchanged: it needs no contextual work. Keep its answer unless you judge the declaration differently, and list it in the handoff. Editing files in its scope makes adopt propose it for a new judgment instead.",
+        );
+      if (
+        report.answers.questions.some(
+          (question) =>
+            question.id.startsWith("assessment:") &&
+            (question.details as { changed?: unknown } | undefined)?.changed,
+        )
+      )
+        steps.push(
+          "An assessment whose details name what changed is prefilled with the last complete adoption's judgment for review: judge the declaration again and answer it yourself.",
         );
       steps.push(
         "Answer each assessment with your own judgment, separate from check results: a passing check alone does not show that the content is useful.",
@@ -1446,6 +1676,13 @@ export function adoptSummary(report: AdoptReport) {
           .join("\n"),
       ),
     );
+  if (report.reused.length)
+    parts.push(
+      section(
+        "Reused answers",
+        `The last complete adoption recorded these answers, and what each was about is unchanged, so they are given again without asking.\n\n${reusedTable(report.reused)}`,
+      ),
+    );
   if (report.blockers.length)
     parts.push(
       section(
@@ -1527,6 +1764,9 @@ export function adoptSummary(report: AdoptReport) {
           .join("\n\n"),
       ),
     );
+  // A declaration whose recorded assessment is reused needs no contextual work.
+  const reusedAssessment = (id: string) =>
+    report.reused.some((answer) => answer.id === `assessment:${id}`);
   // A declaration with no scope is named so by its assessment question.
   const noScope = (id: string) =>
     report.answers.questions.some(
@@ -1543,6 +1783,11 @@ export function adoptSummary(report: AdoptReport) {
           .map((entry) =>
             [
               `### ${code(entry.id)}`,
+              ...(reusedAssessment(entry.id)
+                ? [
+                    "Its recorded assessment is reused: it needs no contextual work unless you replace its answer.",
+                  ]
+                : []),
               noScope(entry.id)
                 ? "No scope: it allows no edit, and only its scope is judged."
                 : `Allowed targets: ${[...entry.allowedTargets.paths, ...entry.allowedTargets.directories.map((directory) => `${directory}/`)].map(code).join(", ") || "none"}.`,

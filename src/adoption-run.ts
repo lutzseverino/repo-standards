@@ -77,6 +77,11 @@ import {
 } from "./installation.js";
 import { dictionary, record } from "./records.js";
 import { deferredRemoteSetup, type DeferredFix } from "./remote-setup.js";
+import type {
+  AssessmentReuse,
+  RecordedJudgment,
+  ReusedAnswer,
+} from "./reused-answers.js";
 
 // Persisted labels are shared by several producers. Keep their serialized
 // values stable so existing incomplete runs remain readable.
@@ -104,6 +109,9 @@ export interface Run {
   // The fixes this run defers: remote setup that is not ready, as its start
   // chose, and each fix whose overwrite the maintainer declined.
   deferred: DeferredFix[];
+  // The answers the last complete adoption recorded that this run reuses:
+  // those adopt reused for its start, and each reused assessment.
+  reused: ReusedAnswer[];
   observations: RecordedInterval[];
   outcome: "complete" | "incomplete";
   phase: string;
@@ -162,6 +170,11 @@ export interface WorkRequest {
     discovery?: NonNullable<Inspection["discovery"]>["declarations"][number] &
       RetainedReference;
     allowedTargets: { paths: string[]; directories: string[] };
+    // The last complete adoption's judgment: reused, with what made it
+    // eligible, when it is provably unchanged, and otherwise proposed, with
+    // what changed.
+    reused?: { judgment: RecordedJudgment; evidence: AssessmentReuse };
+    proposed?: { judgment: RecordedJudgment; changed: string[] };
   }[];
   requiredEvidence: string[];
 }
@@ -545,6 +558,7 @@ function readRun(root: string, path: string, active: boolean): Run {
   const recorded = run as Partial<Run> | null;
   if (
     recorded?.format !== formats.run ||
+    !Array.isArray(recorded.reused) ||
     !Array.isArray(recorded.observations) ||
     !compactIntervals(recorded.observations)
   )
@@ -756,6 +770,7 @@ function statusRecord(project: string, cliVersion: string) {
       scopeProposal,
       selection: active.selection,
       lastComplete: active.previousComplete?.lastComplete ?? null,
+      reused: active.reused,
       active,
       execution:
         executing(lock) ||
@@ -773,6 +788,7 @@ function statusRecord(project: string, cliVersion: string) {
       scopeProposal: null,
       selection: null,
       lastComplete: null,
+      reused: [],
       active,
       abandoned,
       evidence: "historical",
@@ -795,6 +811,7 @@ function statusRecord(project: string, cliVersion: string) {
       checks: state.checks,
       assessments: state.assessments,
       deferred: state.deferred ?? [],
+      reused: state.reused ?? [],
       ...(changedScope ? { scopeChanges: changedScope } : {}),
       active,
       abandoned,
@@ -843,12 +860,22 @@ function statusRecord(project: string, cliVersion: string) {
       scopeProposal,
       selection: incomplete.selection,
       lastComplete: incomplete.previousComplete?.lastComplete ?? null,
+      reused: [],
       active,
       abandoned,
       evidence: "historical",
       stateError: { code: error.code, message: error.message },
     };
   }
+}
+
+// A run's reused answers with its reused assessments replaced: an accepted
+// assessment decides them anew.
+function withAssessments(reused: ReusedAnswer[], assessments: ReusedAnswer[]) {
+  return [
+    ...reused.filter((answer) => answer.kind !== "assessment"),
+    ...structuredClone(assessments),
+  ];
 }
 
 // These events describe confirmed work. Phase/outcome/uncertainty coupling and
@@ -865,7 +892,11 @@ type Progress =
   | { type: "assessment-reading" }
   | { type: "assessment-started" }
   | { type: "retry-verification" }
-  | { type: "assessment-submitted"; assessment: Assessment }
+  | {
+      type: "assessment-submitted";
+      assessment: Assessment;
+      reused: ReusedAnswer[];
+    }
   | { type: "assessment-accepted" }
   | { type: "operation-accepted"; description: string }
   | { type: "fix-deferred"; deferral: DeferredFix }
@@ -921,13 +952,15 @@ export class AdoptionRunSession {
     );
   }
 
-  // An update begins from the recorded adoption its inspection read.
+  // An update begins from the recorded adoption its inspection read, with the
+  // answers adopt reused for its start.
   begin(
     report: Inspection,
     provenance: Pick<Run, "root" | "head">,
     confirmation: string,
     startInput: StartInput,
     previous?: RecordedAdoption,
+    reused: ReusedAnswer[] = [],
   ) {
     this.#assertOpen();
     const root = this.#root;
@@ -957,6 +990,7 @@ export class AdoptionRunSession {
       prerequisites: [],
       operations: [],
       deferred: deferredRemoteSetup(report.remoteSetup),
+      reused: structuredClone(reused),
       assessments: [],
       phase: "prerequisites",
       reason: "Run in progress or interrupted.",
@@ -1043,6 +1077,7 @@ export class AdoptionRunSession {
         run.phase = "assessment";
         run.uncertain = [pendingWork.assessment];
         run.assessments = [structuredClone(event.assessment)];
+        run.reused = withAssessments(run.reused, event.reused);
         break;
       case "assessment-accepted":
         run.completed.push("agent assessment");
@@ -1190,11 +1225,38 @@ export class AdoptionRunSession {
     );
   }
 
-  complete(installation: Installation, operationStart: number) {
+  // Accepts the recorded assessment of every contextual declaration, which
+  // its request reuses, bound to this run, without pausing for contextual
+  // work.
+  reuseAssessment(
+    request: WorkRequest,
+    installation: Installation,
+    assessment: Assessment,
+    reused: ReusedAnswer[],
+  ) {
+    const run = this.#state();
+    persistInstallation(this.#root, run, installation);
+    run.workRequest = structuredClone(request);
+    run.assessments = [structuredClone(assessment)];
+    run.reused = withAssessments(run.reused, reused);
+    run.completed.push("agent assessment (reused)");
+    this.#save();
+  }
+
+  complete(
+    installation: Installation,
+    operationStart: number,
+    assessedScopes: Record<string, string>,
+  ) {
     const run = this.#state();
     const root = this.#root;
     this.#completing = true;
-    const completion = completionFiles(installation, run, operationStart);
+    const completion = completionFiles(
+      installation,
+      run,
+      operationStart,
+      assessedScopes,
+    );
     const { state, lock } = completion;
     saveContext(root, state.content);
     saveContext(root, lock.content);
@@ -1268,6 +1330,7 @@ export class AdoptionRunSession {
     run.phase = "prerequisites";
     clearStoppedProcess(run);
     run.assessments = [];
+    run.reused = withAssessments(run.reused, []);
     delete run.workRequest;
     run.reason = "Explicit retry in progress or interrupted.";
     run.nextAction =

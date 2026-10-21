@@ -25,6 +25,10 @@ export interface DeferredFix {
   reason: string;
 }
 
+// How the reason of a fix deferred because the maintainer declined its
+// overwrite starts.
+export const declinedOverwrite = "The maintainer declined the overwrite:";
+
 export function remoteSetupFixes(
   declarations: { id: string; fixes: Operation[] }[],
 ) {

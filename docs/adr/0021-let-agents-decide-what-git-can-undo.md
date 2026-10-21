@@ -18,7 +18,10 @@ listing each with its diff or current content in the handoff: the clean,
 committed starting tree makes every discarded edit recoverable from Git.
 
 The agent defers remote setup that is not ready, reporting why; this changes
-nothing remotely, and every later run applies it once ready. Interrupted or
+nothing remotely, and every later run applies it once ready. As amended by
+[ADR 0024](0024-reuse-recorded-answers-that-are-provably-unchanged.md), a
+later update reuses the deferral without asking while the same probe still
+reports it not ready. Interrupted or
 incomplete runs retry repeat-safe operations without asking. Abandonment still
 requires the maintainer's instruction. A contextual assessment remains blocked
 when the project cannot supply the facts it needs. A fix's confirmation-required

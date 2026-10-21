@@ -44,6 +44,9 @@ export interface WorkRequest {
     id: string;
     discovery?: unknown;
     allowedTargets: { paths: string[]; directories: string[] };
+    // The last complete adoption's judgment, which the run reuses for a
+    // declaration the submission omits.
+    reused?: { judgment: Omit<Judgment, "id"> };
   }[];
 }
 export type Judgment = Omit<Assessment["declarations"][number], "changedPaths">;
@@ -169,6 +172,11 @@ export function validateAssessment(
       );
     judgments.set(entry.id, entry as unknown as Judgment);
   }
+  // A declaration whose recorded assessment the request reuses keeps it unless
+  // the submission judges it.
+  for (const { id, reused } of request.declarations)
+    if (reused && !judgments.has(id))
+      judgments.set(id, { id, ...reused.judgment });
   const missing = request.declarations
     .filter(({ id }) => !judgments.has(id))
     .map(({ id }) => id);

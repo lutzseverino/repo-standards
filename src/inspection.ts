@@ -192,12 +192,16 @@ export async function inspect(
 // existing adoption, and the uncommitted paths it recorded neither block the
 // start nor count as untracked replacement content.
 // Source observations shared with earlier acquisitions reuse their repository
-// and tag resolution; the project is always observed again.
+// and tag resolution; the project is always observed again. A caller that
+// compares or retains discovery drafts asks for them: the discovery scripts
+// then draft even with a proposal, and the drafts are returned beside the
+// report, which carries a draft only without a proposal.
 export async function inspectForStart(
   options: InspectOptions,
   cliVersion: string,
   retained?: RecordedAdoption,
   observations?: SourceObservations,
+  { drafts = false }: { drafts?: boolean } = {},
 ) {
   if (!satisfies(process.versions.node, ">=24 <25 || >=26 <27"))
     throw new ProductError(
@@ -392,7 +396,7 @@ export async function inspectForStart(
     // Without a proposal, each declared discovery script drafts its
     // declaration's entry for the agent or person to review and complete.
     const drafted = [];
-    if (scopeObservation && !proposal)
+    if (scopeObservation && (!proposal || drafts))
       for (const declaration of discoveryDeclarations)
         if (declaration["discovery-script"])
           drafted.push(
@@ -410,7 +414,7 @@ export async function inspectForStart(
       ? {
           identity: requestIdentity!,
           ...(proposal ? { proposal, absence, namedObservation } : {}),
-          ...(drafted.length
+          ...(drafted.length && !proposal
             ? { draft: { format: formats.scope, declarations: drafted } }
             : {}),
           declarations: discoveryDeclarations.map((declaration) => ({
@@ -909,6 +913,7 @@ export async function inspectForStart(
         index: hash(index.stdout),
         hidden,
       },
+      drafts: drafted,
       recorded: previous,
       // A start over a preserved run carries the changes it left.
       ...(preserved

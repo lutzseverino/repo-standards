@@ -123,7 +123,7 @@ export function assertCompactRunRecord(
   record: { format: string; observations: CommittedInterval[] },
   label = "run record",
 ) {
-  assert.equal(record.format, "repo-standards/run/v6");
+  assert.equal(record.format, "repo-standards/run/v7");
   assertCompactIntervals(label, record.observations);
 }
 

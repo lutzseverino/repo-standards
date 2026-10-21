@@ -1,4 +1,5 @@
 import type { Declaration } from "./model.js";
+import type { ReusedAnswer } from "./reused-answers.js";
 import type { Blocker, HashInventory } from "./observation.js";
 import type { ScopeChange } from "./scope-evidence.js";
 import type { ScopeProposal } from "./scope.js";
@@ -104,6 +105,7 @@ interface RunRecord {
   reason: string;
   operations: OperationEvidence[];
   deferred: DeferredRemoteSetup[];
+  reused: ReusedAnswer[];
   changes: string[];
   completed: string[];
   uncertain: string[];
@@ -122,6 +124,7 @@ export interface StatusRecord {
   } | null;
   operations?: OperationEvidence[];
   deferred?: DeferredRemoteSetup[];
+  reused: ReusedAnswer[];
   changeSet?: { path: string; phases: string[] }[];
   scopeChanges?: ScopeChange[];
   active: RunRecord | null;
@@ -278,6 +281,62 @@ function evidenceTable(
         text(entry.reason),
       ]),
     ],
+  );
+}
+
+// Why a reused answer was eligible, in one sentence.
+export function reuseReason(answer: ReusedAnswer) {
+  switch (answer.kind) {
+    case "scope": {
+      const { draft, paths } = answer.evidence;
+      return `Its discovery guidance and rules are unchanged, ${
+        draft === "none"
+          ? "it has no discovery script"
+          : draft === "decided-from"
+            ? "its fresh draft equals the draft the answer was decided from"
+            : "its fresh draft equals the recorded entry"
+      }, and ${paths.length === 1 ? "the 1 path it names exists" : `all ${paths.length} paths it names exist`}.`;
+    }
+    case "remote-setup":
+      return `The same probe still reports it not ready: ${answer.evidence.deferrals
+        .map((entry) => `${entry.declaration}/${entry.id}: ${entry.reason}`)
+        .join(" ")}`;
+    case "assessment":
+      return `Its ${answer.evidence.judgedAgainst.kind === "rules" ? "rules" : "adoption guidance"} and ${
+        answer.evidence.scope.basis === "declaration"
+          ? "the files in its scope"
+          : "the whole project, which the previous state records,"
+      } are unchanged since the last complete adoption.`;
+  }
+}
+
+// The reused answers as a table, for a level-3 subsection.
+export function reusedTable(reused: ReusedAnswer[]) {
+  return table(
+    ["Question", "Kind", "Why"],
+    reused.map((answer) => [
+      code(answer.id),
+      answer.kind,
+      text(reuseReason(answer)),
+    ]),
+  );
+}
+
+// Operations, followed by any reused answers in their own subsection, which
+// keeps an adoption record's level-2 sections as they are.
+function operationsSection(
+  operations: OperationEvidence[],
+  deferred: DeferredRemoteSetup[] | undefined,
+  reused: ReusedAnswer[] | undefined,
+) {
+  return section(
+    "Operations",
+    [
+      evidenceTable(operations, deferred),
+      ...(reused?.length
+        ? [`### Reused answers\n\n${reusedTable(reused)}`]
+        : []),
+    ].join("\n\n"),
   );
 }
 
@@ -596,7 +655,7 @@ function activeSummary(run: RunRecord, execution: string | undefined) {
           : "Uncertain: none.",
       ].join("\n\n"),
     ),
-    section("Operations", evidenceTable(run.operations, run.deferred)),
+    operationsSection(run.operations, run.deferred, run.reused),
     section(
       "Changed paths",
       run.changes.length
@@ -721,9 +780,10 @@ export function statusSummary(record: StatusRecord) {
         "Selection",
         table(["Component", "Value"], selectionRows(record.selection)),
       ),
-      section(
-        "Operations",
-        evidenceTable(record.operations ?? [], record.deferred),
+      operationsSection(
+        record.operations ?? [],
+        record.deferred,
+        record.reused,
       ),
       section(
         "Changed paths",

@@ -310,7 +310,7 @@ observations, not continuous monitoring or atomic filesystem snapshots. The
 apply; incomplete reads, unsafe boundaries, instability, or exhausted limits
 block progression and preserve incomplete work.
 
-`repo-standards/run/v6` records `observations` separately from `operations` and
+`repo-standards/run/v7` records `observations` separately from `operations` and
 `assessments`. Each interval has a phase (`fixes`, `checks`, or `agent`), its
 applicable declaration `scope`, and the `before` observation identity. Closed
 intervals add the `after` identity, `changes`, `boundaryChanges`, and
@@ -358,7 +358,7 @@ separately from contextual work. `restoredBoundaries` covers only recreated
 parents of restored exact files or removal of extra directories inside a
 verified skill inventory; it never exempts changes to existing directory modes.
 This grants no new contextual scope.
-Durable `repo-standards/state/v7` and `repo-standards/status/v8` retain work
+Durable `repo-standards/state/v8` and `repo-standards/status/v9` retain work
 evidence: the run's intervals, operation history, retry history, final checks and
 assessments, and the run's net change set, `changeSet`. Completion commits the
 run record's intervals unchanged. A recorded interval is identities plus delta,
@@ -370,14 +370,16 @@ never an observation map. It keeps `before` and `after` observation identities,
 are the product's observation identity, `sha256:` over the observation the run
 held, so the recorded delta stays tamper-evident without the full maps.
 
-State v7 holds the last complete run's evidence only, with its `lastComplete`
+State v8 holds the last complete run's evidence only, with its `lastComplete`
 record; a completion replaces the previous run's evidence rather than carrying
 it, and Git history keeps earlier runs. Detailed logs remain local; the
 recorded outcomes and interval evidence survive a fresh checkout. The integrity
 lock remains `repo-standards/lock/v1` and binds the new state bytes.
 
-State v7 is the only state format written and read. A committed v7 state whose
-intervals carry observation maps, whose closed interval is missing either
+State v8 is the only state format written. An update also reads the previous
+release's state v7 and scope-history v5 as the adoption it replaces, so that it
+[reuses the answers](adoption.md#reused-answers) they prove. A committed state
+whose intervals carry observation maps, whose closed interval is missing either
 identity, or that carries an earlier run's `history`, fails state integrity
 validation. A state, run record, or scope
 history in a retired format is never read or converted; the project
@@ -390,10 +392,11 @@ Retained inspection also checks exact-skill and durable product directories
 against the paths implied by the recorded file inventory, so later
 empty-directory edits block updates before mutation.
 Retained inspection is `repo-standards/inspection/v8` with
-`repo-standards/scope-history/v5` after discovery completion, the only
-scope-history format: it holds the last complete run, its discovery stored as
-its project observation without the derived evidence array and its named
-observation as a delta, and its scope change against the run before it.
+`repo-standards/scope-history/v6` after discovery completion, the only
+scope-history format written: it holds the last complete run, its discovery
+stored as its project observation without the derived evidence array, its named
+observation as a delta, and each discovery script's draft its confirmed entry
+was decided from, and its scope change against the run before it.
 
 Confirmed discovery declarations are materialized into the existing target
 representation before execution. `allowedTargets.paths` is the confirmed file

@@ -383,6 +383,58 @@ test("adopt in a terminal asks a discovery script's open questions and reviews t
   assert.match(scopeValidity.current!.explanation, /after the contextual work/);
 });
 
+test("an update in a terminal shows the reused answers without asking them", async (t) => {
+  const { f } = await discoveryFixture(t, cli, []);
+  const first = terminal(t, f, [source]);
+  await first.expect("Version [v1.0.0]: ");
+  first.type("");
+  await first.expect("Profile [work]: ");
+  first.type("");
+  await first.expect(
+    "Does project-docs cover exactly the drafted files, app/README.md? [Y/n]: ",
+  );
+  first.type("");
+  await first.expect("Start the run? [Y/n]: ");
+  first.type("");
+  await first.expect(
+    "Before any contextual edit, does it cover every file project-docs should? [Y/n]: ",
+  );
+  first.type("");
+  await first.expect(
+    "Edit the files now. Press Enter when you are done, or type blocked: ",
+  );
+  writeFileSync(join(f.root, "app/README.md"), "# App\n");
+  first.type("");
+  await first.expect("Is project-docs done? [Y/n/blocked]: ");
+  first.type("");
+  await first.expect("cover every file it should? [Y/n]: ");
+  first.type("");
+  await first.expect("The adoption is complete.");
+  assert.equal(await first.exit(), 0, first.rest());
+  commit(f.root);
+
+  // The unchanged update asks only for its selection and the start.
+  const update = terminal(t, f, [], true);
+  await update.expect("Version [v1.0.0]: ");
+  update.type("");
+  await update.expect("Profile [work]: ");
+  update.type("");
+  assert.match(
+    await update.expect("Start the run? [Y/n]: "),
+    /Reusing the last complete adoption's answer to scope:project-docs: Its discovery guidance and rules are unchanged/,
+  );
+  update.type("");
+  assert.match(
+    await update.expect("The adoption is complete."),
+    /Reusing the last complete adoption's answer to assessment:project-docs: Its adoption guidance and the files in its scope are unchanged/,
+  );
+  assert.equal(await update.exit(), 0, update.rest());
+  assert.deepEqual(
+    status(f).reused.map((answer) => answer.id),
+    ["scope:project-docs", "assessment:project-docs"],
+  );
+});
+
 test("adopt in a terminal reruns a fix allowed to overwrite a setting once the person confirms", async (t) => {
   const outside = directoryFixture("repo-standards-adopt-terminal-");
   t.after(() => outside.close());
