@@ -52,7 +52,8 @@ alternatives.
   exposes it at `.claude/skills` for Claude Code.
 - [Leave available updates to the maintainer](0014-leave-available-updates-to-the-maintainer.md):
   a product system skill reports available updates, and no standards source
-  routes them; the agent starts an update only on the maintainer's instruction.
+  routes them; the agent starts an update only on the maintainer's instruction;
+  superseded by ADR 0026 for adopters who opt in to the update action.
 - [Leave delivery to standards sources](0015-leave-delivery-to-standards-sources.md):
   there is no product-owned `deliver` skill; a source that defines a
   contribution workflow ships its own, and the product offers on-demand checks.
@@ -94,3 +95,7 @@ alternatives.
   `adopt` starts the run in the invocation whose fresh inspection needs no
   confirmation, has no blocker, and leaves no question open, binding the
   identity it computed; a terminal still asks first.
+- [Propose updates through one rolling pull request for adopters who opt in](0026-propose-updates-through-one-rolling-pull-request.md):
+  a published GitHub action, installed by the adopter's caller workflow, runs
+  the newest CLI's headless update and keeps one rolling pull request or issue
+  current; the CLI still never commits.

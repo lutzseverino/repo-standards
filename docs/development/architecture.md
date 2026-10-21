@@ -35,6 +35,12 @@ product remains neutral for independently authored standards.
 - A standards repository owns its standards, complete profiles, ordinary
   content, contextual guidance, author skills, and trusted checks and fixes.
 - An adopting project owns its project content and normal change workflow.
+- The product repository also publishes the update action, `action.yml` at its
+  root. An adopting project opts in by installing a caller workflow that runs
+  it, which is the maintainer's standing instruction to propose every available
+  update ([ADR 0026](../adr/0026-propose-updates-through-one-rolling-pull-request.md)).
+  Without that opt-in, every update stays the maintainer's decision
+  ([ADR 0014](../adr/0014-leave-available-updates-to-the-maintainer.md)).
 
 The product does not implement an author's adoption procedure. All authors use
 the same resolution and adoption interfaces. Authors cannot replace system
@@ -107,6 +113,7 @@ skill installation and is not installed into adopting projects by adoption.
 | Summary renderer         | An inspection report, a status record or an outdated report produces one deterministic Markdown document. It describes and never prescribes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | Update notice            | The `repository-standards` system skill runs `outdated` with the project runtime, reinstalling the pinned runtime once when it is missing or reports `CLI_PIN_MISMATCH`, and reports each available update to the agent. It starts no update: one starts only on the maintainer's instruction, through guided adoption, as a change separate from the current work.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | Guided adoption          | `adopt` takes an optional source, version, profile, and answers file and the project's state, and produces the questions the adoption still asks as an answers-file template and the next steps, or, once none is open, nothing blocks and no confirmation is required, the start over the inspection it just computed, or one step of the active run: a confirmed or deferred fix or submitted assessments, or, for a run stopped for its scope and a changed scope answer, the run's replacement in place. It drives inspect, start, and resume, and in a terminal also a waiting run's contextual checks and abandon, interprets no author format, and writes nothing in the project itself; the start it drives pins the exact CLI that ran. For an update it answers each recorded scope answer and remote setup deferral that is provably unchanged itself, marking it reused, and proposes the rest for review. An answers file confirms a confirmation-required change only by naming the inspection identity the agent reviewed for discarded edits, or the maintainer confirmed for a remote setting overwrite; an inspection that requires no confirmation starts with no `inspection` answer, which then names nothing the start depends on, so only a terminal still asks before every start. A question is open until an answers file, a reused answer, or a default `adopt` proposes as the answer (the version and the profile) answers it; a scope draft or a recorded answer proposed for review stays open in every mode. In a terminal it asks a person the same questions, one stage at a time, and walks each contextual declaration: it shows the rules and adoption guidance, waits for the edit, runs the declaration's checks, asks whether it is done or blocked, and writes the assessment from the answers; it retries or abandons an interrupted run only on the person's choice. `adopt --headless` is a headless update: it takes no source, profile or answers file, fails before any change without an established adoption, selects the recorded source and profile and the newest stable release or the `--standards-version` tag, takes only reused answers and the defaults a template proposes, never answers `confirmation` or a `fix:` question, starts the run deferring every remote setup, and only reports an active run; it stops before any write for an open question or blocker, or with the run active at contextual work or a fix's confirmation, and an ordinary answers file finishes it. |
+| Update action            | The published `action.yml` and its scripts take an adopting project's checkout of its default branch, a token and an optional agent command, and keep one rolling update pull request or issue current through the pinned `outdated`, the newest CLI's headless update and `status`. Only its forge module talks to GitHub; the CLI gains no platform code and never commits.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 These responsibilities do not mandate separate packages or class hierarchies.
 They share the resolver's result. Other modules do not independently interpret
@@ -772,7 +779,8 @@ snapshot rather than an enforced installation baseline.
 After complete adoption the project's normal workflow commits durable state,
 retained inputs, runtime manifests, installed content and skills, and contextual
 changes. Dependencies, caches, run locks, detailed logs, and incomplete-run
-records stay ignored. The product never commits or moves HEAD.
+records stay ignored. The CLI never commits or moves HEAD; only the
+[update action](#update-action) commits, and only on its rolling branch.
 
 Each artifact has exactly one format, which the CLI writes and reads: durable
 state, the integrity lock, retained scope evidence, the run record and local run
@@ -1006,6 +1014,45 @@ product state in the current formats, and nothing first over retired state; an
 existing system skill that a different CLI version installed is replaced like
 any other tracked target.
 
+### Update action
+
+The update action is a composite GitHub action, `action.yml` at the product
+repository's root, whose scripts in `action/` run with Node.js 24 directly,
+with no build step. Callers pin it by commit SHA. It takes a `token`, defaulting
+to `github.token`, and an optional `agent-command`. On a checkout of the
+default branch, each run:
+
+1. Restores the pinned runtime and runs the pinned `outdated --json`. A pin
+   reporting `unknown` fails the run with its reason, opening or changing
+   nothing. With both pins `none`, it closes the rolling items whose update
+   has landed and exits.
+2. Otherwise runs the newest CLI's headless update,
+   `npx --yes @lutzseverino/repo-standards@<newest> adopt --headless --json`,
+   with the token as `GH_TOKEN`, so both pins move together to the newest CLI
+   and standards release.
+3. When the update completes, records `status --summary`, which reports it
+   ready to commit, commits on the rolling branch `repo-standards/update`,
+   force-pushes it, and opens or edits the rolling pull request against the
+   default branch. Its body is the record and its title follows the adoption
+   rule from the record's selection; a pin moving by a major version, or by a
+   minor version of a `0.x` pin, makes it `chore!:`, and the action appends
+   Impact and Migration sections from the update class and deferred remote
+   setup unless the record already carries them.
+4. When the update stops, runs the agent command, if any, with the headless
+   report's path in `REPO_STANDARDS_REPORT`, and continues at step 3 when
+   `status --json` then reports ready to commit. Otherwise, or when the push
+   is refused, it opens or edits the rolling issue, whose `Problem` and
+   `Desired outcome` sections carry the target versions, the open questions,
+   and the adopter's action.
+
+At most one rolling pull request, found by its branch, or rolling issue, found
+by a hidden marker recording its target, is open. A newer release refreshes it;
+the same release leaves it untouched; the default branch reaching its versions
+closes it; and the item that no longer applies is closed with a comment linking
+its successor. All GitHub-specific code, its pushes, pull requests, issues and
+branch reads, sits in `action/github.ts` behind one forge interface. The CLI
+gains no platform code.
+
 ## Acceptance criteria
 
 The public installed CLI against real temporary Git repositories is the main
@@ -1080,6 +1127,13 @@ The product is complete only when all of these pass:
     assessments, recording each; and propose each recorded answer whose
     guidance, rules, draft, paths, probe, or scoped files changed for review
     instead, never replaying a confirmation or a fix's overwrite answer.
+18. Keep an adopting repository current through the update action against a
+    fake forge and CLI: open nothing without an update and close landed
+    rolling items, propose a complete update as one rolling pull request whose
+    body is the adoption record and whose breaking title carries Impact and
+    Migration sections, change nothing for the same release, refresh the same
+    item for a newer one, and open one rolling issue for a stop, a refused
+    push, or an agent command that leaves the update unready.
 
 ## Implementation choices
 
@@ -1094,10 +1148,14 @@ multiple selected profiles, profile chains, declaration field merges, consumer
 subsets, cross-publisher dependencies, third-party skill collection management,
 adoption hooks, arbitrary extensions, marketplace infrastructure, personal
 policy migration, app scaffolding, built-in GitHub workflow mutation, automatic
-commits, silent prerequisite installation, sandbox claims, signed releases,
-attestations, force overwrite, and universal rollback are excluded. So are drift
-detection, conversion of retired formats, and any workflow rule for what to do
-with an available, exact, or contextual update.
+commits other than the update action's on its rolling branch, silent
+prerequisite installation, sandbox claims, signed releases, attestations, force
+overwrite, and universal rollback are excluded. So are drift detection,
+conversion of retired formats, and any workflow rule for what to do with an
+available, exact, or contextual update other than the
+[update action's](#update-action), which applies only to adopters who opt in
+([ADR 0026](../adr/0026-propose-updates-through-one-rolling-pull-request.md)).
+The action never merges, applies remote setup, or supports another forge.
 
 ## Discovery adoption
 

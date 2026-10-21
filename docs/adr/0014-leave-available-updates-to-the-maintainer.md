@@ -1,5 +1,10 @@
 # Leave available updates to the maintainer
 
+Superseded for adopters who opt in by
+[ADR 0026](0026-propose-updates-through-one-rolling-pull-request.md): a caller
+workflow running the update action proposes every available update through one
+rolling pull request or issue. Without that opt-in, this decision holds.
+
 What to do with an available update was left to the adopted standards'
 own guidance. One standards source therefore made every contextual update a
 separate tracked work item, and almost every release of that source was

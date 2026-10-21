@@ -31,6 +31,8 @@ an assessment records an agent's judgment that project-specific work meets them.
   report and identity, update inspection, summaries, and discovery scope.
 - [Available updates](available-updates.md): the read-only `outdated` report
   of newer CLI and standards versions and its cache.
+- [Automated updates](automated-updates.md): the update action that keeps an
+  adopting repository current through one rolling pull request or issue.
 - [Adopted checks](check.md): running the adopted checks on demand with
   `check`, its report, and how it detects checks that write.
 - [Installed rules](rules.md): the rules adoption installs, their index, the
