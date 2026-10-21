@@ -1,6 +1,7 @@
 import type {
   AdoptReport,
   ErrorReport,
+  Lock,
   PackageManifest,
   Status,
 } from "./json-reports.ts";
@@ -200,9 +201,8 @@ test("a start stopped before writing keeps the pre-start no-edit instruction", a
     },
     { project: { "README.md": "# Project\n" } },
   );
-  const template = f.adopt([source]).report;
   const before = snapshot(f.root);
-  const stopped = f.adopt(f.answer(template.answers));
+  const stopped = f.adopt([source]);
   assert.equal(stopped.result.status, 1, stopped.result.stdout);
   assert.equal(stopped.report.outcome, "blocked");
   assert.match(stopped.report.run!.reason, /PREREQUISITES_BLOCKED/);
@@ -211,6 +211,117 @@ test("a start stopped before writing keeps the pre-start no-edit instruction", a
     /Make no project edits until the run starts/,
   );
   assert.deepEqual(snapshot(f.root), before);
+});
+
+const exactOnly = {
+  "agent-guidance": {
+    kind: "file",
+    target: "AGENTS.md",
+    exact: "content/AGENTS.md",
+  },
+};
+
+function lockedIdentity(root: string) {
+  return (
+    JSON.parse(
+      readFileSync(join(root, ".repo-standards/lock.json"), "utf8"),
+    ) as Lock
+  ).inspection;
+}
+
+test("adopt starts in the invocation that finds nothing open, for an adoption and for its unchanged update", async (t) => {
+  const f = await fixture(t, cli, exactOnly, {
+    project: { "README.md": "Project notes\n" },
+  });
+  const ready = () =>
+    (
+      JSON.parse(
+        spawnSync(f.pinned, ["status", "--json"], {
+          cwd: f.root,
+          env: f.env,
+          encoding: "utf8",
+        }).stdout,
+      ) as Status
+    ).readyToCommit;
+
+  // Without an answers file, a fresh inspection that needs no confirmation
+  // starts the run, which carries the inspection it carried out.
+  const adopted = f.adopt([source]);
+  assert.equal(adopted.result.status, 0, adopted.result.stdout);
+  assert.equal(adopted.report.outcome, "complete");
+  assert.match(adopted.report.inspection!.identity, /^sha256:/);
+  assert.match(adopted.report.inspection!.summary, /Inspection/);
+  assert.match(
+    adopted.report.nextSteps.join("\n"),
+    /started the run over the inspection above.*Git can undo it/,
+  );
+  assert.equal(ready(), true);
+  commit(f.root);
+
+  const update = f.adopt([], true);
+  assert.equal(update.result.status, 0, update.result.stdout);
+  assert.equal(update.report.outcome, "complete");
+  assert.match(update.report.inspection!.identity, /^sha256:/);
+  assert.equal(ready(), true);
+});
+
+test("a start that needs no confirmation binds the fresh inspection, whatever inspection an answer names", async (t) => {
+  const f = await fixture(t, cli, {
+    "project-readme": readmeSource("unused")["project-readme"],
+  });
+  const stale = `sha256:${"0".repeat(64)}`;
+  writeFileSync(
+    f.answersPath,
+    JSON.stringify({
+      format: "repo-standards/answers/v1",
+      source,
+      questions: [
+        ["version", "v1.0.0"],
+        ["profile", "work"],
+        ["inspection", stale],
+      ].map(([id, answer]) => ({ id, question: id, context: "", answer })),
+    }),
+  );
+  const started = f.adopt(["--answers", f.answersPath]);
+  assert.equal(started.report.outcome, "contextual", started.result.stdout);
+  assert.notEqual(started.report.inspection!.identity, stale);
+  assert.equal(lockedIdentity(f.root), started.report.inspection!.identity);
+});
+
+test("an inspection that requires confirmation starts only with its identity and the confirmation", async (t) => {
+  const f = await fixture(t, cli, exactOnly);
+  const template = f.adopt([source]);
+  assert.equal(template.result.status, 0, template.result.stdout);
+  assert.equal(template.report.outcome, "answers-required");
+  assert.deepEqual(template.report.missing, ["confirmation"]);
+  const identity = template.report.inspection!.identity;
+  const before = snapshot(f.root);
+
+  // A stale inspection stays missing, though the confirmation names the
+  // fresh identity.
+  const staleInspection = f.adopt(
+    f.answer(template.report.answers, {
+      confirmation: identity,
+      inspection: `sha256:${"0".repeat(64)}`,
+    }),
+  );
+  assert.equal(staleInspection.report.outcome, "answers-required");
+  assert.deepEqual(staleInspection.report.missing, ["inspection"]);
+  assert.match(
+    staleInspection.report.nextSteps.join("\n"),
+    /Answer `inspection` with the current identity/,
+  );
+  assert.deepEqual(snapshot(f.root), before);
+
+  // The inspection alone confirms nothing.
+  const unconfirmed = f.adopt(f.answer(template.report.answers));
+  assert.deepEqual(unconfirmed.report.missing, ["confirmation"]);
+  assert.deepEqual(snapshot(f.root), before);
+
+  const started = f.adopt(
+    f.answer(template.report.answers, { confirmation: identity }),
+  );
+  assert.equal(started.report.outcome, "complete", started.result.stdout);
 });
 
 test("adopt stops and tells the maintainer about an uncommitted project before a new run", async (t) => {
@@ -255,8 +366,8 @@ test("adopt stops and tells the maintainer about an uncommitted project before a
       const status = git(f.root, "status", "--porcelain=v1");
 
       const template = f.adopt([source]);
-      assert.equal(template.result.status, 0, template.result.stdout);
-      assert.equal(template.report.outcome, "answers-required");
+      assert.equal(template.result.status, 1, template.result.stdout);
+      assert.equal(template.report.outcome, "blocked");
       const answers = f.answer(template.report.answers);
       const blocked = f.adopt(answers);
       assert.equal(blocked.result.status, 1, blocked.result.stdout);
@@ -337,6 +448,7 @@ test("self-adoption answer rounds use an external exact CLI and preserve the tar
     cli,
     {},
     {
+      profiles: { work: {}, personal: {} },
       project: {
         "package.json": JSON.stringify({
           name: "@lutzseverino/repo-standards",
@@ -411,8 +523,16 @@ test("self-adoption answer rounds use an external exact CLI and preserve the tar
   assert.deepEqual(snapshot(root), before);
 
   // Complete only this isolated, operation-free adoption, then verify that
-  // an update without a source remains read-only until answers start a run.
-  writeFileSync(answers, JSON.stringify(template.answers));
+  // an update without a source starts its run in one invocation.
+  writeFileSync(
+    answers,
+    JSON.stringify({
+      ...template.answers,
+      questions: template.answers.questions.map((entry) =>
+        entry.id === "profile" ? { ...entry, answer: "work" } : entry,
+      ),
+    }),
+  );
   const completed = spawnSync("sh", ["-c", `${next} --json`], {
     cwd: f.root,
     env,
@@ -424,17 +544,17 @@ test("self-adoption answer rounds use an external exact CLI and preserve the tar
     "complete",
   );
   commit(root);
-  const adopted = snapshot(root);
   const updated = cli.run(["adopt", "--project", root, "--json"], f.root, env);
   assert.equal(updated.status, 0, updated.stdout + updated.stderr);
   const update = JSON.parse(updated.stdout) as AdoptReport;
-  assert.equal(update.outcome, "answers-required");
+  assert.equal(update.outcome, "complete", updated.stdout);
   assert.ok(
     stepCommands(update).some((command) =>
-      command.includes("$adoption_cli/node_modules/.bin/repo-standards"),
+      command.includes(
+        ".repo-standards/runtime/node_modules/.bin/repo-standards",
+      ),
     ),
   );
-  assert.deepEqual(snapshot(root), adopted);
 });
 
 test("ordinary adopting projects can execute their pinned npx answer-round command", async (t) => {
@@ -443,6 +563,7 @@ test("ordinary adopting projects can execute their pinned npx answer-round comma
     cli,
     {},
     {
+      profiles: { work: {}, personal: {} },
       project: {
         "package.json": JSON.stringify({
           name: "another-project",
@@ -891,28 +1012,12 @@ test("adopt without a source updates an adopted project, offering the newest sta
     },
     { project: { "README.md": "Project notes\n" } },
   );
-  const first = f.adopt([source]).report;
-  assert.deepEqual(first.missing, []);
-  // Answers written before the inspection, such as a staged template's
-  // version and profile, return it to be presented before any run starts.
-  const before = snapshot(f.root);
-  const unseen = f.adopt(
-    f.answer({
-      ...first.answers,
-      questions: first.answers.questions.filter(
-        ({ id }) => id === "version" || id === "profile",
-      ),
-    }),
-  );
-  assert.equal(unseen.report.outcome, "answers-required");
-  assert.deepEqual(unseen.report.missing, ["inspection"]);
-  assert.equal(
-    question(unseen.report, "inspection").answer,
-    unseen.report.inspection!.identity,
-  );
-  assert.deepEqual(snapshot(f.root), before);
-  const adopted = f.adopt(f.answer(unseen.report.answers));
+  // Nothing is open, so the first invocation starts and completes the run.
+  const adopted = f.adopt([source]);
   assert.equal(adopted.report.outcome, "complete", adopted.result.stdout);
+  assert.deepEqual(adopted.report.missing, []);
+  // An edit the update would discard keeps it asking, so its questions show.
+  writeFileSync(join(f.root, "AGENTS.md"), "Local edit\n");
   commit(f.root);
 
   f.remote.addVersion(
@@ -949,7 +1054,11 @@ test("adopt without a source updates an adopted project, offering the newest sta
     /adopts v1\.0\.0 now/,
   );
   assert.doesNotMatch(selectionPart(f.run(["adopt"]).stdout), /cannot be read/);
-  const updated = f.adopt(f.answer(update.report.answers));
+  const updated = f.adopt(
+    f.answer(update.report.answers, {
+      confirmation: update.report.inspection!.identity,
+    }),
+  );
   assert.equal(updated.report.outcome, "complete", updated.result.stdout);
   assert.equal(
     readFileSync(join(f.root, "AGENTS.md"), "utf8"),
@@ -959,6 +1068,7 @@ test("adopt without a source updates an adopted project, offering the newest sta
     readFileSync(join(f.root, ".repo-standards/selection.yaml"), "utf8"),
   ) as { standards: { version: string } };
   assert.equal(selection.standards.version, "v1.1.0");
+  writeFileSync(join(f.root, "AGENTS.md"), "Another local edit\n");
   commit(f.root);
 
   // Without its source, the project applies its current selection again
@@ -980,7 +1090,11 @@ test("adopt without a source updates an adopted project, offering the newest sta
     selectionPart(f.run(["adopt"]).stdout),
     /\| Version +\| `v1\.1\.0` +\|[\s\S]*The releases of https:\/\/github\.com\/alice\/standards cannot be read: .* The template proposes the current version, v1\.1\.0, which the retained standards apply again\./,
   );
-  const reapplied = f.adopt(f.answer(offline.report.answers));
+  const reapplied = f.adopt(
+    f.answer(offline.report.answers, {
+      confirmation: offline.report.inspection!.identity,
+    }),
+  );
   assert.equal(reapplied.report.outcome, "complete", reapplied.result.stdout);
   assert.equal(
     readFileSync(join(f.root, "AGENTS.md"), "utf8"),
@@ -1001,9 +1115,7 @@ test("adopt fails when GitHub refuses the release lookup, rather than proposing 
     },
     { project: { "README.md": "Project notes\n" } },
   );
-  const first = f.adopt([source]).report;
-  assert.deepEqual(first.missing, []);
-  const adopted = f.adopt(f.answer(first.answers));
+  const adopted = f.adopt([source]);
   assert.equal(adopted.report.outcome, "complete", adopted.result.stdout);
   commit(f.root);
   f.remote.publish("v1.1.0");
@@ -1019,10 +1131,7 @@ test("adopt fails when GitHub refuses the release lookup, rather than proposing 
     const outputs = [
       f.run(["adopt"], env),
       f.run(["adopt", "--json"], env),
-      f.run(
-        ["adopt", ...f.answer(first.answers, { version: null }), "--json"],
-        env,
-      ),
+      f.run(["adopt", ...f.answer(adopted.report.answers), "--json"], env),
     ];
     for (const result of outputs) {
       assert.equal(result.status, 1, result.stdout + result.stderr);
@@ -1082,9 +1191,8 @@ test("adopt fails when GitHub refuses the release lookup, rather than proposing 
   const explicit = f.adopt(["--standards-version", "v1.0.0"]);
   assert.equal(explicit.result.status, 0, explicit.result.stdout);
   assert.equal(explicit.report.selection.version, "v1.0.0");
-  assert.equal(question(explicit.report, "profile").answer, "work");
-  const reapplied = f.adopt(f.answer(explicit.report.answers));
-  assert.equal(reapplied.report.outcome, "complete", reapplied.result.stdout);
+  assert.equal(explicit.report.selection.profile, "work");
+  assert.equal(explicit.report.outcome, "complete", explicit.result.stdout);
 
   // Readable again, the release list proposes the newest release.
   Object.assign(f.remote.responses, readable);
@@ -1115,11 +1223,10 @@ test("adopt asks a discovery script's open questions as answers-file fields and 
   assert.deepEqual(template.missing, ["scope:project-docs"]);
   assert.equal(template.discovery![0]!.discovery.content, discovery);
 
-  // An answer with an open question is still missing, and the proposal it
-  // makes is a new inspection to present.
+  // An answer with an open question is still missing.
   const open = f.adopt(f.answer(template.answers));
   assert.equal(open.result.status, 1);
-  assert.deepEqual(open.report.missing, ["scope:project-docs", "inspection"]);
+  assert.deepEqual(open.report.missing, ["scope:project-docs"]);
   assert.deepEqual(snapshot(f.root), before);
 
   // A malformed entry is the proposal inspection rejects, never a start.
@@ -1133,9 +1240,9 @@ test("adopt asks a discovery script's open questions as answers-file fields and 
   );
   assert.deepEqual(snapshot(f.root), before);
 
-  // Answered, the scope changes the inspection, which goes back to be
-  // presented; returned, the run starts its contextual work.
-  const confirmed = f.adopt(
+  // Answered, the scope changes the inspection, which requires no
+  // confirmation: the run starts its contextual work in the same invocation.
+  const answered = f.adopt(
     f.answer(template.answers, {
       // An answer naming another declaration is still the question's.
       "scope:project-docs": {
@@ -1146,9 +1253,6 @@ test("adopt asks a discovery script's open questions as answers-file fields and 
       },
     }),
   );
-  assert.deepEqual(confirmed.report.missing, ["inspection"]);
-  assert.deepEqual(snapshot(f.root), before);
-  const answered = f.adopt(f.answer(confirmed.report.answers));
   assert.equal(answered.report.outcome, "contextual", answered.result.stdout);
   assert.deepEqual(answered.report.contextual![0]!.allowedTargets, {
     paths: ["app/README.md"],
@@ -1239,7 +1343,10 @@ test("a drafted scope without open questions is an answer only once the answers 
   const before = snapshot(f.root);
   const template = f.adopt([source]).report;
   assert.deepEqual(question(template, "scope:project-docs").answer, draft);
-  assert.deepEqual(template.missing, []);
+  // The template proposes the draft without starting the run.
+  assert.deepEqual(template.missing, ["scope:project-docs"]);
+  assert.equal(template.run, undefined);
+  assert.deepEqual(snapshot(f.root), before);
 
   // An answers file written before the scope question was asked, such as
   // one from before the profile was chosen, does not answer it.
@@ -1253,15 +1360,12 @@ test("a drafted scope without open questions is an answer only once the answers 
   );
   assert.equal(early.result.status, 1);
   assert.equal(early.report.outcome, "answers-required");
-  assert.deepEqual(early.report.missing, ["scope:project-docs", "inspection"]);
+  assert.deepEqual(early.report.missing, ["scope:project-docs"]);
   assert.deepEqual(question(early.report, "scope:project-docs").answer, draft);
   assert.deepEqual(snapshot(f.root), before);
 
-  // Carried back, the draft is the confirmed scope, whose inspection is
-  // presented before the run starts.
-  const scoped = f.adopt(f.answer(early.report.answers));
-  assert.deepEqual(scoped.report.missing, ["inspection"]);
-  const started = f.adopt(f.answer(scoped.report.answers));
+  // Carried back, the draft is the confirmed scope, and the run starts.
+  const started = f.adopt(f.answer(early.report.answers));
   assert.equal(started.report.outcome, "contextual", started.result.stdout);
   assert.deepEqual(started.report.contextual![0]!.allowedTargets, {
     paths: ["app/README.md"],

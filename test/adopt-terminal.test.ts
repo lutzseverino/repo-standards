@@ -56,19 +56,20 @@ function status(f: Fixture) {
   };
 }
 
-test("adopt --json in a terminal prints the answers-file template and changes nothing", async (t) => {
+test("adopt --json in a terminal prints its report and starts the run like any agent invocation", async (t) => {
   const f = await fixture(t, cli, {});
-  const before = snapshot(f.root);
   const session = terminal(t, f, [source, "--json"]);
   const output = await session.expect(/\{[\s\S]*\n\}/);
   assert.equal(await session.exit(), 0, session.rest());
   const report = JSON.parse(output) as {
     outcome: string;
+    inspection: { identity: string };
     answers: { format: string };
   };
-  assert.equal(report.outcome, "answers-required");
+  assert.equal(report.outcome, "complete");
+  assert.match(report.inspection.identity, /^sha256:/);
   assert.equal(report.answers.format, "repo-standards/answers/v1");
-  assert.deepEqual(snapshot(f.root), before);
+  assert.equal(status(f).readyToCommit, true);
 });
 
 test("adopt in a terminal asks its questions, walks contextual work until its checks pass, and completes", async (t) => {
@@ -752,8 +753,7 @@ test("an exhausted GitHub API quota fails the update instead of offering the cur
     },
     { project: { "README.md": "Project notes\n" } },
   );
-  const template = f.adopt([source]).report;
-  const adopted = f.adopt(f.answer(template.answers));
+  const adopted = f.adopt([source]);
   assert.equal(adopted.report.outcome, "complete", adopted.result.stdout);
   commit(f.root);
   for (const url of Object.keys(f.remote.responses))

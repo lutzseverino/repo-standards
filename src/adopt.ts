@@ -861,14 +861,10 @@ async function prepare(
       });
       // A drafted entry an answers file has not carried back is not yet an
       // answer: inspection read no proposal for it. The template proposes it,
-      // as it proposes the other defaults. A recorded entry proposed for
+      // and so keeps the run from starting. A recorded entry proposed for
       // review is not an answer until it is carried back, and a reused one
       // is.
-      if (
-        open.length ||
-        changed ||
-        (!reuse && mode !== "template" && answered === undefined)
-      )
+      if (open.length || changed || (!reuse && answered === undefined))
         missing.push(`scope:${id}`);
     }
     const notReady = deferredRemoteSetup(inspection.remoteSetup);
@@ -974,39 +970,53 @@ async function prepare(
         return { target, files, ...(replacement ? { replacement } : {}) };
       });
     }
-    // The answers file names the inspection it was written against, so a run
-    // starts only after the agent reviewed the inspection it carries out.
-    // A new or changed inspection goes back for another answer round.
+    // An inspection that requires confirmation starts only after the agent
+    // reviewed it: the answers file names the inspection it was written
+    // against, and a new or changed inspection goes back for another answer
+    // round. Otherwise the start binds the fresh inspection, so the question
+    // stays in the template for answers files but is never missing. A
+    // terminal asks a person before every start.
     questions.push({
       id: "inspection",
       question: "Which inspection does the run carry out?",
       context:
         mode === "terminal"
           ? `The identity of the inspection above, ${identity}, which this answers file was written against. Present that inspection to the maintainer before running adopt with it. adopt starts a run only when this answer names the current inspection; when the inspection changes, it prints the new one to present.`
-          : `Answer with the current inspection identity without asking for approval: ${identity}. Review the inspection and summarize its changes, discarded edits, and operations that run trusted scripts with the user's access to the host, environment, and network in the handoff. adopt starts only the current inspection; review a changed inspection and answer with its new identity.`,
+          : confirmation.required
+            ? `Answer with the current inspection identity without asking for approval: ${identity}. Review the inspection and summarize its changes, discarded edits, and operations that run trusted scripts with the user's access to the host, environment, and network in the handoff. adopt starts only the current inspection; review a changed inspection and answer with its new identity.`
+            : `This inspection requires no confirmation, so adopt starts the run over the inspection it computes once no other answer is missing, whatever this answer holds: ${identity}. The report then carries the inspection to summarize in the handoff.`,
       answer: identity,
     });
-    if (mode !== "template" && given.get("inspection") !== identity)
+    if (
+      mode !== "template" &&
+      (mode === "terminal" || confirmation.required) &&
+      given.get("inspection") !== identity
+    )
       missing.push("inspection");
     const blockers = inspection.start.blockers.filter(
       (blocker) =>
         !["DISCOVERY_REQUIRED", "UNRESOLVED_SCOPE"].includes(blocker.code),
     );
+    const summary = {
+      identity,
+      summary: inspectionSummary(inspection as unknown as InspectionReport),
+    };
     const inspected = report("answers-required", questions, {
       reused,
       blockers,
-      inspection: {
-        identity,
-        summary: inspectionSummary(inspection as unknown as InspectionReport),
-      },
+      inspection: summary,
       ...(discarded ? { discarded } : {}),
       ...(discovery.length ? { discovery } : {}),
     });
     inspected.missing = [...new Set([...inspected.missing, ...missing])];
-    if (mode === "template" || inspected.missing.length)
+    if (inspected.missing.length)
       return withSteps(context, inspected, mode === "template");
     if (blockers.length || (notReady.length && remoteSetup === "resolve"))
-      return withSteps(context, { ...inspected, outcome: "blocked" }, false);
+      return withSteps(
+        context,
+        { ...inspected, outcome: "blocked" },
+        mode === "template",
+      );
     const run = retained
       ? await startRetained(
           root,
@@ -1029,7 +1039,14 @@ async function prepare(
     // A retry of a start interrupted before its installation was prepared
     // reads the proposal again.
     keep = existsSync(lockPath(root)) && !run.continuation;
-    return describeRun(context, run, runReport(run), false);
+    // The report carries the inspection the run carried out, which the agent
+    // may not have seen before the start.
+    return describeRun(
+      context,
+      run,
+      { ...runReport(run), inspection: summary },
+      false,
+    );
   } finally {
     if (temporary && !keep) rmSync(temporary, { recursive: true, force: true });
   }
@@ -1430,6 +1447,10 @@ function withSteps(
   // answer recovers by replacing the run in place.
   const scoped = !!report.run && [...ids].some((id) => id.startsWith("scope:"));
   const scopeStep = `To cover files the confirmed scope misses, change the \`scope:\` answers above to include them, with reasons and evidence from the project, and run ${again}. adopt replaces this run in place: it archives the run's report, keeps its changes, inspects the unchanged selection with the new scope, and starts a new run over them; nothing needs to be abandoned, committed, or cloned afresh. A scope answer is Git-undoable, so change it without asking, and record the change in the handoff. Answer the new inspection's questions as before; the new run reruns the fixes and asks for renewed assessments.`;
+  if (report.run && report.inspection)
+    steps.push(
+      "This invocation started the run over the inspection above. Summarize its changes, discarded edits, and the operations that run trusted scripts with the user's access to the host, environment, and network in the handoff, and review its uncommitted result; Git can undo it.",
+    );
   switch (report.outcome) {
     case "answers-required":
       if (report.run) {
@@ -1446,7 +1467,9 @@ function withSteps(
       );
       if (report.inspection)
         steps.push(
-          "Summarize the inspection in the handoff: its changes, discarded edits, and the operations that run trusted scripts with the user's access to the host, environment, and network. Answer `inspection` with the current identity without asking for approval; the run starts only that inspection.",
+          ids.has("confirmation")
+            ? "Summarize the inspection in the handoff: its changes, discarded edits, and the operations that run trusted scripts with the user's access to the host, environment, and network. Answer `inspection` with the current identity without asking for approval; the run starts only that inspection."
+            : "adopt starts the run in the invocation that finds no answer missing and no blocker, over the inspection it computes then: this inspection requires no confirmation, so `inspection` needs no answer. The report then carries that inspection to summarize in the handoff.",
         );
       steps.push(
         "Decide the answers from each question's context and choices, and record your decisions and reasons in the handoff. Choose the proposed newest stable version unless the maintainer requested another. Choose the profile from its descriptions, the request, and repository evidence; ask the maintainer only when these do not settle it.",
@@ -1491,6 +1514,11 @@ function withSteps(
         );
       else if (report.blockers.length)
         steps.push(
+          ...(template
+            ? [
+                "Save the answers file above outside the project, such as in a temporary directory.",
+              ]
+            : []),
           "Resolve each blocker above with the maintainer; adoption writes nothing until they are resolved.",
         );
       else

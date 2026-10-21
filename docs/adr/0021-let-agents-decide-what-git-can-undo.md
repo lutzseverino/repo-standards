@@ -13,7 +13,9 @@ profile from descriptions, the request and repository evidence, and settles
 scope membership from discovery guidance and project evidence with reasons.
 Only an unsettled profile choice needs clarification. The agent reviews the
 inspection and starts it without approval, summarizing the changes and trusted
-script operations in its handoff. It reviews and confirms discarded edits,
+script operations in its handoff. As amended by
+[ADR 0025](0025-start-when-nothing-is-open.md), an inspection that requires no
+confirmation starts with no answer, and the agent summarizes it afterwards. It reviews and confirms discarded edits,
 listing each with its diff or current content in the handoff: the clean,
 committed starting tree makes every discarded edit recoverable from Git.
 

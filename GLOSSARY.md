@@ -158,7 +158,9 @@ answers an agent records from its decisions or the maintainer, from which
 adoption proceeds without a terminal. A confirmation names the inspection
 identity reviewed by the agent for discarded edits, or confirmed by the
 maintainer for a remote setting overwrite. In an update, a reused answer is
-already answered, and another recorded answer is prefilled for review.
+already answered, and another recorded answer is prefilled for review. When
+no question is open, nothing blocks and no confirmation is required, adoption
+starts without an answers file.
 _Avoid_: Configuration file, approval file
 
 **Reused answer**:

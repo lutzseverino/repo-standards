@@ -600,13 +600,7 @@ test("adopt accepts no scope for an optional declaration in its answers file", a
     unresolved: [],
     noScope: true,
   });
-  const inspected = f.adopt(f.answer(template.answers)).report;
-  assert.deepEqual(inspected.missing, ["inspection"]);
-  const contextual = f.adopt(
-    f.answer(inspected.answers, {
-      inspection: question(inspected, "inspection").answer,
-    }),
-  ).report;
+  const contextual = f.adopt(f.answer(template.answers)).report;
   assert.equal(contextual.outcome, "contextual", JSON.stringify(contextual));
   const assessment = question(contextual, "assessment:hosting");
   assert.deepEqual(assessment.details, {
