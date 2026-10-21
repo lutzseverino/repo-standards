@@ -90,3 +90,7 @@ alternatives.
   an update gives a recorded scope answer, remote setup deferral or assessment
   again without asking when what it was about is unchanged, proposes the rest
   for review, never replays a confirmation, and records every reused answer.
+- [Start when nothing is open](0025-start-when-nothing-is-open.md):
+  `adopt` starts the run in the invocation whose fresh inspection needs no
+  confirmation, has no blocker, and leaves no question open, binding the
+  identity it computed; a terminal still asks first.

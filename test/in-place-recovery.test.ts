@@ -43,14 +43,13 @@ const valid = {
   additionalPaths: [],
 };
 
-// A discovered declaration's run waiting for contextual work, started through
-// an answers file with the drafted scope.
+// A discovered declaration's run waiting for contextual work, started once an
+// answers file carries the drafted scope back.
 async function contextualRun(t: Parameters<typeof discoveryFixture>[0]) {
   const { f, draft } = await discoveryFixture(t, cli, []);
   const head = git(f.root, "rev-parse", "HEAD");
   const template = f.adopt([source]).report;
-  const scoped = f.adopt(f.answer(template.answers)).report;
-  const contextual = f.adopt(f.answer(scoped.answers)).report;
+  const contextual = f.adopt(f.answer(template.answers)).report;
   assert.equal(contextual.outcome, "contextual", steps(contextual));
   return { f, draft, head, contextual };
 }
@@ -94,43 +93,36 @@ test("a changed scope answer replaces a run stopped for an out-of-scope path in 
       },
     ],
   };
-  const replaced = f.adopt(
-    f.answer(rejected.answers, {
-      "assessment:project-docs": assessment,
-      "scope:project-docs": widened,
-    }),
-    true,
+  // An uncommitted change the replaced run did not record blocks the start
+  // of the replacement, and the agent stops and tells the maintainer.
+  writeFileSync(join(f.root, "notes.txt"), "Maintainer notes\n");
+  const answers = f.answer(rejected.answers, {
+    "assessment:project-docs": assessment,
+    "scope:project-docs": widened,
+  });
+  const dirty = f.adopt(answers, true);
+  assert.equal(dirty.result.status, 1, dirty.result.stdout);
+  assert.equal(dirty.report.run, undefined);
+  assert.deepEqual(
+    dirty.report.blockers.map(({ code, path }) => [code, path]),
+    [["DIRTY_PROJECT", "notes.txt"]],
   );
-  assert.equal(replaced.result.status, 1, replaced.result.stdout);
-  assert.equal(replaced.report.outcome, "answers-required");
-  assert.equal(replaced.report.run, undefined);
-  // The replacement keeps the run's selection and asks only for the new
-  // inspection.
-  assert.deepEqual(replaced.report.missing, ["inspection"]);
-  assert.deepEqual(replaced.report.blockers, []);
-  assert.equal(question(replaced.report, "version").answer, "v1.0.0");
-  assert.equal(question(replaced.report, "profile").answer, "work");
+  assert.match(steps(dirty.report), /Stop and tell the maintainer/);
   assert.match(
-    steps(replaced.report),
+    steps(dirty.report),
     new RegExp(`adopts again in place over the changes run ${replacedRun}`),
   );
   const archived = status(f);
   assert.equal(archived.active, null);
   assert.equal(archived.abandoned[0]!.id, replacedRun);
   assert.match(archived.abandoned[0]!.reason, /^REPLACED: ASSESSMENT_SCOPE:/);
-
-  // An uncommitted change the replaced run did not record blocks the start,
-  // and the agent stops and tells the maintainer.
-  writeFileSync(join(f.root, "notes.txt"), "Maintainer notes\n");
-  const dirty = f.adopt(f.answer(replaced.report.answers), true).report;
-  assert.deepEqual(
-    dirty.blockers.map(({ code, path }) => [code, path]),
-    [["DIRTY_PROJECT", "notes.txt"]],
-  );
-  assert.match(steps(dirty), /Stop and tell the maintainer/);
   rmSync(join(f.root, "notes.txt"));
 
-  const started = f.adopt(f.answer(replaced.report.answers), true).report;
+  // The replacement keeps the run's selection and, needing no confirmation,
+  // starts with the new inspection in the same invocation.
+  assert.equal(question(dirty.report, "version").answer, "v1.0.0");
+  assert.equal(question(dirty.report, "profile").answer, "work");
+  const started = f.adopt(answers, true).report;
   assert.equal(started.outcome, "contextual", steps(started));
   assert.notEqual(started.run!.id, replacedRun);
   assert.deepEqual(started.contextual![0]!.allowedTargets, {
@@ -229,10 +221,8 @@ test("a run stopped for an incomplete scope recovers in place through the answer
   assert.match(steps(dirty), /Stop and tell the maintainer/);
   rmSync(join(f.root, "app/NOTES.md"));
 
-  const replaced = f.adopt(f.answer(dirty.answers), true).report;
-  assert.deepEqual(replaced.blockers, []);
-  assert.deepEqual(replaced.missing, ["inspection"]);
-  const started = f.adopt(f.answer(replaced.answers), true).report;
+  const started = f.adopt(f.answer(dirty.answers), true).report;
+  assert.deepEqual(started.blockers, []);
   assert.equal(started.outcome, "contextual", steps(started));
   writeFileSync(join(f.root, "tools/README.md"), "# Tools\n");
   const complete = f.adopt(
@@ -275,15 +265,9 @@ test("abandonment exits 0, and adopt then adopts again in place over the preserv
   // adopt names the way forward from the preserved changes and starts over
   // them with the abandoned run's selection.
   const again = f.adopt(f.answer(contextual.answers), true);
-  assert.equal(again.report.outcome, "answers-required", steps(again.report));
+  assert.equal(again.report.outcome, "contextual", steps(again.report));
   assert.deepEqual(again.report.blockers, []);
-  assert.deepEqual(again.report.missing, ["inspection"]);
-  assert.match(
-    steps(again.report),
-    new RegExp(`adopts again in place over the changes run ${abandoned.id}`),
-  );
-  const started = f.adopt(f.answer(again.report.answers), true).report;
-  assert.equal(started.outcome, "contextual", steps(started));
+  const started = again.report;
   const complete = f.adopt(
     f.answer(started.answers, {
       "assessment:project-docs": {

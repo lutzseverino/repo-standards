@@ -36,8 +36,8 @@ your standards source's public GitHub URL:
 npx --yes @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS --json
 ```
 
-The flags avoid npm's installation prompt and print the answers-file template
-even in a terminal. To run it yourself, omit `--json`; `adopt` asks questions
+The flags avoid npm's installation prompt and select the agent route, which
+prints an answers-file template while a question is open, even in a terminal. To run it yourself, omit `--json`; `adopt` asks questions
 and walks you through edits and checks. It installs and pins the exact CLI it ran into the project's runtime,
 leaving changes uncommitted. No product checkout, TypeScript compiler, pnpm,
 or manual external CLI installation is needed. Follow the

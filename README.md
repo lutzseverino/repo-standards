@@ -41,7 +41,8 @@ npx @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-cano
 ```
 
 At a terminal, `adopt` asks questions and guides your edits. For an agent, it
-prints an answers-file template and next steps. It installs and pins the CLI
+starts the run when nothing is open, and otherwise prints an answers-file
+template and next steps. It installs and pins the CLI
 it ran; no manual CLI installation is needed. See
 [adoption](docs/usage/adoption.md) for both paths and
 [installation](docs/usage/installation.md) for prerequisites and other tools.

@@ -213,54 +213,10 @@ test("an unchanged update reuses the recorded scope, remote setup deferral and a
   ).scopeProposal.declarations[0]!;
   const { id: _id, ...entry } = recorded;
 
-  // The template asks no scope question: the recorded answer is reused,
-  // marked with why, and bound by the inspection.
-  const template = f.adopt([], true).report;
-  assert.deepEqual(ids(template), ["scope:project-docs", "remote-setup"]);
-  assert.deepEqual(template.missing, []);
-  const scope = question(template, "scope:project-docs");
-  assert.deepEqual(scope.answer, entry);
-  assert.match(scope.context, /scope answer is reused/);
-  assert.deepEqual((scope.details as { reused: unknown }).reused, {
-    discovery: (template.reused[0]!.evidence as { discovery: string })
-      .discovery,
-    rules: (template.reused[0]!.evidence as { rules: string }).rules,
-    draft: "decided-from",
-    paths: [
-      "app/README.md",
-      "app/package.json",
-      "fixtures/fake",
-      "fixtures/fake/package.json",
-    ],
-  });
-  assert.equal(question(template, "remote-setup").answer, "defer");
-  assert.match(
-    question(template, "remote-setup").context,
-    /deferral is reused/,
-  );
-  // The Markdown report names each reused answer and why.
-  const markdown = spawnSync(f.pinned, ["adopt"], {
-    cwd: f.root,
-    env: f.env,
-    encoding: "utf8",
-  });
-  assert.match(markdown.stdout, /## Reused answers/);
-  assert.match(markdown.stdout, /\| `scope:project-docs` \| scope \|/);
-  assert.match(markdown.stdout, /\| `remote-setup` \| remote-setup \|/);
-
-  // An answer the agent gives itself replaces the reused one.
-  const own = f.adopt(
-    f.answer(template.answers, {
-      "scope:project-docs": { ...entry, coverage: `${coverage} Reviewed.` },
-    }),
-    true,
-  ).report;
-  assert.deepEqual(ids(own), ["remote-setup"]);
-  assert.deepEqual(own.missing, ["inspection"]);
-
-  // The answers file starts the run, which reuses every assessment and
-  // completes after its checks.
-  const updated = f.adopt(f.answer(template.answers), true);
+  // Nothing is open: the recorded scope answer and remote setup deferral are
+  // reused, so one invocation starts the run, which reuses every assessment
+  // and completes after its checks.
+  const updated = f.adopt([], true);
   assert.equal(
     updated.report.outcome,
     "complete",
@@ -334,11 +290,55 @@ test("an unchanged update reuses the recorded scope, remote setup deferral and a
   // fresh identity: a confirmation is never replayed.
   writeFileSync(join(f.root, "AGENTS.md"), "Edited agent guidance\n");
   commit(f.root);
-  const edited = f.adopt(f.answer(f.adopt([], true).report.answers), true);
-  assert.equal(edited.report.outcome, "answers-required");
-  assert.deepEqual(edited.report.missing, ["confirmation"]);
-  assert.equal(question(edited.report, "confirmation").answer, null);
-  assert.ok(!ids(edited.report).includes("confirmation"));
+  const edited = f.adopt([], true);
+  const template = edited.report;
+  assert.equal(template.outcome, "answers-required");
+  assert.deepEqual(template.missing, ["confirmation"]);
+  assert.equal(question(template, "confirmation").answer, null);
+  assert.ok(!ids(template).includes("confirmation"));
+
+  // The template asks no scope question: the recorded answer is reused,
+  // marked with why, and bound by the inspection.
+  assert.deepEqual(ids(template), ["scope:project-docs", "remote-setup"]);
+  const scope = question(template, "scope:project-docs");
+  assert.deepEqual(scope.answer, entry);
+  assert.match(scope.context, /scope answer is reused/);
+  assert.deepEqual((scope.details as { reused: unknown }).reused, {
+    discovery: (template.reused[0]!.evidence as { discovery: string })
+      .discovery,
+    rules: (template.reused[0]!.evidence as { rules: string }).rules,
+    draft: "decided-from",
+    paths: [
+      "app/README.md",
+      "app/package.json",
+      "fixtures/fake",
+      "fixtures/fake/package.json",
+    ],
+  });
+  assert.equal(question(template, "remote-setup").answer, "defer");
+  assert.match(
+    question(template, "remote-setup").context,
+    /deferral is reused/,
+  );
+  // The Markdown report names each reused answer and why.
+  const markdown = spawnSync(f.pinned, ["adopt"], {
+    cwd: f.root,
+    env: f.env,
+    encoding: "utf8",
+  });
+  assert.match(markdown.stdout, /## Reused answers/);
+  assert.match(markdown.stdout, /\| `scope:project-docs` \| scope \|/);
+  assert.match(markdown.stdout, /\| `remote-setup` \| remote-setup \|/);
+
+  // An answer the agent gives itself replaces the reused one.
+  const own = f.adopt(
+    f.answer(template.answers, {
+      "scope:project-docs": { ...entry, coverage: `${coverage} Reviewed.` },
+    }),
+    true,
+  ).report;
+  assert.deepEqual(ids(own), ["remote-setup"]);
+  assert.deepEqual(own.missing, ["confirmation", "inspection"]);
   git(
     f.root,
     "-c",
@@ -356,14 +356,10 @@ test("an unchanged update reuses the recorded scope, remote setup deferral and a
   // Once the probe is ready, the remote setup applies and no deferral is
   // recorded.
   writeFileSync(join(outside, "ready"), "");
-  const ready = f.adopt([], true).report;
-  assert.equal(
-    ready.answers.questions.some(({ id }) => id === "remote-setup"),
-    false,
-  );
-  assert.deepEqual(ids(ready), ["scope:project-docs"]);
-  const applied = f.adopt(f.answer(ready.answers), true);
+  const applied = f.adopt([], true);
   assert.equal(applied.report.outcome, "complete", applied.result.stdout);
+  assert.ok(ids(applied.report).includes("scope:project-docs"));
+  assert.ok(!ids(applied.report).includes("remote-setup"));
   assert.equal(readFileSync(join(outside, "applied.log"), "utf8"), "applied\n");
   assert.deepEqual(
     (JSON.parse(pinned(f, ["status", "--json"])) as Status).deferred,
@@ -411,14 +407,14 @@ test("changed discovery guidance, rules, draft or a deleted path proposes the re
     const report = f.adopt(["--standards-version", tag], true).report;
     assert.equal(report.selection.version, tag);
     assert.equal(proposed(report, cause).coverage, fresh, tag);
-    // Carried back, the proposal is the agent's own answer. Another
-    // inspection answer keeps the round from starting a run.
+    // Carried back, the proposal is the agent's own answer. Resolving the
+    // remote setup that is not ready keeps the round from starting a run.
     const carried = f.adopt(
-      f.answer(report.answers, { inspection: `sha256:${"0".repeat(64)}` }),
+      f.answer(report.answers, { "remote-setup": "resolve" }),
       true,
     ).report;
-    assert.deepEqual(carried.missing, ["inspection"], tag);
-    assert.ok(!carried.missing.includes("scope:project-docs"), tag);
+    assert.equal(carried.outcome, "blocked", tag);
+    assert.deepEqual(carried.missing, [], tag);
     assert.ok(!ids(carried).includes("scope:project-docs"), tag);
   }
 
@@ -627,17 +623,15 @@ test("an update from the previous release's state and scope evidence reuses ever
   const { f } = await reuseFixture(t);
   adoptFirst(f);
   const historyPath = previousRelease(f);
-  const template = f.adopt([], true).report;
-  assert.deepEqual(ids(template), ["scope:project-docs", "remote-setup"]);
-  assert.equal(
-    (template.reused[0]!.evidence as { draft: string }).draft,
-    "recorded-entry",
-  );
-  const updated = f.adopt(f.answer(template.answers), true);
+  const updated = f.adopt([], true);
   assert.equal(
     updated.report.outcome,
     "complete",
     updated.result.stdout + updated.result.stderr,
+  );
+  assert.equal(
+    (updated.report.reused[0]!.evidence as { draft: string }).draft,
+    "recorded-entry",
   );
   assert.deepEqual(ids(updated.report), [
     "scope:project-docs",
@@ -659,24 +653,55 @@ test("previous-release state reuses no assessment whose scope answer changed", a
   const { f } = await reuseFixture(t);
   adoptFirst(f);
   previousRelease(f);
-  const template = f.adopt([], true).report;
-  const { candidates, ...entry } = question(template, "scope:project-docs")
-    .answer as { candidates: object[] };
+  const {
+    id: _id,
+    candidates,
+    ...entry
+  } = (
+    JSON.parse(pinned(f, ["status", "--json"])) as {
+      scopeProposal: ScopeProposal;
+    }
+  ).scopeProposal.declarations[0]!;
   // The whole project is unchanged, but the docs scope gains a file to write.
-  const started = untilStarted(f, [], {
-    "scope:project-docs": {
-      ...entry,
-      candidates: [
-        ...candidates,
+  writeFileSync(
+    f.answersPath,
+    JSON.stringify({
+      format: "repo-standards/answers/v1",
+      source,
+      questions: [
         {
-          path: "tools/README.md",
-          decision: "include",
-          reason: "The tools are maintained too.",
-          evidence: ["tools/run.sh"],
+          id: "version",
+          question: "Which standards version should the project adopt?",
+          context: "",
+          answer: "v1.0.0",
+        },
+        {
+          id: "profile",
+          question: "Which profile should the project adopt?",
+          context: "",
+          answer: "work",
+        },
+        {
+          id: "scope:project-docs",
+          question: "Which project files does project-docs cover?",
+          context: "",
+          answer: {
+            ...entry,
+            candidates: [
+              ...candidates,
+              {
+                path: "tools/README.md",
+                decision: "include",
+                reason: "The tools are maintained too.",
+                evidence: ["tools/run.sh"],
+              },
+            ],
+          },
         },
       ],
-    },
-  });
+    }),
+  );
+  const started = f.adopt(["--answers", f.answersPath], true).report;
   assert.equal(started.outcome, "contextual", JSON.stringify(started));
   assert.deepEqual(started.missing, ["assessment:project-docs"]);
   assert.deepEqual(ids(started), ["remote-setup", "assessment:project-readme"]);

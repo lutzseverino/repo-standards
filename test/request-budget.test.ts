@@ -185,8 +185,8 @@ const assessments = {
 
 // A cold first adoption through profile selection, a discovered scope, a
 // deferred remote setup, its start and its contextual work, then the
-// unchanged update of the committed adoption, each invocation its own CLI
-// process.
+// unchanged update of the committed adoption in one invocation, each
+// invocation its own CLI process.
 async function journey(t: TestContext, annotated: boolean) {
   const outside = directoryFixture("repo-standards-budget-");
   t.after(() => outside.close());
@@ -241,10 +241,7 @@ async function journey(t: TestContext, annotated: boolean) {
     "answers-required",
   );
   warm(profile, 1, annotations);
-  assert.deepEqual(profile.report.missing, [
-    "scope:project-docs",
-    "inspection",
-  ]);
+  assert.deepEqual(profile.report.missing, ["scope:project-docs"]);
   const retry = measure(f, () => f.adopt(["--answers", f.answersPath]));
   warm(retry, 1, annotations);
   assert.equal(
@@ -257,15 +254,12 @@ async function journey(t: TestContext, annotated: boolean) {
     "answers-required",
   );
   warm(scope, 1, annotations);
-  assert.deepEqual(scope.report.missing, ["remote-setup", "inspection"]);
+  assert.deepEqual(scope.report.missing, ["remote-setup"]);
 
   // The start observes the tag once more after acquiring the runtime.
   const started = step(
     "start",
-    f.answer(scope.report.answers, {
-      "remote-setup": "defer",
-      inspection: scope.report.inspection!.identity,
-    }),
+    f.answer(scope.report.answers, { "remote-setup": "defer" }),
     "contextual",
   );
   warm(started, 2, annotations);
@@ -293,33 +287,14 @@ async function journey(t: TestContext, annotated: boolean) {
     `The adoption made ${adoption} requests: ${JSON.stringify(counts)}`,
   );
 
-  // An unchanged update reads the releases again and reuses the snapshot.
-  // Its template reuses every recorded answer, so its answers file starts a
-  // run that reuses every assessment and completes.
-  const update = step("update template", [], "answers-required", true);
+  // An unchanged update reuses every recorded answer, so one invocation reads
+  // the releases again, reuses the snapshot, starts the run, which reuses
+  // every assessment, and completes.
+  const update = step("update", [], "complete", true);
   assert.equal(update.report.selection.version, "v1.0.0");
   assert.equal(update.releases, 1);
   assert.deepEqual(
     update.report.reused.map((answer) => answer.id),
-    ["scope:project-docs", "remote-setup"],
-  );
-  warm(
-    {
-      ...update,
-      rest: update.rest.filter((path) => !/releases/.test(path)),
-    },
-    1,
-    annotations,
-  );
-  const updateStart = step(
-    "update start",
-    f.answer(update.report.answers),
-    "complete",
-    true,
-  );
-  warm(updateStart, 2, annotations);
-  assert.deepEqual(
-    updateStart.report.reused.map((answer) => answer.id),
     [
       "scope:project-docs",
       "remote-setup",
@@ -327,7 +302,14 @@ async function journey(t: TestContext, annotated: boolean) {
       "assessment:project-readme",
     ],
   );
-  const updated = counts["update template"]! + counts["update start"]!;
+  // The invocation observes the repository and tag once for its answers and
+  // once more at the start.
+  warm(
+    { ...update, rest: update.rest.filter((path) => !/releases/.test(path)) },
+    2,
+    annotations,
+  );
+  const updated = counts.update!;
   assert.ok(
     updated <= budget(annotations),
     `The update made ${updated} requests: ${JSON.stringify(counts)}`,
@@ -428,7 +410,11 @@ test("release pages and annotation chains have counted allowances, source size c
     t,
     cli,
     { standard: { kind: "file", target: "STANDARD.md", exact: "standard.md" } },
-    { files: { ...files, "standard.md": "Standard\n" }, http: true },
+    {
+      files: { ...files, "standard.md": "Standard\n" },
+      profiles: { work: {}, personal: {} },
+      http: true,
+    },
   );
   const older = Array.from({ length: 100 }, (_, index) => `v0.${index}.0`);
   f.releases(older, ["v1.0.0"]);
@@ -464,7 +450,7 @@ test("release pages and annotation chains have counted allowances, source size c
 
   // A release published meanwhile leaves the continuing answers' version
   // selected, and an independent request finds it.
-  const answers = f.answer(cold.value.report.answers);
+  const answers = f.answer(cold.value.report.answers, { profile: "work" });
   f.remote.addVersion(
     "v1.1.0",
     manifest({
@@ -596,10 +582,14 @@ test("a tag that moves while start acquires the runtime is rejected before insta
     {
       standard: { kind: "file", target: "STANDARD.md", exact: "standard.md" },
     },
-    { files: { "standard.md": "Standard\n" }, http: true },
+    {
+      files: { "standard.md": "Standard\n" },
+      profiles: { work: {}, personal: {} },
+      http: true,
+    },
   );
   const template = f.adopt([source]).report;
-  const answers = f.answer(template.answers);
+  const answers = f.answer(template.answers, { profile: "work" });
 
   // The moved responses, applied by a registry proxy once npm asks for the
   // CLI package, after the start's first inspection.

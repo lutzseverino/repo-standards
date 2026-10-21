@@ -35,9 +35,11 @@ npx @lutzseverino/repo-standards adopt https://github.com/OWNER/STANDARDS
 - **In a terminal:** `adopt` asks questions, shows the proposed changes, and
   [walks you through contextual work](#in-a-terminal), running checks after
   your edits and writing the assessment from your answers.
-- **With an agent:** `adopt --json` prints an [answers-file template](#answers-file)
-  and next steps, even in a terminal. The agent decides what Git can undo,
-  fills the file, makes the requested edits, and submits assessments.
+- **With an agent:** `adopt --json`, even in a terminal, starts the run when
+  nothing is open and nothing blocks it; otherwise it prints an
+  [answers-file template](#answers-file) and next steps. The agent decides what
+  Git can undo, fills the file, makes the requested edits, and submits
+  assessments.
 
 The CLI owns the adopting agent's instructions; the README prompt and optional
 `adopt-repository-standards` skill only point to it. Before a new run, Git
@@ -67,20 +69,38 @@ retained standards when the source cannot be read.
 
 Run with a terminal as its input and output, and without `--answers` or
 `--json`, `adopt` asks a person its questions; see [In a terminal](#in-a-terminal).
-Otherwise, without an answers file, `adopt` prints its questions as an answers-file
-template, with the inspection of the selection it proposes and the next steps,
-and changes nothing. It runs what inspection runs: remote setup readiness
-probes and, when discovery is required, declared discovery scripts. The agent
-saves the template outside the project, records its decisions, and runs
-`adopt --answers <file>`. Project files stay unedited until the run starts;
-files implied by answers are written during contextual work. With a
-filled answers file, `adopt` names each missing answer, asks the questions that
-follow from the answers, and starts the run once none remain and nothing blocks
-it. A question that depends on an answer appears once that answer is given: the
-profile's questions follow the profile, and remote setup readiness follows a
-complete scope, since inspection probes only an unblocked selection. A run
-starts only an inspection the answers file names, so the agent reviews the
-current inspection before starting and summarizes it in the handoff.
+Otherwise, with or without an answers file, `adopt` inspects the selection it
+proposes, running what inspection runs: remote setup readiness probes and, when
+discovery is required, declared discovery scripts. It starts the run in that
+same invocation, bound to the inspection it just computed, once all of these
+hold:
+
+- The inspection requires no confirmation.
+- Nothing [blocks](inspection.md#report-and-inspection-identity) the start, and
+  no `remote-setup` answer is `resolve`.
+- No question is open. The answers file answers a question, a
+  [reused answer](#reused-answers) does, and so does a default `adopt` proposes
+  as the answer: the version and the profile. A scope draft, or a recorded
+  answer proposed for review, stays open until an answers file carries it
+  back, with or without an answers file.
+
+Otherwise `adopt` prints its questions as an answers-file template, with the
+inspection and the next steps, and changes nothing, or reports the blocker as
+`blocked`. The agent saves the template outside the project, records its
+decisions, and runs `adopt --answers <file>`. Project files stay unedited until
+the run starts; files implied by answers are written during contextual work.
+With a filled answers file, `adopt` names each missing answer, asks the
+questions that follow from the answers, and starts the run once none remain and
+nothing blocks it. A question that depends on an answer appears once that
+answer is given: the profile's questions follow the profile, and remote setup
+readiness follows a complete scope, since inspection probes only an unblocked
+selection. The report of a run started this way carries the inspection it
+carried out, so the agent summarizes it in the handoff afterwards; Git can undo
+its uncommitted result. To preview an adoption without starting it, use
+[`inspect`](#inspect-and-start). When the inspection requires confirmation,
+the run starts only when the answers file names its identity in `confirmation`
+and in `inspection`; a stale identity stays missing, and the agent reviews the
+current inspection before starting.
 
 `adopt` installs the exact CLI that ran it into the project's
 [runtime](#durable-and-local-state) and records it as the CLI pin. Ordinary
@@ -106,7 +126,9 @@ accepts the drafted files or lists the files the declaration covers, one per
 line, with the reason. For an optional declaration, it first asks whether the
 declaration has [no scope](inspection.md#no-scope), proposing yes when the
 draft has none, and asks why unless the draft already says so. A scope that inspection rejects is asked again. `adopt` then shows the inspection and asks to start the run, which
-answers `inspection`. Declining a confirmation or the start changes nothing.
+answers `inspection`: a terminal asks a person before every start, whether or
+not the inspection requires confirmation. Declining a confirmation or the start
+changes nothing.
 In an update, each [reused answer](#reused-answers) is shown with why it was
 reused and is not asked, and a recorded answer proposed for review is offered
 as the default, with what changed.
@@ -181,10 +203,13 @@ guidance and the real project, deciding unresolved membership from evidence
 with reasons. Project files stay unedited until the run starts, including
 optional files implied by a scope answer.
 
-The agent reviews the inspection and answers with its current identity to
-start. It reviews each discarded edit's diff, or current content where no diff
-is available, and confirms the identity itself: the clean, committed starting
-tree makes those edits recoverable from Git. It defers remote setup that is not
+When the inspection requires no confirmation, the agent needs no answer to
+start: `adopt` starts the run over the inspection it computes, and the agent
+reviews that inspection's summary and the uncommitted result afterwards, which
+Git can undo. When it requires confirmation, the agent reviews each discarded
+edit's diff, or current content where no diff is available, and answers
+`confirmation` and `inspection` with the current identity itself: the clean,
+committed starting tree makes those edits recoverable from Git. It defers remote setup that is not
 ready, changing nothing remotely; every later run applies it once ready. In an
 update, it keeps each [reused answer](#reused-answers) unless the project calls
 for another, and validates each recorded answer proposed for review. Its
@@ -256,7 +281,10 @@ CLI pin while updating standards, use the project runtime instead:
 ```
 
 Each update reviews changes, obtains confirmation when required, and completes
-one run. See [Update the selection](#update-the-selection) for the detailed
+one run. With every recorded answer [reused](#reused-answers), nothing else
+open and no confirmation required, `adopt --json` is the whole update: it
+starts the run in that invocation, which exits 0 with its changes ready to
+commit. See [Update the selection](#update-the-selection) for the detailed
 update contract and lower-level commands.
 
 #### Reused answers
@@ -327,8 +355,9 @@ adoption_cli=$(mktemp -d /tmp/repo-standards-cli.XXXXXX)
 This updates an existing selection; for an initial adoption, supply the source
 URL too. The package is acquired outside the checkout with install scripts
 disabled, without a build or a self-dependency. Keep the installation and answers
-outside the project: template generation changes no tracked content, HEAD or
-index. Save and fill the printed template at, for example,
+outside the project: a round that prints the template changes no tracked
+content, HEAD or index, and a round that finds nothing open starts the run.
+Save and fill the printed template at, for example,
 `$adoption_cli/answers.json`, then continue in the same shell:
 
 ```sh
@@ -367,23 +396,24 @@ fields, an ID of no question kind below, a repeated ID, and an answer of the
 wrong kind with `ANSWERS_FORMAT`, and an answers file inside the project with
 `ANSWERS_LOCATION`. A file of at most 2 MiB is read.
 
-| `id`                       | Asked when                                                                       | `answer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| -------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `version`                  | Always; the template proposes the newest stable release.                         | A stable tag from `choices`, the source's stable releases newest first.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `profile`                  | Always; proposed for an update or a single profile.                              | A profile `name` from `choices`, each with its `description`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `scope:<declaration>`      | For each active discovery declaration, and while a run is stopped for its scope. | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`, and `noScope` for [no scope](inspection.md#no-scope), which an optional declaration's question offers with `details.optional`. A discovery script's draft is proposed; it stays missing while it has open questions or until an answers file carries it back. In an update, a [reused](#reused-answers) recorded entry is answered, and one proposed for review stays missing until carried back. A stopped run proposes its confirmed entry, and a changed one [replaces the run in place](#adopt-again-in-place). |
-| `remote-setup`             | When a remote setup probe is not ready.                                          | `defer` to complete adoption without it, or `resolve` to stop, writing nothing. In an update, a [reused](#reused-answers) deferral is answered `defer`, and a recorded deferral whose probe changed, or beside remote setup it never deferred, is proposed as `defer` and stays missing until carried back.                                                                                                                                                                                                                                                                                                                                   |
-| `confirmation`             | When the inspection requires confirmation.                                       | The inspection identity confirmed after reviewing discarded edits, by the agent or a person at a terminal. `details` names the identity and the discarded edits.                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `inspection`               | Once inspected; the template carries the identity.                               | The identity of the inspection the answers file was written against. A run starts only when it names the current inspection; a new or changed inspection is printed again for review first.                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.                                     | One of `choices`: the run's inspection identity, once the maintainer confirms the overwrite its `context` names, or `defer`, once they decline it, which [defers the fix](#defer-a-declined-overwrite).                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `assessment:<declaration>` | For each declaration of contextual work.                                         | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration. `details.noScope` marks a declaration with no scope, which allows no edit. A [reused](#reused-answers) recorded judgment is answered; one proposed for review stays missing until the answers file carries an answer.                                                                                                                                                                                                                                            |
+| `id`                       | Asked when                                                                       | `answer`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| -------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`                  | Always; the template proposes the newest stable release.                         | A stable tag from `choices`, the source's stable releases newest first.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `profile`                  | Always; proposed for an update or a single profile.                              | A profile `name` from `choices`, each with its `description`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `scope:<declaration>`      | For each active discovery declaration, and while a run is stopped for its scope. | Its [scope entry](inspection.md#discover-contextual-file-scope) without `id`: `coverage`, `candidates`, and `unresolved`, and `noScope` for [no scope](inspection.md#no-scope), which an optional declaration's question offers with `details.optional`. A discovery script's draft is proposed, and it stays missing in every mode, the template included, while it has open questions or until an answers file carries it back. In an update, a [reused](#reused-answers) recorded entry is answered, and one proposed for review stays missing until carried back. A stopped run proposes its confirmed entry, and a changed one [replaces the run in place](#adopt-again-in-place). |
+| `remote-setup`             | When a remote setup probe is not ready.                                          | `defer` to complete adoption without it, or `resolve` to stop, writing nothing. In an update, a [reused](#reused-answers) deferral is answered `defer`, and a recorded deferral whose probe changed, or beside remote setup it never deferred, is proposed as `defer` and stays missing until carried back.                                                                                                                                                                                                                                                                                                                                                                             |
+| `confirmation`             | When the inspection requires confirmation.                                       | The inspection identity confirmed after reviewing discarded edits, by the agent or a person at a terminal. `details` names the identity and the discarded edits.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `inspection`               | Once inspected; the template carries the identity.                               | The identity of the inspection the answers file was written against. When the inspection requires confirmation, a run starts only when it names the current inspection, and a new or changed inspection is printed again for review first. Otherwise it is never missing: the run binds the fresh inspection, whatever identity the answer names. A terminal always asks before starting.                                                                                                                                                                                                                                                                                               |
+| `fix:<declaration>/<fix>`  | When a fix stopped the run for confirmation.                                     | One of `choices`: the run's inspection identity, once the maintainer confirms the overwrite its `context` names, or `defer`, once they decline it, which [defers the fix](#defer-a-declined-overwrite).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `assessment:<declaration>` | For each declaration of contextual work.                                         | Its [assessment](assessment-protocol.md#assessment-submission) judgment without `id`: `status`, `explanation`, `evidence`, and `scopeValidity` for a discovered declaration. `details.noScope` marks a declaration with no scope, which allows no edit. A [reused](#reused-answers) recorded judgment is answered; one proposed for review stays missing until the answers file carries an answer.                                                                                                                                                                                                                                                                                      |
 
 The question's ID names the declaration of a `scope:` or `assessment:`
 answer; an `id` inside the answer is ignored. An answers file confirms a
 confirmation-required change only by naming the identity the agent reviewed for
 discarded edits, or the maintainer confirmed for a remote setting overwrite. An answer naming another identity, such as
 one confirmed before the inspection changed, stays missing, and the run does
-not start or continue. Version and profile flags must agree with the answers
+not start or continue. Without a confirmation-required change, the run starts
+whatever identity `inspection` names. Version and profile flags must agree with the answers
 file, and so must a source given with it.
 
 ### Stages and results
@@ -420,7 +450,7 @@ its `scope:<declaration>` questions, answered with its confirmed scope; a
 changed answer [replaces the run in place](#adopt-again-in-place).
 
 Exit status is 0 for a complete run and for a template printed without an
-answers file, 1 for every other result or rejection, 2 for invalid usage, and
+answers file because a question is open, 1 for every other result or rejection, 2 for invalid usage, and
 130 for a terminal session the person interrupted.
 Rejections use the common `valid: false` / `errors` diagnostic format with
 `--json`.
