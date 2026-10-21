@@ -210,22 +210,55 @@ async function readReleaseSource<T>(
   read: (source: ReleaseSource) => Promise<T>,
   path: string,
   options: GithubRequestOptions & { invalidResponseCode?: string } = {},
-  tag = false,
+  tag?: string,
 ): Promise<T> {
   const token =
     process.env.GH_TOKEN?.trim() || process.env.GITHUB_TOKEN?.trim();
+  let invalidTag: ProductError | undefined;
+  const transport = globalThis.fetch;
   try {
     const source = connect(`https://github.com/${repository}`, {
       ...(token ? { credential: token } : {}),
       ...(options.timeoutMs === undefined
         ? {}
         : { timeoutMs: options.timeoutMs }),
-      fetch: globalThis.fetch,
+      fetch:
+        tag === undefined
+          ? transport
+          : async (url, init) => {
+              const response = await transport(url, init);
+              // Postern 1.x peels the object but does not verify the returned ref.
+              // Keep the exact-tag provenance check on its existing request.
+              const address =
+                typeof url === "string"
+                  ? url
+                  : url instanceof URL
+                    ? url.href
+                    : url.url;
+              if (response.ok && address === `https://api.github.com${path}`) {
+                let document: unknown;
+                try {
+                  document = await response.clone().json();
+                } catch {
+                  // Postern classifies unreadable JSON.
+                  return response;
+                }
+                if (record(document).ref !== `refs/tags/${tag}`) {
+                  invalidTag = new ProductError(
+                    "INVALID_SOURCE",
+                    "GitHub did not return the requested exact tag.",
+                  );
+                  throw invalidTag;
+                }
+              }
+              return response;
+            },
     }).releaseSource;
     try {
       return await read(source);
     } catch (error) {
       if (
+        invalidTag ||
         !(error instanceof PlatformError) ||
         error.reason !== "unavailable" ||
         error.status !== undefined
@@ -234,6 +267,7 @@ async function readReleaseSource<T>(
       return await read(source);
     }
   } catch (error) {
+    if (invalidTag) throw invalidTag;
     if (!(error instanceof PlatformError)) throw error;
     switch (error.reason) {
       case "rateLimited":
@@ -254,7 +288,7 @@ async function readReleaseSource<T>(
           "The release source is unsupported. Use a public GitHub repository.",
         );
       case "notFound":
-        if (tag && error.status === 200)
+        if (tag !== undefined && error.status === 200)
           throw new ProductError(
             "INVALID_SOURCE",
             "The stable version tag must identify a Git commit.",
@@ -467,7 +501,7 @@ async function observeTag(
     {
       invalidJsonMessage: "The stable version tag must identify a Git commit.",
     },
-    true,
+    version,
   );
   const identity: StandardsIdentity = {
     repository: canonical,

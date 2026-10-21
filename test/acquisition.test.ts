@@ -157,12 +157,22 @@ test("inspection distinguishes a missing tag from one that names no commit", (t)
   for (const [response, code, message] of [
     [{ status: 404, body: {} }, "SOURCE_UNAVAILABLE", /HTTP 404/],
     [
-      { body: { object: { type: "blob", sha: remote.sha } } },
+      {
+        body: {
+          ref: "refs/tags/v1.0.0",
+          object: { type: "blob", sha: remote.sha },
+        },
+      },
       "INVALID_SOURCE",
       /must identify a Git commit/,
     ],
     [
-      { body: { object: { type: "commit", sha: "invalid" } } },
+      {
+        body: {
+          ref: "refs/tags/v1.0.0",
+          object: { type: "commit", sha: "invalid" },
+        },
+      },
       "INVALID_SOURCE",
       /must identify a Git commit/,
     ],
@@ -175,6 +185,37 @@ test("inspection distinguishes a missing tag from one that names no commit", (t)
     assert.equal(error.code, code);
     assert.match(error.message, message);
   }
+});
+
+test("inspection rejects a response for another tag before retaining an observation", (t) => {
+  const remote = remoteFixture(yaml, { "readme.md": "README" });
+  const project = sourceFixture("");
+  t.after(() => {
+    remote.close();
+    project.close();
+  });
+  remote.responses[`${remote.prefix}/git/ref/tags/v1.0.0`] = {
+    body: {
+      ref: "refs/tags/v2.0.0",
+      object: { type: "commit", sha: remote.sha },
+    },
+  };
+  remote.save();
+  const rejected = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(rejected.status, 1, rejected.stdout + rejected.stderr);
+  const error = (JSON.parse(rejected.stdout) as ErrorReport).errors[0]!;
+  assert.equal(error.code, "INVALID_SOURCE");
+  assert.match(error.message, /requested exact tag/);
+  // Rejection must not bind the requested version to the mismatched response's commit.
+  const published = remote.addVersion("v1.0.0", yaml, {
+    "readme.md": "Correct tag bytes",
+  });
+  const correct = cli.run(inspectionArgs, project.root, remote.env);
+  assert.equal(correct.status, 0, correct.stdout + correct.stderr);
+  assert.equal(
+    (JSON.parse(correct.stdout) as Inspection).selection.standards.commit,
+    published.sha,
+  );
 });
 
 test("public inspection acquires a source larger than the anonymous API allowance without per-blob requests", (t) => {
