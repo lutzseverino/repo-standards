@@ -339,7 +339,19 @@ test("an unchanged update reuses the recorded scope, remote setup deferral and a
   assert.deepEqual(edited.report.missing, ["confirmation"]);
   assert.equal(question(edited.report, "confirmation").answer, null);
   assert.ok(!ids(edited.report).includes("confirmation"));
-  git(f.root, "revert", "--no-edit", "--quiet", "HEAD");
+  git(
+    f.root,
+    "-c",
+    "user.name=Test",
+    "-c",
+    "user.email=test@example.invalid",
+    "-c",
+    "commit.gpgsign=false",
+    "revert",
+    "--no-edit",
+    "--quiet",
+    "HEAD",
+  );
 
   // Once the probe is ready, the remote setup applies and no deferral is
   // recorded.
