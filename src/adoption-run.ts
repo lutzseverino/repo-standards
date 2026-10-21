@@ -76,7 +76,7 @@ import {
   type Installation,
 } from "./installation.js";
 import { dictionary, record } from "./records.js";
-import { deferredRemoteSetup, type DeferredFix } from "./remote-setup.js";
+import type { DeferredFix } from "./remote-setup.js";
 import type {
   AssessmentReuse,
   RecordedJudgment,
@@ -107,7 +107,8 @@ export interface Run {
   prerequisites: PrerequisiteEvidence[];
   operations: OperationEvidence[];
   // The fixes this run defers: remote setup that is not ready, as its start
-  // chose, and each fix whose overwrite the maintainer declined.
+  // chose, or every remote setup in a headless update, and each fix whose
+  // overwrite the maintainer declined.
   deferred: DeferredFix[];
   // The answers the last complete adoption recorded that this run reuses:
   // those adopt reused for its start, and each reused assessment.
@@ -953,12 +954,14 @@ export class AdoptionRunSession {
   }
 
   // An update begins from the recorded adoption its inspection read, with the
-  // answers adopt reused for its start.
+  // answers adopt reused for its start. A run begins with the remote setup
+  // its start defers.
   begin(
     report: Inspection,
     provenance: Pick<Run, "root" | "head">,
     confirmation: string,
     startInput: StartInput,
+    deferred: DeferredFix[],
     previous?: RecordedAdoption,
     reused: ReusedAnswer[] = [],
   ) {
@@ -989,7 +992,7 @@ export class AdoptionRunSession {
       outcome: "incomplete",
       prerequisites: [],
       operations: [],
-      deferred: deferredRemoteSetup(report.remoteSetup),
+      deferred: structuredClone(deferred),
       reused: structuredClone(reused),
       assessments: [],
       phase: "prerequisites",

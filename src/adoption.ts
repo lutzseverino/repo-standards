@@ -49,6 +49,7 @@ import { record } from "./records.js";
 import {
   declinedOverwrite,
   deferredRemoteSetup,
+  headlessRemoteSetup,
   withoutDeferred,
 } from "./remote-setup.js";
 import { installedRules } from "./rules.js";
@@ -198,8 +199,9 @@ function assessedScopes(
 }
 
 // The operations a run executes: every check and fix but the deferred ones,
-// remote setup that is not ready, which runs neither its prerequisite nor its
-// fix, and, once the run defers them, fixes whose overwrite was declined.
+// remote setup that is not ready, or, in a headless update, every remote
+// setup, which runs neither its prerequisite nor its fix, and, once the run
+// defers them, fixes whose overwrite was declined.
 function executedProfile(
   report: Inspection,
   deferred = deferredRemoteSetup(report.remoteSetup),
@@ -210,6 +212,11 @@ function executedProfile(
 const staleDiscovery =
   "Selection, project state, or the scope proposal changed since the inspection. Inspect again with the proposal, review it against the fresh discovery evidence, and start with the new identity.";
 
+// How a start treats remote setup: false stops it when a remote setup is not
+// ready, true defers each one that is not ready, and a headless update defers
+// every one, ready or not, so that it never writes to the hosting platform.
+export type RemoteSetupDeferral = boolean | "headless";
+
 // A start binds to the identity of the inspection it carries out. It carries
 // the maintainer's confirmation exactly when that inspection reports a
 // confirmation-required change: never by habit, and never without it. A
@@ -219,7 +226,7 @@ function verifyInspection(
   report: Inspection,
   identity: string,
   confirmed: boolean | null,
-  deferRemoteSetup: boolean | null,
+  deferRemoteSetup: RemoteSetupDeferral | null,
 ) {
   if (report.identity !== identity)
     throw new ProductError(
@@ -393,7 +400,7 @@ export async function start(
   cliVersion: string,
   identity: string,
   confirmed: boolean,
-  deferRemoteSetup = false,
+  deferRemoteSetup: RemoteSetupDeferral = false,
   observations?: SourceObservations,
   reused: ReusedAnswer[] = [],
 ) {
@@ -417,7 +424,7 @@ export async function startRetained(
   identity: string,
   confirmed: boolean,
   scope?: string,
-  deferRemoteSetup = false,
+  deferRemoteSetup: RemoteSetupDeferral = false,
   reused: ReusedAnswer[] = [],
 ) {
   return withStartRun(project, (session) =>
@@ -444,7 +451,7 @@ async function startRun(
   identity: string,
   confirmed: boolean | null,
   session: AdoptionRunSession,
-  deferRemoteSetup: boolean | null = null,
+  deferRemoteSetup: RemoteSetupDeferral | null = null,
   observations?: SourceObservations,
   reused: ReusedAnswer[] = [],
 ) {
@@ -492,11 +499,19 @@ async function startRun(
     { root, head: initial.git.head },
     identity,
     startInput,
+    deferRemoteSetup === "headless"
+      ? headlessRemoteSetup(initial.report.remoteSetup)
+      : deferredRemoteSetup(initial.report.remoteSetup),
     initial.recorded,
     reused,
   );
+  // A deferred fix runs neither its prerequisite nor its fix.
   const prerequisites = await session.prerequisites((onSpawn) =>
-    preflight(root, executedProfile(initial.report), onSpawn),
+    preflight(
+      root,
+      executedProfile(initial.report, session.observation.deferred),
+      onSpawn,
+    ),
   );
   if (prerequisites.some((probe) => probe.code))
     throw new ProductError(

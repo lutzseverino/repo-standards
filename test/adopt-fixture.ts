@@ -6,7 +6,7 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { directoryFixture } from "./installed-cli.ts";
 import { adoptionFixture, type InstalledCli } from "./adoption-fixture.ts";
-import { manifest, operation } from "./remote-fixture.ts";
+import { commit, manifest, operation } from "./remote-fixture.ts";
 
 // The fixtures of the adopt tests: a published source, a committed project,
 // and an answers file outside it.
@@ -256,4 +256,148 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
     unresolved,
   };
   return { f, draft };
+}
+
+// The fixtures of the update tests that reuse recorded answers.
+
+export type ReuseFixture = Awaited<ReturnType<typeof discoveryFixture>>["f"];
+
+export const docsRules = "Each maintained project has a README.\n";
+export const draftScript = (
+  coverage: string,
+) => `import { readFileSync } from "node:fs";
+const input = JSON.parse(readFileSync(0, "utf8"));
+process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declarations: [{
+  id: input.declaration,
+  coverage: ${JSON.stringify(coverage)},
+  candidates: [
+    { path: "app/README.md", decision: "include", reason: "Its manifest makes it a project.", evidence: ["app/package.json"] },
+    { path: "fixtures/fake", decision: "exclude", reason: "Fixtures are test data.", evidence: ["fixtures/fake/package.json"] },
+  ],
+  unresolved: [],
+}] }));
+`;
+export const coverage = "The app is maintained; the fixture is test data.";
+
+// The discovery declaration with rules, beside an exact declaration with
+// remote setup and a contextual README declaration with rules and a check.
+function declarations(outside: string, readme: object = {}) {
+  const sourced = readmeSource(outside);
+  return {
+    ...sourced,
+    "project-readme": { ...sourced["project-readme"], ...readme },
+    "project-docs": {
+      kind: "repository",
+      guidance: "guidance.md",
+      discovery: "discovery.md",
+      rules: "rules/docs.md",
+      "discovery-script": (({ id: _id, ...declared }) => declared)(
+        operation("draft", { script: "draft.mjs" }),
+      ),
+    },
+  };
+}
+
+export async function reuseFixture(t: TestContext, cli: InstalledCli) {
+  const outside = directoryFixture("repo-standards-reuse-");
+  t.after(() => outside.close());
+  const { f } = await discoveryFixture(t, cli, [], {
+    declarations: declarations(outside.root),
+    files: { ...readmeFiles, "rules/docs.md": docsRules },
+  });
+  // Publishes a later version whose source differs by the given files,
+  // README declaration fields and profiles.
+  const publish = (
+    tag: string,
+    files: Record<string, string>,
+    readme: object = {},
+    profiles?: Record<string, object>,
+  ) => {
+    f.remote.addVersion(
+      tag,
+      manifest(declarations(outside.root, readme), profiles),
+      {
+        ...readmeFiles,
+        "rules/docs.md": docsRules,
+        "guidance.md": "Document each maintained project.",
+        "discovery.md":
+          "Projects have a package manifest; fixtures do not count.",
+        "draft.mjs": draftScript(coverage),
+        ...files,
+      },
+    );
+  };
+  return { f, outside: outside.root, publish };
+}
+
+export const review = {
+  status: "valid",
+  explanation: "The app remains the only maintained project.",
+  evidence: ["Reviewed app/package.json and the excluded fixture."],
+  additionalPaths: [],
+};
+export const judgments = {
+  "assessment:project-docs": {
+    status: "satisfied",
+    explanation: "The app's README describes it.",
+    evidence: ["app/README.md starts with its heading."],
+    scopeValidity: { afterFixes: review, current: review },
+  },
+  "assessment:project-readme": {
+    status: "satisfied",
+    explanation: "README.md starts with the project's heading.",
+    evidence: ["README.md starts with # Project."],
+  },
+};
+
+// Answers adopt's rounds, carrying each report's answers back with remote
+// setup deferred, the given answers, and the current inspection, until the
+// run starts or a round leaves the given question unanswered.
+export function untilStarted(
+  f: ReuseFixture,
+  first: string[],
+  answers: Record<string, unknown> = {},
+  runtime = true,
+) {
+  let report = f.adopt(first, runtime).report;
+  for (let round = 0; !report.run; round++) {
+    assert.ok(round < 4, JSON.stringify(report.missing));
+    report = f.adopt(
+      f.answer(report.answers, {
+        "remote-setup": "defer",
+        ...answers,
+        ...(report.inspection
+          ? { inspection: report.inspection.identity }
+          : {}),
+      }),
+      runtime,
+    ).report;
+  }
+  return report;
+}
+
+// Completes a run waiting for contextual work with the given answers.
+export function complete(
+  f: ReuseFixture,
+  report: AdoptReport,
+  answers: Record<string, unknown>,
+) {
+  const completed = f.adopt(f.answer(report.answers, answers), true);
+  assert.equal(
+    completed.report.outcome,
+    "complete",
+    completed.result.stdout + completed.result.stderr,
+  );
+  commit(f.root);
+  return completed.report;
+}
+
+// The first adoption, with its contextual work done and committed.
+export function adoptFirst(f: ReuseFixture) {
+  const started = untilStarted(f, [source], {}, false);
+  assert.equal(started.outcome, "contextual", JSON.stringify(started));
+  assert.deepEqual(started.reused, []);
+  writeFileSync(join(f.root, "README.md"), "# Project\n\nProject notes\n");
+  writeFileSync(join(f.root, "app/README.md"), "# App\n");
+  return complete(f, started, judgments);
 }

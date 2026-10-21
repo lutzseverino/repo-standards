@@ -55,6 +55,23 @@ export function deferredRemoteSetup(remoteSetup: RemoteSetup[]): DeferredFix[] {
   );
 }
 
+// How the reason of remote setup deferred by a headless update starts.
+export const headlessDeferral =
+  "Deferred by a headless update, which never writes to the hosting platform; the next local adopt applies it once its probe is ready.";
+
+// A headless update defers every remote setup, ready or not, keeping the
+// reason a probe gave for setup that is not ready.
+export function headlessRemoteSetup(remoteSetup: RemoteSetup[]): DeferredFix[] {
+  return remoteSetup.map((entry) => ({
+    declaration: entry.declaration,
+    id: entry.id,
+    reason:
+      entry.status === "not-ready"
+        ? `${headlessDeferral} Its probe reports it not ready: ${entry.reason}`
+        : headlessDeferral,
+  }));
+}
+
 // The declarations whose fixes a run executes: every fix but the deferred.
 export function withoutDeferred<T extends { declarations: Declaration[] }>(
   resolved: T,
