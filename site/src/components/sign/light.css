@@ -1,0 +1,169 @@
+/* The light: a hand torch at the viewer's eye, aimed at the pointer (see
+   torch.ts). This sheet lights shadcn components through their data-slot
+   attributes, so no generated component and no call site changes, and runs
+   the page-wide layers that light text. The sign plates light themselves in
+   sign.css. */
+
+/* Light by day: the edge keeps its colour in the beam and only the rim
+   shows; dark text is screened by the rainbow. */
+:root {
+  /* every rainbow on the page, on plates, edges and text, lies on one ring
+     round the aim point, in fractions of the beam radius */
+  --ring-in: 46%;
+  --ring-peak: 62%;
+  --ring-out: 80%;
+
+  --edge-hot: transparent;
+  --edge-warm: transparent;
+  --edge-pink: rgba(240, 70, 140, 0.6);
+  --edge-amber: rgba(240, 170, 30, 0.6);
+  --edge-green: rgba(30, 190, 140, 0.55);
+  --edge-blue: rgba(40, 130, 240, 0.6);
+  --prism-blend: screen;
+  --prism-strength: 0.7;
+  --prism-pink: rgb(225 40 125);
+  --prism-amber: rgb(215 140 0);
+  --prism-green: rgb(0 160 115);
+  --prism-blue: rgb(30 105 225);
+}
+
+/* Light at night: a hot centre and a rainbow rim on edges; white legends
+   multiplied by the rainbow. */
+.dark {
+  --edge-hot: rgba(255, 248, 232, 0.95);
+  --edge-warm: rgba(236, 226, 206, 0.7);
+  --edge-pink: rgba(255, 120, 175, 0.55);
+  --edge-amber: rgba(255, 214, 120, 0.55);
+  --edge-green: rgba(130, 240, 205, 0.5);
+  --edge-blue: rgba(120, 190, 255, 0.5);
+  --prism-blend: multiply;
+  --prism-strength: 1;
+  --prism-pink: rgb(255 165 205);
+  --prism-amber: rgb(255 222 150);
+  --prism-green: rgb(165 245 215);
+  --prism-blue: rgb(165 205 255);
+}
+
+/* The edge light: every shadcn component of a kind listed here catches the
+   light on its edge, with a faint rainbow at the beam's rim, through the
+   data-slot attribute it already emits. Add a slot to light another kind. It
+   needs no JavaScript: the gradient is fixed to the viewport and centred on
+   the aim point. */
+[data-slot="input-group"],
+[data-slot="toggle-group-item"] {
+  position: relative;
+  /* the width of the border it lights, shadcn's 1px */
+  --edge: 1px;
+}
+/* the ring lies on the component's own border, so it shares its corners */
+[data-slot="input-group"]::before,
+[data-slot="toggle-group-item"]::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--edge));
+  border-radius: inherit;
+  padding: var(--edge);
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(
+      circle var(--bry, 400px) at var(--px) var(--py),
+      var(--edge-hot) 0%,
+      var(--edge-warm) 30%,
+      var(--edge-pink) var(--ring-in),
+      var(--edge-amber) 56%,
+      var(--edge-green) 64%,
+      var(--edge-blue) 72%,
+      transparent var(--ring-out)
+    )
+    fixed;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+
+/* Page-wide light layers. Each is a disc, data-light-layer times the beam
+   radius across, that the compositor moves; the torch sets its
+   size and transform. They work on any component underneath. */
+.light-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.light-layer > i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  will-change: transform;
+}
+/* the pool on the ground */
+.torch-pool {
+  z-index: -1;
+}
+.torch-pool > i {
+  background: radial-gradient(
+    closest-side,
+    rgba(255, 244, 222, 0.12),
+    rgba(255, 244, 222, 0.035) 55%,
+    transparent
+  );
+}
+/* The text layers start where the list begins (--lit-top), so the hero,
+   which lights itself, is left alone. */
+.lit-sheen,
+.lit-prism {
+  z-index: 20;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent var(--lit-top, 100vh),
+    #000 calc(var(--lit-top, 100vh) + 90px)
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent var(--lit-top, 100vh),
+    #000 calc(var(--lit-top, 100vh) + 90px)
+  );
+}
+/* sheen: colour dodge brightens what is already light, text, borders and
+   edges, while dark ground stays dark */
+.lit-sheen {
+  mix-blend-mode: color-dodge;
+}
+.lit-sheen > i {
+  background: radial-gradient(
+    closest-side,
+    rgb(70 66 58) 0%,
+    rgb(46 43 38) 36%,
+    rgb(44 24 34) var(--ring-peak),
+    rgb(20 34 50) 74%,
+    transparent var(--ring-out)
+  );
+}
+/* prism: the rainbow on text and legends at the beam's rim */
+.lit-prism {
+  mix-blend-mode: var(--prism-blend);
+  opacity: var(--prism-strength);
+}
+.lit-prism > i {
+  background: radial-gradient(
+    closest-side,
+    transparent var(--ring-in),
+    var(--prism-pink) 52%,
+    var(--prism-amber) 58%,
+    var(--prism-green) 65%,
+    var(--prism-blue) 72%,
+    transparent var(--ring-out)
+  );
+}
+/* by day a torch adds nothing to the paper or the text but the rainbow */
+:root:not(.dark) .torch-pool,
+:root:not(.dark) .lit-sheen {
+  display: none;
+}

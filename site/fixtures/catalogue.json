@@ -1,0 +1,41 @@
+{
+  "cliVersion": "9.0.0",
+  "notice": "Discovery is not an endorsement. Choose a source, stable version and profile yourself, then inspect before confirming adoption.",
+  "rejectedCount": 5,
+  "sources": [
+    {
+      "repository": "lutzseverino/repo-canon",
+      "name": "repo-canon",
+      "description": "Repository documentation, contribution, agent workflow, and GitHub validation standards",
+      "release": {
+        "version": "v0.17.0",
+        "publishedAt": "2026-10-19T15:08:01Z"
+      },
+      "requires": ">=8.1.0",
+      "profiles": [
+        {
+          "name": "standard",
+          "description": "The Repo Canon standards for every adopting repository"
+        },
+        {
+          "name": "factory",
+          "description": "The standard profile plus the factory's repository files and workflow rules, for a repository a factory serves"
+        }
+      ]
+    },
+    {
+      "repository": "lutzseverino/repo-standards-example",
+      "name": "repository-standards-examples",
+      "description": "Synthetic service and project-documentation profiles for release acceptance",
+      "release": { "version": "v2.0.0", "publishedAt": "2026-09-24T04:35:04Z" },
+      "requires": ">=1.2.0",
+      "profiles": [
+        {
+          "name": "service",
+          "description": "Operated service with a project-specific runbook"
+        },
+        { "name": "work", "description": "Standards for work projects" }
+      ]
+    }
+  ]
+}

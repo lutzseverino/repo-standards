@@ -3,6 +3,10 @@ name: Deploy site
 on:
   push:
     branches: [main]
+  # the homepage lists standards sources as source search finds them at build
+  # time, so it rebuilds daily to pick up new sources and releases
+  schedule:
+    - cron: "23 4 * * *"
 
 permissions:
   contents: read
@@ -24,9 +28,13 @@ jobs:
           node-version-file: .node-version
       - run: npm install --global pnpm@11.20.0
       - run: pnpm install --frozen-lockfile
+      # the site's data step runs this checkout's CLI
+      - run: pnpm build
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - run: pnpm --dir site check
       - run: pnpm --dir site build
+        env:
+          GH_TOKEN: ${{ github.token }}
       - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           path: site/dist

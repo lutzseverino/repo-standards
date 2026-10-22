@@ -19,9 +19,12 @@ system tools.
 
 Run `pnpm --dir site dev` for the website at `http://localhost:4321`.
 `pnpm --dir site check` runs `astro check`, and `pnpm --dir site build` writes
-the static site to `site/dist/`. `pnpm --dir site preview` serves that build.
+the static site to `site/dist/`. The build reads its list of standards sources
+from GitHub with the CLI built at the root, so run `pnpm build` first; `pnpm
+--dir site build:fixture` builds from `site/fixtures/catalogue.json` without
+the network. `pnpm --dir site preview` serves that build.
 Run `pnpm validate` to validate the entire repository, including the site check
-and build. The site uses a compatible TypeScript compiler for Astro checking;
+and fixture build. The site uses a compatible TypeScript compiler for Astro checking;
 the CLI keeps its root TypeScript version.
 
 During development, run `pnpm typecheck`, `pnpm lint` and `pnpm build`, then
@@ -57,7 +60,7 @@ checks are `validate (linux, 1/3)`, `validate (linux, 2/3)` and
 skipped failures. Each part typechecks, lints, checks formatting, rejects any
 runtime cycle of static imports among the source modules (type-only imports
 are exempt), and builds before testing. Separate Linux `site` jobs run
-the generated shadcn source check, `astro check` and the site build on both supported majors on every pull request, without path filtering.
+the generated shadcn source check, `astro check` and the fixture site build on both supported majors on every pull request, without path filtering.
 Root oxlint covers the site's TypeScript, React and Astro scripts; Astro checking
 covers templates. Root Prettier loads `prettier-plugin-astro` for `.astro` files
 and checks the site along with the rest of the authored repository. No site
@@ -67,7 +70,8 @@ against temporary Git repositories. PR branches trigger Validate only through
 `pull_request`; pushes trigger it only on `main`.
 
 The Deploy site workflow builds and publishes to GitHub Pages on every push to
-`main`, separately from Release.
+`main` and daily, separately from Release. Only it builds the site from live
+source search, as the [site README](../../site/README.md#data) describes.
 
 macOS runs the full `pnpm validate` on both supported majors after merge on pushes to `main` and in the
 release workflow. A macOS failure on `main` is a bug: open an issue and fix it
