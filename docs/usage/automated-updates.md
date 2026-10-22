@@ -133,7 +133,7 @@ The pull request follows the
   byte. Its Operations table lists each deferred remote setup with its reason.
 - Its title is `chore: adopt <source> <version> with CLI <version>`, naming the
   source by the repository name in its URL and the versions from the record's
-  selection, such as `chore: adopt repo-canon v0.17.0 with CLI 9.0.0`.
+  selection, such as `chore: adopt repo-canon v0.17.0 with CLI 10.0.0`.
 - When either pin moves by a major version, or by a minor version of a `0.x`
   pin, which SemVer allows to break, the title is `chore!:` and the record is
   followed by Impact and Migration sections. They name each pin's move, the
