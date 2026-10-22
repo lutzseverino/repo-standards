@@ -10,6 +10,7 @@ import {
   mkdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
@@ -527,8 +528,12 @@ test("an out-of-scope directory reconciles once restored, whether created, re-mo
     ],
     [
       "mode changed",
-      [(root: string) => chmodSync(join(root, "docs"), 0o700)],
-      (root: string) => chmodSync(join(root, "docs"), 0o755),
+      [
+        (root: string, originalMode: number) =>
+          chmodSync(join(root, "docs"), originalMode === 0o700 ? 0o755 : 0o700),
+      ],
+      (root: string, originalMode: number) =>
+        chmodSync(join(root, "docs"), originalMode),
     ],
     [
       "created, then replaced by a file",
@@ -544,13 +549,14 @@ test("an out-of-scope directory reconciles once restored, whether created, re-mo
   ] as const)
     await t.test(name, async (st) => {
       const f = await fixture(st, undefined, { "docs/guide.md": "Guide" });
+      const originalMode = statSync(join(f.project.root, "docs")).mode & 0o777;
       contextualWork(f.project.root);
       for (const step of steps) {
-        step(f.project.root);
+        step(f.project.root, originalMode);
         f.resume();
       }
       assertRestoreInstruction(f.resume(submission()).report.reason);
-      restore(f.project.root);
+      restore(f.project.root, originalMode);
       f.resume();
       const accepted = f.resume(submission());
       assert.equal(accepted.result.status, 0, accepted.result.stdout);
