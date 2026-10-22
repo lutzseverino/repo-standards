@@ -96,8 +96,13 @@ gh workflow run release.yml --repo lutzseverino/repo-standards \
   --ref <reviewed-ref> -f version=<version> -F notes=@<release-notes-file>
 ```
 
-Write the notes in Markdown for adopters: what changed, breaking changes with
-their migration, and the parent specification. Leave site-only changes out of
+Open the Markdown notes with the update's derived adopter-action line, the
+existing `status --json` field `impact.derived`. Prepare that line from
+`inspect --json`'s `adopterAction.derived` on the same previous-release baseline before dispatch;
+after publication, require it to match the line printed and retained by the
+public update gate before marking the release complete. Include any
+author-written actions outside adoption, what changed, breaking changes with
+their migration, and the parent specification after that opening. Leave site-only changes out of
 the CLI's release notes; the private site deploys independently from `main` through
 Deploy site. GitHub limits a dispatch's inputs to 65,535 characters in total. The workflow refuses to publish without
 notes. It validates on macOS and Linux under both Node.js 24 and 26, produces one bundle
@@ -107,7 +112,15 @@ tarball, and attaches that bundle to the matching GitHub `v<version>` release,
 whose body is the supplied notes. The workflow then runs public npm smoke
 checks on both systems, after a bounded wait for registry propagation described
 in **Published acceptance**, and retains JSON evidence as workflow artifacts.
-It refuses an existing Git tag; inspect any partial previous publication before
+
+Inspection predicts contextual work before the run knows which assessments it
+will reuse, and describes remote setup as not ready before it may be deferred.
+Its line can therefore differ from the completed update's line. If the lines
+disagree, retain both and leave the release incomplete for the maintainer to
+resolve the notes against the gate's actual derived action. The prediction does
+not replace that evidence.
+
+The workflow refuses an existing Git tag; inspect any partial previous publication before
 retrying. An npm version cannot be overwritten, so a failed later step needs
 explicit recovery using the original artifacts, not another publish attempt.
 
@@ -286,6 +299,47 @@ and Linux under both stable Node.js 24 and 26 after publication. It installs the
 validates packaged examples, discovers the public learning source, and exercises
 explicit and omitted bootstrap versions without project mutation. It uses real
 npm and GitHub, with no acquisition fixtures for those public paths.
+
+It also proves the [release policy](../usage/available-updates.md#release-policy)
+by adopting the newest public learning-source release with the newest stable
+npm CLI below `<version>`, committing that prepared baseline, and invoking
+`npx --yes @lutzseverino/repo-standards@<version> adopt --json` exactly once.
+The baseline uses the `work` profile, real Python 3.12 or newer before 4, a
+prepared numeric CLI with checked commands, and scripted judgments of its
+README and source layout. It uses an answers file and may take several rounds;
+that preparation is not real-agent acceptance. The candidate update receives
+no answers file, hand edits, follow-up adoption or contextual completion.
+Only exit 0, outcome `complete` and the now-pinned CLI's `readyToCommit: true`
+verdict pass. Questions, blockers, contextual work, retired records, other
+errors and an unready result fail and remain in `updateGate` evidence. Its
+`update.adopterAction` records `status.impact.derived`, which the script also
+prints for the release-note opening. A missing stable predecessor fails rather
+than skipping this check.
+
+Every release, including a breaking release, must pass this gate before it is
+complete. Redesign a change that cannot update in one step. A task outside
+adoption is an adopter action, which the update must still complete around.
+
+The step's internal child-process fetch observer passes through the original
+requests and responses, rejects authorization, and records actual request
+attempt counts without headers, bodies or query strings. External
+`NODE_OPTIONS` and acquisition fixtures remain refused. `requests.githubRest`
+and its per-phase counts cover GitHub REST requests across installation,
+baseline and update; npm's own HTTP transport and smart Git transfers are
+explicitly outside those counts. The predecessor lookup additionally makes one
+public npm metadata request. `updateGate` retains both CLI versions, source
+selection, commands, reports, readiness, and the measured counts. The baseline
+is bounded to eight adoption rounds; normal prepared `work` adoption takes
+three, followed by one candidate invocation. Quota exhaustion fails acceptance
+with the original public request evidence; it is never bypassed with a token.
+
+A successful pre-publication sample on 2026-10-22 used 17 anonymous GitHub REST
+attempts: 10 to prepare and commit a baseline with public CLI 9.0.0 and learning
+source v3.0.0, then seven for one unanswered local-candidate update. That
+candidate still declared version 9.0.0. This measures the baseline and update
+phases only, not installation, the CLI 9-to-10 pin upgrade, or the published
+OS/Node matrix. It is an observed successful-path budget, not an upper bound;
+retain the actual published run's counts and derived action separately.
 
 Publication reaches the registry and release downloads eventually, so before
 its assertions the script polls for the exact version's npm `dist` metadata,
