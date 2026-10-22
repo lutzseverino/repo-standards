@@ -325,6 +325,14 @@ is bounded to eight adoption rounds; normal prepared `work` adoption takes
 three, followed by one candidate invocation. Quota exhaustion fails acceptance
 with the original public request evidence; it is never bypassed with a token.
 
+A successful pre-publication sample on 2026-10-22 used 17 anonymous GitHub REST
+attempts: 10 to prepare and commit a baseline with public CLI 9.0.0 and learning
+source v3.0.0, then seven for one unanswered local-candidate update. That
+candidate still declared version 9.0.0. This measures the baseline and update
+phases only, not installation, the CLI 9-to-10 pin upgrade, or the published
+OS/Node matrix. It is an observed successful-path budget, not an upper bound;
+retain the actual published run's counts and derived action separately.
+
 Publication reaches the registry and release downloads eventually, so before
 its assertions the script polls for the exact version's npm `dist` metadata,
 then the release's `release.json` and `repo-standards-bootstrap` assets. It
