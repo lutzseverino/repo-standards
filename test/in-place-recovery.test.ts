@@ -10,7 +10,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { directoryFixture, installCli } from "./installed-cli.ts";
+import { directoryFixture, installCli, snapshot } from "./installed-cli.ts";
 import { commit, git, operation } from "./remote-fixture.ts";
 import {
   discoveryFixture,
@@ -258,7 +258,14 @@ test("abandonment exits 0, and adopt then adopts again in place over the preserv
   // Old opaque reports on both sides of the current run's UUID must neither
   // block abandonment nor poison the current run's verified recovery context.
   const old = ["!old.json", "~old.json"].map((name) => join(reports, name));
-  const bytes = '{"format":"repo-standards/run/v6","abandoned":true}\n';
+  const inspection = status(f).active!.inspection;
+  const bytes = JSON.stringify({
+    format: "repo-standards/run/v6",
+    id: "old-run",
+    abandoned: true,
+    inspection,
+    changeSet: [{ path: "notes.txt", phases: ["agent"] }],
+  });
   for (const path of old) writeFileSync(path, bytes);
   assert.deepEqual(status(f).abandoned, []);
   writeFileSync(join(f.root, "app/README.md"), "# App\n");
@@ -280,6 +287,20 @@ test("abandonment exits 0, and adopt then adopts again in place over the preserv
   assert.equal(archives.length, 1);
   const abandoned = archives[0]!;
   assert.match(abandoned.nextAction, /adopt again in place/);
+  // Even with the matching inspection and a claimed change, opaque v6 history
+  // cannot exempt work the current abandoned run did not record.
+  assert.equal(abandoned.inspection, inspection);
+  writeFileSync(join(f.root, "notes.txt"), "Maintainer notes\n");
+  const before = snapshot(f.root);
+  const dirty = f.adopt(f.answer(contextual.answers), true);
+  assert.equal(dirty.result.status, 1, dirty.result.stdout);
+  assert.equal(dirty.report.run, undefined);
+  assert.deepEqual(
+    dirty.report.blockers.map(({ code, path }) => [code, path]),
+    [["DIRTY_PROJECT", "notes.txt"]],
+  );
+  assert.deepEqual(snapshot(f.root), before);
+  rmSync(join(f.root, "notes.txt"));
 
   // adopt names the way forward from the preserved changes and starts over
   // them with the abandoned run's selection.
@@ -287,18 +308,27 @@ test("abandonment exits 0, and adopt then adopts again in place over the preserv
   assert.equal(again.report.outcome, "contextual", steps(again.report));
   assert.deepEqual(again.report.blockers, []);
   const started = again.report;
-  const complete = f.adopt(
-    f.answer(started.answers, {
-      "assessment:project-docs": {
-        status: "satisfied",
-        explanation: "The app has a README.",
-        evidence: ["app/README.md"],
-        scopeValidity: { afterFixes: valid, current: valid },
-      },
+  const assessment = join(f.external.root, "assessment.json");
+  writeFileSync(
+    assessment,
+    JSON.stringify({
+      format: "repo-standards/assessment/v3",
+      declarations: [
+        {
+          id: "project-docs",
+          status: "satisfied",
+          explanation: "The app has a README.",
+          evidence: ["app/README.md"],
+          scopeValidity: { afterFixes: valid, current: valid },
+        },
+      ],
     }),
-    true,
-  ).report;
-  assert.equal(complete.outcome, "complete", steps(complete));
+  );
+  const resumed = pinned<Run>(f, ["resume", "--assessment", assessment]);
+  assert.equal(resumed.result.status, 0, resumed.result.stdout);
+  const complete = resumed.report;
+  assert.equal(complete.id, started.run!.id);
+  assert.equal(complete.outcome, "complete", resumed.result.stdout);
   assert.equal(git(f.root, "rev-parse", "HEAD"), head);
   const record = status(f);
   assert.equal(record.readyToCommit, true, record.readinessReasons.join("\n"));
@@ -307,6 +337,7 @@ test("abandonment exits 0, and adopt then adopts again in place over the preserv
     JSON.stringify(record.changeSet),
   );
   assert.equal(record.abandoned.length, 1);
+  assert.ok(!record.changeSet!.some(({ path }) => path === "notes.txt"));
   for (const path of old) assert.equal(readFileSync(path, "utf8"), bytes);
 });
 
