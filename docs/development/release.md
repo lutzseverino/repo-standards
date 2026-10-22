@@ -120,7 +120,7 @@ disagree, retain both and leave the release incomplete for the maintainer to
 resolve the notes against the gate's actual derived action. The prediction does
 not replace that evidence.
 
-It refuses an existing Git tag; inspect any partial previous publication before
+The workflow refuses an existing Git tag; inspect any partial previous publication before
 retrying. An npm version cannot be overwritten, so a failed later step needs
 explicit recovery using the original artifacts, not another publish attempt.
 
