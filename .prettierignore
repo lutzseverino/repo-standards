@@ -10,6 +10,9 @@ vendor/
 # pnpm maintains the lockfile.
 pnpm-lock.yaml
 
+# A checkout-local pnpm store contains cache blobs, not authored files.
+.pnpm-store/
+
 # Astro generates these declarations and caches.
 site/.astro/
 
