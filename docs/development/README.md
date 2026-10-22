@@ -57,7 +57,7 @@ checks are `validate (linux, 1/3)`, `validate (linux, 2/3)` and
 skipped failures. Each part typechecks, lints, checks formatting, rejects any
 runtime cycle of static imports among the source modules (type-only imports
 are exempt), and builds before testing. Separate Linux `site` jobs run
-`astro check` and the site build on both supported majors on every pull request, without path filtering.
+the generated shadcn source check, `astro check` and the site build on both supported majors on every pull request, without path filtering.
 Root oxlint covers the site's TypeScript, React and Astro scripts; Astro checking
 covers templates. Root Prettier loads `prettier-plugin-astro` for `.astro` files
 and checks the site along with the rest of the authored repository. No site

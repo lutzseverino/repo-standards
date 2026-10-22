@@ -25,10 +25,26 @@ static files to `site/dist/`; preview serves that output locally. Root
 no site test framework until the site has logic worth testing.
 
 `src/pages/index.astro` owns the placeholder. React components live under
-`src/components/`, shadcn components under `src/components/ui/`, and shared
-Tailwind styles under `src/styles/global.css`. `components.json` configures
-shadcn with the `@/` alias from `tsconfig.json`. Add components from this directory
-with `pnpm dlx shadcn add <component>`, then run the root formatter and checks.
+`src/components/`, and shared Tailwind styles and the theme's colour tokens
+under `src/styles/global.css`. `components.json` configures shadcn's
+`base-nova` style with the `@/` alias from `tsconfig.json`.
+
+`src/components/ui/` is generated shadcn source and read-only. Add components
+and refresh the installed ones only through the exactly pinned shadcn CLI:
+
+```sh
+pnpm --dir site ui:add <component...>
+pnpm --dir site ui:update
+pnpm --dir site ui:check
+```
+
+`ui:add` and `ui:update` record each generated file's checksum in
+`registry-manifest.json`, and `ui:check`, part of `pnpm validate` and the site
+CI job, fails when the folder differs from it. Formatting and linting skip the
+folder. Pages import components from `src/components/app/`, where an unchanged
+component is a one-line re-export and a wrapper holds only a rule shared by
+several uses. [ADR 0028](../docs/adr/0028-keep-generated-shadcn-source-read-only.md)
+records the arrangement.
 
 ## Deployment
 
