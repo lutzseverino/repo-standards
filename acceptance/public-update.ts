@@ -7,6 +7,16 @@ import type { AdoptReport, AnswersFile } from "../src/adopt.ts";
 const packageName = "@lutzseverino/repo-standards";
 const source = "https://github.com/lutzseverino/repo-standards-example";
 const profile = "work";
+const platform = "github";
+// Keep the candidate protocol pinned to this checkout without importing the
+// product runtime into a dependency-free release script. The types catch drift.
+const candidateFormats = {
+  adopt: "repo-standards/adopt/v2",
+  status: "repo-standards/status/v9",
+} satisfies Pick<
+  typeof import("../src/formats.ts").formats,
+  "adopt" | "status"
+>;
 
 export interface CommandResult {
   status: number | null;
@@ -86,13 +96,79 @@ export function previousStableVersion(versions: string[], version: string) {
 }
 
 interface ReadyStatus {
+  format: string;
   readyToCommit: boolean;
   selection: {
     cli: { version: string };
     standards: { repository: string; version: string; commit: string };
     profile: string;
+    platform?: string;
   };
   impact?: { derived: string };
+}
+
+function assertLearningStatus(status: ReadyStatus, cli: string) {
+  assert.equal(
+    status.selection?.cli?.version,
+    cli,
+    "Status selected the wrong CLI.",
+  );
+  const standards = status.selection?.standards;
+  assert.equal(
+    standards?.repository,
+    source,
+    "Status selected another source.",
+  );
+  assert.equal(
+    status.selection?.profile,
+    profile,
+    "Status selected another profile.",
+  );
+  assert.ok(
+    typeof standards?.version === "string" && stableVersion(standards.version),
+    "Status must retain a stable public source release.",
+  );
+  assert.match(
+    standards.commit,
+    /^[a-f0-9]{40}$/,
+    "Status must retain the source commit identity.",
+  );
+  // The previous CLI may predate platform selection; that protocol's default
+  // is GitHub. A reported platform must preserve that selection.
+  if (status.selection.platform !== undefined)
+    assert.equal(
+      status.selection.platform,
+      platform,
+      "Status selected another platform.",
+    );
+  return {
+    repository: standards.repository,
+    version: standards.version,
+    commit: standards.commit,
+  };
+}
+
+function assertLearningAdopt(
+  report: AdoptReport,
+  cli: string,
+  sourceVersion: string,
+) {
+  assert.equal(report.selection?.cli, cli, "Adopt selected the wrong CLI.");
+  assert.equal(
+    report.selection?.source,
+    source,
+    "Adopt selected another source.",
+  );
+  assert.equal(
+    report.selection?.profile,
+    profile,
+    "Adopt selected another profile.",
+  );
+  assert.equal(
+    report.selection?.version,
+    sourceVersion,
+    "Adopt selected another source release.",
+  );
 }
 
 export interface UpdateEvidence {
@@ -383,11 +459,14 @@ export async function verifyPublicUpdate(options: {
       true,
       "Previous-release baseline is not ready to commit.",
     );
-    assert.equal(baseline.selection.cli.version, previous);
-    assert.equal(baseline.selection.standards.repository, source);
-    assert.equal(baseline.selection.profile, profile);
-    evidence.sourceVersion = baseline.selection.standards.version;
-    evidence.sourceCommit = baseline.selection.standards.commit;
+    const baselineSource = assertLearningStatus(baseline, previous);
+    assertLearningAdopt(
+      evidence.baseline.reports.at(-1) as AdoptReport,
+      previous,
+      baselineSource.version,
+    );
+    evidence.sourceVersion = baselineSource.version;
+    evidence.sourceCommit = baselineSource.commit;
     successful("git", ["add", "."]);
     commit("test: establish previous release adoption");
     evidence.baseline.committedHead = successful("git", [
@@ -405,20 +484,56 @@ export async function verifyPublicUpdate(options: {
     evidence.update.report = report;
     assert.equal(result.status, 0, result.stdout + result.stderr);
     assert.equal(
+      report.format,
+      candidateFormats.adopt,
+      "Unsupported candidate adopt report format.",
+    );
+    assert.equal(
       report.outcome,
       "complete",
       `One adopt stopped with ${report.outcome}.`,
+    );
+    assertLearningAdopt(report, version, baselineSource.version);
+    assert.equal(
+      report.selection.platform,
+      platform,
+      "Adopt selected another platform.",
+    );
+    assert.deepEqual(
+      report.missing,
+      [],
+      "A complete update must have no open questions.",
+    );
+    assert.deepEqual(
+      report.blockers,
+      [],
+      "A complete update must have no blockers.",
     );
     const status = JSON.parse(
       successful(pinned, ["status", "--json"], "update"),
     ) as ReadyStatus;
     evidence.update.status = status;
     assert.equal(
+      status.format,
+      candidateFormats.status,
+      "Unsupported candidate status report format.",
+    );
+    assert.equal(
       status.readyToCommit,
       true,
       "The one-invocation update is not ready to commit.",
     );
-    assert.equal(status.selection.cli.version, version);
+    const updatedSource = assertLearningStatus(status, version);
+    assert.equal(
+      status.selection.platform,
+      platform,
+      "Updated status must retain its platform.",
+    );
+    assert.deepEqual(
+      updatedSource,
+      baselineSource,
+      "The update must preserve the baseline public source identity.",
+    );
     const line = status.impact?.derived;
     assert.ok(
       typeof line === "string" &&

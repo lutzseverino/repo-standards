@@ -91,6 +91,11 @@ function fixture(
     statusVersion?: string;
     action?: string | null;
     versions?: Record<string, object>;
+    mutate?: (
+      report: Record<string, unknown>,
+      command: "adopt" | "status",
+      phase: string,
+    ) => void;
   } = {},
 ) {
   const root = mkdtempSync(join(tmpdir(), "repo-standards-public-update-"));
@@ -166,14 +171,17 @@ function fixture(
                 ).length,
                 2,
               );
+              const report = {
+                format: "repo-standards/adopt/v2",
+                outcome: options.outcome ?? "complete",
+                selection: { ...selection, cli: "10.0.0", platform: "github" },
+                missing: [],
+                blockers: [],
+              };
+              options.mutate?.(report, "adopt", phase);
               return {
                 status: options.exit ?? 0,
-                stdout:
-                  options.stdout ??
-                  JSON.stringify({
-                    outcome: options.outcome ?? "complete",
-                    selection,
-                  }),
+                stdout: options.stdout ?? JSON.stringify(report),
                 stderr: "",
               };
             }
@@ -197,7 +205,8 @@ function fixture(
                       { id: "assessment:source-layout", answer: null },
                     ]
                   : [];
-            return success({
+            const report = {
+              format: "repo-standards/adopt/v1",
               outcome:
                 baselineRounds === 1
                   ? "answers-required"
@@ -212,11 +221,17 @@ function fixture(
                 source,
                 questions,
               },
-            });
+            };
+            options.mutate?.(report, "adopt", phase);
+            return success(report);
           }
           assert.deepEqual(args, ["status", "--json"]);
           statuses++;
-          return success({
+          const report = {
+            format:
+              statuses === 1
+                ? "repo-standards/status/v8"
+                : "repo-standards/status/v9",
             readyToCommit: statuses === 1 ? true : (options.ready ?? true),
             selection: {
               cli: {
@@ -231,6 +246,7 @@ function fixture(
                 commit: "b".repeat(40),
               },
               profile: "work",
+              ...(statuses === 1 ? {} : { platform: "github" }),
             },
             impact:
               options.action === null
@@ -240,7 +256,9 @@ function fixture(
                       options.action ??
                       "Exact update: nothing is needed beyond reviewing and committing the update.",
                   },
-          });
+          };
+          options.mutate?.(report, "status", phase);
+          return success(report);
         },
       }),
   };
@@ -334,6 +352,129 @@ for (const [name, options] of [
       ).length,
       1,
     );
+  });
+}
+
+for (const [name, command, path, value, phase = "update"] of [
+  ["missing adopt format", "adopt", ["format"], undefined],
+  ["retired adopt format", "adopt", ["format"], "repo-standards/adopt/v0"],
+  ["predecessor adopt format", "adopt", ["format"], "repo-standards/adopt/v1"],
+  ["missing adopt selection", "adopt", ["selection"], undefined],
+  ["predecessor adopt CLI", "adopt", ["selection", "cli"], "9.0.0"],
+  [
+    "different adopt source",
+    "adopt",
+    ["selection", "source"],
+    "https://github.com/other/standards",
+  ],
+  ["different adopt profile", "adopt", ["selection", "profile"], "service"],
+  [
+    "different adopt source release",
+    "adopt",
+    ["selection", "version"],
+    "v2.0.0",
+  ],
+  ["missing adopt source release", "adopt", ["selection", "version"], null],
+  ["missing adopt platform", "adopt", ["selection", "platform"], undefined],
+  ["different adopt platform", "adopt", ["selection", "platform"], "forgejo"],
+  ["complete with questions", "adopt", ["missing"], ["inspection"]],
+  ["complete with blockers", "adopt", ["blockers"], [{ code: "BLOCKED" }]],
+  ["missing status format", "status", ["format"], undefined],
+  [
+    "predecessor status format",
+    "status",
+    ["format"],
+    "repo-standards/status/v8",
+  ],
+  ["missing status selection", "status", ["selection"], undefined],
+  ["missing status standards", "status", ["selection", "standards"], undefined],
+  [
+    "different status source",
+    "status",
+    ["selection", "standards", "repository"],
+    "https://github.com/other/standards",
+  ],
+  ["different status profile", "status", ["selection", "profile"], "service"],
+  [
+    "different status release",
+    "status",
+    ["selection", "standards", "version"],
+    "v2.0.0",
+  ],
+  [
+    "different status commit",
+    "status",
+    ["selection", "standards", "commit"],
+    "c".repeat(40),
+  ],
+  [
+    "missing status commit",
+    "status",
+    ["selection", "standards", "commit"],
+    undefined,
+  ],
+  [
+    "invalid status commit",
+    "status",
+    ["selection", "standards", "commit"],
+    "not-a-commit",
+  ],
+  ["different status platform", "status", ["selection", "platform"], "forgejo"],
+  ["missing status platform", "status", ["selection", "platform"], undefined],
+  [
+    "different baseline adopt release",
+    "adopt",
+    ["selection", "version"],
+    "v2.0.0",
+    "baseline",
+  ],
+  [
+    "missing baseline source release",
+    "status",
+    ["selection", "standards", "version"],
+    undefined,
+    "baseline",
+  ],
+  [
+    "invalid baseline source release",
+    "status",
+    ["selection", "standards", "version"],
+    "v3.0.0-next.1",
+    "baseline",
+  ],
+  [
+    "missing baseline commit",
+    "status",
+    ["selection", "standards", "commit"],
+    undefined,
+    "baseline",
+  ],
+  [
+    "invalid baseline commit",
+    "status",
+    ["selection", "standards", "commit"],
+    "not-a-commit",
+    "baseline",
+  ],
+] as const) {
+  test(`public update acceptance rejects ${name}`, async (t) => {
+    const f = fixture(t, {
+      mutate(report, reportedCommand, reportedPhase) {
+        if (reportedCommand !== command || reportedPhase !== phase) return;
+        let target = report;
+        for (const key of path.slice(0, -1))
+          target = target[key] as Record<string, unknown>;
+        target[path.at(-1)!] = value;
+      },
+    });
+    const result = await f.run();
+    assert.equal(result.passed, false, name);
+    assert.ok(result.failure);
+    const updates = f.calls.filter(
+      ({ phase, args }) => phase === "update" && args.includes("adopt"),
+    );
+    assert.equal(updates.length, phase === "baseline" ? 0 : 1);
+    if (phase === "update") assert.ok(result.update!.report);
   });
 }
 
