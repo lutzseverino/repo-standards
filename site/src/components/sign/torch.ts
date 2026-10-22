@@ -12,8 +12,9 @@
 // the beam reaches, in that plate's own coordinates, and the lit edges of
 // shadcn components. Writing them to the root would restyle the whole page
 // every frame. Plates far from the beam or off screen switch their lit copy
-// off and get no writes. The page-wide layers are fixed-size discs that only
-// move and scale, so the compositor animates them without repainting.
+// off and get no writes. The page-wide layers are window-sized and paint
+// their disc where the torch tells them; see light.css for why they never
+// scale.
 import { useEffect } from "react";
 import type { Theme } from "@/lib/theme";
 
@@ -29,9 +30,6 @@ export const EYE = 1100;
 
 /** The shadcn components whose edges light.css lights, by their data-slot. */
 const LIT_EDGES = '[data-slot="input-group"], [data-slot="toggle-group-item"]';
-
-/** The page-wide layers' disc diameter in CSS; the torch scales it. */
-const DISC = 1000;
 
 type Origin = {
   el: HTMLElement;
@@ -182,12 +180,14 @@ export function useTorch(theme: Theme | null) {
         edge.style.setProperty("--edge-r", bry);
       }
 
-      // the layers move and scale on the compositor, so no frame repaints them
       for (const layer of layers) {
-        const disc = layer.firstElementChild as HTMLElement | null;
-        if (!disc) continue;
-        const d = minor * Number(layer.dataset.lightLayer);
-        disc.style.transform = `translate3d(${(cur.x - d / 2).toFixed(1)}px, ${(cur.y - d / 2).toFixed(1)}px, 0) scale(${(d / DISC).toFixed(4)})`;
+        const s = layer.style;
+        s.setProperty("--disc-x", px);
+        s.setProperty("--disc-y", py);
+        s.setProperty(
+          "--disc-r",
+          `${((minor * Number(layer.dataset.lightLayer)) / 2).toFixed(0)}px`,
+        );
       }
 
       const ax = cur.x + sx;

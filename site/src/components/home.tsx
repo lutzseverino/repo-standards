@@ -51,9 +51,7 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
           className={`light-layer ${name}`}
           data-light-layer={k}
           aria-hidden="true"
-        >
-          <i />
-        </div>
+        />
       ))}
       <main className="page mx-auto max-w-6xl px-6 pt-10 pb-32">
         <nav className="mb-8 flex items-center justify-end gap-1 text-[15px]">
