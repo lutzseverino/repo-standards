@@ -26,7 +26,7 @@ Then inspect a selection:
 
 ```sh
 cd /path/to/adopting-project
-"$HOME/.local/bin/repo-standards-bootstrap" --cli-version 9.0.0 inspect \
+"$HOME/.local/bin/repo-standards-bootstrap" --cli-version 10.0.0 inspect \
   --source https://github.com/OWNER/STANDARDS \
   --standards-version v1.2.3 --profile work --json
 ```
@@ -67,14 +67,14 @@ report into the project if the entire invocation must leave it unchanged.
 
 The bootstrap removes its temporary runtime after inspection. To continue,
 install the disclosed exact version in a persistent directory outside the
-adopting project (replace `9.0.0` with that version):
+adopting project (replace `10.0.0` with that version):
 
 ```sh
-adoption_cli="$HOME/.local/share/repo-standards/cli-9.0.0"
+adoption_cli="$HOME/.local/share/repo-standards/cli-10.0.0"
 mkdir -p "$adoption_cli"
 (cd "$adoption_cli" && npm install --prefix "$adoption_cli" \
   --ignore-scripts --save-exact --no-audit --no-fund \
-  @lutzseverino/repo-standards@9.0.0)
+  @lutzseverino/repo-standards@10.0.0)
 "$adoption_cli/node_modules/.bin/repo-standards" --version
 ```
 
@@ -419,7 +419,7 @@ the source flags to keep the current retained standards, or pass them to change
 the standards selection in the same inspection:
 
 ```sh
-repo-standards-bootstrap --cli-version 9.0.0 inspect --json
+repo-standards-bootstrap --cli-version 10.0.0 inspect --json
 ```
 
 Selecting a standards version, source, or profile requires its public source.

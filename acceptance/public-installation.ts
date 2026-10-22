@@ -355,7 +355,7 @@ try {
     "--source",
     source,
     "--standards-version",
-    "v2.0.0",
+    "v3.0.0",
     "--profile",
     "service",
     "--json",
