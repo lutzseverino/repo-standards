@@ -14,6 +14,11 @@ import {
 import { arch, platform, release, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { snapshot } from "../test/installed-cli.ts";
+import {
+  requestCount,
+  verifyPublicUpdate,
+  type UpdateEvidence,
+} from "./public-update.ts";
 
 const [version, evidencePath] = process.argv.slice(2);
 if (
@@ -40,14 +45,20 @@ const configuration = join(root, "empty.npmrc");
 writeFileSync(configuration, "");
 const globalConfiguration = join(root, "global.npmrc");
 writeFileSync(globalConfiguration, "");
-const env = {
+const requestLog = join(root, "public-requests.jsonl");
+writeFileSync(requestLog, "");
+const env: NodeJS.ProcessEnv = {
   ...process.env,
   npm_config_registry: "https://registry.npmjs.org/",
   npm_config_userconfig: configuration,
   npm_config_globalconfig: globalConfiguration,
   npm_config_cache: join(root, "npm-cache"),
   XDG_CACHE_HOME: join(root, "cache"),
+  NODE_OPTIONS: `--import=${new URL("./observe-public-requests.ts", import.meta.url).href}`,
+  REPO_STANDARDS_ACCEPTANCE_REQUEST_LOG: requestLog,
 };
+delete env.GH_TOKEN;
+delete env.GITHUB_TOKEN;
 const commands: {
   executable: string;
   args: string[];
@@ -111,6 +122,7 @@ async function awaitPublished<T>(
 }
 let passed = false;
 let failure: string | undefined;
+let updateGate: UpdateEvidence | undefined;
 const retry = [
   "node",
   "acceptance/public-installation.ts",
@@ -126,10 +138,11 @@ try {
     args: string[],
     cwd = root,
     timeout = 300_000,
+    environment = env,
   ) {
     const result = spawnSync(executable, args, {
       cwd,
-      env,
+      env: environment,
       encoding: "utf8",
       timeout,
       maxBuffer: 32 * 1024 * 1024,
@@ -377,6 +390,16 @@ try {
       projectUnchanged: true,
     }),
   );
+  updateGate = await verifyPublicUpdate({
+    version,
+    root,
+    env,
+    requestLog,
+    execute: (executable, args, cwd, environment) =>
+      execute(executable, args, cwd, 300_000, environment),
+  });
+  assert.equal(updateGate.passed, true, updateGate.failure);
+  console.log(`Adopter action: ${updateGate.update!.adopterAction}`);
   passed = true;
 } catch (error) {
   failure = error instanceof Error ? error.message : String(error);
@@ -404,8 +427,10 @@ try {
         propagation,
         commands,
         downloads,
+        requests: requestCount(requestLog),
+        updateGate,
         scope:
-          "Public installation, packaged author validation, clean checkout-bound Wayfinder validation, discovery and read-only bootstrap. No adoption or real-agent assessment.",
+          "Public installation, packaged author validation, clean checkout-bound Wayfinder validation, discovery, read-only bootstrap, and a previous-release public-source adoption followed by one update. Baseline judgments are scripted; no real-agent assessment or deployment verification.",
       },
       null,
       2,

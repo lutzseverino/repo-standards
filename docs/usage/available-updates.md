@@ -28,6 +28,23 @@ agent. Apply an update through inspection and start as described in
 [Adoption](adoption.md). To have every available update proposed as a pull
 request instead, opt in to the [update action](automated-updates.md).
 
+## Release policy
+
+There is no stability promise. Releases are frequent, and every release,
+including a breaking release, must be adoptable from the previous release in
+one `adopt` invocation without hand edits. Published acceptance proves the CLI
+update with the public learning source; it does not replace contextual agent
+assessment or establish that a deployment is healthy. A change that cannot
+update in one step is redesigned before its release is complete. Work outside
+adoption is an adopter action, which the update still completes around.
+
+To stay current, run `outdated` with the project's pinned CLI, then run `adopt`
+with the new CLI to update the selection. Review and commit the resulting run.
+The opt-in [update action](automated-updates.md) checks daily and proposes every
+available update as one rolling pull request, or reports the questions that
+need agent work. Release notes open with the same derived adopter-action line
+the update reports, followed by any author-written actions outside adoption.
+
 ## Output formats
 
 Without `--json`, `outdated` prints a Markdown report. The same report renders

@@ -94,6 +94,13 @@ Read the externally installed skill, then follow the same agent journey below,
 using the session's recorded source, standards version and profile.
 Record published bootstrap/discovery separately with
 `node acceptance/public-installation.ts "$PUBLISHED_CLI_VERSION" /outside/evidence.json`.
+That helper also establishes a prepared public-source adoption with the
+previous stable npm CLI, commits it, then requires one unanswered invocation of
+the candidate CLI to complete an update ready to commit. Its scripted baseline
+judgments and request counts establish automated update-path evidence, not a
+real-agent assessment; the [release policy](../docs/usage/available-updates.md#release-policy)
+and [published acceptance](../docs/development/release.md#published-acceptance)
+describe its gate and evidence.
 Public release evidence must also cover the normal project commit, fresh-checkout
 restoration, retained-source use and independent updates described in
 [the release procedure](../docs/development/release.md#published-acceptance).

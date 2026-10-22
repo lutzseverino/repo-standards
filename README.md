@@ -81,6 +81,11 @@ settings can be deferred while adoption completes locally. The
 [architecture contracts](docs/development/architecture.md) describe the
 product's behavior.
 
+Releases are frequent and carry no stability promise. Every release must update
+from the previous one in one `adopt`, without hand edits; published acceptance
+verifies that path. Check `outdated` to stay current, or opt in to automated
+update pull requests. See the [release policy](docs/usage/available-updates.md#release-policy).
+
 ## Documentation
 
 [Documentation](docs/README.md)
