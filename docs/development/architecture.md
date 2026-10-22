@@ -862,11 +862,33 @@ format identities, including a same-prefix version that is not `vN` such as
 `repo-standards/state/vnext`, are not classified as retired or newer. They
 fail integrity validation when a command reads that record.
 
-A format's version rises when its keys change: a key is added, removed,
-renamed, or changes type. A value an earlier reader would reject, such as a new
-enumerated status, counts as a change. Changed values under the same keys, such
-as embedded content or digests, keep the version. Raise each format at most
-once per release; a branch that rebases onto a merge that already raised a
+### Format versions
+
+A persisted record or public report's format version rises when its keys
+change: a key is added, removed, renamed, or changes type. A value an earlier
+reader would reject, such as a new enumerated status, counts as a change.
+Changed values under the same keys, such as embedded content or digests, keep
+the version.
+
+An author-facing input format may gain an optional key without a version rise
+when existing inputs remain valid with the same meaning. This covers operation
+and discovery input, which the CLI sends to author scripts, and scope proposals,
+which the CLI reads from discovery scripts or agents. The optional `invocation`
+key in `repo-standards/operation/v2` and `noScope` in
+`repo-standards/scope/v2` follow this rule
+([ADR 0023](../adr/0023-let-an-optional-discovery-declaration-have-no-scope.md)).
+It does not require an older reader to accept a new key: an older CLI rejects
+`noScope` as unknown rather than misreading the proposal. A source using that
+key declares a CLI compatibility range it has validated. Keeping the input
+format lets producers that do not use the extension keep their existing
+output; raising the scope format would require every discovery script to
+change it.
+
+Other input shape or meaning changes still raise the input format's version:
+adding a required key, removing or renaming a key, changing its type, or changing
+the meaning or accepted values of existing input. The optional-input exception
+does not apply to persisted records or public reports. Raise each format at
+most once per release; a branch that rebases onto a merge that already raised a
 format keeps that raise and does not raise it again.
 
 ### Committed evidence
