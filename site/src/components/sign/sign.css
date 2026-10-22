@@ -1,0 +1,879 @@
+/* The sign art: RAL traffic colours, D-DIN PRO, sheeted sign plates lit by a
+   hand torch, in a light and a dark theme. The light on shadcn components and
+   the page-wide light layers live in light.css.
+
+   Scale model: the hero assembly is about 3 m wide, so 1 px is about 4 mm.
+   Posts are 76 mm galvanised tube (about 19 px), gaps between plates about
+   60 mm, sheeting seal cells a few millimetres, so they read as texture. */
+
+@font-face {
+  font-family: "D-DIN PRO";
+  src: url("/fonts/d-din-pro/D-DIN-PRO-400-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "D-DIN PRO";
+  src: url("/fonts/d-din-pro/D-DIN-PRO-500-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "D-DIN PRO";
+  src: url("/fonts/d-din-pro/D-DIN-PRO-700-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "D-DIN PRO Condensed";
+  src: url("/fonts/d-din-pro/D-DIN-PRO-Condensed-500-Medium.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "D-DIN PRO Condensed";
+  src: url("/fonts/d-din-pro/D-DIN-PRO-Condensed-700-Bold.woff2")
+    format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* ================= tokens =================
+   Light: the page by day; plates keep their daylight colours, and the beam
+   adds the retroreflected boost, the rainbow and the glare. Dark: the page at
+   night; plates outside the beam fall back to ambient, and retroreflection
+   makes them blaze inside it. RAL traffic colours, tuned for screens: 5017
+   Verkehrsblau plates, 1023 Verkehrsgelb focus only. */
+:root {
+  --verkehrsblau: #0b4c96;
+  --verkehrsgelb: #f7c600;
+  --font-sign: "D-DIN PRO Condensed", "D-DIN PRO", "Arial Narrow", sans-serif;
+  /* how much of the beam is hotspot, and the lit copy's strength */
+  --hot: 20%;
+  --lit: 0.96;
+
+  /* unlit: daylight colours */
+  --blue: var(--verkehrsblau);
+  --blue-line: #fff;
+  --blue-ink: #fff;
+  --white: #f4f5f1;
+  --white-ink: #2b2e30;
+  /* lit: the retroreflected boost, smaller by day */
+  --blue-lit: #1762c8;
+  --shield-lit: #155cc0;
+  --white-lit: #fffef6;
+  --white-ink-lit: #1b1d1f;
+
+  --post-filter: none;
+  --card-border: color-mix(in oklab, #2b2e30 18%, #f3f4f2);
+  --rail-steel: #8a8f95;
+  --rail-strip: #c6cace;
+  --rail-shade: rgba(0, 0, 0, 0.18);
+  --rail-hot: #ffffff;
+  --rail-warm: #dfe2e5;
+  --rail-cold: #b5babf;
+}
+
+.dark {
+  /* unlit: night ambient only, legends a neutral grey */
+  --blue: #15294a;
+  --blue-line: #7c8188;
+  --blue-ink: #a2a6ac;
+  --white: #7e8186;
+  --white-ink: #15171a;
+  /* lit */
+  --blue-lit: #1d6ad9;
+  --shield-lit: #1765d6;
+  --white-lit: #fffcf0;
+  --white-ink-lit: #111;
+
+  --post-filter: brightness(0.3) saturate(0.5);
+  --card-border: color-mix(in oklab, #e8eae7 16%, #0d0f11);
+  --rail-steel: #2a2e32;
+  --rail-strip: #40454a;
+  --rail-shade: rgba(0, 0, 0, 0.5);
+  --rail-hot: #fff6e4;
+  --rail-warm: #aab0b6;
+  --rail-cold: #4a4f54;
+}
+
+/* Focus: traffic yellow, which is clear on the night page. On the day page
+   yellow alone is too faint, so the ring is two-tone like a hazard marking:
+   a yellow band edged in black. */
+:root {
+  --focus-edge: #2b2e30;
+}
+.dark {
+  --focus-edge: var(--verkehrsgelb);
+}
+:focus-visible {
+  outline: 3px solid var(--focus-edge);
+  outline-offset: 3px;
+}
+:root:not(.dark) :focus-visible {
+  box-shadow: 0 0 0 3px var(--verkehrsgelb);
+}
+/* a field's ring goes round the whole input group, not the input inside */
+:root [data-slot="input-group-control"]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+[data-slot="input-group"]:has(
+  > [data-slot="input-group-control"]:focus-visible
+) {
+  outline: 3px solid var(--focus-edge);
+  outline-offset: 3px;
+}
+:root:not(.dark)
+  [data-slot="input-group"]:has(
+    > [data-slot="input-group-control"]:focus-visible
+  ) {
+  box-shadow: 0 0 0 3px var(--verkehrsgelb);
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+/* the plates' lit copies are wider than the plates; they must not widen
+   the page on a phone */
+.page {
+  position: relative;
+  overflow-x: clip;
+}
+
+/* ================= hero: the sign assembly =================
+   The whole assembly tilts as one flat object. It is not a 3D scene: with
+   preserve-3d the browser hit-tested the plates unreliably while the tilt
+   moved, and the link cursor flickered. The tilt writes its properties to
+   the assembly every frame; they are registered as not inherited, so only
+   the tubes and the glare, which ask for them, restyle. */
+@property --tilt-x {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@property --tilt-y {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@property --post-hl {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 38%;
+}
+/* where the plates face the eye, in page coordinates */
+@property --gxp {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: -9999px;
+}
+@property --gyp {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: -9999px;
+}
+.assembly .posts,
+.assembly .tube {
+  --post-hl: inherit;
+}
+.assembly .mount,
+.assembly .face-wrap,
+.assembly .lit-rot,
+.assembly .face--lit,
+.assembly .glare {
+  --gxp: inherit;
+  --gyp: inherit;
+}
+.assembly {
+  position: relative;
+  transform-origin: 50% 100%;
+  transform: perspective(1600px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  padding-bottom: 76px; /* post run down to the ground */
+}
+@media (prefers-reduced-motion: reduce) {
+  .assembly {
+    transform: none;
+  }
+}
+.posts {
+  position: absolute;
+  inset: 34px 0 0 0; /* posts start hidden behind the title plate */
+  pointer-events: none;
+}
+.tube {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 19px;
+  transform: translateX(-50%);
+  filter: var(--post-filter);
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='38' height='160'><filter id='s'><feTurbulence type='fractalNoise' baseFrequency='0.05 0.012' numOctaves='3' seed='4'/><feColorMatrix values='0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.5  0.9 0 0 0 -0.25'/></filter><rect width='100%' height='100%' filter='url(%23s)'/></svg>"),
+    linear-gradient(
+      90deg,
+      #5d615e 0%,
+      #8e928e 16%,
+      #c9ccc7 calc(var(--post-hl) - 8%),
+      #e9ebe6 var(--post-hl),
+      #b9bcb7 calc(var(--post-hl) + 10%),
+      #8a8e8a 74%,
+      #5a5e5b 100%
+    );
+  background-size:
+    38px 160px,
+    100% 100%;
+  background-blend-mode: soft-light, normal;
+}
+.tube::after {
+  /* contact shadow where the tube enters the ground */
+  content: "";
+  position: absolute;
+  left: -14px;
+  right: -14px;
+  bottom: -5px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.35), transparent);
+}
+
+/* A mount is one plate on the posts. */
+.mount {
+  position: relative;
+}
+.mount + .mount {
+  margin-top: 16px;
+}
+/* Tabs attached on top of a plate, like exit numbers and distances. */
+.mount--tab {
+  width: max-content;
+  margin-left: auto;
+  margin-right: 5%;
+}
+.mount--tab + .mount {
+  margin-top: 0;
+}
+/* by day the plates throw a shadow on the posts and the page */
+:root:not(.dark) .assembly .face:not(.face--lit) {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35),
+    0 10px 16px -10px rgba(0, 0, 0, 0.55);
+}
+
+.hero-rail {
+  width: 100%;
+  height: 40px;
+  margin-top: -8px;
+}
+
+/* ================= plates =================
+   A Face and its lit copy share one grid cell, so the lit copy can never be
+   larger than the plate it lights. */
+.face-wrap {
+  position: relative;
+  display: grid;
+  align-self: start;
+  /* --ox/--oy is this plate's page position, written once per layout. The
+     torch writes the aim point in plate coordinates, --lx/--ly, to the lit
+     copy. */
+}
+.face-wrap > * {
+  grid-area: 1 / 1;
+}
+
+.face {
+  position: relative;
+  display: block;
+  border-radius: 11px;
+  overflow: hidden;
+  isolation: isolate;
+  text-decoration: none;
+  font-family: var(--font-sign);
+  background: var(--face-bg);
+  color: var(--face-ink);
+}
+/* the border line sits above the sheeting */
+.face::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 3px solid var(--face-line);
+  border-radius: 8px;
+  z-index: 2;
+  pointer-events: none;
+}
+.face--blue {
+  --face-bg: var(--blue);
+  --face-line: var(--blue-line);
+  --face-ink: var(--blue-ink);
+}
+.face--white {
+  --face-bg: var(--white);
+  --face-line: var(--white-ink);
+  --face-ink: var(--white-ink);
+}
+.face--lit.face--blue {
+  --face-bg: var(--blue-lit);
+  --face-line: #fff;
+  --face-ink: #fff;
+}
+.face--lit.face--white {
+  --face-bg: var(--white-lit);
+  --face-line: var(--white-ink-lit);
+  --face-ink: var(--white-ink-lit);
+}
+.face__inner {
+  position: relative;
+  z-index: 3;
+}
+a.face:focus-visible {
+  outline: 4px solid var(--focus-edge);
+  outline-offset: 5px;
+}
+:root:not(.dark) a.face:focus-visible {
+  box-shadow: 0 0 0 5px var(--verkehrsgelb);
+}
+/* the hero plates keep their shadow by day */
+:root:not(.dark) .assembly a.face:focus-visible {
+  box-shadow:
+    0 0 0 5px var(--verkehrsgelb),
+    0 10px 16px -10px rgba(0, 0, 0, 0.55);
+}
+/* both copies of an arrow move together */
+.face .sign-arrow {
+  transition: transform 180ms ease;
+}
+.face-wrap:has(> a.face:hover) .sign-arrow,
+.face-wrap:has(> a.face:focus-visible) .sign-arrow {
+  transform: translateX(6px);
+}
+
+/* White inset strip on a blue plate, as German signs carry Einsätze. */
+.inset {
+  display: block;
+  background: var(--white);
+  color: var(--white-ink);
+  border-radius: 5px;
+  padding: 6px 14px 7px;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+.face--lit .inset {
+  background: var(--white-lit);
+  color: var(--white-ink-lit);
+}
+
+/* Route-shield badge: blue field, white border, white figures. */
+.shield {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 7px;
+  padding: 2px 10px 3px;
+  background: var(--blue);
+  box-shadow:
+    inset 0 0 0 2px var(--blue),
+    inset 0 0 0 4px var(--blue-line);
+  color: var(--blue-ink);
+  font-family: var(--font-sign);
+  font-weight: 700;
+  line-height: 1.15;
+}
+.face--lit .shield {
+  background: var(--shield-lit);
+  box-shadow:
+    inset 0 0 0 2px var(--shield-lit),
+    inset 0 0 0 4px #fff;
+  color: #fff;
+}
+
+.tab-face {
+  border-radius: 9px 9px 0 0;
+  padding: 7px 18px 6px;
+  font-weight: 700;
+}
+.tab-face::after {
+  inset: 4px 4px 0;
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+}
+
+/* ================= sheeting ================= */
+.css-sheet {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: inherit;
+  --mx: var(--lx, -9999px);
+  --my: var(--ly, -9999px);
+}
+.css-sheet > i {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+/* seal lattice, a diamond grid every 5 px */
+.css-sheet .seal {
+  --seal: rgba(255, 255, 255, 0.035);
+  background:
+    repeating-linear-gradient(45deg, var(--seal) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(-45deg, var(--seal) 0 1px, transparent 1px 5px);
+}
+.face--white .css-sheet .seal,
+.inset .css-sheet .seal {
+  --seal: rgba(0, 0, 0, 0.022);
+}
+/* Large plates are built from horizontal aluminium slats about 200 mm tall,
+   so a joint every 50 px; neighbouring slats differ slightly, as each carries
+   its own piece of sheeting. */
+.css-sheet .slats {
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.025) 0 49px,
+    rgba(0, 0, 0, 0.2) 49px 50px,
+    rgba(0, 0, 0, 0.035) 50px 99px,
+    rgba(0, 0, 0, 0.2) 99px 100px,
+    rgba(255, 255, 255, 0) 100px 149px,
+    rgba(0, 0, 0, 0.2) 149px 150px
+  );
+}
+/* Microprismatic sheeting splits light into a rainbow at the beam's rim. A
+   conic gradient round the light that starts and ends on the same colour has
+   no seam anywhere. */
+.css-sheet .rainbow {
+  background: conic-gradient(
+    from 200deg at var(--mx) var(--my),
+    #ff5e9c,
+    #ffd35e,
+    #6effc2,
+    #5ec8ff,
+    #b06eff,
+    #ff5e9c
+  );
+  mix-blend-mode: screen;
+  opacity: 0.4;
+  mask-image: radial-gradient(
+    circle var(--br) at var(--mx) var(--my),
+    transparent var(--ring-in),
+    #000 var(--ring-peak),
+    transparent var(--ring-out)
+  );
+}
+.face--white .css-sheet .rainbow {
+  mix-blend-mode: multiply;
+}
+
+/* ================= the torch =================
+   The torch writes the beam to each lit copy (.lit-rot) every frame. The
+   properties are registered as not inherited, so a write restyles only the
+   few elements that ask for them with `inherit`, not the whole plate. */
+@property --lx {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: -9999px;
+}
+@property --ly {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: -9999px;
+}
+@property --bx {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: -9999px;
+}
+@property --by {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: -9999px;
+}
+@property --br {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 760px;
+}
+@property --brx {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 400px;
+}
+@property --bry {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 400px;
+}
+@property --hoff {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --bang {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0rad;
+}
+@property --gain {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+/* the lit plate, its sheeting, rainbow and glints read the beam */
+.lit-rot > .face--lit {
+  --bang: inherit;
+  --lx: inherit;
+  --ly: inherit;
+  --br: inherit;
+}
+.face--lit > .css-sheet,
+.face--lit > .lit-glint {
+  --lx: inherit;
+  --ly: inherit;
+  --br: inherit;
+}
+.face--lit > .css-sheet > .rainbow {
+  --br: inherit;
+}
+
+/* Each plate renders twice, an unlit copy and a lit copy masked to the beam.
+   The beam is a cone from the eye. .lit-rot is a frame rotated to the beam,
+   so its elliptical footprint can lie along the beam; the lit plate inside
+   is counter-rotated back. --bx/--by is the aim point in that frame. A
+   smaller ellipse on the near side makes that side brighter, and --gain dims
+   the light as it arrives at a slant. */
+.lit-rot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--S, 0px);
+  height: var(--S, 0px);
+  transform: translate(-50%, -50%) rotate(var(--bang));
+  pointer-events: none;
+  z-index: 1;
+  opacity: calc(var(--lit) * var(--gain));
+  will-change: mask-image;
+  mask-image:
+    radial-gradient(
+      var(--brx) var(--bry) at var(--bx) var(--by),
+      #000 0%,
+      rgba(0, 0, 0, 0.9) var(--hot),
+      rgba(0, 0, 0, 0.42) 72%,
+      transparent 100%
+    ),
+    radial-gradient(
+      calc(var(--brx) * 0.55) calc(var(--bry) * 0.6) at
+        calc(var(--bx) - var(--hoff)) var(--by),
+      rgba(0, 0, 0, 0.35),
+      transparent
+    );
+}
+.lit-rot > .face--lit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--W, 0px);
+  height: var(--H, 0px);
+  margin: 0;
+  transform: translate(-50%, -50%) rotate(calc(-1 * var(--bang)));
+  pointer-events: none;
+}
+/* plates the beam cannot reach do no work at all */
+.lit-off > .lit-rot {
+  display: none;
+}
+/* the folded edge of a hero plate catches the beam */
+.assembly .face--lit {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.face--lit.face--blue::after {
+  box-shadow:
+    0 0 4px rgba(255, 255, 255, 0.55),
+    inset 0 0 3px rgba(255, 255, 255, 0.4);
+}
+/* prisms sparkle in the hotspot */
+.lit-glint {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.35' numOctaves='1' seed='11' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  11 0 0 0 -8.2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 140px 140px;
+  opacity: 0.5;
+  mask-image: radial-gradient(
+    circle calc(var(--br) * 0.5) at var(--lx) var(--ly),
+    #000,
+    transparent
+  );
+}
+.face--white .lit-glint {
+  opacity: 0.3;
+  filter: invert(0.6);
+}
+/* glare: the glossy film mirrors the torch where the plate faces the eye */
+.glare {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  /* it follows the sign's tilt (--gxp/--gyp, written to the assembly) */
+  background: radial-gradient(
+    150px 110px at calc(var(--gxp) - var(--ox, 0px))
+      calc(var(--gyp) - var(--oy, 0px)),
+    rgba(255, 255, 255, 0.22),
+    rgba(255, 255, 255, 0.07) 45%,
+    transparent 75%
+  );
+}
+.face--white .glare {
+  mix-blend-mode: normal;
+  opacity: 0.6;
+}
+/* Outside the hero, lit plates skip the layers that follow the beam inside
+   the plate (glints, rainbow ring, glare), so only their mask moves each
+   frame. */
+.lit-glint,
+.glare,
+.face--lit .css-sheet .rainbow {
+  display: none;
+}
+.assembly .lit-glint,
+.assembly .glare,
+.assembly .face--lit .css-sheet .rainbow {
+  display: block;
+}
+
+/* ================= LEDs =================
+   From close-up photos. Off: a small domed lens, dark, with a rim and a
+   highlight. On: a hot near-white core, a saturated halo, a four-point star
+   flare, and a coloured spill on the plate around the border. They flash
+   together at about one hertz and stay steady with reduced motion. Red, as on
+   Spanish crossing signs. */
+.leds {
+  position: relative;
+  pointer-events: none;
+  border-radius: 11px;
+  z-index: 6;
+  --led: 255 44 30;
+  --core: #fff3ec;
+  --lens: #3e1411;
+  --lens-rim: #1c0807;
+}
+/* Each layer is one tile laid along the four edges. The rows run the full
+   width; the columns are clipped to the padding-free middle, so no lens
+   repeats into a corner, and `round` fits whole lenses to every edge. */
+.leds > i {
+  position: absolute;
+  inset: 1.5px;
+  padding: 12px 0;
+  border-radius: 9.5px;
+  background:
+    var(--img) 0 0 / 16px 8px round no-repeat border-box,
+    var(--img) 0 100% / 16px 8px round no-repeat border-box,
+    var(--img) 0 0 / 8px 16px no-repeat round content-box,
+    var(--img) 100% 0 / 8px 16px no-repeat round content-box;
+}
+.leds .lens {
+  --img: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.55) 0 0.55px,
+    var(--lens) 0.9px 1.9px,
+    var(--lens-rim) 2.2px 2.6px,
+    transparent 3px
+  );
+}
+.leds .lens-shine {
+  --img: radial-gradient(
+    circle at 42% 40%,
+    rgba(255, 255, 255, 0.5) 0 0.5px,
+    transparent 0.9px
+  );
+}
+.leds .lit,
+.leds .flare-h,
+.leds .flare-v,
+.leds .spill {
+  animation: led-flash 1.1s steps(1, end) infinite;
+  will-change: opacity;
+}
+.leds .lit {
+  --img: radial-gradient(
+    circle at 50% 50%,
+    var(--core) 0 0.9px,
+    rgb(var(--led)) 1.5px,
+    rgb(var(--led) / 0.85) 2.1px,
+    rgb(var(--led) / 0.25) 3.4px,
+    transparent 4px
+  );
+  filter: drop-shadow(0 0 2px rgb(var(--led) / 0.9))
+    drop-shadow(0 0 6px rgb(var(--led) / 0.55));
+}
+.leds .flare-h {
+  --img: radial-gradient(
+    5.5px 0.55px at 50% 50%,
+    rgb(255 255 255 / 0.75),
+    rgb(var(--led) / 0.5) 45%,
+    transparent
+  );
+}
+.leds .flare-v {
+  --img: radial-gradient(
+    0.55px 3.6px at 50% 50%,
+    rgb(255 255 255 / 0.7),
+    rgb(var(--led) / 0.45) 45%,
+    transparent
+  );
+}
+.leds .spill {
+  inset: 0;
+  padding: 0;
+  border-radius: 11px;
+  background: none;
+  box-shadow:
+    inset 0 0 10px 1px rgb(var(--led) / 0.38),
+    0 0 14px rgb(var(--led) / 0.28);
+}
+@keyframes led-flash {
+  0% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .leds .lit,
+  .leds .flare-h,
+  .leds .flare-v,
+  .leds .spill {
+    animation: none;
+  }
+}
+
+/* ================= guardrail =================
+   The separator under the hero: a metal bar on a seeded curve, faded at both
+   ends, with a line of light along its top that catches the light. */
+.rail-svg {
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 14%,
+    #000 86%,
+    transparent
+  );
+}
+.rail-shadow,
+.rail-bar,
+.rail-sheen,
+.rail-top {
+  fill: none;
+  stroke-linecap: butt;
+}
+.rail-shadow {
+  stroke: var(--rail-shade);
+  stroke-width: 4;
+  transform: translateY(4.5px);
+}
+.rail-bar {
+  stroke: var(--rail-steel);
+  stroke-width: 6;
+}
+.rail-sheen {
+  stroke: var(--rail-strip);
+  stroke-width: 1.6;
+  transform: translateY(-1.2px);
+}
+.rail-top {
+  stroke-width: 1.2;
+  transform: translateY(-3px);
+}
+.rail-hot {
+  stop-color: var(--rail-hot);
+}
+.rail-warm {
+  stop-color: var(--rail-warm);
+}
+.rail-cold {
+  stop-color: var(--rail-cold);
+}
+
+/* ================= signposts =================
+   Each entry is a card headed by its plate, square where it meets the card,
+   with two tabs standing up from it. Entries span four rows of the grid and
+   line them up with their neighbours (subgrid): the plate, the copy control,
+   the text, the profiles. A shorter plate sits down on its card. */
+.posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  column-gap: 40px;
+}
+.posts-grid > li.entry {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+}
+.entry-sign {
+  display: grid;
+  align-self: end;
+}
+.signpost-tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 16px;
+}
+.signpost-tabs > .face-wrap {
+  align-self: end;
+  margin-bottom: -1px;
+}
+.signpost-tabs .tab-face {
+  padding: 4px 12px 3px;
+  font-size: 15px;
+}
+.signpost-tabs .exit-tab {
+  padding: 3px 10px 2px;
+}
+.signpost-tabs .tab-face::after {
+  inset: 3px 3px 0;
+  border-width: 2px;
+}
+.signpost-plate {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px 12px 0 0;
+  padding: 17px 20px 16px;
+}
+.signpost-plate::after {
+  inset: 3px;
+  border-width: 2px;
+  border-radius: 7px;
+}
+a.signpost-plate:focus-visible {
+  outline-offset: 4px;
+}
+:root:not(.dark) a.signpost-plate:focus-visible {
+  box-shadow: 0 0 0 4px var(--verkehrsgelb);
+}
+.signpost-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  font-size: 25px;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+.signpost-shield {
+  font-size: 15px;
+  padding: 1px 7px 2px;
+}
+.entry-body {
+  align-content: start;
+}
+.entry-body [data-slot="card-content"] > :nth-child(2) {
+  align-self: start;
+}

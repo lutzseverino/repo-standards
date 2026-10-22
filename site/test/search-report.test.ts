@@ -1,0 +1,103 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { test } from "node:test";
+import { buildCatalogue, type SearchInput } from "../src/lib/search-report.ts";
+
+const recording = new URL("../fixtures/search/", import.meta.url);
+const recordedPage = () =>
+  JSON.parse(readFileSync(new URL("page-1.json", recording), "utf8")) as {
+    incompleteResults: unknown;
+    candidates: { repository: string; profiles?: unknown }[];
+    rejected: { repository: string | null; code: string }[];
+  };
+
+/** The recorded search, with `change` applied to its page. */
+function input(change: (page: ReturnType<typeof recordedPage>) => void) {
+  const page = recordedPage();
+  change(page);
+  return {
+    page: () => Promise.resolve(page),
+    standards: (repository: string) =>
+      Promise.resolve(
+        readFileSync(
+          new URL(`standards/${repository}.yaml`, recording),
+          "utf8",
+        ),
+      ),
+  } satisfies SearchInput;
+}
+
+test("the recorded search becomes the catalogue", async () => {
+  const catalogue = await buildCatalogue(input(() => {}));
+  const canon = catalogue.sources.find(
+    (s) => s.repository === "lutzseverino/repo-canon",
+  );
+  assert.deepEqual(canon?.profiles, [
+    {
+      name: "standard",
+      description: "The Repo Canon standards for every adopting repository",
+    },
+    {
+      name: "factory",
+      description:
+        "The standard profile plus the factory's repository files and workflow rules, for a repository a factory serves",
+    },
+  ]);
+  assert.equal(catalogue.rejectedCount, recordedPage().rejected.length);
+});
+
+test("the list is alphabetical by display name", async () => {
+  const catalogue = await buildCatalogue(
+    input((page) => page.candidates.reverse()),
+  );
+  assert.deepEqual(
+    catalogue.sources.map((s) => s.name),
+    ["repo-canon", "repository-standards-examples"],
+  );
+});
+
+test("an incomplete search fails the build", async () => {
+  await assert.rejects(
+    buildCatalogue(input((page) => (page.incompleteResults = true))),
+    /GitHub marked the search results incomplete\. This is the intermittent result of https:\/\/github\.com\/lutzseverino\/repo-standards\/issues\/347/,
+  );
+});
+
+test("an empty search fails the build", async () => {
+  await assert.rejects(
+    buildCatalogue(input((page) => (page.candidates = []))),
+    /search returned no candidates\. This is the intermittent result of .*issues\/347/,
+  );
+});
+
+test("a search without Repo Canon fails the build", async () => {
+  await assert.rejects(
+    buildCatalogue(
+      input((page) => {
+        page.candidates = page.candidates.filter(
+          (c) => c.repository !== "https://github.com/lutzseverino/repo-canon",
+        );
+        page.rejected.push({
+          repository: "https://github.com/lutzseverino/repo-canon",
+          code: "NO_STABLE_RELEASE",
+        });
+      }),
+    ),
+    /search did not list lutzseverino\/repo-canon and rejected it as NO_STABLE_RELEASE\. This is the intermittent result of .*issues\/347/,
+  );
+});
+
+test("a malformed report fails the build", async () => {
+  await assert.rejects(
+    buildCatalogue(
+      input((page) => {
+        delete (page as { incompleteResults?: unknown }).incompleteResults;
+      }),
+    ),
+    /report does not have the expected shape: incompleteResults is not a boolean/,
+  );
+  await assert.rejects(
+    buildCatalogue(input((page) => delete page.candidates[0].profiles)),
+    /report does not have the expected shape: candidates\[0\]\.profiles is not an array/,
+  );
+});

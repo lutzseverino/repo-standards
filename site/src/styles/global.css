@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -21,7 +20,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --font-heading: var(--font-sans);
-  --font-sans: "Geist Variable", sans-serif;
+  --font-sans: "D-DIN PRO", "Helvetica Neue", Arial, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,24 +48,25 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  color-scheme: light;
+  --background: #f3f4f2;
+  --foreground: #2b2e30;
+  --primary: #0b4c96;
+  --primary-foreground: #fff;
+  --secondary: color-mix(in oklab, #2b2e30 10%, #f3f4f2);
+  --secondary-foreground: #2b2e30;
+  --muted: color-mix(in oklab, #2b2e30 9%, #f3f4f2);
+  --muted-foreground: #5f6462;
+  --accent: color-mix(in oklab, #2b2e30 9%, #f3f4f2);
+  --accent-foreground: #2b2e30;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --border: color-mix(in oklab, #2b2e30 30%, #f3f4f2);
+  --input: color-mix(in oklab, #2b2e30 30%, #f3f4f2);
+  --ring: #f7c600;
+  --card: color-mix(in oklab, #fff 60%, transparent);
+  --card-foreground: #2b2e30;
+  --popover: #fff;
+  --popover-foreground: #2b2e30;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -85,7 +85,9 @@
 
 @layer base {
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-size: 17px;
+    line-height: 1.45;
   }
   * {
     @apply border-border outline-ring/50;
@@ -96,24 +98,25 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  color-scheme: dark;
+  --background: #0d0f11;
+  --foreground: #e8eae7;
+  --card: color-mix(in oklab, #e8eae7 3.5%, transparent);
+  --card-foreground: #e8eae7;
+  --popover: #16191c;
+  --popover-foreground: #e8eae7;
+  --primary: #0a3f7d;
+  --primary-foreground: #fff;
+  --secondary: color-mix(in oklab, #e8eae7 10%, #0d0f11);
+  --secondary-foreground: #e8eae7;
+  --muted: color-mix(in oklab, #e8eae7 9%, #0d0f11);
+  --muted-foreground: #9ca19d;
+  --accent: color-mix(in oklab, #e8eae7 9%, #0d0f11);
+  --accent-foreground: #e8eae7;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: color-mix(in oklab, #e8eae7 30%, #0d0f11);
+  --input: color-mix(in oklab, #e8eae7 30%, #0d0f11);
+  --ring: #f7c600;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);

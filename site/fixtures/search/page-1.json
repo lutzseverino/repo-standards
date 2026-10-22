@@ -1,0 +1,83 @@
+{
+  "cliVersion": "9.0.0",
+  "topic": "repo-standards",
+  "notice": "Discovery is not an endorsement. Choose a source, stable version and profile yourself, then inspect before confirming adoption.",
+  "page": 1,
+  "totalCount": 7,
+  "incompleteResults": false,
+  "searchLimitReached": false,
+  "candidates": [
+    {
+      "repository": "https://github.com/lutzseverino/repo-canon",
+      "description": "Shared repository conventions for documentation, contribution, and agent workflows. Work in progress.",
+      "commit": "00f86f4b71cbb6cae1c0abb96cc4f448edb607de",
+      "release": {
+        "version": "v0.17.0",
+        "name": "v0.17.0",
+        "url": "https://github.com/lutzseverino/repo-canon/releases/tag/v0.17.0",
+        "publishedAt": "2026-10-19T15:08:01Z"
+      },
+      "source": {
+        "name": "repo-canon",
+        "description": "Repository documentation, contribution, agent workflow, and GitHub validation standards",
+        "requires": {
+          "repo-standards": ">=8.1.0"
+        }
+      },
+      "profiles": [
+        "standard",
+        "factory"
+      ]
+    },
+    {
+      "repository": "https://github.com/lutzseverino/repo-standards-example",
+      "description": "Synthetic service standards example for learning and verifying Repository Standards",
+      "commit": "e35b00436a94dccc70a94244554f22febb24a8d2",
+      "release": {
+        "version": "v3.0.0",
+        "name": "Repository Standards example 3.0.0",
+        "url": "https://github.com/lutzseverino/repo-standards-example/releases/tag/v3.0.0",
+        "publishedAt": "2026-10-22T17:57:17Z"
+      },
+      "source": {
+        "name": "repository-standards-examples",
+        "description": "Synthetic service and project-documentation profiles for release acceptance",
+        "requires": {
+          "repo-standards": ">=9.0.0"
+        }
+      },
+      "profiles": [
+        "service",
+        "work"
+      ]
+    }
+  ],
+  "rejected": [
+    {
+      "repository": "https://github.com/brandonhimpfen/repo-checklists",
+      "code": "NO_STABLE_RELEASE",
+      "message": "Publish a non-draft GitHub release with a stable SemVer tag to make this source discoverable."
+    },
+    {
+      "repository": "https://github.com/brandonhimpfen/repo-template-npm-package",
+      "code": "NO_STABLE_RELEASE",
+      "message": "Publish a non-draft GitHub release with a stable SemVer tag to make this source discoverable."
+    },
+    {
+      "repository": "https://github.com/brandonhimpfen/repo-template-dataset",
+      "code": "NO_STABLE_RELEASE",
+      "message": "Publish a non-draft GitHub release with a stable SemVer tag to make this source discoverable."
+    },
+    {
+      "repository": "https://github.com/brandonhimpfen/repo-standards",
+      "code": "NO_STABLE_RELEASE",
+      "message": "Publish a non-draft GitHub release with a stable SemVer tag to make this source discoverable."
+    },
+    {
+      "repository": "https://github.com/brandonhimpfen/repo-template-minimal",
+      "code": "NO_STABLE_RELEASE",
+      "message": "Publish a non-draft GitHub release with a stable SemVer tag to make this source discoverable."
+    }
+  ],
+  "nextPage": null
+}
