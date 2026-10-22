@@ -26,15 +26,17 @@ decision forward, and moving into or out of a scope is an ordinary contextual
 update: rules installation adds the rules file or removes it with its index
 entry, and project content is left in place.
 
-No format version rises. `repo-standards/scope/v2` gains an optional key, as
-`repo-standards/operation/v2` gained `invocation`: a proposal is an input
-the running CLI reads, and an earlier CLI rejects the key as an unknown field
-instead of misreading it. Raising the format would break every existing
-discovery script, which prints `repo-standards/scope/v2`. Records and reports
-hold the marker as embedded proposal or declaration content under their
-existing keys, and `adopt` names it in question `details`. A selection without
-an optional declaration with no scope writes the same records and reports as
-before.
+No format version rises. `repo-standards/scope/v2` gains the optional `noScope`
+key under the [input-format versioning rule](../development/architecture.md#format-versions),
+as `repo-standards/operation/v2` gained optional `invocation`. Existing proposals
+remain valid with the same meaning. A proposal is input the running CLI reads,
+and an earlier CLI rejects the key as an unknown field instead of misreading
+it; operation input travels in the other direction, from the CLI to author
+scripts. Raising the scope format would break every existing discovery script,
+which prints `repo-standards/scope/v2`. Records and reports hold the marker as
+embedded proposal or declaration content under their existing keys, and `adopt`
+names it in question `details`. A selection without an optional declaration
+with no scope writes the same records and reports as before.
 
 ## Considered options
 
