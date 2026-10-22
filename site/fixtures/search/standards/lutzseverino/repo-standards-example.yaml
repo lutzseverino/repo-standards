@@ -1,0 +1,106 @@
+format: repo-standards/v2
+name: repository-standards-examples
+description: Synthetic service and project-documentation profiles for release acceptance
+requires:
+  repo-standards: ">=9.0.0"
+defaults:
+  declarations:
+    editor-settings:
+      kind: file
+      target: .editorconfig
+      exact: files/editorconfig
+    operations-guide:
+      kind: repository
+      guidance: guidance/operations.md
+      targets:
+        paths:
+          - docs/operations.md
+          - docs/operating-status.json
+        directories: []
+      fixes:
+        - id: initialize-status
+          run:
+            executable: node
+            script: operations/initialize-status.mjs
+            resources: []
+            arguments: []
+          prerequisite:
+            version-arguments:
+              - --version
+            version: ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+          timeout-seconds: 10
+      checks:
+        - id: operational-evidence
+          run:
+            executable: node
+            script: operations/check-operations.mjs
+            resources:
+              - operations/required-sections.json
+            arguments: []
+          prerequisite:
+            version-arguments:
+              - --version
+            version: ">=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
+          timeout-seconds: 10
+    agent-guidance:
+      kind: file
+      target: AGENTS.md
+      exact: alice/defaults/files/AGENTS.md
+    contribution-guidance:
+      kind: file
+      target: CONTRIBUTING.md
+      exact: alice/defaults/files/CONTRIBUTING.md
+    readme:
+      kind: file
+      target: README.md
+      guidance: alice/defaults/guidance/readme.md
+      checks:
+        - id: headings
+          run:
+            executable: python3
+            script: alice/defaults/checks/readme.py
+            resources: []
+            arguments: []
+          prerequisite:
+            version-arguments:
+              - --version
+            version: ">=3.12.0 <4.0.0"
+          timeout-seconds: 60
+    review-skill:
+      kind: skill
+      name: review
+      source: alice/defaults/skills/review
+    source-layout:
+      kind: repository
+      guidance: alice/defaults/guidance/source-layout.md
+      targets:
+        paths: []
+        directories:
+          - src
+profiles:
+  service:
+    description: Operated service with a project-specific runbook
+    declarations:
+      agent-guidance:
+        exclude: true
+      contribution-guidance:
+        exclude: true
+      readme:
+        exclude: true
+      review-skill:
+        exclude: true
+      source-layout:
+        exclude: true
+  work:
+    description: Standards for work projects
+    declarations:
+      editor-settings:
+        exclude: true
+      operations-guide:
+        exclude: true
+      agent-guidance:
+        kind: file
+        target: AGENTS.md
+        exact: alice/profiles/work/files/AGENTS.md
+      contribution-guidance:
+        exclude: true

@@ -18,13 +18,15 @@ pnpm --dir site dev
 pnpm --dir site check
 pnpm --dir site build
 pnpm --dir site build:fixture
+pnpm --dir site test
 pnpm --dir site preview
 ```
 
 The development server listens on `http://localhost:4321`. The build writes
 static files to `site/dist/`; preview serves that output locally. Root
-`pnpm lint`, `pnpm format:check` and `pnpm validate` cover this project. There is
-no site test framework until the site has logic worth testing.
+`pnpm lint`, `pnpm format:check` and `pnpm validate` cover this project. The
+data step's tests in `test/` use Node's built-in test runner, with no test
+framework installed.
 
 `src/pages/index.astro` loads the data and renders the homepage,
 `src/components/home.tsx`. Shared Tailwind styles and shadcn's colour tokens,
@@ -67,16 +69,29 @@ At build time, `src/lib/load-catalogue.ts` runs the CLI built at the root,
 `../dist/cli.js source search --json`, through every page, and reads each
 candidate's `standards.yaml` at its released commit for the profile
 descriptions. Pass `GH_TOKEN` or `GITHUB_TOKEN` for the authenticated GitHub
-quota. The build fails when the search is marked incomplete, finds no
-candidates or does not list Repo Canon, the source the sign points to; this is
+quota. `src/lib/search-report.ts` turns them into the catalogue. It checks the
+report's shape, so a renamed or missing field fails the build, and it fails
+when the search is marked incomplete, finds no candidates or does not list
+Repo Canon, the source the sign points to; this is
 how [#347](https://github.com/lutzseverino/repo-standards/issues/347)'s
 intermittent search results show, and GitHub Pages keeps serving the last good
 deploy. Another source can still drop out of one day's build.
 
-`SITE_CATALOGUE` names a catalogue file to build from instead, as
-`build:fixture` does with `fixtures/catalogue.json`. Pull request checks and
-`pnpm validate` use it, so they never depend on GitHub search; only the Deploy
-site workflow builds from live search. The adopters count stays off the page
+The list is alphabetical by display name, with Repo Canon unpinned since the
+sign features it. Its ranking key will be the adopter count once
+[#345](https://github.com/lutzseverino/repo-standards/issues/345) provides
+one; the order is one function, `byListOrder`.
+
+`SITE_SEARCH_RECORDING` names a recording of those inputs to build from
+instead: `page-<n>.json` holding the CLI's raw output and
+`standards/<owner>/<repo>.yaml`. `build:fixture` builds from the recording in
+`fixtures/search/` through the same transform, and the tests change it to
+check each failure. Pull request checks and `pnpm validate` use it, so they
+never depend on GitHub search; only the Deploy site workflow builds from live
+search. Record a fresh search with
+`node dist/cli.js source search --json > site/fixtures/search/page-1.json`
+from the root, and each candidate's `standards.yaml` from
+`https://raw.githubusercontent.com/<owner>/<repo>/<commit>/standards.yaml`. The adopters count stays off the page
 until there is a real one
 ([#345](https://github.com/lutzseverino/repo-standards/issues/345)).
 

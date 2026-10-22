@@ -84,6 +84,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --dir site ui:check
       - run: pnpm --dir site check
+      - run: pnpm --dir site test
       - run: pnpm --dir site build:fixture
 
   validate-macos:

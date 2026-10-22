@@ -3,7 +3,7 @@ import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
-  InputGroupInput,
+  InputGroupTextarea,
 } from "@/components/app/input-group";
 import { ToggleGroup, ToggleGroupItem } from "@/components/app/toggle-group";
 import { installText, type InstallMode, type Source } from "@/lib/catalogue";
@@ -93,14 +93,14 @@ export function Install({
     }
   };
   return (
-    <InputGroup className="h-9">
-      <InputGroupInput
+    // the text wraps, so the source URL that tells the cards apart shows
+    <InputGroup>
+      <InputGroupTextarea
         readOnly
         value={text}
-        title={text}
         aria-label={mode === "prompt" ? "Agent prompt" : "Terminal command"}
         onFocus={(e) => e.currentTarget.select()}
-        className="text-[14px]"
+        className="min-h-0 py-1.5 text-[14px] leading-snug wrap-anywhere"
       />
       <InputGroupAddon align="inline-end">
         <InputGroupButton

@@ -6,11 +6,12 @@
     "dev": "astro dev",
     "check": "astro check",
     "build": "astro build",
-    "build:fixture": "SITE_CATALOGUE=fixtures/catalogue.json astro build",
+    "build:fixture": "SITE_SEARCH_RECORDING=fixtures/search astro build",
     "preview": "astro preview",
     "ui:add": "node scripts/registry.mjs add",
     "ui:update": "node scripts/registry.mjs update",
-    "ui:check": "node scripts/registry.mjs check"
+    "ui:check": "node scripts/registry.mjs check",
+    "test": "node --test test/*.test.ts"
   },
   "dependencies": {
     "@astrojs/react": "5.0.7",

@@ -16,3 +16,6 @@ site/.astro/
 # shadcn generates these; registry-manifest.json records their checksums.
 site/src/components/ui/
 site/registry-manifest.json
+
+# Recorded source search output and standards files, kept byte for byte.
+site/fixtures/search/

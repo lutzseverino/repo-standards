@@ -7,9 +7,13 @@
 // torch works in both themes; only the palette under it changes.
 //
 // Performance: positions are measured once into cached origins (`data-lo`)
-// and refreshed only when layout changes. Each frame writes a handful of
-// page-level custom properties; CSS derives every plate's local coordinates.
-// Plates far from the beam or off screen switch their lit copy off.
+// and refreshed only when layout changes. Each frame writes the beam's custom
+// properties only to the elements that read them: the lit copy of each plate
+// the beam reaches, in that plate's own coordinates, and the lit edges of
+// shadcn components. Writing them to the root would restyle the whole page
+// every frame. Plates far from the beam or off screen switch their lit copy
+// off and get no writes. The page-wide layers are fixed-size discs that only
+// move and scale, so the compositor animates them without repainting.
 import { useEffect } from "react";
 import type { Theme } from "@/lib/theme";
 
@@ -23,13 +27,20 @@ export const announceLayout = () =>
 /** Distance from the eye to the screen, in CSS pixels. */
 export const EYE = 1100;
 
+/** The shadcn components whose edges light.css lights, by their data-slot. */
+const LIT_EDGES = '[data-slot="input-group"], [data-slot="toggle-group-item"]';
+
+/** The page-wide layers' disc diameter in CSS; the torch scales it. */
+const DISC = 1000;
+
 type Origin = {
   el: HTMLElement;
+  /** The lit copy's frame, which reads the beam, if the plate has one. */
+  rot: HTMLElement | null;
   x: number;
   y: number;
   w: number;
   h: number;
-  lit: boolean;
   off: boolean;
 };
 type Rail = { x: number; y: number; grads: SVGRadialGradientElement[] };
@@ -38,8 +49,6 @@ type Rail = { x: number; y: number; grads: SVGRadialGradientElement[] };
 export function useTorch(theme: Theme | null) {
   useEffect(() => {
     if (!theme) return;
-    const root = document.documentElement;
-
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
@@ -52,7 +61,9 @@ export function useTorch(theme: Theme | null) {
     // page-wide layers: discs of diameter data-k × the beam radius, masked
     // to start where the list begins (--lit-top)
     let layers: HTMLElement[] = [];
+    let edges: HTMLElement[] = [];
     let litTop = 0;
+    let lastLitTop = "";
     const observed = new WeakSet<Element>();
     let ro: ResizeObserver | null = null;
     let minor = RADIUS;
@@ -72,7 +83,7 @@ export function useTorch(theme: Theme | null) {
             // the exact layout size: offsetWidth rounds, and a lit copy half a
             // pixel narrower than its plate can wrap a legend differently
             ...layoutSize(el),
-            lit: el.querySelector(":scope > .lit-rot") !== null,
+            rot: el.querySelector<HTMLElement>(":scope > .lit-rot"),
             off: false,
           };
         },
@@ -91,7 +102,7 @@ export function useTorch(theme: Theme | null) {
         const s = o.el.style;
         s.setProperty("--ox", `${o.x.toFixed(1)}px`);
         s.setProperty("--oy", `${o.y.toFixed(1)}px`);
-        if (o.lit) {
+        if (o.rot) {
           s.setProperty("--W", `${o.w.toFixed(2)}px`);
           s.setProperty("--H", `${o.h.toFixed(2)}px`);
           s.setProperty("--S", `${Math.hypot(o.w, o.h).toFixed(1)}px`);
@@ -99,10 +110,12 @@ export function useTorch(theme: Theme | null) {
         }
       }
       origins = next;
+      lastLitTop = "";
       rails = nextRails;
       layers = [
         ...document.querySelectorAll<HTMLElement>("[data-light-layer]"),
       ];
+      edges = [...document.querySelectorAll<HTMLElement>(LIT_EDGES)];
       const region = document.querySelector<HTMLElement>(".lit-text");
       litTop = region ? region.getBoundingClientRect().top + sy : 0;
       // a plate that changes size later must be measured again
@@ -132,6 +145,9 @@ export function useTorch(theme: Theme | null) {
     const tgt = { ...start };
     const vel = { x: 0, y: 0 };
     let engaged = false;
+    // the beam covers the whole window: on entry, after the pointer leaves,
+    // and always with prefers-contrast: more
+    let flooded = true;
     let engageTimer = 0;
     let widenTimer = 0;
     let raf = 0;
@@ -148,37 +164,40 @@ export function useTorch(theme: Theme | null) {
       const slant = Math.atan(Math.hypot(dx, dy) / EYE);
       const cos = Math.cos(slant);
       const angle = Math.atan2(dy, dx);
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
       minor = cur.r / cos;
       major = cur.r / (cos * cos);
-      const s = root.style;
-      s.setProperty("--px", `${cur.x.toFixed(1)}px`);
-      s.setProperty("--py", `${cur.y.toFixed(1)}px`);
-      s.setProperty("--pxp", `${(cur.x + sx).toFixed(1)}px`);
-      s.setProperty("--pyp", `${(cur.y + sy).toFixed(1)}px`);
-      s.setProperty("--gcx", `${(vw / 2 + sx).toFixed(1)}px`);
-      s.setProperty("--gcy", `${(vh / 2 + sy).toFixed(1)}px`);
-      s.setProperty("--br", `${cur.r.toFixed(0)}px`);
-      s.setProperty("--brx", `${major.toFixed(0)}px`);
-      s.setProperty("--bry", `${minor.toFixed(0)}px`);
-      s.setProperty("--cosA", Math.cos(angle).toFixed(4));
-      s.setProperty("--sinA", Math.sin(angle).toFixed(4));
-      s.setProperty("--bang", `${angle.toFixed(4)}rad`);
-      s.setProperty("--gain", Math.max(0.6, cos * cos).toFixed(3));
-      s.setProperty(
-        "--hoff",
-        `${(cur.r * 0.3 * Math.sin(slant)).toFixed(1)}px`,
-      );
+      const beam: [string, string][] = [
+        ["--br", `${cur.r.toFixed(0)}px`],
+        ["--brx", `${major.toFixed(0)}px`],
+        ["--bry", `${minor.toFixed(0)}px`],
+        ["--bang", `${angle.toFixed(4)}rad`],
+        ["--gain", Math.max(0.6, cos * cos).toFixed(3)],
+        ["--hoff", `${(cur.r * 0.3 * Math.sin(slant)).toFixed(1)}px`],
+      ];
 
-      // the page-wide layers are fixed-size discs moved by the compositor,
-      // so a frame repaints none of them
-      root.style.setProperty("--lit-top", `${(litTop - sy).toFixed(1)}px`);
+      // the edges' gradient is fixed to the viewport, so they take the aim
+      // point in viewport coordinates
+      const px = `${cur.x.toFixed(1)}px`;
+      const py = `${cur.y.toFixed(1)}px`;
+      const bry = `${minor.toFixed(0)}px`;
+      for (const edge of edges) {
+        edge.style.setProperty("--px", px);
+        edge.style.setProperty("--py", py);
+        edge.style.setProperty("--edge-r", bry);
+      }
+
+      // the layers move and scale on the compositor, so no frame repaints them
+      const lit = `${(litTop - sy).toFixed(1)}px`;
+      const scrolled = lit !== lastLitTop;
+      lastLitTop = lit;
       for (const layer of layers) {
+        if (scrolled) layer.style.setProperty("--lit-top", lit);
         const disc = layer.firstElementChild as HTMLElement | null;
         if (!disc) continue;
-        const d = Math.round(minor * Number(layer.dataset.lightLayer));
-        disc.style.width = `${d}px`;
-        disc.style.height = `${d}px`;
-        disc.style.transform = `translate3d(${(cur.x - d / 2).toFixed(1)}px, ${(cur.y - d / 2).toFixed(1)}px, 0)`;
+        const d = minor * Number(layer.dataset.lightLayer);
+        disc.style.transform = `translate3d(${(cur.x - d / 2).toFixed(1)}px, ${(cur.y - d / 2).toFixed(1)}px, 0) scale(${(d / DISC).toFixed(4)})`;
       }
 
       const ax = cur.x + sx;
@@ -191,9 +210,10 @@ export function useTorch(theme: Theme | null) {
         }
       }
 
-      // switch off lit copies that the beam cannot reach or that are off screen
+      // switch off lit copies that the beam cannot reach or that are off
+      // screen, and light the rest in their own coordinates
       for (const o of origins) {
-        if (!o.lit) continue;
+        if (!o.rot) continue;
         const cx = o.x + o.w / 2;
         const cy = o.y + o.h / 2;
         const far =
@@ -204,6 +224,20 @@ export function useTorch(theme: Theme | null) {
           o.off = off;
           o.el.classList.toggle("lit-off", off);
         }
+        if (off) continue;
+        // the aim point in plate coordinates, and in the frame rotated to the
+        // beam, centred on the plate
+        const lx = ax - o.x;
+        const ly = ay - o.y;
+        const rx = lx - o.w / 2;
+        const ry = ly - o.h / 2;
+        const half = Math.hypot(o.w, o.h) / 2;
+        const s = o.rot.style;
+        s.setProperty("--lx", `${lx.toFixed(1)}px`);
+        s.setProperty("--ly", `${ly.toFixed(1)}px`);
+        s.setProperty("--bx", `${(half + rx * cosA + ry * sinA).toFixed(1)}px`);
+        s.setProperty("--by", `${(half - rx * sinA + ry * cosA).toFixed(1)}px`);
+        for (const [name, value] of beam) s.setProperty(name, value);
       }
     }
 
@@ -247,10 +281,12 @@ export function useTorch(theme: Theme | null) {
       tgt.x = x;
       tgt.y = y;
       tgt.r = narrow();
+      flooded = contrast;
       kick();
     };
     const flood = () => {
       tgt.r = full();
+      flooded = true;
       kick();
     };
 
@@ -286,6 +322,17 @@ export function useTorch(theme: Theme | null) {
       aim(r.left + r.width / 2, r.top + r.height / 2);
     };
     const onScroll = () => apply();
+    // a flood sized for a smaller window would show its edge in a larger one
+    const onResize = () => {
+      if (flooded) {
+        tgt.r = cur.r = full();
+        if (!engaged) {
+          tgt.x = cur.x = window.innerWidth * 0.5;
+          tgt.y = cur.y = window.innerHeight * 0.38;
+        }
+      }
+      remeasure();
+    };
 
     ro = new ResizeObserver(remeasure);
     ro.observe(document.body);
@@ -296,7 +343,7 @@ export function useTorch(theme: Theme | null) {
     document.addEventListener("mouseout", onLeave);
     document.addEventListener("focusin", onFocus);
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", remeasure);
+    window.addEventListener("resize", onResize);
     window.addEventListener(MEASURE_EVENT, remeasure);
     return () => {
       cancelAnimationFrame(raf);
@@ -308,7 +355,7 @@ export function useTorch(theme: Theme | null) {
       document.removeEventListener("mouseout", onLeave);
       document.removeEventListener("focusin", onFocus);
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", remeasure);
+      window.removeEventListener("resize", onResize);
       window.removeEventListener(MEASURE_EVENT, remeasure);
       for (const o of origins) o.el.classList.remove("lit-off");
     };

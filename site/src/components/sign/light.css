@@ -66,7 +66,7 @@
   pointer-events: none;
   z-index: 1;
   background: radial-gradient(
-      circle var(--bry, 400px) at var(--px) var(--py),
+      circle var(--edge-r, 400px) at var(--px) var(--py),
       var(--edge-hot) 0%,
       var(--edge-warm) 30%,
       var(--edge-pink) var(--ring-in),
@@ -86,8 +86,8 @@
 }
 
 /* Page-wide light layers. Each is a disc, data-light-layer times the beam
-   radius across, that the compositor moves; the torch sets its
-   size and transform. They work on any component underneath. */
+   radius across, that the compositor moves and scales; the torch sets its
+   transform. They work on any component underneath. */
 .light-layer {
   position: fixed;
   inset: 0;
@@ -98,8 +98,11 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 0;
-  height: 0;
+  /* a fixed size the torch scales (DISC in torch.ts), so it never repaints */
+  width: 1000px;
+  height: 1000px;
+  transform: scale(0);
+  transform-origin: 0 0;
   border-radius: 50%;
   will-change: transform;
 }
@@ -120,11 +123,6 @@
 .lit-sheen,
 .lit-prism {
   z-index: 20;
-  -webkit-mask-image: linear-gradient(
-    180deg,
-    transparent var(--lit-top, 100vh),
-    #000 calc(var(--lit-top, 100vh) + 90px)
-  );
   mask-image: linear-gradient(
     180deg,
     transparent var(--lit-top, 100vh),
