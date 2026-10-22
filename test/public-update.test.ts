@@ -2,13 +2,16 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
   appendFileSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { test, type TestContext } from "node:test";
 import {
   previousStableVersion,
@@ -44,6 +47,37 @@ test("the previous published npm release is the highest stable SemVer below the 
   assert.throws(
     () => previousStableVersion(["9.0.0"], "10.0.0-next.1"),
     /stable SemVer/,
+  );
+});
+
+test("stable predecessor selection validates build metadata and ignores it for precedence", () => {
+  assert.equal(
+    previousStableVersion(
+      ["10.0.0+other", "9.0.0+build.02", "9.1.0-rc.1", "9.2.0+"],
+      "10.0.0+release.0",
+    ),
+    "9.0.0+build.02",
+  );
+  assert.equal(
+    previousStableVersion(["9.0.0+alpha", "9.0.0+000"], "9.0.1"),
+    "9.0.0+000",
+  );
+  assert.equal(previousStableVersion([" v9.0.0 "], "10.0.0"), " v9.0.0 ");
+  assert.throws(
+    () =>
+      previousStableVersion(
+        [
+          "9.01.0",
+          "8.0.0+one..two",
+          "8.0.0+",
+          "8.9007199254740992.0",
+          "8.0.0+" + "a".repeat(251),
+          "10.0.0+same-core",
+          "9.1.0-next.1+build",
+        ],
+        "10.0.0",
+      ),
+    /No published stable npm release/,
   );
 });
 
@@ -374,5 +408,63 @@ test("public installation still refuses external NODE_OPTIONS before acquisition
   assert.match(
     result.stderr,
     /Run public acceptance without NODE_OPTIONS or acquisition fixtures/,
+  );
+});
+
+test("public installation reaches command setup in a clean checkout without node_modules", (t) => {
+  const root = mkdtempSync(join(tmpdir(), "repo-standards-clean-acceptance-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const checkout = join(root, "checkout");
+  // Copy the actual standalone entrypoint and its transitive local modules,
+  // without installing or making the product checkout's dependencies available.
+  for (const path of [
+    "acceptance/public-installation.ts",
+    "acceptance/public-update.ts",
+    "acceptance/observe-public-requests.ts",
+    "test/installed-cli.ts",
+    "scripts/pack-package.ts",
+    "package.json",
+  ]) {
+    const target = join(checkout, path);
+    mkdirSync(dirname(target), { recursive: true });
+    cpSync(new URL(`../${path}`, import.meta.url), target);
+  }
+  assert.equal(existsSync(join(checkout, "node_modules")), false);
+  const bin = join(root, "bin");
+  mkdirSync(bin);
+  writeFileSync(
+    join(bin, "npm"),
+    `#!${process.execPath}\nconsole.error('CLEAN_CHECKOUT_SETUP_REACHED'); process.exit(77);\n`,
+    { mode: 0o755 },
+  );
+  const evidence = join(root, "evidence.json");
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    PATH: bin,
+    TMPDIR: root,
+  };
+  delete env.NODE_OPTIONS;
+  delete env.NODE_PATH;
+  const result = spawnSync(
+    process.execPath,
+    ["acceptance/public-installation.ts", "9.0.0", evidence],
+    { cwd: checkout, env, encoding: "utf8", timeout: 20_000 },
+  );
+  assert.equal(result.status, 1, result.stderr);
+  assert.doesNotMatch(result.stderr, /ERR_MODULE_NOT_FOUND/);
+  const report = JSON.parse(readFileSync(evidence, "utf8")) as {
+    passed: boolean;
+    failure: string;
+    commands: { executable: string; args: string[]; status: number }[];
+  };
+  assert.equal(report.passed, false);
+  assert.match(report.failure, /CLEAN_CHECKOUT_SETUP_REACHED/);
+  assert.deepEqual(
+    report.commands.map(({ executable, args, status }) => ({
+      executable,
+      args,
+      status,
+    })),
+    [{ executable: "npm", args: ["--version"], status: 77 }],
   );
 });

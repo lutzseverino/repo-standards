@@ -2,7 +2,6 @@
 import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { compare, lt, prerelease, valid } from "semver";
 import type { AdoptReport, AnswersFile } from "../src/adopt.ts";
 
 const packageName = "@lutzseverino/repo-standards";
@@ -51,18 +50,37 @@ export function requestCount(path: string): RequestCount {
   };
 }
 
+type StableVersion = readonly [number, number, number];
+
+// This script runs before checkout dependencies are installed. Parse only the
+// stable SemVer subset needed here; prereleases never qualify. Build metadata
+// is valid but has no precedence, and numeric components must be safe integers.
+function stableVersion(value: string): StableVersion | undefined {
+  if (value.length > 256) return;
+  const match =
+    /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/.exec(
+      value.trim(),
+    );
+  if (!match) return;
+  const core = [Number(match[1]), Number(match[2]), Number(match[3])] as const;
+  return core.every(Number.isSafeInteger) ? core : undefined;
+}
+
+function compareStable(left: StableVersion, right: StableVersion) {
+  return left[0] - right[0] || left[1] - right[1] || left[2] - right[2];
+}
+
 export function previousStableVersion(versions: string[], version: string) {
-  assert.ok(
-    valid(version) && prerelease(version) === null,
-    "Release version must be stable SemVer.",
-  );
+  const current = stableVersion(version);
+  assert.ok(current, "Release version must be stable SemVer.");
   const previous = versions
+    .map((entry) => ({ version: entry, core: stableVersion(entry) }))
     .filter(
-      (entry) =>
-        valid(entry) && prerelease(entry) === null && lt(entry, version),
+      (entry): entry is { version: string; core: StableVersion } =>
+        entry.core !== undefined && compareStable(entry.core, current) < 0,
     )
-    .sort(compare)
-    .at(-1);
+    .sort((left, right) => compareStable(left.core, right.core))
+    .at(-1)?.version;
   assert.ok(previous, `No published stable npm release precedes ${version}.`);
   return previous;
 }
