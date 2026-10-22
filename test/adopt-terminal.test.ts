@@ -650,6 +650,103 @@ process.stdout.write(JSON.stringify({ format: "repo-standards/scope/v2", declara
   assert.equal(await session.exit(), 130);
 });
 
+test("edited terminal scopes keep included missing files and drop evidence-free exclusions", async (t) => {
+  for (const keepMissing of [false, true])
+    await t.test(
+      keepMissing ? "retain the missing file" : "omit the missing file",
+      async (st) => {
+        const f = await fixture(
+          st,
+          cli,
+          {
+            "project-docs": {
+              kind: "repository",
+              guidance: "guidance.md",
+              discovery: "discovery.md",
+              "discovery-script": (({ id: _id, ...declared }) => declared)(
+                operation("draft", { script: "draft.mjs" }),
+              ),
+            },
+          },
+          {
+            files: {
+              "guidance.md": "Document each maintained project.",
+              "discovery.md": "Discover the project's documentation.",
+              "draft.mjs": `import { readFileSync } from "node:fs";
+const input = JSON.parse(readFileSync(0, "utf8"));
+console.log(JSON.stringify({ format: "repo-standards/scope/v2", declarations: [{
+  id: input.declaration,
+  coverage: "The project's documentation.",
+  candidates: [
+    { path: "app/README.md", decision: "include", reason: "A planned project document.", evidence: [] },
+    { path: "docs/guide.md", decision: "include", reason: "An existing guide.", evidence: ["docs/guide.md"] },
+  ],
+  unresolved: [],
+}] }));
+`,
+            },
+            project: { "app/package.json": "{}", "docs/guide.md": "Guide" },
+          },
+        );
+        const session = terminal(st, f, [source]);
+        await session.expect("Version [v1.0.0]: ");
+        session.type("");
+        await session.expect("Profile [work]: ");
+        session.type("");
+        await session.expect(
+          "Does project-docs cover exactly the drafted files, app/README.md, docs/guide.md? [Y/n]: ",
+        );
+        session.type("n");
+        const selected = [
+          "app/OTHER.md",
+          ...(keepMissing ? ["app/README.md"] : []),
+        ];
+        for (const path of [...selected, ""]) {
+          await session.expect("File: ");
+          session.type(path);
+        }
+        await session.expect("Why do these files make up its scope? ");
+        session.type("The maintainer chose these documents.");
+        assert.match(
+          await session.expect(
+            /Start the run\? \[Y\/n\]: |Answer the scope questions again\./,
+          ),
+          /Start the run\?/,
+        );
+        session.type("");
+        await session.expect("cover every file project-docs should? [Y/n]: ");
+        const candidates =
+          status(f).active!.workRequest!.scope!.proposal!.declarations[0]!
+            .candidates;
+        assert.deepEqual(
+          candidates
+            .filter(({ decision }) => decision === "include")
+            .map(({ path }) => path)
+            .sort(),
+          selected.sort(),
+        );
+        assert.deepEqual(
+          candidates
+            .filter(({ decision }) => decision === "exclude")
+            .map(({ path, evidence }) => ({ path, evidence })),
+          [{ path: "docs/guide.md", evidence: ["docs/guide.md"] }],
+        );
+        if (keepMissing)
+          assert.deepEqual(
+            candidates.find(({ path }) => path === "app/README.md")!.evidence,
+            [],
+          );
+        else
+          assert.equal(
+            candidates.some(({ path }) => path === "app/README.md"),
+            false,
+          );
+        session.press("\x03");
+        assert.equal(await session.exit(), 130);
+      },
+    );
+});
+
 test("a failed check outside contextual work waits for the person to resolve it, then runs every check again", async (t) => {
   const outside = directoryFixture("repo-standards-adopt-terminal-");
   t.after(() => outside.close());
