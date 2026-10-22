@@ -4,8 +4,14 @@
    the page-wide layers that light text. The sign plates light themselves in
    sign.css. */
 
-/* Light by day: the edge keeps its colour in the beam and only the rim
-   shows; dark text is screened by the rainbow. */
+/* The torch itself is plain, slightly warm white: the pool and the sheen on
+   the bare page carry no hue. Only reflective surfaces split the light into
+   a rainbow at the beam's rim: the sign plates (sign.css), the edges of
+   shadcn components, and text, through the prism layer.
+
+   Light by day: the edge keeps its colour in the beam and only the rim
+   shows. The prism lightens: every channel of its colours is darker than
+   the paper, so the paper keeps its colour and dark text takes the rainbow. */
 :root {
   /* every rainbow on the page, on plates, edges and text, lies on one ring
      round the aim point, in fractions of the beam radius */
@@ -19,7 +25,7 @@
   --edge-amber: rgba(240, 170, 30, 0.6);
   --edge-green: rgba(30, 190, 140, 0.55);
   --edge-blue: rgba(40, 130, 240, 0.6);
-  --prism-blend: screen;
+  --prism-blend: lighten;
   --prism-strength: 0.7;
   --prism-pink: rgb(225 40 125);
   --prism-amber: rgb(215 140 0);
@@ -27,8 +33,9 @@
   --prism-blue: rgb(30 105 225);
 }
 
-/* Light at night: a hot centre and a rainbow rim on edges; white legends
-   multiplied by the rainbow. */
+/* Light at night: a hot centre and a rainbow rim on edges. The prism
+   darkens: every channel of its colours is brighter than the night page, so
+   the page keeps its colour and light text takes the rainbow. */
 .dark {
   --edge-hot: rgba(255, 248, 232, 0.95);
   --edge-warm: rgba(236, 226, 206, 0.7);
@@ -36,7 +43,7 @@
   --edge-amber: rgba(255, 214, 120, 0.55);
   --edge-green: rgba(130, 240, 205, 0.5);
   --edge-blue: rgba(120, 190, 255, 0.5);
-  --prism-blend: multiply;
+  --prism-blend: darken;
   --prism-strength: 1;
   --prism-pink: rgb(255 165 205);
   --prism-amber: rgb(255 222 150);
@@ -87,7 +94,8 @@
 
 /* Page-wide light layers. Each is a disc, data-light-layer times the beam
    radius across, that the compositor moves and scales; the torch sets its
-   transform. They work on any component underneath. */
+   transform. They cover the whole page, so the nav, the sign's
+   surroundings and the list catch the same light, on any component. */
 .light-layer {
   position: fixed;
   inset: 0;
@@ -106,45 +114,39 @@
   border-radius: 50%;
   will-change: transform;
 }
-/* the pool on the ground */
+/* the pool on the ground: brightness only */
 .torch-pool {
   z-index: -1;
 }
 .torch-pool > i {
   background: radial-gradient(
     closest-side,
-    rgba(255, 244, 222, 0.12),
-    rgba(255, 244, 222, 0.035) 55%,
+    rgba(255, 251, 244, 0.12),
+    rgba(255, 251, 244, 0.035) 55%,
     transparent
   );
 }
-/* The text layers start where the list begins (--lit-top), so the hero,
-   which lights itself, is left alone. */
 .lit-sheen,
 .lit-prism {
   z-index: 20;
-  mask-image: linear-gradient(
-    180deg,
-    transparent var(--lit-top, 100vh),
-    #000 calc(var(--lit-top, 100vh) + 90px)
-  );
 }
 /* sheen: colour dodge brightens what is already light, text, borders and
-   edges, while dark ground stays dark */
+   edges, while dark ground stays dark; neutral, so it adds no hue */
 .lit-sheen {
   mix-blend-mode: color-dodge;
 }
 .lit-sheen > i {
   background: radial-gradient(
     closest-side,
-    rgb(70 66 58) 0%,
-    rgb(46 43 38) 36%,
-    rgb(44 24 34) var(--ring-peak),
-    rgb(20 34 50) 74%,
+    rgb(70 68 64) 0%,
+    rgb(46 45 42) 36%,
+    rgb(34 33 31) var(--ring-peak),
+    rgb(24 23 22) 74%,
     transparent var(--ring-out)
   );
 }
-/* prism: the rainbow on text and legends at the beam's rim */
+/* prism: the rainbow on text and legends at the beam's rim. Darken by
+   night and lighten by day leave the bare page untouched. */
 .lit-prism {
   mix-blend-mode: var(--prism-blend);
   opacity: var(--prism-strength);

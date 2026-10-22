@@ -71,7 +71,7 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
 
         <SignAssembly start={start} notice={catalogue.notice} />
 
-        <section className="lit-text mt-10">
+        <section className="mt-10">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Search value={query} onChange={setQuery} />
             <InstallModeSwitch mode={mode} onChange={setMode} />

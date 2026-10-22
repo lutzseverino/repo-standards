@@ -38,7 +38,10 @@ The sign art has no shadcn equivalent and lives in `src/components/sign/`:
 the sheeted plates, the LED border, the guardrail, the torch that lights them
 and the signpost list. `sign.css` styles it. `light.css` is the one stylesheet
 that lights shadcn components, by their `data-slot` attributes, and runs the
-page-wide layers that light text. The torch, `torch.ts`, follows the pointer
+page-wide layers that light the whole page, nav, sign and list alike. The
+torch's own light is plain, slightly warm white: only reflective surfaces,
+the plates, component edges and text, split it into a rainbow at the beam's
+rim, and the bare page only brightens. The torch, `torch.ts`, follows the pointer
 and keyboard focus, floods the page on entry and when the pointer leaves, and
 stays floodlit with `prefers-contrast: more`. The theme follows the system
 through shadcn's `.dark` class until the visitor picks one with the nav's

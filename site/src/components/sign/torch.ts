@@ -58,12 +58,9 @@ export function useTorch(theme: Theme | null) {
 
     let origins: Origin[] = [];
     let rails: Rail[] = [];
-    // page-wide layers: discs of diameter data-k × the beam radius, masked
-    // to start where the list begins (--lit-top)
+    // page-wide layers: discs of diameter data-k × the beam radius
     let layers: HTMLElement[] = [];
     let edges: HTMLElement[] = [];
-    let litTop = 0;
-    let lastLitTop = "";
     const observed = new WeakSet<Element>();
     let ro: ResizeObserver | null = null;
     let minor = RADIUS;
@@ -110,14 +107,11 @@ export function useTorch(theme: Theme | null) {
         }
       }
       origins = next;
-      lastLitTop = "";
       rails = nextRails;
       layers = [
         ...document.querySelectorAll<HTMLElement>("[data-light-layer]"),
       ];
       edges = [...document.querySelectorAll<HTMLElement>(LIT_EDGES)];
-      const region = document.querySelector<HTMLElement>(".lit-text");
-      litTop = region ? region.getBoundingClientRect().top + sy : 0;
       // a plate that changes size later must be measured again
       for (const o of next) {
         if (observed.has(o.el)) continue;
@@ -189,11 +183,7 @@ export function useTorch(theme: Theme | null) {
       }
 
       // the layers move and scale on the compositor, so no frame repaints them
-      const lit = `${(litTop - sy).toFixed(1)}px`;
-      const scrolled = lit !== lastLitTop;
-      lastLitTop = lit;
       for (const layer of layers) {
-        if (scrolled) layer.style.setProperty("--lit-top", lit);
         const disc = layer.firstElementChild as HTMLElement | null;
         if (!disc) continue;
         const d = minor * Number(layer.dataset.lightLayer);
