@@ -877,12 +877,13 @@ which the CLI reads from discovery scripts or agents. The optional `invocation`
 key in `repo-standards/operation/v2` and `noScope` in
 `repo-standards/scope/v2` follow this rule
 ([ADR 0023](../adr/0023-let-an-optional-discovery-declaration-have-no-scope.md)).
-It does not require an older reader to accept a new key: an older CLI rejects
-`noScope` as unknown rather than misreading the proposal. A source using that
-key declares a CLI compatibility range it has validated. Keeping the input
-format lets producers that do not use the extension keep their existing
-output; raising the scope format would require every discovery script to
-change it.
+For operation input, scripts [ignore request fields they do not read](../usage/script-protocol.md#json-input-on-stdin).
+For scope proposals, an older CLI need not accept the new key: it rejects
+`noScope` as unknown rather than misreading the proposal. A source that marks a
+declaration `optional` raises its `requires.repo-standards` range to a CLI that
+accepts it. Keeping the input format lets producers that do not use the
+extension keep their existing output; raising the scope format would require
+every discovery script to change it.
 
 Other input shape or meaning changes still raise the input format's version:
 adding a required key, removing or renaming a key, changing its type, or changing
