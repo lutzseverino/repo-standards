@@ -1,11 +1,12 @@
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/app/button";
 
 export function RepositoryLink() {
   return (
-    <Button asChild>
-      <a href="https://github.com/lutzseverino/repo-standards">
-        View on GitHub
-      </a>
-    </Button>
+    <a
+      className={buttonVariants()}
+      href="https://github.com/lutzseverino/repo-standards"
+    >
+      View on GitHub
+    </a>
   );
 }

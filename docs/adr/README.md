@@ -103,3 +103,7 @@ alternatives.
   a profile declares the hosting platforms it supports and its
   platform-specific declarations, the project selects its platform separately
   as part of the selection, and release-source reads go through Postern.
+- [Keep generated shadcn source read-only](0028-keep-generated-shadcn-source-read-only.md):
+  the website's shadcn components are pinned registry output guarded by
+  checksums, pages import them through `components/app/`, and shared styling
+  targets their `data-slot` instead of editing them.

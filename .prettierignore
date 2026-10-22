@@ -12,3 +12,7 @@ pnpm-lock.yaml
 
 # Astro generates these declarations and caches.
 site/.astro/
+
+# shadcn generates these; registry-manifest.json records their checksums.
+site/src/components/ui/
+site/registry-manifest.json

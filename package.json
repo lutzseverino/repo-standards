@@ -34,7 +34,7 @@
     "format": "prettier --plugin prettier-plugin-astro --write .",
     "format:check": "prettier --plugin prettier-plugin-astro --check .",
     "test": "node --test test/*.test.ts",
-    "validate": "pnpm typecheck && pnpm lint && pnpm format:check && node --experimental-vm-modules --disable-warning=ExperimentalWarning scripts/check-import-cycles.ts && pnpm build && pnpm test && pnpm --dir site check && pnpm --dir site build",
+    "validate": "pnpm typecheck && pnpm lint && pnpm format:check && node --experimental-vm-modules --disable-warning=ExperimentalWarning scripts/check-import-cycles.ts && pnpm build && pnpm test && pnpm --dir site ui:check && pnpm --dir site check && pnpm --dir site build",
     "prepack": "pnpm build",
     "release:pack": "pnpm build && node scripts/pack-release.ts"
   },
