@@ -92,35 +92,30 @@
     linear-gradient(#000 0 0);
 }
 
-/* Page-wide light layers. Each is a disc, data-light-layer times the beam
-   radius across, that the compositor moves and scales; the torch sets its
-   transform. They cover the whole page, so the nav, the sign's
-   surroundings and the list catch the same light, on any component. */
+/* Page-wide light layers. Each covers the window and paints a disc,
+   data-light-layer times the beam radius across, centred on the aim point;
+   the torch writes the disc's centre and radius to the layer itself. They
+   cover the whole page, so the nav, the sign's surroundings and the list
+   catch the same light, on any component.
+
+   A layer is never larger than the window and is never scaled. A small disc
+   scaled up by the compositor made Chrome's GPU raster tile a layer many
+   times the window's size, and on a Mac it ran out of tile memory: tiles
+   went missing as dark rectangles, blended over the plates and the copy
+   field, and flickered as they came back. */
 .light-layer {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  overflow: hidden;
-}
-.light-layer > i {
-  position: absolute;
-  left: 0;
-  top: 0;
-  /* a fixed size the torch scales (DISC in torch.ts), so it never repaints */
-  width: 1000px;
-  height: 1000px;
-  transform: scale(0);
-  transform-origin: 0 0;
-  border-radius: 50%;
-  will-change: transform;
+  --disc-x: -9999px;
+  --disc-y: -9999px;
+  --disc-r: 0px;
 }
 /* the pool on the ground: brightness only */
 .torch-pool {
   z-index: -1;
-}
-.torch-pool > i {
   background: radial-gradient(
-    closest-side,
+    circle var(--disc-r) at var(--disc-x) var(--disc-y),
     rgba(255, 251, 244, 0.12),
     rgba(255, 251, 244, 0.035) 55%,
     transparent
@@ -134,10 +129,8 @@
    edges, while dark ground stays dark; neutral, so it adds no hue */
 .lit-sheen {
   mix-blend-mode: color-dodge;
-}
-.lit-sheen > i {
   background: radial-gradient(
-    closest-side,
+    circle var(--disc-r) at var(--disc-x) var(--disc-y),
     rgb(70 68 64) 0%,
     rgb(46 45 42) 36%,
     rgb(34 33 31) var(--ring-peak),
@@ -150,10 +143,8 @@
 .lit-prism {
   mix-blend-mode: var(--prism-blend);
   opacity: var(--prism-strength);
-}
-.lit-prism > i {
   background: radial-gradient(
-    closest-side,
+    circle var(--disc-r) at var(--disc-x) var(--disc-y),
     transparent var(--ring-in),
     var(--prism-pink) 52%,
     var(--prism-amber) 58%,
