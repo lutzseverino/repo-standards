@@ -2,7 +2,13 @@ import type { AdoptReport, Run, Status } from "./json-reports.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { directoryFixture, installCli } from "./installed-cli.ts";
 import { commit, git, operation } from "./remote-fixture.ts";
@@ -244,6 +250,17 @@ test("a run stopped for an incomplete scope recovers in place through the answer
 
 test("abandonment exits 0, and adopt then adopts again in place over the preserved changes", async (t) => {
   const { f, head, contextual } = await contextualRun(t);
+  const reports = join(
+    f.root,
+    git(f.root, "rev-parse", "--git-path", "repo-standards-reports"),
+  );
+  mkdirSync(reports, { recursive: true });
+  // Old opaque reports on both sides of the current run's UUID must neither
+  // block abandonment nor poison the current run's verified recovery context.
+  const old = ["!old.json", "~old.json"].map((name) => join(reports, name));
+  const bytes = '{"format":"repo-standards/run/v6","abandoned":true}\n';
+  for (const path of old) writeFileSync(path, bytes);
+  assert.deepEqual(status(f).abandoned, []);
   writeFileSync(join(f.root, "app/README.md"), "# App\n");
   for (const args of [["abandon"], ["abandon", "--json"]]) {
     const result = spawnSync(f.pinned, args, {
@@ -259,7 +276,9 @@ test("abandonment exits 0, and adopt then adopts again in place over the preserv
     assert.equal(result.status, 1, result.stdout);
     assert.match(result.stdout, /NO_ACTIVE_RUN/);
   }
-  const abandoned = status(f).abandoned[0]!;
+  const archives = status(f).abandoned;
+  assert.equal(archives.length, 1);
+  const abandoned = archives[0]!;
   assert.match(abandoned.nextAction, /adopt again in place/);
 
   // adopt names the way forward from the preserved changes and starts over
@@ -287,6 +306,8 @@ test("abandonment exits 0, and adopt then adopts again in place over the preserv
     record.changeSet!.some(({ path }) => path === "app/README.md"),
     JSON.stringify(record.changeSet),
   );
+  assert.equal(record.abandoned.length, 1);
+  for (const path of old) assert.equal(readFileSync(path, "utf8"), bytes);
 });
 
 test("abandon --json exits 0 on success", async (t) => {

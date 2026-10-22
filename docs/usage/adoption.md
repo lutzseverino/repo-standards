@@ -1255,9 +1255,14 @@ the run; this CLI can't:
 [RETIRED_RUN] The active adoption run record .git/repo-standards-run.lock carries the retired format repo-standards/run/v5; this CLI reads only repo-standards/run/v7. It may hold unfinished work: with the earlier pinned CLI 3.2.0, resume it with resume --retry or end it with abandon, then inspect again.
 ```
 
-An archived report in a retired format fails with `RETIRED_FORMAT` and names
-that report: only the CLI that wrote it reads its evidence, so it is moved out
-of Git's directory before this CLI continues.
+An archived report in `repo-standards/run/v6`, the run format CLI 9.0.0 wrote,
+stays where it is and is not read. It blocks nothing, and `status` does not list
+it among abandoned runs; CLI 9.0.0 still reads its evidence. This CLI does not
+adopt again in place over the changes such a run left uncommitted. Finish them
+with CLI 9.0.0, or commit or discard them through the project's normal workflow,
+before updating. An archived report in any other older run format fails with
+`RETIRED_FORMAT` and names that report: only the CLI that wrote it reads its
+evidence, so it is moved out of Git's directory before this CLI continues.
 
 A higher version of the same record format fails with `NEWER_FORMAT`, including
 when a future schema no longer exposes the CLI pin where this CLI expects it:
@@ -1374,8 +1379,9 @@ Preserved changes stay in the working tree. Run `adopt` in that checkout to
 through the project's normal workflow; any other new run requires a clean
 project without conflicting product state and a fresh inspection.
 An archived run report is moved out of Git's directory only when it carries a
-[retired format](#adopt-fresh-from-a-retired-format), because this CLI cannot
-read it.
+[retired format](#adopt-fresh-from-a-retired-format) other than
+`repo-standards/run/v6`, because this CLI cannot read it; `run/v6` reports stay
+where they are.
 
 ## Correct a confirmed scope
 
@@ -1467,7 +1473,9 @@ After an abandoned update, `status` still returns the archived report. If the
 preserved product files do not represent complete adoption, `stateError`
 describes that condition and names the abandoned run and the way forward,
 adopting again in place; historical evidence comes from the matching archived
-run and does not certify the candidate selection as complete. `check` and
+run and does not certify the candidate selection as complete. An abandoned report carrying
+`repo-standards/run/v6` is excluded from matching; the state-integrity failure
+is not replaced by advice to adopt over that run. `check` and
 `rules` name the same way forward in their `STATE_INTEGRITY` diagnostic.
 It does not claim ongoing compliance after subsequent project edits. While an
 initial run is incomplete, no last-complete adoption is reported. `adopt`'s
