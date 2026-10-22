@@ -907,19 +907,25 @@ async function askScope(
   const coverage = [draft?.coverage, why, ...notes]
     .filter((text) => text)
     .join(" ");
-  // Each drafted candidate is included exactly when the person lists it.
-  const kept = (draft?.candidates ?? []).map((candidate): Candidate => {
-    const included = paths.includes(candidate.path);
-    return included === (candidate.decision === "include")
-      ? candidate
-      : {
-          ...candidate,
-          decision: included ? "include" : "exclude",
-          reason: included
-            ? why!
-            : "The maintainer excluded it in adopt's terminal walk-through.",
-        };
-  });
+  // An omitted missing file with no evidence cannot become an exclusion.
+  // Every other drafted candidate is included exactly when the person lists it.
+  const kept = (draft?.candidates ?? [])
+    .filter(
+      (candidate) =>
+        paths.includes(candidate.path) || candidate.evidence.length > 0,
+    )
+    .map((candidate): Candidate => {
+      const included = paths.includes(candidate.path);
+      return included === (candidate.decision === "include")
+        ? candidate
+        : {
+            ...candidate,
+            decision: included ? "include" : "exclude",
+            reason: included
+              ? why!
+              : "The maintainer excluded it in adopt's terminal walk-through.",
+          };
+    });
   const added = paths
     .filter((path) => !kept.some((candidate) => candidate.path === path))
     .map((path): Candidate => ({
