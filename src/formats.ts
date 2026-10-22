@@ -41,6 +41,17 @@ export const previousFormats: Partial<Record<RecordFormat, string>> = {
   [formats.scopeHistory]: "repo-standards/scope-history/v5",
 };
 
+// Public CLI 9's archived run reports stay as opaque local history. This is
+// not a readable run format and never applies to an active journal.
+export function excludedArchivedRun(value: unknown) {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    (value as { format?: unknown }).format === "repo-standards/run/v6"
+  );
+}
+
 // Whether a record carries its artifact's current format or the previous one
 // this CLI still reads.
 export function readableFormat(value: unknown, expected: RecordFormat) {

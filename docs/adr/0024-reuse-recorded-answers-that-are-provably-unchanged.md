@@ -67,6 +67,9 @@ the previous release wrote. Those records keep no drafts and no per-declaration 
 fresh draft then matches only the recorded entry itself, and an assessment is
 proven unchanged only by the whole project's work snapshot.
 
+[ADR 0029](0029-leave-archived-run-v6-reports-unread.md) extends the update
+from CLI 9.0.0 to the run reports it archived, which are skipped rather than read.
+
 ## Considered options
 
 - **Keep asking every answer.** Each update repeats work whose outcome is

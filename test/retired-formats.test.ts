@@ -1,4 +1,5 @@
 import type {
+  AdoptReport,
   ErrorReport,
   Inspection,
   Lock,
@@ -9,11 +10,13 @@ import assert from "node:assert/strict";
 import { after, test } from "node:test";
 import type { TestContext } from "node:test";
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   readFileSync,
   readlinkSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -320,6 +323,164 @@ test("a retired state, scope evidence, or run record format is rejected with the
       before,
       `archived ${command[0]} must not write`,
     );
+  }
+});
+
+test("exact v6 archives leave inspection and current adoption unchanged and preserve every history entry", async (t) => {
+  const f = await adoptedProject(t);
+  const commands = [
+    ["inspect", "--json"],
+    ["status", "--json"],
+    ["resume", "--json"],
+    ["abandon", "--json"],
+    ["check", "--json"],
+    ["rules", "AGENTS.md", "--json"],
+  ];
+  const baseline = commands.map((args) => f.run<unknown>(args));
+  const reports = join(
+    f.root,
+    git(f.root, "rev-parse", "--git-path", "repo-standards-reports"),
+  );
+  mkdirSync(join(reports, "old-run"), { recursive: true });
+  const lock = JSON.parse(
+    readFileSync(join(f.root, ".repo-standards/lock.json"), "utf8"),
+  ) as Lock;
+  // The body is deliberately opaque, including values that would otherwise
+  // select an abandoned-run diagnostic or imply preserved changes.
+  writeFileSync(
+    join(reports, "a.json"),
+    JSON.stringify({
+      format: "repo-standards/run/v6",
+      id: "old-run",
+      abandoned: true,
+      inspection: lock.inspection,
+      observations: "not a current run",
+    }),
+  );
+  writeFileSync(
+    join(reports, "z.json"),
+    '{"format":"repo-standards/run/v6"}\n',
+  );
+  writeFileSync(join(reports, "old-run/evidence.json"), "unchanged evidence\n");
+  chmodSync(join(reports, "a.json"), 0o440);
+  chmodSync(join(reports, "old-run/evidence.json"), 0o640);
+  symlinkSync("evidence.json", join(reports, "old-run/link"));
+  const history = snapshot(reports);
+  for (const [index, args] of commands.entries()) {
+    const observed = f.run<unknown>(args);
+    assert.equal(
+      observed.result.status,
+      baseline[index]!.result.status,
+      args.join(" "),
+    );
+    assert.deepEqual(observed.report, baseline[index]!.report, args.join(" "));
+    assert.deepEqual(snapshot(reports), history);
+  }
+  // Excluded history never softens committed-state integrity or selects the
+  // old run's in-place recovery advice, even with a matching inspection.
+  const state = join(f.root, ".repo-standards/state.json");
+  const original = readFileSync(state);
+  writeFileSync(state, "{}");
+  const before = snapshot(f.root);
+  for (const args of [
+    ["inspect", "--json"],
+    ["status", "--json"],
+    ["adopt", "--json"],
+  ]) {
+    const refused = f.run<ErrorReport>(args);
+    assert.equal(refused.result.status, 1, refused.result.stdout);
+    assert.equal(refused.report.errors[0]!.code, "STATE_INTEGRITY");
+    assert.doesNotMatch(
+      refused.report.errors[0]!.message,
+      /old-run|adopt again in place/,
+    );
+    assert.deepEqual(snapshot(f.root), before);
+  }
+  writeFileSync(state, original);
+  const updated = f.run<AdoptReport>(["adopt", "--json"]);
+  assert.equal(updated.result.status, 0, updated.result.stdout);
+  assert.equal(updated.report.outcome, "complete", updated.result.stdout);
+  const ready = f.run<Status>(["status", "--json"]);
+  assert.equal(ready.report.readyToCommit, true, ready.result.stdout);
+  assert.deepEqual(ready.report.abandoned, []);
+  assert.deepEqual(snapshot(reports), history);
+});
+
+test("archive exclusion requires an exact object marker in a regular file and preserves format precedence", async (t) => {
+  const f = await adoptedProject(t);
+  const reports = join(
+    f.root,
+    git(f.root, "rev-parse", "--git-path", "repo-standards-reports"),
+  );
+  mkdirSync(reports, { recursive: true });
+  const archive = join(reports, "a.json");
+  for (const bytes of [
+    "{",
+    "null",
+    "[]",
+    "{}",
+    '{"format":"unrelated/v6"}',
+    '{"format":"repo-standards/run/v06"}',
+    '{"format":"repo-standards/run/v6-extra"}',
+  ]) {
+    writeFileSync(archive, bytes);
+    const before = snapshot(f.root);
+    const refused = f.run<ErrorReport>(["status", "--json"]);
+    assert.equal(refused.report.errors[0]!.code, "STATE_INTEGRITY", bytes);
+    assert.deepEqual(snapshot(f.root), before);
+  }
+  rmSync(archive);
+  const target = join(reports, "old.txt");
+  writeFileSync(target, '{"format":"repo-standards/run/v6"}');
+  symlinkSync("old.txt", archive);
+  const before = snapshot(f.root);
+  assert.equal(
+    f.run<ErrorReport>(["status", "--json"]).report.errors[0]!.code,
+    "RETIRED_FORMAT",
+  );
+  assert.deepEqual(snapshot(f.root), before);
+  rmSync(archive);
+  writeFileSync(archive, '{"format":"repo-standards/run/v6"}');
+  writeFileSync(join(reports, "b.json"), '{"format":"repo-standards/run/v5"}');
+  assert.equal(
+    f.run<ErrorReport>(["status", "--json"]).report.errors[0]!.code,
+    "RETIRED_FORMAT",
+  );
+  writeFileSync(join(reports, "z.json"), '{"format":"repo-standards/run/v8"}');
+  const future = snapshot(f.root);
+  for (const args of [
+    ["inspect", "--json"],
+    ["status", "--json"],
+    ["adopt", "--json"],
+  ]) {
+    const refused = f.run<ErrorReport>(args);
+    assert.equal(refused.report.errors[0]!.code, "NEWER_FORMAT");
+    assert.deepEqual(snapshot(f.root), future);
+  }
+  rmSync(join(reports, "b.json"));
+  rmSync(join(reports, "z.json"));
+  // The same marker at the active path is still retired. Commands that
+  // enforce the pin continue to refuse before that format check.
+  const active = join(
+    f.root,
+    git(f.root, "rev-parse", "--git-path", "repo-standards-run.lock"),
+  );
+  writeFileSync(
+    active,
+    JSON.stringify({
+      format: "repo-standards/run/v6",
+      selection: { cli: { version: "1.0.0" } },
+    }),
+  );
+  const pinned = snapshot(f.root);
+  assert.equal(
+    f.run<ErrorReport>(["inspect", "--json"]).report.errors[0]!.code,
+    "RETIRED_RUN",
+  );
+  for (const command of ["status", "resume", "abandon", "check", "rules"]) {
+    const refused = f.run<ErrorReport>([command, "--json"]);
+    assert.equal(refused.report.errors[0]!.code, "CLI_PIN_MISMATCH", command);
+    assert.deepEqual(snapshot(f.root), pinned);
   }
 });
 

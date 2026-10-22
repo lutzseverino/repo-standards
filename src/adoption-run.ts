@@ -29,6 +29,7 @@ import {
 } from "./observation.js";
 import {
   activeRunExemption,
+  archivedRunRecords,
   readCommittedScopeProposal,
   readRecordedAdoption,
   rejectUnsupportedRecords,
@@ -585,10 +586,9 @@ export function archivedRuns(root: string) {
 function abandonedReports(root: string, lock: string): Run[] {
   const directory = join(dirname(lock), "repo-standards-reports");
   if (!existsSync(directory)) return [];
-  return readdirSync(directory)
-    .sort()
-    .filter((name) => name.endsWith(".json"))
-    .map((name) => readRun(root, join(directory, name), false));
+  return archivedRunRecords(directory).map((path) =>
+    readRun(root, path, false),
+  );
 }
 
 // Abandons the active run, or, when another run replaces it in place,

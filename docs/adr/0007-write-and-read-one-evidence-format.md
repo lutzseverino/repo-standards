@@ -24,3 +24,7 @@ change against the previous run stored, rather than every earlier run.
 this decision for updates: the CLI also reads the durable state and retained
 scope evidence the previous release wrote, as the established adoption an
 update replaces, and writes only its own formats.
+
+[ADR 0029](0029-leave-archived-run-v6-reports-unread.md) amends this decision
+for Git-directory history: archived `repo-standards/run/v6` reports are left
+in place unread instead of blocking.

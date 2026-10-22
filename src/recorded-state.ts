@@ -21,6 +21,7 @@ import {
 } from "./adoption-files.js";
 import { ProductError } from "./errors.js";
 import {
+  excludedArchivedRun,
   formatAge,
   formats,
   newerFormat,
@@ -358,6 +359,17 @@ function unverifiedRecord(path: string): unknown {
   }
 }
 
+// All readers share the same top-level archive view. Recognizing the exact
+// excluded marker uses only regular files; the old body grants no recovery
+// authority. Other entries keep their owning reader's validation.
+export function archivedRunRecords(directory: string) {
+  return readdirSync(directory)
+    .sort()
+    .filter((name) => name.endsWith(".json"))
+    .map((name) => join(directory, name))
+    .filter((path) => !excludedArchivedRun(unverifiedRecord(path)));
+}
+
 // Read only the pin before checking any record's format or contents. An active
 // run owns the pin, even while updating an adoption whose lock still names the
 // former CLI. If a future schema no longer exposes this field, the format gate
@@ -386,7 +398,8 @@ export interface RetiredRecord {
 // rejects an unsupported format before further reads or writes, so the
 // diagnostic is the same whichever record the command would have read first:
 // committed state, retained scope evidence, the integrity lock, the active run
-// record, or a run report archived by abandonment. A newer format anywhere
+// record, or a run report archived by abandonment, apart from the exact v6
+// archives excluded from the shared archive view. A newer format anywhere
 // requires the pinned CLI. A retired active run record may hold unfinished
 // work, so it blocks everything else. Retired committed records are returned
 // to a caller that adopts fresh over them, or that continues the run doing so,
@@ -400,10 +413,7 @@ export function rejectUnsupportedRecords(
 ): RetiredRecord[] {
   const archive = join(dirname(runRecord), "repo-standards-reports");
   const archived = lstatSync(archive, { throwIfNoEntry: false })?.isDirectory()
-    ? readdirSync(archive)
-        .sort()
-        .filter((name) => name.endsWith(".json"))
-        .map((name) => join(archive, name))
+    ? archivedRunRecords(archive)
     : [];
   const records = [
     ...(
@@ -518,13 +528,12 @@ function abandonedOver(root: string) {
     !lstatSync(archive, { throwIfNoEntry: false })?.isDirectory()
   )
     return undefined;
-  for (const name of readdirSync(archive).sort())
-    if (name.endsWith(".json")) {
-      const run = unverifiedRecord(join(archive, name)) as
-        { id?: unknown; inspection?: unknown; abandoned?: unknown } | undefined;
-      if (run?.abandoned === true && run.inspection === inspection)
-        return typeof run.id === "string" ? run.id : undefined;
-    }
+  for (const path of archivedRunRecords(archive)) {
+    const run = unverifiedRecord(path) as
+      { id?: unknown; inspection?: unknown; abandoned?: unknown } | undefined;
+    if (run?.abandoned === true && run.inspection === inspection)
+      return typeof run.id === "string" ? run.id : undefined;
+  }
   return undefined;
 }
 

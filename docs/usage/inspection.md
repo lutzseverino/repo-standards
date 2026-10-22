@@ -696,7 +696,8 @@ retained scope history, or integrity lock in any other older format with
 `RETIRED_FORMAT` before reading anything else; nothing is converted. Inspecting a source instead previews a
 [fresh adoption](adoption.md#adopt-fresh-from-a-retired-format) that removes the
 retired product state. An active run record in an older format fails every
-inspection with `RETIRED_RUN`, and an archived one with `RETIRED_FORMAT`. A
+inspection with `RETIRED_RUN`, and an archived one with `RETIRED_FORMAT`, except that an archived
+`repo-standards/run/v6` report is left unread. A
 newer version of any of them fails with `NEWER_FORMAT` and names using the
 pinned CLI; it never calls for fresh adoption.
 Malformed or unrelated format identities, including a same-prefix version

@@ -155,7 +155,8 @@ index.
   observing the project, so Git never follows a symbolic `.gitignore` whose
   referent the observation does not bind. Before it, Git only locates the
   project root and the run record.
-- `RETIRED_FORMAT` for older committed records or archived reports,
+- `RETIRED_FORMAT` for older committed records or archived reports other than
+  `repo-standards/run/v6` ones,
   `RETIRED_RUN` for an older active run record, or `NEWER_FORMAT` for a higher
   version of a known record format. Malformed format identities in committed
   records `check` reads fail integrity validation, including a same-prefix

@@ -107,3 +107,6 @@ alternatives.
   the website's shadcn components are pinned registry output guarded by
   checksums, pages import them through `components/app/`, and shared styling
   targets their `data-slot` instead of editing them.
+- [Leave archived run/v6 reports unread](0029-leave-archived-run-v6-reports-unread.md):
+  run reports CLI 9.0.0 archived in Git's directory are skipped by every reader,
+  never moved or converted, so they no longer block an update.
