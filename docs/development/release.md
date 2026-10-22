@@ -112,6 +112,14 @@ tarball, and attaches that bundle to the matching GitHub `v<version>` release,
 whose body is the supplied notes. The workflow then runs public npm smoke
 checks on both systems, after a bounded wait for registry propagation described
 in **Published acceptance**, and retains JSON evidence as workflow artifacts.
+
+Inspection predicts contextual work before the run knows which assessments it
+will reuse, and describes remote setup as not ready before it may be deferred.
+Its line can therefore differ from the completed update's line. If the lines
+disagree, retain both and leave the release incomplete for the maintainer to
+resolve the notes against the gate's actual derived action. The prediction does
+not replace that evidence.
+
 It refuses an existing Git tag; inspect any partial previous publication before
 retrying. An npm version cannot be overwritten, so a failed later step needs
 explicit recovery using the original artifacts, not another publish attempt.
