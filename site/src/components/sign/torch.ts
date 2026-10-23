@@ -3,7 +3,9 @@
 // meets the page at a slant: the spot stretches away from the centre, its near
 // side is brighter and it dims. The page starts floodlit; the light gathers to
 // the pointer once one moves, follows keyboard focus, and floods again when
-// the pointer leaves. With prefers-contrast: more it stays floodlit. By day
+// the pointer leaves. With prefers-contrast: more it stays floodlit. A finger
+// never aims it: on a touch-first screen the beam rests fixed to the screen
+// instead of flooding, and the page scrolls through it (rig.ts). By day
 // there is no torch: the same motion drives the sun's glint on the sheeting
 // (rig.ts), which rests where it mirrors the sun to an eye at the centre.
 //
@@ -123,9 +125,10 @@ export function useTorch(theme: Theme | null) {
       flooded = contrast;
       kick();
     };
-    // by day the sun returns to its resting glint
+    // by day the sun returns to its resting glint, and on a touch-first
+    // screen the beam to its fixed place
     const flood = () => {
-      if (rig.day()) {
+      if (rig.day() || rig.touchFirst()) {
         const rest = rig.start();
         tgt.x = rest.x;
         tgt.y = rest.y;
@@ -135,7 +138,19 @@ export function useTorch(theme: Theme | null) {
       kick();
     };
 
+    // a tap focuses without the keyboard, and the light stays where it is;
+    // on a touch-first screen a finger returns it to its fixed place after
+    // keyboard focus aimed it
+    let touched = false;
+    const onDown = (e: PointerEvent) => {
+      touched = e.pointerType === "touch";
+      if (touched && rig.touchFirst()) flood();
+    };
+    const onKey = () => {
+      touched = false;
+    };
     const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
       window.clearTimeout(widenTimer);
       if (!engaged) {
         // hold the floodlit entrance a moment, then gather to the pointer
@@ -154,25 +169,27 @@ export function useTorch(theme: Theme | null) {
       if (e.relatedTarget === null) flood();
     };
     const onUp = (e: PointerEvent) => {
-      if (e.pointerType !== "mouse") {
+      if (e.pointerType === "pen") {
         widenTimer = window.setTimeout(flood, 1500);
       }
     };
     const onFocus = (e: FocusEvent) => {
       const el = e.target as HTMLElement | null;
-      if (!el || !el.matches(":focus-visible")) return;
+      if (touched || !el || !el.matches(":focus-visible")) return;
       const r = el.getBoundingClientRect();
       engaged = true;
       const at = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
       aim(at.x, at.y, at);
     };
     const onScroll = () => apply();
-    // a flood sized for a smaller window would show its edge in a larger one
+    const touchFirst = window.matchMedia(rig.TOUCH_FIRST);
+    // a flood sized for a smaller window would show its edge in a larger one,
+    // and a fixed beam belongs to the window's new width
     const onResize = () => {
       if (flooded) {
         const entry = rig.start();
         tgt.r = cur.r = entry.r;
-        if (!engaged) {
+        if (!engaged || rig.touchFirst()) {
           tgt.x = cur.x = entry.x;
           tgt.y = cur.y = entry.y;
         }
@@ -187,7 +204,10 @@ export function useTorch(theme: Theme | null) {
     measure();
     void document.fonts.ready.then(remeasure);
     window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("pointerdown", onDown, { passive: true });
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("keydown", onKey);
+    touchFirst.addEventListener("change", flood);
     document.addEventListener("mouseout", onLeave);
     document.addEventListener("focusin", onFocus);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -199,7 +219,10 @@ export function useTorch(theme: Theme | null) {
       window.clearTimeout(engageTimer);
       window.clearTimeout(widenTimer);
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("keydown", onKey);
+      touchFirst.removeEventListener("change", flood);
       document.removeEventListener("mouseout", onLeave);
       document.removeEventListener("focusin", onFocus);
       window.removeEventListener("scroll", onScroll);

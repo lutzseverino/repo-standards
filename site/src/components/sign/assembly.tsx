@@ -10,8 +10,9 @@ import { lightRig } from "./rig";
 
 /** The pointer stands in for the viewer's eye and tilts the assembly. On entry
  * and when the pointer leaves, the sign settles into a presentational pose and
- * holds it a moment before following the pointer again. A soft spring drives
- * the tilt; the glare of the torch follows the tilt. */
+ * holds it a moment before following the pointer again. A finger is no eye:
+ * it never tilts the sign. A soft spring drives the tilt; the glare of the
+ * torch follows the tilt. */
 function useTilt(ref: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const el = ref.current;
@@ -68,6 +69,7 @@ function useTilt(ref: RefObject<HTMLElement | null>) {
       kick();
     };
     const onMove = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return;
       pointer = { x: e.clientX, y: e.clientY };
       if (following) {
         follow();

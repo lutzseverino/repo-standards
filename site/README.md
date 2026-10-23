@@ -47,7 +47,10 @@ sheeting and the component edges mirror it, moving at half the pointer's
 speed. The torch, `torch.ts`, follows the pointer and keyboard focus, floods
 the page on entry and when the pointer leaves, and stays floodlit with
 `prefers-contrast: more`; by day the glint rests where an eye at the centre
-would see it. The theme follows the system
+would see it. A finger never aims the light or tilts the sign. On a
+touch-first screen, with no hover and a coarse pointer, the torch rests fixed
+to the screen over the sign instead of flooding, so the page scrolls through
+it, and the sign holds its pose; a mouse or trackpad there still aims it. The theme follows the system
 through shadcn's `.dark` class until the visitor picks one with the nav's
 toggle; an inline script in the page head applies it before the first paint.
 `rig.ts` measures the lit elements and writes the beam and the sign's tilt to
