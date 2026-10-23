@@ -1,5 +1,5 @@
-// The light's geometry: where the torch's beam and the sign's tilt land on
-// the page. The torch (torch.ts) and the tilt (assembly.tsx) move them; the rig
+// The light's geometry: where the torch's beam, or by day the sun's glint,
+// and the sign's tilt land on the page. The torch (torch.ts) and the tilt (assembly.tsx) move them; the rig
 // measures the lit elements and writes the custom properties they read.
 //
 // The page also runs `lightRig` as an inline script right after the markup,
@@ -15,6 +15,12 @@ export type Pose = { x: number; y: number };
 export function lightRig() {
   /** The beam's radius where it meets the screen head-on, in CSS pixels. */
   const RADIUS = 760;
+  /** By day there is no torch. The sun stands behind the viewer, up and to
+   * the left, and glints on the glossy sheeting where it mirrors the sun to
+   * the eye: a spot of this radius that moves at half the eye's speed,
+   * offset toward the sun. */
+  const SUN_RADIUS = 460;
+  const SUN_OFFSET = { x: -120, y: -90 };
   /** Distance from the eye to the screen, in CSS pixels. */
   const EYE = 1100;
   /** Seen from slightly below and to the left: the angle the sign rests at
@@ -44,14 +50,33 @@ export function lightRig() {
 
   const reduced = () =>
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const contrast = () => window.matchMedia("(prefers-contrast: more)").matches;
+  const day = () => !document.documentElement.classList.contains("dark");
   /** A beam wide enough to flood the whole window. */
   const full = () => Math.hypot(window.innerWidth, window.innerHeight) * 1.6;
-  /** The floodlit entrance, before the pointer moves. */
-  const start = (): Beam => ({
-    x: window.innerWidth * 0.5,
-    y: window.innerHeight * 0.38,
-    r: full(),
-  });
+  /** The light's radius once it follows the eye: the sun's glint by day,
+   * the torch's beam at night, and a flood with prefers-contrast: more. */
+  const radius = () => (contrast() ? full() : day() ? SUN_RADIUS : RADIUS);
+  /** Where the light lands for an eye at a point in the window: the torch
+   * aims there, and the sun glints halfway to the window's centre. */
+  const toward = (x: number, y: number) => {
+    if (!day()) return { x, y };
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    return {
+      x: cx + (x - cx) * 0.5 + SUN_OFFSET.x,
+      y: cy + (y - cy) * 0.5 + SUN_OFFSET.y,
+    };
+  };
+  /** The light before the pointer moves: at night the torch floods the
+   * page, by day the sun glints for an eye at the window's centre. */
+  const start = (): Beam =>
+    day()
+      ? {
+          ...toward(window.innerWidth / 2, window.innerHeight / 2),
+          r: contrast() ? full() : SUN_RADIUS,
+        }
+      : { x: window.innerWidth * 0.5, y: window.innerHeight * 0.38, r: full() };
   /** The pose the sign rests at; it does not tilt with reduced motion. */
   const pose = (): Pose => (reduced() ? { x: 0, y: 0 } : { ...POSE });
 
@@ -232,7 +257,18 @@ export function lightRig() {
     apply(start());
   }
 
-  return { RADIUS, full, start, pose, measure, apply, tilt, rest };
+  return {
+    day,
+    full,
+    radius,
+    toward,
+    start,
+    pose,
+    measure,
+    apply,
+    tilt,
+    rest,
+  };
 }
 
 /** The inline script that draws the page at rest before its first paint. If

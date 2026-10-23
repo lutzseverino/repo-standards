@@ -3,8 +3,9 @@
 // meets the page at a slant: the spot stretches away from the centre, its near
 // side is brighter and it dims. The page starts floodlit; the light gathers to
 // the pointer once one moves, follows keyboard focus, and floods again when
-// the pointer leaves. With prefers-contrast: more it stays floodlit. The same
-// torch works in both themes; only the palette under it changes.
+// the pointer leaves. With prefers-contrast: more it stays floodlit. By day
+// there is no torch: the same motion drives the sun's glint on the sheeting
+// (rig.ts), which rests where it mirrors the sun to an eye at the centre.
 //
 // The rig (rig.ts) measures and draws the light; the torch moves it.
 // Performance: positions are measured once into cached origins (`data-lo`)
@@ -34,7 +35,6 @@ export function useTorch(theme: Theme | null) {
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const contrast = window.matchMedia("(prefers-contrast: more)").matches;
-    const narrow = () => (contrast ? rig.full() : rig.RADIUS);
 
     const observed = new WeakSet<Element>();
     let ro: ResizeObserver | null = null;
@@ -66,6 +66,8 @@ export function useTorch(theme: Theme | null) {
     const tgt = { ...start };
     const vel = { x: 0, y: 0 };
     let engaged = false;
+    // the pointer while the entrance holds
+    let pointer = { x: start.x, y: start.y };
     // the beam covers the whole window: on entry, after the pointer leaves,
     // and always with prefers-contrast: more
     let flooded = true;
@@ -113,15 +115,22 @@ export function useTorch(theme: Theme | null) {
       raf = requestAnimationFrame(step);
     };
 
-    const aim = (x: number, y: number) => {
-      tgt.x = x;
-      tgt.y = y;
-      tgt.r = narrow();
+    /** Aims the light for an eye at a point; focus is lit where it is. */
+    const aim = (x: number, y: number, at = rig.toward(x, y)) => {
+      tgt.x = at.x;
+      tgt.y = at.y;
+      tgt.r = rig.radius();
       flooded = contrast;
       kick();
     };
+    // by day the sun returns to its resting glint
     const flood = () => {
-      tgt.r = rig.full();
+      if (rig.day()) {
+        const rest = rig.start();
+        tgt.x = rest.x;
+        tgt.y = rest.y;
+      }
+      tgt.r = rig.start().r;
       flooded = true;
       kick();
     };
@@ -133,11 +142,10 @@ export function useTorch(theme: Theme | null) {
         if (!engageTimer) {
           engageTimer = window.setTimeout(() => {
             engaged = true;
-            aim(tgt.x, tgt.y);
+            aim(pointer.x, pointer.y);
           }, 900);
         }
-        tgt.x = e.clientX;
-        tgt.y = e.clientY;
+        pointer = { x: e.clientX, y: e.clientY };
         return;
       }
       aim(e.clientX, e.clientY);
@@ -155,7 +163,8 @@ export function useTorch(theme: Theme | null) {
       if (!el || !el.matches(":focus-visible")) return;
       const r = el.getBoundingClientRect();
       engaged = true;
-      aim(r.left + r.width / 2, r.top + r.height / 2);
+      const at = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      aim(at.x, at.y, at);
     };
     const onScroll = () => apply();
     // a flood sized for a smaller window would show its edge in a larger one
