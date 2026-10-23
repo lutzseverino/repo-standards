@@ -62,7 +62,9 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: color-mix(in oklab, #2b2e30 30%, #f3f4f2);
   --input: color-mix(in oklab, #2b2e30 30%, #f3f4f2);
-  --ring: #f7c600;
+  /* a calm neutral focus ring; shadcn draws it at 50%, which still meets
+     3:1 against the page and the cards in both themes */
+  --ring: #181b1e;
   --card: color-mix(in oklab, #fff 60%, transparent);
   --card-foreground: #2b2e30;
   --popover: #fff;
@@ -116,7 +118,7 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: color-mix(in oklab, #e8eae7 30%, #0d0f11);
   --input: color-mix(in oklab, #e8eae7 30%, #0d0f11);
-  --ring: #f7c600;
+  --ring: #c8cbc8;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
