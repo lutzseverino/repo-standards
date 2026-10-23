@@ -58,11 +58,16 @@ export function lightRig() {
   const day = () => !document.documentElement.classList.contains("dark");
   const touchFirst = () => window.matchMedia(TOUCH_FIRST).matches;
   /** The beam fixed to a touch-first screen: a little wider than the
-   * screen, so the whole sign sits inside it as the page opens, and placed
-   * by the width, which the browser's toolbar never changes. */
+   * screen, so the whole sign sits inside it as the page opens. It is placed
+   * by the width and the root's client height, the small viewport, neither
+   * of which changes as the browser's toolbar shows and hides; the window's
+   * inner height does. */
   const fixed = (): Beam => ({
     x: window.innerWidth / 2,
-    y: Math.min(window.innerWidth * 0.9, window.innerHeight * 0.45),
+    y: Math.min(
+      window.innerWidth * 0.9,
+      document.documentElement.clientHeight * 0.45,
+    ),
     r: window.innerWidth * 1.2,
   });
   /** A beam wide enough to flood the whole window. */
