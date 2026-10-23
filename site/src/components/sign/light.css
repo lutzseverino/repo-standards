@@ -1,17 +1,17 @@
-/* The light: a hand torch at the viewer's eye, aimed at the pointer (see
-   torch.ts). This sheet lights shadcn components through their data-slot
+/* The light: at night a hand torch at the viewer's eye, aimed at the
+   pointer, and by day the sun's glint (see torch.ts and rig.ts). This sheet lights shadcn components through their data-slot
    attributes, so no generated component and no call site changes, and runs
    the page-wide layers that light text. The sign plates light themselves in
    sign.css. */
 
-/* The torch itself is plain, slightly warm white: the pool and the sheen on
-   the bare page carry no hue. Only reflective surfaces split the light into
-   a rainbow at the beam's rim: the sign plates (sign.css), the edges of
-   shadcn components, and text, through the prism layer.
+/* At night the torch itself is plain, slightly warm white: the pool and the
+   sheen on the bare page carry no hue. Only reflective surfaces split the
+   light into a rainbow at the beam's rim: the sign plates (sign.css), the
+   edges of shadcn components, and text, through the prism layer.
 
-   Light by day: the edge keeps its colour in the beam and only the rim
-   shows. The prism lightens: every channel of its colours is darker than
-   the paper, so the paper keeps its colour and dark text takes the rainbow. */
+   By day a torch would add nothing, so the sun does the work, in white
+   only: a glint on the sign sheeting (sign.css) and on the components'
+   edges. There is no pool, sheen or prism by day. */
 :root {
   /* every rainbow on the page, on plates, edges and text, lies on one ring
      round the aim point, in fractions of the beam radius */
@@ -19,18 +19,13 @@
   --ring-peak: 62%;
   --ring-out: 80%;
 
-  --edge-hot: transparent;
-  --edge-warm: transparent;
-  --edge-pink: rgba(240, 70, 140, 0.6);
-  --edge-amber: rgba(240, 170, 30, 0.6);
-  --edge-green: rgba(30, 190, 140, 0.55);
-  --edge-blue: rgba(40, 130, 240, 0.6);
-  --prism-blend: lighten;
-  --prism-strength: 0.7;
-  --prism-pink: rgb(225 40 125);
-  --prism-amber: rgb(215 140 0);
-  --prism-green: rgb(0 160 115);
-  --prism-blue: rgb(30 105 225);
+  /* the sun's glint on an edge: white, fading out before the ring */
+  --edge-hot: rgba(255, 255, 255, 0.8);
+  --edge-warm: rgba(255, 255, 255, 0.56);
+  --edge-pink: rgba(255, 255, 255, 0.2);
+  --edge-amber: transparent;
+  --edge-green: transparent;
+  --edge-blue: transparent;
 }
 
 /* Light at night: a hot centre and a rainbow rim on edges. The prism
@@ -43,8 +38,6 @@
   --edge-amber: rgba(255, 214, 120, 0.55);
   --edge-green: rgba(130, 240, 205, 0.5);
   --edge-blue: rgba(120, 190, 255, 0.5);
-  --prism-blend: darken;
-  --prism-strength: 1;
   --prism-pink: rgb(255 165 205);
   --prism-amber: rgb(255 222 150);
   --prism-green: rgb(165 245 215);
@@ -138,11 +131,10 @@
     transparent var(--ring-out)
   );
 }
-/* prism: the rainbow on text and legends at the beam's rim. Darken by
-   night and lighten by day leave the bare page untouched. */
+/* prism: the rainbow on text and legends at the beam's rim. Darken leaves
+   the night page untouched. */
 .lit-prism {
-  mix-blend-mode: var(--prism-blend);
-  opacity: var(--prism-strength);
+  mix-blend-mode: darken;
   background: radial-gradient(
     circle var(--disc-r) at var(--disc-x) var(--disc-y),
     transparent var(--ring-in),
@@ -153,8 +145,7 @@
     transparent var(--ring-out)
   );
 }
-/* by day a torch adds nothing to the paper or the text but the rainbow */
-:root:not(.dark) .torch-pool,
-:root:not(.dark) .lit-sheen {
+/* by day the sun lights no paper and no text */
+:root:not(.dark) .light-layer {
   display: none;
 }

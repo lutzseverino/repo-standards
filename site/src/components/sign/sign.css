@@ -40,8 +40,9 @@
 }
 
 /* ================= tokens =================
-   Light: the page by day; plates keep their daylight colours, and the beam
-   adds the retroreflected boost, the rainbow and the glare. Dark: the page at
+   Light: the page by day; plates keep their daylight colours, and the sun
+   adds a glint where the sheeting mirrors it: a lift, a streak, sparkle and
+   the glare, all white. Dark: the page at
    night; plates outside the beam fall back to ambient, and retroreflection
    makes them blaze inside it. RAL traffic colours, tuned for screens: 5017
    Verkehrsblau plates, 1023 Verkehrsgelb focus only. */
@@ -59,10 +60,10 @@
   --blue-ink: #fff;
   --white: #f4f5f1;
   --white-ink: #2b2e30;
-  /* lit: the retroreflected boost, smaller by day */
-  --blue-lit: #1762c8;
-  --shield-lit: #155cc0;
-  --white-lit: #fffef6;
+  /* lit: the sun's glint by day */
+  --blue-lit: #2671cc;
+  --shield-lit: #2671cc;
+  --white-lit: #ffffff;
   --white-ink-lit: #1b1d1f;
 
   --post-filter: none;
@@ -440,6 +441,11 @@ a.face:focus-visible {
 .face--white .css-sheet .rainbow {
   mix-blend-mode: multiply;
 }
+/* sunlight shows no rainbow: microprisms split a beam only when it comes
+   from the eye */
+:root:not(.dark) .face--lit .css-sheet .rainbow {
+  display: none;
+}
 
 /* ================= the torch =================
    The torch writes the beam to each lit copy (.lit-rot) every frame. The
@@ -585,6 +591,31 @@ a.face:focus-visible {
 .face--white .lit-glint {
   opacity: 0.3;
   filter: invert(0.6);
+}
+/* by day the seal lattice sparkles in the sun */
+:root:not(.dark) .lit-glint {
+  opacity: 0.45;
+}
+/* by day the sun's streak: a band of reflected sky across the sheeting,
+   slanting with the sun, centred on the glint */
+:root:not(.dark) .face--lit::before {
+  --lx: inherit;
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+      112deg,
+      transparent 38%,
+      rgba(255, 252, 240, 0.34) 47%,
+      rgba(255, 252, 240, 0.5) 50%,
+      rgba(255, 252, 240, 0.34) 53%,
+      transparent 62%
+    )
+    no-repeat;
+  background-size: 640px 100%;
+  background-position: calc(var(--lx) - 320px) 0;
 }
 /* glare: the glossy film mirrors the torch where the plate faces the eye */
 .glare {
