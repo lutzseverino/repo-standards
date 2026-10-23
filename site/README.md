@@ -46,6 +46,10 @@ and keyboard focus, floods the page on entry and when the pointer leaves, and
 stays floodlit with `prefers-contrast: more`. The theme follows the system
 through shadcn's `.dark` class until the visitor picks one with the nav's
 toggle; an inline script in the page head applies it before the first paint.
+`rig.ts` measures the lit elements and writes the beam and the sign's tilt to
+them. The page also runs it as an inline script after the markup and holds the
+first paint until it has run, so the first frame already shows the sign at
+its pose and the lights on, and hydration changes nothing.
 D-DIN PRO, under the SIL Open Font License in `public/fonts/d-din-pro/`, sets
 the signs and the text.
 

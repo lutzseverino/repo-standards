@@ -48,14 +48,25 @@ export function Face({
 }: FaceProps) {
   const classes = `face face--${kind} ${className}`;
   return (
-    <div className="face-wrap" data-lo="" aria-hidden={hidden || undefined}>
+    // measured and lit before the page hydrates (rig.ts)
+    <div
+      className="face-wrap"
+      data-lo=""
+      aria-hidden={hidden || undefined}
+      suppressHydrationWarning
+    >
       <Tag className={classes} href={href} aria-label={label}>
         <Surface slats={slats} />
         {children}
       </Tag>
       {/* the beam's footprint is an ellipse along the beam, so the lit copy
           sits in a frame rotated to the beam and counter-rotated back */}
-      <div className="lit-rot" aria-hidden="true" inert>
+      <div
+        className="lit-rot"
+        aria-hidden="true"
+        inert
+        suppressHydrationWarning
+      >
         <div className={`${classes} face--lit`}>
           <Surface slats={slats} lit />
           <i className="lit-glint" />

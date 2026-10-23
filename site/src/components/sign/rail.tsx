@@ -67,6 +67,8 @@ export function RailDrawing({
           cy="-9999"
           r="600"
           data-k="1.1"
+          // lit before the page hydrates (rig.ts)
+          suppressHydrationWarning
         >
           <stop offset="0" className="rail-hot" />
           <stop offset="0.5" className="rail-warm" />

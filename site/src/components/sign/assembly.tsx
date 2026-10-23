@@ -1,22 +1,12 @@
 // The sign assembly at the top of the page. Two galvanised posts carry the
 // title plate, the destination plate pointing to Repo Canon, and a
 // supplementary notice. The structure tilts as one object with the viewer.
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { repositoryUrl, type Source } from "@/lib/catalogue";
 import { Arrow } from "./arrow";
 import { Face, Surface } from "./face";
 import { RailDrawing, curve } from "./rail";
-import { EYE } from "./torch";
-
-/** Seen from slightly below and to the left: the angle the sign rests at on
- * entry and whenever the pointer is gone. */
-const POSE = { x: 4, y: -9 };
+import { lightRig } from "./rig";
 
 /** The pointer stands in for the viewer's eye and tilts the assembly. On entry
  * and when the pointer leaves, the sign settles into a presentational pose and
@@ -26,10 +16,13 @@ function useTilt(ref: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const rig = lightRig();
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const cur = reduced ? { x: 0, y: 0 } : { ...POSE };
+    // the page was drawn at this pose before it hydrated (rig.ts)
+    const rest = rig.pose();
+    const cur = { ...rest };
     const tgt = { ...cur };
     const vel = { x: 0, y: 0 };
     let following = false;
@@ -39,26 +32,7 @@ function useTilt(ref: RefObject<HTMLElement | null>) {
     let last = 0;
     let pointer = { x: 0, y: 0 };
 
-    const write = () => {
-      const s = el.style;
-      s.setProperty("--tilt-x", `${cur.x.toFixed(2)}deg`);
-      s.setProperty("--tilt-y", `${cur.y.toFixed(2)}deg`);
-      // the tube's highlight stripe follows the viewer round the cylinder
-      s.setProperty("--post-hl", `${(38 + cur.y * 4).toFixed(1)}%`);
-      // glare: where the plates face the eye, in page coordinates
-      const ty = (cur.y * Math.PI) / 180;
-      const tx = (cur.x * Math.PI) / 180;
-      const cx = window.innerWidth / 2 + window.scrollX;
-      const cy = window.innerHeight / 2 + window.scrollY;
-      s.setProperty(
-        "--gxp",
-        `${(cx - EYE * Math.sin(ty) * Math.cos(ty)).toFixed(1)}px`,
-      );
-      s.setProperty(
-        "--gyp",
-        `${(cy + EYE * Math.sin(tx) * Math.cos(tx)).toFixed(1)}px`,
-      );
-    };
+    const write = () => rig.tilt(el, cur);
     const step = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
       last = now;
@@ -111,8 +85,8 @@ function useTilt(ref: RefObject<HTMLElement | null>) {
       following = false;
       window.clearTimeout(hold);
       hold = 0;
-      tgt.x = POSE.x;
-      tgt.y = POSE.y;
+      tgt.x = rest.x;
+      tgt.y = rest.y;
       kick();
     };
     const onScroll = () => write();
@@ -143,7 +117,12 @@ export function SignAssembly({
   return (
     <>
       <div className="flex flex-col items-center">
-        <div ref={ref} className="assembly w-full max-w-[760px]">
+        {/* tilted before the page hydrates (rig.ts) */}
+        <div
+          ref={ref}
+          className="assembly w-full max-w-[760px]"
+          suppressHydrationWarning
+        >
           <div className="posts" aria-hidden="true">
             <span className="tube" style={{ left: "21%" }} />
             <span className="tube" style={{ left: "79%" }} />
@@ -204,26 +183,18 @@ export function SignAssembly({
   );
 }
 
+/** The page's widest content, max-w-6xl less its padding. */
+const RAIL_WIDTH = 1104;
+
 /** The guardrail where the sign meets the list, on a gentle curve that fades
- * in and out instead of a hard rule. */
+ * in and out instead of a hard rule. It is drawn for the widest page, so the
+ * server can draw it: a narrower page shows its left part, and the fade at
+ * the rail's ends masks the cut. */
 function HeroRail() {
-  const ref = useRef<SVGSVGElement>(null);
-  const [width, setWidth] = useState(0);
-  useLayoutEffect(() => {
-    const svg = ref.current;
-    if (!svg) return;
-    const measure = () => setWidth(svg.getBoundingClientRect().width);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(svg);
-    return () => ro.disconnect();
-  }, []);
   const f = curve(7, 7);
   return (
-    <svg ref={ref} className="rail-svg hero-rail" aria-hidden="true">
-      {width > 0 && (
-        <RailDrawing f={(x) => f(x, width)} width={width} base={14} />
-      )}
+    <svg className="rail-svg hero-rail" aria-hidden="true">
+      <RailDrawing f={(x) => f(x, RAIL_WIDTH)} width={RAIL_WIDTH} base={14} />
     </svg>
   );
 }

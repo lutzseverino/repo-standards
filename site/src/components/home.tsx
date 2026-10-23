@@ -23,7 +23,9 @@ import {
 } from "@/lib/catalogue";
 import { useTheme } from "@/lib/theme";
 
-// page-wide light layers and their diameter in beam radii
+// page-wide light layers and their diameter in beam radii. Like the other lit
+// elements, they are lit before the page hydrates (sign/rig.ts), so React is
+// told not to compare their style with the server's.
 const LIGHT_LAYERS = [
   ["torch-pool", 3],
   ["lit-sheen", 2],
@@ -51,6 +53,7 @@ export function Home({ catalogue }: { catalogue: Catalogue }) {
           className={`light-layer ${name}`}
           data-light-layer={k}
           aria-hidden="true"
+          suppressHydrationWarning
         />
       ))}
       <main className="page mx-auto max-w-6xl px-6 pt-10 pb-32">
