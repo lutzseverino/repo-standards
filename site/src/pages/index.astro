@@ -1,5 +1,6 @@
 ---
 import { Home } from "@/components/home";
+import { restScript } from "@/components/sign/rig";
 import { loadCatalogue } from "@/lib/load-catalogue";
 import "@/styles/global.css";
 import "@/components/sign/sign.css";
@@ -19,6 +20,8 @@ const catalogue = await loadCatalogue();
     />
     <title>Repository Standards</title>
     <link rel="canonical" href={Astro.site} />
+    <!-- holds the first paint until the page is drawn at rest, below -->
+    <link rel="expect" href="#at-rest" blocking="render" />
     <!-- applies the stored or system theme before anything is drawn -->
     <script is:inline>
       (() => {
@@ -36,5 +39,12 @@ const catalogue = await loadCatalogue();
   </head>
   <body>
     <Home client:load catalogue={catalogue} />
+    <!-- draws the sign at its pose and the lights on before the first paint,
+         so hydration changes nothing -->
+    <script is:inline set:html={restScript()} />
+    <!-- the first paint waits for this marker: the parser reaches it only
+         once the script above has run, while the script element itself is
+         in the document before it runs -->
+    <template id="at-rest"></template>
   </body>
 </html>
