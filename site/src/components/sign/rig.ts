@@ -21,6 +21,10 @@ export function lightRig() {
    * offset toward the sun. */
   const SUN_RADIUS = 460;
   const SUN_OFFSET = { x: -120, y: -90 };
+  /** A touch-first device has no pointer to aim with, so at night the beam
+   * is fixed to the screen, on the sign as the page opens, and the page
+   * scrolls through it. */
+  const TOUCH_FIRST = "(hover: none) and (pointer: coarse)";
   /** Distance from the eye to the screen, in CSS pixels. */
   const EYE = 1100;
   /** Seen from slightly below and to the left: the angle the sign rests at
@@ -52,11 +56,32 @@ export function lightRig() {
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const contrast = () => window.matchMedia("(prefers-contrast: more)").matches;
   const day = () => !document.documentElement.classList.contains("dark");
+  const touchFirst = () => window.matchMedia(TOUCH_FIRST).matches;
+  /** The beam fixed to a touch-first screen: a little wider than the
+   * screen, so the whole sign sits inside it as the page opens. It is placed
+   * by the width and the root's client height, the small viewport, neither
+   * of which changes as the browser's toolbar shows and hides; the window's
+   * inner height does. */
+  const fixed = (): Beam => ({
+    x: window.innerWidth / 2,
+    y: Math.min(
+      window.innerWidth * 0.9,
+      document.documentElement.clientHeight * 0.45,
+    ),
+    r: window.innerWidth * 1.2,
+  });
   /** A beam wide enough to flood the whole window. */
   const full = () => Math.hypot(window.innerWidth, window.innerHeight) * 1.6;
   /** The light's radius once it follows the eye: the sun's glint by day,
    * the torch's beam at night, and a flood with prefers-contrast: more. */
-  const radius = () => (contrast() ? full() : day() ? SUN_RADIUS : RADIUS);
+  const radius = () =>
+    contrast()
+      ? full()
+      : day()
+        ? SUN_RADIUS
+        : touchFirst()
+          ? fixed().r
+          : RADIUS;
   /** Where the light lands for an eye at a point in the window: the torch
    * aims there, and the sun glints halfway to the window's centre. */
   const toward = (x: number, y: number) => {
@@ -68,15 +93,23 @@ export function lightRig() {
       y: cy + (y - cy) * 0.5 + SUN_OFFSET.y,
     };
   };
-  /** The light before the pointer moves: at night the torch floods the
-   * page, by day the sun glints for an eye at the window's centre. */
-  const start = (): Beam =>
-    day()
-      ? {
-          ...toward(window.innerWidth / 2, window.innerHeight / 2),
-          r: contrast() ? full() : SUN_RADIUS,
-        }
-      : { x: window.innerWidth * 0.5, y: window.innerHeight * 0.38, r: full() };
+  /** The light at rest, before the pointer moves and after it leaves: at
+   * night the torch floods the page, or on a touch-first screen it is the
+   * fixed beam, and by day the sun glints for an eye at the window's
+   * centre. */
+  const start = (): Beam => {
+    if (day())
+      return {
+        ...toward(window.innerWidth / 2, window.innerHeight / 2),
+        r: contrast() ? full() : SUN_RADIUS,
+      };
+    if (touchFirst() && !contrast()) return fixed();
+    return {
+      x: window.innerWidth * 0.5,
+      y: window.innerHeight * 0.38,
+      r: full(),
+    };
+  };
   /** The pose the sign rests at; it does not tilt with reduced motion. */
   const pose = (): Pose => (reduced() ? { x: 0, y: 0 } : { ...POSE });
 
@@ -259,6 +292,8 @@ export function lightRig() {
 
   return {
     day,
+    touchFirst,
+    TOUCH_FIRST,
     full,
     radius,
     toward,
