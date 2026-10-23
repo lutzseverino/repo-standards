@@ -98,38 +98,15 @@
   --rail-cold: #4a4f54;
 }
 
-/* Focus: traffic yellow, which is clear on the night page. On the day page
-   yellow alone is too faint, so the ring is two-tone like a hazard marking:
-   a yellow band edged in black. */
+/* Focus on the sign: traffic yellow, which is clear on the night page. On
+   the day page yellow alone is too faint, so the ring is two-tone like a
+   hazard marking: a yellow band edged in black. Only the sign plates wear
+   it; every shadcn component keeps its own ring (--ring in global.css). */
 :root {
   --focus-edge: #2b2e30;
 }
 .dark {
   --focus-edge: var(--verkehrsgelb);
-}
-:focus-visible {
-  outline: 3px solid var(--focus-edge);
-  outline-offset: 3px;
-}
-:root:not(.dark) :focus-visible {
-  box-shadow: 0 0 0 3px var(--verkehrsgelb);
-}
-/* a field's ring goes round the whole input group, not the input inside */
-:root [data-slot="input-group-control"]:focus-visible {
-  outline: none;
-  box-shadow: none;
-}
-[data-slot="input-group"]:has(
-  > [data-slot="input-group-control"]:focus-visible
-) {
-  outline: 3px solid var(--focus-edge);
-  outline-offset: 3px;
-}
-:root:not(.dark)
-  [data-slot="input-group"]:has(
-    > [data-slot="input-group-control"]:focus-visible
-  ) {
-  box-shadow: 0 0 0 3px var(--verkehrsgelb);
 }
 .tnum {
   font-variant-numeric: tabular-nums;
