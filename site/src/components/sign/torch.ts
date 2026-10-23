@@ -140,11 +140,15 @@ export function useTorch(theme: Theme | null) {
 
     // a tap focuses without the keyboard, and the light stays where it is;
     // on a touch-first screen a finger returns it to its fixed place after
-    // keyboard focus aimed it
+    // keyboard focus or a mouse aimed it, and cancels a mouse's pending
+    // gathering
     let touched = false;
     const onDown = (e: PointerEvent) => {
       touched = e.pointerType === "touch";
-      if (touched && rig.touchFirst()) flood();
+      if (!touched || !rig.touchFirst()) return;
+      window.clearTimeout(engageTimer);
+      engageTimer = 0;
+      flood();
     };
     const onKey = () => {
       touched = false;
@@ -206,7 +210,8 @@ export function useTorch(theme: Theme | null) {
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
     window.addEventListener("pointerup", onUp);
-    window.addEventListener("keydown", onKey);
+    // in the capture phase, before a shortcut such as search's moves focus
+    window.addEventListener("keydown", onKey, { capture: true });
     touchFirst.addEventListener("change", flood);
     document.addEventListener("mouseout", onLeave);
     document.addEventListener("focusin", onFocus);
@@ -221,7 +226,7 @@ export function useTorch(theme: Theme | null) {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onDown);
       window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keydown", onKey, { capture: true });
       touchFirst.removeEventListener("change", flood);
       document.removeEventListener("mouseout", onLeave);
       document.removeEventListener("focusin", onFocus);
