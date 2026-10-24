@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { parse, type DefaultTreeAdapterMap } from "parse5";
 import { themes } from "../src/lib/theme-core.ts";
+import { CODE_BACKGROUND, contrast, palette } from "./docs-palette.ts";
 
 const site = fileURLToPath(new URL("../", import.meta.url));
 const repository = path.dirname(site);
@@ -193,6 +194,83 @@ test("docs retain stock search and pagination and load the shared beacon once", 
   assert.match(html, /rel="prev"/);
   assert.match(html, /rel="next"/);
   assert.ok(readdirSync(path.join(output, "pagefind")).includes("pagefind.js"));
+});
+
+test("docs headers carry the plain title plate linking home", () => {
+  for (const { url, nodes } of docsPages()) {
+    const header = nodes.find((node) => node.tagName === "header")!;
+    const plates = elements(header).filter((node) =>
+      attribute(node, "class")?.split(" ").includes("docs-plate"),
+    );
+    assert.equal(plates.length, 1, url);
+    assert.equal(plates[0].tagName, "a", url);
+    assert.equal(attribute(plates[0], "href"), "/", url);
+    assert.equal(text(plates[0]).trim(), "Repo Standards", url);
+  }
+});
+
+test("docs code colours meet WCAG 2.2 AA on the code background in both themes", () => {
+  // Expressive Code gives each token its night colour as --0 and its day
+  // colour as --1, and plain code the theme's foreground.
+  const css = readdirSync(path.join(output, "_astro"))
+    .filter((file) => /^ec\..*\.css$/.test(file))
+    .map((file) => read(`_astro/${file}`))
+    .join("");
+  const colours = { dark: new Set<string>(), light: new Set<string>() };
+  for (const { nodes } of docsPages())
+    for (const node of nodes) {
+      const style = attribute(node, "style") ?? "";
+      for (const [, index, colour] of style.matchAll(/--([01]):([^;]+)/g))
+        colours[index === "0" ? "dark" : "light"].add(colour.toLowerCase());
+    }
+  const foregrounds = [...css.matchAll(/--ec-codeFg:([^;}]+)/g)].map((m) =>
+    m[1].toLowerCase(),
+  );
+  colours.dark.add(foregrounds[0]);
+  colours.light.add(foregrounds[1]);
+  assert.match(css, /--ec-frm-edBg:var\(--sl-color-gray-6\)/);
+  assert.match(css, /--ec-frm-edBg:var\(--sl-color-gray-7\)/);
+  assert.match(css, /--ec-frm-trmBg:var\(--sl-color-gray-6\)/);
+  assert.match(css, /--ec-frm-trmBg:var\(--sl-color-gray-7\)/);
+  const failures: string[] = [];
+  for (const theme of ["dark", "light"] as const) {
+    const background = palette(theme)(CODE_BACKGROUND[theme]);
+    assert.ok(colours[theme].size > 5, theme);
+    for (const colour of colours[theme]) {
+      assert.match(colour, /^#[0-9a-f]{6}$/, theme);
+      const ratio = contrast(colour, background);
+      if (ratio < 4.5)
+        failures.push(`${theme} ${colour} on ${background}: ${ratio}`);
+    }
+  }
+  assert.deepEqual(failures, []);
+});
+
+test("docs and the homepage declare each font face once, from the same files", () => {
+  // A page's styles: its linked stylesheets and its inline style elements.
+  const faces = (file: string) => {
+    const nodes = elements(parse(read(file)));
+    const css = [
+      ...nodes
+        .filter(
+          (node) =>
+            node.tagName === "link" &&
+            attribute(node, "rel") === "stylesheet" &&
+            !attribute(node, "media"),
+        )
+        .map((node) => read(attribute(node, "href")!)),
+      ...nodes.filter((node) => node.tagName === "style").map(text),
+    ].join("");
+    return [...css.matchAll(/@font-face\s*\{[^}]*?url\(([^)]+)\)/g)]
+      .map((m) => m[1])
+      .sort();
+  };
+  const homepage = faces("index.html");
+  assert.equal(homepage.length, 5);
+  assert.equal(new Set(homepage).size, homepage.length);
+  assert.ok(homepage.every((url) => url.startsWith("/fonts/d-din-pro/")));
+  for (const file of ["docs/index.html", "docs/guides/adopt/index.html"])
+    assert.deepEqual(faces(file), homepage, file);
 });
 
 test("theme choices survive navigation between the homepage and docs in both directions", () => {

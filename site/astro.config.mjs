@@ -17,9 +17,11 @@ export default defineConfig({
     starlight({
       title: "Repo Standards",
       components: {
+        SiteTitle: "./src/components/docs/SiteTitle.astro",
         ThemeProvider: "./src/components/docs/ThemeProvider.astro",
         ThemeSelect: "./src/components/docs/ThemeSelect.astro",
       },
+      customCss: ["./src/styles/docs.css"],
       head: [analyticsBeacon],
       markdown: { processedDirs: ["../docs/usage", "../docs/adr"] },
       sidebar: [
