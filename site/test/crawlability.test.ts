@@ -34,6 +34,10 @@ test("the fixture build exposes the homepage and catalogue to crawlers", () => {
       read("sitemap-0.xml"),
       /<loc>https:\/\/repo-standards\.com\/<\/loc>/,
     );
+    assert.match(
+      read("sitemap-0.xml"),
+      /<loc>https:\/\/repo-standards\.com\/how-it-works\/<\/loc>/,
+    );
     const html = read("index.html");
     assert.match(
       html,

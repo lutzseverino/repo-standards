@@ -181,6 +181,22 @@
     outline: 4px solid var(--focus-edge);
     outline-offset: 4px;
   }
+  /* The story in words, on the page beside the tab: outside the tab's box,
+   so the tab's button does not cover it, and above the posts' tops. */
+  .story-read {
+    position: absolute;
+    right: calc(100% + 16px);
+    bottom: 6px;
+    white-space: nowrap;
+    font-size: 15px;
+    line-height: 1;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .story-read:focus-visible {
+    outline: 4px solid var(--focus-edge);
+    outline-offset: 4px;
+  }
 
   /* ================= plates =================
    A Face and its lit copy share one grid cell, so the lit copy can never be

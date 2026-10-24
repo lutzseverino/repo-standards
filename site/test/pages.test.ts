@@ -69,6 +69,79 @@ test("the sign's heading reads the name and the subtitle apart", () => {
   );
 });
 
+test("the How it works page is canonical at its own URL, with its own title and description", () => {
+  const html = read("how-it-works/index.html");
+  assert.equal(
+    html.match(/<link rel="canonical"[^>]*>/g)?.join(),
+    '<link rel="canonical" href="https://repo-standards.com/how-it-works/">',
+  );
+  assert.match(
+    html,
+    /<title>How Repo Standards works \| Repo Standards<\/title>/,
+  );
+  const description = /<meta name="description" content="([^"]*)"/.exec(
+    html,
+  )?.[1];
+  assert.ok(description, "the page has a description");
+  assert.ok(
+    description.length >= 140 && description.length <= 160,
+    `about 155 characters, not ${description.length}`,
+  );
+  assert.equal(html.match(BEACON)?.length, 1);
+});
+
+/** The text of each of the page's headings at `level`, in order. */
+const headings = (html: string, level: number) =>
+  [
+    ...html.matchAll(
+      new RegExp(`<h${level}\\b[^>]*>([\\s\\S]*?)</h${level}>`, "g"),
+    ),
+  ].map((m) => m[1].replace(/<[^>]*>/g, "").trim());
+
+test("the How it works page tells the story, who does what, what fits better and the limits", () => {
+  const html = read("how-it-works/index.html");
+  assert.deepEqual(headings(html, 1), ["How Repo Standards works"]);
+  assert.deepEqual(headings(html, 2), [
+    "Every repository, set up its own way",
+    "Write the setup down once",
+    "Your coding agent applies it",
+    "All alike, and kept that way",
+    "Who does what",
+    "When something else fits better",
+    "Current limits",
+  ]);
+  assert.deepEqual(headings(html, 3), [
+    "The CLI",
+    "Your coding agent",
+    "You",
+    "Updates",
+  ]);
+});
+
+test("each comparison on the How it works page links its tool's documentation", () => {
+  const html = read("how-it-works/index.html");
+  for (const href of [
+    "https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template",
+    "https://copier.readthedocs.io/en/stable/",
+    "https://copier.readthedocs.io/en/stable/updating/",
+    "https://docs.renovatebot.com/modules/manager/copier/",
+    "https://github.com/projen/projen",
+    "https://nx.dev/docs/features/generate-code",
+    "https://nx.dev/docs/features/automate-updating-dependencies",
+    "https://github.com/BetaHuhn/repo-file-sync-action",
+    "https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file",
+    "https://github.com/vercel-labs/skills",
+  ])
+    assert.ok(html.includes(`href="${href}"`), href);
+});
+
+test("the homepage links to the How it works page in its markup, beside the tab", () => {
+  assert.match(
+    read("index.html"),
+    /aria-label="How it works: play a short story"><\/button><a class="story-read" href="\/how-it-works\/">Read how it works<\/a>/,
+  );
+});
+
 /** The page's inline scripts, in document order. */
 const inlineScripts = (html: string) =>
   [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
