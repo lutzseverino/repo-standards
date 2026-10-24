@@ -45,8 +45,10 @@ diagnostic says why:
 - `CLI_PIN_MISMATCH`: the CLI is not the pinned one; restore the runtime with
   `npm ci --ignore-scripts --prefix .repo-standards/runtime`.
 - `ACTIVE_RUN`: an adoption run is still open; finish or abandon it first.
-- `CHECK_MUTATION`: a check changed the project, which checks must not do; its
-  changes stay in place for review.
+
+Checks must leave the project unchanged. When a check or its prerequisite
+probe changes it anyway, `check` stops with `CHECK_MUTATION`, naming each
+changed path. No later check runs, and the changes stay in place for review.
 
 See the [check reference](../reference/check.md) for the full report and
 failure contract, and [installed rules](../reference/rules.md) for the
