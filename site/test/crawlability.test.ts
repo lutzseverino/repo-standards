@@ -24,17 +24,21 @@ test("the fixture build exposes the homepage and catalogue to crawlers", () => {
       readFileSync(path.join(output, file), "utf8");
     assert.equal(
       read("robots.txt"),
-      "User-agent: *\nAllow: /\n\nSitemap: https://repo-standards.lutzseverino.com/sitemap-index.xml\n",
+      "User-agent: *\nAllow: /\n\nSitemap: https://repo-standards.com/sitemap-index.xml\n",
     );
     assert.match(
       read("sitemap-index.xml"),
-      /<loc>https:\/\/repo-standards\.lutzseverino\.com\/sitemap-0\.xml<\/loc>/,
+      /<loc>https:\/\/repo-standards\.com\/sitemap-0\.xml<\/loc>/,
     );
     assert.match(
       read("sitemap-0.xml"),
-      /<loc>https:\/\/repo-standards\.lutzseverino\.com\/<\/loc>/,
+      /<loc>https:\/\/repo-standards\.com\/<\/loc>/,
     );
     const html = read("index.html");
+    assert.match(
+      html,
+      /<link rel="canonical" href="https:\/\/repo-standards\.com\/"/,
+    );
     const scripts = [
       ...html.matchAll(
         /<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g,
@@ -66,7 +70,7 @@ test("the fixture build exposes the homepage and catalogue to crawlers", () => {
     assert.deepEqual(data["@graph"][0], {
       "@type": "WebSite",
       name: "Repository Standards",
-      url: "https://repo-standards.lutzseverino.com/",
+      url: "https://repo-standards.com/",
       description: "Standards sources you can adopt in one command.",
     });
     assert.equal(data["@graph"][1]["@type"], "ItemList");

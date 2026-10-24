@@ -114,8 +114,8 @@ until there is a real one
 The Deploy site workflow builds every push to `main`, and daily at 04:23 UTC
 to pick up new sources and releases, and publishes `site/dist/` with
 `actions/deploy-pages`. GitHub Pages uses GitHub Actions as its source and
-`repo-standards.lutzseverino.com` as its custom domain. Astro's `site` is
-`https://repo-standards.lutzseverino.com`, served from the root path with no `base`.
+`repo-standards.com` as its custom domain. Astro's `site` is
+`https://repo-standards.com`, served from the root path with no `base`.
 The site package is private and never published to npm.
 
 `public/robots.txt` allows every crawler and points to the absolute sitemap URL.
@@ -124,13 +124,17 @@ publishes JSON-LD describing the site and the listed standards sources, using
 the same catalogue as the visible page and escaping third-party metadata for
 the script element.
 
-The owner adds a DNS-only (unproxied) Cloudflare `CNAME` named `repo-standards`
-in the `lutzseverino.com` zone, targeting `lutzseverino.github.io`. Account-level
-GitHub Pages domain verification is optional. Once GitHub provisions the TLS
-certificate after DNS resolves, enable Enforce HTTPS in the repository's Pages
-settings.
+Cloudflare hosts the DNS for `repo-standards.com`. The apex has GitHub Pages
+`A` and `AAAA` records, and `www` has a `CNAME` targeting
+`lutzseverino.github.io`; all these records are DNS-only (unproxied). The domain
+is verified for the GitHub account. GitHub Pages has an approved TLS
+certificate for the apex and `www`, and Enforce HTTPS is enabled.
 
-Moving to `repo-standards.com` changes Astro's `site` setting, the sitemap URL
-in `public/robots.txt`, the Pages custom domain and DNS. Deployment from `main` can briefly describe merged but
-unreleased CLI behaviour; releases normally follow within hours. The stack's
-rationale is recorded in the [architecture decisions](../docs/adr/README.md).
+`repo-standards.lutzseverino.com` is proxied by Cloudflare. A permanent Redirect
+Rule returns a 301 to the same path and query on `https://repo-standards.com`.
+The old host stays permanently so the old address can serve again if the site
+ever moves back.
+
+Deployment from `main` can briefly describe merged but unreleased CLI behaviour;
+releases normally follow within hours. The stack's rationale is recorded in
+the [architecture decisions](../docs/adr/README.md).

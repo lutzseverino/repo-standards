@@ -8,7 +8,7 @@ import {
 
 const website = {
   name: "Repository Standards",
-  url: "https://repo-standards.lutzseverino.com/",
+  url: "https://repo-standards.com/",
   description: "Standards sources you can adopt in one command.",
 };
 
