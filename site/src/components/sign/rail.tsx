@@ -1,10 +1,10 @@
 // The guardrail: the separator between the sign and the list. An
-// abstract rail on a gentle, seeded highway curve, fading in and out at its
-// ends. It catches the light: the torch moves each radial gradient's centre
-// to the aim point.
+// abstract rail on a single highway bend, fading in and out at its ends. It
+// catches the light: the torch moves each radial gradient's centre to the
+// aim point.
 import { useId } from "react";
 
-/** Small seeded generator so every curve is random but stable. */
+/** Small seeded generator: random, but the same on every render. */
 export function seeded(seed: number) {
   let a = seed * 2654435761;
   return () => {
@@ -15,20 +15,22 @@ export function seeded(seed: number) {
   };
 }
 
-/** A highway-like curve: a long bend, a shorter wobble and a slight slope. */
-export function curve(seed: number, amplitude = 8) {
-  const rnd = seeded(seed);
-  const a1 = amplitude * (0.6 + rnd() * 0.4);
-  const l1 = 700 + rnd() * 700;
-  const p1 = rnd() * Math.PI * 2;
-  const a2 = amplitude * (0.2 + rnd() * 0.2);
-  const l2 = 240 + rnd() * 200;
-  const p2 = rnd() * Math.PI * 2;
-  const slope = (rnd() - 0.5) * 0.02;
-  return (x: number, width: number) =>
-    a1 * Math.sin((2 * Math.PI * x) / l1 + p1) +
-    a2 * Math.sin((2 * Math.PI * x) / l2 + p2) +
-    slope * (x - width / 2);
+/** The hero rail's width: the page's widest content, max-w-6xl less its
+ * padding. */
+export const HERO_RAIL_WIDTH = 1104;
+/** The hero rail's base line in its SVG. */
+export const HERO_RAIL_BASE = 14;
+
+/** The hero rail's offset from its base line at x, positive down: one bend,
+ * like the single stroke of a highway curve, with constant curvature and no
+ * wobble. It peaks left of centre, and the ends rise 12 px above it, centred
+ * so the rail sits on its base. The rest script inlines its source (rig.ts),
+ * so it must reference nothing outside its own body. */
+export function heroBend(x: number, width: number) {
+  const APEX = 0.32;
+  const DEPTH = 12;
+  const d = (x - APEX * width) / (Math.max(APEX, 1 - APEX) * width);
+  return DEPTH * (0.5 - d * d);
 }
 
 export function railPath(

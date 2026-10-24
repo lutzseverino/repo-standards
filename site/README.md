@@ -56,9 +56,21 @@ toggle; an inline script in the page head applies it before the first paint.
 `rig.ts` measures the lit elements and writes the beam and the sign's tilt to
 them. The page also runs it as an inline script after the markup and holds the
 first paint until it has run, so the first frame already shows the sign at
-its pose and the lights on, and hydration changes nothing.
+its pose, its posts sunk behind the guardrail (`posts.ts`), the list's plate
+names fitted to one line (`fit-name.ts`) and the lights on, and hydration
+changes nothing.
 D-DIN PRO, under the SIL Open Font License in `public/fonts/d-din-pro/`, sets
 the signs and the text.
+
+The sign is also the way into "How it works" (`story.tsx`, `story.css`). Its
+tab, its title, its notice and the nav's link sink it behind the guardrail
+and play a short story in its place: a floor of repositories, each set up
+its own way, made alike by one falling plate of shared standards. A light
+along the rail shows how long each caption stays, and the sign comes back
+at the end. The story plays on its own once per visitor, remembered in
+`localStorage`, after they have been still for 8 seconds with the sign in
+view, and never with reduced motion. Copying a prompt or command opens a
+dialog, `adoption-dialog.tsx`, that says what happens next.
 
 `src/components/ui/` is generated shadcn source and read-only. Add components
 and refresh the installed ones only through the exactly pinned shadcn CLI:

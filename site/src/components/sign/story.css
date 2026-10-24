@@ -1,0 +1,447 @@
+/* "How it works": the story told in the sign's place (story.tsx). The
+   camera looks down on an endless floor of repositories at 40°; a plate of
+   shared standards hangs in the middle facing the viewer, then falls onto
+   the floor, and a square wave spreads from where it lands. */
+
+.story {
+  --ax: 40deg;
+  --az: -9deg;
+  /* the floor's centre, as a share of the stage's height */
+  --py: 60;
+  --mini-w: 168px;
+  --mini-h: 122px;
+  --enter-from: translateZ(-260px);
+  /* the floor and the plate, smaller on a narrow screen */
+  --s: 1;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+@media (max-width: 560px) {
+  .story {
+    --s: 0.7;
+  }
+  .story-caption {
+    font-size: 19px;
+  }
+}
+
+/* ================= captions and controls ================= */
+.story-caption {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  z-index: 5;
+  translate: -50% 0;
+  width: max-content;
+  max-width: min(760px, 92%);
+  padding: 12px 22px 13px;
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: center;
+  border-radius: 11px;
+  box-shadow: 0 10px 16px -10px rgba(0, 0, 0, 0.55);
+  animation: story-in 380ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes story-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+/* plain shadcn buttons at the bottom middle, with no container of their own */
+.story-controls {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  z-index: 5;
+  translate: -50% 0;
+  display: flex;
+  width: max-content;
+  gap: 8px;
+  pointer-events: auto;
+  animation: story-in 380ms ease 700ms both;
+}
+.story-plate {
+  padding: 16px 24px;
+  border-radius: 11px;
+  box-shadow: 0 10px 16px -10px rgba(0, 0, 0, 0.55);
+}
+
+/* ================= the floor =================
+   Both scenes reach 40 px below the stage, past the rail: a mask paints only
+   inside its own box, so a scene ending at the stage cut the floor off a few
+   pixels above the rail. The stage's clip follows the rail instead. */
+.story-floor,
+.story-fall-scene {
+  position: absolute;
+  inset: 0 0 -40px;
+  overflow: clip;
+  perspective: 1500px;
+  perspective-origin: 50% 30%;
+  pointer-events: none;
+}
+/* the many repositories fade out at both sides and towards the top */
+.story-floor {
+  mask-image:
+    linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent),
+    linear-gradient(180deg, transparent 8%, #000 42%);
+  mask-composite: intersect;
+}
+.story-plane {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--py) * 1%);
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--ax)) rotateZ(var(--az)) scale(var(--s));
+}
+/* the floor drifts towards the viewer, one block, and loops */
+.story-drift {
+  position: absolute;
+  left: 0;
+  top: calc(var(--block) / -2);
+  transform-style: preserve-3d;
+  animation: story-drift var(--drift) linear infinite;
+}
+@keyframes story-drift {
+  to {
+    transform: translateY(var(--block));
+  }
+}
+.story-repos {
+  position: absolute;
+  translate: -50% -50%;
+  display: grid;
+  gap: 16px;
+  transform-style: preserve-3d;
+}
+
+/* ================= one repository =================
+   The card moves in and out; its body pops when it updates. Kept apart, the
+   pop's held end can never stop the way out from animating. */
+.mini {
+  position: relative;
+  width: var(--mini-w);
+  height: var(--mini-h);
+  transform-style: preserve-3d;
+  transform: var(--enter-from);
+  opacity: 0;
+  transition:
+    transform 950ms cubic-bezier(0.2, 0.75, 0.25, 1) var(--enter),
+    opacity 500ms ease var(--enter);
+}
+.story-repos[data-up] .mini {
+  transform: none;
+  opacity: 1;
+}
+.mini-body {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.story-repos[data-adopted] .mini-body {
+  animation: mini-pop 720ms cubic-bezier(0.3, 0.7, 0.3, 1) var(--d) both;
+}
+@keyframes mini-pop {
+  0% {
+    transform: none;
+  }
+  35% {
+    transform: translateZ(28px);
+  }
+  100% {
+    transform: none;
+  }
+}
+.mini-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: 0 8px 18px -12px rgba(0, 0, 0, 0.45);
+  transition:
+    opacity 450ms ease,
+    rotate 450ms ease;
+}
+.mini-head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.mini-rows {
+  padding: 5px 8px;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.mini-rows > div {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.mini-missing {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+/* before: everyone's own way */
+.mini-before .mini-head {
+  background: color-mix(in oklab, var(--hue) 16%, var(--card));
+  color: var(--hue);
+}
+.mini-before.sB {
+  border-radius: 2px;
+  border-left: 4px solid var(--hue);
+}
+.mini-before.sC {
+  border-style: dashed;
+  border-radius: 6px;
+}
+.mini-before.sC .mini-rows {
+  font-family: Georgia, serif;
+  font-size: 11px;
+}
+.mini-before.sD {
+  border-radius: 18px;
+}
+.mini-before.sD .mini-head {
+  background: var(--hue);
+  color: #fff;
+}
+/* after: the shared way */
+.mini-after {
+  opacity: 0;
+}
+.mini-after .mini-head {
+  background: var(--verkehrsblau);
+  border-bottom-color: transparent;
+  color: #fff;
+}
+.mini-foot {
+  position: absolute;
+  left: 8px;
+  bottom: 5px;
+  color: #2f8a46;
+  font-size: 10px;
+  font-weight: 600;
+}
+.story-repos[data-adopted] .mini-after {
+  opacity: 1;
+  transition-delay: calc(var(--d) + 300ms);
+}
+.story-repos[data-adopted] .mini-before {
+  opacity: 0;
+  rotate: 0deg !important;
+  transition-delay: calc(var(--d) + 300ms);
+}
+.mini-scan {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+      180deg,
+      transparent,
+      rgb(38 113 204 / 0.4),
+      transparent
+    )
+    no-repeat;
+  background-size: 100% 45%;
+}
+.story-repos[data-adopted] .mini-scan {
+  animation: mini-scan 750ms ease-in-out var(--d) both;
+}
+@keyframes mini-scan {
+  0% {
+    opacity: 1;
+    background-position: 0 -70%;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    background-position: 0 170%;
+  }
+}
+
+/* ================= the plate and the wave ================= */
+/* the plate's shadow and the wave lie on the floor, at its centre */
+.story-shadow,
+.story-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% -50%;
+}
+.story-shadow {
+  width: 270px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgb(0 0 0 / 0.4);
+  filter: blur(30px);
+  opacity: 0;
+  transition:
+    opacity 600ms ease,
+    filter 600ms ease;
+}
+.story-shadow[data-plate="above"] {
+  opacity: 0.18;
+}
+.story-shadow[data-plate="falling"] {
+  opacity: 0.5;
+  filter: blur(6px);
+  transition-timing-function: cubic-bezier(0.6, 0, 0.95, 0.4);
+}
+.story-shadow[data-plate="landed"] {
+  opacity: 0;
+  filter: blur(6px);
+  transition-delay: 650ms;
+}
+/* the square wave grows at an even pace, so the cards it passes update as
+   its edge reaches them (story.tsx times them to it) */
+.story-ring {
+  width: var(--ring-from);
+  height: var(--ring-from);
+  border: 3px solid rgb(38 113 204 / 0.8);
+  border-radius: 12px;
+  box-shadow:
+    0 0 18px rgb(38 113 204 / 0.45),
+    inset 0 0 18px rgb(38 113 204 / 0.3);
+  opacity: 0;
+}
+.story-ring[data-plate="landed"] {
+  animation: story-ring var(--ring-ms) linear;
+}
+@keyframes story-ring {
+  from {
+    opacity: 0.95;
+    width: var(--ring-from);
+    height: var(--ring-from);
+  }
+  70% {
+    opacity: 0.7;
+  }
+  to {
+    opacity: 0;
+    width: var(--ring-to);
+    height: var(--ring-to);
+  }
+}
+/* The plate hangs in the middle of the stage facing the viewer, then falls
+   onto the floor's centre, tipping into the floor's angle and growing
+   smaller as it goes, so it lands lying flat on the floor. It sits at the
+   floor's centre and is lifted to the stage's middle: the scene is a size
+   container, and the stage's middle lies 20 px above the scene's, which
+   reaches 40 px past the stage. */
+.story-fall-scene {
+  container-type: size;
+}
+.story-fall {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--py) * 1%);
+  z-index: 4;
+  width: 440px;
+  translate: -50% -50%;
+  --lift: calc((50 - var(--py)) * 1cqh - 20px);
+  opacity: 0;
+  transform: translateY(var(--lift)) rotateX(0deg) rotateZ(0deg)
+    scale(calc(1.1 * var(--s)));
+  transition:
+    transform 800ms cubic-bezier(0.2, 0.7, 0.3, 1),
+    opacity 500ms ease;
+}
+.story-fall[data-plate="above"] {
+  opacity: 1;
+  transform: translateY(var(--lift)) rotateX(0deg) rotateZ(0deg) scale(var(--s));
+}
+.story-fall[data-plate="falling"] {
+  opacity: 1;
+  transform: translateY(0px) rotateX(var(--ax)) rotateZ(var(--az))
+    scale(calc(0.6 * var(--s)));
+  transition: transform 650ms cubic-bezier(0.55, 0, 0.85, 0.35);
+}
+.story-fall[data-plate="landed"] {
+  opacity: 0;
+  transform: translateY(0px) rotateX(var(--ax)) rotateZ(var(--az))
+    scale(calc(0.6 * var(--s)));
+  transition: opacity 500ms ease 150ms;
+}
+
+/* ================= going back =================
+   The entrance plays backwards: the floor sinks back, last row in first
+   out, then the sign rises as the last rows go (assembly.tsx times it), so
+   the stage is never empty. */
+.story[data-leaving] .mini {
+  transform: var(--enter-from);
+  opacity: 0;
+  transition:
+    transform 750ms cubic-bezier(0.55, 0, 0.85, 0.35) var(--exit),
+    opacity 650ms ease-in var(--exit);
+}
+.story[data-leaving] .story-caption,
+.story[data-leaving] .story-controls,
+.story[data-leaving] .story-fall-scene {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mini,
+  .mini-face,
+  .story-fall,
+  .story-shadow,
+  .story-caption,
+  .story-controls {
+    transition: none !important;
+    animation: none !important;
+  }
+  .story-repos[data-adopted] .mini-body,
+  .mini-scan,
+  .story-drift,
+  .story-ring {
+    animation: none !important;
+  }
+}
+
+/* At night the sign rests floodlit, through its lit copies. The story's
+   plates have no lit copy, so they take the lit colours directly, or they
+   would show the unlit night colours and look unlike the sign they stand in
+   for. By day the unlit colours are the sign's own. */
+.dark .story-plate {
+  --face-bg: var(--blue-lit);
+  --face-line: #fff;
+  --face-ink: #fff;
+}
+.dark .story-plate .shield {
+  background: var(--shield-lit);
+  box-shadow:
+    inset 0 0 0 2px var(--shield-lit),
+    inset 0 0 0 4px #fff;
+  color: #fff;
+}
+.dark .story-caption {
+  --face-bg: var(--white-lit);
+  --face-line: var(--white-ink-lit);
+  --face-ink: var(--white-ink-lit);
+}
+/* the adopted repositories match the list's plates at night */
+.dark .mini-after .mini-head {
+  background: var(--blue-lit);
+}
+.dark .mini-foot {
+  color: #6ad08a;
+}

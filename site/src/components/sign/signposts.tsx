@@ -1,12 +1,13 @@
 // The list: each standards source is a card headed by its own sign plate,
-// with an exit tab standing up from the plate. Entries line up with their
-// neighbours (subgrid): plate, copy control, text and profiles each start on
-// one line across a row.
-import { useLayoutEffect, type ReactNode } from "react";
+// with an exit tab and a version shield standing up from the plate. Entries
+// line up with their neighbours (subgrid): plate, copy control, text and
+// profiles each start on one line across a row.
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { Card, CardContent } from "@/components/app/card";
 import { repositoryUrl, type Source } from "@/lib/catalogue";
 import { Arrow, ExitArrow } from "./arrow";
 import { Face } from "./face";
+import { fitName } from "./fit-name";
 import { announceLayout } from "./torch";
 
 export function SignpostList({
@@ -35,6 +36,9 @@ export function SignpostList({
                   <ExitArrow />
                 </span>
               </Face>
+              <Face kind="blue" className="tab-face shield-tab" hidden>
+                <span className="face__inner tnum">{s.release.version}</span>
+              </Face>
             </div>
             <Face
               as="a"
@@ -45,10 +49,7 @@ export function SignpostList({
             >
               <span className="face__inner flex w-full items-center gap-3">
                 <Arrow size={34} />
-                <span className="shield signpost-shield tnum">
-                  {s.release.version}
-                </span>
-                <span className="signpost-name">{s.name}</span>
+                <FitName name={s.name} />
               </span>
             </Face>
           </div>
@@ -61,5 +62,24 @@ export function SignpostList({
         </li>
       ))}
     </ul>
+  );
+}
+
+/** A plate's name, fitted to one line where it can be (fit-name.ts). */
+function FitName({ name }: { name: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    fitName(el);
+    const ro = new ResizeObserver(() => fitName(el));
+    ro.observe(el.parentElement!);
+    return () => ro.disconnect();
+  }, [name]);
+  return (
+    // fitted before the page hydrates (rig.ts)
+    <span ref={ref} className="signpost-name" suppressHydrationWarning>
+      {name}
+    </span>
   );
 }
