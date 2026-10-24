@@ -15,7 +15,7 @@ import { Surface } from "@/components/sign/face";
 import type { InstallMode } from "@/lib/catalogue";
 
 const GUIDE =
-  "https://github.com/lutzseverino/repo-standards/blob/main/docs/usage/adoption.md";
+  "https://github.com/lutzseverino/repo-standards/blob/main/docs/usage/guides/adopt.md";
 
 /* ================= the pictures ================= */
 
