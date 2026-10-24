@@ -3,6 +3,7 @@
 // applied before anything is drawn, each page's own title, description and
 // canonical URL, the favicons and the analytics beacon. A page adds its own
 // head elements, such as JSON-LD, in the `head` slot.
+import AgentLinks from "@/components/AgentLinks.astro";
 import { analyticsBeacon } from "@/lib/analytics";
 import { themeScript } from "@/lib/theme-core";
 import "@/styles/global.css";
@@ -26,6 +27,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <AgentLinks />
     <slot name="head" />
     <!-- applies the stored or system theme before anything is drawn -->
     <script is:inline set:html={themeScript()} />

@@ -5,18 +5,23 @@ import sitemap from "@astrojs/sitemap";
 import starlight from "@astrojs/starlight";
 import tailwindcss from "@tailwindcss/vite";
 import { existsSync } from "node:fs";
+import { agentPages } from "./src/lib/agent-pages.ts";
 import { analyticsBeacon } from "./src/lib/analytics.ts";
 import { remarkDocs } from "./src/lib/docs-content.ts";
+
+const agentUrls = [];
 
 export default defineConfig({
   site: "https://repo-standards.com",
   prefetch: false,
   integrations: [
     react(),
-    sitemap(),
+    agentPages(agentUrls),
+    sitemap({ customPages: agentUrls }),
     starlight({
       title: "Repo Standards",
       components: {
+        Head: "./src/components/docs/Head.astro",
         ThemeProvider: "./src/components/docs/ThemeProvider.astro",
         ThemeSelect: "./src/components/docs/ThemeSelect.astro",
       },

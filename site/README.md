@@ -44,7 +44,24 @@ homepage's output. Starlight builds the Pagefind index alongside the pages.
 beacon, theme navigation, and a nested-folder fixture. Its homepage fingerprint
 records the fixture build at `e95dba8` with the Documentation link changed and
 the How it works link added, normalizing only the affected Home bundle hash
-and island UID.
+and island UID, and omitting the new agent discovery links.
+
+Agents can start at `/llms.txt`, which identifies the scoped npm package,
+product repository and domain and links to Markdown versions of the site.
+Every HTML page advertises its Markdown alternate: `/index.md` for the
+homepage, otherwise the page URL without its trailing slash plus `.md`.
+`src/lib/agent-pages.ts` writes these at build time before the sitemap runs.
+Docs use their original Markdown with the same link resolver as Starlight,
+made absolute; the other pages use their rendered content, including adoption
+prompts held in readonly inputs, without navigation or controls. The sitemap
+includes these surfaces, and `robots.txt` allows crawlers to reach them.
+
+`/sources.json` lists the accepted catalogue, its CLI version, notice and
+schema version, with repository, release, commit, requirement, profiles, page
+and prompt URLs for each source. It has no build timestamp. Each stable
+`/sources/<owner>/<repo>/prompt.txt` serves the exact agent prompt from
+`installText()` as plain text. `test/docs.test.ts` checks these build outputs,
+Markdown content and absolute links, discovery links and fixture reproducibility.
 
 The supported `ThemeProvider` and `ThemeSelect` overrides in `components/docs/`
 use `src/lib/theme-core.ts` and the existing `theme` storage key. Starlight's

@@ -65,20 +65,24 @@ export function remarkDocs() {
 
     visit(tree, (node) => {
       if (node.type !== "link" && node.type !== "definition") return;
-      // Leave schemes, absolute URLs and same-page fragments alone.
-      if (/^(?:[a-z][\w+.-]*:|\/|#)/i.test(node.url)) return;
-      const [, target, suffix = ""] = /^([^?#]*)([\s\S]*)$/.exec(node.url)!;
-      if (!target) return;
-      const resolved = path.posix.normalize(
-        path.posix.join(path.posix.dirname(original), decodeURI(target)),
-      );
-      for (const [folder, prefix] of folders) {
-        if (resolved.startsWith(`${folder}/`) && resolved.endsWith(".md")) {
-          node.url = `/${docsId(resolved.slice(folder.length + 1), prefix)}/${suffix}`;
-          return;
-        }
-      }
-      node.url = `https://github.com/lutzseverino/repo-standards/blob/main/${resolved}${suffix}`;
+      node.url = docsLink(node.url, original);
     });
   };
+}
+
+/** Resolve a Markdown link against the original repository document. */
+export function docsLink(url: string, original: string): string {
+  // Leave schemes, absolute URLs and same-page fragments alone.
+  if (/^(?:[a-z][\w+.-]*:|\/|#)/i.test(url)) return url;
+  const [, target, suffix = ""] = /^([^?#]*)([\s\S]*)$/.exec(url)!;
+  if (!target) return url;
+  const resolved = path.posix.normalize(
+    path.posix.join(path.posix.dirname(original), decodeURI(target)),
+  );
+  for (const [folder, prefix] of folders) {
+    if (resolved.startsWith(`${folder}/`) && resolved.endsWith(".md")) {
+      return `/${docsId(resolved.slice(folder.length + 1), prefix)}/${suffix}`;
+    }
+  }
+  return `https://github.com/lutzseverino/repo-standards/blob/main/${resolved}${suffix}`;
 }
