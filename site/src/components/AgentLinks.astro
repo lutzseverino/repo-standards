@@ -1,8 +1,11 @@
 ---
 // The same discovery links for the shared layout and Starlight's head.
-const pathname = Astro.url.pathname.replace(/\/$/, "").replace(/\.html$/, "");
-const markdown = pathname ? `${pathname}.md` : "/index.md";
+import { markdownPath } from "../lib/agent-paths";
 ---
 
-<link rel="alternate" type="text/markdown" href={markdown} />
+<link
+  rel="alternate"
+  type="text/markdown"
+  href={markdownPath(Astro.url.pathname)}
+/>
 <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />

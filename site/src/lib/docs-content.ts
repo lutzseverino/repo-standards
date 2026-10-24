@@ -7,7 +7,7 @@ import type { Root } from "mdast";
 import { visit } from "unist-util-visit";
 
 const repository = fileURLToPath(new URL("../../../", import.meta.url));
-const folders = [
+export const docsFolders = [
   ["docs/usage", "docs"],
   ["docs/adr", "docs/decisions"],
 ] as const;
@@ -56,7 +56,8 @@ export function titledDocs(
 export function remarkDocs() {
   return (tree: Root, file: { path: string }) => {
     const original = path.relative(repository, file.path);
-    if (!folders.some(([folder]) => original.startsWith(`${folder}/`))) return;
+    if (!docsFolders.some(([folder]) => original.startsWith(`${folder}/`)))
+      return;
 
     const heading = tree.children.findIndex(
       (node) => node.type === "heading" && node.depth === 1,
@@ -79,7 +80,7 @@ export function docsLink(url: string, original: string): string {
   const resolved = path.posix.normalize(
     path.posix.join(path.posix.dirname(original), decodeURI(target)),
   );
-  for (const [folder, prefix] of folders) {
+  for (const [folder, prefix] of docsFolders) {
     if (resolved.startsWith(`${folder}/`) && resolved.endsWith(".md")) {
       return `/${docsId(resolved.slice(folder.length + 1), prefix)}/${suffix}`;
     }

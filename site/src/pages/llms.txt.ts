@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
 import { installText, STARTING_POINT, sourcePath } from "../lib/catalogue";
+import { markdownPath } from "../lib/agent-paths";
 import { loadCatalogue } from "../lib/load-catalogue";
 
 export const GET: APIRoute = async ({ site }) => {
@@ -18,7 +19,7 @@ export const GET: APIRoute = async ({ site }) => {
       `## ${title}\n\n${docs
         .filter(({ id }) => id === prefix || id.startsWith(`${prefix}/`))
         .sort((a, b) => a.id.localeCompare(b.id, "en"))
-        .map(({ id, data }) => link(data.title, `/${id.replace(/\/$/, "")}.md`))
+        .map(({ id, data }) => link(data.title, markdownPath(`/${id}/`)))
         .join("\n")}`,
   );
   const startingPoint = catalogue.sources.find(
@@ -32,7 +33,7 @@ export const GET: APIRoute = async ({ site }) => {
       installText(startingPoint, "prompt"),
       `## Overview\n\n${link("Repo Standards", "/index.md")}\n${link("Documentation", "/docs.md")}\n${link("Sources (JSON)", "/sources.json")}`,
       ...sections,
-      `## Sources\n\n${catalogue.sources.map((source) => link(source.name, `${sourcePath(source).slice(0, -1)}.md`)).join("\n")}`,
+      `## Sources\n\n${catalogue.sources.map((source) => link(source.name, markdownPath(sourcePath(source)))).join("\n")}`,
       `## How it works\n\n${link("How Repo Standards works", "/how-it-works.md")}`,
       "",
     ].join("\n\n"),

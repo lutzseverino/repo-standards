@@ -12,7 +12,8 @@ import { toMarkdown } from "mdast-util-to-markdown";
 import { gfm } from "micromark-extension-gfm";
 import type { Root } from "mdast";
 import { SKIP, visit } from "unist-util-visit";
-import { docsId, docsLink } from "./docs-content.ts";
+import { markdownPath } from "./agent-paths.ts";
+import { docsFolders, docsId, docsLink } from "./docs-content.ts";
 
 const repository = fileURLToPath(new URL("../../../", import.meta.url));
 
@@ -27,10 +28,7 @@ export function agentPages(sitemapUrls: string[]): AstroIntegration {
       "astro:build:done": async ({ dir }) => {
         const output = fileURLToPath(dir);
         const documents = new Map<string, string>();
-        for (const [folder, prefix] of [
-          ["docs/usage", "docs"],
-          ["docs/adr", "docs/decisions"],
-        ]) {
+        for (const [folder, prefix] of docsFolders) {
           for (const file of await readdir(path.join(repository, folder), {
             recursive: true,
           })) {
@@ -46,10 +44,7 @@ export function agentPages(sitemapUrls: string[]): AstroIntegration {
         for (const file of files.filter((file) => file.endsWith(".html"))) {
           const pathname = `/${file.replace(/index\.html$/, "")}`;
           const page = new URL(pathname, site);
-          const markdown =
-            pathname === "/"
-              ? "/index.md"
-              : `${pathname.replace(/\/$/, "").replace(/\.html$/, "")}.md`;
+          const markdown = markdownPath(pathname);
           const original = documents.get(pathname);
           const tree = original
             ? fromMarkdown(
