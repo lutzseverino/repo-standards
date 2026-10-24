@@ -169,7 +169,7 @@ function delay(repo: Repo, o: number) {
 function Mini({ repo, d, enter }: { repo: Repo; d: number; enter: number }) {
   return (
     <div
-      className="mini"
+      className="story-mini"
       style={
         {
           "--d": `${d}ms`,
@@ -179,39 +179,39 @@ function Mini({ repo, d, enter }: { repo: Repo; d: number; enter: number }) {
         } as CSSProperties
       }
     >
-      <div className="mini-body">
+      <div className="story-mini-body">
         <div
-          className={`mini-face mini-before ${repo.style}`}
+          className={`story-mini-face story-mini-before ${repo.style}`}
           style={
             { "--hue": repo.hue, rotate: `${repo.tilt}deg` } as CSSProperties
           }
         >
-          <div className="mini-head">
+          <div className="story-mini-head">
             <FolderGit2 size={11} />
             {repo.name}
           </div>
-          <div className="mini-rows">
+          <div className="story-mini-rows">
             {repo.files.map((f) => (
               <div key={f}>{f}</div>
             ))}
             {repo.files.length < 2 && (
-              <div className="mini-missing">no docs</div>
+              <div className="story-mini-missing">no docs</div>
             )}
           </div>
         </div>
-        <div className="mini-face mini-after">
-          <div className="mini-head">
+        <div className="story-mini-face story-mini-after">
+          <div className="story-mini-head">
             <FolderGit2 size={11} />
             {repo.name}
           </div>
-          <div className="mini-rows">
+          <div className="story-mini-rows">
             {AFTER.map((f) => (
               <div key={f}>{f}</div>
             ))}
           </div>
-          <div className="mini-foot">✓ Checks pass</div>
+          <div className="story-mini-foot">✓ Checks pass</div>
         </div>
-        <span className="mini-scan" />
+        <span className="story-mini-scan" />
       </div>
     </div>
   );
@@ -220,11 +220,11 @@ function Mini({ repo, d, enter }: { repo: Repo; d: number; enter: number }) {
 /** The plate for any set of standards. The shield says it is versioned. */
 function StandardsPlate() {
   return (
-    <div className="face face--blue story-plate">
+    <div className="sign-face sign-face--blue story-plate">
       <Surface />
-      <span className="face__inner flex items-center gap-4">
+      <span className="sign-face__inner flex items-center gap-4">
         <Arrow size={40} />
-        <span className="shield tnum text-[16px]">v2.1.0</span>
+        <span className="sign-shield tabular-nums text-[16px]">v2.1.0</span>
         <span className="text-[34px] font-bold leading-none">
           Shared standards
         </span>
@@ -327,7 +327,7 @@ export function Story({
           : "landed";
   return (
     <div
-      className="story"
+      className="sign-story"
       data-leaving={leaving || undefined}
       style={
         {
@@ -342,11 +342,11 @@ export function Story({
       {step >= 1 && (
         <div
           key={beatKey}
-          className="face face--white story-caption"
+          className="sign-face sign-face--white story-caption"
           role="status"
         >
           <Surface />
-          <span className="face__inner">{CAPTIONS[beat]}</span>
+          <span className="sign-face__inner">{CAPTIONS[beat]}</span>
         </div>
       )}
       <div className="story-floor" aria-hidden="true">

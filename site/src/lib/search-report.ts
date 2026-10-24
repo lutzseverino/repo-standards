@@ -55,6 +55,7 @@ export async function buildCatalogue(input: SearchInput): Promise<Catalogue> {
           repository,
           name: c.source.name,
           description: c.source.description,
+          commit: c.commit,
           release: c.release,
           requires: c.source.requires,
           profiles: c.profiles.map((name) => {

@@ -233,7 +233,7 @@ export function useTorch(theme: Theme | null) {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       window.removeEventListener(MEASURE_EVENT, remeasure);
-      for (const el of plates) el.classList.remove("lit-off");
+      for (const el of plates) el.classList.remove("sign-lit-off");
       document.documentElement.removeAttribute("data-torch");
     };
   }, [theme]);

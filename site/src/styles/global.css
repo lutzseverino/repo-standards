@@ -1,3 +1,8 @@
+/* The sign stylesheets' layer comes after Tailwind's components and before
+   its utilities, so a utility on a sign element wins. It is declared before
+   Tailwind declares its own, or it would come last. */
+@layer theme, base, components, sign, utilities;
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";

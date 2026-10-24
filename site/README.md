@@ -25,18 +25,31 @@ pnpm --dir site preview
 The development server listens on `http://localhost:4321`. The build writes
 static files to `site/dist/`; preview serves that output locally. Root
 `pnpm lint`, `pnpm format:check` and `pnpm validate` cover this project. The
-data step's tests in `test/` use Node's built-in test runner, with no test
-framework installed.
+tests in `test/` use Node's built-in test runner, with no test framework
+installed. `pages.test.ts` builds the fixture site with a page only it builds,
+and runs the pages' inline scripts in `node:vm`.
 
 `src/pages/index.astro` loads the data and renders the homepage,
-`src/components/home.tsx`. Shared Tailwind styles and shadcn's colour tokens,
-set to the sign palette, live in `src/styles/global.css`. `components.json`
+`src/components/home.tsx`. Every page outside the docs renders inside
+`src/layouts/base.astro`, which owns the head: the theme, the page's title,
+description and canonical URL, its own path on `site`, the favicons and the
+Cloudflare Web Analytics beacon. The beacon is `src/lib/analytics.ts`, a tag in
+the shape Starlight's `head` option takes, so the docs can include it too. A
+page adds JSON-LD and its other head elements in the layout's `head` slot.
+Shared Tailwind styles and shadcn's colour tokens, set to the sign palette,
+live in `src/styles/global.css`; the fonts and the sign palette live in
+`src/styles/tokens.css`, which holds no Tailwind, so a page without Tailwind's
+preflight can load it. `components.json`
 configures shadcn's `base-nova` style with the `@/` alias from
 `tsconfig.json`.
 
 The sign art has no shadcn equivalent and lives in `src/components/sign/`:
 the sheeted plates, the LED border, the guardrail, the torch that lights them
-and the signpost list. `sign.css` styles it. `light.css` is the one stylesheet
+and the signpost list. `sign.css` styles it. The sign stylesheets, `sign.css`,
+`light.css`, `story.css` and `adoption-dialog.css`, sit in the `sign` cascade
+layer, which `global.css` orders after Tailwind's components and before its
+utilities, so a utility on a sign element wins. They style only classes that
+start with `sign-`, `signpost-`, `story-` or `adoption-`. `light.css` is the one stylesheet
 that lights shadcn components, by their `data-slot` attributes, and runs the
 page-wide layers that light the whole page, nav, sign and list alike. At
 night the light is a torch, plain, slightly warm white: only reflective
@@ -51,8 +64,11 @@ would see it. A finger never aims the light or tilts the sign. On a
 touch-first screen, with no hover and a coarse pointer, the torch rests fixed
 to the screen over the sign instead of flooding, so the page scrolls through
 it, and the sign holds its pose; a mouse or trackpad there still aims it. The theme follows the system
-through shadcn's `.dark` class until the visitor picks one with the nav's
-toggle; an inline script in the page head applies it before the first paint.
+until the visitor picks one with the nav's toggle, remembered in
+`localStorage` under `theme`. `src/lib/theme-core.ts` reads, applies and
+stores it, as shadcn's `.dark` class and a `data-theme` attribute, the one
+Starlight reads, on `<html>`; the layout's inline script, generated from the
+same module, applies it before the first paint.
 `rig.ts` measures the lit elements and writes the beam and the sign's tilt to
 them. The page also runs it as an inline script after the markup and holds the
 first paint until it has run, so the first frame already shows the sign at
@@ -95,7 +111,8 @@ At build time, `src/lib/load-catalogue.ts` runs the CLI built at the root,
 `../dist/cli.js source search --json`, through every page, and reads each
 candidate's `standards.yaml` at its released commit for the profile
 descriptions. Pass `GH_TOKEN` or `GITHUB_TOKEN` for the authenticated GitHub
-quota. `src/lib/search-report.ts` turns them into the catalogue. It checks the
+quota. `src/lib/search-report.ts` turns them into the catalogue, and each
+source keeps its released `commit`. It checks the
 report's shape, so a renamed or missing field fails the build, and it fails
 when the search is marked incomplete, finds no candidates or does not list
 Repo Canon, the source the sign points to; this is

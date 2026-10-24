@@ -1,10 +1,12 @@
 // What happens after you copy: a dialog that opens on Copy and walks through
 // the three steps of an adoption, each with a small picture. It shows kinds
 // of files, not one source's files.
+import { XIcon } from "lucide-react";
 import { useRef, type ReactNode } from "react";
 import { Button } from "@/components/app/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -24,32 +26,34 @@ const GUIDE =
 function StartArt({ mode }: { mode: InstallMode }) {
   if (mode === "terminal")
     return (
-      <div className="art art-term" aria-hidden="true">
-        <span className="art-dots">
+      <div className="adoption-art adoption-art-term" aria-hidden="true">
+        <span className="adoption-art-dots">
           <i />
           <i />
           <i />
         </span>
         <code>
-          <span className="art-muted">~/your-repository $</span> npx
+          <span className="adoption-art-muted">~/your-repository $</span> npx
           @lutzseverino/repo-standards adopt{" "}
-          <span className="art-chip">source</span>
-          <span className="art-caret" />
+          <span className="adoption-art-chip">source</span>
+          <span className="adoption-art-caret" />
         </code>
       </div>
     );
   return (
-    <div className="art art-agent" aria-hidden="true">
-      <div className="art-agent-head">
-        <span className="art-avatar" />
-        <span className="art-muted">Coding agent in your-repository</span>
+    <div className="adoption-art adoption-art-agent" aria-hidden="true">
+      <div className="adoption-art-agent-head">
+        <span className="adoption-art-avatar" />
+        <span className="adoption-art-muted">
+          Coding agent in your-repository
+        </span>
       </div>
-      <div className="art-composer">
-        <span className="art-chip">
+      <div className="adoption-art-composer">
+        <span className="adoption-art-chip">
           Run `npx … adopt &lt;source&gt; --json` …
         </span>
-        <span className="art-caret" />
-        <span className="art-send">
+        <span className="adoption-art-caret" />
+        <span className="adoption-art-send">
           <Arrow size={14} />
         </span>
       </div>
@@ -70,13 +74,15 @@ const TREE: [string, "install" | "adapt", string][] = [
 /** The repository after adoption: which kinds of files arrive. */
 function TreeArt() {
   return (
-    <div className="art art-tree" aria-hidden="true">
-      <div className="art-tree-root">your-repository/</div>
+    <div className="adoption-art adoption-art-tree" aria-hidden="true">
+      <div className="adoption-art-tree-root">your-repository/</div>
       {TREE.map(([file, kind, note]) => (
-        <div key={file} className={`art-row art-${kind}`}>
-          <span className="art-mark">{kind === "install" ? "+" : "~"}</span>
-          <span className="art-file">{file}</span>
-          <span className="art-note">{note}</span>
+        <div key={file} className={`adoption-art-row adoption-art-${kind}`}>
+          <span className="adoption-art-mark">
+            {kind === "install" ? "+" : "~"}
+          </span>
+          <span className="adoption-art-file">{file}</span>
+          <span className="adoption-art-note">{note}</span>
         </div>
       ))}
     </div>
@@ -86,17 +92,17 @@ function TreeArt() {
 /** The changes wait, uncommitted, for review. */
 function ReviewArt() {
   return (
-    <div className="art art-review" aria-hidden="true">
-      <div className="art-review-bar">
+    <div className="adoption-art adoption-art-review" aria-hidden="true">
+      <div className="adoption-art-review-bar">
         <span>Uncommitted changes</span>
         <span>
-          <b className="art-plus">+ installed</b>{" "}
-          <b className="art-tilde">~ adapted</b>
+          <b className="adoption-art-plus">+ installed</b>{" "}
+          <b className="adoption-art-tilde">~ adapted</b>
         </span>
       </div>
-      <div className="art-review-foot">
-        <span className="art-muted">Review, then commit as usual</span>
-        <span className="art-button">Commit</span>
+      <div className="adoption-art-review-foot">
+        <span className="adoption-art-muted">Review, then commit as usual</span>
+        <span className="adoption-art-button">Commit</span>
       </div>
     </div>
   );
@@ -161,18 +167,21 @@ export function AdoptionDialog({
   return (
     <Dialog open={copied !== null} onOpenChange={(open) => !open && onClose()}>
       {copied && (
+        // it scrolls on a short screen, and keeps shadcn's line height at
+        // its larger text
         <DialogContent
           ref={popup}
-          className="adoption-dialog gap-5 p-6 sm:max-w-[640px]"
+          className="max-h-[calc(100dvh-2rem)] gap-5 overflow-y-auto p-6 text-[15px] leading-(--text-sm--line-height) sm:max-w-[640px]"
           initialFocus={popup}
+          showCloseButton={false}
         >
           {/* the dialog's one bold thing: a small sign spanning it, with the
               close button on it */}
-          <div className="face face--blue dialog-plate">
+          <div className="sign-face sign-face--blue adoption-plate">
             <Surface />
-            <span className="face__inner flex items-center gap-3">
+            <span className="sign-face__inner flex items-center gap-3">
               <Arrow size={30} />
-              <DialogTitle className="text-[26px] leading-none font-bold">
+              <DialogTitle className="font-(family-name:--font-sign) text-[26px] leading-none font-bold">
                 {copied === "prompt" ? "Prompt copied" : "Command copied"}
               </DialogTitle>
             </span>
@@ -180,10 +189,13 @@ export function AdoptionDialog({
           <DialogDescription className="sr-only">
             What happens next
           </DialogDescription>
-          <ol className="dialog-steps">
+          <ol className="adoption-steps">
             {steps(copied).map((s, i) => (
               <li key={s.title}>
-                <span className="step-tab tnum" aria-hidden="true">
+                <span
+                  className="adoption-step-tab tabular-nums"
+                  aria-hidden="true"
+                >
                   {i + 1}
                 </span>
                 <div>
@@ -203,6 +215,19 @@ export function AdoptionDialog({
             </a>
             <Button onClick={onClose}>Got it</Button>
           </DialogFooter>
+          {/* shadcn's close button, on the plate, white */}
+          <DialogClose
+            render={
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="absolute top-[38px] right-[36px] text-white hover:bg-[rgb(255_255_255/0.16)] hover:text-white dark:hover:bg-[rgb(255_255_255/0.16)]"
+              />
+            }
+          >
+            <XIcon />
+            <span className="sr-only">Close</span>
+          </DialogClose>
         </DialogContent>
       )}
     </Dialog>

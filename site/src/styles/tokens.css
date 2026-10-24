@@ -1,0 +1,142 @@
+/* The site's fonts and the sign palette: D-DIN PRO and the RAL traffic
+   colours the sign art and the light read (components/sign/). It holds no
+   Tailwind and no rules that style an element, so any page can load it,
+   including one that does not use Tailwind's preflight. */
+
+@font-face {
+  font-family: "D-DIN PRO";
+  src: url("/fonts/d-din-pro/D-DIN-PRO-400-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "D-DIN PRO";
+  src: url("/fonts/d-din-pro/D-DIN-PRO-500-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "D-DIN PRO";
+  src: url("/fonts/d-din-pro/D-DIN-PRO-700-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "D-DIN PRO Condensed";
+  src: url("/fonts/d-din-pro/D-DIN-PRO-Condensed-500-Medium.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "D-DIN PRO Condensed";
+  src: url("/fonts/d-din-pro/D-DIN-PRO-Condensed-700-Bold.woff2")
+    format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* ================= tokens =================
+   Light: the page by day; plates keep their daylight colours, and the sun
+   adds a glint where the sheeting mirrors it: a lift, a streak, sparkle and
+   the glare, all white. Dark: the page at
+   night; plates outside the beam fall back to ambient, and retroreflection
+   makes them blaze inside it. RAL traffic colours, tuned for screens: 5017
+   Verkehrsblau plates, 1023 Verkehrsgelb focus only. */
+:root {
+  --verkehrsblau: #0b4c96;
+  --verkehrsgelb: #f7c600;
+  --font-sign: "D-DIN PRO Condensed", "D-DIN PRO", "Arial Narrow", sans-serif;
+  /* how much of the beam is hotspot, and the lit copy's strength */
+  --hot: 20%;
+  --lit: 0.96;
+
+  /* unlit: daylight colours */
+  --blue: var(--verkehrsblau);
+  --blue-line: #fff;
+  --blue-ink: #fff;
+  --white: #f4f5f1;
+  --white-ink: #2b2e30;
+  /* lit: the sun's glint by day */
+  --blue-lit: #2671cc;
+  --shield-lit: #2671cc;
+  --white-lit: #ffffff;
+  --white-ink-lit: #1b1d1f;
+
+  --post-filter: none;
+  --card-border: color-mix(in oklab, #2b2e30 18%, #f3f4f2);
+  --rail-steel: #8a8f95;
+  --rail-strip: #c6cace;
+  --rail-shade: rgba(0, 0, 0, 0.18);
+  --rail-hot: #ffffff;
+  --rail-warm: #dfe2e5;
+  --rail-cold: #b5babf;
+}
+
+.dark {
+  /* unlit: night ambient only, legends a neutral grey */
+  --blue: #15294a;
+  --blue-line: #7c8188;
+  --blue-ink: #a2a6ac;
+  --white: #7e8186;
+  --white-ink: #15171a;
+  /* lit */
+  --blue-lit: #1d6ad9;
+  --shield-lit: #1765d6;
+  --white-lit: #fffcf0;
+  --white-ink-lit: #111;
+
+  --post-filter: brightness(0.3) saturate(0.5);
+  --card-border: color-mix(in oklab, #e8eae7 16%, #0d0f11);
+  --rail-steel: #2a2e32;
+  --rail-strip: #40454a;
+  --rail-shade: rgba(0, 0, 0, 0.5);
+  --rail-hot: #fff6e4;
+  --rail-warm: #aab0b6;
+  --rail-cold: #4a4f54;
+}
+
+/* Focus on the sign: traffic yellow, which is clear on the night page. On
+   the day page yellow alone is too faint, so the ring is two-tone like a
+   hazard marking: a yellow band edged in black. Only the sign plates wear
+   it; every shadcn component keeps its own ring (--ring in global.css). */
+:root {
+  --focus-edge: #2b2e30;
+}
+.dark {
+  --focus-edge: var(--verkehrsgelb);
+}
+
+/* ================= the light =================
+   The torch's and the sun's colours on edges and text (light.css). */
+:root {
+  /* every rainbow on the page, on plates, edges and text, lies on one ring
+     round the aim point, in fractions of the beam radius */
+  --ring-in: 46%;
+  --ring-peak: 62%;
+  --ring-out: 80%;
+
+  /* the sun's glint on an edge: white, fading out before the ring */
+  --edge-hot: rgba(255, 255, 255, 0.8);
+  --edge-warm: rgba(255, 255, 255, 0.56);
+  --edge-pink: rgba(255, 255, 255, 0.2);
+  --edge-amber: transparent;
+  --edge-green: transparent;
+  --edge-blue: transparent;
+}
+
+/* Light at night: a hot centre and a rainbow rim on edges. The prism
+   darkens: every channel of its colours is brighter than the night page, so
+   the page keeps its colour and light text takes the rainbow. */
+.dark {
+  --edge-hot: rgba(255, 248, 232, 0.95);
+  --edge-warm: rgba(236, 226, 206, 0.7);
+  --edge-pink: rgba(255, 120, 175, 0.55);
+  --edge-amber: rgba(255, 214, 120, 0.55);
+  --edge-green: rgba(130, 240, 205, 0.5);
+  --edge-blue: rgba(120, 190, 255, 0.5);
+  --prism-pink: rgb(255 165 205);
+  --prism-amber: rgb(255 222 150);
+  --prism-green: rgb(165 245 215);
+  --prism-blue: rgb(165 205 255);
+}

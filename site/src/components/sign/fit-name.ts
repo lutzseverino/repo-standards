@@ -6,7 +6,7 @@
 // size or the fonts load. The inline copy is the function's source, so it
 // must reference nothing outside its own body.
 export function fitName(el: HTMLElement) {
-  if (el.closest(".face--lit")) return;
+  if (el.closest(".sign-face--lit")) return;
   const SIZE = 25;
   const FLOOR = 18;
   const over = () => el.scrollWidth > el.clientWidth + 0.5;
@@ -19,8 +19,8 @@ export function fitName(el: HTMLElement) {
   }
   if (over()) el.style.whiteSpace = "normal";
   const lit = el
-    .closest(".face-wrap")
-    ?.querySelector<HTMLElement>(":scope > .lit-copy .signpost-name");
+    .closest(".sign-face-wrap")
+    ?.querySelector<HTMLElement>(":scope > .sign-lit-copy .signpost-name");
   if (lit) {
     lit.style.fontSize = el.style.fontSize;
     lit.style.whiteSpace = el.style.whiteSpace;

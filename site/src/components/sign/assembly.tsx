@@ -256,7 +256,7 @@ export function SignAssembly({
       window.setTimeout(() => setPhase("rising"), 900),
       window.setTimeout(() => {
         // the story's controls held the focus: it returns to the sign
-        const held = document.activeElement?.closest(".story");
+        const held = document.activeElement?.closest(".sign-story");
         setPhase("idle");
         if (held) cue.current?.focus({ preventScroll: true });
       }, 1800),
@@ -283,34 +283,37 @@ export function SignAssembly({
       {/* clipped along the rail, so whatever sinks or rises there vanishes
           behind the rail and nowhere else */}
       <div
-        className="hero-stage flex flex-col items-center"
+        className="sign-hero-stage flex flex-col items-center"
         data-sunk={sunk || undefined}
         style={{ clipPath: RAIL_CLIP }}
       >
-        <div className="sink w-full max-w-[760px]" inert={sunk || undefined}>
+        <div
+          className="sign-sink w-full max-w-[760px]"
+          inert={sunk || undefined}
+        >
           {/* tilted before the page hydrates (rig.ts) */}
           <div
             ref={ref}
-            className="assembly w-full max-w-[760px]"
+            className="sign-assembly w-full max-w-[760px]"
             suppressHydrationWarning
           >
-            <div className="posts" aria-hidden="true">
+            <div className="sign-posts" aria-hidden="true">
               {/* sunk behind the rail before the page hydrates (rig.ts) */}
               <span
-                className="tube"
+                className="sign-tube"
                 style={{ left: "21%" }}
                 suppressHydrationWarning
               />
               <span
-                className="tube"
+                className="sign-tube"
                 style={{ left: "79%" }}
                 suppressHydrationWarning
               />
             </div>
 
-            <div className="mount mount--tab story-cue">
-              <Face kind="white" className="tab-face" hidden>
-                <span className="face__inner flex items-center gap-1.5">
+            <div className="sign-mount sign-mount--tab story-cue">
+              <Face kind="white" className="sign-tab-face" hidden>
+                <span className="sign-face__inner flex items-center gap-1.5">
                   How it works
                   <Arrow size={16} />
                 </span>
@@ -326,24 +329,24 @@ export function SignAssembly({
 
             {/* the title and the notice play the story too; the tab and the
                 nav's link are the buttons for it */}
-            <div className="mount" data-panel="" onClick={() => play()}>
+            <div className="sign-mount" data-panel="" onClick={() => play()}>
               <Face
                 as="h1"
                 kind="blue"
                 slats
                 className="px-8 pb-6 pt-7 md:px-10"
               >
-                <span className="face__inner block text-[42px] font-bold leading-none md:text-[62px]">
+                <span className="sign-face__inner block text-[42px] font-bold leading-none md:text-[62px]">
                   Repo Standards
-                </span>
-                <span className="face__inner mt-3 block text-[20px] font-medium leading-tight md:text-[25px]">
+                </span>{" "}
+                <span className="sign-face__inner mt-3 block text-[20px] font-medium leading-tight md:text-[25px]">
                   Write your setup down once. Your coding agent applies it to
                   every repository.
                 </span>
               </Face>
             </div>
 
-            <div className="mount">
+            <div className="sign-mount">
               <Face
                 as="a"
                 kind="blue"
@@ -353,16 +356,16 @@ export function SignAssembly({
                 label={`Repo Canon ${start.release.version}. A ready-made setup to start from`}
                 className="px-6 pb-5 pt-5 md:px-8"
               >
-                <span className="face__inner flex flex-wrap items-center gap-x-5 gap-y-2">
+                <span className="sign-face__inner flex flex-wrap items-center gap-x-5 gap-y-2">
                   <Arrow size={58} />
-                  <span className="shield tnum text-[19px] md:text-[21px]">
+                  <span className="sign-shield tabular-nums text-[19px] md:text-[21px]">
                     {start.release.version}
                   </span>
                   <span className="text-[38px] font-bold leading-none md:text-[50px]">
                     Repo Canon
                   </span>
                 </span>
-                <span className="inset face__inner mt-4 text-[18px] md:text-[21px]">
+                <span className="sign-inset sign-face__inner mt-4 text-[18px] md:text-[21px]">
                   <Surface />
                   <span className="relative z-[3]">
                     A ready-made setup to start from
@@ -372,7 +375,7 @@ export function SignAssembly({
             </div>
 
             <div
-              className="mount mx-auto w-[82%]"
+              className="sign-mount mx-auto w-[82%]"
               data-panel=""
               onClick={() => play()}
             >
@@ -381,7 +384,7 @@ export function SignAssembly({
                 kind="white"
                 className="px-6 py-4 text-[16px] font-medium leading-snug md:text-[17px]"
               >
-                <span className="face__inner block">{NOTICE}</span>
+                <span className="sign-face__inner block">{NOTICE}</span>
               </Face>
             </div>
           </div>
@@ -433,11 +436,11 @@ function HeroRail({
   beat: Beat | null;
 }) {
   return (
-    <svg ref={ref} className="rail-svg hero-rail" aria-hidden="true">
+    <svg ref={ref} className="sign-rail-svg sign-hero-rail" aria-hidden="true">
       {GROUND.map(([dy, o]) => (
         <path
           key={dy}
-          className="rail-ground"
+          className="sign-rail-ground"
           d={railPath(railAt, HERO_RAIL_WIDTH, HERO_RAIL_BASE + dy)}
           opacity={o}
         />
@@ -446,7 +449,7 @@ function HeroRail({
       {beat && (
         <path
           key={beat.key}
-          className="rail-progress"
+          className="sign-rail-progress"
           d={railPath(railAt, HERO_RAIL_WIDTH, HERO_RAIL_BASE)}
           pathLength={1}
           style={{ "--ms": `${beat.ms}ms` } as CSSProperties}

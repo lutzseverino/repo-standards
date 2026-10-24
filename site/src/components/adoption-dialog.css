@@ -1,269 +1,255 @@
 /* The dialog that opens on Copy (adoption-dialog.tsx): shadcn's dialog,
-   headed by one small sign, with three steps and a quiet picture for each. */
-.adoption-dialog {
-  max-height: calc(100dvh - 2rem);
-  overflow-y: auto;
-  font-size: 15px;
-}
-/* the plate spans the dialog; the close button sits on it, white */
-.dialog-plate {
-  border-radius: 10px;
-  padding: 14px 56px 13px 20px;
-}
-.dialog-plate::after {
-  inset: 3px;
-  border-width: 2px;
-  border-radius: 7px;
-}
-.dialog-plate h2 {
-  font-family: var(--font-sign);
-  color: inherit;
-}
-.adoption-dialog > [data-slot="dialog-close"] {
-  top: 38px;
-  right: 36px;
-  color: #fff;
-}
-.adoption-dialog > [data-slot="dialog-close"]:hover {
-  background: rgb(255 255 255 / 0.16);
-  color: #fff;
-}
-.dialog-steps {
-  display: grid;
-  gap: 18px;
-}
-.dialog-steps > li {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 260px;
-  gap: 14px;
-  align-items: start;
-}
-.dialog-steps h3 {
-  font-family: var(--font-sign);
-  font-weight: 700;
-  font-size: 19px;
-  line-height: 1.1;
-}
-.dialog-steps p {
-  margin-top: 3px;
-  color: var(--muted-foreground);
-  line-height: 1.35;
-}
-.step-tab {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
-  background: var(--verkehrsblau);
-  color: #fff;
-  font-family: var(--font-sign);
-  font-weight: 700;
-  font-size: 16px;
-  box-shadow:
-    inset 0 0 0 2px var(--verkehrsblau),
-    inset 0 0 0 3.5px #fff;
-}
-@media (max-width: 620px) {
-  .dialog-steps > li {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-  .dialog-steps > li > .art {
-    grid-column: 2;
-  }
-}
+   headed by one small sign, with three steps and a quiet picture for each. It sits in the `sign`
+   cascade layer, like sign.css. */
 
-/* ================= the pictures: quiet, small, the product's own surfaces */
-.art {
-  border: 1px solid var(--card-border);
-  border-radius: 10px;
-  background: var(--card);
-  padding: 9px 11px;
-  font-size: 12.5px;
-  line-height: 1.3;
-}
-.art-muted {
-  color: var(--muted-foreground);
-}
-.art-chip {
-  display: inline-block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  vertical-align: bottom;
-  border-radius: 6px;
-  padding: 1px 7px;
-  background: color-mix(in oklab, var(--verkehrsblau) 14%, transparent);
-  color: color-mix(in oklab, var(--verkehrsblau) 80%, var(--foreground));
-  font-family: ui-monospace, monospace;
-  font-size: 11.5px;
-}
-.dark .art-chip,
-.art-term .art-chip {
-  color: #a9c8ff;
-}
-.art-caret {
-  display: inline-block;
-  width: 1.5px;
-  height: 14px;
-  margin-left: 2px;
-  vertical-align: middle;
-  background: currentColor;
-  animation: art-blink 1s steps(1) infinite;
-}
-@keyframes art-blink {
-  50% {
-    opacity: 0;
+@layer sign {
+  /* the plate spans the dialog; the close button sits on it */
+  .adoption-plate {
+    border-radius: 10px;
+    padding: 14px 56px 13px 20px;
   }
-}
-.art-agent-head {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 7px;
-}
-.art-avatar {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  background: var(--verkehrsblau);
-}
-.art-composer {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 6px 6px 6px 8px;
-  min-width: 0;
-}
-.art-composer .art-chip {
-  flex: 0 1 auto;
-}
-.art-send {
-  margin-left: auto;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: var(--verkehrsblau);
-  color: #fff;
-  flex: none;
-}
-.art-term {
-  background: #1b1d1f;
-  color: #e8eae7;
-  border-color: #1b1d1f;
-}
-.art-term code {
-  display: block;
-  margin-top: 6px;
-  font-family: ui-monospace, monospace;
-  font-size: 11.5px;
-  word-break: break-word;
-}
-.art-term .art-muted {
-  color: #8d9296;
-}
-.art-dots {
-  display: flex;
-  gap: 4px;
-}
-.art-dots i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #444;
-}
-.art-tree-root {
-  font-family: ui-monospace, monospace;
-  font-size: 11.5px;
-  color: var(--muted-foreground);
-  margin-bottom: 2px;
-}
-.art-row {
-  display: grid;
-  grid-template-columns: 12px auto 1fr;
-  gap: 6px;
-  align-items: baseline;
-  padding: 1.5px 0 1.5px 8px;
-}
-.art-file {
-  font-family: ui-monospace, monospace;
-  font-size: 11.5px;
-}
-.art-note {
-  white-space: nowrap;
-  color: var(--muted-foreground);
-  font-size: 12px;
-  text-align: right;
-}
-.art-mark {
-  font-family: ui-monospace, monospace;
-  font-weight: 700;
-}
-.art-plus,
-.art-tilde {
-  white-space: nowrap;
-}
-.art-install .art-mark,
-.art-plus {
-  color: #2f8a46;
-}
-.art-adapt .art-mark,
-.art-tilde {
-  color: #b07d00;
-}
-.dark .art-install .art-mark,
-.dark .art-plus {
-  color: #6ad08a;
-}
-.dark .art-adapt .art-mark,
-.dark .art-tilde {
-  color: #f7c600;
-}
-.art-review-bar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 2px 8px;
-  padding-bottom: 7px;
-  border-bottom: 1px solid var(--card-border);
-}
-.art-review-foot {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  padding-top: 7px;
-}
-.art-button {
-  border-radius: 6px;
-  padding: 2px 9px;
-  background: var(--verkehrsblau);
-  color: #fff;
-  font-weight: 500;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .art-caret {
-    animation: none;
+  .adoption-plate::after {
+    inset: 3px;
+    border-width: 2px;
+    border-radius: 7px;
   }
-}
+  .adoption-steps {
+    display: grid;
+    gap: 18px;
+  }
+  .adoption-steps > li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 260px;
+    gap: 14px;
+    align-items: start;
+  }
+  .adoption-steps h3 {
+    font-family: var(--font-sign);
+    font-weight: 700;
+    font-size: 19px;
+    line-height: 1.1;
+  }
+  .adoption-steps p {
+    margin-top: 3px;
+    color: var(--muted-foreground);
+    line-height: 1.35;
+  }
+  .adoption-step-tab {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    background: var(--verkehrsblau);
+    color: #fff;
+    font-family: var(--font-sign);
+    font-weight: 700;
+    font-size: 16px;
+    box-shadow:
+      inset 0 0 0 2px var(--verkehrsblau),
+      inset 0 0 0 3.5px #fff;
+  }
+  @media (max-width: 620px) {
+    .adoption-steps > li {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+    .adoption-steps > li > .adoption-art {
+      grid-column: 2;
+    }
+  }
 
-/* At night the sign rests floodlit, through its lit copies. The dialog's
+  /* ================= the pictures: quiet, small, the product's own surfaces */
+  .adoption-art {
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    background: var(--card);
+    padding: 9px 11px;
+    font-size: 12.5px;
+    line-height: 1.3;
+  }
+  .adoption-art-muted {
+    color: var(--muted-foreground);
+  }
+  .adoption-art-chip {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+    border-radius: 6px;
+    padding: 1px 7px;
+    background: color-mix(in oklab, var(--verkehrsblau) 14%, transparent);
+    color: color-mix(in oklab, var(--verkehrsblau) 80%, var(--foreground));
+    font-family: ui-monospace, monospace;
+    font-size: 11.5px;
+  }
+  .dark .adoption-art-chip,
+  .adoption-art-term .adoption-art-chip {
+    color: #a9c8ff;
+  }
+  .adoption-art-caret {
+    display: inline-block;
+    width: 1.5px;
+    height: 14px;
+    margin-left: 2px;
+    vertical-align: middle;
+    background: currentColor;
+    animation: adoption-art-blink 1s steps(1) infinite;
+  }
+  @keyframes adoption-art-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  .adoption-art-agent-head {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 7px;
+  }
+  .adoption-art-avatar {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    background: var(--verkehrsblau);
+  }
+  .adoption-art-composer {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 6px 6px 6px 8px;
+    min-width: 0;
+  }
+  .adoption-art-composer .adoption-art-chip {
+    flex: 0 1 auto;
+  }
+  .adoption-art-send {
+    margin-left: auto;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--verkehrsblau);
+    color: #fff;
+    flex: none;
+  }
+  .adoption-art-term {
+    background: #1b1d1f;
+    color: #e8eae7;
+    border-color: #1b1d1f;
+  }
+  .adoption-art-term code {
+    display: block;
+    margin-top: 6px;
+    font-family: ui-monospace, monospace;
+    font-size: 11.5px;
+    word-break: break-word;
+  }
+  .adoption-art-term .adoption-art-muted {
+    color: #8d9296;
+  }
+  .adoption-art-dots {
+    display: flex;
+    gap: 4px;
+  }
+  .adoption-art-dots i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #444;
+  }
+  .adoption-art-tree-root {
+    font-family: ui-monospace, monospace;
+    font-size: 11.5px;
+    color: var(--muted-foreground);
+    margin-bottom: 2px;
+  }
+  .adoption-art-row {
+    display: grid;
+    grid-template-columns: 12px auto 1fr;
+    gap: 6px;
+    align-items: baseline;
+    padding: 1.5px 0 1.5px 8px;
+  }
+  .adoption-art-file {
+    font-family: ui-monospace, monospace;
+    font-size: 11.5px;
+  }
+  .adoption-art-note {
+    white-space: nowrap;
+    color: var(--muted-foreground);
+    font-size: 12px;
+    text-align: right;
+  }
+  .adoption-art-mark {
+    font-family: ui-monospace, monospace;
+    font-weight: 700;
+  }
+  .adoption-art-plus,
+  .adoption-art-tilde {
+    white-space: nowrap;
+  }
+  .adoption-art-install .adoption-art-mark,
+  .adoption-art-plus {
+    color: #2f8a46;
+  }
+  .adoption-art-adapt .adoption-art-mark,
+  .adoption-art-tilde {
+    color: #b07d00;
+  }
+  .dark .adoption-art-install .adoption-art-mark,
+  .dark .adoption-art-plus {
+    color: #6ad08a;
+  }
+  .dark .adoption-art-adapt .adoption-art-mark,
+  .dark .adoption-art-tilde {
+    color: #f7c600;
+  }
+  .adoption-art-review-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2px 8px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .adoption-art-review-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding-top: 7px;
+  }
+  .adoption-art-button {
+    border-radius: 6px;
+    padding: 2px 9px;
+    background: var(--verkehrsblau);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .adoption-art-caret {
+      animation: none;
+    }
+  }
+
+  /* At night the sign rests floodlit, through its lit copies. The dialog's
    plate has no lit copy, so it takes the lit colours directly, or it would
    show the unlit night colours and look unlike the sign. */
-.dark .dialog-plate {
-  --face-bg: var(--blue-lit);
-  --face-line: #fff;
-  --face-ink: #fff;
-}
-.dark .step-tab {
-  background: var(--blue-lit);
-  box-shadow:
-    inset 0 0 0 2px var(--blue-lit),
-    inset 0 0 0 3.5px #fff;
+  .dark .adoption-plate {
+    --face-bg: var(--blue-lit);
+    --face-line: #fff;
+    --face-ink: #fff;
+  }
+  .dark .adoption-step-tab {
+    background: var(--blue-lit);
+    box-shadow:
+      inset 0 0 0 2px var(--blue-lit),
+      inset 0 0 0 3.5px #fff;
+  }
 }
