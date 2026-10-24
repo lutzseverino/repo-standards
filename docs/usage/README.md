@@ -22,7 +22,7 @@ through both. The command installs and pins the CLI it ran, so nothing needs
 installing first.
 
 - [Getting started](getting-started/README.md): what Repo Standards does,
-  adopting Repo Canon in five minutes, and keeping an adoption up to date.
+  adopting Repo Canon in five minutes, and keeping it up to date.
 - [Guides](guides/README.md): task pages for adopting, updating, running the
   adopted checks, automated updates, writing and publishing a standards source,
   and finding one.

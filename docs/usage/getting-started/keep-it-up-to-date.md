@@ -1,8 +1,8 @@
 # Keep it up to date
 
 An adopted repository pins two versions in `.repo-standards/selection.yaml`:
-the standards source's, such as Repo Canon's, and the CLI's. Both publish new
-versions often, with no stability promise, but every release updates from the
+the standards source's, such as Repo Canon's, and the CLI's. The CLI releases
+often, with no stability promise, but every CLI release updates from the
 previous one with one `adopt` and no hand edits, as the
 [release policy](../reference/available-updates.md#release-policy) states.
 Nothing updates until you ask, or until you opt in to automated updates.

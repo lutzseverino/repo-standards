@@ -51,11 +51,12 @@ one.
 
 ## They're all alike, and kept that way
 
-Every repository that adopts the same profile ends up with the same setup, and
-it doesn't drift afterwards. The rules stay installed in `.repo-standards/rules/`,
-and an installed skill has your agent look up the rules that cover a file
-before it changes the file. The checks run again whenever you ask, against your
-working tree, as [Run the adopted checks](../guides/run-checks.md) describes.
+Every repository that adopts the same profile ends up with the same setup. The
+rules stay installed in `.repo-standards/rules/`, and an installed skill has
+your agent look up the rules that cover a file before it changes the file. The
+checks run again whenever you ask, against your working tree, and show where a
+repository has drifted from its setup, as
+[Run the adopted checks](../guides/run-checks.md) describes.
 
 When the source publishes a new version, the same command moves each
 repository to it. [Keep it up to date](keep-it-up-to-date.md) shows how.

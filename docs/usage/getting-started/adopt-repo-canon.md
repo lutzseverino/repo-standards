@@ -10,7 +10,8 @@ uses.
 - Use macOS or Linux with Node.js 24 or 26, its bundled npm, and Git 2.32 or
   newer.
 - Start from a Git repository with at least one commit and no uncommitted
-  changes, so Git can show and undo everything the adoption changes.
+  changes, so Git can show and undo every change the adoption makes to your
+  files.
 - Optionally, set a GitHub token in `GH_TOKEN`. Without one, the CLI shares
   GitHub's anonymous quota with everyone on your IP address; see
   [GitHub requests and tokens](../reference/github-requests.md).
@@ -68,9 +69,9 @@ the edits to your own files, running Repo Canon's checks after each one.
    reviews the diff. Git still has every one of those edits in your last
    commit.
 3. Review the scope: the files the run chose to cover, such as which documents
-   count as your documentation. It needs no confirmation of its own. If it
-   missed a file, apply the setup again once it's committed, as
-   [Apply the same version again](../guides/update.md#apply-the-same-version-again)
+   count as your documentation. It needs no confirmation of its own. When the
+   work needs a file the scope missed, the scope changes during the run, as
+   [Recover a stopped run](../guides/adopt.md#recover-a-stopped-run)
    describes.
 4. Run the pinned CLI's verdict before committing, because afterwards it
    reports the changes as no longer ready:
