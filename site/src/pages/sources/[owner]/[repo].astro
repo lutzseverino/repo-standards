@@ -1,0 +1,192 @@
+---
+// One standards source's own page, for each source search accepts: what it
+// is, its latest release, its profiles, what it installs and how to adopt it.
+import { Arrow } from "@/components/sign/arrow";
+import { Surface } from "@/components/sign/face";
+import { SiteNav } from "@/components/site-nav";
+import { SourceAdoption } from "@/components/source-adoption";
+import BaseLayout from "@/layouts/base.astro";
+import {
+  NOTICE,
+  formatDate,
+  listing,
+  repositoryUrl,
+  sourcePath,
+  type Declaration,
+  type DetailedSource,
+} from "@/lib/catalogue";
+import { loadCatalogue } from "@/lib/load-catalogue";
+import {
+  sourceDescription,
+  sourceIntroduction,
+  sourceTitle,
+} from "@/lib/source-page";
+import {
+  buildSourceStructuredData,
+  serializeStructuredData,
+} from "@/lib/structured-data";
+import "@/components/sign/sign.css";
+import "@/components/adoption-dialog.css";
+
+export async function getStaticPaths() {
+  const { sources } = await loadCatalogue();
+  return sources.map((source) => {
+    const [owner, repo] = source.repository.split("/");
+    return { params: { owner, repo }, props: { source } };
+  });
+}
+
+type Props = { source: DetailedSource };
+
+const { source } = Astro.props;
+const url = new URL(sourcePath(source), Astro.site).href;
+const introduction = sourceIntroduction(source);
+const repository = repositoryUrl(source);
+const everyProfile = (d: Declaration) =>
+  d.profiles.length === source.profiles.length;
+
+const KINDS: Record<Declaration["kind"], string> = {
+  file: "File",
+  skill: "Skill",
+  repository: "Repository guidance",
+};
+---
+
+<BaseLayout title={sourceTitle(source)} description={sourceDescription(source)}>
+  <script
+    slot="head"
+    type="application/ld+json"
+    is:inline
+    set:html={serializeStructuredData(buildSourceStructuredData(source, url))}
+  />
+  <main class="mx-auto max-w-4xl px-6 pt-10 pb-32">
+    <SiteNav client:load />
+
+    <header>
+      <!-- a plate like the adoption dialog's: no torch lights this page, so
+           by night it is lit already -->
+      <h1 class="sign-face sign-face--blue px-6 pt-5 pb-5 text-[34px] leading-none font-bold [overflow-wrap:anywhere] md:px-8 md:text-[46px] dark:[--face-bg:var(--blue-lit)] dark:[--face-ink:#fff] dark:[--face-line:#fff]">
+        <Surface slats />
+        <span class="sign-face__inner flex items-center gap-4">
+          <Arrow size={44} />
+          {source.name}
+        </span>
+      </h1>
+      <p class="mt-6 text-xl leading-snug">{source.description}</p>
+      <dl class="mt-5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-6 gap-y-1.5 text-[16px]">
+        <dt class="text-muted-foreground">Latest release</dt>
+        <dd>
+          <a class="underline underline-offset-4" href={source.release.url}>
+            {source.release.version}
+          </a>
+          , {formatDate(source.release.publishedAt)}
+        </dd>
+        <dt class="text-muted-foreground">Needs</dt>
+        <dd>Repo Standards CLI {source.requires.replace(">=", "≥ ")}</dd>
+        <dt class="text-muted-foreground">Repository</dt>
+        <dd>
+          <a class="underline underline-offset-4" href={repository}>
+            github.com/{source.repository}
+          </a>
+        </dd>
+      </dl>
+    </header>
+
+    {introduction && (
+      <section class="mt-12">
+        <h2 class="text-2xl font-bold">A ready-made setup to start from</h2>
+        <p class="mt-3 max-w-2xl leading-snug">{introduction.lead}</p>
+        <div class="mt-6 grid gap-6 md:grid-cols-2">
+          {introduction.topics.map((topic) => (
+            <div>
+              <h3 class="text-lg font-bold">{topic.heading}</h3>
+              <p class="mt-1 leading-snug">{topic.text}</p>
+              <ul class="mt-2 flex flex-wrap gap-1.5 text-[14px]">
+                {topic.items.map((item) => (
+                  <li>
+                    <code class="rounded bg-muted px-1.5 py-0.5 [overflow-wrap:anywhere]">
+                      {item}
+                    </code>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold">Adopt {source.name}</h2>
+      <p class="mt-3 mb-5 max-w-2xl leading-snug">
+        Give your coding agent the prompt in the repository you want to set up,
+        or run the command there yourself. Either way you choose a version and a
+        profile, and nothing is committed until you review the changes.
+      </p>
+      <SourceAdoption client:load source={listing(source)} />
+      <p class="mt-5 text-[15px] text-muted-foreground">{NOTICE}</p>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold">Profiles</h2>
+      <dl class="mt-4 grid gap-3">
+        {source.profiles.map((profile) => (
+          <div>
+            <dt class="font-bold">{profile.name}</dt>
+            <dd class="leading-snug">{profile.description}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-2xl font-bold">What it installs</h2>
+      <p class="mt-3 max-w-2xl leading-snug">
+        Each declaration in its <code>standards.yaml</code> at{" "}
+        {source.release.version}, with the paths it installs or governs and the
+        checks it runs.
+      </p>
+      <div class="mt-5 overflow-x-auto">
+        <table class="w-full text-left text-[15px] leading-snug">
+          <thead class="text-muted-foreground">
+            <tr>
+              <th class="py-2 pr-4 font-medium">Declaration</th>
+              <th class="py-2 pr-4 font-medium">Installs or governs</th>
+              <th class="py-2 pr-4 font-medium">Checks</th>
+              <th class="py-2 font-medium">Profiles</th>
+            </tr>
+          </thead>
+          <tbody>
+            {source.installs.map((d) => (
+              <tr class="border-t align-top">
+                <td class="py-2 pr-4">
+                  <code>{d.id}</code>
+                  <div class="text-[14px] text-muted-foreground">
+                    {KINDS[d.kind]}
+                  </div>
+                </td>
+                <td class="py-2 pr-4 [overflow-wrap:anywhere]">
+                  {d.targets.length > 0 ? (
+                    d.targets.map((t) => <code class="block">{t}</code>)
+                  ) : (
+                    <span class="text-muted-foreground">
+                      Paths found in each project
+                    </span>
+                  )}
+                </td>
+                <td class="py-2 pr-4">
+                  {d.checks.map((c) => (
+                    <code class="block">{c}</code>
+                  ))}
+                </td>
+                <td class="py-2">
+                  {everyProfile(d) ? "All" : d.profiles.join(", ")}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</BaseLayout>

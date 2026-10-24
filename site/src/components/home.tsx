@@ -15,6 +15,7 @@ import { Search } from "./search";
 import { SignAssembly } from "./sign/assembly";
 import { SignpostList } from "./sign/signposts";
 import { useTorch } from "./sign/torch";
+import { REPOSITORY } from "./site-nav";
 import { ThemeToggle } from "./theme-toggle";
 import {
   STARTING_POINT,
@@ -33,8 +34,6 @@ const LIGHT_LAYERS = [
   ["sign-lit-sheen", 2],
   ["sign-lit-prism", 2],
 ] as const;
-
-const REPOSITORY = "https://github.com/lutzseverino/repo-standards";
 
 export function Home({ catalogue }: { catalogue: Catalogue }) {
   const [theme, setTheme] = useTheme();

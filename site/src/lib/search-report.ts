@@ -1,9 +1,14 @@
 // Turns the CLI's `source search --json` pages and each candidate's
-// `standards.yaml` into the homepage's catalogue. The build reads them live;
+// `standards.yaml` into the site's catalogue. The build reads them live;
 // checks read a recording of the same inputs. Either way they pass through
 // here, so a change in the CLI's report fails every build, not only Deploy.
 import { parse } from "yaml";
-import { STARTING_POINT, type Catalogue, type Source } from "./catalogue.ts";
+import {
+  STARTING_POINT,
+  type Catalogue,
+  type Declaration,
+  type DetailedSource,
+} from "./catalogue.ts";
 
 /** Where the search pages and standards files come from. */
 export type SearchInput = {
@@ -16,7 +21,7 @@ export type SearchInput = {
 type Candidate = {
   repository: string;
   commit: string;
-  release: { version: string; publishedAt: string };
+  release: { version: string; publishedAt: string; url: string };
   source: { name: string; description: string; requires: string };
   profiles: string[];
 };
@@ -33,7 +38,9 @@ type SearchReport = {
 const ISSUE = "https://github.com/lutzseverino/repo-standards/issues/347";
 const GITHUB = "https://github.com/";
 
-export async function buildCatalogue(input: SearchInput): Promise<Catalogue> {
+export async function buildCatalogue(
+  input: SearchInput,
+): Promise<Catalogue<DetailedSource>> {
   const reports = [parseSearchReport(await input.page(1))];
   for (let next = reports[0].nextPage; next !== null;) {
     const report = parseSearchReport(await input.page(next));
@@ -42,15 +49,11 @@ export async function buildCatalogue(input: SearchInput): Promise<Catalogue> {
   }
   checkSearch(reports);
 
-  const sources: Source[] = await Promise.all(
+  const sources: DetailedSource[] = await Promise.all(
     reports
       .flatMap((r) => r.candidates)
       .map(async (c) => {
         const repository = c.repository.slice(GITHUB.length);
-        const descriptions = profileDescriptions(
-          await input.standards(repository, c.commit),
-          repository,
-        );
         return {
           repository,
           name: c.source.name,
@@ -58,14 +61,11 @@ export async function buildCatalogue(input: SearchInput): Promise<Catalogue> {
           commit: c.commit,
           release: c.release,
           requires: c.source.requires,
-          profiles: c.profiles.map((name) => {
-            const description = descriptions[name];
-            if (description === undefined)
-              throw new Error(
-                `${repository}'s standards.yaml has no description for its profile ${name}.`,
-              );
-            return { name, description };
-          }),
+          ...readStandards(
+            await input.standards(repository, c.commit),
+            repository,
+            c.profiles,
+          ),
         };
       }),
   );
@@ -81,7 +81,7 @@ export async function buildCatalogue(input: SearchInput): Promise<Catalogue> {
 /** The list's order. Its key is the adopter count, which does not exist
  * yet (#345); until then the list is alphabetical by display name, neutral
  * and stable. Repo Canon is not pinned: the sign above already features it. */
-function byListOrder(a: Source, b: Source): number {
+function byListOrder(a: DetailedSource, b: DetailedSource): number {
   return a.name.localeCompare(b.name, "en");
 }
 
@@ -131,6 +131,7 @@ function parseSearchReport(value: unknown): SearchReport {
         release: {
           version: text(release.version, `${at}.release.version`),
           publishedAt: text(release.publishedAt, `${at}.release.publishedAt`),
+          url: text(release.url, `${at}.release.url`),
         },
         source: {
           name: text(source.name, `${at}.source.name`),
@@ -160,24 +161,109 @@ function parseSearchReport(value: unknown): SearchReport {
   };
 }
 
-function profileDescriptions(
+/** The listed profiles' descriptions, which search does not report, and
+ * what the profiles install. Each profile resolves as the author format
+ * resolves it: a profile's declaration replaces the default with its ID, or
+ * excludes it with `exclude: true`. A declaration that resolves alike in
+ * several profiles is listed once with all of them. */
+function readStandards(
   yaml: string,
   repository: string,
-): Record<string, string | undefined> {
+  names: string[],
+): Pick<DetailedSource, "profiles" | "installs"> {
   const where = `${repository}'s standards.yaml`;
-  const profiles = record(
-    record(parse(yaml), where).profiles,
-    `${where} profiles`,
+  const root = record(parse(yaml), where);
+  const defaults = record(
+    record(root.defaults, `${where} defaults`).declarations,
+    `${where} defaults declarations`,
   );
-  return Object.fromEntries(
-    Object.entries(profiles).map(([name, profile]) => [
+  const profiles = record(root.profiles, `${where} profiles`);
+  const installs = new Map<string, Declaration>();
+  const listed = names.map((name) => {
+    if (profiles[name] === undefined)
+      throw new Error(`${where} has no profile ${name}.`);
+    const at = `${where} profile ${name}`;
+    const profile = record(profiles[name], at);
+    const resolved = {
+      ...defaults,
+      ...record(profile.declarations, `${at} declarations`),
+    };
+    for (const [id, value] of Object.entries(resolved)) {
+      const fields = record(value, `${at} declaration ${id}`);
+      if (fields.exclude === true) continue;
+      const found = declaration(id, fields, `${where} declaration ${id}`);
+      const key = JSON.stringify(found);
+      const known = installs.get(key);
+      if (known) known.profiles.push(name);
+      else installs.set(key, { ...found, profiles: [name] });
+    }
+    return {
       name,
-      text(
-        record(profile, `${where} profile ${name}`).description,
-        `${where} profile ${name} description`,
-      ),
-    ]),
-  );
+      description: text(profile.description, `${at} description`),
+    };
+  });
+  return {
+    profiles: listed,
+    // the author format orders resolved declarations by ID
+    installs: [...installs.values()].sort((a, b) =>
+      a.id < b.id ? -1 : a.id > b.id ? 1 : 0,
+    ),
+  };
+}
+
+/** A declaration's kind, what it installs or governs, and its checks. */
+function declaration(
+  id: string,
+  fields: Record<string, unknown>,
+  at: string,
+): Omit<Declaration, "profiles"> {
+  const checks =
+    fields.checks === undefined
+      ? []
+      : list(fields.checks, `${at} checks`).map((check, i) =>
+          text(record(check, `${at} checks[${i}]`).id, `${at} checks[${i}] id`),
+        );
+  const kind = text(fields.kind, `${at} kind`);
+  switch (kind) {
+    case "file":
+      return {
+        id,
+        kind,
+        targets: [text(fields.target, `${at} target`)],
+        checks,
+      };
+    case "skill":
+      // an exact skill installs the whole `.agents/skills/<name>`
+      return {
+        id,
+        kind,
+        targets: [`.agents/skills/${text(fields.name, `${at} name`)}/`],
+        checks,
+      };
+    case "repository": {
+      // without explicit targets, each project discovers the scope
+      if (fields.targets === undefined)
+        return { id, kind, targets: [], checks };
+      const targets = record(fields.targets, `${at} targets`);
+      return {
+        id,
+        kind,
+        targets: [
+          ...list(targets.paths, `${at} targets paths`).map((p, i) =>
+            text(p, `${at} targets paths[${i}]`),
+          ),
+          ...list(targets.directories, `${at} targets directories`).map(
+            (d, i) => `${text(d, `${at} targets directories[${i}]`)}/`,
+          ),
+        ],
+        checks,
+      };
+    }
+    default:
+      throw new Error(
+        `${at} has the kind ${kind}, which the site does not know. Update the site's data step to the author format.`,
+      );
+  }
 }
 
 function shapeError(path: string, expected: string) {

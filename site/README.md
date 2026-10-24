@@ -2,7 +2,8 @@
 
 The private `site/` workspace builds the Repository Standards website with
 Astro, React, Tailwind 4 and shadcn/ui. Its homepage lists the standards
-sources that source search finds, under a road sign pointing to Repo Canon.
+sources that source search finds, under a road sign pointing to Repo Canon,
+and each source has its own page at `/sources/<owner>/<repo>/`.
 Starlight 0.40.0 serves the usage documentation and design decisions at `/docs/`.
 
 ## Development
@@ -54,7 +55,17 @@ and include the shared analytics beacon through Starlight's `head` option.
 `src/pages/index.astro` loads the data and renders the homepage,
 `src/components/home.tsx`. `src/pages/how-it-works.astro` tells the homepage
 story in words, with who does what, the tools that fit some jobs better and
-the current limits; its claims follow the usage documents and the ADRs. Every page outside the docs renders inside
+the current limits; its claims follow the usage documents and the ADRs.
+Each plate in the homepage's list links to the source's page,
+`src/pages/sources/[owner]/[repo].astro`: the source's description, latest
+release, CLI requirement and profiles, the agent prompt and terminal command
+(`source-adoption.tsx`), the site's notice and what the source installs.
+`src/lib/source-page.ts` writes each page's title and description, and Repo
+Canon's introduction, which names what it provides in the words people search
+for. Each thing the introduction names must be among what its release
+installs, or the build fails until the introduction is updated. A source page
+carries JSON-LD for its source, and its nav (`site-nav.tsx`) leads home.
+Every page outside the docs renders inside
 `src/layouts/base.astro`, which owns the head: the theme, the page's title,
 description and canonical URL, its own path on `site`, the favicons and the
 Cloudflare Web Analytics beacon. The beacon is `src/lib/analytics.ts`, a tag in
@@ -136,9 +147,11 @@ records the arrangement.
 At build time, `src/lib/load-catalogue.ts` runs the CLI built at the root,
 `../dist/cli.js source search --json`, through every page, and reads each
 candidate's `standards.yaml` at its released commit for the profile
-descriptions. Pass `GH_TOKEN` or `GITHUB_TOKEN` for the authenticated GitHub
+descriptions and what each listed profile installs: every declaration as the
+profile resolves it, with its kind, paths and checks. Pass `GH_TOKEN` or `GITHUB_TOKEN` for the authenticated GitHub
 quota. `src/lib/search-report.ts` turns them into the catalogue, and each
-source keeps its released `commit`. It checks the
+source keeps its released `commit`. Only the source pages show what a source
+installs; the homepage's list leaves it out (`listed`). It checks the
 report's shape, so a renamed or missing field fails the build, and it fails
 when the search is marked incomplete, finds no candidates or does not list
 Repo Canon, the source the sign points to; this is
@@ -174,8 +187,9 @@ to pick up new sources and releases, and publishes `site/dist/` with
 The site package is private and never published to npm.
 
 `public/robots.txt` allows every crawler and points to the absolute sitemap URL.
-`@astrojs/sitemap` includes the built pages automatically. The homepage also
-publishes JSON-LD describing the site and the listed standards sources, using
+`@astrojs/sitemap` includes the built pages automatically, the source pages
+among them. The homepage also publishes JSON-LD describing the site and the
+listed standards sources, and each source page describes its own source, using
 the same catalogue as the visible page and escaping third-party metadata for
 the script element.
 

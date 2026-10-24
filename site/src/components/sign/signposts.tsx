@@ -4,7 +4,7 @@
 // profiles each start on one line across a row.
 import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { Card, CardContent } from "@/components/app/card";
-import { repositoryUrl, type Source } from "@/lib/catalogue";
+import { sourcePath, type Source } from "@/lib/catalogue";
 import { Arrow, ExitArrow } from "./arrow";
 import { Face } from "./face";
 import { fitName } from "./fit-name";
@@ -53,7 +53,7 @@ export function SignpostList({
             <Face
               as="a"
               kind="blue"
-              href={repositoryUrl(s)}
+              href={sourcePath(s)}
               label={`${s.name} ${s.release.version}`}
               className="signpost-plate"
             >
