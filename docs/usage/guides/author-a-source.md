@@ -1,21 +1,25 @@
-# Author a standards source
+# Write and publish a standards source
 
-A standards repository supplies ordinary content, complete profiles and trusted
-operations. The product owns adoption. The
-[`author-standards` skill](installation.md#install-the-authoring-skill) guides
+A standards source is a published, versioned setup: a public GitHub repository
+whose root `standards.yaml` declares the files, skills, guidance, rules and
+operations a repository adopts. You write it once, and every repository that
+adopts it receives the same setup and its later versions. A standards
+repository supplies ordinary content, complete profiles and trusted
+operations; the product owns adoption. The
+[`author-standards` skill](install.md#install-the-authoring-skill) guides
 creation, revision, and resumption of a source, and ends at author-reviewed,
 validated local material; it does not provision, commit, tag, release, or
 adopt, and a local directory is not yet adoptable. Publication, below, is
 separate work.
 
-[Author format](author-format.md) defines the four declaration forms, complete
-profiles, and discovery; the [Alice example](../../examples/alice/standards.yaml)
+[Author format](../reference/author-format.md) defines the four declaration forms, complete
+profiles, and discovery; the [Alice example](../../../examples/alice/standards.yaml)
 shows defaults, a complete work replacement and an employer-content exclusion.
-The [Mira example](../../examples/mira/standards.yaml) uses operational guidance,
+The [Mira example](../../../examples/mira/standards.yaml) uses operational guidance,
 a repeat-safe fix and a different check. Guidance should give an agent
 observable goals, useful evidence requirements and boundaries, while letting it
 describe the actual project; generic replacement prose discards project facts.
-Operations follow the [script protocol](script-protocol.md); document the tools
+Operations follow the [script protocol](../reference/script-protocol.md); document the tools
 they require so adopters can install them deliberately before adoption.
 
 A published working source is [repo-standards-example](https://github.com/lutzseverino/repo-standards-example),
@@ -33,9 +37,9 @@ repo-standards source validate /path/to/standards --json
 Validation checks declarations and references; it executes neither operations
 nor probes and does not assess guidance or author-skill quality, concrete scope
 safety, or semantic completeness in an unfamiliar project. The skill's
-[exercise guide](../../skills/author-standards/references/operations.md) runs
+[exercise guide](../../../skills/author-standards/references/operations.md) runs
 operations against disposable directories through the script protocol, without
-a Git repository or adoption. The separate [adoption workflow](adoption.md)
+a Git repository or adoption. The separate [adoption workflow](adopt.md)
 exercises integration against published sources and committed adopting
 projects.
 
@@ -70,7 +74,7 @@ contextual work and the remote setup it handles, so repeating them adds noise;
 the CLI cannot check that your line lies outside adoption. Because older CLIs
 reject the field as an unknown field, raise `requires.repo-standards` to the
 first CLI release that accepts it in the same release. See
-[the author format](author-format.md#adopter-action).
+[the author format](../reference/author-format.md#adopter-action).
 
 After validating the committed contents with a compatible installed CLI, publish
 the same commit. The following commands run in your standards repository; replace
@@ -98,10 +102,10 @@ Git tag; discovery additionally requires a GitHub release and the
 branch does not repair an older release. Publication uses ordinary GitHub
 features and does not add workflows or create a marketplace entry.
 
-Confirm your repository, tag and commit in the [search report](discovery.md).
+Confirm your repository, tag and commit in the [search report](find-sources.md).
 GitHub indexing can lag behind publication; check the topic and release, then
 retry later. Share the canonical URL, exact stable tag and one profile for
-[direct inspection](inspection.md), which does not depend on discovery:
+[direct inspection](../reference/inspection.md), which does not depend on discovery:
 
 ```sh
 repo-standards inspect --source https://github.com/OWNER/SOURCE \
@@ -109,7 +113,7 @@ repo-standards inspect --source https://github.com/OWNER/SOURCE \
 ```
 
 Acquire the executable and its matching documentation through
-[public npm installation](installation.md). The standards source itself is an ordinary public GitHub repository.
+[public npm installation](install.md). The standards source itself is an ordinary public GitHub repository.
 
 Keep published tags immutable: an observed moved tag is rejected. For an update,
 publish another stable tag and describe replacements, retired declarations,
@@ -117,8 +121,9 @@ changed scripts/prerequisites and CLI compatibility. Removing/excluding an ID
 relinquishes governance and removes its installed content, except content the
 adopter edited, which stays as the adopter's own. Renaming an ID
 retires one and adds another. A still-declared skill replaces its whole
-directory, removing obsolete resources. Adopters inspect and confirm each
-update; the inspection lists each local exact-content edit that the update
-replaces, and each edited target that leaves the selection and stays. One update can change their CLI
+directory, removing obsolete resources. Adopters review each update's
+inspection, which lists each local exact-content edit that the update
+replaces, and each edited target that leaves the selection and stays; a
+replacement that discards an edit needs confirmation before the run starts. One update can change their CLI
 pin, standards version, source, and profile together; your declared range gates
 only which CLI versions can select a standards version.

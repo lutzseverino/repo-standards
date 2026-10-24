@@ -37,7 +37,7 @@ Contextual work applies the selected guidance to the adopting project's actual
 content within the allowed targets, so that it satisfies the declaration's
 rules. Exact files and skills remain author-owned;
 excluded and unrelated content remains outside the contextual scope.
-[`adopt`](adoption.md#adopt-with-one-command) prints each contextual
+[`adopt`](../guides/adopt.md#adopt-with-one-command) prints each contextual
 declaration's rules and adoption guidance with next steps for doing and judging
 this work, and submits the assessment from its answers file.
 
@@ -55,7 +55,7 @@ submitting makes it stale.
 
 ### Reused assessments
 
-An update [reuses](adoption.md#reused-answers) the last complete adoption's
+An update [reuses](adoption-run.md#reused-answers) the last complete adoption's
 judgment of a contextual declaration whose rules, or adoption guidance when it
 has no rules, and scoped files are unchanged since that adoption. The run
 judges this after its fixes, so a fix that changes a scoped file makes the
@@ -162,7 +162,7 @@ or post-check integrity failure is preserved and rejected with
 assessment authorizes repeating these operations. Explicit `resume --retry`
 recovers interrupted work and repeats fixes, and `abandon` ends the run while
 preserving its work and report; see
-[Recovery commands](adoption.md#recover-or-abandon-an-interrupted-run).
+[Recovery commands](adoption-run.md#recover-or-abandon-an-interrupted-run).
 Retry discards the accepted assessment and requires a new submission against
 the retried request even when project bytes are unchanged, and retains
 separate intervals as described below. Updates use this same assessment interface. The [real-agent acceptance journey](https://github.com/lutzseverino/repo-standards/blob/main/acceptance/README.md) evaluates contextual
@@ -202,7 +202,7 @@ a directory the run created is removed again. Then run `adopt` again with the
 answers, or resume and submit the assessment again. A reconciled violation stops
 nothing, and the run continues without abandonment. When a named path belongs
 in a discovered declaration's scope, change that scope answer instead: `adopt`
-[adopts again in place](adoption.md#adopt-again-in-place) with the new scope,
+[adopts again in place](adoption-run.md#adopt-again-in-place) with the new scope,
 and the new run's `changedPaths` include the agent changes the replaced run
 left that still differ from their state before it.
 
@@ -270,7 +270,7 @@ submission in another format are rejected.
 A structurally valid blocked review is retained as `SCOPE_INCOMPLETE` before checks.
 It grants no authority, and an active run cannot change its confirmed scope.
 A different scope takes a new run with a new confirmed scope, as described in
-[Correct a confirmed scope](adoption.md#correct-a-confirmed-scope).
+[Correct a confirmed scope](adoption-run.md#correct-a-confirmed-scope).
 
 For migrations, the CLI attributes old source deletion and destination creation
 as separate changed paths, along with introductions and every link-repair file.

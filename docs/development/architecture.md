@@ -289,7 +289,7 @@ active discovery declaration has exactly one entry and that only an optional
 one has no scope. A declaration confirmed with no scope materializes with
 empty targets, no rules, no checks or fixes, and `"no-scope": true`
 ([ADR 0023](../adr/0023-let-an-optional-discovery-declaration-have-no-scope.md)).
-The [inspection contract](../usage/inspection.md#discover-contextual-file-scope)
+The [inspection contract](../usage/reference/inspection.md#discover-contextual-file-scope)
 defines evidence paths, strict proposal validation, observation limits, and
 the distinction between source declarations and materialized concrete targets.
 Profiles without active discovery continue through the existing concrete-target
@@ -714,8 +714,8 @@ from its state before the earliest interval that changed it, is nonzero, and
 the agent's observed changes are those net changes. Intervals keep their
 violations as observed. Installation, process
 liveness, concurrency, clean initial starts, and abandonment keep their existing
-contracts. See the [script](../usage/script-protocol.md#observed-adoption-scope)
-and [assessment](../usage/assessment-protocol.md#observation-and-replay) protocols.
+contracts. See the [script](../usage/reference/script-protocol.md#observed-adoption-scope)
+and [assessment](../usage/reference/assessment-protocol.md#observation-and-replay) protocols.
 
 ## Adoption sequence and agent interface
 
@@ -881,7 +881,7 @@ which the CLI reads from discovery scripts or agents. The optional `invocation`
 key in `repo-standards/operation/v2` and `noScope` in
 `repo-standards/scope/v2` follow this rule
 ([ADR 0023](../adr/0023-let-an-optional-discovery-declaration-have-no-scope.md)).
-For operation input, scripts [ignore request fields they do not read](../usage/script-protocol.md#json-input-on-stdin).
+For operation input, scripts [ignore request fields they do not read](../usage/reference/script-protocol.md#json-input-on-stdin).
 For scope proposals, an older CLI need not accept the new key: it rejects
 `noScope` as unknown rather than misreading the proposal. A source that marks a
 declaration `optional` raises its `requires.repo-standards` range to a CLI that

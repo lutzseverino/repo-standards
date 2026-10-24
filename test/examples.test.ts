@@ -148,9 +148,9 @@ test("Mira service source retains check resources and preserves fix output on ex
     ".repo-standards/runtime/node_modules/@lutzseverino/repo-standards",
   );
   for (const path of [
-    "docs/usage/authoring.md",
-    "docs/usage/assessment-protocol.md",
-    "docs/usage/adoption.md",
+    "docs/usage/guides/author-a-source.md",
+    "docs/usage/reference/assessment-protocol.md",
+    "docs/usage/reference/adoption-run.md",
     "examples/mira/standards.yaml",
   ]) {
     assert.ok(readFileSync(join(packageRoot, path), "utf8").length);

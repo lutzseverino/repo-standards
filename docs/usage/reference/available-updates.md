@@ -1,4 +1,4 @@
-# Check for available updates
+# Available updates report
 
 ```sh
 .repo-standards/runtime/node_modules/.bin/repo-standards outdated
@@ -25,8 +25,8 @@ an agent, also reads the repository-wide [installed rules](rules.md) at the
 start of any work and looks up the rules covering a file before changing it,
 and starts no update; `outdated` remains the complete interface without an
 agent. Apply an update through inspection and start as described in
-[Adoption](adoption.md). To have every available update proposed as a pull
-request instead, opt in to the [update action](automated-updates.md).
+[Adoption](adoption-run.md). To have every available update proposed as a pull
+request instead, opt in to the [update action](../guides/automated-updates.md).
 
 ## Release policy
 
@@ -40,7 +40,7 @@ adoption is an adopter action, which the update still completes around.
 
 To stay current, run `outdated` with the project's pinned CLI, then run `adopt`
 with the new CLI to update the selection. Review and commit the resulting run.
-The opt-in [update action](automated-updates.md) checks daily and proposes every
+The opt-in [update action](../guides/automated-updates.md) checks daily and proposes every
 available update as one rolling pull request, or reports the questions that
 need agent work. Release notes open with the same derived adopter-action line
 the update reports, followed by any author-written actions outside adoption.
@@ -108,7 +108,7 @@ diagnostic goes to stderr. Without a readable selection no pin is recorded, so
 every CLI reports both pins `unknown` as described under
 [Degraded results](#degraded-results). To change the CLI pin, inspect with the
 candidate exact CLI instead; see
-[Update the selection](adoption.md#update-the-selection).
+[Update the selection](adoption-run.md#update-the-selection).
 
 ## Adopter actions
 

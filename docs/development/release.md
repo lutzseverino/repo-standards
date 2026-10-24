@@ -300,7 +300,7 @@ validates packaged examples, discovers the public learning source, and exercises
 explicit and omitted bootstrap versions without project mutation. It uses real
 npm and GitHub, with no acquisition fixtures for those public paths.
 
-It also proves the [release policy](../usage/available-updates.md#release-policy)
+It also proves the [release policy](../usage/reference/available-updates.md#release-policy)
 by adopting the newest public learning-source release with the newest stable
 npm CLI below `<version>`, committing that prepared baseline, and invoking
 `npx --yes @lutzseverino/repo-standards@<version> adopt --json` exactly once.
@@ -388,14 +388,14 @@ Each release carries the `repository-standards`, `author-standards`, and
 skills, their references, and the matching author and protocol documentation.
 Before packaging another version, update the standalone authoring guide
 (`skills/author-standards/references/cli.md`) and the public installation
-commands in [installation](../usage/installation.md) to its exact version; the
+commands in [installation](../usage/guides/install.md) to its exact version; the
 release test checks the bundled guide against the installed executable's
 package version.
 
 After publication, the workflow also runs
 `node acceptance/prepare-author.ts <version> <evidence.json>` on macOS and Linux under both supported Node.js majors.
 It acquires the skill through the public release-tag URL documented in
-[installation](../usage/installation.md#install-the-authoring-skill), independently of the
+[installation](../usage/guides/install.md#install-the-authoring-skill), independently of the
 npm package; then obtains the compatible public CLI/docs in an external directory.
 Retain those JSON artifacts alongside existing public CLI smoke evidence.
 
@@ -409,7 +409,7 @@ the authoring acceptance.
 `adopt-repository-standards` has **v8.0.0** as its first containing public tag;
 that tag contains `SKILL.md` and `agents/openai.yaml`. The installation guide
 and README no longer need unreleased notices for this skill. Keep the
-[adoption skill installation command](../usage/installation.md#install-the-adoption-skill)
+[adoption skill installation command](../usage/guides/install.md#install-the-adoption-skill)
 pinned to each new release while preserving v8.0.0 as the first containing tag.
 The existing Release workflow creates the tag at the reviewed commit,
 publishing the skills tree with it. No separate registry, publishing service,

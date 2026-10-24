@@ -48,7 +48,7 @@ deferred decisions distinct from confirmed choices. None produces policy.
 
 Once there is a confirmed choice to express, read [CLI and matching
 documentation](references/cli.md), acquire the external CLI, and read its
-`docs/usage/author-format.md` before creating source material. Every source uses
+`docs/usage/reference/author-format.md` before creating source material. Every source uses
 the one `repo-standards/v2` format; choose discovery when accepted repository
 guidance needs to find its scope in unfamiliar layouts.
 Explain the choice and set compatibility to the CLI actually validated. Follow
@@ -156,7 +156,7 @@ affected behavior unverified; obtain explicit deferral if the author chooses to
 finish with that limitation. Never describe unexecuted behavior as passing.
 
 Hand off repository setup and publication to a separate workflow, using the
-matching package's `docs/usage/authoring.md` when requested. Local material is
+matching package's `docs/usage/guides/author-a-source.md` when requested. Local material is
 not yet adoptable: adoption requires a published public GitHub source and a
 stable tag.
 This skill does not provision repositories, commit, tag, release, or adopt.

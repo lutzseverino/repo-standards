@@ -8,7 +8,7 @@ dependency bot. It is a composite GitHub action published at the root of
 Installing a workflow that runs it is opting in: it is the maintainer's standing
 instruction to propose every available update
 ([ADR 0026](https://github.com/lutzseverino/repo-standards/blob/main/docs/adr/0026-propose-updates-through-one-rolling-pull-request.md)).
-Without it, an [available update](available-updates.md) waits for the
+Without it, an [available update](../reference/available-updates.md) waits for the
 maintainer to ask for it. The action never merges: the maintainer reviews and
 merges its pull request like any other.
 
@@ -19,7 +19,7 @@ branch. Pin it by the full commit SHA of a release, with the release tag in a
 comment:
 
 ```yaml
-name: Repository Standards update
+name: Repo Standards update
 
 on:
   schedule:
@@ -84,7 +84,7 @@ CLI's GitHub requests use the authenticated quota.
 Without `agent-command`, an update that stops opens the rolling issue. With it,
 the action runs the command in the checkout through `bash`, with
 `REPO_STANDARDS_REPORT` naming the
-[headless update's](adoption.md#update-headlessly) `adopt --json` report, from
+[headless update's](../reference/adoption-run.md#update-headlessly) `adopt --json` report, from
 which the agent answers the open questions through `adopt --answers`. When the
 command exits 0 and `status --json` then reports the update ready to commit, the
 action continues as for a complete update; otherwise it opens the rolling

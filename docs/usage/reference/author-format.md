@@ -33,13 +33,13 @@ installs none of its rules and runs none of its operations. Source
 validation alone proves neither project-specific safety nor semantic coverage.
 An active run cannot change its confirmed scope; when contextual work needs
 other paths, a new run
-[adopts again with a new confirmed scope](adoption.md#correct-a-confirmed-scope).
+[adopts again with a new confirmed scope](adoption-run.md#correct-a-confirmed-scope).
 Fresh discovery proposals also apply during every update, including one that
 applies an unchanged selection again. `adopt` reuses the recorded entry in that
 proposal only while the declaration's discovery guidance, rules and fresh
 discovery-script draft are unchanged and every path the entry names exists,
 and otherwise proposes it for review
-([reused answers](adoption.md#reused-answers)): changing discovery guidance,
+([reused answers](adoption-run.md#reused-answers)): changing discovery guidance,
 rules, or what a discovery script drafts makes adopters review the scope again.
 Changing a contextual declaration's rules, or its adoption guidance when it has
 no rules, likewise makes adopters assess it again. Between complete runs, scope
@@ -127,7 +127,7 @@ A profile lists the hosting platforms an adopting project can select it on in
 `platforms`, a nonempty list of distinct platform names. A profile without
 `platforms` supports `github` alone, so a source that names no platform is
 unchanged. The adopting project selects its platform separately from its
-profile; see [choose the hosting platform](adoption.md#choose-the-hosting-platform).
+profile; see [choose the hosting platform](adoption-run.md#choose-the-hosting-platform).
 Do not split a profile per platform, such as `react-github` and
 `react-gitlab`: declare the platform choice inside the profile.
 
@@ -135,7 +135,7 @@ Any declaration may name the one `platform` it applies on, in defaults or a
 profile. On every other platform the declaration is left out of the resolved
 profile, before scope, so it installs nothing, runs no operation and needs no
 discovery. That differs from an [optional](#optional-discovery) declaration's
-no scope, which is confirmed per project. A declaration without `platform`
+no scope, which each project decides in its scope answer. A declaration without `platform`
 applies on every platform of its profile. An exclusion takes no `platform`.
 
 Older CLIs reject `platforms` and `platform` as unknown fields, so a source
@@ -185,7 +185,7 @@ every path of the adopting project. An
 [optional](#optional-discovery) declaration confirmed with no scope installs
 no rules at all. Exact skills target
 `.agents/skills/<name>` as a whole, and adoption also installs the skill's
-[skill link](adoption.md#skill-links) at `.claude/skills/<name>`, which is a
+[skill link](adoption-run.md#skill-links) at `.claude/skills/<name>`, which is a
 target of the skill too: no other target may overlap it. `repository-standards`,
 `author-standards`, and `adopt-repository-standards` are product-owned system skill names reserved against
 author skills. The retired `adopt-standards` and `standards-updates` names are
@@ -309,7 +309,7 @@ marks with `noScope`. No scope differs from an empty scope:
 
 A proposal without `noScope` keeps its ordinary meaning for an optional
 declaration too, so an optional declaration's empty scope is still
-repository-wide. Each update confirms the scope again: an update can give an
+repository-wide. Each update reviews the scope again: an update can give an
 optional declaration a scope it had none of, which installs its rules and runs
 its operations, or take its scope away, which removes its installed rules and
 leaves project content in place.
@@ -447,7 +447,7 @@ fixes:
 Only fixes take `remote-setup`; on a check it is an unknown field. Inspection
 runs the probe read-only before anything is written, and the adopter can defer
 a remote setup that is not ready and complete adoption without it; see
-[remote setup](adoption.md#remote-setup) and the probe's
+[remote setup](adoption-run.md#remote-setup) and the probe's
 [protocol](script-protocol.md#remote-setup-probes). The probe's script and
 resources are selected material, retained like an operation's. Remote setup
 names no platform: the probe states what readiness means, such as a reachable
@@ -521,7 +521,7 @@ structurally invalid YAML may limit what can be determined.
 
 ## Alice's complete example
 
-The executable [Alice fixture](../../examples/alice/standards.yaml) uses the
+The executable [Alice fixture](../../../examples/alice/standards.yaml) uses the
 accepted architecture example verbatim. Its `work` profile replaces agent
 guidance, inherits README guidance, the review skill, and source-layout
 guidance, and excludes contribution guidance. Exclusion leaves the future
@@ -530,4 +530,4 @@ adopting project's employer-owned `CONTRIBUTING.md` outside governance.
 The example's Python check reads the public operation input and checks README
 headings. It reports structural evidence; the agent separately assesses whether
 commands and explanations are useful for the actual project. See
-[Author workflow](authoring.md) for validation, publication and evolution.
+[Author workflow](../guides/author-a-source.md) for validation, publication and evolution.

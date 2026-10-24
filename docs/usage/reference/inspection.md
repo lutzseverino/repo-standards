@@ -1,15 +1,15 @@
 # Bootstrap and public inspection
 
-See [public installation](installation.md) for npm and standalone-bootstrap
-acquisition and [adoption](adoption.md) for adoption, runtime pins and
-retained inspection. Public release status is recorded in the product repository.
+See [Install the CLI and skills](../guides/install.md) for npm and
+standalone-bootstrap acquisition and the [adoption run reference](adoption-run.md)
+for adoption, runtime pins and retained inspection. Public release status is recorded in the product repository.
 
 ## Obtain the CLI outside the adopting project
 
 Use macOS or Linux with Node.js 24 or 26, npm, and Git 2.32 or newer on `PATH`. Node.js 24 or 26 installers
 at <https://nodejs.org/en/download> include npm. Missing prerequisites produce
 actionable setup instructions. Before observing project state, `inspect`,
-`start`, [`resume`](adoption.md#recover-or-abandon-an-interrupted-run), and
+`start`, [`resume`](adoption-run.md#recover-or-abandon-an-interrupted-run), and
 [`check`](check.md) check the Git version. An older Git fails with `GIT_VERSION_UNSUPPORTED`,
 which names the installed version and the minimum, 2.32. This minimum ensures
 Git does not follow symbolic `.gitignore` files whose referent is not bound.
@@ -20,7 +20,7 @@ also excluded.
 
 The executable `bootstrap/repo-standards` is a standalone POSIX shell file with
 an embedded Node.js program. It needs no product checkout, pnpm, or installed
-JavaScript dependencies. Follow [public installation](installation.md#install-outside-your-project)
+JavaScript dependencies. Follow [public installation](../guides/install.md#install-outside-your-project)
 to obtain it from the matching release and install it outside your project.
 Then inspect a selection:
 
@@ -79,10 +79,10 @@ mkdir -p "$adoption_cli"
 ```
 
 Use that executable from the project root for inspection and start.
-[`adopt`](adoption.md#adopt-with-one-command) needs no external installation:
+[`adopt`](../guides/adopt.md#adopt-with-one-command) needs no external installation:
 it drives these commands and pins the CLI that ran it.
 Keep the external runtime available until completion for interrupted-installation
-recovery. The [adoption workflow](adoption.md) documents start and continuation.
+recovery. The [adoption workflow](adoption-run.md) documents start and continuation.
 
 ## Inspect with an already installed exact CLI
 
@@ -166,24 +166,24 @@ Every report has the single format `repo-standards/inspection/v9`. A profile
 with discovery declarations adds the `discovery` and `sourceResolved` fields
 described [below](#discover-contextual-file-scope):
 
-| Field                | Meaning                                                                                                                                                                                                                                                                                                                                                                                                            |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `selection`          | Exact CLI package/version, canonical standards URL, version tag, commit SHA, profile, and platform.                                                                                                                                                                                                                                                                                                                |
-| `source`, `resolved` | Validated metadata and the resolver's complete active profile on the selected platform.                                                                                                                                                                                                                                                                                                                            |
-| `exact`              | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. A skill also has its `link`: the [skill link](adoption.md#skill-links) `.claude/skills/<name>` as `target`, with its own `create`, `replace`, or `match` `action`. |
-| `systemSkills`       | Each system skill adoption installs, `repository-standards`, by `name` and reserved `.agents/skills/<name>` `target`, with `create`, `replace`, or `match` against the copy packaged with the inspecting exact CLI, and its `link` as in `exact`.                                                                                                                                                                  |
-| `removed`            | For an update, each installed target the selection no longer installs and the run removes, including a retired skill's link, with its installer (`id` for a declaration, or `systemSkill` for a retired system skill) and each file's or link's before and after hash inventories and diff, as in `exact`.                                                                                                         |
-| `retiredState`       | For a fresh adoption over [retired](adoption.md#adopt-fresh-from-a-retired-format) committed product state, the `target` `.repo-standards`, which the run removes whole; its retired `records`, each by `path`, retired `format`, and the `expected` format this CLI reads; and the project path of each of its `files`, sorted, without its ignored generated directories.                                        |
-| `kept`               | For an update, each edited installed target the selection no longer installs and the run keeps, including the link of a kept skill, by its installer (`id` for a declaration, or `systemSkill` for a retired system skill) and `target`, sorted by path. The project owns it from then on.                                                                                                                         |
-| `discardedEdits`     | Each target whose replacement or removal discards content that is not its installed baseline, in the order of the target blockers. At initial adoption there is no baseline, so every replaced existing target is listed.                                                                                                                                                                                          |
-| `confirmation`       | Whether `start` needs confirmation after reviewing discarded edits. `required` is true exactly when `discardedEdits` is not empty, and `reasons` has one `{ "change": "discarded-edit", "target": <path> }` entry per discarded edit, in the same order. See [confirmation](#confirmation).                                                                                                                        |
-| `guidance`           | Guidance by source-relative `source` path, SHA-256 and executable state, with its explicit project paths or directory trees.                                                                                                                                                                                                                                                                                       |
-| `operations`         | Ordered fixes and checks, literal arguments, the script by path and hash, resource hash inventories, timeout, and declared prerequisite probe/range.                                                                                                                                                                                                                                                               |
-| `project`            | Hash inventories of the affected targets, of each system skill target in `systemSkills` by path, of each installed skill's link in `skillLinks` by path, and of the durable product state. The project root, Git HEAD, index, and status are not reported.                                                                                                                                                         |
-| `inputs`, `manifest` | Hash inventories of the selected source material, and the hash of the normalized single-profile metadata, that adoption retains.                                                                                                                                                                                                                                                                                   |
-| `remoteSetup`        | Each [remote setup](adoption.md#remote-setup) fix by `declaration` and fix `id`, in execution order, with its readiness `status`: `ready`, `not-ready` with the probe's `reason`, or `not-checked` when the report has start blockers. See [remote setup readiness](#remote-setup-readiness).                                                                                                                      |
-| `start`              | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available.                                                                                                          |
-| `identity`           | SHA-256 of deterministic report content, prefixed with `sha256:`.                                                                                                                                                                                                                                                                                                                                                  |
+| Field                | Meaning                                                                                                                                                                                                                                                                                                                                                                                                                |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `selection`          | Exact CLI package/version, canonical standards URL, version tag, commit SHA, profile, and platform.                                                                                                                                                                                                                                                                                                                    |
+| `source`, `resolved` | Validated metadata and the resolver's complete active profile on the selected platform.                                                                                                                                                                                                                                                                                                                                |
+| `exact`              | Declaration and target; `create`, `replace`, or `match`; each file's before and after hash inventories; a unified `diff` for a changed text file, or `binary: true` for changed binary content, which carries only its before and after hashes. A skill also has its `link`: the [skill link](adoption-run.md#skill-links) `.claude/skills/<name>` as `target`, with its own `create`, `replace`, or `match` `action`. |
+| `systemSkills`       | Each system skill adoption installs, `repository-standards`, by `name` and reserved `.agents/skills/<name>` `target`, with `create`, `replace`, or `match` against the copy packaged with the inspecting exact CLI, and its `link` as in `exact`.                                                                                                                                                                      |
+| `removed`            | For an update, each installed target the selection no longer installs and the run removes, including a retired skill's link, with its installer (`id` for a declaration, or `systemSkill` for a retired system skill) and each file's or link's before and after hash inventories and diff, as in `exact`.                                                                                                             |
+| `retiredState`       | For a fresh adoption over [retired](adoption-run.md#adopt-fresh-from-a-retired-format) committed product state, the `target` `.repo-standards`, which the run removes whole; its retired `records`, each by `path`, retired `format`, and the `expected` format this CLI reads; and the project path of each of its `files`, sorted, without its ignored generated directories.                                        |
+| `kept`               | For an update, each edited installed target the selection no longer installs and the run keeps, including the link of a kept skill, by its installer (`id` for a declaration, or `systemSkill` for a retired system skill) and `target`, sorted by path. The project owns it from then on.                                                                                                                             |
+| `discardedEdits`     | Each target whose replacement or removal discards content that is not its installed baseline, in the order of the target blockers. At initial adoption there is no baseline, so every replaced existing target is listed.                                                                                                                                                                                              |
+| `confirmation`       | Whether `start` needs confirmation after reviewing discarded edits. `required` is true exactly when `discardedEdits` is not empty, and `reasons` has one `{ "change": "discarded-edit", "target": <path> }` entry per discarded edit, in the same order. See [confirmation](#confirmation).                                                                                                                            |
+| `guidance`           | Guidance by source-relative `source` path, SHA-256 and executable state, with its explicit project paths or directory trees.                                                                                                                                                                                                                                                                                           |
+| `operations`         | Ordered fixes and checks, literal arguments, the script by path and hash, resource hash inventories, timeout, and declared prerequisite probe/range.                                                                                                                                                                                                                                                                   |
+| `project`            | Hash inventories of the affected targets, of each system skill target in `systemSkills` by path, of each installed skill's link in `skillLinks` by path, and of the durable product state. The project root, Git HEAD, index, and status are not reported.                                                                                                                                                             |
+| `inputs`, `manifest` | Hash inventories of the selected source material, and the hash of the normalized single-profile metadata, that adoption retains.                                                                                                                                                                                                                                                                                       |
+| `remoteSetup`        | Each [remote setup](adoption-run.md#remote-setup) fix by `declaration` and fix `id`, in execution order, with its readiness `status`: `ready`, `not-ready` with the probe's `reason`, or `not-checked` when the report has start blockers. See [remote setup readiness](#remote-setup-readiness).                                                                                                                      |
+| `start`              | Known blockers and prerequisite status. `eligible` is false for known blockers, null for unverified author prerequisites, and true when neither remains. Start probes every declared prerequisite before installation; contextual declarations stop incomplete after fixes until assessment is available.                                                                                                              |
+| `identity`           | SHA-256 of deterministic report content, prefixed with `sha256:`.                                                                                                                                                                                                                                                                                                                                                      |
 
 Entries in `removed` and `kept` carry exactly one installer field: `id` is
 always the standards declaration's ID, while `systemSkill` names a retired
@@ -330,7 +330,7 @@ the inspection it names.
 ### Remote setup readiness
 
 When the report has no start blockers, inspection runs the readiness probe of
-every [remote setup](adoption.md#remote-setup) fix, in execution order, before
+every [remote setup](adoption-run.md#remote-setup) fix, in execution order, before
 anything is written. Each probe first has its own prerequisite probed, then runs
 as the [script protocol](script-protocol.md#remote-setup-probes) describes,
 from the project root, with its script read from the acquired or retained
@@ -362,7 +362,7 @@ start runs the probes again and fails with `STALE_INSPECTION` when a probe's
 answer changed. Keep a probe's reason stable for the same state. A start whose
 inspection has a `not-ready` entry fails with `REMOTE_SETUP_NOT_READY` and
 writes nothing unless it passes `--defer-remote-setup`; see
-[remote setup](adoption.md#remote-setup).
+[remote setup](adoption-run.md#remote-setup).
 
 Known blockers include missing commits, dirty Git state, symlink or non-directory
 ancestors, special files, case-folded existing-path conflicts, file/directory type
@@ -382,10 +382,10 @@ replacement that discards content other than the target's installed baseline,
 and each one requires [confirmation](#confirmation). Existing product
 state blocks initial adoption with `EXISTING_ADOPTION`, unless it is retired,
 when the run removes it; see
-[adopting afresh over installed content](adoption.md#adopt-afresh-over-installed-content).
+[adopting afresh over installed content](adoption-run.md#adopt-afresh-over-installed-content).
 
 An inspection of the selection an abandoned or replaced run adopted, in a
-checkout that still holds what that run left, [adopts again in place](adoption.md#adopt-again-in-place).
+checkout that still holds what that run left, [adopts again in place](adoption-run.md#adopt-again-in-place).
 The run's verified product state is not an existing adoption, and an update's
 last complete adoption is read from the HEAD the run started from. The Git
 start blockers exempt exactly the uncommitted paths the run's last
@@ -489,7 +489,7 @@ The summary is a pure rendering of the report: the same report renders the same
 bytes, so two inspections with the same identity print the same summary. It
 describes the report and prescribes nothing. Failures print the usual diagnostic
 on stderr, and combining `--summary` with `--json` is a usage error with exit
-status 2. [`status --summary`](adoption.md#summarize-status) renders the status
+status 2. [`status --summary`](adoption-run.md#summarize-status) renders the status
 record the same way.
 
 ## Discover contextual file scope
@@ -507,7 +507,7 @@ declaration's discovery guidance, with reasons, supporting evidence, a coverage
 explanation, and unresolved questions. Inventory and hash evidence establish
 what was observed; they do not prove that a candidate is a maintained project.
 The adopter reviews semantic coverage together with the complete inspection.
-[`adopt`](adoption.md#adopt-with-one-command) asks for each declaration's entry
+[`adopt`](../guides/adopt.md#adopt-with-one-command) asks for each declaration's entry
 in its answers file and prints next steps for judging the candidates.
 
 A declaration may name a
@@ -521,7 +521,7 @@ and excluded candidates and open questions. Answer the questions in
 declarations without a script, and inspect the proposal with `--scope` as below. The report
 of an inspection with `--scope` carries no draft. `start` still runs each
 script under its lock, and so does `adopt` while it compares a
-[recorded scope answer](adoption.md#reused-answers) with the fresh draft: the
+[recorded scope answer](adoption-run.md#reused-answers) with the fresh draft: the
 run retains the draft each confirmed entry was decided from. A script that fails, times out or changes its copy of
 the project fails inspection with `DISCOVERY_SCRIPT_FAILED`, and the project is
 unchanged.
@@ -662,7 +662,7 @@ update commands described above and to the matching start. The
 selection, product-state inventory, and project observation are bound into the
 request and final inspection identities, so neither a retained historical
 proposal nor an earlier inspection authorizes the new run. `adopt` writes that
-proposal from the recorded entries it [reuses](adoption.md#reused-answers),
+proposal from the recorded entries it [reuses](adoption-run.md#reused-answers),
 because their discovery guidance, rules and fresh draft are unchanged and their
 paths exist, and from the answers it asks for.
 
@@ -694,7 +694,7 @@ previous release's `repo-standards/state/v7` and scope-history v5 are read as
 the adoption an update replaces. Retained inspection rejects a committed state,
 retained scope history, or integrity lock in any other older format with
 `RETIRED_FORMAT` before reading anything else; nothing is converted. Inspecting a source instead previews a
-[fresh adoption](adoption.md#adopt-fresh-from-a-retired-format) that removes the
+[fresh adoption](adoption-run.md#adopt-fresh-from-a-retired-format) that removes the
 retired product state. An active run record in an older format fails every
 inspection with `RETIRED_RUN`, and an archived one with `RETIRED_FORMAT`, except that an archived
 `repo-standards/run/v6` report is left unread. A
@@ -708,7 +708,7 @@ record.
 A confirmed scope never changes during a run. When contextual work needs files
 outside it, or a confirmed target is mistaken, a different scope takes a new
 run with a new proposal; see
-[Correct a confirmed scope](adoption.md#correct-a-confirmed-scope).
+[Correct a confirmed scope](adoption-run.md#correct-a-confirmed-scope).
 
 ### No scope
 

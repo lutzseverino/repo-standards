@@ -1,4 +1,9 @@
-# Discover standards sources
+# Find standards sources
+
+A standards source is a published, versioned setup that a repository can
+adopt. Source search finds the sources published on GitHub's
+`repo-standards` topic and validates each, so you can choose one before
+adopting it. Run it with an [installed CLI](install.md#install-outside-your-project):
 
 ```sh
 repo-standards source search --json
@@ -10,7 +15,7 @@ or without `--json`; the flag also makes failures structured. No Git project is
 required. Search changes no project files, executes no author operations or
 prerequisite probes, selects no profile, and starts no adoption. It uses the
 same external temporary snapshots and tag-observation cache as
-[direct inspection](inspection.md#inspect-with-an-already-installed-exact-cli).
+[direct inspection](../reference/inspection.md#inspect-with-an-already-installed-exact-cli).
 
 For each repository on the requested page, search reads the complete GitHub
 release list through Postern, then selects the first published, non-prerelease
@@ -59,9 +64,10 @@ was rejected, with no anonymous retry; other candidate failures remain rejection
 
 Discovery is not an endorsement, trust decision or assessment of guidance
 quality. Review the source, license, scripts and prerequisites yourself. Choose
-one source, stable version and complete profile, then use `inspect` and the
-shared confirmation workflow. A known-source inspection never calls search;
+one source, stable version and complete profile, then
+[adopt it](adopt.md), or preview it first with
+[`inspect`](../reference/inspection.md). A known-source inspection never calls search;
 it remains usable when discovery is unavailable. See the
-[author publication workflow](authoring.md#publish-and-evolve).
+[author publication workflow](author-a-source.md#publish-and-evolve).
 
 GitHub API references: [repository search](https://docs.github.com/en/rest/search/search#search-repositories) and [release listing](https://docs.github.com/en/rest/releases/releases#list-releases).

@@ -43,7 +43,7 @@ particular files, or `pnpm lint --fix` to apply its safe fixes.
 Include observable acceptance tests with the behavior they validate. Tests
 install current `dist/` output; rebuild after changing product code.
 
-The [update action](../usage/automated-updates.md), `action.yml`, runs the
+The [update action](../usage/guides/automated-updates.md), `action.yml`, runs the
 TypeScript in `action/` with Node.js directly, so it has no build output and
 `pnpm build` does not cover it; `pnpm typecheck` and `pnpm lint` do.
 `test/update-action.test.ts` runs it against a local fake of GitHub's REST API,
@@ -128,7 +128,7 @@ An unbuilt checkout lacks `dist/cli.js`; building alone is not a reliable
 workaround. `--project` does not affect npm's working-directory package
 resolution, which happens before the CLI launches.
 
-Follow [Adopting in the product checkout](../usage/adoption.md#adopting-in-the-product-checkout):
+Follow [Adopting in the product checkout](../usage/guides/adopt.md#adopting-in-the-product-checkout):
 acquire the exact published candidate in an external directory with npm install
 scripts disabled, then invoke that executable with `--project` naming this
 clean, committed checkout. Keep its installation and answers outside the tree,

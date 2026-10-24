@@ -301,7 +301,7 @@ Scenarios, from those readers:
 **A. Keep everything.** No format change, no change to the offline and
 source-unavailable guarantees (architecture
 [acceptance criterion 8](architecture.md#acceptance-criteria) and
-[Fresh checkout and source disappearance](../usage/adoption.md#fresh-checkout-and-source-disappearance)),
+[Fresh checkout and source disappearance](../usage/reference/adoption-run.md#fresh-checkout-and-source-disappearance)),
 no migration, no SemVer class.
 
 **B. Record only the hash of a copy that matches its target, and read the
