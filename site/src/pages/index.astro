@@ -20,6 +20,10 @@ const catalogue = await loadCatalogue();
     />
     <title>Repository Standards</title>
     <link rel="canonical" href={Astro.site} />
+    <!-- the ICO's 32x32 size keeps browsers that read SVG on the SVG -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <!-- holds the first paint until the page is drawn at rest, below -->
     <link rel="expect" href="#at-rest" blocking="render" />
     <!-- applies the stored or system theme before anything is drawn -->
