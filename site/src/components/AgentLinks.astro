@@ -1,0 +1,11 @@
+---
+// The same discovery links for the shared layout and Starlight's head.
+import { markdownPath } from "../lib/agent-paths";
+---
+
+<link
+  rel="alternate"
+  type="text/markdown"
+  href={markdownPath(Astro.url.pathname)}
+/>
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />

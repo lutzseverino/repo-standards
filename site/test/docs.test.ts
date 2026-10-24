@@ -16,6 +16,10 @@ import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { parse, type DefaultTreeAdapterMap } from "parse5";
+import { fromMarkdown } from "mdast-util-from-markdown";
+import { visit } from "unist-util-visit";
+import { installText, NOTICE } from "../src/lib/catalogue.ts";
+import { loadCatalogue } from "../src/lib/load-catalogue.ts";
 import { themes } from "../src/lib/theme-core.ts";
 import { CODE_BACKGROUND, contrast, palette } from "./docs-palette.ts";
 
@@ -50,6 +54,7 @@ const docsPages = () =>
     }));
 
 before(() => {
+  process.env.SITE_SEARCH_RECORDING = path.join(site, "fixtures/search");
   output = mkdtempSync(path.join(site, "node_modules/.site-docs-"));
   execFileSync(
     process.execPath,
@@ -64,6 +69,200 @@ before(() => {
 });
 
 after(() => rmSync(output, { recursive: true, force: true }));
+
+test("llms.txt identifies Repo Standards and links agents to built Markdown", () => {
+  const llms = read("llms.txt");
+  assert.match(llms, /^# Repo Standards\n/m);
+  assert.match(
+    llms,
+    /^> Write your setup down once\. Your coding agent applies it to every repository\.$/m,
+  );
+  for (const identity of [
+    "@lutzseverino/repo-standards",
+    "https://github.com/lutzseverino/repo-standards",
+    "https://repo-standards.com/",
+    "https://github.com/lutzseverino/repo-canon",
+    "Run `npx --yes @lutzseverino/repo-standards adopt https://github.com/lutzseverino/repo-canon --json` in this repository and follow what it prints.",
+  ])
+    assert.ok(llms.includes(identity), identity);
+  for (const heading of [
+    "Getting started",
+    "Guides",
+    "Reference",
+    "Sources",
+    "How it works",
+  ])
+    assert.ok(llms.includes(`## ${heading}`), heading);
+});
+
+test("every HTML page advertises built Markdown and llms.txt", () => {
+  assert.match(read("robots.txt"), /User-agent: \*\s+Allow: \//);
+  assert.match(
+    read("robots.txt"),
+    /Sitemap: https:\/\/repo-standards\.com\/sitemap-index\.xml/,
+  );
+  for (const file of readdirSync(output, {
+    recursive: true,
+    encoding: "utf8",
+  }).filter((file) => file.endsWith(".html"))) {
+    const nodes = elements(parse(read(file)));
+    const alternates = nodes.filter(
+      (node) =>
+        node.tagName === "link" && attribute(node, "rel") === "alternate",
+    );
+    const markdown = alternates.filter(
+      (node) => attribute(node, "type") === "text/markdown",
+    );
+    assert.equal(markdown.length, 1, file);
+    const href = attribute(markdown[0], "href")!;
+    const pathname = new URL(href, "https://repo-standards.com").pathname;
+    assert.ok(read(pathname.slice(1)).trim(), `${file} → ${href}`);
+    const page =
+      file === "index.html" ? "/" : `/${file.replace(/index\.html$/, "")}`;
+    const expected =
+      page === "/"
+        ? "/index.md"
+        : `${page.replace(/\/$/, "").replace(/\.html$/, "")}.md`;
+    assert.equal(pathname, expected, file);
+    assert.ok(
+      alternates.some(
+        (node) =>
+          attribute(node, "type") === "text/plain" &&
+          attribute(node, "href") === "/llms.txt",
+      ),
+      file,
+    );
+  }
+  const llms = read("llms.txt");
+  for (const [, href] of llms.matchAll(/\]\(([^)]+)\)/g)) {
+    const url = new URL(href);
+    if (url.origin === "https://repo-standards.com")
+      assert.ok(read(url.pathname.slice(1)).trim(), href);
+  }
+});
+
+test("sources.json and stable prompts describe exactly the accepted catalogue", async () => {
+  const catalogue = await loadCatalogue();
+  const manifest = JSON.parse(read("sources.json")) as Record<string, unknown>;
+  assert.deepEqual(Object.keys(manifest).sort(), [
+    "cliVersion",
+    "notice",
+    "schema",
+    "sources",
+  ]);
+  assert.equal(manifest.schema, "repo-standards/sources/v1");
+  assert.equal(manifest.cliVersion, catalogue.cliVersion);
+  assert.equal(manifest.notice, NOTICE);
+  assert.deepEqual(
+    manifest.sources,
+    catalogue.sources.map((source) => ({
+      repository: `https://github.com/${source.repository}`,
+      name: source.name,
+      description: source.description,
+      release: source.release,
+      commit: source.commit,
+      requires: source.requires,
+      profiles: source.profiles,
+      page: `https://repo-standards.com/sources/${source.repository}/`,
+      prompt: `https://repo-standards.com/sources/${source.repository}/prompt.txt`,
+    })),
+  );
+  for (const source of catalogue.sources) {
+    assert.equal(
+      read(`sources/${source.repository}/prompt.txt`),
+      installText(source, "prompt"),
+    );
+    const markdown = read(`sources/${source.repository}.md`);
+    assert.ok(markdown.includes(source.description));
+    assert.ok(markdown.includes(source.release.version));
+    assert.ok(
+      markdown.includes(installText(source, "prompt")),
+      "rendered input retains its adoption prompt",
+    );
+    for (const declaration of source.installs) {
+      assert.ok(markdown.includes(declaration.id), declaration.id);
+      for (const target of declaration.targets)
+        assert.ok(markdown.includes(target), target);
+    }
+  }
+});
+
+test("page Markdown keeps readable content without the sign's decorative copies", () => {
+  const home = read("index.md");
+  assert.match(
+    home,
+    /^# Repo Standards Write your setup down once\. Your coding agent applies it to every repository\.$/m,
+  );
+  assert.equal(home.split("Write your setup down once.").length - 1, 1);
+  for (const file of [
+    "index.md",
+    "sources/lutzseverino/repo-canon.md",
+    "how-it-works.md",
+  ]) {
+    assert.doesNotMatch(read(file), /<!--/);
+  }
+  assert.match(read("sources/lutzseverino/repo-canon.md"), /^# repo-canon$/m);
+});
+
+test("docs Markdown retains source headings and code with absolute links", () => {
+  for (const folder of ["docs/usage", "docs/adr"]) {
+    for (const file of readdirSync(path.join(repository, folder), {
+      recursive: true,
+      encoding: "utf8",
+    }).filter((file) => file.endsWith(".md"))) {
+      const prefix = folder === "docs/usage" ? "docs" : "docs/decisions";
+      const slug = file.replace(/(?:^|\/)README\.md$/, "").replace(/\.md$/, "");
+      const url = `${prefix}/${slug}`.replace(/\/$/, "");
+      const source = readFileSync(path.join(repository, folder, file), "utf8");
+      const markdown = read(`${url}.md`);
+      const tree = fromMarkdown(markdown);
+      assert.ok(markdown.includes(/^# (.+)$/m.exec(source)![0]), file);
+      const codes: string[] = [];
+      visit(fromMarkdown(source), "code", (node) => {
+        codes.push(node.value);
+      });
+      const actualCodes: string[] = [];
+      visit(tree, "code", (node) => {
+        actualCodes.push(node.value);
+      });
+      assert.deepEqual(actualCodes, codes, file);
+      visit(tree, (node) => {
+        if (
+          node.type === "link" ||
+          node.type === "definition" ||
+          node.type === "image"
+        )
+          assert.match(node.url, /^[a-z][\w+.-]*:/i, `${file}: ${node.url}`);
+      });
+    }
+  }
+  const adopt = read("docs/guides/adopt.md");
+  assert.ok(adopt.includes("https://repo-standards.com/docs/"));
+  const how = read("how-it-works.md");
+  for (const heading of [
+    "How Repo Standards works",
+    "Who does what",
+    "Current limits",
+  ])
+    assert.ok(how.includes(heading), heading);
+});
+
+test("agent surfaces use the scoped npm package in every install instruction", () => {
+  for (const file of readdirSync(output, {
+    recursive: true,
+    encoding: "utf8",
+  }).filter(
+    (file) =>
+      /\.(md|txt|json|html)$/.test(file) && !file.startsWith("pagefind/"),
+  )) {
+    const content = read(file);
+    assert.doesNotMatch(
+      content,
+      /\b(?:npx|npm\s+(?:install|i|exec))\s+(?:(?:--yes|-y)\s+)?repo-standards(?:\s|@|$)/m,
+      file,
+    );
+  }
+});
 
 test("every usage document and design decision is served with its source title", () => {
   for (const [folder, route] of [
@@ -146,6 +345,15 @@ test("one sitemap lists the homepage, How it works, every source page and every 
       "/sources/lutzseverino/repo-canon/",
       "/sources/lutzseverino/repo-standards-example/",
       ...docsPages().map(({ url }) => url),
+      ...readdirSync(output, { recursive: true, encoding: "utf8" })
+        .filter(
+          (file) =>
+            (file.endsWith(".md") && file !== "404.md") ||
+            file === "llms.txt" ||
+            file === "sources.json" ||
+            file.endsWith("/prompt.txt"),
+        )
+        .map((file) => `/${file}`),
     ]
       .map((url) => `https://repo-standards.com${url}`)
       .sort(),
@@ -163,6 +371,14 @@ test("the homepage keeps its pre-Starlight HTML apart from its links", () => {
   // The layout's social tags and manifest link came later, and pages.test.ts
   // checks them.
   const html = read("index.html")
+    .replace(
+      /<link rel="alternate" type="text\/markdown" href="\/index\.md">/g,
+      "",
+    )
+    .replace(
+      /<link rel="alternate" type="text\/plain" href="\/llms\.txt" title="llms\.txt">/g,
+      "",
+    )
     .replace(/<meta property="og:[^>]*>|<meta name="twitter:[^>]*>/g, "")
     .replace('<link rel="manifest" href="/site.webmanifest">', "")
     .replace(/\/_astro\/home\.[\w-]+\.js/g, "/_astro/home.HASH.js")
@@ -437,6 +653,20 @@ test("nested documents keep their route, title, sidebar and original-file link r
         stdio: "pipe",
       },
     );
+    assert.equal(
+      readFileSync(path.join(fixtureSite, "dist/sources.json"), "utf8"),
+      read("sources.json"),
+    );
+    const markdown = readFileSync(
+      path.join(fixtureSite, "dist/docs/guides/nested/deep.md"),
+      "utf8",
+    );
+    assert.ok(markdown.includes("# Nested guide"));
+    for (const href of [
+      "https://repo-standards.com/docs/guides/adopt/?from=nested#recovery",
+      "https://github.com/lutzseverino/repo-standards/blob/main/docs/development/README.md?from=nested#development",
+    ])
+      assert.ok(markdown.includes(href), href);
     const nodes = elements(
       parse(
         readFileSync(

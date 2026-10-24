@@ -195,9 +195,9 @@ const unescape = (html: string) =>
 test("each accepted source has a page, and a rejected candidate none", () => {
   const owners = readdirSync(path.join(output, "sources"));
   const pages = owners.flatMap((owner) =>
-    readdirSync(path.join(output, "sources", owner)).map(
-      (repo) => `sources/${owner}/${repo}/`,
-    ),
+    readdirSync(path.join(output, "sources", owner), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => `sources/${owner}/${entry.name}/`),
   );
   assert.deepEqual(
     pages.sort(),
