@@ -6,6 +6,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* the build's own scripts render nothing, so their words are not classes */
+@source not "../../scripts";
 
 @custom-variant dark (&:is(.dark *));
 

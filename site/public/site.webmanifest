@@ -1,0 +1,12 @@
+{
+  "name": "Repo Standards",
+  "short_name": "Repo Standards",
+  "start_url": "/",
+  "display": "browser",
+  "theme_color": "#0b4c96",
+  "background_color": "#f3f4f2",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

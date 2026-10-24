@@ -1,8 +1,18 @@
 ---
-// A page that only the tests build, through the shared layout.
+// A page that only the tests build, through the shared layout, with its own
+// social image.
 import BaseLayout from "../../src/layouts/base.astro";
 ---
 
-<BaseLayout title="Layout test" description="A page that only the tests build.">
+<BaseLayout
+  title="Layout test"
+  description="A page that only the tests build."
+  image={{
+    src: "/layout-test.png",
+    alt: "The layout test's own image.",
+    width: 800,
+    height: 400,
+  }}
+>
   <p>Layout test</p>
 </BaseLayout>
