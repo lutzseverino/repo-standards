@@ -157,7 +157,7 @@
 }
 .assembly .mount,
 .assembly .face-wrap,
-.assembly .lit-rot,
+.assembly .lit-copy,
 .assembly .face--lit,
 .assembly .glare {
   --gxp: inherit;
@@ -487,7 +487,7 @@ a.face:focus-visible {
 }
 
 /* ================= the torch =================
-   The torch writes the beam to each lit copy (.lit-rot) every frame. The
+   The torch writes the beam to each lit copy (.lit-copy) every frame. The
    properties are registered as not inherited, so a write restyles only the
    few elements that ask for them with `inherit`, not the whole plate. */
 @property --lx {
@@ -496,16 +496,6 @@ a.face:focus-visible {
   initial-value: -9999px;
 }
 @property --ly {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: -9999px;
-}
-@property --bx {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: -9999px;
-}
-@property --by {
   syntax: "<length>";
   inherits: false;
   initial-value: -9999px;
@@ -525,15 +515,27 @@ a.face:focus-visible {
   inherits: false;
   initial-value: 400px;
 }
-@property --hoff {
+/* the near side's smaller ellipse: its radii and its offset from the aim
+   point, towards the eye */
+@property --hrx {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 220px;
+}
+@property --hry {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 240px;
+}
+@property --hx {
   syntax: "<length>";
   inherits: false;
   initial-value: 0px;
 }
-@property --bang {
-  syntax: "<angle>";
+@property --hy {
+  syntax: "<length>";
   inherits: false;
-  initial-value: 0rad;
+  initial-value: 0px;
 }
 @property --gain {
   syntax: "<number>";
@@ -541,8 +543,7 @@ a.face:focus-visible {
   initial-value: 1;
 }
 /* the lit plate, its sheeting, rainbow and glints read the beam */
-.lit-rot > .face--lit {
-  --bang: inherit;
+.lit-copy > .face--lit {
   --lx: inherit;
   --ly: inherit;
   --br: inherit;
@@ -558,49 +559,42 @@ a.face:focus-visible {
 }
 
 /* Each plate renders twice, an unlit copy and a lit copy masked to the beam.
-   The beam is a cone from the eye. .lit-rot is a frame rotated to the beam,
-   so its elliptical footprint can lie along the beam; the lit plate inside
-   is counter-rotated back. --bx/--by is the aim point in that frame. A
-   smaller ellipse on the near side makes that side brighter, and --gain dims
-   the light as it arrives at a slant. */
-.lit-rot {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: var(--S, 0px);
-  height: var(--S, 0px);
-  transform: translate(-50%, -50%) rotate(var(--bang));
-  pointer-events: none;
+   The lit copy shares the plate's grid cell, untransformed, so it has the
+   plate's exact layout: the same box, the same line breaks, and text on the
+   same pixels. (A frame rotated to the beam, with the copy counter-rotated
+   inside it, put the copy's text up to 1.6 px off the plate's, as a ghost.)
+   The beam is a cone from the eye, and its footprint an ellipse along the
+   beam; the mask takes the ellipse's extent along x and y (rig.ts), which is
+   exact along the axes and a little rounder on the diagonals. A smaller
+   ellipse on the near side makes that side brighter, and --gain dims the
+   light as it arrives at a slant. */
+.lit-copy {
+  position: relative;
   z-index: 1;
+  pointer-events: none;
   opacity: calc(var(--lit) * var(--gain));
   will-change: mask-image;
   mask-image:
     radial-gradient(
-      var(--brx) var(--bry) at var(--bx) var(--by),
+      var(--brx) var(--bry) at var(--lx) var(--ly),
       #000 0%,
       rgba(0, 0, 0, 0.9) var(--hot),
       rgba(0, 0, 0, 0.42) 72%,
       transparent 100%
     ),
     radial-gradient(
-      calc(var(--brx) * 0.55) calc(var(--bry) * 0.6) at
-        calc(var(--bx) - var(--hoff)) var(--by),
+      var(--hrx) var(--hry) at calc(var(--lx) - var(--hx))
+        calc(var(--ly) - var(--hy)),
       rgba(0, 0, 0, 0.35),
       transparent
     );
 }
-.lit-rot > .face--lit {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: var(--W, 0px);
-  height: var(--H, 0px);
-  margin: 0;
-  transform: translate(-50%, -50%) rotate(calc(-1 * var(--bang)));
+.lit-copy > .face--lit {
+  height: 100%;
   pointer-events: none;
 }
 /* plates the beam cannot reach do no work at all */
-.lit-off > .lit-rot {
+.lit-off > .lit-copy {
   display: none;
 }
 /* the folded edge of a hero plate catches the beam */

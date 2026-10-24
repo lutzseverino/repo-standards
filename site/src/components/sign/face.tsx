@@ -59,10 +59,10 @@ export function Face({
         <Surface slats={slats} />
         {children}
       </Tag>
-      {/* the beam's footprint is an ellipse along the beam, so the lit copy
-          sits in a frame rotated to the beam and counter-rotated back */}
+      {/* the lit copy shares the plate's grid cell, untransformed, so its
+          text lies exactly on the plate's */}
       <div
-        className="lit-rot"
+        className="lit-copy"
         aria-hidden="true"
         inert
         suppressHydrationWarning

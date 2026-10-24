@@ -71,10 +71,16 @@ function FitName({ name }: { name: string }) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    fitName(el);
-    const ro = new ResizeObserver(() => fitName(el));
+    const fit = () => fitName(el);
+    fit();
+    const ro = new ResizeObserver(fit);
     ro.observe(el.parentElement!);
-    return () => ro.disconnect();
+    // a font that arrives later changes the name's width, not the plate's
+    document.fonts.addEventListener("loadingdone", fit);
+    return () => {
+      ro.disconnect();
+      document.fonts.removeEventListener("loadingdone", fit);
+    };
   }, [name]);
   return (
     // fitted before the page hydrates (rig.ts)
