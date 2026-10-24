@@ -2,11 +2,22 @@
 import { Home } from "@/components/home";
 import { restScript } from "@/components/sign/rig";
 import { loadCatalogue } from "@/lib/load-catalogue";
+import {
+  buildStructuredData,
+  serializeStructuredData,
+} from "@/lib/structured-data";
 import "@/styles/global.css";
 import "@/components/sign/sign.css";
 import "@/components/sign/light.css";
 
 const catalogue = await loadCatalogue();
+const name = "Repository Standards";
+const description = "Standards sources you can adopt in one command.";
+const structuredData = buildStructuredData(catalogue, {
+  name,
+  url: Astro.site!.href,
+  description,
+});
 ---
 
 <!doctype html>
@@ -14,16 +25,18 @@ const catalogue = await loadCatalogue();
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="Standards sources you can adopt in one command."
-    />
-    <title>Repository Standards</title>
+    <meta name="description" content={description} />
+    <title>{name}</title>
     <link rel="canonical" href={Astro.site} />
     <!-- the ICO's 32x32 size keeps browsers that read SVG on the SVG -->
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={serializeStructuredData(structuredData)}
+    />
     <!-- holds the first paint until the page is drawn at rest, below -->
     <link rel="expect" href="#at-rest" blocking="render" />
     <!-- applies the stored or system theme before anything is drawn -->
